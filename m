@@ -1,64 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:42560 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752920AbcA3UKz (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43416 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758203AbcAKEHs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jan 2016 15:10:55 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: Media Controller fix to not let stream_count go negative
-Date: Sat, 30 Jan 2016 13:10:52 -0700
-Message-Id: <1454184652-2427-1-git-send-email-shuahkh@osg.samsung.com>
+	Sun, 10 Jan 2016 23:07:48 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Subject: [PATCH 3/3] v4l: vsp1: Add tri-planar memory formats support
+Date: Mon, 11 Jan 2016 06:07:44 +0200
+Message-Id: <1452485264-11328-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1452485264-11328-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1452485264-11328-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change media_entity_pipeline_stop() to not decrement
-stream_count of an inactive media pipeline. Doing so,
-results in preventing starting the pipeline.
-
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/media-entity.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ drivers/media/platform/vsp1/vsp1_pipe.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index e89d85a..f2e4360 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -452,9 +452,12 @@ error:
- 	media_entity_graph_walk_start(graph, entity_err);
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 96f0e7d4c400..c96b47a882de 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -113,6 +113,26 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
+ 	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
+ 	  3, { 8, 8, 8 }, false, false, 2, 2, false },
++	{ V4L2_PIX_FMT_YVU420M, MEDIA_BUS_FMT_AYUV8_1X32,
++	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
++	  3, { 8, 8, 8 }, false, true, 2, 2, false },
++	{ V4L2_PIX_FMT_YUV422M, MEDIA_BUS_FMT_AYUV8_1X32,
++	  VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
++	  3, { 8, 8, 8 }, false, false, 2, 1, false },
++	{ V4L2_PIX_FMT_YVU422M, MEDIA_BUS_FMT_AYUV8_1X32,
++	  VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
++	  3, { 8, 8, 8 }, false, true, 2, 1, false },
++	{ V4L2_PIX_FMT_YUV444M, MEDIA_BUS_FMT_AYUV8_1X32,
++	  VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
++	  3, { 8, 8, 8 }, false, false, 1, 1, false },
++	{ V4L2_PIX_FMT_YVU444M, MEDIA_BUS_FMT_AYUV8_1X32,
++	  VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
++	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
++	  3, { 8, 8, 8 }, false, true, 1, 1, false },
+ };
  
- 	while ((entity_err = media_entity_graph_walk_next(graph))) {
--		entity_err->stream_count--;
--		if (entity_err->stream_count == 0)
--			entity_err->pipe = NULL;
-+		/* don't let the stream_count go negative */
-+		if (entity->stream_count > 0) {
-+			entity_err->stream_count--;
-+			if (entity_err->stream_count == 0)
-+				entity_err->pipe = NULL;
-+		}
- 
- 		/*
- 		 * We haven't increased stream_count further than this
-@@ -486,9 +489,12 @@ void media_entity_pipeline_stop(struct media_entity *entity)
- 	media_entity_graph_walk_start(graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(graph))) {
--		entity->stream_count--;
--		if (entity->stream_count == 0)
--			entity->pipe = NULL;
-+		/* don't let the stream_count go negative */
-+		if (entity->stream_count > 0) {
-+			entity->stream_count--;
-+			if (entity->stream_count == 0)
-+				entity->pipe = NULL;
-+		}
- 	}
- 
- 	if (!--pipe->streaming_count)
+ /*
 -- 
-2.5.0
+2.4.10
 
