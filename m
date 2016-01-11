@@ -1,46 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:36446 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754892AbcAMPEL convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2016 10:04:11 -0500
-Received: from pps.filterd (m0046660.ppops.net [127.0.0.1])
-	by mx08-00178001.pphosted.com (8.15.0.59/8.15.0.59) with SMTP id u0DEp69j015001
-	for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 16:04:10 +0100
-Received: from beta.dmz-eu.st.com (beta.dmz-eu.st.com [164.129.1.35])
-	by mx08-00178001.pphosted.com with ESMTP id 20ar7778pv-1
-	(version=TLSv1/SSLv3 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 16:04:10 +0100
-Received: from zeta.dmz-eu.st.com (zeta.dmz-eu.st.com [164.129.230.9])
-	by beta.dmz-eu.st.com (STMicroelectronics) with ESMTP id F158E31
-	for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 15:03:23 +0000 (GMT)
-Received: from Webmail-eu.st.com (safex1hubcas6.st.com [10.75.90.73])
-	by zeta.dmz-eu.st.com (STMicroelectronics) with ESMTP id 6328AA541
-	for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 15:04:09 +0000 (GMT)
-From: Sebastien LEDUC <sebastien.leduc@st.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 13 Jan 2016 16:04:07 +0100
-Subject: V4L2 encoder APIs
-Message-ID: <DF597D17D2F66F40A76F27D4E5D6E1A48B0F53E0@SAFEX1MAIL1.st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35558 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757307AbcAKSAn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 13:00:43 -0500
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH 1/3] media: soc_camera: rcar_vin: Add rcar fallback compatibility string
+Date: Tue, 12 Jan 2016 03:00:09 +0900
+Message-Id: <1452535211-4869-2-git-send-email-ykaneko0929@gmail.com>
+In-Reply-To: <1452535211-4869-1-git-send-email-ykaneko0929@gmail.com>
+References: <1452535211-4869-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all
-I have seen on the linuxTV web site that there were some on-going discussions related to the Codec API.
+Add fallback compatibility string for R-Car Gen2 and Gen3, This is
+in keeping with the fallback scheme being adopted wherever appropriate
+for drivers for Renesas SoCs.
 
-In our SoCs, it is the HW encoder that is outputting both the slice data and the headers/metadata, but it does it using separate buffers.
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+---
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 8 +++++++-
+ drivers/media/platform/soc_camera/rcar_vin.c         | 3 +++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-So we are looking at how to expose that using V4L2 APIs.
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 9dafe6b..c13ec5a 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -6,12 +6,18 @@ family of devices. The current blocks are always slaves and suppot one input
+ channel which can be either RGB, YUYV or BT656.
+ 
+  - compatible: Must be one of the following
++   - "renesas,rcar-gen2-vin" for R-Car Gen2 Series
++   - "renesas,rcar-gen3-vin" for R-Car Gen3 Series
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7793" for the R8A7793 device
+    - "renesas,vin-r8a7791" for the R8A7791 device
+    - "renesas,vin-r8a7790" for the R8A7790 device
+    - "renesas,vin-r8a7779" for the R8A7779 device
+    - "renesas,vin-r8a7778" for the R8A7778 device
++
++   When compatible with the generic version, nodes must list the SoC-specific
++   version corresponding to the platform first followed by the generic version.
++
+  - reg: the register base and size for the device registers
+  - interrupts: the interrupt for the device
+  - clocks: Reference to the parent clock
+@@ -36,7 +42,7 @@ Device node example
+ 	};
+ 
+         vin0: vin@0xe6ef0000 {
+-                compatible = "renesas,vin-r8a7790";
++                compatible = "renesas,vin-r8a7790","renesas,rcar-gen2-vin";
+                 clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
+                 reg = <0 0xe6ef0000 0 0x1000>;
+                 interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index b7fd695..cccd859 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -143,6 +143,7 @@
+ #define RCAR_VIN_BT656			(1 << 3)
+ 
+ enum chip_id {
++	RCAR_GEN3,
+ 	RCAR_GEN2,
+ 	RCAR_H1,
+ 	RCAR_M1,
+@@ -1818,6 +1819,8 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
+ 
+ #ifdef CONFIG_OF
+ static const struct of_device_id rcar_vin_of_table[] = {
++	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
++	{ .compatible = "renesas,rcar-gen3-vin", .data = (void *)RCAR_GEN3 },
+ 	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+ 	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+ 	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+-- 
+1.9.1
 
-We were thinking that we could use the MPLANE apis to achieve that, where one plane would contain  the header/metadata and another one for the slice data.
-
-Any opinion on this ? 
-
-Thanks in advance for your inputs
-
-Regards,
-Sébastien
