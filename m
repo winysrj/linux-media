@@ -1,90 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:50741 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757060AbcAZJMu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 04:12:50 -0500
-Date: Tue, 26 Jan 2016 07:12:42 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	kgene@kernel.org, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: platform: exynos4-is: media-dev: Add missing
- of_node_put
-Message-ID: <20160126071242.4a127d3f@recife.lan>
-In-Reply-To: <alpine.DEB.2.02.1601260809340.2004@localhost6.localdomain6>
-References: <20160125152136.GA19484@amitoj-Inspiron-3542>
-	<56A6BCC3.8040407@samsung.com>
-	<alpine.DEB.2.02.1601260723290.2004@localhost6.localdomain6>
-	<56A7185F.7020207@samsung.com>
-	<alpine.DEB.2.02.1601260809340.2004@localhost6.localdomain6>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43314 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757173AbcAKB6A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jan 2016 20:58:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 8/8] [media] omap3isp: Check v4l2_of_parse_endpoint() return value
+Date: Mon, 11 Jan 2016 03:58:09 +0200
+Message-ID: <15964645.FOqpCbqGqp@avalon>
+In-Reply-To: <1452191248-15847-9-git-send-email-javier@osg.samsung.com>
+References: <1452191248-15847-1-git-send-email-javier@osg.samsung.com> <1452191248-15847-9-git-send-email-javier@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 26 Jan 2016 08:12:15 +0100
-Julia Lawall <julia.lawall@lip6.fr> escreveu:
+Hi Javier,
 
-> On Tue, 26 Jan 2016, Krzysztof Kozlowski wrote:
+Thank you for the patch.
+
+On Thursday 07 January 2016 15:27:22 Javier Martinez Canillas wrote:
+> The v4l2_of_parse_endpoint() function can fail so check the return value.
 > 
-> > On 26.01.2016 15:24, Julia Lawall wrote:  
-> > > 
-> > > 
-> > > On Tue, 26 Jan 2016, Krzysztof Kozlowski wrote:
-> > >   
-> > >> On 26.01.2016 00:21, Amitoj Kaur Chawla wrote:  
-> > >>> for_each_available_child_of_node and for_each_child_of_node perform an
-> > >>> of_node_get on each iteration, so to break out of the loop an of_node_put is
-> > >>> required.
-> > >>>
-> > >>> Found using Coccinelle. The simplified version of the semantic patch
-> > >>> that is used for this is as follows:
-> > >>>
-> > >>> // <smpl>
-> > >>> @@
-> > >>> local idexpression n;
-> > >>> expression e,r;
-> > >>> @@
-> > >>>
-> > >>>  for_each_available_child_of_node(r,n) {
-> > >>>    ...
-> > >>> (
-> > >>>    of_node_put(n);
-> > >>> |
-> > >>>    e = n
-> > >>> |
-> > >>> +  of_node_put(n);
-> > >>> ?  break;
-> > >>> )
-> > >>>    ...
-> > >>>  }
-> > >>> ... when != n
-> > >>> // </smpl>  
-> > >>
-> > >> Patch iselft looks correct but why are you pasting coccinelle script
-> > >> into the message?
-> > >>
-> > >> The script is already present in Linux kernel:
-> > >> scripts/coccinelle/iterators/device_node_continue.cocci  
-> > > 
-> > > I don't think so.  The continue one takes care of the case where there is 
-> > > an extraneous of_node_put before a continue, not a missing one before a 
-> > > break.  But OK to drop it if it doesn't seem useful.
-> > > 
-> > > julia  
-> > 
-> > You are right - this is not covered by that cocci patch... but I think
-> > is covered by scripts/coccinelle/iterators/fen.cocci, isn't it?  
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
 > 
-> Not quite. 
+>  drivers/media/platform/omap3isp/isp.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 79a0b953bba3..891e54394a1c
+> 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2235,8 +2235,11 @@ static int isp_of_parse_node(struct device *dev,
+> struct device_node *node, struct isp_bus_cfg *buscfg = &isd->bus;
+>  	struct v4l2_of_endpoint vep;
+>  	unsigned int i;
+> +	int ret;
+> 
+> -	v4l2_of_parse_endpoint(node, &vep);
+> +	ret = v4l2_of_parse_endpoint(node, &vep);
+> +	if (ret)
+> +		return ret;
+> 
+>  	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
+>  		vep.base.port);
 
-If the script is not part of the Kernel, please keep the script in the
-patch, as it could be useful in some future.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
