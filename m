@@ -1,349 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59113 "EHLO lists.s-osg.org"
+Received: from mout.gmx.net ([212.227.17.21]:61957 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751498AbcA1UFp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 15:05:45 -0500
-Subject: Re: [PATCH 20/31] media: au0828 change to register/unregister
- entity_notify hook
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
- <8ba7a2bcf7cde4d9361205c08ef5fca116b3973f.1452105878.git.shuahkh@osg.samsung.com>
- <20160128143610.154ce103@recife.lan>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56AA748F.9040209@osg.samsung.com>
-Date: Thu, 28 Jan 2016 13:05:35 -0700
+	id S932900AbcAKVNk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 16:13:40 -0500
+Date: Mon, 11 Jan 2016 22:13:30 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+cc: linux-media@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH 1/3 v2] media: soc_camera: rcar_vin: Add rcar fallback
+ compatibility string
+In-Reply-To: <1452539418-28480-2-git-send-email-ykaneko0929@gmail.com>
+Message-ID: <Pine.LNX.4.64.1601112210040.31467@axis700.grange>
+References: <1452539418-28480-1-git-send-email-ykaneko0929@gmail.com>
+ <1452539418-28480-2-git-send-email-ykaneko0929@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20160128143610.154ce103@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/28/2016 09:36 AM, Mauro Carvalho Chehab wrote:
-> Em Wed,  6 Jan 2016 13:27:09 -0700
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> 
->> au0828 registers entity_notify hook to create media graph for
->> the device. This handler runs whenvere a new entity gets added
-> 
-> typo: whenever.
+Hello Kaneko-san,
 
-ok
+On Tue, 12 Jan 2016, Yoshihiro Kaneko wrote:
 
+> Add fallback compatibility string for R-Car Gen2 and Gen3, This is
+> in keeping with the fallback scheme being adopted wherever appropriate
+> for drivers for Renesas SoCs.
 > 
->> to the media device. It creates necessary links from video, vbi,
->> and ALSA entities to decoder and links tuner and decoder entities.
->> As this handler runs as entities get added, it has to maintain
->> state on the links it already created. New fields are added to
->> au0828_dev to keep this state information. entity_notify gets
->> unregistered before media_device unregister.
-> 
-> Bty, please avoid long paragraphs at the patch description, 
-> and please try to be clearer on your patch descriptions... That
-> makes boring to read everything. :-;
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
 
-Yeah I like to add details I consider relevant to the log.
-I will try to be concise.
+Have you seen this patch:
+
+http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/commit/?h=for-4.6-1&id=8e7825d38bbfcf8af8b0422c88f5e22701d89786
+
+that I pushed yesterday? Is it wrong then? Do we have to cancel it, if 
+Mauro hasn't pulled it yet? Or would you like to rebase and work on top of 
+it?
+
+Thanks
+Guennadi
 
 > 
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/usb/au0828/au0828-core.c | 104 +++++++++++++++++++++++----------
->>  drivers/media/usb/au0828/au0828.h      |   6 ++
->>  2 files changed, 78 insertions(+), 32 deletions(-)
->>
->> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
->> index 6ef177c..a381660 100644
->> --- a/drivers/media/usb/au0828/au0828-core.c
->> +++ b/drivers/media/usb/au0828/au0828-core.c
->> @@ -137,6 +137,8 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
->>  #ifdef CONFIG_MEDIA_CONTROLLER
->>  	if (dev->media_dev &&
->>  		media_devnode_is_registered(&dev->media_dev->devnode)) {
->> +		media_device_unregister_entity_notify(dev->media_dev,
->> +						      &dev->entity_notify);
->>  		media_device_unregister(dev->media_dev);
->>  		media_device_cleanup(dev->media_dev);
->>  		dev->media_dev = NULL;
->> @@ -263,11 +265,16 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->>  	struct media_device *mdev = dev->media_dev;
->>  	struct media_entity *entity;
->>  	struct media_entity *tuner = NULL, *decoder = NULL;
->> +	struct media_entity *audio_capture = NULL;
->>  	int i, ret;
->>  
->>  	if (!mdev)
->>  		return 0;
->>  
->> +	if (dev->tuner_linked && dev->vdev_linked && dev->vbi_linked &&
->> +	    dev->audio_capture_linked)
->> +		return 0;
->> +
->>  	media_device_for_each_entity(entity, mdev) {
->>  		switch (entity->function) {
->>  		case MEDIA_ENT_F_TUNER:
->> @@ -276,6 +283,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->>  		case MEDIA_ENT_F_ATV_DECODER:
->>  			decoder = entity;
->>  			break;
->> +		case MEDIA_ENT_F_AUDIO_CAPTURE:
->> +			audio_capture = entity;
->> +			break;
->>  		}
->>  	}
->>  
->> @@ -285,60 +295,77 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->>  	if (!decoder)
->>  		return -EINVAL;
->>  
->> -	if (tuner) {
->> +	if (tuner  && !dev->tuner_linked) {
->> +		dev->tuner = tuner;
->>  		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
->>  					    decoder, 0,
->>  					    MEDIA_LNK_FL_ENABLED);
->>  		if (ret)
->>  			return ret;
->> +		dev->tuner_linked = 1;
->>  	}
->> -	if (dev->vdev.entity.graph_obj.mdev) {
->> +	if (dev->vdev.entity.graph_obj.mdev && !dev->vdev_linked) {
->>  		ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
->>  					    &dev->vdev.entity, 0,
->>  					    MEDIA_LNK_FL_ENABLED);
->>  		if (ret)
->>  			return ret;
->> +		dev->vdev_linked = 1;
->>  	}
->> -	if (dev->vbi_dev.entity.graph_obj.mdev) {
->> +	if (dev->vbi_dev.entity.graph_obj.mdev && !dev->vbi_linked) {
->>  		ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
->>  					    &dev->vbi_dev.entity, 0,
->>  					    MEDIA_LNK_FL_ENABLED);
->>  		if (ret)
->>  			return ret;
->> -	}
->> -
->> -	for (i = 0; i < AU0828_MAX_INPUT; i++) {
->> -		struct media_entity *ent = &dev->input_ent[i];
->> +		dev->vbi_linked = 1;
->>  
->> -		if (!ent->graph_obj.mdev)
->> -			continue;
->> +		/*
->> +		 * Input entities are registered before vbi entity,
->> +		 * create graph nodes for them after vbi is created
->> +		*/
->> +		for (i = 0; i < AU0828_MAX_INPUT; i++) {
->> +			struct media_entity *ent = &dev->input_ent[i];
->>  
->> -		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
->> -			break;
->> +			if (!ent->graph_obj.mdev)
->> +				continue;
->>  
->> -		switch (AUVI_INPUT(i).type) {
->> -		case AU0828_VMUX_CABLE:
->> -		case AU0828_VMUX_TELEVISION:
->> -		case AU0828_VMUX_DVB:
->> -			if (!tuner)
->> +			if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
->>  				break;
->>  
->> -			ret = media_create_pad_link(ent, 0, tuner,
->> -						    TUNER_PAD_RF_INPUT,
->> -						    MEDIA_LNK_FL_ENABLED);
->> -			if (ret)
->> -				return ret;
->> -			break;
->> -		case AU0828_VMUX_COMPOSITE:
->> -		case AU0828_VMUX_SVIDEO:
->> -		default: /* AU0828_VMUX_DEBUG */
->> -			/* FIXME: fix the decoder PAD */
->> -			ret = media_create_pad_link(ent, 0, decoder, 0, 0);
->> -			if (ret)
->> -				return ret;
->> -			break;
->> +			switch (AUVI_INPUT(i).type) {
->> +			case AU0828_VMUX_CABLE:
->> +			case AU0828_VMUX_TELEVISION:
->> +			case AU0828_VMUX_DVB:
->> +				if (!tuner)
->> +					break;
->> +
->> +				ret = media_create_pad_link(ent, 0, tuner,
->> +							TUNER_PAD_RF_INPUT,
->> +							MEDIA_LNK_FL_ENABLED);
->> +				if (ret)
->> +					return ret;
->> +				break;
->> +			case AU0828_VMUX_COMPOSITE:
->> +			case AU0828_VMUX_SVIDEO:
->> +			default: /* AU0828_VMUX_DEBUG */
->> +				/* FIXME: fix the decoder PAD */
->> +				ret = media_create_pad_link(ent, 0, decoder,
->> +							    0, 0);
->> +				if (ret)
->> +					return ret;
->> +				break;
->> +			}
->>  		}
->>  	}
->> +	if (audio_capture && !dev->audio_capture_linked) {
->> +		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
->> +					    audio_capture, 0,
->> +					    MEDIA_LNK_FL_ENABLED);
->> +		if (ret)
->> +			return ret;
->> +		dev->audio_capture_linked = 1;
->> +	}
->>  #endif
->>  	return 0;
->>  }
->> @@ -349,8 +376,10 @@ static int au0828_media_device_register(struct au0828_dev *dev,
->>  #ifdef CONFIG_MEDIA_CONTROLLER
->>  	int ret;
->>  
->> -	if (dev->media_dev &&
->> -		!media_devnode_is_registered(&dev->media_dev->devnode)) {
->> +	if (!dev->media_dev)
->> +		return 0;
->> +
->> +	if (!media_devnode_is_registered(&dev->media_dev->devnode)) {
->>  
->>  		/* register media device */
->>  		ret = media_device_register(dev->media_dev);
->> @@ -360,6 +389,17 @@ static int au0828_media_device_register(struct au0828_dev *dev,
->>  			return ret;
->>  		}
->>  	}
->> +	/* register entity_notify callback */
->> +	dev->entity_notify.notify_data = (void *) dev;
->> +	dev->entity_notify.notify = (void *) au0828_create_media_graph;
->> +	ret = media_device_register_entity_notify(dev->media_dev,
->> +						  &dev->entity_notify);
->> +	if (ret) {
->> +		dev_err(&udev->dev,
->> +			"Media Device register entity_notify Error: %d\n",
->> +			ret);
->> +		return ret;
->> +	}
->>  #endif
->>  	return 0;
->>  }
->> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
->> index 8276072..cfb6d58 100644
->> --- a/drivers/media/usb/au0828/au0828.h
->> +++ b/drivers/media/usb/au0828/au0828.h
->> @@ -283,6 +283,12 @@ struct au0828_dev {
->>  	struct media_entity *decoder;
->>  	struct media_entity input_ent[AU0828_MAX_INPUT];
->>  	struct media_pad input_pad[AU0828_MAX_INPUT];
->> +	struct media_entity_notify entity_notify;
->> +	struct media_entity *tuner;
->> +	bool tuner_linked;
->> +	bool vdev_linked;
->> +	bool vbi_linked;
->> +	bool audio_capture_linked;
+> v2 [Yoshihiro Kaneko]
+> * As suggested by Geert Uytterhoeven
+>   drivers/media/platform/soc_camera/rcar_vin.c:
+>     - The generic compatibility values are listed at the end of the
+>       rcar_vin_of_table[].
 > 
-> Hmm... now I understood why you did the changes on patch 13/31.
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 8 +++++++-
+>  drivers/media/platform/soc_camera/rcar_vin.c         | 3 +++
+>  2 files changed, 10 insertions(+), 1 deletion(-)
 > 
-> I see what you're doing, but not sure if this is a good idea
-> to have one bool for each possible device. On au0828, the
-> topology is actually simpler than on other devices, as it
-> currently supports a very few set of I2C devices, but on other
-> drivers, things can be messier.
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index 9dafe6b..c13ec5a 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -6,12 +6,18 @@ family of devices. The current blocks are always slaves and suppot one input
+>  channel which can be either RGB, YUYV or BT656.
+>  
+>   - compatible: Must be one of the following
+> +   - "renesas,rcar-gen2-vin" for R-Car Gen2 Series
+> +   - "renesas,rcar-gen3-vin" for R-Car Gen3 Series
+>     - "renesas,vin-r8a7794" for the R8A7794 device
+>     - "renesas,vin-r8a7793" for the R8A7793 device
+>     - "renesas,vin-r8a7791" for the R8A7791 device
+>     - "renesas,vin-r8a7790" for the R8A7790 device
+>     - "renesas,vin-r8a7779" for the R8A7779 device
+>     - "renesas,vin-r8a7778" for the R8A7778 device
+> +
+> +   When compatible with the generic version, nodes must list the SoC-specific
+> +   version corresponding to the platform first followed by the generic version.
+> +
+>   - reg: the register base and size for the device registers
+>   - interrupts: the interrupt for the device
+>   - clocks: Reference to the parent clock
+> @@ -36,7 +42,7 @@ Device node example
+>  	};
+>  
+>          vin0: vin@0xe6ef0000 {
+> -                compatible = "renesas,vin-r8a7790";
+> +                compatible = "renesas,vin-r8a7790","renesas,rcar-gen2-vin";
+>                  clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
+>                  reg = <0 0xe6ef0000 0 0x1000>;
+>                  interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index b7fd695..f72de0b 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -143,6 +143,7 @@
+>  #define RCAR_VIN_BT656			(1 << 3)
+>  
+>  enum chip_id {
+> +	RCAR_GEN3,
+>  	RCAR_GEN2,
+>  	RCAR_H1,
+>  	RCAR_M1,
+> @@ -1824,6 +1825,8 @@ static const struct of_device_id rcar_vin_of_table[] = {
+>  	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+>  	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+>  	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+> +	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+> +	{ .compatible = "renesas,rcar-gen3-vin", .data = (void *)RCAR_GEN3 },
+>  	{ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
+> -- 
+> 1.9.1
 > 
-> See, for example, two graphs for em28xx-based devices:
-> 	https://mchehab.fedorapeople.org/mc-next-gen/wintv_usb2.png
-> 	https://mchehab.fedorapeople.org/mc-next-gen/hvr_950.png
-> 
-> On the first graph, the tuner is not connected directly to the
-> analog demod, but, instead, to two other elements:
-> 	- tda9887 - for video
-> 	- msp3400 - for audio
-> 
-> IMHO, the best way to handle graph setup is that each driver
-> should handle the links that belong only to them synchronously,
-> after creating/registering all the entities.
-
-Except for the ALSA part of the graph, we are close
-to drivers creating their graphs. You are right that
-au0828 graph creation routine shouldn't need to create
-links from Alsa mixer to Alsa capture nodes.
- 
-> 
-> So, only the links between two drivers would be asynchronously
-> created. So, In the case of au0828:
-> 
-> - au0828 core will create the connector entities;
-> 
-> - I2C drivers will create their own entities;
-> 
-> - DVB core will create the DVB entities/interfaces;
-> 
-> - V4L core will create V4L interfaces and I/O entities;
-> 
-> - au0828 V4L driver will create all V4L links, after
->   ensuring that the needed I2C drivers were bound;
-> 
-> - snd-usb-audio will create all ALSA-specific entities links;
-> 
-> The V4L->ALSA links will either be created by au0828-core,
-> via the notification handler.
-
-Right - that is part of what au0828_create_media_graph()
-is doing now.
-
-> 
-> With that in mind, I don't see any need to touch at
-> au0828_create_media_graph(). It will need an extra function
-> to handle the notification when ALSA gets registered
-> (or when the entities there are added, whatever works best).
-> 
-
-If I understand correctly, what you are saying is:
-
-Don't add async handling that creates V4L->ALSA
-to au0828_create_media_graph() and keep that in
-an async handler.
-
-I will make changes to address this.
-
-thanks,
--- Shuah
-> 
-> 
-> 
-> 
-> 
->>  #endif
->>  };
->>  
-
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
