@@ -1,103 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:34271 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755176AbcAHODq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2016 09:03:46 -0500
-Received: by mail-ig0-f180.google.com with SMTP id ik10so79421041igb.1
-        for <linux-media@vger.kernel.org>; Fri, 08 Jan 2016 06:03:46 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAJ2oMhKLbDc1xBQgyz0Ga9K6PQ7M8OGTn7_dNywFs=3XrNrP6A@mail.gmail.com>
-References: <CAJ2oMhKLbDc1xBQgyz0Ga9K6PQ7M8OGTn7_dNywFs=3XrNrP6A@mail.gmail.com>
-Date: Fri, 8 Jan 2016 16:03:45 +0200
-Message-ID: <CAJ2oMhJ5SuS0ub5mg5w7-q3r1OUm6CcatxKGBAHHuC+mKic7VA@mail.gmail.com>
-Subject: Re: Using v4l2 API example as-is for video capture
-From: Ran Shalit <ranshalit@gmail.com>
+Received: from smtp5.mail.ru ([94.100.179.24]:47605 "EHLO smtp5.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758664AbcAKJnh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 04:43:37 -0500
+From: andreykosh000@mail.ru
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: koshkoshka <andreykosh000@mail.ru>
+Subject: [PATCH] Fixed frequency range to 42-870 MHz
+Date: Mon, 11 Jan 2016 19:43:30 +1000
+Message-Id: <1452505410-10558-1-git-send-email-andreykosh000@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 8, 2016 at 8:25 AM, Ran Shalit <ranshalit@gmail.com> wrote:
-> Hello,
->
-> I am trying to use v4l2 example from API documentation:
-> inhttp://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html .
-> As a start, I wanted to first try uding it with vivid (virtual device driver).
-> I found excelent vivid documentation in the kernel, which is very helpful:
-> https://www.kernel.org/doc/Documentation/video4linux/vivid.txt
->
-> But on trying to use the example as-is for capturing video frames into
-> file, and playing the file, I encounter difficulties.
-> I tried the example as-is, and then tried several resolution,
-> pixelformat, different inputs, but it always result with video with a
-> sync problems ( the test bars of the video are keep moving in the
-> horizontal axis, or the text is changing its location for one frame to
-> the next).
->
-> I compiled the v4l2 API example AS-IS from:
-> http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html with
-> minor modification in the --force part of the example (I also tried
-> the example as is without modifications but it did not help), so that
-> I choose hd input , and 1920x1080 resolution, V4L2_PIX_FMT_YUV420
-> (also tried V4L2_PIX_FMT_YUV422P) , progressive.
->
->   if (force_format) {
->             input = 3;  // <<-- HD input device
->             if (-1==xioctl(fd,VIDIOC_S_INPUT,&input))
->             {
->              errno_exit("VIDIOC_S_INPUT");
->             }
->             fmt.fmt.pix.width       = 1920;
->             fmt.fmt.pix.height      = 1080;
->             fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420; // <<-
-> tried also V4L2_PIX_FMT_YUV422P
->             fmt.fmt.pix.field       = V4L2_FIELD_NONE; // <- trying to
-> capture progressive
->
->             if (-1 == xioctl(fd, VIDIOC_S_FMT, &fmt))
->                     errno_exit("VIDIOC_S_FMT");
->
->     } else {
->
-> I run the application with (the compiled code using pixelformat =
-> V4L2_PIX_FMT_YUV420 trial ):
->
-> ./v4l2_example -f -o -c 10  > cap_yuv420p.yuv
->
-> And (the compiled code using pixelformat = V4L2_PIX_FMT_YUV422P trial )
->
-> ./v4l2_example -f -o -c 10  > cap_yuv422p.yuv
->
-> I've tried to play them with:
->
-> ffplay -f rawvideo -pixel_format yuv420p -video_size 1920x1080 -i
-> cap_yuv420p.yuv
->
-> And
->
-> ffplay -f rawvideo -pixel_format yuv422p -video_size 1920x1080 -i
-> cap_yuv422p.yuv
->
-> These are the captured video files from my above trials:
->
-> https://drive.google.com/folderview?id=0B22GsWueReZTUS1tSHBraTAyZ00&usp=sharing
->
-> I probably am doing something wrong. Is there any idea what's wrong in
-> my configurations or how I can debug it better ?
->
-> Best Regards,
-> Ran
+From: koshkoshka <andreykosh000@mail.ru>
 
+Signed-off-by: koshkoshka <andreykosh000@mail.ru>
+---
+ drivers/media/tuners/si2157.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Hi,
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index ce157ed..86a753e 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -363,8 +363,8 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ static const struct dvb_tuner_ops si2157_ops = {
+ 	.info = {
+ 		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
+-		.frequency_min  = 55000000,
+-		.frequency_max  = 862000000,
++		.frequency_min  = 42000000,
++		.frequency_max  = 870000000,
+ 	},
+ 
+ 	.init = si2157_init,
+-- 
+1.9.1
 
-I did manage to play the video with the example as-is (no code modification)
-But It seems that the captured video is always the same:  422 YUYV.
-I tried to change in code to other formats (in the section below force
-option as I wrote in the previous post) ,
-but although it gives no error (and VIDIOC_G_FMT returns the new
-format) ,  and yet - the final video is always in 422, YUYV format.
-Is there any hint why we can't change the format to YUV420  ?
-
-Regards,
-Ran
