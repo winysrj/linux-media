@@ -1,134 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57284 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932892AbcAKOl6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 09:41:58 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from lists.s-osg.org ([54.187.51.154]:55299 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761058AbcAKQrs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 11:47:48 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>, linux-api@vger.kernel.org
-Subject: [PATCH v2] [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY
-Date: Mon, 11 Jan 2016 12:41:02 -0200
-Message-Id: <be0270ec89e6b9b49de7e533dd1f3a89ad34d205.1452523228.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Nikhil Devshatwar <nikhil.nd@ti.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-samsung-soc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	"Prabhakar\"" <prabhakar.csengg@gmail.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 0/8] [media] Check v4l2_of_parse_endpoint() ret val in all drivers
+Date: Mon, 11 Jan 2016 13:47:08 -0300
+Message-Id: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are a few discussions left with regards to this ioctl:
+Hello,
 
-1) the name of the new structs will contain _v2_ on it?
-2) what's the best alternative to avoid compat32 issues?
+When discussing a patch [0] with Laurent Pinchart for another series I
+mentioned to him that most callers of v4l2_of_parse_endpoint() weren't
+checking the return value. This is likely due the function kernel-doc
+stating incorrectly that the return value is always 0 but can return a
+negative error code on failure.
 
-Due to that, let's postpone the addition of this new ioctl to
-the next Kernel version, to give people more time to discuss it.
+This trivial patch series fixes the function kernel-doc and add proper
+error checking in all the drivers that are currently not doing so.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
+This is the second version of the series that fixes some minot issues
+pointed out by Sakari Ailus. The v1 of the series can be found in [1].
 
-v2: Fix a compilation breakage
+[0]: https://lkml.org/lkml/2016/1/6/307
+[1]: https://lkml.org/lkml/2016/1/7/508
 
- Documentation/DocBook/media/v4l/media-ioc-g-topology.xml | 3 +++
- drivers/media/media-device.c                             | 7 ++++++-
- include/uapi/linux/media.h                               | 6 +++++-
- 3 files changed, 14 insertions(+), 2 deletions(-)
+Best regards,
+Javier
 
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-index e0d49fa329f0..63152ab9efba 100644
---- a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-+++ b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
-@@ -48,6 +48,9 @@
- 
-   <refsect1>
-     <title>Description</title>
-+
-+    <para><emphasis role="bold">NOTE:</emphasis> This new ioctl is programmed to be added on Kernel 4.6. Its definition/arguments may change until its final version.</para>
-+
-     <para>The typical usage of this ioctl is to call it twice.
-     On the first call, the structure defined at &media-v2-topology; should
-     be zeroed. At return, if no errors happen, this ioctl will return the
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 4d1c13de494b..7dae0ac0f3ae 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -234,6 +234,7 @@ static long media_device_setup_link(struct media_device *mdev,
- 	return ret;
- }
- 
-+#if 0 /* Let's postpone it to Kernel 4.6 */
- static long __media_device_get_topology(struct media_device *mdev,
- 				      struct media_v2_topology *topo)
- {
-@@ -389,6 +390,7 @@ static long media_device_get_topology(struct media_device *mdev,
- 
- 	return 0;
- }
-+#endif
- 
- static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 			       unsigned long arg)
-@@ -422,13 +424,14 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 		mutex_unlock(&dev->graph_mutex);
- 		break;
- 
-+#if 0 /* Let's postpone it to Kernel 4.6 */
- 	case MEDIA_IOC_G_TOPOLOGY:
- 		mutex_lock(&dev->graph_mutex);
- 		ret = media_device_get_topology(dev,
- 				(struct media_v2_topology __user *)arg);
- 		mutex_unlock(&dev->graph_mutex);
- 		break;
--
-+#endif
- 	default:
- 		ret = -ENOIOCTLCMD;
- 	}
-@@ -477,7 +480,9 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
- 	case MEDIA_IOC_DEVICE_INFO:
- 	case MEDIA_IOC_ENUM_ENTITIES:
- 	case MEDIA_IOC_SETUP_LINK:
-+#if 0 /* Let's postpone it to Kernel 4.6 */
- 	case MEDIA_IOC_G_TOPOLOGY:
-+#endif
- 		return media_device_ioctl(filp, cmd, arg);
- 
- 	case MEDIA_IOC_ENUM_LINKS32:
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 5dbb208e5451..1e3c8cb43bd7 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -286,7 +286,7 @@ struct media_links_enum {
-  *	  later, before the adding this API upstream.
-  */
- 
--
-+#if 0 /* Let's postpone it to Kernel 4.6 */
- struct media_v2_entity {
- 	__u32 id;
- 	char name[64];		/* FIXME: move to a property? (RFC says so) */
-@@ -351,6 +351,7 @@ static inline void __user *media_get_uptr(__u64 arg)
- {
- 	return (void __user *)(uintptr_t)arg;
- }
-+#endif
- 
- /* ioctls */
- 
-@@ -358,6 +359,9 @@ static inline void __user *media_get_uptr(__u64 arg)
- #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
- #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
- #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
-+
-+#if 0 /* Let's postpone it to Kernel 4.6 */
- #define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
-+#endif
- 
- #endif /* __LINUX_MEDIA_H */
+Changes in v2:
+- Assign pdata to NULL in case v4l2_of_parse_endpoint() fails before kzalloc.
+  Suggested by Sakari Ailus.
+- Assign pdata to NULL in case v4l2_of_parse_endpoint() fails before kzalloc.
+  Suggested by Sakari Ailus.
+
+Javier Martinez Canillas (8):
+  [media] v4l: of: Correct v4l2_of_parse_endpoint() kernel-doc
+  [media] adv7604: Check v4l2_of_parse_endpoint() return value
+  [media] s5c73m3: Check v4l2_of_parse_endpoint() return value
+  [media] s5k5baf: Check v4l2_of_parse_endpoint() return value
+  [media] tvp514x: Check v4l2_of_parse_endpoint() return value
+  [media] tvp7002: Check v4l2_of_parse_endpoint() return value
+  [media] exynos4-is: Check v4l2_of_parse_endpoint() return value
+  [media] omap3isp: Check v4l2_of_parse_endpoint() return value
+
+ drivers/media/i2c/adv7604.c                   |  7 ++++++-
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c      |  4 +++-
+ drivers/media/i2c/s5k5baf.c                   |  5 ++++-
+ drivers/media/i2c/tvp514x.c                   |  6 ++++--
+ drivers/media/i2c/tvp7002.c                   |  6 ++++--
+ drivers/media/platform/exynos4-is/media-dev.c |  8 +++++++-
+ drivers/media/platform/exynos4-is/mipi-csis.c | 10 +++++++---
+ drivers/media/platform/omap3isp/isp.c         |  5 ++++-
+ drivers/media/v4l2-core/v4l2-of.c             |  2 +-
+ 9 files changed, 40 insertions(+), 13 deletions(-)
+
 -- 
-2.5.0
-
+2.4.3
 
