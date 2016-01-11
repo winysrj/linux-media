@@ -1,101 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54585 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751633AbcA0Jib (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2016 04:38:31 -0500
-Date: Wed, 27 Jan 2016 07:38:18 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 2/2] [media] tvp5150: Add pad-level subdev operations
-Message-ID: <20160127073818.0bfda497@recife.lan>
-In-Reply-To: <1453812384-15512-3-git-send-email-javier@osg.samsung.com>
-References: <1453812384-15512-1-git-send-email-javier@osg.samsung.com>
-	<1453812384-15512-3-git-send-email-javier@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33168 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757307AbcAKSAj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 13:00:39 -0500
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH 0/3] media: soc_camera: rcar_vin: add rcar-gen3 support
+Date: Tue, 12 Jan 2016 03:00:08 +0900
+Message-Id: <1452535211-4869-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 26 Jan 2016 09:46:24 -0300
-Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
+* add rcar compatibility strings
 
-> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> This patch enables the tvp5150 decoder driver to be used with the media
-> controller framework by adding pad-level subdev operations and init the
-> media entity pad.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> ---
-> 
-> Changes in v3:
-> - Split the format fix and the MC support in different patches.
->   Suggested by Mauro Carvalho Chehab.
-> 
-> Changes in v2:
-> - Embed mbus_type into struct tvp5150. Suggested by Laurent Pinchart.
-> - Remove platform data support. Suggested by Laurent Pinchart.
-> - Check if the hsync, vsync and field even active properties are correct.
->   Suggested by Laurent Pinchart.
-> 
->  drivers/media/i2c/tvp5150.c | 21 ++++++++++-----------
->  1 file changed, 10 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 37853bc3f0b3..e48b529c53b4 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -37,6 +37,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
->  
->  struct tvp5150 {
->  	struct v4l2_subdev sd;
-> +	struct media_pad pad;
->  	struct v4l2_ctrl_handler hdl;
->  	struct v4l2_rect rect;
->  
-> @@ -826,17 +827,6 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
->  	}
->  }
->  
-> -static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
-> -		struct v4l2_subdev_pad_config *cfg,
-> -		struct v4l2_subdev_mbus_code_enum *code)
-> -{
-> -	if (code->pad || code->index)
-> -		return -EINVAL;
-> -
-> -	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
-> -	return 0;
-> -}
-> -
+  This series adds generic rcar and SoC-specific r8a7795 compatibility
+  strings to the rcar-vin driver. The intention is to provide a complete
+  set of compatibility strings for known R-Car Gen2 and Gen3 SoCs.
 
-Huh! Why are you removing this? It is causing compilation breakages!
+* add ARGB8888 capture format support 
 
->  static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
->  		struct v4l2_subdev_pad_config *cfg,
->  		struct v4l2_subdev_format *format)
-> @@ -1165,6 +1155,7 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
->  
->  static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
->  	.enum_mbus_code = tvp5150_enum_mbus_code,
-> +	.enum_frame_size = tvp5150_enum_frame_size,
+  This series contain a patch which adds the ARGB8888 capture format
+  support for R-Car Gen3.
 
-Also, you forgot to add tvp5150_enum_frame_size here!
+* compile tested only
 
-drivers/media/i2c/tvp5150.c:1124:20: error: 'tvp5150_enum_mbus_code' undeclared here (not in a function)
-  .enum_mbus_code = tvp5150_enum_mbus_code,
-                    ^
-drivers/media/i2c/tvp5150.c:1125:21: error: 'tvp5150_enum_frame_size' undeclared here (not in a function)
-  .enum_frame_size = tvp5150_enum_frame_size,
-                     ^
-Regards,
-Mauro
+This series is based on the master branch of linuxtv.org/media_tree.git.
+
+
+Koji Matsuoka (1):
+  media: soc_camera: rcar_vin: Add ARGB8888 caputre format support
+
+Yoshihiko Mori (1):
+  media: soc_camera: rcar_vin: Add R-Car Gen3 support
+
+Yoshihiro Kaneko (1):
+  media: soc_camera: rcar_vin: Add rcar fallback compatibility string
+
+ .../devicetree/bindings/media/rcar_vin.txt         |  9 +++++++-
+ drivers/media/platform/soc_camera/rcar_vin.c       | 24 ++++++++++++++++++++--
+ 2 files changed, 30 insertions(+), 3 deletions(-)
+
+-- 
+1.9.1
+
