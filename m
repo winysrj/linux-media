@@ -1,123 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34225 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933267AbcATEG1 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:57284 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932892AbcAKOl6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 23:06:27 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 95CD8184E74
-	for <linux-media@vger.kernel.org>; Wed, 20 Jan 2016 05:06:22 +0100 (CET)
-Date: Wed, 20 Jan 2016 05:06:22 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160120040622.95CD8184E74@tschai.lan>
+	Mon, 11 Jan 2016 09:41:58 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>, linux-api@vger.kernel.org
+Subject: [PATCH v2] [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY
+Date: Mon, 11 Jan 2016 12:41:02 -0200
+Message-Id: <be0270ec89e6b9b49de7e533dd1f3a89ad34d205.1452523228.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+There are a few discussions left with regards to this ioctl:
 
-Results of the daily build of media_tree:
+1) the name of the new structs will contain _v2_ on it?
+2) what's the best alternative to avoid compat32 issues?
 
-date:		Wed Jan 20 04:00:19 CET 2016
-git branch:	test
-git hash:	768acf46e1320d6c41ed1b7c4952bab41c1cde79
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.3.0-164
+Due to that, let's postpone the addition of this new ioctl to
+the next Kernel version, to give people more time to discuss it.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
 
-Detailed results are available here:
+v2: Fix a compilation breakage
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+ Documentation/DocBook/media/v4l/media-ioc-g-topology.xml | 3 +++
+ drivers/media/media-device.c                             | 7 ++++++-
+ include/uapi/linux/media.h                               | 6 +++++-
+ 3 files changed, 14 insertions(+), 2 deletions(-)
 
-Full logs are available here:
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+index e0d49fa329f0..63152ab9efba 100644
+--- a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
++++ b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+@@ -48,6 +48,9 @@
+ 
+   <refsect1>
+     <title>Description</title>
++
++    <para><emphasis role="bold">NOTE:</emphasis> This new ioctl is programmed to be added on Kernel 4.6. Its definition/arguments may change until its final version.</para>
++
+     <para>The typical usage of this ioctl is to call it twice.
+     On the first call, the structure defined at &media-v2-topology; should
+     be zeroed. At return, if no errors happen, this ioctl will return the
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 4d1c13de494b..7dae0ac0f3ae 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -234,6 +234,7 @@ static long media_device_setup_link(struct media_device *mdev,
+ 	return ret;
+ }
+ 
++#if 0 /* Let's postpone it to Kernel 4.6 */
+ static long __media_device_get_topology(struct media_device *mdev,
+ 				      struct media_v2_topology *topo)
+ {
+@@ -389,6 +390,7 @@ static long media_device_get_topology(struct media_device *mdev,
+ 
+ 	return 0;
+ }
++#endif
+ 
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			       unsigned long arg)
+@@ -422,13 +424,14 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 		mutex_unlock(&dev->graph_mutex);
+ 		break;
+ 
++#if 0 /* Let's postpone it to Kernel 4.6 */
+ 	case MEDIA_IOC_G_TOPOLOGY:
+ 		mutex_lock(&dev->graph_mutex);
+ 		ret = media_device_get_topology(dev,
+ 				(struct media_v2_topology __user *)arg);
+ 		mutex_unlock(&dev->graph_mutex);
+ 		break;
+-
++#endif
+ 	default:
+ 		ret = -ENOIOCTLCMD;
+ 	}
+@@ -477,7 +480,9 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+ 	case MEDIA_IOC_DEVICE_INFO:
+ 	case MEDIA_IOC_ENUM_ENTITIES:
+ 	case MEDIA_IOC_SETUP_LINK:
++#if 0 /* Let's postpone it to Kernel 4.6 */
+ 	case MEDIA_IOC_G_TOPOLOGY:
++#endif
+ 		return media_device_ioctl(filp, cmd, arg);
+ 
+ 	case MEDIA_IOC_ENUM_LINKS32:
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 5dbb208e5451..1e3c8cb43bd7 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -286,7 +286,7 @@ struct media_links_enum {
+  *	  later, before the adding this API upstream.
+  */
+ 
+-
++#if 0 /* Let's postpone it to Kernel 4.6 */
+ struct media_v2_entity {
+ 	__u32 id;
+ 	char name[64];		/* FIXME: move to a property? (RFC says so) */
+@@ -351,6 +351,7 @@ static inline void __user *media_get_uptr(__u64 arg)
+ {
+ 	return (void __user *)(uintptr_t)arg;
+ }
++#endif
+ 
+ /* ioctls */
+ 
+@@ -358,6 +359,9 @@ static inline void __user *media_get_uptr(__u64 arg)
+ #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+ #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+ #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
++
++#if 0 /* Let's postpone it to Kernel 4.6 */
+ #define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
++#endif
+ 
+ #endif /* __LINUX_MEDIA_H */
+-- 
+2.5.0
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
