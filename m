@@ -1,97 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:11008 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752468AbcAOJNs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2016 04:13:48 -0500
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v3] media: v4l2-compat-ioctl32: fix missing length copy in put_v4l2_buffer32
-Date: Fri, 15 Jan 2016 17:13:36 +0800
-Message-ID: <1452849216-4793-1-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lists.s-osg.org ([54.187.51.154]:55316 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933393AbcAKQrx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 11:47:53 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH v2 2/8] [media] adv7604: Check v4l2_of_parse_endpoint() return value
+Date: Mon, 11 Jan 2016 13:47:10 -0300
+Message-Id: <1452530844-30609-3-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
+References: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In v4l2-compliance utility, test QUERYBUF required correct length
-value to go through each planar to check planar's length in
-multi-planar buffer type
+The v4l2_of_parse_endpoint() function can fail so check the return value.
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 327e83a..6181470 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -426,10 +426,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 					&up->timestamp.tv_usec))
- 			return -EFAULT;
+Changes in v2: None
+
+ drivers/media/i2c/adv7604.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index f8dd7505b529..ed3eccd94285 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2799,6 +2799,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	struct device_node *endpoint;
+ 	struct device_node *np;
+ 	unsigned int flags;
++	int ret;
+ 	u32 v;
  
--	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
--		if (get_user(kp->length, &up->length))
--			return -EFAULT;
-+	if (get_user(kp->length, &up->length))
-+		return -EFAULT;
+ 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
+@@ -2808,7 +2809,11 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	if (!endpoint)
+ 		return -EINVAL;
  
-+	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
- 		num_planes = kp->length;
- 		if (num_planes == 0) {
- 			kp->m.planes = NULL;
-@@ -462,16 +462,14 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
--			if (get_user(kp->length, &up->length) ||
--				get_user(kp->m.offset, &up->m.offset))
-+			if (get_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
- 		case V4L2_MEMORY_USERPTR:
- 			{
- 			compat_long_t tmp;
+-	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++	ret = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++	if (ret) {
++		of_node_put(endpoint);
++		return ret;
++	}
  
--			if (get_user(kp->length, &up->length) ||
--			    get_user(tmp, &up->m.userptr))
-+			if (get_user(tmp, &up->m.userptr))
- 				return -EFAULT;
- 
- 			kp->m.userptr = (unsigned long)compat_ptr(tmp);
-@@ -516,6 +514,9 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		put_user(kp->reserved, &up->reserved))
- 			return -EFAULT;
- 
-+	if (put_user(kp->length, &up->length))
-+		return -EFAULT;
-+
- 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
- 		num_planes = kp->length;
- 		if (num_planes == 0)
-@@ -536,13 +537,11 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
--			if (put_user(kp->length, &up->length) ||
--				put_user(kp->m.offset, &up->m.offset))
-+			if (put_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
- 		case V4L2_MEMORY_USERPTR:
--			if (put_user(kp->length, &up->length) ||
--				put_user(kp->m.userptr, &up->m.userptr))
-+			if (put_user(kp->m.userptr, &up->m.userptr))
- 				return -EFAULT;
- 			break;
- 		case V4L2_MEMORY_OVERLAY:
+ 	if (!of_property_read_u32(endpoint, "default-input", &v))
+ 		state->pdata.default_input = v;
 -- 
-1.7.9.5
+2.4.3
 
