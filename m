@@ -1,63 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54722 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753670AbcADM0U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jan 2016 07:26:20 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 04/10] [media] tvp5150: Add pixel rate control support
-Date: Mon,  4 Jan 2016 09:25:26 -0300
-Message-Id: <1451910332-23385-5-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
-References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42253 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932843AbcAKQTZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 11:19:25 -0500
+Subject: Re: vivid - add support for YUV420
+To: Ran Shalit <ranshalit@gmail.com>
+References: <CAJ2oMhJVjKrfXEKx6xnGQkEpcSWBywabrDwy9biJkhjmnZ7Kbg@mail.gmail.com>
+ <5693930C.9050001@xs4all.nl>
+ <CAJ2oMhKH7LM2o0ppmJx5BK_3e3iT8sEixg2AMHN9ueBMjB9AKA@mail.gmail.com>
+ <CAJ2oMhLP5F=6JBi9S4SsuZ=L1GecuV694md7mgqfKR2uEGTr2A@mail.gmail.com>
+Cc: linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5693D606.1080801@xs4all.nl>
+Date: Mon, 11 Jan 2016 17:19:18 +0100
+MIME-Version: 1.0
+In-Reply-To: <CAJ2oMhLP5F=6JBi9S4SsuZ=L1GecuV694md7mgqfKR2uEGTr2A@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On 01/11/2016 04:55 PM, Ran Shalit wrote:
+> On Mon, Jan 11, 2016 at 1:58 PM, Ran Shalit <ranshalit@gmail.com> wrote:
+>> On Mon, Jan 11, 2016 at 1:33 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>> On 01/09/2016 10:58 AM, Ran Shalit wrote:
+>>>> Hello,
+>>>>
+>>>> I've been doing some tests with capturing video from virtual driver (vivid).
+>>>> I've tried to force it to YUV420, but it ignores that, becuase it does
+>>>> not support this format.
+>>>
+>>> Yes, it does. What kernel are you using? Something old? Support for 4:2:0 was
+>>> added to vivid in March 2015.
+>>>
+>>>> I would please like to ask if there is some way I can output YUV420
+>>>> format with vivi.
+>>>
+>>> Upgrade your kernel :-)
+>>
+>> Right.
+>> The kernel in Cent0S 7.2 (last release) is 3.10.0.
+>> I am not sure I can update CentOS with kernel.org last release because
+>> of probably many dependencies ( Is it possible ?)
+>> Anyway, vivid , is life saving tool for newcomers. Absolutely.
+>>
+>> Regards,
+>> Ran
+>>
+> 
+> 
+> Hi,
+> 
+> Do you think it worth trying to upgrade vivid package only from 3.10
+> (vivi) to 3.18 (vivid),
+> or is it too complex to try and depend on many other files ?
+> 
+> Thanks,
+> Ran
+> 
 
-This patch adds support for the V4L2_CID_PIXEL_RATE control.
+A quick google gave me this:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+http://linoxide.com/linux-how-to/upgrade-linux-kernel-stable-3-18-4-centos/
 
- drivers/media/i2c/tvp5150.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Most distros can be upgraded to newer kernels if you look around a bit.
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 82fba9d46f30..71473cec236a 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -1204,7 +1204,7 @@ static int tvp5150_probe(struct i2c_client *c,
- 	core->input = TVP5150_COMPOSITE1;
- 	core->enable = 1;
- 
--	v4l2_ctrl_handler_init(&core->hdl, 4);
-+	v4l2_ctrl_handler_init(&core->hdl, 5);
- 	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
- 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
- 	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
-@@ -1213,6 +1213,9 @@ static int tvp5150_probe(struct i2c_client *c,
- 			V4L2_CID_SATURATION, 0, 255, 1, 128);
- 	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
- 			V4L2_CID_HUE, -128, 127, 1, 0);
-+	v4l2_ctrl_new_std(&core->hdl, &tvp5150_ctrl_ops,
-+			V4L2_CID_PIXEL_RATE, 27000000,
-+			27000000, 1, 27000000);
- 	sd->ctrl_handler = &core->hdl;
- 	if (core->hdl.error) {
- 		res = core->hdl.error;
--- 
-2.4.3
+Regards,
 
+	Hans
