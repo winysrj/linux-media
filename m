@@ -1,80 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:36038 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751631AbcAERcw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2016 12:32:52 -0500
+Received: from mail-io0-f169.google.com ([209.85.223.169]:35902 "EHLO
+	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759304AbcAKL6x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 06:58:53 -0500
+Received: by mail-io0-f169.google.com with SMTP id g73so149601473ioe.3
+        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 03:58:52 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1450706086-6801-1-git-send-email-grygorii.strashko@ti.com>
-References: <1450706086-6801-1-git-send-email-grygorii.strashko@ti.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Tue, 5 Jan 2016 17:32:21 +0000
-Message-ID: <CA+V-a8v-STaDCcpVLm3XkZHrH-JQfZfm7L2R+86myx=v1+0x+A@mail.gmail.com>
-Subject: Re: [PATCH] media: i2c: ov2659: speedup probe if no device connected
-To: Grygorii Strashko <grygorii.strashko@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Benoit Parrot <bparrot@ti.com>
+In-Reply-To: <5693930C.9050001@xs4all.nl>
+References: <CAJ2oMhJVjKrfXEKx6xnGQkEpcSWBywabrDwy9biJkhjmnZ7Kbg@mail.gmail.com>
+	<5693930C.9050001@xs4all.nl>
+Date: Mon, 11 Jan 2016 13:58:51 +0200
+Message-ID: <CAJ2oMhKH7LM2o0ppmJx5BK_3e3iT8sEixg2AMHN9ueBMjB9AKA@mail.gmail.com>
+Subject: Re: vivid - add support for YUV420
+From: Ran Shalit <ranshalit@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 21, 2015 at 1:54 PM, Grygorii Strashko
-<grygorii.strashko@ti.com> wrote:
-> The ov2659 driver performs device detection and initialization in the
-> following way:
->  - send reset command REG_SOFTWARE_RESET
->  - load array of predefined register's setting (~150 values)
->  - read device version REG_SC_CHIP_ID_H/REG_SC_CHIP_ID_L
->  - check version and exit if invalid.
+On Mon, Jan 11, 2016 at 1:33 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 01/09/2016 10:58 AM, Ran Shalit wrote:
+>> Hello,
+>>
+>> I've been doing some tests with capturing video from virtual driver (vivid).
+>> I've tried to force it to YUV420, but it ignores that, becuase it does
+>> not support this format.
 >
-> As result, for not connected device there will be >~150 i2c transactions
-> executed before device version checking and exit (there are no
-> failures detected because ov2659 declared as I2C_CLIENT_SCCB and NACKs
-> are ignored in this case).
+> Yes, it does. What kernel are you using? Something old? Support for 4:2:0 was
+> added to vivid in March 2015.
 >
-> Let's fix that by checking the chip version first and start
-> initialization only if it's supported.
+>> I would please like to ask if there is some way I can output YUV420
+>> format with vivi.
 >
-> Cc: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Grygorii Strashko <grygorii.strashko@ti.com>
+> Upgrade your kernel :-)
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Right.
+The kernel in Cent0S 7.2 (last release) is 3.10.0.
+I am not sure I can update CentOS with kernel.org last release because
+of probably many dependencies ( Is it possible ?)
+Anyway, vivid , is life saving tool for newcomers. Absolutely.
 
-Cheers,
---Prabhakar Lad
+Regards,
+Ran
 
-> ---
->  drivers/media/i2c/ov2659.c | 8 +++-----
->  1 file changed, 3 insertions(+), 5 deletions(-)
+
+> BTW, please don't use vivi to refer to the vivid driver. There used to be an
+> older vivi driver that was replaced by vivid, so calling the vivid driver 'vivi'
+> is very confusing to me :-)
 >
-> diff --git a/drivers/media/i2c/ov2659.c b/drivers/media/i2c/ov2659.c
-> index 49109f4..9b7b78c 100644
-> --- a/drivers/media/i2c/ov2659.c
-> +++ b/drivers/media/i2c/ov2659.c
-> @@ -1321,10 +1321,6 @@ static int ov2659_detect(struct v4l2_subdev *sd)
->         }
->         usleep_range(1000, 2000);
+> Regards,
 >
-> -       ret = ov2659_init(sd, 0);
-> -       if (ret < 0)
-> -               return ret;
-> -
->         /* Check sensor revision */
->         ret = ov2659_read(client, REG_SC_CHIP_ID_H, &pid);
->         if (!ret)
-> @@ -1338,8 +1334,10 @@ static int ov2659_detect(struct v4l2_subdev *sd)
->                         dev_err(&client->dev,
->                                 "Sensor detection failed (%04X, %d)\n",
->                                 id, ret);
-> -               else
-> +               else {
->                         dev_info(&client->dev, "Found OV%04X sensor\n", id);
-> +                       ret = ov2659_init(sd, 0);
-> +               }
->         }
+>         Hans
 >
->         return ret;
-> --
-> 2.6.4
+>>
+>> Best Regards,
+>> Ran
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 >
