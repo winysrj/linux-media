@@ -1,49 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:45262 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752307AbcAGS14 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jan 2016 13:27:56 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Nikhil Devshatwar <nikhil.nd@ti.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 1/8] [media] v4l: of: Correct v4l2_of_parse_endpoint() kernel-doc
-Date: Thu,  7 Jan 2016 15:27:15 -0300
-Message-Id: <1452191248-15847-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
-References: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
+Received: from mail-qk0-f170.google.com ([209.85.220.170]:33521 "EHLO
+	mail-qk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965192AbcAKUWx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2016 15:22:53 -0500
+Received: by mail-qk0-f170.google.com with SMTP id p186so150857335qke.0
+        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 12:22:53 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1601091126170.15612@axis700.grange>
+References: <Pine.LNX.4.64.1512151732080.18335@axis700.grange> <Pine.LNX.4.64.1601091126170.15612@axis700.grange>
+From: Daniel Johnson <teknotus@gmail.com>
+Date: Mon, 11 Jan 2016 12:22:33 -0800
+Message-ID: <CA+nDE0hdhrFfeVU_OsO847ehMdLtj7bjbC6E4an0s963jjXKTg@mail.gmail.com>
+Subject: Re: [PATCH] V4L: add Y12I, Y8I and Z16 pixel format documentation
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Aviv Greenberg <avivgr@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_of_parse_endpoint function kernel-doc says that the return value
-is always 0. But that is not true since the function can fail and a error
-negative code is returned on failure. So correct the kernel-doc to match.
+On Sat, Jan 9, 2016 at 2:27 AM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Mauro,
+>
+> Ping - what about this patch? If there are no comments - would you like me
+> to push it via my tree?
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+In testing the V4L2_PIX_FMT_Z16 ('Z16 ') format documentation seems to
+be incomplete.
 
- drivers/media/v4l2-core/v4l2-of.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+uvc_xu_control_query unit=2 selector=4 seems to be a z scale factor.
+Changing the value of that control greatly changes the value of
+pixels. Millimeters seems to be correct for the default value of that
+control. This control is on the /dev node for the infrared camera
+rather than the node using the Z16 depth format.
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index b27cbb1f5afe..93b33681776c 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -146,7 +146,7 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
-  * variable without a low fixed limit. Please use
-  * v4l2_of_alloc_parse_endpoint() in new drivers instead.
-  *
-- * Return: 0.
-+ * Return: 0 on success or a negative error code on failure.
-  */
- int v4l2_of_parse_endpoint(const struct device_node *node,
- 			   struct v4l2_of_endpoint *endpoint)
--- 
-2.4.3
+The one thing that every depth camera I've ever used has in common is
+factory calibration. Translating pixel values to Z is only 1/3 of what
+is needed to translate a depth image into a point cloud. The
+calibration is needed to translate X and Y pixel indexes into
+positions in 3d space. Documentation on fetching, and parsing the
+factory calibration would make the camera much more usable.
 
+Documentation on the 21 UVC controls would be helpful, but less
+critical than the calibration data.
