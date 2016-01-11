@@ -1,150 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42409 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755912AbcA2MML (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:33608 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752434AbcAKCN0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2016 07:12:11 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 04/13] [media] v4l2-mc.h: move tuner PAD definitions to this new header
-Date: Fri, 29 Jan 2016 10:10:54 -0200
-Message-Id: <ea2f7bff9379b1152a73be60c38921dcb48b66e0.1454067262.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
-References: <cover.1454067262.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
-References: <cover.1454067262.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sun, 10 Jan 2016 21:13:26 -0500
+From: Simon Horman <horms+renesas@verge.net.au>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH v2] rcar_jpu: Add R-Car Gen2 Fallback Compatibility String
+Date: Mon, 11 Jan 2016 11:13:20 +0900
+Message-Id: <1452478400-4267-1-git-send-email-horms+renesas@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The customer PC hardware can be shipped with lots of different
-configurations, as vendors use to replace some of the chips on
-their hardware along the time. All drivers that support such
-devices are prepared to handle the hardware differences, using
-their own auto-probing logic.
+Add fallback compatibility string.
+This is in keeping with the fallback scheme being adopted wherever
+appropriate for drivers for Renesas SoCs.
 
-They do it in a way that number of inputs and outputs for a given
-hardware type doesn't change.
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
 
-Now that we're adding media controller capabilities to those drivers,
-we need to standardize the number of inputs and outputs for each
-hardware type, as we want to have a generic function at the V4L2
-core that would create the links for the entities that are expected
-on such hardware.
-
-Such standard is already there for tuners, but tuner.h is not the
-best place to store such data, as we'll need to add definitions also
-for analog TV demodulators.
-
-Also, we'll need a place to put a set of MC handling functions. So,
-let's create a v4l2-mc.h to store such kind of definitions.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- Documentation/DocBook/device-drivers.tmpl |  1 +
- include/media/tuner.h                     | 24 +------------------
- include/media/v4l2-mc.h                   | 38 +++++++++++++++++++++++++++++++
- 3 files changed, 40 insertions(+), 23 deletions(-)
- create mode 100644 include/media/v4l2-mc.h
+v2
+* Make fallback compat string for R-Car Gen2 rather than all renesas
+  hardware: that seems too generic
+---
+ Documentation/devicetree/bindings/media/renesas,jpu.txt | 13 +++++++------
+ drivers/media/platform/rcar_jpu.c                       |  1 +
+ 2 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
-index cdd8b24db68d..cc303a2f641c 100644
---- a/Documentation/DocBook/device-drivers.tmpl
-+++ b/Documentation/DocBook/device-drivers.tmpl
-@@ -229,6 +229,7 @@ X!Isound/sound_firmware.c
- !Iinclude/media/v4l2-dv-timings.h
- !Iinclude/media/v4l2-event.h
- !Iinclude/media/v4l2-flash-led-class.h
-+!Iinclude/media/v4l2-mc.h
- !Iinclude/media/v4l2-mediabus.h
- !Iinclude/media/v4l2-mem2mem.h
- !Iinclude/media/v4l2-of.h
-diff --git a/include/media/tuner.h b/include/media/tuner.h
-index c5994fe865a0..b3edc14e763f 100644
---- a/include/media/tuner.h
-+++ b/include/media/tuner.h
-@@ -20,29 +20,7 @@
- #ifdef __KERNEL__
+diff --git a/Documentation/devicetree/bindings/media/renesas,jpu.txt b/Documentation/devicetree/bindings/media/renesas,jpu.txt
+index 0cb94201bf92..d3436e5190f9 100644
+--- a/Documentation/devicetree/bindings/media/renesas,jpu.txt
++++ b/Documentation/devicetree/bindings/media/renesas,jpu.txt
+@@ -5,11 +5,12 @@ and decoding function conforming to the JPEG baseline process, so that the JPU
+ can encode image data and decode JPEG data quickly.
  
- #include <linux/videodev2.h>
--
--/**
-- * enum tuner_pad_index - tuner pad index
-- *
-- * @TUNER_PAD_RF_INPUT:	Radiofrequency (RF) sink pad, usually linked to a
-- *			RF connector entity.
-- * @TUNER_PAD_OUTPUT:	Tuner output pad. This is actually more complex than
-- *			a single pad output, as, in addition to luminance and
-- *			chrominance IF a tuner may have internally an
-- *			audio decoder (like xc3028) or it may produce an audio
-- *			IF that will be used by an audio decoder like msp34xx.
-- *			It may also have an IF-PLL demodulator on it, like
-- *			tuners with tda9887. Yet, currently, we don't need to
-- *			represent all the dirty details, as this is transparent
-- *			for the V4L2 API usage. So, let's represent all kinds
-- *			of different outputs as a single source pad.
-- * @TUNER_NUM_PADS:	Number of pads of the tuner.
-- */
--enum tuner_pad_index {
--	TUNER_PAD_RF_INPUT,
--	TUNER_PAD_OUTPUT,
--	TUNER_NUM_PADS
--};
-+#include <media/v4l2-mc.h>
+ Required properties:
+-  - compatible: should containg one of the following:
+-			- "renesas,jpu-r8a7790" for R-Car H2
+-			- "renesas,jpu-r8a7791" for R-Car M2-W
+-			- "renesas,jpu-r8a7792" for R-Car V2H
+-			- "renesas,jpu-r8a7793" for R-Car M2-N
++- compatible: "renesas,jpu-<soctype>", "renesas,rcar-gen2-jpu" as fallback.
++	Examples with soctypes are:
++	  - "renesas,jpu-r8a7790" for R-Car H2
++	  - "renesas,jpu-r8a7791" for R-Car M2-W
++	  - "renesas,jpu-r8a7792" for R-Car V2H
++	  - "renesas,jpu-r8a7793" for R-Car M2-N
  
- #define ADDR_UNSET (255)
+   - reg: Base address and length of the registers block for the JPU.
+   - interrupts: JPU interrupt specifier.
+@@ -17,7 +18,7 @@ Required properties:
  
-diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-new file mode 100644
-index 000000000000..f6fcd70f3548
---- /dev/null
-+++ b/include/media/v4l2-mc.h
-@@ -0,0 +1,38 @@
-+/*
-+ * v4l2-mc.h - Media Controller V4L2 types and prototypes
-+ *
-+ * Copyright (C) 2016 Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+/**
-+ * enum tuner_pad_index - tuner pad index for MEDIA_ENT_F_TUNER
-+ *
-+ * @TUNER_PAD_RF_INPUT:	Radiofrequency (RF) sink pad, usually linked to a
-+ *			RF connector entity.
-+ * @TUNER_PAD_OUTPUT:	Tuner output pad. This is actually more complex than
-+ *			a single pad output, as, in addition to luminance and
-+ *			chrominance IF a tuner may have internally an
-+ *			audio decoder (like xc3028) or it may produce an audio
-+ *			IF that will be used by an audio decoder like msp34xx.
-+ *			It may also have an IF-PLL demodulator on it, like
-+ *			tuners with tda9887. Yet, currently, we don't need to
-+ *			represent all the dirty details, as this is transparent
-+ *			for the V4L2 API usage. So, let's represent all kinds
-+ *			of different outputs as a single source pad.
-+ * @TUNER_NUM_PADS:	Number of pads of the tuner.
-+ */
-+enum tuner_pad_index {
-+	TUNER_PAD_RF_INPUT,
-+	TUNER_PAD_OUTPUT,
-+	TUNER_NUM_PADS
-+};
-\ No newline at end of file
+ Example: R8A7790 (R-Car H2) JPU node
+ 	jpeg-codec@fe980000 {
+-		compatible = "renesas,jpu-r8a7790";
++		compatible = "renesas,jpu-r8a7790", "renesas,rcar-gen2-jpu";
+ 		reg = <0 0xfe980000 0 0x10300>;
+ 		interrupts = <0 272 IRQ_TYPE_LEVEL_HIGH>;
+ 		clocks = <&mstp1_clks R8A7790_CLK_JPU>;
+diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
+index f8e3e83c52a2..4caae52d9864 100644
+--- a/drivers/media/platform/rcar_jpu.c
++++ b/drivers/media/platform/rcar_jpu.c
+@@ -1611,6 +1611,7 @@ static const struct of_device_id jpu_dt_ids[] = {
+ 	{ .compatible = "renesas,jpu-r8a7791" }, /* M2-W */
+ 	{ .compatible = "renesas,jpu-r8a7792" }, /* V2H */
+ 	{ .compatible = "renesas,jpu-r8a7793" }, /* M2-N */
++	{ .compatible = "renesas,rcar-gen2-jpu" },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, jpu_dt_ids);
 -- 
-2.5.0
-
+2.7.0.rc3.207.g0ac5344
 
