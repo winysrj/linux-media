@@ -1,70 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34395 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933657AbcAYTl2 (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34699 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759400AbcAKKwf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 14:41:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH v2 1/1] v4l: libv4l2subdev: Precisely convert media bus string to code
-Date: Mon, 25 Jan 2016 21:41:46 +0200
-Message-ID: <1623086.c6ggshGW3K@avalon>
-In-Reply-To: <1453725306-4047-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1453725306-4047-1-git-send-email-sakari.ailus@linux.intel.com>
+	Mon, 11 Jan 2016 05:52:35 -0500
+Subject: Re: [RFC PATCH v0] Add tw5864 driver
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+	Linux Media <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
+	devel@driverdev.osuosl.org,
+	kernel-janitors <kernel-janitors@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+References: <1451785302-3173-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+Cc: Andrey Utkin <andrey.od.utkin@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56938969.30104@xs4all.nl>
+Date: Mon, 11 Jan 2016 11:52:25 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1451785302-3173-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Andrey,
 
-Thank you for the patch.
+On 01/03/2016 02:41 AM, Andrey Utkin wrote:
+> (Disclaimer up to scissors mark)
+> 
+> Please be so kind to take a look at a new driver.
+> We aim to follow high standards of kernel development and possibly to get this driver in mainline kernel.
+> The device is multichannel video and audio capture and compression chip TW5864 of Intersil/Techwell.
+> 
+> The code is in repo https://github.com/bluecherrydvr/linux , branch "tw5864", subdir drivers/staging/media/tw5864 .
+> This branch is regularly rebased during development, so that there's a single commit adding this driver on top of current linux-next.
+> Direct link to subdir: https://github.com/bluecherrydvr/linux/tree/tw5864/drivers/staging/media/tw5864
+> 
+> 
+> Implementation status
+> 
+> * H.264 streaming work stable, including concurrent work of multiple channels on same chip;
+> * Audio streaming functionality is not implemented, but is considered for future;
+> * The chip has motion detection capability, but of same sensitivity level for whole frame; this was considered quite limiting for our needs and we have implemented per-grid-cell sensitivity with a bit of heuristic processing of motion vector data exposed by hardware. Datasheet-suggested mechanism is not used currently.
+> 
+> Testing status
+> 
+> * Runtime tests on my test machine show that video streaming works stable. Multichannel streaming was working, but I haven't test this with latest revision lately yet.
+> * Runtime performance will be tested later also on few early-adopters' CCTV machines.
+> * checkpatch.pl -f on files reports no warnings, errors or style issues;
+> * checkpatch.pl on patch reports no warnings, errors or style issues;
+> * sparse reports nothing;
+> * compilation shows no warnings (gcc 4.9.3);
+> * compilation with EXTRA_CFLAGS=-W shows a lot of warnings from included headers (over 9000 lines of output). Seems this technique from Documentation/SubmitChecklist is not practical in this case
+> * Other Documentation/SubmitChecklist advises weren't thoroughly worked out.
 
-On Monday 25 January 2016 14:35:06 Sakari Ailus wrote:
-> Any character beyond the fist `length' characters in the mbus_formats
-> strings are ignored, causing incorrect matches if the format entry starts
-> with but isn't equal to the passed format.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Did you also test with v4l2-compliance? Before I accept the driver I want to see the
+output of 'v4l2-compliance' and 'v4l2-compliance -s'. Basically there shouldn't be
+any failures.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+I did a quick scan over the source and I saw nothing big. When you post the new
+version I will go over it more carefully and do a proper review.
 
-> ---
-> since v1:
-> - Use mbus_formats[i].name[length] == '\0' instead of comparing strlen()
->   result.
-> 
->  utils/media-ctl/libv4l2subdev.c | 10 ++++------
->  1 file changed, 4 insertions(+), 6 deletions(-)
-> 
-> diff --git a/utils/media-ctl/libv4l2subdev.c
-> b/utils/media-ctl/libv4l2subdev.c index 33c1ee6..dc2cd87 100644
-> --- a/utils/media-ctl/libv4l2subdev.c
-> +++ b/utils/media-ctl/libv4l2subdev.c
-> @@ -769,14 +769,12 @@ enum v4l2_mbus_pixelcode
-> v4l2_subdev_string_to_pixelcode(const char *string, unsigned int i;
-> 
->  	for (i = 0; i < ARRAY_SIZE(mbus_formats); ++i) {
-> -		if (strncmp(mbus_formats[i].name, string, length) == 0)
-> -			break;
-> +		if (strncmp(mbus_formats[i].name, string, length) == 0
-> +		    && mbus_formats[i].name[length] == '\0')
-> +			return mbus_formats[i].code;
->  	}
-> 
-> -	if (i == ARRAY_SIZE(mbus_formats))
-> -		return (enum v4l2_mbus_pixelcode)-1;
-> -
-> -	return mbus_formats[i].code;
-> +	return (enum v4l2_mbus_pixelcode)-1;
->  }
-> 
->  static struct {
-
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
