@@ -1,98 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57618 "EHLO lists.s-osg.org"
+Received: from ozlabs.org ([103.22.144.67]:50965 "EHLO ozlabs.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966272AbcA1PTk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 10:19:40 -0500
-Date: Thu, 28 Jan 2016 13:19:22 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH 04/31] media: Media Controller enable/disable source
- handler API
-Message-ID: <20160128131922.29e2a504@recife.lan>
-In-Reply-To: <d8d65a0188b05f3e799400c745584a02bc9b7548.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-	<d8d65a0188b05f3e799400c745584a02bc9b7548.1452105878.git.shuahkh@osg.samsung.com>
+	id S1751035AbcALVHS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jan 2016 16:07:18 -0500
+Date: Wed, 13 Jan 2016 08:07:16 +1100
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v4.5-rc1] media controller next gen patch series
+Message-ID: <20160113080716.6b38f2f3@canb.auug.org.au>
+In-Reply-To: <CA+55aFwWe7mcpQUBqX==REiwaeA4TEN7jX5kXrYvjwuuiP5wEQ@mail.gmail.com>
+References: <20160112084328.2194ec49@recife.lan>
+	<20160113075431.711be9e0@canb.auug.org.au>
+	<CA+55aFwWe7mcpQUBqX==REiwaeA4TEN7jX5kXrYvjwuuiP5wEQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  6 Jan 2016 13:26:53 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi Linus,
 
-> Add new fields to struct media_device to add enable_source, and
-> disable_source handlers, and source_priv to stash driver private
-> data that is need to run these handlers. The enable_source handler
-> finds source entity for the passed in entity and check if it is
-> available, and activate the link using __media_entity_setup_link()
-> interface. Bridge driver is expected to implement and set these
-> handlers and private data when media_device is registered or when
-> bridge driver finds the media_device during probe. This is to enable
-> the use-case to find tuner entity connected to the decoder entity and
-> check if it is available, and activate it and start pipeline between
-> the source and the entity. The disable_source handler deactivates the
-> link and stops the pipeline. This handler can be invoked from the
-> media core (v4l-core, dvb-core) as well as other drivers such as ALSA
-> that control the media device.
+On Tue, 12 Jan 2016 12:58:45 -0800 Linus Torvalds <torvalds@linux-foundation.org> wrote:
+>
+> On Tue, Jan 12, 2016 at 12:54 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+> >
+> > This contains 117 commits (of 381) that only turned up in linux-next
+> > yesterday, but I see that Linus has already merged it.  
 > 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  include/media/media-device.h | 19 +++++++++++++++++++
->  1 file changed, 19 insertions(+)
-> 
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 6520d1c..04b6c2e 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -333,6 +333,25 @@ struct media_device {
->  	/* Serializes graph operations. */
->  	struct mutex graph_mutex;
->  
-> +	/* Handlers to find source entity for the sink entity and
-> +	 * check if it is available, and activate the link using
-> +	 * media_entity_setup_link() interface and start pipeline
-> +	 * from the source to the entity.
-> +	 * Bridge driver is expected to implement and set the
-> +	 * handler when media_device is registered or when
-> +	 * bridge driver finds the media_device during probe.
-> +	 * Bridge driver sets source_priv with information
-> +	 * necessary to run enable/disable source handlers.
-> +	 *
-> +	 * Use-case: find tuner entity connected to the decoder
-> +	 * entity and check if it is available, and activate the
-> +	 * using media_entity_setup_link() if it is available.
-> +	*/
-> +	void *source_priv;
-> +	int (*enable_source)(struct media_entity *entity,
-> +			     struct media_pipeline *pipe);
-> +	void (*disable_source)(struct media_entity *entity);
+> I've so far merged media/v4.5-1, not yet this (media/v4.5-2)..
 
-Please document the new fields at the right place (Kernel-doc
-comment declared before the struct).
+Ah, sorry, missed that.
 
-Is this used by the media core? If so, please but the implementation
-here, to make it clearer why we need those things.
-
-> +
->  	int (*link_notify)(struct media_link *link, u32 flags,
->  			   unsigned int notification);
->  };
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
