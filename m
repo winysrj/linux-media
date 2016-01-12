@@ -1,43 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:40702 "EHLO
-	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751308AbcA3TEQ (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:50339 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761713AbcALBUt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jan 2016 14:04:16 -0500
-From: ayaka <ayaka@soulik.info>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@osg.samsung.com,
-	linux-arm-kernel@lists.infradead.org, ayaka <ayaka@soulik.info>
-Subject: [PATCH 3/4] [media] s5p-mfc: don't close instance after free OUTPUT buffers
-Date: Sun, 31 Jan 2016 02:53:36 +0800
-Message-Id: <1454180017-29071-4-git-send-email-ayaka@soulik.info>
-In-Reply-To: <1454180017-29071-1-git-send-email-ayaka@soulik.info>
-References: <1454180017-29071-1-git-send-email-ayaka@soulik.info>
+	Mon, 11 Jan 2016 20:20:49 -0500
+Date: Tue, 12 Jan 2016 10:20:46 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	linux-media@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH 1/3 v2] media: soc_camera: rcar_vin: Add rcar fallback
+ compatibility string
+Message-ID: <20160112012045.GE3860@verge.net.au>
+References: <1452539418-28480-1-git-send-email-ykaneko0929@gmail.com>
+ <1452539418-28480-2-git-send-email-ykaneko0929@gmail.com>
+ <Pine.LNX.4.64.1601112210040.31467@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1601112210040.31467@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Free buffers in OUTPUT is quite normal to detect the driver's
-buffer capacity, it doesn't mean the application want to close
-that mfc instance.
+Hi Guennadi,
 
-Signed-off-by: ayaka <ayaka@soulik.info>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 1 -
- 1 file changed, 1 deletion(-)
+On Mon, Jan 11, 2016 at 10:13:30PM +0100, Guennadi Liakhovetski wrote:
+> Hello Kaneko-san,
+> 
+> On Tue, 12 Jan 2016, Yoshihiro Kaneko wrote:
+> 
+> > Add fallback compatibility string for R-Car Gen2 and Gen3, This is
+> > in keeping with the fallback scheme being adopted wherever appropriate
+> > for drivers for Renesas SoCs.
+> > 
+> > Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> > ---
+> 
+> Have you seen this patch:
+> 
+> http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/commit/?h=for-4.6-1&id=8e7825d38bbfcf8af8b0422c88f5e22701d89786
+> 
+> that I pushed yesterday? Is it wrong then? Do we have to cancel it, if
+> Mauro hasn't pulled it yet? Or would you like to rebase and work on top of
+> it?
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index aebe4fd..609b17b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -474,7 +474,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
- 		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
- 		if (ret)
- 			goto out;
--		s5p_mfc_close_mfc_inst(dev, ctx);
- 		ctx->src_bufs_cnt = 0;
- 		ctx->output_state = QUEUE_FREE;
- 	} else if (ctx->output_state == QUEUE_FREE) {
--- 
-2.5.0
+Sorry about this. There are multiple threads of execution going on
+regarding enhancing drivers used by Renesas SoCs and sometimes things
+get a little mixed up: this is one of those times.
 
+My opinion is that the patch at the URL above is fine and
+that it would be best for Kaneko-san to rebase his work on top of it.
