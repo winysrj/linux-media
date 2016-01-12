@@ -1,47 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38535 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750826AbcAZX7i (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41294 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752211AbcALOKt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 18:59:38 -0500
-Date: Tue, 26 Jan 2016 15:59:37 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Douglas Anderson <dianders@chromium.org>
-Cc: linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	robin.murphy@arm.com, tfiga@chromium.org, m.szyprowski@samsung.com,
-	pawel@osciak.com, Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	hch@infradead.org, k.debski@samsung.com,
-	laurent.pinchart+renesas@ideasonboard.com, corbet@lwn.net,
-	mike.looijmans@topic.nl, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org, will.deacon@arm.com,
-	jtp.park@samsung.com, penguin-kernel@i-love.sakura.ne.jp,
-	kyungmin.park@samsung.com, carlo@caione.org,
-	linux-media@vger.kernel.org, dan.j.williams@intel.com,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v6 0/5] dma-mapping: Patches for speeding up allocation
-Message-Id: <20160126155937.6a4e4165d1cf4e513d62e942@linux-foundation.org>
-In-Reply-To: <1452533428-12762-1-git-send-email-dianders@chromium.org>
-References: <1452533428-12762-1-git-send-email-dianders@chromium.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 12 Jan 2016 09:10:49 -0500
+Date: Tue, 12 Jan 2016 16:10:43 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>, hverkuil@xs4all.nl,
+	pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH] [media] media: Kconfig: add dependency of HAS_DMA
+Message-ID: <20160112141042.GI576@valkosipuli.retiisi.org.uk>
+References: <1451481963-18853-1-git-send-email-sudipm.mukherjee@gmail.com>
+ <20160111125310.GA19742@sudip-pc>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160111125310.GA19742@sudip-pc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 11 Jan 2016 09:30:22 -0800 Douglas Anderson <dianders@chromium.org> wrote:
+On Mon, Jan 11, 2016 at 06:23:11PM +0530, Sudip Mukherjee wrote:
+> On Wed, Dec 30, 2015 at 06:56:03PM +0530, Sudip Mukherjee wrote:
+> > The build of m32r allmodconfig fails with the error:
+> > drivers/media/v4l2-core/videobuf2-dma-contig.c:484:2:
+> > 	error: implicit declaration of function 'dma_get_cache_alignment'
+> > 
+> > The build of videobuf2-dma-contig.c depends on HAS_DMA and it is
+> > correctly mentioned in the Kconfig but the symbol VIDEO_STI_BDISP also
+> > selects VIDEOBUF2_DMA_CONTIG, so it is trying to compile
+> > videobuf2-dma-contig.c even though HAS_DMA is not defined.
+> > 
+> > Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+> > ---
+> 
+> A gentle ping. m32r allmodconfig still fails with next-20160111. Build
+> log is at:
+> https://travis-ci.org/sudipm-mukherjee/parport/jobs/101536379
 
-> This series of patches will speed up memory allocation in dma-mapping
-> quite a bit.
+Hi Sudip,
 
-This is pretty much all ARM and driver stuff so I think I'll duck it. 
-But I can merge it if nobody else feels a need to.
+Even though the issue now manifests itself on m32r, the problem is wider
+than that: dma_get_cache_alignment() is only defined if CONFIG_HAS_DMA is
+set.
 
-I saw a few acked-by/tested-by/etc from the v5 posting which weren't
-carried over into v6 (might have been a timing race), so please fix
-that up if there's an opportunity.
+I wonder if using videobuf2-dma-contig makes any sense if HAS_DMA is
+disabled, so perhaps it'd be possible to make it depend on HAS_DMA.
 
-Regarding the new DMA_ATTR_ALLOC_SINGLE_PAGES hint: I suggest adding
-"DMA_ATTR_ALLOC_SINGLE_PAGES is presently implemented only on ARM" to
-the docs.  Or perhaps have a shot at implementing it elsewhere.
+Cc others.
 
-Typo in 4/5 changelog: "reqiurements"
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
