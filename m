@@ -1,64 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50885 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758065AbcALDvc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 22:51:32 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (Postfix) with ESMTPS id 71FBC42E5D9
-	for <linux-media@vger.kernel.org>; Tue, 12 Jan 2016 03:51:32 +0000 (UTC)
-Received: from t440s.akl.redhat.com (ovpn-113-40.phx2.redhat.com [10.3.113.40])
-	by int-mx11.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id u0C3pVtJ010348
-	for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 22:51:32 -0500
-From: Steven Ellis <sellis@redhat.com>
-Subject: Add support for additional LNB types with LO of 11300 and 10700
-To: linux-media@vger.kernel.org
-Message-ID: <56947843.8060801@redhat.com>
-Date: Tue, 12 Jan 2016 16:51:31 +1300
+Received: from smtprelay.synopsys.com ([198.182.47.9]:34208 "EHLO
+	smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752067AbcAMPPh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jan 2016 10:15:37 -0500
+Received: from us02secmta2.synopsys.com (us02secmta2.synopsys.com [10.12.235.98])
+	by smtprelay.synopsys.com (Postfix) with ESMTP id 5BC0524E0CE2
+	for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 07:15:37 -0800 (PST)
+Received: from us02secmta2.internal.synopsys.com (us02secmta2.internal.synopsys.com [127.0.0.1])
+	by us02secmta2.internal.synopsys.com (Service) with ESMTP id 4747F55F13
+	for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 07:15:37 -0800 (PST)
+Received: from mailhost.synopsys.com (mailhost1.synopsys.com [10.12.238.239])
+	by us02secmta2.internal.synopsys.com (Service) with ESMTP id 303A955F02
+	for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 07:15:37 -0800 (PST)
+Received: from mailhost.synopsys.com (localhost [127.0.0.1])
+	by mailhost.synopsys.com (Postfix) with ESMTP id 1BE62539
+	for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 07:15:37 -0800 (PST)
+Received: from US01WEHTC2.internal.synopsys.com (us01wehtc2-vip.internal.synopsys.com [10.12.239.238])
+	by mailhost.synopsys.com (Postfix) with ESMTP id 1086E537
+	for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 07:15:36 -0800 (PST)
+To: <linux-media@vger.kernel.org>
+CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+	<Filipe.Goncalves@synopsys.com>
+From: Joao Pinto <Joao.Pinto@synopsys.com>
+Subject: PCI multimedia driver
+Message-ID: <56966984.9030807@synopsys.com>
+Date: Wed, 13 Jan 2016 15:13:08 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi guys,
 
-Here in NZ we regularly see Wide Band 10700LO and 11300LO LNBs for
-services on Optus D1/C1/D2
+We are developing a PCI endpoint with HDMI video out and sound out capabilities
+and we will need to develop a linux driver to control it (host side). Could you
+please point us some existing driver example?
 
-I've added their ranges to test scanning with the newer libdvdv5 utils
-as per below.
-
-
-diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
-index 473a24b..13165fd 100644
---- a/lib/libdvbv5/dvb-sat.c
-+++ b/lib/libdvbv5/dvb-sat.c
-@@ -75,6 +75,20 @@ static const struct dvb_sat_lnb lnb[] = {
-                        { 10945, 11450 }
-                },
-        }, {
-+               .name = "L10700",
-+               .alias = "L10700",
-+               .lowfreq = 10700,
-+               .freqrange = {
-+                       { 11750, 12750 }
-+               },
-+       }, {
-+               .name = "L11300",
-+               .alias = "L11300",
-+               .lowfreq = 11300,
-+               .freqrange = {
-+                       { 12250, 12750 }
-+               },
-+       }, {
-                .name = "Astra",
-                .alias = "ENHANCED",
-                .lowfreq = 9750,
-
-
--- 
-Steven Ellis
-Senior Solution Architect - Red Hat New Zealand <http://www.redhat.co.nz/>
-*T:* +64 9 887 3207
-*M:* +64 21 321 673
-*E:* sellis@redhat.com <mailto:sellis@redhat.com>
-
+Thanks,
+-Joao
