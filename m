@@ -1,43 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:28836 "EHLO
-	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754205AbcAMQq5 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:32161 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052AbcAMOgn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2016 11:46:57 -0500
-From: Sebastien LEDUC <sebastien.leduc@st.com>
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 13 Jan 2016 17:46:53 +0100
-Subject: RE: V4L2 encoder APIs
-Message-ID: <DF597D17D2F66F40A76F27D4E5D6E1A48B0F5418@SAFEX1MAIL1.st.com>
-References: <DF597D17D2F66F40A76F27D4E5D6E1A48B0F53E0@SAFEX1MAIL1.st.com>
- <1452700121.3605.18.camel@collabora.com>
-In-Reply-To: <1452700121.3605.18.camel@collabora.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+	Wed, 13 Jan 2016 09:36:43 -0500
+Subject: Re: [PATCH] [media] media: Kconfig: add dependency of HAS_DMA
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+References: <1451481963-18853-1-git-send-email-sudipm.mukherjee@gmail.com>
+ <20160111125310.GA19742@sudip-pc>
+ <20160112141042.GI576@valkosipuli.retiisi.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>, hverkuil@xs4all.nl,
+	pawel@osciak.com, kyungmin.park@samsung.com
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <569660F7.2000802@samsung.com>
+Date: Wed, 13 Jan 2016 15:36:39 +0100
+MIME-version: 1.0
+In-reply-to: <20160112141042.GI576@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQo+IERpc2N1c3Npb24gSSBoYWQgcmVnYXJkaW5nIHRoaXMga2luZCBvZiBpbnRlZ3JhdGlvbiwg
-d2hldGhlciBpdCB3YXMgYWJvdXQgbm9uLQ0KPiBwYXJzaW5nIGRlY29kZXIgb3Igc2xpY2UgZW5j
-b2RlciwgaXMgdGhhdCB0d28gcGxhbmVzIHNoYWxsIGJlIHVzZWQgKG1wbGFuZQ0KPiBBUEkgd2ls
-bCBhbGxvdyBzZXBlcmF0ZSBhbGxvY2F0aW9uIG9mIHRob3NlIHBsYW5lcykuIEFib3V0IHNsaWNl
-IGVuY29kZXIsIGEgbG90DQo+IG9mIHNwZWNpZmljYXRpb24gd29yayBpcyBuZWVkZWQuIEkgYmVs
-aWV2ZSB0aGUgaGFyZGVzdCBwYXJ0IGFuZCB3aGF0IG5vIG9uZQ0KPiBjb3VsZCBhZ3JlZSBvbiwg
-aXMgdGhlIGRhdGEgc3RydWN0dXJlIHN0YW5kYXJkIHRoYXQgd291bGQgYmUgdXNlZCB0bw0KPiBy
-ZXByZXNlbnQgdGhlIHJlcXVpcmVkIG1ldGFkYXRhIGFuZCBoZWFkZXJzLiBJbiB0aGUgZW5kLCBs
-aWJ2NGwgc2hvdWxkDQo+IHByb2JhYmx5IGhhdmUgc29tZSBuZXcgZmVhdHVyZSB0byB0cmFuc2Zv
-cm0gc2xpY2UgZW5jb2RlZCBkYXRhIGludG8gYnl0ZS0NCj4gc3RyZWFtIHNvIGV4aXN0aW5nIHNv
-ZnR3YXJlIGNhbiB1c2UgdGhvc2UgZW5jb2RlciB3aXRob3V0IHBvcnRpbmcuDQoNCg0KVGhhbmtz
-IGZvciB5b3VyIGFuc3dlcg0KSXQgc2VlbXMgdGhhdCB3aGF0IHlvdSBhcmUgdGFsa2luZyBhYm91
-dCBpcyB0aGUgY2FzZSBvZiBhIHNsaWNlIGVuY29kZXIsIHdoZXJlIHRoZSB1c2VyIHNpZGUgd291
-bGQgZ2VuZXJhdGUgdGhlIGhlYWRlci9tZXRhZGF0YS4NCkluIG91ciBjYXNlIHRoZSBIVyBpcyBu
-b3QgYSBzbGljZSBlbmNvZGVyLCBhcyBpdCBhbHNvIGdlbmVyYXRlcyB0aGUgaGVhZGVyL21ldGFk
-YXRhLCBidXQgaXQgY2FuIGdlbmVyYXRlIGl0IGluIHNvbWUgc2VwYXJhdGUgYnVmZmVyLCBhbmQg
-dGhpcyBpcyByZXF1aXJlZCBpbiBzb21lIHVzZS1jYXNlcy4NCg0KU28gSSBkb27igJl0IHRoaW5r
-IHRoZXJlIGlzIGEgbG90IG9mIHNwZWNpZmljYXRpb24gd29yayBuZWVkZWQgLiBXZSBqdXN0IG5l
-ZWQgYSB3YXkgdG8gb3V0cHV0IHNldmVyYWwgYnVmZmVycyBpbnN0ZWFkIG9mIG9uZSwgYW5kIHRv
-IHNwZWNpZnkgd2hpY2ggb25lIGlzIHRoZSBoZWFkZXIgYnVmZmVyLCBhbmQgd2hpY2ggb25lIGNv
-bnRhaW5zIHNsaWNlIGRhdGEuDQoNClJlZ2FyZHMNClNlYmFzdGllbg0KDQoNCg0K
+Hello,
+
+On 2016-01-12 15:10, Sakari Ailus wrote:
+> On Mon, Jan 11, 2016 at 06:23:11PM +0530, Sudip Mukherjee wrote:
+>> On Wed, Dec 30, 2015 at 06:56:03PM +0530, Sudip Mukherjee wrote:
+>>> The build of m32r allmodconfig fails with the error:
+>>> drivers/media/v4l2-core/videobuf2-dma-contig.c:484:2:
+>>> 	error: implicit declaration of function 'dma_get_cache_alignment'
+>>>
+>>> The build of videobuf2-dma-contig.c depends on HAS_DMA and it is
+>>> correctly mentioned in the Kconfig but the symbol VIDEO_STI_BDISP also
+>>> selects VIDEOBUF2_DMA_CONTIG, so it is trying to compile
+>>> videobuf2-dma-contig.c even though HAS_DMA is not defined.
+>>>
+>>> Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+>>> ---
+>> A gentle ping. m32r allmodconfig still fails with next-20160111. Build
+>> log is at:
+>> https://travis-ci.org/sudipm-mukherjee/parport/jobs/101536379
+> Hi Sudip,
+>
+> Even though the issue now manifests itself on m32r, the problem is wider
+> than that: dma_get_cache_alignment() is only defined if CONFIG_HAS_DMA is
+> set.
+>
+> I wonder if using videobuf2-dma-contig makes any sense if HAS_DMA is
+> disabled, so perhaps it'd be possible to make it depend on HAS_DMA.
+
+VIDEOBUF2_DMA_CONTIG already depends on HAS_DMA, but when driver use select
+directive for enabling support for VIDEOBUF2_DMA_CONTIG, the dependencies
+are not checked further. This is known limitation/feature of kconfig system.
+
+Best regards
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
+
