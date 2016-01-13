@@ -1,64 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:46304 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756832AbcAYRKC convert rfc822-to-8bit (ORCPT
+Received: from mail-yk0-f179.google.com ([209.85.160.179]:36547 "EHLO
+	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752082AbcAMQHr convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 12:10:02 -0500
-Date: Mon, 25 Jan 2016 15:09:56 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: =?UTF-8?B?Sm9zw6k=?= David Moreno =?UTF-8?B?SnXDoXJleg==?=
-	<jose.david@morenojuarez.nom.es>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] cx88-dvb: Changed tuner associated with board
- Hauppauge HVR-4000 from TUNER_PHILIPS_FMD1216ME_MK3 to
- TUNER_PHILIPS_FMD1216MEX_MK3
-Message-ID: <20160125150956.6d8650ff@recife.lan>
-In-Reply-To: <2691391.45DzHjqa9H@sisifo>
-References: <2691391.45DzHjqa9H@sisifo>
+	Wed, 13 Jan 2016 11:07:47 -0500
+Received: by mail-yk0-f179.google.com with SMTP id v14so399956385ykd.3
+        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 08:07:47 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <1452697362.3605.8.camel@collabora.com>
+References: <1452686611-145620-1-git-send-email-wuchengli@chromium.org> <1452697362.3605.8.camel@collabora.com>
+From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
+	<wuchengli@chromium.org>
+Date: Thu, 14 Jan 2016 00:07:27 +0800
+Message-ID: <CAOMLVLiDxkAdqsaAidxhZ=k4E=dHxe7+nOt1v7+fQrsDZG4Dow@mail.gmail.com>
+Subject: Re: [PATCH] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Cc: Wu-Cheng Li <wuchengli@chromium.org>, pawel@osciak.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl, k.debski@samsung.com,
+	crope@iki.fi, standby24x7@gmail.com, ricardo.ribalda@gmail.com,
+	ao2@ao2.it, bparrot@ti.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 29 Dec 2015 17:26:41 +0100
-José David Moreno Juárez  <jose.david@morenojuarez.nom.es> escreveu:
-
-> The correct tuner for the board Hauppauge HVR-4000 seems to be FMD1216MEX MK3 
-> instead of FMD1216ME MK3. The tuner is identified as such by tveeprom:
-> 	Dec 28 23:01:15 [kernel] tveeprom 8-0050: tuner model is Philips 
-> FMD1216MEX (idx 133, type 78)
-> 
-> This patch fixes a longstanding warning message issued by tuner-simple:
-> 	Dec 28 23:01:15 [kernel] tuner-simple 8-0061: couldn't set type to 63. 
-> Using 78 (Philips FMD1216MEX MK3 Hybrid Tuner) instead
-> 
-> It has been successfully tested against kernel 4.1.12.
-> 
-> 
-> 
-> Signed-off-by: José David Moreno Juárez <jose.david@morenojuarez.nom.es>
-> ---
->  drivers/media/pci/cx88/cx88-dvb.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/pci/cx88/cx88-dvb.c b/drivers/media/pci/cx88/cx88-
-> dvb.c
-> index afb2075..ac2ad00 100644
-> --- a/drivers/media/pci/cx88/cx88-dvb.c
-> +++ b/drivers/media/pci/cx88/cx88-dvb.c
-> @@ -1474,7 +1474,7 @@ static int dvb_register(struct cx8802_dev *dev)
->  			if (!dvb_attach(simple_tuner_attach,
->  					fe1->dvb.frontend,
->  					&dev->core->i2c_adap,
-> -					0x61, TUNER_PHILIPS_FMD1216ME_MK3))
-> +					0x61, TUNER_PHILIPS_FMD1216MEX_MK3))
-
-This will likely break for other Hauppauge devices that use the other
-tuner model. The best would be, instead, to use the value returned
-by tveeprom here, instead of hardcoding it.
-
-
->  				goto frontend_detach;
->  		}
->  		break;
+On Wed, Jan 13, 2016 at 11:02 PM, Nicolas Dufresne
+<nicolas.dufresne@collabora.com> wrote:
+> Le mercredi 13 janvier 2016 à 20:03 +0800, Wu-Cheng Li a écrit :
+>> Some drivers also need a control like
+>> V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE to force an encoder frame
+>> type. This patch adds a general V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
+>>
+>> This control only affects the next queued buffer. There's no need to
+>> clear the value after requesting an I frame. But all controls are set
+>> in v4l2_ctrl_handler_setup. So a default DISABLED value is required.
+>> Basically this control is like V4L2_CTRL_TYPE_BUTTON with parameters.
+>> How to prevent a control from being set in v4l2_ctrl_handler_setup so
+>> DISABLED value is not needed? Does it make sense not to set a control
+>> if it is EXECUTE_ON_WRITE?
+>
+> I don't like the way it's implemented. I don't know any decoder that
+> have a frame type forcing feature other they I-Frame. It would be much
+> more natural to use a toggle button control (and add more controls for
+> other types when needed) then trying to merge hypothetical toggles into
+> something that manually need to be set and disabled.
+Using a button control sounds like a good idea. I'll discuss with other people
+and reply tomorrow.
+>
+>>
+>> Wu-Cheng Li (1):
+>>   v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
+>>
+>>  Documentation/DocBook/media/v4l/controls.xml | 23
+>> +++++++++++++++++++++++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c         | 13 +++++++++++++
+>>  include/uapi/linux/v4l2-controls.h           |  5 +++++
+>>  3 files changed, 41 insertions(+)
+>>
