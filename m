@@ -1,81 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34234 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932071AbcAYRXY (ORCPT
+Received: from smtprelay2.synopsys.com ([198.182.60.111]:56054 "EHLO
+	smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750946AbcAMPf5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 12:23:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Eduard Gavin <egavinc@gmail.com>
-Subject: Re: [PATCH] tvp5150: Fix breakage for serial usage
-Date: Mon, 25 Jan 2016 19:23:40 +0200
-Message-ID: <2245834.R0faizq23Z@avalon>
-In-Reply-To: <54ffe2ae9209b607f54142809902764e2eaaf1d2.1453740290.git.mchehab@osg.samsung.com>
-References: <54ffe2ae9209b607f54142809902764e2eaaf1d2.1453740290.git.mchehab@osg.samsung.com>
+	Wed, 13 Jan 2016 10:35:57 -0500
+Subject: Re: PCI multimedia driver
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Joao Pinto <Joao.Pinto@synopsys.com>,
+	<linux-media@vger.kernel.org>
+References: <56966984.9030807@synopsys.com> <56966EB3.3040204@xs4all.nl>
+CC: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+	<Filipe.Goncalves@synopsys.com>
+From: Joao Pinto <Joao.Pinto@synopsys.com>
+Message-ID: <56966ED8.20200@synopsys.com>
+Date: Wed, 13 Jan 2016 15:35:52 +0000
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <56966EB3.3040204@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hans,
+Thanks for the information!
 
-On Monday 25 January 2016 14:44:56 Mauro Carvalho Chehab wrote:
-> changeset 460b6c0831cb ("tvp5150: Add s_stream subdev operation
-> support") broke for em28xx-based devices with uses tvp5150. On those
-> devices, touching the TVP5150_MISC_CTL register causes em28xx to stop
-> streaming.
+On 1/13/2016 3:35 PM, Hans Verkuil wrote:
+> On 01/13/16 16:13, Joao Pinto wrote:
+>> Hi guys,
+>>
+>> We are developing a PCI endpoint with HDMI video out and sound out capabilities
+>> and we will need to develop a linux driver to control it (host side). Could you
+>> please point us some existing driver example?
 > 
-> I suspect that it uses the 27 MHz clock provided by tvp5150 to feed
-> em28xx. So, change the logic to do nothing on s_stream if the tvp5150 is
-> not set up to work with V4L2_MBUS_PARALLEL.
+> Assuming that you plan to use V4L2 as the API instead of DRM/KMS, then the best
+> reference driver is drivers/media/pci/cobalt.
 > 
-> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/i2c/tvp5150.c | 9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
+> The PCIe cobalt card has four HDMI input and (via a daughterboard) an optional
+> fifth input or an HDMI output.
 > 
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 437f1a7ecb96..779c6f453cc9 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -975,19 +975,18 @@ static int tvp5150_g_mbus_config(struct v4l2_subdev
-> *sd, static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
->  {
->  	struct tvp5150 *decoder = to_tvp5150(sd);
-> -	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
-> -	int val = 0x09;
+> You can ignore all the code for the input part and just look at the code for the
+> HDMI output (it uses the adv7511 as the i2c HDMI transmitter).
 > 
->  	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
-> -	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
-> -		val = 0x0d;
-> +	if (decoder->mbus_type != V4L2_MBUS_PARALLEL)
-> +		return 0;
+> The driver supports audio too.
+> 
+> I assume the primary use is to stream video (V4L2) and not as a desktop/GUI output
+> (DRM/KMS)? If you want to use it for the latter, then this is the wrong mailinglist.
+> 
+> Regards,
+> 
+> 	Hans
+> 
 
-This will break TVP5151 operation with the OMAP3 ISP in BT.656 mode. The OMAP3 
-requires the TVP5151 to start and stop streaming when requested.
-
-> 
->  	/* Initializes TVP5150 to its default values */
->  	/* # set PCLK (27MHz) */
->  	tvp5150_write(sd, TVP5150_CONF_SHARED_PIN, 0x00);
-> 
-> +	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
->  	if (enable)
-> -		tvp5150_write(sd, TVP5150_MISC_CTL, val);
-> +		tvp5150_write(sd, TVP5150_MISC_CTL, 0x09);
->  	else
->  		tvp5150_write(sd, TVP5150_MISC_CTL, 0x00);
-
--- 
 Regards,
-
-Laurent Pinchart
-
+Joao
