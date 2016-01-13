@@ -1,59 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38092 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752677AbcAFLAY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 06:00:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/10] [media] tvp5150: Add device tree binding document
-Date: Wed, 06 Jan 2016 13:00:31 +0200
-Message-ID: <3433197.yOemOv0bmo@avalon>
-In-Reply-To: <568CF08B.6080107@osg.samsung.com>
-References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com> <2787681.imkQ5NT8Qm@avalon> <568CF08B.6080107@osg.samsung.com>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:28836 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754205AbcAMQq5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jan 2016 11:46:57 -0500
+From: Sebastien LEDUC <sebastien.leduc@st.com>
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 13 Jan 2016 17:46:53 +0100
+Subject: RE: V4L2 encoder APIs
+Message-ID: <DF597D17D2F66F40A76F27D4E5D6E1A48B0F5418@SAFEX1MAIL1.st.com>
+References: <DF597D17D2F66F40A76F27D4E5D6E1A48B0F53E0@SAFEX1MAIL1.st.com>
+ <1452700121.3605.18.camel@collabora.com>
+In-Reply-To: <1452700121.3605.18.camel@collabora.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 06 January 2016 07:46:35 Javier Martinez Canillas wrote:
-> On 01/06/2016 07:39 AM, Laurent Pinchart wrote:
-> > Hi Javier,
-> > 
-> > Thank you for the patch.
-> 
-> Thanks a lot for your feedback.
-> 
-> [snip]
-> 
-> >> +
-> >> +Optional Properties:
-> >> +- powerdown-gpios: phandle for the GPIO connected to the PDN pin, if
-> >> any.
-> > 
-> > The signal is called PDN in the datasheet, so it might make sense to call
-> > this pdn-gpios. I have no strong opinion on this, I'll let you decide
-> > what you think is best.
-> 
-> Yes, I wondered if the convention was to use a descriptive name or the one
-> used in the datasheet but Documentation/devicetree/bindings/gpio/gpio.txt
-> says nothing about it.
-
-The device tree maintainers might want to comment on that :-)
-
-> I'll change it to pdn-gpios since it could be easier to match with the doc.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+DQo+IERpc2N1c3Npb24gSSBoYWQgcmVnYXJkaW5nIHRoaXMga2luZCBvZiBpbnRlZ3JhdGlvbiwg
+d2hldGhlciBpdCB3YXMgYWJvdXQgbm9uLQ0KPiBwYXJzaW5nIGRlY29kZXIgb3Igc2xpY2UgZW5j
+b2RlciwgaXMgdGhhdCB0d28gcGxhbmVzIHNoYWxsIGJlIHVzZWQgKG1wbGFuZQ0KPiBBUEkgd2ls
+bCBhbGxvdyBzZXBlcmF0ZSBhbGxvY2F0aW9uIG9mIHRob3NlIHBsYW5lcykuIEFib3V0IHNsaWNl
+IGVuY29kZXIsIGEgbG90DQo+IG9mIHNwZWNpZmljYXRpb24gd29yayBpcyBuZWVkZWQuIEkgYmVs
+aWV2ZSB0aGUgaGFyZGVzdCBwYXJ0IGFuZCB3aGF0IG5vIG9uZQ0KPiBjb3VsZCBhZ3JlZSBvbiwg
+aXMgdGhlIGRhdGEgc3RydWN0dXJlIHN0YW5kYXJkIHRoYXQgd291bGQgYmUgdXNlZCB0bw0KPiBy
+ZXByZXNlbnQgdGhlIHJlcXVpcmVkIG1ldGFkYXRhIGFuZCBoZWFkZXJzLiBJbiB0aGUgZW5kLCBs
+aWJ2NGwgc2hvdWxkDQo+IHByb2JhYmx5IGhhdmUgc29tZSBuZXcgZmVhdHVyZSB0byB0cmFuc2Zv
+cm0gc2xpY2UgZW5jb2RlZCBkYXRhIGludG8gYnl0ZS0NCj4gc3RyZWFtIHNvIGV4aXN0aW5nIHNv
+ZnR3YXJlIGNhbiB1c2UgdGhvc2UgZW5jb2RlciB3aXRob3V0IHBvcnRpbmcuDQoNCg0KVGhhbmtz
+IGZvciB5b3VyIGFuc3dlcg0KSXQgc2VlbXMgdGhhdCB3aGF0IHlvdSBhcmUgdGFsa2luZyBhYm91
+dCBpcyB0aGUgY2FzZSBvZiBhIHNsaWNlIGVuY29kZXIsIHdoZXJlIHRoZSB1c2VyIHNpZGUgd291
+bGQgZ2VuZXJhdGUgdGhlIGhlYWRlci9tZXRhZGF0YS4NCkluIG91ciBjYXNlIHRoZSBIVyBpcyBu
+b3QgYSBzbGljZSBlbmNvZGVyLCBhcyBpdCBhbHNvIGdlbmVyYXRlcyB0aGUgaGVhZGVyL21ldGFk
+YXRhLCBidXQgaXQgY2FuIGdlbmVyYXRlIGl0IGluIHNvbWUgc2VwYXJhdGUgYnVmZmVyLCBhbmQg
+dGhpcyBpcyByZXF1aXJlZCBpbiBzb21lIHVzZS1jYXNlcy4NCg0KU28gSSBkb27igJl0IHRoaW5r
+IHRoZXJlIGlzIGEgbG90IG9mIHNwZWNpZmljYXRpb24gd29yayBuZWVkZWQgLiBXZSBqdXN0IG5l
+ZWQgYSB3YXkgdG8gb3V0cHV0IHNldmVyYWwgYnVmZmVycyBpbnN0ZWFkIG9mIG9uZSwgYW5kIHRv
+IHNwZWNpZnkgd2hpY2ggb25lIGlzIHRoZSBoZWFkZXIgYnVmZmVyLCBhbmQgd2hpY2ggb25lIGNv
+bnRhaW5zIHNsaWNlIGRhdGEuDQoNClJlZ2FyZHMNClNlYmFzdGllbg0KDQoNCg0K
