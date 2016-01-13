@@ -1,65 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:56580 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S965006AbcAUJxK (ORCPT
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:35867 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755478AbcAMMDp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2016 04:53:10 -0500
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: [PATCH v4l-utils] libv4lconvert: only expose jpeg_mem_*() protoypes when JPEG_LIB_VERSION < 80
-Date: Thu, 21 Jan 2016 10:53:07 +0100
-Message-Id: <1453369987-12428-1-git-send-email-thomas.petazzoni@free-electrons.com>
+	Wed, 13 Jan 2016 07:03:45 -0500
+Received: by mail-pa0-f54.google.com with SMTP id yy13so264907238pab.3
+        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 04:03:44 -0800 (PST)
+From: Wu-Cheng Li <wuchengli@chromium.org>
+To: pawel@osciak.com, mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	k.debski@samsung.com, crope@iki.fi, standby24x7@gmail.com,
+	wuchengli@chromium.org, nicolas.dufresne@collabora.com,
+	ricardo.ribalda@gmail.com, ao2@ao2.it, bparrot@ti.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org
+Subject: [PATCH] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE
+Date: Wed, 13 Jan 2016 20:03:30 +0800
+Message-Id: <1452686611-145620-1-git-send-email-wuchengli@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The jpeg_memsrcdest.c file implements jpeg_mem_src() and
-jpeg_mem_dest() when JPEG_LIB_VERSION < 80 in order to provide those
-functions to libv4lconvert when the libjpeg library being used is too
-old.
+Some drivers also need a control like
+V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE to force an encoder frame
+type. This patch adds a general V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
 
-However, the jpeg_memsrcdest.h file exposes the prototypes of those
-functions unconditionally. Until now, the prototype was matching the
-one of the functions exposed by libjpeg (when JPEG_LIB_VERSION >= 80),
-so there was no problem.
+This control only affects the next queued buffer. There's no need to
+clear the value after requesting an I frame. But all controls are set
+in v4l2_ctrl_handler_setup. So a default DISABLED value is required.
+Basically this control is like V4L2_CTRL_TYPE_BUTTON with parameters.
+How to prevent a control from being set in v4l2_ctrl_handler_setup so
+DISABLED value is not needed? Does it make sense not to set a control
+if it is EXECUTE_ON_WRITE?
 
-But since the release of libjpeg 9b (in January 2016), they changed
-the second argument of jpeg_mem_src() from "unsigned char *" to "const
-unsigned char*". Therefore, there are two prototypes for the
-jpeg_mem_src() function: one from libjpeg, one from libv4l, and they
-conflict with each other.
+Wu-Cheng Li (1):
+  v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
 
-To resolve this situation, this patch modifies jpeg_memsrcdest.h to
-only expose the prototypes when libv4l is implementing the functions
-(i.e when JPEG_LIB_VERSION < 80). When JPEG_LIB_VERSION >= 80, the
-prototypes will come from <jpeglib.h>.
+ Documentation/DocBook/media/v4l/controls.xml | 23 +++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         | 13 +++++++++++++
+ include/uapi/linux/v4l2-controls.h           |  5 +++++
+ 3 files changed, 41 insertions(+)
 
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
----
- lib/libv4lconvert/jpeg_memsrcdest.h | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/lib/libv4lconvert/jpeg_memsrcdest.h b/lib/libv4lconvert/jpeg_memsrcdest.h
-index e971182..28a6477 100644
---- a/lib/libv4lconvert/jpeg_memsrcdest.h
-+++ b/lib/libv4lconvert/jpeg_memsrcdest.h
-@@ -1,5 +1,7 @@
- #include <jpeglib.h>
- 
-+#if JPEG_LIB_VERSION < 80
-+
- void
- jpeg_mem_src (j_decompress_ptr cinfo, unsigned char * buffer,
- 	unsigned long bufsize);
-@@ -7,3 +9,5 @@ jpeg_mem_src (j_decompress_ptr cinfo, unsigned char * buffer,
- void
- jpeg_mem_dest (j_compress_ptr cinfo, unsigned char ** outbuffer,
- 	unsigned long * outsize);
-+
-+#endif
 -- 
-2.6.4
+2.6.0.rc2.230.g3dd15c0
 
