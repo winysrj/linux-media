@@ -1,42 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback8.mail.ru ([94.100.181.110]:40960 "EHLO
-	fallback8.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752736AbcAKKIj (ORCPT
+Received: from mout.gmx.net ([212.227.15.15]:52854 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752688AbcAMVJj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 05:08:39 -0500
-Received: from smtp48.i.mail.ru (smtp48.i.mail.ru [94.100.177.108])
-	by fallback8.mail.ru (mPOP.Fallback_MX) with ESMTP id 3D40E9305D79
-	for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 12:40:35 +0300 (MSK)
-From: andreykosh000@mail.ru
-To: linux-media@vger.kernel.org
-Cc: koshkoshka <andreykosh000@mail.ru>
-Subject: [PATCH] 	modified:   drivers/media/tuners/si2157.c Fixed frequency range to 42-870 MHz
-Date: Mon, 11 Jan 2016 19:40:22 +1000
-Message-Id: <1452505222-10444-1-git-send-email-andreykosh000@mail.ru>
+	Wed, 13 Jan 2016 16:09:39 -0500
+Date: Wed, 13 Jan 2016 22:09:32 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sebastien LEDUC <sebastien.leduc@st.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: V4L2 encoder APIs
+In-Reply-To: <DF597D17D2F66F40A76F27D4E5D6E1A48B0F53E0@SAFEX1MAIL1.st.com>
+Message-ID: <Pine.LNX.4.64.1601132156280.13265@axis700.grange>
+References: <DF597D17D2F66F40A76F27D4E5D6E1A48B0F53E0@SAFEX1MAIL1.st.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: koshkoshka <andreykosh000@mail.ru>
+Hi Sebastien,
 
----
- drivers/media/tuners/si2157.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On Wed, 13 Jan 2016, Sebastien LEDUC wrote:
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index ce157ed..86a753e 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -363,8 +363,8 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
- 		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
--		.frequency_min  = 55000000,
--		.frequency_max  = 862000000,
-+		.frequency_min  = 42000000,
-+		.frequency_max  = 870000000,
- 	},
- 
- 	.init = si2157_init,
--- 
-1.9.1
+> Hi all I have seen on the linuxTV web site that there were some on-going 
+> discussions related to the Codec API.
+> 
+> In our SoCs, it is the HW encoder that is outputting both the slice data 
+> and the headers/metadata, but it does it using separate buffers.
+> 
+> So we are looking at how to expose that using V4L2 APIs.
+> 
+> We were thinking that we could use the MPLANE apis to achieve that, 
+> where one plane would contain the header/metadata and another one for 
+> the slice data.
+> 
+> Any opinion on this ? 
 
+I think this should be handled in the same way as the output direction. We 
+are currently discussing this with several V4L developers. For output we 
+have to capture different data types to different buffers, running 
+multiplexed on the bus, e.g. over CSI-2. Using the MPLANE API would be one 
+option, but you don't want to define a new pixel format for each 
+combination of each standard pixel format with each accompanying data 
+type, be it metadata or anything else. So, you would have to add support 
+for per-plane format, which would contradict the current MPLANE API 
+concept.
+
+Therefore we're currently considering a different option of transferring 
+different buffer types via different buffer queues. Initially we thought 
+about simply using multiple video device nodes. That has a disadvantage 
+when the number of those streams is variable and potentially large. So, 
+another option is to add support for multiple buffer queues per video 
+node. Those buffer queues would then have to get some form of 
+identification, perhaps a stream ID. That stream ID would also be used to 
+associate those streams to links between subdevice pads. That's all still 
+very raw... Quite a bit of design and implementation work ahead.
+
+Thanks
+Guennadi
+
+> Thanks in advance for your inputs
+> 
+> Regards,
+> Sébastien
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
