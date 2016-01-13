@@ -1,338 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55752 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932561AbcA0NvK (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:55545 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753572AbcAMH6O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2016 08:51:10 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 5/5] staging: v4l: omap4iss: Use V4L2 graph PM operations
-Date: Wed, 27 Jan 2016 15:50:58 +0200
-Message-Id: <1453902658-29783-6-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1453902658-29783-1-git-send-email-sakari.ailus@iki.fi>
-References: <1453902658-29783-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 13 Jan 2016 02:58:14 -0500
+Subject: Re: Using the V4L2 device kernel drivers - TC358743
+To: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
+	linux-media@vger.kernel.org
+References: <56956454.4090307@destevenson.freeserve.co.uk>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56960390.30303@xs4all.nl>
+Date: Wed, 13 Jan 2016 08:58:08 +0100
+MIME-Version: 1.0
+In-Reply-To: <56956454.4090307@destevenson.freeserve.co.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Power on devices represented by entities in the graph through the pipeline
-state using V4L2 graph PM operations instead of what was in the omap3isp
-driver.
+Hi Dave,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/staging/media/omap4iss/iss.c       | 211 +----------------------------
- drivers/staging/media/omap4iss/iss.h       |   4 -
- drivers/staging/media/omap4iss/iss_video.c |  13 +-
- drivers/staging/media/omap4iss/iss_video.h |   1 -
- 4 files changed, 3 insertions(+), 226 deletions(-)
+On 01/12/2016 09:38 PM, Dave Stevenson wrote:
+> Hi All.
+> 
+> Apologies for what feels like such a newbie question, but I've failed to 
+> find useful information elsewhere.
+> 
+> I'm one of the ex-Broadcom developers who is still supporting Raspberry 
+> Pi, although I'm not employed by Pi Foundation or Trading.
+> My aim is to open up that platform by exposing the CSI2 receiver block 
+> (and eventually parts of the ISP) via V4L2. The first use case would be 
+> for the Toshiba TC358743 HDMI to CSI2 converter, but it should be 
+> applicable to any of the other device drivers too.
+> Sadly it probably won't be upstreamable as it will require the GPU to do 
+> most of the register poking to avoid potential IP issues (Broadcom not 
+> having released the docs for the relevant hardware blocks). In that 
+> regard it will be fairly similar to the existing V4L2 driver for the Pi 
+> camera.
+> 
+> There is now the driver for the TC358743 in mainline, but my stumbling 
+> block is finding a useful example of how to actually use it. The commit 
+> text by Mats Randgaard says it was "tested on our hardware and all the 
+> implemented features works as expected", but I don't know what that 
+> hardware was or how it was used.
 
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index 30b473c..fb80d2b 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -363,215 +363,6 @@ static irqreturn_t iss_isr(int irq, void *_iss)
- }
- 
- /* -----------------------------------------------------------------------------
-- * Pipeline power management
-- *
-- * Entities must be powered up when part of a pipeline that contains at least
-- * one open video device node.
-- *
-- * To achieve this use the entity use_count field to track the number of users.
-- * For entities corresponding to video device nodes the use_count field stores
-- * the users count of the node. For entities corresponding to subdevs the
-- * use_count field stores the total number of users of all video device nodes
-- * in the pipeline.
-- *
-- * The omap4iss_pipeline_pm_use() function must be called in the open() and
-- * close() handlers of video device nodes. It increments or decrements the use
-- * count of all subdev entities in the pipeline.
-- *
-- * To react to link management on powered pipelines, the link setup notification
-- * callback updates the use count of all entities in the source and sink sides
-- * of the link.
-- */
--
--/*
-- * iss_pipeline_pm_use_count - Count the number of users of a pipeline
-- * @entity: The entity
-- *
-- * Return the total number of users of all video device nodes in the pipeline.
-- */
--static int iss_pipeline_pm_use_count(struct media_entity *entity,
--				     struct media_entity_graph *graph)
--{
--	int use = 0;
--
--	media_entity_graph_walk_start(graph, entity);
--
--	while ((entity = media_entity_graph_walk_next(graph))) {
--		if (is_media_entity_v4l2_io(entity))
--			use += entity->use_count;
--	}
--
--	return use;
--}
--
--/*
-- * iss_pipeline_pm_power_one - Apply power change to an entity
-- * @entity: The entity
-- * @change: Use count change
-- *
-- * Change the entity use count by @change. If the entity is a subdev update its
-- * power state by calling the core::s_power operation when the use count goes
-- * from 0 to != 0 or from != 0 to 0.
-- *
-- * Return 0 on success or a negative error code on failure.
-- */
--static int iss_pipeline_pm_power_one(struct media_entity *entity, int change)
--{
--	struct v4l2_subdev *subdev;
--
--	subdev = is_media_entity_v4l2_subdev(entity)
--	       ? media_entity_to_v4l2_subdev(entity) : NULL;
--
--	if (entity->use_count == 0 && change > 0 && subdev) {
--		int ret;
--
--		ret = v4l2_subdev_call(subdev, core, s_power, 1);
--		if (ret < 0 && ret != -ENOIOCTLCMD)
--			return ret;
--	}
--
--	entity->use_count += change;
--	WARN_ON(entity->use_count < 0);
--
--	if (entity->use_count == 0 && change < 0 && subdev)
--		v4l2_subdev_call(subdev, core, s_power, 0);
--
--	return 0;
--}
--
--/*
-- * iss_pipeline_pm_power - Apply power change to all entities in a pipeline
-- * @entity: The entity
-- * @change: Use count change
-- *
-- * Walk the pipeline to update the use count and the power state of all non-node
-- * entities.
-- *
-- * Return 0 on success or a negative error code on failure.
-- */
--static int iss_pipeline_pm_power(struct media_entity *entity, int change,
--				 struct media_entity_graph *graph)
--{
--	struct media_entity *first = entity;
--	int ret = 0;
--
--	if (!change)
--		return 0;
--
--	media_entity_graph_walk_start(graph, entity);
--
--	while (!ret && (entity = media_entity_graph_walk_next(graph)))
--		if (is_media_entity_v4l2_subdev(entity))
--			ret = iss_pipeline_pm_power_one(entity, change);
--
--	if (!ret)
--		return 0;
--
--	media_entity_graph_walk_start(graph, first);
--
--	while ((first = media_entity_graph_walk_next(graph)) &&
--	       first != entity)
--		if (is_media_entity_v4l2_subdev(first))
--			iss_pipeline_pm_power_one(first, -change);
--
--	return ret;
--}
--
--/*
-- * omap4iss_pipeline_pm_use - Update the use count of an entity
-- * @entity: The entity
-- * @use: Use (1) or stop using (0) the entity
-- *
-- * Update the use count of all entities in the pipeline and power entities on or
-- * off accordingly.
-- *
-- * Return 0 on success or a negative error code on failure. Powering entities
-- * off is assumed to never fail. No failure can occur when the use parameter is
-- * set to 0.
-- */
--int omap4iss_pipeline_pm_use(struct media_entity *entity, int use,
--			     struct media_entity_graph *graph)
--{
--	int change = use ? 1 : -1;
--	int ret;
--
--	mutex_lock(&entity->graph_obj.mdev->graph_mutex);
--
--	/* Apply use count to node. */
--	entity->use_count += change;
--	WARN_ON(entity->use_count < 0);
--
--	/* Apply power change to connected non-nodes. */
--	ret = iss_pipeline_pm_power(entity, change, graph);
--	if (ret < 0)
--		entity->use_count -= change;
--
--	mutex_unlock(&entity->graph_obj.mdev->graph_mutex);
--
--	return ret;
--}
--
--/*
-- * iss_pipeline_link_notify - Link management notification callback
-- * @link: The link
-- * @flags: New link flags that will be applied
-- *
-- * React to link management on powered pipelines by updating the use count of
-- * all entities in the source and sink sides of the link. Entities are powered
-- * on or off accordingly.
-- *
-- * Return 0 on success or a negative error code on failure. Powering entities
-- * off is assumed to never fail. This function will not fail for disconnection
-- * events.
-- */
--static int iss_pipeline_link_notify(struct media_link *link, u32 flags,
--				    unsigned int notification)
--{
--	struct media_entity_graph *graph =
--		&container_of(link->graph_obj.mdev, struct iss_device,
--			      media_dev)->pm_count_graph;
--	struct media_entity *source = link->source->entity;
--	struct media_entity *sink = link->sink->entity;
--	int source_use;
--	int sink_use;
--	int ret;
--
--	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH) {
--		ret = media_entity_graph_walk_init(graph,
--						   link->graph_obj.mdev);
--		if (ret)
--			return ret;
--	}
--
--	source_use = iss_pipeline_pm_use_count(source, graph);
--	sink_use = iss_pipeline_pm_use_count(sink, graph);
--
--	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
--	    !(flags & MEDIA_LNK_FL_ENABLED)) {
--		/* Powering off entities is assumed to never fail. */
--		iss_pipeline_pm_power(source, -sink_use, graph);
--		iss_pipeline_pm_power(sink, -source_use, graph);
--		return 0;
--	}
--
--	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
--	    (flags & MEDIA_LNK_FL_ENABLED)) {
--		ret = iss_pipeline_pm_power(source, sink_use, graph);
--		if (ret < 0)
--			return ret;
--
--		ret = iss_pipeline_pm_power(sink, source_use, graph);
--		if (ret < 0)
--			iss_pipeline_pm_power(source, -sink_use, graph);
--	}
--
--	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH)
--		media_entity_graph_walk_cleanup(graph);
--
--	return ret;
--}
--
--/* -----------------------------------------------------------------------------
-  * Pipeline stream management
-  */
- 
-@@ -1197,7 +988,7 @@ static int iss_register_entities(struct iss_device *iss)
- 	strlcpy(iss->media_dev.model, "TI OMAP4 ISS",
- 		sizeof(iss->media_dev.model));
- 	iss->media_dev.hw_revision = iss->revision;
--	iss->media_dev.link_notify = iss_pipeline_link_notify;
-+	iss->media_dev.link_notify = v4l2_pipeline_link_notify;
- 	ret = media_device_register(&iss->media_dev);
- 	if (ret < 0) {
- 		dev_err(iss->dev, "Media device registration failed (%d)\n",
-diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
-index 05f08a3..c58665a 100644
---- a/drivers/staging/media/omap4iss/iss.h
-+++ b/drivers/staging/media/omap4iss/iss.h
-@@ -87,7 +87,6 @@ struct iss_reg {
- struct iss_device {
- 	struct v4l2_device v4l2_dev;
- 	struct media_device media_dev;
--	struct media_entity_graph pm_count_graph;
- 	struct device *dev;
- 	u32 revision;
- 
-@@ -152,9 +151,6 @@ void omap4iss_isp_subclk_enable(struct iss_device *iss,
- void omap4iss_isp_subclk_disable(struct iss_device *iss,
- 				 enum iss_isp_subclk_resource res);
- 
--int omap4iss_pipeline_pm_use(struct media_entity *entity, int use,
--			     struct media_entity_graph *graph);
--
- int omap4iss_register_entities(struct platform_device *pdev,
- 			       struct v4l2_device *v4l2_dev);
- void omap4iss_unregister_entities(struct platform_device *pdev);
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index 058233a..ec47b04 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -1009,13 +1009,7 @@ static int iss_video_open(struct file *file)
- 		goto done;
- 	}
- 
--	ret = media_entity_graph_walk_init(&handle->graph,
--					   &video->iss->media_dev);
--	if (ret)
--		goto done;
--
--	ret = omap4iss_pipeline_pm_use(&video->video.entity, 1,
--				       &handle->graph);
-+	ret = v4l2_pipeline_pm_use(&video->video.entity, 1);
- 	if (ret < 0) {
- 		omap4iss_put(video->iss);
- 		goto done;
-@@ -1054,7 +1048,6 @@ static int iss_video_open(struct file *file)
- done:
- 	if (ret < 0) {
- 		v4l2_fh_del(&handle->vfh);
--		media_entity_graph_walk_cleanup(&handle->graph);
- 		kfree(handle);
- 	}
- 
-@@ -1070,13 +1063,11 @@ static int iss_video_release(struct file *file)
- 	/* Disable streaming and free the buffers queue resources. */
- 	iss_video_streamoff(file, vfh, video->type);
- 
--	omap4iss_pipeline_pm_use(&video->video.entity, 0, &handle->graph);
-+	v4l2_pipeline_pm_use(&video->video.entity, 0);
- 
- 	/* Release the videobuf2 queue */
- 	vb2_queue_release(&handle->queue);
- 
--	/* Release the file handle. */
--	media_entity_graph_walk_cleanup(&handle->graph);
- 	v4l2_fh_del(vfh);
- 	kfree(handle);
- 	file->private_data = NULL;
-diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
-index 34588b7..c8bd295 100644
---- a/drivers/staging/media/omap4iss/iss_video.h
-+++ b/drivers/staging/media/omap4iss/iss_video.h
-@@ -183,7 +183,6 @@ struct iss_video_fh {
- 	struct vb2_queue queue;
- 	struct v4l2_format format;
- 	struct v4l2_fract timeperframe;
--	struct media_entity_graph graph;
- };
- 
- #define to_iss_video_fh(fh)	container_of(fh, struct iss_video_fh, vfh)
--- 
-2.1.4
+It's for Cisco video conferencing equipment, but it basically boils down to
+capturing HDMI input over a CSI2 bus. I believe it's on an omap4.
+
+I know Philip Zabel also developed for the TC358743. Philip, do you have a
+git tree available that shows how it is used?
+
+> The media controller API seems to be part of the answer, but that seems 
+> to be a large overhead for an application to have to connect together 
+> multiple sub-devices when it is only interested in images out the back. 
+
+The MC is only needed if you have hardware that allows for complex and/or
+dynamic internal video routing. For a standard linear video pipeline it
+is not needed.
+
+> Is there something that sets up default connections that I'm missing? 
+> Somewhere within device tree?
+
+Typically the bridge driver (i.e. the platform driver that sets up the
+pipeline and creates the video devices) will use the device tree to find
+the v4l2-subdevice(s) it has to load and hooks them into the pipeline.
+
+drivers/media/platform/am437x/am437x-vpfe.c looks to be a decent example
+of that.
+
+Of course, if you have more complex pipelines, then you need to support
+the MC.
+
+> 
+> I have looked at the OMAP4 ISS driver as a vaguely similar device, but 
+> that seemingly covers the image processing pipe only, not hooking in to 
+> the sensor drivers.
+
+Sensor drivers are hooked in in function iss_register_entities(), see the
+section for "/* Register external entities */".
+
+> I've also got a slight challenge in that ideally I want the GPU to 
+> allocate the memory, and ARM map that memory (we already have a service 
+> to do that), but I can't see how that would fit in with the the existing 
+> videobuf modes. Any thoughts on how I might be able to support that? The 
+> existing V4L2 driver ends up doing a full copy of every buffer from GPU 
+> memory to ARM, which isn't great for performance.
+> There may be an option to use contiguous memory and get the GPU to map 
+> that, but it's more involved as I don't believe the supporting code is 
+> on the Pi branch.
+
+The proper way to do this is that the GPU can export buffers as a DMABUF file
+descriptor, then import them in V4L2 (V4L2_MEMORY_DMABUF). The videobuf2
+v4l2 framework will handle all the details for you, so it is trivial on
+the v4l2 side.
+
+If the GPU doesn't support dmabuf, then I'm not sure if you can do this
+without horrible hacks.
+
+Regards,
+
+	Hans
+
+> 
+> Any help much appreciated.
+> 
+> Thanks.
+>    Dave
+> 
+> PS If those involved in the TC358743 driver are reading, a couple of 
+> quick emails over the possibility of bringing the audio in over CSI2 
+> rather than I2S would be appreciated. I can split out the relevant CSI2 
+> ID stream, but have no idea how I would then feed that through the 
+> kernel to appear via ALSA.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
