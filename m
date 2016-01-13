@@ -1,61 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43300 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757590AbcAKBrc (ORCPT
+Received: from mail-pa0-f67.google.com ([209.85.220.67]:36616 "EHLO
+	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755743AbcAMR7p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2016 20:47:32 -0500
-Received: from avalon.bb.dnainternet.fi (85-23-193-79.bb.dnainternet.fi [85.23.193.79])
-	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 29EB62005E
-	for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 02:46:45 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Wed, 13 Jan 2016 12:59:45 -0500
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] media-ctl: Initialize ioctl arguments to 0
-Date: Mon, 11 Jan 2016 03:47:39 +0200
-Message-Id: <1452476859-11051-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH v3] media: soc_camera: rcar_vin: Add ARGB8888 caputre format support
+Date: Thu, 14 Jan 2016 02:59:24 +0900
+Message-Id: <1452707964-4379-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This ensures that the reserved fields are properly set to 0 as required
-by the API.
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This patch adds ARGB8888 capture format support for R-Car Gen3.
+
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 ---
- utils/media-ctl/libmediactl.c | 6 ++++++
- 1 file changed, 6 insertions(+)
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index 4a82d24c6722..5525fbb2c0a7 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -243,6 +243,8 @@ int media_setup_link(struct media_device *media,
- 		goto done;
- 	}
+This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
+
+v3 [Yoshihiro Kaneko]
+* rebased to for-4.6-1 branch of Guennadi's tree.
+
+v2 [Yoshihiro Kaneko]
+* As suggested by Sergei Shtylyov
+  - fix the coding style of the braces.
+
+ drivers/media/platform/soc_camera/rcar_vin.c | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index dc75a80..466c63a 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -124,7 +124,7 @@
+ #define VNDMR_EXRGB		(1 << 8)
+ #define VNDMR_BPSM		(1 << 4)
+ #define VNDMR_DTMD_YCSEP	(1 << 1)
+-#define VNDMR_DTMD_ARGB1555	(1 << 0)
++#define VNDMR_DTMD_ARGB		(1 << 0)
  
-+	memset(&ulink, 0, sizeof(ulink));
-+
- 	/* source pad */
- 	ulink.source.entity = source->entity->info.id;
- 	ulink.source.index = source->index;
-@@ -333,6 +335,8 @@ static int media_enum_links(struct media_device *media)
- 		struct media_links_enum links;
- 		unsigned int i;
+ /* Video n Data Mode Register 2 bits */
+ #define VNDMR2_VPS		(1 << 30)
+@@ -643,7 +643,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 		output_is_yuv = true;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB555X:
+-		dmr = VNDMR_DTMD_ARGB1555;
++		dmr = VNDMR_DTMD_ARGB;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB565:
+ 		dmr = 0;
+@@ -654,6 +654,14 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 			dmr = VNDMR_EXRGB;
+ 			break;
+ 		}
++	case V4L2_PIX_FMT_ARGB32:
++		if (priv->chip == RCAR_GEN3) {
++			dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
++		} else {
++			dev_err(icd->parent, "Not support format\n");
++			return -EINVAL;
++		}
++		break;
+ 	default:
+ 		dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
+ 			 icd->current_fmt->host_fmt->fourcc);
+@@ -1304,6 +1312,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
+ 		.order			= SOC_MBUS_ORDER_LE,
+ 		.layout			= SOC_MBUS_LAYOUT_PACKED,
+ 	},
++	{
++		.fourcc			= V4L2_PIX_FMT_ARGB32,
++		.name			= "ARGB8888",
++		.bits_per_sample	= 32,
++		.packing		= SOC_MBUS_PACKING_NONE,
++		.order			= SOC_MBUS_ORDER_LE,
++		.layout			= SOC_MBUS_LAYOUT_PACKED,
++	},
+ };
  
-+		memset(&links, 0, sizeof(links));
-+
- 		links.entity = entity->info.id;
- 		links.pads = calloc(entity->info.pads, sizeof(struct media_pad_desc));
- 		links.links = calloc(entity->info.links, sizeof(struct media_link_desc));
-@@ -596,6 +600,8 @@ int media_device_enumerate(struct media_device *media)
- 	if (ret < 0)
- 		return ret;
- 
-+	memset(&media->info, 0, sizeof(media->info));
-+
- 	ret = ioctl(media->fd, MEDIA_IOC_DEVICE_INFO, &media->info);
- 	if (ret < 0) {
- 		ret = -errno;
+ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+@@ -1611,6 +1627,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+ 	case V4L2_PIX_FMT_RGB32:
+ 		can_scale = priv->chip != RCAR_E1;
+ 		break;
++	case V4L2_PIX_FMT_ARGB32:
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_RGB565:
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
