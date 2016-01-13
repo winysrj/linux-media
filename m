@@ -1,41 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:48623 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751763AbcAZPqa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 10:46:30 -0500
-From: Todor Tomov <ttomov@mm-sol.com>
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Cc: Todor Tomov <ttomov@mm-sol.com>
-Subject: [yavta PATCH] Fix requeue of last buffers
-Date: Tue, 26 Jan 2016 17:45:06 +0200
-Message-Id: <1453823106-24777-1-git-send-email-ttomov@mm-sol.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:40430 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052AbcAMPCs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jan 2016 10:02:48 -0500
+Message-ID: <1452697362.3605.8.camel@collabora.com>
+Subject: Re: [PATCH] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Wu-Cheng Li <wuchengli@chromium.org>, pawel@osciak.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl, k.debski@samsung.com,
+	crope@iki.fi, standby24x7@gmail.com, ricardo.ribalda@gmail.com,
+	ao2@ao2.it, bparrot@ti.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org
+Date: Wed, 13 Jan 2016 10:02:42 -0500
+In-Reply-To: <1452686611-145620-1-git-send-email-wuchengli@chromium.org>
+References: <1452686611-145620-1-git-send-email-wuchengli@chromium.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-vKIMJy40P+XVrjRqkvNp"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When capturing n image with p buffers, dequeued buffers don't need to be
-requeued in the last p iterations. Currently requeue in iteration
-n - p + 1 is skipped only. So skip requeue on all last p iterations.
 
-Also handle correctly the case when n < p.
+--=-vKIMJy40P+XVrjRqkvNp
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Todor Tomov <ttomov@mm-sol.com>
----
- yavta.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Le mercredi 13 janvier 2016 =C3=A0 20:03 +0800, Wu-Cheng Li a =C3=A9crit=C2=
+=A0:
+> Some drivers also need a control like
+> V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE to force an encoder frame
+> type. This patch adds a general V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
+>=20
+> This control only affects the next queued buffer. There's no need to
+> clear the value after requesting an I frame. But all controls are set
+> in v4l2_ctrl_handler_setup. So a default DISABLED value is required.
+> Basically this control is like V4L2_CTRL_TYPE_BUTTON with parameters.
+> How to prevent a control from being set in v4l2_ctrl_handler_setup so
+> DISABLED value is not needed? Does it make sense not to set a control
+> if it is EXECUTE_ON_WRITE?
 
-diff --git a/yavta.c b/yavta.c
-index 49361ad..12f1608 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -1696,7 +1696,7 @@ static int video_do_capture(struct device *dev, unsigned int nframes,
- 
- 		fflush(stdout);
- 
--		if (i == nframes - dev->nbufs && !do_requeue_last)
-+		if (i + dev->nbufs >= nframes && !do_requeue_last)
- 			continue;
- 
- 		ret = video_queue_buffer(dev, buf.index, fill);
--- 
-1.9.1
+I don't like the way it's implemented. I don't know any decoder that
+have a frame type forcing feature other they I-Frame. It would be much
+more natural to use a toggle button control (and add more controls for
+other types when needed) then trying to merge hypothetical toggles into
+something that manually need to be set and disabled.
+
+>=20
+> Wu-Cheng Li (1):
+> =C2=A0 v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
+>=20
+> =C2=A0Documentation/DocBook/media/v4l/controls.xml | 23
+> +++++++++++++++++++++++
+> =C2=A0drivers/media/v4l2-core/v4l2-ctrls.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0| 13 +++++++++++++
+> =C2=A0include/uapi/linux/v4l2-controls.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A05 +++++
+> =C2=A03 files changed, 41 insertions(+)
+>=20
+--=-vKIMJy40P+XVrjRqkvNp
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEABECAAYFAlaWZxIACgkQcVMCLawGqBzOdACfahCCdLWKlusD7vegK9V1pmXh
+k7cAn20j2ILRehu+ZQFTnualQZ2iSi0V
+=9G5v
+-----END PGP SIGNATURE-----
+
+--=-vKIMJy40P+XVrjRqkvNp--
 
