@@ -1,57 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:54715 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756956AbcAZOLN (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41457 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752635AbcANIxN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 09:11:13 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/7] [media] pwc: hide unused label
-Date: Tue, 26 Jan 2016 15:09:55 +0100
-Message-Id: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
+	Thu, 14 Jan 2016 03:53:13 -0500
+Subject: Re: [PATCH v2 2/2] s5p-mfc: add the support of
+ V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
+To: Wu-Cheng Li <wuchengli@chromium.org>, pawel@osciak.com,
+	mchehab@osg.samsung.com, k.debski@samsung.com, crope@iki.fi,
+	standby24x7@gmail.com, nicolas.dufresne@collabora.com,
+	ricardo.ribalda@gmail.com, ao2@ao2.it, bparrot@ti.com,
+	kyungmin.park@samsung.com, jtp.park@samsung.com
+References: <1452760439-35564-1-git-send-email-wuchengli@chromium.org>
+ <1452760439-35564-3-git-send-email-wuchengli@chromium.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	tiffany.lin@mediatek.com, djkurtz@chromium.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <569762CE.2000104@xs4all.nl>
+Date: Thu, 14 Jan 2016 09:56:46 +0100
+MIME-Version: 1.0
+In-Reply-To: <1452760439-35564-3-git-send-email-wuchengli@chromium.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pwc driver causes a warning when CONFIG_USB_PWC_INPUT_EVDEV is unset:
+On 01/14/16 09:33, Wu-Cheng Li wrote:
+> Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> index 0434f02..de1d68d 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+> @@ -212,6 +212,15 @@ static struct mfc_control controls[] = {
+>  		.menu_skip_mask = 0,
+>  	},
+>  	{
+> +		.id = V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME,
+> +		.type = V4L2_CTRL_TYPE_BUTTON,
+> +		.name = "Force an I frame",
 
-drivers/media/usb/pwc/pwc-if.c: In function 'usb_pwc_probe':
-drivers/media/usb/pwc/pwc-if.c:1115:1: warning: label 'err_video_unreg' defined but not used [-Wunused-label]
+Drop the name: this is a standard control, so the name will be filled in from
+v4l2-ctrls.c.
 
-Obviously, the cleanup of &pdev->vdev is not needed without the input device,
-so we can just move it inside of the existing #ifdef and remove the
-extra label.
+Regards,
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/usb/pwc/pwc-if.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+	Hans
 
-diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-index 086cf1c7bd7d..bdd416af84c7 100644
---- a/drivers/media/usb/pwc/pwc-if.c
-+++ b/drivers/media/usb/pwc/pwc-if.c
-@@ -1106,14 +1106,13 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
- 	if (rc) {
- 		input_free_device(pdev->button_dev);
- 		pdev->button_dev = NULL;
--		goto err_video_unreg;
-+		video_unregister_device(&pdev->vdev);
-+		goto err_unregister_v4l2_dev;
- 	}
- #endif
- 
- 	return 0;
- 
--err_video_unreg:
--	video_unregister_device(&pdev->vdev);
- err_unregister_v4l2_dev:
- 	v4l2_device_unregister(&pdev->v4l2_dev);
- err_free_controls:
--- 
-2.7.0
-
+> +		.minimum = 0,
+> +		.maximum = 0,
+> +		.step = 0,
+> +		.default_value = 0,
+> +	},
+> +	{
+>  		.id = V4L2_CID_MPEG_VIDEO_VBV_SIZE,
+>  		.type = V4L2_CTRL_TYPE_INTEGER,
+>  		.minimum = 0,
+> @@ -1423,6 +1432,10 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+>  	case V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE:
+>  		ctx->force_frame_type = ctrl->val;
+>  		break;
+> +	case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:
+> +		ctx->force_frame_type
+> +			= V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_I_FRAME;
+> +		break;
+>  	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
+>  		p->vbv_size = ctrl->val;
+>  		break;
+> 
