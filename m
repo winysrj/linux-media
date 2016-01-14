@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f170.google.com ([209.85.223.170]:34546 "EHLO
-	mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752582AbcAWNzV (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:49200 "EHLO
+	mailgw02.hq.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750760AbcANHhd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2016 08:55:21 -0500
+	Thu, 14 Jan 2016 02:37:33 -0500
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH] media: v4l2-compat-ioctl32: fix missing length copy in put_v4l2_buffer32
+Date: Thu, 14 Jan 2016 15:37:25 +0800
+Message-ID: <1452757045-34051-1-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <1451481963-18853-1-git-send-email-sudipm.mukherjee@gmail.com>
-References: <1451481963-18853-1-git-send-email-sudipm.mukherjee@gmail.com>
-Date: Sat, 23 Jan 2016 14:55:20 +0100
-Message-ID: <CAMuHMdVYy+O6oAHAH-uQoEsrdCJD0ex9cp79ry=FbevDAQbH+A@mail.gmail.com>
-Subject: Re: [PATCH] [media] media: Kconfig: add dependency of HAS_DMA
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 30, 2015 at 2:26 PM, Sudip Mukherjee
-<sudipm.mukherjee@gmail.com> wrote:
-> The build of m32r allmodconfig fails with the error:
-> drivers/media/v4l2-core/videobuf2-dma-contig.c:484:2:
->         error: implicit declaration of function 'dma_get_cache_alignment'
->
-> The build of videobuf2-dma-contig.c depends on HAS_DMA and it is
-> correctly mentioned in the Kconfig but the symbol VIDEO_STI_BDISP also
-> selects VIDEOBUF2_DMA_CONTIG, so it is trying to compile
-> videobuf2-dma-contig.c even though HAS_DMA is not defined.
->
-> Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+In v4l2-compliance utility, test QUERYBUF required correct length
+value to go through each planar to check planar's length in multi-planar
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-Gr{oetje,eeting}s,
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 327e83a..5ba932a 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -521,6 +521,9 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		if (num_planes == 0)
+ 			return 0;
+ 
++		if (put_user(kp->length, &up->length))
++			return -EFAULT;
++
+ 		uplane = (__force struct v4l2_plane __user *)kp->m.planes;
+ 		if (get_user(p, &up->m.planes))
+ 			return -EFAULT;
+-- 
+1.7.9.5
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
