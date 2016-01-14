@@ -1,52 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:57549 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757136AbcAZOLV (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:42222 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154AbcANPFy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 09:11:21 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/7] [media] hdpvr: hide unused variable
-Date: Tue, 26 Jan 2016 15:09:56 +0100
-Message-Id: <1453817424-3080054-2-git-send-email-arnd@arndb.de>
-In-Reply-To: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
-References: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
+	Thu, 14 Jan 2016 10:05:54 -0500
+Message-ID: <1452783947.10009.20.camel@collabora.com>
+Subject: Re: [PATCH v3 0/2] new control V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Wu-Cheng Li <wuchengli@chromium.org>, pawel@osciak.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl, k.debski@samsung.com,
+	crope@iki.fi, standby24x7@gmail.com, ricardo.ribalda@gmail.com,
+	ao2@ao2.it, bparrot@ti.com, kyungmin.park@samsung.com,
+	jtp.park@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	tiffany.lin@mediatek.com, djkurtz@chromium.org
+Date: Thu, 14 Jan 2016 10:05:47 -0500
+In-Reply-To: <1452783007-80883-1-git-send-email-wuchengli@chromium.org>
+References: <1452783007-80883-1-git-send-email-wuchengli@chromium.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-IqT+0WtcRMglZYlAmQ6U"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The i2c client pointer is only used when CONFIG_I2C is set, and
-otherwise produces a compile-time warning:
 
-drivers/media/usb/hdpvr/hdpvr-core.c: In function 'hdpvr_probe':
-drivers/media/usb/hdpvr/hdpvr-core.c:276:21: error: unused variable 'client' [-Werror=unused-variable]
+--=-IqT+0WtcRMglZYlAmQ6U
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-This uses the same #ifdef to hide the variable when the code using
-it is hidden.
+Le jeudi 14 janvier 2016 =C3=A0 22:50 +0800, Wu-Cheng Li a =C3=A9crit=C2=A0=
+:
+> v3 addressed Hans' comment to remove the name of the control in s5p-
+> mfc.
+>=20
+> Wu-Cheng Li (2):
+> =C2=A0 v4l: add V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/usb/hdpvr/hdpvr-core.c | 2 ++
- 1 file changed, 2 insertions(+)
+Hans suggested to name it V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
-index 3fc64197b4e6..08f0ca7aa012 100644
---- a/drivers/media/usb/hdpvr/hdpvr-core.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-core.c
-@@ -273,7 +273,9 @@ static int hdpvr_probe(struct usb_interface *interface,
- 	struct hdpvr_device *dev;
- 	struct usb_host_interface *iface_desc;
- 	struct usb_endpoint_descriptor *endpoint;
-+#if IS_ENABLED(CONFIG_I2C)
- 	struct i2c_client *client;
-+#endif
- 	size_t buffer_size;
- 	int i;
- 	int retval = -ENOMEM;
--- 
-2.7.0
+regards,
+Nicolas
+
+> =C2=A0 s5p-mfc: add the support of V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
+>=20
+> =C2=A0Documentation/DocBook/media/v4l/controls.xml |=C2=A0=C2=A08 +++++++=
++
+> =C2=A0drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 12 ++++++++++++
+> =C2=A0drivers/media/v4l2-core/v4l2-ctrls.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A02 ++
+> =C2=A0include/uapi/linux/v4l2-controls.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A01 +
+> =C2=A04 files changed, 23 insertions(+)
+>=20
+--=-IqT+0WtcRMglZYlAmQ6U
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEABECAAYFAlaXuUwACgkQcVMCLawGqBzXfgCeIz0fR65AvnnGTy11y7FjdcsD
+ckgAoJMeBt3p4nG1az9Pwu03ManNkJfj
+=sAtU
+-----END PGP SIGNATURE-----
+
+--=-IqT+0WtcRMglZYlAmQ6U--
 
