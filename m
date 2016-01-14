@@ -1,123 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54920 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756779AbcAJEGW (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:49747 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932337AbcANTwh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jan 2016 23:06:22 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DC9F6180916
-	for <linux-media@vger.kernel.org>; Sun, 10 Jan 2016 05:06:01 +0100 (CET)
-Date: Sun, 10 Jan 2016 05:06:01 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160110040601.DC9F6180916@tschai.lan>
+	Thu, 14 Jan 2016 14:52:37 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH v2 30/31] sound/usb: Check media device unregister progress state
+Date: Thu, 14 Jan 2016 12:52:30 -0700
+Message-Id: <75db5354c03727a38fc83849cab4af095a3cf4e6.1452800274.git.shuahkh@osg.samsung.com>
+In-Reply-To: <fd72f02797d595fc1c53b16fccec4d204430995e.1452800273.git.shuahkh@osg.samsung.com>
+References: <fd72f02797d595fc1c53b16fccec4d204430995e.1452800273.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1452800265.git.shuahkh@osg.samsung.com>
+References: <cover.1452800265.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Change to release media resources for pcm streams
+and mixer before snd_card_disconnect() is done from
+usb_audio_disconnect(). The stream and mixer resource
+release interfaces access managed media resources
+(device resources) created on the usb device parent.
+These interfaces should be called before the last
+put_device() which releases all the device resources.
+In addition, changed the stream and mixer resource
+release interfaces to check if media device unregister
+is in progress and avoid calling Media Controller API
+to unregister entities and remove devnodes. Media device
+unregister takes care of all of this. This fixes the
+the general protection faults while snd-usb-audio was
+cleaning up media resources for pcm streams and mixers.
 
-Results of the daily build of media_tree:
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+Changes since v1:
+- Rebased after patch 26 v2 work.
+- No changes to patch.
 
-date:		Sun Jan 10 04:01:53 CET 2016
-git branch:	test
-git hash:	768acf46e1320d6c41ed1b7c4952bab41c1cde79
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.3.0-164
+ sound/usb/card.c   |  8 ++++++--
+ sound/usb/media.c  | 41 +++++++++++++++++++++++++++++++----------
+ sound/usb/media.h  |  4 ++--
+ sound/usb/stream.c |  1 -
+ 4 files changed, 39 insertions(+), 15 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-rc1-i686: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/sound/usb/card.c b/sound/usb/card.c
+index e965982..8959ccb 100644
+--- a/sound/usb/card.c
++++ b/sound/usb/card.c
+@@ -608,6 +608,12 @@ static void usb_audio_disconnect(struct usb_interface *intf)
+ 		 */
+ 		wait_event(chip->shutdown_wait,
+ 			   !atomic_read(&chip->usage_count));
++
++		/* release media pcm stream resources */
++		media_stream_delete(chip);
++		/* delete mixer media resources */
++		media_mixer_delete(chip);
++
+ 		snd_card_disconnect(card);
+ 		/* release the pcm resources */
+ 		list_for_each_entry(as, &chip->pcm_list, list) {
+@@ -621,8 +627,6 @@ static void usb_audio_disconnect(struct usb_interface *intf)
+ 		list_for_each(p, &chip->midi_list) {
+ 			snd_usbmidi_disconnect(p);
+ 		}
+-		/* delete mixer media resources */
+-		media_mixer_delete(chip);
+ 		/* release mixer resources */
+ 		list_for_each_entry(mixer, &chip->mixer_list, list) {
+ 			snd_usb_mixer_disconnect(mixer);
+diff --git a/sound/usb/media.c b/sound/usb/media.c
+index da58378..93c2bdd 100644
+--- a/sound/usb/media.c
++++ b/sound/usb/media.c
+@@ -77,8 +77,11 @@ void media_device_delete(struct usb_interface *iface)
+ 	struct usb_device *usbdev = interface_to_usbdev(iface);
+ 
+ 	mdev = media_device_find_devres(&usbdev->dev);
+-	if (mdev && media_devnode_is_registered(&mdev->devnode))
+-		media_device_unregister(mdev);
++	if (mdev) {
++		if (media_devnode_is_registered(&mdev->devnode) &&
++		    !media_device_is_unregister_in_progress(mdev))
++			media_device_unregister(mdev);
++	}
+ }
+ 
+ static int media_enable_source(struct media_ctl *mctl)
+@@ -156,7 +159,7 @@ int media_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
+ 	return 0;
+ }
+ 
+-void media_stream_delete(struct snd_usb_substream *subs)
++static void __media_stream_delete(struct snd_usb_substream *subs)
+ {
+ 	struct media_ctl *mctl = (struct media_ctl *) subs->media_ctl;
+ 
+@@ -164,7 +167,7 @@ void media_stream_delete(struct snd_usb_substream *subs)
+ 		struct media_device *mdev;
+ 
+ 		mdev = media_device_find_devres(&subs->dev->dev);
+-		if (mdev) {
++		if (mdev && !media_device_is_unregister_in_progress(mdev)) {
+ 			media_devnode_remove(mctl->intf_devnode);
+ 			media_device_unregister_entity(&mctl->media_entity);
+ 			media_entity_cleanup(&mctl->media_entity);
+@@ -174,6 +177,21 @@ void media_stream_delete(struct snd_usb_substream *subs)
+ 	}
+ }
+ 
++void media_stream_delete(struct snd_usb_audio *chip)
++{
++	struct snd_usb_stream *as;
++
++	list_for_each_entry(as, &chip->pcm_list, list) {
++		struct snd_usb_substream *subs;
++		int idx;
++
++		for (idx = 0; idx < 2; idx++) {
++			subs = &as->substream[idx];
++			__media_stream_delete(subs);
++		}
++	}
++}
++
+ int media_start_pipeline(struct snd_usb_substream *subs)
+ {
+ 	struct media_ctl *mctl = (struct media_ctl *) subs->media_ctl;
+@@ -262,20 +280,23 @@ void media_mixer_delete(struct snd_usb_audio *chip)
+ 	struct media_device *mdev;
+ 
+ 	mdev = media_device_find_devres(&chip->dev->dev);
+-	if (!mdev)
+-		return;
+ 
++	if (chip->ctl_intf_media_devnode) {
++		if (mdev && !media_device_is_unregister_in_progress(mdev))
++			media_devnode_remove(chip->ctl_intf_media_devnode);
++		chip->ctl_intf_media_devnode = NULL;
++	}
+ 	list_for_each_entry(mixer, &chip->mixer_list, list) {
+ 		struct media_mixer_ctl *mctl;
+ 
+ 		mctl = (struct media_mixer_ctl *) mixer->media_mixer_ctl;
+ 		if (!mixer->media_mixer_ctl)
+ 			continue;
+-
+-		media_device_unregister_entity(&mctl->media_entity);
+-		media_entity_cleanup(&mctl->media_entity);
++		if (mdev && !media_device_is_unregister_in_progress(mdev)) {
++			media_device_unregister_entity(&mctl->media_entity);
++			media_entity_cleanup(&mctl->media_entity);
++		}
+ 		kfree(mctl);
+ 		mixer->media_mixer_ctl = NULL;
+ 	}
+-	media_devnode_remove(chip->ctl_intf_media_devnode);
+ }
+diff --git a/sound/usb/media.h b/sound/usb/media.h
+index 9477ffa..09854da 100644
+--- a/sound/usb/media.h
++++ b/sound/usb/media.h
+@@ -54,7 +54,7 @@ int media_device_create(struct snd_usb_audio *chip,
+ void media_device_delete(struct usb_interface *iface);
+ int media_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
+ 			int stream);
+-void media_stream_delete(struct snd_usb_substream *subs);
++void media_stream_delete(struct snd_usb_audio *chip);
+ int media_start_pipeline(struct snd_usb_substream *subs);
+ void media_stop_pipeline(struct snd_usb_substream *subs);
+ int media_mixer_init(struct snd_usb_audio *chip);
+@@ -67,7 +67,7 @@ static inline void media_device_delete(struct usb_interface *iface) { }
+ static inline int media_stream_init(struct snd_usb_substream *subs,
+ 					struct snd_pcm *pcm, int stream)
+ 						{ return 0; }
+-static inline void media_stream_delete(struct snd_usb_substream *subs) { }
++static inline void media_stream_delete(struct snd_usb_audio *chip) { }
+ static inline int media_start_pipeline(struct snd_usb_substream *subs)
+ 					{ return 0; }
+ static inline void media_stop_pipeline(struct snd_usb_substream *subs) { }
+diff --git a/sound/usb/stream.c b/sound/usb/stream.c
+index 789e515..f96f539 100644
+--- a/sound/usb/stream.c
++++ b/sound/usb/stream.c
+@@ -53,7 +53,6 @@ static void free_substream(struct snd_usb_substream *subs)
+ 		kfree(fp);
+ 	}
+ 	kfree(subs->rate_list.list);
+-	media_stream_delete(subs);
+ }
+ 
+ 
+-- 
+2.5.0
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
