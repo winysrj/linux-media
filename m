@@ -1,69 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:55254 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752174AbcAETB7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2016 14:01:59 -0500
-Message-ID: <568C131F.3040703@lysator.liu.se>
-Date: Tue, 05 Jan 2016 20:01:51 +0100
-From: Peter Rosin <peda@lysator.liu.se>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60879 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753530AbcANL3s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2016 06:29:48 -0500
+Date: Thu, 14 Jan 2016 13:29:14 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Aviv Greenberg <avivgr@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] V4L: add Y12I, Y8I and Z16 pixel format documentation
+Message-ID: <20160114112914.GM576@valkosipuli.retiisi.org.uk>
+References: <Pine.LNX.4.64.1512151732080.18335@axis700.grange>
+ <20160113102453.GJ576@valkosipuli.retiisi.org.uk>
+ <Pine.LNX.4.64.1601141159520.15949@axis700.grange>
 MIME-Version: 1.0
-To: Wolfram Sang <wsa@the-dreams.de>
-CC: Peter Rosin <peda@axentia.se>, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicholas Mc Guire <hofrat@osadl.org>,
-	Olli Salonen <olli.salonen@iki.fi>, linux-i2c@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 0/8] i2c mux cleanup and locking update
-References: <1452009438-27347-1-git-send-email-peda@lysator.liu.se> <20160105184819.GA1743@katana>
-In-Reply-To: <20160105184819.GA1743@katana>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1601141159520.15949@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wolfram,
+Hi Guennadi,
 
-On 2016-01-05 19:48, Wolfram Sang wrote:
-> Peter,
+On Thu, Jan 14, 2016 at 12:12:08PM +0100, Guennadi Liakhovetski wrote:
+> Hi Sakari,
 > 
->> PS. needs a bunch of testing, I do not have access to all the involved hw
+> Thanks for a review! I'll fix all the cosmetic issues, thanks. As for 
+> other comments:
 > 
-> First of all, thanks for diving into this topic and the huge effort you
-> apparently have put into it.
-
-Yeah, I started with dipping just the toes, but now it rather feels like
-I'm fully submerged at the deep end...
-
-> It is obviously a quite intrusive series, so it needs careful review.
-> TBH, I can't really tell when I have the bandwidth to do that, so I hope
-> other people will step up. And yes, it needs serious testing.
+> On Wed, 13 Jan 2016, Sakari Ailus wrote:
 > 
-> To all: Although I appreciate any review support, I'd think the first
-> thing to be done should be a very high level review - is this series
-> worth the huge update? Is the path chosen proper? Stuff like this. I'd
-> appreciate Acks or Revs for that. Stuff like fixing checkpatch warnings
-> and other minor stuff should come later.
+> [snip]
+> 
+> > > --- /dev/null
+> > > +++ b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
+> > > @@ -0,0 +1,49 @@
+> > > +<refentry id="V4L2-PIX-FMT-Y12I">
+> > > +  <refmeta>
+> > > +    <refentrytitle>V4L2_PIX_FMT_Y12I ('Y12I ')</refentrytitle>
+> > 
+> > Extra space after 4cc.                        ^
+> > 
+> > > +    &manvol;
+> > > +  </refmeta>
+> > > +  <refnamediv>
+> > > +    <refname><constant>V4L2_PIX_FMT_Y12I</constant></refname>
+> > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
+> > > +  </refnamediv>
+> > > +  <refsect1>
+> > > +    <title>Description</title>
+> > > +
+> > > +    <para>This is a grey-scale image with a depth of 12 bits per pixel, but with
+> > > +pixels from 2 sources interleaved and bit-packed. Each pixel is stored in a
+> > > +24-bit word. E.g. data, stored by a R200 RealSense camera on a little-endian
+> > > +machine can be deinterlaced using</para>
+> > 
+> > I think we should precisely define the format, either big or little. Is the
+> > endianness of the format affected by the machine endianness? (I'd guess no,
+> > but that's just a guess.)
+> 
+> Ok, since this works on a LE machine:
+> 
+> left0 = 0xfff & *(__u16 *)buf;
+> 
+> I think we can call data LE in the buffer. But specifying left-right order 
+> cannot be done in terms of endianness, so, I provided that code snippet.
 
-Right, I'll hold back on sending updates for trivial stuff until the
-big picture stuff has been cleared.
+I meant that the the format definition should clearly say which one is the
+order.
 
-Cheers,
-Peter
+> 
+> > I wonder if the format should convey the information which one is right and
+> > which one is left, e.g. by adding "LR" to the name.
+> 
+> You mean to distinguish between LR and RL? Can do in principle, yes.
+
+If we want the format to have an exact definition, we should have this as
+well.
+
+I think the formats increasingly have little details such as this one which
+require adding many format variants but I'm not sure if it's even a problem.
+
+I'd postfix the name with "LR" or at least document that this is the pixel
+order.
+
+>
+> > No need to mention RealSense specifically IMO.
+> 
+> Ok.
+> 
+> > > +
+> > > +<para>
+> > > +<programlisting>
+> > > +__u8 *buf;
+> > > +left0 = 0xfff &amp; *(__u16 *)buf;
+> > > +rirhgt0 = *(__u16 *)(buf + 1) >> 4;
+> > 
+> > "right"
+> 
+> [snip]
+> 
+> > > diff --git a/Documentation/DocBook/media/v4l/pixfmt-z16.xml b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
+> > > new file mode 100644
+> > > index 0000000..fac3c68
+> > > --- /dev/null
+> > > +++ b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
+> > > @@ -0,0 +1,79 @@
+> > > +<refentry id="V4L2-PIX-FMT-Z16">
+> > > +  <refmeta>
+> > > +    <refentrytitle>V4L2_PIX_FMT_Z16 ('Z16 ')</refentrytitle>
+> > > +    &manvol;
+> > > +  </refmeta>
+> > > +  <refnamediv>
+> > > +    <refname><constant>V4L2_PIX_FMT_Z16</constant></refname>
+> > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
+> > > +  </refnamediv>
+> > > +  <refsect1>
+> > > +    <title>Description</title>
+> > > +
+> > > +    <para>This is a 16-bit format, representing depth data. Each pixel is a
+> > > +distance in mm to the respective point in the image coordinates. Each pixel is
+> > > +stored in a 16-bit word in the little endian byte order.</para>
+> > 
+> > The format itself looks quite generic but the unit might be specific to the
+> > device. It'd sound silly to add a new format if just the unit is different.
+> 
+> My understanding is, that each format must have a fixed meaning, i.e. a 
+> fixed depth unit too, although it would definitely help to be able to 
+> relax that requirement in this case.
+
+Agreed.
+
+> > How about re-purpose the colourspace field for depth formats and
+> > add a flag telling the colour space field contains the unit and the unit
+> > prefix.
+> 
+> Hmmm... Not sure I find this a proper use of the .colorspace field...
+
+I think colour space doesn't make much sense in context of depth.
+
+> 
+> > Not something to have in this patch nor patchset though: controls
+> > should gain that as well.
+> 
+> Sorry, didn't get this - how can a control tell you what units a specific 
+> format uses? What if your camera can output depth in multiple units?
+
+Controls do not have units at the moment. The specification often suggests a
+unit but using the unit suggested by the spec isn't always possible, thus
+it'd be useful to have this available through VIDIOC_QUERYCTRL.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
