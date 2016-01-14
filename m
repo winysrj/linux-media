@@ -1,42 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f170.google.com ([209.85.220.170]:35913 "EHLO
-	mail-qk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031AbcAGPDJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2016 10:03:09 -0500
-Received: by mail-qk0-f170.google.com with SMTP id q19so126020240qke.3
-        for <linux-media@vger.kernel.org>; Thu, 07 Jan 2016 07:03:09 -0800 (PST)
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:34315 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752551AbcANO6Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2016 09:58:24 -0500
+Subject: Re: [PATCH v2 1/2] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
+To: Wu-Cheng Li <wuchengli@chromium.org>, pawel@osciak.com,
+	mchehab@osg.samsung.com, k.debski@samsung.com, crope@iki.fi,
+	standby24x7@gmail.com, nicolas.dufresne@collabora.com,
+	ricardo.ribalda@gmail.com, ao2@ao2.it, bparrot@ti.com,
+	kyungmin.park@samsung.com, jtp.park@samsung.com
+References: <1452760439-35564-1-git-send-email-wuchengli@chromium.org>
+ <1452760439-35564-2-git-send-email-wuchengli@chromium.org>
+ <56976263.4050902@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	tiffany.lin@mediatek.com, djkurtz@chromium.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5697B85F.7080303@xs4all.nl>
+Date: Thu, 14 Jan 2016 16:01:51 +0100
 MIME-Version: 1.0
-In-Reply-To: <BY2PR20MB016823AC3F8916653DB47B11BDF50@BY2PR20MB0168.namprd20.prod.outlook.com>
-References: <BY2PR20MB016823AC3F8916653DB47B11BDF50@BY2PR20MB0168.namprd20.prod.outlook.com>
-Date: Thu, 7 Jan 2016 10:03:08 -0500
-Message-ID: <CAGoCfix2v9PJK73s8qif4yaL86cBLsRrDpFm3tj30N2BpuKm7g@mail.gmail.com>
-Subject: Re: Getting my Ion Video 2 PC to work
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?UTF-8?Q?Alexandre=2DXavier_Labont=C3=A9=2DLamoureux?=
-	<alexandrexavier@live.ca>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <56976263.4050902@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexandre,
+Hi Wu-Cheng,
 
-> Bus 001 Device 002: ID eb1a:5051 eMPIA Technology, Inc.
+Your v3 didn't address these comments. Any reason for that or did you just miss this
+email?
 
-The fact that the board identifies with USB product ID 5051 makes me
-wonder if perhaps they moved away from the tvp5150 and saa7113 (both
-of which went EOL some time ago), and switched to the tvp5151 for the
-video decoder.  Any chance you can take the unit apart and get some
-photos?
+Just wondering,
 
-What behavior are you seeing exactly with this device in terms of video?
+	Hans
 
-Both Cheese and GUCView are targeted primarily at webcams, so they may
-not work very well with generic video capture devices intended for TV
-signals.  You might be better off trying an app like tvtime.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+On 01/14/16 09:54, Hans Verkuil wrote:
+> On 01/14/16 09:33, Wu-Cheng Li wrote:
+>> Some drivers also need a control like
+>> V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE to force an encoder
+>> I frame. Add a general V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME
+>> so the new drivers and applications can use it.
+>>
+>> Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
+>> ---
+>>  Documentation/DocBook/media/v4l/controls.xml | 8 ++++++++
+>>  drivers/media/v4l2-core/v4l2-ctrls.c         | 2 ++
+>>  include/uapi/linux/v4l2-controls.h           | 1 +
+>>  3 files changed, 11 insertions(+)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> index f13a429..6760cf5 100644
+>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> @@ -2330,6 +2330,14 @@ vertical search range for motion estimation module in video encoder.</entry>
+>>  	      </row>
+>>  
+>>  	      <row><entry></entry></row>
+>> +	      <row id="v4l2-mpeg-video-force-i-frame">
+>> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME</constant>&nbsp;</entry>
+>> +		<entry>button</entry>
+>> +	      </row><row><entry spanname="descr">Force an I frame for the next queued buffer. Applicable to encoders.
+>> +This is a general, codec-agnostic keyframe control.</entry>
+>> +	      </row>
+>> +
+>> +	      <row><entry></entry></row>
+>>  	      <row>
+>>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nbsp;</entry>
+>>  		<entry>integer</entry>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> index c9d5537..33ecb7b 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>> @@ -747,6 +747,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>  	case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:		return "Horizontal MV Search Range";
+>>  	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:		return "Vertical MV Search Range";
+>>  	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
+>> +	case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:			return "Force an I frame";
+> 
+> I would suggest renaming this to Key Frame. This is consistent with the V4L2_BUF_FLAG_KEYFRAME
+> flag and, I think, also more generic than 'I Frame'.
+> 
+> So the define would become V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME and the control
+> description "Force Key Frame". The docbook text needs to be updated as well.
+> 
+> With those changes this looks good to me.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>  
+>>  	/* VPX controls */
+>>  	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
+>> @@ -985,6 +986,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>>  	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
+>>  		*type = V4L2_CTRL_TYPE_INTEGER;
+>>  		break;
+>> +	case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:
+>>  	case V4L2_CID_PAN_RESET:
+>>  	case V4L2_CID_TILT_RESET:
+>>  	case V4L2_CID_FLASH_STROBE:
+>> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+>> index 2d225bc..1c911b8 100644
+>> --- a/include/uapi/linux/v4l2-controls.h
+>> +++ b/include/uapi/linux/v4l2-controls.h
+>> @@ -390,6 +390,7 @@ enum v4l2_mpeg_video_multi_slice_mode {
+>>  #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER		(V4L2_CID_MPEG_BASE+226)
+>>  #define V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+227)
+>>  #define V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+228)
+>> +#define V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME		(V4L2_CID_MPEG_BASE+229)
+>>  
+>>  #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
+>>  #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
