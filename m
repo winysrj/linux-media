@@ -1,73 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f194.google.com ([209.85.160.194]:34248 "EHLO
-	mail-yk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933125AbcAKS1u (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59483 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751071AbcANIrD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 13:27:50 -0500
+	Thu, 14 Jan 2016 03:47:03 -0500
+Date: Thu, 14 Jan 2016 10:46:59 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>, hverkuil@xs4all.nl,
+	pawel@osciak.com, kyungmin.park@samsung.com
+Subject: Re: [PATCH] [media] media: Kconfig: add dependency of HAS_DMA
+Message-ID: <20160114084658.GK576@valkosipuli.retiisi.org.uk>
+References: <1451481963-18853-1-git-send-email-sudipm.mukherjee@gmail.com>
+ <20160111125310.GA19742@sudip-pc>
+ <20160112141042.GI576@valkosipuli.retiisi.org.uk>
+ <569660F7.2000802@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdWFFVPRQE9TuqQwkH88utZKXLOo2i9GROb80Oc0QKyhDg@mail.gmail.com>
-References: <1452535211-4869-1-git-send-email-ykaneko0929@gmail.com>
-	<1452535211-4869-2-git-send-email-ykaneko0929@gmail.com>
-	<CAMuHMdWFFVPRQE9TuqQwkH88utZKXLOo2i9GROb80Oc0QKyhDg@mail.gmail.com>
-Date: Tue, 12 Jan 2016 03:27:49 +0900
-Message-ID: <CAH1o70JdTdkPc7C9uBbOvXsoi99mjESKX7RST19xCX1SGCs4cw@mail.gmail.com>
-Subject: Re: [PATCH 1/3] media: soc_camera: rcar_vin: Add rcar fallback
- compatibility string
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <569660F7.2000802@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert-san,
+Hi Marek and Sudip,
 
-2016-01-12 3:19 GMT+09:00 Geert Uytterhoeven <geert@linux-m68k.org>:
-> Hi Kaneko-san,
->
-> On Mon, Jan 11, 2016 at 7:00 PM, Yoshihiro Kaneko <ykaneko0929@gmail.com> wrote:
->> --- a/drivers/media/platform/soc_camera/rcar_vin.c
->> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
->> @@ -143,6 +143,7 @@
->>  #define RCAR_VIN_BT656                 (1 << 3)
->>
->>  enum chip_id {
->> +       RCAR_GEN3,
->>         RCAR_GEN2,
->>         RCAR_H1,
->>         RCAR_M1,
->> @@ -1818,6 +1819,8 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
->>
->>  #ifdef CONFIG_OF
->>  static const struct of_device_id rcar_vin_of_table[] = {
->> +       { .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
->> +       { .compatible = "renesas,rcar-gen3-vin", .data = (void *)RCAR_GEN3 },
->
-> Please add the generic compatible values at the end of the list, so SoC-specific
-> ones take precedence.
+On Wed, Jan 13, 2016 at 03:36:39PM +0100, Marek Szyprowski wrote:
+> Hello,
+> 
+> On 2016-01-12 15:10, Sakari Ailus wrote:
+> >On Mon, Jan 11, 2016 at 06:23:11PM +0530, Sudip Mukherjee wrote:
+> >>On Wed, Dec 30, 2015 at 06:56:03PM +0530, Sudip Mukherjee wrote:
+> >>>The build of m32r allmodconfig fails with the error:
+> >>>drivers/media/v4l2-core/videobuf2-dma-contig.c:484:2:
+> >>>	error: implicit declaration of function 'dma_get_cache_alignment'
+> >>>
+> >>>The build of videobuf2-dma-contig.c depends on HAS_DMA and it is
+> >>>correctly mentioned in the Kconfig but the symbol VIDEO_STI_BDISP also
+> >>>selects VIDEOBUF2_DMA_CONTIG, so it is trying to compile
+> >>>videobuf2-dma-contig.c even though HAS_DMA is not defined.
+> >>>
+> >>>Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+> >>>---
+> >>A gentle ping. m32r allmodconfig still fails with next-20160111. Build
+> >>log is at:
+> >>https://travis-ci.org/sudipm-mukherjee/parport/jobs/101536379
+> >Hi Sudip,
+> >
+> >Even though the issue now manifests itself on m32r, the problem is wider
+> >than that: dma_get_cache_alignment() is only defined if CONFIG_HAS_DMA is
+> >set.
+> >
+> >I wonder if using videobuf2-dma-contig makes any sense if HAS_DMA is
+> >disabled, so perhaps it'd be possible to make it depend on HAS_DMA.
+> 
+> VIDEOBUF2_DMA_CONTIG already depends on HAS_DMA, but when driver use select
+> directive for enabling support for VIDEOBUF2_DMA_CONTIG, the dependencies
+> are not checked further. This is known limitation/feature of kconfig system.
 
-Oh, that makes sense.
-I will fix it soon.
+Thanks for the insight. Sounds like this is the right thing to do then.
 
-Thanks,
-kaneko
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
->
->>         { .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
->>         { .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
->>         { .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
->
-> Gr{oetje,eeting}s,
->
->                         Geert
->
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
->
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
