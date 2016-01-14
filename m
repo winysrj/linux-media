@@ -1,48 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:45273 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752971AbcAGS2D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jan 2016 13:28:03 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 4/8] [media] s5k5baf: Check v4l2_of_parse_endpoint() return value
-Date: Thu,  7 Jan 2016 15:27:18 -0300
-Message-Id: <1452191248-15847-5-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
-References: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:47812 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751049AbcANRVm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2016 12:21:42 -0500
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
+	'Wu-Cheng Li' <wuchengli@chromium.org>, pawel@osciak.com,
+	mchehab@osg.samsung.com, hverkuil@xs4all.nl, crope@iki.fi,
+	standby24x7@gmail.com, ricardo.ribalda@gmail.com, ao2@ao2.it,
+	bparrot@ti.com, 'Andrzej Hajda' <a.hajda@samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org
+References: <1452686611-145620-1-git-send-email-wuchengli@chromium.org>
+ <1452686611-145620-2-git-send-email-wuchengli@chromium.org>
+ <003f01d14e21$78f7ad40$6ae707c0$@samsung.com>
+ <1452783743.10009.18.camel@collabora.com>
+In-reply-to: <1452783743.10009.18.camel@collabora.com>
+Subject: RE: [PATCH] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
+Date: Thu, 14 Jan 2016 18:21:37 +0100
+Message-id: <00ac01d14ef0$0702b2f0$150818d0$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 8BIT
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_of_parse_endpoint() function can fail so check the return value.
+Hi,
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
+> Sent: Thursday, January 14, 2016 4:02 PM
+> To: Kamil Debski; 'Wu-Cheng Li'; pawel@osciak.com;
+> mchehab@osg.samsung.com; hverkuil@xs4all.nl; crope@iki.fi;
+> standby24x7@gmail.com; ricardo.ribalda@gmail.com; ao2@ao2.it;
+> bparrot@ti.com
+> Cc: linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
+> api@vger.kernel.org
+> Subject: Re: [PATCH] v4l: add
+> V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
+> 
+> Hi Kamil,
+> 
+> Le mercredi 13 janvier 2016 à 17:43 +0100, Kamil Debski a écrit :
+> > Good to hear that there are new codecs to use the V4L2 codec API :)
+> >
+> > My two cents are following - when you add a control that does the same
+> > work as a driver specific control then it would be great if you
+> > modified the driver that uses the specific control to also support the
+> > newly added control.
+> > This way future applications  could use the control you added for both
+> > new and old drivers.
+> 
+> When i first notice this MFC specific control, I believed it was use to produce
+> I-Frame only streams (rather then a toggle, to produce one key- frame on
+> demand). So I wanted to verify the implementation to make sure what Wu-
+> Cheng is doing make sense. Though, I found that we set:
+> 
+>   ctx->force_frame_type = ctrl->val;
+> 
+> And never use that value anywhere else in the driver code. Hopefully I'm just
+> missing something, but if it's not implemented, maybe it's better not to
+> expose it. Otherwise, this may lead to hard to find streaming issues. I do
+> hope we can add this feature though, as it's very useful feature for real time
+> encoding.
 
- drivers/media/i2c/s5k5baf.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Ooops, you're right. It's not implemented. I am adding Andrzej Hajda to the CC loop, he may know more about this. I think it may have been implemented in some of our development branches, but somehow did not make it into the mainline kernel. That's one thing.
 
-diff --git a/drivers/media/i2c/s5k5baf.c b/drivers/media/i2c/s5k5baf.c
-index fc3a5a8e6c9c..db82ed05792e 100644
---- a/drivers/media/i2c/s5k5baf.c
-+++ b/drivers/media/i2c/s5k5baf.c
-@@ -1868,8 +1868,11 @@ static int s5k5baf_parse_device_node(struct s5k5baf *state, struct device *dev)
- 		return -EINVAL;
- 	}
- 
--	v4l2_of_parse_endpoint(node_ep, &ep);
-+	ret = v4l2_of_parse_endpoint(node_ep, &ep);
- 	of_node_put(node_ep);
-+	if (ret)
-+		return ret;
-+
- 	state->bus_type = ep.bus_type;
- 
- 	switch (state->bus_type) {
+The other one is about your previous comment. I will quote it below, as it is in another email.
+
+> I don't like the way it's implemented. I don't know any decoder that have
+> a frame type forcing feature other they I-Frame. It would be much more
+> natural to use a toggle button control (and add more controls for other
+> types when needed) then trying to merge hypothetical toggles into
+>something that manually need to be set and disabled.
+
+I had a look into the documentation of MFC. It is possible to force two types of a frame to be coded.
+The one is a keyframe, the other is a not coded frame. As I understand this is a type of frame that means that image did not change from previous frame. I am sure I seen it in an MPEG4 stream in a movie trailer. The initial board with the age rating is displayed for a couple of seconds and remains static. Thus there is one I-frame and a number of non-coded frames.
+
+That is the reason why the control was implemented in MFC as a menu and not a button. Thus the question remains - is it better to leave it as a menu, or should there be two (maybe more in the future) buttons? 
+
+Wu-Cheng, does your hardware also supports inserting such a non-coded frame? I can imagine that there could be hardware (in the future or some current hardware that I am not aware of other than MFC) that could support this.
+
+Best wishes,
 -- 
-2.4.3
+Kamil Debski
+Samsung R&D Institute Poland
 
