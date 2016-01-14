@@ -1,60 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f179.google.com ([209.85.160.179]:36547 "EHLO
-	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752082AbcAMQHr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2016 11:07:47 -0500
-Received: by mail-yk0-f179.google.com with SMTP id v14so399956385ykd.3
-        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 08:07:47 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1452697362.3605.8.camel@collabora.com>
-References: <1452686611-145620-1-git-send-email-wuchengli@chromium.org> <1452697362.3605.8.camel@collabora.com>
-From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
-	<wuchengli@chromium.org>
-Date: Thu, 14 Jan 2016 00:07:27 +0800
-Message-ID: <CAOMLVLiDxkAdqsaAidxhZ=k4E=dHxe7+nOt1v7+fQrsDZG4Dow@mail.gmail.com>
-Subject: Re: [PATCH] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: Wu-Cheng Li <wuchengli@chromium.org>, pawel@osciak.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl, k.debski@samsung.com,
-	crope@iki.fi, standby24x7@gmail.com, ricardo.ribalda@gmail.com,
-	ao2@ao2.it, bparrot@ti.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mga11.intel.com ([192.55.52.93]:3958 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753091AbcANLBQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2016 06:01:16 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: feinerer@openbsd.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH 1/1] media: v4l: Dual license v4l2-common.h under GPL v2 and BSD licenses
+Date: Thu, 14 Jan 2016 12:59:42 +0200
+Message-Id: <1452769182-5102-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 13, 2016 at 11:02 PM, Nicolas Dufresne
-<nicolas.dufresne@collabora.com> wrote:
-> Le mercredi 13 janvier 2016 à 20:03 +0800, Wu-Cheng Li a écrit :
->> Some drivers also need a control like
->> V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE to force an encoder frame
->> type. This patch adds a general V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
->>
->> This control only affects the next queued buffer. There's no need to
->> clear the value after requesting an I frame. But all controls are set
->> in v4l2_ctrl_handler_setup. So a default DISABLED value is required.
->> Basically this control is like V4L2_CTRL_TYPE_BUTTON with parameters.
->> How to prevent a control from being set in v4l2_ctrl_handler_setup so
->> DISABLED value is not needed? Does it make sense not to set a control
->> if it is EXECUTE_ON_WRITE?
+The v4l2-common.h user space header was split off from videodev2.h, but
+the dual licensing of the videodev2.h (as well as other V4L2 headers) was
+missed. Change the license of the v4l2-common.h from GNU GPL v2 to both
+GNU GPL v2 and BSD.
+
+Sakari Ailus <sakari.ailus@iki.fi>:
+> Would you approve a license change of the patches to
+> include/uapi/linux/v4l2-common.h (formerly include/linux/v4l2-common.h) you
+> or your company have contributed from GNU GPL v2 to dual GNU GPL v2 and BSD
+> licenses, changing the copyright notice in the file as below (from
+> videodev2.h):
 >
-> I don't like the way it's implemented. I don't know any decoder that
-> have a frame type forcing feature other they I-Frame. It would be much
-> more natural to use a toggle button control (and add more controls for
-> other types when needed) then trying to merge hypothetical toggles into
-> something that manually need to be set and disabled.
-Using a button control sounds like a good idea. I'll discuss with other people
-and reply tomorrow.
+> -------------8<------------
+>   *  This program is free software; you can redistribute it and/or modify
+>   *  it under the terms of the GNU General Public License as published by
+>   *  the Free Software Foundation; either version 2 of the License, or
+>   *  (at your option) any later version.
+>   *
+>   *  This program is distributed in the hope that it will be useful,
+>   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+>   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>   *  GNU General Public License for more details.
+>   *
+>   *  Alternatively you can redistribute this file under the terms of the
+>   *  BSD license as stated below:
+>   *
+>   *  Redistribution and use in source and binary forms, with or without
+>   *  modification, are permitted provided that the following conditions
+>   *  are met:
+>   *  1. Redistributions of source code must retain the above copyright
+>   *     notice, this list of conditions and the following disclaimer.
+>   *  2. Redistributions in binary form must reproduce the above copyright
+>   *     notice, this list of conditions and the following disclaimer in
+>   *     the documentation and/or other materials provided with the
+>   *     distribution.
+>   *  3. The names of its contributors may not be used to endorse or promote
+>   *     products derived from this software without specific prior written
+>   *     permission.
+>   *
+>   *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+>   *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+>   *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+>   *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+>   *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+>   *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+>   *  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+>   *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+>   *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+>   *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+>   *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> -------------8<------------
+
+Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+> No problem from my side.
+
+Hans Verkuil <hans.verkuil@cisco.com>:
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Aaro Koskinen <aaro.koskinen@nokia.com>:
+> This fine also for us.
 >
->>
->> Wu-Cheng Li (1):
->>   v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
->>
->>  Documentation/DocBook/media/v4l/controls.xml | 23
->> +++++++++++++++++++++++
->>  drivers/media/v4l2-core/v4l2-ctrls.c         | 13 +++++++++++++
->>  include/uapi/linux/v4l2-controls.h           |  5 +++++
->>  3 files changed, 41 insertions(+)
->>
+> Acked-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ include/uapi/linux/v4l2-common.h | 46 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 35 insertions(+), 11 deletions(-)
+
+diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
+index 1527398..5b3f685 100644
+--- a/include/uapi/linux/v4l2-common.h
++++ b/include/uapi/linux/v4l2-common.h
+@@ -10,19 +10,43 @@
+  * Copyright (C) 2012 Nokia Corporation
+  * Contact: Sakari Ailus <sakari.ailus@iki.fi>
+  *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
+  *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
+  *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
++ *  Alternatively you can redistribute this file under the terms of the
++ *  BSD license as stated below:
++ *
++ *  Redistribution and use in source and binary forms, with or without
++ *  modification, are permitted provided that the following conditions
++ *  are met:
++ *  1. Redistributions of source code must retain the above copyright
++ *     notice, this list of conditions and the following disclaimer.
++ *  2. Redistributions in binary form must reproduce the above copyright
++ *     notice, this list of conditions and the following disclaimer in
++ *     the documentation and/or other materials provided with the
++ *     distribution.
++ *  3. The names of its contributors may not be used to endorse or promote
++ *     products derived from this software without specific prior written
++ *     permission.
++ *
++ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
++ *  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
++ *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
++ *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
++ *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  *
+  */
+ 
+-- 
+2.1.0.231.g7484e3b
+
