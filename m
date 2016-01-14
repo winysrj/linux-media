@@ -1,69 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58232 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S967352AbcA1RFy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 12:05:54 -0500
-Date: Thu, 28 Jan 2016 15:05:38 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH 31/31] media: au0828 change to check media device
- unregister progress state
-Message-ID: <20160128150538.1ba8fc7c@recife.lan>
-In-Reply-To: <eed3343dc1c690e8c7e656d1cc162777d73fc62b.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-	<eed3343dc1c690e8c7e656d1cc162777d73fc62b.1452105878.git.shuahkh@osg.samsung.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59538 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750955AbcANHxx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2016 02:53:53 -0500
+Subject: Re: [PATCH] media: v4l2-compat-ioctl32: fix missing length copy in
+ put_v4l2_buffer32
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1452757045-34051-1-git-send-email-tiffany.lin@mediatek.com>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56975409.3090801@xs4all.nl>
+Date: Thu, 14 Jan 2016 08:53:45 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1452757045-34051-1-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  6 Jan 2016 13:27:20 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi Tiffany,
 
-> Change au0828_unregister_media_device() to check media
-> device media device unregister is in progress and avoid
-> calling media_device_unregister() and other cleanup done
-> in au0828_unregister_media_device().
+Good catch! But looking through the compat code I noticed that in the
+single-planar DMABUF case the length field is also never copied. I think
+it would be much simpler if the length field is just always copied instead
+of in each multiplanar or singleplanar mmap/userptr/dmabuf case. It will
+simplify the code and prevent such mistakes in the future.
+
+Can you make a v2 that makes that change?
+
+Thanks!
+
+	Hans
+
+On 01/14/2016 08:37 AM, Tiffany Lin wrote:
+> In v4l2-compliance utility, test QUERYBUF required correct length
+> value to go through each planar to check planar's length in multi-planar
 > 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
 > ---
->  drivers/media/usb/au0828/au0828-core.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index 886fb28..de357a2 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -136,7 +136,9 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 327e83a..5ba932a 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -521,6 +521,9 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>  		if (num_planes == 0)
+>  			return 0;
 >  
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	if (dev->media_dev &&
-> -		media_devnode_is_registered(&dev->media_dev->devnode)) {
-> +		media_devnode_is_registered(&dev->media_dev->devnode) &&
-> +		!media_device_is_unregister_in_progress(dev->media_dev)) {
+> +		if (put_user(kp->length, &up->length))
+> +			return -EFAULT;
 > +
+>  		uplane = (__force struct v4l2_plane __user *)kp->m.planes;
+>  		if (get_user(p, &up->m.planes))
+>  			return -EFAULT;
+> 
 
-A kref would likely work better here.
-
->  		media_device_unregister(dev->media_dev);
->  		media_device_cleanup(dev->media_dev);
->  		dev->media_dev = NULL;
