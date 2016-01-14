@@ -1,68 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39507 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758556AbcAKKcN (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:36369 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751125AbcANIgx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 05:32:13 -0500
-Subject: Re: PCIe sg dma device used as dma-contig
-To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
-References: <CAJ2oMh+0-2nmbWxeEHV-V6hkXFYXm-2L5mzHT3+v0WSUMpRd1g@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <569384A8.1000302@xs4all.nl>
-Date: Mon, 11 Jan 2016 11:32:08 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAJ2oMh+0-2nmbWxeEHV-V6hkXFYXm-2L5mzHT3+v0WSUMpRd1g@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Thu, 14 Jan 2016 03:36:53 -0500
+Received: by mail-pa0-f50.google.com with SMTP id yy13so280730780pab.3
+        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2016 00:36:52 -0800 (PST)
+From: Wu-Cheng Li <wuchengli@chromium.org>
+To: pawel@osciak.com, mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	k.debski@samsung.com, crope@iki.fi, standby24x7@gmail.com,
+	wuchengli@chromium.org, nicolas.dufresne@collabora.com,
+	ricardo.ribalda@gmail.com, ao2@ao2.it, bparrot@ti.com,
+	kyungmin.park@samsung.com, jtp.park@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	tiffany.lin@mediatek.com, djkurtz@chromium.org
+Subject: [PATCH v2 1/2] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
+Date: Thu, 14 Jan 2016 16:33:58 +0800
+Message-Id: <1452760439-35564-2-git-send-email-wuchengli@chromium.org>
+In-Reply-To: <1452760439-35564-1-git-send-email-wuchengli@chromium.org>
+References: <1452760439-35564-1-git-send-email-wuchengli@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/27/2015 04:31 PM, Ran Shalit wrote:
-> Hello,
-> 
-> The following question is not totally in the scope of v4l2, but more
-> about your advise concering dma alternatives for non-expreciened v4l2
-> device writer.
-> We intend to use the fpga for concurrent 3xHD and 3xSD.
-> 
-> We have some dillema regadring the fpga to choose from:
-> ALTERA fpga which use contiguous dma memory, or Xilinx fpga which is
-> using scatter-gather architecture.
-> 
-> With xilinx, it seems that the sg architecture can also be used as
-> contiguous according to the following:
-> "... While these descriptors are not required to be contiguous, they
-> should be contained within an 8 megabyte region which corresponds to
-> the width of the AXI_PCIe_SG port"
+Some drivers also need a control like
+V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE to force an encoder
+I frame. Add a general V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME
+so the new drivers and applications can use it.
 
-I think they are talking about the memory containing the descriptors
-themselves. I.e. the scatter-gather list should be in contiguous memory
-that is no more than 8 megabytes long.
+Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
+---
+ Documentation/DocBook/media/v4l/controls.xml | 8 ++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         | 2 ++
+ include/uapi/linux/v4l2-controls.h           | 1 +
+ 3 files changed, 11 insertions(+)
 
-This is normally not a problem.
-
-I don't think they are talking about the DMA itself, that should be
-pretty much unlimited.
-
-Regards,
-
-	Hans
-
-> it seems according to the above description that sg-list can be used
-> as single contiguous descriptor (with dma-cotig), though the 8MBytes
-> seems like a problematic constrain. This constrain make it difficult
-> to be used with dma-contig solution in v4l2.
-> 
-> Our current direction is try to imeplement it as simple as possible.
-> Therefore we prefer the dma contiguous solution (I think that together
-> with CMA and a strong cpu like 64-bit i7 it can handle contigious
-> memory for 3xHD and 3xSD allocation).
-> 
-> Any feedback is appreciated,
-> Ran
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index f13a429..6760cf5 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -2330,6 +2330,14 @@ vertical search range for motion estimation module in video encoder.</entry>
+ 	      </row>
+ 
+ 	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-video-force-i-frame">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME</constant>&nbsp;</entry>
++		<entry>button</entry>
++	      </row><row><entry spanname="descr">Force an I frame for the next queued buffer. Applicable to encoders.
++This is a general, codec-agnostic keyframe control.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
+ 	      <row>
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nbsp;</entry>
+ 		<entry>integer</entry>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index c9d5537..33ecb7b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -747,6 +747,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:		return "Horizontal MV Search Range";
+ 	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:		return "Vertical MV Search Range";
+ 	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
++	case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:			return "Force an I frame";
+ 
+ 	/* VPX controls */
+ 	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
+@@ -985,6 +986,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:
+ 	case V4L2_CID_PAN_RESET:
+ 	case V4L2_CID_TILT_RESET:
+ 	case V4L2_CID_FLASH_STROBE:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2d225bc..1c911b8 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -390,6 +390,7 @@ enum v4l2_mpeg_video_multi_slice_mode {
+ #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER		(V4L2_CID_MPEG_BASE+226)
+ #define V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+227)
+ #define V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+228)
++#define V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME		(V4L2_CID_MPEG_BASE+229)
+ 
+ #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
+ #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
+-- 
+2.6.0.rc2.230.g3dd15c0
 
