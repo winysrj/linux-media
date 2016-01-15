@@ -1,86 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:37774 "EHLO
-	resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752091AbcAFU1f (ORCPT
+Received: from cmccmta3.chinamobile.com ([221.176.66.81]:8827 "EHLO
+	cmccmta3.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751381AbcAOFOQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 15:27:35 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 17/31] media: au0828 video change to use v4l_enable_media_tuner()
-Date: Wed,  6 Jan 2016 13:27:06 -0700
-Message-Id: <2d2392f96a7f10a8d94a4d7fa6d5657b56b75593.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	Fri, 15 Jan 2016 00:14:16 -0500
+From: Xiubo Li <lixiubo@cmss.chinamobile.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	Xiubo Li <lixiubo@cmss.chinamobile.com>
+Subject: [PATCH 3/3] [media] dvbdev: remove useless parentheses after return
+Date: Fri, 15 Jan 2016 13:15:00 +0800
+Message-Id: <1452834900-28360-4-git-send-email-lixiubo@cmss.chinamobile.com>
+In-Reply-To: <1452834900-28360-1-git-send-email-lixiubo@cmss.chinamobile.com>
+References: <1452834900-28360-1-git-send-email-lixiubo@cmss.chinamobile.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-au0828 is changed to use v4l_enable_media_tuner() to check for
-tuner availability from vidioc_g_tuner(), and au0828_v4l2_close(),
-before changing tuner settings. If tuner isn't free, return busy
-condition from vidioc_g_tuner() and in au0828_v4l2_close() tuner
-is left untouched without powering down to save energy.
+The parentheses are not required after return, and just remove it.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Xiubo Li <lixiubo@cmss.chinamobile.com>
 ---
- drivers/media/usb/au0828/au0828-video.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/media/dvb-core/dvbdev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 32bcc56..ed3ba05 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1010,8 +1010,12 @@ static int au0828_v4l2_close(struct file *filp)
- 		goto end;
- 
- 	if (dev->users == 1) {
--		/* Save some power by putting tuner to sleep */
--		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-+		/* Save some power by putting tuner to sleep, if it is free */
-+		/* What happens when radio is using tuner?? */
-+		ret = v4l_enable_media_tuner(vdev);
-+		if (ret == 0)
-+			v4l2_device_call_all(&dev->v4l2_dev, 0, core,
-+					     s_power, 0);
- 		dev->std_set_in_tuner_core = 0;
- 
- 		/* When close the device, set the usb intf0 into alt0 to free
-@@ -1412,10 +1416,16 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
- static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- {
- 	struct au0828_dev *dev = video_drvdata(file);
-+	struct video_device *vfd = video_devdata(file);
-+	int ret;
- 
- 	if (t->index != 0)
- 		return -EINVAL;
- 
-+	ret = v4l_enable_media_tuner(vfd);
-+	if (ret)
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 3b6e79e..a6c26b5 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -352,7 +352,7 @@ static int dvb_create_media_entity(struct dvb_device *dvbdev,
+ 	ret = media_device_register_entity(dvbdev->adapter->mdev,
+ 					   dvbdev->entity);
+ 	if (ret)
+-		return (ret);
 +		return ret;
-+
- 	dprintk(1, "%s called std_set %d dev_state %d\n", __func__,
- 		dev->std_set_in_tuner_core, dev->dev_state);
  
+ 	printk(KERN_DEBUG "%s: media entity '%s' registered.\n",
+ 		__func__, dvbdev->entity->name);
 -- 
-2.5.0
+1.8.3.1
+
+
 
