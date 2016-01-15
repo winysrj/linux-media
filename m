@@ -1,70 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:57248 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932792AbcAYSUd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 13:20:33 -0500
-Subject: Re: [PATCH 1/2] [media] m88rs6000t: Better exception handling in five
- functions
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <5680FDB3.7060305@users.sourceforge.net>
- <alpine.DEB.2.10.1512281019050.2702@hadrien>
- <56810F56.4080306@users.sourceforge.net>
- <alpine.DEB.2.10.1512281134590.2702@hadrien>
- <568148FD.7080209@users.sourceforge.net>
- <5681497E.7030702@users.sourceforge.net> <20160125150136.449f2593@recife.lan>
-Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <56A6662C.3000804@users.sourceforge.net>
-Date: Mon, 25 Jan 2016 19:15:08 +0100
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:57561 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755836AbcAOIeK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jan 2016 03:34:10 -0500
+Subject: Re: [RESEND PATCH v2] media: v4l2-compat-ioctl32: fix missing length
+ copy in put_v4l2_buffer32
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1452828517-57392-1-git-send-email-tiffany.lin@mediatek.com>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5698AEF7.5090003@xs4all.nl>
+Date: Fri, 15 Jan 2016 09:33:59 +0100
 MIME-Version: 1.0
-In-Reply-To: <20160125150136.449f2593@recife.lan>
+In-Reply-To: <1452828517-57392-1-git-send-email-tiffany.lin@mediatek.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> This issue was detected by using the Coccinelle software.
->>
->> Move the jump label directly before the desired log statement
->> so that the variable "ret" will not be checked once more
->> after a function call.
->> Use the identifier "report_failure" instead of "err".
->>
->> Suggested-by: Julia Lawall <julia.lawall@lip6.fr>
->> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
->> ---
->>  drivers/media/tuners/m88rs6000t.c | 154 +++++++++++++++++++-------------------
->>  1 file changed, 78 insertions(+), 76 deletions(-)
->>
->> diff --git a/drivers/media/tuners/m88rs6000t.c b/drivers/media/tuners/m88rs6000t.c
->> index 504bfbc..7e59a9f 100644
->> --- a/drivers/media/tuners/m88rs6000t.c
->> +++ b/drivers/media/tuners/m88rs6000t.c
->> @@ -44,7 +44,7 @@ static int m88rs6000t_set_demod_mclk(struct dvb_frontend *fe)
->>  	/* select demod main mclk */
->>  	ret = regmap_read(dev->regmap, 0x15, &utmp);
->>  	if (ret)
->> -		goto err;
->> +		goto report_failure;
+On 01/15/2016 04:28 AM, Tiffany Lin wrote:
+> In v4l2-compliance utility, test QUERYBUF required correct length
+> value to go through each planar to check planar's length in
+> multi-planar buffer type
 > 
-> Why to be so verbose?
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> ---
+> Remove "Change-Id: I98faddc5711c24f17beda52e6d18c657add251ac"
+> ---
+> 
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 327e83a..6c01920 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -516,6 +516,9 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>  		put_user(kp->reserved, &up->reserved))
+>  			return -EFAULT;
+>  
+> +	if (put_user(kp->length, &up->length))
+> +		return -EFAULT;
+> +
 
-Does the document "CodingStyle" give an indication in the section "Chapter 7:
-Centralized exiting of functions"?
-
-
-> Calling it as "err" is enough,
-
-It seems that some short identifiers are popular during software development.
-
-
-> and it means less code to type if we need to add another goto.
-
-Would you like to increase the usage of jump labels which will contain
-only a single character?
+This should also be done for get_v4l2_buffer32, and the other places where
+length is used in put/get_user() can now be removed.
 
 Regards,
-Markus
+
+	Hans
+
+>  	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+>  		num_planes = kp->length;
+>  		if (num_planes == 0)
+> 
+
