@@ -1,38 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f179.google.com ([209.85.192.179]:34462 "EHLO
-	mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753212AbcANOuO (ORCPT
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:35453 "EHLO
+	mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755387AbcAOAPg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 09:50:14 -0500
-Received: by mail-pf0-f179.google.com with SMTP id q63so103890610pfb.1
-        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2016 06:50:14 -0800 (PST)
-From: Wu-Cheng Li <wuchengli@chromium.org>
-To: pawel@osciak.com, mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	k.debski@samsung.com, crope@iki.fi, standby24x7@gmail.com,
-	wuchengli@chromium.org, nicolas.dufresne@collabora.com,
-	ricardo.ribalda@gmail.com, ao2@ao2.it, bparrot@ti.com,
-	kyungmin.park@samsung.com, jtp.park@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	tiffany.lin@mediatek.com, djkurtz@chromium.org
-Subject: [PATCH v3 0/2] new control V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME
-Date: Thu, 14 Jan 2016 22:50:05 +0800
-Message-Id: <1452783007-80883-1-git-send-email-wuchengli@chromium.org>
+	Thu, 14 Jan 2016 19:15:36 -0500
+Received: by mail-lf0-f53.google.com with SMTP id c192so273411942lfe.2
+        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2016 16:15:35 -0800 (PST)
+From: Anders Roxell <anders.roxell@linaro.org>
+To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-rt-users@vger.kernel.org,
+	Anders Roxell <anders.roxell@linaro.org>
+Subject: [PATCH] drivers/media: vsp1_video: fix compile error
+Date: Fri, 15 Jan 2016 01:09:43 +0100
+Message-Id: <1452816583-11036-1-git-send-email-anders.roxell@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v3 addressed Hans' comment to remove the name of the control in s5p-mfc.
+This was found with the -RT patch enabled, but the fix should apply to
+non-RT also.
 
-Wu-Cheng Li (2):
-  v4l: add V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
-  s5p-mfc: add the support of V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
+Compilation error without this fix:
+../drivers/media/platform/vsp1/vsp1_video.c: In function
+'vsp1_pipeline_stopped':
+../drivers/media/platform/vsp1/vsp1_video.c:524:2: error: expected
+expression before 'do'
+  spin_unlock_irqrestore(&pipe->irqlock, flags);
+    ^
 
- Documentation/DocBook/media/v4l/controls.xml |  8 ++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 12 ++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
- include/uapi/linux/v4l2-controls.h           |  1 +
- 4 files changed, 23 insertions(+)
+Signed-off-by: Anders Roxell <anders.roxell@linaro.org>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 637d0d6..b4dca57 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -515,7 +515,7 @@ static bool vsp1_pipeline_stopped(struct vsp1_pipeline *pipe)
+ 	bool stopped;
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+-	stopped = pipe->state == VSP1_PIPELINE_STOPPED,
++	stopped = pipe->state == VSP1_PIPELINE_STOPPED;
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+ 
+ 	return stopped;
 -- 
-2.6.0.rc2.230.g3dd15c0
+2.1.4
 
