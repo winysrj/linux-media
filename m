@@ -1,132 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42399 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755905AbcA2MML (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:46621 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751213AbcAOD2o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2016 07:12:11 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-api@vger.kernel.org
-Subject: [PATCH 06/13] [media] media.h: add support for IF-PLL video/sound decoder
-Date: Fri, 29 Jan 2016 10:10:56 -0200
-Message-Id: <bc031d38ffa4a9505af2eaa8d7a91bf4e4721884.1454067262.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
-References: <cover.1454067262.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
-References: <cover.1454067262.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 14 Jan 2016 22:28:44 -0500
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [RESEND PATCH v2] media: v4l2-compat-ioctl32: fix missing length copy in put_v4l2_buffer32
+Date: Fri, 15 Jan 2016 11:28:37 +0800
+Message-ID: <1452828517-57392-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Very old hardware may have an analog stage tuner. Those hardware
-consists of a PLL that converts a RF signal into IF signals.
+In v4l2-compliance utility, test QUERYBUF required correct length
+value to go through each planar to check planar's length in
+multi-planar buffer type
 
-Depending on the hardware, those video IF signal can be
-decoded directly by the bridge chipset. Most Conexant
-chips (bt8x8, cx2388x, etc) have internally the decoders
-for that. Yet, even on such hardware, the tuner may have
-internally its own TV multi-standard decoder like tda9887.
-
-The same happens with the audio IF signal, where some bridges
-are capable of receiving it, while others require an external
-IF-PLL sound decoder, like msp3400.
-
-Those external IF-PLL audio and video decoders have their own
-I2C address, and use different drivers to handle them. So, they're
-mapped as different subdevices on Linux.
-
-Thankfully, all modern hardware comes with an IC chip that
-has both the RF and the IF stages on it, being capable of
-decoding audio and video IF signals internally.
-
-Yet, as we need to support drivers that can work with either
-analog or silicon tuners, we need to add two entity types
-for those old hardware.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
 ---
- Documentation/DocBook/media/v4l/media-types.xml | 29 ++++++++++++++++++++++++-
- include/uapi/linux/media.h                      | 17 +++++++++++++--
- 2 files changed, 43 insertions(+), 3 deletions(-)
+Remove "Change-Id: I98faddc5711c24f17beda52e6d18c657add251ac"
+---
 
-diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
-index 1af384250910..751c3d027103 100644
---- a/Documentation/DocBook/media/v4l/media-types.xml
-+++ b/Documentation/DocBook/media/v4l/media-types.xml
-@@ -84,7 +84,34 @@
- 	  </row>
- 	  <row>
- 	    <entry><constant>MEDIA_ENT_F_TUNER</constant></entry>
--	    <entry>Digital TV, analog TV, radio and/or software radio tuner.</entry>
-+	    <entry>Digital TV, analog TV, radio and/or software radio tuner,
-+		   with consists on a PLL tuning stage that converts radio
-+		   frequency (RF) signal into an Intermediate Frequency (IF).
-+		   Modern tuners have internally IF-PLL decoders for audio
-+		   and video, but older models have those stages implemented
-+		   on separate entities.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_F_IF_VID_DECODER</constant></entry>
-+	    <entry>IF-PLL video decoder. It receives the IF from a PLL
-+		   and decodes the analog TV video signal. This is commonly
-+		   found on some very old analog tuners, like Philips MK3
-+		   designs. They all contain a tda9887 (or some software
-+		   compatible similar chip, like tda9885). Those devices
-+		   use a different I2C address than the tuner PLL.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_F_IF_AUD_DECODER</constant></entry>
-+	    <entry>IF-PLL sound decoder. It receives the IF from a PLL
-+		   and decodes the analog TV audio signal. This is commonly
-+		   found on some very old analog hardware, like Micronas
-+		   msp3400, Philips tda9840, tda985x, etc. Those devices
-+		   use a different I2C address than the tuner PLL and
-+		   should be controlled together with the IF-PLL video
-+		   decoder.
-+	    </entry>
- 	  </row>
- 	</tbody>
-       </tgroup>
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 5dbb208e5451..c9eb42a6c021 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -89,6 +89,15 @@ struct media_device_info {
- #define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 33)
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 327e83a..6c01920 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -516,6 +516,9 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->reserved, &up->reserved))
+ 			return -EFAULT;
  
- /*
-+ * Analog TV IF-PLL decoders
-+ *
-+ * It is a responsibility of the master/bridge drivers to create links
-+ * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
-+ */
-+#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 41)
-+#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 42)
++	if (put_user(kp->length, &up->length))
++		return -EFAULT;
 +
-+/*
-  * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
-  * MEDIA_ENT_F_OLD_SUBDEV_BASE are kept to keep backward compatibility
-  * with the legacy v1 API.The number range is out of range by purpose:
-@@ -107,8 +116,12 @@ struct media_device_info {
- #define MEDIA_ENT_F_LENS		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
- #define MEDIA_ENT_F_ATV_DECODER		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
- /*
-- * It is a responsibility of the entity drivers to add connectors and links
-- *	for the tuner entities.
-+ * It is a responsibility of the master/bridge drivers to add connectors
-+ * and links for MEDIA_ENT_F_TUNER. Please notice that some old tuners
-+ * may require the usage of separate I2C chips to decode analog TV signals,
-+ * when the master/bridge chipset doesn't have its own TV standard decoder.
-+ * On such cases, the IF-PLL staging is mapped via one or two entities:
-+ * MEDIA_ENT_F_IF_VID_DECODER and/or MEDIA_ENT_F_IF_AUD_DECODER.
-  */
- #define MEDIA_ENT_F_TUNER		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 5)
- 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+ 		num_planes = kp->length;
+ 		if (num_planes == 0)
 -- 
-2.5.0
-
+1.7.9.5
 
