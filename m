@@ -1,103 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57726 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161065AbcA1Phv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 10:37:51 -0500
-Date: Thu, 28 Jan 2016 13:37:28 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH 13/31] media: au0828 fix au0828_create_media_graph()
- entity checks
-Message-ID: <20160128133728.5fa54fa3@recife.lan>
-In-Reply-To: <ab77ed92dafb05b262a33fcd827f35ad8be3d619.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-	<ab77ed92dafb05b262a33fcd827f35ad8be3d619.1452105878.git.shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from cmccmta1.chinamobile.com ([221.176.66.79]:5352 "EHLO
+	cmccmta1.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750834AbcAOFXK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jan 2016 00:23:10 -0500
+From: Xiubo Li <lixiubo@cmss.chinamobile.com>
+To: m.chehab@samsung.com
+Cc: linux-media@vger.kernel.org,
+	Xiubo Li <lixiubo@cmss.chinamobile.com>
+Subject: [PATCH 0/3] [media] dvbdev: clean up the code
+Date: Fri, 15 Jan 2016 13:14:57 +0800
+Message-Id: <1452834900-28360-1-git-send-email-lixiubo@cmss.chinamobile.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  6 Jan 2016 13:27:02 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-> au0828_create_media_graph() doesn't do any checks to determine,
-> if vbi_dev, vdev, and input entities have been registered prior
-> to creating pad links. Checking graph_obj.mdev field works as
-> the graph_obj.mdev field gets initialized in the entity register
-> interface. Fix it to check graph_obj.mdev field before creating
-> pad links.
+Xiubo Li (3):
+  [media] dvbdev: replace kcalloc with kzalloc
+  [media] dvbdev: the space is required after ','
+  [media] dvbdev: remove useless parentheses after return
 
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/usb/au0828/au0828-core.c | 27 +++++++++++++++++----------
->  1 file changed, 17 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index f46fb43..8ef7c71 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -291,20 +291,27 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->  		if (ret)
->  			return ret;
->  	}
-> -	ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
-> -				    &dev->vdev.entity, 0,
-> -				    MEDIA_LNK_FL_ENABLED);
-> -	if (ret)
-> -		return ret;
-> -	ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
-> -				    &dev->vbi_dev.entity, 0,
-> -				    MEDIA_LNK_FL_ENABLED);
-> -	if (ret)
-> -		return ret;
-> +	if (dev->vdev.entity.graph_obj.mdev) {
-> +		ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
-> +					    &dev->vdev.entity, 0,
-> +					    MEDIA_LNK_FL_ENABLED);
-> +		if (ret)
-> +			return ret;
-> +	}
+ drivers/media/dvb-core/dvbdev.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-Those new if() doesn't look right. We can't continue if the entities
-weren't registered, as the graph would have troubles. The logic should
-ensure that the entities will always be created before running 
-au0828_create_media_graph(). If this is not the case, some async
-logic is needed to ensure that.
+-- 
+1.8.3.1
 
-> +	if (dev->vbi_dev.entity.graph_obj.mdev) {
-> +		ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
-> +					    &dev->vbi_dev.entity, 0,
-> +					    MEDIA_LNK_FL_ENABLED);
-> +		if (ret)
-> +			return ret;
-> +	}
->  
->  	for (i = 0; i < AU0828_MAX_INPUT; i++) {
->  		struct media_entity *ent = &dev->input_ent[i];
->  
-> +		if (!ent->graph_obj.mdev)
-> +			continue;
-> +
->  		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
->  			break;
->  
+
+
