@@ -1,113 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:34356 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753951AbcARJky (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 04:40:54 -0500
-Subject: Re: [PATCH v3 4/8] dt-bindings: Add a binding for Mediatek Video
- Encoder
-To: Tiffany Lin <tiffany.lin@mediatek.com>, daniel.thompson@linaro.org,
-	Rob Herring <robh+dt@kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mark Rutland <mark.rutland@arm.com>
-References: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
- <1451902316-55931-5-git-send-email-tiffany.lin@mediatek.com>
-Cc: Daniel Kurtz <djkurtz@chromium.org>, eddie.huang@mediatek.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org
-From: Matthias Brugger <matthias.bgg@gmail.com>
-Message-ID: <569CB321.10206@gmail.com>
-Date: Mon, 18 Jan 2016 10:40:49 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:50115 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752554AbcAQVWo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jan 2016 16:22:44 -0500
+Subject: Re: [PATCH v2 26/31] sound/usb: Update ALSA driver to use Managed
+ Media Controller API
+To: Takashi Iwai <tiwai@suse.de>
+References: <cover.1452800265.git.shuahkh@osg.samsung.com>
+ <fd72f02797d595fc1c53b16fccec4d204430995e.1452800273.git.shuahkh@osg.samsung.com>
+ <s5hmvs7t133.wl-tiwai@suse.de> <56999103.6000005@osg.samsung.com>
+ <s5h1t9huc45.wl-tiwai@suse.de>
+Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	clemens@ladisch.de, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, mchehab@osg.samsung.com,
+	alsa-devel@alsa-project.org, arnd@arndb.de,
+	ricard.wanderlof@axis.com, labbott@fedoraproject.org,
+	chehabrafael@gmail.com, misterpib@gmail.com,
+	prabhakar.csengg@gmail.com, ricardo.ribalda@gmail.com,
+	ruchandani.tina@gmail.com, takamichiho@gmail.com,
+	tvboxspy@gmail.com, dominic.sacre@gmx.de, crope@iki.fi,
+	julian@jusst.de, pierre-louis.bossart@linux.intel.com,
+	corbet@lwn.net, joe@oampo.co.uk, johan@oljud.se,
+	dan.carpenter@oracle.com, pawel@osciak.com, p.zabel@pengutronix.de,
+	perex@perex.cz, stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, k.kozlowski@samsung.com,
+	kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	sw0312.kim@samsung.com, elfring@users.sourceforge.net,
+	linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linuxbugs@vittgam.net,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, daniel@zonque.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <569C0614.2000004@osg.samsung.com>
+Date: Sun, 17 Jan 2016 14:22:28 -0700
 MIME-Version: 1.0
-In-Reply-To: <1451902316-55931-5-git-send-email-tiffany.lin@mediatek.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <s5h1t9huc45.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01/16/2016 02:06 AM, Takashi Iwai wrote:
+> On Sat, 16 Jan 2016 01:38:27 +0100,
+> Shuah Khan wrote:
+>>
+>> On 01/15/2016 06:38 AM, Takashi Iwai wrote:
+>>> On Thu, 14 Jan 2016 20:52:28 +0100,
+>>> Shuah Khan wrote:
+>>>>
+>>>> Change ALSA driver to use Managed Media Managed Controller
+>>>> API to share tuner with DVB and V4L2 drivers that control
+>>>> AU0828 media device.  Media device is created based on a
+>>>> newly added field value in the struct snd_usb_audio_quirk.
+>>>> Using this approach, the media controller API usage can be
+>>>> added for a specific device. In this patch, Media Controller
+>>>> API is enabled for AU0828 hw. snd_usb_create_quirk() will
+>>>> check this new field, if set will create a media device using
+>>>> media_device_get_devres() interface.
+>>>>
+>>>> media_device_get_devres() will allocate a new media device
+>>>> devres or return an existing one, if it finds one.
+>>>>
+>>>> During probe, media usb driver could have created the media
+>>>> device devres. It will then initialze (if necessary) and
+>>>> register the media device if it isn't already initialized
+>>>> and registered. Media device unregister is done from
+>>>> usb_audio_disconnect().
+>>>>
+>>>> During probe, media usb driver could have created the
+>>>> media device devres. It will then register the media
+>>>> device if it isn't already registered. Media device
+>>>> unregister is done from usb_audio_disconnect().
+>>>>
+>>>> New structure media_ctl is added to group the new
+>>>> fields to support media entity and links. This new
+>>>> structure is added to struct snd_usb_substream.
+>>>>
+>>>> A new entity_notify hook and a new ALSA capture media
+>>>> entity are registered from snd_usb_pcm_open() after
+>>>> setting up hardware information for the PCM device.
+>>>>
+>>>> When a new entity is registered, Media Controller API
+>>>> interface media_device_register_entity() invokes all
+>>>> registered entity_notify hooks for the media device.
+>>>> ALSA entity_notify hook parses all the entity list to
+>>>> find a link from decoder it ALSA entity. This indicates
+>>>> that the bridge driver created a link from decoder to
+>>>> ALSA capture entity.
+>>>>
+>>>> ALSA will attempt to enable the tuner to link the tuner
+>>>> to the decoder calling enable_source handler if one is
+>>>> provided by the bridge driver prior to starting Media
+>>>> pipeline from snd_usb_hw_params(). If enable_source returns
+>>>> with tuner busy condition, then snd_usb_hw_params() will fail
+>>>> with -EBUSY. Media pipeline is stopped from snd_usb_hw_free().
+>>>>
+>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>>> ---
+>>>> Changes since v1: Addressed Takasi Iwai's comments on v1
+>>>> - Move config defines to Kconfig and add logic
+>>>>   to Makefile to conditionally compile media.c
+>>>> - Removed extra includes from media.c
+>>>> - Added snd_usb_autosuspend() in error leg
+>>>> - Removed debug related code that was missed in v1
+>>>>
+>>>>  sound/usb/Kconfig        |   7 ++
+>>>>  sound/usb/Makefile       |   4 +
+>>>>  sound/usb/card.c         |   7 ++
+>>>>  sound/usb/card.h         |   1 +
+>>>>  sound/usb/media.c        | 190 +++++++++++++++++++++++++++++++++++++++++++++++
+>>>>  sound/usb/media.h        |  56 ++++++++++++++
+>>>>  sound/usb/pcm.c          |  28 +++++--
+>>>>  sound/usb/quirks-table.h |   1 +
+>>>>  sound/usb/quirks.c       |   5 ++
+>>>>  sound/usb/stream.c       |   2 +
+>>>>  sound/usb/usbaudio.h     |   1 +
+>>>>  11 files changed, 297 insertions(+), 5 deletions(-)
+>>>>  create mode 100644 sound/usb/media.c
+>>>>  create mode 100644 sound/usb/media.h
+>>>>
+>>>> diff --git a/sound/usb/Kconfig b/sound/usb/Kconfig
+>>>> index a452ad7..8d5cdab 100644
+>>>> --- a/sound/usb/Kconfig
+>>>> +++ b/sound/usb/Kconfig
+>>>> @@ -15,6 +15,7 @@ config SND_USB_AUDIO
+>>>>  	select SND_RAWMIDI
+>>>>  	select SND_PCM
+>>>>  	select BITREVERSE
+>>>> +	select SND_USB_AUDIO_USE_MEDIA_CONTROLLER if MEDIA_CONTROLLER && (MEDIA_SUPPORT || MEDIA_SUPPORT_MODULE)
+>>>
+>>> This looks wrong as a Kconfig syntax.  "... if MEDIA_CONTROLLER"
+>>> should work, I suppose?
+>>
+>> The conditional select syntax is used in several Kconfig
+>> files. You are right about (MEDIA_SUPPORT || MEDIA_SUPPORT_MODULE)
+>> Adding checks for that is unnecessary.
+> 
+> Well, my point was that check should be like:
+>    select SND_USB_AUDIO_XXX if MEDIA_CONTROLLER && MEDIA_SUPPORT
 
+Thank you for your patience in helping me through this.
 
-On 04/01/16 11:11, Tiffany Lin wrote:
-> Add a DT binding documentation of Video Encoder for the
-> MT8173 SoC from Mediatek.
->
-> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> ---
->   .../devicetree/bindings/media/mediatek-vcodec.txt  |   58 ++++++++++++++++++++
->   1 file changed, 58 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
->
-> diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-> new file mode 100644
-> index 0000000..5cc35ae
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-> @@ -0,0 +1,58 @@
-> +Mediatek Video Codec
-> +
-> +Mediatek Video Codec is the video codec hw present in Mediatek SoCs which
-> +supports high resolution encoding functionalities.
-> +
-> +Required properties:
-> +- compatible : "mediatek,mt8173-vcodec-enc" for encoder
-> +- reg : Physical base address of the video codec registers and length of
-> +  memory mapped region.
-> +- interrupts : interrupt number to the cpu.
-> +- mediatek,larb : must contain the local arbiters in the current Socs.
-> +- clocks : list of clock specifiers, corresponding to entries in
-> +  the clock-names property;
-> +- clock-names: must contain "vencpll", "venc_lt_sel", "vcodecpll_370p5_ck"
-> +- iommus : list of iommus specifiers should be enabled for hw encode.
-> +  There are 2 cells needed to enable/disable iommu.
-> +  The first one is local arbiter index(larbid), and the other is port
-> +  index(portid) within local arbiter. Specifies the larbid and portid
-> +  as defined in dt-binding/memory/mt8173-larb-port.h.
+I looked into this more and there is no need to check
+for MEDIA_SUPPORT. MEDIA_CONTROLLER defined in
 
-iommus have only one cell, as in the example below. Please fix the 
-binding description accordingly.
+if MEDIA_SUPPORT
+endif # MEDIA_SUPPORT
 
-Regards,
-Matthias
+block, checking for MEDIA_SUPPORT is unnecessary.
 
-> +- mediatek,vpu : the node of video processor unit
-> +
-> +Example:
-> +vcodec_enc: vcodec@0x18002000 {
-> +    compatible = "mediatek,mt8173-vcodec-enc";
-> +    reg = <0 0x18002000 0 0x1000>,    /*VENC_SYS*/
-> +          <0 0x19002000 0 0x1000>;    /*VENC_LT_SYS*/
-> +    interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
-> +           <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
-> +    mediatek,larb = <&larb3>,
-> +		    <&larb5>;
-> +    iommus = <&iommu M4U_PORT_VENC_RCPU>,
-> +             <&iommu M4U_PORT_VENC_REC>,
-> +             <&iommu M4U_PORT_VENC_BSDMA>,
-> +             <&iommu M4U_PORT_VENC_SV_COMV>,
-> +             <&iommu M4U_PORT_VENC_RD_COMV>,
-> +             <&iommu M4U_PORT_VENC_CUR_LUMA>,
-> +             <&iommu M4U_PORT_VENC_CUR_CHROMA>,
-> +             <&iommu M4U_PORT_VENC_REF_LUMA>,
-> +             <&iommu M4U_PORT_VENC_REF_CHROMA>,
-> +             <&iommu M4U_PORT_VENC_NBM_RDMA>,
-> +             <&iommu M4U_PORT_VENC_NBM_WDMA>,
-> +             <&iommu M4U_PORT_VENC_RCPU_SET2>,
-> +             <&iommu M4U_PORT_VENC_REC_FRM_SET2>,
-> +             <&iommu M4U_PORT_VENC_BSDMA_SET2>,
-> +             <&iommu M4U_PORT_VENC_SV_COMA_SET2>,
-> +             <&iommu M4U_PORT_VENC_RD_COMA_SET2>,
-> +             <&iommu M4U_PORT_VENC_CUR_LUMA_SET2>,
-> +             <&iommu M4U_PORT_VENC_CUR_CHROMA_SET2>,
-> +             <&iommu M4U_PORT_VENC_REF_LUMA_SET2>,
-> +             <&iommu M4U_PORT_VENC_REC_CHROMA_SET2>;
-> +    mediatek,vpu = <&vpu>;
-> +    clocks = <&apmixedsys CLK_APMIXED_VENCPLL>,
-> +             <&topckgen CLK_TOP_VENC_LT_SEL>,
-> +             <&topckgen CLK_TOP_VCODECPLL_370P5>;
-> +    clock-names = "vencpll",
-> +                  "venc_lt_sel",
-> +                  "vcodecpll_370p5_ck";
-> +  };
->
+> 
+> There is a revere-select, so this menu itself doesn't play any role.
+> 
+> If you want this item selectable, drop select from SND_USB_AUDIO but
+> just have proper dependencies for this item:
+
+Yes Agreed.
+
+> 
+> config SND_USB_AUDIO_USE_MEDIA_CONTROLLER
+> 	bool "USB Audio/MIDI driver with Media Controller Support"
+> 	depends on SND_USB_AUDIO
+> 	depends on MEDIA_CONTROLLER
+> 	default y
+> 
+> (Whether default y or not is a remaining question: usually we keep it 
+>  empty (i.e. no), but I put it here since you had it.)
+> 
+> If you want this auto-selected unconditionally, drop the prompt and
+> superfluous dependency (and don't set default y):
+
+Yes I want this auto-selected unconditionally so it won't be
+disabled by mistake which would lead to errors because ALSA
+will be out of sync with DVB and Analog in the way they try
+to get access to media resources.
+
+Yes the below will work.
+
+> 
+> config SND_USB_AUDIO
+> 	....
+> 	select SND_USB_AUDIO_USE_MEDIA_CONTROLLER if MEDIA_CONTROLLER
+> 	....
+> 
+> config SND_USB_AUDIO_USE_MEDIA_CONTROLLER
+> 	bool
+> 
+
+thanks,
+-- Shuah
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
