@@ -1,112 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54757 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752741AbcADM0i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jan 2016 07:26:38 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 09/10] [media] tvp5150: Initialize the chip on probe
-Date: Mon,  4 Jan 2016 09:25:31 -0300
-Message-Id: <1451910332-23385-10-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
-References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:33744 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750866AbcAQK1e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jan 2016 05:27:34 -0500
+Received: by mail-wm0-f50.google.com with SMTP id 123so19729284wmz.0
+        for <linux-media@vger.kernel.org>; Sun, 17 Jan 2016 02:27:34 -0800 (PST)
+Subject: Re: Pinnacle PCTV DVB-S2 Stick (461e) - HD Streams with artefacts
+To: Rainer Dorsch <ml@bokomoko.de>
+Cc: linux-media@vger.kernel.org
+References: <13463113.ozc26Vzdzi@blackbox> <569ACF59.7090700@gmail.com>
+ <2761448.7zDNhWqk2x@blackbox>
+From: Andy Furniss <adf.lists@gmail.com>
+Message-ID: <569B6C83.5080104@gmail.com>
+Date: Sun, 17 Jan 2016 10:27:15 +0000
+MIME-Version: 1.0
+In-Reply-To: <2761448.7zDNhWqk2x@blackbox>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After power-up, the tvp5150 decoder is in a unknown state until the
-RESETB pin is driven LOW which reset all the registers and restarts
-the chip's internal state machine.
+Rainer Dorsch wrote:
 
-The init sequence has some timing constraints and the RESETB signal
-can only be used if the PDN (Power-down) pin is first released.
+>>> Certainly any hint how to solve this issue is welcome.
+>>
+>> I added a comment on the tvh forum - will paste here as well in
+>> case anyone is interested -
+>>
+>> You could try spinning up you cpu(s) with
+>>
+>> nice -19 dd if=/dev/urandom of=/dev/null
+>
+> I added four of these, but if at all then there was only a minor
+> impact.
 
-So, the initialization sequence is as follows:
+Oh, OK it was worth a try.
 
-1- PDN (active-low) is driven HIGH so the chip is power-up
-2- A 20 ms delay is needed before sending a RESETB (active-low) signal.
-3- The RESETB pulse duration is 500 ns.
-4- A 200 us delay is needed for the I2C client to be active after reset.
+>> If you have multiple cores maybe start more than one.
+>>
+>> I have a couple of DVB-T2 PCTV sticks and got some usb/power
+>> save/xhci issues on my h/w.
+>>
+>> Above would mostly fix. Rather than do that I found that the issue
+>> was far less if I disabled USB3 in bios to avoid using the xhci
+>> driver.
+>
+> The cubox-i has no USB 3 port and no bios :-/
 
-This patch used as a reference the logic in the IGEPv2 board file from
-the ISEE 2.6.37 vendor tree.
+Ahh, quite different h/w then. Mine was a quad core baytrail DC board.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+>> Of course your issue may be totally different - but it's worth a
+>> try.
+>
+>> Your symptoms do point to ts packet loss - which I know from my
+>> experience can be at usb level. There are posts on here from the
+>> past where people with PCIE cards also had to do similar.
+>
+> Sounds reasonable. Can I enable logs which would make these drops
+> explicit?
 
- drivers/media/i2c/tvp5150.c | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index caac96a577f8..fed89a811ab7 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -5,6 +5,7 @@
-  * This code is placed under the terms of the GNU General Public License v2
-  */
- 
-+#include <linux/of_gpio.h>
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <linux/videodev2.h>
-@@ -1197,6 +1198,36 @@ static int tvp5150_detect_version(struct tvp5150 *core)
- 	return 0;
- }
- 
-+static inline int tvp5150_init(struct i2c_client *c)
-+{
-+	struct gpio_desc *pdn_gpio;
-+	struct gpio_desc *reset_gpio;
-+
-+	pdn_gpio = devm_gpiod_get_optional(&c->dev, "powerdown", GPIOD_OUT_HIGH);
-+	if (IS_ERR(pdn_gpio))
-+		return PTR_ERR(pdn_gpio);
-+
-+	if (pdn_gpio) {
-+		gpiod_set_value_cansleep(pdn_gpio, 0);
-+		/* Delay time between power supplies active and reset */
-+		msleep(20);
-+	}
-+
-+	reset_gpio = devm_gpiod_get_optional(&c->dev, "reset", GPIOD_OUT_HIGH);
-+	if (IS_ERR(reset_gpio))
-+		return PTR_ERR(reset_gpio);
-+
-+	if (reset_gpio) {
-+		/* RESETB pulse duration */
-+		ndelay(500);
-+		gpiod_set_value_cansleep(reset_gpio, 0);
-+		/* Delay time between end of reset to I2C active */
-+		usleep_range(200, 250);
-+	}
-+
-+	return 0;
-+}
-+
- static int tvp5150_probe(struct i2c_client *c,
- 			 const struct i2c_device_id *id)
- {
-@@ -1209,6 +1240,10 @@ static int tvp5150_probe(struct i2c_client *c,
- 	     I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
- 		return -EIO;
- 
-+	res = tvp5150_init(c);
-+	if (res)
-+		return res;
-+
- 	core = devm_kzalloc(&c->dev, sizeof(*core), GFP_KERNEL);
- 	if (!core)
- 		return -ENOMEM;
--- 
-2.4.3
-
+Not that I know of at kernel level. The only way really is to infer loss
+from the continuity counters, which TVH already logs.
