@@ -1,267 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:49721 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932336AbcANTwh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 14:52:37 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH v2 27/31] sound/usb: Create media mixer function and control interface entities
-Date: Thu, 14 Jan 2016 12:52:29 -0700
-Message-Id: <a66e0571e1347bdd6afeae35e86efe09186887cd.1452800273.git.shuahkh@osg.samsung.com>
-In-Reply-To: <fd72f02797d595fc1c53b16fccec4d204430995e.1452800273.git.shuahkh@osg.samsung.com>
-References: <fd72f02797d595fc1c53b16fccec4d204430995e.1452800273.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452800265.git.shuahkh@osg.samsung.com>
-References: <cover.1452800265.git.shuahkh@osg.samsung.com>
+Received: from mout.gmx.net ([212.227.15.18]:62203 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754573AbcARLzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2016 06:55:33 -0500
+Date: Mon, 18 Jan 2016 12:55:20 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Aviv Greenberg <avivgr@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] V4L: add Y12I, Y8I and Z16 pixel format documentation
+In-Reply-To: <20160114112914.GM576@valkosipuli.retiisi.org.uk>
+Message-ID: <Pine.LNX.4.64.1601181250000.9140@axis700.grange>
+References: <Pine.LNX.4.64.1512151732080.18335@axis700.grange>
+ <20160113102453.GJ576@valkosipuli.retiisi.org.uk>
+ <Pine.LNX.4.64.1601141159520.15949@axis700.grange>
+ <20160114112914.GM576@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for creating MEDIA_ENT_F_AUDIO_MIXER entity for
-each mixer and a MEDIA_INTF_T_ALSA_CONTROL control interface
-entity that links to mixer entities. MEDIA_INTF_T_ALSA_CONTROL
-entity corresponds to the control device for the card.
+On Thu, 14 Jan 2016, Sakari Ailus wrote:
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
-Changes since v1:
-- Rebase after patch 26 v2 work.
-- Fixed warnings in stub defines when
-  CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER
-  is disabled
+> Hi Guennadi,
+> 
+> On Thu, Jan 14, 2016 at 12:12:08PM +0100, Guennadi Liakhovetski wrote:
+> > Hi Sakari,
+> > 
+> > Thanks for a review! I'll fix all the cosmetic issues, thanks. As for 
+> > other comments:
+> > 
+> > On Wed, 13 Jan 2016, Sakari Ailus wrote:
+> > 
+> > [snip]
+> > 
+> > > > --- /dev/null
+> > > > +++ b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
+> > > > @@ -0,0 +1,49 @@
+> > > > +<refentry id="V4L2-PIX-FMT-Y12I">
+> > > > +  <refmeta>
+> > > > +    <refentrytitle>V4L2_PIX_FMT_Y12I ('Y12I ')</refentrytitle>
+> > > 
+> > > Extra space after 4cc.                        ^
+> > > 
+> > > > +    &manvol;
+> > > > +  </refmeta>
+> > > > +  <refnamediv>
+> > > > +    <refname><constant>V4L2_PIX_FMT_Y12I</constant></refname>
+> > > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
+> > > > +  </refnamediv>
+> > > > +  <refsect1>
+> > > > +    <title>Description</title>
+> > > > +
+> > > > +    <para>This is a grey-scale image with a depth of 12 bits per pixel, but with
+> > > > +pixels from 2 sources interleaved and bit-packed. Each pixel is stored in a
+> > > > +24-bit word. E.g. data, stored by a R200 RealSense camera on a little-endian
+> > > > +machine can be deinterlaced using</para>
+> > > 
+> > > I think we should precisely define the format, either big or little. Is the
+> > > endianness of the format affected by the machine endianness? (I'd guess no,
+> > > but that's just a guess.)
+> > 
+> > Ok, since this works on a LE machine:
+> > 
+> > left0 = 0xfff & *(__u16 *)buf;
+> > 
+> > I think we can call data LE in the buffer. But specifying left-right order 
+> > cannot be done in terms of endianness, so, I provided that code snippet.
+> 
+> I meant that the the format definition should clearly say which one is the
+> order.
+> 
+> > 
+> > > I wonder if the format should convey the information which one is right and
+> > > which one is left, e.g. by adding "LR" to the name.
+> > 
+> > You mean to distinguish between LR and RL? Can do in principle, yes.
+> 
+> If we want the format to have an exact definition, we should have this as
+> well.
+> 
+> I think the formats increasingly have little details such as this one which
+> require adding many format variants but I'm not sure if it's even a problem.
+> 
+> I'd postfix the name with "LR" or at least document that this is the pixel
+> order.
 
- sound/usb/card.c     |  5 +++
- sound/usb/media.c    | 91 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- sound/usb/media.h    | 21 ++++++++++++
- sound/usb/mixer.h    |  1 +
- sound/usb/usbaudio.h |  1 +
- 5 files changed, 119 insertions(+)
+Don't think that's a good option ATM since the format is already in 
+videodev2.h
 
-diff --git a/sound/usb/card.c b/sound/usb/card.c
-index 1a63851..e965982 100644
---- a/sound/usb/card.c
-+++ b/sound/usb/card.c
-@@ -562,6 +562,9 @@ static int usb_audio_probe(struct usb_interface *intf,
- 	if (err < 0)
- 		goto __error;
- 
-+	/* Create media entities for mixer and control dev */
-+	media_mixer_init(chip);
-+
- 	usb_chip[chip->index] = chip;
- 	chip->num_interfaces++;
- 	usb_set_intfdata(intf, chip);
-@@ -618,6 +621,8 @@ static void usb_audio_disconnect(struct usb_interface *intf)
- 		list_for_each(p, &chip->midi_list) {
- 			snd_usbmidi_disconnect(p);
- 		}
-+		/* delete mixer media resources */
-+		media_mixer_delete(chip);
- 		/* release mixer resources */
- 		list_for_each_entry(mixer, &chip->mixer_list, list) {
- 			snd_usb_mixer_disconnect(mixer);
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-index 644b6e8..da58378 100644
---- a/sound/usb/media.c
-+++ b/sound/usb/media.c
-@@ -23,9 +23,11 @@
- #include <linux/usb.h>
- 
- #include <sound/pcm.h>
-+#include <sound/core.h>
- 
- #include "usbaudio.h"
- #include "card.h"
-+#include "mixer.h"
- #include "media.h"
- 
- int media_device_create(struct snd_usb_audio *chip,
-@@ -188,3 +190,92 @@ void media_stop_pipeline(struct snd_usb_substream *subs)
- 	if (mctl)
- 		media_disable_source(mctl);
- }
-+
-+int media_mixer_init(struct snd_usb_audio *chip)
-+{
-+	struct device *ctl_dev = &chip->card->ctl_dev;
-+	struct media_intf_devnode *ctl_intf;
-+	struct usb_mixer_interface *mixer;
-+	struct media_device *mdev;
-+	struct media_mixer_ctl *mctl;
-+	u32 intf_type = MEDIA_INTF_T_ALSA_CONTROL;
-+	int ret;
-+
-+	mdev = media_device_find_devres(&chip->dev->dev);
-+	if (!mdev)
-+		return -ENODEV;
-+
-+	ctl_intf = chip->ctl_intf_media_devnode;
-+	if (!ctl_intf) {
-+		ctl_intf = (void *) media_devnode_create(mdev,
-+							 intf_type, 0,
-+							 MAJOR(ctl_dev->devt),
-+							 MINOR(ctl_dev->devt));
-+		if (!ctl_intf)
-+			return -ENOMEM;
-+		chip->ctl_intf_media_devnode = ctl_intf;
-+	}
-+
-+	list_for_each_entry(mixer, &chip->mixer_list, list) {
-+
-+		if (mixer->media_mixer_ctl)
-+			continue;
-+
-+		/* allocate media_mixer_ctl */
-+		mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
-+		if (!mctl)
-+			return -ENOMEM;
-+
-+		mctl->media_dev = mdev;
-+		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_MIXER;
-+		mctl->media_entity.name = chip->card->mixername;
-+		mctl->media_pad[0].flags = MEDIA_PAD_FL_SINK;
-+		mctl->media_pad[1].flags = MEDIA_PAD_FL_SOURCE;
-+		mctl->media_pad[2].flags = MEDIA_PAD_FL_SOURCE;
-+		media_entity_pads_init(&mctl->media_entity, MEDIA_MIXER_PAD_MAX,
-+				  mctl->media_pad);
-+		ret =  media_device_register_entity(mctl->media_dev,
-+						    &mctl->media_entity);
-+		if (ret) {
-+			kfree(mctl);
-+			return ret;
-+		}
-+
-+		mctl->intf_link = media_create_intf_link(&mctl->media_entity,
-+							 &ctl_intf->intf,
-+							 MEDIA_LNK_FL_ENABLED);
-+		if (!mctl->intf_link) {
-+			media_device_unregister_entity(&mctl->media_entity);
-+			media_entity_cleanup(&mctl->media_entity);
-+			kfree(mctl);
-+			return -ENOMEM;
-+		}
-+		mctl->intf_devnode = ctl_intf;
-+		mixer->media_mixer_ctl = (void *) mctl;
-+	}
-+	return 0;
-+}
-+
-+void media_mixer_delete(struct snd_usb_audio *chip)
-+{
-+	struct usb_mixer_interface *mixer;
-+	struct media_device *mdev;
-+
-+	mdev = media_device_find_devres(&chip->dev->dev);
-+	if (!mdev)
-+		return;
-+
-+	list_for_each_entry(mixer, &chip->mixer_list, list) {
-+		struct media_mixer_ctl *mctl;
-+
-+		mctl = (struct media_mixer_ctl *) mixer->media_mixer_ctl;
-+		if (!mixer->media_mixer_ctl)
-+			continue;
-+
-+		media_device_unregister_entity(&mctl->media_entity);
-+		media_entity_cleanup(&mctl->media_entity);
-+		kfree(mctl);
-+		mixer->media_mixer_ctl = NULL;
-+	}
-+	media_devnode_remove(chip->ctl_intf_media_devnode);
-+}
-diff --git a/sound/usb/media.h b/sound/usb/media.h
-index 00b77e6..9477ffa 100644
---- a/sound/usb/media.h
-+++ b/sound/usb/media.h
-@@ -22,6 +22,7 @@
- 
- #include <media/media-device.h>
- #include <media/media-entity.h>
-+#include <sound/asound.h>
- 
- struct media_ctl {
- 	struct media_device *media_dev;
-@@ -32,6 +33,22 @@ struct media_ctl {
- 	struct media_pipeline media_pipe;
- };
- 
-+/*
-+ * One source pad each for SNDRV_PCM_STREAM_CAPTURE and
-+ * SNDRV_PCM_STREAM_PLAYBACK. One for sink pad to link
-+ * to AUDIO Source
-+*/
-+#define MEDIA_MIXER_PAD_MAX    (SNDRV_PCM_STREAM_LAST + 2)
-+
-+struct media_mixer_ctl {
-+	struct media_device *media_dev;
-+	struct media_entity media_entity;
-+	struct media_intf_devnode *intf_devnode;
-+	struct media_link *intf_link;
-+	struct media_pad media_pad[MEDIA_MIXER_PAD_MAX];
-+	struct media_pipeline media_pipe;
-+};
-+
- int media_device_create(struct snd_usb_audio *chip,
- 			struct usb_interface *iface);
- void media_device_delete(struct usb_interface *iface);
-@@ -40,6 +57,8 @@ int media_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
- void media_stream_delete(struct snd_usb_substream *subs);
- int media_start_pipeline(struct snd_usb_substream *subs);
- void media_stop_pipeline(struct snd_usb_substream *subs);
-+int media_mixer_init(struct snd_usb_audio *chip);
-+void media_mixer_delete(struct snd_usb_audio *chip);
- #else
- static inline int media_device_create(struct snd_usb_audio *chip,
- 				      struct usb_interface *iface)
-@@ -52,5 +71,7 @@ static inline void media_stream_delete(struct snd_usb_substream *subs) { }
- static inline int media_start_pipeline(struct snd_usb_substream *subs)
- 					{ return 0; }
- static inline void media_stop_pipeline(struct snd_usb_substream *subs) { }
-+static inline int media_mixer_init(struct snd_usb_audio *chip) { return 0; }
-+static inline void media_mixer_delete(struct snd_usb_audio *chip) { }
- #endif
- #endif /* __MEDIA_H */
-diff --git a/sound/usb/mixer.h b/sound/usb/mixer.h
-index 3417ef3..787b352 100644
---- a/sound/usb/mixer.h
-+++ b/sound/usb/mixer.h
-@@ -22,6 +22,7 @@ struct usb_mixer_interface {
- 	struct urb *rc_urb;
- 	struct usb_ctrlrequest *rc_setup_packet;
- 	u8 rc_buffer[6];
-+	void *media_mixer_ctl;
- };
- 
- #define MAX_CHANNELS	16	/* max logical channels */
-diff --git a/sound/usb/usbaudio.h b/sound/usb/usbaudio.h
-index e3fac29..490b16a 100644
---- a/sound/usb/usbaudio.h
-+++ b/sound/usb/usbaudio.h
-@@ -60,6 +60,7 @@ struct snd_usb_audio {
- 	bool autoclock;			/* from the 'autoclock' module param */
- 
- 	struct usb_host_interface *ctrl_intf;	/* the audio control interface */
-+	void *ctl_intf_media_devnode;
- };
- 
- #define usb_audio_err(chip, fmt, args...) \
--- 
-2.5.0
+> > > No need to mention RealSense specifically IMO.
+> > 
+> > Ok.
+> > 
+> > > > +
+> > > > +<para>
+> > > > +<programlisting>
+> > > > +__u8 *buf;
+> > > > +left0 = 0xfff &amp; *(__u16 *)buf;
+> > > > +rirhgt0 = *(__u16 *)(buf + 1) >> 4;
+> > > 
+> > > "right"
+> > 
+> > [snip]
+> > 
+> > > > diff --git a/Documentation/DocBook/media/v4l/pixfmt-z16.xml b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
+> > > > new file mode 100644
+> > > > index 0000000..fac3c68
+> > > > --- /dev/null
+> > > > +++ b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
+> > > > @@ -0,0 +1,79 @@
+> > > > +<refentry id="V4L2-PIX-FMT-Z16">
+> > > > +  <refmeta>
+> > > > +    <refentrytitle>V4L2_PIX_FMT_Z16 ('Z16 ')</refentrytitle>
+> > > > +    &manvol;
+> > > > +  </refmeta>
+> > > > +  <refnamediv>
+> > > > +    <refname><constant>V4L2_PIX_FMT_Z16</constant></refname>
+> > > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
+> > > > +  </refnamediv>
+> > > > +  <refsect1>
+> > > > +    <title>Description</title>
+> > > > +
+> > > > +    <para>This is a 16-bit format, representing depth data. Each pixel is a
+> > > > +distance in mm to the respective point in the image coordinates. Each pixel is
+> > > > +stored in a 16-bit word in the little endian byte order.</para>
+> > > 
+> > > The format itself looks quite generic but the unit might be specific to the
+> > > device. It'd sound silly to add a new format if just the unit is different.
+> > 
+> > My understanding is, that each format must have a fixed meaning, i.e. a 
+> > fixed depth unit too, although it would definitely help to be able to 
+> > relax that requirement in this case.
+> 
+> Agreed.
+> 
+> > > How about re-purpose the colourspace field for depth formats and
+> > > add a flag telling the colour space field contains the unit and the unit
+> > > prefix.
+> > 
+> > Hmmm... Not sure I find this a proper use of the .colorspace field...
+> 
+> I think colour space doesn't make much sense in context of depth.
 
+Agree, still I don't think it is a good idea to abuse it for a different 
+purpose. If it doesn't make sense it simply shouldn't be used.
+
+Thanks
+Guennadi
+
+> > > Not something to have in this patch nor patchset though: controls
+> > > should gain that as well.
+> > 
+> > Sorry, didn't get this - how can a control tell you what units a specific 
+> > format uses? What if your camera can output depth in multiple units?
+> 
+> Controls do not have units at the moment. The specification often suggests a
+> unit but using the unit suggested by the spec isn't always possible, thus
+> it'd be useful to have this available through VIDIOC_QUERYCTRL.
+> 
+> -- 
+> Kind regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> 
