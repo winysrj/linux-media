@@ -1,75 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:56478 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754573AbcARL6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 06:58:16 -0500
-Date: Mon, 18 Jan 2016 12:58:02 +0100
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Simon Horman <horms+renesas@verge.net.au>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	linux-renesas-soc@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [PATCH] MAINTAINERS: Update mailing list for Renesas SoC
- Development
-Message-ID: <20160118115802.GA1549@katana>
-References: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
-Content-Disposition: inline
-In-Reply-To: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:32793 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754724AbcARMWr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2016 07:22:47 -0500
+Received: by mail-pf0-f194.google.com with SMTP id e65so11737702pfe.0
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 04:22:46 -0800 (PST)
+From: Josh Wu <rainyfeeling@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Songjun Wu <songjun.wu@atmel.com>,
+	Josh Wu <rainyfeeling@gmail.com>
+Subject: [PATCH 03/13] atmel-isi: add isi_hw_initialize() function to handle hw setup
+Date: Mon, 18 Jan 2016 20:21:39 +0800
+Message-Id: <1453119709-20940-4-git-send-email-rainyfeeling@gmail.com>
+In-Reply-To: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
+References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Move the hardware operation to one isi_hw_initialize(). Then we will
+call it in start_streaming().
 
---+QahgC5+KEYLbs62
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
+---
 
-On Mon, Jan 18, 2016 at 10:04:33AM +0900, Simon Horman wrote:
-> Update the mailing list used for development of support for
-> Renesas SoCs and related drivers.
->=20
-> Up until now the linux-sh mailing list has been used, however,
-> Renesas SoCs are now much wider than the SH architecture and there
-> is some desire from some for the linux-sh list to refocus on
-> discussion of the work on the SH architecture.
->=20
-> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-> Cc: Magnus Damm <magnus.damm@gmail.com>
-> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+ drivers/media/platform/soc_camera/atmel-isi.c | 51 +++++++++++++++------------
+ 1 file changed, 28 insertions(+), 23 deletions(-)
 
-Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 3793b68..0c3cb74 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -88,6 +88,7 @@ struct atmel_isi {
+ 
+ 	struct isi_platform_data	pdata;
+ 	u16				width_flags;	/* max 12 bits */
++	u32				bus_param;
+ 
+ 	struct list_head		video_buffer_list;
+ 	struct frame_buffer		*active;
+@@ -189,6 +190,30 @@ static void configure_geometry(struct atmel_isi *isi, u32 width,
+ 	return;
+ }
+ 
++static void isi_hw_initialize(struct atmel_isi *isi)
++{
++	u32 common_flags = isi->bus_param;
++	u32 cfg1 = 0;
++
++	/* set bus param for ISI */
++	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
++		cfg1 |= ISI_CFG1_HSYNC_POL_ACTIVE_LOW;
++	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
++		cfg1 |= ISI_CFG1_VSYNC_POL_ACTIVE_LOW;
++	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
++		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
++
++	if (isi->pdata.has_emb_sync)
++		cfg1 |= ISI_CFG1_EMB_SYNC;
++	if (isi->pdata.full_mode)
++		cfg1 |= ISI_CFG1_FULL_MODE;
++
++	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
++
++	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
++	isi_writel(isi, ISI_CFG1, cfg1);
++}
++
+ static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
+ {
+ 	if (isi->active) {
+@@ -464,6 +489,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	/* Disable all interrupts */
+ 	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+ 
++	isi_hw_initialize(isi);
++
+ 	configure_geometry(isi, icd->user_width, icd->user_height,
+ 				icd->current_fmt);
+ 
+@@ -835,7 +862,6 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
+ 	unsigned long common_flags;
+ 	int ret;
+-	u32 cfg1 = 0;
+ 
+ 	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
+ 	if (!ret) {
+@@ -888,33 +914,12 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd)
+ 		return ret;
+ 	}
+ 
+-	/* set bus param for ISI */
+-	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+-		cfg1 |= ISI_CFG1_HSYNC_POL_ACTIVE_LOW;
+-	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+-		cfg1 |= ISI_CFG1_VSYNC_POL_ACTIVE_LOW;
+-	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
+-		cfg1 |= ISI_CFG1_PIXCLK_POL_ACTIVE_FALLING;
+-
+ 	dev_dbg(icd->parent, "vsync active %s, hsync active %s, sampling on pix clock %s edge\n",
+ 		common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? "low" : "high",
+ 		common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? "low" : "high",
+ 		common_flags & V4L2_MBUS_PCLK_SAMPLE_FALLING ? "falling" : "rising");
+ 
+-	if (isi->pdata.has_emb_sync)
+-		cfg1 |= ISI_CFG1_EMB_SYNC;
+-	if (isi->pdata.full_mode)
+-		cfg1 |= ISI_CFG1_FULL_MODE;
+-
+-	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
+-
+-	/* Enable PM and peripheral clock before operate isi registers */
+-	pm_runtime_get_sync(ici->v4l2_dev.dev);
+-
+-	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+-	isi_writel(isi, ISI_CFG1, cfg1);
+-
+-	pm_runtime_put(ici->v4l2_dev.dev);
++	isi->bus_param = common_flags;
+ 
+ 	return 0;
+ }
+-- 
+1.9.1
 
-
---+QahgC5+KEYLbs62
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWnNNKAAoJEBQN5MwUoCm2V/cQALBylb7EVWpN7s02MrxVPESu
-/Z0+kHW+P0F2EuC6XcKSFRTlzIKtcXqoiatude5BS0v6+CwS6Y64GYspVX7kfQJq
-tgkSr/Xt6X+UFpeH47IeQqmGcgrhwGcTeODFD5T1xfMURScrZRhEQzOXIk6ZOCKD
-FkvJuTWP9y1wnTUD5/5FbEJe3ZyBC63G6i0nrjJ9fAtc3GnBDyFAce7zYq4YLvz6
-QMWoFg1Iv/maHxdczae0+F4m7VzOrq5qV4YIQEb+bHjTeiTpyTyPnT7fk2J5hllK
-pa7amxqXGcWJ4CaAFyUe94dxoc7j4duPlHolqiB+mE8MeGQb+Qhz6L7LYOSVWUMx
-YiYExLlRs8trlgBTr+ML7ieIOl9jiO/SsmGHYfAIDaQrnI+RIM+Utj77br3ifQYx
-jRSfT1kN0JCcxGogNflV5isP2y/HgZ+FS7eUJX4YZ7HDC0EwQjDXFMo6zD4xxXta
-IhUL2ikSnmfXRw4N/HOfkDfLwggrV4IAj5NYmfzTSNXZak9T4i0CtVfcGLCWrAnv
-BTRTiHymNtrZlOKahmSujWlJ/a6ka4D66Irewv5h1F6yZVt0v7izEQKoJm+USyMf
-1XqQmD7wVtBDPknitqj/mtZXwjl2N88KXgQAh2kf/ytCQyjNIwTgA1z2k1xWFs1X
-x2zI/awYwnTfplw0Sacb
-=nFuS
------END PGP SIGNATURE-----
-
---+QahgC5+KEYLbs62--
