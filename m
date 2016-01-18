@@ -1,97 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55758 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932368AbcA0NFS (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36575 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755010AbcARMxf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2016 08:05:18 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 5/5] adv7511: add support to for the content type control.
-Date: Wed, 27 Jan 2016 14:05:03 +0100
-Message-Id: <1453899903-17790-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1453899903-17790-1-git-send-email-hverkuil@xs4all.nl>
-References: <1453899903-17790-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 18 Jan 2016 07:53:35 -0500
+Received: by mail-pf0-f195.google.com with SMTP id n128so11712061pfn.3
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 04:53:34 -0800 (PST)
+From: Josh Wu <rainyfeeling@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Songjun Wu <songjun.wu@atmel.com>,
+	Josh Wu <rainyfeeling@gmail.com>, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH 08/13] atmel-isi: remove the function set_dma_ctrl() as it just use once
+Date: Mon, 18 Jan 2016 20:52:19 +0800
+Message-Id: <1453121545-27528-3-git-send-email-rainyfeeling@gmail.com>
+In-Reply-To: <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
+References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
+ <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Josh Wu <josh.wu@atmel.com>
 
-This transmitter now supports configuring the IT content type of the incoming
-video.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
 ---
- drivers/media/i2c/adv7511.c | 22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index 471fd23..e0dcdb1 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -103,12 +103,14 @@ struct adv7511_state {
- 	u32 ycbcr_enc;
- 	u32 quantization;
- 	u32 xfer_func;
-+	u32 content_type;
- 	/* controls */
- 	struct v4l2_ctrl *hdmi_mode_ctrl;
- 	struct v4l2_ctrl *hotplug_ctrl;
- 	struct v4l2_ctrl *rx_sense_ctrl;
- 	struct v4l2_ctrl *have_edid0_ctrl;
- 	struct v4l2_ctrl *rgb_quantization_range_ctrl;
-+	struct v4l2_ctrl *content_type_ctrl;
- 	struct i2c_client *i2c_edid;
- 	struct i2c_client *i2c_pktmem;
- 	struct adv7511_state_edid edid;
-@@ -400,6 +402,16 @@ static int adv7511_s_ctrl(struct v4l2_ctrl *ctrl)
- 	}
- 	if (state->rgb_quantization_range_ctrl == ctrl)
- 		return adv7511_set_rgb_quantization_mode(sd, ctrl);
-+	if (state->content_type_ctrl == ctrl) {
-+		u8 itc, cn;
-+
-+		state->content_type = ctrl->val;
-+		itc = state->content_type != V4L2_DV_CONTENT_TYPE_NO_ITC;
-+		cn = itc ? state->content_type : V4L2_DV_CONTENT_TYPE_GRAPHICS;
-+		adv7511_wr_and_or(sd, 0x57, 0x7f, itc << 7);
-+		adv7511_wr_and_or(sd, 0x59, 0xcf, cn << 4);
-+		return 0;
-+	}
+ drivers/media/platform/soc_camera/atmel-isi.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index ed4d04b..e1ad18f 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -46,11 +46,6 @@ struct fbd {
+ 	u32 next_fbd_address;
+ };
  
- 	return -EINVAL;
- }
-@@ -1002,6 +1014,8 @@ static int adv7511_set_fmt(struct v4l2_subdev *sd,
- 	u8 y = HDMI_COLORSPACE_RGB;
- 	u8 q = HDMI_QUANTIZATION_RANGE_DEFAULT;
- 	u8 yq = HDMI_YCC_QUANTIZATION_RANGE_LIMITED;
-+	u8 itc = state->content_type != V4L2_DV_CONTENT_TYPE_NO_ITC;
-+	u8 cn = itc ? state->content_type : V4L2_DV_CONTENT_TYPE_GRAPHICS;
+-static void set_dma_ctrl(struct fbd *fb_desc, u32 ctrl)
+-{
+-	fb_desc->dma_ctrl = ctrl;
+-}
+-
+ struct isi_dma_desc {
+ 	struct list_head list;
+ 	struct fbd *p_fbd;
+@@ -385,7 +380,7 @@ static int buffer_prepare(struct vb2_buffer *vb)
+ 			desc->p_fbd->fb_address =
+ 					vb2_dma_contig_plane_dma_addr(vb, 0);
+ 			desc->p_fbd->next_fbd_address = 0;
+-			set_dma_ctrl(desc->p_fbd, ISI_DMA_CTRL_WB);
++			desc->p_fbd->dma_ctrl = ISI_DMA_CTRL_WB;
  
- 	if (format->pad != 0)
- 		return -EINVAL;
-@@ -1115,8 +1129,8 @@ static int adv7511_set_fmt(struct v4l2_subdev *sd,
- 	adv7511_wr_and_or(sd, 0x4a, 0xbf, 0);
- 	adv7511_wr_and_or(sd, 0x55, 0x9f, y << 5);
- 	adv7511_wr_and_or(sd, 0x56, 0x3f, c << 6);
--	adv7511_wr_and_or(sd, 0x57, 0x83, (ec << 4) | (q << 2));
--	adv7511_wr_and_or(sd, 0x59, 0x3f, yq << 6);
-+	adv7511_wr_and_or(sd, 0x57, 0x83, (ec << 4) | (q << 2) | (itc << 7));
-+	adv7511_wr_and_or(sd, 0x59, 0x0f, (yq << 6) | (cn << 4));
- 	adv7511_wr_and_or(sd, 0x4a, 0xff, 1);
- 
- 	return 0;
-@@ -1470,6 +1484,10 @@ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *
- 		v4l2_ctrl_new_std_menu(hdl, &adv7511_ctrl_ops,
- 			V4L2_CID_DV_TX_RGB_RANGE, V4L2_DV_RGB_RANGE_FULL,
- 			0, V4L2_DV_RGB_RANGE_AUTO);
-+	state->content_type_ctrl =
-+		v4l2_ctrl_new_std_menu(hdl, &adv7511_ctrl_ops,
-+			V4L2_CID_DV_TX_CONTENT_TYPE, V4L2_DV_CONTENT_TYPE_NO_ITC,
-+			0, V4L2_DV_CONTENT_TYPE_NO_ITC);
- 	sd->ctrl_handler = hdl;
- 	if (hdl->error) {
- 		err = hdl->error;
+ 			buf->p_dma_desc = desc;
+ 		}
 -- 
-2.7.0.rc3
+1.9.1
 
