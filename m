@@ -1,167 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f195.google.com ([209.85.160.195]:33898 "EHLO
-	mail-yk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751314AbcAXL1U (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:51738 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755675AbcARQSY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2016 06:27:20 -0500
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1601231926270.10701@axis700.grange>
-References: <1452773908-19260-1-git-send-email-ykaneko0929@gmail.com>
-	<Pine.LNX.4.64.1601231926270.10701@axis700.grange>
-Date: Sun, 24 Jan 2016 20:27:19 +0900
-Message-ID: <CAH1o70L8xz6Q_E2VSgFB4jXZKjLRd7dhQnFug1z7QWH+GFKeYw@mail.gmail.com>
-Subject: Re: [PATCH v4] media: soc_camera: rcar_vin: Add ARGB8888 caputre
- format support
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Mon, 18 Jan 2016 11:18:24 -0500
+Received: from epcpsbgm2new.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O1501N1RPAIDD20@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:18:22 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 05/15] mediactl: Add media device graph helpers
+Date: Mon, 18 Jan 2016 17:17:30 +0100
+Message-id: <1453133860-21571-6-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi-san,
+Add new graph helpers useful for video pipeline discovering.
 
-Thanks for your review.
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ utils/media-ctl/libmediactl.c |   48 +++++++++++++++++++++++++++++++++++++++++
+ utils/media-ctl/mediactl.h    |   36 +++++++++++++++++++++++++++++++
+ 2 files changed, 84 insertions(+)
 
-2016-01-24 3:38 GMT+09:00 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> Hello Kaneko-san,
->
-> I've got a question to this patch:
->
-> On Thu, 14 Jan 2016, Yoshihiro Kaneko wrote:
->
->> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->>
->> This patch adds ARGB8888 capture format support for R-Car Gen3.
->>
->> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
->> ---
->>
->> This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
->>
->> v4 [Yoshihiro Kaneko]
->> * As suggested by Sergei Shtylyov
->>   - revised an error message.
->>
->> v3 [Yoshihiro Kaneko]
->> * rebased to for-4.6-1 branch of Guennadi's tree.
->>
->> v2 [Yoshihiro Kaneko]
->> * As suggested by Sergei Shtylyov
->>   - fix the coding style of the braces.
->>
->>  drivers/media/platform/soc_camera/rcar_vin.c | 21 +++++++++++++++++++--
->>  1 file changed, 19 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
->> index dc75a80..07c67f6 100644
->> --- a/drivers/media/platform/soc_camera/rcar_vin.c
->> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
->> @@ -124,7 +124,7 @@
->>  #define VNDMR_EXRGB          (1 << 8)
->>  #define VNDMR_BPSM           (1 << 4)
->>  #define VNDMR_DTMD_YCSEP     (1 << 1)
->> -#define VNDMR_DTMD_ARGB1555  (1 << 0)
->> +#define VNDMR_DTMD_ARGB              (1 << 0)
->>
->>  /* Video n Data Mode Register 2 bits */
->>  #define VNDMR2_VPS           (1 << 30)
->> @@ -643,7 +643,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->>               output_is_yuv = true;
->>               break;
->>       case V4L2_PIX_FMT_RGB555X:
->> -             dmr = VNDMR_DTMD_ARGB1555;
->> +             dmr = VNDMR_DTMD_ARGB;
->>               break;
->>       case V4L2_PIX_FMT_RGB565:
->>               dmr = 0;
->> @@ -654,6 +654,14 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->
-> Let me give a bit more context here for clarity:
->
->                 if (priv->chip == RCAR_GEN2 || priv->chip == RCAR_H1 ||
->                     priv->chip == RCAR_E1) {
->>                       dmr = VNDMR_EXRGB;
->>                       break;
->>               }
->
-> As you can see, there's no common "break" in the "case" clause above, i.e.
-> it is relying on falling through if the "if" condition isn't satisfied.
-> Now you insert your new "case" here, so, the failing "if" above will fall
-> through into your new case. Is this intended? This fall through was
-> handling the "invalid for this SoC pixel format" case, same as your "else"
-> case below. How about replacing all these cases with a "goto e_format"
-> statement and put "e_format:" below "return 0;" at the end of this
-> function? So, the above would become
->
->                 if (priv->chip != RCAR_GEN2 && priv->chip != RCAR_H1 &&
->                     priv->chip != RCAR_E1)
->                         goto e_format;
->
->                 dmr = VNDMR_EXRGB;
->                 break;
->
-> And your addition would be
->
->                 if (priv->chip != RCAR_GEN3)
->                         goto e_format;
->
->                 dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
->                 break;
->
-> And then
->
->                 default:
->                         goto e_format;
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 61b5f50..0be1845 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -35,6 +35,7 @@
+ #include <unistd.h>
+ 
+ #include <linux/media.h>
++#include <linux/kdev_t.h>
+ #include <linux/videodev2.h>
+ 
+ #include "mediactl.h"
+@@ -87,6 +88,29 @@ struct media_entity *media_get_entity_by_name(struct media_device *media,
+ 	return NULL;
+ }
+ 
++struct media_entity *media_get_entity_by_devname(struct media_device *media,
++						 const char *devname,
++						 size_t length)
++{
++	unsigned int i;
++
++	/* A match is impossible if the entity devname is longer than the
++	 * maximum size we can get from the kernel.
++	 */
++	if (length >= FIELD_SIZEOF(struct media_entity, devname))
++		return NULL;
++
++	for (i = 0; i < media->entities_count; ++i) {
++		struct media_entity *entity = &media->entities[i];
++
++		if (strncmp(entity->devname, devname, length) == 0 &&
++		    entity->devname[length] == '\0')
++			return entity;
++	}
++
++	return NULL;
++}
++
+ struct media_entity *media_get_entity_by_id(struct media_device *media,
+ 					    __u32 id)
+ {
+@@ -145,6 +169,11 @@ const char *media_entity_get_devname(struct media_entity *entity)
+ 	return entity->devname[0] ? entity->devname : NULL;
+ }
+ 
++const char *media_entity_get_name(struct media_entity *entity)
++{
++	return entity->info.name;
++}
++
+ struct media_entity *media_get_default_entity(struct media_device *media,
+ 					      unsigned int type)
+ {
+@@ -177,6 +206,25 @@ const struct media_entity_desc *media_entity_get_info(struct media_entity *entit
+ 	return &entity->info;
+ }
+ 
++int media_get_backlinks_by_entity(struct media_entity *entity,
++				struct media_link **backlinks,
++				int *num_backlinks)
++{
++	int num_bklinks = 0, i;
++
++	if (entity == NULL || backlinks == NULL || num_backlinks == NULL)
++		return -EINVAL;
++
++	for (i = 0; i < entity->num_links; ++i)
++		if ((entity->links[i].flags & MEDIA_LNK_FL_ENABLED) &&
++		    (entity->links[i].sink->entity == entity))
++			backlinks[num_bklinks++] = &entity->links[i];
++
++	*num_backlinks = num_bklinks;
++
++	return 0;
++}
++
+ /* -----------------------------------------------------------------------------
+  * Open/close
+  */
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index 3faee71..9db40a8 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -231,6 +231,15 @@ const struct media_link *media_entity_get_link(struct media_entity *entity,
+ const char *media_entity_get_devname(struct media_entity *entity);
+ 
+ /**
++ * @brief Get the name for an entity
++ * @param entity - media entity.
++ *
++ * This function returns the name of the entity.
++ *
++ * @return A pointer to the string with entity name
++ */
++const char *media_entity_get_name(struct media_entity *entity);
++
+  * @brief Get the type of an entity.
+  * @param entity - the entity.
+  *
+@@ -255,6 +264,19 @@ struct media_entity *media_get_entity_by_name(struct media_device *media,
+ 	const char *name, size_t length);
+ 
+ /**
++ * @brief Find an entity by the corresponding device node name.
++ * @param media - media device.
++ * @param devname - device node name.
++ * @param length - size of @a devname.
++ *
++ * Search for an entity with a device node name equal to @a devname.
++ *
++ * @return A pointer to the entity if found, or NULL otherwise.
++ */
++struct media_entity *media_get_entity_by_devname(struct media_device *media,
++	const char *devname, size_t length);
++
++/**
+  * @brief Find an entity by its ID.
+  * @param media - media device.
+  * @param id - entity ID.
+@@ -434,4 +456,18 @@ int media_parse_setup_link(struct media_device *media,
+  */
+ int media_parse_setup_links(struct media_device *media, const char *p);
+ 
++/**
++ * @brief Get entity's enabled backlinks
++ * @param entity - media entity.
++ * @param backlinks - array of pointers to matching backlinks.
++ * @param num_backlinks - number of matching backlinks.
++ *
++ * Get links that are connected to the entity sink pads.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_get_backlinks_by_entity(struct media_entity *entity,
++				struct media_link **backlinks,
++				int *num_backlinks);
++
+ #endif
+-- 
+1.7.9.5
 
-Sounds good.
-I will fix it according to your suggestion.
-
-Thanks,
-kaneko
-
->
-> Thanks
-> Guennadi
->
->> +     case V4L2_PIX_FMT_ARGB32:
->> +             if (priv->chip == RCAR_GEN3) {
->> +                     dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
->> +             } else {
->> +                     dev_err(icd->parent, "Unsupported format\n");
->> +                     return -EINVAL;
->> +             }
->> +             break;
->>       default:
->>               dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
->>                        icd->current_fmt->host_fmt->fourcc);
->> @@ -1304,6 +1312,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
->>               .order                  = SOC_MBUS_ORDER_LE,
->>               .layout                 = SOC_MBUS_LAYOUT_PACKED,
->>       },
->> +     {
->> +             .fourcc                 = V4L2_PIX_FMT_ARGB32,
->> +             .name                   = "ARGB8888",
->> +             .bits_per_sample        = 32,
->> +             .packing                = SOC_MBUS_PACKING_NONE,
->> +             .order                  = SOC_MBUS_ORDER_LE,
->> +             .layout                 = SOC_MBUS_LAYOUT_PACKED,
->> +     },
->>  };
->>
->>  static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
->> @@ -1611,6 +1627,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
->>       case V4L2_PIX_FMT_RGB32:
->>               can_scale = priv->chip != RCAR_E1;
->>               break;
->> +     case V4L2_PIX_FMT_ARGB32:
->>       case V4L2_PIX_FMT_UYVY:
->>       case V4L2_PIX_FMT_YUYV:
->>       case V4L2_PIX_FMT_RGB565:
->> --
->> 1.9.1
->>
