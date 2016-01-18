@@ -1,62 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43314 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757173AbcAKB6A (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:50805 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755455AbcARQKj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2016 20:58:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 8/8] [media] omap3isp: Check v4l2_of_parse_endpoint() return value
-Date: Mon, 11 Jan 2016 03:58:09 +0200
-Message-ID: <15964645.FOqpCbqGqp@avalon>
-In-Reply-To: <1452191248-15847-9-git-send-email-javier@osg.samsung.com>
-References: <1452191248-15847-1-git-send-email-javier@osg.samsung.com> <1452191248-15847-9-git-send-email-javier@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 18 Jan 2016 11:10:39 -0500
+Received: from epcpsbgm1new.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O15017JCOXPOM20@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:10:37 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 0/3] Exynos4-is fixes for libv4l exynos4 camera plugin
+Date: Mon, 18 Jan 2016 17:10:24 +0100
+Message-id: <1453133427-20793-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+This patch set applies some fixes to the Exynos4412-trats2 platform
+camera infrastructure. The modifications address issues detected
+while testing libv4l plugin for Exynos4 camera with GStreamer.
 
-Thank you for the patch.
+Jacek Anaszewski (3):
+  s5k6a3: Fix VIDIOC_SUBDEV_G_FMT ioctl for TRY format
+  exynos4-is: Open shouldn't fail when sensor entity is not linked
+  exynos4-is: Wait for 100us before opening sensor
 
-On Thursday 07 January 2016 15:27:22 Javier Martinez Canillas wrote:
-> The v4l2_of_parse_endpoint() function can fail so check the return value.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
-> 
->  drivers/media/platform/omap3isp/isp.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 79a0b953bba3..891e54394a1c
-> 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -2235,8 +2235,11 @@ static int isp_of_parse_node(struct device *dev,
-> struct device_node *node, struct isp_bus_cfg *buscfg = &isd->bus;
->  	struct v4l2_of_endpoint vep;
->  	unsigned int i;
-> +	int ret;
-> 
-> -	v4l2_of_parse_endpoint(node, &vep);
-> +	ret = v4l2_of_parse_endpoint(node, &vep);
-> +	if (ret)
-> +		return ret;
-> 
->  	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
->  		vep.base.port);
+ drivers/media/i2c/s5k6a3.c                    |    3 +-
+ drivers/media/platform/exynos4-is/fimc-is.c   |    6 ++
+ drivers/media/platform/exynos4-is/media-dev.c |   95 ++++++++++++++++++++-----
+ 3 files changed, 83 insertions(+), 21 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
