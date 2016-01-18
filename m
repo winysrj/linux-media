@@ -1,104 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f67.google.com ([209.85.220.67]:34176 "EHLO
-	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752943AbcANMTQ (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:41497 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755775AbcARQSg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 07:19:16 -0500
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+	Mon, 18 Jan 2016 11:18:36 -0500
+Received: from epcpsbgm1new.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O1501FT3PAXRO10@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:18:34 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH v4] media: soc_camera: rcar_vin: Add ARGB8888 caputre format support
-Date: Thu, 14 Jan 2016 21:18:28 +0900
-Message-Id: <1452773908-19260-1-git-send-email-ykaneko0929@gmail.com>
+Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 07/15] mediactl: libv4l2subdev: add VYUY8_2X8 mbus code
+Date: Mon, 18 Jan 2016 17:17:32 +0100
+Message-id: <1453133860-21571-8-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+The VYUY8_2X8 media bus format is the only one supported
+by the S5C73M3 camera sensor, that is a part of the media
+device on the Exynos4412-trats2 board.
 
-This patch adds ARGB8888 capture format support for R-Car Gen3.
-
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
+ utils/media-ctl/libv4l2subdev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
-
-v4 [Yoshihiro Kaneko]
-* As suggested by Sergei Shtylyov
-  - revised an error message.
-
-v3 [Yoshihiro Kaneko]
-* rebased to for-4.6-1 branch of Guennadi's tree.
-
-v2 [Yoshihiro Kaneko]
-* As suggested by Sergei Shtylyov
-  - fix the coding style of the braces.
-
- drivers/media/platform/soc_camera/rcar_vin.c | 21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index dc75a80..07c67f6 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -124,7 +124,7 @@
- #define VNDMR_EXRGB		(1 << 8)
- #define VNDMR_BPSM		(1 << 4)
- #define VNDMR_DTMD_YCSEP	(1 << 1)
--#define VNDMR_DTMD_ARGB1555	(1 << 0)
-+#define VNDMR_DTMD_ARGB		(1 << 0)
- 
- /* Video n Data Mode Register 2 bits */
- #define VNDMR2_VPS		(1 << 30)
-@@ -643,7 +643,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 		output_is_yuv = true;
- 		break;
- 	case V4L2_PIX_FMT_RGB555X:
--		dmr = VNDMR_DTMD_ARGB1555;
-+		dmr = VNDMR_DTMD_ARGB;
- 		break;
- 	case V4L2_PIX_FMT_RGB565:
- 		dmr = 0;
-@@ -654,6 +654,14 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 			dmr = VNDMR_EXRGB;
- 			break;
- 		}
-+	case V4L2_PIX_FMT_ARGB32:
-+		if (priv->chip == RCAR_GEN3) {
-+			dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
-+		} else {
-+			dev_err(icd->parent, "Unsupported format\n");
-+			return -EINVAL;
-+		}
-+		break;
- 	default:
- 		dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
- 			 icd->current_fmt->host_fmt->fourcc);
-@@ -1304,6 +1312,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
- 		.order			= SOC_MBUS_ORDER_LE,
- 		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
-+	{
-+		.fourcc			= V4L2_PIX_FMT_ARGB32,
-+		.name			= "ARGB8888",
-+		.bits_per_sample	= 32,
-+		.packing		= SOC_MBUS_PACKING_NONE,
-+		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
-+	},
- };
- 
- static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
-@@ -1611,6 +1627,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
- 	case V4L2_PIX_FMT_RGB32:
- 		can_scale = priv->chip != RCAR_E1;
- 		break;
-+	case V4L2_PIX_FMT_ARGB32:
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_YUYV:
- 	case V4L2_PIX_FMT_RGB565:
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 069ded6..5175188 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -780,6 +780,7 @@ static struct {
+ 	{ "YUYV", MEDIA_BUS_FMT_YUYV8_1X16 },
+ 	{ "YUYV1_5X8", MEDIA_BUS_FMT_YUYV8_1_5X8 },
+ 	{ "YUYV2X8", MEDIA_BUS_FMT_YUYV8_2X8 },
++	{ "VYUY8_2X8", V4L2_MBUS_FMT_VYUY8_2X8 },
+ 	{ "UYVY", MEDIA_BUS_FMT_UYVY8_1X16 },
+ 	{ "UYVY1_5X8", MEDIA_BUS_FMT_UYVY8_1_5X8 },
+ 	{ "UYVY2X8", MEDIA_BUS_FMT_UYVY8_2X8 },
 -- 
-1.9.1
+1.7.9.5
 
