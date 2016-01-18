@@ -1,171 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60856 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754754AbcARMVw (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:43251 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755832AbcARQSG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 07:21:52 -0500
-Date: Mon, 18 Jan 2016 14:21:19 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Aviv Greenberg <avivgr@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] V4L: add Y12I, Y8I and Z16 pixel format documentation
-Message-ID: <20160118122119.GC3458@valkosipuli.retiisi.org.uk>
-References: <Pine.LNX.4.64.1512151732080.18335@axis700.grange>
- <20160113102453.GJ576@valkosipuli.retiisi.org.uk>
- <Pine.LNX.4.64.1601141159520.15949@axis700.grange>
- <20160114112914.GM576@valkosipuli.retiisi.org.uk>
- <Pine.LNX.4.64.1601181250000.9140@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1601181250000.9140@axis700.grange>
+	Mon, 18 Jan 2016 11:18:06 -0500
+Received: from epcpsbgm2new.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O1500V0KPA4UN20@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:18:05 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 02/15] mediactl: Add support for v4l2-ctrl-redir config
+Date: Mon, 18 Jan 2016 17:17:27 +0100
+Message-id: <1453133860-21571-3-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Make struct v4l2_subdev capable of aggregating v4l2-ctrl-redir
+media device configuration entries. Added are also functions for
+validating the config and checking whether a v4l2 sub-device
+expects to receive ioctls related to the v4l2-control with given id.
 
-On Mon, Jan 18, 2016 at 12:55:20PM +0100, Guennadi Liakhovetski wrote:
-> On Thu, 14 Jan 2016, Sakari Ailus wrote:
-> 
-> > Hi Guennadi,
-> > 
-> > On Thu, Jan 14, 2016 at 12:12:08PM +0100, Guennadi Liakhovetski wrote:
-> > > Hi Sakari,
-> > > 
-> > > Thanks for a review! I'll fix all the cosmetic issues, thanks. As for 
-> > > other comments:
-> > > 
-> > > On Wed, 13 Jan 2016, Sakari Ailus wrote:
-> > > 
-> > > [snip]
-> > > 
-> > > > > --- /dev/null
-> > > > > +++ b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
-> > > > > @@ -0,0 +1,49 @@
-> > > > > +<refentry id="V4L2-PIX-FMT-Y12I">
-> > > > > +  <refmeta>
-> > > > > +    <refentrytitle>V4L2_PIX_FMT_Y12I ('Y12I ')</refentrytitle>
-> > > > 
-> > > > Extra space after 4cc.                        ^
-> > > > 
-> > > > > +    &manvol;
-> > > > > +  </refmeta>
-> > > > > +  <refnamediv>
-> > > > > +    <refname><constant>V4L2_PIX_FMT_Y12I</constant></refname>
-> > > > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-> > > > > +  </refnamediv>
-> > > > > +  <refsect1>
-> > > > > +    <title>Description</title>
-> > > > > +
-> > > > > +    <para>This is a grey-scale image with a depth of 12 bits per pixel, but with
-> > > > > +pixels from 2 sources interleaved and bit-packed. Each pixel is stored in a
-> > > > > +24-bit word. E.g. data, stored by a R200 RealSense camera on a little-endian
-> > > > > +machine can be deinterlaced using</para>
-> > > > 
-> > > > I think we should precisely define the format, either big or little. Is the
-> > > > endianness of the format affected by the machine endianness? (I'd guess no,
-> > > > but that's just a guess.)
-> > > 
-> > > Ok, since this works on a LE machine:
-> > > 
-> > > left0 = 0xfff & *(__u16 *)buf;
-> > > 
-> > > I think we can call data LE in the buffer. But specifying left-right order 
-> > > cannot be done in terms of endianness, so, I provided that code snippet.
-> > 
-> > I meant that the the format definition should clearly say which one is the
-> > order.
-> > 
-> > > 
-> > > > I wonder if the format should convey the information which one is right and
-> > > > which one is left, e.g. by adding "LR" to the name.
-> > > 
-> > > You mean to distinguish between LR and RL? Can do in principle, yes.
-> > 
-> > If we want the format to have an exact definition, we should have this as
-> > well.
-> > 
-> > I think the formats increasingly have little details such as this one which
-> > require adding many format variants but I'm not sure if it's even a problem.
-> > 
-> > I'd postfix the name with "LR" or at least document that this is the pixel
-> > order.
-> 
-> Don't think that's a good option ATM since the format is already in 
-> videodev2.h
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ utils/media-ctl/libv4l2subdev.c |   49 ++++++++++++++++++++++++++++++++++++++-
+ utils/media-ctl/v4l2subdev.h    |   30 ++++++++++++++++++++++++
+ 2 files changed, 78 insertions(+), 1 deletion(-)
 
-Is it? I can't see it in my tree at least.
-
-14:16:48 vihersipuli sailus [~/scratch/git/linux]git grep -c V4L2_PIX_FMT_Y12I nclude/uapi/linux/videodev2.h
-14:16:50 vihersipuli sailus [~/scratch/git/linux]
-
-> 
-> > > > No need to mention RealSense specifically IMO.
-> > > 
-> > > Ok.
-> > > 
-> > > > > +
-> > > > > +<para>
-> > > > > +<programlisting>
-> > > > > +__u8 *buf;
-> > > > > +left0 = 0xfff &amp; *(__u16 *)buf;
-> > > > > +rirhgt0 = *(__u16 *)(buf + 1) >> 4;
-> > > > 
-> > > > "right"
-> > > 
-> > > [snip]
-> > > 
-> > > > > diff --git a/Documentation/DocBook/media/v4l/pixfmt-z16.xml b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-> > > > > new file mode 100644
-> > > > > index 0000000..fac3c68
-> > > > > --- /dev/null
-> > > > > +++ b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-> > > > > @@ -0,0 +1,79 @@
-> > > > > +<refentry id="V4L2-PIX-FMT-Z16">
-> > > > > +  <refmeta>
-> > > > > +    <refentrytitle>V4L2_PIX_FMT_Z16 ('Z16 ')</refentrytitle>
-> > > > > +    &manvol;
-> > > > > +  </refmeta>
-> > > > > +  <refnamediv>
-> > > > > +    <refname><constant>V4L2_PIX_FMT_Z16</constant></refname>
-> > > > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-> > > > > +  </refnamediv>
-> > > > > +  <refsect1>
-> > > > > +    <title>Description</title>
-> > > > > +
-> > > > > +    <para>This is a 16-bit format, representing depth data. Each pixel is a
-> > > > > +distance in mm to the respective point in the image coordinates. Each pixel is
-> > > > > +stored in a 16-bit word in the little endian byte order.</para>
-> > > > 
-> > > > The format itself looks quite generic but the unit might be specific to the
-> > > > device. It'd sound silly to add a new format if just the unit is different.
-> > > 
-> > > My understanding is, that each format must have a fixed meaning, i.e. a 
-> > > fixed depth unit too, although it would definitely help to be able to 
-> > > relax that requirement in this case.
-> > 
-> > Agreed.
-> > 
-> > > > How about re-purpose the colourspace field for depth formats and
-> > > > add a flag telling the colour space field contains the unit and the unit
-> > > > prefix.
-> > > 
-> > > Hmmm... Not sure I find this a proper use of the .colorspace field...
-> > 
-> > I think colour space doesn't make much sense in context of depth.
-> 
-> Agree, still I don't think it is a good idea to abuse it for a different 
-> purpose. If it doesn't make sense it simply shouldn't be used.
-
-We are already using anonymous unions for this exact purpose already, albeit
-their use was planned in most cases at least. I don't see anything wrong
-with this, considering that existing applications dealing with the format
-wouldn't know what to do about it anyway.
-
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 3977ce5..069ded6 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -26,7 +26,6 @@
+ #include <ctype.h>
+ #include <errno.h>
+ #include <fcntl.h>
+-#include <stdbool.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -50,7 +49,15 @@ int v4l2_subdev_create(struct media_entity *entity)
+ 
+ 	entity->sd->fd = -1;
+ 
++	entity->sd->v4l2_control_redir = malloc(sizeof(__u32));
++	if (entity->sd->v4l2_control_redir == NULL)
++		goto err_v4l2_control_redir_alloc;
++
+ 	return 0;
++
++err_v4l2_control_redir_alloc:
++	free(entity->sd);
++	return -ENOMEM;
+ }
+ 
+ int v4l2_subdev_create_with_fd(struct media_entity *entity, int fd)
+@@ -870,3 +877,43 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string,
+ 
+ 	return fields[i].field;
+ }
++
++int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
++				   struct media_entity *entity,
++				   __u32 ctrl_id)
++{
++	struct v4l2_queryctrl queryctrl = {};
++	int ret;
++
++	ret = v4l2_subdev_open(entity);
++	if (ret < 0)
++		return ret;
++
++	queryctrl.id = ctrl_id;
++
++	ret = ioctl(entity->sd->fd, VIDIOC_QUERYCTRL, &queryctrl);
++	if (ret < 0)
++		return ret;
++
++	media_dbg(media, "Validated control \"%s\" (0x%8.8x) on entity %s\n",
++		  queryctrl.name, queryctrl.id, entity->info.name);
++
++	return 0;
++}
++
++bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
++				  struct media_entity *entity,
++				  int ctrl_id)
++{
++	struct v4l2_subdev *sd = entity->sd;
++	int i;
++
++	if (!sd)
++		return false;
++
++	for (i = 0; i < sd->v4l2_control_redir_num; ++i)
++		if (sd->v4l2_control_redir[i] == ctrl_id)
++			return true;
++
++	return false;
++}
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index ba9b8c4..f395065 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -23,12 +23,17 @@
+ #define __SUBDEV_H__
+ 
+ #include <linux/v4l2-subdev.h>
++#include <stdbool.h>
+ 
+ struct media_device;
+ struct media_entity;
++struct media_device;
+ 
+ struct v4l2_subdev {
+ 	int fd;
++
++	__u32 *v4l2_control_redir;
++	unsigned int v4l2_control_redir_num;
+ };
+ 
+ /**
+@@ -316,5 +321,30 @@ const char *v4l2_subdev_field_to_string(enum v4l2_field field);
+  */
+ enum v4l2_field v4l2_subdev_string_to_field(const char *string,
+ 					    unsigned int length);
++/**
++ * @brief Validate v4l2 control for a sub-device
++ * @param media - media device.
++ * @param entity - subdev-device media entity.
++ * @param ctrl_id - id of the v4l2 control to validate.
++ *
++ * Verify if the entity supports v4l2-control with given ctrl_id.
++ *
++ * @return 1 if the control is supported, 0 otherwise.
++ */
++int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
++				   struct media_entity *entity,
++				   __u32 ctrl_id);
++/**
++ * @brief Check if there was a v4l2_control redirection defined for the entity
++ * @param media - media device.
++ * @param entity - subdev-device media entity.
++ * @param ctrl_id - v4l2 control identifier.
++ *
++ * Check if there was a v4l2-ctrl-redir entry defined for the entity.
++ *
++ * @return true if the entry exists, false otherwise
++ */
++bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
++	struct media_entity *entity, int ctrl_id);
+ 
+ #endif
 -- 
-Kind regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
