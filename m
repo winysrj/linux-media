@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:38619 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750769AbcAQXIR (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55178 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932230AbcARWkv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jan 2016 18:08:17 -0500
-Received: by mail-wm0-f46.google.com with SMTP id b14so98104682wmb.1
-        for <linux-media@vger.kernel.org>; Sun, 17 Jan 2016 15:08:16 -0800 (PST)
-Subject: Re: Pinnacle PCTV DVB-S2 Stick (461e) - HD Streams with artefacts
-To: Rainer Dorsch <ml@bokomoko.de>
-Cc: linux-media@vger.kernel.org
-References: <13463113.ozc26Vzdzi@blackbox> <2761448.7zDNhWqk2x@blackbox>
- <569B6C83.5080104@gmail.com> <2981088.9zBP1qGkLn@blackbox>
-From: Andy Furniss <adf.lists@gmail.com>
-Message-ID: <569C1ECD.3040506@gmail.com>
-Date: Sun, 17 Jan 2016 23:07:57 +0000
+	Mon, 18 Jan 2016 17:40:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	Gjorgji Rosikopulos <grosikopulos@mm-sol.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: Re: [PATCH] v4l: Fix dma buf single plane compat handling
+Date: Tue, 19 Jan 2016 00:41:08 +0200
+Message-ID: <1632237.7Pf6uP9oia@avalon>
+In-Reply-To: <569CCAC2.5010001@xs4all.nl>
+References: <1449477939-5658-1-git-send-email-laurent.pinchart@ideasonboard.com> <1530239.WI7pDY4BZt@avalon> <569CCAC2.5010001@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <2981088.9zBP1qGkLn@blackbox>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rainer Dorsch wrote:
-> Hi Andy,
->
-> thanks for your reply.
->
-> On Sunday 17 January 2016 10:27:15 Andy Furniss wrote:
->> Not that I know of at kernel level. The only way really is to infer
->> loss from the continuity counters, which TVH already logs.
->
-> That is already new for me. I do not find the tvheadend.log in
-> openelec, and grep did not find a match either. Do you how I enable
-> logging continuity errors in tvheadend?
+Hi Hans,
 
-I don't know about openelec, but for me tvh by default (well I can't
-remember setting it up and the debugging tab under configure is empty),
-logs to /var/log/daemon.log and /var/log/sys.log.
+On Monday 18 January 2016 12:21:38 Hans Verkuil wrote:
+> Hi all,
+> 
+> While going through patchwork I found this patch that does the same as this
+> one from Tiffany:
+> 
+> https://patchwork.linuxtv.org/patch/32631/
+> 
+> I haven't seen a second version of this patch from Laurent with the
+> requested changes fixed,
 
-It may be different on openelec, have a look in /var/log/.
+As it was too late for v4.5 I was waiting for more comments before sending v2.
 
+> so unless Laurent says otherwise I'd like to merge
+> Tiffany's version.
+
+I've now reviewed Tiffany's patch.
+
+> Laurent, is that OK for you?
+
+When patches conflict I usually try to merge the first one that was submitted. 
+In this specific case I can make an exception.
+
+-- 
+Regards,
+
+Laurent Pinchart
 
