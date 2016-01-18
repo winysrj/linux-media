@@ -1,91 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:42386 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755892AbcA2MML (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55173 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755517AbcARWiq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2016 07:12:11 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+	Mon, 18 Jan 2016 17:38:46 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tiffany Lin <tiffany.lin@mediatek.com>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH 10/13] [media] msp3400: initialize MC data
-Date: Fri, 29 Jan 2016 10:11:00 -0200
-Message-Id: <546c6e1b38369f754e0a6e5f795a45c3a1a4bf11.1454067262.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
-References: <cover.1454067262.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
-References: <cover.1454067262.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
+Subject: Re: [PATCH v3] media: v4l2-compat-ioctl32: fix missing length copy in put_v4l2_buffer32
+Date: Tue, 19 Jan 2016 00:38:56 +0200
+Message-ID: <1908819.hIDujBLp21@avalon>
+In-Reply-To: <1452849216-4793-1-git-send-email-tiffany.lin@mediatek.com>
+References: <1452849216-4793-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pads and set the device type when used with the media
-controller.
+Hi Tiffany,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/i2c/msp3400-driver.c | 14 ++++++++++++++
- drivers/media/i2c/msp3400-driver.h |  5 +++++
- 2 files changed, 19 insertions(+)
+Thank you for the patch.
 
-diff --git a/drivers/media/i2c/msp3400-driver.c b/drivers/media/i2c/msp3400-driver.c
-index a84561d0d4a8..e016626ebf89 100644
---- a/drivers/media/i2c/msp3400-driver.c
-+++ b/drivers/media/i2c/msp3400-driver.c
-@@ -688,6 +688,9 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	int msp_revision;
- 	int msp_product, msp_prod_hi, msp_prod_lo;
- 	int msp_rom;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	int ret;
-+#endif
- 
- 	if (!id)
- 		strlcpy(client->name, "msp3400", sizeof(client->name));
-@@ -704,6 +707,17 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &msp_ops);
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	state->pads[IF_AUD_DEC_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	state->pads[IF_AUD_DEC_PAD_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	sd->entity.function = MEDIA_ENT_F_IF_AUD_DECODER;
-+
-+	ret = media_entity_pads_init(&sd->entity, 2, state->pads);
-+	if (ret < 0)
-+		return ret;
-+#endif
-+
- 	state->v4l2_std = V4L2_STD_NTSC;
- 	state->detected_std = V4L2_STD_ALL;
- 	state->audmode = V4L2_TUNER_MODE_STEREO;
-diff --git a/drivers/media/i2c/msp3400-driver.h b/drivers/media/i2c/msp3400-driver.h
-index 6cae21366ed5..f0bb37dc9013 100644
---- a/drivers/media/i2c/msp3400-driver.h
-+++ b/drivers/media/i2c/msp3400-driver.h
-@@ -7,6 +7,7 @@
- #include <media/drv-intf/msp3400.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-mc.h>
- 
- /* ---------------------------------------------------------------------- */
- 
-@@ -102,6 +103,10 @@ struct msp_state {
- 	wait_queue_head_t    wq;
- 	unsigned int         restart:1;
- 	unsigned int         watch_stereo:1;
-+
-+#if CONFIG_MEDIA_CONTROLLER
-+	struct media_pad pads[IF_AUD_DEC_PAD_NUM_PADS];
-+#endif
- };
- 
- static inline struct msp_state *to_state(struct v4l2_subdev *sd)
+On Friday 15 January 2016 17:13:36 Tiffany Lin wrote:
+> In v4l2-compliance utility, test QUERYBUF required correct length
+> value to go through each planar to check planar's length in
+> multi-planar buffer type
+> 
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   21 ++++++++++-----------
+>  1 file changed, 10 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 327e83a..6181470
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -426,10 +426,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp,
+> struct v4l2_buffer32 __user &up->timestamp.tv_usec))
+>  			return -EFAULT;
+> 
+> -	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+> -		if (get_user(kp->length, &up->length))
+> -			return -EFAULT;
+> +	if (get_user(kp->length, &up->length))
+> +		return -EFAULT;
+
+I'd move this to the first block of get_user() calls at the beginning of the 
+function.
+
+> 
+> +	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+>  		num_planes = kp->length;
+>  		if (num_planes == 0) {
+>  			kp->m.planes = NULL;
+> @@ -462,16 +462,14 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp,
+> struct v4l2_buffer32 __user } else {
+>  		switch (kp->memory) {
+>  		case V4L2_MEMORY_MMAP:
+> -			if (get_user(kp->length, &up->length) ||
+> -				get_user(kp->m.offset, &up->m.offset))
+> +			if (get_user(kp->m.offset, &up->m.offset))
+>  				return -EFAULT;
+>  			break;
+>  		case V4L2_MEMORY_USERPTR:
+>  			{
+>  			compat_long_t tmp;
+> 
+> -			if (get_user(kp->length, &up->length) ||
+> -			    get_user(tmp, &up->m.userptr))
+> +			if (get_user(tmp, &up->m.userptr))
+>  				return -EFAULT;
+> 
+>  			kp->m.userptr = (unsigned long)compat_ptr(tmp);
+> @@ -516,6 +514,9 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp,
+> struct v4l2_buffer32 __user put_user(kp->reserved, &up->reserved))
+>  			return -EFAULT;
+> 
+> +	if (put_user(kp->length, &up->length))
+> +		return -EFAULT;
+
+Same here.
+
+>  	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+>  		num_planes = kp->length;
+>  		if (num_planes == 0)
+> @@ -536,13 +537,11 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp,
+> struct v4l2_buffer32 __user } else {
+>  		switch (kp->memory) {
+>  		case V4L2_MEMORY_MMAP:
+> -			if (put_user(kp->length, &up->length) ||
+> -				put_user(kp->m.offset, &up->m.offset))
+> +			if (put_user(kp->m.offset, &up->m.offset))
+>  				return -EFAULT;
+>  			break;
+>  		case V4L2_MEMORY_USERPTR:
+> -			if (put_user(kp->length, &up->length) ||
+> -				put_user(kp->m.userptr, &up->m.userptr))
+> +			if (put_user(kp->m.userptr, &up->m.userptr))
+>  				return -EFAULT;
+>  			break;
+>  		case V4L2_MEMORY_OVERLAY:
+
 -- 
-2.5.0
+Regards,
 
+Laurent Pinchart
 
