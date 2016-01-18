@@ -1,151 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54713 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753621AbcADM0Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jan 2016 07:26:16 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 03/10] [media] tvp5150: Add pad-level subdev operations
-Date: Mon,  4 Jan 2016 09:25:25 -0300
-Message-Id: <1451910332-23385-4-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
-References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:39931 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932123AbcARQTA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2016 11:19:00 -0500
+Received: from epcpsbgm2new.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O1500UJKPBNT420@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:18:59 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 12/15] mediactl: libv4l2subdev: add get_pipeline_entity_by_cid
+ function
+Date: Mon, 18 Jan 2016 17:17:37 +0100
+Message-id: <1453133860-21571-13-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Add a function for obtaining the v4l2 sub-device for which
+the v4l2 control related ioctl is predestined.
 
-This patch enables the tvp5150 decoder driver to be used with the media
-controller framework by adding pad-level subdev operations and init the
-media entity pad.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
+ utils/media-ctl/libv4l2subdev.c |   14 ++++++++++++++
+ utils/media-ctl/v4l2subdev.h    |   15 +++++++++++++++
+ 2 files changed, 29 insertions(+)
 
- drivers/media/i2c/tvp5150.c | 60 +++++++++++++++++++++++++++++++++------------
- 1 file changed, 45 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index b3b34e24db13..82fba9d46f30 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -35,6 +35,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 9d48ac1..14e9423 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -1052,3 +1052,17 @@ bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
  
- struct tvp5150 {
- 	struct v4l2_subdev sd;
-+	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
- 	struct v4l2_rect rect;
- 
-@@ -818,17 +819,6 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
- 	}
+ 	return false;
  }
- 
--static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
--		struct v4l2_subdev_pad_config *cfg,
--		struct v4l2_subdev_mbus_code_enum *code)
--{
--	if (code->pad || code->index)
--		return -EINVAL;
--
--	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
--	return 0;
--}
--
- static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
- 		struct v4l2_subdev_pad_config *cfg,
- 		struct v4l2_subdev_format *format)
-@@ -841,13 +831,11 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
- 
- 	f = &format->format;
- 
--	tvp5150_reset(sd, 0);
--
- 	f->width = decoder->rect.width;
--	f->height = decoder->rect.height;
-+	f->height = decoder->rect.height / 2;
- 
- 	f->code = MEDIA_BUS_FMT_UYVY8_2X8;
--	f->field = V4L2_FIELD_SEQ_TB;
-+	f->field = V4L2_FIELD_ALTERNATE;
- 	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 
- 	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
-@@ -948,6 +936,39 @@ static int tvp5150_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
- 	return 0;
- }
- 
-+ /****************************************************************************
-+			V4L2 subdev pad ops
-+ ****************************************************************************/
 +
-+static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_pad_config *cfg,
-+				  struct v4l2_subdev_mbus_code_enum *code)
++struct media_entity *v4l2_subdev_get_pipeline_entity_by_cid(struct media_device *media,
++						int cid)
 +{
-+	if (code->index)
-+		return -EINVAL;
++	struct media_entity *entity = media->pipeline;
 +
-+	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+	return 0;
++	while (entity) {
++		if (v4l2_subdev_has_v4l2_control_redir(media, entity, cid))
++			return entity;
++		entity = entity->next;
++	}
++
++	return NULL;
 +}
-+
-+static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_pad_config *cfg,
-+				   struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+
-+	if (fse->index >= 8 || fse->code != MEDIA_BUS_FMT_UYVY8_2X8)
-+		return -EINVAL;
-+
-+	fse->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+	fse->min_width = decoder->rect.width;
-+	fse->max_width = decoder->rect.width;
-+	fse->min_height = decoder->rect.height / 2;
-+	fse->max_height = decoder->rect.height / 2;
-+
-+	return 0;
-+}
-+
- /****************************************************************************
- 			I2C Command
-  ****************************************************************************/
-@@ -1088,6 +1109,7 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index be2d82e..607ec50 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -394,4 +394,19 @@ enum v4l2_subdev_fmt_mismatch v4l2_subdev_format_compare(
+ bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
+ 	struct media_entity *entity, int ctrl_id);
  
- static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
- 	.enum_mbus_code = tvp5150_enum_mbus_code,
-+	.enum_frame_size = tvp5150_enum_frame_size,
- 	.set_fmt = tvp5150_fill_fmt,
- 	.get_fmt = tvp5150_fill_fmt,
- };
-@@ -1165,6 +1187,14 @@ static int tvp5150_probe(struct i2c_client *c,
- 		return -ENOMEM;
- 	sd = &core->sd;
- 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++/**
++ * @brief Get the first pipeline entity supporting the control
++ * @param media - media device.
++ * @param cid - v4l2 control identifier.
++ *
++ * Get the first entity in the media device pipeline,
++ * for which v4l2_control with cid is to be redirected
++ *
++ * @return associated entity if defined, or NULL if the
++ *	   control redirection wasn't defined for any entity
++ *	   in the pipeline
++ */
++struct media_entity *v4l2_subdev_get_pipeline_entity_by_cid(
++	struct media_device *media, int cid);
 +
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	core->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	res = media_entity_pads_init(&sd->entity, 1, &core->pad);
-+	if (res < 0)
-+		return res;
-+#endif
- 
- 	res = tvp5150_detect_version(core);
- 	if (res < 0)
+ #endif
 -- 
-2.4.3
+1.7.9.5
 
