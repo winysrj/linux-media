@@ -1,56 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:41776 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934443AbcA1JB6 convert rfc822-to-8bit (ORCPT
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:33159 "EHLO
+	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754724AbcARMWv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 04:01:58 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH 4/12] TW686x: Fix s_std() / g_std() / g_parm() pointer to self
-References: <m337tif6om.fsf@t19.piap.pl>
-Date: Thu, 28 Jan 2016 10:01:56 +0100
-In-Reply-To: <m337tif6om.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
- \=\?utf-8\?Q\?a\=22's\?\= message of
-	"Thu, 28 Jan 2016 09:29:29 +0100")
-Message-ID: <m3h9hydqm3.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 18 Jan 2016 07:22:51 -0500
+Received: by mail-pa0-f65.google.com with SMTP id pv5so33584335pac.0
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 04:22:51 -0800 (PST)
+From: Josh Wu <rainyfeeling@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Songjun Wu <songjun.wu@atmel.com>,
+	Josh Wu <rainyfeeling@gmail.com>
+Subject: [PATCH 04/13] atmel-isi: move the cfg1 initialize to isi_hw_initialize()
+Date: Mon, 18 Jan 2016 20:21:40 +0800
+Message-Id: <1453119709-20940-5-git-send-email-rainyfeeling@gmail.com>
+In-Reply-To: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
+References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+Since cfg1 initialization just about the frame rate, and it hardware
+related, just move it to isi_hw_initialize().
 
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-index 5a1b9ab..78f4f55 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -416,7 +416,7 @@ static int tw686x_querycap(struct file *file, void *priv,
+Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
+---
+
+ drivers/media/platform/soc_camera/atmel-isi.c | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index 0c3cb74..4bd8258 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -210,6 +210,10 @@ static void isi_hw_initialize(struct atmel_isi *isi)
  
- static int tw686x_s_std(struct file *file, void *priv, v4l2_std_id id)
+ 	cfg1 |= ISI_CFG1_THMASK_BEATS_16;
+ 
++	cfg1 |= isi->pdata.frate & ISI_CFG1_FRATE_DIV_MASK;
++
++	cfg1 |= ISI_CFG1_DISCR;
++
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+ 	isi_writel(isi, ISI_CFG1, cfg1);
+ }
+@@ -409,9 +413,8 @@ static void buffer_cleanup(struct vb2_buffer *vb)
+ 
+ static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
  {
--	struct tw686x_video_channel *vc = priv;
-+	struct tw686x_video_channel *vc = video_drvdata(file);
- 	unsigned std, count = 0;
- 	u32 sdt, std_mask = 0;
+-	u32 ctrl, cfg1;
++	u32 ctrl;
  
-@@ -437,7 +437,7 @@ static int tw686x_s_std(struct file *file, void *priv, v4l2_std_id id)
+-	cfg1 = isi_readl(isi, ISI_CFG1);
+ 	/* Enable irq: cxfr for the codec path, pxfr for the preview path */
+ 	isi_writel(isi, ISI_INTEN,
+ 			ISI_SR_CXFR_DONE | ISI_SR_PXFR_DONE);
+@@ -436,10 +439,6 @@ static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
+ 		isi_writel(isi, ISI_DMA_CHER, ISI_DMA_CHSR_P_CH);
+ 	}
  
- static int tw686x_g_std(struct file *file, void *priv, v4l2_std_id *id)
- {
--	struct tw686x_video_channel *vc = priv;
-+	struct tw686x_video_channel *vc = video_drvdata(file);
+-	cfg1 &= ~ISI_CFG1_FRATE_DIV_MASK;
+-	/* Enable linked list */
+-	cfg1 |= isi->pdata.frate | ISI_CFG1_DISCR;
+-
+ 	/* Enable ISI */
+ 	ctrl = ISI_CTRL_EN;
  
- 	*id = vc->video_standard;
- 	return 0;
-@@ -457,7 +457,7 @@ static int tw686x_enum_fmt_vid_cap(struct file *file, void *priv,
- static int tw686x_g_parm(struct file *file, void *priv,
- 			 struct v4l2_streamparm *sp)
- {
--	struct tw686x_video_channel *vc = priv;
-+	struct tw686x_video_channel *vc = video_drvdata(file);
+@@ -447,7 +446,6 @@ static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
+ 		ctrl |= ISI_CTRL_CDC;
  
- 	if (sp->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
+ 	isi_writel(isi, ISI_CTRL, ctrl);
+-	isi_writel(isi, ISI_CFG1, cfg1);
+ }
+ 
+ static void buffer_queue(struct vb2_buffer *vb)
+-- 
+1.9.1
+
