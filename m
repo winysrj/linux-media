@@ -1,116 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34507 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932757AbcAYUxi (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52189 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751964AbcAREFJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 15:53:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [v4l-utils PATCH 1/1] v4l: libv4l2subdev: Precisely convert media bus string to code
-Date: Mon, 25 Jan 2016 22:53:55 +0200
-Message-ID: <2674749.G6RjQVDcz7@avalon>
-In-Reply-To: <20160125204707.GC14876@valkosipuli.retiisi.org.uk>
-References: <1449674087-19122-1-git-send-email-sakari.ailus@linux.intel.com> <1490379.zWhzdjB0Zz@avalon> <20160125204707.GC14876@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sun, 17 Jan 2016 23:05:09 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DBE99181083
+	for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 05:05:03 +0100 (CET)
+Date: Mon, 18 Jan 2016 05:05:03 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160118040503.DBE99181083@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Monday 25 January 2016 22:47:07 Sakari Ailus wrote:
-> On Mon, Jan 25, 2016 at 09:41:12PM +0200, Laurent Pinchart wrote:
-> > On Monday 25 January 2016 13:39:10 Sakari Ailus wrote:
-> > > On Sun, Dec 13, 2015 at 11:33:45PM +0200, Laurent Pinchart wrote:
-> > > > On Wednesday 09 December 2015 17:14:47 Sakari Ailus wrote:
-> > > >> The length of the string was ignored, making it possible for the
-> > > >> conversion to fail due to extra characters in the string.
-> > > > 
-> > > > I'm not sure to follow you there. Is the issue that passing a string
-> > > > such as "SBGGR10" would match "SBGGR10_DPCM8" if it was listed before
-> > > > "SBGGR10" ? If that's the case I'd write the commit message as
-> > > 
-> > > Yes, that's the problem.
-> > > 
-> > > > Any character beyond the fist `length' characters in the mbus_formats
-> > > > strings are ignored, causing incorrect matches if the format entry
-> > > > starts
-> > > > with but isn't equal to the passed format.
-> > > 
-> > > I'll use this commit message then.
-> > > 
-> > > >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > >> ---
-> > > >> This patch should be applied before the set "[v4l-utils PATCH v2 0/3]
-> > > >> List supported formats in libv4l2subdev":
-> > > >> 
-> > > >> <URL:http://www.spinics.net/lists/linux-media/msg95377.html>
-> > > >> 
-> > > >>  utils/media-ctl/libv4l2subdev.c | 10 ++++------
-> > > >>  1 file changed, 4 insertions(+), 6 deletions(-)
-> > > >> 
-> > > >> diff --git a/utils/media-ctl/libv4l2subdev.c
-> > > >> b/utils/media-ctl/libv4l2subdev.c index 33c1ee6..cce527d 100644
-> > > >> --- a/utils/media-ctl/libv4l2subdev.c
-> > > >> +++ b/utils/media-ctl/libv4l2subdev.c
-> > > >> @@ -769,14 +769,12 @@ enum v4l2_mbus_pixelcode
-> > > >> v4l2_subdev_string_to_pixelcode(const char *string,
-> > > >> 
-> > > >> 	unsigned int i;
-> > > >> 	
-> > > >>  	for (i = 0; i < ARRAY_SIZE(mbus_formats); ++i) {
-> > > >> 
-> > > >> -		if (strncmp(mbus_formats[i].name, string, length) == 0)
-> > > >> -			break;
-> > > >> +		if (strncmp(mbus_formats[i].name, string, length) == 0
-> > > >> +		    && strlen(mbus_formats[i].name) == length)
-> > > > 
-> > > > How about mbus_formats[i].name[length] == '\0' instead ? That should
-> > > > be more efficient.
-> > > 
-> > > Fine for me.
-> > > 
-> > > > I also wonder whether we shouldn't just get rid of the length argument
-> > > > and force the passed format string to be zero-terminated.
-> > > 
-> > > I believe the reason is that the current user (media-ctl test program)
-> > > parses the user input and passes a portion of that to this function to
-> > > convert the string to a numeric value. That'd be a bit more cumbersome
-> > > as we'd either require copying the string elsewhere or changing the
-> > > input by the program. I wouldn't change the behaviour, at least not now.
-> > 
-> > Yes that's the reason, and I think it's an API design mistake (or just a
-> > lack of proper API design :-)). Wouldn't it be better to copy the string
-> > in the caller ?
-> 
-> From the API point of view, I don't disagree. But I do think this should be
-> done in a separate patch, not in this one --- this is a bugfix, really.
+Results of the daily build of media_tree:
 
-Sure, I agree with that.
+date:		Mon Jan 18 04:00:29 CET 2016
+git branch:	test
+git hash:	768acf46e1320d6c41ed1b7c4952bab41c1cde79
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.3.0-164
 
-> I'll submit one more patch for that.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Thank you.
+Detailed results are available here:
 
-> > > >> +			return mbus_formats[i].code;
-> > > >> 
-> > > >>  	}
-> > > >> 
-> > > >> -	if (i == ARRAY_SIZE(mbus_formats))
-> > > >> -		return (enum v4l2_mbus_pixelcode)-1;
-> > > >> -
-> > > >> -	return mbus_formats[i].code;
-> > > >> +	return (enum v4l2_mbus_pixelcode)-1;
-> > > >> 
-> > > >>  }
-> > > >>  
-> > > >>  static struct {
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
--- 
-Regards,
+Full logs are available here:
 
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
