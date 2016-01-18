@@ -1,84 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f176.google.com ([209.85.160.176]:33886 "EHLO
-	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956AbcA2WOu (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:57478 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755756AbcARQSo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2016 17:14:50 -0500
-Received: by mail-yk0-f176.google.com with SMTP id a85so85774393ykb.1
-        for <linux-media@vger.kernel.org>; Fri, 29 Jan 2016 14:14:50 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAD=FV=XEML4UqV-oVR4doZNSq6bNxDvpc-4745JTBZgf4d9UYA@mail.gmail.com>
-References: <1452533428-12762-1-git-send-email-dianders@chromium.org>
-	<20160126155937.6a4e4165d1cf4e513d62e942@linux-foundation.org>
-	<CAD=FV=V9ZJrmD=F8363mhg8+JQiTRg=g6DuZR2KJRbfU=K455w@mail.gmail.com>
-	<CAOesGMg=7mzZ6wKgjB1Po3706FGYu+D06YWWBBTya6KOE7531g@mail.gmail.com>
-	<CAD=FV=XEML4UqV-oVR4doZNSq6bNxDvpc-4745JTBZgf4d9UYA@mail.gmail.com>
-Date: Fri, 29 Jan 2016 14:14:50 -0800
-Message-ID: <CAD=FV=XwnQ2dPi0YsD12vpqQxPDAJ9RNhWfHkJhszEhxiSrU7Q@mail.gmail.com>
-Subject: Re: [PATCH v6 0/5] dma-mapping: Patches for speeding up allocation
-From: Doug Anderson <dianders@chromium.org>
-To: Olof Johansson <olof@lixom.net>
-Cc: Russell King <linux@arm.linux.org.uk>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Tomasz Figa <tfiga@chromium.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>, mike.looijmans@topic.nl,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	Will Deacon <will.deacon@arm.com>, jtp.park@samsung.com,
-	penguin-kernel@i-love.sakura.ne.jp,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Carlo Caione <carlo@caione.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=UTF-8
+	Mon, 18 Jan 2016 11:18:44 -0500
+Received: from epcpsbgm2new.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O1501N1RPAIDD20@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:18:43 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
+	Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH 08/15] mediactl: Add support for media device pipelines
+Date: Mon, 18 Jan 2016 17:17:33 +0100
+Message-id: <1453133860-21571-9-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add infrastructure for linking media entities and discovering
+media device pipelines.
 
-On Fri, Jan 29, 2016 at 1:58 PM, Doug Anderson <dianders@chromium.org> wrote:
->> I think it makes sense to send these through Russell's tracker for him
->> to merge, especially since I don't think there are any dependencies on
->> them for SoC-specific patches coming up.
->
-> Sounds good.  I'll make the nitfixes and I'll post a v7 directly to
-> Russell's tracker.  I'll follow up here with a link to those patches.
-
-For your viewing pleasure:
-
-8505/1 dma-mapping: Optimize allocation
-http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8505/1
-
-8506/1 common: DMA-mapping: add DMA_ATTR_ALLOC_SINGLE_PAGES attribute
-http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8506/1
-
-8507/1 dma-mapping: Use DMA_ATTR_ALLOC_SINGLE_PAGES hint to optimize alloc
-http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8507/1
-
-8508/1 videobuf2-dc: Let drivers specify DMA attrs
-http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8508/1
-
-8509/1 s5p-mfc: Set DMA_ATTR_ALLOC_SINGLE_PAGES
-http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8509/1
-
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
+ utils/media-ctl/libmediactl.c   |  117 +++++++++++++++++++++++++++++++++++++++
+ utils/media-ctl/mediactl-priv.h |    6 ++
+ utils/media-ctl/mediactl.h      |   71 ++++++++++++++++++++++++
+ 3 files changed, 194 insertions(+)
 
-Changes in v7 (AKA the above patches):
-- Add Robin and Tomasz Reviewed-by.
-- Add Javier Tested-by.
-- Add note that this is only implemented on ARM (Andrew Morton).
-- Typo in commit message "reqiurements" (Andrew Morton).
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 3a45ecc..9909c1c 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -1109,3 +1109,120 @@ int media_parse_setup_links(struct media_device *media, const char *p)
+ 
+ 	return *end ? -EINVAL : 0;
+ }
++
++/* -----------------------------------------------------------------------------
++ * Pipeline operations
++ */
++
++int media_discover_pipeline_by_entity(struct media_device *media,
++				      struct media_entity *entity)
++{
++	struct media_entity *pipe_head = NULL;
++	struct media_pad *src_pad;
++	struct media_link *link = NULL, *backlinks[10];
++	int i, num_backlinks, ret;
++
++	if (entity == NULL)
++		return -EINVAL;
++
++	for (;;) {
++		/* Make recently discovered entity the pipeline head */
++		if (pipe_head == NULL) {
++			pipe_head = entity;
++		} else {
++			entity->next = pipe_head;
++			pipe_head = entity;
++		}
++
++		/* Cache a source pad used for linking the entity */
++		if (link)
++			entity->pipe_src_pad = link->source;
++
++		ret = media_get_backlinks_by_entity(entity,
++						    backlinks,
++						    &num_backlinks);
++		if (ret < 0)
++			return ret;
++
++		/* check if pipeline source entity has been reached */
++		if (num_backlinks > 2) {
++			media_dbg(media, "Unexpected number of busy sink pads (%d)\n", num_backlinks);
++			return -EINVAL;
++		} else if (num_backlinks == 2) {
++			/*
++			 * Allow two active pads only in case of
++			 * S5C73M3-OIF entity.
++			 */
++			if (strcmp(entity->info.name, "S5C73M3-OIF")) {
++				media_dbg(media, "Ambiguous media device topology: two busy sink pads");
++				return -EINVAL;
++			}
++			/*
++			 * Two active links are allowed betwen S5C73M3-OIF and
++			 * S5C73M3 entities. In such a case a route through pad
++			 * with id == 0 has to be selected.
++			 */
++			for (i = 0; i < num_backlinks; i++)
++				if (backlinks[i]->sink->index == 0)
++					link = backlinks[i];
++		} else if (num_backlinks == 1)
++			link = backlinks[0];
++		else
++			break;
++
++		/* Cache a sink pad used for linking the entity */
++		entity->pipe_sink_pad = link->sink;
++
++		media_dbg(media, "Discovered sink pad %d for the %s entity\n",
++			  entity->pipe_sink_pad->index, media_entity_get_name(entity));
++
++		src_pad = media_entity_remote_source(link->sink);
++		if (!src_pad)
++			return -EINVAL;
++
++		entity = src_pad->entity;
++	}
++
++	media->pipeline = pipe_head;
++
++	return 0;
++}
++
++int media_has_pipeline_entity(struct media_entity *pipeline, char *entity_name)
++{
++	if (pipeline == NULL || entity_name == NULL)
++		return -EINVAL;
++
++	while (pipeline) {
++		if (!strncmp(pipeline->info.name, entity_name,
++			     strlen(entity_name)))
++			return 1;
++		pipeline = pipeline->next;
++	}
++
++	return 0;
++}
++
++/* -----------------------------------------------------------------------------
++ * Media entity access
++ */
++
++struct media_entity *media_get_pipeline(struct media_device *media)
++{
++	return media->pipeline;
++}
++
++int media_entity_get_src_pad_index(struct media_entity *entity)
++{
++	return entity->pipe_src_pad->index;
++}
++
++int media_entity_get_sink_pad_index(struct media_entity *entity)
++{
++	return entity->pipe_sink_pad->index;
++}
++
++struct media_entity *media_entity_get_next(struct media_entity *entity)
++{
++	return entity->next;
++}
+diff --git a/utils/media-ctl/mediactl-priv.h b/utils/media-ctl/mediactl-priv.h
+index f531c52..3378880 100644
+--- a/utils/media-ctl/mediactl-priv.h
++++ b/utils/media-ctl/mediactl-priv.h
+@@ -36,9 +36,14 @@ struct media_entity {
+ 	unsigned int max_links;
+ 	unsigned int num_links;
+ 
++	struct media_pad *pipe_src_pad;
++	struct media_pad *pipe_sink_pad;
++
+ 	struct v4l2_subdev *sd;
+ 
+ 	char devname[32];
++
++	struct media_entity *next;
+ };
+ 
+ struct media_device {
+@@ -49,6 +54,7 @@ struct media_device {
+ 	struct media_device_info info;
+ 	struct media_entity *entities;
+ 	unsigned int entities_count;
++	struct media_entity *pipeline;
+ 
+ 	void (*debug_handler)(void *, ...);
+ 	void *debug_priv;
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index 1d62191..4570160 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -500,4 +500,75 @@ int media_get_backlinks_by_entity(struct media_entity *entity,
+ 				struct media_link **backlinks,
+ 				int *num_backlinks);
+ 
++/**
++ * @brief Check presence of the entity in the pipeline
++ * @param pipeline - video pipeline within a media device.
++ * @param entity_name - name of the entity to search for.
++ *
++ * Check if the entity with entity_name belongs to
++ * the pipeline.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_has_pipeline_entity(struct media_entity *pipeline, char *entity_name);
++
++/**
++ * @brief Discover the video pipeline
++ * @param media - media device.
++ * @param entity - media entity.
++ *
++ * Discover the pipeline of sub-devices, by walking
++ * upstream starting from the passed sink entity until
++ * the camera sensor entity is encountered.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_discover_pipeline_by_entity(struct media_device *media,
++				struct media_entity *entity);
++
++/**
++ * @brief Get source pad of the pipeline entity
++ * @param entity - media entity.
++ *
++ * This function returns the source pad of the entity.
++ *
++ * @return entity source pad, or NULL if the entity is not linked.
++ */
++int media_entity_get_src_pad_index(struct media_entity *entity);
++
++/**
++ * @brief Get sink pad of the pipeline entity
++ * @param entity - media entity.
++ *
++ * This function returns the sink pad of the entity.
++ *
++ * @return entity sink pad, or NULL if the entity is not linked.
++ */
++int media_entity_get_sink_pad_index(struct media_entity *entity);
++
++/**
++ * @brief Get next entity in the pipeline
++ * @param entity - media entity
++ *
++ * This function gets the entity connected to a source pad of this entity.
++ *
++ * @return next enetity in the pipeline,
++ *	   or NULL if the entity is not linked
++ */
++struct media_entity *media_entity_get_next(struct media_entity *entity);
++
++/**
++ * @brief Get the video pipeline
++ * @param media - media device
++ *
++ * This function gets the pipeline of media entities. The pipeline
++ * source entity is a camera sensor and the sink one is the entity
++ * representing opened video device node. The pipeline has to be
++ * discovered with use of the function media_discover_pipeline_by_entity.
++ *
++ * @return first media_entity in the pipeline,
++ *	   or NULL if the pipeline hasn't been discovered
++ */
++struct media_entity *media_get_pipeline(struct media_device *media);
++
+ #endif
+-- 
+1.7.9.5
 
-
--Doug
