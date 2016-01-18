@@ -1,62 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.74]:52123 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756544AbcAZOMN (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:34447 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755832AbcARQSI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 09:12:13 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jemma Denson <jdenson@gmail.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 4/7] [media] b2c2: flexcop: avoid unused function warnings
-Date: Tue, 26 Jan 2016 15:09:58 +0100
-Message-Id: <1453817424-3080054-4-git-send-email-arnd@arndb.de>
-In-Reply-To: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
-References: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
+	Mon, 18 Jan 2016 11:18:08 -0500
+Received: from epcpsbgm1new.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O1500V03PA7N320@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:18:07 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
+Subject: [PATCH 03/15] mediactl: Separate entity and pad parsing
+Date: Mon, 18 Jan 2016 17:17:28 +0100
+Message-id: <1453133860-21571-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The flexcop driver has two functions that are normally used, except
-when multiple frontend drivers are disabled:
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-drivers/media/common/b2c2/flexcop-fe-tuner.c:42:12: warning: 'flexcop_set_voltage' defined but not used [-Wunused-function]
-drivers/media/common/b2c2/flexcop-fe-tuner.c:71:12: warning: 'flexcop_sleep' defined but not used [-Wunused-function]
+Sometimes it's useful to be able to parse the entity independent of the pad.
+Separate entity parsing into media_parse_entity().
 
-This avoids the build warning by updating the #ifdef for flexcop_set_voltage
-to the exact condition under which it is used. For flexcop_sleep, the
-condition is rather complex, so I resort to marking it as __maybe_unused,
-so the compiler can silently drop it.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/common/b2c2/flexcop-fe-tuner.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ utils/media-ctl/libmediactl.c |   28 ++++++++++++++++++++++++----
+ utils/media-ctl/mediactl.h    |   14 ++++++++++++++
+ 2 files changed, 38 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/common/b2c2/flexcop-fe-tuner.c b/drivers/media/common/b2c2/flexcop-fe-tuner.c
-index 9c59f4306883..f5956402fc69 100644
---- a/drivers/media/common/b2c2/flexcop-fe-tuner.c
-+++ b/drivers/media/common/b2c2/flexcop-fe-tuner.c
-@@ -38,7 +38,7 @@ static int flexcop_fe_request_firmware(struct dvb_frontend *fe,
- #endif
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 7e98440..61b5f50 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -781,10 +781,10 @@ int media_device_add_entity(struct media_device *media,
+ 	return 0;
+ }
  
- /* lnb control */
--#if FE_SUPPORTED(MT312) || FE_SUPPORTED(STV0299)
-+#if (FE_SUPPORTED(MT312) || FE_SUPPORTED(STV0299)) && FE_SUPPORTED(PLL)
- static int flexcop_set_voltage(struct dvb_frontend *fe,
- 			       enum fe_sec_voltage voltage)
+-struct media_pad *media_parse_pad(struct media_device *media,
+-				  const char *p, char **endp)
++struct media_entity *media_parse_entity(struct media_device *media,
++					const char *p, char **endp)
  {
-@@ -68,7 +68,7 @@ static int flexcop_set_voltage(struct dvb_frontend *fe,
- #endif
+-	unsigned int entity_id, pad;
++	unsigned int entity_id;
+ 	struct media_entity *entity;
+ 	char *end;
  
- #if FE_SUPPORTED(S5H1420) || FE_SUPPORTED(STV0299) || FE_SUPPORTED(MT312)
--static int flexcop_sleep(struct dvb_frontend* fe)
-+static int __maybe_unused flexcop_sleep(struct dvb_frontend* fe)
- {
- 	struct flexcop_device *fc = fe->dvb->priv;
- 	if (fc->fe_sleep)
+@@ -821,7 +821,27 @@ struct media_pad *media_parse_pad(struct media_device *media,
+ 			return NULL;
+ 		}
+ 	}
+-	for (; isspace(*end); ++end);
++	for (p = end; isspace(*p); ++p);
++
++	*endp = (char *)p;
++
++	return entity;
++}
++
++struct media_pad *media_parse_pad(struct media_device *media,
++				  const char *p, char **endp)
++{
++	unsigned int pad;
++	struct media_entity *entity;
++	char *end;
++
++	if (endp == NULL)
++		endp = &end;
++
++	entity = media_parse_entity(media, p, &end);
++	if (!entity)
++		return NULL;
++	*endp = end;
+ 
+ 	if (*end != ':') {
+ 		media_dbg(media, "Expected ':'\n", *end);
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index 77ac182..3faee71 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -368,6 +368,20 @@ int media_setup_link(struct media_device *media,
+ int media_reset_links(struct media_device *media);
+ 
+ /**
++ * @brief Parse string to an entity on the media device.
++ * @param media - media device.
++ * @param p - input string
++ * @param endp - pointer to string where parsing ended
++ *
++ * Parse NULL terminated string describing an entity and return its
++ * struct media_entity instance.
++ *
++ * @return Pointer to struct media_entity on success, NULL on failure.
++ */
++struct media_entity *media_parse_entity(struct media_device *media,
++					const char *p, char **endp);
++
++/**
+  * @brief Parse string to a pad on the media device.
+  * @param media - media device.
+  * @param p - input string
 -- 
-2.7.0
+1.7.9.5
 
