@@ -1,135 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:36310 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752592AbcAXQNk (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34572 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755037AbcAROhy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2016 11:13:40 -0500
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH v5] media: soc_camera: rcar_vin: Add ARGB8888 caputre format support
-Date: Mon, 25 Jan 2016 01:13:29 +0900
-Message-Id: <1453652009-4291-1-git-send-email-ykaneko0929@gmail.com>
+	Mon, 18 Jan 2016 09:37:54 -0500
+Date: Mon, 18 Jan 2016 16:37:22 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Aviv Greenberg <avivgr@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] V4L: add Y12I, Y8I and Z16 pixel format documentation
+Message-ID: <20160118143722.GD3458@valkosipuli.retiisi.org.uk>
+References: <Pine.LNX.4.64.1512151732080.18335@axis700.grange>
+ <20160113102453.GJ576@valkosipuli.retiisi.org.uk>
+ <Pine.LNX.4.64.1601141159520.15949@axis700.grange>
+ <20160114112914.GM576@valkosipuli.retiisi.org.uk>
+ <Pine.LNX.4.64.1601181250000.9140@axis700.grange>
+ <20160118122119.GC3458@valkosipuli.retiisi.org.uk>
+ <Pine.LNX.4.64.1601181333180.9140@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1601181333180.9140@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Hi Guennadi,
 
-This patch adds ARGB8888 capture format support for R-Car Gen3.
+On Mon, Jan 18, 2016 at 01:36:49PM +0100, Guennadi Liakhovetski wrote:
+> On Mon, 18 Jan 2016, Sakari Ailus wrote:
+> 
+> [snip]
+> 
+> > > > > > I wonder if the format should convey the information which one is right and
+> > > > > > which one is left, e.g. by adding "LR" to the name.
+> > > > > 
+> > > > > You mean to distinguish between LR and RL? Can do in principle, yes.
+> > > > 
+> > > > If we want the format to have an exact definition, we should have this as
+> > > > well.
+> > > > 
+> > > > I think the formats increasingly have little details such as this one which
+> > > > require adding many format variants but I'm not sure if it's even a problem.
+> > > > 
+> > > > I'd postfix the name with "LR" or at least document that this is the pixel
+> > > > order.
+> > > 
+> > > Don't think that's a good option ATM since the format is already in 
+> > > videodev2.h
+> > 
+> > Is it? I can't see it in my tree at least.
+> 
+> It is, and you signed off under it and submitted it;-)
+> 
+> https://patchwork.linuxtv.org/patch/31690/
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
----
+I think you're missing this one:
 
-This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
+commit 52d60eb7e6d6429a766ea1b8f67e01c3b2dcd3c5
+Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date:   Sat Dec 12 08:10:40 2015 -0200
 
-v5 [Yoshihiro Kaneko]
-* As suggested by Guennadi Liakhovetski
-  rcar_vin_setup():
-    - add a common error handler instead of a falling through to the
-      default case.
-* compile tested only
+    Revert "[media] UVC: Add support for ds4 depth camera"
+    
+    This reverts commit 120c41d3477a23c6941059401db63677736f1935.
+    
+    The patch doesn't add the corresponding documentation bits to the
+    media infrastructure uAPI DocBook. Also, they're for 3D formats,
+    with requre further discussions.
+    
+    Requested-by: Hans Verkuil <hverkuil@xs4all.nl>
+    Requested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-v4 [Yoshihiro Kaneko]
-* As suggested by Sergei Shtylyov
-  - revised an error message.
+> 
+> > 14:16:48 vihersipuli sailus [~/scratch/git/linux]git grep -c V4L2_PIX_FMT_Y12I nclude/uapi/linux/videodev2.h
+> > 14:16:50 vihersipuli sailus [~/scratch/git/linux]
+> > 
+> > > 
+> > > > > > No need to mention RealSense specifically IMO.
+> > > > > 
+> > > > > Ok.
+> > > > > 
+> > > > > > > +
+> > > > > > > +<para>
+> > > > > > > +<programlisting>
+> > > > > > > +__u8 *buf;
+> > > > > > > +left0 = 0xfff &amp; *(__u16 *)buf;
+> > > > > > > +rirhgt0 = *(__u16 *)(buf + 1) >> 4;
+> > > > > > 
+> > > > > > "right"
+> > > > > 
+> > > > > [snip]
+> > > > > 
+> > > > > > > diff --git a/Documentation/DocBook/media/v4l/pixfmt-z16.xml b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
+> > > > > > > new file mode 100644
+> > > > > > > index 0000000..fac3c68
+> > > > > > > --- /dev/null
+> > > > > > > +++ b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
+> > > > > > > @@ -0,0 +1,79 @@
+> > > > > > > +<refentry id="V4L2-PIX-FMT-Z16">
+> > > > > > > +  <refmeta>
+> > > > > > > +    <refentrytitle>V4L2_PIX_FMT_Z16 ('Z16 ')</refentrytitle>
+> > > > > > > +    &manvol;
+> > > > > > > +  </refmeta>
+> > > > > > > +  <refnamediv>
+> > > > > > > +    <refname><constant>V4L2_PIX_FMT_Z16</constant></refname>
+> > > > > > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
+> > > > > > > +  </refnamediv>
+> > > > > > > +  <refsect1>
+> > > > > > > +    <title>Description</title>
+> > > > > > > +
+> > > > > > > +    <para>This is a 16-bit format, representing depth data. Each pixel is a
+> > > > > > > +distance in mm to the respective point in the image coordinates. Each pixel is
+> > > > > > > +stored in a 16-bit word in the little endian byte order.</para>
+> > > > > > 
+> > > > > > The format itself looks quite generic but the unit might be specific to the
+> > > > > > device. It'd sound silly to add a new format if just the unit is different.
+> > > > > 
+> > > > > My understanding is, that each format must have a fixed meaning, i.e. a 
+> > > > > fixed depth unit too, although it would definitely help to be able to 
+> > > > > relax that requirement in this case.
+> > > > 
+> > > > Agreed.
+> > > > 
+> > > > > > How about re-purpose the colourspace field for depth formats and
+> > > > > > add a flag telling the colour space field contains the unit and the unit
+> > > > > > prefix.
+> > > > > 
+> > > > > Hmmm... Not sure I find this a proper use of the .colorspace field...
+> > > > 
+> > > > I think colour space doesn't make much sense in context of depth.
+> > > 
+> > > Agree, still I don't think it is a good idea to abuse it for a different 
+> > > purpose. If it doesn't make sense it simply shouldn't be used.
+> > 
+> > We are already using anonymous unions for this exact purpose already, albeit
+> > their use was planned in most cases at least. I don't see anything wrong
+> > with this, considering that existing applications dealing with the format
+> > wouldn't know what to do about it anyway.
+> 
+> Sure, I understand that it can be done using an anonymous union. I just 
+> don't want to specify this in this patch , it should be a separate change, 
+> I think.
 
-v3 [Yoshihiro Kaneko]
-* rebased to for-4.6-1 branch of Guennadi's tree.
+Ack.
 
-v2 [Yoshihiro Kaneko]
-* As suggested by Sergei Shtylyov
-  - fix the coding style of the braces.
-
- drivers/media/platform/soc_camera/rcar_vin.c | 39 +++++++++++++++++++++-------
- 1 file changed, 29 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index dc75a80..3b8edf4 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -124,7 +124,7 @@
- #define VNDMR_EXRGB		(1 << 8)
- #define VNDMR_BPSM		(1 << 4)
- #define VNDMR_DTMD_YCSEP	(1 << 1)
--#define VNDMR_DTMD_ARGB1555	(1 << 0)
-+#define VNDMR_DTMD_ARGB		(1 << 0)
- 
- /* Video n Data Mode Register 2 bits */
- #define VNDMR2_VPS		(1 << 30)
-@@ -643,21 +643,26 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 		output_is_yuv = true;
- 		break;
- 	case V4L2_PIX_FMT_RGB555X:
--		dmr = VNDMR_DTMD_ARGB1555;
-+		dmr = VNDMR_DTMD_ARGB;
- 		break;
- 	case V4L2_PIX_FMT_RGB565:
- 		dmr = 0;
- 		break;
- 	case V4L2_PIX_FMT_RGB32:
--		if (priv->chip == RCAR_GEN2 || priv->chip == RCAR_H1 ||
--		    priv->chip == RCAR_E1) {
--			dmr = VNDMR_EXRGB;
--			break;
--		}
-+		if (priv->chip != RCAR_GEN2 && priv->chip != RCAR_H1 &&
-+		    priv->chip != RCAR_E1)
-+			goto e_format;
-+
-+		dmr = VNDMR_EXRGB;
-+		break;
-+	case V4L2_PIX_FMT_ARGB32:
-+		if (priv->chip != RCAR_GEN3)
-+			goto e_format;
-+
-+		dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
-+		break;
- 	default:
--		dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
--			 icd->current_fmt->host_fmt->fourcc);
--		return -EINVAL;
-+		goto e_format;
- 	}
- 
- 	/* Always update on field change */
-@@ -679,6 +684,11 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	iowrite32(vnmc | VNMC_ME, priv->base + VNMC_REG);
- 
- 	return 0;
-+
-+e_format:
-+	dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
-+		 icd->current_fmt->host_fmt->fourcc);
-+	return -EINVAL;
- }
- 
- static void rcar_vin_capture(struct rcar_vin_priv *priv)
-@@ -1304,6 +1314,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
- 		.order			= SOC_MBUS_ORDER_LE,
- 		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
-+	{
-+		.fourcc			= V4L2_PIX_FMT_ARGB32,
-+		.name			= "ARGB8888",
-+		.bits_per_sample	= 32,
-+		.packing		= SOC_MBUS_PACKING_NONE,
-+		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
-+	},
- };
- 
- static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
-@@ -1611,6 +1629,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
- 	case V4L2_PIX_FMT_RGB32:
- 		can_scale = priv->chip != RCAR_E1;
- 		break;
-+	case V4L2_PIX_FMT_ARGB32:
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_YUYV:
- 	case V4L2_PIX_FMT_RGB565:
 -- 
-1.9.1
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
