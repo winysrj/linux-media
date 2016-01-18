@@ -1,76 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:42401 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753407AbcADKMs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2016 05:12:48 -0500
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Mark Rutland <mark.rutland@arm.com>
-CC: Daniel Kurtz <djkurtz@chromium.org>, <eddie.huang@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v3 1/8] dt-bindings: Add a binding for Mediatek Video Processor
-Date: Mon, 4 Jan 2016 18:11:49 +0800
-Message-ID: <1451902316-55931-2-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
-References: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:33113 "EHLO
+	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754724AbcARMWe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2016 07:22:34 -0500
+Received: by mail-pa0-f65.google.com with SMTP id pv5so33584052pac.0
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 04:22:34 -0800 (PST)
+From: Josh Wu <rainyfeeling@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Songjun Wu <songjun.wu@atmel.com>,
+	Josh Wu <rainyfeeling@gmail.com>
+Subject: [PATCH 00/13] media: atmel-isi: extract the hw releated functions into structure
+Date: Mon, 18 Jan 2016 20:21:36 +0800
+Message-Id: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+This series refactor the atmel-isi drvier. In the meantime, extract all
+the hardware related functions, and made it as function table. Also add
+some hardware data.
 
-Add a DT binding documentation of Video Processor Unit for the
-MT8173 SoC from Mediatek.
+All those hardware functions, datas are defined with the compatible
+string.
 
-Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- .../devicetree/bindings/media/mediatek-vpu.txt     |   27 ++++++++++++++++++++
- 1 file changed, 27 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-vpu.txt
+In this way, it is easy to add another compatible string for new
+hardware support.
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-vpu.txt b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
-new file mode 100644
-index 0000000..3c3a424
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
-@@ -0,0 +1,27 @@
-+* Mediatek Video Processor Unit
-+
-+Video Processor Unit is a HW video controller. It controls HW Codec including
-+H.264/VP8/VP9 Decode, H.264/VP8 Encode and Image Processor (scale/rotate/color convert).
-+
-+Required properties:
-+  - compatible: "mediatek,mt8173-vpu"
-+  - reg: Must contain an entry for each entry in reg-names.
-+  - reg-names: Must include the following entries:
-+    "tcm": tcm base
-+    "cfg_reg": Main configuration registers base
-+  - interrupts: interrupt number to the cpu.
-+  - clocks : clock name from clock manager
-+  - clock-names: must be main. It is the main clock of VPU
-+  - iommus : phandle and IOMMU spcifier for the IOMMU that serves the VPU.
-+
-+Example:
-+	vpu: vpu@10020000 {
-+		compatible = "mediatek,mt8173-vpu";
-+		reg = <0 0x10020000 0 0x30000>,
-+		      <0 0x10050000 0 0x100>;
-+		reg-names = "tcm", "cfg_reg";
-+		interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&topckgen TOP_SCP_SEL>;
-+		clock-names = "main";
-+		iommus = <&iommu M4U_PORT_VENC_RCPU>;
-+	};
+
+Josh Wu (13):
+  atmel-isi: use try_or_set_fmt() for both set_fmt() and try_fmt()
+  atmel-isi: move the is_support() close to try/set format function
+  atmel-isi: add isi_hw_initialize() function to handle hw setup
+  atmel-isi: move the cfg1 initialize to isi_hw_initialize()
+  atmel-isi: add a function: isi_hw_wait_status() to check ISI_SR status
+  atmel-isi: check ISI_SR's flags by polling instead of interrupt
+  atmel-isi: move hw code into isi_hw_initialize()
+  atmel-isi: remove the function set_dma_ctrl() as it just use once
+  atmel-isi: add a function start_isi()
+  atmel-isi: reuse start_dma() function in isi interrupt handler
+  atmel-isi: add hw_uninitialize() in stop_streaming()
+  atmel-isi: use union for the fbd (frame buffer descriptor)
+  atmel-isi: use an hw_data structure according compatible string
+
+ drivers/media/platform/soc_camera/atmel-isi.c | 529 ++++++++++++++------------
+ 1 file changed, 277 insertions(+), 252 deletions(-)
+
 -- 
-1.7.9.5
+1.9.1
 
