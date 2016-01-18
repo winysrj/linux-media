@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34422 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753639AbcAZJQC (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:54223 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752552AbcAREsJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 04:16:02 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Sun, 17 Jan 2016 23:48:09 -0500
+Date: Mon, 18 Jan 2016 13:48:04 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+Cc: Khiem Nguyen <khiem.nguyen.xt@rvc.renesas.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	"linux-renesas-soc@vger.kernel.org"
+	<linux-renesas-soc@vger.kernel.org>,
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [PATCH 2/2] Revert "[media] tvp5150: Fix breakage for serial usage"
-Date: Tue, 26 Jan 2016 07:14:56 -0200
-Message-Id: <841502d731f1708aae907d5bdf1659e8a372fc9a.1453799688.git.mchehab@osg.samsung.com>
-In-Reply-To: <13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d.1453799688.git.mchehab@osg.samsung.com>
-References: <13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d.1453799688.git.mchehab@osg.samsung.com>
-In-Reply-To: <13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d.1453799688.git.mchehab@osg.samsung.com>
-References: <13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d.1453799688.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Toru Oishi <toru.oishi.zj@rvc.renesas.com>
+Subject: Re: [PATCH] MAINTAINERS: Update mailing list for Renesas SoC
+ Development
+Message-ID: <20160118044758.GA16388@verge.net.au>
+References: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
+ <569C4595.70806@rvc.renesas.com>
+ <SG2PR06MB09194A1BDF3B76AC4273F32AD8C00@SG2PR06MB0919.apcprd06.prod.outlook.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <SG2PR06MB09194A1BDF3B76AC4273F32AD8C00@SG2PR06MB0919.apcprd06.prod.outlook.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch were a workaround for a regression at tvp5150, but
-it causes troubles on devices with omap3+tvp5151 when working
-in non-parallel bus mode.
+On Mon, Jan 18, 2016 at 02:27:38AM +0000, Yoshihiro Shimoda wrote:
+> Hi Khiem-san,
+> 
+> Thank you for the CC.
+> 
+> > From: Khiem Nguyen
+> > Sent: Monday, January 18, 2016 10:53 AM
+> > 
+> > cc Shimoda-san for his information.
+> > 
+> > On 1/18/2016 8:04 AM, Simon Horman wrote:
+> > > Update the mailing list used for development of support for
+> > > Renesas SoCs and related drivers.
+> > >
+> > > Up until now the linux-sh mailing list has been used, however,
+> > > Renesas SoCs are now much wider than the SH architecture and there
+> > > is some desire from some for the linux-sh list to refocus on
+> > > discussion of the work on the SH architecture.
+> > >
+> > > Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+> > > Cc: Magnus Damm <magnus.damm@gmail.com>
+> > > Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> 
+> Acked-by: Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
 
-Now that em28xx was fixed, we can get rid of that.
-
-This reverts commit 47de9bf8931e6bf9c92fdba9867925d1ce482ab1.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/i2c/tvp5150.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 779c6f453cc9..437f1a7ecb96 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -975,18 +975,19 @@ static int tvp5150_g_mbus_config(struct v4l2_subdev *sd,
- static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct tvp5150 *decoder = to_tvp5150(sd);
-+	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
-+	int val = 0x09;
- 
- 	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
--	if (decoder->mbus_type != V4L2_MBUS_PARALLEL)
--		return 0;
-+	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
-+		val = 0x0d;
- 
- 	/* Initializes TVP5150 to its default values */
- 	/* # set PCLK (27MHz) */
- 	tvp5150_write(sd, TVP5150_CONF_SHARED_PIN, 0x00);
- 
--	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
- 	if (enable)
--		tvp5150_write(sd, TVP5150_MISC_CTL, 0x09);
-+		tvp5150_write(sd, TVP5150_MISC_CTL, val);
- 	else
- 		tvp5150_write(sd, TVP5150_MISC_CTL, 0x00);
- 
--- 
-2.5.0
-
+Khiem-san, thanks.
+Shimoda-san, thanks for the Ack. Sorry for not CCing you.
