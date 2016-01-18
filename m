@@ -1,108 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:35720 "EHLO
-	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878AbcACOhZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jan 2016 09:37:25 -0500
+Received: from sauhun.de ([89.238.76.85]:56478 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754573AbcARL6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2016 06:58:16 -0500
+Date: Mon, 18 Jan 2016 12:58:02 +0100
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Simon Horman <horms+renesas@verge.net.au>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-renesas-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [PATCH] MAINTAINERS: Update mailing list for Renesas SoC
+ Development
+Message-ID: <20160118115802.GA1549@katana>
+References: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
 MIME-Version: 1.0
-In-Reply-To: <1451823066-24300-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1451823066-24300-1-git-send-email-Julia.Lawall@lip6.fr>
-Date: Sun, 3 Jan 2016 09:37:24 -0500
-Message-ID: <CAOcJUbx3Vj6dR5CkZ8MkJ_VhPZrzTj=y7+aqe+HS=b8F=oPB6g@mail.gmail.com>
-Subject: Re: [PATCH] drivers/media/usb/dvb-usb-v2: constify
- mxl111sf_tuner_config structure
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
+Content-Disposition: inline
+In-Reply-To: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 3, 2016 at 7:11 AM, Julia Lawall <Julia.Lawall@lip6.fr> wrote:
-> This mxl111sf_tuner_config structure is never modified, so declare it as
-> const.
->
-> There are some indentation changes to remain within 80 columns.
->
-> Done with the help of Coccinelle.
->
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Thank you for this, Julia
+--+QahgC5+KEYLbs62
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
+On Mon, Jan 18, 2016 at 10:04:33AM +0900, Simon Horman wrote:
+> Update the mailing list used for development of support for
+> Renesas SoCs and related drivers.
+>=20
+> Up until now the linux-sh mailing list has been used, however,
+> Renesas SoCs are now much wider than the SH architecture and there
+> is some desire from some for the linux-sh list to refocus on
+> discussion of the work on the SH architecture.
+>=20
+> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+> Cc: Magnus Damm <magnus.damm@gmail.com>
+> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+
+Acked-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 
 
->
-> ---
->  drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c |    6 +++---
->  drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h |    8 ++++----
->  drivers/media/usb/dvb-usb-v2/mxl111sf.c       |    2 +-
->  3 files changed, 8 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c b/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c
-> index 444579b..7d16252 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c
-> @@ -36,7 +36,7 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able)).");
->  struct mxl111sf_tuner_state {
->         struct mxl111sf_state *mxl_state;
->
-> -       struct mxl111sf_tuner_config *cfg;
-> +       const struct mxl111sf_tuner_config *cfg;
->
->         enum mxl_if_freq if_freq;
->
-> @@ -489,8 +489,8 @@ static struct dvb_tuner_ops mxl111sf_tuner_tuner_ops = {
->  };
->
->  struct dvb_frontend *mxl111sf_tuner_attach(struct dvb_frontend *fe,
-> -                                          struct mxl111sf_state *mxl_state,
-> -                                          struct mxl111sf_tuner_config *cfg)
-> +                               struct mxl111sf_state *mxl_state,
-> +                               const struct mxl111sf_tuner_config *cfg)
->  {
->         struct mxl111sf_tuner_state *state = NULL;
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h b/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
-> index e6caab2..509b550 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
-> @@ -63,13 +63,13 @@ struct mxl111sf_tuner_config {
->  #if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
->  extern
->  struct dvb_frontend *mxl111sf_tuner_attach(struct dvb_frontend *fe,
-> -                                          struct mxl111sf_state *mxl_state,
-> -                                          struct mxl111sf_tuner_config *cfg);
-> +                               struct mxl111sf_state *mxl_state,
-> +                               const struct mxl111sf_tuner_config *cfg);
->  #else
->  static inline
->  struct dvb_frontend *mxl111sf_tuner_attach(struct dvb_frontend *fe,
-> -                                          struct mxl111sf_state *mxl_state,
-> -                                          struct mxl111sf_tuner_config *cfg)
-> +                               struct mxl111sf_state *mxl_state,
-> +                               const struct mxl111sf_tuner_config *cfg)
->  {
->         printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
->         return NULL;
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> index b669dec..b586e17 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-> @@ -856,7 +856,7 @@ static int mxl111sf_ant_hunt(struct dvb_frontend *fe)
->         return 0;
->  }
->
-> -static struct mxl111sf_tuner_config mxl_tuner_config = {
-> +static const struct mxl111sf_tuner_config mxl_tuner_config = {
->         .if_freq         = MXL_IF_6_0, /* applies to external IF output, only */
->         .invert_spectrum = 0,
->         .read_reg        = mxl111sf_read_reg,
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--+QahgC5+KEYLbs62
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWnNNKAAoJEBQN5MwUoCm2V/cQALBylb7EVWpN7s02MrxVPESu
+/Z0+kHW+P0F2EuC6XcKSFRTlzIKtcXqoiatude5BS0v6+CwS6Y64GYspVX7kfQJq
+tgkSr/Xt6X+UFpeH47IeQqmGcgrhwGcTeODFD5T1xfMURScrZRhEQzOXIk6ZOCKD
+FkvJuTWP9y1wnTUD5/5FbEJe3ZyBC63G6i0nrjJ9fAtc3GnBDyFAce7zYq4YLvz6
+QMWoFg1Iv/maHxdczae0+F4m7VzOrq5qV4YIQEb+bHjTeiTpyTyPnT7fk2J5hllK
+pa7amxqXGcWJ4CaAFyUe94dxoc7j4duPlHolqiB+mE8MeGQb+Qhz6L7LYOSVWUMx
+YiYExLlRs8trlgBTr+ML7ieIOl9jiO/SsmGHYfAIDaQrnI+RIM+Utj77br3ifQYx
+jRSfT1kN0JCcxGogNflV5isP2y/HgZ+FS7eUJX4YZ7HDC0EwQjDXFMo6zD4xxXta
+IhUL2ikSnmfXRw4N/HOfkDfLwggrV4IAj5NYmfzTSNXZak9T4i0CtVfcGLCWrAnv
+BTRTiHymNtrZlOKahmSujWlJ/a6ka4D66Irewv5h1F6yZVt0v7izEQKoJm+USyMf
+1XqQmD7wVtBDPknitqj/mtZXwjl2N88KXgQAh2kf/ytCQyjNIwTgA1z2k1xWFs1X
+x2zI/awYwnTfplw0Sacb
+=nFuS
+-----END PGP SIGNATURE-----
+
+--+QahgC5+KEYLbs62--
