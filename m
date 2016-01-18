@@ -1,96 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:38092 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753240AbcAORB0 convert rfc822-to-8bit (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41702 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753953AbcARKQY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2016 12:01:26 -0500
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Nicolas Dufresne' <nicolas.dufresne@collabora.com>,
-	'Wu-Cheng Li' <wuchengli@chromium.org>, pawel@osciak.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl, crope@iki.fi,
-	standby24x7@gmail.com, ricardo.ribalda@gmail.com, ao2@ao2.it,
-	bparrot@ti.com, 'Andrzej Hajda' <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org
-References: <1452686611-145620-1-git-send-email-wuchengli@chromium.org>
- <1452686611-145620-2-git-send-email-wuchengli@chromium.org>
- <003f01d14e21$78f7ad40$6ae707c0$@samsung.com>
- <1452783743.10009.18.camel@collabora.com>
- <00ac01d14ef0$0702b2f0$150818d0$@samsung.com>
- <1452798133.3306.3.camel@collabora.com>
-In-reply-to: <1452798133.3306.3.camel@collabora.com>
-Subject: RE: [PATCH] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
-Date: Fri, 15 Jan 2016 18:01:21 +0100
-Message-id: <000301d14fb6$5cdd6370$16982a50$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-Content-language: pl
+	Mon, 18 Jan 2016 05:16:24 -0500
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Lee Jones <lee.jones@linaro.org>, Arnd Bergmann <arnd@arndb.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: timblogiw: protect desc
+Message-ID: <569CBB71.9080305@xs4all.nl>
+Date: Mon, 18 Jan 2016 11:16:17 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-> From: Nicolas Dufresne [mailto:nicolas.dufresne@collabora.com]
-> Sent: Thursday, January 14, 2016 8:02 PM
-> To: Kamil Debski; 'Wu-Cheng Li'; pawel@osciak.com;
-> mchehab@osg.samsung.com; hverkuil@xs4all.nl; crope@iki.fi;
-> standby24x7@gmail.com; ricardo.ribalda@gmail.com; ao2@ao2.it;
-> bparrot@ti.com; 'Andrzej Hajda'
-> Cc: linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
-> api@vger.kernel.org
-> Subject: Re: [PATCH] v4l: add
-> V4L2_CID_MPEG_VIDEO_FORCE_FRAME_TYPE.
+> As sparse complains:
+>         drivers/media/platform/timblogiw.c:562:22: warning: context imbalance in 'buffer_queue' - unexpected unlock
 > 
-> Le jeudi 14 janvier 2016 à 18:21 +0100, Kamil Debski a écrit :
-> > I had a look into the documentation of MFC. It is possible to force
-> > two types of a frame to be coded.
-> > The one is a keyframe, the other is a not coded frame. As I understand
-> > this is a type of frame that means that image did not change from
-> > previous frame. I am sure I seen it in an MPEG4 stream in a movie
-> > trailer. The initial board with the age rating is displayed for a
-> > couple of seconds and remains static. Thus there is one I-frame and a
-> > number of non-coded frames.
-> >
-> > That is the reason why the control was implemented in MFC as a menu
-> > and not a button. Thus the question remains - is it better to leave it
-> > as a menu, or should there be two (maybe more in the future) buttons?
+> there's something weird at the logic there. The semaphore seems
+> to be protecting changes at the desc struct, however, the
+> callback logic is not protected.
 > 
-> Then I believe we need both. Because with the menu, setting I-Frame, I
-> would expect to only receive keyframes from now-on. While the useful
-> feature we are looking for here, is to get the next buffer (or nearby) to be a
-> keyframe. It's the difference between creating an I-Frame only stream and
-> requesting a key-frame manually for recovery (RTP use case).
-> In this end, we should probably take that time to review the features we
-> have as we need:
-
-I think we had a discussion about this long, long time ago. Should it be
-deterministic which frame Is encoded as a key frame? Should it be the
-next queued frame, or the next processed frame? How to achieve this?
-I vaguely remember that we discussed per buffer controls on the mailing
-list, but I am not sure where the discussion went from there.
-
+> Compile-tested only.
 > 
-> - A way to trigger a key frame to be produce
-> - A way to produce a I-Frame only stream
-
-This control can be used to do this:
-- V4L2_CID_MPEG_VIDEO_GOP_SIZE (It is not well documented as I can see ;) )
-	+ If set to 0 the encoder produces a stream with P only frames
-	+ if set to 1 the encoder produces a stream with I only frames
-	+ other values indicate the GOP size (I-frame interval)
-
-> - A way to set the key-frame distance (in frames) even though this could
-> possibly be emulated using the trigger.
-
-As described above V4L2_CID_MPEG_VIDEO_GOP_SIZE can be used to achieve this.
-
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/platform/timblogiw.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> cheers,
->Nicolas
- 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+> diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
+> index 113c9f3c0b3e..a5d2607cc396 100644
+> --- a/drivers/media/platform/timblogiw.c
+> +++ b/drivers/media/platform/timblogiw.c
+> @@ -566,8 +566,8 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
+>         desc = dmaengine_prep_slave_sg(fh->chan,
+>                 buf->sg, sg_elems, DMA_DEV_TO_MEM,
+>                 DMA_PREP_INTERRUPT);
+> +       spin_lock_irq(&fh->queue_lock);
+>         if (!desc) {
+> -               spin_lock_irq(&fh->queue_lock);
+>                 list_del_init(&vb->queue);
+>                 vb->state = VIDEOBUF_PREPARED;
+>                 return;
+> @@ -576,8 +576,8 @@ static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
+>         desc->callback_param = buf;
+>         desc->callback = timblogiw_dma_cb;
+> 
+> +       spin_unlock_irq(&fh->queue_lock);
+
+This is wrong: the videobuf core will take the queue_lock before calling buffer_queue,
+so you are now locking it twice. (A pointer to queue_lock is passed in via
+videobuf_queue_dma_contig_init()).
+
+The sparse warning is because sparse doesn't know that the lock is taking when this
+function is called, and it gets confused by the 'unlock - lock' sequence.
+
+I've no idea how to tell sparse about that.
+
+To be honest, as far as I am concerned the best approach would be to remove this
+driver completely. It's for an old genivi devkit that's obsolete for a long time
+now.
+
+Regards,
+
+	Hans
+
+>         buf->cookie = desc->tx_submit(desc);
+> -
+>         spin_lock_irq(&fh->queue_lock);
+>  }
 
