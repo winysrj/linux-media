@@ -1,121 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:34315 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752551AbcANO6Y (ORCPT
+Received: from relmlor2.renesas.com ([210.160.252.172]:41770 "EHLO
+	relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753305AbcARBx3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 09:58:24 -0500
-Subject: Re: [PATCH v2 1/2] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
-To: Wu-Cheng Li <wuchengli@chromium.org>, pawel@osciak.com,
-	mchehab@osg.samsung.com, k.debski@samsung.com, crope@iki.fi,
-	standby24x7@gmail.com, nicolas.dufresne@collabora.com,
-	ricardo.ribalda@gmail.com, ao2@ao2.it, bparrot@ti.com,
-	kyungmin.park@samsung.com, jtp.park@samsung.com
-References: <1452760439-35564-1-git-send-email-wuchengli@chromium.org>
- <1452760439-35564-2-git-send-email-wuchengli@chromium.org>
- <56976263.4050902@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	tiffany.lin@mediatek.com, djkurtz@chromium.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5697B85F.7080303@xs4all.nl>
-Date: Thu, 14 Jan 2016 16:01:51 +0100
+	Sun, 17 Jan 2016 20:53:29 -0500
+Message-ID: <569C4595.70806@rvc.renesas.com>
+Date: Mon, 18 Jan 2016 08:53:25 +0700
+From: Khiem Nguyen <khiem.nguyen.xt@rvc.renesas.com>
 MIME-Version: 1.0
-In-Reply-To: <56976263.4050902@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+To: Simon Horman <horms+renesas@verge.net.au>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	"linux-renesas-soc@vger.kernel.org"
+	<linux-renesas-soc@vger.kernel.org>,
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>,
+	Toru Oishi <toru.oishi.zj@rvc.renesas.com>,
+	Khiem Nguyen <khiem.nguyen.xt@rvc.renesas.com>
+Subject: Re: [PATCH] MAINTAINERS: Update mailing list for Renesas SoC Development
+References: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
+In-Reply-To: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wu-Cheng,
+cc Shimoda-san for his information.
 
-Your v3 didn't address these comments. Any reason for that or did you just miss this
-email?
+On 1/18/2016 8:04 AM, Simon Horman wrote:
+> Update the mailing list used for development of support for
+> Renesas SoCs and related drivers.
+>
+> Up until now the linux-sh mailing list has been used, however,
+> Renesas SoCs are now much wider than the SH architecture and there
+> is some desire from some for the linux-sh list to refocus on
+> discussion of the work on the SH architecture.
+>
+> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+> Cc: Magnus Damm <magnus.damm@gmail.com>
+> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+>
+> ---
+> * This patch applies on top of Linus's tree where currently the head commit
+>    is 984065055e6e ("Merge branch 'drm-next' of
+>    git://people.freedesktop.org/~airlied/linux")
+>
+>    This has been used as a base instead of v4.4 so that it is based on the
+>    following two commits which affect it:
+>    - 1a4ca6dd3dc8 ("MAINTAINERS: Add co-maintainer for Renesas Pin Controllers")
+>    - 3e46c3973cba ("MAINTAINERS: add Renesas usb2 phy driver")
+> ---
+>   MAINTAINERS | 16 ++++++++--------
+>   1 file changed, 8 insertions(+), 8 deletions(-)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 1d23f701489c..52a6ba79fa3f 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -1531,9 +1531,9 @@ F:	drivers/media/platform/s5p-jpeg/
+>   ARM/SHMOBILE ARM ARCHITECTURE
+>   M:	Simon Horman <horms@verge.net.au>
+>   M:	Magnus Damm <magnus.damm@gmail.com>
+> -L:	linux-sh@vger.kernel.org
+> +L:	linux-renesas-soc@vger.kernel.org
+>   W:	http://oss.renesas.com
+> -Q:	http://patchwork.kernel.org/project/linux-sh/list/
+> +Q:	http://patchwork.kernel.org/project/linux-renesas-soc/list/
+>   T:	git git://git.kernel.org/pub/scm/linux/kernel/git/horms/renesas.git next
+>   S:	Supported
+>   F:	arch/arm/boot/dts/emev2*
+> @@ -3745,7 +3745,7 @@ F:	Documentation/devicetree/bindings/display/tegra/nvidia,tegra20-host1x.txt
+>   DRM DRIVERS FOR RENESAS
+>   M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>   L:	dri-devel@lists.freedesktop.org
+> -L:	linux-sh@vger.kernel.org
+> +L:	linux-renesas-soc@vger.kernel.org
+>   T:	git git://people.freedesktop.org/~airlied/linux
+>   S:	Supported
+>   F:	drivers/gpu/drm/rcar-du/
+> @@ -6858,7 +6858,7 @@ F:	drivers/iio/potentiometer/mcp4531.c
+>   MEDIA DRIVERS FOR RENESAS - VSP1
+>   M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>   L:	linux-media@vger.kernel.org
+> -L:	linux-sh@vger.kernel.org
+> +L:	linux-renesas-soc@vger.kernel.org
+>   T:	git git://linuxtv.org/media_tree.git
+>   S:	Supported
+>   F:	Documentation/devicetree/bindings/media/renesas,vsp1.txt
+> @@ -8235,7 +8235,7 @@ F:	drivers/pci/host/pci-dra7xx.c
+>   PCI DRIVER FOR RENESAS R-CAR
+>   M:	Simon Horman <horms@verge.net.au>
+>   L:	linux-pci@vger.kernel.org
+> -L:	linux-sh@vger.kernel.org
+> +L:	linux-renesas-soc@vger.kernel.org
+>   S:	Maintained
+>   F:	drivers/pci/host/*rcar*
+>
+> @@ -8413,7 +8413,7 @@ F:	drivers/pinctrl/intel/
+>   PIN CONTROLLER - RENESAS
+>   M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>   M:	Geert Uytterhoeven <geert+renesas@glider.be>
+> -L:	linux-sh@vger.kernel.org
+> +L:	linux-renesas-soc@vger.kernel.org
+>   S:	Maintained
+>   F:	drivers/pinctrl/sh-pfc/
+>
+> @@ -9019,13 +9019,13 @@ F:	include/linux/rpmsg.h
+>   RENESAS ETHERNET DRIVERS
+>   R:	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>   L:	netdev@vger.kernel.org
+> -L:	linux-sh@vger.kernel.org
+> +L:	linux-renesas-soc@vger.kernel.org
+>   F:	drivers/net/ethernet/renesas/
+>   F:	include/linux/sh_eth.h
+>
+>   RENESAS USB2 PHY DRIVER
+>   M:	Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
+> -L:	linux-sh@vger.kernel.org
+> +L:	linux-renesas-soc@vger.kernel.org
+>   S:	Maintained
+>   F:	drivers/phy/phy-rcar-gen3-usb2.c
+>
+>
 
-Just wondering,
-
-	Hans
-
-On 01/14/16 09:54, Hans Verkuil wrote:
-> On 01/14/16 09:33, Wu-Cheng Li wrote:
->> Some drivers also need a control like
->> V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE to force an encoder
->> I frame. Add a general V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME
->> so the new drivers and applications can use it.
->>
->> Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
->> ---
->>  Documentation/DocBook/media/v4l/controls.xml | 8 ++++++++
->>  drivers/media/v4l2-core/v4l2-ctrls.c         | 2 ++
->>  include/uapi/linux/v4l2-controls.h           | 1 +
->>  3 files changed, 11 insertions(+)
->>
->> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
->> index f13a429..6760cf5 100644
->> --- a/Documentation/DocBook/media/v4l/controls.xml
->> +++ b/Documentation/DocBook/media/v4l/controls.xml
->> @@ -2330,6 +2330,14 @@ vertical search range for motion estimation module in video encoder.</entry>
->>  	      </row>
->>  
->>  	      <row><entry></entry></row>
->> +	      <row id="v4l2-mpeg-video-force-i-frame">
->> +		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME</constant>&nbsp;</entry>
->> +		<entry>button</entry>
->> +	      </row><row><entry spanname="descr">Force an I frame for the next queued buffer. Applicable to encoders.
->> +This is a general, codec-agnostic keyframe control.</entry>
->> +	      </row>
->> +
->> +	      <row><entry></entry></row>
->>  	      <row>
->>  		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nbsp;</entry>
->>  		<entry>integer</entry>
->> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
->> index c9d5537..33ecb7b 100644
->> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->> @@ -747,6 +747,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->>  	case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:		return "Horizontal MV Search Range";
->>  	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:		return "Vertical MV Search Range";
->>  	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
->> +	case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:			return "Force an I frame";
-> 
-> I would suggest renaming this to Key Frame. This is consistent with the V4L2_BUF_FLAG_KEYFRAME
-> flag and, I think, also more generic than 'I Frame'.
-> 
-> So the define would become V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME and the control
-> description "Force Key Frame". The docbook text needs to be updated as well.
-> 
-> With those changes this looks good to me.
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>  
->>  	/* VPX controls */
->>  	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
->> @@ -985,6 +986,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->>  	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
->>  		*type = V4L2_CTRL_TYPE_INTEGER;
->>  		break;
->> +	case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:
->>  	case V4L2_CID_PAN_RESET:
->>  	case V4L2_CID_TILT_RESET:
->>  	case V4L2_CID_FLASH_STROBE:
->> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
->> index 2d225bc..1c911b8 100644
->> --- a/include/uapi/linux/v4l2-controls.h
->> +++ b/include/uapi/linux/v4l2-controls.h
->> @@ -390,6 +390,7 @@ enum v4l2_mpeg_video_multi_slice_mode {
->>  #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER		(V4L2_CID_MPEG_BASE+226)
->>  #define V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+227)
->>  #define V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+228)
->> +#define V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME		(V4L2_CID_MPEG_BASE+229)
->>  
->>  #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
->>  #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-- 
+Best regards,
+KHIEM Nguyen
