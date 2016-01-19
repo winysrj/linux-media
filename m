@@ -1,97 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:33752 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932386AbcA0NcA (ORCPT
+Received: from eusmtp01.atmel.com ([212.144.249.242]:28994 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754554AbcASOwR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2016 08:32:00 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 5/5] adv7511: add support to for the content type control.
-Date: Wed, 27 Jan 2016 14:31:43 +0100
-Message-Id: <1453901503-35473-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1453901503-35473-1-git-send-email-hverkuil@xs4all.nl>
-References: <1453901503-35473-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 19 Jan 2016 09:52:17 -0500
+Date: Tue, 19 Jan 2016 15:52:24 +0100
+From: Ludovic Desroches <ludovic.desroches@atmel.com>
+To: Josh Wu <rainyfeeling@gmail.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Songjun Wu <songjun.wu@atmel.com>
+Subject: Re: [PATCH 00/13] media: atmel-isi: extract the hw releated
+ functions into structure
+Message-ID: <20160119145224.GI10663@odux.rfo.atmel.com>
+References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Josh,
 
-This transmitter now supports configuring the IT content type of the incoming
-video.
+On Mon, Jan 18, 2016 at 08:21:36PM +0800, Josh Wu wrote:
+> This series refactor the atmel-isi drvier. In the meantime, extract all
+> the hardware related functions, and made it as function table. Also add
+> some hardware data.
+> 
+> All those hardware functions, datas are defined with the compatible
+> string.
+> 
+> In this way, it is easy to add another compatible string for new
+> hardware support.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/adv7511.c | 22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+What is the goal of these patches? I mean is it to ease the support of
+ISC?
 
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index 471fd23..a9ed533 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -103,12 +103,14 @@ struct adv7511_state {
- 	u32 ycbcr_enc;
- 	u32 quantization;
- 	u32 xfer_func;
-+	u32 content_type;
- 	/* controls */
- 	struct v4l2_ctrl *hdmi_mode_ctrl;
- 	struct v4l2_ctrl *hotplug_ctrl;
- 	struct v4l2_ctrl *rx_sense_ctrl;
- 	struct v4l2_ctrl *have_edid0_ctrl;
- 	struct v4l2_ctrl *rgb_quantization_range_ctrl;
-+	struct v4l2_ctrl *content_type_ctrl;
- 	struct i2c_client *i2c_edid;
- 	struct i2c_client *i2c_pktmem;
- 	struct adv7511_state_edid edid;
-@@ -400,6 +402,16 @@ static int adv7511_s_ctrl(struct v4l2_ctrl *ctrl)
- 	}
- 	if (state->rgb_quantization_range_ctrl == ctrl)
- 		return adv7511_set_rgb_quantization_mode(sd, ctrl);
-+	if (state->content_type_ctrl == ctrl) {
-+		u8 itc, cn;
-+
-+		state->content_type = ctrl->val;
-+		itc = state->content_type != V4L2_DV_IT_CONTENT_TYPE_NO_ITC;
-+		cn = itc ? state->content_type : V4L2_DV_IT_CONTENT_TYPE_GRAPHICS;
-+		adv7511_wr_and_or(sd, 0x57, 0x7f, itc << 7);
-+		adv7511_wr_and_or(sd, 0x59, 0xcf, cn << 4);
-+		return 0;
-+	}
- 
- 	return -EINVAL;
- }
-@@ -1002,6 +1014,8 @@ static int adv7511_set_fmt(struct v4l2_subdev *sd,
- 	u8 y = HDMI_COLORSPACE_RGB;
- 	u8 q = HDMI_QUANTIZATION_RANGE_DEFAULT;
- 	u8 yq = HDMI_YCC_QUANTIZATION_RANGE_LIMITED;
-+	u8 itc = state->content_type != V4L2_DV_IT_CONTENT_TYPE_NO_ITC;
-+	u8 cn = itc ? state->content_type : V4L2_DV_IT_CONTENT_TYPE_GRAPHICS;
- 
- 	if (format->pad != 0)
- 		return -EINVAL;
-@@ -1115,8 +1129,8 @@ static int adv7511_set_fmt(struct v4l2_subdev *sd,
- 	adv7511_wr_and_or(sd, 0x4a, 0xbf, 0);
- 	adv7511_wr_and_or(sd, 0x55, 0x9f, y << 5);
- 	adv7511_wr_and_or(sd, 0x56, 0x3f, c << 6);
--	adv7511_wr_and_or(sd, 0x57, 0x83, (ec << 4) | (q << 2));
--	adv7511_wr_and_or(sd, 0x59, 0x3f, yq << 6);
-+	adv7511_wr_and_or(sd, 0x57, 0x83, (ec << 4) | (q << 2) | (itc << 7));
-+	adv7511_wr_and_or(sd, 0x59, 0x0f, (yq << 6) | (cn << 4));
- 	adv7511_wr_and_or(sd, 0x4a, 0xff, 1);
- 
- 	return 0;
-@@ -1470,6 +1484,10 @@ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *
- 		v4l2_ctrl_new_std_menu(hdl, &adv7511_ctrl_ops,
- 			V4L2_CID_DV_TX_RGB_RANGE, V4L2_DV_RGB_RANGE_FULL,
- 			0, V4L2_DV_RGB_RANGE_AUTO);
-+	state->content_type_ctrl =
-+		v4l2_ctrl_new_std_menu(hdl, &adv7511_ctrl_ops,
-+			V4L2_CID_DV_TX_IT_CONTENT_TYPE, V4L2_DV_IT_CONTENT_TYPE_NO_ITC,
-+			0, V4L2_DV_IT_CONTENT_TYPE_NO_ITC);
- 	sd->ctrl_handler = hdl;
- 	if (hdl->error) {
- 		err = hdl->error;
--- 
-2.7.0.rc3
+Discussing with Songjun, I understand that he wanted to have one driver
+for ISI and one for ISC but I have the feeling that your patches go in
+the opposite direction. What is your mind about this?
 
+Thanks
+
+Regards
+
+Ludovic
+
+> 
+> 
+> Josh Wu (13):
+>   atmel-isi: use try_or_set_fmt() for both set_fmt() and try_fmt()
+>   atmel-isi: move the is_support() close to try/set format function
+>   atmel-isi: add isi_hw_initialize() function to handle hw setup
+>   atmel-isi: move the cfg1 initialize to isi_hw_initialize()
+>   atmel-isi: add a function: isi_hw_wait_status() to check ISI_SR status
+>   atmel-isi: check ISI_SR's flags by polling instead of interrupt
+>   atmel-isi: move hw code into isi_hw_initialize()
+>   atmel-isi: remove the function set_dma_ctrl() as it just use once
+>   atmel-isi: add a function start_isi()
+>   atmel-isi: reuse start_dma() function in isi interrupt handler
+>   atmel-isi: add hw_uninitialize() in stop_streaming()
+>   atmel-isi: use union for the fbd (frame buffer descriptor)
+>   atmel-isi: use an hw_data structure according compatible string
+> 
+>  drivers/media/platform/soc_camera/atmel-isi.c | 529 ++++++++++++++------------
+>  1 file changed, 277 insertions(+), 252 deletions(-)
+> 
+> -- 
+> 1.9.1
+> 
