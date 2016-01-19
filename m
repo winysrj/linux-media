@@ -1,62 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:46361 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932713AbcAYRkn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 12:40:43 -0500
-Date: Mon, 25 Jan 2016 15:40:37 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH 5/5] staging: media: lirc: use new parport device model
-Message-ID: <20160125154037.36551311@recife.lan>
-In-Reply-To: <56A65C77.7080102@gmail.com>
-References: <1450443929-15305-1-git-send-email-sudipm.mukherjee@gmail.com>
-	<1450443929-15305-5-git-send-email-sudipm.mukherjee@gmail.com>
-	<20160125142906.184a4cb5@recife.lan>
-	<20160125170230.GA8787@sudip-laptop>
-	<20160125151257.24d5c7d2@recife.lan>
-	<56A65C77.7080102@gmail.com>
+Received: from mailout.easymail.ca ([64.68.201.169]:54776 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932721AbcASSds (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2016 13:33:48 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/2] media: au0828 fix compile warns
+Date: Tue, 19 Jan 2016 11:33:42 -0700
+Message-Id: <cover.1453223886.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 25 Jan 2016 23:03:43 +0530
-Sudip Mukherjee <sudipm.mukherjee@gmail.com> escreveu:
+Fix compile warns for the MEDIA_CONTROLLER disabled
+case introduced in the patch series for Sharing media
+resources across ALSA and au0828 drivers:
 
-> On Monday 25 January 2016 10:42 PM, Mauro Carvalho Chehab wrote:
-> > Em Mon, 25 Jan 2016 22:32:31 +0530
-> > Sudip Mukherjee <sudipm.mukherjee@gmail.com> escreveu:
-> >  
-> >> On Mon, Jan 25, 2016 at 02:29:06PM -0200, Mauro Carvalho Chehab wrote:  
-> >>> Em Fri, 18 Dec 2015 18:35:29 +0530
-> >>> Sudip Mukherjee <sudipm.mukherjee@gmail.com> escreveu:
-> >>>  
-> >>>> Modify lirc_parallel driver to use the new parallel port device model.  
-> >>>
-> >>> Did you or someone else tested this patch?  
-> >>
-> >> Only build tested and tested by inserting and removing the module.
-> >> But since the only change is in the way it registers and nothing else
-> >> so it should not break.  
-> >
-> > It would be worth to wait for a while in the hope that someone could
-> > test with a real hardware.  
-> 
-> Sure, we have lots of time for 4.6 merge window. May be if you have the 
-> schematic somewhere then I can try to build one. Its a Homebrew one, so 
-> maybe I can try.
+https://lkml.org/lkml/2016/1/6/668
 
-Take a look at:
-	http://www.lirc.org/parallel.html
+Shuah Khan (2):
+  media: au0828 fix enable/disable source compile warns
+  media: au0828 fix au0828_media_device_register warn
 
-Regards,
-Mauro
-> 
-> regards
-> sudip
-> 
+ drivers/media/usb/au0828/au0828-core.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+-- 
+2.5.0
+
