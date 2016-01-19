@@ -1,79 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:49739 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752889AbcALMeV (ORCPT
+Received: from mail-pf0-f181.google.com ([209.85.192.181]:35287 "EHLO
+	mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757284AbcASHHc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jan 2016 07:34:21 -0500
-Subject: Re: vivid - video output
-To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
-References: <CAJ2oMhJAHEqZTUC9Y-0jFqcw_JdfTxRsWH3eOSHWbFab+VnngA@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5694F3B4.7060405@xs4all.nl>
-Date: Tue, 12 Jan 2016 13:38:12 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAJ2oMhJAHEqZTUC9Y-0jFqcw_JdfTxRsWH3eOSHWbFab+VnngA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Tue, 19 Jan 2016 02:07:32 -0500
+Received: by mail-pf0-f181.google.com with SMTP id 65so170489029pff.2
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 23:07:32 -0800 (PST)
+From: Wu-Cheng Li <wuchengli@chromium.org>
+To: pawel@osciak.com, mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	k.debski@samsung.com, crope@iki.fi, standby24x7@gmail.com,
+	wuchengli@chromium.org, nicolas.dufresne@collabora.com,
+	ricardo.ribalda@gmail.com, ao2@ao2.it, bparrot@ti.com,
+	kyungmin.park@samsung.com, jtp.park@samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	tiffany.lin@mediatek.com, djkurtz@chromium.org
+Subject: [PATCH v4 1/2] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
+Date: Tue, 19 Jan 2016 15:07:09 +0800
+Message-Id: <1453187230-97231-2-git-send-email-wuchengli@chromium.org>
+In-Reply-To: <1453187230-97231-1-git-send-email-wuchengli@chromium.org>
+References: <1453187230-97231-1-git-send-email-wuchengli@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/12/16 13:21, Ran Shalit wrote:
-> Hello,
-> 
-> I would please like to ask about vivid video output:
-> I've been trying to understand everything from source code and
-> documentation, but still not quite sure about its purpose .
-> 
-> Vivid is good example for demonstration of how to write video output driver.
-> But is it also to be used as a way to test/validate correctness of
-> application video output   (just as done with vivid capture video,
-> before using the real output HW) ?
+Some drivers also need a control like
+V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE to force an encoder
+key frame. Add a general V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME
+so the new drivers and applications can use it.
 
-Yes, it can be used for that purpose. Specifically with respect to the
-handling of negotiating timings (G/S_DV_TIMINGS).
+Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
+---
+ Documentation/DocBook/media/v4l/controls.xml | 8 ++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         | 2 ++
+ include/uapi/linux/v4l2-controls.h           | 1 +
+ 3 files changed, 11 insertions(+)
 
-> 
-> On delving in source code,  I see in vivid-kthread-out.c file
-> 
-> vivid_thread_vid_out() -> vivid_thread_vid_out_tick() ->
-> 
-> {....
-> dequeue buffer(vid_out_buf)
-> ....
-> v4l2_get_timestamp(&vid_out_buf->vb.timestamp);
-> vid_out_buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-> ...}
-> 
-> What's the purpose of timestamp modification for the output frames ?
-> Is it relevant only when using vivid in loopback mode ?
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index f13a429..a62ea7b 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -2330,6 +2330,14 @@ vertical search range for motion estimation module in video encoder.</entry>
+ 	      </row>
+ 
+ 	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-video-force-key-frame">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME</constant>&nbsp;</entry>
++		<entry>button</entry>
++	      </row><row><entry spanname="descr">Force a key frame for the next queued buffer. Applicable to encoders.
++This is a general, codec-agnostic keyframe control.</entry>
++	      </row>
++
++	      <row><entry></entry></row>
+ 	      <row>
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nbsp;</entry>
+ 		<entry>integer</entry>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index c9d5537..bd1b7ad 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -747,6 +747,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:		return "Horizontal MV Search Range";
+ 	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:		return "Vertical MV Search Range";
+ 	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
++	case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:		return "Force Key Frame";
+ 
+ 	/* VPX controls */
+ 	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
+@@ -985,6 +986,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME:
+ 	case V4L2_CID_PAN_RESET:
+ 	case V4L2_CID_TILT_RESET:
+ 	case V4L2_CID_FLASH_STROBE:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2d225bc..5b49df6 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -390,6 +390,7 @@ enum v4l2_mpeg_video_multi_slice_mode {
+ #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER		(V4L2_CID_MPEG_BASE+226)
+ #define V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+227)
+ #define V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE		(V4L2_CID_MPEG_BASE+228)
++#define V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME		(V4L2_CID_MPEG_BASE+229)
+ 
+ #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
+ #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
+-- 
+2.6.0.rc2.230.g3dd15c0
 
-Are you talking about adding time_wrap_offset? The goal of that offset
-is to be able to test what happens in the application if the timestamp
-wraps around. Normally very hard to test, but with vivid it is easy to do.
-
-> 
-> I also encounter old patch of video output loopback (viloop.c), but I
-> did't find it in released kernel.
-
-That functionality is now integrated in vivid as the loopback mode.
-
-> Application's video output frames can just be written into file and
-> played later (as a way to validate the correctness of frames given to
-> the video output driver), so I wander if there is any other purpose in
-> vivid video output which I don't see yet.
-
-It's not so much the frame content, it's about negotiating timings etc. where
-vivid is useful to test v4l2 output applications.
-
-Regards,
-
-	Hans
-
-> 
-> Best Regards,
-> Ran
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
