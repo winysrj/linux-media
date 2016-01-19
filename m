@@ -1,93 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-10v.sys.comcast.net ([96.114.154.169]:33785 "EHLO
-	resqmta-po-10v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752015AbcAFU1e (ORCPT
+Received: from dynamic.0.6.79d1f80.14cc20ac3a53.cust.bredband2.com ([89.233.230.99]:50924
+	"EHLO bigcity.berto.se" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755454AbcASQkB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 15:27:34 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 13/31] media: au0828 fix au0828_create_media_graph() entity checks
-Date: Wed,  6 Jan 2016 13:27:02 -0700
-Message-Id: <ab77ed92dafb05b262a33fcd827f35ad8be3d619.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	Tue, 19 Jan 2016 11:40:01 -0500
+Date: Tue, 19 Jan 2016 17:10:47 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+	laurent.pinchart@ideasonboard.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk
+Subject: Re: [RESEND PATCH] media: adv7180: increase delay after reset to 5ms
+Message-ID: <20160119161047.GA22815@bigcity.dyn.berto.se>
+References: <1453205956-9103-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1453205956-9103-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-au0828_create_media_graph() doesn't do any checks to determine,
-if vbi_dev, vdev, and input entities have been registered prior
-to creating pad links. Checking graph_obj.mdev field works as
-the graph_obj.mdev field gets initialized in the entity register
-interface. Fix it to check graph_obj.mdev field before creating
-pad links.
+Hi Ulrich,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+This fixes the problems I have seen on Koelsch.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index f46fb43..8ef7c71 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -291,20 +291,27 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 		if (ret)
- 			return ret;
- 	}
--	ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
--				    &dev->vdev.entity, 0,
--				    MEDIA_LNK_FL_ENABLED);
--	if (ret)
--		return ret;
--	ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
--				    &dev->vbi_dev.entity, 0,
--				    MEDIA_LNK_FL_ENABLED);
--	if (ret)
--		return ret;
-+	if (dev->vdev.entity.graph_obj.mdev) {
-+		ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
-+					    &dev->vdev.entity, 0,
-+					    MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			return ret;
-+	}
-+	if (dev->vbi_dev.entity.graph_obj.mdev) {
-+		ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
-+					    &dev->vbi_dev.entity, 0,
-+					    MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			return ret;
-+	}
- 
- 	for (i = 0; i < AU0828_MAX_INPUT; i++) {
- 		struct media_entity *ent = &dev->input_ent[i];
- 
-+		if (!ent->graph_obj.mdev)
-+			continue;
-+
- 		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
- 			break;
- 
--- 
-2.5.0
+* Ulrich Hecht <ulrich.hecht+renesas@gmail.com> [2016-01-19 13:19:16 +0100]:
 
+> Initialization of the ADV7180 chip fails on the Renesas R8A7790-based
+> Lager board about 50% of the time.  This patch resolves the issue by
+> increasing the minimum delay after reset from 2 ms to 5 ms, following the
+> recommendation in the ADV7180 datasheet:
+>
+> "Executing a software reset takes approximately 2 ms. However, it is
+> recommended to wait 5 ms before any further I2C writes are performed."
+>
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Acked-by: Lars-Peter Clausen <lars@metafoo.de>
+
+Tested-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
