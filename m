@@ -1,120 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:53415 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932414AbcASXAY (ORCPT
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:34156 "EHLO
+	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954AbcASLKt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 18:00:24 -0500
-Message-ID: <1453244418.5933.55.camel@collabora.com>
-Subject: Re: V4L2 Colorspace for RGB formats
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Dimitrios Katsaros <patcherwork@gmail.com>,
-	linux-media@vger.kernel.org
-Date: Tue, 19 Jan 2016 18:00:18 -0500
-In-Reply-To: <569EAF04.802@xs4all.nl>
-References: <1453226443.5933.7.camel@collabora.com> <569EAF04.802@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-A6ynmtRKcTe+aKJHGvOT"
-Mime-Version: 1.0
+	Tue, 19 Jan 2016 06:10:49 -0500
+Received: by mail-lf0-f50.google.com with SMTP id 17so133878661lfz.1
+        for <linux-media@vger.kernel.org>; Tue, 19 Jan 2016 03:10:48 -0800 (PST)
+Subject: Re: [PATCH] MAINTAINERS: Update mailing list for Renesas SoC
+ Development
+To: Simon Horman <horms+renesas@verge.net.au>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+References: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
+Cc: linux-renesas-soc@vger.kernel.org, linux-sh@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Magnus Damm <magnus.damm@gmail.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <569E19B5.1000206@cogentembedded.com>
+Date: Tue, 19 Jan 2016 14:10:45 +0300
+MIME-Version: 1.0
+In-Reply-To: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello.
 
---=-A6ynmtRKcTe+aKJHGvOT
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On 1/18/2016 4:04 AM, Simon Horman wrote:
 
-Le mardi 19 janvier 2016 =C3=A0 22:47 +0100, Hans Verkuil a =C3=A9crit=C2=
-=A0:
-> On 01/19/2016 07:00 PM, Nicolas Dufresne wrote:
-> > Hi Hans,
-> >=20
-> > we are having issues in GStreamer with the colorspace in V4L2. The
-> > API
-> > does not provide any encoding for RGB formats.
->=20
-> Which API? GStreamer or V4L2?
->=20
-> > The encoding matrix for
-> > those is usually the identity matrix, anything else makes very
-> > little
-> > sense to me.
->=20
-> While normally RGB formats use the sRGB colorspace, this is by no
-> means
-> always the case. HDMI for example also supports AdobeRGB and BT2020
-> RGB.
->=20
-> > For example, vivid will declare a stream with RGB based
-> > pixel format as having the default for sRGB colorspace, which lead
-> > to
-> > non-identity syCC encoding.
->=20
-> I don't follow. sYCC is for YCbCr formats. RGB formats do not contain
-> any
-> information about YCbCr (i.e. the ycbcr_enc field should be ignored).
->=20
-> If gstreamer wants to convert RGB formats to YCbCr formats, then it
-> can
-> choose whatever RGB->YCbCr conversion it wants.
->=20
-> The colorspace (i.e. the chromaticities), xfer_func and quantization
-> fields
-> as reported by V4L2 are all still valid for RGB pixelformats.
->=20
-> You need those as well: take an HDMI receiver that converts Y'CbCr to
-> R'G'B'
-> (let's be precise here and use the quote). If the input is HDTV using
-> Rec.709, then the colorspace is set to V4L2_COLORSPACE_REC709 and the
-> other
-> fields are all 0 (DEFAULT). These map to XFER_FUNC_709 for the
-> transfer
-> function, QUANTIZATION_FULL_RANGE for the quantization and ycbcr_enc
-> is
-> ignored since there is nothing to do here (the Y'CbCr to R'G'B'
-> conversion
-> is already done in hardware using the Rec. 709 Y'CbCr encoding).
->=20
-> If you would just ignore all fields and use COLORSPACE_SRGB, then you
-> would be using the wrong transfer function (XFER_FUNC_SRGB instead of
-> XFER_FUNC_709).
->=20
-> > Shall we simply ignore the encoding set by drivers when the pixel
-> > format is RGB based ? To me it makes very little sense, but the
-> > code in
-> > GStreamer is very generic and this wrong information lead to errors
-> > when the data is converted to YUV and back to RGB.
->=20
-> It seems to me that for RGB formats GStreamer should just set cinfo-
-> >matrix
-> (which I assume is the Y'CbCr to R'G'B' matrix) to the unity matrix
-> and
-> everything else follows the normal rules.
+> Update the mailing list used for development of support for
+> Renesas SoCs and related drivers.
+>
+> Up until now the linux-sh mailing list has been used, however,
+> Renesas SoCs are now much wider than the SH architecture and there
+> is some desire from some for the linux-sh list to refocus on
+> discussion of the work on the SH architecture.
+>
+> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+> Cc: Magnus Damm <magnus.damm@gmail.com>
+> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+>
+> ---
+> * This patch applies on top of Linus's tree where currently the head commit
+>    is 984065055e6e ("Merge branch 'drm-next' of
+>    git://people.freedesktop.org/~airlied/linux")
+>
+>    This has been used as a base instead of v4.4 so that it is based on the
+>    following two commits which affect it:
+>    - 1a4ca6dd3dc8 ("MAINTAINERS: Add co-maintainer for Renesas Pin Controllers")
+>    - 3e46c3973cba ("MAINTAINERS: add Renesas usb2 phy driver")
+> ---
+>   MAINTAINERS | 16 ++++++++--------
+>   1 file changed, 8 insertions(+), 8 deletions(-)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 1d23f701489c..52a6ba79fa3f 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+[...]
+> @@ -8413,7 +8413,7 @@ F:	drivers/pinctrl/intel/
+>   PIN CONTROLLER - RENESAS
+>   M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>   M:	Geert Uytterhoeven <geert+renesas@glider.be>
+> -L:	linux-sh@vger.kernel.org
+> +L:	linux-renesas-soc@vger.kernel.org
+>   S:	Maintained
+>   F:	drivers/pinctrl/sh-pfc/
+>
+> @@ -9019,13 +9019,13 @@ F:	include/linux/rpmsg.h
+>   RENESAS ETHERNET DRIVERS
+>   R:	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>   L:	netdev@vger.kernel.org
+> -L:	linux-sh@vger.kernel.org
+> +L:	linux-renesas-soc@vger.kernel.org
+>   F:	drivers/net/ethernet/renesas/
+>   F:	include/linux/sh_eth.h
 
-So you are saying that from V4L2 we may receive weird R'G'B data, like
-one using limited range ? I believe what is hard to understand from
-V4L2 documentation is what transformation is left to be applied before
-this R'G'B frame can be used with other normalized frame (for mixing,
-or display, or anything). Where did the conversion stopped, basically
-what our converter still need to do to get things right.
+    If SH people are OK with these 2 chunks (these entries cover the drivers 
+used by SH as well):
 
-Nicolas
+Acked-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-p.s. meanwhile we just removed the colorimetry information from non
-Y'CbCr pixel formats, as this brings back the behaviour prior to this.
---=-A6ynmtRKcTe+aKJHGvOT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEABECAAYFAlaewAIACgkQcVMCLawGqBzs3QCdGplXOXc+7GFrpN3kuh/nqzis
-46AAnRTCvxePeiFkP/CQmEbCRTevT2rJ
-=BSKc
------END PGP SIGNATURE-----
-
---=-A6ynmtRKcTe+aKJHGvOT--
+MBR, Sergei
 
