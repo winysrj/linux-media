@@ -1,57 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:40700 "EHLO
-	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751171AbcA3TEQ (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:36339 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754668AbcASASU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jan 2016 14:04:16 -0500
-From: ayaka <ayaka@soulik.info>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@osg.samsung.com,
-	linux-arm-kernel@lists.infradead.org, ayaka <ayaka@soulik.info>
-Subject: [PATCH 2/4] [media] s5p-mfc: remove unnecessary check in try_fmt
-Date: Sun, 31 Jan 2016 02:53:35 +0800
-Message-Id: <1454180017-29071-3-git-send-email-ayaka@soulik.info>
-In-Reply-To: <1454180017-29071-1-git-send-email-ayaka@soulik.info>
-References: <1454180017-29071-1-git-send-email-ayaka@soulik.info>
+	Mon, 18 Jan 2016 19:18:20 -0500
+Date: Tue, 19 Jan 2016 09:18:16 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-renesas-soc@vger.kernel.org,
+	Linux-sh list <linux-sh@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-pci <linux-pci@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Geert Uytterhoeven <geert+renesas@glider.be>,
+	Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [PATCH] MAINTAINERS: Update mailing list for Renesas SoC
+ Development
+Message-ID: <20160119001815.GA14224@verge.net.au>
+References: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
+ <CAMuHMdXF8QnKsLOYFnT7Rje5G9_7Xr0NesO2SKEkWSivKQYkbA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdXF8QnKsLOYFnT7Rje5G9_7Xr0NesO2SKEkWSivKQYkbA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We don't need to request the sizeimage or num_planes
-in try_fmt.
+On Mon, Jan 18, 2016 at 09:09:29AM +0100, Geert Uytterhoeven wrote:
+> CC linux-arm-kernel
+> 
+> On Mon, Jan 18, 2016 at 2:04 AM, Simon Horman
+> <horms+renesas@verge.net.au> wrote:
+> > Update the mailing list used for development of support for
+> > Renesas SoCs and related drivers.
+> >
+> > Up until now the linux-sh mailing list has been used, however,
+> > Renesas SoCs are now much wider than the SH architecture and there
+> > is some desire from some for the linux-sh list to refocus on
+> > discussion of the work on the SH architecture.
+> >
+> > Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+> > Cc: Magnus Damm <magnus.damm@gmail.com>
+> > Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> 
+> Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> 
+> > ---
+> > * This patch applies on top of Linus's tree where currently the head commit
+> >   is 984065055e6e ("Merge branch 'drm-next' of
+> >   git://people.freedesktop.org/~airlied/linux")
+> >
+> >   This has been used as a base instead of v4.4 so that it is based on the
+> >   following two commits which affect it:
+> >   - 1a4ca6dd3dc8 ("MAINTAINERS: Add co-maintainer for Renesas Pin Controllers")
+> >   - 3e46c3973cba ("MAINTAINERS: add Renesas usb2 phy driver")
+> 
+> I assume you'll send an update for the "ARM/RENESAS ARM64 ARCHITECTURE"
+> section as soon as that has landed in mainline?
 
-Signed-off-by: ayaka <ayaka@soulik.info>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 9 ---------
- 1 file changed, 9 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 7c9e5f5..64b92eb 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1043,10 +1043,6 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("failed to try output format\n");
- 			return -EINVAL;
- 		}
--		if (pix_fmt_mp->plane_fmt[0].sizeimage == 0) {
--			mfc_err("must be set encoding output size\n");
--			return -EINVAL;
--		}
- 		if ((dev->variant->version_bit & fmt->versions) == 0) {
- 			mfc_err("Unsupported format by this MFC version.\n");
- 			return -EINVAL;
-@@ -1060,11 +1056,6 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("failed to try output format\n");
- 			return -EINVAL;
- 		}
--
--		if (fmt->num_planes != pix_fmt_mp->num_planes) {
--			mfc_err("failed to try output format\n");
--			return -EINVAL;
--		}
- 		if ((dev->variant->version_bit & fmt->versions) == 0) {
- 			mfc_err("Unsupported format by this MFC version.\n");
- 			return -EINVAL;
--- 
-2.5.0
-
+Yes, that is my plan.
