@@ -1,80 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vpndallas.adeneo-embedded.us ([162.254.209.190]:60816 "EHLO
-	mxadeneo.adeneo-embedded.us" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752964AbcA2ShI (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:54777 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932371AbcASSds (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2016 13:37:08 -0500
-From: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
-To: <linux-media@vger.kernel.org>
-CC: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
-Subject: [PATCH] [media] cx231xx: fix close sequence for VBI + analog
-Date: Fri, 29 Jan 2016 10:36:59 -0800
-Message-ID: <1454092619-27700-1-git-send-email-jtheou@adeneo-embedded.us>
+	Tue, 19 Jan 2016 13:33:48 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] media: au0828 fix enable/disable source compile warns
+Date: Tue, 19 Jan 2016 11:33:43 -0700
+Message-Id: <191653dd281869ad5e5aded297be86d29eaba345.1453223886.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1453223886.git.shuahkh@osg.samsung.com>
+References: <cover.1453223886.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1453223886.git.shuahkh@osg.samsung.com>
+References: <cover.1453223886.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For tuners with no_alt_vanc=0, and VBI and analog video device
-open.
-There is two ways to close the devices:
+Fix the following compile warns for MEDIA_CONTROLLER
+disabled case.
 
-*First way (start with user=2)
+ CC [M]  drivers/media/usb/au0828/au0828-core.o
+drivers/media/usb/au0828/au0828-core.c:398:12: warning: ‘au0828_enable_source’ defined but not used [-Wunused-function]
+ static int au0828_enable_source(struct media_entity *entity,
+            ^
+drivers/media/usb/au0828/au0828-core.c:497:13: warning: ‘au0828_disable_source’ defined but not used [-Wunused-function]
+ static void au0828_disable_source(struct media_entity *entity)
+             ^
 
-VBI first (user=1): URBs for the VBI are killed properly
-with cx231xx_uninit_vbi_isoc
-
-Analog second (user=0): URBs for the Analog are killed
-properly with cx231xx_uninit_isoc
-
-*Second way (start with user=2)
-
-Analog first (user=1): URBs for the Analog are NOT killed
-properly with cx231xx_uninit_isoc, because the exit path
-is not called this time.
-
-VBI first (user=0): URBs for the VBI are killed properly with
-cx231xx_uninit_vbi_isoc, but we are exiting the function
-without killing the URBs for the Analog
-
-This situation lead to various kernel panics, since
-the URBs are still processed, without the device been
-open.
-
-The patch fix the issue by calling the exit path no matter
-what, when user=0, plus remove a duplicate trace.
-
-Signed-off-by: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-video.c | 8 --------
- 1 file changed, 8 deletions(-)
+ drivers/media/usb/au0828/au0828-core.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 9b88cd8..559ca77 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1836,7 +1836,6 @@ static int cx231xx_close(struct file *filp)
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index de357a2..7dda0dd 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -395,10 +395,10 @@ void au0828_create_media_graph_notify(struct media_entity *new,
+ #endif
+ }
  
- 	cx231xx_videodbg("users=%d\n", dev->users);
++#ifdef CONFIG_MEDIA_CONTROLLER
+ static int au0828_enable_source(struct media_entity *entity,
+ 				struct media_pipeline *pipe)
+ {
+-#ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_entity  *source;
+ 	struct media_entity *sink;
+ 	struct media_link *link, *found_link = NULL;
+@@ -490,13 +490,10 @@ end:
+ 	pr_debug("au0828_enable_source() end %s %d %d\n",
+ 		entity->name, entity->function, ret);
+ 	return ret;
+-#endif
+-	return 0;
+ }
  
--	cx231xx_videodbg("users=%d\n", dev->users);
- 	if (res_check(fh))
- 		res_free(fh);
+ static void au0828_disable_source(struct media_entity *entity)
+ {
+-#ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_entity *sink;
+ 	int ret = 0;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+@@ -536,8 +533,8 @@ static void au0828_disable_source(struct media_entity *entity)
  
-@@ -1870,13 +1869,6 @@ static int cx231xx_close(struct file *filp)
- 				cx231xx_set_alt_setting(dev, INDEX_VANC, 0);
- 			else
- 				cx231xx_set_alt_setting(dev, INDEX_HANC, 0);
--
--			v4l2_fh_del(&fh->fh);
--			v4l2_fh_exit(&fh->fh);
--			kfree(fh);
--			dev->users--;
--			wake_up_interruptible(&dev->open);
--			return 0;
- 		}
+ end:
+ 	mutex_unlock(&mdev->graph_mutex);
+-#endif
+ }
++#endif
  
- 	v4l2_fh_del(&fh->fh);
+ static int au0828_media_device_register(struct au0828_dev *dev,
+ 					struct usb_device *udev)
 -- 
-2.7.0
+2.5.0
 
