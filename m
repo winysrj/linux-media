@@ -1,125 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52462 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S968139AbcA1Dpf (ORCPT
+Received: from mail-yk0-f178.google.com ([209.85.160.178]:36419 "EHLO
+	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751404AbcASHI6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2016 22:45:35 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id ADC0C180DB9
-	for <linux-media@vger.kernel.org>; Thu, 28 Jan 2016 04:45:30 +0100 (CET)
-Date: Thu, 28 Jan 2016 04:45:30 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160128034530.ADC0C180DB9@tschai.lan>
+	Tue, 19 Jan 2016 02:08:58 -0500
+Received: by mail-yk0-f178.google.com with SMTP id v14so544657066ykd.3
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 23:08:57 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <5697B85F.7080303@xs4all.nl>
+References: <1452760439-35564-1-git-send-email-wuchengli@chromium.org>
+ <1452760439-35564-2-git-send-email-wuchengli@chromium.org>
+ <56976263.4050902@xs4all.nl> <5697B85F.7080303@xs4all.nl>
+From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
+	<wuchengli@chromium.org>
+Date: Mon, 18 Jan 2016 23:08:37 -0800
+Message-ID: <CAOMLVLhZGstnwCTj1XXs19_HHcDuaX7mUVEznxfgxHAW36_viQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] v4l: add V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Wu-Cheng Li <wuchengli@chromium.org>, pawel@osciak.com,
+	mchehab@osg.samsung.com, k.debski@samsung.com,
+	Antti Palosaari <crope@iki.fi>,
+	Masanari Iida <standby24x7@gmail.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	ao2@ao2.it, bparrot@ti.com, kyungmin.park@samsung.com,
+	jtp.park@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Daniel Kurtz <djkurtz@chromium.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Sorry. I missed the email because of wrong email client configuration.
+I've uploaded v4 to address the comments.
 
-Results of the daily build of media_tree:
-
-date:		Thu Jan 28 04:00:24 CET 2016
-git branch:	test
-git hash:	a73cfe527c10bb023f0e22dd8cf37dd418c093e7
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.3.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-rc1-i686: OK
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+On Thu, Jan 14, 2016 at 7:01 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> Hi Wu-Cheng,
+>
+> Your v3 didn't address these comments. Any reason for that or did you just miss this
+> email?
+>
+> Just wondering,
+>
+>         Hans
+>
+> On 01/14/16 09:54, Hans Verkuil wrote:
+> > On 01/14/16 09:33, Wu-Cheng Li wrote:
+> >> Some drivers also need a control like
+> >> V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE to force an encoder
+> >> I frame. Add a general V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME
+> >> so the new drivers and applications can use it.
+> >>
+> >> Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
+> >> ---
+> >>  Documentation/DocBook/media/v4l/controls.xml | 8 ++++++++
+> >>  drivers/media/v4l2-core/v4l2-ctrls.c         | 2 ++
+> >>  include/uapi/linux/v4l2-controls.h           | 1 +
+> >>  3 files changed, 11 insertions(+)
+> >>
+> >> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> >> index f13a429..6760cf5 100644
+> >> --- a/Documentation/DocBook/media/v4l/controls.xml
+> >> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> >> @@ -2330,6 +2330,14 @@ vertical search range for motion estimation module in video encoder.</entry>
+> >>            </row>
+> >>
+> >>            <row><entry></entry></row>
+> >> +          <row id="v4l2-mpeg-video-force-i-frame">
+> >> +            <entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME</constant>&nbsp;</entry>
+> >> +            <entry>button</entry>
+> >> +          </row><row><entry spanname="descr">Force an I frame for the next queued buffer. Applicable to encoders.
+> >> +This is a general, codec-agnostic keyframe control.</entry>
+> >> +          </row>
+> >> +
+> >> +          <row><entry></entry></row>
+> >>            <row>
+> >>              <entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE</constant>&nbsp;</entry>
+> >>              <entry>integer</entry>
+> >> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> index c9d5537..33ecb7b 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >> @@ -747,6 +747,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+> >>      case V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE:             return "Horizontal MV Search Range";
+> >>      case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:             return "Vertical MV Search Range";
+> >>      case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:             return "Repeat Sequence Header";
+> >> +    case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:                 return "Force an I frame";
+> >
+> > I would suggest renaming this to Key Frame. This is consistent with the V4L2_BUF_FLAG_KEYFRAME
+> > flag and, I think, also more generic than 'I Frame'.
+> >
+> > So the define would become V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME and the control
+> > description "Force Key Frame". The docbook text needs to be updated as well.
+> >
+> > With those changes this looks good to me.
+> >
+> > Regards,
+> >
+> >       Hans
+> >
+> >>
+> >>      /* VPX controls */
+> >>      case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:            return "VPX Number of Partitions";
+> >> @@ -985,6 +986,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+> >>      case V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE:
+> >>              *type = V4L2_CTRL_TYPE_INTEGER;
+> >>              break;
+> >> +    case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:
+> >>      case V4L2_CID_PAN_RESET:
+> >>      case V4L2_CID_TILT_RESET:
+> >>      case V4L2_CID_FLASH_STROBE:
+> >> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> >> index 2d225bc..1c911b8 100644
+> >> --- a/include/uapi/linux/v4l2-controls.h
+> >> +++ b/include/uapi/linux/v4l2-controls.h
+> >> @@ -390,6 +390,7 @@ enum v4l2_mpeg_video_multi_slice_mode {
+> >>  #define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER               (V4L2_CID_MPEG_BASE+226)
+> >>  #define V4L2_CID_MPEG_VIDEO_MV_H_SEARCH_RANGE               (V4L2_CID_MPEG_BASE+227)
+> >>  #define V4L2_CID_MPEG_VIDEO_MV_V_SEARCH_RANGE               (V4L2_CID_MPEG_BASE+228)
+> >> +#define V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME           (V4L2_CID_MPEG_BASE+229)
+> >>
+> >>  #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP         (V4L2_CID_MPEG_BASE+300)
+> >>  #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP         (V4L2_CID_MPEG_BASE+301)
+> >>
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
