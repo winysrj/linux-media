@@ -1,45 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:52549 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751966AbcAFVSC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 16:18:02 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org
-Subject: [PATCH] v4l-utils: mc_nextgen_test renable ALSA interfaces
-Date: Wed,  6 Jan 2016 14:17:59 -0700
-Message-Id: <1452115079-6040-1-git-send-email-shuahkh@osg.samsung.com>
+Received: from mail-io0-f181.google.com ([209.85.223.181]:33682 "EHLO
+	mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932623AbcASKCb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2016 05:02:31 -0500
+MIME-Version: 1.0
+In-Reply-To: <20160112084328.2194ec49@recife.lan>
+References: <20160112084328.2194ec49@recife.lan>
+Date: Tue, 19 Jan 2016 11:02:30 +0100
+Message-ID: <CAMuHMdX3ve8dy5B1PHkDHuzb-FbP4g6PC3=-o9F=z0aTWoST7Q@mail.gmail.com>
+Subject: Re: [GIT PULL for v4.5-rc1] media controller next gen patch series
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ALSA interfaces were disable with #if 0. Renable
-them.
+Hi Mauro,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- contrib/test/mc_nextgen_test.c | 2 --
- 1 file changed, 2 deletions(-)
+On Tue, Jan 12, 2016 at 11:43 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> That's the second part of the media patches. It contains the media controller
+> next generation patches, with is the result of one year of discussions and
+> development. It also contains patches to enable media controller support
+> at the DVB subsystem.
+>
+> The goal is to improve the media controller to allow proper support for
+> other types of Video4Linux devices (radio and TV ones) and to extend the
+> media controller functionality to allow it to be used by other subsystems
+> like DVB, ALSA and IIO.
+>
+> In order to use the new functionality, a new ioctl is needed
+> (MEDIA_IOC_G_TOPOLOGY). As we're still discussing how to pack the struct
+> fields of this ioctl in order to avoid compat32 issues, I decided to add
+> a patch at the end of this series commenting out the new ioctl, in order
+> to postpone the addition of the new ioctl to the next Kernel version (4.6).
+> With that, no userspace visible changes should happen at the media
+> controller API, as the existing ioctls are untouched. Yet, it helps
+> DVB, ALSA and IIO developers to develop and test the patches adding media
+> controller support there, as the core will contain all required internal
+> changes to allow adding support for devices that belong to those
+> subsystems.
+>
+> Regards,
+> Mauro
+>
+> The following changes since commit 768acf46e1320d6c41ed1b7c4952bab41c1cde79:
+>
+>   [media] rc: sunxi-cir: Initialize the spinlock properly (2015-12-23 15:51:40 -0200)
+>
+> are available in the git repository at:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.5-2
+>
+> for you to fetch changes up to be0270ec89e6b9b49de7e533dd1f3a89ad34d205:
+>
+>   [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY (2016-01-11 12:35:17 -0200)
 
-diff --git a/contrib/test/mc_nextgen_test.c b/contrib/test/mc_nextgen_test.c
-index 14a0917..7d0344b 100644
---- a/contrib/test/mc_nextgen_test.c
-+++ b/contrib/test/mc_nextgen_test.c
-@@ -184,7 +184,6 @@ static inline const char *intf_type(uint32_t intf_type)
- 		return "v4l2-subdev";
- 	case MEDIA_INTF_T_V4L_SWRADIO:
- 		return "swradio";
--#if 0
- 	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
- 		return "pcm-capture";
- 	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
-@@ -197,7 +196,6 @@ static inline const char *intf_type(uint32_t intf_type)
- 		return "rawmidi";
- 	case MEDIA_INTF_T_ALSA_HWDEP:
- 		return "hwdep";
--#endif
- 	default:
- 		return "unknown_intf";
- 	}
--- 
-2.5.0
+After merging this into mainline, I get the BUG_ON() and crash I reported ca.
+one month ago in "vsp1 BUG_ON() and crash (Re: [PATCH v9 03/12] media:
+Entities, pads and links)" ( https://lkml.org/lkml/2015/12/14/373).
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
