@@ -1,71 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:45246 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751220AbcAGS1x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jan 2016 13:27:53 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Nikhil Devshatwar <nikhil.nd@ti.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-samsung-soc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Prabhakar\"" <prabhakar.csengg@gmail.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH 0/8] [media] Check v4l2_of_parse_endpoint() ret val in all drivers
-Date: Thu,  7 Jan 2016 15:27:14 -0300
-Message-Id: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:34225 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933267AbcATEG1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2016 23:06:27 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 95CD8184E74
+	for <linux-media@vger.kernel.org>; Wed, 20 Jan 2016 05:06:22 +0100 (CET)
+Date: Wed, 20 Jan 2016 05:06:22 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160120040622.95CD8184E74@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-When discussing a patch [0] with Laurent Pinchart for another series I
-mentioned to him that most callers of v4l2_of_parse_endpoint() weren't
-checking the return value. This is likely due the function kernel-doc
-stating incorrectly that the return value is always 0 but can return a
-negative error code on failure.
+Results of the daily build of media_tree:
 
-This trivial patch series fixes the function kernel-doc and add proper
-error checking in all the drivers that are currently not doing so.
+date:		Wed Jan 20 04:00:19 CET 2016
+git branch:	test
+git hash:	768acf46e1320d6c41ed1b7c4952bab41c1cde79
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.3.0-164
 
-[0]: https://lkml.org/lkml/2016/1/6/307
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Best regards,
-Javier
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Javier Martinez Canillas (8):
-  [media] v4l: of: Correct v4l2_of_parse_endpoint() kernel-doc
-  [media] adv7604: Check v4l2_of_parse_endpoint() return value
-  [media] s5c73m3: Check v4l2_of_parse_endpoint() return value
-  [media] s5k5baf: Check v4l2_of_parse_endpoint() return value
-  [media] tvp514x: Check v4l2_of_parse_endpoint() return value
-  [media] tvp7002: Check v4l2_of_parse_endpoint() return value
-  [media] exynos4-is: Check v4l2_of_parse_endpoint() return value
-  [media] omap3isp: Check v4l2_of_parse_endpoint() return value
+Full logs are available here:
 
- drivers/media/i2c/adv7604.c                   |  7 ++++++-
- drivers/media/i2c/s5c73m3/s5c73m3-core.c      |  4 +++-
- drivers/media/i2c/s5k5baf.c                   |  5 ++++-
- drivers/media/i2c/tvp514x.c                   |  4 +++-
- drivers/media/i2c/tvp7002.c                   |  4 +++-
- drivers/media/platform/exynos4-is/media-dev.c |  8 +++++++-
- drivers/media/platform/exynos4-is/mipi-csis.c | 10 +++++++---
- drivers/media/platform/omap3isp/isp.c         |  5 ++++-
- drivers/media/v4l2-core/v4l2-of.c             |  2 +-
- 9 files changed, 38 insertions(+), 11 deletions(-)
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
--- 
-2.4.3
+The Media Infrastructure API from this daily build is here:
 
+http://www.xs4all.nl/~hverkuil/spec/media.html
