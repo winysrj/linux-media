@@ -1,75 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:45320 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753251AbcADMs4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jan 2016 07:48:56 -0500
-From: Wolfram Sang <wsa@the-dreams.de>
-To: linux-sh@vger.kernel.org
-Cc: Wolfram Sang <wsa@the-dreams.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] soc_camera: cleanup control device on async_unbind
-Date: Mon,  4 Jan 2016 13:48:24 +0100
-Message-Id: <1451911723-10868-1-git-send-email-wsa@the-dreams.de>
+Received: from mailout.easymail.ca ([64.68.201.169]:40207 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934334AbcAUSJ6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jan 2016 13:09:58 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH REBASE 4.5 18/31] media: au0828 change to use Managed Media Controller API
+Date: Thu, 21 Jan 2016 11:09:48 -0700
+Message-Id: <a0c6c96b8dbb916752cfb2f2f34da3c3e0862bb3.1453336831.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1453336830.git.shuahkh@osg.samsung.com>
+References: <cover.1453336830.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1453336830.git.shuahkh@osg.samsung.com>
+References: <cover.1453336830.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Change au0828 to use Managed Media Controller API to coordinate
+creating/deleting media device on parent usb device it shares
+with the snd-usb-audio driver. With this change, au0828 uses
+media_device_get_devres() to allocate a new media device devres
+or return an existing one, if it finds one.
 
-I got the following WARN on a simple unbind/bind cycle:
-
-root@Lager:/sys/bus/i2c/drivers/adv7180# echo 6-0020 > unbind
-root@Lager:/sys/bus/i2c/drivers/adv7180# echo 6-0020 > bind
-[   31.097652] adv7180 6-0020: chip found @ 0x20 (e6520000.i2c)
-[   31.123744] ------------[ cut here ]------------
-[   31.128413] WARNING: CPU: 3 PID: 873 at drivers/media/platform/soc_camera/soc_camera.c:1463 soc_camera_async_bound+0x40/0xa0()
-[   31.139896] CPU: 3 PID: 873 Comm: sh Not tainted 4.4.0-rc3-00062-ge8ae2c0b6bca2a #172
-[   31.147815] Hardware name: Generic R8A7790 (Flattened Device Tree)
-[   31.154056] Backtrace:
-[   31.156575] [<c0014bc0>] (dump_backtrace) from [<c0014d80>] (show_stack+0x20/0x24)
-[   31.164233]  r6:c05c5b33 r5:00000009 r4:00000000 r3:00404100
-[   31.170017] [<c0014d60>] (show_stack) from [<c01e2344>] (dump_stack+0x78/0x94)
-[   31.177344] [<c01e22cc>] (dump_stack) from [<c0029e7c>] (warn_slowpath_common+0x98/0xc4)
-[   31.185518]  r4:00000000 r3:00000000
-[   31.189172] [<c0029de4>] (warn_slowpath_common) from [<c0029fa0>] (warn_slowpath_null+0x2c/0x34)
-[   31.198043]  r8:eb38df28 r7:eb38c5d0 r6:eb38de80 r5:e6962810 r4:eb38de80
-[   31.204898] [<c0029f74>] (warn_slowpath_null) from [<c0356348>] (soc_camera_async_bound+0x40/0xa0)
-[   31.213955] [<c0356308>] (soc_camera_async_bound) from [<c03499a0>] (v4l2_async_test_notify+0x9c/0x108)
-[   31.223430]  r5:eb38c5ec r4:eb38de80
-[   31.227084] [<c0349904>] (v4l2_async_test_notify) from [<c0349dd8>] (v4l2_async_register_subdev+0x88/0xd0)
-[   31.236822]  r7:c07115c8 r6:c071160c r5:eb38c5ec r4:eb38de80
-[   31.242622] [<c0349d50>] (v4l2_async_register_subdev) from [<c0337040>] (adv7180_probe+0x2c8/0x3a4)
-[   31.251753]  r8:00000000 r7:00000001 r6:eb38de80 r5:ea973400 r4:eb38de10 r3:00000000
-[   31.259660] [<c0336d78>] (adv7180_probe) from [<c032dd80>] (i2c_device_probe+0x1a0/0x1e4)
-
-This gets fixed by clearing the control device pointer on async_unbind.
-
-Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
+ drivers/media/usb/au0828/au0828-core.c | 29 +++++++++++++++--------------
+ 1 file changed, 15 insertions(+), 14 deletions(-)
 
-I stumbled over this while playing with OF_DYNAMIC and rebinding various
-devices through that. I have to admit I am not actually using the camera
-interface besides binding to it. This shouldn't make a difference, though :)
-
-Stable material, I'd think.
-
- drivers/media/platform/soc_camera/soc_camera.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index dc98122e78dc50..361275c9f770d7 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1493,6 +1493,8 @@ static void soc_camera_async_unbind(struct v4l2_async_notifier *notifier,
- 					struct soc_camera_async_client, notifier);
- 	struct soc_camera_device *icd = platform_get_drvdata(sasc->pdev);
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index d0fb40b..10c50f5 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -135,10 +135,10 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ {
  
-+	icd->control = NULL;
-+
- 	if (icd->clk) {
- 		v4l2_clk_unregister(icd->clk);
- 		icd->clk = NULL;
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-	if (dev->media_dev) {
++	if (dev->media_dev &&
++		media_devnode_is_registered(&dev->media_dev->devnode)) {
+ 		media_device_unregister(dev->media_dev);
+ 		media_device_cleanup(dev->media_dev);
+-		kfree(dev->media_dev);
+ 		dev->media_dev = NULL;
+ 	}
+ #endif
+@@ -224,23 +224,24 @@ static int au0828_media_device_init(struct au0828_dev *dev,
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_device *mdev;
+ 
+-	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	mdev = media_device_get_devres(&udev->dev);
+ 	if (!mdev)
+ 		return -ENOMEM;
+ 
+-	mdev->dev = &udev->dev;
++	if (!media_devnode_is_registered(&mdev->devnode)) {
++		mdev->dev = &udev->dev;
+ 
+-	if (!dev->board.name)
+-		strlcpy(mdev->model, "unknown au0828", sizeof(mdev->model));
+-	else
+-		strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
+-	if (udev->serial)
+-		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
+-	strcpy(mdev->bus_info, udev->devpath);
+-	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+-	mdev->driver_version = LINUX_VERSION_CODE;
++		if (udev->product)
++			strlcpy(mdev->model, udev->product,
++				sizeof(mdev->model));
++		if (udev->serial)
++			strlcpy(mdev->serial, udev->serial,
++				sizeof(mdev->serial));
++		strcpy(mdev->bus_info, udev->devpath);
++		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+ 
+-	media_device_init(mdev);
++		media_device_init(mdev);
++	}
+ 
+ 	dev->media_dev = mdev;
+ #endif
 -- 
-2.1.4
+2.5.0
 
