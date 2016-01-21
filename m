@@ -1,76 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-04v.sys.comcast.net ([96.114.154.163]:42203 "EHLO
-	resqmta-po-04v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752090AbcAFU1b (ORCPT
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:8614 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759215AbcAUJgj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 15:27:31 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 12/31] media: au0828 Use au8522_media_pads enum for pad defines
-Date: Wed,  6 Jan 2016 13:27:01 -0700
-Message-Id: <42ed5fee893ad2729f24862b52df92f6b4874421.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	Thu, 21 Jan 2016 04:36:39 -0500
+Subject: Re: [v4l-utils 0/5] Misc build fixes
+To: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Gregor Jasny <gjasny@googlemail.com>
+References: <1446584320-25016-1-git-send-email-thomas.petazzoni@free-electrons.com>
+ <20160121095040.2b185fd0@free-electrons.com> <56A09F03.2090201@cisco.com>
+ <20160121101556.303dbf0c@free-electrons.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <56A0A785.7000304@cisco.com>
+Date: Thu, 21 Jan 2016 10:40:21 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160121101556.303dbf0c@free-electrons.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828-core to use au8522_media_pads enum defines
-instead of hard-coding the pad values when it creates
-media graph linking decode pads to other entities.
+Hi Thomas,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+On 01/21/16 10:15, Thomas Petazzoni wrote:
+> Hans,
+> 
+> On Thu, 21 Jan 2016 10:04:03 +0100, Hans Verkuil wrote:
+>> They are already merged, so there is nothing to do :-)
+>>
+>> Weird, you should have gotten an email from patchwork when I accepted these
+>> patches.
+> 
+> My bad then, I searched for e-mails from patchwork in my archives, and
+> indeed found one. Looks like I'm getting old. Sorry for the noise :-)
+> 
+> In order to make this somewhat useful, when will the next release of
+> v4l-utils, with those fixes, be published ?
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 101d329..f46fb43 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -20,6 +20,7 @@
-  */
- 
- #include "au0828.h"
-+#include "au8522.h"
- 
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -290,11 +291,13 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 		if (ret)
- 			return ret;
- 	}
--	ret = media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
-+	ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
-+				    &dev->vdev.entity, 0,
- 				    MEDIA_LNK_FL_ENABLED);
- 	if (ret)
- 		return ret;
--	ret = media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
-+	ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
-+				    &dev->vbi_dev.entity, 0,
- 				    MEDIA_LNK_FL_ENABLED);
- 	if (ret)
- 		return ret;
--- 
-2.5.0
+No idea. Gregor, any plans for a new release? It's been a while, so I think
+a new release isn't a bad idea.
 
+Regards,
+
+	Hans
