@@ -1,39 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp35.i.mail.ru ([94.100.177.95]:49558 "EHLO smtp35.i.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758823AbcAKJ6x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 04:58:53 -0500
-From: andreykosh000@mail.ru
-To: linux-media@vger.kernel.org
-Cc: Andrei Koshkosh <andreykosh000@mail.ru>
-Subject: [PATCH] Fixed frequency range to 42-870 MHz
-Date: Mon, 11 Jan 2016 19:58:44 +1000
-Message-Id: <1452506324-11055-1-git-send-email-andreykosh000@mail.ru>
+Received: from [103.196.152.197] ([103.196.152.197]:59156 "EHLO
+	a.paperrate.net" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927AbcAUXVi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jan 2016 18:21:38 -0500
+Received: from raymond-PC (unknown [113.91.121.230])
+	by a.paperrate.net (Postfix) with ESMTPA id CCDEE46DF4
+	for <linux-media@vger.kernel.org>; Fri, 22 Jan 2016 07:14:29 +0800 (CST)
+Date: Fri, 22 Jan 2016 07:14:37 +0800
+From: "Raymond" <zpd@a.paperrate.net>
+Reply-To: raymondpower@163.com
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: Vr headset,vr box,Vr glasses,from the original factory
+Message-ID: <201601220714378456791@a.paperrate.net>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="GB2312"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrei Koshkosh <andreykosh000@mail.ru>
-
-Signed-off-by: Andrei Koshkosh <andreykosh000@mail.ru>
----
- drivers/media/tuners/si2157.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index ce157ed..86a753e 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -363,8 +363,8 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
- 		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
--		.frequency_min  = 55000000,
--		.frequency_max  = 862000000,
-+		.frequency_min  = 42000000,
-+		.frequency_max  = 870000000,
- 	},
- 
- 	.init = si2157_init,
--- 
-1.9.1
-
+RGVhciANCkhhcHB5IDIwMTYsIA0KSG90dGVzdCBWUiBib3gsZm9yIG1vYmlsZSBwaG9uZSxXYXRj
+aCAzRCBtb3ZpZSBhbmQgdnIgdmlkZW8sUGxheSB2ciBnYW1lcw0KUHJpY2Ugb25seSAkNi9wYyBu
+b3csb25seSBmcm9tIHRoZSBhcmNwZWFrcyBmYWN0b3J5IA0KQWxpYmFiYSBsaW5rLGh0dHA6Ly9h
+cmNwZWFrcy5lbi5hbGliYWJhLmNvbS9wcm9kdWN0LzYwNDAxMjg3MDAyLTgwMjYzNDEzNi8yMDE2
+X2hvdHRlc3RfcHJvZHVjdF92aXJ0dWFsX3JlYWxpdHlfM2RfZ2FtZXNfYW5kX3ZpZGVvXzNkX3Zy
+X2dsYXNzZXMuaHRtbA0KUGxlYXNlIGZlZWwgZnJlZSB0byBjb250YWN0IG1lIGZvciBtb3JlIGRl
+dGFpbHMgDQpUaGFua3MNCkJlc3QgUmVnYXJkcw0KUmF5DQphcmNwZWFrcy5lbi5hbGliYWJhLmNv
+bQ0KU2t5cGU6c2l4aXdlbnpoaQ0KZW1haWw6cmF5bW9uZEBhcmNwZWFrcy5jb20=
