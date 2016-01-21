@@ -1,74 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:41229 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751988AbcA1IvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 03:51:23 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: Support Intersil/Techwell TW686x-based video capture cards
-References: <1451183213-2733-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-	<569CE27F.6090702@xs4all.nl>
-	<CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
-	<m31t96j8u4.fsf@t19.piap.pl>
-	<CAAEAJfBM_vVBVRd3P0kJ1QLzk-M==L=x6CS0ggXgRX=7K_aK_A@mail.gmail.com>
-	<m3si1kioa9.fsf@t19.piap.pl>
-	<CAAEAJfC_Sa_6opADoz0Ab8NrmhX+cjNmSK_Nw_Ne9nk-ROaj0Q@mail.gmail.com>
-	<m3io2gfksk.fsf@t19.piap.pl>
-	<CAAEAJfDb84ZbRkq9GVOmeWp=vpn_GBX9Fx0w+aGnZ9n29PsR8A@mail.gmail.com>
-	<m3a8nqf9mk.fsf@t19.piap.pl> <56A9C6BC.6040208@xs4all.nl>
-Date: Thu, 28 Jan 2016 09:51:20 +0100
-In-Reply-To: <56A9C6BC.6040208@xs4all.nl> (Hans Verkuil's message of "Thu, 28
-	Jan 2016 08:43:56 +0100")
-Message-ID: <m3y4badr3r.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:39372 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752074AbcAUD6T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jan 2016 22:58:19 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 26BE4180B88
+	for <linux-media@vger.kernel.org>; Thu, 21 Jan 2016 04:58:13 +0100 (CET)
+Date: Thu, 21 Jan 2016 04:58:13 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160121035813.26BE4180B88@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
->> In my country, it wouldn't be even legal.
->
-> It's legal for the GPL license since that gives explicit permission.
+Results of the daily build of media_tree:
 
-In my country, claiming authorship (not co-authorship) of someone's code
-is illegal. Even if done with author's permission.
+date:		Thu Jan 21 04:00:21 CET 2016
+git branch:	test
+git hash:	768acf46e1320d6c41ed1b7c4952bab41c1cde79
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.3.0-164
 
->> I have at least one similar situation here. I'm using frame grabber
->> drivers for an I.MX6 processor on-chip feature. The problem is, the
->> author hasn't yet managed (for years now) to have this functionality
->> merged into the official tree. Obviously, I'm putting some considerable
->> work in it. Does this mean I'm free to grab it as my own and request
->> that it is to be merged instead? No, I have to wait until the original
->> work is merged, and only then I can ask for my patches to be applied
->> (in the form of changes, not a raw driver code).
->
-> Wrong. As long as the original code is distributed as GPL you can
-> certainly take it, fix it and ask for it to be merged.
->
-> This happens all the time if the original author has left the scene, or has
-> no time or interest to follow-up on his patches.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: OK
+linux-2.6.35.9-i686: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-2.6.34.7-x86_64: OK
+linux-2.6.35.9-x86_64: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-This doesn't seem to be applicable in either case.
+Detailed results are available here:
 
-> For future reference: if someone posts code to a kernel mailinglist and does
-> not fix any comments made on the code in, let's say, 1-2 months, then
-> someone else might just step in.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Oh, come on. I let it go because Ezequiel wrote he had rewritten the
-driver and wanted to merge it instead. I first asked for diffs vs. my
-code, but in case of a rewrite such diffs don't make sense.
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-I don't say nobody is allowed to take my work and add his own on top.
-Actually, this was what I proposed at least twice.
+The Media Infrastructure API from this daily build is here:
 
-Is there a problem with rebasing his work on top of mine, and showing
-the real changes? Git makes it easy.
--- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+http://www.xs4all.nl/~hverkuil/spec/media.html
