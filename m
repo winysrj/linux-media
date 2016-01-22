@@ -1,107 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:34603 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755131AbcARMxq (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59552 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751276AbcAVQR2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 07:53:46 -0500
-Received: by mail-pf0-f194.google.com with SMTP id 65so11734127pfd.1
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 04:53:46 -0800 (PST)
-From: Josh Wu <rainyfeeling@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Songjun Wu <songjun.wu@atmel.com>,
-	Josh Wu <rainyfeeling@gmail.com>
-Subject: [PATCH 11/13] atmel-isi: add hw_uninitialize() in stop_streaming()
-Date: Mon, 18 Jan 2016 20:52:22 +0800
-Message-Id: <1453121545-27528-6-git-send-email-rainyfeeling@gmail.com>
-In-Reply-To: <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
-References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
- <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
+	Fri, 22 Jan 2016 11:17:28 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Honza =?utf-8?B?UGV0cm91xaE=?= <jpetrous@gmail.com>
+Cc: Sebastien LEDUC <sebastien.leduc@st.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: mediacontroller for framebuffer
+Date: Fri, 22 Jan 2016 18:17:43 +0200
+Message-ID: <145372199.rVcaveV4h8@avalon>
+In-Reply-To: <CAJbz7-3ffWJTD-NH=JWAsUVWKGbuBm7g_OTEZ1R010X5aS_VbQ@mail.gmail.com>
+References: <DF597D17D2F66F40A76F27D4E5D6E1A48B0F5CF5@SAFEX1MAIL1.st.com> <1707301.3M6CagkYeP@avalon> <CAJbz7-3ffWJTD-NH=JWAsUVWKGbuBm7g_OTEZ1R010X5aS_VbQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-add new function: hw_uninitialize() and call it when stop_streaming().
+Hi Honza,
 
-Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
----
+On Friday 22 January 2016 08:23:44 Honza Petrouš wrote:
+> Hi Laurent
+> 
+> >> I have seen that a long time ago you had done some prototyping work for
+> >> exposing framebuffer devices as media entities:
+> >> http://www.spinics.net/lists/linux-fbdev/msg04408.html
+> >> 
+> >> What did happen to this prototyping ?
+> >> Seems it has never been merged, so could you please explain why ?
+> >> 
+> >> We have some similar needs, so I'd like to understand the right way to go
+> > 
+> > The prototype has been dropped as the framebuffer subsystem got
+> > deprecated. Display drivers should now use DRM/KMS.
+> 
+> FB is deprecated? Can you, please, provide some links regarding such talk?
 
- drivers/media/platform/soc_camera/atmel-isi.c | 46 +++++++++++++++------------
- 1 file changed, 26 insertions(+), 20 deletions(-)
+https://lkml.org/lkml/2015/9/24/253
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index c1a8698..7d2e952 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -245,6 +245,31 @@ static int isi_hw_initialize(struct atmel_isi *isi)
- 	return 0;
- }
- 
-+static void isi_hw_uninitialize(struct atmel_isi *isi)
-+{
-+	int ret;
-+
-+	if (!isi->enable_preview_path) {
-+		/* Wait until the end of the current frame. */
-+		ret = isi_hw_wait_status(isi, ISI_CTRL_CDC,
-+					 FRAME_INTERVAL_MILLI_SEC);
-+		if (ret)
-+			dev_err(isi->soc_host.icd->parent, "Timeout waiting for finishing codec request\n");
-+	}
-+
-+	/* Disable interrupts */
-+	isi_writel(isi, ISI_INTDIS,
-+			ISI_SR_CXFR_DONE | ISI_SR_PXFR_DONE);
-+
-+	/* Disable ISI and wait for it is done */
-+	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-+
-+	/* Check Reset status */
-+	ret  = isi_hw_wait_status(isi, ISI_CTRL_DIS, 500);
-+	if (ret)
-+		dev_err(isi->soc_host.icd->parent, "Disable ISI timed out\n");
-+}
-+
- static void start_isi(struct atmel_isi *isi)
- {
- 	u32 ctrl;
-@@ -484,7 +509,6 @@ static void stop_streaming(struct vb2_queue *vq)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
- 	struct frame_buffer *buf, *node;
--	int ret = 0;
- 
- 	spin_lock_irq(&isi->lock);
- 	isi->active = NULL;
-@@ -495,25 +519,7 @@ static void stop_streaming(struct vb2_queue *vq)
- 	}
- 	spin_unlock_irq(&isi->lock);
- 
--	if (!isi->enable_preview_path) {
--		/* Wait until the end of the current frame. */
--		ret = isi_hw_wait_status(isi, ISI_CTRL_CDC,
--					 FRAME_INTERVAL_MILLI_SEC);
--		if (ret)
--			dev_err(icd->parent, "Timeout waiting for finishing codec request\n");
--	}
--
--	/* Disable interrupts */
--	isi_writel(isi, ISI_INTDIS,
--			ISI_SR_CXFR_DONE | ISI_SR_PXFR_DONE);
--
--	/* Disable ISI and wait for it is done */
--	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
--
--	/* Check Reset status */
--	ret  = isi_hw_wait_status(isi, ISI_CTRL_DIS, 500);
--	if (ret)
--		dev_err(icd->parent, "Disable ISI timed out\n");
-+	isi_hw_uninitialize(isi);
- 
- 	pm_runtime_put(ici->v4l2_dev.dev);
- }
+> Sorry for my ignorance, I was never so deep in DRM/KMS (as I treat that
+> as big gun for my small embedded systems I was working on) and I'm
+> still happy with simple FB support which I get from kernel.
+
+DRM/KMS might be a bit complex for simple display controllers, but helpers 
+that simplify driver development would certainly be welcome. All it will take 
+is someone to write them :-)
+
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
