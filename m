@@ -1,138 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:33392 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758917AbcAMLhZ (ORCPT
+Received: from dovecot.logic.tuwien.ac.at ([128.130.175.61]:59158 "EHLO
+	mail.logic.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752198AbcAVTUR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2016 06:37:25 -0500
-Date: Wed, 13 Jan 2016 17:07:08 +0530
-From: Saatvik Arya <aryasaatvik@gmail.com>
-To: gregkh@linuxfoundation.org
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] drivers: staging: media: davinci_vpfe: dm365_resizer: fixed
- some spelling mistakes
-Message-ID: <20160113113708.GA31610@sinister>
+	Fri, 22 Jan 2016 14:20:17 -0500
+Received: from blue.my.domain (77.117.16.202.wireless.dyn.drei.com [77.117.16.202])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: feinerer)
+	by mail.logic.tuwien.ac.at (Postfix) with ESMTPSA id CB8A4A77B
+	for <linux-media@vger.kernel.org>; Fri, 22 Jan 2016 20:10:59 +0100 (CET)
+Received: from localhost (blue.my.domain [local])
+	by blue.my.domain (OpenSMTPD) with ESMTPA id d7ff5358
+	for <linux-media@vger.kernel.org>;
+	Fri, 22 Jan 2016 20:10:55 +0100 (CET)
+Date: Fri, 22 Jan 2016 20:10:55 +0100
+From: Ingo Feinerer <feinerer@logic.at>
+To: linux-media@vger.kernel.org
+Subject: libv4l on OpenBSD
+Message-ID: <20160122191055.GA25166@blue.my.domain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fixed spelling mistakes which referred to OUTPUT as OUPUT
+Hi,
 
-Signed-off-by: Saatvik Arya <aryasaatvik@gmail.com>
----
- drivers/staging/media/davinci_vpfe/dm365_resizer.c | 22 +++++++++++-----------
- drivers/staging/media/davinci_vpfe/dm365_resizer.h |  2 +-
- 2 files changed, 12 insertions(+), 12 deletions(-)
+in OpenBSD we recently updated our videoio.h (= videodev2.h in Linux)
+header and also imported libv4l in our ports tree
+(https://marc.info/?l=openbsd-ports-cvs&m=145218684026568&w=2).
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-index acb293e..10f51f4 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-@@ -495,7 +495,7 @@ resizer_configure_in_continious_mode(struct vpfe_resizer_device *resizer)
- 	int line_len;
- 	int ret;
- 
--	if (resizer->resizer_a.output != RESIZER_OUPUT_MEMORY) {
-+	if (resizer->resizer_a.output != RESIZER_OUTPUT_MEMORY) {
- 		dev_err(dev, "enable resizer - Resizer-A\n");
- 		return -EINVAL;
- 	}
-@@ -507,7 +507,7 @@ resizer_configure_in_continious_mode(struct vpfe_resizer_device *resizer)
- 	param->rsz_en[RSZ_B] = DISABLE;
- 	param->oper_mode = RESIZER_MODE_CONTINIOUS;
- 
--	if (resizer->resizer_b.output == RESIZER_OUPUT_MEMORY) {
-+	if (resizer->resizer_b.output == RESIZER_OUTPUT_MEMORY) {
- 		struct v4l2_mbus_framefmt *outformat2;
- 
- 		param->rsz_en[RSZ_B] = ENABLE;
-@@ -1048,13 +1048,13 @@ static void resizer_ss_isr(struct vpfe_resizer_device *resizer)
- 	if (ipipeif_sink != IPIPEIF_INPUT_MEMORY)
- 		return;
- 
--	if (resizer->resizer_a.output == RESIZER_OUPUT_MEMORY) {
-+	if (resizer->resizer_a.output == RESIZER_OUTPUT_MEMORY) {
- 		val = vpss_dma_complete_interrupt();
- 		if (val != 0 && val != 2)
- 			return;
- 	}
- 
--	if (resizer->resizer_a.output == RESIZER_OUPUT_MEMORY) {
-+	if (resizer->resizer_a.output == RESIZER_OUTPUT_MEMORY) {
- 		spin_lock(&video_out->dma_queue_lock);
- 		vpfe_video_process_buffer_complete(video_out);
- 		video_out->state = VPFE_VIDEO_BUFFER_NOT_QUEUED;
-@@ -1064,7 +1064,7 @@ static void resizer_ss_isr(struct vpfe_resizer_device *resizer)
- 
- 	/* If resizer B is enabled */
- 	if (pipe->output_num > 1 && resizer->resizer_b.output ==
--	    RESIZER_OUPUT_MEMORY) {
-+	    RESIZER_OUTPUT_MEMORY) {
- 		spin_lock(&video_out->dma_queue_lock);
- 		vpfe_video_process_buffer_complete(video_out2);
- 		video_out2->state = VPFE_VIDEO_BUFFER_NOT_QUEUED;
-@@ -1074,7 +1074,7 @@ static void resizer_ss_isr(struct vpfe_resizer_device *resizer)
- 
- 	/* start HW if buffers are queued */
- 	if (vpfe_video_is_pipe_ready(pipe) &&
--	    resizer->resizer_a.output == RESIZER_OUPUT_MEMORY) {
-+	    resizer->resizer_a.output == RESIZER_OUTPUT_MEMORY) {
- 		resizer_enable(resizer, 1);
- 		vpfe_ipipe_enable(vpfe_dev, 1);
- 		vpfe_ipipeif_enable(vpfe_dev);
-@@ -1242,8 +1242,8 @@ static int resizer_do_hw_setup(struct vpfe_resizer_device *resizer)
- 	struct resizer_params *param = &resizer->config;
- 	int ret = 0;
- 
--	if (resizer->resizer_a.output == RESIZER_OUPUT_MEMORY ||
--	    resizer->resizer_b.output == RESIZER_OUPUT_MEMORY) {
-+	if (resizer->resizer_a.output == RESIZER_OUTPUT_MEMORY ||
-+	    resizer->resizer_b.output == RESIZER_OUTPUT_MEMORY) {
- 		if (ipipeif_sink == IPIPEIF_INPUT_MEMORY &&
- 		    ipipeif_source == IPIPEIF_OUTPUT_RESIZER)
- 			ret = resizer_configure_in_single_shot_mode(resizer);
-@@ -1268,7 +1268,7 @@ static int resizer_set_stream(struct v4l2_subdev *sd, int enable)
- 	if (&resizer->crop_resizer.subdev != sd)
- 		return 0;
- 
--	if (resizer->resizer_a.output != RESIZER_OUPUT_MEMORY)
-+	if (resizer->resizer_a.output != RESIZER_OUTPUT_MEMORY)
- 		return 0;
- 
- 	switch (enable) {
-@@ -1722,7 +1722,7 @@ static int resizer_link_setup(struct media_entity *entity,
- 			}
- 			if (resizer->resizer_a.output != RESIZER_OUTPUT_NONE)
- 				return -EBUSY;
--			resizer->resizer_a.output = RESIZER_OUPUT_MEMORY;
-+			resizer->resizer_a.output = RESIZER_OUTPUT_MEMORY;
- 			break;
- 
- 		default:
-@@ -1747,7 +1747,7 @@ static int resizer_link_setup(struct media_entity *entity,
- 			}
- 			if (resizer->resizer_b.output != RESIZER_OUTPUT_NONE)
- 				return -EBUSY;
--			resizer->resizer_b.output = RESIZER_OUPUT_MEMORY;
-+			resizer->resizer_b.output = RESIZER_OUTPUT_MEMORY;
- 			break;
- 
- 		default:
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.h b/drivers/staging/media/davinci_vpfe/dm365_resizer.h
-index 93b0f44..00e64b0 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.h
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.h
-@@ -210,7 +210,7 @@ enum resizer_input_entity {
- 
- enum resizer_output_entity {
- 	RESIZER_OUTPUT_NONE = 0,
--	RESIZER_OUPUT_MEMORY = 1,
-+	RESIZER_OUTPUT_MEMORY = 1,
- };
- 
- struct dm365_resizer_device {
--- 
-2.5.0
+However, we need a few patches to have it working. As there is already
+FreeBSD support in libv4l, I would like to ask you if it would be
+possible to add OpenBSD support as well (so that it works out of the
+box)? The diffs (on top of https://git.linuxtv.org/v4l-utils.git)
+towards this goal are as follows.
 
+Thank you!
+
+Best regards,
+Ingo
+
+diff --git a/configure.ac b/configure.ac
+index 8bfe83d..91f5185 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -142,6 +142,9 @@ case "$host_os" in
+   linux*)
+     linux_os="yes"
+     ;;
++  freebsd*)
++    freebsd_os="yes"
++    ;;
+ esac
+ 
+ AM_CONDITIONAL([LINUX_OS], [test x$linux_os = xyes])
+@@ -410,7 +413,7 @@ AS_IF([test x$enable_libv4l = xno],   [AC_SUBST([ENFORCE_LIBV4L_STATIC],   ["-st
+ 
+ if test "x$linux_os" = "xyes"; then
+   CPPFLAGS="-I\$(top_srcdir)/include $CPPFLAGS"
+-else
++elif test "x$freebsd_os" = "xyes"; then
+   CPPFLAGS="-I\$(top_srcdir)/contrib/freebsd/include $CPPFLAGS"
+ fi
+ 
+diff --git a/lib/include/libv4l1-videodev.h b/lib/include/libv4l1-videodev.h
+index b67c929..effe174 100644
+--- a/lib/include/libv4l1-videodev.h
++++ b/lib/include/libv4l1-videodev.h
+@@ -6,7 +6,7 @@
+ #include <linux/ioctl.h>
+ #endif
+ 
+-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__)
+ #include <sys/ioctl.h>
+ #endif
+ 
+diff --git a/lib/include/libv4l2rds.h b/lib/include/libv4l2rds.h
+index ff1050a..a2c2f4f 100644
+--- a/lib/include/libv4l2rds.h
++++ b/lib/include/libv4l2rds.h
+@@ -24,7 +24,11 @@
+ #include <stdbool.h>
+ #include <stdint.h>
+ 
++#if defined(__OpenBSD__)
++#include <sys/videoio.h>
++#else
+ #include <linux/videodev2.h>
++#endif
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff --git a/lib/include/libv4lconvert.h b/lib/include/libv4lconvert.h
+index d425c51..c6064c5 100644
+--- a/lib/include/libv4lconvert.h
++++ b/lib/include/libv4lconvert.h
+@@ -28,7 +28,7 @@
+ #include <linux/ioctl.h>
+ #endif
+ 
+-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
++#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__OpenBSD__)
+ #include <sys/time.h>
+ #include <sys/types.h>
+ #include <sys/ioctl.h>
+@@ -36,7 +36,11 @@
+ 
+ /* end broken header workaround includes */
+ 
++#if defined(__OpenBSD__)
++#include <sys/videoio.h>
++#else
+ #include <linux/videodev2.h>
++#endif
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff --git a/lib/libv4l-mplane/libv4l-mplane.c b/lib/libv4l-mplane/libv4l-mplane.c
+index 99a4d88..2f685a7 100644
+--- a/lib/libv4l-mplane/libv4l-mplane.c
++++ b/lib/libv4l-mplane/libv4l-mplane.c
+@@ -26,7 +26,12 @@
+ #include <unistd.h>
+ #include <sys/syscall.h>
+ 
++#if defined(__OpenBSD__)
++#include <sys/videoio.h>
++#include <sys/ioctl.h>
++#else
+ #include <linux/videodev2.h>
++#endif
+ 
+ #include "libv4l-plugin.h"
+ 
+diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
+index 5c147b3..dab665b 100644
+--- a/lib/libv4l1/libv4l1.c
++++ b/lib/libv4l1/libv4l1.c
+@@ -58,7 +58,11 @@
+ #include <sys/types.h>
+ #include <sys/mman.h>
+ #include "../libv4lconvert/libv4lsyscall-priv.h"
++#if defined(__OpenBSD__)
++#include <sys/videoio.h>
++#else
+ #include <linux/videodev2.h>
++#endif
+ #include <libv4l2.h>
+ #include "libv4l1.h"
+ #include "libv4l1-priv.h"
+diff --git a/lib/libv4l2/log.c b/lib/libv4l2/log.c
+index 9d3eab1..d36b2e2 100644
+--- a/lib/libv4l2/log.c
++++ b/lib/libv4l2/log.c
+@@ -28,7 +28,11 @@
+ #include <string.h>
+ #include <errno.h>
+ #include "../libv4lconvert/libv4lsyscall-priv.h"
++#if defined(__OpenBSD__)
++#include <sys/videoio.h>
++#else
+ #include <linux/videodev2.h>
++#endif
+ #include "libv4l2.h"
+ #include "libv4l2-priv.h"
+ 
+diff --git a/lib/libv4l2/v4l2convert.c b/lib/libv4l2/v4l2convert.c
+index 3f43c89..7c9a04c 100644
+--- a/lib/libv4l2/v4l2convert.c
++++ b/lib/libv4l2/v4l2convert.c
+@@ -36,7 +36,11 @@
+ #include <string.h>
+ #include <sys/ioctl.h>
+ #include <sys/mman.h>
++#if defined(__OpenBSD__)
++#include <sys/videoio.h>
++#else
+ #include <linux/videodev2.h>
++#endif
+ #include <libv4l2.h>
+ #include "../libv4lconvert/libv4lsyscall-priv.h"
+ 
+diff --git a/lib/libv4l2rds/libv4l2rds.c b/lib/libv4l2rds/libv4l2rds.c
+index 596cd19..48cc81b 100644
+--- a/lib/libv4l2rds/libv4l2rds.c
++++ b/lib/libv4l2rds/libv4l2rds.c
+@@ -27,7 +27,11 @@
+ #include <sys/types.h>
+ #include <sys/mman.h>
+ 
++#if defined(__OpenBSD__)
++#include <sys/videoio.h>
++#else
+ #include <linux/videodev2.h>
++#endif
+ 
+ #include "../include/libv4l2rds.h"
+ 
+diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
+index e1832a9..e61c72e 100644
+--- a/lib/libv4lconvert/control/libv4lcontrol.c
++++ b/lib/libv4lconvert/control/libv4lcontrol.c
+@@ -35,7 +35,11 @@
+ #include "libv4lcontrol.h"
+ #include "libv4lcontrol-priv.h"
+ #include "../libv4lsyscall-priv.h"
++#if defined(__OpenBSD__)
++#include <sys/videoio.h>
++#else
+ #include <linux/videodev2.h>
++#endif
+ 
+ #define ARRAY_SIZE(x) ((int)sizeof(x) / (int)sizeof((x)[0]))
+ 
+diff --git a/lib/libv4lconvert/libv4lsyscall-priv.h b/lib/libv4lconvert/libv4lsyscall-priv.h
+index bc18b21..144a212 100644
+--- a/lib/libv4lconvert/libv4lsyscall-priv.h
++++ b/lib/libv4lconvert/libv4lsyscall-priv.h
+@@ -63,6 +63,15 @@
+ #define	MMAP2_PAGE_SHIFT 0
+ #endif
+ 
++#if defined(__OpenBSD__)
++#include <sys/syscall.h>
++#include <sys/types.h>
++#include <sys/ioctl.h>
++#define	_IOC_NR(cmd) ((cmd) & 0xFF)
++#define	_IOC_TYPE(cmd) IOCGROUP(cmd)
++#define	MMAP2_PAGE_SHIFT 0
++#endif
++
+ #undef SYS_OPEN
+ #undef SYS_CLOSE
+ #undef SYS_IOCTL
+@@ -97,6 +106,11 @@
+ #define SYS_MMAP(addr, len, prot, flags, fd, off) \
+ 	syscall(SYS_mmap, (void *)(addr), (size_t)(len), \
+ 			(int)(prot), (int)(flags), (int)(fd), (off_t)(off))
++#elif defined(__OpenBSD__)
++register_t __syscall(quad_t, ...);
++#define SYS_MMAP(addr, len, prot, flags, fd, offset) \
++	__syscall((quad_t)SYS_mmap, (void *)(addr), (size_t)(len), \
++			(int)(prot), (int)(flags), (int)(fd), 0, (off_t)(offset))
+ #else
+ #define SYS_MMAP(addr, len, prot, flags, fd, off) \
+ 	syscall(SYS_mmap2, (void *)(addr), (size_t)(len), \
+diff --git a/lib/libv4lconvert/processing/libv4lprocessing.h b/lib/libv4lconvert/processing/libv4lprocessing.h
+index 8d413e1..c6a4adc 100644
+--- a/lib/libv4lconvert/processing/libv4lprocessing.h
++++ b/lib/libv4lconvert/processing/libv4lprocessing.h
+@@ -22,7 +22,11 @@
+ #define __LIBV4LPROCESSING_H
+ 
+ #include "../libv4lsyscall-priv.h"
++#if defined(__OpenBSD__)
++#include <sys/videoio.h>
++#else
+ #include <linux/videodev2.h>
++#endif
+ 
+ struct v4lprocessing_data;
+ struct v4lcontrol_data;
