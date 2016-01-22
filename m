@@ -1,78 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33968 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932395AbcAMKlM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2016 05:41:12 -0500
+Received: from mga04.intel.com ([192.55.52.120]:15350 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752812AbcAVMXu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jan 2016 07:23:50 -0500
+Subject: Re: [v4l-utils PATCH v2 2/3] libv4l2subdev: Add a function to list
+ library supported pixel codes
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+References: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1449587716-22954-3-git-send-email-sakari.ailus@linux.intel.com>
+ <1686411.P10t21bMUM@avalon>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <56A21F36.1050106@linux.intel.com>
+Date: Fri, 22 Jan 2016 14:23:18 +0200
 MIME-Version: 1.0
-In-Reply-To: <1452530844-30609-7-git-send-email-javier@osg.samsung.com>
-References: <1452530844-30609-1-git-send-email-javier@osg.samsung.com> <1452530844-30609-7-git-send-email-javier@osg.samsung.com>
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date: Wed, 13 Jan 2016 10:40:41 +0000
-Message-ID: <CA+V-a8sWa9zRamy4MLds5rkDVzeX5754kShhmC-cogeKiSwFEQ@mail.gmail.com>
-Subject: Re: [PATCH v2 6/8] [media] tvp7002: Check v4l2_of_parse_endpoint()
- return value
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1686411.P10t21bMUM@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 11, 2016 at 4:47 PM, Javier Martinez Canillas
-<javier@osg.samsung.com> wrote:
-> The v4l2_of_parse_endpoint() function can fail so check the return value.
->
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Tuesday 08 December 2015 17:15:15 Sakari Ailus wrote:
+>> Also mark which format definitions are compat definitions for the
+>> pre-existing codes. This way we don't end up listing the same formats
+>> twice.
+> 
+> Wouldn't it be easier to add a function to return the whole array (and 
+> terminate it with an empty entry to avoid having to return both the array and 
+> the length=) ?
 
-Regards,
---Prabhakar Lad
+Fine for me. I'll resend.
 
-> ---
->
-> Changes in v2:
-> - Assign pdata to NULL in case v4l2_of_parse_endpoint() fails before kzalloc.
->   Suggested by Sakari Ailus.
->
->  drivers/media/i2c/tvp7002.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-> index 83c79fa5f61d..4df640c3aa40 100644
-> --- a/drivers/media/i2c/tvp7002.c
-> +++ b/drivers/media/i2c/tvp7002.c
-> @@ -894,7 +894,7 @@ static struct tvp7002_config *
->  tvp7002_get_pdata(struct i2c_client *client)
->  {
->         struct v4l2_of_endpoint bus_cfg;
-> -       struct tvp7002_config *pdata;
-> +       struct tvp7002_config *pdata = NULL;
->         struct device_node *endpoint;
->         unsigned int flags;
->
-> @@ -905,11 +905,13 @@ tvp7002_get_pdata(struct i2c_client *client)
->         if (!endpoint)
->                 return NULL;
->
-> +       if (v4l2_of_parse_endpoint(endpoint, &bus_cfg))
-> +               goto done;
-> +
->         pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
->         if (!pdata)
->                 goto done;
->
-> -       v4l2_of_parse_endpoint(endpoint, &bus_cfg);
->         flags = bus_cfg.bus.parallel.flags;
->
->         if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> --
-> 2.4.3
->
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
