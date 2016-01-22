@@ -1,46 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:55887 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751096AbcAUJP6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2016 04:15:58 -0500
-Date: Thu, 21 Jan 2016 10:15:56 +0100
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [v4l-utils 0/5] Misc build fixes
-Message-ID: <20160121101556.303dbf0c@free-electrons.com>
-In-Reply-To: <56A09F03.2090201@cisco.com>
-References: <1446584320-25016-1-git-send-email-thomas.petazzoni@free-electrons.com>
-	<20160121095040.2b185fd0@free-electrons.com>
-	<56A09F03.2090201@cisco.com>
+Received: from mga14.intel.com ([192.55.52.115]:53074 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753405AbcAVNgu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jan 2016 08:36:50 -0500
+Subject: Re: [v4l-utils PATCH v2 2/3] libv4l2subdev: Add a function to list
+ library supported pixel codes
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+References: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1449587716-22954-3-git-send-email-sakari.ailus@linux.intel.com>
+ <1686411.P10t21bMUM@avalon>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <56A2306F.4070808@linux.intel.com>
+Date: Fri, 22 Jan 2016 15:36:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1686411.P10t21bMUM@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Hi Laurent,
 
-On Thu, 21 Jan 2016 10:04:03 +0100, Hans Verkuil wrote:
-> They are already merged, so there is nothing to do :-)
+Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> Weird, you should have gotten an email from patchwork when I accepted these
-> patches.
+> Thank you for the patch.
+> 
+> On Tuesday 08 December 2015 17:15:15 Sakari Ailus wrote:
+>> Also mark which format definitions are compat definitions for the
+>> pre-existing codes. This way we don't end up listing the same formats
+>> twice.
+> 
+> Wouldn't it be easier to add a function to return the whole array (and 
+> terminate it with an empty entry to avoid having to return both the array and 
+> the length=) ?
 
-My bad then, I searched for e-mails from patchwork in my archives, and
-indeed found one. Looks like I'm getting old. Sorry for the noise :-)
+Now that I'm actually thinking about making that change, I have a few
+concerns:
 
-In order to make this somewhat useful, when will the next release of
-v4l-utils, with those fixes, be published ?
+- This is not in line with the other APIs in the library, they mirror
+the IOCTL behaviour (it's another debate whether this is a good idea or
+not).
 
-Thanks!
+- I need a new statically allocated array for that. I think I'll change
+my sed script. Allocating an array when the function is called the first
+time isn't a great idea either, there's a problem with re-entrancy and
+it's a memory leak, too.
 
-Thomas
+So don't complain about these when I send an updated version. ;-)
+
 -- 
-Thomas Petazzoni, CTO, Free Electrons
-Embedded Linux, Kernel and Android engineering
-http://free-electrons.com
+Cheers,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
