@@ -1,69 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:36339 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754668AbcASASU (ORCPT
+Received: from mail-ob0-f170.google.com ([209.85.214.170]:35595 "EHLO
+	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752631AbcAVHXp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 19:18:20 -0500
-Date: Tue, 19 Jan 2016 09:18:16 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	linux-renesas-soc@vger.kernel.org,
-	Linux-sh list <linux-sh@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-pci <linux-pci@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [PATCH] MAINTAINERS: Update mailing list for Renesas SoC
- Development
-Message-ID: <20160119001815.GA14224@verge.net.au>
-References: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
- <CAMuHMdXF8QnKsLOYFnT7Rje5G9_7Xr0NesO2SKEkWSivKQYkbA@mail.gmail.com>
+	Fri, 22 Jan 2016 02:23:45 -0500
+Received: by mail-ob0-f170.google.com with SMTP id yo10so30908834obb.2
+        for <linux-media@vger.kernel.org>; Thu, 21 Jan 2016 23:23:45 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdXF8QnKsLOYFnT7Rje5G9_7Xr0NesO2SKEkWSivKQYkbA@mail.gmail.com>
+In-Reply-To: <1707301.3M6CagkYeP@avalon>
+References: <DF597D17D2F66F40A76F27D4E5D6E1A48B0F5CF5@SAFEX1MAIL1.st.com>
+	<1707301.3M6CagkYeP@avalon>
+Date: Fri, 22 Jan 2016 08:23:44 +0100
+Message-ID: <CAJbz7-3ffWJTD-NH=JWAsUVWKGbuBm7g_OTEZ1R010X5aS_VbQ@mail.gmail.com>
+Subject: Re: mediacontroller for framebuffer
+From: =?UTF-8?Q?Honza_Petrou=C5=A1?= <jpetrous@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sebastien LEDUC <sebastien.leduc@st.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 18, 2016 at 09:09:29AM +0100, Geert Uytterhoeven wrote:
-> CC linux-arm-kernel
-> 
-> On Mon, Jan 18, 2016 at 2:04 AM, Simon Horman
-> <horms+renesas@verge.net.au> wrote:
-> > Update the mailing list used for development of support for
-> > Renesas SoCs and related drivers.
-> >
-> > Up until now the linux-sh mailing list has been used, however,
-> > Renesas SoCs are now much wider than the SH architecture and there
-> > is some desire from some for the linux-sh list to refocus on
-> > discussion of the work on the SH architecture.
-> >
-> > Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-> > Cc: Magnus Damm <magnus.damm@gmail.com>
-> > Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-> 
-> Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> 
-> > ---
-> > * This patch applies on top of Linus's tree where currently the head commit
-> >   is 984065055e6e ("Merge branch 'drm-next' of
-> >   git://people.freedesktop.org/~airlied/linux")
-> >
-> >   This has been used as a base instead of v4.4 so that it is based on the
-> >   following two commits which affect it:
-> >   - 1a4ca6dd3dc8 ("MAINTAINERS: Add co-maintainer for Renesas Pin Controllers")
-> >   - 3e46c3973cba ("MAINTAINERS: add Renesas usb2 phy driver")
-> 
-> I assume you'll send an update for the "ARM/RENESAS ARM64 ARCHITECTURE"
-> section as soon as that has landed in mainline?
+Hi Laurent
 
-Yes, that is my plan.
+>> I have seen that a long time ago you had done some prototyping work for
+>> exposing framebuffer devices as media entities:
+>> http://www.spinics.net/lists/linux-fbdev/msg04408.html
+>>
+>> What did happen to this prototyping ?
+>> Seems it has never been merged, so could you please explain why ?
+>>
+>> We have some similar needs, so I'd like to understand the right way to go
+>
+> The prototype has been dropped as the framebuffer subsystem got deprecated.
+> Display drivers should now use DRM/KMS.
+
+FB is deprecated? Can you, please, provide some links regarding such talk?
+Sorry for my ignorance, I was never so deep in DRM/KMS (as I treat that
+as big gun for my small embedded systems I was working on) and I'm
+still happy with simple FB support which I get from kernel.
+
+Thanks.
+/Honza
