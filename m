@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gromit.nocabal.de ([78.46.53.8]:55589 "EHLO gromit.nocabal.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755517AbcAIUYz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jan 2016 15:24:55 -0500
-From: Ernst Martin Witte <emw-linux-kernel@nocabal.de>
-To: linux-media@vger.kernel.org
-Cc: Ernst Martin Witte <emw-linux-kernel@nocabal.de>
-Subject: [PATCH 3/5] [media] af9013: cancel_delayed_work_sync before device removal / kfree
-Date: Sat,  9 Jan 2016 21:18:45 +0100
-Message-Id: <1452370727-23128-4-git-send-email-emw-linux-kernel@nocabal.de>
-In-Reply-To: <1452370727-23128-1-git-send-email-emw-linux-kernel@nocabal.de>
-References: <1452370727-23128-1-git-send-email-emw-linux-kernel@nocabal.de>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:38289 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752733AbcAVMPO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jan 2016 07:15:14 -0500
+Subject: Re: [v4l-utils PATCH v2 0/3] List supported formats in libv4l2subdev
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+References: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: laurent.pinchart@ideasonboard.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56A21D4C.4010800@xs4all.nl>
+Date: Fri, 22 Jan 2016 13:15:08 +0100
+MIME-Version: 1.0
+In-Reply-To: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-af9013_remove  was calling  kfree(state)  with  possibly still  active
-schedule_delayed_work(&state->statistics_work).   A   similar  bug  in
-si2157 caused kernel panics in call_timer_fn e.g. after rmmod cx23885.
+Hi Sakari,
 
-Signed-off-by: Ernst Martin Witte <emw-linux-kernel@nocabal.de>
----
- drivers/media/dvb-frontends/af9013.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Can you respin this series and add the "v4l: libv4l2subdev: Precisely convert
+media bus string to code" patch to it as well? And incorporate Laurent's
+comments?
 
-diff --git a/drivers/media/dvb-frontends/af9013.c b/drivers/media/dvb-frontends/af9013.c
-index e23197d..41ab5de 100644
---- a/drivers/media/dvb-frontends/af9013.c
-+++ b/drivers/media/dvb-frontends/af9013.c
-@@ -1344,6 +1344,10 @@ err:
- static void af9013_release(struct dvb_frontend *fe)
- {
- 	struct af9013_state *state = fe->demodulator_priv;
-+
-+	/* stop statistics polling */
-+	cancel_delayed_work_sync(&state->statistics_work);
-+
- 	kfree(state);
- }
- 
--- 
-2.5.0
+I think this is a very useful addition and since Laurent's comments are minor
+I suspect a v3 would be ready for merging.
+
+Regards,
+
+	Hans
+
+On 12/08/2015 04:15 PM, Sakari Ailus wrote:
+> Hi,
+> 
+> Rebased on current v4l-utils. There were conflicts as new media bus
+> formats were added. The earlier version is here:
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg94619.html>
+> 
+> These patches go on top of the field support set, which hasn't appeared in
+> the archive yet. The earlier version is here:
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg94605.html>
+> 
 
