@@ -1,46 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35698 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753745AbcA0H5H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2016 02:57:07 -0500
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 8B382180D43
-	for <linux-media@vger.kernel.org>; Wed, 27 Jan 2016 08:57:01 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/2] v4l2: add support to set the InfoFrame content type
-Date: Wed, 27 Jan 2016 08:56:59 +0100
-Message-Id: <1453881421-15865-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([192.55.52.115]:53573 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754406AbcAVTRY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jan 2016 14:17:24 -0500
+Date: Sat, 23 Jan 2016 03:15:53 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Junghak Sung <jh1009.sung@samsung.com>
+Cc: kbuild-all@01.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org,
+	Geunyoung Kim <nenggun.kim@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: drivers/media/v4l2-core/videobuf2-core.c:2784:33-34: Unneeded
+ semicolon
+Message-ID: <201601230336.WZKkXVfa%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+head:   3e1e21c7bfcfa9bf06c07f48a13faca2f62b3339
+commit: af3bac1a7c8a21ff4f4edede397cba8e3f8ee503 [media] media: videobuf2: Move vb2_fileio_data and vb2_thread to core part
+date:   5 weeks ago
 
-The HDMI standard defines a Content Type field in the video InfoFrame that
-can tell the receiver what sort of video is being transferred. Based on
-that information the receiver can choose to optimize for that content type.
 
-A practical example is that if the content type is set to 'Game' then the
-TV might configure itself to a low-latency mode.
+coccinelle warnings: (new ones prefixed by >>)
 
-But this requires that applications can set the content type, and that's
-what this patch series does: it adds a new content type control and
-implements it in the adv7511 HDMI transmitter.
+>> drivers/media/v4l2-core/videobuf2-core.c:2784:33-34: Unneeded semicolon
 
-Regards,
+vim +2784 drivers/media/v4l2-core/videobuf2-core.c
 
-	Hans
+  2768				call_void_qop(q, wait_finish, q);
+  2769				if (!threadio->stop)
+  2770					ret = vb2_core_dqbuf(q, b, 0);
+  2771				call_void_qop(q, wait_prepare, q);
+  2772				dprintk(5, "file io: vb2_dqbuf result: %d\n", ret);
+  2773			}
+  2774			if (ret || threadio->stop)
+  2775				break;
+  2776			try_to_freeze();
+  2777	
+  2778			vb = q->bufs[b->index];
+  2779			if (b->state == VB2_BUF_STATE_DONE)
+  2780				if (threadio->fnc(vb, threadio->priv))
+  2781					break;
+  2782			call_void_qop(q, wait_finish, q);
+  2783			if (copy_timestamp)
+> 2784				b->timestamp = ktime_get_ns();;
+  2785			if (!threadio->stop)
+  2786				ret = vb2_core_qbuf(q, b->index, b);
+  2787			call_void_qop(q, wait_prepare, q);
+  2788			if (ret || threadio->stop)
+  2789				break;
+  2790		}
+  2791	
+  2792		/* Hmm, linux becomes *very* unhappy without this ... */
 
-Hans Verkuil (2):
-  v4l2-ctrls: add V4L2_CID_DV_TX_CONTENT_TYPE
-  adv7511: add content type control support
-
- drivers/media/i2c/adv7511.c          | 12 +++++++++++-
- drivers/media/v4l2-core/v4l2-ctrls.c | 11 +++++++++++
- include/uapi/linux/v4l2-controls.h   |  8 ++++++++
- 3 files changed, 30 insertions(+), 1 deletion(-)
-
--- 
-2.7.0.rc3
-
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
