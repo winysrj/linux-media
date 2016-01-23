@@ -1,85 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:59159 "EHLO lists.s-osg.org"
+Received: from mout.gmx.net ([212.227.15.15]:64487 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754962AbcA1UJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 15:09:29 -0500
-Subject: Re: [PATCH 22/31] media: dvb-core create tuner to demod pad link in
- disabled state
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
- <753bb19d9d474ab419ad7ee37f7d30a1db6a8e35.1452105878.git.shuahkh@osg.samsung.com>
- <20160128143831.351a2e6c@recife.lan>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56AA7575.804@osg.samsung.com>
-Date: Thu, 28 Jan 2016 13:09:25 -0700
+	id S1751644AbcAWRhb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jan 2016 12:37:31 -0500
+Date: Sat, 23 Jan 2016 18:37:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+cc: linux-media@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v3] media: soc_camera: rcar_vin: Add rcar fallback
+ compatibility string
+In-Reply-To: <1452707918-4321-1-git-send-email-ykaneko0929@gmail.com>
+Message-ID: <Pine.LNX.4.64.1601231834370.10701@axis700.grange>
+References: <1452707918-4321-1-git-send-email-ykaneko0929@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20160128143831.351a2e6c@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/28/2016 09:38 AM, Mauro Carvalho Chehab wrote:
-> Em Wed,  6 Jan 2016 13:27:11 -0700
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi Kaneko-san,
+
+On Thu, 14 Jan 2016, Yoshihiro Kaneko wrote:
+
+> Add fallback compatibility string for R-Car Gen2 and Gen3, This is
+> in keeping with the fallback scheme being adopted wherever appropriate
+> for drivers for Renesas SoCs.
 > 
->> Create tuner to demod pad link in disabled state to help avoid
->> disable step when tuner resource is requested by video or audio.
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/dvb-core/dvbdev.c | 3 ++-
->>  1 file changed, 2 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
->> index b56e008..1d10fa6 100644
->> --- a/drivers/media/dvb-core/dvbdev.c
->> +++ b/drivers/media/dvb-core/dvbdev.c
->> @@ -593,8 +593,9 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
->>  	}
->>  
->>  	if (tuner && demod) {
->> +		/* create tuner to demod link deactivated */
->>  		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
->> -					    demod, 0, MEDIA_LNK_FL_ENABLED);
->> +					    demod, 0, 0);
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
 > 
-> This is not right, as it makes no sense for DVB-only drivers.
-
-Right. Not a good change for DVB only drivers. But does make
-sense on hybrid. I will make sure it gets done only in hyrbid
-cases.
-
-thanks,
--- Shuah
-
+> This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
 > 
->>  		if (ret)
->>  			return ret;
->>  	}
+> v3 [Yoshihiro Kaneko]
+> * rebased to for-4.6-1 branch of Guennadi's tree.
+> 
+> v2 [Yoshihiro Kaneko]
+> * As suggested by Geert Uytterhoeven
+>   drivers/media/platform/soc_camera/rcar_vin.c:
+>     - The generic compatibility values are listed at the end of the
+>       rcar_vin_of_table[].
+> 
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 8 +++++++-
+>  drivers/media/platform/soc_camera/rcar_vin.c         | 2 ++
 
+I might be wrong in this specific case, please, correct me someone, but 
+doesn't Documentation/devicetree/bindings/submitting-patches.txt tell us 
+to submit bindings patches separately from the drivers part?
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Thanks
+Guennadi
+
+>  2 files changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index 619193c..e1a92c9 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
+>  channel which can be either RGB, YUYV or BT656.
+>  
+>   - compatible: Must be one of the following
+> +   - "renesas,rcar-gen2-vin" for R-Car Gen2 Series
+> +   - "renesas,rcar-gen3-vin" for R-Car Gen3 Series
+>     - "renesas,vin-r8a7795" for the R8A7795 device
+>     - "renesas,vin-r8a7794" for the R8A7794 device
+>     - "renesas,vin-r8a7793" for the R8A7793 device
+> @@ -13,6 +15,10 @@ channel which can be either RGB, YUYV or BT656.
+>     - "renesas,vin-r8a7790" for the R8A7790 device
+>     - "renesas,vin-r8a7779" for the R8A7779 device
+>     - "renesas,vin-r8a7778" for the R8A7778 device
+> +
+> +   When compatible with the generic version, nodes must list the SoC-specific
+> +   version corresponding to the platform first followed by the generic version.
+> +
+>   - reg: the register base and size for the device registers
+>   - interrupts: the interrupt for the device
+>   - clocks: Reference to the parent clock
+> @@ -37,7 +43,7 @@ Device node example
+>  	};
+>  
+>          vin0: vin@0xe6ef0000 {
+> -                compatible = "renesas,vin-r8a7790";
+> +                compatible = "renesas,vin-r8a7790","renesas,rcar-gen2-vin";
+>                  clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
+>                  reg = <0 0xe6ef0000 0 0x1000>;
+>                  interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index dc75a80..b72a048 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -1826,6 +1826,8 @@ static const struct of_device_id rcar_vin_of_table[] = {
+>  	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+>  	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+>  	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+> +	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+> +	{ .compatible = "renesas,rcar-gen3-vin", .data = (void *)RCAR_GEN3 },
+>  	{ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
+> -- 
+> 1.9.1
+> 
