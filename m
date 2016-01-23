@@ -1,48 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:51424 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341AbcAZVrL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 16:47:11 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] v4l: remove MEDIA_TUNER dependency for VIDEO_TUNER
-Date: Tue, 26 Jan 2016 22:46:02 +0100
-Message-Id: <1453844772-3395901-1-git-send-email-arnd@arndb.de>
+Received: from mout.gmx.net ([212.227.15.19]:52585 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753019AbcAWSis (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jan 2016 13:38:48 -0500
+Date: Sat, 23 Jan 2016 19:38:37 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+cc: linux-media@vger.kernel.org, Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v4] media: soc_camera: rcar_vin: Add ARGB8888 caputre
+ format support
+In-Reply-To: <1452773908-19260-1-git-send-email-ykaneko0929@gmail.com>
+Message-ID: <Pine.LNX.4.64.1601231926270.10701@axis700.grange>
+References: <1452773908-19260-1-git-send-email-ykaneko0929@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-em28xx selects VIDEO_TUNER, which has a dependency on MEDIA_TUNER,
-so we get a Kconfig warning if that is disabled:
+Hello Kaneko-san,
 
-warning: (VIDEO_PVRUSB2 && VIDEO_USBVISION && VIDEO_GO7007 && VIDEO_AU0828_V4L2 && VIDEO_CX231XX && VIDEO_TM6000 && VIDEO_EM28XX && VIDEO_IVTV && VIDEO_MXB && VIDEO_CX18 && VIDEO_CX23885 && VIDEO_CX88 && VIDEO_BT848 && VIDEO_SAA7134 && VIDEO_SAA7164) selects VIDEO_TUNER which has unmet direct dependencies (MEDIA_SUPPORT && MEDIA_TUNER)
+I've got a question to this patch:
 
-VIDEO_TUNER does not actually depend on MEDIA_TUNER, and the
-dependency does nothing except cause the above warning, so let's
-remove it.
+On Thu, 14 Jan 2016, Yoshihiro Kaneko wrote:
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/v4l2-core/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
+> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> 
+> This patch adds ARGB8888 capture format support for R-Car Gen3.
+> 
+> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+> ---
+> 
+> This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
+> 
+> v4 [Yoshihiro Kaneko]
+> * As suggested by Sergei Shtylyov
+>   - revised an error message.
+> 
+> v3 [Yoshihiro Kaneko]
+> * rebased to for-4.6-1 branch of Guennadi's tree.
+> 
+> v2 [Yoshihiro Kaneko]
+> * As suggested by Sergei Shtylyov
+>   - fix the coding style of the braces.
+> 
+>  drivers/media/platform/soc_camera/rcar_vin.c | 21 +++++++++++++++++++--
+>  1 file changed, 19 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+> index dc75a80..07c67f6 100644
+> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -124,7 +124,7 @@
+>  #define VNDMR_EXRGB		(1 << 8)
+>  #define VNDMR_BPSM		(1 << 4)
+>  #define VNDMR_DTMD_YCSEP	(1 << 1)
+> -#define VNDMR_DTMD_ARGB1555	(1 << 0)
+> +#define VNDMR_DTMD_ARGB		(1 << 0)
+>  
+>  /* Video n Data Mode Register 2 bits */
+>  #define VNDMR2_VPS		(1 << 30)
+> @@ -643,7 +643,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>  		output_is_yuv = true;
+>  		break;
+>  	case V4L2_PIX_FMT_RGB555X:
+> -		dmr = VNDMR_DTMD_ARGB1555;
+> +		dmr = VNDMR_DTMD_ARGB;
+>  		break;
+>  	case V4L2_PIX_FMT_RGB565:
+>  		dmr = 0;
+> @@ -654,6 +654,14 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
 
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index 9beece00869b..29b3436d0910 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -37,7 +37,6 @@ config VIDEO_PCI_SKELETON
- # Used by drivers that need tuner.ko
- config VIDEO_TUNER
- 	tristate
--	depends on MEDIA_TUNER
- 
- # Used by drivers that need v4l2-mem2mem.ko
- config V4L2_MEM2MEM_DEV
--- 
-2.7.0
+Let me give a bit more context here for clarity:
 
+		if (priv->chip == RCAR_GEN2 || priv->chip == RCAR_H1 ||
+		    priv->chip == RCAR_E1) {
+>  			dmr = VNDMR_EXRGB;
+>  			break;
+>  		}
+
+As you can see, there's no common "break" in the "case" clause above, i.e. 
+it is relying on falling through if the "if" condition isn't satisfied. 
+Now you insert your new "case" here, so, the failing "if" above will fall 
+through into your new case. Is this intended? This fall through was 
+handling the "invalid for this SoC pixel format" case, same as your "else" 
+case below. How about replacing all these cases with a "goto e_format" 
+statement and put "e_format:" below "return 0;" at the end of this 
+function? So, the above would become
+
+		if (priv->chip != RCAR_GEN2 && priv->chip != RCAR_H1 &&
+		    priv->chip != RCAR_E1)
+			goto e_format;
+
+		dmr = VNDMR_EXRGB;
+		break;
+
+And your addition would be
+
+		if (priv->chip != RCAR_GEN3)
+			goto e_format;
+
+		dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
+		break;
+
+And then
+
+		default:
+			goto e_format;
+
+Thanks
+Guennadi
+
+> +	case V4L2_PIX_FMT_ARGB32:
+> +		if (priv->chip == RCAR_GEN3) {
+> +			dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
+> +		} else {
+> +			dev_err(icd->parent, "Unsupported format\n");
+> +			return -EINVAL;
+> +		}
+> +		break;
+>  	default:
+>  		dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
+>  			 icd->current_fmt->host_fmt->fourcc);
+> @@ -1304,6 +1312,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
+>  		.order			= SOC_MBUS_ORDER_LE,
+>  		.layout			= SOC_MBUS_LAYOUT_PACKED,
+>  	},
+> +	{
+> +		.fourcc			= V4L2_PIX_FMT_ARGB32,
+> +		.name			= "ARGB8888",
+> +		.bits_per_sample	= 32,
+> +		.packing		= SOC_MBUS_PACKING_NONE,
+> +		.order			= SOC_MBUS_ORDER_LE,
+> +		.layout			= SOC_MBUS_LAYOUT_PACKED,
+> +	},
+>  };
+>  
+>  static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+> @@ -1611,6 +1627,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+>  	case V4L2_PIX_FMT_RGB32:
+>  		can_scale = priv->chip != RCAR_E1;
+>  		break;
+> +	case V4L2_PIX_FMT_ARGB32:
+>  	case V4L2_PIX_FMT_UYVY:
+>  	case V4L2_PIX_FMT_YUYV:
+>  	case V4L2_PIX_FMT_RGB565:
+> -- 
+> 1.9.1
+> 
