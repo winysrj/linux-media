@@ -1,152 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58194 "EHLO lists.s-osg.org"
+Received: from mga09.intel.com ([134.134.136.24]:24855 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1946014AbcA1RE2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 12:04:28 -0500
-Subject: Re: [PATCH 29/31] media: track media device unregister in progress
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
- <151cfbe0e59b3d5396951bdcc29666614575f5bc.1452105878.git.shuahkh@osg.samsung.com>
- <20160128150105.06a9a18d@recife.lan>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56AA4A18.8030303@osg.samsung.com>
-Date: Thu, 28 Jan 2016 10:04:24 -0700
-MIME-Version: 1.0
-In-Reply-To: <20160128150105.06a9a18d@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	id S1753276AbcAWVvf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jan 2016 16:51:35 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Samu Onkalo <samu.onkalo@intel.com>
+Subject: [yavta PATCH 1/1] cache maintenance skip feature
+Date: Sat, 23 Jan 2016 23:49:54 +0200
+Message-Id: <1453585794-18833-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/28/2016 10:01 AM, Mauro Carvalho Chehab wrote:
-> Em Wed,  6 Jan 2016 13:27:18 -0700
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> 
->> Add support to track media device unregister in progress
->> state to prevent more than one driver entering unregister.
->> This enables fixing the general protection faults while
->> snd-usb-audio was cleaning up media resources for pcm
->> streams and mixers. In this patch a new interface is added
->> to return the unregister in progress state. Subsequent
->> patches to snd-usb-audio and au0828-core use this interface
->> to avoid entering unregister and attempting to unregister
->> entities and remove devnodes while unregister is in progress.
->> Media device unregister removes entities and interface nodes.
-> 
-> Hmm... isn't the spinlock enough to serialize it? It seems weird the
-> need of an extra bool here to warrant that this is really serialized.
-> 
+From: Samu Onkalo <samu.onkalo@intel.com>
 
-The spinlock and check for media_devnode_is_registered(&mdev->devnode)
-aren't enough to ensure only one driver enters the unregister. Please
-note that the devnode isn't marked unregistered until the end in
-media_device_unregister().
+Add options to skip cache maintenance.
+--dqbuf-skip-cache
+--qbuf-skip-cache
 
+Signed-off-by: Samu Onkalo <samu.onkalo@intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+This patch depends on my earlier patch "Fix --data-prefix option
+documentation".
 
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/media-device.c |  5 ++++-
->>  include/media/media-device.h | 17 +++++++++++++++++
->>  2 files changed, 21 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->> index 20c85a9..1bb9a5f 100644
->> --- a/drivers/media/media-device.c
->> +++ b/drivers/media/media-device.c
->> @@ -749,10 +749,13 @@ void media_device_unregister(struct media_device *mdev)
->>  	spin_lock(&mdev->lock);
->>  
->>  	/* Check if mdev was ever registered at all */
->> -	if (!media_devnode_is_registered(&mdev->devnode)) {
->> +	/* check if unregister is in progress */
->> +	if (!media_devnode_is_registered(&mdev->devnode) ||
->> +	    mdev->unregister_in_progress) {
->>  		spin_unlock(&mdev->lock);
->>  		return;
->>  	}
->> +	mdev->unregister_in_progress = true;
->>  
->>  	/* Remove all entities from the media device */
->>  	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
->> diff --git a/include/media/media-device.h b/include/media/media-device.h
->> index 04b6c2e..0807292 100644
->> --- a/include/media/media-device.h
->> +++ b/include/media/media-device.h
->> @@ -332,6 +332,10 @@ struct media_device {
->>  	spinlock_t lock;
->>  	/* Serializes graph operations. */
->>  	struct mutex graph_mutex;
->> +	/* Tracks unregister in progress state to prevent
->> +	 * more than one driver entering unregister
->> +	*/
->> +	bool unregister_in_progress;
->>  
->>  	/* Handlers to find source entity for the sink entity and
->>  	 * check if it is available, and activate the link using
->> @@ -365,6 +369,7 @@ struct media_device {
->>  /* media_devnode to media_device */
->>  #define to_media_device(node) container_of(node, struct media_device, devnode)
->>  
->> +
->>  /**
->>   * media_entity_enum_init - Initialise an entity enumeration
->>   *
->> @@ -553,6 +558,12 @@ struct media_device *media_device_get_devres(struct device *dev);
->>   * @dev: pointer to struct &device.
->>   */
->>  struct media_device *media_device_find_devres(struct device *dev);
->> +/* return unregister in progress state */
->> +static inline bool media_device_is_unregister_in_progress(
->> +					struct media_device *mdev)
->> +{
->> +	return mdev->unregister_in_progress;
->> +}
->>  
->>  /* Iterate over all entities. */
->>  #define media_device_for_each_entity(entity, mdev)			\
->> @@ -569,6 +580,7 @@ struct media_device *media_device_find_devres(struct device *dev);
->>  /* Iterate over all links. */
->>  #define media_device_for_each_link(link, mdev)			\
->>  	list_for_each_entry(link, &(mdev)->links, graph_obj.list)
->> +
->>  #else
->>  static inline int media_device_register(struct media_device *mdev)
->>  {
->> @@ -604,5 +616,10 @@ static inline struct media_device *media_device_find_devres(struct device *dev)
->>  {
->>  	return NULL;
->>  }
->> +static inline bool media_device_is_unregister_in_progress(
->> +					struct media_device *mdev)
->> +{
->> +	return false;
->> +}
->>  #endif /* CONFIG_MEDIA_CONTROLLER */
->>  #endif
+ yavta.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-
+diff --git a/yavta.c b/yavta.c
+index b21c3b3..ec4acd6 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -73,6 +73,8 @@ struct device
+ 	unsigned int width;
+ 	unsigned int height;
+ 	uint32_t buffer_output_flags;
++	uint32_t buffer_qbuf_flags;
++	uint32_t buffer_dqbuf_flags;
+ 	uint32_t timestamp_type;
+ 
+ 	unsigned char num_planes;
+@@ -1010,6 +1012,8 @@ static int video_queue_buffer(struct device *dev, int index, enum buffer_fill_mo
+ 		}
+ 	}
+ 
++	buf.flags |= dev->buffer_qbuf_flags;
++
+ 	if (video_is_mplane(dev)) {
+ 		buf.m.planes = planes;
+ 		buf.length = dev->num_planes;
+@@ -1662,6 +1666,7 @@ static int video_do_capture(struct device *dev, unsigned int nframes,
+ 		buf.memory = dev->memtype;
+ 		buf.length = VIDEO_MAX_PLANES;
+ 		buf.m.planes = planes;
++		buf.flags = dev->buffer_dqbuf_flags;
+ 
+ 		ret = ioctl(dev->fd, VIDIOC_DQBUF, &buf);
+ 		if (ret < 0) {
+@@ -1781,6 +1786,7 @@ static void usage(const char *argv0)
+ 	printf("-u, --userptr			Use the user pointers streaming method\n");
+ 	printf("-w, --set-control 'ctrl value'	Set control 'ctrl' to 'value'\n");
+ 	printf("    --data-prefix		Write portions of buffer data before data_offset\n");
++	printf("    --[d]qbuf-skip-cache        Skip cache maintenance\n");
+ 	printf("    --buffer-size		Buffer size in bytes\n");
+ 	printf("    --enum-formats		Enumerate formats\n");
+ 	printf("    --enum-inputs		Enumerate inputs\n");
+@@ -1814,6 +1820,8 @@ static void usage(const char *argv0)
+ #define OPT_PREMULTIPLIED	269
+ #define OPT_QUEUE_LATE		270
+ #define OPT_DATA_PREFIX		271
++#define OPT_DQBUF_NO_CACHE      272
++#define OPT_QBUF_NO_CACHE	273
+ 
+ static struct option opts[] = {
+ 	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
+@@ -1822,6 +1830,7 @@ static struct option opts[] = {
+ 	{"check-overrun", 0, 0, 'C'},
+ 	{"data-prefix", 0, 0, OPT_DATA_PREFIX},
+ 	{"delay", 1, 0, 'd'},
++	{"dqbuf-skip-cache", 0, 0, OPT_DQBUF_NO_CACHE},
+ 	{"enum-formats", 0, 0, OPT_ENUM_FORMATS},
+ 	{"enum-inputs", 0, 0, OPT_ENUM_INPUTS},
+ 	{"fd", 1, 0, OPT_FD},
+@@ -1838,6 +1847,7 @@ static struct option opts[] = {
+ 	{"offset", 1, 0, OPT_USERPTR_OFFSET},
+ 	{"pause", 0, 0, 'p'},
+ 	{"premultiplied", 0, 0, OPT_PREMULTIPLIED},
++	{"qbuf-skip-cache", 0, 0, OPT_QBUF_NO_CACHE},
+ 	{"quality", 1, 0, 'q'},
+ 	{"queue-late", 0, 0, OPT_QUEUE_LATE},
+ 	{"get-control", 1, 0, 'r'},
+@@ -2089,6 +2099,12 @@ int main(int argc, char *argv[])
+ 		case OPT_DATA_PREFIX:
+ 			dev.write_data_prefix = true;
+ 			break;
++		case OPT_DQBUF_NO_CACHE:
++			dev.buffer_dqbuf_flags |= V4L2_BUF_FLAG_NO_CACHE_INVALIDATE;
++			break;
++		case OPT_QBUF_NO_CACHE:
++			dev.buffer_qbuf_flags |= V4L2_BUF_FLAG_NO_CACHE_INVALIDATE;
++			break;
+ 		default:
+ 			printf("Invalid option -%c\n", c);
+ 			printf("Run %s -h for help.\n", argv[0]);
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+1.7.9.5
+
