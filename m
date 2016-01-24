@@ -1,55 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34443 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757848AbcAYUR3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 15:17:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH v3 1/4] v4l: libv4lsubdev: Make mbus_formats array const
-Date: Mon, 25 Jan 2016 22:17:46 +0200
-Message-ID: <3931467.gMsOrk7hPF@avalon>
-In-Reply-To: <1453725585-4165-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1453725585-4165-1-git-send-email-sakari.ailus@linux.intel.com> <1453725585-4165-2-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mout.gmx.net ([212.227.15.19]:59339 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751711AbcAXQNO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jan 2016 11:13:14 -0500
+Date: Sun, 24 Jan 2016 17:12:43 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <rainyfeeling@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Songjun Wu <songjun.wu@atmel.com>
+Subject: Re: [PATCH 02/13] atmel-isi: move the is_support() close to try/set
+ format function
+In-Reply-To: <1453119709-20940-3-git-send-email-rainyfeeling@gmail.com>
+Message-ID: <Pine.LNX.4.64.1601241712040.16570@axis700.grange>
+References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
+ <1453119709-20940-3-git-send-email-rainyfeeling@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Mon, 18 Jan 2016, Josh Wu wrote:
 
-Thank you for the patch.
+> As is_support() only used by try/set format function so put them
 
-On Monday 25 January 2016 14:39:42 Sakari Ailus wrote:
-> The array is already static and may not be modified at runtime. Make it
-> const.
+Typo: "is_supported()"
+
+Thanks
+Guennadi
+
+> together.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+> Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
 > ---
->  utils/media-ctl/libv4l2subdev.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/utils/media-ctl/libv4l2subdev.c
-> b/utils/media-ctl/libv4l2subdev.c index dc2cd87..e45834f 100644
-> --- a/utils/media-ctl/libv4l2subdev.c
-> +++ b/utils/media-ctl/libv4l2subdev.c
-> @@ -715,7 +715,7 @@ int v4l2_subdev_parse_setup_formats(struct media_device
-> *media, const char *p) return *end ? -EINVAL : 0;
+>  drivers/media/platform/soc_camera/atmel-isi.c | 36 +++++++++++++--------------
+>  1 file changed, 18 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index dc81df3..3793b68 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -189,24 +189,6 @@ static void configure_geometry(struct atmel_isi *isi, u32 width,
+>  	return;
 >  }
+>  
+> -static bool is_supported(struct soc_camera_device *icd,
+> -		const u32 pixformat)
+> -{
+> -	switch (pixformat) {
+> -	/* YUV, including grey */
+> -	case V4L2_PIX_FMT_GREY:
+> -	case V4L2_PIX_FMT_YUYV:
+> -	case V4L2_PIX_FMT_UYVY:
+> -	case V4L2_PIX_FMT_YVYU:
+> -	case V4L2_PIX_FMT_VYUY:
+> -	/* RGB */
+> -	case V4L2_PIX_FMT_RGB565:
+> -		return true;
+> -	default:
+> -		return false;
+> -	}
+> -}
+> -
+>  static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
+>  {
+>  	if (isi->active) {
+> @@ -571,6 +553,24 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
+>  	return vb2_queue_init(q);
+>  }
+>  
+> +static bool is_supported(struct soc_camera_device *icd,
+> +		const u32 pixformat)
+> +{
+> +	switch (pixformat) {
+> +	/* YUV, including grey */
+> +	case V4L2_PIX_FMT_GREY:
+> +	case V4L2_PIX_FMT_YUYV:
+> +	case V4L2_PIX_FMT_UYVY:
+> +	case V4L2_PIX_FMT_YVYU:
+> +	case V4L2_PIX_FMT_VYUY:
+> +	/* RGB */
+> +	case V4L2_PIX_FMT_RGB565:
+> +		return true;
+> +	default:
+> +		return false;
+> +	}
+> +}
+> +
+>  static int try_or_set_fmt(struct soc_camera_device *icd,
+>  		   struct v4l2_format *f,
+>  		   struct v4l2_subdev_format *format)
+> -- 
+> 1.9.1
 > 
-> -static struct {
-> +static const struct {
->  	const char *name;
->  	enum v4l2_mbus_pixelcode code;
->  } mbus_formats[] = {
-
--- 
-Regards,
-
-Laurent Pinchart
-
