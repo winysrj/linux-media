@@ -1,150 +1,101 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:3958 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753091AbcANLBQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 06:01:16 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: feinerer@openbsd.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH 1/1] media: v4l: Dual license v4l2-common.h under GPL v2 and BSD licenses
-Date: Thu, 14 Jan 2016 12:59:42 +0200
-Message-Id: <1452769182-5102-1-git-send-email-sakari.ailus@linux.intel.com>
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+ by www.linuxtv.org with esmtp (Exim 4.84)
+ (envelope-from <filip.beran@yahoo.com>) id 1aNMdG-0003Xq-Jy
+ for linux-dvb@linuxtv.org; Sun, 24 Jan 2016 15:31:15 +0000
+Received: from nm27-vm3.bullet.mail.ne1.yahoo.com ([98.138.91.157])
+ by mail.tu-berlin.de (exim-4.76/mailfrontend-8) with esmtps
+ [TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
+ id 1aNMdE-0004aY-m0; Sun, 24 Jan 2016 16:31:14 +0100
+Date: Sun, 24 Jan 2016 15:29:46 +0000 (UTC)
+From: Filip Beran <filip.beran@yahoo.com>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Message-ID: <1189794675.392862.1453649386032.JavaMail.yahoo@mail.yahoo.com>
+MIME-Version: 1.0
+References: <1189794675.392862.1453649386032.JavaMail.yahoo.ref@mail.yahoo.com>
+Subject: [linux-dvb] EC168 and MT2060
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+ <mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb/>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+ <mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Reply-To: linux-media@vger.kernel.org, Filip Beran <filip.beran@yahoo.com>
+Content-Type: multipart/mixed; boundary="===============8488580436727274295=="
+Sender: "linux-dvb" <linux-dvb-bounces@linuxtv.org>
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-The v4l2-common.h user space header was split off from videodev2.h, but
-the dual licensing of the videodev2.h (as well as other V4L2 headers) was
-missed. Change the license of the v4l2-common.h from GNU GPL v2 to both
-GNU GPL v2 and BSD.
+--===============8488580436727274295==
+Content-Type: multipart/alternative;
+	boundary="----=_Part_392861_964074984.1453649386029"
+Content-Length: 3096
 
-Sakari Ailus <sakari.ailus@iki.fi>:
-> Would you approve a license change of the patches to
-> include/uapi/linux/v4l2-common.h (formerly include/linux/v4l2-common.h) you
-> or your company have contributed from GNU GPL v2 to dual GNU GPL v2 and BSD
-> licenses, changing the copyright notice in the file as below (from
-> videodev2.h):
->
-> -------------8<------------
->   *  This program is free software; you can redistribute it and/or modify
->   *  it under the terms of the GNU General Public License as published by
->   *  the Free Software Foundation; either version 2 of the License, or
->   *  (at your option) any later version.
->   *
->   *  This program is distributed in the hope that it will be useful,
->   *  but WITHOUT ANY WARRANTY; without even the implied warranty of
->   *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->   *  GNU General Public License for more details.
->   *
->   *  Alternatively you can redistribute this file under the terms of the
->   *  BSD license as stated below:
->   *
->   *  Redistribution and use in source and binary forms, with or without
->   *  modification, are permitted provided that the following conditions
->   *  are met:
->   *  1. Redistributions of source code must retain the above copyright
->   *     notice, this list of conditions and the following disclaimer.
->   *  2. Redistributions in binary form must reproduce the above copyright
->   *     notice, this list of conditions and the following disclaimer in
->   *     the documentation and/or other materials provided with the
->   *     distribution.
->   *  3. The names of its contributors may not be used to endorse or promote
->   *     products derived from this software without specific prior written
->   *     permission.
->   *
->   *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
->   *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
->   *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
->   *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
->   *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
->   *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
->   *  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
->   *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
->   *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
->   *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
->   *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> -------------8<------------
+------=_Part_392861_964074984.1453649386029
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
-> No problem from my side.
 
-Hans Verkuil <hans.verkuil@cisco.com>:
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,=C2=A0
+would it be possible to extend EC168 driver to support a device with usb ID=
+ 0458:400f (EC168 + MT2061F)?It is a USB DVB-T tuner "Genius TVGo DVB-T02PR=
+O", for details see the link: =C2=A0https://www.linuxtv.org/wiki/index.php/=
+E3C_EC168#Genius_TVGo_DVB-T02Q_MCE
+Device Identifications:USB-ID: =C2=A0 =C2=A00458:400fDVB-T demodulator &=C2=
+=A0USB controller: =C2=A0 =C2=A0EC168;Tuner: =C2=A0 =C2=A0MT2061F (I suppos=
+e it should work with MT2060 driver);
+Let me know if i can be of any more help like testing, capture log output, =
+dump, ...
 
-Aaro Koskinen <aaro.koskinen@nokia.com>:
-> This fine also for us.
->
-> Acked-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+Regards,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- include/uapi/linux/v4l2-common.h | 46 ++++++++++++++++++++++++++++++----------
- 1 file changed, 35 insertions(+), 11 deletions(-)
+Filip
+------=_Part_392861_964074984.1453649386029
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/include/uapi/linux/v4l2-common.h b/include/uapi/linux/v4l2-common.h
-index 1527398..5b3f685 100644
---- a/include/uapi/linux/v4l2-common.h
-+++ b/include/uapi/linux/v4l2-common.h
-@@ -10,19 +10,43 @@
-  * Copyright (C) 2012 Nokia Corporation
-  * Contact: Sakari Ailus <sakari.ailus@iki.fi>
-  *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * version 2 as published by the Free Software Foundation.
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-  *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-  *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-- * 02110-1301 USA
-+ *  Alternatively you can redistribute this file under the terms of the
-+ *  BSD license as stated below:
-+ *
-+ *  Redistribution and use in source and binary forms, with or without
-+ *  modification, are permitted provided that the following conditions
-+ *  are met:
-+ *  1. Redistributions of source code must retain the above copyright
-+ *     notice, this list of conditions and the following disclaimer.
-+ *  2. Redistributions in binary form must reproduce the above copyright
-+ *     notice, this list of conditions and the following disclaimer in
-+ *     the documentation and/or other materials provided with the
-+ *     distribution.
-+ *  3. The names of its contributors may not be used to endorse or promote
-+ *     products derived from this software without specific prior written
-+ *     permission.
-+ *
-+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ *  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ *  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-+ *  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ *  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-+ *  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
-+ *  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-+ *  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-+ *  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-+ *  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-+ *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  */
- 
--- 
-2.1.0.231.g7484e3b
+<html><head></head><body><div style=3D"color:#000; background-color:#fff; f=
+ont-family:HelveticaNeue, Helvetica Neue, Helvetica, Arial, Lucida Grande, =
+sans-serif;font-size:16px"><div id=3D"yui_3_16_0_1_1453642546288_7113" clas=
+s=3D""><br id=3D"yui_3_16_0_1_1453642546288_7115" class=3D""></div><div id=
+=3D"yui_3_16_0_1_1453642546288_7117" class=3D"">Hello,&nbsp;</div><div id=
+=3D"yui_3_16_0_1_1453642546288_7119" class=3D""><br id=3D"yui_3_16_0_1_1453=
+642546288_7121" class=3D""></div><div id=3D"yui_3_16_0_1_1453642546288_7123=
+" class=3D"">would it be possible to extend EC168 driver to support a devic=
+e with usb ID 0458:400f (EC168 + MT2061F)?</div><div id=3D"yui_3_16_0_1_145=
+3642546288_7125" class=3D"">It is a USB DVB-T tuner "Genius TVGo DVB-T02PRO=
+", for details see the link: &nbsp;https://www.linuxtv.org/wiki/index.php/E=
+3C_EC168#Genius_TVGo_DVB-T02Q_MCE</div><div id=3D"yui_3_16_0_1_145364254628=
+8_7127" class=3D""><br></div><div id=3D"yui_3_16_0_1_1453642546288_7127" cl=
+ass=3D"">Device Identifications:</div><div id=3D"yui_3_16_0_1_1453642546288=
+_7131" class=3D"">USB-ID: &nbsp; &nbsp;0458:400f</div><div id=3D"yui_3_16_0=
+_1_1453642546288_7133" class=3D"" dir=3D"ltr">DVB-T demodulator &amp;&nbsp;=
+USB controller: &nbsp; &nbsp;EC168;</div><div id=3D"yui_3_16_0_1_1453642546=
+288_7135" class=3D"">Tuner: &nbsp; &nbsp;MT2061F (I suppose it should work =
+with MT2060 driver);</div><div id=3D"yui_3_16_0_1_1453642546288_7137" class=
+=3D""><br id=3D"yui_3_16_0_1_1453642546288_7139" class=3D""></div><div id=
+=3D"yui_3_16_0_1_1453642546288_7141" class=3D"">Let me know if i can be of =
+any more help like testing, capture log output, dump, ...</div><div id=3D"y=
+ui_3_16_0_1_1453642546288_7143" class=3D""><br id=3D"yui_3_16_0_1_145364254=
+6288_7145" class=3D""></div><div id=3D"yui_3_16_0_1_1453642546288_7143" cla=
+ss=3D""><br></div><div id=3D"yui_3_16_0_1_1453642546288_7147" class=3D"">Re=
+gards,</div><div id=3D"yui_3_16_0_1_1453642546288_7149" class=3D""><br id=
+=3D"yui_3_16_0_1_1453642546288_7151" class=3D""></div><div id=3D"yui_3_16_0=
+_1_1453642546288_7149" class=3D""><br></div><div dir=3D"ltr" id=3D"yui_3_16=
+_0_1_1453642546288_7153" class=3D"">Filip</div></div></body></html>
+------=_Part_392861_964074984.1453649386029--
 
+
+--===============8488580436727274295==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZi
+IHVzZXJzIG1haWxpbmcgbGlzdApGb3IgVjRML0RWQiBkZXZlbG9wbWVudCwgcGxlYXNlIHVzZSBp
+bnN0ZWFkIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZwpsaW51eC1kdmJAbGludXh0di5vcmcK
+aHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
+
+--===============8488580436727274295==--
