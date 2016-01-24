@@ -1,47 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46385 "EHLO
-	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751523AbcADTa1 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33603 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755243AbcAYGVO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jan 2016 14:30:27 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Junghak Sung <jh1009.sung@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] coda: fix first encoded frame payload
-Date: Mon,  4 Jan 2016 20:30:09 +0100
-Message-Id: <1451935809-29554-1-git-send-email-p.zabel@pengutronix.de>
+	Mon, 25 Jan 2016 01:21:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH] V4L: fix ov9650 control clusters
+Date: Sun, 24 Jan 2016 23:14:40 +0200
+Message-ID: <161527698.XeG1cnYavA@avalon>
+In-Reply-To: <Pine.LNX.4.64.1601191211300.15265@axis700.grange>
+References: <Pine.LNX.4.64.1601191211300.15265@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During the recent vb2_buffer restructuring, the calculation of the
-buffer payload reported to userspace was accidentally broken for the
-first encoded frame, counting only the length of the headers.
-This patch re-adds the length of the actual frame data.
+Hi Guennadi,
 
-Fixes: 2d7007153f0c ("[media] media: videobuf2: Restructure vb2_buffer")
-Reported-by: Michael Olbrich <m.olbrich@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Tested-by: Jan Luebbe <jlu@pengutronix.de>
----
- drivers/media/platform/coda/coda-bit.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 654e964..d76511c 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -1342,7 +1342,7 @@ static void coda_finish_encode(struct coda_ctx *ctx)
- 
- 	/* Calculate bytesused field */
- 	if (dst_buf->sequence == 0) {
--		vb2_set_plane_payload(&dst_buf->vb2_buf, 0,
-+		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, wr_ptr - start_ptr +
- 					ctx->vpu_header_size[0] +
- 					ctx->vpu_header_size[1] +
- 					ctx->vpu_header_size[2]);
+On Tuesday 19 January 2016 12:12:48 Guennadi Liakhovetski wrote:
+> Auto-gain and auto-exposure clusters in the ov9650 driver have both a
+> size of 2, not 3 controls. Fix this.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+I'd change the subject to "v4l: ov9650: Fix control clusters" though.
+
+> ---
+>  drivers/media/i2c/ov9650.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index 9fe9006..2baa528 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -1046,8 +1046,8 @@ static int ov965x_initialize_controls(struct ov965x
+> *ov965x) ctrls->exposure->flags |= V4L2_CTRL_FLAG_VOLATILE;
+> 
+>  	v4l2_ctrl_auto_cluster(3, &ctrls->auto_wb, 0, false);
+> -	v4l2_ctrl_auto_cluster(3, &ctrls->auto_gain, 0, true);
+> -	v4l2_ctrl_auto_cluster(3, &ctrls->auto_exp, 1, true);
+> +	v4l2_ctrl_auto_cluster(2, &ctrls->auto_gain, 0, true);
+> +	v4l2_ctrl_auto_cluster(2, &ctrls->auto_exp, 1, true);
+>  	v4l2_ctrl_cluster(2, &ctrls->hflip);
+> 
+>  	ov965x->sd.ctrl_handler = hdl;
+
 -- 
-2.6.2
+Regards,
+
+Laurent Pinchart
 
