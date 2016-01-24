@@ -1,45 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cmccmta2.chinamobile.com ([221.176.66.80]:2867 "EHLO
-	cmccmta2.chinamobile.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834AbcAOFXR (ORCPT
+Received: from mail.indomultimedia.co.id ([203.142.81.197]:36832 "EHLO
+	mail.indomultimedia.co.id" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751403AbcAYIyd convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2016 00:23:17 -0500
-From: Xiubo Li <lixiubo@cmss.chinamobile.com>
-To: m.chehab@samsung.com
-Cc: linux-media@vger.kernel.org,
-	Xiubo Li <lixiubo@cmss.chinamobile.com>
-Subject: [PATCH 1/3] [media] dvbdev: replace kcalloc with kzalloc
-Date: Fri, 15 Jan 2016 13:14:58 +0800
-Message-Id: <1452834900-28360-2-git-send-email-lixiubo@cmss.chinamobile.com>
-In-Reply-To: <1452834900-28360-1-git-send-email-lixiubo@cmss.chinamobile.com>
-References: <1452834900-28360-1-git-send-email-lixiubo@cmss.chinamobile.com>
+	Mon, 25 Jan 2016 03:54:33 -0500
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: =?utf-8?b?4oKsOTUwLDAwMC4wMCBFdXJv?=
+To: Recipients <infocharity@qatar.qa>
+From: "Qatar Foundation" <infocharity@qatar.qa>
+Date: Sat, 23 Jan 2016 19:32:04 -0800
+Reply-To: qforgqa@gmail.com
+Message-Id: <20160124033026.2773C46AB736@mail.indomultimedia.co.id>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since the number of elements equals to 1, so just use kzalloc to
-simplify the code and make it more readable.
+Guten Tag,
 
-Signed-off-by: Xiubo Li <lixiubo@cmss.chinamobile.com>
----
- drivers/media/dvb-core/dvbdev.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+(€ 950,000.00 Euro) wurde Ihnen von der Qatar Foundation Endowment 2016 zugeordnet Bitte kontaktieren Sie das Vorstandsvorsitzender der Qatar Foundation für mehr Info.
 
-diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-index 560450a..f38fabe 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -620,8 +620,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
- 			return -ENOMEM;
- 		adap->conn = conn;
- 
--		adap->conn_pads = kcalloc(1, sizeof(*adap->conn_pads),
--					    GFP_KERNEL);
-+		adap->conn_pads = kzalloc(sizeof(*adap->conn_pads), GFP_KERNEL);
- 		if (!adap->conn_pads)
- 			return -ENOMEM;
- 
--- 
-1.8.3.1
+Kontakt e-mail für weitere Informationen: qforgqa@gmail.com
 
+Mit freundlichen Grüßen,
+Herr Rashid Al-Naimi.
 
+Chief Executive Officer von Qatar Foundation Endowment 2016.
+__________________________________________________________________________
 
+Good day,
+
+(€950,000.00 Euro) has been assigned to you by the Qatar Foundation Endowment 2016. Kindly contact the Chief Executive Officer of the Qatar Foundation for more info.
+
+Contact e-mail for more information: qforgqa@gmail.com
+
+Yours sincerely,
+Mr Rashid Al-Naimi.
+
+Chief Executive Officer of Qatar Foundation Endowment 2016.
