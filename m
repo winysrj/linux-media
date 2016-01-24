@@ -1,71 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53418 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754201AbcASNpa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 08:45:30 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-sh@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH] [media] v4l: vsp1: Fix wrong entities links creation
-Date: Tue, 19 Jan 2016 10:45:12 -0300
-Message-Id: <1453211112-3686-1-git-send-email-javier@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:36310 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752592AbcAXQNk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jan 2016 11:13:40 -0500
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: [PATCH v5] media: soc_camera: rcar_vin: Add ARGB8888 caputre format support
+Date: Mon, 25 Jan 2016 01:13:29 +0900
+Message-Id: <1453652009-4291-1-git-send-email-ykaneko0929@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Media Control framework now requires entities to be registered with
-the media device before creating links so commit c7621b3044f7 ("[media]
-v4l: vsp1: separate links creation from entities init") separated link
-creation from entities init.
+From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 
-But unfortunately that patch introduced a regression since wrong links
-were created causing a boot failure on Renesas boards.
+This patch adds ARGB8888 capture format support for R-Car Gen3.
 
-This patch fixes the boot issue and also the media graph was compared
-by Geert Uytterhoeven to make sure that the driver changes required by
-the Media Control framework next generation did not affect the graph.
-
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
+Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 ---
 
- drivers/media/platform/vsp1/vsp1_drv.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 42dff9d020af..533bc796391e 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -256,7 +256,7 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+v5 [Yoshihiro Kaneko]
+* As suggested by Guennadi Liakhovetski
+  rcar_vin_setup():
+    - add a common error handler instead of a falling through to the
+      default case.
+* compile tested only
+
+v4 [Yoshihiro Kaneko]
+* As suggested by Sergei Shtylyov
+  - revised an error message.
+
+v3 [Yoshihiro Kaneko]
+* rebased to for-4.6-1 branch of Guennadi's tree.
+
+v2 [Yoshihiro Kaneko]
+* As suggested by Sergei Shtylyov
+  - fix the coding style of the braces.
+
+ drivers/media/platform/soc_camera/rcar_vin.c | 39 +++++++++++++++++++++-------
+ 1 file changed, 29 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index dc75a80..3b8edf4 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -124,7 +124,7 @@
+ #define VNDMR_EXRGB		(1 << 8)
+ #define VNDMR_BPSM		(1 << 4)
+ #define VNDMR_DTMD_YCSEP	(1 << 1)
+-#define VNDMR_DTMD_ARGB1555	(1 << 0)
++#define VNDMR_DTMD_ARGB		(1 << 0)
  
- 	/* Create links. */
- 	list_for_each_entry(entity, &vsp1->entities, list_dev) {
--		if (entity->type == VSP1_ENTITY_LIF) {
-+		if (entity->type == VSP1_ENTITY_WPF) {
- 			ret = vsp1_wpf_create_links(vsp1, entity);
- 			if (ret < 0)
- 				goto done;
-@@ -264,7 +264,10 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 			ret = vsp1_rpf_create_links(vsp1, entity);
- 			if (ret < 0)
- 				goto done;
--		} else {
-+		}
+ /* Video n Data Mode Register 2 bits */
+ #define VNDMR2_VPS		(1 << 30)
+@@ -643,21 +643,26 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 		output_is_yuv = true;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB555X:
+-		dmr = VNDMR_DTMD_ARGB1555;
++		dmr = VNDMR_DTMD_ARGB;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB565:
+ 		dmr = 0;
+ 		break;
+ 	case V4L2_PIX_FMT_RGB32:
+-		if (priv->chip == RCAR_GEN2 || priv->chip == RCAR_H1 ||
+-		    priv->chip == RCAR_E1) {
+-			dmr = VNDMR_EXRGB;
+-			break;
+-		}
++		if (priv->chip != RCAR_GEN2 && priv->chip != RCAR_H1 &&
++		    priv->chip != RCAR_E1)
++			goto e_format;
 +
-+		if (entity->type != VSP1_ENTITY_LIF &&
-+		    entity->type != VSP1_ENTITY_RPF) {
- 			ret = vsp1_create_links(vsp1, entity);
- 			if (ret < 0)
- 				goto done;
++		dmr = VNDMR_EXRGB;
++		break;
++	case V4L2_PIX_FMT_ARGB32:
++		if (priv->chip != RCAR_GEN3)
++			goto e_format;
++
++		dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
++		break;
+ 	default:
+-		dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
+-			 icd->current_fmt->host_fmt->fourcc);
+-		return -EINVAL;
++		goto e_format;
+ 	}
+ 
+ 	/* Always update on field change */
+@@ -679,6 +684,11 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+ 	iowrite32(vnmc | VNMC_ME, priv->base + VNMC_REG);
+ 
+ 	return 0;
++
++e_format:
++	dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
++		 icd->current_fmt->host_fmt->fourcc);
++	return -EINVAL;
+ }
+ 
+ static void rcar_vin_capture(struct rcar_vin_priv *priv)
+@@ -1304,6 +1314,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
+ 		.order			= SOC_MBUS_ORDER_LE,
+ 		.layout			= SOC_MBUS_LAYOUT_PACKED,
+ 	},
++	{
++		.fourcc			= V4L2_PIX_FMT_ARGB32,
++		.name			= "ARGB8888",
++		.bits_per_sample	= 32,
++		.packing		= SOC_MBUS_PACKING_NONE,
++		.order			= SOC_MBUS_ORDER_LE,
++		.layout			= SOC_MBUS_LAYOUT_PACKED,
++	},
+ };
+ 
+ static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+@@ -1611,6 +1629,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+ 	case V4L2_PIX_FMT_RGB32:
+ 		can_scale = priv->chip != RCAR_E1;
+ 		break;
++	case V4L2_PIX_FMT_ARGB32:
+ 	case V4L2_PIX_FMT_UYVY:
+ 	case V4L2_PIX_FMT_YUYV:
+ 	case V4L2_PIX_FMT_RGB565:
 -- 
-2.5.0
+1.9.1
 
