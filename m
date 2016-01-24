@@ -1,314 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57923 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932386AbcA1Qg1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 11:36:27 -0500
-Date: Thu, 28 Jan 2016 14:36:10 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH 20/31] media: au0828 change to register/unregister
- entity_notify hook
-Message-ID: <20160128143610.154ce103@recife.lan>
-In-Reply-To: <8ba7a2bcf7cde4d9361205c08ef5fca116b3973f.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-	<8ba7a2bcf7cde4d9361205c08ef5fca116b3973f.1452105878.git.shuahkh@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33640 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755538AbcAYGVi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 01:21:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, Samu Onkalo <samu.onkalo@intel.com>
+Subject: Re: [yavta PATCH 1/1] cache maintenance skip feature
+Date: Sun, 24 Jan 2016 22:09:24 +0200
+Message-ID: <1837311.I3681shYi1@avalon>
+In-Reply-To: <1453585794-18833-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1453585794-18833-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  6 Jan 2016 13:27:09 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi Sakari,
 
-> au0828 registers entity_notify hook to create media graph for
-> the device. This handler runs whenvere a new entity gets added
+Thank you for the patch.
 
-typo: whenever.
-
-> to the media device. It creates necessary links from video, vbi,
-> and ALSA entities to decoder and links tuner and decoder entities.
-> As this handler runs as entities get added, it has to maintain
-> state on the links it already created. New fields are added to
-> au0828_dev to keep this state information. entity_notify gets
-> unregistered before media_device unregister.
-
-Bty, please avoid long paragraphs at the patch description, 
-and please try to be clearer on your patch descriptions... That
-makes boring to read everything. :-;
-
+On Saturday 23 January 2016 23:49:54 Sakari Ailus wrote:
+> From: Samu Onkalo <samu.onkalo@intel.com>
 > 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> Add options to skip cache maintenance.
+> --dqbuf-skip-cache
+> --qbuf-skip-cache
+
+I wonder whether we should add support for this feature to yavta when it 
+hasn't really been exercised much on the kernel side. I've been pondering for 
+some time whether cache management shouldn't be handled in an implicit way 
+instead, by letting the kernel skip cache handling when no userspace mapping 
+exists instead of passing flags explicitly. I'd like to discuss and experiment 
+with that approach first.
+
+> Signed-off-by: Samu Onkalo <samu.onkalo@intel.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
->  drivers/media/usb/au0828/au0828-core.c | 104 +++++++++++++++++++++++----------
->  drivers/media/usb/au0828/au0828.h      |   6 ++
->  2 files changed, 78 insertions(+), 32 deletions(-)
+> This patch depends on my earlier patch "Fix --data-prefix option
+> documentation".
 > 
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index 6ef177c..a381660 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -137,6 +137,8 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	if (dev->media_dev &&
->  		media_devnode_is_registered(&dev->media_dev->devnode)) {
-> +		media_device_unregister_entity_notify(dev->media_dev,
-> +						      &dev->entity_notify);
->  		media_device_unregister(dev->media_dev);
->  		media_device_cleanup(dev->media_dev);
->  		dev->media_dev = NULL;
-> @@ -263,11 +265,16 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->  	struct media_device *mdev = dev->media_dev;
->  	struct media_entity *entity;
->  	struct media_entity *tuner = NULL, *decoder = NULL;
-> +	struct media_entity *audio_capture = NULL;
->  	int i, ret;
->  
->  	if (!mdev)
->  		return 0;
->  
-> +	if (dev->tuner_linked && dev->vdev_linked && dev->vbi_linked &&
-> +	    dev->audio_capture_linked)
-> +		return 0;
+>  yavta.c |   16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
+> 
+> diff --git a/yavta.c b/yavta.c
+> index b21c3b3..ec4acd6 100644
+> --- a/yavta.c
+> +++ b/yavta.c
+> @@ -73,6 +73,8 @@ struct device
+>  	unsigned int width;
+>  	unsigned int height;
+>  	uint32_t buffer_output_flags;
+> +	uint32_t buffer_qbuf_flags;
+> +	uint32_t buffer_dqbuf_flags;
+>  	uint32_t timestamp_type;
+> 
+>  	unsigned char num_planes;
+> @@ -1010,6 +1012,8 @@ static int video_queue_buffer(struct device *dev, int
+> index, enum buffer_fill_mo }
+>  	}
+> 
+> +	buf.flags |= dev->buffer_qbuf_flags;
 > +
->  	media_device_for_each_entity(entity, mdev) {
->  		switch (entity->function) {
->  		case MEDIA_ENT_F_TUNER:
-> @@ -276,6 +283,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->  		case MEDIA_ENT_F_ATV_DECODER:
->  			decoder = entity;
+>  	if (video_is_mplane(dev)) {
+>  		buf.m.planes = planes;
+>  		buf.length = dev->num_planes;
+> @@ -1662,6 +1666,7 @@ static int video_do_capture(struct device *dev,
+> unsigned int nframes, buf.memory = dev->memtype;
+>  		buf.length = VIDEO_MAX_PLANES;
+>  		buf.m.planes = planes;
+> +		buf.flags = dev->buffer_dqbuf_flags;
+> 
+>  		ret = ioctl(dev->fd, VIDIOC_DQBUF, &buf);
+>  		if (ret < 0) {
+> @@ -1781,6 +1786,7 @@ static void usage(const char *argv0)
+>  	printf("-u, --userptr			Use the user pointers streaming 
+method\n");
+>  	printf("-w, --set-control 'ctrl value'	Set control 'ctrl' to 
+'value'\n");
+>  	printf("    --data-prefix		Write portions of buffer data before
+> data_offset\n"); +	printf("    --[d]qbuf-skip-cache        Skip cache
+> maintenance\n"); printf("    --buffer-size		Buffer size in bytes\n");
+>  	printf("    --enum-formats		Enumerate formats\n");
+>  	printf("    --enum-inputs		Enumerate inputs\n");
+> @@ -1814,6 +1820,8 @@ static void usage(const char *argv0)
+>  #define OPT_PREMULTIPLIED	269
+>  #define OPT_QUEUE_LATE		270
+>  #define OPT_DATA_PREFIX		271
+> +#define OPT_DQBUF_NO_CACHE      272
+> +#define OPT_QBUF_NO_CACHE	273
+> 
+>  static struct option opts[] = {
+>  	{"buffer-size", 1, 0, OPT_BUFFER_SIZE},
+> @@ -1822,6 +1830,7 @@ static struct option opts[] = {
+>  	{"check-overrun", 0, 0, 'C'},
+>  	{"data-prefix", 0, 0, OPT_DATA_PREFIX},
+>  	{"delay", 1, 0, 'd'},
+> +	{"dqbuf-skip-cache", 0, 0, OPT_DQBUF_NO_CACHE},
+>  	{"enum-formats", 0, 0, OPT_ENUM_FORMATS},
+>  	{"enum-inputs", 0, 0, OPT_ENUM_INPUTS},
+>  	{"fd", 1, 0, OPT_FD},
+> @@ -1838,6 +1847,7 @@ static struct option opts[] = {
+>  	{"offset", 1, 0, OPT_USERPTR_OFFSET},
+>  	{"pause", 0, 0, 'p'},
+>  	{"premultiplied", 0, 0, OPT_PREMULTIPLIED},
+> +	{"qbuf-skip-cache", 0, 0, OPT_QBUF_NO_CACHE},
+>  	{"quality", 1, 0, 'q'},
+>  	{"queue-late", 0, 0, OPT_QUEUE_LATE},
+>  	{"get-control", 1, 0, 'r'},
+> @@ -2089,6 +2099,12 @@ int main(int argc, char *argv[])
+>  		case OPT_DATA_PREFIX:
+>  			dev.write_data_prefix = true;
 >  			break;
-> +		case MEDIA_ENT_F_AUDIO_CAPTURE:
-> +			audio_capture = entity;
+> +		case OPT_DQBUF_NO_CACHE:
+> +			dev.buffer_dqbuf_flags |= V4L2_BUF_FLAG_NO_CACHE_INVALIDATE;
 > +			break;
->  		}
->  	}
->  
-> @@ -285,60 +295,77 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->  	if (!decoder)
->  		return -EINVAL;
->  
-> -	if (tuner) {
-> +	if (tuner  && !dev->tuner_linked) {
-> +		dev->tuner = tuner;
->  		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
->  					    decoder, 0,
->  					    MEDIA_LNK_FL_ENABLED);
->  		if (ret)
->  			return ret;
-> +		dev->tuner_linked = 1;
->  	}
-> -	if (dev->vdev.entity.graph_obj.mdev) {
-> +	if (dev->vdev.entity.graph_obj.mdev && !dev->vdev_linked) {
->  		ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
->  					    &dev->vdev.entity, 0,
->  					    MEDIA_LNK_FL_ENABLED);
->  		if (ret)
->  			return ret;
-> +		dev->vdev_linked = 1;
->  	}
-> -	if (dev->vbi_dev.entity.graph_obj.mdev) {
-> +	if (dev->vbi_dev.entity.graph_obj.mdev && !dev->vbi_linked) {
->  		ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
->  					    &dev->vbi_dev.entity, 0,
->  					    MEDIA_LNK_FL_ENABLED);
->  		if (ret)
->  			return ret;
-> -	}
-> -
-> -	for (i = 0; i < AU0828_MAX_INPUT; i++) {
-> -		struct media_entity *ent = &dev->input_ent[i];
-> +		dev->vbi_linked = 1;
->  
-> -		if (!ent->graph_obj.mdev)
-> -			continue;
-> +		/*
-> +		 * Input entities are registered before vbi entity,
-> +		 * create graph nodes for them after vbi is created
-> +		*/
-> +		for (i = 0; i < AU0828_MAX_INPUT; i++) {
-> +			struct media_entity *ent = &dev->input_ent[i];
->  
-> -		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
-> -			break;
-> +			if (!ent->graph_obj.mdev)
-> +				continue;
->  
-> -		switch (AUVI_INPUT(i).type) {
-> -		case AU0828_VMUX_CABLE:
-> -		case AU0828_VMUX_TELEVISION:
-> -		case AU0828_VMUX_DVB:
-> -			if (!tuner)
-> +			if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
->  				break;
->  
-> -			ret = media_create_pad_link(ent, 0, tuner,
-> -						    TUNER_PAD_RF_INPUT,
-> -						    MEDIA_LNK_FL_ENABLED);
-> -			if (ret)
-> -				return ret;
-> -			break;
-> -		case AU0828_VMUX_COMPOSITE:
-> -		case AU0828_VMUX_SVIDEO:
-> -		default: /* AU0828_VMUX_DEBUG */
-> -			/* FIXME: fix the decoder PAD */
-> -			ret = media_create_pad_link(ent, 0, decoder, 0, 0);
-> -			if (ret)
-> -				return ret;
-> -			break;
-> +			switch (AUVI_INPUT(i).type) {
-> +			case AU0828_VMUX_CABLE:
-> +			case AU0828_VMUX_TELEVISION:
-> +			case AU0828_VMUX_DVB:
-> +				if (!tuner)
-> +					break;
-> +
-> +				ret = media_create_pad_link(ent, 0, tuner,
-> +							TUNER_PAD_RF_INPUT,
-> +							MEDIA_LNK_FL_ENABLED);
-> +				if (ret)
-> +					return ret;
-> +				break;
-> +			case AU0828_VMUX_COMPOSITE:
-> +			case AU0828_VMUX_SVIDEO:
-> +			default: /* AU0828_VMUX_DEBUG */
-> +				/* FIXME: fix the decoder PAD */
-> +				ret = media_create_pad_link(ent, 0, decoder,
-> +							    0, 0);
-> +				if (ret)
-> +					return ret;
-> +				break;
-> +			}
->  		}
->  	}
-> +	if (audio_capture && !dev->audio_capture_linked) {
-> +		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
-> +					    audio_capture, 0,
-> +					    MEDIA_LNK_FL_ENABLED);
-> +		if (ret)
-> +			return ret;
-> +		dev->audio_capture_linked = 1;
-> +	}
->  #endif
->  	return 0;
->  }
-> @@ -349,8 +376,10 @@ static int au0828_media_device_register(struct au0828_dev *dev,
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	int ret;
->  
-> -	if (dev->media_dev &&
-> -		!media_devnode_is_registered(&dev->media_dev->devnode)) {
-> +	if (!dev->media_dev)
-> +		return 0;
-> +
-> +	if (!media_devnode_is_registered(&dev->media_dev->devnode)) {
->  
->  		/* register media device */
->  		ret = media_device_register(dev->media_dev);
-> @@ -360,6 +389,17 @@ static int au0828_media_device_register(struct au0828_dev *dev,
->  			return ret;
->  		}
->  	}
-> +	/* register entity_notify callback */
-> +	dev->entity_notify.notify_data = (void *) dev;
-> +	dev->entity_notify.notify = (void *) au0828_create_media_graph;
-> +	ret = media_device_register_entity_notify(dev->media_dev,
-> +						  &dev->entity_notify);
-> +	if (ret) {
-> +		dev_err(&udev->dev,
-> +			"Media Device register entity_notify Error: %d\n",
-> +			ret);
-> +		return ret;
-> +	}
->  #endif
->  	return 0;
->  }
-> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-> index 8276072..cfb6d58 100644
-> --- a/drivers/media/usb/au0828/au0828.h
-> +++ b/drivers/media/usb/au0828/au0828.h
-> @@ -283,6 +283,12 @@ struct au0828_dev {
->  	struct media_entity *decoder;
->  	struct media_entity input_ent[AU0828_MAX_INPUT];
->  	struct media_pad input_pad[AU0828_MAX_INPUT];
-> +	struct media_entity_notify entity_notify;
-> +	struct media_entity *tuner;
-> +	bool tuner_linked;
-> +	bool vdev_linked;
-> +	bool vbi_linked;
-> +	bool audio_capture_linked;
+> +		case OPT_QBUF_NO_CACHE:
+> +			dev.buffer_qbuf_flags |= V4L2_BUF_FLAG_NO_CACHE_INVALIDATE;
+> +			break;
+>  		default:
+>  			printf("Invalid option -%c\n", c);
+>  			printf("Run %s -h for help.\n", argv[0]);
 
-Hmm... now I understood why you did the changes on patch 13/31.
-
-I see what you're doing, but not sure if this is a good idea
-to have one bool for each possible device. On au0828, the
-topology is actually simpler than on other devices, as it
-currently supports a very few set of I2C devices, but on other
-drivers, things can be messier.
-
-See, for example, two graphs for em28xx-based devices:
-	https://mchehab.fedorapeople.org/mc-next-gen/wintv_usb2.png
-	https://mchehab.fedorapeople.org/mc-next-gen/hvr_950.png
-
-On the first graph, the tuner is not connected directly to the
-analog demod, but, instead, to two other elements:
-	- tda9887 - for video
-	- msp3400 - for audio
-
-IMHO, the best way to handle graph setup is that each driver
-should handle the links that belong only to them synchronously,
-after creating/registering all the entities.
-
-So, only the links between two drivers would be asynchronously
-created. So, In the case of au0828:
-
-- au0828 core will create the connector entities;
-
-- I2C drivers will create their own entities;
-
-- DVB core will create the DVB entities/interfaces;
-
-- V4L core will create V4L interfaces and I/O entities;
-
-- au0828 V4L driver will create all V4L links, after
-  ensuring that the needed I2C drivers were bound;
-
-- snd-usb-audio will create all ALSA-specific entities links;
-
-The V4L->ALSA links will either be created by au0828-core,
-via the notification handler.
-
-With that in mind, I don't see any need to touch at
-au0828_create_media_graph(). It will need an extra function
-to handle the notification when ALSA gets registered
-(or when the entities there are added, whatever works best).
-
+-- 
 Regards,
-Mauro
 
+Laurent Pinchart
 
-
-
-
-
->  #endif
->  };
->  
