@@ -1,114 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55173 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755517AbcARWiq (ORCPT
+Received: from dimen.winder.org.uk ([87.127.116.10]:52100 "EHLO
+	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751068AbcAXF2O (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 17:38:46 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tiffany Lin <tiffany.lin@mediatek.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
-Subject: Re: [PATCH v3] media: v4l2-compat-ioctl32: fix missing length copy in put_v4l2_buffer32
-Date: Tue, 19 Jan 2016 00:38:56 +0200
-Message-ID: <1908819.hIDujBLp21@avalon>
-In-Reply-To: <1452849216-4793-1-git-send-email-tiffany.lin@mediatek.com>
-References: <1452849216-4793-1-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sun, 24 Jan 2016 00:28:14 -0500
+Message-ID: <1453613292.2497.26.camel@winder.org.uk>
+Subject: PCTV 292e support
+From: Russel Winder <russel@winder.org.uk>
+To: DVB_Linux_Media <linux-media@vger.kernel.org>
+Date: Sun, 24 Jan 2016 05:28:12 +0000
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-0JpMxsx+Eb4t41VLeSfy"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tiffany,
 
-Thank you for the patch.
+--=-0JpMxsx+Eb4t41VLeSfy
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 15 January 2016 17:13:36 Tiffany Lin wrote:
-> In v4l2-compliance utility, test QUERYBUF required correct length
-> value to go through each planar to check planar's length in
-> multi-planar buffer type
-> 
-> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   21 ++++++++++-----------
->  1 file changed, 10 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 327e83a..6181470
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -426,10 +426,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp,
-> struct v4l2_buffer32 __user &up->timestamp.tv_usec))
->  			return -EFAULT;
-> 
-> -	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-> -		if (get_user(kp->length, &up->length))
-> -			return -EFAULT;
-> +	if (get_user(kp->length, &up->length))
-> +		return -EFAULT;
+=46rom the material on the LinuxTV webpages, there is support for PCTV
+292e, and in emails it appears others are using this device. I find
+that on Debian Sid and Fedora Rawhide using the distributed kernels and
+libdvbv5, dvbv5-scan fails to get activity from the device. PCTV 282e
+works fine.
 
-I'd move this to the first block of get_user() calls at the beginning of the 
-function.
+Fedora Rawhide has kernels 4.4 and 4.5, Debian Sid 4.3.
 
-> 
-> +	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
->  		num_planes = kp->length;
->  		if (num_planes == 0) {
->  			kp->m.planes = NULL;
-> @@ -462,16 +462,14 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp,
-> struct v4l2_buffer32 __user } else {
->  		switch (kp->memory) {
->  		case V4L2_MEMORY_MMAP:
-> -			if (get_user(kp->length, &up->length) ||
-> -				get_user(kp->m.offset, &up->m.offset))
-> +			if (get_user(kp->m.offset, &up->m.offset))
->  				return -EFAULT;
->  			break;
->  		case V4L2_MEMORY_USERPTR:
->  			{
->  			compat_long_t tmp;
-> 
-> -			if (get_user(kp->length, &up->length) ||
-> -			    get_user(tmp, &up->m.userptr))
-> +			if (get_user(tmp, &up->m.userptr))
->  				return -EFAULT;
-> 
->  			kp->m.userptr = (unsigned long)compat_ptr(tmp);
-> @@ -516,6 +514,9 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp,
-> struct v4l2_buffer32 __user put_user(kp->reserved, &up->reserved))
->  			return -EFAULT;
-> 
-> +	if (put_user(kp->length, &up->length))
-> +		return -EFAULT;
+Debian Sid distributes dvb-tools as well as libdvbv5 (1.8.0). Fedora
+Rawhide only distributed libdvbv5 as far as I can tell, but I compiled
+dvbv5-scao from source from a git repository clone, but it behaves the
+same.
 
-Same here.
+On Debian Sid with PCTV292e:
 
->  	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
->  		num_planes = kp->length;
->  		if (num_planes == 0)
-> @@ -536,13 +537,11 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp,
-> struct v4l2_buffer32 __user } else {
->  		switch (kp->memory) {
->  		case V4L2_MEMORY_MMAP:
-> -			if (put_user(kp->length, &up->length) ||
-> -				put_user(kp->m.offset, &up->m.offset))
-> +			if (put_user(kp->m.offset, &up->m.offset))
->  				return -EFAULT;
->  			break;
->  		case V4L2_MEMORY_USERPTR:
-> -			if (put_user(kp->length, &up->length) ||
-> -				put_user(kp->m.userptr, &up->m.userptr))
-> +			if (put_user(kp->m.userptr, &up->m.userptr))
->  				return -EFAULT;
->  			break;
->  		case V4L2_MEMORY_OVERLAY:
+|> dvbv5-scan /usr/share/dvb/dvb-t/uk-CrystalPalace=C2=A0
+Cannot calc frequency shift. Either bandwidth/symbol-rate is
+unavailable (yet).
+Scanning frequency #1 490000000
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
+Scanning frequency #2 514000000
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
+Scanning frequency #3 570000000
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
+Scanning frequency #4 506000000
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
+Scanning frequency #5 482000000
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
+Scanning frequency #6 529833000
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
+Scanning frequency #7 545833000
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
 
--- 
-Regards,
+Swapping to the PCTV 282e, scanning works entirely as expected: if
+there is a lock it happens immediately and the channels are shown after
+a while; if there is no immediate lock there is a spinning of the
+signal strength value =E2=80=93 definitely not just a solid zero.
 
-Laurent Pinchart
+I note that PCTV 282e has a green light on permanently and works fine.
+PCTV 292e lights up blue when plugged in and then the light goes out.
+On Linux it never comes on again. Trying the device on Windows with the
+distributed software the blue light comes on every so often as activity
+happens. The hypothesis is that the device is not being driven
+properly. And yet people appear to be using the device?
+
+--=20
+Russel.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
+et
+41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
+London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
+
+
+--=-0JpMxsx+Eb4t41VLeSfy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEABECAAYFAlakYOwACgkQ+ooS3F10Be8boQCfXUxPuqS/IEGWQSqpmN60BERu
+HaIAoKrVlHJwkt0Z+LPC9KPogM7dCzTQ
+=S/hn
+-----END PGP SIGNATURE-----
+
+--=-0JpMxsx+Eb4t41VLeSfy--
 
