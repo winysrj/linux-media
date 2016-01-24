@@ -1,89 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:48079 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751250AbcADOHy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jan 2016 09:07:54 -0500
-Date: Mon, 4 Jan 2016 08:07:48 -0600
-From: Rob Herring <robh@kernel.org>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/10] [media] tvp5150: Add device tree binding document
-Message-ID: <20160104140748.GA10797@rob-hp-laptop>
-References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com>
- <1451910332-23385-8-git-send-email-javier@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1451910332-23385-8-git-send-email-javier@osg.samsung.com>
+Received: from dimen.winder.org.uk ([87.127.116.10]:54284 "EHLO
+	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751954AbcAXOnJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jan 2016 09:43:09 -0500
+Message-ID: <1453646587.2497.73.camel@winder.org.uk>
+Subject: WinTVsoloHD support
+From: Russel Winder <russel@winder.org.uk>
+To: DVB_Linux_Media <linux-media@vger.kernel.org>
+Date: Sun, 24 Jan 2016 14:43:07 +0000
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-Ez9zhGq1nAxlr8IvLvvb"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 04, 2016 at 09:25:29AM -0300, Javier Martinez Canillas wrote:
-> Add a Device Tree binding document for the TVP5150 video decoder.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> ---
-> 
->  .../devicetree/bindings/media/i2c/tvp5150.txt      | 35 ++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> new file mode 100644
-> index 000000000000..bf0b3f3128ce
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> @@ -0,0 +1,35 @@
-> +* Texas Instruments TVP5150 and TVP5151 video decoders
-> +
-> +The TVP5150 and TVP5151 are video decoders that convert baseband NTSC and PAL
-> +(and also SECAM in the TVP5151 case) video signals to either 8-bit 4:2:2 YUV
-> +with discrete syncs or 8-bit ITU-R BT.656 with embedded syncs output formats.
-> +
-> +Required Properties:
-> +- compatible: value must be "ti,tvp5150"
 
-What about the 5151? The driver never needs to know if SECAM is 
-supported or not?
+--=-Ez9zhGq1nAxlr8IvLvvb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> +- reg: I2C slave address
-> +
-> +Optional Properties:
-> +- powerdown-gpios: phandle for the GPIO connected to the PDN pin, if any.
-> +- reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
-> +
-> +The device node must contain one 'port' child node for its digital output
-> +video port, in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +&i2c2 {
-> +	...
-> +	tvp5150@5c {
-> +			compatible = "ti,tvp5150";
+I see a commit=C2=A0http://git.linuxtv.org/media_tree.git/commit/?id=3D1efc=
+217
+01d94ed0c5b91467b042bed8b8becd5cc=C2=A0purporting to add support for
+WinTVsoloHD. I am guessing this in not in the 4.3 kernel as when I plug
+one of these devices in, it is unrecognized. Is there a rough ETA for
+when it will be in a stock release kernel?
 
-Too much indentation here.
+[91105.732017] usb 1-2.1.3: new high-speed USB device number 28 using
+ehci-pci
+[91105.824879] usb 1-2.1.3: New USB device found, idVendor=3D2040,
+idProduct=3D0264
+[91105.824883] usb 1-2.1.3: New USB device strings: Mfr=3D3, Product=3D1,
+SerialNumber=3D2
+[91105.824886] usb 1-2.1.3: Product: soloHD
+[91105.824889] usb 1-2.1.3: Manufacturer: HCW
+[91105.824891] usb 1-2.1.3: SerialNumber: 0011512731
 
-> +			reg = <0x5c>;
-> +			powerdown-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
-> +			reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-> +
-> +			port {
-> +				tvp5150_1: endpoint {
-> +					remote-endpoint = <&ccdc_ep>;
-> +				};
-> +			};
-> +	};
-> +};
-> -- 
-> 2.4.3
-> 
+--=20
+Russel.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
+et
+41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
+London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
+
+
+--=-Ez9zhGq1nAxlr8IvLvvb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEABECAAYFAlak4vsACgkQ+ooS3F10Be/LzwCg3vH8gII10pUdJDWukOIinKkq
+pnkAoKL1MTz4UHhGyg/s8U3AIO1Fx5UC
+=pwxZ
+-----END PGP SIGNATURE-----
+
+--=-Ez9zhGq1nAxlr8IvLvvb--
+
