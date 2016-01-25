@@ -1,73 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dimen.winder.org.uk ([87.127.116.10]:52072 "EHLO
-	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751068AbcAXFZH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2016 00:25:07 -0500
-Message-ID: <1453612624.2497.15.camel@winder.org.uk>
-Subject: dvbv5-zap: getting pmt-pid
-From: Russel Winder <russel@winder.org.uk>
-To: DVB_Linux_Media <linux-media@vger.kernel.org>
-Date: Sun, 24 Jan 2016 05:17:04 +0000
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-8OuE2r6JsZEr5BMw1l2s"
-Mime-Version: 1.0
+Received: from mout.web.de ([212.227.17.12]:57248 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932792AbcAYSUd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 13:20:33 -0500
+Subject: Re: [PATCH 1/2] [media] m88rs6000t: Better exception handling in five
+ functions
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <5680FDB3.7060305@users.sourceforge.net>
+ <alpine.DEB.2.10.1512281019050.2702@hadrien>
+ <56810F56.4080306@users.sourceforge.net>
+ <alpine.DEB.2.10.1512281134590.2702@hadrien>
+ <568148FD.7080209@users.sourceforge.net>
+ <5681497E.7030702@users.sourceforge.net> <20160125150136.449f2593@recife.lan>
+Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <56A6662C.3000804@users.sourceforge.net>
+Date: Mon, 25 Jan 2016 19:15:08 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160125150136.449f2593@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+>> This issue was detected by using the Coccinelle software.
+>>
+>> Move the jump label directly before the desired log statement
+>> so that the variable "ret" will not be checked once more
+>> after a function call.
+>> Use the identifier "report_failure" instead of "err".
+>>
+>> Suggested-by: Julia Lawall <julia.lawall@lip6.fr>
+>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+>> ---
+>>  drivers/media/tuners/m88rs6000t.c | 154 +++++++++++++++++++-------------------
+>>  1 file changed, 78 insertions(+), 76 deletions(-)
+>>
+>> diff --git a/drivers/media/tuners/m88rs6000t.c b/drivers/media/tuners/m88rs6000t.c
+>> index 504bfbc..7e59a9f 100644
+>> --- a/drivers/media/tuners/m88rs6000t.c
+>> +++ b/drivers/media/tuners/m88rs6000t.c
+>> @@ -44,7 +44,7 @@ static int m88rs6000t_set_demod_mclk(struct dvb_frontend *fe)
+>>  	/* select demod main mclk */
+>>  	ret = regmap_read(dev->regmap, 0x15, &utmp);
+>>  	if (ret)
+>> -		goto err;
+>> +		goto report_failure;
+> 
+> Why to be so verbose?
 
---=-8OuE2r6JsZEr5BMw1l2s
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-In the middle of last year, there was an email exchange about dvbv5-zap=20
-and the -p option not working. As far as I can tell this is still a
-problem for Debian Sid and Fedora Rawhide with PCTV 292e, PCTV 282e,
-and Terratec XXS. Is there a fix pending?
-
-Debian Sid: kernel 4.3, libdvbv5 and dvb-tools 1.8.0
-Fedora Rawhide: kernel 4.4 and 4.5, libdvbv5 1.8.1
-
-(Fedora appears not to package dvb-tools :-(, but compiling the source
-of dvbv5-zap from a clone of the repository behaves in the same way as
-the version distributed on Debian Sid.)
-
-For example on Debian Sid with PCTV 282e:
-
-|> dvbv5-zap -p -r -c ~/.local/share/me-tv/virtual_channels.conf "BBC NEWS"
-using demux '/dev/dvb/adapter0/demux0'
-reading channels from file '/home/users/russel/.local/share/me-tv/virtual_c=
-hannels.conf'
-service has pid type 05:=C2=A0=C2=A07270
-tuning to 490000000 Hz
-read_sections: read error: Resource temporarily unavailable
-couldn't find pmt-pid for sid 1100
-
-
---=20
-Russel.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
-et
-41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
-London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
+Does the document "CodingStyle" give an indication in the section "Chapter 7:
+Centralized exiting of functions"?
 
 
---=-8OuE2r6JsZEr5BMw1l2s
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+> Calling it as "err" is enough,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+It seems that some short identifiers are popular during software development.
 
-iEYEABECAAYFAlakXlAACgkQ+ooS3F10Be9hSgCeJPkYQgTqDCj5u7H+lgmCIi4Y
-+hQAnRJv3eqTU7+pvKC6aHdInJJPCLAA
-=CTHi
------END PGP SIGNATURE-----
 
---=-8OuE2r6JsZEr5BMw1l2s--
+> and it means less code to type if we need to add another goto.
 
+Would you like to increase the usage of jump labels which will contain
+only a single character?
+
+Regards,
+Markus
