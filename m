@@ -1,80 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m50-134.163.com ([123.125.50.134]:39243 "EHLO m50-134.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750846AbcAEOud (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jan 2016 09:50:33 -0500
-From: Geliang Tang <geliangtang@163.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Geliang Tang <geliangtang@163.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] sh_mobile_ceu_camera: use soc_camera_from_vb2q
-Date: Tue,  5 Jan 2016 22:49:57 +0800
-Message-Id: <ff6bbd963c4d015d3fc465a7983e421a1c61b3b7.1452005318.git.geliangtang@163.com>
+Received: from mail-yk0-f178.google.com ([209.85.160.178]:36845 "EHLO
+	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754576AbcAYEqW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jan 2016 23:46:22 -0500
+Received: by mail-yk0-f178.google.com with SMTP id v14so148932950ykd.3
+        for <linux-media@vger.kernel.org>; Sun, 24 Jan 2016 20:46:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1453187230-97231-1-git-send-email-wuchengli@chromium.org>
+References: <1453187230-97231-1-git-send-email-wuchengli@chromium.org>
+From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
+	<wuchengli@chromium.org>
+Date: Mon, 25 Jan 2016 12:46:02 +0800
+Message-ID: <CAOMLVLh7EnMgVfzV7JQy6DSKSaanqHn5kNkTLVrbTCihjphzYA@mail.gmail.com>
+Subject: Re: [PATCH v4 0/2] new control V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME
+To: Wu-Cheng Li <wuchengli@chromium.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: pawel@osciak.com, mchehab@osg.samsung.com, k.debski@samsung.com,
+	Antti Palosaari <crope@iki.fi>,
+	Masanari Iida <standby24x7@gmail.com>,
+	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	ao2@ao2.it, bparrot@ti.com,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	jtp.park@samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Daniel Kurtz <djkurtz@chromium.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use soc_camera_from_vb2q() instead of open-coding it.
+Hi Hans,
+Can you look at the patch again? I've changed the name from
+V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME to
+V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME. Thanks.
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
----
- drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+Wu-Cheng
 
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index 90c87f2..b9f369c 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -213,8 +213,7 @@ static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
- 			unsigned int *count, unsigned int *num_planes,
- 			unsigned int sizes[], void *alloc_ctxs[])
- {
--	struct soc_camera_device *icd = container_of(vq,
--			struct soc_camera_device, vb2_vidq);
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 
-@@ -361,8 +360,7 @@ static int sh_mobile_ceu_videobuf_prepare(struct vb2_buffer *vb)
- static void sh_mobile_ceu_videobuf_queue(struct vb2_buffer *vb)
- {
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
--	struct soc_camera_device *icd = container_of(vb->vb2_queue,
--			struct soc_camera_device, vb2_vidq);
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vbuf);
-@@ -413,8 +411,7 @@ error:
- static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
- {
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
--	struct soc_camera_device *icd = container_of(vb->vb2_queue,
--			struct soc_camera_device, vb2_vidq);
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_buffer *buf = to_ceu_vb(vbuf);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-@@ -444,8 +441,7 @@ static void sh_mobile_ceu_videobuf_release(struct vb2_buffer *vb)
- static int sh_mobile_ceu_videobuf_init(struct vb2_buffer *vb)
- {
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
--	struct soc_camera_device *icd = container_of(vb->vb2_queue,
--			struct soc_camera_device, vb2_vidq);
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 
-@@ -460,7 +456,7 @@ static int sh_mobile_ceu_videobuf_init(struct vb2_buffer *vb)
- 
- static void sh_mobile_ceu_stop_streaming(struct vb2_queue *q)
- {
--	struct soc_camera_device *icd = container_of(q, struct soc_camera_device, vb2_vidq);
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 	struct list_head *buf_head, *tmp;
--- 
-2.5.0
-
-
+On Tue, Jan 19, 2016 at 3:07 PM, Wu-Cheng Li <wuchengli@chromium.org> wrote:
+> v4 changes:
+> - Change the name to V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
+> - Add commit message to s5p-mfc patch.
+>
+> Wu-Cheng Li (2):
+>   v4l: add V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
+>   s5p-mfc: add the support of V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
+>
+>  Documentation/DocBook/media/v4l/controls.xml |  8 ++++++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 12 ++++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
+>  include/uapi/linux/v4l2-controls.h           |  1 +
+>  4 files changed, 23 insertions(+)
+>
+> --
+> 2.6.0.rc2.230.g3dd15c0
+>
