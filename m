@@ -1,68 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42892 "EHLO mx1.redhat.com"
+Received: from mout.web.de ([212.227.15.3]:50591 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757477AbcAaQPD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jan 2016 11:15:03 -0500
-From: Vladis Dronov <vdronov@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: Vladis Dronov <vdronov@redhat.com>
-Subject: [PATCH] [media] usbvision: revert commit 588afcc1
-Date: Sun, 31 Jan 2016 17:14:52 +0100
-Message-Id: <1454256892-7832-1-git-send-email-vdronov@redhat.com>
+	id S932986AbcAYSXS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 13:23:18 -0500
+Subject: Re: [PATCH] [media] xc5000: Faster result reporting in
+ xc_load_fw_and_init_tuner()
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <56818B7B.8040801@users.sourceforge.net> <20160125150654.7ada12ac@recife.lan>
+Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <56A6680B.9050200@users.sourceforge.net>
+Date: Mon, 25 Jan 2016 19:23:07 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160125150654.7ada12ac@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Vladis Dronov <vdronov@redhat.com>
----
-I believe, commit 588afcc1 should be reverted, concerns being:
+>> This issue was detected by using the Coccinelle software.
+>>
+>> Split the previous if statement at the end so that each final log statement
+>> will eventually be performed by a direct jump to these labels.
+>> * report_failure
+>> * report_success
+>>
+>> A check repetition can be excluded for the variable "ret" at the end then.
+>>
+>>
+>> Apply also two recommendations from the script "checkpatch.pl".
+>>
+>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+>> ---
+>>  drivers/media/tuners/xc5000.c | 16 +++++++---------
+>>  1 file changed, 7 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+>> index e6e5e90..1360677 100644
+>> --- a/drivers/media/tuners/xc5000.c
+>> +++ b/drivers/media/tuners/xc5000.c
+>> @@ -1166,7 +1166,7 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
+>>  
+>>  		ret = xc5000_fwupload(fe, desired_fw, fw);
+>>  		if (ret != 0)
+>> -			goto err;
+>> +			goto report_failure;
+>>  
+>>  		msleep(20);
+>>  
+>> @@ -1229,18 +1229,16 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
+>>  		/* Default to "CABLE" mode */
+>>  		ret = xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
+>>  		if (!ret)
+>> -			break;
+>> +			goto report_success;
+>>  		printk(KERN_ERR "xc5000: can't set to cable mode.");
+> 
+> It sounds worth to avoid adding a goto here.
 
-* "!dev->actconfig->interface[ifnum]" won't catch a case where
-the value is not NULL but some garbage. This way the system may
-crash later with GPF.
+Are you interested in a bit of software optimisation for the implementation
+of the function "xc_load_fw_and_init_tuner"?
 
-* "(ifnum >= USB_MAXINTERFACES)" does not cover all the error
-conditions. "ifnum" should be compared to "dev->actconfig->
-desc.bNumInterfaces", i.e. compared to the number of "struct
-usb_interface" kzalloc()-ed, not to USB_MAXINTERFACES.
 
-* There is a "struct usb_device" leak in this error path,
-as there is usb_get_dev(), but no usb_put_dev() on this path.
+>>  	}
+>>  
+>> -err:
+>> -	if (!ret)
+>> -		printk(KERN_INFO "xc5000: Firmware %s loaded and running.\n",
+>> -		       desired_fw->name);
+>> -	else
+>> -		printk(KERN_CONT " - too many retries. Giving up\n");
+>> -
+>> +report_failure:
+>> +	pr_cont(" - too many retries. Giving up\n");
+>>  	return ret;
+>> +report_success:
+>> +	pr_info("xc5000: Firmware %s loaded and running.\n", desired_fw->name);
+>> +	return 0;
+>>  }
+>>  
+>>  static void xc5000_do_timer_sleep(struct work_struct *timer_sleep)
 
-* There is a bug of the same type several lines below with number
-of endpoints. The code is accessing hard-coded second endpoint
-("interface->endpoint[1].desc") which may not exist. It would be
-great to handle this in the same patch too.
 
-* All the concerns above are resolved by already-accepted patch
-fa52bd50 "[media] usbvision: fix crash on detecting device with
-invalid configuration"
+Is the proposed source code restructuring interesting?
 
-* Mailing list message:
-http://www.spinics.net/lists/linux-media/msg94832.html
-
- drivers/media/usb/usbvision/usbvision-video.c | 7 -------
- 1 file changed, 7 deletions(-)
-
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index de9ff3b..6996ab8 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -1461,13 +1461,6 @@ static int usbvision_probe(struct usb_interface *intf,
- 	printk(KERN_INFO "%s: %s found\n", __func__,
- 				usbvision_device_data[model].model_string);
- 
--	/*
--	 * this is a security check.
--	 * an exploit using an incorrect bInterfaceNumber is known
--	 */
--	if (ifnum >= USB_MAXINTERFACES || !dev->actconfig->interface[ifnum])
--		return -ENODEV;
--
- 	if (usbvision_device_data[model].interface >= 0)
- 		interface = &dev->actconfig->interface[usbvision_device_data[model].interface]->altsetting[0];
- 	else if (ifnum < dev->actconfig->desc.bNumInterfaces)
--- 
-2.4.3
-
+Regards,
+Markus
