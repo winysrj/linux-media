@@ -1,110 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:36161 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754951AbcARMxb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 07:53:31 -0500
-Received: by mail-pa0-f66.google.com with SMTP id a20so27512150pag.3
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 04:53:31 -0800 (PST)
-From: Josh Wu <rainyfeeling@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Songjun Wu <songjun.wu@atmel.com>,
-	Josh Wu <rainyfeeling@gmail.com>
-Subject: [PATCH 07/13] atmel-isi: move hw code into isi_hw_initialize()
-Date: Mon, 18 Jan 2016 20:52:18 +0800
-Message-Id: <1453121545-27528-2-git-send-email-rainyfeeling@gmail.com>
-In-Reply-To: <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
-References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
- <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:46299 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757358AbcAYRHC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 12:07:02 -0500
+Date: Mon, 25 Jan 2016 15:06:54 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH] [media] xc5000: Faster result reporting in
+ xc_load_fw_and_init_tuner()
+Message-ID: <20160125150654.7ada12ac@recife.lan>
+In-Reply-To: <56818B7B.8040801@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+	<56818B7B.8040801@users.sourceforge.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That make hw operation code separate with general code.
+Em Mon, 28 Dec 2015 20:20:27 +0100
+SF Markus Elfring <elfring@users.sourceforge.net> escreveu:
 
-Also since reset action can be failed, so add a return value for
-isi_hw_initialze().
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 28 Dec 2015 20:10:30 +0100
+> 
+> This issue was detected by using the Coccinelle software.
+> 
+> Split the previous if statement at the end so that each final log statement
+> will eventually be performed by a direct jump to these labels.
+> * report_failure
+> * report_success
+> 
+> A check repetition can be excluded for the variable "ret" at the end then.
+> 
+> 
+> Apply also two recommendations from the script "checkpatch.pl".
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/media/tuners/xc5000.c | 16 +++++++---------
+>  1 file changed, 7 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
+> index e6e5e90..1360677 100644
+> --- a/drivers/media/tuners/xc5000.c
+> +++ b/drivers/media/tuners/xc5000.c
+> @@ -1166,7 +1166,7 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
+>  
+>  		ret = xc5000_fwupload(fe, desired_fw, fw);
+>  		if (ret != 0)
+> -			goto err;
+> +			goto report_failure;
+>  
+>  		msleep(20);
+>  
+> @@ -1229,18 +1229,16 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
+>  		/* Default to "CABLE" mode */
+>  		ret = xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
+>  		if (!ret)
+> -			break;
+> +			goto report_success;
+>  		printk(KERN_ERR "xc5000: can't set to cable mode.");
 
-Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
----
+It sounds worth to avoid adding a goto here.
 
- drivers/media/platform/soc_camera/atmel-isi.c | 34 +++++++++++++++++----------
- 1 file changed, 21 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 4ddc309..ed4d04b 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -203,10 +203,27 @@ static int isi_hw_wait_status(struct atmel_isi *isi, int status_flag,
- 	return 0;
- }
- 
--static void isi_hw_initialize(struct atmel_isi *isi)
-+static int isi_hw_initialize(struct atmel_isi *isi)
- {
- 	u32 common_flags = isi->bus_param;
- 	u32 cfg1 = 0;
-+	int ret;
-+
-+	/* Reset ISI */
-+	isi_writel(isi, ISI_CTRL, ISI_CTRL_SRST);
-+
-+	/* Check Reset status */
-+	ret  = isi_hw_wait_status(isi, ISI_CTRL_SRST, 500);
-+	if (ret) {
-+		dev_err(isi->soc_host.icd->parent, "Reset ISI timed out\n");
-+		return ret;
-+	}
-+
-+	/* Disable all interrupts */
-+	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
-+
-+	/* Clear any pending interrupt */
-+	isi_readl(isi, ISI_STATUS);
- 
- 	/* set bus param for ISI */
- 	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
-@@ -229,6 +246,8 @@ static void isi_hw_initialize(struct atmel_isi *isi)
- 
- 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
- 	isi_writel(isi, ISI_CFG1, cfg1);
-+
-+	return 0;
- }
- 
- static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
-@@ -453,27 +472,16 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
- 
- 	pm_runtime_get_sync(ici->v4l2_dev.dev);
- 
--	/* Reset ISI */
--	isi_writel(isi, ISI_CTRL, ISI_CTRL_SRST);
--
--	/* Check Reset status */
--	ret  = isi_hw_wait_status(isi, ISI_CTRL_SRST, 500);
-+	ret = isi_hw_initialize(isi);
- 	if (ret) {
--		dev_err(icd->parent, "Reset ISI timed out\n");
- 		pm_runtime_put(ici->v4l2_dev.dev);
- 		return ret;
- 	}
--	/* Disable all interrupts */
--	isi_writel(isi, ISI_INTDIS, (u32)~0UL);
--
--	isi_hw_initialize(isi);
- 
- 	configure_geometry(isi, icd->user_width, icd->user_height,
- 				icd->current_fmt);
- 
- 	spin_lock_irq(&isi->lock);
--	/* Clear any pending interrupt */
--	isi_readl(isi, ISI_STATUS);
- 
- 	if (count)
- 		start_dma(isi, isi->active);
--- 
-1.9.1
-
+>  	}
+>  
+> -err:
+> -	if (!ret)
+> -		printk(KERN_INFO "xc5000: Firmware %s loaded and running.\n",
+> -		       desired_fw->name);
+> -	else
+> -		printk(KERN_CONT " - too many retries. Giving up\n");
+> -
+> +report_failure:
+> +	pr_cont(" - too many retries. Giving up\n");
+>  	return ret;
+> +report_success:
+> +	pr_info("xc5000: Firmware %s loaded and running.\n", desired_fw->name);
+> +	return 0;
+>  }
+>  
+>  static void xc5000_do_timer_sleep(struct work_struct *timer_sleep)
