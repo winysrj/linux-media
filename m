@@ -1,96 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:45299 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:46261 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753346AbcAGS27 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jan 2016 13:28:59 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH 7/8] [media] exynos4-is: Check v4l2_of_parse_endpoint() return value
-Date: Thu,  7 Jan 2016 15:27:21 -0300
-Message-Id: <1452191248-15847-8-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
-References: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
+	id S932430AbcAYQu3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 11:50:29 -0500
+Date: Mon, 25 Jan 2016 14:50:22 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eduard Gavin <egavinc@gmail.com>
+Subject: Re: [PATCH] tvp5150: Fix breakage for serial usage
+Message-ID: <20160125145022.5bf0738a@recife.lan>
+In-Reply-To: <54ffe2ae9209b607f54142809902764e2eaaf1d2.1453740290.git.mchehab@osg.samsung.com>
+References: <54ffe2ae9209b607f54142809902764e2eaaf1d2.1453740290.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_of_parse_endpoint() function can fail so check the return value.
+Em Mon, 25 Jan 2016 14:44:56 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+> changeset 460b6c0831cb ("tvp5150: Add s_stream subdev operation
+> support") broke for em28xx-based devices with uses tvp5150. On those
+> devices, touching the TVP5150_MISC_CTL register causes em28xx to stop
+> streaming.
+> 
+> I suspect that it uses the 27 MHz clock provided by tvp5150 to feed
+> em28xx. So, change the logic to do nothing on s_stream if the tvp5150 is
+> not set up to work with V4L2_MBUS_PARALLEL.
 
- drivers/media/platform/exynos4-is/media-dev.c |  8 +++++++-
- drivers/media/platform/exynos4-is/mipi-csis.c | 10 +++++++---
- 2 files changed, 14 insertions(+), 4 deletions(-)
+Forgot to mention:
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index f3b2dd30ec77..662d4a5c584e 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -332,13 +332,19 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
- 	struct fimc_source_info *pd = &fmd->sensor[index].pdata;
- 	struct device_node *rem, *ep, *np;
- 	struct v4l2_of_endpoint endpoint;
-+	int ret;
- 
- 	/* Assume here a port node can have only one endpoint node. */
- 	ep = of_get_next_child(port, NULL);
- 	if (!ep)
- 		return 0;
- 
--	v4l2_of_parse_endpoint(ep, &endpoint);
-+	ret = v4l2_of_parse_endpoint(ep, &endpoint);
-+	if (ret) {
-+		of_node_put(ep);
-+		return ret;
-+	}
-+
- 	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
- 		return -EINVAL;
- 
-diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-index ac5e50e595be..bd5c46c3d4b7 100644
---- a/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -736,6 +736,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- {
- 	struct device_node *node = pdev->dev.of_node;
- 	struct v4l2_of_endpoint endpoint;
-+	int ret;
- 
- 	if (of_property_read_u32(node, "clock-frequency",
- 				 &state->clk_frequency))
-@@ -751,7 +752,9 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- 		return -EINVAL;
- 	}
- 	/* Get port node and validate MIPI-CSI channel id. */
--	v4l2_of_parse_endpoint(node, &endpoint);
-+	ret = v4l2_of_parse_endpoint(node, &endpoint);
-+	if (ret)
-+		goto err;
- 
- 	state->index = endpoint.base.port - FIMC_INPUT_MIPI_CSI2_0;
- 	if (state->index >= CSIS_MAX_ENTITIES)
-@@ -764,9 +767,10 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- 					"samsung,csis-wclk");
- 
- 	state->num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
--	of_node_put(node);
- 
--	return 0;
-+err:
-+	of_node_put(node);
-+	return ret;
- }
- 
- static int s5pcsis_pm_resume(struct device *dev, bool runtime);
--- 
-2.4.3
+Tested with Hauppauge WinTV USB 2 model 42012 Rev. C186
+(USB ID: 2040:4200).
 
+
+> 
+> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/i2c/tvp5150.c | 9 ++++-----
+>  1 file changed, 4 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index 437f1a7ecb96..779c6f453cc9 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -975,19 +975,18 @@ static int tvp5150_g_mbus_config(struct v4l2_subdev *sd,
+>  static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+>  {
+>  	struct tvp5150 *decoder = to_tvp5150(sd);
+> -	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
+> -	int val = 0x09;
+>  
+>  	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
+> -	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
+> -		val = 0x0d;
+> +	if (decoder->mbus_type != V4L2_MBUS_PARALLEL)
+> +		return 0;
+>  
+>  	/* Initializes TVP5150 to its default values */
+>  	/* # set PCLK (27MHz) */
+>  	tvp5150_write(sd, TVP5150_CONF_SHARED_PIN, 0x00);
+>  
+> +	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
+>  	if (enable)
+> -		tvp5150_write(sd, TVP5150_MISC_CTL, val);
+> +		tvp5150_write(sd, TVP5150_MISC_CTL, 0x09);
+>  	else
+>  		tvp5150_write(sd, TVP5150_MISC_CTL, 0x00);
+>  
