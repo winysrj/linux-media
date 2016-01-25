@@ -1,129 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:44718 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751969AbcAFU5c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 15:57:32 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
+Received: from mail-pf0-f171.google.com ([209.85.192.171]:35125 "EHLO
+	mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932843AbcAYRdz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 12:33:55 -0500
+Message-ID: <56A65C77.7080102@gmail.com>
+Date: Mon, 25 Jan 2016 23:03:43 +0530
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Jarod Wilson <jarod@wilsonet.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 29/31] media: track media device unregister in progress
-Date: Wed,  6 Jan 2016 13:27:18 -0700
-Message-Id: <151cfbe0e59b3d5396951bdcc29666614575f5bc.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH 5/5] staging: media: lirc: use new parport device model
+References: <1450443929-15305-1-git-send-email-sudipm.mukherjee@gmail.com>	<1450443929-15305-5-git-send-email-sudipm.mukherjee@gmail.com>	<20160125142906.184a4cb5@recife.lan>	<20160125170230.GA8787@sudip-laptop> <20160125151257.24d5c7d2@recife.lan>
+In-Reply-To: <20160125151257.24d5c7d2@recife.lan>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support to track media device unregister in progress
-state to prevent more than one driver entering unregister.
-This enables fixing the general protection faults while
-snd-usb-audio was cleaning up media resources for pcm
-streams and mixers. In this patch a new interface is added
-to return the unregister in progress state. Subsequent
-patches to snd-usb-audio and au0828-core use this interface
-to avoid entering unregister and attempting to unregister
-entities and remove devnodes while unregister is in progress.
-Media device unregister removes entities and interface nodes.
+On Monday 25 January 2016 10:42 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 25 Jan 2016 22:32:31 +0530
+> Sudip Mukherjee <sudipm.mukherjee@gmail.com> escreveu:
+>
+>> On Mon, Jan 25, 2016 at 02:29:06PM -0200, Mauro Carvalho Chehab wrote:
+>>> Em Fri, 18 Dec 2015 18:35:29 +0530
+>>> Sudip Mukherjee <sudipm.mukherjee@gmail.com> escreveu:
+>>>
+>>>> Modify lirc_parallel driver to use the new parallel port device model.
+>>>
+>>> Did you or someone else tested this patch?
+>>
+>> Only build tested and tested by inserting and removing the module.
+>> But since the only change is in the way it registers and nothing else
+>> so it should not break.
+>
+> It would be worth to wait for a while in the hope that someone could
+> test with a real hardware.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/media-device.c |  5 ++++-
- include/media/media-device.h | 17 +++++++++++++++++
- 2 files changed, 21 insertions(+), 1 deletion(-)
+Sure, we have lots of time for 4.6 merge window. May be if you have the 
+schematic somewhere then I can try to build one. Its a Homebrew one, so 
+maybe I can try.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 20c85a9..1bb9a5f 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -749,10 +749,13 @@ void media_device_unregister(struct media_device *mdev)
- 	spin_lock(&mdev->lock);
- 
- 	/* Check if mdev was ever registered at all */
--	if (!media_devnode_is_registered(&mdev->devnode)) {
-+	/* check if unregister is in progress */
-+	if (!media_devnode_is_registered(&mdev->devnode) ||
-+	    mdev->unregister_in_progress) {
- 		spin_unlock(&mdev->lock);
- 		return;
- 	}
-+	mdev->unregister_in_progress = true;
- 
- 	/* Remove all entities from the media device */
- 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 04b6c2e..0807292 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -332,6 +332,10 @@ struct media_device {
- 	spinlock_t lock;
- 	/* Serializes graph operations. */
- 	struct mutex graph_mutex;
-+	/* Tracks unregister in progress state to prevent
-+	 * more than one driver entering unregister
-+	*/
-+	bool unregister_in_progress;
- 
- 	/* Handlers to find source entity for the sink entity and
- 	 * check if it is available, and activate the link using
-@@ -365,6 +369,7 @@ struct media_device {
- /* media_devnode to media_device */
- #define to_media_device(node) container_of(node, struct media_device, devnode)
- 
-+
- /**
-  * media_entity_enum_init - Initialise an entity enumeration
-  *
-@@ -553,6 +558,12 @@ struct media_device *media_device_get_devres(struct device *dev);
-  * @dev: pointer to struct &device.
-  */
- struct media_device *media_device_find_devres(struct device *dev);
-+/* return unregister in progress state */
-+static inline bool media_device_is_unregister_in_progress(
-+					struct media_device *mdev)
-+{
-+	return mdev->unregister_in_progress;
-+}
- 
- /* Iterate over all entities. */
- #define media_device_for_each_entity(entity, mdev)			\
-@@ -569,6 +580,7 @@ struct media_device *media_device_find_devres(struct device *dev);
- /* Iterate over all links. */
- #define media_device_for_each_link(link, mdev)			\
- 	list_for_each_entry(link, &(mdev)->links, graph_obj.list)
-+
- #else
- static inline int media_device_register(struct media_device *mdev)
- {
-@@ -604,5 +616,10 @@ static inline struct media_device *media_device_find_devres(struct device *dev)
- {
- 	return NULL;
- }
-+static inline bool media_device_is_unregister_in_progress(
-+					struct media_device *mdev)
-+{
-+	return false;
-+}
- #endif /* CONFIG_MEDIA_CONTROLLER */
- #endif
--- 
-2.5.0
+regards
+sudip
 
