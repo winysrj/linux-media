@@ -1,106 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59381 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753970AbcARLKb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 06:10:31 -0500
-Subject: Re: [PATCH v3] adv7604: add direct interrupt handling
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-References: <1452698143-31897-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, william.towle@codethink.co.uk,
-	sergei.shtylyov@cogentembedded.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <569CC821.6040905@xs4all.nl>
-Date: Mon, 18 Jan 2016 12:10:25 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:46293 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757240AbcAYREi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 12:04:38 -0500
+Date: Mon, 25 Jan 2016 15:04:32 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 2/2] [media] r820t: Better exception handling in
+ generic_set_freq()
+Message-ID: <20160125150432.79297280@recife.lan>
+In-Reply-To: <56816416.2060702@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+	<56816256.70304@users.sourceforge.net>
+	<56816416.2060702@users.sourceforge.net>
 MIME-Version: 1.0
-In-Reply-To: <1452698143-31897-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/13/2016 04:15 PM, Ulrich Hecht wrote:
-> When probed from device tree, the i2c client driver can handle the
-> interrupt on its own.
+Em Mon, 28 Dec 2015 17:32:22 +0100
+SF Markus Elfring <elfring@users.sourceforge.net> escreveu:
+
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Mon, 28 Dec 2015 17:13:02 +0100
 > 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> This issue was detected by using the Coccinelle software.
+> 
+> Move the jump label directly before the desired log statement
+> so that the variable "rc" will not be checked once more
+> after a function call.
+> Use the identifier "report_failure" instead of "err".
+> 
+> The error logging is performed in a separate section at the end now.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 > ---
-> v3: uses IRQ_RETVAL
+>  drivers/media/tuners/r820t.c | 16 +++++++---------
+>  1 file changed, 7 insertions(+), 9 deletions(-)
 > 
-> v2: implements the suggested style changes and drops the IRQF_TRIGGER_LOW
-> flag, which is handled in the device tree.
-> 
-> 
->  drivers/media/i2c/adv7604.c | 24 ++++++++++++++++++++++--
->  1 file changed, 22 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 5bd81bd..ab4cb25 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -31,6 +31,7 @@
->  #include <linux/gpio/consumer.h>
->  #include <linux/hdmi.h>
->  #include <linux/i2c.h>
-> +#include <linux/interrupt.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
->  #include <linux/slab.h>
-> @@ -1971,6 +1972,16 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
->  	return 0;
+> diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+> index 6ab35e3..f71642e 100644
+> --- a/drivers/media/tuners/r820t.c
+> +++ b/drivers/media/tuners/r820t.c
+> @@ -1303,7 +1303,7 @@ static int generic_set_freq(struct dvb_frontend *fe,
+>  
+>  	rc = r820t_set_tv_standard(priv, bw, type, std, delsys);
+>  	if (rc < 0)
+> -		goto err;
+> +		goto report_failure;
+
+Same thing as my previous comment: just "err" please.
+
+Same applies to other patches you sent with similar hunks.
+
+>  
+>  	if ((type == V4L2_TUNER_ANALOG_TV) && (std == V4L2_STD_SECAM_LC))
+>  		lo_freq = freq - priv->int_freq;
+> @@ -1312,23 +1312,21 @@ static int generic_set_freq(struct dvb_frontend *fe,
+>  
+>  	rc = r820t_set_mux(priv, lo_freq);
+>  	if (rc < 0)
+> -		goto err;
+> +		goto report_failure;
+>  
+>  	rc = r820t_set_pll(priv, type, lo_freq);
+>  	if (rc < 0 || !priv->has_lock)
+> -		goto err;
+> +		goto report_failure;
+>  
+>  	rc = r820t_sysfreq_sel(priv, freq, type, std, delsys);
+>  	if (rc < 0)
+> -		goto err;
+> +		goto report_failure;
+>  
+>  	tuner_dbg("%s: PLL locked on frequency %d Hz, gain=%d\n",
+>  		  __func__, freq, r820t_read_gain(priv));
+> -
+> -err:
+> -
+> -	if (rc < 0)
+> -		tuner_dbg("%s: failed=%d\n", __func__, rc);
+> +	return 0;
+> +report_failure:
+> +	tuner_dbg("%s: failed=%d\n", __func__, rc);
+>  	return rc;
 >  }
 >  
-> +static irqreturn_t adv76xx_irq_handler(int irq, void *devid)
-> +{
-> +	struct adv76xx_state *state = devid;
-> +	bool handled;
-> +
-> +	adv76xx_isr(&state->sd, 0, &handled);
-> +
-> +	return IRQ_RETVAL(handled);
-> +}
-> +
->  static int adv76xx_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
->  {
->  	struct adv76xx_state *state = to_state(sd);
-> @@ -2844,8 +2855,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
->  		state->pdata.op_656_range = 1;
->  	}
->  
-> -	/* Disable the interrupt for now as no DT-based board uses it. */
-> -	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
-> +	state->pdata.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_LOW;
-
-Hmm, this hardcodes the interrupt to active low. Can you use the DT to determine
-whether it should be active low or high?
-
-Regards,
-
-	Hans
-
->  
->  	/* Use the default I2C addresses. */
->  	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
-> @@ -3235,6 +3245,16 @@ static int adv76xx_probe(struct i2c_client *client,
->  	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
->  			client->addr << 1, client->adapter->name);
->  
-> +	if (client->irq) {
-> +		err = devm_request_threaded_irq(&client->dev,
-> +						client->irq,
-> +						NULL, adv76xx_irq_handler,
-> +						IRQF_ONESHOT,
-> +						dev_name(&client->dev), state);
-> +		if (err)
-> +			goto err_entity;
-> +	}
-> +
->  	err = v4l2_async_register_subdev(sd);
->  	if (err)
->  		goto err_entity;
-> 
-
