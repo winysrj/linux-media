@@ -1,94 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dimen.winder.org.uk ([87.127.116.10]:52100 "EHLO
-	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751068AbcAXF2O (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34234 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932071AbcAYRXY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2016 00:28:14 -0500
-Message-ID: <1453613292.2497.26.camel@winder.org.uk>
-Subject: PCTV 292e support
-From: Russel Winder <russel@winder.org.uk>
-To: DVB_Linux_Media <linux-media@vger.kernel.org>
-Date: Sun, 24 Jan 2016 05:28:12 +0000
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-0JpMxsx+Eb4t41VLeSfy"
-Mime-Version: 1.0
+	Mon, 25 Jan 2016 12:23:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eduard Gavin <egavinc@gmail.com>
+Subject: Re: [PATCH] tvp5150: Fix breakage for serial usage
+Date: Mon, 25 Jan 2016 19:23:40 +0200
+Message-ID: <2245834.R0faizq23Z@avalon>
+In-Reply-To: <54ffe2ae9209b607f54142809902764e2eaaf1d2.1453740290.git.mchehab@osg.samsung.com>
+References: <54ffe2ae9209b607f54142809902764e2eaaf1d2.1453740290.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
---=-0JpMxsx+Eb4t41VLeSfy
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Monday 25 January 2016 14:44:56 Mauro Carvalho Chehab wrote:
+> changeset 460b6c0831cb ("tvp5150: Add s_stream subdev operation
+> support") broke for em28xx-based devices with uses tvp5150. On those
+> devices, touching the TVP5150_MISC_CTL register causes em28xx to stop
+> streaming.
+> 
+> I suspect that it uses the 27 MHz clock provided by tvp5150 to feed
+> em28xx. So, change the logic to do nothing on s_stream if the tvp5150 is
+> not set up to work with V4L2_MBUS_PARALLEL.
+> 
+> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/i2c/tvp5150.c | 9 ++++-----
+>  1 file changed, 4 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index 437f1a7ecb96..779c6f453cc9 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -975,19 +975,18 @@ static int tvp5150_g_mbus_config(struct v4l2_subdev
+> *sd, static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+>  {
+>  	struct tvp5150 *decoder = to_tvp5150(sd);
+> -	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
+> -	int val = 0x09;
+> 
+>  	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
+> -	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
+> -		val = 0x0d;
+> +	if (decoder->mbus_type != V4L2_MBUS_PARALLEL)
+> +		return 0;
 
-=46rom the material on the LinuxTV webpages, there is support for PCTV
-292e, and in emails it appears others are using this device. I find
-that on Debian Sid and Fedora Rawhide using the distributed kernels and
-libdvbv5, dvbv5-scan fails to get activity from the device. PCTV 282e
-works fine.
+This will break TVP5151 operation with the OMAP3 ISP in BT.656 mode. The OMAP3 
+requires the TVP5151 to start and stop streaming when requested.
 
-Fedora Rawhide has kernels 4.4 and 4.5, Debian Sid 4.3.
+> 
+>  	/* Initializes TVP5150 to its default values */
+>  	/* # set PCLK (27MHz) */
+>  	tvp5150_write(sd, TVP5150_CONF_SHARED_PIN, 0x00);
+> 
+> +	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
+>  	if (enable)
+> -		tvp5150_write(sd, TVP5150_MISC_CTL, val);
+> +		tvp5150_write(sd, TVP5150_MISC_CTL, 0x09);
+>  	else
+>  		tvp5150_write(sd, TVP5150_MISC_CTL, 0x00);
 
-Debian Sid distributes dvb-tools as well as libdvbv5 (1.8.0). Fedora
-Rawhide only distributed libdvbv5 as far as I can tell, but I compiled
-dvbv5-scao from source from a git repository clone, but it behaves the
-same.
+-- 
+Regards,
 
-On Debian Sid with PCTV292e:
-
-|> dvbv5-scan /usr/share/dvb/dvb-t/uk-CrystalPalace=C2=A0
-Cannot calc frequency shift. Either bandwidth/symbol-rate is
-unavailable (yet).
-Scanning frequency #1 490000000
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
-Scanning frequency #2 514000000
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
-Scanning frequency #3 570000000
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
-Scanning frequency #4 506000000
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
-Scanning frequency #5 482000000
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
-Scanning frequency #6 529833000
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
-Scanning frequency #7 545833000
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0(0x00) Signal=3D 0.00dBm
-
-Swapping to the PCTV 282e, scanning works entirely as expected: if
-there is a lock it happens immediately and the channels are shown after
-a while; if there is no immediate lock there is a spinning of the
-signal strength value =E2=80=93 definitely not just a solid zero.
-
-I note that PCTV 282e has a green light on permanently and works fine.
-PCTV 292e lights up blue when plugged in and then the light goes out.
-On Linux it never comes on again. Trying the device on Windows with the
-distributed software the blue light comes on every so often as activity
-happens. The hypothesis is that the device is not being driven
-properly. And yet people appear to be using the device?
-
---=20
-Russel.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
-et
-41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
-London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
-
-
---=-0JpMxsx+Eb4t41VLeSfy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEABECAAYFAlakYOwACgkQ+ooS3F10Be8boQCfXUxPuqS/IEGWQSqpmN60BERu
-HaIAoKrVlHJwkt0Z+LPC9KPogM7dCzTQ
-=S/hn
------END PGP SIGNATURE-----
-
---=-0JpMxsx+Eb4t41VLeSfy--
+Laurent Pinchart
 
