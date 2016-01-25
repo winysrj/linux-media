@@ -1,165 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:41648 "EHLO ni.piap.pl"
+Received: from mga02.intel.com ([134.134.136.20]:35282 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754907AbcA1I5G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 03:57:06 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 2/12] TW686x: Trivial changes suggested by Ezequiel Garcia
-References: <m337tif6om.fsf@t19.piap.pl>
-Date: Thu, 28 Jan 2016 09:57:04 +0100
-In-Reply-To: <m337tif6om.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
- \=\?utf-8\?Q\?a\=22's\?\= message of
-	"Thu, 28 Jan 2016 09:29:29 +0100")
-Message-ID: <m3powmdqu7.fsf@t19.piap.pl>
+	id S1757526AbcAYRIh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 12:08:37 -0500
+Subject: Re: [PATCH v2] V4L: add Y12I, Y8I and Z16 pixel format documentation
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Aviv Greenberg <avivgr@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <Pine.LNX.4.64.1601181336520.9140@axis700.grange>
+ <569E37E6.9080802@linux.intel.com>
+ <Pine.LNX.4.64.1601251706240.20896@axis700.grange>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <56A6564A.1040207@linux.intel.com>
+Date: Mon, 25 Jan 2016 19:07:22 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <Pine.LNX.4.64.1601251706240.20896@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+Hi Guennadi,
 
-diff --git a/drivers/media/pci/tw686x/tw686x-core.c b/drivers/media/pci/tw686x/tw686x-core.c
-index aa873c5..f22f485 100644
---- a/drivers/media/pci/tw686x/tw686x-core.c
-+++ b/drivers/media/pci/tw686x/tw686x-core.c
-@@ -1,13 +1,13 @@
- /*
--  Copyright (C) 2015 Industrial Research Institute for Automation
--  and Measurements PIAP
--
--  Written by Krzysztof Hałasa.
--
--  This program is free software; you can redistribute it and/or modify it
--  under the terms of version 2 of the GNU General Public License
--  as published by the Free Software Foundation.
--*/
-+ * Copyright (C) 2015 Industrial Research Institute for Automation
-+ * and Measurements PIAP
-+ *
-+ * Written by Krzysztof Hałasa.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of version 2 of the GNU General Public License
-+ * as published by the Free Software Foundation.
-+ */
- 
- #include <linux/init.h>
- #include <linux/interrupt.h>
-@@ -68,15 +68,13 @@ static int tw686x_probe(struct pci_dev *pci_dev,
- 		goto disable;
- 	}
- 
--	if (!request_mem_region(pci_resource_start(pci_dev, 0),
--				pci_resource_len(pci_dev, 0), dev->name)) {
-+	err = pci_request_regions(pci_dev, dev->name);
-+	if (err < 0) {
- 		pr_err("%s: Unable to get MMIO region\n", dev->name);
--		err = -EBUSY;
- 		goto disable;
- 	}
- 
--	dev->mmio = ioremap_nocache(pci_resource_start(pci_dev, 0),
--				    pci_resource_len(pci_dev, 0));
-+	dev->mmio = pci_ioremap_bar(pci_dev, 0);
- 	if (!dev->mmio) {
- 		pr_err("%s: Unable to remap MMIO region\n", dev->name);
- 		err = -EIO;
-@@ -158,19 +156,8 @@ static struct pci_driver tw686x_pci_driver = {
- 	.remove = tw686x_remove,
- };
- 
--static int tw686x_init(void)
--{
--	return pci_register_driver(&tw686x_pci_driver);
--}
--
--static void tw686x_exit(void)
--{
--	pci_unregister_driver(&tw686x_pci_driver);
--}
--
- MODULE_DESCRIPTION("Driver for video frame grabber cards based on Intersil/Techwell TW686[4589]");
- MODULE_AUTHOR("Krzysztof Halasa");
- MODULE_LICENSE("GPL v2");
- MODULE_DEVICE_TABLE(pci, tw686x_pci_tbl);
--module_init(tw686x_init);
--module_exit(tw686x_exit);
-+module_pci_driver(tw686x_pci_driver);
-diff --git a/drivers/media/pci/tw686x/tw686x-regs.h b/drivers/media/pci/tw686x/tw686x-regs.h
-index f9ac413..33b492b 100644
---- a/drivers/media/pci/tw686x/tw686x-regs.h
-+++ b/drivers/media/pci/tw686x/tw686x-regs.h
-@@ -16,10 +16,10 @@
- 						0xD6, 0xD8, 0xDA, 0xDC})
- #define DMA_PAGE_TABLE1_ADDR	((const u16[8]){0x09, 0xD1, 0xD3, 0xD5,	\
- 						0xD7, 0xD9, 0xDB, 0xDD})
--#define DMA_CHANNEL_ENABLE	0x0a
--#define DMA_CONFIG		0x0b
--#define DMA_TIMER_INTERVAL	0x0c
--#define DMA_CHANNEL_TIMEOUT	0x0d
-+#define DMA_CHANNEL_ENABLE	0x0A
-+#define DMA_CONFIG		0x0B
-+#define DMA_TIMER_INTERVAL	0x0C
-+#define DMA_CHANNEL_TIMEOUT	0x0D
- #define VDMA_CHANNEL_CONFIG	REG8_1(0x10)
- #define ADMA_P_ADDR		REG8_2(0x18)
- #define ADMA_B_ADDR		REG8_2(0x19)
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-index bf4f12e..5a1b9ab 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -1,13 +1,13 @@
- /*
--  Copyright (C) 2015 Industrial Research Institute for Automation
--  and Measurements PIAP
--
--  Written by Krzysztof Hałasa.
--
--  This program is free software; you can redistribute it and/or modify it
--  under the terms of version 2 of the GNU General Public License
--  as published by the Free Software Foundation.
--*/
-+ * Copyright (C) 2015 Industrial Research Institute for Automation
-+ * and Measurements PIAP
-+ *
-+ * Written by Krzysztof Hałasa.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of version 2 of the GNU General Public License
-+ * as published by the Free Software Foundation.
-+ */
- 
- #include <linux/init.h>
- #include <linux/list.h>
-diff --git a/drivers/media/pci/tw686x/tw686x.h b/drivers/media/pci/tw686x/tw686x.h
-index 6a147d2..8b9d313 100644
---- a/drivers/media/pci/tw686x/tw686x.h
-+++ b/drivers/media/pci/tw686x/tw686x.h
-@@ -1,13 +1,13 @@
- /*
--  Copyright (C) 2015 Industrial Research Institute for Automation
--  and Measurements PIAP
--
--  Written by Krzysztof Hałasa.
--
--  This program is free software; you can redistribute it and/or modify it
--  under the terms of version 2 of the GNU General Public License
--  as published by the Free Software Foundation.
--*/
-+ * Copyright (C) 2015 Industrial Research Institute for Automation
-+ * and Measurements PIAP
-+ *
-+ * Written by Krzysztof Hałasa.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of version 2 of the GNU General Public License
-+ * as published by the Free Software Foundation.
-+ */
- 
- #include <linux/delay.h>
- #include <linux/freezer.h>
+Guennadi Liakhovetski wrote:
+> Hi Sakari,
+>
+> On Tue, 19 Jan 2016, Sakari Ailus wrote:
+>
+>> Hi Guennadi,
+>>
+>> Guennadi Liakhovetski wrote:
+>>> Add documentation for 3 formats, used by RealSense cameras like R200.
+>>>
+>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>> ---
+>
+> [snip]
+>
+>>> +    <para>This is a 16-bit format, representing depth data. Each pixel is a
+>>> +distance to the respective point in the image coordinates. Distance unit can
+>>> +vary and has to be negotiated with the device separately. Each pixel is stored
+>>> +in a 16-bit word in the little endian byte order.
+>>
+>> I think we really need a way to convey the unit (and prefix) information
+>> to the user. Considering the same should be done to controls, it'd be
+>> logical to do that at the same time with the controls.
+>
+> Do I understand you correctly, that you'd like to add a control to specify
+> distance units for this format? If yes - I don't think you want a separate
+> control just for this format, right? And you mention, you also want to be
+
+Considering there are no other depth formats defined, it should be 
+generic I think, but so far with a single user.
+
+> able to specify units for other controls. But I would've thought, that
+> controls themselves should define, what unit they are using. E.g.
+> V4L2_CID_EXPOSURE_ABSOLUTE specifies, that it's unit is 100us. I would
+> expect the same from other controls too. "Legacy" controls like
+> V4L2_CID_EXPOSURE don't specify units, so, I would expect, that their use
+> should be discouraged.
+
+Would you create a new control whenever someone needs a new unit for a 
+control? That's the very problem I think --- currently applications have 
+no means to know what's the unit for the control.
+
+I've always wondered why we had V4L2_CID_EXPOSURE_ABSOLUTE as 
+V4L2_CID_EXPOSURE already existed. :-)
+
+The smiapp driver, for instance, uses V4L2_CID_EXPOSURE, and the unit is 
+lines. There's a fine exposure control as well implemented by many 
+sensors but the driver currently does not expose that capability.
+
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>
+>> I'd like to have Hans's and/or Laurent's ack on this as well.
+>>
+>> Unless the original patch requires changes, it could be re-applied if no
+>> changes are requested to it. My understanding is that the issue mainly
+>> was the missing documentation, i.e. this patch.
+>
+> Yes, I'll repost both patches as a series, maybe let's try to get some
+> understanding on the units question first.
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
