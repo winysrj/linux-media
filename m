@@ -1,150 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59713 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751601AbcAFFme (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 00:42:34 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>, Peter Rosin <peda@axentia.se>,
-	Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH] si2168: use i2c controlled mux interface
-Date: Wed,  6 Jan 2016 07:42:00 +0200
-Message-Id: <1452058920-9797-1-git-send-email-crope@iki.fi>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35417 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755501AbcAYOor (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 09:44:47 -0500
+Subject: Re: [PATCH] media: i2c: adv7604: Use v4l2-dv-timings helpers
+To: Jean-Michel Hautbois <jhautbois@gmail.com>,
+	linux-media@vger.kernel.org
+References: <1452701906-4774-1-git-send-email-jean-michel.hautbois@veo-labs.com>
+Cc: hans.verkuil@cisco.com, mchehab@osg.samsung.com, lars@metafoo.de,
+	Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56A634C9.1030709@xs4all.nl>
+Date: Mon, 25 Jan 2016 15:44:25 +0100
+MIME-Version: 1.0
+In-Reply-To: <1452701906-4774-1-git-send-email-jean-michel.hautbois@veo-labs.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Recent i2c mux locking update offers support for i2c controlled i2c
-muxes. Use it and get the rid of homemade hackish i2c adapter
-locking code.
+On 01/13/2016 05:18 PM, Jean-Michel Hautbois wrote:
+> Use the helper to enumerate and set DV timings instead of a custom code.
+> This will ease debugging too, as it is consistent with other drivers.
+> 
+> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
 
-Cc: Peter Rosin <peda@axentia.se>
-Cc: Peter Rosin <peda@lysator.liu.se>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/si2168.c | 61 ++++--------------------------------
- 1 file changed, 6 insertions(+), 55 deletions(-)
+Close, but no cigar. You missed the V4L2_DV_BT_CEA_1280X720P30 exception:
+that format is not supported by the adv hardware and needs to be filtered
+out. See adv7842_check_dv_timings in adv7842.c and copy it over to the
+adv7604. That format has a very large blanking period, exceeding the number
+of bits for the corresponding ADV counter in the hardware.
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index ae217b5..d2a5608 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -18,48 +18,15 @@
- 
- static const struct dvb_frontend_ops si2168_ops;
- 
--/* Own I2C adapter locking is needed because of I2C gate logic. */
--static int si2168_i2c_master_send_unlocked(const struct i2c_client *client,
--					   const char *buf, int count)
--{
--	int ret;
--	struct i2c_msg msg = {
--		.addr = client->addr,
--		.flags = 0,
--		.len = count,
--		.buf = (char *)buf,
--	};
--
--	ret = __i2c_transfer(client->adapter, &msg, 1);
--	return (ret == 1) ? count : ret;
--}
--
--static int si2168_i2c_master_recv_unlocked(const struct i2c_client *client,
--					   char *buf, int count)
--{
--	int ret;
--	struct i2c_msg msg = {
--		.addr = client->addr,
--		.flags = I2C_M_RD,
--		.len = count,
--		.buf = buf,
--	};
--
--	ret = __i2c_transfer(client->adapter, &msg, 1);
--	return (ret == 1) ? count : ret;
--}
--
- /* execute firmware command */
--static int si2168_cmd_execute_unlocked(struct i2c_client *client,
--				       struct si2168_cmd *cmd)
-+static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
- {
- 	int ret;
- 	unsigned long timeout;
- 
- 	if (cmd->wlen) {
- 		/* write cmd and args for firmware */
--		ret = si2168_i2c_master_send_unlocked(client, cmd->args,
--						      cmd->wlen);
-+		ret = i2c_master_send(client, cmd->args, cmd->wlen);
- 		if (ret < 0) {
- 			goto err;
- 		} else if (ret != cmd->wlen) {
-@@ -73,8 +40,7 @@ static int si2168_cmd_execute_unlocked(struct i2c_client *client,
- 		#define TIMEOUT 70
- 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
- 		while (!time_after(jiffies, timeout)) {
--			ret = si2168_i2c_master_recv_unlocked(client, cmd->args,
--							      cmd->rlen);
-+			ret = i2c_master_recv(client, cmd->args, cmd->rlen);
- 			if (ret < 0) {
- 				goto err;
- 			} else if (ret != cmd->rlen) {
-@@ -109,17 +75,6 @@ err:
- 	return ret;
- }
- 
--static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
--{
--	int ret;
--
--	i2c_lock_adapter(client->adapter);
--	ret = si2168_cmd_execute_unlocked(client, cmd);
--	i2c_unlock_adapter(client->adapter);
--
--	return ret;
--}
--
- static int si2168_read_status(struct dvb_frontend *fe, enum fe_status *status)
- {
- 	struct i2c_client *client = fe->demodulator_priv;
-@@ -610,11 +565,6 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
- 	return 0;
- }
- 
--/*
-- * I2C gate logic
-- * We must use unlocked I2C I/O because I2C adapter lock is already taken
-- * by the caller (usually tuner driver).
-- */
- static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
- {
- 	struct i2c_client *client = i2c_mux_priv(muxc);
-@@ -625,7 +575,7 @@ static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
- 	memcpy(cmd.args, "\xc0\x0d\x01", 3);
- 	cmd.wlen = 3;
- 	cmd.rlen = 0;
--	ret = si2168_cmd_execute_unlocked(client, &cmd);
-+	ret = si2168_cmd_execute(client, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -645,7 +595,7 @@ static int si2168_deselect(struct i2c_mux_core *muxc, u32 chan)
- 	memcpy(cmd.args, "\xc0\x0d\x00", 3);
- 	cmd.wlen = 3;
- 	cmd.rlen = 0;
--	ret = si2168_cmd_execute_unlocked(client, &cmd);
-+	ret = si2168_cmd_execute(client, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -717,6 +667,7 @@ static int si2168_probe(struct i2c_client *client,
- 	dev->muxc->parent = client->adapter;
- 	dev->muxc->select = si2168_select;
- 	dev->muxc->deselect = si2168_deselect;
-+	dev->muxc->i2c_controlled = true;
- 
- 	/* create mux i2c adapter for tuner */
- 	ret = i2c_add_mux_adapter(dev->muxc, 0, 0, 0);
--- 
-http://palosaari.fi/
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/i2c/adv7604.c | 98 +++++++++++++++++++++++----------------------
+>  1 file changed, 51 insertions(+), 47 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 7452862..19c1ccf 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -806,6 +806,36 @@ static inline bool is_digital_input(struct v4l2_subdev *sd)
+>  	       state->selected_input == ADV7604_PAD_HDMI_PORT_D;
+>  }
+>  
+> +static const struct v4l2_dv_timings_cap adv7604_timings_cap_analog = {
+> +	.type = V4L2_DV_BT_656_1120,
+> +	/* keep this initialization for compatibility with GCC < 4.4.6 */
+> +	.reserved = { 0 },
+> +	V4L2_INIT_BT_TIMINGS(0, 1920, 0, 1200, 25000000, 170000000,
+> +		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
+> +			V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT,
+> +		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_REDUCED_BLANKING |
+> +			V4L2_DV_BT_CAP_CUSTOM)
+> +};
+> +
+> +static const struct v4l2_dv_timings_cap adv76xx_timings_cap_digital = {
+> +	.type = V4L2_DV_BT_656_1120,
+> +	/* keep this initialization for compatibility with GCC < 4.4.6 */
+> +	.reserved = { 0 },
+> +	V4L2_INIT_BT_TIMINGS(0, 1920, 0, 1200, 25000000, 225000000,
+> +		V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
+> +			V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT,
+> +		V4L2_DV_BT_CAP_PROGRESSIVE | V4L2_DV_BT_CAP_REDUCED_BLANKING |
+> +			V4L2_DV_BT_CAP_CUSTOM)
+> +};
+> +
+> +static inline const struct v4l2_dv_timings_cap *
+> +adv76xx_get_dv_timings_cap(struct v4l2_subdev *sd)
+> +{
+> +	return is_digital_input(sd) ? &adv76xx_timings_cap_digital :
+> +				      &adv7604_timings_cap_analog;
+> +}
+> +
+> +
+>  /* ----------------------------------------------------------------------- */
+>  
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> @@ -1330,17 +1360,23 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
+>  	u32 pix_clk;
+>  	int i;
+>  
+> -	for (i = 0; adv76xx_timings[i].bt.height; i++) {
+> -		if (vtotal(&adv76xx_timings[i].bt) != stdi->lcf + 1)
+> +	for (i = 0; v4l2_dv_timings_presets[i].bt.width; i++) {
+> +		const struct v4l2_bt_timings *bt = &v4l2_dv_timings_presets[i].bt;
+> +
+> +		if (!v4l2_valid_dv_timings(&v4l2_dv_timings_presets[i],
+> +					   adv76xx_get_dv_timings_cap(sd),
+> +					   NULL, NULL))
+> +			continue;
+> +		if (vtotal(bt) != stdi->lcf + 1)
+>  			continue;
+> -		if (adv76xx_timings[i].bt.vsync != stdi->lcvs)
+> +		if (bt->vsync != stdi->lcvs)
+>  			continue;
+>  
+> -		pix_clk = hfreq * htotal(&adv76xx_timings[i].bt);
+> +		pix_clk = hfreq * htotal(bt);
+>  
+> -		if ((pix_clk < adv76xx_timings[i].bt.pixelclock + 1000000) &&
+> -		    (pix_clk > adv76xx_timings[i].bt.pixelclock - 1000000)) {
+> -			*timings = adv76xx_timings[i];
+> +		if ((pix_clk < bt->pixelclock + 1000000) &&
+> +		    (pix_clk > bt->pixelclock - 1000000)) {
+> +			*timings = v4l2_dv_timings_presets[i];
+>  			return 0;
+>  		}
+>  	}
+> @@ -1431,9 +1467,8 @@ static int adv76xx_enum_dv_timings(struct v4l2_subdev *sd,
+>  	if (timings->pad >= state->source_pad)
+>  		return -EINVAL;
+>  
+> -	memset(timings->reserved, 0, sizeof(timings->reserved));
+> -	timings->timings = adv76xx_timings[timings->index];
+> -	return 0;
+> +	return v4l2_enum_dv_timings_cap(timings,
+> +		adv76xx_get_dv_timings_cap(sd), NULL, NULL);
+>  }
+>  
+>  static int adv76xx_dv_timings_cap(struct v4l2_subdev *sd,
+> @@ -1444,29 +1479,7 @@ static int adv76xx_dv_timings_cap(struct v4l2_subdev *sd,
+>  	if (cap->pad >= state->source_pad)
+>  		return -EINVAL;
+>  
+> -	cap->type = V4L2_DV_BT_656_1120;
+> -	cap->bt.max_width = 1920;
+> -	cap->bt.max_height = 1200;
+> -	cap->bt.min_pixelclock = 25000000;
+> -
+> -	switch (cap->pad) {
+> -	case ADV76XX_PAD_HDMI_PORT_A:
+> -	case ADV7604_PAD_HDMI_PORT_B:
+> -	case ADV7604_PAD_HDMI_PORT_C:
+> -	case ADV7604_PAD_HDMI_PORT_D:
+> -		cap->bt.max_pixelclock = 225000000;
+> -		break;
+> -	case ADV7604_PAD_VGA_RGB:
+> -	case ADV7604_PAD_VGA_COMP:
+> -	default:
+> -		cap->bt.max_pixelclock = 170000000;
+> -		break;
+> -	}
+> -
+> -	cap->bt.standards = V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_DMT |
+> -			 V4L2_DV_BT_STD_GTF | V4L2_DV_BT_STD_CVT;
+> -	cap->bt.capabilities = V4L2_DV_BT_CAP_PROGRESSIVE |
+> -		V4L2_DV_BT_CAP_REDUCED_BLANKING | V4L2_DV_BT_CAP_CUSTOM;
+> +	*cap = *adv76xx_get_dv_timings_cap(sd);
+>  	return 0;
+>  }
+>  
+> @@ -1475,15 +1488,9 @@ static int adv76xx_dv_timings_cap(struct v4l2_subdev *sd,
+>  static void adv76xx_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
+>  		struct v4l2_dv_timings *timings)
+>  {
+> -	int i;
+> -
+> -	for (i = 0; adv76xx_timings[i].bt.width; i++) {
+> -		if (v4l2_match_dv_timings(timings, &adv76xx_timings[i],
+> -				is_digital_input(sd) ? 250000 : 1000000, false)) {
+> -			*timings = adv76xx_timings[i];
+> -			break;
+> -		}
+> -	}
+> +	v4l2_find_dv_timings_cap(timings, adv76xx_get_dv_timings_cap(sd),
+> +			is_digital_input(sd) ? 250000 : 1000000,
+> +			NULL, NULL);
+>  }
+>  
+>  static unsigned int adv7604_read_hdmi_pixelclock(struct v4l2_subdev *sd)
+> @@ -1651,12 +1658,9 @@ static int adv76xx_s_dv_timings(struct v4l2_subdev *sd,
+>  
+>  	bt = &timings->bt;
+>  
+> -	if ((is_analog_input(sd) && bt->pixelclock > 170000000) ||
+> -			(is_digital_input(sd) && bt->pixelclock > 225000000)) {
+> -		v4l2_dbg(1, debug, sd, "%s: pixelclock out of range %d\n",
+> -				__func__, (u32)bt->pixelclock);
+> +	if (!v4l2_valid_dv_timings(timings, adv76xx_get_dv_timings_cap(sd),
+> +				   NULL, NULL))
+>  		return -ERANGE;
+> -	}
+>  
+>  	adv76xx_fill_optional_dv_timings_fields(sd, timings);
+>  
+> 
 
