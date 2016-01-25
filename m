@@ -1,40 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:35222 "EHLO
-	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751718AbcASHHY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 02:07:24 -0500
-Received: by mail-pf0-f173.google.com with SMTP id 65so170487199pff.2
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 23:07:24 -0800 (PST)
-From: Wu-Cheng Li <wuchengli@chromium.org>
-To: pawel@osciak.com, mchehab@osg.samsung.com, hverkuil@xs4all.nl,
-	k.debski@samsung.com, crope@iki.fi, standby24x7@gmail.com,
-	wuchengli@chromium.org, nicolas.dufresne@collabora.com,
-	ricardo.ribalda@gmail.com, ao2@ao2.it, bparrot@ti.com,
-	kyungmin.park@samsung.com, jtp.park@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	tiffany.lin@mediatek.com, djkurtz@chromium.org
-Subject: [PATCH v4 0/2] new control V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME
-Date: Tue, 19 Jan 2016 15:07:08 +0800
-Message-Id: <1453187230-97231-1-git-send-email-wuchengli@chromium.org>
+Received: from mga11.intel.com ([192.55.52.93]:45673 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756503AbcAYMl3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 07:41:29 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [PATCH v3 2/4] libv4l2subdev: Use generated format definitions in libv4l2subdev
+Date: Mon, 25 Jan 2016 14:39:43 +0200
+Message-Id: <1453725585-4165-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1453725585-4165-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1453725585-4165-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4 changes:
-- Change the name to V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
-- Add commit message to s5p-mfc patch.
+Instead of manually adding each and every new media bus pixel code to
+libv4l2subdev, generate the list automatically. The pre-existing formats
+that do not match the list are not modified so that existing users are
+unaffected by this change, with the exception of converting codes to
+strings, which will use the new definitions.
 
-Wu-Cheng Li (2):
-  v4l: add V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
-  s5p-mfc: add the support of V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ utils/media-ctl/.gitignore      | 1 +
+ utils/media-ctl/Makefile.am     | 8 ++++++++
+ utils/media-ctl/libv4l2subdev.c | 1 +
+ 3 files changed, 10 insertions(+)
 
- Documentation/DocBook/media/v4l/controls.xml |  8 ++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 12 ++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
- include/uapi/linux/v4l2-controls.h           |  1 +
- 4 files changed, 23 insertions(+)
-
+diff --git a/utils/media-ctl/.gitignore b/utils/media-ctl/.gitignore
+index 95b6a57..799ab33 100644
+--- a/utils/media-ctl/.gitignore
++++ b/utils/media-ctl/.gitignore
+@@ -1 +1,2 @@
+ media-ctl
++media-bus-format-names.h
+diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+index a3931fb..23ad90b 100644
+--- a/utils/media-ctl/Makefile.am
++++ b/utils/media-ctl/Makefile.am
+@@ -4,6 +4,14 @@ libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
+ libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
+ libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
+ 
++media-bus-format-names.h: ../../include/linux/media-bus-format.h
++	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*FMT_//; /FIXED/ d; s/\t.*//; s/.*/{ \"&\", MEDIA_BUS_FMT_& },/;' \
++	< $< > $@
++
++BUILT_SOURCES = media-bus-format-names.h
++CLEANFILES = $(BUILT_SOURCES)
++
++nodist_libv4l2subdev_la_SOURCES = $(BUILT_SOURCES)
+ libv4l2subdev_la_SOURCES = libv4l2subdev.c
+ libv4l2subdev_la_LIBADD = libmediactl.la
+ libv4l2subdev_la_CFLAGS = -static
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index e45834f..f3c0a9a 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -719,6 +719,7 @@ static const struct {
+ 	const char *name;
+ 	enum v4l2_mbus_pixelcode code;
+ } mbus_formats[] = {
++#include "media-bus-format-names.h"
+ 	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
+ 	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
+ 	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
 -- 
-2.6.0.rc2.230.g3dd15c0
+2.1.0.231.g7484e3b
 
