@@ -1,53 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f176.google.com ([209.85.213.176]:36736 "EHLO
-	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714AbcALMVx (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44302 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S934085AbcAYUrL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jan 2016 07:21:53 -0500
-Received: by mail-ig0-f176.google.com with SMTP id z14so124124942igp.1
-        for <linux-media@vger.kernel.org>; Tue, 12 Jan 2016 04:21:53 -0800 (PST)
+	Mon, 25 Jan 2016 15:47:11 -0500
+Date: Mon, 25 Jan 2016 22:47:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [v4l-utils PATCH 1/1] v4l: libv4l2subdev: Precisely convert
+ media bus string to code
+Message-ID: <20160125204707.GC14876@valkosipuli.retiisi.org.uk>
+References: <1449674087-19122-1-git-send-email-sakari.ailus@linux.intel.com>
+ <32957783.JQTylZjONc@avalon>
+ <20160125113909.GA14876@valkosipuli.retiisi.org.uk>
+ <1490379.zWhzdjB0Zz@avalon>
 MIME-Version: 1.0
-Date: Tue, 12 Jan 2016 14:21:52 +0200
-Message-ID: <CAJ2oMhJAHEqZTUC9Y-0jFqcw_JdfTxRsWH3eOSHWbFab+VnngA@mail.gmail.com>
-Subject: vivid - video output
-From: Ran Shalit <ranshalit@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1490379.zWhzdjB0Zz@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Laurent,
 
-I would please like to ask about vivid video output:
-I've been trying to understand everything from source code and
-documentation, but still not quite sure about its purpose .
+On Mon, Jan 25, 2016 at 09:41:12PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Monday 25 January 2016 13:39:10 Sakari Ailus wrote:
+> > On Sun, Dec 13, 2015 at 11:33:45PM +0200, Laurent Pinchart wrote:
+> > > On Wednesday 09 December 2015 17:14:47 Sakari Ailus wrote:
+> > >> The length of the string was ignored, making it possible for the
+> > >> conversion to fail due to extra characters in the string.
+> > > 
+> > > I'm not sure to follow you there. Is the issue that passing a string such
+> > > as "SBGGR10" would match "SBGGR10_DPCM8" if it was listed before
+> > > "SBGGR10" ? If that's the case I'd write the commit message as
+> > 
+> > Yes, that's the problem.
+> > 
+> > > Any character beyond the fist `length' characters in the mbus_formats
+> > > strings are ignored, causing incorrect matches if the format entry starts
+> > > with but isn't equal to the passed format.
+> > 
+> > I'll use this commit message then.
+> > 
+> > >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >> ---
+> > >> This patch should be applied before the set "[v4l-utils PATCH v2 0/3]
+> > >> List supported formats in libv4l2subdev":
+> > >> 
+> > >> <URL:http://www.spinics.net/lists/linux-media/msg95377.html>
+> > >> 
+> > >>  utils/media-ctl/libv4l2subdev.c | 10 ++++------
+> > >>  1 file changed, 4 insertions(+), 6 deletions(-)
+> > >> 
+> > >> diff --git a/utils/media-ctl/libv4l2subdev.c
+> > >> b/utils/media-ctl/libv4l2subdev.c index 33c1ee6..cce527d 100644
+> > >> --- a/utils/media-ctl/libv4l2subdev.c
+> > >> +++ b/utils/media-ctl/libv4l2subdev.c
+> > >> @@ -769,14 +769,12 @@ enum v4l2_mbus_pixelcode
+> > >> v4l2_subdev_string_to_pixelcode(const char *string,
+> > >> 	unsigned int i;
+> > >> 
+> > >>  	for (i = 0; i < ARRAY_SIZE(mbus_formats); ++i) {
+> > >> -		if (strncmp(mbus_formats[i].name, string, length) == 0)
+> > >> -			break;
+> > >> +		if (strncmp(mbus_formats[i].name, string, length) == 0
+> > >> +		    && strlen(mbus_formats[i].name) == length)
+> > > 
+> > > How about mbus_formats[i].name[length] == '\0' instead ? That should be
+> > > more efficient.
+> > 
+> > Fine for me.
+> > 
+> > > I also wonder whether we shouldn't just get rid of the length argument and
+> > > force the passed format string to be zero-terminated.
+> > 
+> > I believe the reason is that the current user (media-ctl test program)
+> > parses the user input and passes a portion of that to this function to
+> > convert the string to a numeric value. That'd be a bit more cumbersome as
+> > we'd either require copying the string elsewhere or changing the input by
+> > the program. I wouldn't change the behaviour, at least not now.
+> 
+> Yes that's the reason, and I think it's an API design mistake (or just a lack 
+> of proper API design :-)). Wouldn't it be better to copy the string in the 
+> caller ?
 
-Vivid is good example for demonstration of how to write video output driver.
-But is it also to be used as a way to test/validate correctness of
-application video output   (just as done with vivid capture video,
-before using the real output HW) ?
+>From the API point of view, I don't disagree. But I do think this should be
+done in a separate patch, not in this one --- this is a bugfix, really.
 
-On delving in source code,  I see in vivid-kthread-out.c file
+I'll submit one more patch for that.
 
-vivid_thread_vid_out() -> vivid_thread_vid_out_tick() ->
+> > >> +			return mbus_formats[i].code;
+> > >>  	}
+> > >> 
+> > >> -	if (i == ARRAY_SIZE(mbus_formats))
+> > >> -		return (enum v4l2_mbus_pixelcode)-1;
+> > >> -
+> > >> -	return mbus_formats[i].code;
+> > >> +	return (enum v4l2_mbus_pixelcode)-1;
+> > >>  }
+> > >>  
+> > >>  static struct {
+> 
 
-{....
-dequeue buffer(vid_out_buf)
-....
-v4l2_get_timestamp(&vid_out_buf->vb.timestamp);
-vid_out_buf->vb.timestamp.tv_sec += dev->time_wrap_offset;
-...}
+-- 
+Regards,
 
-What's the purpose of timestamp modification for the output frames ?
-Is it relevant only when using vivid in loopback mode ?
-
-I also encounter old patch of video output loopback (viloop.c), but I
-did't find it in released kernel.
-
-Application's video output frames can just be written into file and
-played later (as a way to validate the correctness of frames given to
-the video output driver), so I wander if there is any other purpose in
-vivid video output which I don't see yet.
-
-Best Regards,
-Ran
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
