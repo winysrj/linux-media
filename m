@@ -1,78 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:35473 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752777AbcAGRbP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2016 12:31:15 -0500
-Received: by mail-ig0-f180.google.com with SMTP id t15so33569367igr.0
-        for <linux-media@vger.kernel.org>; Thu, 07 Jan 2016 09:31:14 -0800 (PST)
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:33934 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932872AbcAYSYF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 13:24:05 -0500
+Received: by mail-wm0-f54.google.com with SMTP id u188so77166858wmu.1
+        for <linux-media@vger.kernel.org>; Mon, 25 Jan 2016 10:24:03 -0800 (PST)
+Subject: Re: SV: PCTV 292e support
+To: Russel Winder <russel@winder.org.uk>,
+	=?UTF-8?Q?Peter_F=c3=a4ssberg?= <pf@leissner.se>,
+	DVB_Linux_Media <linux-media@vger.kernel.org>
+References: <1453613292.2497.26.camel@winder.org.uk>
+ <ijvkgaod4jhqyaoroevcea7f.1453613737402@email.android.com>
+ <1453615078.2497.29.camel@winder.org.uk>
+ <1453618564.2497.51.camel@winder.org.uk>
+ <1453625202.2497.54.camel@winder.org.uk> <56A4A262.1090708@gmail.com>
+ <1453639842.2497.69.camel@winder.org.uk> <56A570C7.5090107@gmail.com>
+ <1453743221.15408.86.camel@winder.org.uk>
+From: Andy Furniss <adf.lists@gmail.com>
+Message-ID: <56A6682A.3090007@gmail.com>
+Date: Mon, 25 Jan 2016 18:23:38 +0000
 MIME-Version: 1.0
-In-Reply-To: <CAJ2oMh+kHdnMkK-Fua+KSja3YDPHPC6GKbFE2vtVjAYo8T9_Qg@mail.gmail.com>
-References: <CAJ2oMh+kHdnMkK-Fua+KSja3YDPHPC6GKbFE2vtVjAYo8T9_Qg@mail.gmail.com>
-Date: Thu, 7 Jan 2016 19:31:14 +0200
-Message-ID: <CAJ2oMh+zA5gBt1Q67agXq_0QPJFJK9WO2XhYf7C638mXJt=wjQ@mail.gmail.com>
-Subject: Fwd: Vivi - Capturing HD video
-From: Ran Shalit <ranshalit@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1453743221.15408.86.camel@winder.org.uk>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Russel Winder wrote:
+> On Mon, 2016-01-25 at 00:48 +0000, Andy Furniss wrote:
+>> Russel Winder wrote:
+>>> On Sun, 2016-01-24 at 10:07 +0000, Andy Furniss wrote:
+>>
+>>> It finds all the physical channels, quite happily describes all
+>>> the virtual channels in the T1 channels, fails to find anything
+>>> in one of the T2 channels and finds unnamed channels in the
+>>> other T2 channel. The device itself is fine, as it gets all T1
+>>> and T2 channels on Windows. This implies something awry with it
+>>> in a Linux context.
+>>
+>> OK, I can't reproduce this on Tacoleneston which has three T2
+>> muxes.
+>
+> I have managed to get some proper T2 tuning. :-)
+>
+> Someone emailed me privately to tell me about:
+>
+> https://github.com/OpenELEC/dvb-firmware
+>
+> The 292e demod firmware in their is 8 bug fix release further on that
+> the one I had. It looks like there was a crucial bug fix in there.
 
-I am trying to test v4l application with vivi. I tried several
-resolution, pixelformat, different inputs,
-but on trying to display the captured file, it always has a sync ( the
-bars are moving in the horizontal axis).
-I tried to change resolution, pixelformat, in both capture application
-or player , but nothing helps.
-This is what I did:
-I use the v4l2 API example AS-IS, with minor modification in the
---force, so that I choose hd input (number 3), and 1920x1080
-resolution, V4L2_PIX_FMT_YUV420 , progressive.
+Ahh, that's good. I ought to get that myself, I am still using 4.0.4!
 
-      if (force_format) {
-                input = 3;
-                if (-1==xioctl(fd,VIDIOC_S_INPUT,&input))
-                {
-                 errno_exit("VIDIOC_S_INPUT");
-                }
-                fmt.fmt.pix.width       = 1920;
-                fmt.fmt.pix.height      = 1080;
-                fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420; // <<-
-tried also V4L2_PIX_FMT_YUV422P
-                fmt.fmt.pix.field       = V4L2_FIELD_NONE; // <-
-trying to capture progressive
+>> I am using some old git version (Jun 10), I'll try current as time
+>>  allows.
 
-                if (-1 == xioctl(fd, VIDIOC_S_FMT, &fmt))
-                        errno_exit("VIDIOC_S_FMT");
+FWIW I did build current git and it does work.
 
-        } else {
+> I am finding locking behaviour to be very strange. Sometimes I get an
+> immediate lock on a -50.0 signal, sometimes -35.0 signal fails to
+> lock. I am not sure if this is just a timing/sampling thing or
+> whether there is a quality of signal thing I am missing.
 
-I run the application with:
-./video_test -f -o -c 10  >
-cap_vivi_1920_1080_yuv420p_progressive_hd_input.yuv (for
-fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420 trial )
-And
-./video_test -f -o -c 10  >
-cap_vivi_1920_1080_yuv422p_progressive_hd_input.yuv (for
-fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV422P trial )
+I've only really tested with a "real" aerial, but it did seem like
+sometimes it took longer than others to lock.
 
-I've tried to play them with:
-ffplay -f rawvideo -pixel_format yuv420p -video_size 1920x1080 -i
-cap_vivi_1920_1080_yuv420p_progressive_hd_input.yuv (for
-fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420 trial )
-And
-ffplay -f rawvideo -pixel_format yuv422p -video_size 1920x1080 -i
-cap_vivi_1920_1080_yuv422p_progressive_hd_input.yuv (for
-fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV422P trial )
+> As I am focused on lightweight, I am working with non-fixed aerials
+> so low signal strengths. Though for testing I have an aerial with
+> powered high gain.
 
+Random thoughts on player -
 
-The video files are here:
-https://drive.google.com/folderview?id=0B22GsWueReZTUS1tSHBraTAyZ00&usp=sharing
+You'll need to handle AAC in LATM that switches between 2 and 5
+channels. VLC falls down in this respect. Avoid FAAD as the release at
+least had a bug that will cause volume issues with some content if it
+has dynamic range control metadata. ffmpeg aacdec handles channel
+switching and ignores DRC meta - so you get full range.
 
-I probably am doing something wrong.
-Is there any idea what's wrong in my configurations or how I can debug
-it better ?
+On V4l
 
-Thank you very much,
-Ran
+As I leave mine plugged in a headless box I don't hit this, but I think
+there's a chance that if you repeatedly plug and have fragmented memory
+that it will eventually fail to allocate some buffers.
