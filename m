@@ -1,184 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:41086 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996AbcAFHOt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 02:14:49 -0500
-Message-ID: <568CBEE2.8030602@lysator.liu.se>
-Date: Wed, 06 Jan 2016 08:14:42 +0100
-From: Peter Rosin <peda@lysator.liu.se>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:33644 "EHLO
+	mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752521AbcAYI5l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 03:57:41 -0500
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] si2168: use i2c controlled mux interface
-References: <1452058920-9797-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1452058920-9797-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.64.1601231834370.10701@axis700.grange>
+References: <1452707918-4321-1-git-send-email-ykaneko0929@gmail.com>
+	<Pine.LNX.4.64.1601231834370.10701@axis700.grange>
+Date: Mon, 25 Jan 2016 09:57:40 +0100
+Message-ID: <CAMuHMdUFWdfHrpCwkuDUTmdBUNdt2d=QZ8hKBbh5CF9wnFdtRA@mail.gmail.com>
+Subject: Re: [PATCH v3] media: soc_camera: rcar_vin: Add rcar fallback
+ compatibility string
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+Hi Guennadi,
 
-On 2016-01-06 06:42, Antti Palosaari wrote:
-> Recent i2c mux locking update offers support for i2c controlled i2c
-> muxes. Use it and get the rid of homemade hackish i2c adapter
-> locking code.
+On Sat, Jan 23, 2016 at 6:37 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> On Thu, 14 Jan 2016, Yoshihiro Kaneko wrote:
+>> Add fallback compatibility string for R-Car Gen2 and Gen3, This is
+>> in keeping with the fallback scheme being adopted wherever appropriate
+>> for drivers for Renesas SoCs.
+>>
+>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+>> ---
+>>
+>> This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
+>>
+>> v3 [Yoshihiro Kaneko]
+>> * rebased to for-4.6-1 branch of Guennadi's tree.
+>>
+>> v2 [Yoshihiro Kaneko]
+>> * As suggested by Geert Uytterhoeven
+>>   drivers/media/platform/soc_camera/rcar_vin.c:
+>>     - The generic compatibility values are listed at the end of the
+>>       rcar_vin_of_table[].
+>>
+>>  Documentation/devicetree/bindings/media/rcar_vin.txt | 8 +++++++-
+>>  drivers/media/platform/soc_camera/rcar_vin.c         | 2 ++
+>
+> I might be wrong in this specific case, please, correct me someone, but
+> doesn't Documentation/devicetree/bindings/submitting-patches.txt tell us
+> to submit bindings patches separately from the drivers part?
 
-That looks good on a first glance, and I'm sure it felt good to get rid
-of the locking workaround :-)
+I think that mostly applies to new bindings and new drivers.
+For small updates (e.g. adding a new compatible value), these tend to be
+submitted as a single patch.
 
-However, is this safe? From looking at the short datasheet of the si2168,
-it seems that the mux is used to open up the channel to the tuner? But
-what happens is there are two parallel accesses, one to the tuner and one
-to the si2168 chip? With your change, it could happen that the access to
-the si2168 happens while the gate to the tuner is open. Can that break
-anything?
+Gr{oetje,eeting}s,
 
-I.e.
-        thread one                      thread two
-        ----------                      ----------
-	open gate
-                                        access si2168
-        access tuner
-        close gate
+                        Geert
 
-If that is safe, then I don't understand why the gate isn't left open
-at all times? The short datasheet is too short to answer my questions...
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Also, my series needs some Tested-by (and Reviewed-by for that matter),
-and I assume that you have tested it? Is it ok to add something like
-that from you? I understand that you may only be able to test your
-corner of the series, but that would still be very helpful. Thanks!
-
-Cheers,
-Peter
-
-> Cc: Peter Rosin <peda@axentia.se>
-> Cc: Peter Rosin <peda@lysator.liu.se>
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> ---
->  drivers/media/dvb-frontends/si2168.c | 61 ++++--------------------------------
->  1 file changed, 6 insertions(+), 55 deletions(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-> index ae217b5..d2a5608 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -18,48 +18,15 @@
->  
->  static const struct dvb_frontend_ops si2168_ops;
->  
-> -/* Own I2C adapter locking is needed because of I2C gate logic. */
-> -static int si2168_i2c_master_send_unlocked(const struct i2c_client *client,
-> -					   const char *buf, int count)
-> -{
-> -	int ret;
-> -	struct i2c_msg msg = {
-> -		.addr = client->addr,
-> -		.flags = 0,
-> -		.len = count,
-> -		.buf = (char *)buf,
-> -	};
-> -
-> -	ret = __i2c_transfer(client->adapter, &msg, 1);
-> -	return (ret == 1) ? count : ret;
-> -}
-> -
-> -static int si2168_i2c_master_recv_unlocked(const struct i2c_client *client,
-> -					   char *buf, int count)
-> -{
-> -	int ret;
-> -	struct i2c_msg msg = {
-> -		.addr = client->addr,
-> -		.flags = I2C_M_RD,
-> -		.len = count,
-> -		.buf = buf,
-> -	};
-> -
-> -	ret = __i2c_transfer(client->adapter, &msg, 1);
-> -	return (ret == 1) ? count : ret;
-> -}
-> -
->  /* execute firmware command */
-> -static int si2168_cmd_execute_unlocked(struct i2c_client *client,
-> -				       struct si2168_cmd *cmd)
-> +static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
->  {
->  	int ret;
->  	unsigned long timeout;
->  
->  	if (cmd->wlen) {
->  		/* write cmd and args for firmware */
-> -		ret = si2168_i2c_master_send_unlocked(client, cmd->args,
-> -						      cmd->wlen);
-> +		ret = i2c_master_send(client, cmd->args, cmd->wlen);
->  		if (ret < 0) {
->  			goto err;
->  		} else if (ret != cmd->wlen) {
-> @@ -73,8 +40,7 @@ static int si2168_cmd_execute_unlocked(struct i2c_client *client,
->  		#define TIMEOUT 70
->  		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
->  		while (!time_after(jiffies, timeout)) {
-> -			ret = si2168_i2c_master_recv_unlocked(client, cmd->args,
-> -							      cmd->rlen);
-> +			ret = i2c_master_recv(client, cmd->args, cmd->rlen);
->  			if (ret < 0) {
->  				goto err;
->  			} else if (ret != cmd->rlen) {
-> @@ -109,17 +75,6 @@ err:
->  	return ret;
->  }
->  
-> -static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
-> -{
-> -	int ret;
-> -
-> -	i2c_lock_adapter(client->adapter);
-> -	ret = si2168_cmd_execute_unlocked(client, cmd);
-> -	i2c_unlock_adapter(client->adapter);
-> -
-> -	return ret;
-> -}
-> -
->  static int si2168_read_status(struct dvb_frontend *fe, enum fe_status *status)
->  {
->  	struct i2c_client *client = fe->demodulator_priv;
-> @@ -610,11 +565,6 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
->  	return 0;
->  }
->  
-> -/*
-> - * I2C gate logic
-> - * We must use unlocked I2C I/O because I2C adapter lock is already taken
-> - * by the caller (usually tuner driver).
-> - */
->  static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
->  {
->  	struct i2c_client *client = i2c_mux_priv(muxc);
-> @@ -625,7 +575,7 @@ static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
->  	memcpy(cmd.args, "\xc0\x0d\x01", 3);
->  	cmd.wlen = 3;
->  	cmd.rlen = 0;
-> -	ret = si2168_cmd_execute_unlocked(client, &cmd);
-> +	ret = si2168_cmd_execute(client, &cmd);
->  	if (ret)
->  		goto err;
->  
-> @@ -645,7 +595,7 @@ static int si2168_deselect(struct i2c_mux_core *muxc, u32 chan)
->  	memcpy(cmd.args, "\xc0\x0d\x00", 3);
->  	cmd.wlen = 3;
->  	cmd.rlen = 0;
-> -	ret = si2168_cmd_execute_unlocked(client, &cmd);
-> +	ret = si2168_cmd_execute(client, &cmd);
->  	if (ret)
->  		goto err;
->  
-> @@ -717,6 +667,7 @@ static int si2168_probe(struct i2c_client *client,
->  	dev->muxc->parent = client->adapter;
->  	dev->muxc->select = si2168_select;
->  	dev->muxc->deselect = si2168_deselect;
-> +	dev->muxc->i2c_controlled = true;
->  
->  	/* create mux i2c adapter for tuner */
->  	ret = i2c_add_mux_adapter(dev->muxc, 0, 0, 0);
-> 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
