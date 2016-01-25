@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:36671 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921AbcAWKpg (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34443 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757848AbcAYUR3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2016 05:45:36 -0500
-Received: by mail-wm0-f43.google.com with SMTP id l65so12508588wmf.1
-        for <linux-media@vger.kernel.org>; Sat, 23 Jan 2016 02:45:35 -0800 (PST)
-Subject: Re: libv4l on OpenBSD
-To: Ingo Feinerer <feinerer@logic.at>, linux-media@vger.kernel.org
-References: <20160122191055.GA25166@blue.my.domain>
-From: Gregor Jasny <gjasny@googlemail.com>
-Message-ID: <56A359D2.7000000@googlemail.com>
-Date: Sat, 23 Jan 2016 11:45:38 +0100
+	Mon, 25 Jan 2016 15:17:29 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH v3 1/4] v4l: libv4lsubdev: Make mbus_formats array const
+Date: Mon, 25 Jan 2016 22:17:46 +0200
+Message-ID: <3931467.gMsOrk7hPF@avalon>
+In-Reply-To: <1453725585-4165-2-git-send-email-sakari.ailus@linux.intel.com>
+References: <1453725585-4165-1-git-send-email-sakari.ailus@linux.intel.com> <1453725585-4165-2-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20160122191055.GA25166@blue.my.domain>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Sakari,
 
-On 22/01/16 20:10, Ingo Feinerer wrote:
-> in OpenBSD we recently updated our videoio.h (= videodev2.h in Linux)
-> header and also imported libv4l in our ports tree
-> (https://marc.info/?l=openbsd-ports-cvs&m=145218684026568&w=2).
+Thank you for the patch.
+
+On Monday 25 January 2016 14:39:42 Sakari Ailus wrote:
+> The array is already static and may not be modified at runtime. Make it
+> const.
 > 
-> However, we need a few patches to have it working. As there is already
-> FreeBSD support in libv4l, I would like to ask you if it would be
-> possible to add OpenBSD support as well (so that it works out of the
-> box)? The diffs (on top of https://git.linuxtv.org/v4l-utils.git)
-> towards this goal are as follows.
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-I will try to get out a new v4l-utils release soon and will have a look
-at your patch afterwards. What I'd like to see in the BSDs is a working
-V4L header (videodev2.h) that is a drop-in replacement for the Linux
-one. That would help to get rid of all the #ifdef portions in the code.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks,
-Gregor
+> ---
+>  utils/media-ctl/libv4l2subdev.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/utils/media-ctl/libv4l2subdev.c
+> b/utils/media-ctl/libv4l2subdev.c index dc2cd87..e45834f 100644
+> --- a/utils/media-ctl/libv4l2subdev.c
+> +++ b/utils/media-ctl/libv4l2subdev.c
+> @@ -715,7 +715,7 @@ int v4l2_subdev_parse_setup_formats(struct media_device
+> *media, const char *p) return *end ? -EINVAL : 0;
+>  }
+> 
+> -static struct {
+> +static const struct {
+>  	const char *name;
+>  	enum v4l2_mbus_pixelcode code;
+>  } mbus_formats[] = {
+
+-- 
+Regards,
+
+Laurent Pinchart
+
