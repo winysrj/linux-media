@@ -1,300 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:55694 "EHLO mout.gmx.net"
+Received: from mout.gmx.net ([212.227.17.22]:59366 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752395AbcAIK1L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jan 2016 05:27:11 -0500
-Date: Sat, 9 Jan 2016 11:27:03 +0100 (CET)
+	id S1756184AbcAYLOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 06:14:48 -0500
+Date: Mon, 25 Jan 2016 12:14:14 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Aviv Greenberg <avivgr@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] V4L: add Y12I, Y8I and Z16 pixel format documentation
-In-Reply-To: <Pine.LNX.4.64.1512151732080.18335@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1601091126170.15612@axis700.grange>
-References: <Pine.LNX.4.64.1512151732080.18335@axis700.grange>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aviv Greenberg <avivgr@gmail.com>
+Subject: Re: per-frame camera metadata (again)
+In-Reply-To: <Pine.LNX.4.64.1601051214080.21342@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1601251155160.20896@axis700.grange>
+References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange>
+ <2560629.CtpjHgJUC1@avalon> <Pine.LNX.4.64.1512241123060.12474@axis700.grange>
+ <5520197.vJSVcNd1Sr@avalon> <Pine.LNX.4.64.1601011639070.30606@axis700.grange>
+ <Pine.LNX.4.64.1601051214080.21342@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Tue, 5 Jan 2016, Guennadi Liakhovetski wrote:
 
-Ping - what about this patch? If there are no comments - would you like me 
-to push it via my tree?
+> On Fri, 1 Jan 2016, Guennadi Liakhovetski wrote:
+> 
+> > Hi Laurent,
+> > 
+> > On Sun, 27 Dec 2015, Laurent Pinchart wrote:
+> > 
+> > > Hi Guennadi,
+> > > 
+> > > On Thursday 24 December 2015 11:42:49 Guennadi Liakhovetski wrote:
+> > > > Hi Laurent,
+> > > > 
+> > > > Let me put this at the top: So far it looks like we converge on two
+> > > > possibilities:
+> > > > 
+> > > > (1) a separate video-device node with a separate queue. No user-space
+> > > > visible changes are required apart from new FOURCC codes. In the kernel
+> > > > we'd have to add some subdev API between the bridge and the sensor drivers
+> > > > to let the sensor driver instruct the bridge driver to use some of the
+> > > > data, arriving over the camera interface, as metadata.
+> > > 
+> > > The interface should be more generic and allow describing how multiple 
+> > > channels (in terms of virtual channels and data types for CSI-2 for instance) 
+> > > are multiplexed over a single physical link. I'm not sure how to represent 
+> > > that at the media controller level, that's also one topic that needs to be 
+> > > researched.
+> > 
+> > Sure, agree. How about an enumetation style method, something like 
+> > .enum_mbus_streams()?
+> 
+> It now also occurs to me, that we currently configure pads with a single 
+> configuration - pixel format, resolution. However, a single CSI-2 
+> interface can transfer different frame formats at the same time. So, such 
+> a sensor driver has to export multiple source pads? The bridge driver 
+> would export multiple sink pads, then we don't need any new API methods, 
+> we just configure each link separately, for which we have to add those 
+> fields to struct v4l2_mbus_framefmt?
+
+It has been noted, that pads and links conceptually are designed to 
+represent physical interfaces and connections between then, therefore 
+representing a single CSI-2 link by multiple Media Controller pads and 
+links is wrong.
+
+As an alternative it has been proposed to implement a multiplexer and a 
+demultiplexer subdevices on the CSI-2 transmitter (camera) and receiver 
+(SoC) sides respectively. Originally it has also been proposed to add a 
+supporting API to configure multiple streams over such a multiplexed 
+connection. However, this seems redundant, because mux sink pads and demux 
+source pads will anyway have to be configured individually, which already 
+configures the receiver and the transmitter sides.
+
+Currently the design seems to be converging to simply configuring the 
+multiplexed link with the MEDIA_BUS_FMT_FIXED format and a fixed 
+resolution and perform all real configuration on the other side of the mux 
+and demux subdevices. The only API extension, that would be required for 
+such a design would be adding CSI-2 Virtual Channel IDs to pad format 
+specifications, i.e. to struct v4l2_mbus_framefmt.
+
+On the video device side each stream will be sent to a separate video 
+device node. Each CSI-2 controller only supports a finate number of 
+streams, that it can demultiplex at any given time. Typically this maximum 
+number is much smaller than 256, which is the total number of streams, 
+that can be distinguished on a CSI-2 bus, using 2 bits for Virtual 
+Channels and 6 bits for data types. For example, if a CSI-2 controller can 
+demultiplex up to 8 streams simultaneously, the CSI-2 bridge driver would 
+statically create 8 /dev/video* nodes, statically connected to 8 sources 
+of an internal demux subdevice. The user-space will then just have to 
+configure internal pads with a Virtual Channel number, Media Bus pixel 
+format and resolution and the /dev/video* node with the required output 
+configuration.
 
 Thanks
 Guennadi
-
-On Tue, 15 Dec 2015, Guennadi Liakhovetski wrote:
-
-> Add documentation for 3 formats, used by RealSense cameras like R200.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  Documentation/DocBook/media/v4l/pixfmt-y12i.xml | 49 +++++++++++++++
->  Documentation/DocBook/media/v4l/pixfmt-y8i.xml  | 80 +++++++++++++++++++++++++
->  Documentation/DocBook/media/v4l/pixfmt-z16.xml  | 79 ++++++++++++++++++++++++
->  Documentation/DocBook/media/v4l/pixfmt.xml      | 10 ++++
->  4 files changed, 218 insertions(+)
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-y12i.xml
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-y8i.xml
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-z16.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-y12i.xml b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
-> new file mode 100644
-> index 0000000..443598d
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
-> @@ -0,0 +1,49 @@
-> +<refentry id="V4L2-PIX-FMT-Y12I">
-> +  <refmeta>
-> +    <refentrytitle>V4L2_PIX_FMT_Y12I ('Y12I ')</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +  <refnamediv>
-> +    <refname><constant>V4L2_PIX_FMT_Y12I</constant></refname>
-> +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-> +  </refnamediv>
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>This is a grey-scale image with a depth of 12 bits per pixel, but with
-> +pixels from 2 sources interleaved and bit-packed. Each pixel is stored in a
-> +24-bit word. E.g. data, stored by a R200 RealSense camera on a little-endian
-> +machine can be deinterlaced using</para>
-> +
-> +<para>
-> +<programlisting>
-> +__u8 *buf;
-> +left0 = 0xfff &amp; *(__u16 *)buf;
-> +rirhgt0 = *(__u16 *)(buf + 1) >> 4;
-> +</programlisting>
-> +</para>
-> +
-> +    <example>
-> +      <title><constant>V4L2_PIX_FMT_Y12I</constant> 2 pixel data stream taking 3 bytes</title>
-> +
-> +      <formalpara>
-> +	<title>Bit-packed representation</title>
-> +	<para>pixels cross the byte boundary and have a ratio of 3 bytes for each
-> +          interleaved pixel.
-> +	  <informaltable frame="all">
-> +	    <tgroup cols="3" align="center">
-> +	      <colspec align="left" colwidth="2*" />
-> +	      <tbody valign="top">
-> +		<row>
-> +		  <entry>Y'<subscript>0left[7:0]</subscript></entry>
-> +		  <entry>Y'<subscript>0right[3:0]</subscript>Y'<subscript>0left[11:8]</subscript></entry>
-> +		  <entry>Y'<subscript>0right[11:4]</subscript></entry>
-> +		</row>
-> +	      </tbody>
-> +	    </tgroup>
-> +	  </informaltable>
-> +	</para>
-> +      </formalpara>
-> +    </example>
-> +  </refsect1>
-> +</refentry>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-y8i.xml b/Documentation/DocBook/media/v4l/pixfmt-y8i.xml
-> new file mode 100644
-> index 0000000..99f389d
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-y8i.xml
-> @@ -0,0 +1,80 @@
-> +<refentry id="V4L2-PIX-FMT-Y8I">
-> +  <refmeta>
-> +    <refentrytitle>V4L2_PIX_FMT_Y8I ('Y8I ')</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +  <refnamediv>
-> +    <refname><constant>V4L2_PIX_FMT_Y8I</constant></refname>
-> +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-> +  </refnamediv>
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>This is a grey-scale image with a depth of 8 bits per pixel, but with
-> +pixels from 2 sources interleaved. Each pixel is stored in a 16-bit word. E.g.
-> +the R200 RealSense camera stores pixel from the left sensor in lower and from
-> +the right sensor in the higher 8 bits.</para>
-> +
-> +    <example>
-> +      <title><constant>V4L2_PIX_FMT_Y8I</constant> 4 &times; 4
-> +pixel image</title>
-> +
-> +      <formalpara>
-> +	<title>Byte Order.</title>
-> +	<para>Each cell is one byte.
-> +	  <informaltable frame="none">
-> +	    <tgroup cols="9" align="center">
-> +	      <colspec align="left" colwidth="2*" />
-> +	      <tbody valign="top">
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;0:</entry>
-> +		  <entry>Y'<subscript>00left</subscript></entry>
-> +		  <entry>Y'<subscript>00right</subscript></entry>
-> +		  <entry>Y'<subscript>01left</subscript></entry>
-> +		  <entry>Y'<subscript>01right</subscript></entry>
-> +		  <entry>Y'<subscript>02left</subscript></entry>
-> +		  <entry>Y'<subscript>02right</subscript></entry>
-> +		  <entry>Y'<subscript>03left</subscript></entry>
-> +		  <entry>Y'<subscript>03right</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;8:</entry>
-> +		  <entry>Y'<subscript>10left</subscript></entry>
-> +		  <entry>Y'<subscript>10right</subscript></entry>
-> +		  <entry>Y'<subscript>11left</subscript></entry>
-> +		  <entry>Y'<subscript>11right</subscript></entry>
-> +		  <entry>Y'<subscript>12left</subscript></entry>
-> +		  <entry>Y'<subscript>12right</subscript></entry>
-> +		  <entry>Y'<subscript>13left</subscript></entry>
-> +		  <entry>Y'<subscript>13right</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;16:</entry>
-> +		  <entry>Y'<subscript>20left</subscript></entry>
-> +		  <entry>Y'<subscript>20right</subscript></entry>
-> +		  <entry>Y'<subscript>21left</subscript></entry>
-> +		  <entry>Y'<subscript>21right</subscript></entry>
-> +		  <entry>Y'<subscript>22left</subscript></entry>
-> +		  <entry>Y'<subscript>22right</subscript></entry>
-> +		  <entry>Y'<subscript>23left</subscript></entry>
-> +		  <entry>Y'<subscript>23right</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;24:</entry>
-> +		  <entry>Y'<subscript>30left</subscript></entry>
-> +		  <entry>Y'<subscript>30right</subscript></entry>
-> +		  <entry>Y'<subscript>31left</subscript></entry>
-> +		  <entry>Y'<subscript>31right</subscript></entry>
-> +		  <entry>Y'<subscript>32left</subscript></entry>
-> +		  <entry>Y'<subscript>32right</subscript></entry>
-> +		  <entry>Y'<subscript>33left</subscript></entry>
-> +		  <entry>Y'<subscript>33right</subscript></entry>
-> +		</row>
-> +	      </tbody>
-> +	    </tgroup>
-> +	  </informaltable>
-> +	</para>
-> +      </formalpara>
-> +    </example>
-> +  </refsect1>
-> +</refentry>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-z16.xml b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-> new file mode 100644
-> index 0000000..fac3c68
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-> @@ -0,0 +1,79 @@
-> +<refentry id="V4L2-PIX-FMT-Z16">
-> +  <refmeta>
-> +    <refentrytitle>V4L2_PIX_FMT_Z16 ('Z16 ')</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +  <refnamediv>
-> +    <refname><constant>V4L2_PIX_FMT_Z16</constant></refname>
-> +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-> +  </refnamediv>
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>This is a 16-bit format, representing depth data. Each pixel is a
-> +distance in mm to the respective point in the image coordinates. Each pixel is
-> +stored in a 16-bit word in the little endian byte order.</para>
-> +
-> +    <example>
-> +      <title><constant>V4L2_PIX_FMT_Z16</constant> 4 &times; 4
-> +pixel image</title>
-> +
-> +      <formalpara>
-> +	<title>Byte Order.</title>
-> +	<para>Each cell is one byte.
-> +	  <informaltable frame="none">
-> +	    <tgroup cols="9" align="center">
-> +	      <colspec align="left" colwidth="2*" />
-> +	      <tbody valign="top">
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;0:</entry>
-> +		  <entry>Z<subscript>00low</subscript></entry>
-> +		  <entry>Z<subscript>00high</subscript></entry>
-> +		  <entry>Z<subscript>01low</subscript></entry>
-> +		  <entry>Z<subscript>01high</subscript></entry>
-> +		  <entry>Z<subscript>02low</subscript></entry>
-> +		  <entry>Z<subscript>02high</subscript></entry>
-> +		  <entry>Z<subscript>03low</subscript></entry>
-> +		  <entry>Z<subscript>03high</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;8:</entry>
-> +		  <entry>Z<subscript>10low</subscript></entry>
-> +		  <entry>Z<subscript>10high</subscript></entry>
-> +		  <entry>Z<subscript>11low</subscript></entry>
-> +		  <entry>Z<subscript>11high</subscript></entry>
-> +		  <entry>Z<subscript>12low</subscript></entry>
-> +		  <entry>Z<subscript>12high</subscript></entry>
-> +		  <entry>Z<subscript>13low</subscript></entry>
-> +		  <entry>Z<subscript>13high</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;16:</entry>
-> +		  <entry>Z<subscript>20low</subscript></entry>
-> +		  <entry>Z<subscript>20high</subscript></entry>
-> +		  <entry>Z<subscript>21low</subscript></entry>
-> +		  <entry>Z<subscript>21high</subscript></entry>
-> +		  <entry>Z<subscript>22low</subscript></entry>
-> +		  <entry>Z<subscript>22high</subscript></entry>
-> +		  <entry>Z<subscript>23low</subscript></entry>
-> +		  <entry>Z<subscript>23high</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;24:</entry>
-> +		  <entry>Z<subscript>30low</subscript></entry>
-> +		  <entry>Z<subscript>30high</subscript></entry>
-> +		  <entry>Z<subscript>31low</subscript></entry>
-> +		  <entry>Z<subscript>31high</subscript></entry>
-> +		  <entry>Z<subscript>32low</subscript></entry>
-> +		  <entry>Z<subscript>32high</subscript></entry>
-> +		  <entry>Z<subscript>33low</subscript></entry>
-> +		  <entry>Z<subscript>33high</subscript></entry>
-> +		</row>
-> +	      </tbody>
-> +	    </tgroup>
-> +	  </informaltable>
-> +	</para>
-> +      </formalpara>
-> +    </example>
-> +  </refsect1>
-> +</refentry>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> index d871245..9924732 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -1620,6 +1620,8 @@ information.</para>
->      &sub-y10b;
->      &sub-y16;
->      &sub-y16-be;
-> +    &sub-y8i;
-> +    &sub-y12i;
->      &sub-uv8;
->      &sub-yuyv;
->      &sub-uyvy;
-> @@ -1641,6 +1643,14 @@ information.</para>
->      &sub-m420;
->    </section>
->  
-> +  <section id="depth-formats">
-> +    <title>Depth Formats</title>
-> +    <para>Depth data provides distance to points, mapped onto the image plane
-> +    </para>
-> +
-> +    &sub-z16;
-> +  </section>
-> +
->    <section>
->      <title>Compressed Formats</title>
->  
-> -- 
-> 1.9.3
-> 
-> 
