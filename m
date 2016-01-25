@@ -1,66 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:39618 "EHLO ni.piap.pl"
+Received: from mout.gmx.net ([212.227.17.21]:56463 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754780AbcA1HZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 02:25:58 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: Support Intersil/Techwell TW686x-based video capture cards
-References: <1451183213-2733-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-	<569CE27F.6090702@xs4all.nl>
-	<CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
-	<m31t96j8u4.fsf@t19.piap.pl>
-	<CAAEAJfBM_vVBVRd3P0kJ1QLzk-M==L=x6CS0ggXgRX=7K_aK_A@mail.gmail.com>
-	<m3si1kioa9.fsf@t19.piap.pl>
-	<CAAEAJfC_Sa_6opADoz0Ab8NrmhX+cjNmSK_Nw_Ne9nk-ROaj0Q@mail.gmail.com>
-	<m3io2gfksk.fsf@t19.piap.pl>
-	<CAAEAJfDb84ZbRkq9GVOmeWp=vpn_GBX9Fx0w+aGnZ9n29PsR8A@mail.gmail.com>
-Date: Thu, 28 Jan 2016 08:25:55 +0100
-In-Reply-To: <CAAEAJfDb84ZbRkq9GVOmeWp=vpn_GBX9Fx0w+aGnZ9n29PsR8A@mail.gmail.com>
-	(Ezequiel Garcia's message of "Wed, 27 Jan 2016 09:14:49 -0300")
-Message-ID: <m3a8nqf9mk.fsf@t19.piap.pl>
+	id S932678AbcAYQQM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 11:16:12 -0500
+Date: Mon, 25 Jan 2016 17:15:54 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Aviv Greenberg <avivgr@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2] V4L: add Y12I, Y8I and Z16 pixel format documentation
+In-Reply-To: <569E37E6.9080802@linux.intel.com>
+Message-ID: <Pine.LNX.4.64.1601251706240.20896@axis700.grange>
+References: <Pine.LNX.4.64.1601181336520.9140@axis700.grange>
+ <569E37E6.9080802@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
+Hi Sakari,
 
-> Since your driver is not merged, there's no real benefit in my sending
-> me patches against it.
+On Tue, 19 Jan 2016, Sakari Ailus wrote:
 
-And it's not merged because you stated that you have produced
-a rewritten driver, using my driver just as a reference, and I was naive
-enough to believe it and let it go.
+> Hi Guennadi,
+> 
+> Guennadi Liakhovetski wrote:
+> > Add documentation for 3 formats, used by RealSense cameras like R200.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
 
-> Since I just submitted a v2 driver that seems to be ready to be
-> merged, how about I just add DMA s-g support so you get all the
-> functionality you need?
->
-> This option sounds much easier than you going through all the pain of
-> cleaning up your driver.
+[snip]
 
-Do I really have to answer such questions?
+> > +    <para>This is a 16-bit format, representing depth data. Each pixel is a
+> > +distance to the respective point in the image coordinates. Distance unit can
+> > +vary and has to be negotiated with the device separately. Each pixel is stored
+> > +in a 16-bit word in the little endian byte order.
+> 
+> I think we really need a way to convey the unit (and prefix) information
+> to the user. Considering the same should be done to controls, it'd be
+> logical to do that at the same time with the controls.
 
-One can't simply take someone's code, replace the MODULE_AUTHOR,
-twist a bit to suit his needs, and send it as his own.
+Do I understand you correctly, that you'd like to add a control to specify 
+distance units for this format? If yes - I don't think you want a separate 
+control just for this format, right? And you mention, you also want to be 
+able to specify units for other controls. But I would've thought, that 
+controls themselves should define, what unit they are using. E.g. 
+V4L2_CID_EXPOSURE_ABSOLUTE specifies, that it's unit is 100us. I would 
+expect the same from other controls too. "Legacy" controls like 
+V4L2_CID_EXPOSURE don't specify units, so, I would expect, that their use 
+should be discouraged.
 
-In my country, it wouldn't be even legal.
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> I'd like to have Hans's and/or Laurent's ack on this as well.
+> 
+> Unless the original patch requires changes, it could be re-applied if no
+> changes are requested to it. My understanding is that the issue mainly
+> was the missing documentation, i.e. this patch.
 
+Yes, I'll repost both patches as a series, maybe let's try to get some 
+understanding on the units question first.
 
-
-I have at least one similar situation here. I'm using frame grabber
-drivers for an I.MX6 processor on-chip feature. The problem is, the
-author hasn't yet managed (for years now) to have this functionality
-merged into the official tree. Obviously, I'm putting some considerable
-work in it. Does this mean I'm free to grab it as my own and request
-that it is to be merged instead? No, I have to wait until the original
-work is merged, and only then I can ask for my patches to be applied
-(in the form of changes, not a raw driver code).
--- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+Thanks
+Guennadi
