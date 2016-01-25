@@ -1,123 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56950 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750742AbcAPEGl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2016 23:06:41 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 159E01838AE
-	for <linux-media@vger.kernel.org>; Sat, 16 Jan 2016 05:06:19 +0100 (CET)
-Date: Sat, 16 Jan 2016 05:06:19 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160116040619.159E01838AE@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:46318 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757671AbcAYRND (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2016 12:13:03 -0500
+Date: Mon, 25 Jan 2016 15:12:57 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH 5/5] staging: media: lirc: use new parport device model
+Message-ID: <20160125151257.24d5c7d2@recife.lan>
+In-Reply-To: <20160125170230.GA8787@sudip-laptop>
+References: <1450443929-15305-1-git-send-email-sudipm.mukherjee@gmail.com>
+	<1450443929-15305-5-git-send-email-sudipm.mukherjee@gmail.com>
+	<20160125142906.184a4cb5@recife.lan>
+	<20160125170230.GA8787@sudip-laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Mon, 25 Jan 2016 22:32:31 +0530
+Sudip Mukherjee <sudipm.mukherjee@gmail.com> escreveu:
 
-Results of the daily build of media_tree:
+> On Mon, Jan 25, 2016 at 02:29:06PM -0200, Mauro Carvalho Chehab wrote:
+> > Em Fri, 18 Dec 2015 18:35:29 +0530
+> > Sudip Mukherjee <sudipm.mukherjee@gmail.com> escreveu:
+> >   
+> > > Modify lirc_parallel driver to use the new parallel port device model.  
+> > 
+> > Did you or someone else tested this patch?  
+> 
+> Only build tested and tested by inserting and removing the module.
+> But since the only change is in the way it registers and nothing else
+> so it should not break.
 
-date:		Sat Jan 16 04:02:24 CET 2016
-git branch:	test
-git hash:	768acf46e1320d6c41ed1b7c4952bab41c1cde79
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.3.0-164
+It would be worth to wait for a while in the hope that someone could
+test with a real hardware.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.34.7-i686: OK
-linux-2.6.35.9-i686: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-2.6.34.7-x86_64: OK
-linux-2.6.35.9-x86_64: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+> 
+> Only patch 1/5 is applying now. I will send v2 after removing patch 4/5.
 
-Detailed results are available here:
+I applied the other patches, with some fixes from my side.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+> regards
+> sudip
