@@ -1,30 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [103.196.152.197] ([103.196.152.197]:59156 "EHLO
-	a.paperrate.net" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927AbcAUXVi (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.187]:59135 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965983AbcAZPaD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2016 18:21:38 -0500
-Received: from raymond-PC (unknown [113.91.121.230])
-	by a.paperrate.net (Postfix) with ESMTPA id CCDEE46DF4
-	for <linux-media@vger.kernel.org>; Fri, 22 Jan 2016 07:14:29 +0800 (CST)
-Date: Fri, 22 Jan 2016 07:14:37 +0800
-From: "Raymond" <zpd@a.paperrate.net>
-Reply-To: raymondpower@163.com
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: Vr headset,vr box,Vr glasses,from the original factory
-Message-ID: <201601220714378456791@a.paperrate.net>
+	Tue, 26 Jan 2016 10:30:03 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/7] [media] pwc: hide unused label
+Date: Tue, 26 Jan 2016 16:29:18 +0100
+Message-ID: <2829409.X8sFnRsOHN@wuerfel>
+In-Reply-To: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
+References: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-RGVhciANCkhhcHB5IDIwMTYsIA0KSG90dGVzdCBWUiBib3gsZm9yIG1vYmlsZSBwaG9uZSxXYXRj
-aCAzRCBtb3ZpZSBhbmQgdnIgdmlkZW8sUGxheSB2ciBnYW1lcw0KUHJpY2Ugb25seSAkNi9wYyBu
-b3csb25seSBmcm9tIHRoZSBhcmNwZWFrcyBmYWN0b3J5IA0KQWxpYmFiYSBsaW5rLGh0dHA6Ly9h
-cmNwZWFrcy5lbi5hbGliYWJhLmNvbS9wcm9kdWN0LzYwNDAxMjg3MDAyLTgwMjYzNDEzNi8yMDE2
-X2hvdHRlc3RfcHJvZHVjdF92aXJ0dWFsX3JlYWxpdHlfM2RfZ2FtZXNfYW5kX3ZpZGVvXzNkX3Zy
-X2dsYXNzZXMuaHRtbA0KUGxlYXNlIGZlZWwgZnJlZSB0byBjb250YWN0IG1lIGZvciBtb3JlIGRl
-dGFpbHMgDQpUaGFua3MNCkJlc3QgUmVnYXJkcw0KUmF5DQphcmNwZWFrcy5lbi5hbGliYWJhLmNv
-bQ0KU2t5cGU6c2l4aXdlbnpoaQ0KZW1haWw6cmF5bW9uZEBhcmNwZWFrcy5jb20=
+On Tuesday 26 January 2016 15:09:55 Arnd Bergmann wrote:
+> The pwc driver causes a warning when CONFIG_USB_PWC_INPUT_EVDEV is unset:
+> 
+> drivers/media/usb/pwc/pwc-if.c: In function 'usb_pwc_probe':
+> drivers/media/usb/pwc/pwc-if.c:1115:1: warning: label 'err_video_unreg' defined but not used [-Wunused-label]
+> 
+> Obviously, the cleanup of &pdev->vdev is not needed without the input device,
+> so we can just move it inside of the existing #ifdef and remove the
+> extra label.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> 
+
+Please ignore patch 1. I made some late changes and failed to noticed
+the build failure I introduced in another configuration.
+
+	Arnd
