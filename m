@@ -1,78 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34419 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007AbcAZJQB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 04:16:01 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/2] [media] em28xx: fix implementation of s_stream
-Date: Tue, 26 Jan 2016 07:14:55 -0200
-Message-Id: <13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d.1453799688.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from ni.piap.pl ([195.187.100.4]:54809 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965184AbcAZPAP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2016 10:00:15 -0500
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: Support Intersil/Techwell TW686x-based video capture cards
+References: <1451183213-2733-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+	<569CE27F.6090702@xs4all.nl>
+	<CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
+	<m31t96j8u4.fsf@t19.piap.pl>
+	<CAAEAJfBM_vVBVRd3P0kJ1QLzk-M==L=x6CS0ggXgRX=7K_aK_A@mail.gmail.com>
+	<m3si1kioa9.fsf@t19.piap.pl>
+	<CAAEAJfC_Sa_6opADoz0Ab8NrmhX+cjNmSK_Nw_Ne9nk-ROaj0Q@mail.gmail.com>
+Date: Tue, 26 Jan 2016 16:00:11 +0100
+In-Reply-To: <CAAEAJfC_Sa_6opADoz0Ab8NrmhX+cjNmSK_Nw_Ne9nk-ROaj0Q@mail.gmail.com>
+	(Ezequiel Garcia's message of "Tue, 26 Jan 2016 09:35:27 -0300")
+Message-ID: <m3io2gfksk.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On em28xx driver, s_stream subdev ops was not implemented
-properly. It was used only to disable stream, never enabling it.
-That was the root cause of the regression when we added support
-for s_stream on tvp5150 driver.
+Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
 
-With that, we can get rid of the changes on tvp5150 side,
-e. g. changeset 47de9bf8931e ('[media] tvp5150: Fix breakage for serial usage').
+> I reviewed the driver as soon as it was sent, and planned to submit
+> changes to support my setup once your driver was merged, but that
+> never happened.
 
-Tested video output on em2820+tvp5150 on WinTV USB2 and
-video and/or vbi output on em288x+tvp5150 on HVR 950.
+This was because you, shortly thereafter, stated:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/usb/em28xx/em28xx-video.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+> I'm working on an improved version of the tw686x driver. I've started
+> with the patches
+> you posted and made a significant number of changes:
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 0e86ff423c49..6a015e8e8655 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -196,7 +196,6 @@ static void em28xx_wake_i2c(struct em28xx *dev)
- 	v4l2_device_call_all(v4l2_dev, 0, core,  reset, 0);
- 	v4l2_device_call_all(v4l2_dev, 0, video, s_routing,
- 			     INPUT(dev->ctl_input)->vmux, 0, 0);
--	v4l2_device_call_all(v4l2_dev, 0, video, s_stream, 0);
- }
- 
- static int em28xx_colorlevels_set_default(struct em28xx *dev)
-@@ -962,6 +961,9 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- 			f.type = V4L2_TUNER_ANALOG_TV;
- 		v4l2_device_call_all(&v4l2->v4l2_dev,
- 				     0, tuner, s_frequency, &f);
-+
-+		/* Enable video stream at TV decoder */
-+		v4l2_device_call_all(&v4l2->v4l2_dev, 0, video, s_stream, 1);
- 	}
- 
- 	v4l2->streaming_users++;
-@@ -981,6 +983,9 @@ static void em28xx_stop_streaming(struct vb2_queue *vq)
- 	res_free(dev, vq->type);
- 
- 	if (v4l2->streaming_users-- == 1) {
-+		/* Disable video stream at TV decoder */
-+		v4l2_device_call_all(&v4l2->v4l2_dev, 0, video, s_stream, 0);
-+
- 		/* Last active user, so shutdown all the URBS */
- 		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
- 	}
-@@ -1013,6 +1018,9 @@ void em28xx_stop_vbi_streaming(struct vb2_queue *vq)
- 	res_free(dev, vq->type);
- 
- 	if (v4l2->streaming_users-- == 1) {
-+		/* Disable video stream at TV decoder */
-+		v4l2_device_call_all(&v4l2->v4l2_dev, 0, video, s_stream, 0);
-+
- 		/* Last active user, so shutdown all the URBS */
- 		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
- 	}
+> * Handling events in the top-half (removed bottom halves).
+> * Audio support
+> * Added CIF and D1 size support
+> * some other goodies
+> * a lot of code refactoring
+
+> I'm now working on supporting both S-G and frame modes,
+> so the driver will support INTERLACED and SEQ frames, and the
+> user will have both options.
+
+> I'll post a patchset as soon as it's working. Since I've started with
+> your patch,
+> your authorship will be retained and I'll add only my Signed-off-by.
+
+And, when I asked about merging the combined work properly:
+
+> Problem is I've re-written the driver, taking yours as a starting point
+> and reference.
+
+> In other words, I don't have a proper git branch with a history, starting
+> from the patch you submitted. Instead, I would be submitting a new
+> patch for Hans and Mauro to review.
+
+> This patch is based in yours, so AFAIK should have your signature.
+
+The latter was obviously not true - the code may retain the original
+authors and copyrights (if it hasn't been rewritten completely), but
+you have to remove the original S-O-B when you are submitting heavily
+modified code - see the rules. Signature is not copyright/authorship,
+it's who posts the code.
+
+
+This is also why separating the work helps (especially in such
+non-trivial cases) - the original code bears the original signature,
+and the subsequent changes have their own. These things are invented
+for a reason.
+
+
+I really thought you have rewritten the driver from scratch, so my
+inferior driver was of no use. In this situation submitting v2 didn't
+make sense, though obviously I haven't written a driver for nothing -
+I'm using it for my purposes.
+
+
+What other options did I have at that time?
+
+> If you want your driver merged, then you would have to submit it
+> again, addressing
+> my review comments.
+
+Well, then this is something I can do. I wonder if it would be better
+to post the raw code as a single patch, or to repost the original
+version (already reviewed) and the subsequent patches (much smaller)
+instead. Hans?
+
+> However, I have just posted a v2 and it would be nice if
+> you can review it and test it.
+
+I can review it, however I can't really test it, because my ARM-based
+systems require DMA to buffer functionality. Also, please not I'm not
+a V4L2 expert, though I have a bit of experience with low level hw.
+
+
+However, it would be much easier if you had posted an incremental patch
+set instead. Also, WRT the merging, since this turns out to be in fact
+my driver with your subsequent modifications (most of them very
+valuable, I'm sure), I'd really think we should merge the original
+driver first, and add the modifications, perhaps one-by-one, next.
+
+
+This doesn't mean it has to wait. I can even do it all myself, simply
+send your patches against my code and I'll merge them properly in my git
+tree once they are positively reviewed. Hans could then merge it all
+easily.
+
+
+Does this make any sense?
+
+Thanks in advance.
 -- 
-2.5.0
+Krzysztof Halasa
 
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
