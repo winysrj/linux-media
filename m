@@ -1,87 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:34022 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757609AbcAKLJM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 06:09:12 -0500
-Received: by mail-ig0-f178.google.com with SMTP id ik10so119903437igb.1
-        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 03:09:12 -0800 (PST)
+Received: from mout.gmx.net ([212.227.15.19]:64493 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756906AbcAZOLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2016 09:11:03 -0500
+Date: Tue, 26 Jan 2016 15:10:30 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <rainyfeeling@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Songjun Wu <songjun.wu@atmel.com>, Josh Wu <josh.wu@atmel.com>
+Subject: Re: [PATCH 12/13] atmel-isi: use union for the fbd (frame buffer
+ descriptor)
+In-Reply-To: <CAJe_HAeTWqaqFHPbLGzbTKV6s2xDxf+Dg8DFc6HAqs03RJFh3g@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1601261509120.28816@axis700.grange>
+References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
+ <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
+ <1453121545-27528-8-git-send-email-rainyfeeling@gmail.com>
+ <Pine.LNX.4.64.1601241931430.16570@axis700.grange>
+ <CAJe_HAeTWqaqFHPbLGzbTKV6s2xDxf+Dg8DFc6HAqs03RJFh3g@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <569384A8.1000302@xs4all.nl>
-References: <CAJ2oMh+0-2nmbWxeEHV-V6hkXFYXm-2L5mzHT3+v0WSUMpRd1g@mail.gmail.com>
-	<569384A8.1000302@xs4all.nl>
-Date: Mon, 11 Jan 2016 13:09:11 +0200
-Message-ID: <CAJ2oMhLJMm3i0wfNva1jFd0RXPLkz67AW=oaHZ0jdbZZ+sn8dA@mail.gmail.com>
-Subject: Re: PCIe sg dma device used as dma-contig
-From: Ran Shalit <ranshalit@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 11, 2016 at 12:32 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 12/27/2015 04:31 PM, Ran Shalit wrote:
->> Hello,
->>
->> The following question is not totally in the scope of v4l2, but more
->> about your advise concering dma alternatives for non-expreciened v4l2
->> device writer.
->> We intend to use the fpga for concurrent 3xHD and 3xSD.
->>
->> We have some dillema regadring the fpga to choose from:
->> ALTERA fpga which use contiguous dma memory, or Xilinx fpga which is
->> using scatter-gather architecture.
->>
->> With xilinx, it seems that the sg architecture can also be used as
->> contiguous according to the following:
->> "... While these descriptors are not required to be contiguous, they
->> should be contained within an 8 megabyte region which corresponds to
->> the width of the AXI_PCIe_SG port"
->
-> I think they are talking about the memory containing the descriptors
-> themselves. I.e. the scatter-gather list should be in contiguous memory
-> that is no more than 8 megabytes long.
->
-> This is normally not a problem.
->
-> I don't think they are talking about the DMA itself, that should be
-> pretty much unlimited.
+Hi Josh,
 
-Hi,
-I've made simple kernel testing on my x86_64 platform, with using
-    dma_alloc_coherent(NULL, (1024*1024*4), &dma_addr, GFP_KERNEL);
-I can allocate easily 6 contiguous 4MB with the above.
-As you said, there is probably no problem with 4MB  for video capture,
-(16 bit representation of 1920x1080 gives: 1920x1080x2 <4MB),
-I probably don't need to use CMA too.
+(resending with all CC)
 
-Thank you,
-Ran
+On Tue, 26 Jan 2016, Josh Wu wrote:
 
+> Hi, Guennadi
+> 
+> Thanks for the review.
+> 
+> 2016-01-25 3:31 GMT+08:00 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> > On Mon, 18 Jan 2016, Josh Wu wrote:
+> >
+> >> From: Josh Wu <josh.wu@atmel.com>
+> >>
+> >> This way, we can easy to add other type of fbd for new hardware.
+> >
+> > Ok, I've applied all your 13 patches to check, what the resulting driver
+> > would look like. To me it looks like you really abstract away _everything_
+> > remotely hardware-specific. What is left is yet another abstraction layer,
+> > into which you can pack a wide range of hardware types, which are very
+> > different from the original ISI. I mean, you could probably pack - to some
+> > extent, maybe sacrificing some features - other existing soc-camera
+> > drivers, like MX3, MX2, CEU,... - essentially those, using VB2. And I
+> > don't think that's a good idea. We have a class of V4L2 camera bridge
+> > drivers, that's fine. They use all the standard APIs to connect to the
+> > user-space and to other V4L2 drivers in video pipelines - V4L2 ioctl()s,
+> > subdev, Media Controller, VB2, V4L2 control API etc. Under that we have
+> > soc-camera - mainly for a few existing bridge drivers, because it takes a
+> > part of bridge driver's implementation freedom away and many or most
+> > modern camera bridge interfaces are more complex, than what soc-camera
+> > currently supports, and extending it makes little sense, it is just more
+> > logical to create a full-features V4L2 bridge driver with a full access to
+> > all relevant APIs.
+> 
+> It sounds the general v4l2 driver framework is more suitable than
+> soc-camera framework for the new hardware.
 
+Then, please, go for one!
 
+> So is it easy for v4l2 platform driver to use the soc-camera sensors?
 
->
-> Regards,
->
->         Hans
->
->> it seems according to the above description that sg-list can be used
->> as single contiguous descriptor (with dma-cotig), though the 8MBytes
->> seems like a problematic constrain. This constrain make it difficult
->> to be used with dma-contig solution in v4l2.
->>
->> Our current direction is try to imeplement it as simple as possible.
->> Therefore we prefer the dma contiguous solution (I think that together
->> with CMA and a strong cpu like 64-bit i7 it can handle contigious
->> memory for 3xHD and 3xSD allocation).
->>
->> Any feedback is appreciated,
->> Ran
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
+Not sure, haven't tried in a while. It used to be difficult, but it must 
+have become more simple, I think there are examples of that in the 
+mainline. I think em28xx does that, but probably in the meantime the 
+integration possibilities have become even better.
+
+> > With your patches #12 and #13 you seem to be creating
+> > an even tighter, narrower API for very thin drivers. That just provide a
+> > couple of hardware-related functions and create a V4L2 bridge driver from
+> > that. What kind of hardware is that new controller, that you'd like to
+> > support by the same driver? Wouldn't it be better to create a new driver
+> > for it? Is it really similar to the ISI controller?
+> 
+> The new hardware is SAMA5D2 Image Sensor Controller. You can find the
+> datasheet here:
+> http://www.atmel.com/Images/Atmel-11267-32-bit-Cortex-A5-Microcontroller-SAMA5D2_Datasheet.pdf
+> 
+> Actually, The ISC hardware is very different from ISI hardware. ISC
+> has no Preivew/Codec path, it just has many data blocks to process
+> sensor data.
+> With the abstraction of my patches, ISC can rewrite the interrupt
+> handler, initialization, configure and etc to work in same ISI driver,
+> though. But like you mentioned, it's very tight, maybe it's not easy
+> to add extend functions.
+> 
+> So I was convinced to write a new v4l2 camera driver for ISC if it is
+> easy to support soc-camera sensors.
+
+Please, write a new driver :)
+
+Thanks
+Guennadi
+
+> Best Regards,
+> Josh Wu
