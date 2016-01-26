@@ -1,240 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57988 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754877AbcA1Qnu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 11:43:50 -0500
-Date: Thu, 28 Jan 2016 14:43:32 -0200
+Received: from bombadil.infradead.org ([198.137.202.9]:34422 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753639AbcAZJQC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2016 04:16:02 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH 23/31] media: au0828 implement enable_source and
- disable_source handlers
-Message-ID: <20160128144332.39dc8b4b@recife.lan>
-In-Reply-To: <6d1f10b616fc3c8b016cf0e335de569012400de8.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-	<6d1f10b616fc3c8b016cf0e335de569012400de8.1452105878.git.shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH 2/2] Revert "[media] tvp5150: Fix breakage for serial usage"
+Date: Tue, 26 Jan 2016 07:14:56 -0200
+Message-Id: <841502d731f1708aae907d5bdf1659e8a372fc9a.1453799688.git.mchehab@osg.samsung.com>
+In-Reply-To: <13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d.1453799688.git.mchehab@osg.samsung.com>
+References: <13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d.1453799688.git.mchehab@osg.samsung.com>
+In-Reply-To: <13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d.1453799688.git.mchehab@osg.samsung.com>
+References: <13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d.1453799688.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  6 Jan 2016 13:27:12 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+This patch were a workaround for a regression at tvp5150, but
+it causes troubles on devices with omap3+tvp5151 when working
+in non-parallel bus mode.
 
-> Implements enable_source and disable_source handlers for other
-> drivers (v4l2-core, dvb-core, and ALSA) to use to check for
-> tuner connected to the decoder and activate the link if tuner
-> is free, and deactivate and free the tuner when it is no longer
-> needed.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/usb/au0828/au0828-core.c | 148 +++++++++++++++++++++++++++++++++
->  drivers/media/usb/au0828/au0828.h      |   2 +
->  2 files changed, 150 insertions(+)
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index a15a61a..f8d2db3 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -370,6 +370,150 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
->  	return 0;
->  }
->  
-> +static int au0828_enable_source(struct media_entity *entity,
-> +				struct media_pipeline *pipe)
-> +{
+Now that em28xx was fixed, we can get rid of that.
 
-The best would be to put those enable source stuff at the core, in a way
-that other drivers could share it.
+This reverts commit 47de9bf8931e6bf9c92fdba9867925d1ce482ab1.
 
-Not sure about the implementation, as this requires testing ;)
-Did you consider the cases where the source connector is S-Video
-or Composite?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/i2c/tvp5150.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_entity  *source;
-> +	struct media_entity *sink;
-> +	struct media_link *link, *found_link = NULL;
-> +	int ret = 0;
-> +	struct media_device *mdev = entity->graph_obj.mdev;
-> +	struct au0828_dev *dev;
-> +
-> +	if (!mdev)
-> +		return -ENODEV;
-> +
-> +	/* for Audio and Video entities, source is the decoder */
-> +	mutex_lock(&mdev->graph_mutex);
-> +
-> +	dev = mdev->source_priv;
-> +	if (!dev->tuner || !dev->decoder) {
-> +		ret = -ENODEV;
-> +		goto end;
-> +	}
-> +
-> +	/*
-> +	 * For Audio and V4L2 entity, find the link to which decoder
-> +	 * is the sink. Look for an active link between decoder and
-> +	 * tuner, if one exists, nothing to do. If not, look for any
-> +	 * active links between tuner and any other entity. If one
-> +	 * exists, tuner is busy. If tuner is free, setup link and
-> +	 * start pipeline from source (tuner).
-> +	 * For DVB FE entity, the source for the link is the tuner.
-> +	 * Check if tuner is available and setup link and start
-> +	 * pipeline.
-> +	*/
-> +	if (entity->function != MEDIA_ENT_F_DTV_DEMOD)
-> +		sink = dev->decoder;
-> +	else
-> +		sink = entity;
-> +
-> +	/* Is an active link between sink and tuner */
-> +	if (dev->active_link) {
-> +		if (dev->active_link->sink->entity == sink &&
-> +		    dev->active_link->source->entity == dev->tuner) {
-> +			ret = 0;
-> +			goto end;
-> +		} else {
-> +			ret = -EBUSY;
-> +			goto end;
-> +		}
-> +	}
-> +
-> +	list_for_each_entry(link, &sink->links, list) {
-> +		/* Check sink, and source */
-> +		if (link->sink->entity == sink &&
-> +		    link->source->entity == dev->tuner) {
-> +			found_link = link;
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (!found_link) {
-> +		ret = -ENODEV;
-> +		goto end;
-> +	}
-> +
-> +	/* activate link between source and sink and start pipeline */
-> +	source = found_link->source->entity;
-> +	ret = __media_entity_setup_link(found_link, MEDIA_LNK_FL_ENABLED);
-> +	if (ret) {
-> +		pr_err(
-> +			"Activate tuner link %s->%s. Error %d\n",
-> +			source->name, sink->name, ret);
-> +		goto end;
-> +	}
-> +
-> +	ret = __media_entity_pipeline_start(entity, pipe);
-> +	if (ret) {
-> +		pr_err("Start Pipeline: %s->%s Error %d\n",
-> +			source->name, entity->name, ret);
-> +		ret = __media_entity_setup_link(found_link, 0);
-> +		pr_err("Deactive link Error %d\n", ret);
-> +		goto end;
-> +	}
-> +	/*
-> +	 * save active link and active link owner to avoid audio
-> +	 * deactivating video owned link from disable_source and
-> +	 * vice versa
-> +	*/
-> +	dev->active_link = found_link;
-> +	dev->active_link_owner = entity;
-> +end:
-> +	mutex_unlock(&mdev->graph_mutex);
-> +	pr_debug("au0828_enable_source() end %s %d %d\n",
-> +		entity->name, entity->function, ret);
-> +	return ret;
-> +#endif
-> +	return 0;
-> +}
-> +
-> +static void au0828_disable_source(struct media_entity *entity)
-> +{
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_entity *sink;
-> +	int ret = 0;
-> +	struct media_device *mdev = entity->graph_obj.mdev;
-> +	struct au0828_dev *dev;
-> +
-> +	if (!mdev)
-> +		return;
-> +
-> +	mutex_lock(&mdev->graph_mutex);
-> +	dev = mdev->source_priv;
-> +	if (!dev->tuner || !dev->decoder || !dev->active_link) {
-> +		ret = -ENODEV;
-> +		goto end;
-> +	}
-> +
-> +	if (entity->function != MEDIA_ENT_F_DTV_DEMOD)
-> +		sink = dev->decoder;
-> +	else
-> +		sink = entity;
-> +
-> +	/* link is active - stop pipeline from source (tuner) */
-> +	if (dev->active_link && dev->active_link->sink->entity == sink &&
-> +	    dev->active_link->source->entity == dev->tuner) {
-> +		/*
-> +		 * prevent video from deactivating link when audio
-> +		 * has active pipeline
-> +		*/
-> +		if (dev->active_link_owner != entity)
-> +			goto end;
-> +		__media_entity_pipeline_stop(entity);
-> +		ret = __media_entity_setup_link(dev->active_link, 0);
-> +		if (ret)
-> +			pr_err("Deactive link Error %d\n", ret);
-> +		dev->active_link = NULL;
-> +		dev->active_link_owner = NULL;
-> +	}
-> +
-> +end:
-> +	mutex_unlock(&mdev->graph_mutex);
-> +#endif
-> +}
-> +
->  static int au0828_media_device_register(struct au0828_dev *dev,
->  					struct usb_device *udev)
->  {
-> @@ -400,6 +544,10 @@ static int au0828_media_device_register(struct au0828_dev *dev,
->  			ret);
->  		return ret;
->  	}
-> +	/* set enable_source */
-> +	dev->media_dev->source_priv = (void *) dev;
-> +	dev->media_dev->enable_source = au0828_enable_source;
-> +	dev->media_dev->disable_source = au0828_disable_source;
->  #endif
->  	return 0;
->  }
-> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-> index cfb6d58..3707664 100644
-> --- a/drivers/media/usb/au0828/au0828.h
-> +++ b/drivers/media/usb/au0828/au0828.h
-> @@ -289,6 +289,8 @@ struct au0828_dev {
->  	bool vdev_linked;
->  	bool vbi_linked;
->  	bool audio_capture_linked;
-> +	struct media_link *active_link;
-> +	struct media_entity *active_link_owner;
->  #endif
->  };
->  
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 779c6f453cc9..437f1a7ecb96 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -975,18 +975,19 @@ static int tvp5150_g_mbus_config(struct v4l2_subdev *sd,
+ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
++	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
++	int val = 0x09;
+ 
+ 	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
+-	if (decoder->mbus_type != V4L2_MBUS_PARALLEL)
+-		return 0;
++	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
++		val = 0x0d;
+ 
+ 	/* Initializes TVP5150 to its default values */
+ 	/* # set PCLK (27MHz) */
+ 	tvp5150_write(sd, TVP5150_CONF_SHARED_PIN, 0x00);
+ 
+-	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
+ 	if (enable)
+-		tvp5150_write(sd, TVP5150_MISC_CTL, 0x09);
++		tvp5150_write(sd, TVP5150_MISC_CTL, val);
+ 	else
+ 		tvp5150_write(sd, TVP5150_MISC_CTL, 0x00);
+ 
+-- 
+2.5.0
+
