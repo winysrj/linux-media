@@ -1,120 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:52813 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065AbcARBFL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jan 2016 20:05:11 -0500
-From: Simon Horman <horms+renesas@verge.net.au>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-renesas-soc@vger.kernel.org, linux-sh@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Simon Horman <horms+renesas@verge.net.au>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Geert Uytterhoeven <geert+renesas@glider.be>,
-	Magnus Damm <magnus.damm@gmail.com>
-Subject: [PATCH] MAINTAINERS: Update mailing list for Renesas SoC Development
-Date: Mon, 18 Jan 2016 10:04:33 +0900
-Message-Id: <1453079073-30937-1-git-send-email-horms+renesas@verge.net.au>
+Received: from lists.s-osg.org ([54.187.51.154]:51331 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932190AbcAZPl7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2016 10:41:59 -0500
+Date: Tue, 26 Jan 2016 13:41:53 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 7/7] [media] go7007: add MEDIA_CAMERA_SUPPORT dependency
+Message-ID: <20160126134153.2273c1a1@recife.lan>
+In-Reply-To: <20160126130403.768e9af4@recife.lan>
+References: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
+	<1453817424-3080054-7-git-send-email-arnd@arndb.de>
+	<20160126130403.768e9af4@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the mailing list used for development of support for
-Renesas SoCs and related drivers.
+Em Tue, 26 Jan 2016 13:04:03 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Up until now the linux-sh mailing list has been used, however,
-Renesas SoCs are now much wider than the SH architecture and there
-is some desire from some for the linux-sh list to refocus on
-discussion of the work on the SH architecture.
+> Em Tue, 26 Jan 2016 15:10:01 +0100
+> Arnd Bergmann <arnd@arndb.de> escreveu:
+> 
+> > If MEDIA_SUBDRV_AUTOSELECT and VIDEO_GO7007 are both set, we
+> > automatically select VIDEO_OV7640, but that depends on MEDIA_CAMERA_SUPPORT,
+> > so we get a Kconfig warning if that is disabled:
+> > 
+> > warning: (VIDEO_GO7007) selects VIDEO_OV7640 which has unmet direct dependencies (MEDIA_SUPPORT && I2C && VIDEO_V4L2 && MEDIA_CAMERA_SUPPORT)
+> > 
+> > This adds another dependency so we don't accidentally select
+> > it when it is unavailable.  
+> 
+> This is another bogus warning.
+> 
+> The MEDIA_foo_SUPPORT actually controls what drivers are visible,
+> but it doesn't enable any driver. They just control the visibility
+> of the drivers, and the APIs that will be enabled (V4L2 and/or DVB).
+> 
+> The aim of MEDIA_foo_SUPPORT is to make life easier to end users,
+> making easier for them to filter the drivers that they may need.
+> 
+> If one selects MEDIA_VIDEO_SUPPORT, the V4L2 API (and V4L core) will be 
+> enabled, and all drivers that support a camera should appear at the 
+> menu, including drivers that *also* support other features (like TV
+> and/or stream support).
+> 
+> That's the case of go7007.
+> 
+> That has nothing to do with the features selection for such driver.
+> 
+> Once go7007 driver is selected, if MEDIA_SUBDRV_AUTOSELECT, all
+> i2c drivers that cope together with go7007 are selected, making the
+> driver to fully support all devices it knows.
+> 
+> Advanced users may unselect MEDIA_SUBDRV_AUTOSELECT and add there just
+> the I2C driver(s) it needs for his specific hardware.
+> 
+> Despite the warning, the Kconfig will do the right thing, not
+> allowing invalid configurations.
+> 
+> Regards,
+> Mauro
+> 
+> 
+> > 
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > ---
+> >  drivers/media/usb/go7007/Kconfig | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/usb/go7007/Kconfig b/drivers/media/usb/go7007/Kconfig
+> > index 95a3af644a92..af1d02430931 100644
+> > --- a/drivers/media/usb/go7007/Kconfig
+> > +++ b/drivers/media/usb/go7007/Kconfig
+> > @@ -11,7 +11,7 @@ config VIDEO_GO7007
+> >  	select VIDEO_TW2804 if MEDIA_SUBDRV_AUTOSELECT
+> >  	select VIDEO_TW9903 if MEDIA_SUBDRV_AUTOSELECT
+> >  	select VIDEO_TW9906 if MEDIA_SUBDRV_AUTOSELECT
+> > -	select VIDEO_OV7640 if MEDIA_SUBDRV_AUTOSELECT
+> > +	select VIDEO_OV7640 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_CAMERA_SUPPORT
 
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Magnus Damm <magnus.damm@gmail.com>
-Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+Hmm... on a second thought, it could make sense to only auto-select
+the sensor drivers if MEDIA_CAMERA_SUPPORT, and to only auto-select
+tuners if MEDIA_*_TV_SUPPORT is selected.
 
----
-* This patch applies on top of Linus's tree where currently the head commit
-  is 984065055e6e ("Merge branch 'drm-next' of
-  git://people.freedesktop.org/~airlied/linux")
+However, in this case, we'll need to dig into all Kconfig autoselect
+options in order to make it right.
 
-  This has been used as a base instead of v4.4 so that it is based on the
-  following two commits which affect it:
-  - 1a4ca6dd3dc8 ("MAINTAINERS: Add co-maintainer for Renesas Pin Controllers")
-  - 3e46c3973cba ("MAINTAINERS: add Renesas usb2 phy driver")
----
- MAINTAINERS | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+I guess we should also likely need to document to the user that the
+driver won't be fully supported, as we'll be changing the behavior
+of the menus.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 1d23f701489c..52a6ba79fa3f 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1531,9 +1531,9 @@ F:	drivers/media/platform/s5p-jpeg/
- ARM/SHMOBILE ARM ARCHITECTURE
- M:	Simon Horman <horms@verge.net.au>
- M:	Magnus Damm <magnus.damm@gmail.com>
--L:	linux-sh@vger.kernel.org
-+L:	linux-renesas-soc@vger.kernel.org
- W:	http://oss.renesas.com
--Q:	http://patchwork.kernel.org/project/linux-sh/list/
-+Q:	http://patchwork.kernel.org/project/linux-renesas-soc/list/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/horms/renesas.git next
- S:	Supported
- F:	arch/arm/boot/dts/emev2*
-@@ -3745,7 +3745,7 @@ F:	Documentation/devicetree/bindings/display/tegra/nvidia,tegra20-host1x.txt
- DRM DRIVERS FOR RENESAS
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	dri-devel@lists.freedesktop.org
--L:	linux-sh@vger.kernel.org
-+L:	linux-renesas-soc@vger.kernel.org
- T:	git git://people.freedesktop.org/~airlied/linux
- S:	Supported
- F:	drivers/gpu/drm/rcar-du/
-@@ -6858,7 +6858,7 @@ F:	drivers/iio/potentiometer/mcp4531.c
- MEDIA DRIVERS FOR RENESAS - VSP1
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- L:	linux-media@vger.kernel.org
--L:	linux-sh@vger.kernel.org
-+L:	linux-renesas-soc@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- S:	Supported
- F:	Documentation/devicetree/bindings/media/renesas,vsp1.txt
-@@ -8235,7 +8235,7 @@ F:	drivers/pci/host/pci-dra7xx.c
- PCI DRIVER FOR RENESAS R-CAR
- M:	Simon Horman <horms@verge.net.au>
- L:	linux-pci@vger.kernel.org
--L:	linux-sh@vger.kernel.org
-+L:	linux-renesas-soc@vger.kernel.org
- S:	Maintained
- F:	drivers/pci/host/*rcar*
- 
-@@ -8413,7 +8413,7 @@ F:	drivers/pinctrl/intel/
- PIN CONTROLLER - RENESAS
- M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
- M:	Geert Uytterhoeven <geert+renesas@glider.be>
--L:	linux-sh@vger.kernel.org
-+L:	linux-renesas-soc@vger.kernel.org
- S:	Maintained
- F:	drivers/pinctrl/sh-pfc/
- 
-@@ -9019,13 +9019,13 @@ F:	include/linux/rpmsg.h
- RENESAS ETHERNET DRIVERS
- R:	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
- L:	netdev@vger.kernel.org
--L:	linux-sh@vger.kernel.org
-+L:	linux-renesas-soc@vger.kernel.org
- F:	drivers/net/ethernet/renesas/
- F:	include/linux/sh_eth.h
- 
- RENESAS USB2 PHY DRIVER
- M:	Yoshihiro Shimoda <yoshihiro.shimoda.uh@renesas.com>
--L:	linux-sh@vger.kernel.org
-+L:	linux-renesas-soc@vger.kernel.org
- S:	Maintained
- F:	drivers/phy/phy-rcar-gen3-usb2.c
- 
--- 
-2.1.4
+Comments?
 
+Regards,
+Mauro
