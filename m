@@ -1,107 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:47035 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932123AbcARQSr (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:36524 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752416AbcAZAYl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 11:18:47 -0500
-Received: from epcpsbgm1new.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0O1500V0SPB5UN20@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:18:46 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 09/15] mediactl: libv4l2subdev: Add colorspace logging
-Date: Mon, 18 Jan 2016 17:17:34 +0100
-Message-id: <1453133860-21571-10-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
-References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+	Mon, 25 Jan 2016 19:24:41 -0500
+Subject: Re: [PATCH] media: platform: exynos4-is: media-dev: Add missing
+ of_node_put
+To: Amitoj Kaur Chawla <amitoj1606@gmail.com>,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	mchehab@osg.samsung.com, kgene@kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20160125152136.GA19484@amitoj-Inspiron-3542>
+Cc: julia.lawall@lip6.fr
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Message-id: <56A6BCC3.8040407@samsung.com>
+Date: Tue, 26 Jan 2016 09:24:35 +0900
+MIME-version: 1.0
+In-reply-to: <20160125152136.GA19484@amitoj-Inspiron-3542>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a function for obtaining colorspace name by id.
+On 26.01.2016 00:21, Amitoj Kaur Chawla wrote:
+> for_each_available_child_of_node and for_each_child_of_node perform an
+> of_node_get on each iteration, so to break out of the loop an of_node_put is
+> required.
+> 
+> Found using Coccinelle. The simplified version of the semantic patch
+> that is used for this is as follows:
+> 
+> // <smpl>
+> @@
+> local idexpression n;
+> expression e,r;
+> @@
+> 
+>  for_each_available_child_of_node(r,n) {
+>    ...
+> (
+>    of_node_put(n);
+> |
+>    e = n
+> |
+> +  of_node_put(n);
+> ?  break;
+> )
+>    ...
+>  }
+> ... when != n
+> // </smpl>
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- utils/media-ctl/libv4l2subdev.c |   32 ++++++++++++++++++++++++++++++++
- utils/media-ctl/v4l2subdev.h    |   10 ++++++++++
- 2 files changed, 42 insertions(+)
+Patch iselft looks correct but why are you pasting coccinelle script
+into the message?
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 5175188..b3d11ef 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -32,6 +32,7 @@
- #include <unistd.h>
- 
- #include <linux/v4l2-subdev.h>
-+#include <linux/videodev2.h>
- 
- #include "mediactl.h"
- #include "mediactl-priv.h"
-@@ -819,6 +820,37 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code)
- 	return "unknown";
- }
- 
-+static struct {
-+	const char *name;
-+	enum v4l2_colorspace cs;
-+} colorspaces[] = {
-+        { "DEFAULT", V4L2_COLORSPACE_DEFAULT },
-+        { "SMPTE170M", V4L2_COLORSPACE_SMPTE170M },
-+        { "SMPTE240M", V4L2_COLORSPACE_SMPTE240M },
-+        { "REC709", V4L2_COLORSPACE_REC709 },
-+        { "BT878", V4L2_COLORSPACE_BT878 },
-+        { "470_SYSTEM_M", V4L2_COLORSPACE_470_SYSTEM_M },
-+        { "470_SYSTEM_BG", V4L2_COLORSPACE_470_SYSTEM_BG },
-+        { "JPEG", V4L2_COLORSPACE_JPEG },
-+        { "SRGB", V4L2_COLORSPACE_SRGB },
-+        { "ADOBERGB", V4L2_COLORSPACE_ADOBERGB },
-+        { "BT2020", V4L2_COLORSPACE_BT2020 },
-+        { "RAW", V4L2_COLORSPACE_RAW },
-+        { "DCI_P3", V4L2_COLORSPACE_DCI_P3 },
-+};
-+
-+const char *v4l2_subdev_colorspace_to_string(enum v4l2_colorspace cs)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(colorspaces); ++i) {
-+		if (colorspaces[i].cs == cs)
-+			return colorspaces[i].name;
-+	}
-+
-+	return "unknown";
-+}
-+
- enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string,
- 							 unsigned int length)
- {
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index f395065..7d9e53a 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -289,6 +289,16 @@ int v4l2_subdev_parse_setup_formats(struct media_device *media, const char *p);
- const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
- 
- /**
-+ * @brief Convert colorspace to string.
-+ * @param code - input string
-+ *
-+ * Convert colorspace @a to a human-readable string.
-+ *
-+ * @return A pointer to a string on success, NULL on failure.
-+ */
-+const char *v4l2_subdev_colorspace_to_string(enum v4l2_colorspace cs);
-+
-+/**
-  * @brief Parse string to media bus pixel code.
-  * @param string - input string
-  * @param length - length of the string
--- 
-1.7.9.5
+The script is already present in Linux kernel:
+scripts/coccinelle/iterators/device_node_continue.cocci
+
+This just extends the commit message without any meaningful data so with
+removal of coccinelle script above:
+Reviewed-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+
+Best regards,
+Krzysztof
+
+> 
+> Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
+> ---
+>  drivers/media/platform/exynos4-is/media-dev.c | 12 +++++++++---
+>  1 file changed, 9 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+> index 4f5586a..09f6e54 100644
+> --- a/drivers/media/platform/exynos4-is/media-dev.c
+> +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> @@ -430,8 +430,10 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
+>  			continue;
+>  
+>  		ret = fimc_md_parse_port_node(fmd, port, index);
+> -		if (ret < 0)
+> +		if (ret < 0) {
+> +			of_node_put(node);
+>  			goto rpm_put;
+> +		}
+>  		index++;
+>  	}
+>  
+> @@ -442,8 +444,10 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
+>  
+>  	for_each_child_of_node(ports, node) {
+>  		ret = fimc_md_parse_port_node(fmd, node, index);
+> -		if (ret < 0)
+> +		if (ret < 0) {
+> +			of_node_put(node);
+>  			break;
+> +		}
+>  		index++;
+>  	}
+>  rpm_put:
+> @@ -651,8 +655,10 @@ static int fimc_md_register_platform_entities(struct fimc_md *fmd,
+>  			ret = fimc_md_register_platform_entity(fmd, pdev,
+>  							plat_entity);
+>  		put_device(&pdev->dev);
+> -		if (ret < 0)
+> +		if (ret < 0) {
+> +			of_node_put(node);
+>  			break;
+> +		}
+>  	}
+>  
+>  	return ret;
+> 
 
