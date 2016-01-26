@@ -1,158 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38209 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015AbcAFNsa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 08:48:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 10/10] [media] tvp5150: Configure data interface via pdata or DT
-Date: Wed, 06 Jan 2016 15:48 +0200
-Message-ID: <1895052.dqIgFQaCHk@avalon>
-In-Reply-To: <568CFA1E.6060309@osg.samsung.com>
-References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com> <1743151.ozK6T8LOF3@avalon> <568CFA1E.6060309@osg.samsung.com>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:36303 "EHLO
+	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965459AbcAZOED (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2016 09:04:03 -0500
+Received: by mail-lf0-f68.google.com with SMTP id t141so9626238lfd.3
+        for <linux-media@vger.kernel.org>; Tue, 26 Jan 2016 06:04:01 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <Pine.LNX.4.64.1601241931430.16570@axis700.grange>
+References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
+	<1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
+	<1453121545-27528-8-git-send-email-rainyfeeling@gmail.com>
+	<Pine.LNX.4.64.1601241931430.16570@axis700.grange>
+Date: Tue, 26 Jan 2016 22:04:00 +0800
+Message-ID: <CAJe_HAeTWqaqFHPbLGzbTKV6s2xDxf+Dg8DFc6HAqs03RJFh3g@mail.gmail.com>
+Subject: Re: [PATCH 12/13] atmel-isi: use union for the fbd (frame buffer descriptor)
+From: Josh Wu <rainyfeeling@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Songjun Wu <songjun.wu@atmel.com>, Josh Wu <josh.wu@atmel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+add all people in reply,
 
-On Wednesday 06 January 2016 08:27:26 Javier Martinez Canillas wrote:
-> On 01/06/2016 07:56 AM, Laurent Pinchart wrote:
-> > On Monday 04 January 2016 09:25:32 Javier Martinez Canillas wrote:
-> >> The video decoder supports either 8-bit 4:2:2 YUV with discrete syncs
-> >> or 8-bit ITU-R BT.656 with embedded syncs output format but currently
-> >> BT.656 it's always reported. Allow to configure the format to use via
-> >> either platform data or a device tree definition.
-> >> 
-> >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> >> ---
-> >> 
-> >>  drivers/media/i2c/tvp5150.c | 61 +++++++++++++++++++++++++++++++++++++--
-> >>  include/media/i2c/tvp5150.h |  5 ++++
-> >>  2 files changed, 64 insertions(+), 2 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> >> index fed89a811ab7..8bce45a6e264 100644
-> >> --- a/drivers/media/i2c/tvp5150.c
-> >> +++ b/drivers/media/i2c/tvp5150.c
+Hi, Guennadi
 
-[snip]
+Thanks for the review.
 
-> >> @@ -940,6 +948,16 @@ static int tvp5150_cropcap(struct v4l2_subdev *sd,
-> >> struct v4l2_cropcap *a)
-> >>  static int tvp5150_g_mbus_config(struct v4l2_subdev *sd,
-> >>  				 struct v4l2_mbus_config *cfg)
-> >>  {
-> >> +	struct tvp5150_platform_data *pdata = to_tvp5150(sd)->pdata;
-> >> +
-> >> +	if (pdata) {
-> >> +		cfg->type = pdata->bus_type;
-> >> +		cfg->flags = pdata->parallel_flags;
-> > 
-> > The clock and sync signals polarity don't seem configurable, shouldn't
-> > they just be hardcoded as currently done ?
-> 
-> That's a very good question, I added the flags because according to
-> Documentation/devicetree/bindings/media/video-interfaces.txt, the way
-> to define that the output format will be BT.656 is to avoid defining
-> {hsync,vsync,field-even}-active properties.
-> 
-> IOW, if parallel sync is used, then these properties have to be defined
-> and it felt strange to not use in the driver what is defined in the DT.
+2016-01-25 3:31 GMT+08:00 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> On Mon, 18 Jan 2016, Josh Wu wrote:
+>
+>> From: Josh Wu <josh.wu@atmel.com>
+>>
+>> This way, we can easy to add other type of fbd for new hardware.
+>
+> Ok, I've applied all your 13 patches to check, what the resulting driver
+> would look like. To me it looks like you really abstract away _everything_
+> remotely hardware-specific. What is left is yet another abstraction layer,
+> into which you can pack a wide range of hardware types, which are very
+> different from the original ISI. I mean, you could probably pack - to some
+> extent, maybe sacrificing some features - other existing soc-camera
+> drivers, like MX3, MX2, CEU,... - essentially those, using VB2. And I
+> don't think that's a good idea. We have a class of V4L2 camera bridge
+> drivers, that's fine. They use all the standard APIs to connect to the
+> user-space and to other V4L2 drivers in video pipelines - V4L2 ioctl()s,
+> subdev, Media Controller, VB2, V4L2 control API etc. Under that we have
+> soc-camera - mainly for a few existing bridge drivers, because it takes a
+> part of bridge driver's implementation freedom away and many or most
+> modern camera bridge interfaces are more complex, than what soc-camera
+> currently supports, and extending it makes little sense, it is just more
+> logical to create a full-features V4L2 bridge driver with a full access to
+> all relevant APIs.
 
-In that case we should restrict the values of the properties to what the 
-hardware actually supports. I would hardcode the flags here, and check them 
-when parsing the endpoint to make sure they're valid.
+It sounds the general v4l2 driver framework is more suitable than
+soc-camera framework for the new hardware.
+So is it easy for v4l2 platform driver to use the soc-camera sensors?
 
-If you find a register I have missed in the documentation with which 
-polarities could be configured then please also feel free to prove me wrong 
-:-)
+> With your patches #12 and #13 you seem to be creating
+> an even tighter, narrower API for very thin drivers. That just provide a
+> couple of hardware-related functions and create a V4L2 bridge driver from
+> that. What kind of hardware is that new controller, that you'd like to
+> support by the same driver? Wouldn't it be better to create a new driver
+> for it? Is it really similar to the ISI controller?
 
-> >> +		return 0;
-> >> +	}
-> >> +
-> >> +	/* Default values if no platform data was provided */
-> >>  	cfg->type = V4L2_MBUS_BT656;
-> >>  	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING
-> >>  		   | V4L2_MBUS_FIELD_EVEN_LOW | V4L2_MBUS_DATA_ACTIVE_HIGH;
+The new hardware is SAMA5D2 Image Sensor Controller. You can find the
+datasheet here:
+http://www.atmel.com/Images/Atmel-11267-32-bit-Cortex-A5-Microcontroller-SAMA5D2_Datasheet.pdf
 
-[snip]
+Actually, The ISC hardware is very different from ISI hardware. ISC
+has no Preivew/Codec path, it just has many data blocks to process
+sensor data.
+With the abstraction of my patches, ISC can rewrite the interrupt
+handler, initialization, configure and etc to work in same ISI driver,
+though. But like you mentioned, it's very tight, maybe it's not easy
+to add extend functions.
 
-> >> @@ -1228,11 +1253,42 @@ static inline int tvp5150_init(struct i2c_client
-> >> *c) return 0;
-> >> 
-> >>  }
-> >> 
-> >> +static struct tvp5150_platform_data *tvp5150_get_pdata(struct device
-> >> *dev)
-> >> +{
-> >> +	struct tvp5150_platform_data *pdata = dev_get_platdata(dev);
-> >> +	struct v4l2_of_endpoint bus_cfg;
-> >> +	struct device_node *ep;
-> >> +
-> >> +	if (pdata)
-> >> +		return pdata;
-> > 
-> > Nobody uses platform data today, I wonder whether we shouldn't postpone
-> > adding support for it until we have a use case. Embedded systems (at
-> > least the ARM- based ones) should use DT.
-> 
-> Yes, I just added it for completeness since in other subsystems I've been
-> yelled in the past that not all the world is DT and that I needed a pdata :)
-> 
-> But I'll gladly remove it since it means less code which is always good.
-> 
-> >> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
-> >> +		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> >> +		if (!pdata)
-> >> +			return NULL;
-> >> +
-> >> +		ep = of_graph_get_next_endpoint(dev->of_node, NULL);
-> >> +		if (!ep)
-> >> +			return NULL;
-> >> +
-> >> +		v4l2_of_parse_endpoint(ep, &bus_cfg);
-> > 
-> > Shouldn't you check the return value of the function ?
-> 
-> Right, the v4l2_of_parse_endpoint() kernel doc says "Return: 0." and most
-> drivers are not checking the return value so I thought that it couldn't
-> fail. But now looking at the implementation I see that's not true so I'll
-> add a check in v2.
-> 
-> I'll also post patches to update v4l2_of_parse_endpoint() kernel-doc and
-> the drivers that are not currently checking for this return value.
+So I was convinced to write a new v4l2 camera driver for ISC if it is
+easy to support soc-camera sensors.
 
-Thank you for that.
+>
+> Thanks
+> Guennadi
 
-> >> +
-> >> +		pdata->bus_type = bus_cfg.bus_type;
-> >> +		pdata->parallel_flags = bus_cfg.bus.parallel.flags;
-> > 
-> > The V4L2_MBUS_DATA_ACTIVE_HIGH flags set returned by
-> > tvp5150_g_mbus_config() when pdata is NULL is never set by
-> > v4l2_of_parse_endpoint(), should you add it unconditionally ?
-> 
-> But v4l2_of_parse_endpoint() calls v4l2_of_parse_parallel_bus() which does
-> it or did I read the code incorrectly?
+Best Regards,
+Josh Wu
 
-No, you're right, I had overlooked the V4L2_MBUS_DATA_ACTIVE_HIGH flag when 
-reading v4l2_of_parse_parallel_bus(), probably a typo when searching. Please 
-ignore that comment.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+>
+>>
+>> Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
+>> ---
+>>
+>>  drivers/media/platform/soc_camera/atmel-isi.c | 33 ++++++++++++++++++---------
+>>  1 file changed, 22 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>> index 7d2e952..b4c1f38 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -37,7 +37,7 @@
+>>  #define FRAME_INTERVAL_MILLI_SEC     (1000 / MIN_FRAME_RATE)
+>>
+>>  /* Frame buffer descriptor */
+>> -struct fbd {
+>> +struct fbd_isi_v2 {
+>>       /* Physical address of the frame buffer */
+>>       u32 fb_address;
+>>       /* DMA Control Register(only in HISI2) */
+>> @@ -46,9 +46,13 @@ struct fbd {
+>>       u32 next_fbd_address;
+>>  };
+>>
+>> +union fbd {
+>> +     struct fbd_isi_v2 fbd_isi;
+>> +};
+>> +
+>>  struct isi_dma_desc {
+>>       struct list_head list;
+>> -     struct fbd *p_fbd;
+>> +     union fbd *p_fbd;
+>>       dma_addr_t fbd_phys;
+>>  };
+>>
+>> @@ -69,7 +73,7 @@ struct atmel_isi {
+>>       struct vb2_alloc_ctx            *alloc_ctx;
+>>
+>>       /* Allocate descriptors for dma buffer use */
+>> -     struct fbd                      *p_fb_descriptors;
+>> +     union fbd                       *p_fb_descriptors;
+>>       dma_addr_t                      fb_descriptors_phys;
+>>       struct                          list_head dma_desc_head;
+>>       struct isi_dma_desc             dma_desc[MAX_BUFFER_NUM];
+>> @@ -396,6 +400,16 @@ static int buffer_init(struct vb2_buffer *vb)
+>>       return 0;
+>>  }
+>>
+>> +static void isi_hw_init_dma_desc(union fbd *p_fdb, u32 fb_addr,
+>> +                              u32 next_fbd_addr)
+>> +{
+>> +     struct fbd_isi_v2 *p = &(p_fdb->fbd_isi);
+>
+> Superfluous parentheses
+>
+>> +
+>> +     p->fb_address = fb_addr;
+>> +     p->next_fbd_address = next_fbd_addr;
+>> +     p->dma_ctrl = ISI_DMA_CTRL_WB;
+>> +}
+>> +
+>>  static int buffer_prepare(struct vb2_buffer *vb)
+>>  {
+>>       struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+>> @@ -428,10 +442,7 @@ static int buffer_prepare(struct vb2_buffer *vb)
+>>                       list_del_init(&desc->list);
+>>
+>>                       /* Initialize the dma descriptor */
+>> -                     desc->p_fbd->fb_address =
+>> -                                     vb2_dma_contig_plane_dma_addr(vb, 0);
+>> -                     desc->p_fbd->next_fbd_address = 0;
+>> -                     desc->p_fbd->dma_ctrl = ISI_DMA_CTRL_WB;
+>> +                     isi_hw_init_dma_desc(desc->p_fbd, vb2_dma_contig_plane_dma_addr(vb, 0), 0);
+>>
+>>                       buf->p_dma_desc = desc;
+>>               }
+>> @@ -923,7 +934,7 @@ static int atmel_isi_remove(struct platform_device *pdev)
+>>       soc_camera_host_unregister(soc_host);
+>>       vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
+>>       dma_free_coherent(&pdev->dev,
+>> -                     sizeof(struct fbd) * MAX_BUFFER_NUM,
+>> +                     sizeof(union fbd) * MAX_BUFFER_NUM,
+>>                       isi->p_fb_descriptors,
+>>                       isi->fb_descriptors_phys);
+>>       pm_runtime_disable(&pdev->dev);
+>> @@ -1010,7 +1021,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+>>       INIT_LIST_HEAD(&isi->dma_desc_head);
+>>
+>>       isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+>> -                             sizeof(struct fbd) * MAX_BUFFER_NUM,
+>> +                             sizeof(union fbd) * MAX_BUFFER_NUM,
+>>                               &isi->fb_descriptors_phys,
+>>                               GFP_KERNEL);
+>>       if (!isi->p_fb_descriptors) {
+>> @@ -1021,7 +1032,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+>>       for (i = 0; i < MAX_BUFFER_NUM; i++) {
+>>               isi->dma_desc[i].p_fbd = isi->p_fb_descriptors + i;
+>>               isi->dma_desc[i].fbd_phys = isi->fb_descriptors_phys +
+>> -                                     i * sizeof(struct fbd);
+>> +                                     i * sizeof(union fbd);
+>>               list_add(&isi->dma_desc[i].list, &isi->dma_desc_head);
+>>       }
+>>
+>> @@ -1080,7 +1091,7 @@ err_ioremap:
+>>       vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
+>>  err_alloc_ctx:
+>>       dma_free_coherent(&pdev->dev,
+>> -                     sizeof(struct fbd) * MAX_BUFFER_NUM,
+>> +                     sizeof(union fbd) * MAX_BUFFER_NUM,
+>>                       isi->p_fb_descriptors,
+>>                       isi->fb_descriptors_phys);
+>>
+>> --
+>> 1.9.1
+>>
