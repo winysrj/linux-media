@@ -1,81 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:40737 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934252AbcA1I3c convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:36683 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751275AbcAZAl6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 03:29:32 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 0/12] TW686x driver
-Date: Thu, 28 Jan 2016 09:29:29 +0100
-Message-ID: <m337tif6om.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 25 Jan 2016 19:41:58 -0500
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [RFT 1/2] [media] exynos4-is: Add missing endpoint of_node_put on
+ error paths
+Date: Tue, 26 Jan 2016 09:41:45 +0900
+Message-id: <1453768906-28979-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+In fimc_md_parse_port_node() endpoint node is get with of_get_next_child()
+but it is not put on error path.
 
-I'm posting a driver for TW686[4589]-based PCIe cards. The first patch
-has been posted and reviewed by Ezequiel back in July 2015, the
-subsequent patches are changes made in response to the review and/or are
-required by the more recent kernel versions.
+Fixes: 56fa1a6a6a7d ("[media] s5p-fimc: Change the driver directory name to exynos4-is")
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 
-This driver lacks CMA-based frame mode DMA operation, I'll add it a bit
-later. Also:
-- I haven't converted the kthread to a workqueue - the driver is
-  modeled after other code and it can be done later, if needed
-- I have skipped suggested PCI ID changes and the 704 vs 720 pixels/line
-  question - this may need further consideration.
+---
 
-Please merge.
+Not tested on hardware, only built+static checkers.
+---
+ drivers/media/platform/exynos4-is/media-dev.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-The following changes since Linux 4.4 are available in the git
-repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/chris/linux.git techwell-4.4
-
-for you to fetch changes up to 8e495778acd4602c472cefa460a1afb41c4b8f25:
-
-  [MEDIA] TW686x: return VB2_BUF_STATE_ERROR frames on timeout/errors (2016-01-27 14:47:41 +0100)
-
-----------------------------------------------------------------
-Krzysztof Hałasa (12):
-      [MEDIA] Add support for TW686[4589]-based frame grabbers
-      [MEDIA] TW686x: Trivial changes suggested by Ezequiel Garcia
-      [MEDIA] TW686x: Switch to devm_*()
-      [MEDIA] TW686x: Fix s_std() / g_std() / g_parm() pointer to self
-      [MEDIA] TW686x: Fix handling of TV standard values
-      [MEDIA] TW686x: Fix try_fmt() color space
-      [MEDIA] TW686x: Add enum_input() / g_input() / s_input()
-      [MEDIA] TW686x: do not use pci_dma_supported()
-      [MEDIA] TW686x: switch to vb2_v4l2_buffer
-      [MEDIA] TW686x: handle non-NULL format in queue_setup()
-      [MEDIA] TW686x: Track frame sequence numbers
-      [MEDIA] TW686x: return VB2_BUF_STATE_ERROR frames on timeout/errors
-
- drivers/media/pci/Kconfig               |   1 +
- drivers/media/pci/Makefile              |   1 +
- drivers/media/pci/tw686x/Kconfig        |  16 ++
- drivers/media/pci/tw686x/Makefile       |   3 +
- drivers/media/pci/tw686x/tw686x-core.c  | 140 +++++++++++++
- drivers/media/pci/tw686x/tw686x-regs.h  | 103 +++++++++
- drivers/media/pci/tw686x/tw686x-video.c | 815 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/pci/tw686x/tw686x.h       | 118 +++++++++++
- 8 files changed, 1197 insertions(+)
- create mode 100644 drivers/media/pci/tw686x/Kconfig
- create mode 100644 drivers/media/pci/tw686x/Makefile
- create mode 100644 drivers/media/pci/tw686x/tw686x-core.c
- create mode 100644 drivers/media/pci/tw686x/tw686x-regs.h
- create mode 100644 drivers/media/pci/tw686x/tw686x-video.c
- create mode 100644 drivers/media/pci/tw686x/tw686x.h
-
-Thanks.
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index f3b2dd30ec77..de0977479327 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -339,8 +339,10 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 		return 0;
+ 
+ 	v4l2_of_parse_endpoint(ep, &endpoint);
+-	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
++	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS) {
++		of_node_put(ep);
+ 		return -EINVAL;
++	}
+ 
+ 	pd->mux_id = (endpoint.base.port - 1) & 0x1;
+ 
 -- 
-Krzysztof Halasa
+1.9.1
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
