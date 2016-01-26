@@ -1,99 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40465 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932762AbcA1HoC (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.134]:54684 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932190AbcAZPyV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 02:44:02 -0500
-Subject: Re: [PATCH] media: Support Intersil/Techwell TW686x-based video
- capture cards
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-References: <1451183213-2733-1-git-send-email-ezequiel@vanguardiasur.com.ar>
- <569CE27F.6090702@xs4all.nl>
- <CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
- <m31t96j8u4.fsf@t19.piap.pl>
- <CAAEAJfBM_vVBVRd3P0kJ1QLzk-M==L=x6CS0ggXgRX=7K_aK_A@mail.gmail.com>
- <m3si1kioa9.fsf@t19.piap.pl>
- <CAAEAJfC_Sa_6opADoz0Ab8NrmhX+cjNmSK_Nw_Ne9nk-ROaj0Q@mail.gmail.com>
- <m3io2gfksk.fsf@t19.piap.pl>
- <CAAEAJfDb84ZbRkq9GVOmeWp=vpn_GBX9Fx0w+aGnZ9n29PsR8A@mail.gmail.com>
- <m3a8nqf9mk.fsf@t19.piap.pl>
-Cc: linux-media <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56A9C6BC.6040208@xs4all.nl>
-Date: Thu, 28 Jan 2016 08:43:56 +0100
+	Tue, 26 Jan 2016 10:54:21 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 6/7] [media] em28xx: add MEDIA_TUNER dependency
+Date: Tue, 26 Jan 2016 16:53:38 +0100
+Message-ID: <6929423.KuNZKsBgHV@wuerfel>
+In-Reply-To: <20160126123308.6d59d373@recife.lan>
+References: <1453817424-3080054-1-git-send-email-arnd@arndb.de> <1453817424-3080054-6-git-send-email-arnd@arndb.de> <20160126123308.6d59d373@recife.lan>
 MIME-Version: 1.0
-In-Reply-To: <m3a8nqf9mk.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/28/2016 08:25 AM, Krzysztof Hałasa wrote:
-> Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
+On Tuesday 26 January 2016 12:33:08 Mauro Carvalho Chehab wrote:
+> Em Tue, 26 Jan 2016 15:10:00 +0100
+> Arnd Bergmann <arnd@arndb.de> escreveu:
 > 
->> Since your driver is not merged, there's no real benefit in my sending
->> me patches against it.
+> > em28xx selects VIDEO_TUNER, which has a dependency on MEDIA_TUNER,
+> > so we get a Kconfig warning if that is disabled:
+> > 
+> > warning: (VIDEO_PVRUSB2 && VIDEO_USBVISION && VIDEO_GO7007 && VIDEO_AU0828_V4L2 && VIDEO_CX231XX && VIDEO_TM6000 && VIDEO_EM28XX && VIDEO_IVTV && VIDEO_MXB && VIDEO_CX18 && VIDEO_CX23885 && VIDEO_CX88 && VIDEO_BT848 && VIDEO_SAA7134 && VIDEO_SAA7164) selects VIDEO_TUNER which has unmet direct dependencies (MEDIA_SUPPORT && MEDIA_TUNER)
 > 
-> And it's not merged because you stated that you have produced
-> a rewritten driver, using my driver just as a reference, and I was naive
-> enough to believe it and let it go.
+> This warning is bogus, as it is OK to select VIDEO_TUNER even if MEDIA_TUNER
+> is not defined.
 > 
->> Since I just submitted a v2 driver that seems to be ready to be
->> merged, how about I just add DMA s-g support so you get all the
->> functionality you need?
->>
->> This option sounds much easier than you going through all the pain of
->> cleaning up your driver.
-> 
-> Do I really have to answer such questions?
-> 
-> One can't simply take someone's code, replace the MODULE_AUTHOR,
-> twist a bit to suit his needs, and send it as his own.
-
-As long as copyright notices are retained (and that also includes a
-MODULE_AUTHOR: Ezequiel, if you removed that than you should put it
-back and add a second MODULE_AUTHOR with your name), then you are free
-to do so if the code is licensed under a GPL.
-
-> In my country, it wouldn't be even legal.
-
-It's legal for the GPL license since that gives explicit permission.
-
+> See how MEDIA_TUNER is defined:
 > 
 > 
+> config MEDIA_TUNER
+> 	tristate
+> 	depends on (MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT) && I2C
+> 	default y
+> 	select MEDIA_TUNER_XC2028 if MEDIA_SUBDRV_AUTOSELECT
+> 	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
+> 	select MEDIA_TUNER_XC4000 if MEDIA_SUBDRV_AUTOSELECT
+> 	select MEDIA_TUNER_MT20XX if MEDIA_SUBDRV_AUTOSELECT
+> 	select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
+> 	select MEDIA_TUNER_TEA5761 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
+> 	select MEDIA_TUNER_TEA5767 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
+> 	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
+> 	select MEDIA_TUNER_TDA9887 if MEDIA_SUBDRV_AUTOSELECT
+> 	select MEDIA_TUNER_MC44S803 if MEDIA_SUBDRV_AUTOSELECT
 > 
-> I have at least one similar situation here. I'm using frame grabber
-> drivers for an I.MX6 processor on-chip feature. The problem is, the
-> author hasn't yet managed (for years now) to have this functionality
-> merged into the official tree. Obviously, I'm putting some considerable
-> work in it. Does this mean I'm free to grab it as my own and request
-> that it is to be merged instead? No, I have to wait until the original
-> work is merged, and only then I can ask for my patches to be applied
-> (in the form of changes, not a raw driver code).
+> MEDIA_TUNER is just one of the media Kconfig workarounds to its limitation of
+> not allowing to select a device that has dependencies. It is true if the user
+> selected either TV or radio media devices. It works together with 
+> MEDIA_SUBDRV_AUTOSELECT. When both are enabled, it selects all
+> media tuners. That makes easier for end users to not need to worry about
+> manually selecting the needed tuners.
+> 
+> Advanced users may, instead, manually select the media tuner that his
+> hardware needs. In such case, it doesn't matter if MEDIA_TUNER
+> is enabled or not.
+> 
+> As this is due to a Kconfig limitation, I've no idea how to fix or get
+> hid of it, but making em28xx dependent of MEDIA_TUNER is wrong.
 
-Wrong. As long as the original code is distributed as GPL you can
-certainly take it, fix it and ask for it to be merged.
+I don't understand what limitation you see here. The definition
+of the VIDEO_TUNER symbol is an empty 'tristate' symbol with a
+dependency on MEDIA_TUNER to ensure we get a warning if MEDIA_TUNER
+is not enabled, and to ensure it is set to 'm' if MEDIA_TUNER=m and
+a "bool" driver selects VIDEO_TUNER.
 
-This happens all the time if the original author has left the scene, or has
-no time or interest to follow-up on his patches.
+You are saying that the first one is not correct, so I assume we
+still need the second meaning. We could probably do that like the
+patch below (untested) that makes the intention much more explicit.
 
->From the point of view as a reviewer and all things being equal the first
-who comes up with a decent driver that passes the quality tests will get
-merged.
+	Arnd
 
-In this particular case I've asked Ezequiel to put back the functionality
-that he removed, since I thought that was a reasonable compromise (i.e.
-you're both unhappy, so that's only half the misery for each :-) ).
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index 9beece00869b..1050bdf1848f 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -37,7 +37,11 @@ config VIDEO_PCI_SKELETON
+ # Used by drivers that need tuner.ko
+ config VIDEO_TUNER
+ 	tristate
+-	depends on MEDIA_TUNER
++
++config VIDEO_TUNER_MODULE
++	tristate # must not be built-in if MEDIA_TUNER=m because of I2C
++	default y if VIDEO_TUNER=y || MEDIA_TUNER=y
++	default m if VIDEO_TUNER=m
+ 
+ # Used by drivers that need v4l2-mem2mem.ko
+ config V4L2_MEM2MEM_DEV
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index 1dc8bba2b198..971af6398d6d 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -21,7 +21,7 @@ obj-$(CONFIG_VIDEO_V4L2) += videodev.o
+ obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
+ obj-$(CONFIG_VIDEO_V4L2) += v4l2-dv-timings.o
+ 
+-obj-$(CONFIG_VIDEO_TUNER) += tuner.o
++obj-$(CONFIG_VIDEO_TUNER_MODULE) += tuner.o
+ 
+ obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
+ 
 
-For future reference: if someone posts code to a kernel mailinglist and does
-not fix any comments made on the code in, let's say, 1-2 months, then
-someone else might just step in. Once posted you lose control over your
-code (they are kernel drivers, so always GPL). Normally nobody wants to
-take over the code unless no visible progress is made for a few months.
-
-Anyway, what's done is done.
-
-Regards,
-
-	Hans
