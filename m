@@ -1,116 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38010 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752094AbcAFKF2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 05:05:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.5] Renesas VSP1 improvements and fixes
-Date: Wed, 06 Jan 2016 12:05:34 +0200
-Message-ID: <7908253.mS4kyImJeJ@avalon>
-In-Reply-To: <3880424.K6feHa190s@avalon>
-References: <3880424.K6feHa190s@avalon>
+Received: from lists.s-osg.org ([54.187.51.154]:51408 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966647AbcAZQgw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2016 11:36:52 -0500
+Date: Tue, 26 Jan 2016 14:36:44 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 6/7] [media] em28xx: add MEDIA_TUNER dependency
+Message-ID: <20160126143644.1d104040@recife.lan>
+In-Reply-To: <6929423.KuNZKsBgHV@wuerfel>
+References: <1453817424-3080054-1-git-send-email-arnd@arndb.de>
+	<1453817424-3080054-6-git-send-email-arnd@arndb.de>
+	<20160126123308.6d59d373@recife.lan>
+	<6929423.KuNZKsBgHV@wuerfel>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Tue, 26 Jan 2016 16:53:38 +0100
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-I think this one slipped through the cracks, or possibly got buried under the 
-winter holidays snowstorm :-) Could you tell me what your plans are ?
+> On Tuesday 26 January 2016 12:33:08 Mauro Carvalho Chehab wrote:
+> > Em Tue, 26 Jan 2016 15:10:00 +0100
+> > Arnd Bergmann <arnd@arndb.de> escreveu:
+> >   
+> > > em28xx selects VIDEO_TUNER, which has a dependency on MEDIA_TUNER,
+> > > so we get a Kconfig warning if that is disabled:
+> > > 
+> > > warning: (VIDEO_PVRUSB2 && VIDEO_USBVISION && VIDEO_GO7007 && VIDEO_AU0828_V4L2 && VIDEO_CX231XX && VIDEO_TM6000 && VIDEO_EM28XX && VIDEO_IVTV && VIDEO_MXB && VIDEO_CX18 && VIDEO_CX23885 && VIDEO_CX88 && VIDEO_BT848 && VIDEO_SAA7134 && VIDEO_SAA7164) selects VIDEO_TUNER which has unmet direct dependencies (MEDIA_SUPPORT && MEDIA_TUNER)  
+> > 
+> > This warning is bogus, as it is OK to select VIDEO_TUNER even if MEDIA_TUNER
+> > is not defined.
+> > 
+> > See how MEDIA_TUNER is defined:
+> > 
+> > 
+> > config MEDIA_TUNER
+> > 	tristate
+> > 	depends on (MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT || MEDIA_SDR_SUPPORT) && I2C
+> > 	default y
+> > 	select MEDIA_TUNER_XC2028 if MEDIA_SUBDRV_AUTOSELECT
+> > 	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
+> > 	select MEDIA_TUNER_XC4000 if MEDIA_SUBDRV_AUTOSELECT
+> > 	select MEDIA_TUNER_MT20XX if MEDIA_SUBDRV_AUTOSELECT
+> > 	select MEDIA_TUNER_TDA8290 if MEDIA_SUBDRV_AUTOSELECT
+> > 	select MEDIA_TUNER_TEA5761 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
+> > 	select MEDIA_TUNER_TEA5767 if MEDIA_SUBDRV_AUTOSELECT && MEDIA_RADIO_SUPPORT
+> > 	select MEDIA_TUNER_SIMPLE if MEDIA_SUBDRV_AUTOSELECT
+> > 	select MEDIA_TUNER_TDA9887 if MEDIA_SUBDRV_AUTOSELECT
+> > 	select MEDIA_TUNER_MC44S803 if MEDIA_SUBDRV_AUTOSELECT
+> > 
+> > MEDIA_TUNER is just one of the media Kconfig workarounds to its limitation of
+> > not allowing to select a device that has dependencies. It is true if the user
+> > selected either TV or radio media devices. It works together with 
+> > MEDIA_SUBDRV_AUTOSELECT. When both are enabled, it selects all
+> > media tuners. That makes easier for end users to not need to worry about
+> > manually selecting the needed tuners.
+> > 
+> > Advanced users may, instead, manually select the media tuner that his
+> > hardware needs. In such case, it doesn't matter if MEDIA_TUNER
+> > is enabled or not.
+> > 
+> > As this is due to a Kconfig limitation, I've no idea how to fix or get
+> > hid of it, but making em28xx dependent of MEDIA_TUNER is wrong.  
+> 
+> I don't understand what limitation you see here. 
 
-On Wednesday 16 December 2015 10:41:16 Laurent Pinchart wrote:
-> Hi Mauro,
-> 
-> The following changes since commit 52d60eb7e6d6429a766ea1b8f67e01c3b2dcd3c5:
-> 
->   Revert "[media] UVC: Add support for ds4 depth camera" (2015-12-12
-> 08:10:40 -0200)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/pinchartl/media.git vsp1/next
-> 
-> for you to fetch changes up to 41db244b5b484f3f2afc1834552d6771f05c2ebe:
-> 
->   v4l: vsp1: Add display list support (2015-12-16 10:37:47 +0200)
-> 
-> ----------------------------------------------------------------
-> Laurent Pinchart (31):
->       v4l: vsp1: Change the type of the rwpf field in struct vsp1_video
->       v4l: vsp1: Store the memory format in struct vsp1_rwpf
->       v4l: vsp1: Move video operations to vsp1_rwpf
->       v4l: vsp1: Rename vsp1_video_buffer to vsp1_vb2_buffer
->       v4l: vsp1: Move video device out of struct vsp1_rwpf
->       v4l: vsp1: Make rwpf operations independent of video device
->       v4l: vsp1: Support VSP1 instances without any UDS
->       v4l: vsp1: Move vsp1_video pointer from vsp1_entity to vsp1_rwpf
->       v4l: vsp1: Remove struct vsp1_pipeline num_video field
->       v4l: vsp1: Decouple pipeline end of frame processing from vsp1_video
->       v4l: vsp1: Split pipeline management code from vsp1_video.c
->       v4l: vsp1: Rename video pipeline functions to use vsp1_video prefix
->       v4l: vsp1: Extract pipeline initialization code into a function
->       v4l: vsp1: Reuse local variable instead of recomputing it
->       v4l: vsp1: Extract link creation to separate function
->       v4l: vsp1: Document the vsp1_pipeline structure
->       v4l: vsp1: Fix typo in VI6_DISP_IRQ_STA_DST register bit name
->       v4l: vsp1: Set the SRU CTRL0 register when starting the stream
->       v4l: vsp1: Remove unused module read functions
->       v4l: vsp1: Move entity route setup function to vsp1_entity.c
->       v4l: vsp1: Make number of BRU inputs configurable
->       v4l: vsp1: Make the BRU optional
->       v4l: vsp1: Move format info to vsp1_pipe.c
->       v4l: vsp1: Make the userspace API optional
->       v4l: vsp1: Make pipeline inputs array index by RPF index
->       v4l: vsp1: Set the alpha value manually in RPF and WPF s_stream
-> handlers v4l: vsp1: Don't validate links when the userspace API is disabled
-> v4l: vsp1: Add VSP+DU support
->       v4l: vsp1: Disconnect unused RPFs from the DRM pipeline
->       v4l: vsp1: Implement atomic update for the DRM driver
->       v4l: vsp1: Add support for the R-Car Gen3 VSP2
-> 
-> Takashi Saito (1):
->       v4l: vsp1: Add display list support
-> 
->  .../devicetree/bindings/media/renesas,vsp1.txt          |  21 +-
->  drivers/media/platform/vsp1/Makefile                    |   3 +-
->  drivers/media/platform/vsp1/vsp1.h                      |  24 +
->  drivers/media/platform/vsp1/vsp1_bru.c                  |  33 +-
->  drivers/media/platform/vsp1/vsp1_bru.h                  |   3 +-
->  drivers/media/platform/vsp1/vsp1_dl.c                   | 304 ++++++++++++
->  drivers/media/platform/vsp1/vsp1_dl.h                   |  42 ++
->  drivers/media/platform/vsp1/vsp1_drm.c                  | 597 +++++++++++++
->  drivers/media/platform/vsp1/vsp1_drm.h                  |  38 ++
->  drivers/media/platform/vsp1/vsp1_drv.c                  | 254 ++++++++--
->  drivers/media/platform/vsp1/vsp1_entity.c               |  31 +-
->  drivers/media/platform/vsp1/vsp1_entity.h               |  14 +-
->  drivers/media/platform/vsp1/vsp1_hsit.c                 |   2 +-
->  drivers/media/platform/vsp1/vsp1_lif.c                  |  11 +-
->  drivers/media/platform/vsp1/vsp1_lut.c                  |   7 +-
->  drivers/media/platform/vsp1/vsp1_pipe.c                 | 405 +++++++++++++
->  drivers/media/platform/vsp1/vsp1_pipe.h                 | 134 ++++++
->  drivers/media/platform/vsp1/vsp1_regs.h                 |  32 +-
->  drivers/media/platform/vsp1/vsp1_rpf.c                  |  77 ++-
->  drivers/media/platform/vsp1/vsp1_rwpf.h                 |  24 +-
->  drivers/media/platform/vsp1/vsp1_sru.c                  |   9 +-
->  drivers/media/platform/vsp1/vsp1_uds.c                  |   8 +-
->  drivers/media/platform/vsp1/vsp1_video.c                | 516 ++----------
->  drivers/media/platform/vsp1/vsp1_video.h                | 111 +----
->  drivers/media/platform/vsp1/vsp1_wpf.c                  |  88 ++--
->  include/media/vsp1.h                                    |  33 ++
->  26 files changed, 2071 insertions(+), 750 deletions(-)
->  create mode 100644 drivers/media/platform/vsp1/vsp1_dl.c
->  create mode 100644 drivers/media/platform/vsp1/vsp1_dl.h
->  create mode 100644 drivers/media/platform/vsp1/vsp1_drm.c
->  create mode 100644 drivers/media/platform/vsp1/vsp1_drm.h
->  create mode 100644 drivers/media/platform/vsp1/vsp1_pipe.c
->  create mode 100644 drivers/media/platform/vsp1/vsp1_pipe.h
+Before MEDIA_TUNER, what we had was something like:
 
--- 
+	config MEDIA_driver_foo
+	select VIDEO_tuner_bar if MEDIA_SUBDRV_AUTOSELECT
+	select MEDIA_frontend_foobar if MEDIA_SUBDRV_AUTOSELECT
+	...
+
+However, as different I2C drivers had different dependencies, this
+used to cause lots of troubles. So, one of the Kbuild maintainers
+came out with the idea of converting from select into depends on.
+The MEDIA_TUNER is just an ancillary invisible option to make it
+work at the tuner's side, as usually what we want is to have all
+tuners selected, as we don't have a one to one mapping about what
+driver supports what tuner (nor we wanted to do it, as this would
+mean lots of work for not much gain).
+
+> The definition
+> of the VIDEO_TUNER symbol is an empty 'tristate' symbol with a
+> dependency on MEDIA_TUNER to ensure we get a warning if MEDIA_TUNER
+> is not enabled, and to ensure it is set to 'm' if MEDIA_TUNER=m and
+> a "bool" driver selects VIDEO_TUNER.
+
+No, VIDEO_TUNER is there because we wanted to be able to use select
+to enable V4L2 tuner core support and let people to manually select
+the needed I2C devices with MEDIA_SUBDRV_AUTOSELECT unselected.
+
+> 
+> You are saying that the first one is not correct, so I assume we
+> still need the second meaning. We could probably do that like the
+> patch below (untested) that makes the intention much more explicit.
+> 
+> 	Arnd
+> 
+> diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+> index 9beece00869b..1050bdf1848f 100644
+> --- a/drivers/media/v4l2-core/Kconfig
+> +++ b/drivers/media/v4l2-core/Kconfig
+> @@ -37,7 +37,11 @@ config VIDEO_PCI_SKELETON
+>  # Used by drivers that need tuner.ko
+>  config VIDEO_TUNER
+>  	tristate
+> -	depends on MEDIA_TUNER
+> +
+> +config VIDEO_TUNER_MODULE
+> +	tristate # must not be built-in if MEDIA_TUNER=m because of I2C
+> +	default y if VIDEO_TUNER=y || MEDIA_TUNER=y
+> +	default m if VIDEO_TUNER=m
+
+Doesn't need to worry about that, because all drivers that select VIDEO_TUNER
+depend on I2C:
+
+drivers/media/pci/bt8xx/Kconfig:        select VIDEO_TUNER
+drivers/media/pci/cx18/Kconfig: select VIDEO_TUNER
+drivers/media/pci/cx23885/Kconfig:      select VIDEO_TUNER
+drivers/media/pci/cx88/Kconfig: select VIDEO_TUNER
+drivers/media/pci/ivtv/Kconfig: select VIDEO_TUNER
+drivers/media/pci/saa7134/Kconfig:      select VIDEO_TUNER
+drivers/media/pci/saa7146/Kconfig:      select VIDEO_TUNER
+drivers/media/pci/saa7164/Kconfig:      select VIDEO_TUNER
+drivers/media/usb/au0828/Kconfig:       select VIDEO_TUNER
+drivers/media/usb/cx231xx/Kconfig:      select VIDEO_TUNER
+drivers/media/usb/em28xx/Kconfig:       select VIDEO_TUNER
+drivers/media/usb/go7007/Kconfig:       select VIDEO_TUNER
+drivers/media/usb/pvrusb2/Kconfig:      select VIDEO_TUNER
+drivers/media/usb/tm6000/Kconfig:       select VIDEO_TUNER
+drivers/media/usb/usbvision/Kconfig:    select VIDEO_TUNER
+
+This will always be the case for PCI/USB drivers that support analog TV,
+as those drivers need to implement the I2C adapter code inside them.
+
+>  
+>  # Used by drivers that need v4l2-mem2mem.ko
+>  config V4L2_MEM2MEM_DEV
+> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+> index 1dc8bba2b198..971af6398d6d 100644
+> --- a/drivers/media/v4l2-core/Makefile
+> +++ b/drivers/media/v4l2-core/Makefile
+> @@ -21,7 +21,7 @@ obj-$(CONFIG_VIDEO_V4L2) += videodev.o
+>  obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
+>  obj-$(CONFIG_VIDEO_V4L2) += v4l2-dv-timings.o
+>  
+> -obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+> +obj-$(CONFIG_VIDEO_TUNER_MODULE) += tuner.o
+>  
+>  obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
+
+Yes, the above could work. This is simpler fix, and should work fine for
+all current usecases:
+
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index 9beece00869b..b30e1c879a57 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -37,7 +37,7 @@ config VIDEO_PCI_SKELETON
+ # Used by drivers that need tuner.ko
+ config VIDEO_TUNER
+ 	tristate
+-	depends on MEDIA_TUNER
++	default MEDIA_TUNER
+ 
+ # Used by drivers that need v4l2-mem2mem.ko
+ config V4L2_MEM2MEM_DEV
+
+
+Ok, if we'll have platform drivers for analog TV using the I2C bus
+at directly in SoC, then your solution is better, but the tuner core
+driver may not be the best way of doing it. So, for now, I would use
+the simpler version.
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
