@@ -1,99 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-04v.sys.comcast.net ([96.114.154.163]:42192 "EHLO
-	resqmta-po-04v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752018AbcAFU13 (ORCPT
+Received: from lucky1.263xmail.com ([211.157.147.131]:55231 "EHLO
+	lucky1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007AbcAZJbE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 15:27:29 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH 01/31] uapi/media.h: Declare interface types for ALSA
-Date: Wed,  6 Jan 2016 13:26:50 -0700
-Message-Id: <b1d228cdcc9246f7bfe28877e9f6bff174e94993.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	Tue, 26 Jan 2016 04:31:04 -0500
+Subject: Re: [PATCH v1 0/3] Add VP8 deocder for rk3229 & rk3288
+To: Jung Zhao <jung.zhao@rock-chips.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	mchehab@osg.samsung.com, heiko@sntech.de
+References: <1453799046-307-1-git-send-email-jung.zhao@rock-chips.com>
+Cc: shawn.lin@rock-chips.com,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Benoit Parrot <bparrot@ti.com>,
+	linux-rockchip@lists.infradead.org, Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	alpha.lin@rock-chips.com, Philipp Zabel <p.zabel@pengutronix.de>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	herman.chen@rock-chips.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+From: Shawn Lin <shawn.lin@rock-chips.com>
+Message-ID: <56A73CB9.2040802@rock-chips.com>
+Date: Tue, 26 Jan 2016 17:30:33 +0800
+MIME-Version: 1.0
+In-Reply-To: <1453799046-307-1-git-send-email-jung.zhao@rock-chips.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hi jun,
 
-Declare the interface types to be used on alsa for the new
-G_TOPOLOGY ioctl.
+Where is the dt-bingding documentation about your VP8 controller?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/media-entity.c | 12 ++++++++++++
- include/uapi/linux/media.h   |  8 ++++++++
- 2 files changed, 20 insertions(+)
+And would you please share some info about rk3229? I can just find
+rk3228 in mainline, otherwise may someone think it's a misspell.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index eb38bc3..6e02d19 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -65,6 +65,18 @@ static inline const char *intf_type(struct media_interface *intf)
- 		return "v4l2-subdev";
- 	case MEDIA_INTF_T_V4L_SWRADIO:
- 		return "swradio";
-+	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
-+		return "pcm-capture";
-+	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
-+		return "pcm-playback";
-+	case MEDIA_INTF_T_ALSA_CONTROL:
-+		return "alsa-control";
-+	case MEDIA_INTF_T_ALSA_COMPRESS:
-+		return "compress";
-+	case MEDIA_INTF_T_ALSA_RAWMIDI:
-+		return "rawmidi";
-+	case MEDIA_INTF_T_ALSA_HWDEP:
-+		return "hwdep";
- 	default:
- 		return "unknown-intf";
- 	}
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index cacfceb..75cbe92 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -252,6 +252,7 @@ struct media_links_enum {
- 
- #define MEDIA_INTF_T_DVB_BASE	0x00000100
- #define MEDIA_INTF_T_V4L_BASE	0x00000200
-+#define MEDIA_INTF_T_ALSA_BASE	0x00000300
- 
- /* Interface types */
- 
-@@ -267,6 +268,13 @@ struct media_links_enum {
- #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
- #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
- 
-+#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
-+#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
-+#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
-+#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
-+#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
-+#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
-+
- /*
-  * MC next gen API definitions
-  *
+Thanks.
+
+On 2016/1/26 17:04, Jung Zhao wrote:
+> From: zhaojun <jung.zhao@rock-chips.com>
+>
+>
+> ====================
+> Introduction
+> ====================
+>
+> The purpose of this series is to add the driver for vp8
+> decoder on rk3229 & rk3288 platform, and will support
+> more formats in the future.
+>
+> The driver uses v4l2 framework and RK IOMMU.
+> RK IOMMU has not yet been merged.
+>
+>
+>
+> zhaojun (3):
+>    media: v4l: Add VP8 format support in V4L2 framework
+>    media: VPU: support Rockchip VPU
+>    media: vcodec: rockchip: Add Rockchip VP8 decoder driver
+>
+>   drivers/media/platform/rockchip-vpu/Makefile       |    7 +
+>   .../media/platform/rockchip-vpu/rkvpu_hw_vp8d.c    |  798 ++++++++++
+>   .../platform/rockchip-vpu/rockchip_vp8d_regs.h     | 1594 ++++++++++++++++++++
+>   drivers/media/platform/rockchip-vpu/rockchip_vpu.c |  799 ++++++++++
+>   .../platform/rockchip-vpu/rockchip_vpu_common.h    |  439 ++++++
+>   .../media/platform/rockchip-vpu/rockchip_vpu_dec.c | 1007 +++++++++++++
+>   .../media/platform/rockchip-vpu/rockchip_vpu_dec.h |   33 +
+>   .../media/platform/rockchip-vpu/rockchip_vpu_hw.c  |  295 ++++
+>   .../media/platform/rockchip-vpu/rockchip_vpu_hw.h  |  100 ++
+>   drivers/media/v4l2-core/v4l2-ctrls.c               |   17 +-
+>   drivers/media/v4l2-core/v4l2-ioctl.c               |    3 +
+>   drivers/media/v4l2-core/videobuf2-dma-contig.c     |   51 +-
+>   include/media/v4l2-ctrls.h                         |    2 +
+>   include/media/videobuf2-dma-contig.h               |   11 +-
+>   include/uapi/linux/v4l2-controls.h                 |   98 ++
+>   include/uapi/linux/videodev2.h                     |    5 +
+>   16 files changed, 5238 insertions(+), 21 deletions(-)
+>   create mode 100644 drivers/media/platform/rockchip-vpu/Makefile
+>   create mode 100644 drivers/media/platform/rockchip-vpu/rkvpu_hw_vp8d.c
+>   create mode 100644 drivers/media/platform/rockchip-vpu/rockchip_vp8d_regs.h
+>   create mode 100644 drivers/media/platform/rockchip-vpu/rockchip_vpu.c
+>   create mode 100644 drivers/media/platform/rockchip-vpu/rockchip_vpu_common.h
+>   create mode 100644 drivers/media/platform/rockchip-vpu/rockchip_vpu_dec.c
+>   create mode 100644 drivers/media/platform/rockchip-vpu/rockchip_vpu_dec.h
+>   create mode 100644 drivers/media/platform/rockchip-vpu/rockchip_vpu_hw.c
+>   create mode 100644 drivers/media/platform/rockchip-vpu/rockchip_vpu_hw.h
+>
+
+
 -- 
-2.5.0
+Best Regards
+Shawn Lin
 
