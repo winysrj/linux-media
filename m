@@ -1,109 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:44682 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751865AbcAFU5c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 15:57:32 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 28/31] media: au0828 create link between ALSA Mixer and decoder
-Date: Wed,  6 Jan 2016 13:27:17 -0700
-Message-Id: <1dcd64196cffd05bdaeb16c767ee8d2adb90e2e6.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+Received: from mout.gmx.net ([212.227.17.21]:55027 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932339AbcAZMtx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2016 07:49:53 -0500
+Date: Tue, 26 Jan 2016 13:49:18 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aviv Greenberg <avivgr@gmail.com>
+Subject: Re: per-frame camera metadata (again)
+In-Reply-To: <5888039.Rc9CarTOsL@avalon>
+Message-ID: <Pine.LNX.4.64.1601261321580.28816@axis700.grange>
+References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange>
+ <Pine.LNX.4.64.1601051214080.21342@axis700.grange>
+ <Pine.LNX.4.64.1601251155160.20896@axis700.grange> <5888039.Rc9CarTOsL@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828_create_media_graph() to create pad link
-between MEDIA_ENT_F_AUDIO_MIXER entity and decoder's
-AU8522_PAD_AUDIO_OUT. With mixer entity now linked to
-decoder, change to link MEDIA_ENT_F_AUDIO_CAPTURE to
-mixer's source pad.
+Hi Laurent,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 17 ++++++++++++++---
- drivers/media/usb/au0828/au0828.h      |  1 +
- 2 files changed, 15 insertions(+), 3 deletions(-)
+On Mon, 25 Jan 2016, Laurent Pinchart wrote:
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 722e073..886fb28 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -264,6 +264,7 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 	struct media_entity *entity;
- 	struct media_entity *tuner = NULL, *decoder = NULL;
- 	struct media_entity *audio_capture = NULL;
-+	struct media_entity *mixer = NULL;
- 	int i, ret;
- 
- 	if (!mdev)
-@@ -284,6 +285,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 		case MEDIA_ENT_F_AUDIO_CAPTURE:
- 			audio_capture = entity;
- 			break;
-+		case MEDIA_ENT_F_AUDIO_MIXER:
-+			mixer = entity;
-+			break;
- 		}
- 	}
- 
-@@ -356,14 +360,21 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 			}
- 		}
- 	}
--	if (audio_capture && !dev->audio_capture_linked) {
--		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
--					    audio_capture, 0,
-+	if (mixer && audio_capture && !dev->audio_capture_linked) {
-+		ret = media_create_pad_link(mixer, 1, audio_capture, 0,
- 					    MEDIA_LNK_FL_ENABLED);
- 		if (ret)
- 			return ret;
- 		dev->audio_capture_linked = 1;
- 	}
-+	if (mixer && !dev->mixer_linked) {
-+		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
-+					    mixer, 0,
-+					    MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			return ret;
-+		dev->mixer_linked = 1;
-+	}
- #endif
- 	return 0;
- }
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 3707664..b9aa74f 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -289,6 +289,7 @@ struct au0828_dev {
- 	bool vdev_linked;
- 	bool vbi_linked;
- 	bool audio_capture_linked;
-+	bool mixer_linked;
- 	struct media_link *active_link;
- 	struct media_entity *active_link_owner;
- #endif
--- 
-2.5.0
+> Hi Guennadi,
+> 
+> On Monday 25 January 2016 12:14:14 Guennadi Liakhovetski wrote:
+> > On Tue, 5 Jan 2016, Guennadi Liakhovetski wrote:
+> > > On Fri, 1 Jan 2016, Guennadi Liakhovetski wrote:
+> > >> On Sun, 27 Dec 2015, Laurent Pinchart wrote:
+> > >>> On Thursday 24 December 2015 11:42:49 Guennadi Liakhovetski wrote:
+> > >>>> Hi Laurent,
+> > >>>> 
+> > >>>> Let me put this at the top: So far it looks like we converge on two
+> > >>>> possibilities:
+> > >>>> 
+> > >>>> (1) a separate video-device node with a separate queue. No
+> > >>>> user-space visible changes are required apart from new FOURCC codes.
+> > >>>> In the kernel we'd have to add some subdev API between the bridge
+> > >>>> and the sensor drivers to let the sensor driver instruct the bridge
+> > >>>> driver to use some of the data, arriving over the camera interface,
+> > >>>> as metadata.
+> > >>> 
+> > >>> The interface should be more generic and allow describing how multiple
+> > >>> channels (in terms of virtual channels and data types for CSI-2 for
+> > >>> instance) are multiplexed over a single physical link. I'm not sure
+> > >>> how to represent that at the media controller level, that's also one
+> > >>> topic that needs to be researched.
+> > >> 
+> > >> Sure, agree. How about an enumetation style method, something like
+> > >> .enum_mbus_streams()?
+> 
+> I'd rather not. The enumeration-style API isn't really a model of efficiency. 
+> I'd prefer passing all the data in a single call.
 
+Right, that idea has been abandoned by now.
+
+> > > It now also occurs to me, that we currently configure pads with a single
+> > > configuration - pixel format, resolution. However, a single CSI-2
+> > > interface can transfer different frame formats at the same time. So, such
+> > > a sensor driver has to export multiple source pads? The bridge driver
+> > > would export multiple sink pads, then we don't need any new API methods,
+> > > we just configure each link separately, for which we have to add those
+> > > fields to struct v4l2_mbus_framefmt?
+> >
+> > It has been noted, that pads and links conceptually are designed to
+> > represent physical interfaces and connections between then, therefore
+> > representing a single CSI-2 link by multiple Media Controller pads and
+> > links is wrong.
+> >
+> > As an alternative it has been proposed to implement a multiplexer and a
+> > demultiplexer subdevices on the CSI-2 transmitter (camera) and receiver
+> > (SoC) sides respectively. Originally it has also been proposed to add a
+> > supporting API to configure multiple streams over such a multiplexed
+> > connection. However, this seems redundant, because mux sink pads and demux
+> > source pads will anyway have to be configured individually, which already
+> > configures the receiver and the transmitter sides.
+> 
+> You have a point, but I wonder how we would then validate pipelines.
+
+Well, maybe from "such" pads we should require a .link_validate() method? 
+And "such" could mean pads, using the FIXED format, or 0x0 size.
+
+> > Currently the design seems to be converging to simply configuring the
+> > multiplexed link with the MEDIA_BUS_FMT_FIXED format and a fixed
+> > resolution and perform all real configuration on the other side of the mux
+> > and demux subdevices. The only API extension, that would be required for
+> > such a design would be adding CSI-2 Virtual Channel IDs to pad format
+> > specifications, i.e. to struct v4l2_mbus_framefmt.
+> 
+> I wouldn't add a CSI2-specific field, but a more generic stream ID instead. We 
+> would then need a way to map stream IDs to the actual bus implementations. For 
+> CSI-2 that would include both virtual channel and data type.
+
+We discussed the CSI-2 data type with Sakari and I explained to him, that 
+I think, that the CSI-2 data type should be directly mapped to the Media 
+Bus pixel code. You know, that CSI-2 defines a few such codes, so, adding 
+the data type for those would be a real duplication and an additional 
+point to check for. It is less clear with user-defined data types, that 
+the CSI-2 leaves free for device-specific formats, but there are only 8 
+of them. We could just add generic numeric defines for them like
+
+#define MEDIA_BUS_FMT_CSI2_UD_0X30 ...
+#define MEDIA_BUS_FMT_CSI2_UD_0X31 ...
+...
+#define MEDIA_BUS_FMT_CSI2_UD_0X37 ...
+
+That's it.
+
+As for stream ID vs. virtual channel number - we can go either way. I 
+think the bus type information combined with a union whould be sufficient.
+
+> > On the video device side each stream will be sent to a separate video
+> > device node.
+> 
+> Not necessarily, they could be sent to different pieces of hardware.
+
+Yes, sure, then those nodes would just be EBUSY.
+
+> > Each CSI-2 controller only supports a finate number of streams, that it can
+> > demultiplex at any given time. Typically this maximum number is much smaller
+> > than 256, which is the total number of streams, that can be distinguished on
+> > a CSI-2 bus, using 2 bits for Virtual Channels and 6 bits for data types.
+> > For example, if a CSI-2 controller can demultiplex up to 8 streams
+> > simultaneously, the CSI-2 bridge driver would statically create 8
+> > /dev/video* nodes, statically connected to 8 sources of an internal demux
+> > subdevice. The user-space will then just have to configure internal pads
+> > with a Virtual Channel number, Media Bus pixel format and resolution and the
+> > /dev/video* node with the required output configuration.
+> 
+> If there are 8 independent DMA engines then 8 video nodes would seem quite 
+> logical. Another option would be to create a single video node with 8 buffer 
+> queues. I'm still debating that with myself though, but it could make sense in 
+> the case of a single DMA engine with multiple contexts. One could argue that 
+> we're touching a grey area.
+
+I haven't read the sources of all those controllers :) I suspect however, 
+that at least in many cases it will be just one DMA engine with multiple 
+channels. I understand (at least some) disadvantages of using multiple 
+video nodes, but at least this is something we can use now without really 
+breaking or (badly) abusing any existing APIs. We can add multiple buffer 
+queue support too, but so far I don't see a _really_ compelling reason for 
+that. Nice to have, but not a deal breaker IMHO.
+
+My another doubt is statically creating all (8) video nodes vs. creating 
+them on the fly as respective pads get configured. The latter seems more 
+elegant to me and wouldn't fry Linux hotplug daemons by presenting them 
+with dozens of non-functional video devices, but also when such devices 
+get created the daemons would feel attacked and dealing with dyamically 
+creating ones would be more difficult for applications too.
+
+Thanks
+Guennadi
