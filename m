@@ -1,38 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:43105 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757510AbcAKKn5 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:57429 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753781AbcAZJJ7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 05:43:57 -0500
-Subject: Re: CMA usage in driver
-To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
-References: <CAJ2oMhK7f4kLYaTw874g4w2vjd5nw_FBET1JsjX9Us30Eve5GQ@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56938769.308@xs4all.nl>
-Date: Mon, 11 Jan 2016 11:43:53 +0100
+	Tue, 26 Jan 2016 04:09:59 -0500
+Date: Tue, 26 Jan 2016 07:09:55 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eduard Gavin <egavinc@gmail.com>
+Subject: Re: [PATCH] tvp5150: Fix breakage for serial usage
+Message-ID: <20160126070955.3dcef1d4@recife.lan>
+In-Reply-To: <20160125180121.5bc5bf75@recife.lan>
+References: <54ffe2ae9209b607f54142809902764e2eaaf1d2.1453740290.git.mchehab@osg.samsung.com>
+	<1496492.fG104z7bmU@avalon>
+	<20160125170721.01dcf4dc@recife.lan>
+	<2963199.ud5niVsfSC@avalon>
+	<20160125180121.5bc5bf75@recife.lan>
 MIME-Version: 1.0
-In-Reply-To: <CAJ2oMhK7f4kLYaTw874g4w2vjd5nw_FBET1JsjX9Us30Eve5GQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/02/2016 10:23 PM, Ran Shalit wrote:
-> Hello,
+Em Mon, 25 Jan 2016 18:01:21 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+
+> Em Mon, 25 Jan 2016 21:32:21 +0200
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 > 
-> I made some reading on CMA usage with device driver, nut not quite sure yet.
-> Do we need to call dma_declare_contiguous or does it get called from
-> within videobuf2 ?
+> > Hi Mauro,  
 > 
-> Is there any example how to use CMA memory in v4l2 driver ?
+> > Let's see, I can't test em28xx, could you try remove the CONF_SHARED_PIN 
+> > change and replacing the write in s_stream with a read-modify-write that 
+> > disables the output (bits 3, 2 and 0) ? If that works I'll test it with the 
+> > omap3 isp when I'll be back home.  
+> 
+> Didn't work. I'll  do more tests later (or tomorrow).
 
-You don't need to do anything. If the architecture supports cma (ARM does, but I'm
-not sure if it is supported for x86_64) and it is enabled in the kernel, then you
-have it. All you have to do is to add cma=<memsize> to the kernel options to
-reserve CMA memory and when vb2 allocates buffer memory it will automatically use the
-CMA memory for it.
+The root cause weren't at tvp5150 side, but, instead, at em28xx that
+were only calling s_stream() to disable the stream, but never enabling it.
 
-Regards,
+I'm wander why it was doing such thing. Well, s_stream() came years
+after the em28xx driver, so I suspect it was a hack to fix some issue
+with a particular device. Let's hope that the change won't cause any
+regressions on such hardware.
 
-	Hans
+The good news is that em28xx doesn't need MISC_CTL to be filled with
+0x6f to stream. Just 0x09 is enough. So, the same initialization
+needed by OMAP3 will work there.
 
+I'm posting the patch in a few.
+
+> 
+> Regards,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
