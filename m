@@ -1,52 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55344 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934072AbcAKQsN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 11:48:13 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+Received: from mail-ig0-f195.google.com ([209.85.213.195]:33503 "EHLO
+	mail-ig0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965768AbcAZOA5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2016 09:00:57 -0500
+MIME-Version: 1.0
+In-Reply-To: <56A73CB9.2040802@rock-chips.com>
+References: <1453799046-307-1-git-send-email-jung.zhao@rock-chips.com>
+	<56A73CB9.2040802@rock-chips.com>
+Date: Tue, 26 Jan 2016 15:00:56 +0100
+Message-ID: <CAFqH_52UbNW86Bx3Zo9rxPWjx_018j+BBy55ZwzNs9Kf2X7v7Q@mail.gmail.com>
+Subject: Re: [PATCH v1 0/3] Add VP8 deocder for rk3229 & rk3288
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+To: Shawn Lin <shawn.lin@rock-chips.com>
+Cc: Jung Zhao <jung.zhao@rock-chips.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH v2 8/8] [media] omap3isp: Check v4l2_of_parse_endpoint() return value
-Date: Mon, 11 Jan 2016 13:47:16 -0300
-Message-Id: <1452530844-30609-9-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
-References: <1452530844-30609-1-git-send-email-javier@osg.samsung.com>
+	=?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Benoit Parrot <bparrot@ti.com>,
+	linux-rockchip@lists.infradead.org, Antti Palosaari <crope@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	alpha.lin@rock-chips.com, Philipp Zabel <p.zabel@pengutronix.de>,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	herman.chen@rock-chips.com,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_of_parse_endpoint() function can fail so check the return value.
+Hi Jung,
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+2016-01-26 10:30 GMT+01:00 Shawn Lin <shawn.lin@rock-chips.com>:
+> Hi jun,
+>
+> Where is the dt-bingding documentation about your VP8 controller?
+>
+> And would you please share some info about rk3229? I can just find
+> rk3228 in mainline, otherwise may someone think it's a misspell.
+>
+> Thanks.
+>
+>
+> On 2016/1/26 17:04, Jung Zhao wrote:
+>>
+>> From: zhaojun <jung.zhao@rock-chips.com>
+>>
+>>
+>> ====================
+>> Introduction
+>> ====================
+>>
+>> The purpose of this series is to add the driver for vp8
+>> decoder on rk3229 & rk3288 platform, and will support
+>> more formats in the future.
+>>
+>> The driver uses v4l2 framework and RK IOMMU.
+>> RK IOMMU has not yet been merged.
+>>
 
----
+Can you share or specify what patches are needed, are they already
+send to upstream ? So people that want to test your series knows what
+they need to apply
 
-Changes in v2: None
+I think that, at least, this patch is required:
 
- drivers/media/platform/omap3isp/isp.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+iommu/rockchip: reconstruct to support multi slaves [1]
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 79a0b953bba3..891e54394a1c 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2235,8 +2235,11 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
- 	struct isp_bus_cfg *buscfg = &isd->bus;
- 	struct v4l2_of_endpoint vep;
- 	unsigned int i;
-+	int ret;
- 
--	v4l2_of_parse_endpoint(node, &vep);
-+	ret = v4l2_of_parse_endpoint(node, &vep);
-+	if (ret)
-+		return ret;
- 
- 	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
- 		vep.base.port);
--- 
-2.4.3
+If this is not already accepted, maybe is a good idea include this
+patch in the patch series
 
+[1] http://www.gossamer-threads.com/lists/linux/kernel/2347458
+
+>>
+>>
+>> zhaojun (3):
+>>    media: v4l: Add VP8 format support in V4L2 framework
+>>    media: VPU: support Rockchip VPU
+>>    media: vcodec: rockchip: Add Rockchip VP8 decoder driver
+>>
+>>   drivers/media/platform/rockchip-vpu/Makefile       |    7 +
+>>   .../media/platform/rockchip-vpu/rkvpu_hw_vp8d.c    |  798 ++++++++++
+>>   .../platform/rockchip-vpu/rockchip_vp8d_regs.h     | 1594
+>> ++++++++++++++++++++
+>>   drivers/media/platform/rockchip-vpu/rockchip_vpu.c |  799 ++++++++++
+>>   .../platform/rockchip-vpu/rockchip_vpu_common.h    |  439 ++++++
+>>   .../media/platform/rockchip-vpu/rockchip_vpu_dec.c | 1007 +++++++++++++
+>>   .../media/platform/rockchip-vpu/rockchip_vpu_dec.h |   33 +
+>>   .../media/platform/rockchip-vpu/rockchip_vpu_hw.c  |  295 ++++
+>>   .../media/platform/rockchip-vpu/rockchip_vpu_hw.h  |  100 ++
+>>   drivers/media/v4l2-core/v4l2-ctrls.c               |   17 +-
+>>   drivers/media/v4l2-core/v4l2-ioctl.c               |    3 +
+>>   drivers/media/v4l2-core/videobuf2-dma-contig.c     |   51 +-
+>>   include/media/v4l2-ctrls.h                         |    2 +
+>>   include/media/videobuf2-dma-contig.h               |   11 +-
+>>   include/uapi/linux/v4l2-controls.h                 |   98 ++
+>>   include/uapi/linux/videodev2.h                     |    5 +
+>>   16 files changed, 5238 insertions(+), 21 deletions(-)
+>>   create mode 100644 drivers/media/platform/rockchip-vpu/Makefile
+>>   create mode 100644 drivers/media/platform/rockchip-vpu/rkvpu_hw_vp8d.c
+>>   create mode 100644
+>> drivers/media/platform/rockchip-vpu/rockchip_vp8d_regs.h
+>>   create mode 100644 drivers/media/platform/rockchip-vpu/rockchip_vpu.c
+>>   create mode 100644
+>> drivers/media/platform/rockchip-vpu/rockchip_vpu_common.h
+>>   create mode 100644
+>> drivers/media/platform/rockchip-vpu/rockchip_vpu_dec.c
+>>   create mode 100644
+>> drivers/media/platform/rockchip-vpu/rockchip_vpu_dec.h
+>>   create mode 100644 drivers/media/platform/rockchip-vpu/rockchip_vpu_hw.c
+>>   create mode 100644 drivers/media/platform/rockchip-vpu/rockchip_vpu_hw.h
+>>
+>
+>
+> --
+> Best Regards
+> Shawn Lin
+>
+
+Best Regards,
+Enric
