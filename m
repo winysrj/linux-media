@@ -1,76 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58196 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758875AbcAKKWf (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:30312 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752280AbcAZHMT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 05:22:35 -0500
-Subject: Re: [PATCH v2 2/2] media: adv7604: update timings on change of input
- signal
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-References: <1450794122-31293-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <1450794122-31293-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, william.towle@codethink.co.uk
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56938265.6050803@xs4all.nl>
-Date: Mon, 11 Jan 2016 11:22:29 +0100
+	Tue, 26 Jan 2016 02:12:19 -0500
+Date: Tue, 26 Jan 2016 08:12:15 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+cc: Julia Lawall <julia.lawall@lip6.fr>,
+	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	mchehab@osg.samsung.com, kgene@kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: platform: exynos4-is: media-dev: Add missing
+ of_node_put
+In-Reply-To: <56A7185F.7020207@samsung.com>
+Message-ID: <alpine.DEB.2.02.1601260809340.2004@localhost6.localdomain6>
+References: <20160125152136.GA19484@amitoj-Inspiron-3542> <56A6BCC3.8040407@samsung.com> <alpine.DEB.2.02.1601260723290.2004@localhost6.localdomain6> <56A7185F.7020207@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <1450794122-31293-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/22/2015 03:22 PM, Ulrich Hecht wrote:
-> Without this, .get_selection will always return the boot-time state.
+
+
+On Tue, 26 Jan 2016, Krzysztof Kozlowski wrote:
+
+> On 26.01.2016 15:24, Julia Lawall wrote:
+> > 
+> > 
+> > On Tue, 26 Jan 2016, Krzysztof Kozlowski wrote:
+> > 
+> >> On 26.01.2016 00:21, Amitoj Kaur Chawla wrote:
+> >>> for_each_available_child_of_node and for_each_child_of_node perform an
+> >>> of_node_get on each iteration, so to break out of the loop an of_node_put is
+> >>> required.
+> >>>
+> >>> Found using Coccinelle. The simplified version of the semantic patch
+> >>> that is used for this is as follows:
+> >>>
+> >>> // <smpl>
+> >>> @@
+> >>> local idexpression n;
+> >>> expression e,r;
+> >>> @@
+> >>>
+> >>>  for_each_available_child_of_node(r,n) {
+> >>>    ...
+> >>> (
+> >>>    of_node_put(n);
+> >>> |
+> >>>    e = n
+> >>> |
+> >>> +  of_node_put(n);
+> >>> ?  break;
+> >>> )
+> >>>    ...
+> >>>  }
+> >>> ... when != n
+> >>> // </smpl>
+> >>
+> >> Patch iselft looks correct but why are you pasting coccinelle script
+> >> into the message?
+> >>
+> >> The script is already present in Linux kernel:
+> >> scripts/coccinelle/iterators/device_node_continue.cocci
+> > 
+> > I don't think so.  The continue one takes care of the case where there is 
+> > an extraneous of_node_put before a continue, not a missing one before a 
+> > break.  But OK to drop it if it doesn't seem useful.
+> > 
+> > julia
 > 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  drivers/media/i2c/adv7604.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
+> You are right - this is not covered by that cocci patch... but I think
+> is covered by scripts/coccinelle/iterators/fen.cocci, isn't it?
+
+Not quite.  That is for of_node_puts after normal loop completion (not 
+sure that this problem comes up any more, but at one point there were a 
+number of them). There are indeed a lot of ways in which the management of 
+reference counts can go wrong...
+
+Anyway, the rule that Amitoj used seems to be pretty reliable, so I'll try 
+to get it into the kernel source tree some day soon.
+
+julia
+
 > 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 8ad5c28..dcd659b 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -1945,6 +1945,7 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
->  	u8 fmt_change_digital;
->  	u8 fmt_change;
->  	u8 tx_5v;
-> +	int ret;
->  
->  	if (irq_reg_0x43)
->  		io_write(sd, 0x44, irq_reg_0x43);
-> @@ -1968,6 +1969,14 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
->  
->  		v4l2_subdev_notify_event(sd, &adv76xx_ev_fmt);
->  
-> +		/* update timings */
-> +		ret = adv76xx_query_dv_timings(sd, &state->timings);
-> +		if (ret == -ENOLINK) {
-> +			/* no signal, fall back to default timings */
-> +			state->timings = (struct v4l2_dv_timings)
-> +				V4L2_DV_BT_CEA_640X480P59_94;
-> +		}
-
-Nack.
-
-If you detect a change in timings, then send the V4L2_EVENT_SOURCE_CHANGE event and leave
-it to the app to query the new timings. Never do this in the driver itself.
-
-The reason is that this will pull the rug out from under the application: the app thinks
-it is using timings A but the driver is using timings B. Instead, tell the app that the
-timings have changed and let the app handle this.
-
-Regards,
-
-	Hans
-
-> +
->  		if (handled)
->  			*handled = true;
->  	}
+> BR,
+> Krzysztof
 > 
-
+> > 
+> >> This just extends the commit message without any meaningful data so with
+> >> removal of coccinelle script above:
+> >> Reviewed-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> >>
+> >> Best regards,
+> >> Krzysztof
+> >>
+> >>>
+> >>> Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
+> >>> ---
+> >>>  drivers/media/platform/exynos4-is/media-dev.c | 12 +++++++++---
+> >>>  1 file changed, 9 insertions(+), 3 deletions(-)
+> 
+> 
