@@ -1,92 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53137 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932620AbcASKVD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 05:21:03 -0500
-Date: Tue, 19 Jan 2016 08:20:52 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [GIT PULL for v4.5-rc1] media controller next gen patch series
-Message-ID: <20160119082052.3bd42e7f@recife.lan>
-In-Reply-To: <CAMuHMdX3ve8dy5B1PHkDHuzb-FbP4g6PC3=-o9F=z0aTWoST7Q@mail.gmail.com>
-References: <20160112084328.2194ec49@recife.lan>
-	<CAMuHMdX3ve8dy5B1PHkDHuzb-FbP4g6PC3=-o9F=z0aTWoST7Q@mail.gmail.com>
+Received: from mail-lb0-f196.google.com ([209.85.217.196]:36416 "EHLO
+	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965995AbcAZOHP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2016 09:07:15 -0500
+Received: by mail-lb0-f196.google.com with SMTP id ad5so7890318lbc.3
+        for <linux-media@vger.kernel.org>; Tue, 26 Jan 2016 06:07:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.64.1601241906070.16570@axis700.grange>
+References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
+	<1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
+	<1453121545-27528-2-git-send-email-rainyfeeling@gmail.com>
+	<Pine.LNX.4.64.1601241906070.16570@axis700.grange>
+Date: Tue, 26 Jan 2016 22:07:13 +0800
+Message-ID: <CAJe_HAfYykQraPc81j5z4=kkKzntzwX+5iVWqbeDjjSkqHYSxw@mail.gmail.com>
+Subject: Re: [PATCH 07/13] atmel-isi: move hw code into isi_hw_initialize()
+From: Josh Wu <rainyfeeling@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Songjun Wu <songjun.wu@atmel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 Jan 2016 11:02:30 +0100
-Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
+Hi, Guennadi
 
-> Hi Mauro,
-> 
-> On Tue, Jan 12, 2016 at 11:43 AM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > That's the second part of the media patches. It contains the media controller
-> > next generation patches, with is the result of one year of discussions and
-> > development. It also contains patches to enable media controller support
-> > at the DVB subsystem.
-> >
-> > The goal is to improve the media controller to allow proper support for
-> > other types of Video4Linux devices (radio and TV ones) and to extend the
-> > media controller functionality to allow it to be used by other subsystems
-> > like DVB, ALSA and IIO.
-> >
-> > In order to use the new functionality, a new ioctl is needed
-> > (MEDIA_IOC_G_TOPOLOGY). As we're still discussing how to pack the struct
-> > fields of this ioctl in order to avoid compat32 issues, I decided to add
-> > a patch at the end of this series commenting out the new ioctl, in order
-> > to postpone the addition of the new ioctl to the next Kernel version (4.6).
-> > With that, no userspace visible changes should happen at the media
-> > controller API, as the existing ioctls are untouched. Yet, it helps
-> > DVB, ALSA and IIO developers to develop and test the patches adding media
-> > controller support there, as the core will contain all required internal
-> > changes to allow adding support for devices that belong to those
-> > subsystems.
-> >
-> > Regards,
-> > Mauro
-> >
-> > The following changes since commit 768acf46e1320d6c41ed1b7c4952bab41c1cde79:
-> >
-> >   [media] rc: sunxi-cir: Initialize the spinlock properly (2015-12-23 15:51:40 -0200)
-> >
-> > are available in the git repository at:
-> >
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.5-2
-> >
-> > for you to fetch changes up to be0270ec89e6b9b49de7e533dd1f3a89ad34d205:
-> >
-> >   [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY (2016-01-11 12:35:17 -0200)  
-> 
-> After merging this into mainline, I get the BUG_ON() and crash I reported ca.
-> one month ago in "vsp1 BUG_ON() and crash (Re: [PATCH v9 03/12] media:
-> Entities, pads and links)" ( https://lkml.org/lkml/2015/12/14/373).
+Thanks for the reivew.
 
-Not sure what happened here, as this was supposed to have fixed already.
-I'll ask Javier to take a look into it and work with you for us to get it
-fixed ASAP.
+2016-01-25 2:09 GMT+08:00 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> On Mon, 18 Jan 2016, Josh Wu wrote:
+>
+>> That make hw operation code separate with general code.
+>>
+>> Also since reset action can be failed, so add a return value for
+>> isi_hw_initialze().
+>>
+>> Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
+>> ---
+>>
+>>  drivers/media/platform/soc_camera/atmel-isi.c | 34 +++++++++++++++++----------
+>>  1 file changed, 21 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>> index 4ddc309..ed4d04b 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -203,10 +203,27 @@ static int isi_hw_wait_status(struct atmel_isi *isi, int status_flag,
+>>       return 0;
+>>  }
+>>
+>> -static void isi_hw_initialize(struct atmel_isi *isi)
+>> +static int isi_hw_initialize(struct atmel_isi *isi)
+>>  {
+>>       u32 common_flags = isi->bus_param;
+>>       u32 cfg1 = 0;
+>> +     int ret;
+>> +
+>> +     /* Reset ISI */
+>> +     isi_writel(isi, ISI_CTRL, ISI_CTRL_SRST);
+>> +
+>> +     /* Check Reset status */
+>> +     ret  = isi_hw_wait_status(isi, ISI_CTRL_SRST, 500);
+>
+> You could also remove the superfluous space while at it.
 
-Regards,
-Mauro
+sure, I'll fix the duplicated space here.
 
-> 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
+Best Regards,
+Josh Wu
+
+>
+> Thanks
+> Guennadi
+>
+>> +     if (ret) {
+>> +             dev_err(isi->soc_host.icd->parent, "Reset ISI timed out\n");
+>> +             return ret;
+>> +     }
+>> +
+>> +     /* Disable all interrupts */
+>> +     isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+>> +
+>> +     /* Clear any pending interrupt */
+>> +     isi_readl(isi, ISI_STATUS);
+>>
+>>       /* set bus param for ISI */
+>>       if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+>> @@ -229,6 +246,8 @@ static void isi_hw_initialize(struct atmel_isi *isi)
+>>
+>>       isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+>>       isi_writel(isi, ISI_CFG1, cfg1);
+>> +
+>> +     return 0;
+>>  }
+>>
+>>  static irqreturn_t atmel_isi_handle_streaming(struct atmel_isi *isi)
+>> @@ -453,27 +472,16 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+>>
+>>       pm_runtime_get_sync(ici->v4l2_dev.dev);
+>>
+>> -     /* Reset ISI */
+>> -     isi_writel(isi, ISI_CTRL, ISI_CTRL_SRST);
+>> -
+>> -     /* Check Reset status */
+>> -     ret  = isi_hw_wait_status(isi, ISI_CTRL_SRST, 500);
+>> +     ret = isi_hw_initialize(isi);
+>>       if (ret) {
+>> -             dev_err(icd->parent, "Reset ISI timed out\n");
+>>               pm_runtime_put(ici->v4l2_dev.dev);
+>>               return ret;
+>>       }
+>> -     /* Disable all interrupts */
+>> -     isi_writel(isi, ISI_INTDIS, (u32)~0UL);
+>> -
+>> -     isi_hw_initialize(isi);
+>>
+>>       configure_geometry(isi, icd->user_width, icd->user_height,
+>>                               icd->current_fmt);
+>>
+>>       spin_lock_irq(&isi->lock);
+>> -     /* Clear any pending interrupt */
+>> -     isi_readl(isi, ISI_STATUS);
+>>
+>>       if (count)
+>>               start_dma(isi, isi->active);
+>> --
+>> 1.9.1
+>>
