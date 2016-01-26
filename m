@@ -1,62 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43306 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757760AbcAKB5V (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.73]:51424 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751341AbcAZVrL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2016 20:57:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Nikhil Devshatwar <nikhil.nd@ti.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Tue, 26 Jan 2016 16:47:11 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Arnd Bergmann <arnd@arndb.de>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/8] [media] v4l: of: Correct v4l2_of_parse_endpoint() kernel-doc
-Date: Mon, 11 Jan 2016 03:57:32 +0200
-Message-ID: <5744371.YiWThJLWUr@avalon>
-In-Reply-To: <1452191248-15847-2-git-send-email-javier@osg.samsung.com>
-References: <1452191248-15847-1-git-send-email-javier@osg.samsung.com> <1452191248-15847-2-git-send-email-javier@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] v4l: remove MEDIA_TUNER dependency for VIDEO_TUNER
+Date: Tue, 26 Jan 2016 22:46:02 +0100
+Message-Id: <1453844772-3395901-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+em28xx selects VIDEO_TUNER, which has a dependency on MEDIA_TUNER,
+so we get a Kconfig warning if that is disabled:
 
-Thank you for the patch.
+warning: (VIDEO_PVRUSB2 && VIDEO_USBVISION && VIDEO_GO7007 && VIDEO_AU0828_V4L2 && VIDEO_CX231XX && VIDEO_TM6000 && VIDEO_EM28XX && VIDEO_IVTV && VIDEO_MXB && VIDEO_CX18 && VIDEO_CX23885 && VIDEO_CX88 && VIDEO_BT848 && VIDEO_SAA7134 && VIDEO_SAA7164) selects VIDEO_TUNER which has unmet direct dependencies (MEDIA_SUPPORT && MEDIA_TUNER)
 
-On Thursday 07 January 2016 15:27:15 Javier Martinez Canillas wrote:
-> The v4l2_of_parse_endpoint function kernel-doc says that the return value
-> is always 0. But that is not true since the function can fail and a error
-> negative code is returned on failure. So correct the kernel-doc to match.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+VIDEO_TUNER does not actually depend on MEDIA_TUNER, and the
+dependency does nothing except cause the above warning, so let's
+remove it.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/v4l2-core/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
 
-> ---
-> 
->  drivers/media/v4l2-core/v4l2-of.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c
-> b/drivers/media/v4l2-core/v4l2-of.c index b27cbb1f5afe..93b33681776c 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -146,7 +146,7 @@ static void v4l2_of_parse_parallel_bus(const struct
-> device_node *node, * variable without a low fixed limit. Please use
->   * v4l2_of_alloc_parse_endpoint() in new drivers instead.
->   *
-> - * Return: 0.
-> + * Return: 0 on success or a negative error code on failure.
->   */
->  int v4l2_of_parse_endpoint(const struct device_node *node,
->  			   struct v4l2_of_endpoint *endpoint)
-
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index 9beece00869b..29b3436d0910 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -37,7 +37,6 @@ config VIDEO_PCI_SKELETON
+ # Used by drivers that need tuner.ko
+ config VIDEO_TUNER
+ 	tristate
+-	depends on MEDIA_TUNER
+ 
+ # Used by drivers that need v4l2-mem2mem.ko
+ config V4L2_MEM2MEM_DEV
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.0
 
