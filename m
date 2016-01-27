@@ -1,98 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44184 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753242AbcAGMrb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jan 2016 07:47:31 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH v2 07/10] [media] tvp5150: Add device tree binding document
-Date: Thu,  7 Jan 2016 09:46:47 -0300
-Message-Id: <1452170810-32346-8-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
-References: <1452170810-32346-1-git-send-email-javier@osg.samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44908 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932368AbcA0NFP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2016 08:05:15 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 2/5] DocBook media: document the new V4L2_CID_DV_RX/TX_IT_CONTENT_TYPE controls
+Date: Wed, 27 Jan 2016 14:05:00 +0100
+Message-Id: <1453899903-17790-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1453899903-17790-1-git-send-email-hverkuil@xs4all.nl>
+References: <1453899903-17790-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a Device Tree binding document for the TVP5150 video decoder.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Document these new controls.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ Documentation/DocBook/media/v4l/controls.xml | 50 ++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
-Changes in v2:
-- Fix indentation of the DTS example. Suggested by Rob Herring.
-- Rename powerdown-gpios to pdn-gpios to match the pin name in
-  the datasheet. Suggested by Laurent Pinchart.
-- Add optional properties for the video endpoint and list the supported
-  values. Suggested by Laurent Pinchart.
-
- .../devicetree/bindings/media/i2c/tvp5150.txt      | 45 ++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-new file mode 100644
-index 000000000000..8c0fc1a26bf0
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-@@ -0,0 +1,45 @@
-+* Texas Instruments TVP5150 and TVP5151 video decoders
-+
-+The TVP5150 and TVP5151 are video decoders that convert baseband NTSC and PAL
-+(and also SECAM in the TVP5151 case) video signals to either 8-bit 4:2:2 YUV
-+with discrete syncs or 8-bit ITU-R BT.656 with embedded syncs output formats.
-+
-+Required Properties:
-+- compatible: value must be "ti,tvp5150"
-+- reg: I2C slave address
-+
-+Optional Properties:
-+- pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
-+- reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
-+
-+The device node must contain one 'port' child node for its digital output
-+video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Required Endpoint Properties for parallel synchronization:
-+
-+- hsync-active: active state of the HSYNC signal. Must be <1> (HIGH).
-+- vsync-active: active state of the VSYNC signal. Must be <1> (HIGH).
-+- field-even-active: field signal level during the even field data
-+  transmission. Must be <0>.
-+
-+If none of hsync-active, vsync-active and field-even-active is specified,
-+the endpoint is assumed to use embedded BT.656 synchronization.
-+
-+Example:
-+
-+&i2c2 {
-+	...
-+	tvp5150@5c {
-+		compatible = "ti,tvp5150";
-+		reg = <0x5c>;
-+		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
-+		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-+
-+		port {
-+			tvp5150_1: endpoint {
-+				remote-endpoint = <&ccdc_ep>;
-+			};
-+		};
-+	};
-+};
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index f13a429..13e88a0 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5070,6 +5070,46 @@ interface and may change in the future.</para>
+ 	    </entry>
+ 	  </row>
+ 	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_TX_CONTENT_TYPE</constant></entry>
++	    <entry id="v4l2-dv-content-type">enum v4l2_dv_it_content_type</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures the IT Content Type
++	    of the transmitted video. This information is sent over HDMI and DisplayPort connectors
++	    as part of the AVI InfoFrame. The term 'IT Content' is used for content that originates
++	    from a computer as opposed to content from a TV broadcast or an analog source. The
++	    enum&nbsp;v4l2_dv_it_content_type defines the possible content types:</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++	        <row>
++	          <entry><constant>V4L2_DV_IT_CONTENT_TYPE_GRAPHICS</constant>&nbsp;</entry>
++		  <entry>Graphics content. Pixel data should be passed unfiltered and without
++		  analog reconstruction.</entry>
++		</row>
++	        <row>
++	          <entry><constant>V4L2_DV_IT_CONTENT_TYPE_PHOTO</constant>&nbsp;</entry>
++		  <entry>Photo content. The content is derived from digital still pictures.
++		  The content should be passed through with minimal scaling and picture
++		  enhancements.</entry>
++		</row>
++	        <row>
++	          <entry><constant>V4L2_DV_IT_CONTENT_TYPE_CINEMA</constant>&nbsp;</entry>
++		  <entry>Cinema content.</entry>
++		</row>
++	        <row>
++	          <entry><constant>V4L2_DV_IT_CONTENT_TYPE_GAME</constant>&nbsp;</entry>
++		  <entry>Game content. Audio and video latency should be minimized.</entry>
++		</row>
++	        <row>
++	          <entry><constant>V4L2_DV_IT_CONTENT_TYPE_NO_ITC</constant>&nbsp;</entry>
++		  <entry>No IT Content information is available and the ITC bit in the AVI
++		  InfoFrame is set to 0.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_DV_RX_POWER_PRESENT</constant></entry>
+ 	    <entry>bitmask</entry>
+ 	  </row>
+@@ -5098,6 +5138,16 @@ interface and may change in the future.</para>
+ 	    This control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
+ 	    </entry>
+ 	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_RX_IT_CONTENT_TYPE</constant></entry>
++	    <entry>enum v4l2_dv_it_content_type</entry>
++	  </row>
++	  <row><entry spanname="descr">Reads the IT Content Type
++	    of the received video. This information is sent over HDMI and DisplayPort connectors
++	    as part of the AVI InfoFrame. The term 'IT Content' is used for content that originates
++	    from a computer as opposed to content from a TV broadcast or an analog source. See
++	    <constant>V4L2_CID_DV_TX_IT_CONTENT_TYPE</constant> for the available content types.</entry>
++	  </row>
+ 	  <row><entry></entry></row>
+ 	</tbody>
+       </tgroup>
 -- 
-2.4.3
+2.7.0.rc3
 
