@@ -1,168 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:62203 "EHLO mout.gmx.net"
+Received: from lists.s-osg.org ([54.187.51.154]:54607 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754573AbcARLzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 06:55:33 -0500
-Date: Mon, 18 Jan 2016 12:55:20 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Aviv Greenberg <avivgr@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] V4L: add Y12I, Y8I and Z16 pixel format documentation
-In-Reply-To: <20160114112914.GM576@valkosipuli.retiisi.org.uk>
-Message-ID: <Pine.LNX.4.64.1601181250000.9140@axis700.grange>
-References: <Pine.LNX.4.64.1512151732080.18335@axis700.grange>
- <20160113102453.GJ576@valkosipuli.retiisi.org.uk>
- <Pine.LNX.4.64.1601141159520.15949@axis700.grange>
- <20160114112914.GM576@valkosipuli.retiisi.org.uk>
+	id S932263AbcA0LWv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2016 06:22:51 -0500
+Subject: Re: [PATCH v3 2/2] [media] tvp5150: Add pad-level subdev operations
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1453812384-15512-1-git-send-email-javier@osg.samsung.com>
+ <1453812384-15512-3-git-send-email-javier@osg.samsung.com>
+ <20160127073818.0bfda497@recife.lan>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eduard Gavin <egavinc@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Message-ID: <56A8A883.7060402@osg.samsung.com>
+Date: Wed, 27 Jan 2016 08:22:43 -0300
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20160127073818.0bfda497@recife.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 14 Jan 2016, Sakari Ailus wrote:
+Hello Mauro,
 
-> Hi Guennadi,
-> 
-> On Thu, Jan 14, 2016 at 12:12:08PM +0100, Guennadi Liakhovetski wrote:
-> > Hi Sakari,
-> > 
-> > Thanks for a review! I'll fix all the cosmetic issues, thanks. As for 
-> > other comments:
-> > 
-> > On Wed, 13 Jan 2016, Sakari Ailus wrote:
-> > 
-> > [snip]
-> > 
-> > > > --- /dev/null
-> > > > +++ b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
-> > > > @@ -0,0 +1,49 @@
-> > > > +<refentry id="V4L2-PIX-FMT-Y12I">
-> > > > +  <refmeta>
-> > > > +    <refentrytitle>V4L2_PIX_FMT_Y12I ('Y12I ')</refentrytitle>
-> > > 
-> > > Extra space after 4cc.                        ^
-> > > 
-> > > > +    &manvol;
-> > > > +  </refmeta>
-> > > > +  <refnamediv>
-> > > > +    <refname><constant>V4L2_PIX_FMT_Y12I</constant></refname>
-> > > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-> > > > +  </refnamediv>
-> > > > +  <refsect1>
-> > > > +    <title>Description</title>
-> > > > +
-> > > > +    <para>This is a grey-scale image with a depth of 12 bits per pixel, but with
-> > > > +pixels from 2 sources interleaved and bit-packed. Each pixel is stored in a
-> > > > +24-bit word. E.g. data, stored by a R200 RealSense camera on a little-endian
-> > > > +machine can be deinterlaced using</para>
-> > > 
-> > > I think we should precisely define the format, either big or little. Is the
-> > > endianness of the format affected by the machine endianness? (I'd guess no,
-> > > but that's just a guess.)
-> > 
-> > Ok, since this works on a LE machine:
-> > 
-> > left0 = 0xfff & *(__u16 *)buf;
-> > 
-> > I think we can call data LE in the buffer. But specifying left-right order 
-> > cannot be done in terms of endianness, so, I provided that code snippet.
-> 
-> I meant that the the format definition should clearly say which one is the
-> order.
-> 
-> > 
-> > > I wonder if the format should convey the information which one is right and
-> > > which one is left, e.g. by adding "LR" to the name.
-> > 
-> > You mean to distinguish between LR and RL? Can do in principle, yes.
-> 
-> If we want the format to have an exact definition, we should have this as
-> well.
-> 
-> I think the formats increasingly have little details such as this one which
-> require adding many format variants but I'm not sure if it's even a problem.
-> 
-> I'd postfix the name with "LR" or at least document that this is the pixel
-> order.
+On 01/27/2016 06:38 AM, Mauro Carvalho Chehab wrote:
+> Em Tue, 26 Jan 2016 09:46:24 -0300
+> Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
+>
+>> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>
+>> This patch enables the tvp5150 decoder driver to be used with the media
+>> controller framework by adding pad-level subdev operations and init the
+>> media entity pad.
+>>
+>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> ---
+>>
+>> Changes in v3:
+>> - Split the format fix and the MC support in different patches.
+>>    Suggested by Mauro Carvalho Chehab.
+>>
+>> Changes in v2:
+>> - Embed mbus_type into struct tvp5150. Suggested by Laurent Pinchart.
+>> - Remove platform data support. Suggested by Laurent Pinchart.
+>> - Check if the hsync, vsync and field even active properties are correct.
+>>    Suggested by Laurent Pinchart.
+>>
+>>   drivers/media/i2c/tvp5150.c | 21 ++++++++++-----------
+>>   1 file changed, 10 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+>> index 37853bc3f0b3..e48b529c53b4 100644
+>> --- a/drivers/media/i2c/tvp5150.c
+>> +++ b/drivers/media/i2c/tvp5150.c
+>> @@ -37,6 +37,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
+>>
+>>   struct tvp5150 {
+>>   	struct v4l2_subdev sd;
+>> +	struct media_pad pad;
+>>   	struct v4l2_ctrl_handler hdl;
+>>   	struct v4l2_rect rect;
+>>
+>> @@ -826,17 +827,6 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
+>>   	}
+>>   }
+>>
+>> -static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
+>> -		struct v4l2_subdev_pad_config *cfg,
+>> -		struct v4l2_subdev_mbus_code_enum *code)
+>> -{
+>> -	if (code->pad || code->index)
+>> -		return -EINVAL;
+>> -
+>> -	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
+>> -	return 0;
+>> -}
+>> -
+>
+> Huh! Why are you removing this? It is causing compilation breakages!
+>
 
-Don't think that's a good option ATM since the format is already in 
-videodev2.h
+Sigh, somehow I managed to post the wrong patch... I'm so sorry about that.
 
-> > > No need to mention RealSense specifically IMO.
-> > 
-> > Ok.
-> > 
-> > > > +
-> > > > +<para>
-> > > > +<programlisting>
-> > > > +__u8 *buf;
-> > > > +left0 = 0xfff &amp; *(__u16 *)buf;
-> > > > +rirhgt0 = *(__u16 *)(buf + 1) >> 4;
-> > > 
-> > > "right"
-> > 
-> > [snip]
-> > 
-> > > > diff --git a/Documentation/DocBook/media/v4l/pixfmt-z16.xml b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-> > > > new file mode 100644
-> > > > index 0000000..fac3c68
-> > > > --- /dev/null
-> > > > +++ b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-> > > > @@ -0,0 +1,79 @@
-> > > > +<refentry id="V4L2-PIX-FMT-Z16">
-> > > > +  <refmeta>
-> > > > +    <refentrytitle>V4L2_PIX_FMT_Z16 ('Z16 ')</refentrytitle>
-> > > > +    &manvol;
-> > > > +  </refmeta>
-> > > > +  <refnamediv>
-> > > > +    <refname><constant>V4L2_PIX_FMT_Z16</constant></refname>
-> > > > +    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-> > > > +  </refnamediv>
-> > > > +  <refsect1>
-> > > > +    <title>Description</title>
-> > > > +
-> > > > +    <para>This is a 16-bit format, representing depth data. Each pixel is a
-> > > > +distance in mm to the respective point in the image coordinates. Each pixel is
-> > > > +stored in a 16-bit word in the little endian byte order.</para>
-> > > 
-> > > The format itself looks quite generic but the unit might be specific to the
-> > > device. It'd sound silly to add a new format if just the unit is different.
-> > 
-> > My understanding is, that each format must have a fixed meaning, i.e. a 
-> > fixed depth unit too, although it would definitely help to be able to 
-> > relax that requirement in this case.
-> 
-> Agreed.
-> 
-> > > How about re-purpose the colourspace field for depth formats and
-> > > add a flag telling the colour space field contains the unit and the unit
-> > > prefix.
-> > 
-> > Hmmm... Not sure I find this a proper use of the .colorspace field...
-> 
-> I think colour space doesn't make much sense in context of depth.
+Laurent's patch moves this function so the V4L2 subdev pad ops are grouped
+together. That's was the idea, not to remove it.
+  
+>>   static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
+>>   		struct v4l2_subdev_pad_config *cfg,
+>>   		struct v4l2_subdev_format *format)
+>> @@ -1165,6 +1155,7 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
+>>
+>>   static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
+>>   	.enum_mbus_code = tvp5150_enum_mbus_code,
+>> +	.enum_frame_size = tvp5150_enum_frame_size,
+>
+> Also, you forgot to add tvp5150_enum_frame_size here!
+>
 
-Agree, still I don't think it is a good idea to abuse it for a different 
-purpose. If it doesn't make sense it simply shouldn't be used.
+Yes, this is also missing in the posted patch. Following [0] is the correct
+one, please let me know if you want me to resend or sharing here is enough.
 
-Thanks
-Guennadi
+> drivers/media/i2c/tvp5150.c:1124:20: error: 'tvp5150_enum_mbus_code' undeclared here (not in a function)
+>    .enum_mbus_code = tvp5150_enum_mbus_code,
+>                      ^
+> drivers/media/i2c/tvp5150.c:1125:21: error: 'tvp5150_enum_frame_size' undeclared here (not in a function)
+>    .enum_frame_size = tvp5150_enum_frame_size,
+>                       ^
+> Regards,
+> Mauro
+>
 
-> > > Not something to have in this patch nor patchset though: controls
-> > > should gain that as well.
-> > 
-> > Sorry, didn't get this - how can a control tell you what units a specific 
-> > format uses? What if your camera can output depth in multiple units?
-> 
-> Controls do not have units at the moment. The specification often suggests a
-> unit but using the unit suggested by the spec isn't always possible, thus
-> it'd be useful to have this available through VIDIOC_QUERYCTRL.
-> 
-> -- 
-> Kind regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
-> 
+[0]:
+ From 3436139006fd4adc2cf195b60c10a3f7598b3e08 Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Sun, 18 May 2014 17:53:06 +0200
+Subject: [PATCH v3 2/2] [media] tvp5150: Add pad-level subdev operations
+
+This patch enables the tvp5150 decoder driver to be used with the media
+controller framework by adding pad-level subdev operations and init the
+media entity pad.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+---
+
+Changes in v3:
+- Split the format fix and the MC support in different patches.
+   Suggested by Mauro Carvalho Chehab.
+
+Changes in v2:
+- Embed mbus_type into struct tvp5150. Suggested by Laurent Pinchart.
+- Remove platform data support. Suggested by Laurent Pinchart.
+- Check if the hsync, vsync and field even active properties are correct.
+   Suggested by Laurent Pinchart.
+
+  drivers/media/i2c/tvp5150.c | 54 ++++++++++++++++++++++++++++++++++++---------
+  1 file changed, 43 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 97d19de1b051..8e4f4fa5cfdc 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -37,6 +37,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
+  
+  struct tvp5150 {
+  	struct v4l2_subdev sd;
++	struct media_pad pad;
+  	struct v4l2_ctrl_handler hdl;
+  	struct v4l2_rect rect;
+  
+@@ -826,17 +827,6 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
+  	}
+  }
+  
+-static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_mbus_code_enum *code)
+-{
+-	if (code->pad || code->index)
+-		return -EINVAL;
+-
+-	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
+-	return 0;
+-}
+-
+  static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
+  		struct v4l2_subdev_pad_config *cfg,
+  		struct v4l2_subdev_format *format)
+@@ -968,6 +958,39 @@ static int tvp5150_g_mbus_config(struct v4l2_subdev *sd,
+  	return 0;
+  }
+  
++ /****************************************************************************
++			V4L2 subdev pad ops
++ ****************************************************************************/
++
++static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_mbus_code_enum *code)
++{
++	if (code->index)
++		return -EINVAL;
++
++	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
++	return 0;
++}
++
++static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
++				   struct v4l2_subdev_pad_config *cfg,
++				   struct v4l2_subdev_frame_size_enum *fse)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++
++	if (fse->index >= 8 || fse->code != MEDIA_BUS_FMT_UYVY8_2X8)
++		return -EINVAL;
++
++	fse->code = MEDIA_BUS_FMT_UYVY8_2X8;
++	fse->min_width = decoder->rect.width;
++	fse->max_width = decoder->rect.width;
++	fse->min_height = decoder->rect.height / 2;
++	fse->max_height = decoder->rect.height / 2;
++
++	return 0;
++}
++
+  /****************************************************************************
+  			I2C Command
+   ****************************************************************************/
+@@ -1131,6 +1154,7 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
+  
+  static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
+  	.enum_mbus_code = tvp5150_enum_mbus_code,
++	.enum_frame_size = tvp5150_enum_frame_size,
+  	.set_fmt = tvp5150_fill_fmt,
+  	.get_fmt = tvp5150_fill_fmt,
+  };
+@@ -1286,6 +1310,14 @@ static int tvp5150_probe(struct i2c_client *c,
+  	}
+  
+  	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	core->pad.flags = MEDIA_PAD_FL_SOURCE;
++	res = media_entity_pads_init(&sd->entity, 1, &core->pad);
++	if (res < 0)
++		return res;
++#endif
+  
+  	res = tvp5150_detect_version(core);
+  	if (res < 0)
+-- 
+2.5.0
