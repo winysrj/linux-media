@@ -1,162 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49233 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751341AbcAFRSC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 12:18:02 -0500
-Subject: Re: [PATCH v2 0/8] i2c mux cleanup and locking update
-To: Peter Rosin <peda@lysator.liu.se>, Wolfram Sang <wsa@the-dreams.de>
-References: <1452009438-27347-1-git-send-email-peda@lysator.liu.se>
-Cc: Peter Rosin <peda@axentia.se>, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicholas Mc Guire <hofrat@osadl.org>,
-	Olli Salonen <olli.salonen@iki.fi>, linux-i2c@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <568D4C3D.3000906@iki.fi>
-Date: Wed, 6 Jan 2016 19:17:49 +0200
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53730 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754221AbcA0Lou (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2016 06:44:50 -0500
+Date: Wed, 27 Jan 2016 13:44:44 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>, linux-api@vger.kernel.org
+Subject: Re: [PATCH v2] [media] Postpone the addition of MEDIA_IOC_G_TOPOLOGY
+Message-ID: <20160127114443.GF14876@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1452009438-27347-1-git-send-email-peda@lysator.liu.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <be0270ec89e6b9b49de7e533dd1f3a89ad34d205.1452523228.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/05/2016 05:57 PM, Peter Rosin wrote:
-> From: Peter Rosin <peda@axentia.se>
->
-> Hi!
->
-> I have a pair of boards with this i2c topology:
->
->                         GPIO ---|  ------ BAT1
->                          |      v /
->     I2C  -----+------B---+---- MUX
->               |                   \
->             EEPROM                 ------ BAT2
->
-> 	(B denotes the boundary between the boards)
+Hi Mauro,
 
-Handling of I2C muxes that close channel automatically, after the first 
-I2C stop (P) is seen?
+I see that this patch got applied to the media_tree master, but then
+reverted a few days ago. Do you think the G_TOPOLOGY IOCTL and the
+associated user space structs are ready for being included in a release?
 
-For example channel is selected to BAT1 => there is EEPROM write => mux 
-closes channel BAT1 => access to BAT1 will fail. Is it possible to lock 
-whole adapter, but allow only traffic to i2c mux client?
+I have a few concerns over the current interface, in decreasing order of
+importance:
 
-regards
-Antti
+- G_TOPOLOGY IOCTL is intended to enable dynamic updates, but do we have a
+  driver actually supporting this? For instance, supposing that the users's
+  knowledge of the graph state isn't what the user expected it to be
+  (assuming the graph state changed between G_TOPOLOGY and SETUP_LINK), does
+  the user still want to perform the SETUP_LINK IOCTL or would the user
+  prefer that the kernel returned an error instead to tell the user has no
+  knowledge of the current graph state? I'd like to see how that works in
+  practice. For instance, a virtual driver such as vivi, but with MC, V4L2
+  sub-device and V4L2 support which adds and removes a random entity every,
+  say, five minutes, would be wonderful. If this has not been tried out in a
+  real use case, the chances of getting it right may remain rather slim.
 
->
-> The problem with this is that the GPIO controller sits on the same i2c bus
-> that it MUXes. For pca954x devices this is worked around by using unlocked
-> transfers when updating the MUX. I have no such luck as the GPIO is a general
-> purpose IO expander and the MUX is just a random bidirectional MUX, unaware
-> of the fact that it is muxing an i2c bus, and extending unlocked transfers
-> into the GPIO subsystem is too ugly to even think about. But the general hw
-> approach is sane in my opinion, with the number of connections between the
-> two boards minimized. To put is plainly, I need support for it.
->
-> So, I observe that while it is needed to have the i2c bus locked during the
-> actual MUX update in order to avoid random garbage on the slave side, it
-> is not strictly a must to have it locked over the whole sequence of a full
-> select-transfer-deselect operation. The MUX itself needs to be locked, so
-> transfers to clients behind the mux are serialized, and the MUX needs to be
-> stable during all i2c traffic (otherwise individual mux slave segments
-> might see garbage).
->
-> This series accomplishes this by adding a dt property to i2c-mux-gpio and
-> i2c-mux-pinctrl that can be used to state that the mux is updated by means
-> of the muxed master bus, and that the select-transfer-deselect operations
-> should be locked individually. When this holds, the i2c bus *is* locked
-> during muxing, since the muxing happens as part of i2c transfers. This
-> is true even if the MUX is updated with several transfers to the GPIO (at
-> least as long as *all* MUX changes are using the i2s master bus). A lock
-> is added to the mux so that transfers through the mux are serialized.
->
-> Concerns:
-> - The locking is perhaps too complex?
-> - I worry about the priority inheritance aspect of the adapter lock. When
->    the transfers behind the mux are divided into select-transfer-deselect all
->    locked individually, low priority transfers get more chances to interfere
->    with high priority transfers.
-> - When doing an i2c_transfer() in_atomic() context of with irqs_disabled(),
->    there is a higher possibility that the mux is not returned to its idle
->    state after a failed (-EAGAIN) transfer due to trylock.
->
-> To summarize the series, there's some i2c-mux infrastructure cleanup work
-> first (I think that part stands by itself as desireable regardless), the
-> locking changes are in the last three patches of the series, with the real
-> meat in 8/8.
->
-> PS. needs a bunch of testing, I do not have access to all the involved hw
->
-> Changes since v1:
-> - Allocate mux core and (optional) priv in a combined allocation.
-> - Killed dev_err messages triggered by memory allocation failure.
-> - Fix the device specific i2c muxes that I had overlooked.
-> - Rebased on top of v4.4-rc8 (was based on v4.4-rc6 previously).
->
-> Cheers,
-> Peter
->
-> Peter Rosin (8):
->    i2c-mux: add common core data for every mux instance
->    i2c-mux: move select and deselect ops to i2c_mux_core
->    i2c-mux: move the slave side adapter management to i2c_mux_core
->    i2c-mux: remove the mux dev pointer from the mux per channel data
->    i2c-mux: pinctrl: get rid of the driver private struct device pointer
->    i2c: allow adapter drivers to override the adapter locking
->    i2c: muxes always lock the parent adapter
->    i2c-mux: relax locking of the top i2c adapter during i2c controlled
->      muxing
->
->   .../devicetree/bindings/i2c/i2c-mux-gpio.txt       |   2 +
->   .../devicetree/bindings/i2c/i2c-mux-pinctrl.txt    |   4 +
->   drivers/i2c/i2c-core.c                             |  59 ++---
->   drivers/i2c/i2c-mux.c                              | 272 +++++++++++++++++----
->   drivers/i2c/muxes/i2c-arb-gpio-challenge.c         |  46 ++--
->   drivers/i2c/muxes/i2c-mux-gpio.c                   |  58 ++---
->   drivers/i2c/muxes/i2c-mux-pca9541.c                |  58 +++--
->   drivers/i2c/muxes/i2c-mux-pca954x.c                |  66 ++---
->   drivers/i2c/muxes/i2c-mux-pinctrl.c                |  89 +++----
->   drivers/i2c/muxes/i2c-mux-reg.c                    |  63 ++---
->   drivers/iio/imu/inv_mpu6050/inv_mpu_core.c         |  33 +--
->   drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h          |   2 +-
->   drivers/media/dvb-frontends/m88ds3103.c            |  23 +-
->   drivers/media/dvb-frontends/m88ds3103_priv.h       |   2 +-
->   drivers/media/dvb-frontends/rtl2830.c              |  24 +-
->   drivers/media/dvb-frontends/rtl2830_priv.h         |   2 +-
->   drivers/media/dvb-frontends/rtl2832.c              |  30 ++-
->   drivers/media/dvb-frontends/rtl2832_priv.h         |   2 +-
->   drivers/media/dvb-frontends/si2168.c               |  29 ++-
->   drivers/media/dvb-frontends/si2168_priv.h          |   2 +-
->   drivers/media/usb/cx231xx/cx231xx-core.c           |   6 +-
->   drivers/media/usb/cx231xx/cx231xx-i2c.c            |  48 ++--
->   drivers/media/usb/cx231xx/cx231xx.h                |   4 +-
->   drivers/of/unittest.c                              |  41 ++--
->   include/linux/i2c-mux-gpio.h                       |   2 +
->   include/linux/i2c-mux-pinctrl.h                    |   2 +
->   include/linux/i2c-mux.h                            |  39 ++-
->   include/linux/i2c.h                                |  28 ++-
->   28 files changed, 612 insertions(+), 424 deletions(-)
->
+- struct media_v2_pad contains fields called "id" and "entity_id". The "id"
+  field, as far as I understand, is the graph object id, not the pad index.
+  In order to configure a link using MEDIA_IOC_SETUP_LINK, one does need to
+  know the entity id and the pad index. This information you'll only get
+  using MEDIA_IOC_ENUM_LINKS, which right now refutes the very purpose of
+  the G_TOPOLOGY IOCTL. Knowing the pad indices is also essential for the
+  V4L2 sub-device user space API. (I remember whether or not the pad index
+  should be there but I don't remember the details, except that it was
+  intentionally left out. Considering this again, I think adding it is
+  unavoidable.) This together with the above point suggest there are no
+  real applications using G_TOPOLOGY yet.
+
+- Some more thought should be given to the state of the reserved fields, in
+  e.g. struct media_v2_pad there are __u32 fields only, except a reserved
+  field which is a __u16 array of 9. While this isn't exactly wrong it makes
+  no sense either.
+
+- KernelDoc documentation would be nice for the G_TOPOLOGY argument structs.
+  DocBook documentation for G_TOPOLOGY as itself is fine, but I think it
+  reflects an older version of the structs than what's now defined in
+  include/uapi/linux/media.h.
+
+Please give some thought on this. There are some obvious gaps that need to
+be filled, and when doing so, I don't think we want to start guessing
+whether there might be an application that depends on the current API/ABI.
+
+If you'd like the G_TOPOLOGY IOCTL and its argument structs to be available
+for developers without kernel changes, I propose to add a new Kconfig option
+for G_TOPOLOGY and make it depend on BROKEN.
+
+What do you think?
+
+On Mon, Jan 11, 2016 at 12:41:02PM -0200, Mauro Carvalho Chehab wrote:
+> There are a few discussions left with regards to this ioctl:
+> 
+> 1) the name of the new structs will contain _v2_ on it?
+> 2) what's the best alternative to avoid compat32 issues?
+> 
+> Due to that, let's postpone the addition of this new ioctl to
+> the next Kernel version, to give people more time to discuss it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+> 
+> v2: Fix a compilation breakage
+> 
+>  Documentation/DocBook/media/v4l/media-ioc-g-topology.xml | 3 +++
+>  drivers/media/media-device.c                             | 7 ++++++-
+>  include/uapi/linux/media.h                               | 6 +++++-
+>  3 files changed, 14 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+> index e0d49fa329f0..63152ab9efba 100644
+> --- a/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+> +++ b/Documentation/DocBook/media/v4l/media-ioc-g-topology.xml
+> @@ -48,6 +48,9 @@
+>  
+>    <refsect1>
+>      <title>Description</title>
+> +
+> +    <para><emphasis role="bold">NOTE:</emphasis> This new ioctl is programmed to be added on Kernel 4.6. Its definition/arguments may change until its final version.</para>
+> +
+>      <para>The typical usage of this ioctl is to call it twice.
+>      On the first call, the structure defined at &media-v2-topology; should
+>      be zeroed. At return, if no errors happen, this ioctl will return the
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 4d1c13de494b..7dae0ac0f3ae 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -234,6 +234,7 @@ static long media_device_setup_link(struct media_device *mdev,
+>  	return ret;
+>  }
+>  
+> +#if 0 /* Let's postpone it to Kernel 4.6 */
+>  static long __media_device_get_topology(struct media_device *mdev,
+>  				      struct media_v2_topology *topo)
+>  {
+> @@ -389,6 +390,7 @@ static long media_device_get_topology(struct media_device *mdev,
+>  
+>  	return 0;
+>  }
+> +#endif
+>  
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  			       unsigned long arg)
+> @@ -422,13 +424,14 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+> +#if 0 /* Let's postpone it to Kernel 4.6 */
+>  	case MEDIA_IOC_G_TOPOLOGY:
+>  		mutex_lock(&dev->graph_mutex);
+>  		ret = media_device_get_topology(dev,
+>  				(struct media_v2_topology __user *)arg);
+>  		mutex_unlock(&dev->graph_mutex);
+>  		break;
+> -
+> +#endif
+>  	default:
+>  		ret = -ENOIOCTLCMD;
+>  	}
+> @@ -477,7 +480,9 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+>  	case MEDIA_IOC_DEVICE_INFO:
+>  	case MEDIA_IOC_ENUM_ENTITIES:
+>  	case MEDIA_IOC_SETUP_LINK:
+> +#if 0 /* Let's postpone it to Kernel 4.6 */
+>  	case MEDIA_IOC_G_TOPOLOGY:
+> +#endif
+>  		return media_device_ioctl(filp, cmd, arg);
+>  
+>  	case MEDIA_IOC_ENUM_LINKS32:
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 5dbb208e5451..1e3c8cb43bd7 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -286,7 +286,7 @@ struct media_links_enum {
+>   *	  later, before the adding this API upstream.
+>   */
+>  
+> -
+> +#if 0 /* Let's postpone it to Kernel 4.6 */
+>  struct media_v2_entity {
+>  	__u32 id;
+>  	char name[64];		/* FIXME: move to a property? (RFC says so) */
+> @@ -351,6 +351,7 @@ static inline void __user *media_get_uptr(__u64 arg)
+>  {
+>  	return (void __user *)(uintptr_t)arg;
+>  }
+> +#endif
+>  
+>  /* ioctls */
+>  
+> @@ -358,6 +359,9 @@ static inline void __user *media_get_uptr(__u64 arg)
+>  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+>  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+>  #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
+> +
+> +#if 0 /* Let's postpone it to Kernel 4.6 */
+>  #define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
+> +#endif
+>  
+>  #endif /* __LINUX_MEDIA_H */
 
 -- 
-http://palosaari.fi/
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
