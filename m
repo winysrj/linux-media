@@ -1,185 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from v-smtpgw2.han.skanova.net ([81.236.60.205]:43965 "EHLO
-	v-smtpgw2.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752067AbcAaIzD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jan 2016 03:55:03 -0500
-Subject: Re: DVBSky T980C CI issues (kernel 4.0.x)
-To: Olli Salonen <olli.salonen@iki.fi>,
-	Jurgen Kramer <gtmkramer@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1436697509.2446.14.camel@xs4all.nl>
- <1440352250.13381.3.camel@xs4all.nl> <55F332FE.7040201@mbox200.swipnet.se>
- <1442041326.2442.2.camel@xs4all.nl>
- <CAAZRmGxvrXjanCTcd0Ybk-qzHhqO5e6JhrpSWxNXSa+zzPsdUg@mail.gmail.com>
- <1454007436.13371.4.camel@xs4all.nl>
- <CAAZRmGwuinufZpCpTs8t+BRyTcfio-4z34PCKH7Ha3J+dxXNqw@mail.gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
-Message-ID: <56ADCBE4.6050609@mbox200.swipnet.se>
-Date: Sun, 31 Jan 2016 09:55:00 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAAZRmGwuinufZpCpTs8t+BRyTcfio-4z34PCKH7Ha3J+dxXNqw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from lists.s-osg.org ([54.187.51.154]:54624 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753069AbcA0ODv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2016 09:03:51 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: David Engel <david@istwok.net>, stable@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
+Subject: [PATCH] [media] media: i2c: Don't export ir-kbd-i2c module alias
+Date: Wed, 27 Jan 2016 11:03:23 -0300
+Message-Id: <1453903403-1213-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this ci problem is the reason i decided to buy the CT2-4650 usb based 
-device instead.
-but the 4650 was a slightly newer revision needing a patch i submitted 
-earlier.
-and also this 4650 device does not have auto switching between dvb-t and 
-t2 like the dvbsky card have, so i also need an updated version of mythtv.
+This is a partial revert of commit ed8d1cf07cb16d ("[media] Export I2C
+module alias information in missing drivers") that exported the module
+aliases for the I2C drivers that were missing to make autoload to work.
 
-my long term wish is to not have to patch things or build custom kernels 
-or modules.
-so anything done to improve the dvbsky card or the 4650 is much appreciated.
+But there is a bug report [0] that auto load of the ir-kbd-i2c driver
+cause the Hauppauge HD-PVR driver to not behave correctly.
 
+This is a hdpvr latent bug that was just exposed by ir-kbd-i2c module
+autoloading working and will also happen if the I2C driver is built-in
+or a user calls modprobe to load the module and register the driver.
 
-On 2016-01-28 20:42, Olli Salonen wrote:
-> Hi Jürgen & Mauro,
->
-> I did bisect this and it seems this rather big patch broke it:
->
-> 2b0aac3011bc7a9db27791bed4978554263ef079 is the first bad commit
-> commit 2b0aac3011bc7a9db27791bed4978554263ef079
-> Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Date:   Tue Dec 23 13:48:07 2014 -0200
->
->      [media] cx23885: move CI/MAC registration to a separate function
->
->      As reported by smatch:
->          drivers/media/pci/cx23885/cx23885-dvb.c:2080 dvb_register()
-> Function too hairy.  Giving up.
->
->      This is indeed a too complex function, with lots of stuff inside.
->      Breaking this into two functions makes it a little bit less hairy.
->
->      Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->
-> It's getting a bit late, so I'll call it a day now and have a look at
-> the patch to see what goes wrong there.
->
-> Cheers,
-> -olli
->
-> On 28 January 2016 at 20:57, Jurgen Kramer <gtmkramer@xs4all.nl> wrote:
->> Hi Olli,
->>
->> On Thu, 2016-01-28 at 19:26 +0200, Olli Salonen wrote:
->>> Hi Jürgen,
->>>
->>> Did you get anywhere with this?
->>>
->>> I have a clone of your card and was just starting to look at this
->>> issue. Kernel 3.19 seems to work ok, but 4.3 not. Did you have any
->>> time to try to pinpoint this more?
->> No, unfortunately not. I have spend a few hours adding printk's but it
->> did not get me any closer what causes the issue. This really needs
->> investigation from someone who is more familiar with linux media.
->>
->> Last thing I tried was the latest (semi open) drivers from dvbsky on a
->> 4.3 kernel. Here the CI and CAM registered successfully.
->>
->> Greetings,
->> Jurgen
->>
->>> Cheers,
->>> -olli
->>>
->>> On 12 September 2015 at 10:02, Jurgen Kramer <gtmkramer@xs4all.nl>
->>> wrote:
->>>> On Fri, 2015-09-11 at 22:01 +0200, Torbjorn Jansson wrote:
->>>>> On 2015-08-23 19:50, Jurgen Kramer wrote:
->>>>>>
->>>>>> On Sun, 2015-07-12 at 12:38 +0200, Jurgen Kramer wrote:
->>>>>>> I have been running a couple of DVBSky T980C's with CIs with
->>>>>>> success
->>>>>>> using an older kernel (3.17.8) with media-build and some
->>>>>>> added patches
->>>>>>> from the mailing list.
->>>>>>>
->>>>>>> I thought lets try a current 4.0 kernel to see if I no longer
->>>>>>> need to be
->>>>>>> running a custom kernel. Everything works just fine except
->>>>>>> the CAM
->>>>>>> module. I am seeing these:
->>>>>>>
->>>>>>> [  456.574969] dvb_ca adapter 0: Invalid PC card inserted :(
->>>>>>> [  456.626943] dvb_ca adapter 1: Invalid PC card inserted :(
->>>>>>> [  456.666932] dvb_ca adapter 2: Invalid PC card inserted :(
->>>>>>>
->>>>>>> The normal 'CAM detected and initialised' messages to do show
->>>>>>> up with
->>>>>>> 4.0.8
->>>>>>>
->>>>>>> I am not sure what changed in the recent kernels, what is
->>>>>>> needed to
->>>>>>> debug this?
->>>>>>>
->>>>>>> Jurgen
->>>>>> Retest. I've isolated one T980C on another PC with kernel
->>>>>> 4.1.5, still the same 'Invalid PC card inserted :(' message.
->>>>>> Even after installed today's media_build from git no
->>>>>> improvement.
->>>>>>
->>>>>> Any hints where to start looking would be appreciated!
->>>>>>
->>>>>> cimax2.c|h do not seem to have changed. There are changes to
->>>>>> dvb_ca_en50221.c
->>>>>>
->>>>>> Jurgen
->>>>>>
->>>>>
->>>>> did you get it to work?
->>>>
->>>> No, it needs a thorough debug session. So far no one seems able to
->>>> help...
->>>>
->>>>> i got a dvbsky T980C too for dvb-t2 reception and so far the only
->>>>> drivers that have worked at all is the ones from dvbsky directly.
->>>>>
->>>>> i was very happy when i noticed that recent kernels have support
->>>>> for it
->>>>> built in but unfortunately only the modules and firmware loads
->>>>> but then
->>>>> nothing actually works.
->>>>> i use mythtv and it complains a lot about the signal, running
->>>>> femon also
->>>>> produces lots of errors.
->>>>>
->>>>> so i had to switch back to kernel 4.0.4 with mediabuild from
->>>>> dvbsky.
->>>>>
->>>>> if there were any other dvb-t2 card with ci support that had
->>>>> better
->>>>> drivers i would change right away.
->>>>>
->>>>> one problem i have with the mediabuilt from dvbsky is that at
->>>>> boot the
->>>>> cam never works and i have to first tune a channel, then remove
->>>>> and
->>>>> reinstert the cam to get it to work.
->>>>> without that nothing works.
->>>>>
->>>>> and finally a problem i ran into when i tried mediabuilt from
->>>>> linuxtv.org.
->>>>> fedora uses kernel modules with .ko.xz extension so when you
->>>>> install the
->>>>> mediabuilt modulels you get one modulename.ko and one
->>>>> modulename.ko.xz
->>>>>
->>>>> before a make install from mediabuild overwrote the needed
->>>>> modules.
->>>>> any advice on how to handle this now?
->>>>>
->>>>>
->>>>
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-
->>>> media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+But there is a regression experimented by users so until the real bug
+is fixed, let's not export the module alias for the ir-kbd-i2c driver
+even when this just masks the actual issue.
+
+[0]: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=810726
+
+Fixes: ed8d1cf07cb1 ("[media] Export I2C module alias information in missing drivers")
+Cc: <stable@vger.kernel.org> # 4.3+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+---
+
+ drivers/media/i2c/ir-kbd-i2c.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index 830491960add..bf82726fd3f4 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -478,7 +478,6 @@ static const struct i2c_device_id ir_kbd_id[] = {
+ 	{ "ir_rx_z8f0811_hdpvr", 0 },
+ 	{ }
+ };
+-MODULE_DEVICE_TABLE(i2c, ir_kbd_id);
+ 
+ static struct i2c_driver ir_kbd_driver = {
+ 	.driver = {
+-- 
+2.5.0
 
