@@ -1,129 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:36801 "EHLO
-	resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752087AbcAFU1e (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44652 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751977AbcA0Nbs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 15:27:34 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 16/31] media: au0828 video remove au0828_enable_analog_tuner()
-Date: Wed,  6 Jan 2016 13:27:05 -0700
-Message-Id: <b8df6a28c43cc6eab7488e4b1f7ba4bcbec17944.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	Wed, 27 Jan 2016 08:31:48 -0500
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2C22E180D43
+	for <linux-media@vger.kernel.org>; Wed, 27 Jan 2016 14:31:44 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv3 0/5] v4l2: add support to set the InfoFrame content type
+Date: Wed, 27 Jan 2016 14:31:38 +0100
+Message-Id: <1453901503-35473-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-au0828_enable_analog_tuner() is no longer needed with
-v4l2-core and au0828-video invoking enable_source and
-disable_source handlers. In addition, it is unnecessary
-to check for tuner availability in queue_setup() as
-v4l2-core handles the tuner availability checks.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-video.c | 61 ---------------------------------
- 1 file changed, 61 deletions(-)
+The HDMI standard defines a Content Type field in the AVI InfoFrame that
+can tell the receiver what sort of video is being transferred. Based on
+that information the receiver can choose to optimize for that content type.
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 3ea9d4f..32bcc56 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -638,64 +638,6 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
- 	return rc;
- }
- 
--static int au0828_enable_analog_tuner(struct au0828_dev *dev)
--{
--#ifdef CONFIG_MEDIA_CONTROLLER
--	struct media_device *mdev = dev->media_dev;
--	struct media_entity *source;
--	struct media_link *link, *found_link = NULL;
--	int ret, active_links = 0;
--
--	if (!mdev || !dev->decoder)
--		return 0;
--
--	/*
--	 * This will find the tuner that is connected into the decoder.
--	 * Technically, this is not 100% correct, as the device may be
--	 * using an analog input instead of the tuner. However, as we can't
--	 * do DVB streaming while the DMA engine is being used for V4L2,
--	 * this should be enough for the actual needs.
--	 */
--	list_for_each_entry(link, &dev->decoder->links, list) {
--		if (link->sink->entity == dev->decoder) {
--			found_link = link;
--			if (link->flags & MEDIA_LNK_FL_ENABLED)
--				active_links++;
--			break;
--		}
--	}
--
--	if (active_links == 1 || !found_link)
--		return 0;
--
--	source = found_link->source->entity;
--	list_for_each_entry(link, &source->links, list) {
--		struct media_entity *sink;
--		int flags = 0;
--
--		sink = link->sink->entity;
--
--		if (sink == dev->decoder)
--			flags = MEDIA_LNK_FL_ENABLED;
--
--		ret = media_entity_setup_link(link, flags);
--		if (ret) {
--			pr_err(
--				"Couldn't change link %s->%s to %s. Error %d\n",
--				source->name, sink->name,
--				flags ? "enabled" : "disabled",
--				ret);
--			return ret;
--		} else
--			au0828_isocdbg(
--				"link %s->%s was %s\n",
--				source->name, sink->name,
--				flags ? "ENABLED" : "disabled");
--	}
--#endif
--	return 0;
--}
--
- static int queue_setup(struct vb2_queue *vq, const void *parg,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
- 		       unsigned int sizes[], void *alloc_ctxs[])
-@@ -711,9 +653,6 @@ static int queue_setup(struct vb2_queue *vq, const void *parg,
- 
- 	*nplanes = 1;
- 	sizes[0] = size;
--
--	au0828_enable_analog_tuner(dev);
--
- 	return 0;
- }
- 
+A practical example is that if the content type is set to 'Game' then the
+TV might configure itself to a low-latency mode.
+
+But this requires that applications can get/set the content type, and that's
+what this patch series does: it adds new content type controls and
+implements it in the adv7511 HDMI transmitter and adv7604/adv7842 receivers.
+
+Regards,
+
+	Hans
+
+Changes since v2:
+
+- Now it also compiles! Always handy...
+
+Changes since v1:
+
+- Add the _IT_ prefix since this is about IT Content, not content in general.
+- Add documentation
+- Add V4L2_CID_DV_TX_IT_CONTENT_TYPE
+- Add V4L2_DV_IT_CONTENT_TYPE_NO_ITC
+- Support this in the adv receivers.
+
+Hans Verkuil (5):
+  v4l2-ctrls: add V4L2_CID_DV_RX/TX_IT_CONTENT_TYPE controls
+  DocBook media: document the new V4L2_CID_DV_RX/TX_IT_CONTENT_TYPE
+    controls
+  adv7604: add support to for the content type control.
+  adv7842: add support to for the content type control.
+  adv7511: add support to for the content type control.
+
+ Documentation/DocBook/media/v4l/controls.xml | 50 ++++++++++++++++++++++++++++
+ drivers/media/i2c/adv7511.c                  | 22 ++++++++++--
+ drivers/media/i2c/adv7604.c                  | 21 ++++++++++++
+ drivers/media/i2c/adv7842.c                  | 20 +++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         | 16 +++++++++
+ include/uapi/linux/v4l2-controls.h           | 10 ++++++
+ 6 files changed, 137 insertions(+), 2 deletions(-)
+
 -- 
-2.5.0
+2.7.0.rc3
 
