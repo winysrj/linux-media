@@ -1,60 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33603 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755243AbcAYGVO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57428 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932941AbcA0OsO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 01:21:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH] V4L: fix ov9650 control clusters
-Date: Sun, 24 Jan 2016 23:14:40 +0200
-Message-ID: <161527698.XeG1cnYavA@avalon>
-In-Reply-To: <Pine.LNX.4.64.1601191211300.15265@axis700.grange>
-References: <Pine.LNX.4.64.1601191211300.15265@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 27 Jan 2016 09:48:14 -0500
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 25D6E600AE
+	for <linux-media@vger.kernel.org>; Wed, 27 Jan 2016 16:48:12 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 2/5] media: Always keep a graph walk large enough around
+Date: Wed, 27 Jan 2016 16:47:55 +0200
+Message-Id: <1453906078-29087-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1453906078-29087-1-git-send-email-sakari.ailus@iki.fi>
+References: <1453906078-29087-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Re-create the graph walk object as needed in order to have one large enough
+available for all entities in the graph.
 
-Thank you for the patch.
+This enumeration is used for pipeline power management in the future.
 
-On Tuesday 19 January 2016 12:12:48 Guennadi Liakhovetski wrote:
-> Auto-gain and auto-exposure clusters in the ov9650 driver have both a
-> size of 2, not 3 controls. Fix this.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c | 21 +++++++++++++++++++++
+ include/media/media-device.h |  5 +++++
+ 2 files changed, 26 insertions(+)
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I'd change the subject to "v4l: ov9650: Fix control clusters" though.
-
-> ---
->  drivers/media/i2c/ov9650.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-> index 9fe9006..2baa528 100644
-> --- a/drivers/media/i2c/ov9650.c
-> +++ b/drivers/media/i2c/ov9650.c
-> @@ -1046,8 +1046,8 @@ static int ov965x_initialize_controls(struct ov965x
-> *ov965x) ctrls->exposure->flags |= V4L2_CTRL_FLAG_VOLATILE;
-> 
->  	v4l2_ctrl_auto_cluster(3, &ctrls->auto_wb, 0, false);
-> -	v4l2_ctrl_auto_cluster(3, &ctrls->auto_gain, 0, true);
-> -	v4l2_ctrl_auto_cluster(3, &ctrls->auto_exp, 1, true);
-> +	v4l2_ctrl_auto_cluster(2, &ctrls->auto_gain, 0, true);
-> +	v4l2_ctrl_auto_cluster(2, &ctrls->auto_exp, 1, true);
->  	v4l2_ctrl_cluster(2, &ctrls->hflip);
-> 
->  	ov965x->sd.ctrl_handler = hdl;
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 4d1c13d..52d7809 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -577,6 +577,26 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 
+ 	spin_unlock(&mdev->lock);
+ 
++	mutex_lock(&mdev->graph_mutex);
++	if (mdev->entity_internal_idx_max
++	    >= mdev->pm_count_walk.ent_enum.idx_max) {
++		struct media_entity_graph new = { 0 };
++
++		/*
++		 * Initialise the new graph walk before cleaning up
++		 * the old one in order not to spoil the graph walk
++		 * object of the media device if graph walk init fails.
++		 */
++		ret = media_entity_graph_walk_init(&new, mdev);
++		if (ret) {
++			mutex_unlock(&mdev->graph_mutex);
++			return ret;
++		}
++		media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
++		mdev->pm_count_walk = new;
++	}
++	mutex_unlock(&mdev->graph_mutex);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(media_device_register_entity);
+@@ -652,6 +672,7 @@ void media_device_cleanup(struct media_device *mdev)
+ {
+ 	ida_destroy(&mdev->entity_internal_idx);
+ 	mdev->entity_internal_idx_max = 0;
++	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
+ 	mutex_destroy(&mdev->graph_mutex);
+ }
+ EXPORT_SYMBOL_GPL(media_device_cleanup);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index d385589..dba3986 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -323,6 +323,11 @@ struct media_device {
+ 	spinlock_t lock;
+ 	/* Serializes graph operations. */
+ 	struct mutex graph_mutex;
++	/*
++	 * Graph walk for power state walk. Access serialised using
++	 * graph_mutex.
++	 */
++	struct media_entity_graph pm_count_walk;
+ 
+ 	int (*link_notify)(struct media_link *link, u32 flags,
+ 			   unsigned int notification);
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
