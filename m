@@ -1,57 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45545 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751252AbcAGIfl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Jan 2016 03:35:41 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:51118 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932475AbcA0Nb4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2016 08:31:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] rtl28xxu: retry failed i2c messages
-Date: Thu,  7 Jan 2016 10:35:21 +0200
-Message-Id: <1452155721-18459-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv3 2/5] DocBook media: document the new V4L2_CID_DV_RX/TX_IT_CONTENT_TYPE controls
+Date: Wed, 27 Jan 2016 14:31:40 +0100
+Message-Id: <1453901503-35473-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1453901503-35473-1-git-send-email-hverkuil@xs4all.nl>
+References: <1453901503-35473-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sometimes i2c transfer fails. That happens especially when large
-amount of data is written sequentially eg. firmware download.
-Problem arises with both integrated rtl2832 demod and external
-mn88472 demod, which is clear indicator it is busy i2c bus issue.
-Use i2c core retry logic in order fix the issue by repeating failed
-message. Another solution which also works is to add ~100us delay
-between i2c messages - but repeating sounds more elegant and does
-not cause any extra delay for success cases.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Document these new controls.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ Documentation/DocBook/media/v4l/controls.xml | 50 ++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index eb5787a..c4c6e92 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -259,6 +259,10 @@ static int rtl28xxu_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 		ret = -EOPNOTSUPP;
- 	}
- 
-+	/* Retry failed I2C messages */
-+	if (ret == -EPIPE)
-+		ret = -EAGAIN;
-+
- err_mutex_unlock:
- 	mutex_unlock(&d->i2c_mutex);
- 
-@@ -619,6 +623,10 @@ static int rtl28xxu_identify_state(struct dvb_usb_device *d, const char **name)
- 	}
- 	dev_dbg(&d->intf->dev, "chip_id=%u\n", dev->chip_id);
- 
-+	/* Retry failed I2C messages */
-+	d->i2c_adap.retries = 1;
-+	d->i2c_adap.timeout = msecs_to_jiffies(10);
-+
- 	return WARM;
- err:
- 	dev_dbg(&d->intf->dev, "failed=%d\n", ret);
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index f13a429..7a77149 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -5070,6 +5070,46 @@ interface and may change in the future.</para>
+ 	    </entry>
+ 	  </row>
+ 	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_TX_IT_CONTENT_TYPE</constant></entry>
++	    <entry id="v4l2-dv-content-type">enum v4l2_dv_it_content_type</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures the IT Content Type
++	    of the transmitted video. This information is sent over HDMI and DisplayPort connectors
++	    as part of the AVI InfoFrame. The term 'IT Content' is used for content that originates
++	    from a computer as opposed to content from a TV broadcast or an analog source. The
++	    enum&nbsp;v4l2_dv_it_content_type defines the possible content types:</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++	        <row>
++	          <entry><constant>V4L2_DV_IT_CONTENT_TYPE_GRAPHICS</constant>&nbsp;</entry>
++		  <entry>Graphics content. Pixel data should be passed unfiltered and without
++		  analog reconstruction.</entry>
++		</row>
++	        <row>
++	          <entry><constant>V4L2_DV_IT_CONTENT_TYPE_PHOTO</constant>&nbsp;</entry>
++		  <entry>Photo content. The content is derived from digital still pictures.
++		  The content should be passed through with minimal scaling and picture
++		  enhancements.</entry>
++		</row>
++	        <row>
++	          <entry><constant>V4L2_DV_IT_CONTENT_TYPE_CINEMA</constant>&nbsp;</entry>
++		  <entry>Cinema content.</entry>
++		</row>
++	        <row>
++	          <entry><constant>V4L2_DV_IT_CONTENT_TYPE_GAME</constant>&nbsp;</entry>
++		  <entry>Game content. Audio and video latency should be minimized.</entry>
++		</row>
++	        <row>
++	          <entry><constant>V4L2_DV_IT_CONTENT_TYPE_NO_ITC</constant>&nbsp;</entry>
++		  <entry>No IT Content information is available and the ITC bit in the AVI
++		  InfoFrame is set to 0.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_DV_RX_POWER_PRESENT</constant></entry>
+ 	    <entry>bitmask</entry>
+ 	  </row>
+@@ -5098,6 +5138,16 @@ interface and may change in the future.</para>
+ 	    This control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
+ 	    </entry>
+ 	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_DV_RX_IT_CONTENT_TYPE</constant></entry>
++	    <entry>enum v4l2_dv_it_content_type</entry>
++	  </row>
++	  <row><entry spanname="descr">Reads the IT Content Type
++	    of the received video. This information is sent over HDMI and DisplayPort connectors
++	    as part of the AVI InfoFrame. The term 'IT Content' is used for content that originates
++	    from a computer as opposed to content from a TV broadcast or an analog source. See
++	    <constant>V4L2_CID_DV_TX_IT_CONTENT_TYPE</constant> for the available content types.</entry>
++	  </row>
+ 	  <row><entry></entry></row>
+ 	</tbody>
+       </tgroup>
 -- 
-http://palosaari.fi/
+2.7.0.rc3
 
