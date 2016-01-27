@@ -1,46 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:34287 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964964AbcAYSiS (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:33980 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932139AbcA0NFJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 13:38:18 -0500
-Received: by mail-yk0-f174.google.com with SMTP id a85so171523745ykb.1
-        for <linux-media@vger.kernel.org>; Mon, 25 Jan 2016 10:38:18 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <56A6680B.9050200@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net>
-	<56818B7B.8040801@users.sourceforge.net>
-	<20160125150654.7ada12ac@recife.lan>
-	<56A6680B.9050200@users.sourceforge.net>
-Date: Mon, 25 Jan 2016 13:38:17 -0500
-Message-ID: <CAGoCfix7eRYMiFRaoWn03rEt1bdQYz5YtaFyxLUAs=WZ9q9jwQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] xc5000: Faster result reporting in xc_load_fw_and_init_tuner()
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 27 Jan 2016 08:05:09 -0500
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id E8ECE180D43
+	for <linux-media@vger.kernel.org>; Wed, 27 Jan 2016 14:05:03 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv2 0/5] v4l2: add support to set the InfoFrame content type
+Date: Wed, 27 Jan 2016 14:04:58 +0100
+Message-Id: <1453899903-17790-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Are you interested in a bit of software optimisation for the implementation
-> of the function "xc_load_fw_and_init_tuner"?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-To be clear, absolutely none of the code in question is performance
-sensitive (i.e. saving a couple of extra CPU cycles has no value in
-this case).  Hence given that I'm assuming you have no intention to
-actually test any of these patches with a real device I would
-recommend you do the bare minimum to prevent Coccinelle from
-complaining and not restructure any of the core business logic unless
-you plan to also do actual testing.
+The HDMI standard defines a Content Type field in the AVI InfoFrame that
+can tell the receiver what sort of video is being transferred. Based on
+that information the receiver can choose to optimize for that content type.
 
-Thanks,
+A practical example is that if the content type is set to 'Game' then the
+TV might configure itself to a low-latency mode.
 
-Devin
+But this requires that applications can get/set the content type, and that's
+what this patch series does: it adds new content type controls and
+implements it in the adv7511 HDMI transmitter and adv7604/adv7842 receivers.
+
+Regards,
+
+	Hans
+
+Changes since v1:
+
+- Add the _IT_ prefix since this is about IT Content, not content in general.
+- Add documentation
+- Add V4L2_CID_DV_TX_IT_CONTENT_TYPE
+- Add V4L2_DV_IT_CONTENT_TYPE_NO_ITC
+- Support this in the adv receivers.
+
+
+Hans Verkuil (5):
+  v4l2-ctrls: add V4L2_CID_DV_RX/TX_IT_CONTENT_TYPE controls
+  DocBook media: document the new V4L2_CID_DV_RX/TX_IT_CONTENT_TYPE
+    controls
+  adv7604: add support to for the content type control.
+  adv7842: add support to for the content type control.
+  adv7511: add support to for the content type control.
+
+ Documentation/DocBook/media/v4l/controls.xml | 50 ++++++++++++++++++++++++++++
+ drivers/media/i2c/adv7511.c                  | 22 ++++++++++--
+ drivers/media/i2c/adv7604.c                  | 21 ++++++++++++
+ drivers/media/i2c/adv7842.c                  | 20 +++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         | 16 +++++++++
+ include/uapi/linux/v4l2-controls.h           | 10 ++++++
+ 6 files changed, 137 insertions(+), 2 deletions(-)
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+2.7.0.rc3
+
