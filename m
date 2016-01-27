@@ -1,140 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:33625 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755131AbcARMxy (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53501 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932139AbcA0NFQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 07:53:54 -0500
-Received: by mail-pa0-f68.google.com with SMTP id pv5so33614422pac.0
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 04:53:53 -0800 (PST)
-From: Josh Wu <rainyfeeling@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Songjun Wu <songjun.wu@atmel.com>,
-	Josh Wu <rainyfeeling@gmail.com>, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH 12/13] atmel-isi: use union for the fbd (frame buffer descriptor)
-Date: Mon, 18 Jan 2016 20:52:24 +0800
-Message-Id: <1453121545-27528-8-git-send-email-rainyfeeling@gmail.com>
-In-Reply-To: <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
-References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
- <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
+	Wed, 27 Jan 2016 08:05:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 3/5] adv7604: add support to for the content type control.
+Date: Wed, 27 Jan 2016 14:05:01 +0100
+Message-Id: <1453899903-17790-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1453899903-17790-1-git-send-email-hverkuil@xs4all.nl>
+References: <1453899903-17790-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Josh Wu <josh.wu@atmel.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This way, we can easy to add other type of fbd for new hardware.
+This receiver now supports reading the IT content type of the incoming
+video.
 
-Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/media/i2c/adv7604.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
- drivers/media/platform/soc_camera/atmel-isi.c | 33 ++++++++++++++++++---------
- 1 file changed, 22 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 7d2e952..b4c1f38 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -37,7 +37,7 @@
- #define FRAME_INTERVAL_MILLI_SEC	(1000 / MIN_FRAME_RATE)
- 
- /* Frame buffer descriptor */
--struct fbd {
-+struct fbd_isi_v2 {
- 	/* Physical address of the frame buffer */
- 	u32 fb_address;
- 	/* DMA Control Register(only in HISI2) */
-@@ -46,9 +46,13 @@ struct fbd {
- 	u32 next_fbd_address;
- };
- 
-+union fbd {
-+	struct fbd_isi_v2 fbd_isi;
-+};
-+
- struct isi_dma_desc {
- 	struct list_head list;
--	struct fbd *p_fbd;
-+	union fbd *p_fbd;
- 	dma_addr_t fbd_phys;
- };
- 
-@@ -69,7 +73,7 @@ struct atmel_isi {
- 	struct vb2_alloc_ctx		*alloc_ctx;
- 
- 	/* Allocate descriptors for dma buffer use */
--	struct fbd			*p_fb_descriptors;
-+	union fbd			*p_fb_descriptors;
- 	dma_addr_t			fb_descriptors_phys;
- 	struct				list_head dma_desc_head;
- 	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
-@@ -396,6 +400,16 @@ static int buffer_init(struct vb2_buffer *vb)
- 	return 0;
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index f8dd750..249fe14 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1216,6 +1216,20 @@ static int adv76xx_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return -EINVAL;
  }
  
-+static void isi_hw_init_dma_desc(union fbd *p_fdb, u32 fb_addr,
-+				 u32 next_fbd_addr)
++static int adv76xx_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
 +{
-+	struct fbd_isi_v2 *p = &(p_fdb->fbd_isi);
++	struct v4l2_subdev *sd =
++		&container_of(ctrl->handler, struct adv76xx_state, hdl)->sd;
 +
-+	p->fb_address = fb_addr;
-+	p->next_fbd_address = next_fbd_addr;
-+	p->dma_ctrl = ISI_DMA_CTRL_WB;
++	if (ctrl->id == V4L2_CID_DV_RX_CONTENT_TYPE) {
++		ctrl->val = V4L2_DV_CONTENT_TYPE_NO_ITC;
++		if ((io_read(sd, 0x60) & 1) && (infoframe_read(sd, 0x03) & 0x80))
++			ctrl->val = (infoframe_read(sd, 0x05) >> 4) & 3;
++		return 0;
++	}
++	return -EINVAL;
 +}
 +
- static int buffer_prepare(struct vb2_buffer *vb)
- {
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-@@ -428,10 +442,7 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 			list_del_init(&desc->list);
+ /* ----------------------------------------------------------------------- */
  
- 			/* Initialize the dma descriptor */
--			desc->p_fbd->fb_address =
--					vb2_dma_contig_plane_dma_addr(vb, 0);
--			desc->p_fbd->next_fbd_address = 0;
--			desc->p_fbd->dma_ctrl = ISI_DMA_CTRL_WB;
-+			isi_hw_init_dma_desc(desc->p_fbd, vb2_dma_contig_plane_dma_addr(vb, 0), 0);
+ static inline bool no_power(struct v4l2_subdev *sd)
+@@ -2381,6 +2395,7 @@ static int adv76xx_subscribe_event(struct v4l2_subdev *sd,
  
- 			buf->p_dma_desc = desc;
- 		}
-@@ -923,7 +934,7 @@ static int atmel_isi_remove(struct platform_device *pdev)
- 	soc_camera_host_unregister(soc_host);
- 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
- 	dma_free_coherent(&pdev->dev,
--			sizeof(struct fbd) * MAX_BUFFER_NUM,
-+			sizeof(union fbd) * MAX_BUFFER_NUM,
- 			isi->p_fb_descriptors,
- 			isi->fb_descriptors_phys);
- 	pm_runtime_disable(&pdev->dev);
-@@ -1010,7 +1021,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&isi->dma_desc_head);
+ static const struct v4l2_ctrl_ops adv76xx_ctrl_ops = {
+ 	.s_ctrl = adv76xx_s_ctrl,
++	.g_volatile_ctrl = adv76xx_g_volatile_ctrl,
+ };
  
- 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
--				sizeof(struct fbd) * MAX_BUFFER_NUM,
-+				sizeof(union fbd) * MAX_BUFFER_NUM,
- 				&isi->fb_descriptors_phys,
- 				GFP_KERNEL);
- 	if (!isi->p_fb_descriptors) {
-@@ -1021,7 +1032,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 	for (i = 0; i < MAX_BUFFER_NUM; i++) {
- 		isi->dma_desc[i].p_fbd = isi->p_fb_descriptors + i;
- 		isi->dma_desc[i].fbd_phys = isi->fb_descriptors_phys +
--					i * sizeof(struct fbd);
-+					i * sizeof(union fbd);
- 		list_add(&isi->dma_desc[i].list, &isi->dma_desc_head);
- 	}
+ static const struct v4l2_subdev_core_ops adv76xx_core_ops = {
+@@ -3010,6 +3025,7 @@ static int adv76xx_probe(struct i2c_client *client,
+ 		V4L2_DV_BT_CEA_640X480P59_94;
+ 	struct adv76xx_state *state;
+ 	struct v4l2_ctrl_handler *hdl;
++	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_subdev *sd;
+ 	unsigned int i;
+ 	unsigned int val, val2;
+@@ -3141,6 +3157,11 @@ static int adv76xx_probe(struct i2c_client *client,
+ 			V4L2_CID_SATURATION, 0, 255, 1, 128);
+ 	v4l2_ctrl_new_std(hdl, &adv76xx_ctrl_ops,
+ 			V4L2_CID_HUE, 0, 128, 1, 0);
++	ctrl = v4l2_ctrl_new_std_menu(hdl, &adv76xx_ctrl_ops,
++			V4L2_CID_DV_RX_CONTENT_TYPE, V4L2_DV_CONTENT_TYPE_NO_ITC,
++			0, V4L2_DV_CONTENT_TYPE_NO_ITC);
++	if (ctrl)
++		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
  
-@@ -1080,7 +1091,7 @@ err_ioremap:
- 	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
- err_alloc_ctx:
- 	dma_free_coherent(&pdev->dev,
--			sizeof(struct fbd) * MAX_BUFFER_NUM,
-+			sizeof(union fbd) * MAX_BUFFER_NUM,
- 			isi->p_fb_descriptors,
- 			isi->fb_descriptors_phys);
- 
+ 	/* private controls */
+ 	state->detect_tx_5v_ctrl = v4l2_ctrl_new_std(hdl, NULL,
 -- 
-1.9.1
+2.7.0.rc3
 
