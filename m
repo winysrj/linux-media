@@ -1,83 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:34782 "EHLO
-	mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284AbcAMNSu (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35698 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753745AbcA0H5K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2016 08:18:50 -0500
-Received: by mail-oi0-f42.google.com with SMTP id k206so93715642oia.1
-        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 05:18:49 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <569372A9.40504@xs4all.nl>
-References: <CAH-u=81zwkTxjYEsO8rNLf687-nGuj3DdJNeF6bmnxSUSVYQQg@mail.gmail.com>
- <561B89FD.4010802@xs4all.nl> <CAH-u=814zPmoMZ6JxChkk7KEXXP8AaX4tfao2urv+=sf44La9w@mail.gmail.com>
- <569372A9.40504@xs4all.nl>
-From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Date: Wed, 13 Jan 2016 14:18:30 +0100
-Message-ID: <CAH-u=832JmQpT2wQHGczOixGa9Gh7yPz8JMdW6kj_MyakG9dxA@mail.gmail.com>
-Subject: Re: [RFC] ADV7604: VGA support
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 27 Jan 2016 02:57:10 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] v4l2-ctrls: add V4L2_CID_DV_TX_CONTENT_TYPE
+Date: Wed, 27 Jan 2016 08:57:00 +0100
+Message-Id: <1453881421-15865-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1453881421-15865-1-git-send-email-hverkuil@xs4all.nl>
+References: <1453881421-15865-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-2016-01-11 10:15 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> On 01/07/2016 06:20 PM, Jean-Michel Hautbois wrote:
->> Hi Hans,
->>
->> 2015-10-12 12:22 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
->>> On 10/04/2015 06:17 PM, Jean-Michel Hautbois wrote:
->>>> Hi,
->>>>
->>>> I had another look into the ADV7604 HW manual, and I understand that
->>>> in automatic mode, there is 4 AIN_SEL values possible, determining the
->>>> connection on AIN pins.
->>>> Now, having a look at the current ADV76xx files, I can see that two
->>>> pads are there :
->>>> ADV7604_PAD_VGA_RGB and ADV7604_PAD_VGA_COMP.
->>>>
->>>> According to the manual, my understanding is that we should have four
->>>> HDMI pads and four analog pads. The latter would be configured as RGB
->>>> or component, which allows four analog inputs as described in the HW
->>>> manual.
->>>
->>> When I wrote the driver we only needed one VGA input receiving either RGB
->>> or YCbCr. Hence there is only one analog input and two pads. I wouldn't have
->>> been able to test the additional analog inputs anyway.
->>>
->>> I chose to use pads to select between the two modes, but that's something
->>> that can be changed (it's not something you can autodetect, unfortunately).
->>>
->>> If you want to add support for all four analog inputs, then feel free to
->>> do so.
->>
->> OK, I don't have anything to test the additional inputs either...
->> Something else so, the adv7604_state struct constains two fields,
->> .ain_sel and .bus_order.
->> Should those be parsed from DT (I think so) ? If so, how should it be
->> named in the port{} node ?
->
-> Do you need to change this from the current default? If not, then I would
-> leave it as is.
+Add new control to set the content type of an HDMI/DP AVI InfoFrame.
 
-I think it will have to be modified somehow, as those are global
-parameters for the chip.
-ain_sel is the same whatever the input is. So if you have both RGB and
-YCrCb you should be able to define ain_sel for each one.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 11 +++++++++++
+ include/uapi/linux/v4l2-controls.h   |  8 ++++++++
+ 2 files changed, 19 insertions(+)
 
-> If you do have to change this, then you would indeed have to add it to the DT.
-> ain_sel is Analog Devices specific, so just check that whatever you propose
-> is OK for the adv7842 as well.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index c9d5537..ecfa5d7 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -462,6 +462,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"RGB full range (0-255)",
+ 		NULL,
+ 	};
++	static const char * const dv_content_type[] = {
++		"Graphics",
++		"Photo",
++		"Cinema",
++		"Game",
++		NULL,
++	};
+ 	static const char * const detect_md_mode[] = {
+ 		"Disabled",
+ 		"Global",
+@@ -560,6 +567,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 	case V4L2_CID_DV_TX_RGB_RANGE:
+ 	case V4L2_CID_DV_RX_RGB_RANGE:
+ 		return dv_rgb_range;
++	case V4L2_CID_DV_TX_CONTENT_TYPE:
++		return dv_content_type;
+ 	case V4L2_CID_DETECT_MD_MODE:
+ 		return detect_md_mode;
+ 
+@@ -881,6 +890,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_DV_TX_EDID_PRESENT:	return "EDID Present";
+ 	case V4L2_CID_DV_TX_MODE:		return "Transmit Mode";
+ 	case V4L2_CID_DV_TX_RGB_RANGE:		return "Tx RGB Quantization Range";
++	case V4L2_CID_DV_TX_CONTENT_TYPE:	return "Tx Content Type";
+ 	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
+ 	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
+ 
+@@ -1038,6 +1048,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_SCENE_MODE:
+ 	case V4L2_CID_DV_TX_MODE:
+ 	case V4L2_CID_DV_TX_RGB_RANGE:
++	case V4L2_CID_DV_TX_CONTENT_TYPE:
+ 	case V4L2_CID_DV_RX_RGB_RANGE:
+ 	case V4L2_CID_TEST_PATTERN:
+ 	case V4L2_CID_TUNE_DEEMPHASIS:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2d225bc..9303717 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -912,6 +912,14 @@ enum v4l2_dv_rgb_range {
+ 	V4L2_DV_RGB_RANGE_FULL	  = 2,
+ };
+ 
++#define V4L2_CID_DV_TX_CONTENT_TYPE		(V4L2_CID_DV_CLASS_BASE + 6)
++enum v4l2_dv_content_type {
++	V4L2_DV_CONTENT_TYPE_GRAPHICS	  = 0,
++	V4L2_DV_CONTENT_TYPE_PHOTO	  = 1,
++	V4L2_DV_CONTENT_TYPE_CINEMA	  = 2,
++	V4L2_DV_CONTENT_TYPE_GAME	  = 3,
++};
++
+ #define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
+ #define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
+ 
+-- 
+2.7.0.rc3
 
-OK.
-
-> Regarding bus order: this is probably something that can be more generic. I
-> have a deja vu feeling that I saw a patch adding support for this recently,
-> but I can't find it. Does it ring a bell for someone else?
-
-Not to me, but interested :).
-JM
