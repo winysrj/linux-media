@@ -1,125 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57884 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161294AbcA1Q2q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 11:28:46 -0500
-Subject: Re: [PATCH 04/31] media: Media Controller enable/disable source
- handler API
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
- <d8d65a0188b05f3e799400c745584a02bc9b7548.1452105878.git.shuahkh@osg.samsung.com>
- <20160128131922.29e2a504@recife.lan>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56AA41B5.1080703@osg.samsung.com>
-Date: Thu, 28 Jan 2016 09:28:37 -0700
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:33831 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753160AbcA0MOv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2016 07:14:51 -0500
+Received: by mail-wm0-f45.google.com with SMTP id n5so25203877wmn.1
+        for <linux-media@vger.kernel.org>; Wed, 27 Jan 2016 04:14:50 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20160128131922.29e2a504@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <m3io2gfksk.fsf@t19.piap.pl>
+References: <1451183213-2733-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+	<569CE27F.6090702@xs4all.nl>
+	<CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
+	<m31t96j8u4.fsf@t19.piap.pl>
+	<CAAEAJfBM_vVBVRd3P0kJ1QLzk-M==L=x6CS0ggXgRX=7K_aK_A@mail.gmail.com>
+	<m3si1kioa9.fsf@t19.piap.pl>
+	<CAAEAJfC_Sa_6opADoz0Ab8NrmhX+cjNmSK_Nw_Ne9nk-ROaj0Q@mail.gmail.com>
+	<m3io2gfksk.fsf@t19.piap.pl>
+Date: Wed, 27 Jan 2016 09:14:49 -0300
+Message-ID: <CAAEAJfDb84ZbRkq9GVOmeWp=vpn_GBX9Fx0w+aGnZ9n29PsR8A@mail.gmail.com>
+Subject: Re: [PATCH] media: Support Intersil/Techwell TW686x-based video
+ capture cards
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/28/2016 08:19 AM, Mauro Carvalho Chehab wrote:
-> Em Wed,  6 Jan 2016 13:26:53 -0700
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> 
->> Add new fields to struct media_device to add enable_source, and
->> disable_source handlers, and source_priv to stash driver private
->> data that is need to run these handlers. The enable_source handler
->> finds source entity for the passed in entity and check if it is
->> available, and activate the link using __media_entity_setup_link()
->> interface. Bridge driver is expected to implement and set these
->> handlers and private data when media_device is registered or when
->> bridge driver finds the media_device during probe. This is to enable
->> the use-case to find tuner entity connected to the decoder entity and
->> check if it is available, and activate it and start pipeline between
->> the source and the entity. The disable_source handler deactivates the
->> link and stops the pipeline. This handler can be invoked from the
->> media core (v4l-core, dvb-core) as well as other drivers such as ALSA
->> that control the media device.
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  include/media/media-device.h | 19 +++++++++++++++++++
->>  1 file changed, 19 insertions(+)
->>
->> diff --git a/include/media/media-device.h b/include/media/media-device.h
->> index 6520d1c..04b6c2e 100644
->> --- a/include/media/media-device.h
->> +++ b/include/media/media-device.h
->> @@ -333,6 +333,25 @@ struct media_device {
->>  	/* Serializes graph operations. */
->>  	struct mutex graph_mutex;
->>  
->> +	/* Handlers to find source entity for the sink entity and
->> +	 * check if it is available, and activate the link using
->> +	 * media_entity_setup_link() interface and start pipeline
->> +	 * from the source to the entity.
->> +	 * Bridge driver is expected to implement and set the
->> +	 * handler when media_device is registered or when
->> +	 * bridge driver finds the media_device during probe.
->> +	 * Bridge driver sets source_priv with information
->> +	 * necessary to run enable/disable source handlers.
->> +	 *
->> +	 * Use-case: find tuner entity connected to the decoder
->> +	 * entity and check if it is available, and activate the
->> +	 * using media_entity_setup_link() if it is available.
->> +	*/
->> +	void *source_priv;
->> +	int (*enable_source)(struct media_entity *entity,
->> +			     struct media_pipeline *pipe);
->> +	void (*disable_source)(struct media_entity *entity);
-> 
-> Please document the new fields at the right place (Kernel-doc
-> comment declared before the struct).
-> 
-> Is this used by the media core? If so, please but the implementation
-> here, to make it clearer why we need those things.
-> 
->> +
->>  	int (*link_notify)(struct media_link *link, u32 flags,
->>  			   unsigned int notification);
->>  };
+On 26 January 2016 at 12:00, Krzysztof Hałasa <khalasa@piap.pl> wrote:
+> Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
+>
+>> I reviewed the driver as soon as it was sent, and planned to submit
+>> changes to support my setup once your driver was merged, but that
+>> never happened.
+>
+> This was because you, shortly thereafter, stated:
+>
+>> I'm working on an improved version of the tw686x driver. I've started
+>> with the patches
+>> you posted and made a significant number of changes:
+>
+>> * Handling events in the top-half (removed bottom halves).
+>> * Audio support
+>> * Added CIF and D1 size support
+>> * some other goodies
+>> * a lot of code refactoring
+>
+>> I'm now working on supporting both S-G and frame modes,
+>> so the driver will support INTERLACED and SEQ frames, and the
+>> user will have both options.
+>
+>> I'll post a patchset as soon as it's working. Since I've started with
+>> your patch,
+>> your authorship will be retained and I'll add only my Signed-off-by.
+>
+> And, when I asked about merging the combined work properly:
+>
+>> Problem is I've re-written the driver, taking yours as a starting point
+>> and reference.
+>
+>> In other words, I don't have a proper git branch with a history, starting
+>> from the patch you submitted. Instead, I would be submitting a new
+>> patch for Hans and Mauro to review.
+>
+>> This patch is based in yours, so AFAIK should have your signature.
+>
+> The latter was obviously not true - the code may retain the original
+> authors and copyrights (if it hasn't been rewritten completely), but
+> you have to remove the original S-O-B when you are submitting heavily
+> modified code - see the rules. Signature is not copyright/authorship,
+> it's who posts the code.
+>
+>
+> This is also why separating the work helps (especially in such
+> non-trivial cases) - the original code bears the original signature,
+> and the subsequent changes have their own. These things are invented
+> for a reason.
+>
+>
+> I really thought you have rewritten the driver from scratch, so my
+> inferior driver was of no use. In this situation submitting v2 didn't
+> make sense, though obviously I haven't written a driver for nothing -
+> I'm using it for my purposes.
+>
 
-Hi Mauro,
+Well, I kept the general organization, kept the registers definitions,
+the rest was probably changed or re-written, mostly to meet
+CodingStyle or to fix bugs. In any case it's hard to say, as it took
+me 2 months to get that driver in a stable shape, and the
+implementation changed a lot until it was stable.
 
-I don't have any problems adding documentation. I would
-like to add documentation in a add-on to the patch series.
-The main reason is once I add documentation to this patch,
-the rest of the patches on this file don't apply and require
-rebase and rework. I went though a couple of rounds of this
-while you were adding documentation to the interfaces you
-added.
+On my setup, the requirement was to support an array of 2-chip cards
+(16 ch per card). Ideally, it would be able to stream up to 96
+channels simultaneously, in a single x86 box.
 
-How about I add the documentation patches at the end of
-the patch series? I am concerned that rebasing for the
-documentation changes will introduce bugs. Are you okay
-with this proposal?
+On those machines DMA scatter-gather wouldn't work because it ran out
+of s-g resources (don't have the exact error here). Then I tried DMA
+frame mode, which seemed to work fine until I found those unexplained
+machine freezing.
 
-thanks,
--- Shuah
+As you can see in this patch, I had to use a very annoying memcpy to
+avoid writing to the DMA, and also a timer to avoid resetting
+registers too often.
 
+This version of the driver passed all stress testing, and it's
+installed on a lot of boxes running with long uptime.
+
+Since I have no idea if this is a tw6869 issue or a card issue (it's
+definitely not a software issue), I thought it would be important to
+keep this workarounds in the mainline driver (interestingly, the
+"official" windows driver also copies the buffers from the DMA buffer
+to the buffer returned to the user).
+
+>
+> What other options did I have at that time?
+>
+>> If you want your driver merged, then you would have to submit it
+>> again, addressing
+>> my review comments.
+>
+> Well, then this is something I can do. I wonder if it would be better
+> to post the raw code as a single patch, or to repost the original
+> version (already reviewed) and the subsequent patches (much smaller)
+> instead. Hans?
+>
+>> However, I have just posted a v2 and it would be nice if
+>> you can review it and test it.
+>
+> I can review it, however I can't really test it, because my ARM-based
+> systems require DMA to buffer functionality. Also, please not I'm not
+> a V4L2 expert, though I have a bit of experience with low level hw.
+>
+>
+> However, it would be much easier if you had posted an incremental patch
+> set instead. Also, WRT the merging, since this turns out to be in fact
+> my driver with your subsequent modifications (most of them very
+> valuable, I'm sure), I'd really think we should merge the original
+> driver first, and add the modifications, perhaps one-by-one, next.
+>
+
+Since your driver is not merged, there's no real benefit in my sending
+me patches against it.
+
+Also, notice that your driver from July needs a lot of work. Aside
+from the review I provided back in July, you need to get rid of your
+kthread, port it to the new API, and add audio.
+
+Since I just submitted a v2 driver that seems to be ready to be
+merged, how about I just add DMA s-g support so you get all the
+functionality you need?
+
+This option sounds much easier than you going through all the pain of
+cleaning up your driver.
+
+How does it sound?
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Ezequiel García, VanguardiaSur
+www.vanguardiasur.com.ar
