@@ -1,85 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f177.google.com ([209.85.160.177]:35896 "EHLO
-	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751545AbcA0AjV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 19:39:21 -0500
-Received: by mail-yk0-f177.google.com with SMTP id v14so222333614ykd.3
-        for <linux-media@vger.kernel.org>; Tue, 26 Jan 2016 16:39:21 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:57687 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966947AbcA1P3w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 10:29:52 -0500
+Date: Thu, 28 Jan 2016 13:29:37 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH 09/31] media: v4l2-core add
+ v4l_vb2q_enable_media_tuner() helper
+Message-ID: <20160128132937.3305eff3@recife.lan>
+In-Reply-To: <ac1ad6fc9832cb922ac02eba1f916a6fb4ef97a8.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	<ac1ad6fc9832cb922ac02eba1f916a6fb4ef97a8.1452105878.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <20160126155937.6a4e4165d1cf4e513d62e942@linux-foundation.org>
-References: <1452533428-12762-1-git-send-email-dianders@chromium.org>
-	<20160126155937.6a4e4165d1cf4e513d62e942@linux-foundation.org>
-Date: Tue, 26 Jan 2016 19:39:20 -0500
-Message-ID: <CAD=FV=V9ZJrmD=F8363mhg8+JQiTRg=g6DuZR2KJRbfU=K455w@mail.gmail.com>
-Subject: Re: [PATCH v6 0/5] dma-mapping: Patches for speeding up allocation
-From: Doug Anderson <dianders@chromium.org>
-To: Russell King <linux@arm.linux.org.uk>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Olof Johansson <olof@lixom.net>, Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Tomasz Figa <tfiga@chromium.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Christoph Hellwig <hch@infradead.org>, k.debski@samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>, mike.looijmans@topic.nl,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	Will Deacon <will.deacon@arm.com>, jtp.park@samsung.com,
-	penguin-kernel@i-love.sakura.ne.jp,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Carlo Caione <carlo@caione.org>, linux-media@vger.kernel.org,
-	Dan Williams <dan.j.williams@intel.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Wed,  6 Jan 2016 13:26:58 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-On Tue, Jan 26, 2016 at 3:59 PM, Andrew Morton
-<akpm@linux-foundation.org> wrote:
-> On Mon, 11 Jan 2016 09:30:22 -0800 Douglas Anderson <dianders@chromium.org> wrote:
->
->> This series of patches will speed up memory allocation in dma-mapping
->> quite a bit.
->
-> This is pretty much all ARM and driver stuff so I think I'll duck it.
-> But I can merge it if nobody else feels a need to.
+> Add a new v4l_vb2q_enable_media_tuner() wrapper function
+> to be called from v4l2-core to enable the media tuner with
+> videobuf2 queue, when the calling frunction has the videobuf2
+> queue and doesn't have the struct video_device associated with
+> the queue handy as in the case of vb2_core_streamon(). This
+> function simply calls v4l_enable_media_tuner() passing in the
+> pointer to struct video_device.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-dev.c | 21 +++++++++++++++++++++
+>  include/media/v4l2-dev.h           |  1 +
+>  2 files changed, 22 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index f06da6e..9ef675a 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -30,6 +30,7 @@
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-ioctl.h>
+> +#include <media/videobuf2-core.h>
+>  
+>  #define VIDEO_NUM_DEVICES	256
+>  #define VIDEO_NAME              "video4linux"
+> @@ -261,6 +262,26 @@ void v4l_disable_media_tuner(struct video_device *vdev)
+>  }
+>  EXPORT_SYMBOL_GPL(v4l_disable_media_tuner);
+>  
+> +/**
+> + * v4l_vb2q_enable_media_tuner - Wrapper for v4l_enable_media_tuner()
+> + * @q:         videobuf2 queue
+> + *
+> + * This function is intended to be called from v4l2-core
+> + * to enable the media tuner with videobuf2 queue, when
+> + * the calling frunction has the videobuf2 queue and doesn't
 
-I was going to ask what the next steps were for this series.
-Presumably I could post the patch to Russell's patch tracker if folks
-want me to do that.  Alternatively it could go through the ARM-SOC
-tree?
+	typo: function
 
+> + * have the struct video_device associated with the
+> + * queue handy as in the case of vb2_core_streamon(). This
+> + * function simply calls v4l_enable_media_tuner() passing
+> + * in the pointer to struct video_device.
 
-> I saw a few acked-by/tested-by/etc from the v5 posting which weren't
-> carried over into v6 (might have been a timing race), so please fix
-> that up if there's an opportunity.
+The hole description seems confusing. I'm not seeing the light
+about why this is needed.
 
-Right.  Both Robin and Tomasz gave their Reviewed-by to Patch #1 in v5
-even after v6 was posted.
+> + */
+> +int v4l_vb2q_enable_media_tuner(struct vb2_queue *q)
+> +{
+> +	struct v4l2_fh *fh = q->owner;
+> +
+> +	return v4l_enable_media_tuner(fh->vdev);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_tuner);
+> +
+>  /* Priority handling */
+>  
+>  static inline bool prio_is_valid(enum v4l2_priority prio)
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index 68999a3..1948097 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -179,6 +179,7 @@ struct video_device * __must_check video_device_alloc(void);
+>  
+>  int v4l_enable_media_tuner(struct video_device *vdev);
+>  void v4l_disable_media_tuner(struct video_device *vdev);
+> +int v4l_vb2q_enable_media_tuner(struct vb2_queue *q);
 
+Documentation?
 
-> Regarding the new DMA_ATTR_ALLOC_SINGLE_PAGES hint: I suggest adding
-> "DMA_ATTR_ALLOC_SINGLE_PAGES is presently implemented only on ARM" to
-> the docs.  Or perhaps have a shot at implementing it elsewhere.
-
-Warning sounds good.
-
-
-> Typo in 4/5 changelog: "reqiurements"
-
-Thanks for catching!
-
-
-I'm happy to post up a v6 with these things fixed or I'm happy for
-whoever is applying it to make these small fixes themselves.  Any
-volunteers?  Olof, Arnd, or Russell: any of you want these patches?
-
-
--Doug
+>  
+>  /* this release function frees the vdev pointer */
+>  void video_device_release(struct video_device *vdev);
