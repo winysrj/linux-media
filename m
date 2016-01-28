@@ -1,48 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f170.google.com ([209.85.220.170]:33521 "EHLO
-	mail-qk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965192AbcAKUWx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 15:22:53 -0500
-Received: by mail-qk0-f170.google.com with SMTP id p186so150857335qke.0
-        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2016 12:22:53 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:57655 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755144AbcA1P1O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 10:27:14 -0500
+Date: Thu, 28 Jan 2016 13:26:51 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH 08/31] media: v4l-core add
+ v4l_enable/disable_media_tuner() helper functions
+Message-ID: <20160128132651.748a1271@recife.lan>
+In-Reply-To: <e642fee6e443170b33a8c69fbc21b409f7be5583.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	<e642fee6e443170b33a8c69fbc21b409f7be5583.1452105878.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1601091126170.15612@axis700.grange>
-References: <Pine.LNX.4.64.1512151732080.18335@axis700.grange> <Pine.LNX.4.64.1601091126170.15612@axis700.grange>
-From: Daniel Johnson <teknotus@gmail.com>
-Date: Mon, 11 Jan 2016 12:22:33 -0800
-Message-ID: <CA+nDE0hdhrFfeVU_OsO847ehMdLtj7bjbC6E4an0s963jjXKTg@mail.gmail.com>
-Subject: Re: [PATCH] V4L: add Y12I, Y8I and Z16 pixel format documentation
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Aviv Greenberg <avivgr@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jan 9, 2016 at 2:27 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Mauro,
->
-> Ping - what about this patch? If there are no comments - would you like me
-> to push it via my tree?
+Em Wed,  6 Jan 2016 13:26:57 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-In testing the V4L2_PIX_FMT_Z16 ('Z16 ') format documentation seems to
-be incomplete.
+> Add a new interfaces to be used by v4l-core to invoke enable
+> source and disable_source handlers in the media_device. The
+> enable_source helper function invokes the enable_source handler
+> to find tuner entity connected to the decoder and check is it
+> is available or busy. If tuner is available, link is activated
+> and pipeline is started. The disable_source helper function
+> invokes the disable_source handler to deactivate and stop the
+> pipeline.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-dev.c | 27 +++++++++++++++++++++++++++
+>  include/media/v4l2-dev.h           |  4 ++++
+>  2 files changed, 31 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index d8e5994..f06da6e 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -233,6 +233,33 @@ struct video_device *video_devdata(struct file *file)
+>  }
+>  EXPORT_SYMBOL(video_devdata);
+>  
+> +int v4l_enable_media_tuner(struct video_device *vdev)
 
-uvc_xu_control_query unit=2 selector=4 seems to be a z scale factor.
-Changing the value of that control greatly changes the value of
-pixels. Millimeters seems to be correct for the default value of that
-control. This control is on the /dev node for the infrared camera
-rather than the node using the Z16 depth format.
+IMHO, the better is to put those MC ancillary routines on a separate file.
+Hans suggested to add them at v4l2-mc.h and v4l2-mc.h.
 
-The one thing that every depth camera I've ever used has in common is
-factory calibration. Translating pixel values to Z is only 1/3 of what
-is needed to translate a depth image into a point cloud. The
-calibration is needed to translate X and Y pixel indexes into
-positions in 3d space. Documentation on fetching, and parsing the
-factory calibration would make the camera much more usable.
+> +{
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	struct media_device *mdev = vdev->entity.graph_obj.mdev;
+> +	int ret;
+> +
+> +	if (!mdev || !mdev->enable_source)
+> +		return 0;
+> +	ret = mdev->enable_source(&vdev->entity, &vdev->pipe);
+> +	if (ret)
+> +		return -EBUSY;
+> +	return 0;
+> +#endif /* CONFIG_MEDIA_CONTROLLER */
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l_enable_media_tuner);
+> +
+> +void v4l_disable_media_tuner(struct video_device *vdev)
+> +{
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	struct media_device *mdev = vdev->entity.graph_obj.mdev;
+> +
+> +	if (mdev && mdev->disable_source)
+> +		mdev->disable_source(&vdev->entity);
+> +#endif /* CONFIG_MEDIA_CONTROLLER */
+> +}
+> +EXPORT_SYMBOL_GPL(v4l_disable_media_tuner);
+>  
+>  /* Priority handling */
+>  
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index eeabf20..68999a3 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -87,6 +87,7 @@ struct video_device
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	struct media_entity entity;
+>  	struct media_intf_devnode *intf_devnode;
+> +	struct media_pipeline pipe;
+>  #endif
+>  	/* device ops */
+>  	const struct v4l2_file_operations *fops;
+> @@ -176,6 +177,9 @@ void video_unregister_device(struct video_device *vdev);
+>     latter can also be used for video_device->release(). */
+>  struct video_device * __must_check video_device_alloc(void);
+>  
+> +int v4l_enable_media_tuner(struct video_device *vdev);
+> +void v4l_disable_media_tuner(struct video_device *vdev);
 
-Documentation on the 21 UVC controls would be helpful, but less
-critical than the calibration data.
+Documentation?
+
+> +
+>  /* this release function frees the vdev pointer */
+>  void video_device_release(struct video_device *vdev);
+>  
