@@ -1,50 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:34392 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965648AbcAURni (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2016 12:43:38 -0500
-Subject: Re: Debugging v4l-pci driver without real HW
-To: Ran Shalit <ranshalit@gmail.com>, linux-media@vger.kernel.org
-References: <CAJ2oMh+tSJX4FSFduRG-p36YHxDBqi3c8hd0JDLJttWN9b2w-Q@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56A118C5.2060804@xs4all.nl>
-Date: Thu, 21 Jan 2016 18:43:33 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:58884 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754947AbcA1TVS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 14:21:18 -0500
+Subject: Re: [PATCH 17/31] media: au0828 video change to use
+ v4l_enable_media_tuner()
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <2d2392f96a7f10a8d94a4d7fa6d5657b56b75593.1452105878.git.shuahkh@osg.samsung.com>
+ <20160128135752.536e909e@recife.lan>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AA6A2A.1020801@osg.samsung.com>
+Date: Thu, 28 Jan 2016 12:21:14 -0700
 MIME-Version: 1.0
-In-Reply-To: <CAJ2oMh+tSJX4FSFduRG-p36YHxDBqi3c8hd0JDLJttWN9b2w-Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20160128135752.536e909e@recife.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/21/2016 06:03 PM, Ran Shalit wrote:
-> Hello,
+On 01/28/2016 08:57 AM, Mauro Carvalho Chehab wrote:
+> Em Wed,  6 Jan 2016 13:27:06 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 > 
-> I would like to ask if it is possible in some way or other to start
-> debugging the pci driver without the real hardware available.
-> I've decided to use solo6x10 driver (I hope it's a good decision) as a
-> template for our coming hardware.
-> The thing is that I don't have hardware yet. I expect to purchase it
-> in the coming days, but wanted to start debugging code even before
-> that.
-> Is it possible in some way or other to make the driver think that the
-> pci board is connected to pci HW ?
+>> au0828 is changed to use v4l_enable_media_tuner() to check for
+>> tuner availability from vidioc_g_tuner(), and au0828_v4l2_close(),
+>> before changing tuner settings. If tuner isn't free, return busy
+>> condition from vidioc_g_tuner() and in au0828_v4l2_close() tuner
+>> is left untouched without powering down to save energy.
+> 
+> Did you test the code when the input is not a tuner, but, instead,
+> Composite or S-Video connector, as shown at:
+> 	https://mchehab.fedorapeople.org/mc-next-gen/au0828.png
 
-The only way I can think of is to plug in some other pci card, make sure
-the driver for that card isn't compiled in and instead use that pci vendor
-and device ID for your driver. That way you can load it. You can setup
-most of the skeleton code: register video nodes, even setting up vb2, as
-long as you don't actually try to write/read to/from PCI registers since
-obviously it is the wrong hardware.
+I am not sure if I did or not. I can double check this case.
+Do you have concerns that this won't work?
 
-But at least that way you can create all the non-hw dependent parts of
-the driver.
+> 
+> I guess calling it v4l-enable_media_tuner() is not right, specially
+> since there are hybrid devices that have DTV (via DVB API) and
+> S-Video and/or Composite/RCA capture via V4L2 API.
 
-Apparently you can fake a PCI device as well:
-http://www.linuxquestions.org/questions/linux-kernel-70/how-to-emulate-a-pci-device-in-linux-901554/
+How does  v4l-enable_media_source() sound?
 
-but I think that's overkill for this.
+thanks,
+-- Shuah
 
-Regards,
+> 
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/usb/au0828/au0828-video.c | 14 ++++++++++++--
+>>  1 file changed, 12 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+>> index 32bcc56..ed3ba05 100644
+>> --- a/drivers/media/usb/au0828/au0828-video.c
+>> +++ b/drivers/media/usb/au0828/au0828-video.c
+>> @@ -1010,8 +1010,12 @@ static int au0828_v4l2_close(struct file *filp)
+>>  		goto end;
+>>  
+>>  	if (dev->users == 1) {
+>> -		/* Save some power by putting tuner to sleep */
+>> -		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+>> +		/* Save some power by putting tuner to sleep, if it is free */
+>> +		/* What happens when radio is using tuner?? */
+>> +		ret = v4l_enable_media_tuner(vdev);
+>> +		if (ret == 0)
+>> +			v4l2_device_call_all(&dev->v4l2_dev, 0, core,
+>> +					     s_power, 0);
+>>  		dev->std_set_in_tuner_core = 0;
+>>  
+>>  		/* When close the device, set the usb intf0 into alt0 to free
+>> @@ -1412,10 +1416,16 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
+>>  static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+>>  {
+>>  	struct au0828_dev *dev = video_drvdata(file);
+>> +	struct video_device *vfd = video_devdata(file);
+>> +	int ret;
+>>  
+>>  	if (t->index != 0)
+>>  		return -EINVAL;
+>>  
+>> +	ret = v4l_enable_media_tuner(vfd);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>>  	dprintk(1, "%s called std_set %d dev_state %d\n", __func__,
+>>  		dev->std_set_in_tuner_core, dev->dev_state);
+>>  
 
-	Hans
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
