@@ -1,115 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:38038 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751786AbcASH75 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 02:59:57 -0500
-Subject: Re: [PATCH v4] media: v4l2-compat-ioctl32: fix missing length copy in
- put_v4l2_buffer32
-To: Tiffany Lin <tiffany.lin@mediatek.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1453190210-49347-1-git-send-email-tiffany.lin@mediatek.com>
-Cc: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <569DECF4.6020203@xs4all.nl>
-Date: Tue, 19 Jan 2016 08:59:48 +0100
+Received: from ni.piap.pl ([195.187.100.4]:41229 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751988AbcA1IvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 03:51:23 -0500
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: Support Intersil/Techwell TW686x-based video capture cards
+References: <1451183213-2733-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+	<569CE27F.6090702@xs4all.nl>
+	<CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
+	<m31t96j8u4.fsf@t19.piap.pl>
+	<CAAEAJfBM_vVBVRd3P0kJ1QLzk-M==L=x6CS0ggXgRX=7K_aK_A@mail.gmail.com>
+	<m3si1kioa9.fsf@t19.piap.pl>
+	<CAAEAJfC_Sa_6opADoz0Ab8NrmhX+cjNmSK_Nw_Ne9nk-ROaj0Q@mail.gmail.com>
+	<m3io2gfksk.fsf@t19.piap.pl>
+	<CAAEAJfDb84ZbRkq9GVOmeWp=vpn_GBX9Fx0w+aGnZ9n29PsR8A@mail.gmail.com>
+	<m3a8nqf9mk.fsf@t19.piap.pl> <56A9C6BC.6040208@xs4all.nl>
+Date: Thu, 28 Jan 2016 09:51:20 +0100
+In-Reply-To: <56A9C6BC.6040208@xs4all.nl> (Hans Verkuil's message of "Thu, 28
+	Jan 2016 08:43:56 +0100")
+Message-ID: <m3y4badr3r.fsf@t19.piap.pl>
 MIME-Version: 1.0
-In-Reply-To: <1453190210-49347-1-git-send-email-tiffany.lin@mediatek.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/19/2016 08:56 AM, Tiffany Lin wrote:
-> In v4l2-compliance utility, test QUERYBUF required correct length
-> value to go through each planar to check planar's length in
-> multi-planar buffer type
-> 
-> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-Looks good!
+>> In my country, it wouldn't be even legal.
+>
+> It's legal for the GPL license since that gives explicit permission.
 
-I'll merge this.
+In my country, claiming authorship (not co-authorship) of someone's code
+is illegal. Even if done with author's permission.
 
-Regards,
+>> I have at least one similar situation here. I'm using frame grabber
+>> drivers for an I.MX6 processor on-chip feature. The problem is, the
+>> author hasn't yet managed (for years now) to have this functionality
+>> merged into the official tree. Obviously, I'm putting some considerable
+>> work in it. Does this mean I'm free to grab it as my own and request
+>> that it is to be merged instead? No, I have to wait until the original
+>> work is merged, and only then I can ask for my patches to be applied
+>> (in the form of changes, not a raw driver code).
+>
+> Wrong. As long as the original code is distributed as GPL you can
+> certainly take it, fix it and ask for it to be merged.
+>
+> This happens all the time if the original author has left the scene, or has
+> no time or interest to follow-up on his patches.
 
-	Hans
+This doesn't seem to be applicable in either case.
 
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   21 ++++++++-------------
->  1 file changed, 8 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 327e83a..f38c076 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -415,7 +415,8 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  		get_user(kp->index, &up->index) ||
->  		get_user(kp->type, &up->type) ||
->  		get_user(kp->flags, &up->flags) ||
-> -		get_user(kp->memory, &up->memory))
-> +		get_user(kp->memory, &up->memory) ||
-> +		get_user(kp->length, &up->length))
->  			return -EFAULT;
->  
->  	if (V4L2_TYPE_IS_OUTPUT(kp->type))
-> @@ -427,9 +428,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  			return -EFAULT;
->  
->  	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-> -		if (get_user(kp->length, &up->length))
-> -			return -EFAULT;
-> -
->  		num_planes = kp->length;
->  		if (num_planes == 0) {
->  			kp->m.planes = NULL;
-> @@ -462,16 +460,14 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  	} else {
->  		switch (kp->memory) {
->  		case V4L2_MEMORY_MMAP:
-> -			if (get_user(kp->length, &up->length) ||
-> -				get_user(kp->m.offset, &up->m.offset))
-> +			if (get_user(kp->m.offset, &up->m.offset))
->  				return -EFAULT;
->  			break;
->  		case V4L2_MEMORY_USERPTR:
->  			{
->  			compat_long_t tmp;
->  
-> -			if (get_user(kp->length, &up->length) ||
-> -			    get_user(tmp, &up->m.userptr))
-> +			if (get_user(tmp, &up->m.userptr))
->  				return -EFAULT;
->  
->  			kp->m.userptr = (unsigned long)compat_ptr(tmp);
-> @@ -513,7 +509,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
->  		put_user(kp->sequence, &up->sequence) ||
->  		put_user(kp->reserved2, &up->reserved2) ||
-> -		put_user(kp->reserved, &up->reserved))
-> +		put_user(kp->reserved, &up->reserved) ||
-> +		put_user(kp->length, &up->length))
->  			return -EFAULT;
->  
->  	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-> @@ -536,13 +533,11 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  	} else {
->  		switch (kp->memory) {
->  		case V4L2_MEMORY_MMAP:
-> -			if (put_user(kp->length, &up->length) ||
-> -				put_user(kp->m.offset, &up->m.offset))
-> +			if (put_user(kp->m.offset, &up->m.offset))
->  				return -EFAULT;
->  			break;
->  		case V4L2_MEMORY_USERPTR:
-> -			if (put_user(kp->length, &up->length) ||
-> -				put_user(kp->m.userptr, &up->m.userptr))
-> +			if (put_user(kp->m.userptr, &up->m.userptr))
->  				return -EFAULT;
->  			break;
->  		case V4L2_MEMORY_OVERLAY:
-> 
+> For future reference: if someone posts code to a kernel mailinglist and does
+> not fix any comments made on the code in, let's say, 1-2 months, then
+> someone else might just step in.
 
+Oh, come on. I let it go because Ezequiel wrote he had rewritten the
+driver and wanted to merge it instead. I first asked for diffs vs. my
+code, but in case of a rewrite such diffs don't make sense.
+
+
+I don't say nobody is allowed to take my work and add his own on top.
+Actually, this was what I proposed at least twice.
+
+Is there a problem with rebasing his work on top of mine, and showing
+the real changes? Git makes it easy.
+-- 
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
