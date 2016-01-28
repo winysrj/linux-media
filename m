@@ -1,57 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:53074 "EHLO mga14.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:59159 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753405AbcAVNgu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2016 08:36:50 -0500
-Subject: Re: [v4l-utils PATCH v2 2/3] libv4l2subdev: Add a function to list
- library supported pixel codes
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-References: <1449587716-22954-1-git-send-email-sakari.ailus@linux.intel.com>
- <1449587716-22954-3-git-send-email-sakari.ailus@linux.intel.com>
- <1686411.P10t21bMUM@avalon>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <56A2306F.4070808@linux.intel.com>
-Date: Fri, 22 Jan 2016 15:36:47 +0200
+	id S1754962AbcA1UJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 15:09:29 -0500
+Subject: Re: [PATCH 22/31] media: dvb-core create tuner to demod pad link in
+ disabled state
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <753bb19d9d474ab419ad7ee37f7d30a1db6a8e35.1452105878.git.shuahkh@osg.samsung.com>
+ <20160128143831.351a2e6c@recife.lan>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AA7575.804@osg.samsung.com>
+Date: Thu, 28 Jan 2016 13:09:25 -0700
 MIME-Version: 1.0
-In-Reply-To: <1686411.P10t21bMUM@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <20160128143831.351a2e6c@recife.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Laurent Pinchart wrote:
-> Hi Sakari,
+On 01/28/2016 09:38 AM, Mauro Carvalho Chehab wrote:
+> Em Wed,  6 Jan 2016 13:27:11 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 > 
-> Thank you for the patch.
+>> Create tuner to demod pad link in disabled state to help avoid
+>> disable step when tuner resource is requested by video or audio.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/dvb-core/dvbdev.c | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+>> index b56e008..1d10fa6 100644
+>> --- a/drivers/media/dvb-core/dvbdev.c
+>> +++ b/drivers/media/dvb-core/dvbdev.c
+>> @@ -593,8 +593,9 @@ int dvb_create_media_graph(struct dvb_adapter *adap)
+>>  	}
+>>  
+>>  	if (tuner && demod) {
+>> +		/* create tuner to demod link deactivated */
+>>  		ret = media_create_pad_link(tuner, TUNER_PAD_IF_OUTPUT,
+>> -					    demod, 0, MEDIA_LNK_FL_ENABLED);
+>> +					    demod, 0, 0);
 > 
-> On Tuesday 08 December 2015 17:15:15 Sakari Ailus wrote:
->> Also mark which format definitions are compat definitions for the
->> pre-existing codes. This way we don't end up listing the same formats
->> twice.
+> This is not right, as it makes no sense for DVB-only drivers.
+
+Right. Not a good change for DVB only drivers. But does make
+sense on hybrid. I will make sure it gets done only in hyrbid
+cases.
+
+thanks,
+-- Shuah
+
 > 
-> Wouldn't it be easier to add a function to return the whole array (and 
-> terminate it with an empty entry to avoid having to return both the array and 
-> the length=) ?
+>>  		if (ret)
+>>  			return ret;
+>>  	}
 
-Now that I'm actually thinking about making that change, I have a few
-concerns:
-
-- This is not in line with the other APIs in the library, they mirror
-the IOCTL behaviour (it's another debate whether this is a good idea or
-not).
-
-- I need a new statically allocated array for that. I think I'll change
-my sed script. Allocating an array when the function is called the first
-time isn't a great idea either, there's a problem with re-entrancy and
-it's a memory leak, too.
-
-So don't complain about these when I send an updated version. ;-)
 
 -- 
-Cheers,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
