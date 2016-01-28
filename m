@@ -1,55 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:59840 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755455AbcARQKs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 11:10:48 -0500
-Received: from epcpsbgm1new.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0O1500W4LOXZND20@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:10:47 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 3/3] exynos4-is: Wait for 100us before opening sensor
-Date: Mon, 18 Jan 2016 17:10:27 +0100
-Message-id: <1453133427-20793-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1453133427-20793-1-git-send-email-j.anaszewski@samsung.com>
-References: <1453133427-20793-1-git-send-email-j.anaszewski@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:57504 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966281AbcA1O77 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 09:59:59 -0500
+Date: Thu, 28 Jan 2016 12:59:41 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH 01/31] uapi/media.h: Declare interface types for ALSA
+Message-ID: <20160128125941.143f67d0@recife.lan>
+In-Reply-To: <b1d228cdcc9246f7bfe28877e9f6bff174e94993.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	<b1d228cdcc9246f7bfe28877e9f6bff174e94993.1452105878.git.shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some user space use cases result in kernel hangup on the HIC_OPEN_SENSOR
-command write. In case when a minimalistic application is used for setting
-up the streaming, the hangups occur only occasionally. In case of GStreamer
-use cases it is always the case.
+Em Wed,  6 Jan 2016 13:26:50 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/platform/exynos4-is/fimc-is.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> Declare the interface types to be used on alsa for the new
+> G_TOPOLOGY ioctl.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/media-entity.c | 12 ++++++++++++
+>  include/uapi/linux/media.h   |  8 ++++++++
+>  2 files changed, 20 insertions(+)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index eb38bc3..6e02d19 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -65,6 +65,18 @@ static inline const char *intf_type(struct media_interface *intf)
+>  		return "v4l2-subdev";
+>  	case MEDIA_INTF_T_V4L_SWRADIO:
+>  		return "swradio";
+> +	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+> +		return "pcm-capture";
+> +	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+> +		return "pcm-playback";
+> +	case MEDIA_INTF_T_ALSA_CONTROL:
+> +		return "alsa-control";
+> +	case MEDIA_INTF_T_ALSA_COMPRESS:
+> +		return "compress";
+> +	case MEDIA_INTF_T_ALSA_RAWMIDI:
+> +		return "rawmidi";
+> +	case MEDIA_INTF_T_ALSA_HWDEP:
+> +		return "hwdep";
+>  	default:
+>  		return "unknown-intf";
+>  	}
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index cacfceb..75cbe92 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -252,6 +252,7 @@ struct media_links_enum {
+>  
+>  #define MEDIA_INTF_T_DVB_BASE	0x00000100
+>  #define MEDIA_INTF_T_V4L_BASE	0x00000200
+> +#define MEDIA_INTF_T_ALSA_BASE	0x00000300
+>  
+>  /* Interface types */
+>  
+> @@ -267,6 +268,13 @@ struct media_links_enum {
+>  #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+>  #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+>  
+> +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
+> +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
+> +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
+> +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
+> +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+> +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
-index 123772f..3f50856 100644
---- a/drivers/media/platform/exynos4-is/fimc-is.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is.c
-@@ -631,6 +631,12 @@ static int fimc_is_hw_open_sensor(struct fimc_is *is,
- 
- 	fimc_is_mem_barrier();
- 
-+	/*
-+	 * Some user space use cases hang up here without this
-+	 * empirically chosen delay.
-+	 */
-+	udelay(100);
-+
- 	mcuctl_write(HIC_OPEN_SENSOR, is, MCUCTL_REG_ISSR(0));
- 	mcuctl_write(is->sensor_index, is, MCUCTL_REG_ISSR(1));
- 	mcuctl_write(sensor->drvdata->id, is, MCUCTL_REG_ISSR(2));
--- 
-1.7.9.5
+Patch looks ok, but please document the new media interfaces at KernelDoc
+documentation.
 
+> +
+>  /*
+>   * MC next gen API definitions
+>   *
