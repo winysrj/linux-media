@@ -1,77 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:52358 "EHLO mout.gmx.net"
+Received: from lists.s-osg.org ([54.187.51.154]:59435 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753835AbcAORN2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2016 12:13:28 -0500
-Received: from [192.168.6.10] ([185.17.205.228]) by mail.gmx.com (mrgmx003)
- with ESMTPSA (Nemesis) id 0M8Nik-1Zyu5X4BBS-00vyoV for
- <linux-media@vger.kernel.org>; Fri, 15 Jan 2016 18:13:26 +0100
-Subject: Re: [PATCH] af9035: add support for 2nd tuner of MSI DigiVox
- Diversity
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <568AE147.6070908@gmx.de>
-From: =?UTF-8?Q?Stefan_P=c3=b6schel?= <basic.master@gmx.de>
-Message-ID: <569928B0.9060703@gmx.de>
-Date: Fri, 15 Jan 2016 18:13:20 +0100
+	id S965691AbcA1Ump (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 15:42:45 -0500
+Subject: Re: [PATCH 29/31] media: track media device unregister in progress
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <151cfbe0e59b3d5396951bdcc29666614575f5bc.1452105878.git.shuahkh@osg.samsung.com>
+ <20160128150105.06a9a18d@recife.lan> <56AA4A18.8030303@osg.samsung.com>
+ <20160128152843.5ce581fa@recife.lan>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AA7D3B.6090603@osg.samsung.com>
+Date: Thu, 28 Jan 2016 13:42:35 -0700
 MIME-Version: 1.0
-In-Reply-To: <568AE147.6070908@gmx.de>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20160128152843.5ce581fa@recife.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 01/28/2016 10:28 AM, Mauro Carvalho Chehab wrote:
+> Em Thu, 28 Jan 2016 10:04:24 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> On 01/28/2016 10:01 AM, Mauro Carvalho Chehab wrote:
+>>> Em Wed,  6 Jan 2016 13:27:18 -0700
+>>> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+>>>   
+>>>> Add support to track media device unregister in progress
+>>>> state to prevent more than one driver entering unregister.
+>>>> This enables fixing the general protection faults while
+>>>> snd-usb-audio was cleaning up media resources for pcm
+>>>> streams and mixers. In this patch a new interface is added
+>>>> to return the unregister in progress state. Subsequent
+>>>> patches to snd-usb-audio and au0828-core use this interface
+>>>> to avoid entering unregister and attempting to unregister
+>>>> entities and remove devnodes while unregister is in progress.
+>>>> Media device unregister removes entities and interface nodes.  
+>>>
+>>> Hmm... isn't the spinlock enough to serialize it? It seems weird the
+>>> need of an extra bool here to warrant that this is really serialized.
+>>>   
+>>
+>> The spinlock and check for media_devnode_is_registered(&mdev->devnode)
+>> aren't enough to ensure only one driver enters the unregister. 
+>>
+>> Please
+>> note that the devnode isn't marked unregistered until the end in
+>> media_device_unregister().
+> 
+> I guess the call to:
+> 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> 
+> IMO, This should be, instead, at media_devnode_unregister().
+> 
+> Then, we can change the logic at media_devnode_unregister() to:
+> 
+> void media_devnode_unregister(struct media_devnode *mdev)
+> {
+> 	mutex_lock(&media_devnode_lock);
+> 
+> 	/* Check if mdev was ever registered at all */
+> 	if (!media_devnode_is_registered(mdev)) {
+> 		mutex_unlock(&media_devnode_lock);
+> 		return;
+> 	}
+> 
+> 	clear_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
+> 	mutex_unlock(&media_devnode_lock);
+> 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> 	device_unregister(&mdev->dev);
+> }
+> 
+> This sounds enough to avoid device_unregister() or device_remove_file()
+> to be called twice.
+> 
 
-I just wanted to ask if there is any further information needed regarding my patch.
+I can give it a try. There might other problems that could
+result from media device being a devres in this case. The
+last put_device on the usbdev parent device (media device
+is created as devres for this), all device resources get
+released. That might have to be solved in a different way.
 
-Best regards,
-	Stefan
+For now I will see if your solution works.
 
-Am 04.01.2016 um 22:16 schrieb Stefan Pöschel:
-> PIP tested with VLC. Diversity tested with the Windows driver.
-> 
-> Signed-off-by: Stefan Pöschel <basic.master@gmx.de>
-> ---
->  drivers/media/usb/dvb-usb-v2/af9035.c | 4 ++--
->  drivers/media/usb/dvb-usb-v2/af9035.h | 3 ++-
->  2 files changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-> index 6e02a15..b3c09fe 100644
-> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
-> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-> @@ -684,7 +684,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
->  	if (ret < 0)
->  		goto err;
-> 
-> -	if (tmp =1 || tmp == 3) {
-> +	if (tmp =1 || tmp == 3 || tmp == 5) {
->  		/* configure gpioh1, reset & power slave demod */
->  		ret =f9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
->  		if (ret < 0)
-> @@ -823,7 +823,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
->  	if (ret < 0)
->  		goto err;
-> 
-> -	if (tmp =1 || tmp == 3)
-> +	if (tmp =1 || tmp == 3 || tmp == 5)
->  		state->dual_mode =rue;
-> 
->  	dev_dbg(&d->udev->dev, "%s: ts mode= dual mode=%d\n", __func__,
-> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-> index 416a97f..df22001 100644
-> --- a/drivers/media/usb/dvb-usb-v2/af9035.h
-> +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-> @@ -112,9 +112,10 @@ static const u32 clock_lut_it9135[] =
->   * 0  TS
->   * 1  DCA + PIP
->   * 3  PIP
-> + * 5  DCA + PIP
->   * n  DCA
->   *
-> - * Values 0 and 3 are seen to this day. 0 for single TS and 3 for dual TS.
-> + * Values 0, 3 and 5 are seen to this day. 0 for single TS and 3/5 for dual TS.
->   */
-> 
->  #define EEPROM_BASE_AF9035        0x42fd
-> 
+thanks,
+-- Shuah
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
