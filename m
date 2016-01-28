@@ -1,71 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:33999 "EHLO
-	mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754874AbcAMS1N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2016 13:27:13 -0500
-Received: by mail-lf0-f43.google.com with SMTP id 17so58852063lfz.1
-        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2016 10:27:12 -0800 (PST)
-Subject: Re: [PATCH v3] media: soc_camera: rcar_vin: Add ARGB8888 caputre
- format support
-To: Yoshihiro Kaneko <ykaneko0929@gmail.com>,
-	linux-media@vger.kernel.org
-References: <1452707964-4379-1-git-send-email-ykaneko0929@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <569696FC.1080804@cogentembedded.com>
-Date: Wed, 13 Jan 2016 21:27:08 +0300
+Received: from lists.s-osg.org ([54.187.51.154]:58094 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965584AbcA1Q6q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 11:58:46 -0500
+Date: Thu, 28 Jan 2016 14:58:24 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH 28/31] media: au0828 create link between ALSA Mixer and
+ decoder
+Message-ID: <20160128145824.3cf1a468@recife.lan>
+In-Reply-To: <1dcd64196cffd05bdaeb16c767ee8d2adb90e2e6.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	<1dcd64196cffd05bdaeb16c767ee8d2adb90e2e6.1452105878.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <1452707964-4379-1-git-send-email-ykaneko0929@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Em Wed,  6 Jan 2016 13:27:17 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-On 01/13/2016 08:59 PM, Yoshihiro Kaneko wrote:
+> Change au0828_create_media_graph() to create pad link
+> between MEDIA_ENT_F_AUDIO_MIXER entity and decoder's
+> AU8522_PAD_AUDIO_OUT. With mixer entity now linked to
+> decoder, change to link MEDIA_ENT_F_AUDIO_CAPTURE to
+> mixer's source pad.
 
-> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->
-> This patch adds ARGB8888 capture format support for R-Car Gen3.
->
-> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+See my comments about doing only this asynchronously on the previous
+patches.
+
+Regards,
+Mauro
+
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 > ---
->
-> This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
->
-> v3 [Yoshihiro Kaneko]
-> * rebased to for-4.6-1 branch of Guennadi's tree.
->
-> v2 [Yoshihiro Kaneko]
-> * As suggested by Sergei Shtylyov
->    - fix the coding style of the braces.
->
->   drivers/media/platform/soc_camera/rcar_vin.c | 21 +++++++++++++++++++--
->   1 file changed, 19 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-> index dc75a80..466c63a 100644
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-[...]
-> @@ -654,6 +654,14 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->   			dmr = VNDMR_EXRGB;
->   			break;
->   		}
-> +	case V4L2_PIX_FMT_ARGB32:
-> +		if (priv->chip == RCAR_GEN3) {
-> +			dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
-> +		} else {
-> +			dev_err(icd->parent, "Not support format\n");
-
-    "Unsupported format" please.
-
-[...]
-
-MBR, Sergei
-
+>  drivers/media/usb/au0828/au0828-core.c | 17 ++++++++++++++---
+>  drivers/media/usb/au0828/au0828.h      |  1 +
+>  2 files changed, 15 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index 722e073..886fb28 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -264,6 +264,7 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+>  	struct media_entity *entity;
+>  	struct media_entity *tuner = NULL, *decoder = NULL;
+>  	struct media_entity *audio_capture = NULL;
+> +	struct media_entity *mixer = NULL;
+>  	int i, ret;
+>  
+>  	if (!mdev)
+> @@ -284,6 +285,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+>  		case MEDIA_ENT_F_AUDIO_CAPTURE:
+>  			audio_capture = entity;
+>  			break;
+> +		case MEDIA_ENT_F_AUDIO_MIXER:
+> +			mixer = entity;
+> +			break;
+>  		}
+>  	}
+>  
+> @@ -356,14 +360,21 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+>  			}
+>  		}
+>  	}
+> -	if (audio_capture && !dev->audio_capture_linked) {
+> -		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
+> -					    audio_capture, 0,
+> +	if (mixer && audio_capture && !dev->audio_capture_linked) {
+> +		ret = media_create_pad_link(mixer, 1, audio_capture, 0,
+>  					    MEDIA_LNK_FL_ENABLED);
+>  		if (ret)
+>  			return ret;
+>  		dev->audio_capture_linked = 1;
+>  	}
+> +	if (mixer && !dev->mixer_linked) {
+> +		ret = media_create_pad_link(decoder, AU8522_PAD_AUDIO_OUT,
+> +					    mixer, 0,
+> +					    MEDIA_LNK_FL_ENABLED);
+> +		if (ret)
+> +			return ret;
+> +		dev->mixer_linked = 1;
+> +	}
+>  #endif
+>  	return 0;
+>  }
+> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+> index 3707664..b9aa74f 100644
+> --- a/drivers/media/usb/au0828/au0828.h
+> +++ b/drivers/media/usb/au0828/au0828.h
+> @@ -289,6 +289,7 @@ struct au0828_dev {
+>  	bool vdev_linked;
+>  	bool vbi_linked;
+>  	bool audio_capture_linked;
+> +	bool mixer_linked;
+>  	struct media_link *active_link;
+>  	struct media_entity *active_link_owner;
+>  #endif
