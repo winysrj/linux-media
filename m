@@ -1,163 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:41938 "EHLO ni.piap.pl"
+Received: from lists.s-osg.org ([54.187.51.154]:58128 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754999AbcA1JJh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 04:09:37 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 10/12] TW686x: handle non-NULL format in queue_setup()
-References: <m337tif6om.fsf@t19.piap.pl>
-Date: Thu, 28 Jan 2016 10:09:35 +0100
-In-Reply-To: <m337tif6om.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
- \=\?utf-8\?Q\?a\=22's\?\= message of
-	"Thu, 28 Jan 2016 09:29:29 +0100")
-Message-ID: <m3lh7acbow.fsf@t19.piap.pl>
+	id S965376AbcA1Q7m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 11:59:42 -0500
+Subject: Re: [PATCH 15/31] media: dvb-frontend invoke enable/disable_source
+ handlers
+To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <1591b6cf2025fa95a13e3b7dde52aa0e0bde0bb4.1452105878.git.shuahkh@osg.samsung.com>
+ <20160128135304.3daa79f1@recife.lan>
+ <20160128160711.029f3faf@lxorguk.ukuu.org.uk>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AA48FA.7070203@osg.samsung.com>
+Date: Thu, 28 Jan 2016 09:59:38 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20160128160711.029f3faf@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
+On 01/28/2016 09:07 AM, One Thousand Gnomes wrote:
+> On Thu, 28 Jan 2016 13:53:04 -0200
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> 
+>> Em Wed,  6 Jan 2016 13:27:04 -0700
+>> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+>>
+>>> Checking for tuner availability from frontend thread start
+>>> disrupts video stream. Change to check for tuner and start
+>>> pipeline from frontend open instead and stop pipeline from
+>>> frontend release.  
+>>
+>> That's wrong, as DVB can be opened on read-only mode, where
+>> it won't be changing anything.
 
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-index 12cc108..cfc15e7 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -82,6 +82,50 @@ static const struct tw686x_format *format_by_fourcc(unsigned fourcc)
- 	return NULL;
- }
- 
-+static void tw686x_get_format(struct tw686x_video_channel *vc,
-+			      struct v4l2_format *f)
-+{
-+	const struct tw686x_format *format;
-+	unsigned width, height, height_div = 1;
-+
-+	format = format_by_fourcc(f->fmt.pix.pixelformat);
-+	if (!format) {
-+		format = &formats[0];
-+		f->fmt.pix.pixelformat = format->fourcc;
-+	}
-+
-+	width = 704;
-+	if (f->fmt.pix.width < width * 3 / 4 /* halfway */)
-+		width /= 2;
-+
-+	height = (vc->video_standard & V4L2_STD_625_50) ? 576 : 480;
-+	if (f->fmt.pix.height < height * 3 / 4 /* halfway */)
-+		height_div = 2;
-+
-+	switch (f->fmt.pix.field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+		height_div = 2;
-+		break;
-+	case V4L2_FIELD_SEQ_BT:
-+		if (height_div > 1)
-+			f->fmt.pix.field = V4L2_FIELD_BOTTOM;
-+		break;
-+	default:
-+		if (height_div > 1)
-+			f->fmt.pix.field = V4L2_FIELD_TOP;
-+		else
-+			f->fmt.pix.field = V4L2_FIELD_SEQ_TB;
-+	}
-+	height /= height_div;
-+
-+	f->fmt.pix.width = width;
-+	f->fmt.pix.height = height;
-+	f->fmt.pix.bytesperline = f->fmt.pix.width * format->depth / 8;
-+	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+}
-+
- /* video queue operations */
- 
- static int tw686x_queue_setup(struct vb2_queue *vq, const void *arg,
-@@ -90,12 +134,17 @@ static int tw686x_queue_setup(struct vb2_queue *vq, const void *arg,
- {
- 	struct tw686x_video_channel *vc = vb2_get_drv_priv(vq);
- 
--	sizes[0] = vc->width * vc->height * vc->format->depth / 8;
-+	if (arg) {
-+		struct v4l2_format fmt = *(const struct v4l2_format*)arg;
-+		tw686x_get_format(vc, &fmt);
-+		sizes[0] = fmt.fmt.pix.sizeimage;
-+	} else
-+		sizes[0] = vc->width * vc->height * vc->format->depth / 8;
-+
- 	alloc_ctxs[0] = vc->alloc_ctx;
- 	*nplanes = 1;		/* packed formats only */
- 	if (*nbuffers < 2)
- 		*nbuffers = 2;
--
- 	return 0;
- }
- 
-@@ -340,47 +389,7 @@ static int tw686x_g_fmt_vid_cap(struct file *file, void *priv,
- static int tw686x_try_fmt_vid_cap(struct file *file, void *priv,
- 				  struct v4l2_format *f)
- {
--	struct tw686x_video_channel *vc = video_drvdata(file);
--	const struct tw686x_format *format;
--	unsigned width, height, height_div = 1;
--
--	format = format_by_fourcc(f->fmt.pix.pixelformat);
--	if (!format) {
--		format = &formats[0];
--		f->fmt.pix.pixelformat = format->fourcc;
--	}
--
--	width = 704;
--	if (f->fmt.pix.width < width * 3 / 4 /* halfway */)
--		width /= 2;
--
--	height = (vc->video_standard & V4L2_STD_625_50) ? 576 : 480;
--	if (f->fmt.pix.height < height * 3 / 4 /* halfway */)
--		height_div = 2;
--
--	switch (f->fmt.pix.field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--		height_div = 2;
--		break;
--	case V4L2_FIELD_SEQ_BT:
--		if (height_div > 1)
--			f->fmt.pix.field = V4L2_FIELD_BOTTOM;
--		break;
--	default:
--		if (height_div > 1)
--			f->fmt.pix.field = V4L2_FIELD_TOP;
--		else
--			f->fmt.pix.field = V4L2_FIELD_SEQ_TB;
--	}
--	height /= height_div;
--
--	f->fmt.pix.width = width;
--	f->fmt.pix.height = height;
--	f->fmt.pix.bytesperline = f->fmt.pix.width * format->depth / 8;
--	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
--	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
--
-+	tw686x_get_format(video_drvdata(file), f);
- 	return 0;
- }
- 
-@@ -388,12 +397,8 @@ static int tw686x_s_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
- 	struct tw686x_video_channel *vc = video_drvdata(file);
--	int err;
--
--	err = tw686x_try_fmt_vid_cap(file, priv, f);
--	if (err)
--		return err;
- 
-+	tw686x_get_format(vc, f);
- 	vc->format = format_by_fourcc(f->fmt.pix.pixelformat);
- 	vc->field = f->fmt.pix.field;
- 	vc->width = f->fmt.pix.width;
+Correct. Please check the code. Tuner availability check is
+done when the device is opened in Write mode in the following
+conditional.
+
+       if ((file->f_flags & O_ACCMODE) != O_RDONLY) {
+
+>>
+>> Also, I don't think POSIX allows to return an error like EBUSY
+>> on open:
+>> 	http://pubs.opengroup.org/onlinepubs/9699919799/functions/open.html
+> 
+> It doesn't document all the errors you may return. Quite a lot of
+> kernel drivers return EBUSY when they are "single open" things.
+> 
+> POSIX documents certain cases that *must* error and what the error code
+> is. It documents certain possible failures and what their error code is.
+> Beyond that it's up to you.
+> 
+
+Returning EBUSY clearly indicates the reason why the device
+can't be opened in this case.
+
+thanks,
+-- Shuah
+
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
