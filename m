@@ -1,137 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:34897 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932123AbcARQS5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 11:18:57 -0500
-Received: from epcpsbgm1new.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0O1500WXUPBKNW10@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:18:56 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 11/15] mediactl: libv4l2subdev: add support for setting
- pipeline format
-Date: Mon, 18 Jan 2016 17:17:36 +0100
-Message-id: <1453133860-21571-12-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
-References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:58300 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1945943AbcA1RMQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 12:12:16 -0500
+Subject: Re: [PATCH 08/31] media: v4l-core add
+ v4l_enable/disable_media_tuner() helper functions
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <e642fee6e443170b33a8c69fbc21b409f7be5583.1452105878.git.shuahkh@osg.samsung.com>
+ <20160128132651.748a1271@recife.lan>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AA4BEC.8080807@osg.samsung.com>
+Date: Thu, 28 Jan 2016 10:12:12 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160128132651.748a1271@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a function for setting the media device pipeline format.
+On 01/28/2016 08:26 AM, Mauro Carvalho Chehab wrote:
+> Em Wed,  6 Jan 2016 13:26:57 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> Add a new interfaces to be used by v4l-core to invoke enable
+>> source and disable_source handlers in the media_device. The
+>> enable_source helper function invokes the enable_source handler
+>> to find tuner entity connected to the decoder and check is it
+>> is available or busy. If tuner is available, link is activated
+>> and pipeline is started. The disable_source helper function
+>> invokes the disable_source handler to deactivate and stop the
+>> pipeline.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-dev.c | 27 +++++++++++++++++++++++++++
+>>  include/media/v4l2-dev.h           |  4 ++++
+>>  2 files changed, 31 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+>> index d8e5994..f06da6e 100644
+>> --- a/drivers/media/v4l2-core/v4l2-dev.c
+>> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+>> @@ -233,6 +233,33 @@ struct video_device *video_devdata(struct file *file)
+>>  }
+>>  EXPORT_SYMBOL(video_devdata);
+>>  
+>> +int v4l_enable_media_tuner(struct video_device *vdev)
+> 
+> IMHO, the better is to put those MC ancillary routines on a separate file.
+> Hans suggested to add them at v4l2-mc.h and v4l2-mc.h.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- utils/media-ctl/libv4l2subdev.c |   63 +++++++++++++++++++++++++++++++++++++++
- utils/media-ctl/v4l2subdev.h    |   15 ++++++++++
- 2 files changed, 78 insertions(+)
+ok I can do that.
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 3282fe9..9d48ac1 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -165,6 +165,69 @@ int v4l2_subdev_set_format(struct media_entity *entity,
- 	return 0;
- }
- 
-+int v4l2_subdev_apply_pipeline_fmt(struct media_device *media,
-+				   struct v4l2_format *fmt)
-+{
-+	struct v4l2_mbus_framefmt mbus_fmt = { 0 };
-+	struct media_entity *entity = media->pipeline;
-+	struct media_pad *pad;
-+	int ret;
-+
-+	while (entity) {
-+		/*
-+		 * Source entity is linked only through a source pad
-+		 * and this pad should be used for setting the format.
-+		 * For other entities set the format on a sink pad.
-+		 */
-+		pad = entity->pipe_sink_pad ? entity->pipe_sink_pad :
-+					      entity->pipe_src_pad;
-+		if (pad == NULL)
-+			return -EINVAL;
-+
-+		ret = v4l2_subdev_get_format(entity, &mbus_fmt, pad->index,
-+					     V4L2_SUBDEV_FORMAT_TRY);
-+
-+		if (ret < 0)
-+			return ret;
-+
-+		media_dbg(media, "VIDIOC_SUBDEV_G_FMT %s:%d: mcode: %s, cs: %s, w: %d, h: %d\n",
-+			  media_entity_get_name(entity), pad->index,
-+			  v4l2_subdev_pixelcode_to_string(mbus_fmt.code),
-+			  v4l2_subdev_colorspace_to_string(mbus_fmt.colorspace),
-+			  mbus_fmt.width, mbus_fmt.height);
-+
-+		ret = v4l2_subdev_set_format(entity, &mbus_fmt, pad->index,
-+					     V4L2_SUBDEV_FORMAT_ACTIVE);
-+		if (ret < 0)
-+			return ret;
-+
-+		media_dbg(media, "VIDIOC_SUBDEV_S_FMT %s:%d: mcode: %s, cs: %s, w: %d, h: %d\n",
-+			  media_entity_get_name(entity), pad->index,
-+			  v4l2_subdev_pixelcode_to_string(mbus_fmt.code),
-+			  v4l2_subdev_colorspace_to_string(mbus_fmt.colorspace),
-+			  mbus_fmt.width, mbus_fmt.height);
-+
-+		entity = entity->next;
-+
-+		/* Last entity in the pipeline is not a sub-device */
-+		if (entity->next == NULL)
-+			break;
-+	}
-+
-+	/*
-+	 * Sink entity represents a video device node and is not
-+	 * a sub-device. Nonetheless because it has associated
-+	 * file descriptor and can expose v4l2-controls the
-+	 * v4l2-subdev structure is used for caching the
-+	 * related data.
-+	 */
-+	ret = ioctl(entity->sd->fd, VIDIOC_S_FMT, fmt);
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+}
-+
- int v4l2_subdev_get_selection(struct media_entity *entity,
- 	struct v4l2_rect *rect, unsigned int pad, unsigned int target,
- 	enum v4l2_subdev_format_whence which)
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 3732755..be2d82e 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -141,6 +141,21 @@ int v4l2_subdev_set_format(struct media_entity *entity,
- 	enum v4l2_subdev_format_whence which);
- 
- /**
-+ * @brief Set media device pipeline format
-+ * @param media - media device.
-+ * @param fmt - negotiated format.
-+ *
-+ * Set the active format on all the media device pipeline entities.
-+ * The format has to be at first negotiated with VIDIOC_SUBDEV_S_FMT
-+ * by struct v4l2_subdev_format's 'whence' property set to
-+ * V4L2_SUBDEV_FORMAT_TRY.
-+ *
-+ * @return 0 on success, or a negative error code on failure.
-+ */
-+int v4l2_subdev_apply_pipeline_fmt(struct media_device *media,
-+				   struct v4l2_format *fmt);
-+
-+/**
-  * @brief Retrieve a selection rectangle on a pad.
-  * @param entity - subdev-device media entity.
-  * @param r - rectangle to be filled.
+> 
+>> +{
+>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>> +	struct media_device *mdev = vdev->entity.graph_obj.mdev;
+>> +	int ret;
+>> +
+>> +	if (!mdev || !mdev->enable_source)
+>> +		return 0;
+>> +	ret = mdev->enable_source(&vdev->entity, &vdev->pipe);
+>> +	if (ret)
+>> +		return -EBUSY;
+>> +	return 0;
+>> +#endif /* CONFIG_MEDIA_CONTROLLER */
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l_enable_media_tuner);
+>> +
+>> +void v4l_disable_media_tuner(struct video_device *vdev)
+>> +{
+>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>> +	struct media_device *mdev = vdev->entity.graph_obj.mdev;
+>> +
+>> +	if (mdev && mdev->disable_source)
+>> +		mdev->disable_source(&vdev->entity);
+>> +#endif /* CONFIG_MEDIA_CONTROLLER */
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l_disable_media_tuner);
+>>  
+>>  /* Priority handling */
+>>  
+>> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+>> index eeabf20..68999a3 100644
+>> --- a/include/media/v4l2-dev.h
+>> +++ b/include/media/v4l2-dev.h
+>> @@ -87,6 +87,7 @@ struct video_device
+>>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>>  	struct media_entity entity;
+>>  	struct media_intf_devnode *intf_devnode;
+>> +	struct media_pipeline pipe;
+>>  #endif
+>>  	/* device ops */
+>>  	const struct v4l2_file_operations *fops;
+>> @@ -176,6 +177,9 @@ void video_unregister_device(struct video_device *vdev);
+>>     latter can also be used for video_device->release(). */
+>>  struct video_device * __must_check video_device_alloc(void);
+>>  
+>> +int v4l_enable_media_tuner(struct video_device *vdev);
+>> +void v4l_disable_media_tuner(struct video_device *vdev);
+> 
+> Documentation?
+
+Since I am going to be adding a new source file, I can
+add documentation in the same patch.
+
+thanks,
+-- Shuah
+
+> 
+>> +
+>>  /* this release function frees the vdev pointer */
+>>  void video_device_release(struct video_device *vdev);
+>>  
+
+
 -- 
-1.7.9.5
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
