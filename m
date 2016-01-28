@@ -1,84 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:39931 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932123AbcARQTA (ORCPT
+Received: from mail-yk0-f179.google.com ([209.85.160.179]:33511 "EHLO
+	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751652AbcA1TdG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 11:19:00 -0500
-Received: from epcpsbgm2new.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0O1500UJKPBNT420@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 19 Jan 2016 01:18:59 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl,
-	Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH 12/15] mediactl: libv4l2subdev: add get_pipeline_entity_by_cid
- function
-Date: Mon, 18 Jan 2016 17:17:37 +0100
-Message-id: <1453133860-21571-13-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
-References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+	Thu, 28 Jan 2016 14:33:06 -0500
+Received: by mail-yk0-f179.google.com with SMTP id k129so43570501yke.0
+        for <linux-media@vger.kernel.org>; Thu, 28 Jan 2016 11:33:05 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <56AA6A2A.1020801@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	<2d2392f96a7f10a8d94a4d7fa6d5657b56b75593.1452105878.git.shuahkh@osg.samsung.com>
+	<20160128135752.536e909e@recife.lan>
+	<56AA6A2A.1020801@osg.samsung.com>
+Date: Thu, 28 Jan 2016 14:33:05 -0500
+Message-ID: <CAGoCfiwaFEWhCD9Bf61CAUiKJnFu3WKd=X2-QFBH1yERXuFRpQ@mail.gmail.com>
+Subject: Re: [PATCH 17/31] media: au0828 video change to use v4l_enable_media_tuner()
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>, tiwai@suse.com,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+	javier@osg.samsung.com, Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Arnd Bergmann <arnd@arndb.de>, dan.carpenter@oracle.com,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	Antti Palosaari <crope@iki.fi>, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	SF Markus Elfring <elfring@users.sourceforge.net>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	labbott@fedoraproject.org,
+	Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
+	ricard.wanderlof@axis.com, Julian Scheel <julian@jusst.de>,
+	takamichiho@gmail.com, dominic.sacre@gmx.de, misterpib@gmail.com,
+	daniel@zonque.org, Jurgen Kramer <gtmkramer@xs4all.nl>,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, Linux Kernel <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a function for obtaining the v4l2 sub-device for which
-the v4l2 control related ioctl is predestined.
+Hi Shuah, Mauro,
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- utils/media-ctl/libv4l2subdev.c |   14 ++++++++++++++
- utils/media-ctl/v4l2subdev.h    |   15 +++++++++++++++
- 2 files changed, 29 insertions(+)
+>> Did you test the code when the input is not a tuner, but, instead,
+>> Composite or S-Video connector, as shown at:
+>>       https://mchehab.fedorapeople.org/mc-next-gen/au0828.png
+>
+> I am not sure if I did or not. I can double check this case.
+> Do you have concerns that this won't work?
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index 9d48ac1..14e9423 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -1052,3 +1052,17 @@ bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
- 
- 	return false;
- }
-+
-+struct media_entity *v4l2_subdev_get_pipeline_entity_by_cid(struct media_device *media,
-+						int cid)
-+{
-+	struct media_entity *entity = media->pipeline;
-+
-+	while (entity) {
-+		if (v4l2_subdev_has_v4l2_control_redir(media, entity, cid))
-+			return entity;
-+		entity = entity->next;
-+	}
-+
-+	return NULL;
-+}
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index be2d82e..607ec50 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -394,4 +394,19 @@ enum v4l2_subdev_fmt_mismatch v4l2_subdev_format_compare(
- bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
- 	struct media_entity *entity, int ctrl_id);
- 
-+/**
-+ * @brief Get the first pipeline entity supporting the control
-+ * @param media - media device.
-+ * @param cid - v4l2 control identifier.
-+ *
-+ * Get the first entity in the media device pipeline,
-+ * for which v4l2_control with cid is to be redirected
-+ *
-+ * @return associated entity if defined, or NULL if the
-+ *	   control redirection wasn't defined for any entity
-+ *	   in the pipeline
-+ */
-+struct media_entity *v4l2_subdev_get_pipeline_entity_by_cid(
-+	struct media_device *media, int cid);
-+
- #endif
+I'm not sure how you expect the MC framework to be handling this case,
+but I can tell you that the hardware will *not* support simultaneous
+streaming of the DVB feed at the same time as the analog feed, even if
+you're using the composite/s-video input and not actually using the
+xc5000 tuner in analog mode.
+
+Devin
+
 -- 
-1.7.9.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
