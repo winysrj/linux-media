@@ -1,125 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:47230 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932446AbcAZDqV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 22:46:21 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 33976180D43
-	for <linux-media@vger.kernel.org>; Tue, 26 Jan 2016 04:46:17 +0100 (CET)
-Date: Tue, 26 Jan 2016 04:46:17 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160126034617.33976180D43@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:59891 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750794AbcA1Vzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 16:55:33 -0500
+Subject: Re: [PATCH REBASE 4.5 00/31] Sharing media resources across ALSA and
+ au0828 drivers
+To: Takashi Iwai <tiwai@suse.de>
+References: <cover.1453336830.git.shuahkh@osg.samsung.com>
+ <56AA2C37.3090309@osg.samsung.com> <s5h60yd7mwo.wl-tiwai@suse.de>
+Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, alsa-devel@alsa-project.org,
+	arnd@arndb.de, ricard.wanderlof@axis.com,
+	labbott@fedoraproject.org, chehabrafael@gmail.com,
+	misterpib@gmail.com, prabhakar.csengg@gmail.com,
+	ricardo.ribalda@gmail.com, ruchandani.tina@gmail.com,
+	takamichiho@gmail.com, tvboxspy@gmail.com, dominic.sacre@gmx.de,
+	crope@iki.fi, julian@jusst.de, clemens@ladisch.de,
+	pierre-louis.bossart@linux.intel.com, corbet@lwn.net,
+	joe@oampo.co.uk, johan@oljud.se, dan.carpenter@oracle.com,
+	pawel@osciak.com, p.zabel@pengutronix.de, perex@perex.cz,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, k.kozlowski@samsung.com,
+	kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	sw0312.kim@samsung.com, elfring@users.sourceforge.net,
+	linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linuxbugs@vittgam.net,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, daniel@zonque.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AA8E4B.8080105@osg.samsung.com>
+Date: Thu, 28 Jan 2016 14:55:23 -0700
+MIME-Version: 1.0
+In-Reply-To: <s5h60yd7mwo.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 01/28/2016 08:18 AM, Takashi Iwai wrote:
+> On Thu, 28 Jan 2016 15:56:55 +0100,
+> Shuah Khan wrote:
+>>
+>> On 01/21/2016 11:09 AM, Shuah Khan wrote:
+>>> Please note that I am sending just the 4 patches that
+>>> changed during series rebase to Linux 4.5. The rebase
+>>> was pain free. media_device_init() type change required
+>>> changes to patches 18 and 26. I re-tested the series
+>>> and everything looks good.
+>>>
+>>> [PATCH 16/31] media: au0828 video remove au0828_enable_analog_tuner()
+>>> [PATCH 18/31] media: au0828 change to use Managed Media Controller API
+>>> [PATCH 22/31] media: dvb-core create tuner to demod pad link in disabled state
+>>> [PATCH v3 26/31] sound/usb: Update ALSA driver to use Managed Media Controller API
+>>>
+>>> Links:
+>>> PATCH Series that contains all 31 patches:
+>>> https://lkml.org/lkml/2016/1/6/668
+>>>
+>>> ALSA patches went through reviews and links
+>>> to PATCH V3 (ALSA):
+>>> https://lkml.org/lkml/2016/1/18/556
+>>> https://lkml.org/lkml/2016/1/18/557
+>>> https://lkml.org/lkml/2016/1/18/558
+>>>
+>>> Compile warns patches:
+>>> https://lkml.org/lkml/2016/1/19/520
+>>> https://lkml.org/lkml/2016/1/19/518
+>>> https://lkml.org/lkml/2016/1/19/519
+>>>
+>>> Mauro and Takashi:
+>>> Please let me know if you would rather see the entire
+>>> patch series generated for 4.5-rc1 and sent out in a
+>>> complete series instead of just the rebased patches.
+>>>
+>>
+>> Hi Takashi,
+>>
+>> Are you okay with this ALSA patch series?
+> 
+> Sorry, too little time until now.
+> I know there are still a few potential problems.  Will do detailed
+> reviews later.
+> 
 
-Results of the daily build of media_tree:
+I would like to wrap this up and hopefully get this
+into 4.6. Please let me know if you will be able to
+review in time for that.
 
-date:		Tue Jan 26 04:00:15 CET 2016
-git branch:	test
-git hash:	a73cfe527c10bb023f0e22dd8cf37dd418c093e7
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.3.0-164
+I have a few comments work on from Mauro and would
+like to address comments from you as well at the same
+time.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-rc1-i686: OK
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+thanks,
+-- Shuah
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
