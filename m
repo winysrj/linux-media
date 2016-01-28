@@ -1,81 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from v-smtpgw2.han.skanova.net ([81.236.60.205]:56933 "EHLO
-	v-smtpgw2.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754194AbcANRn3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 12:43:29 -0500
-Subject: Re: [PATCH] dvb-usb-dvbsky: add new product id for TT CT2-4650 CI
-To: Olli Salonen <olli.salonen@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-References: <1452097591-20184-1-git-send-email-torbjorn.jansson@mbox200.swipnet.se>
- <CAAZRmGxgVxxDA2PchnmXYrCmi+3Y8Zc6Pu_J2A3CZGdz0=4F_Q@mail.gmail.com>
-From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
-Message-ID: <5697DE47.4080902@mbox200.swipnet.se>
-Date: Thu, 14 Jan 2016 18:43:35 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:57453 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965438AbcA1O5N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 09:57:13 -0500
+Subject: Re: [PATCH REBASE 4.5 00/31] Sharing media resources across ALSA and
+ au0828 drivers
+To: mchehab@osg.samsung.com, tiwai@suse.com, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com
+References: <cover.1453336830.git.shuahkh@osg.samsung.com>
+Cc: clemens@ladisch.de, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AA2C37.3090309@osg.samsung.com>
+Date: Thu, 28 Jan 2016 07:56:55 -0700
 MIME-Version: 1.0
-In-Reply-To: <CAAZRmGxgVxxDA2PchnmXYrCmi+3Y8Zc6Pu_J2A3CZGdz0=4F_Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <cover.1453336830.git.shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-a question, who maintains the wiki?
-i think the wiki page for this card 
-(http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_CT2-4650_CI) 
-should be updated.
+On 01/21/2016 11:09 AM, Shuah Khan wrote:
+> Please note that I am sending just the 4 patches that
+> changed during series rebase to Linux 4.5. The rebase
+> was pain free. media_device_init() type change required
+> changes to patches 18 and 26. I re-tested the series
+> and everything looks good.
+> 
+> [PATCH 16/31] media: au0828 video remove au0828_enable_analog_tuner()
+> [PATCH 18/31] media: au0828 change to use Managed Media Controller API
+> [PATCH 22/31] media: dvb-core create tuner to demod pad link in disabled state
+> [PATCH v3 26/31] sound/usb: Update ALSA driver to use Managed Media Controller API
+> 
+> Links:
+> PATCH Series that contains all 31 patches:
+> https://lkml.org/lkml/2016/1/6/668
+> 
+> ALSA patches went through reviews and links
+> to PATCH V3 (ALSA):
+> https://lkml.org/lkml/2016/1/18/556
+> https://lkml.org/lkml/2016/1/18/557
+> https://lkml.org/lkml/2016/1/18/558
+> 
+> Compile warns patches:
+> https://lkml.org/lkml/2016/1/19/520
+> https://lkml.org/lkml/2016/1/19/518
+> https://lkml.org/lkml/2016/1/19/519
+> 
+> Mauro and Takashi:
+> Please let me know if you would rather see the entire
+> patch series generated for 4.5-rc1 and sent out in a
+> complete series instead of just the rebased patches.
+> 
 
-at the very least with some text saying that there is a second version 
-of this card, possibly also something about it not yet working and i 
-also think there is slightly different versions of tuner and demod in 
-use and different firmware files is needed.
+Hi Takashi,
+
+Are you okay with this ALSA patch series?
+If so could you please Ack these patches
+so they can be pulled into media tree.
+
+Mauro,
+
+Could you please look these over and give
+me feedback and let me know if you would
+like me to resend all the patches in final
+series.
+
+thanks,
+-- Shuah
 
 
-On 2016-01-07 09:32, Olli Salonen wrote:
-> Reviewed-by: Olli Salonen <olli.salonen@iki.fi>
->
-> On 6 January 2016 at 17:26, Torbjörn Jansson
-> <torbjorn.jansson@mbox200.swipnet.se> wrote:
->> Add a new product id to dvb-usb-dvbsky for new version of TechnoTrend CT2-4650 CI
->>
->> Signed-off-by: Torbjörn Jansson <torbjorn.jansson@mbox200.swipnet.se>
->> ---
->>   drivers/media/dvb-core/dvb-usb-ids.h  | 1 +
->>   drivers/media/usb/dvb-usb-v2/dvbsky.c | 4 ++++
->>   2 files changed, 5 insertions(+)
->>
->> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
->> index 1c1c298..a3761e9 100644
->> --- a/drivers/media/dvb-core/dvb-usb-ids.h
->> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
->> @@ -247,6 +247,7 @@
->>   #define USB_PID_TECHNOTREND_CONNECT_CT3650             0x300d
->>   #define USB_PID_TECHNOTREND_CONNECT_S2_4600             0x3011
->>   #define USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI                0x3012
->> +#define USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI_2      0x3015
->>   #define USB_PID_TECHNOTREND_TVSTICK_CT2_4400           0x3014
->>   #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY       0x005a
->>   #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY_2     0x0081
->> diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
->> index 1dd9625..b4620b7 100644
->> --- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
->> +++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
->> @@ -847,6 +847,10 @@ static const struct usb_device_id dvbsky_id_table[] = {
->>                  USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI,
->>                  &dvbsky_t680c_props, "TechnoTrend TT-connect CT2-4650 CI",
->>                  RC_MAP_TT_1500) },
->> +       { DVB_USB_DEVICE(USB_VID_TECHNOTREND,
->> +               USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI_2,
->> +               &dvbsky_t680c_props, "TechnoTrend TT-connect CT2-4650 CI v1.1",
->> +               RC_MAP_TT_1500) },
->>          { DVB_USB_DEVICE(USB_VID_TERRATEC,
->>                  USB_PID_TERRATEC_H7_3,
->>                  &dvbsky_t680c_props, "Terratec H7 Rev.4",
->> --
->> 2.4.3
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
