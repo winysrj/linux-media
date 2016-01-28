@@ -1,131 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38090 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752944AbcAFK7u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2016 05:59:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Enrico Butera <ebutera@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 09/10] [media] tvp5150: Initialize the chip on probe
-Date: Wed, 06 Jan 2016 12:59:50 +0200
-Message-ID: <1730920.ntKvfybiDd@avalon>
-In-Reply-To: <1451910332-23385-10-git-send-email-javier@osg.samsung.com>
-References: <1451910332-23385-1-git-send-email-javier@osg.samsung.com> <1451910332-23385-10-git-send-email-javier@osg.samsung.com>
+Received: from ni.piap.pl ([195.187.100.4]:39618 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754780AbcA1HZ6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 02:25:58 -0500
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: Support Intersil/Techwell TW686x-based video capture cards
+References: <1451183213-2733-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+	<569CE27F.6090702@xs4all.nl>
+	<CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
+	<m31t96j8u4.fsf@t19.piap.pl>
+	<CAAEAJfBM_vVBVRd3P0kJ1QLzk-M==L=x6CS0ggXgRX=7K_aK_A@mail.gmail.com>
+	<m3si1kioa9.fsf@t19.piap.pl>
+	<CAAEAJfC_Sa_6opADoz0Ab8NrmhX+cjNmSK_Nw_Ne9nk-ROaj0Q@mail.gmail.com>
+	<m3io2gfksk.fsf@t19.piap.pl>
+	<CAAEAJfDb84ZbRkq9GVOmeWp=vpn_GBX9Fx0w+aGnZ9n29PsR8A@mail.gmail.com>
+Date: Thu, 28 Jan 2016 08:25:55 +0100
+In-Reply-To: <CAAEAJfDb84ZbRkq9GVOmeWp=vpn_GBX9Fx0w+aGnZ9n29PsR8A@mail.gmail.com>
+	(Ezequiel Garcia's message of "Wed, 27 Jan 2016 09:14:49 -0300")
+Message-ID: <m3a8nqf9mk.fsf@t19.piap.pl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
 
-Thankk you for the patch.
+> Since your driver is not merged, there's no real benefit in my sending
+> me patches against it.
 
-On Monday 04 January 2016 09:25:31 Javier Martinez Canillas wrote:
-> After power-up, the tvp5150 decoder is in a unknown state until the
-> RESETB pin is driven LOW which reset all the registers and restarts
-> the chip's internal state machine.
-> 
-> The init sequence has some timing constraints and the RESETB signal
-> can only be used if the PDN (Power-down) pin is first released.
-> 
-> So, the initialization sequence is as follows:
-> 
-> 1- PDN (active-low) is driven HIGH so the chip is power-up
-> 2- A 20 ms delay is needed before sending a RESETB (active-low) signal.
-> 3- The RESETB pulse duration is 500 ns.
-> 4- A 200 us delay is needed for the I2C client to be active after reset.
-> 
-> This patch used as a reference the logic in the IGEPv2 board file from
-> the ISEE 2.6.37 vendor tree.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> ---
-> 
->  drivers/media/i2c/tvp5150.c | 35 +++++++++++++++++++++++++++++++++++
->  1 file changed, 35 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index caac96a577f8..fed89a811ab7 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -5,6 +5,7 @@
->   * This code is placed under the terms of the GNU General Public License v2
-> */
-> 
-> +#include <linux/of_gpio.h>
+And it's not merged because you stated that you have produced
+a rewritten driver, using my driver just as a reference, and I was naive
+enough to believe it and let it go.
 
-Let's keep the headers sorted alphabetically if you don't mind :-)
+> Since I just submitted a v2 driver that seems to be ready to be
+> merged, how about I just add DMA s-g support so you get all the
+> functionality you need?
+>
+> This option sounds much easier than you going through all the pain of
+> cleaning up your driver.
 
->  #include <linux/i2c.h>
->  #include <linux/slab.h>
->  #include <linux/videodev2.h>
-> @@ -1197,6 +1198,36 @@ static int tvp5150_detect_version(struct tvp5150
-> *core) return 0;
->  }
-> 
-> +static inline int tvp5150_init(struct i2c_client *c)
-> +{
-> +	struct gpio_desc *pdn_gpio;
-> +	struct gpio_desc *reset_gpio;
-> +
-> +	pdn_gpio = devm_gpiod_get_optional(&c->dev, "powerdown", GPIOD_OUT_HIGH);
-> +	if (IS_ERR(pdn_gpio))
-> +		return PTR_ERR(pdn_gpio);
-> +
-> +	if (pdn_gpio) {
-> +		gpiod_set_value_cansleep(pdn_gpio, 0);
-> +		/* Delay time between power supplies active and reset */
-> +		msleep(20);
+Do I really have to answer such questions?
 
-How about usleep_range() instead ?
+One can't simply take someone's code, replace the MODULE_AUTHOR,
+twist a bit to suit his needs, and send it as his own.
 
-> +	}
-> +
-> +	reset_gpio = devm_gpiod_get_optional(&c->dev, "reset", GPIOD_OUT_HIGH);
-> +	if (IS_ERR(reset_gpio))
-> +		return PTR_ERR(reset_gpio);
-> +
-> +	if (reset_gpio) {
-> +		/* RESETB pulse duration */
-> +		ndelay(500);
+In my country, it wouldn't be even legal.
 
-Is the timing so sensitive that we need a delay, or could we use 
-usleep_range() ?
 
-> +		gpiod_set_value_cansleep(reset_gpio, 0);
-> +		/* Delay time between end of reset to I2C active */
-> +		usleep_range(200, 250);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int tvp5150_probe(struct i2c_client *c,
->  			 const struct i2c_device_id *id)
->  {
-> @@ -1209,6 +1240,10 @@ static int tvp5150_probe(struct i2c_client *c,
->  	     I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
->  		return -EIO;
-> 
-> +	res = tvp5150_init(c);
-> +	if (res)
-> +		return res;
-> +
->  	core = devm_kzalloc(&c->dev, sizeof(*core), GFP_KERNEL);
->  	if (!core)
->  		return -ENOMEM;
 
+I have at least one similar situation here. I'm using frame grabber
+drivers for an I.MX6 processor on-chip feature. The problem is, the
+author hasn't yet managed (for years now) to have this functionality
+merged into the official tree. Obviously, I'm putting some considerable
+work in it. Does this mean I'm free to grab it as my own and request
+that it is to be merged instead? No, I have to wait until the original
+work is merged, and only then I can ask for my patches to be applied
+(in the form of changes, not a raw driver code).
 -- 
-Regards,
+Krzysztof Halasa
 
-Laurent Pinchart
-
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
