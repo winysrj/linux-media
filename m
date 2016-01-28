@@ -1,58 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46214 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756099AbcAIXED (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jan 2016 18:04:03 -0500
-Date: Sun, 10 Jan 2016 01:03:30 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, Nikhil Devshatwar <nikhil.nd@ti.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-samsung-soc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	"Prabhakar\"" <prabhakar.csengg@gmail.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from mga02.intel.com ([134.134.136.20]:42120 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935487AbcA1Mgr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 07:36:47 -0500
+Message-ID: <1453984596.2521.293.camel@linux.intel.com>
+Subject: Re: [PATCH v1 1/1] tea575x: convert to library
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Ondrej Zary <linux@rainbow-software.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/8] [media] Check v4l2_of_parse_endpoint() ret val in
- all drivers
-Message-ID: <20160109230330.GG576@valkosipuli.retiisi.org.uk>
-References: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1452191248-15847-1-git-send-email-javier@osg.samsung.com>
+	linux-media@vger.kernel.org
+Date: Thu, 28 Jan 2016 14:36:36 +0200
+In-Reply-To: <1450470720-89768-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1450470720-89768-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
-
-On Thu, Jan 07, 2016 at 03:27:14PM -0300, Javier Martinez Canillas wrote:
-> Hello,
+On Fri, 2015-12-18 at 22:32 +0200, Andy Shevchenko wrote:
+> The module is used only as a library for now. Remove module init and
+> exit
+> routines to show this.
 > 
-> When discussing a patch [0] with Laurent Pinchart for another series I
-> mentioned to him that most callers of v4l2_of_parse_endpoint() weren't
-> checking the return value. This is likely due the function kernel-doc
-> stating incorrectly that the return value is always 0 but can return a
-> negative error code on failure.
+> While here, remove FSF snail address and attach EXPORT_SYMBOL()
+> macros to
+> corresponding functions.
+
+Any comment on this?
+
+The patch has been compiled and tested with SF64-PCR radio tuner (fm801
+based).
+
 > 
-> This trivial patch series fixes the function kernel-doc and add proper
-> error checking in all the drivers that are currently not doing so.
-
-After fixing patches 5 and 6,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/media/radio/tea575x.c | 21 ++-------------------
+>  1 file changed, 2 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/media/radio/tea575x.c
+> b/drivers/media/radio/tea575x.c
+> index 43d1ea5..21cd5de 100644
+> --- a/drivers/media/radio/tea575x.c
+> +++ b/drivers/media/radio/tea575x.c
+> @@ -14,10 +14,6 @@
+>   *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>   *   GNU General Public License for more details.
+>   *
+> - *   You should have received a copy of the GNU General Public
+> License
+> - *   along with this program; if not, write to the Free Software
+> - *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+> MA  02111-1307 USA
+> - *
+>   */
+>  
+>  #include <linux/delay.h>
+> @@ -226,6 +222,7 @@ void snd_tea575x_set_freq(struct snd_tea575x
+> *tea)
+>  	snd_tea575x_write(tea, tea->val);
+>  	tea->freq = snd_tea575x_val_to_freq(tea, tea->val);
+>  }
+> +EXPORT_SYMBOL(snd_tea575x_set_freq);
+>  
+>  /*
+>   * Linux Video interface
+> @@ -582,25 +579,11 @@ int snd_tea575x_init(struct snd_tea575x *tea,
+> struct module *owner)
+>  
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL(snd_tea575x_init);
+>  
+>  void snd_tea575x_exit(struct snd_tea575x *tea)
+>  {
+>  	video_unregister_device(&tea->vd);
+>  	v4l2_ctrl_handler_free(tea->vd.ctrl_handler);
+>  }
+> -
+> -static int __init alsa_tea575x_module_init(void)
+> -{
+> -	return 0;
+> -}
+> -
+> -static void __exit alsa_tea575x_module_exit(void)
+> -{
+> -}
+> -
+> -module_init(alsa_tea575x_module_init)
+> -module_exit(alsa_tea575x_module_exit)
+> -
+> -EXPORT_SYMBOL(snd_tea575x_init);
+>  EXPORT_SYMBOL(snd_tea575x_exit);
+> -EXPORT_SYMBOL(snd_tea575x_set_freq);
 
 -- 
-Kind regards,
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
