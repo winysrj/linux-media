@@ -1,159 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu004-omc2s30.hotmail.com ([65.55.111.105]:61804 "EHLO
-	BLU004-OMC2S30.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756119AbcAIUxu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jan 2016 15:53:50 -0500
-From: =?utf-8?B?QWxleGFuZHJlLVhhdmllciBMYWJvbnTDqS1MYW1vdXJldXg=?=
-	<alexandrexavier@live.ca>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Getting my Ion Video 2 PC to work
-Date: Sat, 9 Jan 2016 20:53:47 +0000
-Message-ID: <BY2PR20MB01680E7A31485E894515A676BDF70@BY2PR20MB0168.namprd20.prod.outlook.com>
-References: <BY2PR20MB016823AC3F8916653DB47B11BDF50@BY2PR20MB0168.namprd20.prod.outlook.com>
- <CAGoCfix2v9PJK73s8qif4yaL86cBLsRrDpFm3tj30N2BpuKm7g@mail.gmail.com>
- <BY2PR20MB0168AC2381030DF251DF4424BDF50@BY2PR20MB0168.namprd20.prod.outlook.com>
-In-Reply-To: <BY2PR20MB0168AC2381030DF251DF4424BDF50@BY2PR20MB0168.namprd20.prod.outlook.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <CBD0F66CFB15C349B11E78B10EF7D40A@namprd20.prod.outlook.com>
-Content-Transfer-Encoding: base64
+Received: from lists.s-osg.org ([54.187.51.154]:57726 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161065AbcA1Phv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 10:37:51 -0500
+Date: Thu, 28 Jan 2016 13:37:28 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH 13/31] media: au0828 fix au0828_create_media_graph()
+ entity checks
+Message-ID: <20160128133728.5fa54fa3@recife.lan>
+In-Reply-To: <ab77ed92dafb05b262a33fcd827f35ad8be3d619.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	<ab77ed92dafb05b262a33fcd827f35ad8be3d619.1452105878.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgYWdhaW4sDQoNCkkgaGF2ZSBiZWVuIHRyeWluZyB0byBmaXggbXkgZGV2aWNlIGJ5IG15c2Vs
-Zi4gSSd2ZSBkb3dubG9hZGVkIEtlcm5lbCANCnY0LjMuMyBhbmQgYWRkZWQgbXkgZGV2aWNlJ3Mg
-aWRzIHRvIHRoZSBjYXJkcyBsaXN0Og0KDQo9PT09PT09PT1QQVRDSCBTVEFSVD09PT09PT09PT09
-PT09PT09PT09PT09PT09DQotLS0gZW0yOHh4LWNhcmRzKG9sZCkuYyAgICAyMDE2LTAxLTA5IDAw
-OjUxOjI4LjgzOTMyNTY1NiAtMDUwMA0KKysrIGVtMjh4eC1jYXJkcy5jICAgIDIwMTYtMDEtMDkg
-MDA6NDk6MDMuNjczMTUwNjQyIC0wNTAwDQpAQCAtMjQ3NSw2ICsyNDc1LDggQEANCiAgICAgICAg
-ICAgICAgLmRyaXZlcl9pbmZvID0gRU0yODYxX0JPQVJEX0xFQURURUtfVkMxMDAgfSwNCiAgICAg
-IHsgVVNCX0RFVklDRSgweGViMWEsIDB4ODE3OSksDQogICAgICAgICAgICAgIC5kcml2ZXJfaW5m
-byA9IEVNMjgxNzhfQk9BUkRfVEVSUkFURUNfVDJfU1RJQ0tfSEQgfSwNCisgICAgeyBVU0JfREVW
-SUNFKDB4ZWIxYSwgMHg1MDUxKSwNCisgICAgICAgICAgICAuZHJpdmVyX2luZm8gPSBFTTI4NjBf
-Qk9BUkRfVFZQNTE1MF9SRUZFUkVOQ0VfREVTSUdOIH0sDQogICAgICB7IH0sDQogIH07DQogIE1P
-RFVMRV9ERVZJQ0VfVEFCTEUodXNiLCBlbTI4eHhfaWRfdGFibGUpOw0KPT09PT09PT09UEFUQ0gg
-RU5EPT09PT09PT09PT09PT09PT09PT09PT09PT0NCg0KSSB1c2VkIHRoZSByZWZlcmVuY2UgZGVz
-aWduIGJlY2F1c2UgSSBrbm93IG15IGNhcmQgaGFzIGEgRU0yODYwIGNoaXAgYW5kIA0KYSA1MDUx
-QU0xIGFuYWxvZyBkZWNvZGVyLiBOb3cgdGhlIGRldmljZSBpcyBkZXRlY3RlZCBhbmQgSSBjYW4g
-Z2V0IHRoZSANCmZpcnN0IGZyYW1lcyBiZWZvcmUgaXQgc2VlbXMgdG8gc3RvcCByZWNvcmRpbmcg
-YW5kIG9ubHkgZGlzcGxheSBhIHN0aWxsIA0KcGljdHVyZS4gSSBoYXZlIGFub3RoZXIgZGV2aWNl
-LCB0aGUgU3RhclRlY2ggU1ZJRDJVU0IyMywgaXQgdXNlcyB0aGUgDQpzYW1lIGNoaXBzIGFuZCBp
-dCByZXN1bHRzIGluIHRoZSBzYW1lIHByb2JsZW0uDQoNCldoZW4gSSB0cnkgdG8gdXNlIGl0IHdp
-dGggR3V2Y3ZpZXcsIEkgZ2V0IHRoaXM6DQpodHRwOi8vaS5pbWd1ci5jb20vdGNkNmFLRC5wbmcN
-Cg0KRnVsbCB0ZXh0Og0KVjRMMl9DT1JFOiAoVVZDSU9DX0NUUkxfTUFQKSBFcnJvcjogSW5hcHBy
-b3ByaWF0ZSBpb2N0bCBmb3IgZGV2aWNlDQpWNEwyX0NPUkU6IChVVkNJT0NfQ1RSTF9NQVApIEVy
-cm9yOiBJbmFwcHJvcHJpYXRlIGlvY3RsIGZvciBkZXZpY2UNClY0TDJfQ09SRTogKFVWQ0lPQ19D
-VFJMX01BUCkgRXJyb3I6IEluYXBwcm9wcmlhdGUgaW9jdGwgZm9yIGRldmljZQ0KVjRMMl9DT1JF
-OiAoVVZDSU9DX0NUUkxfTUFQKSBFcnJvcjogSW5hcHByb3ByaWF0ZSBpb2N0bCBmb3IgZGV2aWNl
-DQpWNEwyX0NPUkU6IChVVkNJT0NfQ1RSTF9NQVApIEVycm9yOiBJbmFwcHJvcHJpYXRlIGlvY3Rs
-IGZvciBkZXZpY2UNClY0TDJfQ09SRTogKFVWQ0lPQ19DVFJMX01BUCkgRXJyb3I6IEluYXBwcm9w
-cmlhdGUgaW9jdGwgZm9yIGRldmljZQ0KVjRMMl9DT1JFOiAoVVZDSU9DX0NUUkxfTUFQKSBFcnJv
-cjogSW5hcHByb3ByaWF0ZSBpb2N0bCBmb3IgZGV2aWNlDQpWNEwyX0NPUkU6IChVVkNJT0NfQ1RS
-TF9NQVApIEVycm9yOiBJbmFwcHJvcHJpYXRlIGlvY3RsIGZvciBkZXZpY2UNClY0TDJfQ09SRTog
-KFVWQ0lPQ19DVFJMX01BUCkgRXJyb3I6IEluYXBwcm9wcmlhdGUgaW9jdGwgZm9yIGRldmljZQ0K
-QUxTQSBsaWIgcGNtLmM6MjIzOTooc25kX3BjbV9vcGVuX25vdXBkYXRlKSBVbmtub3duIFBDTSBj
-YXJkcy5wY20ucmVhcg0KQUxTQSBsaWIgcGNtLmM6MjIzOTooc25kX3BjbV9vcGVuX25vdXBkYXRl
-KSBVbmtub3duIFBDTSBjYXJkcy5wY20uY2VudGVyX2xmZQ0KQUxTQSBsaWIgcGNtLmM6MjIzOToo
-c25kX3BjbV9vcGVuX25vdXBkYXRlKSBVbmtub3duIFBDTSBjYXJkcy5wY20uc2lkZQ0KQUxTQSBs
-aWIgcGNtX3JvdXRlLmM6OTQ3OihmaW5kX21hdGNoaW5nX2NobWFwKSBGb3VuZCBubyBtYXRjaGlu
-ZyBjaGFubmVsIG1hcA0KQUxTQSBsaWIgcGNtX3JvdXRlLmM6OTQ3OihmaW5kX21hdGNoaW5nX2No
-bWFwKSBGb3VuZCBubyBtYXRjaGluZyBjaGFubmVsIG1hcA0KQ2Fubm90IGNvbm5lY3QgdG8gc2Vy
-dmVyIHNvY2tldCBlcnIgPSBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5DQpDYW5ub3QgY29ubmVj
-dCB0byBzZXJ2ZXIgcmVxdWVzdCBjaGFubmVsDQpqYWNrIHNlcnZlciBpcyBub3QgcnVubmluZyBv
-ciBjYW5ub3QgYmUgc3RhcnRlZA0KVjRMMl9DT1JFOiBSZXF1ZXN0ZWQgcmVzb2x1dGlvbiB1bmF2
-YWlsYWJsZTogZ290IHdpZHRoIDE0NCBoZWlnaHQgMTE2DQpWNEwyX0NPUkU6IFY0TDJfQ0FQX1RJ
-TUVQRVJGUkFNRSBub3Qgc3VwcG9ydGVkDQpWNEwyX0NPUkU6IFVuYWJsZSB0byBzZXQgMS8yNSBm
-cHMNCmNvbnRyb2xbMF06KHVua25vd24gLSAweDYpIDB4OTgwMDAxICdVc2VyIENvbnRyb2xzJw0K
-R1VWQ1ZJRVc6IGludmFsaWQgcmVzb2x1dGlvbiBpbmRleA0KU2VnbWVudGF0aW9uIGZhdWx0DQoN
-ClRoZSBsYXN0IHR3byBsaW5lcyBvbmx5IHByaW50IHRvIHRoZSBjb25zb2xlIG9uY2UgSSBjbG9z
-ZSBHdXZjdmlldyBieSANCnByZXNzaW5nICJjbG9zZSIgb24gdGhlIGVycm9yIG1lc3NhZ2Ugd2lu
-ZG93Lg0KDQpJIGNhbiBvcGVuIHRoZSBkZXZpY2UgaW4gQ2hlZXNlIHdpdGhvdXQgYW55IHByb2Js
-ZW0uIEkgY2FuIGFsc28gb3BlbiBpdCANCmluIFFUIFY0TDIsIGJ1dCB0aGV5IGJvdGggb25seSBz
-aG93IGEgZmV3IGZyYW1lcyBhbmQgaXQgc3RvcHMgdXBkYXRpbmcgDQp0aGUgZnJhbWVzLCBzbyBJ
-IGdldCBhIHN0aWxsIHBpY3R1cmUuDQoNCkhlcmUncyBteSBkbWVzZyBvdXRwdXQ6DQpbICAyNDQu
-OTAwMDgyXSB1c2IgMS0zOiBuZXcgaGlnaC1zcGVlZCBVU0IgZGV2aWNlIG51bWJlciAyIHVzaW5n
-IGVoY2ktcGNpDQpbICAyNDUuMDM5NDQzXSB1c2IgMS0zOiBOZXcgVVNCIGRldmljZSBmb3VuZCwg
-aWRWZW5kb3I9ZWIxYSwgaWRQcm9kdWN0PTUwNTENClsgIDI0NS4wMzk0NjBdIHVzYiAxLTM6IE5l
-dyBVU0IgZGV2aWNlIHN0cmluZ3M6IE1mcj0zLCBQcm9kdWN0PTEsIA0KU2VyaWFsTnVtYmVyPTIN
-ClsgIDI0NS4wMzk0NjhdIHVzYiAxLTM6IFByb2R1Y3Q6IElPTiBBdWRpbyBVU0IgMjg2MSBEZXZp
-Y2UNClsgIDI0NS4wMzk0NzRdIHVzYiAxLTM6IE1hbnVmYWN0dXJlcjogSU9OIEF1ZGlvDQpbICAy
-NDUuMDM5NDgwXSB1c2IgMS0zOiBTZXJpYWxOdW1iZXI6IDANClsgIDI0NS4yODk5MjJdIG1lZGlh
-OiBMaW51eCBtZWRpYSBpbnRlcmZhY2U6IHYwLjEwDQpbICAyNDUuNDYyNDIxXSBMaW51eCB2aWRl
-byBjYXB0dXJlIGludGVyZmFjZTogdjIuMDANClsgIDI0NS42MjAxNjldIGVtMjh4eDogTmV3IGRl
-dmljZSBJT04gQXVkaW8gSU9OIEF1ZGlvIFVTQiAyODYxIERldmljZSBAIA0KNDgwIE1icHMgKGVi
-MWE6NTA1MSwgaW50ZXJmYWNlIDAsIGNsYXNzIDApDQpbICAyNDUuNjIwMTg4XSBlbTI4eHg6IFZp
-ZGVvIGludGVyZmFjZSAwIGZvdW5kOiBpc29jDQpbICAyNDUuNjIwNDA1XSBlbTI4eHg6IGNoaXAg
-SUQgaXMgZW0yODYwDQpbICAyNDUuNzQ1MTU1XSBlbTI4NjAgIzA6IEVFUFJPTSBJRCA9IDFhIGVi
-IDY3IDk1LCBFRVBST00gaGFzaCA9IDB4MWY4MTU2NzENClsgIDI0NS43NDUxNjldIGVtMjg2MCAj
-MDogRUVQUk9NIGluZm86DQpbICAyNDUuNzQ1MTc0XSBlbTI4NjAgIzA6ICAgICBBQzk3IGF1ZGlv
-ICg1IHNhbXBsZSByYXRlcykNClsgIDI0NS43NDUxNzhdIGVtMjg2MCAjMDogICAgIDUwMG1BIG1h
-eCBwb3dlcg0KWyAgMjQ1Ljc0NTE4M10gZW0yODYwICMwOiAgICAgVGFibGUgYXQgb2Zmc2V0IDB4
-MjcsIHN0cmluZ3M9MHgzNDgyLCANCjB4MDQ2YSwgMHgxNDZlDQpbICAyNDUuNzQ1MTkxXSBlbTI4
-NjAgIzA6IElkZW50aWZpZWQgYXMgRU0yODYwL1RWUDUxNTAgUmVmZXJlbmNlIERlc2lnbiANCihj
-YXJkPTI5KQ0KWyAgMjQ1Ljc0NTE5N10gZW0yODYwICMwOiBhbmFsb2cgc2V0IHRvIGlzb2MgbW9k
-ZS4NClsgIDI0NS43NDUzMDhdIGVtMjh4eCBhdWRpbyBkZXZpY2UgKGViMWE6NTA1MSk6IGludGVy
-ZmFjZSAxLCBjbGFzcyAxDQpbICAyNDUuNzQ1MzQzXSBlbTI4eHggYXVkaW8gZGV2aWNlIChlYjFh
-OjUwNTEpOiBpbnRlcmZhY2UgMiwgY2xhc3MgMQ0KWyAgMjQ1Ljc0NjQzNV0gdXNiY29yZTogcmVn
-aXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBlbTI4eHgNClsgIDI0NS45MTI5NjZdIGVtMjg2
-MCAjMDogUmVnaXN0ZXJpbmcgVjRMMiBleHRlbnNpb24NClsgIDI0Ni4wMDA4MjVdIHR2cDUxNTAg
-Mi0wMDVjOiBjaGlwIGZvdW5kIEAgMHhiOCAoZW0yODYwICMwKQ0KWyAgMjQ2LjAwMDg0MV0gdHZw
-NTE1MCAyLTAwNWM6IHR2cDUxNTBhbTEgZGV0ZWN0ZWQuDQpbICAyNDYuMDcyODI0XSBlbTI4NjAg
-IzA6IENvbmZpZyByZWdpc3RlciByYXcgZGF0YTogMHg1MA0KWyAgMjQ2LjA5MjUwOV0gdXNiY29y
-ZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBzbmQtdXNiLWF1ZGlvDQpbICAyNDYu
-MDk3ODYzXSBlbTI4NjAgIzA6IEFDOTcgdmVuZG9yIElEID0gMHgwYjI0MGIyNA0KWyAgMjQ2LjEx
-MjIyOV0gZW0yODYwICMwOiBBQzk3IGZlYXR1cmVzID0gMHgwYjI0DQpbICAyNDYuMTEyMjQ0XSBl
-bTI4NjAgIzA6IFVua25vd24gQUM5NyBhdWRpbyBwcm9jZXNzb3IgZGV0ZWN0ZWQhDQpbICAyNTAu
-NTg0NTc2XSBlbTI4NjAgIzA6IFY0TDIgdmlkZW8gZGV2aWNlIHJlZ2lzdGVyZWQgYXMgdmlkZW8w
-DQpbICAyNTAuNTg0NTkxXSBlbTI4NjAgIzA6IFY0TDIgVkJJIGRldmljZSByZWdpc3RlcmVkIGFz
-IHZiaTANClsgIDI1MC41ODQ2MDBdIGVtMjg2MCAjMDogVjRMMiBleHRlbnNpb24gc3VjY2Vzc2Z1
-bGx5IGluaXRpYWxpemVkDQpbICAyNTAuNTg0NjA2XSBlbTI4eHg6IFJlZ2lzdGVyZWQgKEVtMjh4
-eCB2NGwyIEV4dGVuc2lvbikgZXh0ZW5zaW9uDQpbICAzNzAuMDg3NzM2XSB0cmFwczogZ3V2Y3Zp
-ZXdbMTU4OF0gZ2VuZXJhbCBwcm90ZWN0aW9uIGlwOjdmYzExNDg5MTI3NCANCnNwOjdmZmYyZTQx
-ODg5MCBlcnJvcjowIGluIGxpYnB0aHJlYWQtMi4xOS5zb1s3ZmMxMTQ4ODcwMDArMTgwMDBdDQpb
-ICA0NzMuNTUyODQ5XSBndXZjdmlld1sxNjM0XTogc2VnZmF1bHQgYXQgMSBpcCAwMDAwMDAwMDAw
-NDBmYTI1IHNwIA0KMDAwMDdmZmY4YTU0YjRjMCBlcnJvciA0IGluIGd1dmN2aWV3WzQwMDAwMCsy
-MDAwMF0NClsgIDUxNi40Mzc2NjFdIGd1dmN2aWV3WzE3MTNdOiBzZWdmYXVsdCBhdCAxIGlwIDAw
-MDAwMDAwMDA0MGZhMjUgc3AgDQowMDAwN2ZmZjJiYzQxOGEwIGVycm9yIDQgaW4gZ3V2Y3ZpZXdb
-NDAwMDAwKzIwMDAwXQ0KWyAgNjA5LjYxNDkzMV0gZ3V2Y3ZpZXdbMTc2Ml06IHNlZ2ZhdWx0IGF0
-IDEgaXAgMDAwMDAwMDAwMDQwZmEyNSBzcCANCjAwMDA3ZmZkMmU0ZTNhMjAgZXJyb3IgNCBpbiBn
-dXZjdmlld1s0MDAwMDArMjAwMDBdDQoNCkFsZXhhbmRyZS1YYXZpZXINCg0KDQpPbiAwNy8wMS8y
-MDE2IDY6MjUgUE0sIEFsZXhhbmRyZS1YYXZpZXIgTGFib250w6ktTGFtb3VyZXV4IHdyb3RlOg0K
-PiBIaSBEZXZpbiwNCj4NCj4gSSB0b29rIHNvbWUgcGljdHVyZXMgb2YgbXkgZGV2aWNlOg0KPiBo
-dHRwOi8vaS5pbWd1ci5jb20vZnRvSGVPdi5qcGcNCj4gaHR0cDovL2kuaW1ndXIuY29tLzJqWlBk
-UVUuanBnDQo+IGh0dHA6Ly9pLmltZ3VyLmNvbS8wcG9EWENULmpwZw0KPg0KPiBNYWluIGNoaXA6
-IGh0dHA6Ly93d3cuc3VtemkuY29tL3VwbG9hZC9maWxlcy8yMDA3LzA3LzIwMDcwNzEyMTc0ODI5
-NzQ1NTcuUERGDQo+IGVNUElBDQo+IEVNMjg2MA0KPiBQQVczMC0wMTINCj4gMTIyNi0wMUFHDQo+
-DQo+IEFDOTcgQXVkaW8gQ2hpcDogaHR0cDovL3BkZi5kenNjLmNvbS8yMDA5MDIyNy8yMDA5MDIx
-NzAzMjQwMjk4NTkucGRmDQo+IGVNUElBDQo+IFRFQ0hOT0xPR1kNCj4gRU1QMjAyDQo+IFQxMDM1
-NA0KPiAxMjIyDQo+DQo+DQo+IERlY29kZXI6IGh0dHA6Ly93d3cuaGV5cmljay5jby51ay9ibG9n
-L2ZpbGVzL2RhdGFzaGVldHMvNTE1MGFtMS5wZGYNCj4gNTE1MEFNMQ0KPiAxOFQNCj4gQ1RaSg0K
-Pg0KPg0KPg0KPiBPbGRlciB2ZXJzaW9ucyBvZiB0aGlzIGRldmljZSB1c2VkIGEgVFZNYXN0ZXIg
-Y2hpcCwgYXMgc2VlbiBpbiB0aGlzDQo+IHBpY3R1cmUgdGhhdCBJIGZvdW5kIG9uIHRoZSBXZWI6
-IGh0dHA6Ly9zZWJicm8ubmwvSU1HXzIwMTQwMjE4XzEzMDE1Mi5qcGcNCj4NCj4gSW4gdGVybXMg
-b2YgdmlkZW8sIEkgY2FuJ3Qgc2VsZWN0IHRoZSBkZXZpY2UgaW4gVkxDLCBDaGVlc2UgYW5kIGd1
-dmN2aWV3DQo+IGJlY2F1c2UgaXQgZG9lc24ndCBhcHBlYXIgaW4gdGhlIHZpZGVvIGRldmljZSBz
-ZWxlY3Rpb24gY29tYm9ib3ggaW4gYW55DQo+IG9mIHRoZXNlIHByb2dyYW1zLiBUaGUgYXVkaW8g
-ZG9lc24ndCB3b3JrIHRvbywgbGlrZSBJIGV4cGxhaW5lZCBpbiBteQ0KPiBwcmV2aW91cyBtYWls
-LiBBbHNvLCBJIGNhbid0IHJ1biBUVnRpbWUgb24gbXkgY29tcHV0ZXIgYmVjYXVzZSBpdA0KPiBy
-ZXF1aXJlcyBhIGhhcmR3YXJlIFlVWTIgb3ZlcmxheSBzdXBwb3J0IGZyb20gbXkgdmlkZW8gY2Fy
-ZCBhbmQgQVRJJ3MNCj4gZHJpdmVycyB3b24ndCB3b3JrLg0KPg0KPiBPbiBXaW5kb3dzLCBpdCB3
-b3JrcyBmaW5lLiBJJ3ZlIGRvd25sb2FkZWQgdGhlIGRyaXZlcnMgZnJvbSB0aGUNCj4gbWFudWZh
-Y3R1cmVyJ3Mgd2Vic2l0ZToNCj4gaHR0cDovL3d3dy5pb25hdWRpby5jb20vcHJvZHVjdHMvZGV0
-YWlscy92aWRlby0yLXBjLW1raWkNCj4NCj4gLS1BbGV4YW5kcmUtWGF2aWVyDQo+DQo+DQo+DQo+
-DQo+IE9uIDA3LzAxLzIwMTYgMTA6MDMgQU0sIERldmluIEhlaXRtdWVsbGVyIHdyb3RlOg0KPj4g
-SGkgQWxleGFuZHJlLA0KPj4NCj4+PiBCdXMgMDAxIERldmljZSAwMDI6IElEIGViMWE6NTA1MSBl
-TVBJQSBUZWNobm9sb2d5LCBJbmMuDQo+PiBUaGUgZmFjdCB0aGF0IHRoZSBib2FyZCBpZGVudGlm
-aWVzIHdpdGggVVNCIHByb2R1Y3QgSUQgNTA1MSBtYWtlcyBtZQ0KPj4gd29uZGVyIGlmIHBlcmhh
-cHMgdGhleSBtb3ZlZCBhd2F5IGZyb20gdGhlIHR2cDUxNTAgYW5kIHNhYTcxMTMgKGJvdGgNCj4+
-IG9mIHdoaWNoIHdlbnQgRU9MIHNvbWUgdGltZSBhZ28pLCBhbmQgc3dpdGNoZWQgdG8gdGhlIHR2
-cDUxNTEgZm9yIHRoZQ0KPj4gdmlkZW8gZGVjb2Rlci4gIEFueSBjaGFuY2UgeW91IGNhbiB0YWtl
-IHRoZSB1bml0IGFwYXJ0IGFuZCBnZXQgc29tZQ0KPj4gcGhvdG9zPw0KPj4NCj4+IFdoYXQgYmVo
-YXZpb3IgYXJlIHlvdSBzZWVpbmcgZXhhY3RseSB3aXRoIHRoaXMgZGV2aWNlIGluIHRlcm1zIG9m
-IHZpZGVvPw0KPj4NCj4+IEJvdGggQ2hlZXNlIGFuZCBHVUNWaWV3IGFyZSB0YXJnZXRlZCBwcmlt
-YXJpbHkgYXQgd2ViY2Ftcywgc28gdGhleSBtYXkNCj4+IG5vdCB3b3JrIHZlcnkgd2VsbCB3aXRo
-IGdlbmVyaWMgdmlkZW8gY2FwdHVyZSBkZXZpY2VzIGludGVuZGVkIGZvciBUVg0KPj4gc2lnbmFs
-cy4gIFlvdSBtaWdodCBiZSBiZXR0ZXIgb2ZmIHRyeWluZyBhbiBhcHAgbGlrZSB0dnRpbWUuDQo+
-Pg0KPj4gRGV2aW4NCj4+DQo+DQo=
+Em Wed,  6 Jan 2016 13:27:02 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+
+> au0828_create_media_graph() doesn't do any checks to determine,
+> if vbi_dev, vdev, and input entities have been registered prior
+> to creating pad links. Checking graph_obj.mdev field works as
+> the graph_obj.mdev field gets initialized in the entity register
+> interface. Fix it to check graph_obj.mdev field before creating
+> pad links.
+
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/usb/au0828/au0828-core.c | 27 +++++++++++++++++----------
+>  1 file changed, 17 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index f46fb43..8ef7c71 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -291,20 +291,27 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+>  		if (ret)
+>  			return ret;
+>  	}
+> -	ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
+> -				    &dev->vdev.entity, 0,
+> -				    MEDIA_LNK_FL_ENABLED);
+> -	if (ret)
+> -		return ret;
+> -	ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
+> -				    &dev->vbi_dev.entity, 0,
+> -				    MEDIA_LNK_FL_ENABLED);
+> -	if (ret)
+> -		return ret;
+> +	if (dev->vdev.entity.graph_obj.mdev) {
+> +		ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
+> +					    &dev->vdev.entity, 0,
+> +					    MEDIA_LNK_FL_ENABLED);
+> +		if (ret)
+> +			return ret;
+> +	}
+
+Those new if() doesn't look right. We can't continue if the entities
+weren't registered, as the graph would have troubles. The logic should
+ensure that the entities will always be created before running 
+au0828_create_media_graph(). If this is not the case, some async
+logic is needed to ensure that.
+
+> +	if (dev->vbi_dev.entity.graph_obj.mdev) {
+> +		ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
+> +					    &dev->vbi_dev.entity, 0,
+> +					    MEDIA_LNK_FL_ENABLED);
+> +		if (ret)
+> +			return ret;
+> +	}
+>  
+>  	for (i = 0; i < AU0828_MAX_INPUT; i++) {
+>  		struct media_entity *ent = &dev->input_ent[i];
+>  
+> +		if (!ent->graph_obj.mdev)
+> +			continue;
+> +
+>  		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
+>  			break;
+>  
