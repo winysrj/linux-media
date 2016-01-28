@@ -1,126 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:27824 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752020AbcAZGYr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 01:24:47 -0500
-Date: Tue, 26 Jan 2016 07:24:44 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-cc: Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	mchehab@osg.samsung.com, kgene@kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	julia.lawall@lip6.fr
-Subject: Re: [PATCH] media: platform: exynos4-is: media-dev: Add missing
- of_node_put
-In-Reply-To: <56A6BCC3.8040407@samsung.com>
-Message-ID: <alpine.DEB.2.02.1601260723290.2004@localhost6.localdomain6>
-References: <20160125152136.GA19484@amitoj-Inspiron-3542> <56A6BCC3.8040407@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:58409 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751815AbcA1Rb0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 12:31:26 -0500
+Subject: Re: [PATCH 09/31] media: v4l2-core add v4l_vb2q_enable_media_tuner()
+ helper
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <ac1ad6fc9832cb922ac02eba1f916a6fb4ef97a8.1452105878.git.shuahkh@osg.samsung.com>
+ <20160128132937.3305eff3@recife.lan>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AA5069.4010402@osg.samsung.com>
+Date: Thu, 28 Jan 2016 10:31:21 -0700
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20160128132937.3305eff3@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01/28/2016 08:29 AM, Mauro Carvalho Chehab wrote:
+> Em Wed,  6 Jan 2016 13:26:58 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> Add a new v4l_vb2q_enable_media_tuner() wrapper function
+>> to be called from v4l2-core to enable the media tuner with
+>> videobuf2 queue, when the calling frunction has the videobuf2
+>> queue and doesn't have the struct video_device associated with
+>> the queue handy as in the case of vb2_core_streamon(). This
+>> function simply calls v4l_enable_media_tuner() passing in the
+>> pointer to struct video_device.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-dev.c | 21 +++++++++++++++++++++
+>>  include/media/v4l2-dev.h           |  1 +
+>>  2 files changed, 22 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+>> index f06da6e..9ef675a 100644
+>> --- a/drivers/media/v4l2-core/v4l2-dev.c
+>> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+>> @@ -30,6 +30,7 @@
+>>  #include <media/v4l2-common.h>
+>>  #include <media/v4l2-device.h>
+>>  #include <media/v4l2-ioctl.h>
+>> +#include <media/videobuf2-core.h>
+>>  
+>>  #define VIDEO_NUM_DEVICES	256
+>>  #define VIDEO_NAME              "video4linux"
+>> @@ -261,6 +262,26 @@ void v4l_disable_media_tuner(struct video_device *vdev)
+>>  }
+>>  EXPORT_SYMBOL_GPL(v4l_disable_media_tuner);
+>>  
+>> +/**
+>> + * v4l_vb2q_enable_media_tuner - Wrapper for v4l_enable_media_tuner()
+>> + * @q:         videobuf2 queue
+>> + *
+>> + * This function is intended to be called from v4l2-core
+>> + * to enable the media tuner with videobuf2 queue, when
+>> + * the calling frunction has the videobuf2 queue and doesn't
+> 
+> 	typo: function
+
+ok thanks
+
+> 
+>> + * have the struct video_device associated with the
+>> + * queue handy as in the case of vb2_core_streamon(). This
+>> + * function simply calls v4l_enable_media_tuner() passing
+>> + * in the pointer to struct video_device.
+> 
+> The hole description seems confusing. I'm not seeing the light
+> about why this is needed.
+
+Sorry if the description isn't clear. During videobuf2
+work, owner field in struct vb2_queue is changed from
+struct v4l2_fh * to void. Prior to this work, I could
+call v4l_enable_media_tuner(). 
+
++               ret = v4l_enable_media_tuner(q->owner->vdev);
++               if (ret)
++                       return ret;
+
+As you can see with the videobuf2, to be able to call
+v4l_enable_media_tuner() from vb2_core_streamon(), I have
+had to this wrapper to maintain the abstraction introduced
+in videobuf2 work.
+
+Hope this helps the need for this wrapper.
+
+thanks,
+-- Shuah
+> 
+>> + */
+>> +int v4l_vb2q_enable_media_tuner(struct vb2_queue *q)
+>> +{
+>> +	struct v4l2_fh *fh = q->owner;
+>> +
+>> +	return v4l_enable_media_tuner(fh->vdev);
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_tuner);
+>> +
+>>  /* Priority handling */
+>>  
+>>  static inline bool prio_is_valid(enum v4l2_priority prio)
+>> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+>> index 68999a3..1948097 100644
+>> --- a/include/media/v4l2-dev.h
+>> +++ b/include/media/v4l2-dev.h
+>> @@ -179,6 +179,7 @@ struct video_device * __must_check video_device_alloc(void);
+>>  
+>>  int v4l_enable_media_tuner(struct video_device *vdev);
+>>  void v4l_disable_media_tuner(struct video_device *vdev);
+>> +int v4l_vb2q_enable_media_tuner(struct vb2_queue *q);
+> 
+> Documentation?
+> 
+>>  
+>>  /* this release function frees the vdev pointer */
+>>  void video_device_release(struct video_device *vdev);
 
 
-On Tue, 26 Jan 2016, Krzysztof Kozlowski wrote:
-
-> On 26.01.2016 00:21, Amitoj Kaur Chawla wrote:
-> > for_each_available_child_of_node and for_each_child_of_node perform an
-> > of_node_get on each iteration, so to break out of the loop an of_node_put is
-> > required.
-> > 
-> > Found using Coccinelle. The simplified version of the semantic patch
-> > that is used for this is as follows:
-> > 
-> > // <smpl>
-> > @@
-> > local idexpression n;
-> > expression e,r;
-> > @@
-> > 
-> >  for_each_available_child_of_node(r,n) {
-> >    ...
-> > (
-> >    of_node_put(n);
-> > |
-> >    e = n
-> > |
-> > +  of_node_put(n);
-> > ?  break;
-> > )
-> >    ...
-> >  }
-> > ... when != n
-> > // </smpl>
-> 
-> Patch iselft looks correct but why are you pasting coccinelle script
-> into the message?
-> 
-> The script is already present in Linux kernel:
-> scripts/coccinelle/iterators/device_node_continue.cocci
-
-I don't think so.  The continue one takes care of the case where there is 
-an extraneous of_node_put before a continue, not a missing one before a 
-break.  But OK to drop it if it doesn't seem useful.
-
-julia
-
-> This just extends the commit message without any meaningful data so with
-> removal of coccinelle script above:
-> Reviewed-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> 
-> Best regards,
-> Krzysztof
-> 
-> > 
-> > Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
-> > ---
-> >  drivers/media/platform/exynos4-is/media-dev.c | 12 +++++++++---
-> >  1 file changed, 9 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> > index 4f5586a..09f6e54 100644
-> > --- a/drivers/media/platform/exynos4-is/media-dev.c
-> > +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> > @@ -430,8 +430,10 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
-> >  			continue;
-> >  
-> >  		ret = fimc_md_parse_port_node(fmd, port, index);
-> > -		if (ret < 0)
-> > +		if (ret < 0) {
-> > +			of_node_put(node);
-> >  			goto rpm_put;
-> > +		}
-> >  		index++;
-> >  	}
-> >  
-> > @@ -442,8 +444,10 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
-> >  
-> >  	for_each_child_of_node(ports, node) {
-> >  		ret = fimc_md_parse_port_node(fmd, node, index);
-> > -		if (ret < 0)
-> > +		if (ret < 0) {
-> > +			of_node_put(node);
-> >  			break;
-> > +		}
-> >  		index++;
-> >  	}
-> >  rpm_put:
-> > @@ -651,8 +655,10 @@ static int fimc_md_register_platform_entities(struct fimc_md *fmd,
-> >  			ret = fimc_md_register_platform_entity(fmd, pdev,
-> >  							plat_entity);
-> >  		put_device(&pdev->dev);
-> > -		if (ret < 0)
-> > +		if (ret < 0) {
-> > +			of_node_put(node);
-> >  			break;
-> > +		}
-> >  	}
-> >  
-> >  	return ret;
-> > 
-> 
-> 
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
