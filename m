@@ -1,102 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:51036 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:59399 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934514AbcAZMqt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 07:46:49 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Eduard Gavin <egavinc@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH v3 2/2] [media] tvp5150: Add pad-level subdev operations
-Date: Tue, 26 Jan 2016 09:46:24 -0300
-Message-Id: <1453812384-15512-3-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1453812384-15512-1-git-send-email-javier@osg.samsung.com>
-References: <1453812384-15512-1-git-send-email-javier@osg.samsung.com>
+	id S1755338AbcA1UdE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 15:33:04 -0500
+Subject: Re: [PATCH 04/31] media: Media Controller enable/disable source
+ handler API
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <d8d65a0188b05f3e799400c745584a02bc9b7548.1452105878.git.shuahkh@osg.samsung.com>
+ <20160128131922.29e2a504@recife.lan> <56AA41B5.1080703@osg.samsung.com>
+ <20160128151522.03dff6cd@recife.lan>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AA7AFC.8030609@osg.samsung.com>
+Date: Thu, 28 Jan 2016 13:33:00 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160128151522.03dff6cd@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On 01/28/2016 10:15 AM, Mauro Carvalho Chehab wrote:
+> Em Thu, 28 Jan 2016 09:28:37 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> On 01/28/2016 08:19 AM, Mauro Carvalho Chehab wrote:
+>>> Em Wed,  6 Jan 2016 13:26:53 -0700
+>>> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+>>>   
+>>>> Add new fields to struct media_device to add enable_source, and
+>>>> disable_source handlers, and source_priv to stash driver private
+>>>> data that is need to run these handlers. The enable_source handler
+>>>> finds source entity for the passed in entity and check if it is
+>>>> available, and activate the link using __media_entity_setup_link()
+>>>> interface. Bridge driver is expected to implement and set these
+>>>> handlers and private data when media_device is registered or when
+>>>> bridge driver finds the media_device during probe. This is to enable
+>>>> the use-case to find tuner entity connected to the decoder entity and
+>>>> check if it is available, and activate it and start pipeline between
+>>>> the source and the entity. The disable_source handler deactivates the
+>>>> link and stops the pipeline. This handler can be invoked from the
+>>>> media core (v4l-core, dvb-core) as well as other drivers such as ALSA
+>>>> that control the media device.
+>>>>
+>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>>> ---
+>>>>  include/media/media-device.h | 19 +++++++++++++++++++
+>>>>  1 file changed, 19 insertions(+)
+>>>>
+>>>> diff --git a/include/media/media-device.h b/include/media/media-device.h
+>>>> index 6520d1c..04b6c2e 100644
+>>>> --- a/include/media/media-device.h
+>>>> +++ b/include/media/media-device.h
+>>>> @@ -333,6 +333,25 @@ struct media_device {
+>>>>  	/* Serializes graph operations. */
+>>>>  	struct mutex graph_mutex;
+>>>>  
+>>>> +	/* Handlers to find source entity for the sink entity and
+>>>> +	 * check if it is available, and activate the link using
+>>>> +	 * media_entity_setup_link() interface and start pipeline
+>>>> +	 * from the source to the entity.
+>>>> +	 * Bridge driver is expected to implement and set the
+>>>> +	 * handler when media_device is registered or when
+>>>> +	 * bridge driver finds the media_device during probe.
+>>>> +	 * Bridge driver sets source_priv with information
+>>>> +	 * necessary to run enable/disable source handlers.
+>>>> +	 *
+>>>> +	 * Use-case: find tuner entity connected to the decoder
+>>>> +	 * entity and check if it is available, and activate the
+>>>> +	 * using media_entity_setup_link() if it is available.
+>>>> +	*/
+>>>> +	void *source_priv;
+>>>> +	int (*enable_source)(struct media_entity *entity,
+>>>> +			     struct media_pipeline *pipe);
+>>>> +	void (*disable_source)(struct media_entity *entity);  
+>>>
+>>> Please document the new fields at the right place (Kernel-doc
+>>> comment declared before the struct).
+>>>
+>>> Is this used by the media core? If so, please but the implementation
+>>> here, to make it clearer why we need those things.
+>>>   
+>>>> +
+>>>>  	int (*link_notify)(struct media_link *link, u32 flags,
+>>>>  			   unsigned int notification);
+>>>>  };  
+>>
+>> Hi Mauro,
+>>
+>> I don't have any problems adding documentation. I would
+>> like to add documentation in a add-on to the patch series.
+>> The main reason is once I add documentation to this patch,
+>> the rest of the patches on this file don't apply and require
+>> rebase and rework. I went though a couple of rounds of this
+>> while you were adding documentation to the interfaces you
+>> added.
+>>
+>> How about I add the documentation patches at the end of
+>> the patch series? I am concerned that rebasing for the
+>> documentation changes will introduce bugs. Are you okay
+>> with this proposal?
+> 
+> I'm ok with that for those inlined kernel-doc stuff. On
+> the changes at the uapi/linux/media.h, I would prefer if
+> you could add the documentation together with the patch,
+> as it makes clearer for the reviewers. As you only
+> touched it on one or two patches, this won't cause any
+> breakages on the remaining patches.
+> 
 
-This patch enables the tvp5150 decoder driver to be used with the media
-controller framework by adding pad-level subdev operations and init the
-media entity pad.
+ok I can add documentation to uapi/linux/media.h in the
+same patch that adds new defines.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+thanks,
+-- Shuah
 
----
 
-Changes in v3:
-- Split the format fix and the MC support in different patches.
-  Suggested by Mauro Carvalho Chehab.
-
-Changes in v2:
-- Embed mbus_type into struct tvp5150. Suggested by Laurent Pinchart.
-- Remove platform data support. Suggested by Laurent Pinchart.
-- Check if the hsync, vsync and field even active properties are correct.
-  Suggested by Laurent Pinchart.
-
- drivers/media/i2c/tvp5150.c | 21 ++++++++++-----------
- 1 file changed, 10 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 37853bc3f0b3..e48b529c53b4 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -37,6 +37,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
- 
- struct tvp5150 {
- 	struct v4l2_subdev sd;
-+	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
- 	struct v4l2_rect rect;
- 
-@@ -826,17 +827,6 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
- 	}
- }
- 
--static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
--		struct v4l2_subdev_pad_config *cfg,
--		struct v4l2_subdev_mbus_code_enum *code)
--{
--	if (code->pad || code->index)
--		return -EINVAL;
--
--	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
--	return 0;
--}
--
- static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
- 		struct v4l2_subdev_pad_config *cfg,
- 		struct v4l2_subdev_format *format)
-@@ -1165,6 +1155,7 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
- 
- static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
- 	.enum_mbus_code = tvp5150_enum_mbus_code,
-+	.enum_frame_size = tvp5150_enum_frame_size,
- 	.set_fmt = tvp5150_fill_fmt,
- 	.get_fmt = tvp5150_fill_fmt,
- };
-@@ -1320,6 +1311,14 @@ static int tvp5150_probe(struct i2c_client *c,
- 	}
- 
- 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	core->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	res = media_entity_pads_init(&sd->entity, 1, &core->pad);
-+	if (res < 0)
-+		return res;
-+#endif
- 
- 	res = tvp5150_detect_version(core);
- 	if (res < 0)
 -- 
-2.5.0
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
