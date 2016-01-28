@@ -1,147 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:48987 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751846AbcAEP5i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2016 10:57:38 -0500
-From: Peter Rosin <peda@lysator.liu.se>
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Peter Rosin <peda@axentia.se>, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicholas Mc Guire <hofrat@osadl.org>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Peter Rosin <peda@lysator.liu.se>, linux-i2c@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 0/8] i2c mux cleanup and locking update
-Date: Tue,  5 Jan 2016 16:57:10 +0100
-Message-Id: <1452009438-27347-1-git-send-email-peda@lysator.liu.se>
+Received: from lists.s-osg.org ([54.187.51.154]:59194 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967210AbcA1UO3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 15:14:29 -0500
+Subject: Re: [PATCH 23/31] media: au0828 implement enable_source and
+ disable_source handlers
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	hans.verkuil@cisco.com
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <6d1f10b616fc3c8b016cf0e335de569012400de8.1452105878.git.shuahkh@osg.samsung.com>
+ <20160128144332.39dc8b4b@recife.lan>
+Cc: tiwai@suse.com, clemens@ladisch.de,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AA76A1.7040107@osg.samsung.com>
+Date: Thu, 28 Jan 2016 13:14:25 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160128144332.39dc8b4b@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+On 01/28/2016 09:43 AM, Mauro Carvalho Chehab wrote:
+> Em Wed,  6 Jan 2016 13:27:12 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> Implements enable_source and disable_source handlers for other
+>> drivers (v4l2-core, dvb-core, and ALSA) to use to check for
+>> tuner connected to the decoder and activate the link if tuner
+>> is free, and deactivate and free the tuner when it is no longer
+>> needed.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/usb/au0828/au0828-core.c | 148 +++++++++++++++++++++++++++++++++
+>>  drivers/media/usb/au0828/au0828.h      |   2 +
+>>  2 files changed, 150 insertions(+)
+>>
+>> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+>> index a15a61a..f8d2db3 100644
+>> --- a/drivers/media/usb/au0828/au0828-core.c
+>> +++ b/drivers/media/usb/au0828/au0828-core.c
+>> @@ -370,6 +370,150 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+>>  	return 0;
+>>  }
+>>  
+>> +static int au0828_enable_source(struct media_entity *entity,
+>> +				struct media_pipeline *pipe)
+>> +{
+> 
+> The best would be to put those enable source stuff at the core, in a way
+> that other drivers could share it.
 
-Hi!
+Hans and I discussed this at the Media Summit in Finland.
+It will be very difficult to make this work in a generic
+way. Besides, bridge driver knows the hardware it has and
+it would make sense for it to implement enable and disable
+source handlers.
 
-I have a pair of boards with this i2c topology:
+> 
+> Not sure about the implementation, as this requires testing ;)
+> Did you consider the cases where the source connector is S-Video
+> or Composite?
 
-                       GPIO ---|  ------ BAT1
-                        |      v /
-   I2C  -----+------B---+---- MUX
-             |                   \
-           EEPROM                 ------ BAT2
+I think you asked this question on another patch and Devin
+responded to that thread. Let's discuss it there.
 
-	(B denotes the boundary between the boards)
+thanks,
+-- Shuah
+> 
+>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>> +	struct media_entity  *source;
+>> +	struct media_entity *sink;
+>> +	struct media_link *link, *found_link = NULL;
+>> +	int ret = 0;
+>> +	struct media_device *mdev = entity->graph_obj.mdev;
+>> +	struct au0828_dev *dev;
+>> +
+>> +	if (!mdev)
+>> +		return -ENODEV;
+>> +
+>> +	/* for Audio and Video entities, source is the decoder */
+>> +	mutex_lock(&mdev->graph_mutex);
+>> +
+>> +	dev = mdev->source_priv;
+>> +	if (!dev->tuner || !dev->decoder) {
+>> +		ret = -ENODEV;
+>> +		goto end;
+>> +	}
+>> +
+>> +	/*
+>> +	 * For Audio and V4L2 entity, find the link to which decoder
+>> +	 * is the sink. Look for an active link between decoder and
+>> +	 * tuner, if one exists, nothing to do. If not, look for any
+>> +	 * active links between tuner and any other entity. If one
+>> +	 * exists, tuner is busy. If tuner is free, setup link and
+>> +	 * start pipeline from source (tuner).
+>> +	 * For DVB FE entity, the source for the link is the tuner.
+>> +	 * Check if tuner is available and setup link and start
+>> +	 * pipeline.
+>> +	*/
+>> +	if (entity->function != MEDIA_ENT_F_DTV_DEMOD)
+>> +		sink = dev->decoder;
+>> +	else
+>> +		sink = entity;
+>> +
+>> +	/* Is an active link between sink and tuner */
+>> +	if (dev->active_link) {
+>> +		if (dev->active_link->sink->entity == sink &&
+>> +		    dev->active_link->source->entity == dev->tuner) {
+>> +			ret = 0;
+>> +			goto end;
+>> +		} else {
+>> +			ret = -EBUSY;
+>> +			goto end;
+>> +		}
+>> +	}
+>> +
+>> +	list_for_each_entry(link, &sink->links, list) {
+>> +		/* Check sink, and source */
+>> +		if (link->sink->entity == sink &&
+>> +		    link->source->entity == dev->tuner) {
+>> +			found_link = link;
+>> +			break;
+>> +		}
+>> +	}
+>> +
+>> +	if (!found_link) {
+>> +		ret = -ENODEV;
+>> +		goto end;
+>> +	}
+>> +
+>> +	/* activate link between source and sink and start pipeline */
+>> +	source = found_link->source->entity;
+>> +	ret = __media_entity_setup_link(found_link, MEDIA_LNK_FL_ENABLED);
+>> +	if (ret) {
+>> +		pr_err(
+>> +			"Activate tuner link %s->%s. Error %d\n",
+>> +			source->name, sink->name, ret);
+>> +		goto end;
+>> +	}
+>> +
+>> +	ret = __media_entity_pipeline_start(entity, pipe);
+>> +	if (ret) {
+>> +		pr_err("Start Pipeline: %s->%s Error %d\n",
+>> +			source->name, entity->name, ret);
+>> +		ret = __media_entity_setup_link(found_link, 0);
+>> +		pr_err("Deactive link Error %d\n", ret);
+>> +		goto end;
+>> +	}
+>> +	/*
+>> +	 * save active link and active link owner to avoid audio
+>> +	 * deactivating video owned link from disable_source and
+>> +	 * vice versa
+>> +	*/
+>> +	dev->active_link = found_link;
+>> +	dev->active_link_owner = entity;
+>> +end:
+>> +	mutex_unlock(&mdev->graph_mutex);
+>> +	pr_debug("au0828_enable_source() end %s %d %d\n",
+>> +		entity->name, entity->function, ret);
+>> +	return ret;
+>> +#endif
+>> +	return 0;
+>> +}
+>> +
+>> +static void au0828_disable_source(struct media_entity *entity)
+>> +{
+>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>> +	struct media_entity *sink;
+>> +	int ret = 0;
+>> +	struct media_device *mdev = entity->graph_obj.mdev;
+>> +	struct au0828_dev *dev;
+>> +
+>> +	if (!mdev)
+>> +		return;
+>> +
+>> +	mutex_lock(&mdev->graph_mutex);
+>> +	dev = mdev->source_priv;
+>> +	if (!dev->tuner || !dev->decoder || !dev->active_link) {
+>> +		ret = -ENODEV;
+>> +		goto end;
+>> +	}
+>> +
+>> +	if (entity->function != MEDIA_ENT_F_DTV_DEMOD)
+>> +		sink = dev->decoder;
+>> +	else
+>> +		sink = entity;
+>> +
+>> +	/* link is active - stop pipeline from source (tuner) */
+>> +	if (dev->active_link && dev->active_link->sink->entity == sink &&
+>> +	    dev->active_link->source->entity == dev->tuner) {
+>> +		/*
+>> +		 * prevent video from deactivating link when audio
+>> +		 * has active pipeline
+>> +		*/
+>> +		if (dev->active_link_owner != entity)
+>> +			goto end;
+>> +		__media_entity_pipeline_stop(entity);
+>> +		ret = __media_entity_setup_link(dev->active_link, 0);
+>> +		if (ret)
+>> +			pr_err("Deactive link Error %d\n", ret);
+>> +		dev->active_link = NULL;
+>> +		dev->active_link_owner = NULL;
+>> +	}
+>> +
+>> +end:
+>> +	mutex_unlock(&mdev->graph_mutex);
+>> +#endif
+>> +}
+>> +
+>>  static int au0828_media_device_register(struct au0828_dev *dev,
+>>  					struct usb_device *udev)
+>>  {
+>> @@ -400,6 +544,10 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+>>  			ret);
+>>  		return ret;
+>>  	}
+>> +	/* set enable_source */
+>> +	dev->media_dev->source_priv = (void *) dev;
+>> +	dev->media_dev->enable_source = au0828_enable_source;
+>> +	dev->media_dev->disable_source = au0828_disable_source;
+>>  #endif
+>>  	return 0;
+>>  }
+>> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+>> index cfb6d58..3707664 100644
+>> --- a/drivers/media/usb/au0828/au0828.h
+>> +++ b/drivers/media/usb/au0828/au0828.h
+>> @@ -289,6 +289,8 @@ struct au0828_dev {
+>>  	bool vdev_linked;
+>>  	bool vbi_linked;
+>>  	bool audio_capture_linked;
+>> +	struct media_link *active_link;
+>> +	struct media_entity *active_link_owner;
+>>  #endif
+>>  };
+>>  
 
-The problem with this is that the GPIO controller sits on the same i2c bus
-that it MUXes. For pca954x devices this is worked around by using unlocked
-transfers when updating the MUX. I have no such luck as the GPIO is a general
-purpose IO expander and the MUX is just a random bidirectional MUX, unaware
-of the fact that it is muxing an i2c bus, and extending unlocked transfers
-into the GPIO subsystem is too ugly to even think about. But the general hw
-approach is sane in my opinion, with the number of connections between the
-two boards minimized. To put is plainly, I need support for it.
-
-So, I observe that while it is needed to have the i2c bus locked during the
-actual MUX update in order to avoid random garbage on the slave side, it
-is not strictly a must to have it locked over the whole sequence of a full
-select-transfer-deselect operation. The MUX itself needs to be locked, so
-transfers to clients behind the mux are serialized, and the MUX needs to be
-stable during all i2c traffic (otherwise individual mux slave segments
-might see garbage).
-
-This series accomplishes this by adding a dt property to i2c-mux-gpio and
-i2c-mux-pinctrl that can be used to state that the mux is updated by means
-of the muxed master bus, and that the select-transfer-deselect operations
-should be locked individually. When this holds, the i2c bus *is* locked
-during muxing, since the muxing happens as part of i2c transfers. This
-is true even if the MUX is updated with several transfers to the GPIO (at
-least as long as *all* MUX changes are using the i2s master bus). A lock
-is added to the mux so that transfers through the mux are serialized.
-
-Concerns:
-- The locking is perhaps too complex?
-- I worry about the priority inheritance aspect of the adapter lock. When
-  the transfers behind the mux are divided into select-transfer-deselect all
-  locked individually, low priority transfers get more chances to interfere
-  with high priority transfers.
-- When doing an i2c_transfer() in_atomic() context of with irqs_disabled(),
-  there is a higher possibility that the mux is not returned to its idle
-  state after a failed (-EAGAIN) transfer due to trylock.
-
-To summarize the series, there's some i2c-mux infrastructure cleanup work
-first (I think that part stands by itself as desireable regardless), the
-locking changes are in the last three patches of the series, with the real
-meat in 8/8.
-
-PS. needs a bunch of testing, I do not have access to all the involved hw
-
-Changes since v1:
-- Allocate mux core and (optional) priv in a combined allocation.
-- Killed dev_err messages triggered by memory allocation failure.
-- Fix the device specific i2c muxes that I had overlooked.
-- Rebased on top of v4.4-rc8 (was based on v4.4-rc6 previously).
-
-Cheers,
-Peter
-
-Peter Rosin (8):
-  i2c-mux: add common core data for every mux instance
-  i2c-mux: move select and deselect ops to i2c_mux_core
-  i2c-mux: move the slave side adapter management to i2c_mux_core
-  i2c-mux: remove the mux dev pointer from the mux per channel data
-  i2c-mux: pinctrl: get rid of the driver private struct device pointer
-  i2c: allow adapter drivers to override the adapter locking
-  i2c: muxes always lock the parent adapter
-  i2c-mux: relax locking of the top i2c adapter during i2c controlled
-    muxing
-
- .../devicetree/bindings/i2c/i2c-mux-gpio.txt       |   2 +
- .../devicetree/bindings/i2c/i2c-mux-pinctrl.txt    |   4 +
- drivers/i2c/i2c-core.c                             |  59 ++---
- drivers/i2c/i2c-mux.c                              | 272 +++++++++++++++++----
- drivers/i2c/muxes/i2c-arb-gpio-challenge.c         |  46 ++--
- drivers/i2c/muxes/i2c-mux-gpio.c                   |  58 ++---
- drivers/i2c/muxes/i2c-mux-pca9541.c                |  58 +++--
- drivers/i2c/muxes/i2c-mux-pca954x.c                |  66 ++---
- drivers/i2c/muxes/i2c-mux-pinctrl.c                |  89 +++----
- drivers/i2c/muxes/i2c-mux-reg.c                    |  63 ++---
- drivers/iio/imu/inv_mpu6050/inv_mpu_core.c         |  33 +--
- drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h          |   2 +-
- drivers/media/dvb-frontends/m88ds3103.c            |  23 +-
- drivers/media/dvb-frontends/m88ds3103_priv.h       |   2 +-
- drivers/media/dvb-frontends/rtl2830.c              |  24 +-
- drivers/media/dvb-frontends/rtl2830_priv.h         |   2 +-
- drivers/media/dvb-frontends/rtl2832.c              |  30 ++-
- drivers/media/dvb-frontends/rtl2832_priv.h         |   2 +-
- drivers/media/dvb-frontends/si2168.c               |  29 ++-
- drivers/media/dvb-frontends/si2168_priv.h          |   2 +-
- drivers/media/usb/cx231xx/cx231xx-core.c           |   6 +-
- drivers/media/usb/cx231xx/cx231xx-i2c.c            |  48 ++--
- drivers/media/usb/cx231xx/cx231xx.h                |   4 +-
- drivers/of/unittest.c                              |  41 ++--
- include/linux/i2c-mux-gpio.h                       |   2 +
- include/linux/i2c-mux-pinctrl.h                    |   2 +
- include/linux/i2c-mux.h                            |  39 ++-
- include/linux/i2c.h                                |  28 ++-
- 28 files changed, 612 insertions(+), 424 deletions(-)
 
 -- 
-2.1.4
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
