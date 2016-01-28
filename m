@@ -1,39 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:62975 "EHLO mout.gmx.net"
+Received: from ni.piap.pl ([195.187.100.4]:42220 "EHLO ni.piap.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966008AbcAZOkV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 09:40:21 -0500
-Date: Tue, 26 Jan 2016 15:39:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <rainyfeeling@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Nicolas Ferre <nicolas.ferre@atmel.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Songjun Wu <songjun.wu@atmel.com>, Josh Wu <josh.wu@atmel.com>
-Subject: Re: [PATCH 12/13] atmel-isi: use union for the fbd (frame buffer
- descriptor)
-In-Reply-To: <CAJe_HAdtFCmYKeCgfs9FeE80ckH3+WRfejmc_WOxdxZEntgL8A@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1601261538550.28816@axis700.grange>
-References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
- <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
- <1453121545-27528-8-git-send-email-rainyfeeling@gmail.com>
- <Pine.LNX.4.64.1601241931430.16570@axis700.grange>
- <CAJe_HAeTWqaqFHPbLGzbTKV6s2xDxf+Dg8DFc6HAqs03RJFh3g@mail.gmail.com>
- <Pine.LNX.4.64.1601261509120.28816@axis700.grange>
- <CAJe_HAdtFCmYKeCgfs9FeE80ckH3+WRfejmc_WOxdxZEntgL8A@mail.gmail.com>
+	id S934253AbcA1JTr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 04:19:47 -0500
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH 4/12] TW686x: Fix s_std() / g_std() / g_parm() pointer to self
+References: <m337tif6om.fsf@t19.piap.pl>
+Date: Thu, 28 Jan 2016 10:19:44 +0100
+In-Reply-To: <m337tif6om.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
+ \=\?utf-8\?Q\?a\=22's\?\= message of
+	"Thu, 28 Jan 2016 09:29:29 +0100")
+Message-ID: <m3zivqawnj.fsf@t19.piap.pl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 26 Jan 2016, Josh Wu wrote:
+Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
 
-> Ok, so for this serial patch, I will drop the abstract interface
-> relevant patches, and keep the refactor patch in v2. Thanks.
-
-Yes, please, drop the last 2 patches, and, preferably, the "polling 
-instead of IRQ" one too.
-
-Thanks
-Guennadi
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index 5a1b9ab..78f4f55 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -416,7 +416,7 @@ static int tw686x_querycap(struct file *file, void *priv,
+ 
+ static int tw686x_s_std(struct file *file, void *priv, v4l2_std_id id)
+ {
+-	struct tw686x_video_channel *vc = priv;
++	struct tw686x_video_channel *vc = video_drvdata(file);
+ 	unsigned std, count = 0;
+ 	u32 sdt, std_mask = 0;
+ 
+@@ -437,7 +437,7 @@ static int tw686x_s_std(struct file *file, void *priv, v4l2_std_id id)
+ 
+ static int tw686x_g_std(struct file *file, void *priv, v4l2_std_id *id)
+ {
+-	struct tw686x_video_channel *vc = priv;
++	struct tw686x_video_channel *vc = video_drvdata(file);
+ 
+ 	*id = vc->video_standard;
+ 	return 0;
+@@ -457,7 +457,7 @@ static int tw686x_enum_fmt_vid_cap(struct file *file, void *priv,
+ static int tw686x_g_parm(struct file *file, void *priv,
+ 			 struct v4l2_streamparm *sp)
+ {
+-	struct tw686x_video_channel *vc = priv;
++	struct tw686x_video_channel *vc = video_drvdata(file);
+ 
+ 	if (sp->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
