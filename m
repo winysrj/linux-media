@@ -1,104 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:12934 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757285AbcASH5G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 02:57:06 -0500
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v4] media: v4l2-compat-ioctl32: fix missing length copy in put_v4l2_buffer32
-Date: Tue, 19 Jan 2016 15:56:50 +0800
-Message-ID: <1453190210-49347-1-git-send-email-tiffany.lin@mediatek.com>
+Received: from lists.s-osg.org ([54.187.51.154]:58232 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967352AbcA1RFy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 12:05:54 -0500
+Date: Thu, 28 Jan 2016 15:05:38 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH 31/31] media: au0828 change to check media device
+ unregister progress state
+Message-ID: <20160128150538.1ba8fc7c@recife.lan>
+In-Reply-To: <eed3343dc1c690e8c7e656d1cc162777d73fc62b.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	<eed3343dc1c690e8c7e656d1cc162777d73fc62b.1452105878.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In v4l2-compliance utility, test QUERYBUF required correct length
-value to go through each planar to check planar's length in
-multi-planar buffer type
+Em Wed,  6 Jan 2016 13:27:20 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+> Change au0828_unregister_media_device() to check media
+> device media device unregister is in progress and avoid
+> calling media_device_unregister() and other cleanup done
+> in au0828_unregister_media_device().
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/usb/au0828/au0828-core.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index 886fb28..de357a2 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -136,7 +136,9 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+>  
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	if (dev->media_dev &&
+> -		media_devnode_is_registered(&dev->media_dev->devnode)) {
+> +		media_devnode_is_registered(&dev->media_dev->devnode) &&
+> +		!media_device_is_unregister_in_progress(dev->media_dev)) {
+> +
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 327e83a..f38c076 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -415,7 +415,8 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		get_user(kp->index, &up->index) ||
- 		get_user(kp->type, &up->type) ||
- 		get_user(kp->flags, &up->flags) ||
--		get_user(kp->memory, &up->memory))
-+		get_user(kp->memory, &up->memory) ||
-+		get_user(kp->length, &up->length))
- 			return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_OUTPUT(kp->type))
-@@ -427,9 +428,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 			return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
--		if (get_user(kp->length, &up->length))
--			return -EFAULT;
--
- 		num_planes = kp->length;
- 		if (num_planes == 0) {
- 			kp->m.planes = NULL;
-@@ -462,16 +460,14 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
--			if (get_user(kp->length, &up->length) ||
--				get_user(kp->m.offset, &up->m.offset))
-+			if (get_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
- 		case V4L2_MEMORY_USERPTR:
- 			{
- 			compat_long_t tmp;
- 
--			if (get_user(kp->length, &up->length) ||
--			    get_user(tmp, &up->m.userptr))
-+			if (get_user(tmp, &up->m.userptr))
- 				return -EFAULT;
- 
- 			kp->m.userptr = (unsigned long)compat_ptr(tmp);
-@@ -513,7 +509,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
- 		put_user(kp->sequence, &up->sequence) ||
- 		put_user(kp->reserved2, &up->reserved2) ||
--		put_user(kp->reserved, &up->reserved))
-+		put_user(kp->reserved, &up->reserved) ||
-+		put_user(kp->length, &up->length))
- 			return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-@@ -536,13 +533,11 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
--			if (put_user(kp->length, &up->length) ||
--				put_user(kp->m.offset, &up->m.offset))
-+			if (put_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
- 		case V4L2_MEMORY_USERPTR:
--			if (put_user(kp->length, &up->length) ||
--				put_user(kp->m.userptr, &up->m.userptr))
-+			if (put_user(kp->m.userptr, &up->m.userptr))
- 				return -EFAULT;
- 			break;
- 		case V4L2_MEMORY_OVERLAY:
--- 
-1.7.9.5
+A kref would likely work better here.
 
+>  		media_device_unregister(dev->media_dev);
+>  		media_device_cleanup(dev->media_dev);
+>  		dev->media_dev = NULL;
