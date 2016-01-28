@@ -1,91 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:50591 "EHLO mout.web.de"
+Received: from ni.piap.pl ([195.187.100.4]:41841 "EHLO ni.piap.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932986AbcAYSXS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 13:23:18 -0500
-Subject: Re: [PATCH] [media] xc5000: Faster result reporting in
- xc_load_fw_and_init_tuner()
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <56818B7B.8040801@users.sourceforge.net> <20160125150654.7ada12ac@recife.lan>
-Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <56A6680B.9050200@users.sourceforge.net>
-Date: Mon, 25 Jan 2016 19:23:07 +0100
+	id S1753197AbcA1JFG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 04:05:06 -0500
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH 7/12] TW686x: Add enum_input() / g_input() / s_input()
+References: <m337tif6om.fsf@t19.piap.pl>
+Date: Thu, 28 Jan 2016 10:05:03 +0100
+In-Reply-To: <m337tif6om.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
+ \=\?utf-8\?Q\?a\=22's\?\= message of
+	"Thu, 28 Jan 2016 09:29:29 +0100")
+Message-ID: <m3y4bacbwg.fsf@t19.piap.pl>
 MIME-Version: 1.0
-In-Reply-To: <20160125150654.7ada12ac@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> This issue was detected by using the Coccinelle software.
->>
->> Split the previous if statement at the end so that each final log statement
->> will eventually be performed by a direct jump to these labels.
->> * report_failure
->> * report_success
->>
->> A check repetition can be excluded for the variable "ret" at the end then.
->>
->>
->> Apply also two recommendations from the script "checkpatch.pl".
->>
->> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
->> ---
->>  drivers/media/tuners/xc5000.c | 16 +++++++---------
->>  1 file changed, 7 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
->> index e6e5e90..1360677 100644
->> --- a/drivers/media/tuners/xc5000.c
->> +++ b/drivers/media/tuners/xc5000.c
->> @@ -1166,7 +1166,7 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
->>  
->>  		ret = xc5000_fwupload(fe, desired_fw, fw);
->>  		if (ret != 0)
->> -			goto err;
->> +			goto report_failure;
->>  
->>  		msleep(20);
->>  
->> @@ -1229,18 +1229,16 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe, int force)
->>  		/* Default to "CABLE" mode */
->>  		ret = xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
->>  		if (!ret)
->> -			break;
->> +			goto report_success;
->>  		printk(KERN_ERR "xc5000: can't set to cable mode.");
-> 
-> It sounds worth to avoid adding a goto here.
+Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
 
-Are you interested in a bit of software optimisation for the implementation
-of the function "xc_load_fw_and_init_tuner"?
-
-
->>  	}
->>  
->> -err:
->> -	if (!ret)
->> -		printk(KERN_INFO "xc5000: Firmware %s loaded and running.\n",
->> -		       desired_fw->name);
->> -	else
->> -		printk(KERN_CONT " - too many retries. Giving up\n");
->> -
->> +report_failure:
->> +	pr_cont(" - too many retries. Giving up\n");
->>  	return ret;
->> +report_success:
->> +	pr_info("xc5000: Firmware %s loaded and running.\n", desired_fw->name);
->> +	return 0;
->>  }
->>  
->>  static void xc5000_do_timer_sleep(struct work_struct *timer_sleep)
-
-
-Is the proposed source code restructuring interesting?
-
-Regards,
-Markus
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index c781b3c..21efa30 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -466,6 +466,34 @@ static int tw686x_g_parm(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static int tw686x_enum_input(struct file *file, void *priv,
++			     struct v4l2_input *inp)
++{
++	/* the chip has internal multiplexer, support can be added
++	   if the actual hw uses it */
++	if (inp->index)
++		return -EINVAL;
++
++	snprintf(inp->name, sizeof(inp->name), "Composite");
++	inp->type = V4L2_INPUT_TYPE_CAMERA;
++  	inp->std = V4L2_STD_ALL;
++	inp->capabilities = V4L2_IN_CAP_STD;
++	return 0;
++}
++
++static int tw686x_g_input(struct file *file, void *priv, unsigned *v)
++{
++	*v = 0;
++	return 0;
++}
++
++static int tw686x_s_input(struct file *file, void *priv, unsigned v)
++{
++	if (v)
++		return -EINVAL;
++	return 0;
++}
++
+ const struct v4l2_file_operations tw686x_video_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= v4l2_fh_open,
+@@ -492,6 +520,9 @@ const struct v4l2_ioctl_ops tw686x_video_ioctl_ops = {
+ 	.vidioc_g_std			= tw686x_g_std,
+ 	.vidioc_s_std			= tw686x_s_std,
+ 	.vidioc_g_parm			= tw686x_g_parm,
++	.vidioc_enum_input		= tw686x_enum_input,
++	.vidioc_g_input			= tw686x_g_input,
++	.vidioc_s_input			= tw686x_s_input,
+ 	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
