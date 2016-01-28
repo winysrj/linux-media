@@ -1,79 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:36484 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965005AbcAZMf2 convert rfc822-to-8bit (ORCPT
+Received: from ni.piap.pl ([195.187.100.4]:40737 "EHLO ni.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934252AbcA1I3c convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 07:35:28 -0500
-Received: by mail-wm0-f41.google.com with SMTP id l65so102144649wmf.1
-        for <linux-media@vger.kernel.org>; Tue, 26 Jan 2016 04:35:28 -0800 (PST)
+	Thu, 28 Jan 2016 03:29:32 -0500
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH 0/12] TW686x driver
+Date: Thu, 28 Jan 2016 09:29:29 +0100
+Message-ID: <m337tif6om.fsf@t19.piap.pl>
 MIME-Version: 1.0
-In-Reply-To: <m3si1kioa9.fsf@t19.piap.pl>
-References: <1451183213-2733-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-	<569CE27F.6090702@xs4all.nl>
-	<CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
-	<m31t96j8u4.fsf@t19.piap.pl>
-	<CAAEAJfBM_vVBVRd3P0kJ1QLzk-M==L=x6CS0ggXgRX=7K_aK_A@mail.gmail.com>
-	<m3si1kioa9.fsf@t19.piap.pl>
-Date: Tue, 26 Jan 2016 09:35:27 -0300
-Message-ID: <CAAEAJfC_Sa_6opADoz0Ab8NrmhX+cjNmSK_Nw_Ne9nk-ROaj0Q@mail.gmail.com>
-Subject: Re: [PATCH] media: Support Intersil/Techwell TW686x-based video
- capture cards
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: =?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26 January 2016 at 08:16, Krzysztof Hałasa <khalasa@piap.pl> wrote:
-> Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
->
->> Well, I plan to add SG mode as soon as this driver is merged, so hopefully you
->> won't have to use an out of tree driver anymore.
->
-> So why don't you want to do it the normal way, i.e., add your specific
-> changes on top of my driver?
->
+Hi,
 
-As far as I can see, you sent a driver back in July:
+I'm posting a driver for TW686[4589]-based PCIe cards. The first patch
+has been posted and reviewed by Ezequiel back in July 2015, the
+subsequent patches are changes made in response to the review and/or are
+required by the more recent kernel versions.
 
-https://patchwork.linuxtv.org/patch/30448/
+This driver lacks CMA-based frame mode DMA operation, I'll add it a bit
+later. Also:
+- I haven't converted the kthread to a workqueue - the driver is
+  modeled after other code and it can be done later, if needed
+- I have skipped suggested PCI ID changes and the 704 vs 720 pixels/line
+  question - this may need further consideration.
 
-I reviewed the driver as soon as it was sent, and planned to submit
-changes to support my setup once your driver was merged, but that
-never happened.
+Please merge.
 
-Since you never submitted a v2, I sincerely thought that after six
-months you had lost the interest.
-There is no "your" driver vs. "my" driver, it's the same driver, as
-the copyright note explains.
+The following changes since Linux 4.4 are available in the git
+repository at:
 
-> This way you don't have to add SG mode. It's already there. Also, this
-> means I (and others) don't have to hope. And, your changes can be much
-> better examined, bisected etc.
->
-> For now, there is no in-tree driver, all versions are out of tree.
->
-> At the moment, from my POV it all looks this way:
-> - I have written a driver and posted it for inclusion
-> - it works on my systems, complies with the LK, V4L standards etc.,
->   though it probably still needs some small changes
-> - you took it, (I guess) added the needed changes (and others), removed
->   the critical functionality, and want it merged instead of the
->   original, working version.
->
-> I can only see two ways out ( which make sense) from this. The first is:
-> we add my driver first and then your specific changes on top of it.
->
+  git://git.kernel.org/pub/scm/linux/kernel/git/chris/linux.git techwell-4.4
 
-If you want your driver merged, then you would have to submit it
-again, addressing
-my review comments. However, I have just posted a v2 and it would be nice if
-you can review it and test it.
+for you to fetch changes up to 8e495778acd4602c472cefa460a1afb41c4b8f25:
 
-Thanks,
+  [MEDIA] TW686x: return VB2_BUF_STATE_ERROR frames on timeout/errors (2016-01-27 14:47:41 +0100)
+
+----------------------------------------------------------------
+Krzysztof Hałasa (12):
+      [MEDIA] Add support for TW686[4589]-based frame grabbers
+      [MEDIA] TW686x: Trivial changes suggested by Ezequiel Garcia
+      [MEDIA] TW686x: Switch to devm_*()
+      [MEDIA] TW686x: Fix s_std() / g_std() / g_parm() pointer to self
+      [MEDIA] TW686x: Fix handling of TV standard values
+      [MEDIA] TW686x: Fix try_fmt() color space
+      [MEDIA] TW686x: Add enum_input() / g_input() / s_input()
+      [MEDIA] TW686x: do not use pci_dma_supported()
+      [MEDIA] TW686x: switch to vb2_v4l2_buffer
+      [MEDIA] TW686x: handle non-NULL format in queue_setup()
+      [MEDIA] TW686x: Track frame sequence numbers
+      [MEDIA] TW686x: return VB2_BUF_STATE_ERROR frames on timeout/errors
+
+ drivers/media/pci/Kconfig               |   1 +
+ drivers/media/pci/Makefile              |   1 +
+ drivers/media/pci/tw686x/Kconfig        |  16 ++
+ drivers/media/pci/tw686x/Makefile       |   3 +
+ drivers/media/pci/tw686x/tw686x-core.c  | 140 +++++++++++++
+ drivers/media/pci/tw686x/tw686x-regs.h  | 103 +++++++++
+ drivers/media/pci/tw686x/tw686x-video.c | 815 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/pci/tw686x/tw686x.h       | 118 +++++++++++
+ 8 files changed, 1197 insertions(+)
+ create mode 100644 drivers/media/pci/tw686x/Kconfig
+ create mode 100644 drivers/media/pci/tw686x/Makefile
+ create mode 100644 drivers/media/pci/tw686x/tw686x-core.c
+ create mode 100644 drivers/media/pci/tw686x/tw686x-regs.h
+ create mode 100644 drivers/media/pci/tw686x/tw686x-video.c
+ create mode 100644 drivers/media/pci/tw686x/tw686x.h
+
+Thanks.
 -- 
-Ezequiel García, VanguardiaSur
-www.vanguardiasur.com.ar
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
