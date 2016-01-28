@@ -1,36 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.mail.ru ([94.100.179.58]:33412 "EHLO smtp3.mail.ru"
+Received: from ni.piap.pl ([195.187.100.4]:42006 "EHLO ni.piap.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752837AbcAKH2b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2016 02:28:31 -0500
-From: koshkoshka <andreykosh000@mail.ru>
-To: linux-media@vger.kernel.org
-Cc: koshkoshka <andreykosh000@mail.ru>
-Subject: [PATCH] 	modified:   drivers/media/tuners/si2157.c Fixed frequency range to 42-870 MHz
-Date: Mon, 11 Jan 2016 17:28:04 +1000
-Message-Id: <1452497284-8396-1-git-send-email-andreykosh000@mail.ru>
+	id S965264AbcA1JLO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 04:11:14 -0500
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH 12/12] TW686x: return VB2_BUF_STATE_ERROR frames on timeout/errors
+References: <m337tif6om.fsf@t19.piap.pl>
+Date: Thu, 28 Jan 2016 10:11:13 +0100
+In-Reply-To: <m337tif6om.fsf@t19.piap.pl> ("Krzysztof \=\?utf-8\?Q\?Ha\=C5\=82as\?\=
+ \=\?utf-8\?Q\?a\=22's\?\= message of
+	"Thu, 28 Jan 2016 09:29:29 +0100")
+Message-ID: <m3d1smcbm6.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- drivers/media/tuners/si2157.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Signed-off-by: Krzysztof Hałasa <khalasa@piap.pl>
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index ce157ed..86a753e 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -363,8 +363,8 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
- 		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
--		.frequency_min  = 55000000,
--		.frequency_max  = 862000000,
-+		.frequency_min  = 42000000,
-+		.frequency_max  = 870000000,
- 	},
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index d09a4b0..bb77c1b 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -551,7 +551,7 @@ static int video_thread(void *arg)
+ 		for (ch = 0; ch < max_channels(dev); ch++) {
+ 			struct tw686x_video_channel *vc;
+ 			unsigned long flags;
+-			u32 request, n;
++			u32 request, n, stat = VB2_BUF_STATE_DONE;
  
- 	.init = si2157_init,
--- 
-1.9.1
-
+ 			vc = &dev->video_channels[ch];
+ 			if (!(dev->video_active & (1 << ch)))
+@@ -581,28 +581,29 @@ static int video_thread(void *arg)
+ 				reg_write(dev, DMA_CMD, reg & ~(1 << ch));
+ 				reg_write(dev, DMA_CMD, reg);
+ 				spin_unlock_irqrestore(&dev->irq_lock, flags);
+-			} else {
+-				/* handle video stream */
+-				mutex_lock(&vc->vb_mutex);
+-				spin_lock(&vc->qlock);
+-				n = !!(reg_read(dev, PB_STATUS) & (1 << ch));
+-				if (vc->curr_bufs[n]) {
+-					struct vb2_v4l2_buffer *vb;
+-
+-					vb = &vc->curr_bufs[n]->vb;
+-					v4l2_get_timestamp(&vb->timestamp);
+-					vb->field = vc->field;
+-					if (V4L2_FIELD_HAS_BOTH(vc->field))
+-						vb->sequence = vc->seq++;
+-					else
+-						vb->sequence = (vc->seq++) / 2;
+-					vb2_set_plane_payload(&vb->vb2_buf, 0, vc->width * vc->height * vc->format->depth / 8);
+-					vb2_buffer_done(&vb->vb2_buf, VB2_BUF_STATE_DONE);
+-				}
+-				setup_descs(vc, n);
+-				spin_unlock(&vc->qlock);
+-				mutex_unlock(&vc->vb_mutex);
++				stat = VB2_BUF_STATE_ERROR;
++			}
++
++			/* handle video stream */
++			mutex_lock(&vc->vb_mutex);
++			spin_lock(&vc->qlock);
++			n = !!(reg_read(dev, PB_STATUS) & (1 << ch));
++			if (vc->curr_bufs[n]) {
++				struct vb2_v4l2_buffer *vb;
++
++				vb = &vc->curr_bufs[n]->vb;
++				v4l2_get_timestamp(&vb->timestamp);
++				vb->field = vc->field;
++				if (V4L2_FIELD_HAS_BOTH(vc->field))
++					vb->sequence = vc->seq++;
++				else
++					vb->sequence = (vc->seq++) / 2;
++				vb2_set_plane_payload(&vb->vb2_buf, 0, vc->width * vc->height * vc->format->depth / 8);
++				vb2_buffer_done(&vb->vb2_buf, stat);
+ 			}
++			setup_descs(vc, n);
++			spin_unlock(&vc->qlock);
++			mutex_unlock(&vc->vb_mutex);
+ 		}
+ 		try_to_freeze();
+ 	}
