@@ -1,100 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f67.google.com ([209.85.220.67]:36616 "EHLO
-	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755743AbcAMR7p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2016 12:59:45 -0500
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: [PATCH v3] media: soc_camera: rcar_vin: Add ARGB8888 caputre format support
-Date: Thu, 14 Jan 2016 02:59:24 +0900
-Message-Id: <1452707964-4379-1-git-send-email-ykaneko0929@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:58059 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967010AbcA1QqF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2016 11:46:05 -0500
+Date: Thu, 28 Jan 2016 14:45:46 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH 25/31] media: au0828 fix to not call
+ media_device_unregister_entity_notify()
+Message-ID: <20160128144546.26eb3c4b@recife.lan>
+In-Reply-To: <19782c8250ea1297271506e6558c089d4b25e026.1452105878.git.shuahkh@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+	<19782c8250ea1297271506e6558c089d4b25e026.1452105878.git.shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Em Wed,  6 Jan 2016 14:01:54 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-This patch adds ARGB8888 capture format support for R-Car Gen3.
+> entity_notify handlers are removed from media_device_unregister().
+> There is no need to call media_device_unregister_entity_notify()
+> to do that right before calling media_device_unregister().
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
----
+Please merge with the patch that added it.
 
-This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
-
-v3 [Yoshihiro Kaneko]
-* rebased to for-4.6-1 branch of Guennadi's tree.
-
-v2 [Yoshihiro Kaneko]
-* As suggested by Sergei Shtylyov
-  - fix the coding style of the braces.
-
- drivers/media/platform/soc_camera/rcar_vin.c | 21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index dc75a80..466c63a 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -124,7 +124,7 @@
- #define VNDMR_EXRGB		(1 << 8)
- #define VNDMR_BPSM		(1 << 4)
- #define VNDMR_DTMD_YCSEP	(1 << 1)
--#define VNDMR_DTMD_ARGB1555	(1 << 0)
-+#define VNDMR_DTMD_ARGB		(1 << 0)
- 
- /* Video n Data Mode Register 2 bits */
- #define VNDMR2_VPS		(1 << 30)
-@@ -643,7 +643,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 		output_is_yuv = true;
- 		break;
- 	case V4L2_PIX_FMT_RGB555X:
--		dmr = VNDMR_DTMD_ARGB1555;
-+		dmr = VNDMR_DTMD_ARGB;
- 		break;
- 	case V4L2_PIX_FMT_RGB565:
- 		dmr = 0;
-@@ -654,6 +654,14 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 			dmr = VNDMR_EXRGB;
- 			break;
- 		}
-+	case V4L2_PIX_FMT_ARGB32:
-+		if (priv->chip == RCAR_GEN3) {
-+			dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
-+		} else {
-+			dev_err(icd->parent, "Not support format\n");
-+			return -EINVAL;
-+		}
-+		break;
- 	default:
- 		dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
- 			 icd->current_fmt->host_fmt->fourcc);
-@@ -1304,6 +1312,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
- 		.order			= SOC_MBUS_ORDER_LE,
- 		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
-+	{
-+		.fourcc			= V4L2_PIX_FMT_ARGB32,
-+		.name			= "ARGB8888",
-+		.bits_per_sample	= 32,
-+		.packing		= SOC_MBUS_PACKING_NONE,
-+		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
-+	},
- };
- 
- static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
-@@ -1611,6 +1627,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
- 	case V4L2_PIX_FMT_RGB32:
- 		can_scale = priv->chip != RCAR_E1;
- 		break;
-+	case V4L2_PIX_FMT_ARGB32:
- 	case V4L2_PIX_FMT_UYVY:
- 	case V4L2_PIX_FMT_YUYV:
- 	case V4L2_PIX_FMT_RGB565:
--- 
-1.9.1
-
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/usb/au0828/au0828-core.c | 2 --
+>  1 file changed, 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index 9497ad1..722e073 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -137,8 +137,6 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	if (dev->media_dev &&
+>  		media_devnode_is_registered(&dev->media_dev->devnode)) {
+> -		media_device_unregister_entity_notify(dev->media_dev,
+> -						      &dev->entity_notify);
+>  		media_device_unregister(dev->media_dev);
+>  		media_device_cleanup(dev->media_dev);
+>  		dev->media_dev = NULL;
