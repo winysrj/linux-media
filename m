@@ -1,99 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-06v.sys.comcast.net ([96.114.154.165]:60709 "EHLO
-	resqmta-po-06v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752289AbcAFU1k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2016 15:27:40 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH 24/31] media: au0828 fix null pointer reference in au0828_create_media_graph()
-Date: Wed,  6 Jan 2016 13:27:13 -0700
-Message-Id: <33b9da8f01b1d94844ac677efd31a66c40c39ecb.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1452105878.git.shuahkh@osg.samsung.com>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:34860 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932963AbcA2SWZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jan 2016 13:22:25 -0500
+Subject: Re: [PATCH 11/13] [media] tvp5150: identify it as a
+ MEDIA_ENT_F_ATV_DECODER
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1454067262.git.mchehab@osg.samsung.com>
+ <c1252a1287c86a763b72458e3d8619c23b5d0eaf.1454067262.git.mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eduard Gavin <egavinc@gmail.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <56ABADDB.4080701@osg.samsung.com>
+Date: Fri, 29 Jan 2016 15:22:19 -0300
+MIME-Version: 1.0
+In-Reply-To: <c1252a1287c86a763b72458e3d8619c23b5d0eaf.1454067262.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new wrapper function to au0828_create_media_graph()
-to be called as an entity_notify function to fix null
-pointer dereference. A rebasing mistake resulted in
-registering au0828_create_media_graph() without the
-correct parameters which lead to the following
-null pointer dereference:
+Hello Mauro,
 
-[   69.006164] Call Trace:
-[   69.006169]  [<ffffffff81a9a1b0>] dump_stack+0x44/0x64
-[   69.006175]  [<ffffffff81503af9>] print_trailer+0xf9/0x150
-[   69.006180]  [<ffffffff81509284>] object_err+0x34/0x40
-[   69.006185]  [<ffffffff815063c4>] ? ___slab_alloc+0x4c4/0x4e0
-[   69.006190]  [<ffffffff8150b732>] kasan_report_error+0x212/0x520
-[   69.006196]  [<ffffffff815063c4>] ? ___slab_alloc+0x4c4/0x4e0
-[   69.006201]  [<ffffffff8150ba83>] __asan_report_load1_noabort+0x43/0x50
-[   69.006208]  [<ffffffffa0d30991>] ? au0828_create_media_graph+0x641/0x730 [au0828]
-[   69.006215]  [<ffffffffa0d30991>] au0828_create_media_graph+0x641/0x730 [au0828]
-[   69.006221]  [<ffffffff82245c3d>] media_device_register_entity+0x33d/0x4f0
-[   69.006234]  [<ffffffffa0ebeb1c>] media_stream_init+0x2ac/0x610 [snd_usb_audio]
-[   69.006247]  [<ffffffffa0ea9a70>] snd_usb_pcm_open+0xcd0/0x1280 [snd_usb_audio]
+On 01/29/2016 09:11 AM, Mauro Carvalho Chehab wrote:
+> The tvp5150 is an analog TV decoder. Identify as such at
+> the media graph, or otherwise devices using it would fail.
+>
+> That avoids the following warning:
+> 	[ 1546.669139] usb 2-3.3: Entity type for entity tvp5150 5-005c was not initialized!
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>   drivers/media/i2c/tvp5150.c | 3 +++
+>   1 file changed, 3 insertions(+)
+>
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index 20428f052506..19b52736b24e 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -1319,6 +1319,9 @@ static int tvp5150_probe(struct i2c_client *c,
+>   	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+>   	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+>   	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+> +
+> +	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+> +
+>   	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
+>   	if (res < 0)
+>   		return res;
+>
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index f8d2db3..9497ad1 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -370,6 +370,20 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 	return 0;
- }
- 
-+void au0828_create_media_graph_notify(struct media_entity *new,
-+				      void *notify_data)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct au0828_dev *dev = (struct au0828_dev *) notify_data;
-+	int ret;
-+
-+	ret = au0828_create_media_graph(dev);
-+	if (ret)
-+		pr_err("%s() media graph create failed for new entity %s\n",
-+		       __func__, new->name);
-+#endif
-+}
-+
- static int au0828_enable_source(struct media_entity *entity,
- 				struct media_pipeline *pipe)
- {
-@@ -535,7 +549,7 @@ static int au0828_media_device_register(struct au0828_dev *dev,
- 	}
- 	/* register entity_notify callback */
- 	dev->entity_notify.notify_data = (void *) dev;
--	dev->entity_notify.notify = (void *) au0828_create_media_graph;
-+	dev->entity_notify.notify = au0828_create_media_graph_notify;
- 	ret = media_device_register_entity_notify(dev->media_dev,
- 						  &dev->entity_notify);
- 	if (ret) {
+Best regards,
 -- 
-2.5.0
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
