@@ -1,92 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:29047 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756346AbcANRZa (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:36895 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756553AbcA2RNH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2016 12:25:30 -0500
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Wu-Cheng Li' <wuchengli@chromium.org>, pawel@osciak.com,
-	mchehab@osg.samsung.com, hverkuil@xs4all.nl, crope@iki.fi,
-	standby24x7@gmail.com, nicolas.dufresne@collabora.com,
-	ricardo.ribalda@gmail.com, ao2@ao2.it, bparrot@ti.com,
-	kyungmin.park@samsung.com, jtp.park@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	tiffany.lin@mediatek.com, djkurtz@chromium.org
-References: <1452783007-80883-1-git-send-email-wuchengli@chromium.org>
- <1452783007-80883-3-git-send-email-wuchengli@chromium.org>
-In-reply-to: <1452783007-80883-3-git-send-email-wuchengli@chromium.org>
-Subject: RE: [PATCH v3 2/2] s5p-mfc: add the support of
- V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
-Date: Thu, 14 Jan 2016 18:25:26 +0100
-Message-id: <00b301d14ef0$8f51df00$adf59d00$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Fri, 29 Jan 2016 12:13:07 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/3] [media] em28xx: make sure that the device has video
+Date: Fri, 29 Jan 2016 15:11:58 -0200
+Message-Id: <759f0a1be7c9e2937056189acdd7338e737d609f.1454087508.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+There are some devices, like Terratec Cinergy HTC, where
+while the device supports analog TV, the driver is not
+capable yet of handling it, because the analog TV driver
+was not written.
 
-> From: Wu-Cheng Li [mailto:wuchengli@chromium.org]
-> Sent: Thursday, January 14, 2016 3:50 PM
-> To: pawel@osciak.com; mchehab@osg.samsung.com; hverkuil@xs4all.nl;
-> k.debski@samsung.com; crope@iki.fi; standby24x7@gmail.com;
-> wuchengli@chromium.org; nicolas.dufresne@collabora.com;
-> ricardo.ribalda@gmail.com; ao2@ao2.it; bparrot@ti.com;
-> kyungmin.park@samsung.com; jtp.park@samsung.com
-> Cc: linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
-> api@vger.kernel.org; linux-arm-kernel@lists.infradead.org;
-> tiffany.lin@mediatek.com; djkurtz@chromium.org
-> Subject: [PATCH v3 2/2] s5p-mfc: add the support of
-> V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME.
+So, don't bind the em28xx-v4l drivers on such devices.
 
-However simple the patch is, please do provide a commit message.
-Please write something. 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-Best wishes,
-Kamil
-
-> Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index 0434f02..974b4c5 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -212,6 +212,14 @@ static struct mfc_control controls[] = {
->  		.menu_skip_mask = 0,
->  	},
->  	{
-> +		.id = V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME,
-> +		.type = V4L2_CTRL_TYPE_BUTTON,
-> +		.minimum = 0,
-> +		.maximum = 0,
-> +		.step = 0,
-> +		.default_value = 0,
-> +	},
-> +	{
->  		.id = V4L2_CID_MPEG_VIDEO_VBV_SIZE,
->  		.type = V4L2_CTRL_TYPE_INTEGER,
->  		.minimum = 0,
-> @@ -1423,6 +1431,10 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl
-*ctrl)
->  	case V4L2_CID_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE:
->  		ctx->force_frame_type = ctrl->val;
->  		break;
-> +	case V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME:
-> +		ctx->force_frame_type =
-> +
-> 	V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_I_FRAME;
-> +		break;
->  	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:
->  		p->vbv_size = ctrl->val;
->  		break;
-> --
-> 2.6.0.rc2.230.g3dd15c0
-
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 2001c9c14784..ec4e95119877 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3468,7 +3468,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 	/* save our data pointer in this interface device */
+ 	usb_set_intfdata(interface, dev);
+ 
+-	/* allocate device struct */
++	/* allocate device struct and check if the device is a webcam */
+ 	mutex_init(&dev->lock);
+ 	retval = em28xx_init_dev(dev, udev, interface, nr);
+ 	if (retval) {
+@@ -3484,6 +3484,15 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 		try_bulk = usb_xfer_mode > 0;
+ 	}
+ 
++	/* Disable V4L2 if the device doesn't have a decoder */
++	if (has_video &&
++	    dev->board.decoder == EM28XX_NODECODER && !dev->board.is_webcam) {
++		printk(DRIVER_NAME
++		       ": Currently, V4L2 is not supported on this model\n");
++		has_video = false;
++		dev->has_video = false;
++	}
++
+ 	/* Select USB transfer types to use */
+ 	if (has_video) {
+ 		if (!dev->analog_ep_isoc || (try_bulk && dev->analog_ep_bulk))
+-- 
+2.5.0
 
