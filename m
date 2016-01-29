@@ -1,59 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:51032 "EHLO lists.s-osg.org"
+Received: from mout.gmx.net ([212.227.17.20]:64740 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934483AbcAZMqq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 07:46:46 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH v3 1/2] [media] tvp5150: fix tvp5150_fill_fmt()
-Date: Tue, 26 Jan 2016 09:46:23 -0300
-Message-Id: <1453812384-15512-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1453812384-15512-1-git-send-email-javier@osg.samsung.com>
-References: <1453812384-15512-1-git-send-email-javier@osg.samsung.com>
+	id S1753848AbcA2KI7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jan 2016 05:08:59 -0500
+Date: Fri, 29 Jan 2016 11:08:23 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aviv Greenberg <avivgr@gmail.com>
+Subject: Re: per-frame camera metadata (again)
+In-Reply-To: <Pine.LNX.4.64.1601261321580.28816@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1601291041180.16360@axis700.grange>
+References: <Pine.LNX.4.64.1512160901460.24913@axis700.grange>
+ <Pine.LNX.4.64.1601051214080.21342@axis700.grange>
+ <Pine.LNX.4.64.1601251155160.20896@axis700.grange> <5888039.Rc9CarTOsL@avalon>
+ <Pine.LNX.4.64.1601261321580.28816@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Replying to myself with some further ideas.
 
-The tvp5150 output video is interlaced so mark the format
-field as alternate and reduce the height to the half.
+On Tue, 26 Jan 2016, Guennadi Liakhovetski wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-[javier: split patch and write commit message]
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Hi Laurent,
+> 
+> On Mon, 25 Jan 2016, Laurent Pinchart wrote:
+> 
+> > Hi Guennadi,
+> > 
+> > On Monday 25 January 2016 12:14:14 Guennadi Liakhovetski wrote:
+> > > On Tue, 5 Jan 2016, Guennadi Liakhovetski wrote:
+> > > > On Fri, 1 Jan 2016, Guennadi Liakhovetski wrote:
+> > > >> On Sun, 27 Dec 2015, Laurent Pinchart wrote:
+> > > >>> On Thursday 24 December 2015 11:42:49 Guennadi Liakhovetski wrote:
 
----
+[snip]
 
-Changes in v3: None
-Changes in v2: None
+> > > > It now also occurs to me, that we currently configure pads with a single
+> > > > configuration - pixel format, resolution. However, a single CSI-2
+> > > > interface can transfer different frame formats at the same time. So, such
+> > > > a sensor driver has to export multiple source pads? The bridge driver
+> > > > would export multiple sink pads, then we don't need any new API methods,
+> > > > we just configure each link separately, for which we have to add those
+> > > > fields to struct v4l2_mbus_framefmt?
+> > >
+> > > It has been noted, that pads and links conceptually are designed to
+> > > represent physical interfaces and connections between then, therefore
+> > > representing a single CSI-2 link by multiple Media Controller pads and
+> > > links is wrong.
+> > >
+> > > As an alternative it has been proposed to implement a multiplexer and a
+> > > demultiplexer subdevices on the CSI-2 transmitter (camera) and receiver
+> > > (SoC) sides respectively. Originally it has also been proposed to add a
+> > > supporting API to configure multiple streams over such a multiplexed
+> > > connection. However, this seems redundant, because mux sink pads and demux
+> > > source pads will anyway have to be configured individually, which already
+> > > configures the receiver and the transmitter sides.
+> > 
+> > You have a point, but I wonder how we would then validate pipelines.
+> 
+> Well, maybe from "such" pads we should require a .link_validate() method? 
+> And "such" could mean pads, using the FIXED format, or 0x0 size.
 
- drivers/media/i2c/tvp5150.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+for the following configuration:
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 9b83fc9ee8d1..37853bc3f0b3 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -852,10 +852,10 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
- 	tvp5150_reset(sd, 0);
- 
- 	f->width = decoder->rect.width;
--	f->height = decoder->rect.height;
-+	f->height = decoder->rect.height / 2;
- 
- 	f->code = MEDIA_BUS_FMT_UYVY8_2X8;
--	f->field = V4L2_FIELD_SEQ_TB;
-+	f->field = V4L2_FIELD_ALTERNATE;
- 	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 
- 	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
--- 
-2.5.0
++------ sensor ------+    +- bridge -+
+-----------    -------
+| subdev1 |--->| mux |    ---------
+-----------    |     |    | demux |->
+-----------    |     |--->|       |
+| subdev2 |--->|     |    |       |->
+-----------    -------    ---------
 
+we could let the demux driver implement a function, that would call 
+.get_fmt() pad operation for all sink pad of the remote (sensor) mux and 
+check, whether for each of its own source pads a suitably configured 
+format can be found. That function can then be called during STREAMON 
+processing. This mux-demux functionality seems rather 
+hardware-independent, so, it could be provided as library functions.
+
+However, if the sensor driver is "very simple," e.g. always only sends a 
+fixed video format with a fixed accompanying metadata format, it could be 
+desirable to implement it as a single subdevice, without a mux, which then 
+would be impossible.
+
+> > > Currently the design seems to be converging to simply configuring the
+> > > multiplexed link with the MEDIA_BUS_FMT_FIXED format and a fixed
+> > > resolution and perform all real configuration on the other side of the mux
+> > > and demux subdevices. The only API extension, that would be required for
+> > > such a design would be adding CSI-2 Virtual Channel IDs to pad format
+> > > specifications, i.e. to struct v4l2_mbus_framefmt.
+> > 
+> > I wouldn't add a CSI2-specific field, but a more generic stream ID instead. We 
+> > would then need a way to map stream IDs to the actual bus implementations. For 
+> > CSI-2 that would include both virtual channel and data type.
+> 
+> We discussed the CSI-2 data type with Sakari and I explained to him, that 
+> I think, that the CSI-2 data type should be directly mapped to the Media 
+> Bus pixel code. You know, that CSI-2 defines a few such codes, so, adding 
+> the data type for those would be a real duplication and an additional 
+> point to check for. It is less clear with user-defined data types, that 
+> the CSI-2 leaves free for device-specific formats, but there are only 8 
+> of them. We could just add generic numeric defines for them like
+> 
+> #define MEDIA_BUS_FMT_CSI2_UD_0X30 ...
+> #define MEDIA_BUS_FMT_CSI2_UD_0X31 ...
+> ...
+> #define MEDIA_BUS_FMT_CSI2_UD_0X37 ...
+> 
+> That's it.
+> 
+> As for stream ID vs. virtual channel number - we can go either way. I 
+> think the bus type information combined with a union whould be sufficient.
+> 
+> > > On the video device side each stream will be sent to a separate video
+> > > device node.
+> > 
+> > Not necessarily, they could be sent to different pieces of hardware.
+> 
+> Yes, sure, then those nodes would just be EBUSY.
+> 
+> > > Each CSI-2 controller only supports a finate number of streams, that it can
+> > > demultiplex at any given time. Typically this maximum number is much smaller
+> > > than 256, which is the total number of streams, that can be distinguished on
+> > > a CSI-2 bus, using 2 bits for Virtual Channels and 6 bits for data types.
+> > > For example, if a CSI-2 controller can demultiplex up to 8 streams
+> > > simultaneously, the CSI-2 bridge driver would statically create 8
+> > > /dev/video* nodes, statically connected to 8 sources of an internal demux
+> > > subdevice. The user-space will then just have to configure internal pads
+> > > with a Virtual Channel number, Media Bus pixel format and resolution and the
+> > > /dev/video* node with the required output configuration.
+> > 
+> > If there are 8 independent DMA engines then 8 video nodes would seem quite 
+> > logical. Another option would be to create a single video node with 8 buffer 
+> > queues. I'm still debating that with myself though, but it could make sense in 
+> > the case of a single DMA engine with multiple contexts. One could argue that 
+> > we're touching a grey area.
+> 
+> I haven't read the sources of all those controllers :) I suspect however, 
+> that at least in many cases it will be just one DMA engine with multiple 
+> channels. I understand (at least some) disadvantages of using multiple 
+> video nodes, but at least this is something we can use now without really 
+> breaking or (badly) abusing any existing APIs. We can add multiple buffer 
+> queue support too, but so far I don't see a _really_ compelling reason for 
+> that. Nice to have, but not a deal breaker IMHO.
+> 
+> My another doubt is statically creating all (8) video nodes vs. creating 
+> them on the fly as respective pads get configured. The latter seems more 
+> elegant to me and wouldn't fry Linux hotplug daemons by presenting them 
+> with dozens of non-functional video devices, but also when such devices 
+> get created the daemons would feel attacked and dealing with dyamically 
+> creating ones would be more difficult for applications too.
+
+If we do want to implement multiple video-buffer queues per video node, we 
+could add a stream parameter to buffer handling ioctl()s, using 1 byte 
+from reserved space in respective structs. The affected structs would be
+
+v4l2_create_buffers
+v4l2_exportbuffer
+v4l2_buffer
+
+The only core code, that makes assumptions about where and how many 
+buffers exist per video device are ioctl() and fops implementations in 
+videobuf2-v4l2.c, but their use is optional, many drivers implement those 
+methods themsevls anyway. So, drivers, wishing to support multiple buffer 
+queues will be forced to do that too. Then the actual handling of the 
+stream ID will be done by respective bridge drivers as wll, no support in 
+the core should be required.
+
+Thanks
+Guennadi
