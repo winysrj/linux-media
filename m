@@ -1,33 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ozlabs.org ([103.22.144.67]:33039 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754102AbcALUye (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jan 2016 15:54:34 -0500
-Date: Wed, 13 Jan 2016 07:54:31 +1100
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v4.5-rc1] media controller next gen patch series
-Message-ID: <20160113075431.711be9e0@canb.auug.org.au>
-In-Reply-To: <20160112084328.2194ec49@recife.lan>
-References: <20160112084328.2194ec49@recife.lan>
+Received: from adovation.org ([108.170.1.90]:49762 "EHLO adovation.org"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753945AbcA3MEW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Jan 2016 07:04:22 -0500
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: my subject...
+To: Recipients <info@adovation.org>
+From: "Muthoot Finance Pvt Ltd" <info@adovation.org>
+Date: Fri, 29 Jan 2016 23:46:56 +0100
+Reply-To: muthootfinanccehome@gmail.com
+Message-Id: <20160129225437.319DDD45AFE@adovation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Be informed that Muthoot Finance give out Guarantee Business Loans, Automobile Purchase Loans, House Purchase Loans, Personal Loans at 3% interest rate, for more info email: muthootfinanccehome@gmail.com
+====
+Estar informado de que Muthoot Finanzas Dar a conocer Garanta de negocios Prstamos, Prstamos de Automviles Compra, Casa Compra prstamos, prstamos personales a tasa de inters del 3%, para obtener ms informacin email: muthootfinanccehome@gmail.com
+====
+Assunto: meu tema Ser informado de que Muthoot Finance dar empréstimos de Garantia de Negócios, Automobile Os empréstimos Purchase, Casa empréstimos Purchase, empréstimos pessoais na taxa de juros de 3%, para mais informações e-mail: muthootfinanccehome@gmail.com
+====
+Nous portons à votre connaissance que Muthoot Finance vous donne des prêts d’affaires, pour l’achat des automobiles, des maisons, des prêts personnels, tous pour un taux d'intérêts de 3%, pour plus des détails consultez: muthootfinanccehome@gmail.com
+====
+Byt informovaný, že Muthoot Financie rozdávat zárucnej podnikatelských úverov, automobilový Nákup pôžiciek, úverov na bývanie, osobné pôžicky vo výške 3% úrokovou sadzbou, pre viac informácií e-mail: muthootfinanccehome@gmail.com
+====
+Wir teilen mit, dass Muthoot Finance Firmen-Darlehen, Darlehen zur Anschaffung von Kfz-Fahrzeugen, Erwerb von Immobilien sowie persönliche Darlehen zu 3% effektiven Jahreszins anbietet, weitere Informationen erhalten Sie per E-Mail: muthootfinanccehome@gmail.com
+====
+Det opplyses om at Muthoot Finance gir ut garanti Business lån, Automobile kjøpe lån, hus kjøpe lån, personlige lån på 3% rente, for mer info e-post: muthootfinanccehome@gmail.com
 
-On Tue, 12 Jan 2016 08:43:28 -0200 Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
->
-> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.5-2
+---
+This email is free from viruses and malware because avast! Antivirus protection is active.
+https://www.avast.com/antivirus
 
-This contains 117 commits (of 381) that only turned up in linux-next
-yesterday, but I see that Linus has already merged it.
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
