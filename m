@@ -1,73 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:60968 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752386AbcASHd5 (ORCPT
+Received: from mail-yk0-f181.google.com ([209.85.160.181]:33986 "EHLO
+	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756852AbcA2V65 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2016 02:33:57 -0500
-Subject: Re: dma start/stop & vb2 APIs
-To: Ran Shalit <ranshalit@gmail.com>
-References: <CAJ2oMhL=aaN+O0F+_Bo8mjnSEOSCkN3vGk9WB1GeC+1t1tDw5w@mail.gmail.com>
- <569D24D4.3040705@xs4all.nl>
- <CAJ2oMh+BXUnqehqGzaxqQK07+7HiEOpjRf4+GjqDNRbRNb5NKg@mail.gmail.com>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <569DE6DF.3060508@xs4all.nl>
-Date: Tue, 19 Jan 2016 08:33:51 +0100
+	Fri, 29 Jan 2016 16:58:57 -0500
+Received: by mail-yk0-f181.google.com with SMTP id a85so85337684ykb.1
+        for <linux-media@vger.kernel.org>; Fri, 29 Jan 2016 13:58:57 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAJ2oMh+BXUnqehqGzaxqQK07+7HiEOpjRf4+GjqDNRbRNb5NKg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAOesGMg=7mzZ6wKgjB1Po3706FGYu+D06YWWBBTya6KOE7531g@mail.gmail.com>
+References: <1452533428-12762-1-git-send-email-dianders@chromium.org>
+	<20160126155937.6a4e4165d1cf4e513d62e942@linux-foundation.org>
+	<CAD=FV=V9ZJrmD=F8363mhg8+JQiTRg=g6DuZR2KJRbfU=K455w@mail.gmail.com>
+	<CAOesGMg=7mzZ6wKgjB1Po3706FGYu+D06YWWBBTya6KOE7531g@mail.gmail.com>
+Date: Fri, 29 Jan 2016 13:58:56 -0800
+Message-ID: <CAD=FV=XEML4UqV-oVR4doZNSq6bNxDvpc-4745JTBZgf4d9UYA@mail.gmail.com>
+Subject: Re: [PATCH v6 0/5] dma-mapping: Patches for speeding up allocation
+From: Doug Anderson <dianders@chromium.org>
+To: Olof Johansson <olof@lixom.net>
+Cc: Russell King <linux@arm.linux.org.uk>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Tomasz Figa <tfiga@chromium.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Jonathan Corbet <corbet@lwn.net>, mike.looijmans@topic.nl,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	Will Deacon <will.deacon@arm.com>, jtp.park@samsung.com,
+	penguin-kernel@i-love.sakura.ne.jp,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Carlo Caione <carlo@caione.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/19/2016 05:45 AM, Ran Shalit wrote:
-> On Mon, Jan 18, 2016 at 7:45 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 01/18/2016 05:26 PM, Ran Shalit wrote:
->>> Hello,
->>>
->>> I am trying to understand how to implement dma transfer correctly
->>> using videobuf2 APIs.
->>>
->>> Normally, application will do semthing like this (video test API):
->>>
->>>                 xioctl(fd, VIDIOC_DQBUF, &buf)
->>>                 process_image(buffers[buf.index].start, buf.bytesused);
->>>                 xioctl(fd, VIDIOC_QBUF, &buf)
->>>
->>> Therefore, in the driver below I will assume that:
->>> 1. VIDIOC_DQBUF -  trigger dma to start
+Hi,
+
+On Fri, Jan 29, 2016 at 1:52 PM, Olof Johansson <olof@lixom.net> wrote:
+> On Tue, Jan 26, 2016 at 4:39 PM, Doug Anderson <dianders@chromium.org> wrote:
+>> Hi,
 >>
->> No. DMA typically starts when VIDIOC_STREAMON is called, although depending
->> on the hardware the start of the DMA may be delayed if insufficient buffers
->> have been queued. When the start_streaming op is called you know that STREAMON
->> has been called and that at least min_buffers_needed buffers have been queued.
+>> On Tue, Jan 26, 2016 at 3:59 PM, Andrew Morton
+>> <akpm@linux-foundation.org> wrote:
+>>> On Mon, 11 Jan 2016 09:30:22 -0800 Douglas Anderson <dianders@chromium.org> wrote:
+>>>
+>>>> This series of patches will speed up memory allocation in dma-mapping
+>>>> quite a bit.
+>>>
+>>> This is pretty much all ARM and driver stuff so I think I'll duck it.
+>>> But I can merge it if nobody else feels a need to.
 >>
->>> 2. interrupt handler in driver - stop dma
+>> I was going to ask what the next steps were for this series.
+>> Presumably I could post the patch to Russell's patch tracker if folks
+>> want me to do that.  Alternatively it could go through the ARM-SOC
+>> tree?
 >>
->> ??? No, this just passes the buffer that has been filled by the DMA engine
->> to vb2 via vb2_buffer_done. The DMA will continue filling the next queued buffer.
 >>
-> 
-> Hi,
-> Just to be sure I got it all right:
-> "The DMA will continue filling the next queued buffer" is usually the
-> responsibility of the interrupt handler .
-> Interrrupt will get the new buffer from list and trigger next dma
-> transaction with that buffer.
->  Is that Right ?
+>>> I saw a few acked-by/tested-by/etc from the v5 posting which weren't
+>>> carried over into v6 (might have been a timing race), so please fix
+>>> that up if there's an opportunity.
+>>
+>> Right.  Both Robin and Tomasz gave their Reviewed-by to Patch #1 in v5
+>> even after v6 was posted.
+>>
+>>
+>>> Regarding the new DMA_ATTR_ALLOC_SINGLE_PAGES hint: I suggest adding
+>>> "DMA_ATTR_ALLOC_SINGLE_PAGES is presently implemented only on ARM" to
+>>> the docs.  Or perhaps have a shot at implementing it elsewhere.
+>>
+>> Warning sounds good.
+>>
+>>
+>>> Typo in 4/5 changelog: "reqiurements"
+>>
+>> Thanks for catching!
+>>
+>>
+>> I'm happy to post up a v6 with these things fixed or I'm happy for
+>> whoever is applying it to make these small fixes themselves.  Any
+>> volunteers?  Olof, Arnd, or Russell: any of you want these patches?
+>
+> I think it makes sense to send these through Russell's tracker for him
+> to merge, especially since I don't think there are any dependencies on
+> them for SoC-specific patches coming up.
 
-Usually that's true. Again, I can't give absolutes because it depends on
-the DMA hardware details. There tend to be two main types of DMA:
+Sounds good.  I'll make the nitfixes and I'll post a v7 directly to
+Russell's tracker.  I'll follow up here with a link to those patches.
 
-1) the DMA engine has pointers to the current and next frame: in that case
-the irq handler has to update the pointers once the current frame finishes
-the DMA.
-
-2) the DMA engine has a list of descriptors describing each frame and that
-links each frame to the next one. In that case the list of descriptors is
-updated whenever a new buffer is queued. For engines like this the interrupt
-function just returns the DMAed buffer and doesn't have to do anything else.
-
-Regards,
-
-	Hans
+-Doug
