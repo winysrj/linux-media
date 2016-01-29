@@ -1,91 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:60022 "EHLO mout.gmx.net"
+Received: from lists.s-osg.org ([54.187.51.154]:34420 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752780AbcAILaX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jan 2016 06:30:23 -0500
-Date: Sat, 9 Jan 2016 12:29:53 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Wolfram Sang <wsa@the-dreams.de>
-cc: linux-sh@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] soc_camera: cleanup control device on async_unbind
-In-Reply-To: <1451911723-10868-1-git-send-email-wsa@the-dreams.de>
-Message-ID: <Pine.LNX.4.64.1601091226440.15612@axis700.grange>
-References: <1451911723-10868-1-git-send-email-wsa@the-dreams.de>
+	id S1753151AbcA2Mhu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jan 2016 07:37:50 -0500
+Date: Fri, 29 Jan 2016 10:37:40 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 00/13] Add media controller support to em28xx driver
+Message-ID: <20160129103740.560ba259@recife.lan>
+In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
+References: <cover.1454067262.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wolfram,
+Em Fri, 29 Jan 2016 10:10:50 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Thanks for the patch! From looking at it, I agree, that this looks like a 
-fix, and I even would recommend it for stable, but - at least for that I'd 
-like this patch to actually be tested! At least if someone could try to 
-use the camera after such a unbind / bind cycle. Would you be able to test 
-this? Until then I'll just push this for the forthcoming 4.5.
+> This series add MC support to the em28xx driver. Among the hybrid TV USB
+> drivers, this is the most complex one, as there are lots of different hardware
+> options that are compatible with this driver.
+> 
+> Yet, it is used with only two analog TV demod drivers (tvp5150 and saa7115)
+> and, optionally, one IF-PLL audio decoder (msp3400). It means that there aren't
+> many I2C drivers that need to be touched.
+> 
+> The PCI drivers are a way more complex, as they may have audio processors and 
+> may use a wide range of other I2C drivers. So, it is wise to implement MC support
+> at em28xx before those, as it helps to address some issues before extending
+> MC to the wild.
+> 
+> The two patches in this series are actually unrelated to MC. The first one is a cleanup
+> at em28xx, and the second patch fixes one KASAN error.
+> 
+> The next patches make the Media Controller aware of the existence of IF-PLL
+> drivers, commonly found on older designs. They also standardize the pad index
+> for tuners, IF-PLLs and demods.
+> 
+> Finally, MC support for tda9887, tvp5150, saa7115 and msp3400 is added, making
+> those drivers to properly report the MC function supported by the driver and
+> creating the source/sink pads for them.
+> 
+> The last patch finally add em28xx MC support.
+> 
+> I opted to not add any helper function for now at v4l2-mc.c, putting all needed code
+> at em28xx, because I didn't want to cause hard to find conflicts with Shuah's patches,
+> that are touching the routines at au0828. After having Shuah patches merged, I'll
+> work to move the generic code to v4l2-mc.c (yet to be created).
+> 
+> This series was tested on the following devices:
+> 
+> Hauppauge HVR-950 (2040:6513):
+> 	https://mchehab.fedorapeople.org/mc-next-gen/hvr_950.png
+> 
+> Haupauge WinTV USB2 (2040:4200):
+> 	https://mchehab.fedorapeople.org/mc-next-gen/wintv_usb2.png
+> 
+> KWorld USB ATSC TV Stick UB435-Q V3 (1b80:e34c):
+> 	https://mchehab.fedorapeople.org/mc-next-gen/kworld_435q.png
+> 
+> PCTV 261e (2013:0258):
+> 	https://mchehab.fedorapeople.org/mc-next-gen/pctv_261e.png
+> 
+> PCTV 290e (2013:024f):
+> 	https://mchehab.fedorapeople.org/mc-next-gen/pctv_290e.png
+> 
+> Pixelview PlayTV USB2 (eb1a:2821):
+> 	https://mchehab.fedorapeople.org/mc-next-gen/playtv_usb.png
+> 
+> 	(an extra patch was needed for it to detect the tuner - I'll send it in separate)
 
-Thanks
-Guennadi
+Tested also on a pure S-Video/Composite capture card:
 
-On Mon, 4 Jan 2016, Wolfram Sang wrote:
+Terratec Grabster AV350 (0ccd:0084):
+	https://mchehab.fedorapeople.org/mc-next-gen/terratec_av350.png
 
-> From: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> 
-> I got the following WARN on a simple unbind/bind cycle:
-> 
-> root@Lager:/sys/bus/i2c/drivers/adv7180# echo 6-0020 > unbind
-> root@Lager:/sys/bus/i2c/drivers/adv7180# echo 6-0020 > bind
-> [   31.097652] adv7180 6-0020: chip found @ 0x20 (e6520000.i2c)
-> [   31.123744] ------------[ cut here ]------------
-> [   31.128413] WARNING: CPU: 3 PID: 873 at drivers/media/platform/soc_camera/soc_camera.c:1463 soc_camera_async_bound+0x40/0xa0()
-> [   31.139896] CPU: 3 PID: 873 Comm: sh Not tainted 4.4.0-rc3-00062-ge8ae2c0b6bca2a #172
-> [   31.147815] Hardware name: Generic R8A7790 (Flattened Device Tree)
-> [   31.154056] Backtrace:
-> [   31.156575] [<c0014bc0>] (dump_backtrace) from [<c0014d80>] (show_stack+0x20/0x24)
-> [   31.164233]  r6:c05c5b33 r5:00000009 r4:00000000 r3:00404100
-> [   31.170017] [<c0014d60>] (show_stack) from [<c01e2344>] (dump_stack+0x78/0x94)
-> [   31.177344] [<c01e22cc>] (dump_stack) from [<c0029e7c>] (warn_slowpath_common+0x98/0xc4)
-> [   31.185518]  r4:00000000 r3:00000000
-> [   31.189172] [<c0029de4>] (warn_slowpath_common) from [<c0029fa0>] (warn_slowpath_null+0x2c/0x34)
-> [   31.198043]  r8:eb38df28 r7:eb38c5d0 r6:eb38de80 r5:e6962810 r4:eb38de80
-> [   31.204898] [<c0029f74>] (warn_slowpath_null) from [<c0356348>] (soc_camera_async_bound+0x40/0xa0)
-> [   31.213955] [<c0356308>] (soc_camera_async_bound) from [<c03499a0>] (v4l2_async_test_notify+0x9c/0x108)
-> [   31.223430]  r5:eb38c5ec r4:eb38de80
-> [   31.227084] [<c0349904>] (v4l2_async_test_notify) from [<c0349dd8>] (v4l2_async_register_subdev+0x88/0xd0)
-> [   31.236822]  r7:c07115c8 r6:c071160c r5:eb38c5ec r4:eb38de80
-> [   31.242622] [<c0349d50>] (v4l2_async_register_subdev) from [<c0337040>] (adv7180_probe+0x2c8/0x3a4)
-> [   31.251753]  r8:00000000 r7:00000001 r6:eb38de80 r5:ea973400 r4:eb38de10 r3:00000000
-> [   31.259660] [<c0336d78>] (adv7180_probe) from [<c032dd80>] (i2c_device_probe+0x1a0/0x1e4)
-> 
-> This gets fixed by clearing the control device pointer on async_unbind.
-> 
-> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-> ---
-> 
-> I stumbled over this while playing with OF_DYNAMIC and rebinding various
-> devices through that. I have to admit I am not actually using the camera
-> interface besides binding to it. This shouldn't make a difference, though :)
-> 
-> Stable material, I'd think.
-> 
->  drivers/media/platform/soc_camera/soc_camera.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> index dc98122e78dc50..361275c9f770d7 100644
-> --- a/drivers/media/platform/soc_camera/soc_camera.c
-> +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> @@ -1493,6 +1493,8 @@ static void soc_camera_async_unbind(struct v4l2_async_notifier *notifier,
->  					struct soc_camera_async_client, notifier);
->  	struct soc_camera_device *icd = platform_get_drvdata(sasc->pdev);
->  
-> +	icd->control = NULL;
-> +
->  	if (icd->clk) {
->  		v4l2_clk_unregister(icd->clk);
->  		icd->clk = NULL;
-> -- 
-> 2.1.4
-> 
+This board actually have also a Scart interface, but switching
+between Scart and Video is done via a manual switch. So, the
+driver is actually unable to detect if the input is coming from
+Composite/S-Video or from scart.
+
+Regards,
+Mauro
