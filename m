@@ -1,68 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f195.google.com ([209.85.160.195]:35988 "EHLO
-	mail-yk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168AbcAZXb3 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:42398 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755903AbcA2MML (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 18:31:29 -0500
-Received: by mail-yk0-f195.google.com with SMTP id k129so15925403yke.3
-        for <linux-media@vger.kernel.org>; Tue, 26 Jan 2016 15:31:28 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1452533428-12762-1-git-send-email-dianders@chromium.org>
-References: <1452533428-12762-1-git-send-email-dianders@chromium.org>
-Date: Tue, 26 Jan 2016 20:31:28 -0300
-Message-ID: <CABxcv==WXG4zq8mr+KE4zKNkgG9y8etUQM7ZQiB2rPeKz1ySLQ@mail.gmail.com>
-Subject: Re: [PATCH v6 0/5] dma-mapping: Patches for speeding up allocation
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Douglas Anderson <dianders@chromium.org>
-Cc: Russell King <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	robin.murphy@arm.com, tfiga@chromium.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	laurent.pinchart+renesas@ideasonboard.com, pawel@osciak.com,
-	Jonathan Corbet <corbet@lwn.net>, mike.looijmans@topic.nl,
-	Will Deacon <will.deacon@arm.com>,
-	penguin-kernel@i-love.sakura.ne.jp,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	Linux Kernel <linux-kernel@vger.kernel.org>, hch@infradead.org,
-	jtp.park@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>,
-	carlo@caione.org, akpm <akpm@linux-foundation.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 29 Jan 2016 07:12:11 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 12/13] [media] saa7115: initialize demod type and add the needed pads
+Date: Fri, 29 Jan 2016 10:11:02 -0200
+Message-Id: <9d43a652d74861f335fb904b1aba1e095efc4885.1454067262.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
+References: <cover.1454067262.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
+References: <cover.1454067262.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Doug,
+The saa7115 driver is used on several em28xx-based devices.
+Now that we're about to add MC support to em28xx, we need to
+be sure that the saa711x demod will be properly mapped at MC.
 
-On Mon, Jan 11, 2016 at 2:30 PM, Douglas Anderson <dianders@chromium.org> wrote:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/i2c/saa7115.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-[snip]
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 24d2b76dbe97..d2a1ce2bc7f5 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -46,6 +46,7 @@
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-mc.h>
+ #include <media/i2c/saa7115.h>
+ #include <asm/div64.h>
+ 
+@@ -74,6 +75,9 @@ enum saa711x_model {
+ 
+ struct saa711x_state {
+ 	struct v4l2_subdev sd;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_pad pads[DEMOD_NUM_PADS];
++#endif
+ 	struct v4l2_ctrl_handler hdl;
+ 
+ 	struct {
+@@ -1809,6 +1813,9 @@ static int saa711x_probe(struct i2c_client *client,
+ 	struct saa7115_platform_data *pdata;
+ 	int ident;
+ 	char name[CHIP_VER_SIZE + 1];
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	int ret;
++#endif
+ 
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+@@ -1832,6 +1839,18 @@ static int saa711x_probe(struct i2c_client *client,
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &saa711x_ops);
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
++	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	state->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
++
++	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
++
++	ret = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, state->pads);
++	if (ret < 0)
++		return ret;
++#endif
++
+ 	v4l_info(client, "%s found @ 0x%x (%s)\n", name,
+ 		 client->addr << 1, client->adapter->name);
+ 	hdl = &state->hdl;
+-- 
+2.5.0
 
->
-> All testing was done on the chromeos kernel-3.8 and kernel-3.14.
-> Sanity (compile / boot) testing was done on a v4.4-rc6-based kernel on
-> rk3288, though the video codec isn't there.  I don't have graphics / MFC
-> working well on exynos, so the MFC change was only compile-tested
-> upstream.  Hopefully someone upstream whose setup for MFC can give a
-> Tested-by for these?
->
 
-I tested these patches on a Exynos5800 Peach Pi Chromebook. The
-s5p-mfc driver probes correctly and the allocation succeeds.
-
-I also tried to test actual video decoding using Gstreamer but ran
-into issues (not related to this series) so testing that won't be
-trivial for me.
-
-It shouldn't block Doug's series though IMHO since he tested on his
-platform and the patches speeds up allocation there, so is an
-improvement.
-
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-Best regards,
-Javier
