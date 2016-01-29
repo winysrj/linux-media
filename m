@@ -1,59 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:47210 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752924AbcAZLQd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 06:16:33 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: Support Intersil/Techwell TW686x-based video capture cards
-References: <1451183213-2733-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-	<569CE27F.6090702@xs4all.nl>
-	<CAAEAJfCs1fipSadLj8WyxiJd9g7MCJj1KX5UdAPx1hPt16t0VA@mail.gmail.com>
-	<m31t96j8u4.fsf@t19.piap.pl>
-	<CAAEAJfBM_vVBVRd3P0kJ1QLzk-M==L=x6CS0ggXgRX=7K_aK_A@mail.gmail.com>
-Date: Tue, 26 Jan 2016 12:16:30 +0100
-In-Reply-To: <CAAEAJfBM_vVBVRd3P0kJ1QLzk-M==L=x6CS0ggXgRX=7K_aK_A@mail.gmail.com>
-	(Ezequiel Garcia's message of "Mon, 25 Jan 2016 09:03:12 -0300")
-Message-ID: <m3si1kioa9.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:42391 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755893AbcA2MML (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jan 2016 07:12:11 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [PATCH 05/13] [media] v4l2-mc.h: Split audio from baseband output
+Date: Fri, 29 Jan 2016 10:10:55 -0200
+Message-Id: <d668af863faeb8d6a4a95358d6b2a673110a00e7.1454067262.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
+References: <cover.1454067262.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
+References: <cover.1454067262.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> writes:
+Analog TV tuners have a separate output pad for the audio
+IF or audio sampled data. This pad is connected to a different
+chipset.
 
-> Well, I plan to add SG mode as soon as this driver is merged, so hopefully you
-> won't have to use an out of tree driver anymore.
+Add an extra pad for it and improve the documentation.
 
-So why don't you want to do it the normal way, i.e., add your specific
-changes on top of my driver?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/v4l2-core/tuner-core.c |  1 +
+ include/media/v4l2-mc.h              | 28 +++++++++++++++++-----------
+ 2 files changed, 18 insertions(+), 11 deletions(-)
 
-This way you don't have to add SG mode. It's already there. Also, this
-means I (and others) don't have to hope. And, your changes can be much
-better examined, bisected etc.
-
-For now, there is no in-tree driver, all versions are out of tree.
-
-At the moment, from my POV it all looks this way:
-- I have written a driver and posted it for inclusion
-- it works on my systems, complies with the LK, V4L standards etc.,
-  though it probably still needs some small changes
-- you took it, (I guess) added the needed changes (and others), removed
-  the critical functionality, and want it merged instead of the
-  original, working version.
-
-I can only see two ways out (which make sense) from this. The first is:
-we add my driver first and then your specific changes on top of it.
-
-The other one: I add required changes (e.g. the one that sets default
-mode on start, or something alike, I don't remember exactly) and then we
-add the driver. Then I'll also add the non-SG CMA DMA frame and field
-mode (DMA to buffers), since it seems I will need it (and it was a bit
-overlooked).
+diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+index a1f858b34187..d6bd9ce1101d 100644
+--- a/drivers/media/v4l2-core/tuner-core.c
++++ b/drivers/media/v4l2-core/tuner-core.c
+@@ -698,6 +698,7 @@ register_client:
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	t->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	t->pad[TUNER_PAD_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
++	t->pad[TUNER_PAD_AUD_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	t->sd.entity.function = MEDIA_ENT_F_TUNER;
+ 	t->sd.entity.name = t->name;
+ 
+diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+index f6fcd70f3548..c174e5b4f188 100644
+--- a/include/media/v4l2-mc.h
++++ b/include/media/v4l2-mc.h
+@@ -19,20 +19,26 @@
+  *
+  * @TUNER_PAD_RF_INPUT:	Radiofrequency (RF) sink pad, usually linked to a
+  *			RF connector entity.
+- * @TUNER_PAD_OUTPUT:	Tuner output pad. This is actually more complex than
+- *			a single pad output, as, in addition to luminance and
+- *			chrominance IF a tuner may have internally an
+- *			audio decoder (like xc3028) or it may produce an audio
+- *			IF that will be used by an audio decoder like msp34xx.
+- *			It may also have an IF-PLL demodulator on it, like
+- *			tuners with tda9887. Yet, currently, we don't need to
+- *			represent all the dirty details, as this is transparent
+- *			for the V4L2 API usage. So, let's represent all kinds
+- *			of different outputs as a single source pad.
++ * @TUNER_PAD_OUTPUT:	Tuner video output source pad. Contains the video
++ *			chrominance and luminance or the hole bandwidth
++ *			of the signal converted to an Intermediate Frequency
++ *			(IF) or to baseband (on zero-IF tuners).
++ * @TUNER_PAD_AUD_OUT:	Tuner audio output source pad. Tuners used to decode
++ *			analog TV signals have an extra pad for audio output.
++ *			Old tuners use an analog stage with a saw filter for
++ *			the audio IF frequency. The output of the pad is, in
++ *			this case, the audio IF, with should be decoded either
++ *			by the bridge chipset (that's the case of cx2388x
++ *			chipsets) or may require an external IF sound
++ *			processor, like msp34xx. On modern silicon tuners,
++ *			the audio IF decoder is usually incorporated at the
++ *			tuner. On such case, the output of this pad is an
++ *			audio sampled data.
+  * @TUNER_NUM_PADS:	Number of pads of the tuner.
+  */
+ enum tuner_pad_index {
+ 	TUNER_PAD_RF_INPUT,
+ 	TUNER_PAD_OUTPUT,
++	TUNER_PAD_AUD_OUT,
+ 	TUNER_NUM_PADS
+-};
+\ No newline at end of file
++};
 -- 
-Krzysztof Halasa
+2.5.0
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+
