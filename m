@@ -1,107 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33472 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755134AbcARMxu (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:42416 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755913AbcA2MML (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2016 07:53:50 -0500
-Received: by mail-pf0-f195.google.com with SMTP id e65so11768522pfe.0
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2016 04:53:50 -0800 (PST)
-From: Josh Wu <rainyfeeling@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
-	linux-arm-kernel@lists.infradead.org,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Songjun Wu <songjun.wu@atmel.com>,
-	Josh Wu <rainyfeeling@gmail.com>
-Subject: [PATCH 11/13] atmel-isi: add hw_uninitialize()
-Date: Mon, 18 Jan 2016 20:52:23 +0800
-Message-Id: <1453121545-27528-7-git-send-email-rainyfeeling@gmail.com>
-In-Reply-To: <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
-References: <1453119709-20940-1-git-send-email-rainyfeeling@gmail.com>
- <1453121545-27528-1-git-send-email-rainyfeeling@gmail.com>
+	Fri, 29 Jan 2016 07:12:11 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Eduard Gavin <egavinc@gmail.com>
+Subject: [PATCH 11/13] [media] tvp5150: identify it as a MEDIA_ENT_F_ATV_DECODER
+Date: Fri, 29 Jan 2016 10:11:01 -0200
+Message-Id: <c1252a1287c86a763b72458e3d8619c23b5d0eaf.1454067262.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
+References: <cover.1454067262.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1454067262.git.mchehab@osg.samsung.com>
+References: <cover.1454067262.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-add new function: hw_uninitialize() and call it when stop_streaming().
+The tvp5150 is an analog TV decoder. Identify as such at
+the media graph, or otherwise devices using it would fail.
 
-Signed-off-by: Josh Wu <rainyfeeling@gmail.com>
+That avoids the following warning:
+	[ 1546.669139] usb 2-3.3: Entity type for entity tvp5150 5-005c was not initialized!
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
+ drivers/media/i2c/tvp5150.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
- drivers/media/platform/soc_camera/atmel-isi.c | 46 +++++++++++++++------------
- 1 file changed, 26 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index b789523..843102f 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -245,6 +245,31 @@ static int isi_hw_initialize(struct atmel_isi *isi)
- 	return 0;
- }
- 
-+static void isi_hw_uninitialize(struct atmel_isi *isi)
-+{
-+	int ret;
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 20428f052506..19b52736b24e 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1319,6 +1319,9 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
 +
-+	if (!isi->enable_preview_path) {
-+		/* Wait until the end of the current frame. */
-+		ret = isi_hw_wait_status(isi, ISI_CTRL_CDC,
-+				         FRAME_INTERVAL_MILLI_SEC);
-+		if (ret)
-+			dev_err(isi->soc_host.icd->parent, "Timeout waiting for finishing codec request\n");
-+	}
++	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
 +
-+	/* Disable interrupts */
-+	isi_writel(isi, ISI_INTDIS,
-+			ISI_SR_CXFR_DONE | ISI_SR_PXFR_DONE);
-+
-+	/* Disable ISI and wait for it is done */
-+	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-+
-+	/* Check Reset status */
-+	ret  = isi_hw_wait_status(isi, ISI_CTRL_DIS, 500);
-+	if (ret)
-+		dev_err(isi->soc_host.icd->parent, "Disable ISI timed out\n");
-+}
-+
- static void start_isi(struct atmel_isi *isi)
- {
- 	u32 ctrl;
-@@ -484,7 +509,6 @@ static void stop_streaming(struct vb2_queue *vq)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
- 	struct frame_buffer *buf, *node;
--	int ret = 0;
- 
- 	spin_lock_irq(&isi->lock);
- 	isi->active = NULL;
-@@ -495,25 +519,7 @@ static void stop_streaming(struct vb2_queue *vq)
- 	}
- 	spin_unlock_irq(&isi->lock);
- 
--	if (!isi->enable_preview_path) {
--		/* Wait until the end of the current frame. */
--		ret = isi_hw_wait_status(isi, ISI_CTRL_CDC,
--				         FRAME_INTERVAL_MILLI_SEC);
--		if (ret)
--			dev_err(icd->parent, "Timeout waiting for finishing codec request\n");
--	}
--
--	/* Disable interrupts */
--	isi_writel(isi, ISI_INTDIS,
--			ISI_SR_CXFR_DONE | ISI_SR_PXFR_DONE);
--
--	/* Disable ISI and wait for it is done */
--	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
--
--	/* Check Reset status */
--	ret  = isi_hw_wait_status(isi, ISI_CTRL_DIS, 500);
--	if (ret)
--		dev_err(icd->parent, "Disable ISI timed out\n");
-+	isi_hw_uninitialize(isi);
- 
- 	pm_runtime_put(ici->v4l2_dev.dev);
- }
+ 	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
+ 	if (res < 0)
+ 		return res;
 -- 
-1.9.1
+2.5.0
+
 
