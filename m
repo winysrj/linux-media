@@ -1,73 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:46803 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752521AbcAYI6H (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:36924 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756557AbcA2RNJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2016 03:58:07 -0500
-Subject: Re: [PATCH v4 0/2] new control V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME
-To: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?=
-	<wuchengli@chromium.org>
-References: <1453187230-97231-1-git-send-email-wuchengli@chromium.org>
- <CAOMLVLh7EnMgVfzV7JQy6DSKSaanqHn5kNkTLVrbTCihjphzYA@mail.gmail.com>
-Cc: pawel@osciak.com, mchehab@osg.samsung.com, k.debski@samsung.com,
-	Antti Palosaari <crope@iki.fi>,
-	Masanari Iida <standby24x7@gmail.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	ao2@ao2.it, bparrot@ti.com,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	jtp.park@samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Daniel Kurtz <djkurtz@chromium.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56A5E391.8050505@xs4all.nl>
-Date: Mon, 25 Jan 2016 09:57:53 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAOMLVLh7EnMgVfzV7JQy6DSKSaanqHn5kNkTLVrbTCihjphzYA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+	Fri, 29 Jan 2016 12:13:09 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 3/3] [media] mt9v011: add media controller support
+Date: Fri, 29 Jan 2016 15:12:00 -0200
+Message-Id: <7d2b22781e9fcb6134160f475b8fd253cc83376b.1454087508.git.mchehab@osg.samsung.com>
+In-Reply-To: <759f0a1be7c9e2937056189acdd7338e737d609f.1454087508.git.mchehab@osg.samsung.com>
+References: <759f0a1be7c9e2937056189acdd7338e737d609f.1454087508.git.mchehab@osg.samsung.com>
+In-Reply-To: <759f0a1be7c9e2937056189acdd7338e737d609f.1454087508.git.mchehab@osg.samsung.com>
+References: <759f0a1be7c9e2937056189acdd7338e737d609f.1454087508.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/25/2016 05:46 AM, Wu-Cheng Li (李務誠) wrote:
-> Hi Hans,
-> Can you look at the patch again? I've changed the name from
-> V4L2_CID_MPEG_VIDEO_FORCE_I_FRAME to
-> V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME. Thanks.
+Create a source pad and set the media controller type to the sensor.
 
-Looks good to me. I'm planning to make a pull request for this once v4.5-rc1 is
-merged into our media_tree repo.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/i2c/mt9v011.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-Regards,
-
-	Hans
-
-> 
-> Wu-Cheng
-> 
-> On Tue, Jan 19, 2016 at 3:07 PM, Wu-Cheng Li <wuchengli@chromium.org> wrote:
->> v4 changes:
->> - Change the name to V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
->> - Add commit message to s5p-mfc patch.
->>
->> Wu-Cheng Li (2):
->>   v4l: add V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
->>   s5p-mfc: add the support of V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
->>
->>  Documentation/DocBook/media/v4l/controls.xml |  8 ++++++++
->>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 12 ++++++++++++
->>  drivers/media/v4l2-core/v4l2-ctrls.c         |  2 ++
->>  include/uapi/linux/v4l2-controls.h           |  1 +
->>  4 files changed, 23 insertions(+)
->>
->> --
->> 2.6.0.rc2.230.g3dd15c0
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
+index b9fea11d6b0b..9ed1b26b6549 100644
+--- a/drivers/media/i2c/mt9v011.c
++++ b/drivers/media/i2c/mt9v011.c
+@@ -50,6 +50,9 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
+ 
+ struct mt9v011 {
+ 	struct v4l2_subdev sd;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_pad pad;
++#endif
+ 	struct v4l2_ctrl_handler ctrls;
+ 	unsigned width, height;
+ 	unsigned xtal;
+@@ -493,6 +496,9 @@ static int mt9v011_probe(struct i2c_client *c,
+ 	u16 version;
+ 	struct mt9v011 *core;
+ 	struct v4l2_subdev *sd;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	int ret;
++#endif
+ 
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(c->adapter,
+@@ -506,6 +512,15 @@ static int mt9v011_probe(struct i2c_client *c,
+ 	sd = &core->sd;
+ 	v4l2_i2c_subdev_init(sd, c, &mt9v011_ops);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	core->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
++
++	ret = media_entity_pads_init(&sd->entity, 1, &core->pad);
++	if (ret < 0)
++		return ret;
++#endif
++
+ 	/* Check if the sensor is really a MT9V011 */
+ 	version = mt9v011_read(sd, R00_MT9V011_CHIP_VERSION);
+ 	if ((version != MT9V011_VERSION) &&
+-- 
+2.5.0
 
