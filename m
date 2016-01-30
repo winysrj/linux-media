@@ -1,138 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vpndallas.adeneo-embedded.us ([162.254.209.190]:46200 "EHLO
-	mxadeneo.adeneo-embedded.us" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751256AbcA2TFt (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:48235 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754466AbcA3M1E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2016 14:05:49 -0500
-From: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
-To: <linux-media@vger.kernel.org>
-CC: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
-Subject: [PATCH v2] [media] cx231xx: fix close sequence for VBI + analog
-Date: Fri, 29 Jan 2016 11:05:04 -0800
-Message-ID: <1454094304-4520-1-git-send-email-jtheou@adeneo-embedded.us>
-In-Reply-To: <1454092619-27700-1-git-send-email-jtheou@adeneo-embedded.us>
-References: <1454092619-27700-1-git-send-email-jtheou@adeneo-embedded.us>
+	Sat, 30 Jan 2016 07:27:04 -0500
+Subject: Re: dma start/stop & vb2 APIs
+To: Ran Shalit <ranshalit@gmail.com>
+References: <CAJ2oMhL=aaN+O0F+_Bo8mjnSEOSCkN3vGk9WB1GeC+1t1tDw5w@mail.gmail.com>
+ <569D24D4.3040705@xs4all.nl>
+ <CAJ2oMh+BXUnqehqGzaxqQK07+7HiEOpjRf4+GjqDNRbRNb5NKg@mail.gmail.com>
+ <569DE6DF.3060508@xs4all.nl>
+ <CAJ2oMhLUp-9svAXUBQt27AfEqn2X3vzMyU6nV0ROa4YzM=GuBg@mail.gmail.com>
+Cc: linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56ACAC0D.3070500@xs4all.nl>
+Date: Sat, 30 Jan 2016 13:26:53 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAJ2oMhLUp-9svAXUBQt27AfEqn2X3vzMyU6nV0ROa4YzM=GuBg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For tuners with no_alt_vanc=0, and VBI and analog video device
-open.
-There is two ways to close the devices:
 
-*First way (start with user=2)
 
-VBI first (user=1): URBs for the VBI are killed properly
-with cx231xx_uninit_vbi_isoc
+On 01/30/2016 12:55 PM, Ran Shalit wrote:
+> On Tue, Jan 19, 2016 at 9:33 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 01/19/2016 05:45 AM, Ran Shalit wrote:
+>>> On Mon, Jan 18, 2016 at 7:45 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> On 01/18/2016 05:26 PM, Ran Shalit wrote:
+>>>>> Hello,
+>>>>>
+>>>>> I am trying to understand how to implement dma transfer correctly
+>>>>> using videobuf2 APIs.
+>>>>>
+>>>>> Normally, application will do semthing like this (video test API):
+>>>>>
+>>>>>                 xioctl(fd, VIDIOC_DQBUF, &buf)
+>>>>>                 process_image(buffers[buf.index].start, buf.bytesused);
+>>>>>                 xioctl(fd, VIDIOC_QBUF, &buf)
+>>>>>
+>>>>> Therefore, in the driver below I will assume that:
+>>>>> 1. VIDIOC_DQBUF -  trigger dma to start
+>>>>
+>>>> No. DMA typically starts when VIDIOC_STREAMON is called, although depending
+>>>> on the hardware the start of the DMA may be delayed if insufficient buffers
+>>>> have been queued. When the start_streaming op is called you know that STREAMON
+>>>> has been called and that at least min_buffers_needed buffers have been queued.
+>>>>
+>>>>> 2. interrupt handler in driver - stop dma
+>>>>
+>>>> ??? No, this just passes the buffer that has been filled by the DMA engine
+>>>> to vb2 via vb2_buffer_done. The DMA will continue filling the next queued buffer.
+>>>>
+>>>
+>>> Hi,
+>>> Just to be sure I got it all right:
+>>> "The DMA will continue filling the next queued buffer" is usually the
+>>> responsibility of the interrupt handler .
+>>> Interrrupt will get the new buffer from list and trigger next dma
+>>> transaction with that buffer.
+>>>  Is that Right ?
+>>
+>> Usually that's true. Again, I can't give absolutes because it depends on
+>> the DMA hardware details. There tend to be two main types of DMA:
+>>
+>> 1) the DMA engine has pointers to the current and next frame: in that case
+>> the irq handler has to update the pointers once the current frame finishes
+>> the DMA.
+>>
+>> 2) the DMA engine has a list of descriptors describing each frame and that
+>> links each frame to the next one. In that case the list of descriptors is
+>> updated whenever a new buffer is queued. For engines like this the interrupt
+>> function just returns the DMAed buffer and doesn't have to do anything else.
+>>
+> 
+> Hi,
+> 
+> Is the first dma engine type above is usually used with contigous dma
+> (videobuf2-dma-contig.h), while
+> the second type referese to sg (scatter-gather) mode (videobuf2-dma-sg.h ) ?
 
-Analog second (user=0): URBs for the Analog are killed
-properly with cx231xx_uninit_isoc
+Yes.
 
-*Second way (start with user=2)
-
-Analog first (user=1): URBs for the Analog are NOT killed
-properly with cx231xx_uninit_isoc, because the exit path
-is not called this time.
-
-VBI first (user=0): URBs for the VBI are killed properly with
-cx231xx_uninit_vbi_isoc, but we are exiting the function
-without killing the URBs for the Analog
-
-This situation lead to various kernel panics, since
-the URBs are still processed, without the device been
-open.
-
-The patch fix the issue by calling the exit path no matter
-what, when user=0, plus remove a duplicate trace.
-
-Signed-off-by: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
-
----
-
- - v2: Avoid duplicate code and ensure that the queue are freed
-       properly.
----
- drivers/media/usb/cx231xx/cx231xx-video.c | 44 +++++++++----------------------
- 1 file changed, 12 insertions(+), 32 deletions(-)
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 9b88cd8..a832c83 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1836,10 +1836,21 @@ static int cx231xx_close(struct file *filp)
- 
- 	cx231xx_videodbg("users=%d\n", dev->users);
- 
--	cx231xx_videodbg("users=%d\n", dev->users);
- 	if (res_check(fh))
- 		res_free(fh);
- 
-+	videobuf_stop(&fh->vb_vidq);
-+	videobuf_mmap_free(&fh->vb_vidq);
-+
-+	/* the device is already disconnect,
-+	 * free the remaining resources
-+	 */
-+	if (dev->state & DEV_DISCONNECTED) {
-+		cx231xx_release_resources(dev);
-+		fh->dev = NULL;
-+		return 0;
-+	}
-+
- 	/*
- 	 * To workaround error number=-71 on EP0 for VideoGrabber,
- 	 *	 need exclude following.
-@@ -1848,19 +1859,6 @@ static int cx231xx_close(struct file *filp)
- 	 */
- 	if (!dev->board.no_alt_vanc)
- 		if (fh->type == V4L2_BUF_TYPE_VBI_CAPTURE) {
--			videobuf_stop(&fh->vb_vidq);
--			videobuf_mmap_free(&fh->vb_vidq);
--
--			/* the device is already disconnect,
--			   free the remaining resources */
--			if (dev->state & DEV_DISCONNECTED) {
--				if (atomic_read(&dev->devlist_count) > 0) {
--					cx231xx_release_resources(dev);
--					fh->dev = NULL;
--					return 0;
--				}
--				return 0;
--			}
- 
- 			/* do this before setting alternate! */
- 			cx231xx_uninit_vbi_isoc(dev);
-@@ -1870,29 +1868,11 @@ static int cx231xx_close(struct file *filp)
- 				cx231xx_set_alt_setting(dev, INDEX_VANC, 0);
- 			else
- 				cx231xx_set_alt_setting(dev, INDEX_HANC, 0);
--
--			v4l2_fh_del(&fh->fh);
--			v4l2_fh_exit(&fh->fh);
--			kfree(fh);
--			dev->users--;
--			wake_up_interruptible(&dev->open);
--			return 0;
- 		}
- 
- 	v4l2_fh_del(&fh->fh);
- 	dev->users--;
- 	if (!dev->users) {
--		videobuf_stop(&fh->vb_vidq);
--		videobuf_mmap_free(&fh->vb_vidq);
--
--		/* the device is already disconnect,
--		   free the remaining resources */
--		if (dev->state & DEV_DISCONNECTED) {
--			cx231xx_release_resources(dev);
--			fh->dev = NULL;
--			return 0;
--		}
--
- 		/* Save some power by putting tuner to sleep */
- 		call_all(dev, core, s_power, 0);
- 
--- 
-2.7.0
-
+	Hans
