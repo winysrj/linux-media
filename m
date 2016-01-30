@@ -1,42 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gromit.nocabal.de ([78.46.53.8]:56372 "EHLO gromit.nocabal.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755582AbcAIUYz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jan 2016 15:24:55 -0500
-From: Ernst Martin Witte <emw-linux-kernel@nocabal.de>
+Received: from kozue.soulik.info ([108.61.200.231]:40699 "EHLO
+	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751171AbcA3TEO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Jan 2016 14:04:14 -0500
+From: ayaka <ayaka@soulik.info>
 To: linux-media@vger.kernel.org
-Cc: Ernst Martin Witte <emw-linux-kernel@nocabal.de>
-Subject: [PATCH 1/5] [media] si2157: cancel_delayed_work_sync before device removal / kfree
-Date: Sat,  9 Jan 2016 21:18:43 +0100
-Message-Id: <1452370727-23128-2-git-send-email-emw-linux-kernel@nocabal.de>
-In-Reply-To: <1452370727-23128-1-git-send-email-emw-linux-kernel@nocabal.de>
-References: <1452370727-23128-1-git-send-email-emw-linux-kernel@nocabal.de>
+Cc: kyungmin.park@samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, mchehab@osg.samsung.com,
+	linux-arm-kernel@lists.infradead.org, ayaka <ayaka@soulik.info>
+Subject: [PATCH 0/4] [media] s5p-mfc: remove a few little bugs in driver
+Date: Sun, 31 Jan 2016 02:53:33 +0800
+Message-Id: <1454180017-29071-1-git-send-email-ayaka@soulik.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-si2157_remove  was  calling  kfree(dev)  with  possibly  still  active
-schedule_delayed_work(dev->stat_work).  This  caused kernel  panics in
-call_timer_fn e.g. after rmmod cx23885.
+Thank for review the previous patches, but the current driver still
+need the patches below to make it work. I have used gstreamer
+to test those patches, it works fine at exynos4412 platform.
+As I don't have further platform, I am sure whether it will works
+on exynos7, but I think it would be.
 
-Signed-off-by: Ernst Martin Witte <emw-linux-kernel@nocabal.de>
----
- drivers/media/tuners/si2157.c | 3 +++
- 1 file changed, 3 insertions(+)
+The s5p-mfc: Add handling of buffer freeing reqbufs request
+comes from chromium project, a developer from that project told me
+that he will send this patch to upstream, but I found it not
+be merged into mainline, so I send it.
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index ce157ed..bfb1d59 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -457,6 +457,9 @@ static int si2157_remove(struct i2c_client *client)
- 
- 	dev_dbg(&client->dev, "\n");
- 
-+	/* stop statistics polling */
-+	cancel_delayed_work_sync(&dev->stat_work);
-+
- 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
- 	fe->tuner_priv = NULL;
- 	kfree(dev);
+ayaka (4):
+  [media] s5p-mfc: Add handling of buffer freeing reqbufs request
+  [media] s5p-mfc: remove unnecessary check in try_fmt
+  [media] s5p-mfc: don't close instance after free OUTPUT buffers
+  [media] s5p-mfc: fix a typo in s5p_mfc_dec
+
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |  3 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 12 +++---------
+ 2 files changed, 4 insertions(+), 11 deletions(-)
+
 -- 
 2.5.0
 
