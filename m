@@ -1,61 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35450 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934100AbcAZRGG (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:42560 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752920AbcA3UKz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2016 12:06:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Eduard Gavin <egavinc@gmail.com>
-Subject: Re: [PATCH] tvp5150: Fix breakage for serial usage
-Date: Tue, 26 Jan 2016 19:06:22 +0200
-Message-ID: <1906458.x8tqLB8j7k@avalon>
-In-Reply-To: <20160126070955.3dcef1d4@recife.lan>
-References: <54ffe2ae9209b607f54142809902764e2eaaf1d2.1453740290.git.mchehab@osg.samsung.com> <20160125180121.5bc5bf75@recife.lan> <20160126070955.3dcef1d4@recife.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 30 Jan 2016 15:10:55 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: Media Controller fix to not let stream_count go negative
+Date: Sat, 30 Jan 2016 13:10:52 -0700
+Message-Id: <1454184652-2427-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Change media_entity_pipeline_stop() to not decrement
+stream_count of an inactive media pipeline. Doing so,
+results in preventing starting the pipeline.
 
-On Tuesday 26 January 2016 07:09:55 Mauro Carvalho Chehab wrote:
-> Em Mon, 25 Jan 2016 18:01:21 -0200 Mauro Carvalho Chehab escreveu:
-> > Em Mon, 25 Jan 2016 21:32:21 +0200 Laurent Pinchart escreveu:
-> > > Hi Mauro,
-> > > 
-> > > Let's see, I can't test em28xx, could you try remove the CONF_SHARED_PIN
-> > > change and replacing the write in s_stream with a read-modify-write that
-> > > disables the output (bits 3, 2 and 0) ? If that works I'll test it with
-> > > the omap3 isp when I'll be back home.
-> > 
-> > Didn't work. I'll  do more tests later (or tomorrow).
-> 
-> The root cause weren't at tvp5150 side, but, instead, at em28xx that
-> were only calling s_stream() to disable the stream, but never enabling it.
-> 
-> I'm wander why it was doing such thing. Well, s_stream() came years
-> after the em28xx driver, so I suspect it was a hack to fix some issue
-> with a particular device. Let's hope that the change won't cause any
-> regressions on such hardware.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/media-entity.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-Let's blame history :-)
-
-> The good news is that em28xx doesn't need MISC_CTL to be filled with
-> 0x6f to stream. Just 0x09 is enough. So, the same initialization
-> needed by OMAP3 will work there.
-> 
-> I'm posting the patch in a few.
-
-Great, thanks.
-
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index e89d85a..f2e4360 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -452,9 +452,12 @@ error:
+ 	media_entity_graph_walk_start(graph, entity_err);
+ 
+ 	while ((entity_err = media_entity_graph_walk_next(graph))) {
+-		entity_err->stream_count--;
+-		if (entity_err->stream_count == 0)
+-			entity_err->pipe = NULL;
++		/* don't let the stream_count go negative */
++		if (entity->stream_count > 0) {
++			entity_err->stream_count--;
++			if (entity_err->stream_count == 0)
++				entity_err->pipe = NULL;
++		}
+ 
+ 		/*
+ 		 * We haven't increased stream_count further than this
+@@ -486,9 +489,12 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+ 	media_entity_graph_walk_start(graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(graph))) {
+-		entity->stream_count--;
+-		if (entity->stream_count == 0)
+-			entity->pipe = NULL;
++		/* don't let the stream_count go negative */
++		if (entity->stream_count > 0) {
++			entity->stream_count--;
++			if (entity->stream_count == 0)
++				entity->pipe = NULL;
++		}
+ 	}
+ 
+ 	if (!--pipe->streaming_count)
 -- 
-Regards,
-
-Laurent Pinchart
+2.5.0
 
