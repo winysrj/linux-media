@@ -1,100 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42120 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935487AbcA1Mgr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2016 07:36:47 -0500
-Message-ID: <1453984596.2521.293.camel@linux.intel.com>
-Subject: Re: [PATCH v1 1/1] tea575x: convert to library
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Date: Thu, 28 Jan 2016 14:36:36 +0200
-In-Reply-To: <1450470720-89768-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1450470720-89768-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52437 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757192AbcAaDoe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Jan 2016 22:44:34 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 04596180974
+	for <linux-media@vger.kernel.org>; Sun, 31 Jan 2016 04:44:29 +0100 (CET)
+Date: Sun, 31 Jan 2016 04:44:28 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160131034429.04596180974@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2015-12-18 at 22:32 +0200, Andy Shevchenko wrote:
-> The module is used only as a library for now. Remove module init and
-> exit
-> routines to show this.
-> 
-> While here, remove FSF snail address and attach EXPORT_SYMBOL()
-> macros to
-> corresponding functions.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Any comment on this?
+Results of the daily build of media_tree:
 
-The patch has been compiled and tested with SF64-PCR radio tuner (fm801
-based).
+date:		Sun Jan 31 04:00:17 CET 2016
+git branch:	test
+git hash:	e545ac872ff884801a48beb7e6e0fc7513555fd9
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.3.0-164
 
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/media/radio/tea575x.c | 21 ++-------------------
->  1 file changed, 2 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/radio/tea575x.c
-> b/drivers/media/radio/tea575x.c
-> index 43d1ea5..21cd5de 100644
-> --- a/drivers/media/radio/tea575x.c
-> +++ b/drivers/media/radio/tea575x.c
-> @@ -14,10 +14,6 @@
->   *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->   *   GNU General Public License for more details.
->   *
-> - *   You should have received a copy of the GNU General Public
-> License
-> - *   along with this program; if not, write to the Free Software
-> - *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-> MA  02111-1307 USA
-> - *
->   */
->  
->  #include <linux/delay.h>
-> @@ -226,6 +222,7 @@ void snd_tea575x_set_freq(struct snd_tea575x
-> *tea)
->  	snd_tea575x_write(tea, tea->val);
->  	tea->freq = snd_tea575x_val_to_freq(tea, tea->val);
->  }
-> +EXPORT_SYMBOL(snd_tea575x_set_freq);
->  
->  /*
->   * Linux Video interface
-> @@ -582,25 +579,11 @@ int snd_tea575x_init(struct snd_tea575x *tea,
-> struct module *owner)
->  
->  	return 0;
->  }
-> +EXPORT_SYMBOL(snd_tea575x_init);
->  
->  void snd_tea575x_exit(struct snd_tea575x *tea)
->  {
->  	video_unregister_device(&tea->vd);
->  	v4l2_ctrl_handler_free(tea->vd.ctrl_handler);
->  }
-> -
-> -static int __init alsa_tea575x_module_init(void)
-> -{
-> -	return 0;
-> -}
-> -
-> -static void __exit alsa_tea575x_module_exit(void)
-> -{
-> -}
-> -
-> -module_init(alsa_tea575x_module_init)
-> -module_exit(alsa_tea575x_module_exit)
-> -
-> -EXPORT_SYMBOL(snd_tea575x_init);
->  EXPORT_SYMBOL(snd_tea575x_exit);
-> -EXPORT_SYMBOL(snd_tea575x_set_freq);
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
