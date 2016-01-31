@@ -1,56 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:56956 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753975AbcAEDHi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2016 22:07:38 -0500
-Message-ID: <1451963247.4613.1.camel@mtksdaap41>
-Subject: Re: [PATCH v3 1/8] dt-bindings: Add a binding for Mediatek Video
- Processor
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Rob Herring <robh@kernel.org>
-CC: <daniel.thompson@linaro.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	<eddie.huang@mediatek.com>, <devicetree@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Date: Tue, 5 Jan 2016 11:07:27 +0800
-In-Reply-To: <20160104141506.GA22801@rob-hp-laptop>
-References: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1451902316-55931-2-git-send-email-tiffany.lin@mediatek.com>
-	 <20160104141506.GA22801@rob-hp-laptop>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-io0-f181.google.com ([209.85.223.181]:34747 "EHLO
+	mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933588AbcAaUfJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jan 2016 15:35:09 -0500
+Received: by mail-io0-f181.google.com with SMTP id 9so58208003iom.1
+        for <linux-media@vger.kernel.org>; Sun, 31 Jan 2016 12:35:08 -0800 (PST)
 MIME-Version: 1.0
+Date: Sun, 31 Jan 2016 22:35:08 +0200
+Message-ID: <CAJ2oMh+yZ4KEpq36HgrdHW4FkvQmZ4T_tD7XUGKs0a9K=otMnw@mail.gmail.com>
+Subject: OS freeze after queue_setup
+From: Ran Shalit <ranshalit@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Hello,
 
-Got it. Sorry about that. I will add acks next time.
+Maybe someone will have some idea about the following:
+I am using a pci card (not video card, just some dummy pci card), to
+check v4l2 template for PCIe card (I used solo6x10 as template for the
+driver and moved all hardware related to video into remarks).
+I don't use any register read/write to hardware (just dummy functions).
 
-best regards,
-Tiffany
+I get that load/unload of module is successful.
+But on trying to start reading video frames (using read method with
+v4l API userspace example), I get that the whole operating system is
+freezed, and I must reboot the machine.
+This is the queue_setup callback:
 
-On Mon, 2016-01-04 at 08:15 -0600, Rob Herring wrote:
-> On Mon, Jan 04, 2016 at 06:11:49PM +0800, Tiffany Lin wrote:
-> > From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-> > 
-> > Add a DT binding documentation of Video Processor Unit for the
-> > MT8173 SoC from Mediatek.
-> > 
-> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> 
-> Please add acks when sending new versions as I already acked the last 
-> version.
-> 
-> Acked-by: Rob Herring <robh@kernel.org>
+static int test_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+  unsigned int *num_buffers, unsigned int *num_planes,
+  unsigned int sizes[], void *alloc_ctxs[])
+{
+struct test_dev *solo_dev = vb2_get_drv_priv(q);
+dev_info(&test_dev->pdev->dev,"test_queue_setup\n");
+sizes[0] = test_image_size(test_dev);
+alloc_ctxs[0] = solo_dev->alloc_ctx;
+*num_planes = 1;
+
+if (*num_buffers < MIN_VID_BUFFERS)
+*num_buffers = MIN_VID_BUFFERS;
+
+return 0;
+}
+
+static const struct vb2_ops test_video_qops = {
+.queue_setup = test_queue_setup,
+.buf_queue = test_buf_queue,
+.start_streaming = test_start_streaming, <- does nothing
+.stop_streaming = test_stop_streaming, <- does nothing
+.wait_prepare = vb2_ops_wait_prepare,
+.wait_finish = vb2_ops_wait_finish,
+};
 
 
+I didn't find anything suspicious in the videobuf2 callback that can
+explain these freeze.( start_streaming,stop_streaming contains just
+printk with function name).
+I also can't know where it got stuck (The system is freezed without
+any logging on screen, all log is in dmesg).
+
+Thank for any idea,
+Ran
