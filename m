@@ -1,77 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:35992 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751580AbcBKXmP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 18:42:15 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v3 12/22] media: au0828 Use au8522_media_pads enum for pad defines
-Date: Thu, 11 Feb 2016 16:41:28 -0700
-Message-Id: <eafcfa67fc8a8bc3a21329d3a2c717cb37a0345c.1455233154.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+Received: from mail-yk0-f180.google.com ([209.85.160.180]:36623 "EHLO
+	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751134AbcBAP7b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 10:59:31 -0500
+From: Insu Yun <wuninsu@gmail.com>
+To: hverkuil@xs4all.nl, mchehab@osg.samsung.com, khoroshilov@ispras.ru,
+	arnd@arndb.de, vdronov@redhat.com, oneukum@suse.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: taesoo@gatech.edu, yeongjin.jang@gatech.edu, insu@gatech.edu,
+	changwoo@gatech.edu, Insu Yun <wuninsu@gmail.com>
+Subject: [PATCH] usbvision: fix locking error
+Date: Mon,  1 Feb 2016 10:59:30 -0500
+Message-Id: <1454342370-14609-1-git-send-email-wuninsu@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828-core to use au8522_media_pads enum defines
-instead of hard-coding the pad values.
+When remove_pending is non-zero, v4l2_lock is never unlocked.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Insu Yun <wuninsu@gmail.com>
 ---
- drivers/media/usb/au0828/au0828-core.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/media/usb/usbvision/usbvision-video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index df2bc3f..ce5afea 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -20,6 +20,7 @@
-  */
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index de9ff3b..75d06ea 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -1156,6 +1156,7 @@ static int usbvision_radio_close(struct file *file)
+ 	usbvision_audio_off(usbvision);
+ 	usbvision->radio = 0;
+ 	usbvision->user--;
++	mutex_unlock(&usbvision->v4l2_lock);
  
- #include "au0828.h"
-+#include "au8522.h"
- 
- #include <linux/module.h>
- #include <linux/slab.h>
-@@ -282,11 +283,13 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 		if (ret)
- 			return ret;
+ 	if (usbvision->remove_pending) {
+ 		printk(KERN_INFO "%s: Final disconnect\n", __func__);
+@@ -1164,7 +1165,6 @@ static int usbvision_radio_close(struct file *file)
+ 		return 0;
  	}
--	ret = media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
-+	ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
-+				    &dev->vdev.entity, 0,
- 				    MEDIA_LNK_FL_ENABLED);
- 	if (ret)
- 		return ret;
--	ret = media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
-+	ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
-+				    &dev->vbi_dev.entity, 0,
- 				    MEDIA_LNK_FL_ENABLED);
- 	if (ret)
- 		return ret;
+ 
+-	mutex_unlock(&usbvision->v4l2_lock);
+ 	PDEBUG(DBG_IO, "success");
+ 	return v4l2_fh_release(file);
+ }
 -- 
-2.5.0
+1.9.1
 
