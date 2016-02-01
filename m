@@ -1,88 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36547 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751083AbcBMSry (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2016 13:47:54 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (Postfix) with ESMTPS id 29CF5C0C2344
-	for <linux-media@vger.kernel.org>; Sat, 13 Feb 2016 18:47:54 +0000 (UTC)
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH tvtime 06/17] mute: Delay unmute on signal lock to give msp3400 time to sync
-Date: Sat, 13 Feb 2016 19:47:27 +0100
-Message-Id: <1455389258-13470-6-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
-References: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33095 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932159AbcBAUvF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 15:51:05 -0500
+Received: by mail-wm0-f67.google.com with SMTP id r129so10835557wmr.0
+        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2016 12:51:05 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 1/3] media: rc: nuvoton: fix locking issue with nvt_enable_cir
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <56AFC4DC.9080004@gmail.com>
+Date: Mon, 1 Feb 2016 21:49:32 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Delay unmute on signal lock, this fixes a loud plop sound on changing
-channels on cards with a msp3400 stereo sound decoder.
+nvt_enable_cir calls nvt_enable_logical_dev (that may sleep)
+while holding a spinlock.
+This patch fixes this and moves the content of nvt_enable_cir
+to nvt_open as this is the only caller.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- src/videoinput.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/media/rc/nuvoton-cir.c | 33 +++++++++++++++------------------
+ 1 file changed, 15 insertions(+), 18 deletions(-)
 
-diff --git a/src/videoinput.c b/src/videoinput.c
-index 0af6ab7..f66a35e 100644
---- a/src/videoinput.c
-+++ b/src/videoinput.c
-@@ -123,6 +123,12 @@ int videoinput_get_time_per_field( int norm )
-     }
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index b6acc84..971858a 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -942,23 +942,6 @@ static irqreturn_t nvt_cir_wake_isr(int irq, void *data)
+ 	return IRQ_HANDLED;
  }
  
-+static int videoinput_get_unmute_delay( int norm )
-+{
-+    /* The msp3400 needs some time before it provides stable audio */
-+    return 400000 / videoinput_get_time_per_field( norm );
-+}
-+
- typedef struct capture_buffer_s
+-static void nvt_enable_cir(struct nvt_dev *nvt)
+-{
+-	/* set function enable flags */
+-	nvt_cir_reg_write(nvt, CIR_IRCON_TXEN | CIR_IRCON_RXEN |
+-			  CIR_IRCON_RXINV | CIR_IRCON_SAMPLE_PERIOD_SEL,
+-			  CIR_IRCON);
+-
+-	/* enable the CIR logical device */
+-	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR);
+-
+-	/* clear all pending interrupts */
+-	nvt_cir_reg_write(nvt, 0xff, CIR_IRSTS);
+-
+-	/* enable interrupts */
+-	nvt_set_cir_iren(nvt);
+-}
+-
+ static void nvt_disable_cir(struct nvt_dev *nvt)
  {
-     struct v4l2_buffer vidbuf;
-@@ -158,6 +164,7 @@ struct videoinput_s
-     int hasaudio;
-     int audiomode;
-     int change_muted;
-+    int change_muted_delay;
-     int user_muted;
-     int hw_muted;
+ 	/* disable CIR interrupts */
+@@ -984,9 +967,23 @@ static int nvt_open(struct rc_dev *dev)
+ 	unsigned long flags;
  
-@@ -360,6 +367,7 @@ videoinput_t *videoinput_new( config_t *cfg, int norm, int verbose,
-     vidin->signal_recover_wait = 0;
-     vidin->signal_acquire_wait = 0;
-     vidin->change_muted = 1;
-+    vidin->change_muted_delay = videoinput_get_unmute_delay( norm );
-     vidin->user_muted = user_muted;
-     vidin->hw_muted = 1;
-     vidin->hasaudio = 1;
-@@ -752,6 +760,7 @@ void videoinput_set_tuner_freq( videoinput_t *vidin, int freqKHz )
-         }
+ 	spin_lock_irqsave(&nvt->nvt_lock, flags);
+-	nvt_enable_cir(nvt);
++
++	/* set function enable flags */
++	nvt_cir_reg_write(nvt, CIR_IRCON_TXEN | CIR_IRCON_RXEN |
++			  CIR_IRCON_RXINV | CIR_IRCON_SAMPLE_PERIOD_SEL,
++			  CIR_IRCON);
++
++	/* clear all pending interrupts */
++	nvt_cir_reg_write(nvt, 0xff, CIR_IRSTS);
++
++	/* enable interrupts */
++	nvt_set_cir_iren(nvt);
++
+ 	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
  
-         vidin->change_muted = 1;
-+        vidin->change_muted_delay = videoinput_get_unmute_delay( vidin->norm );
-         videoinput_do_mute( vidin );
-         vidin->cur_tuner_state = TUNER_STATE_SIGNAL_DETECTED;
-         vidin->signal_acquire_wait = SIGNAL_ACQUIRE_DELAY;
-@@ -921,7 +930,7 @@ int videoinput_check_for_signal( videoinput_t *vidin, int check_freq_present )
-                 vidin->cur_tuner_state = TUNER_STATE_HAS_SIGNAL;
-             }
-         default:
--            if( vidin->change_muted ) {
-+            if( vidin->change_muted && --vidin->change_muted_delay == 0 ) {
-                 vidin->change_muted = 0;
-                 videoinput_do_mute( vidin );
-             }
-@@ -934,6 +943,7 @@ int videoinput_check_for_signal( videoinput_t *vidin, int check_freq_present )
-             vidin->cur_tuner_state = TUNER_STATE_SIGNAL_LOST;
-             vidin->signal_recover_wait = SIGNAL_RECOVER_DELAY;
-             vidin->change_muted = 1;
-+            vidin->change_muted_delay = videoinput_get_unmute_delay( vidin->norm );
-             videoinput_do_mute( vidin );
-         case TUNER_STATE_SIGNAL_LOST:
-             if( vidin->signal_recover_wait ) {
++	/* enable the CIR logical device */
++	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR);
++
+ 	return 0;
+ }
+ 
 -- 
-2.5.0
+2.7.0
+
 
