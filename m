@@ -1,245 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from home.keithp.com ([63.227.221.253]:40304 "EHLO elaine.keithp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757997AbcBTHBe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Feb 2016 02:01:34 -0500
-From: Keith Packard <keithp@keithp.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jani Nikula <jani.nikula@intel.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-doc@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: V4L docs and docbook
-In-Reply-To: <56C5A248.8080902@xs4all.nl>
-References: <20160217145254.3085b333@lwn.net> <56C56A56.8010107@xs4all.nl> <87vb5me2wy.fsf@intel.com> <56C5A248.8080902@xs4all.nl>
-Date: Thu, 18 Feb 2016 22:00:14 -0700
-Message-ID: <861t89l2g1.fsf@hiro.keithp.com>
+Received: from mail-io0-f176.google.com ([209.85.223.176]:35527 "EHLO
+	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753795AbcBALRA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 06:17:00 -0500
+Received: by mail-io0-f176.google.com with SMTP id d63so136005739ioj.2
+        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2016 03:16:59 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
+In-Reply-To: <56AF2DB9.8010609@xs4all.nl>
+References: <CAJ2oMh+yZ4KEpq36HgrdHW4FkvQmZ4T_tD7XUGKs0a9K=otMnw@mail.gmail.com>
+	<CAJ2oMhK+RS2Z2GVGbo3X_Ov5gWxiCRRvpT6T6YgfVKmp2rM4ew@mail.gmail.com>
+	<56AF13EA.2070206@xs4all.nl>
+	<CAJ2oMh+5_8Ngtn3G2HxFKw3su-rgQuyUYqjN5oOmgekW2cTrNA@mail.gmail.com>
+	<56AF2DB9.8010609@xs4all.nl>
+Date: Mon, 1 Feb 2016 13:16:59 +0200
+Message-ID: <CAJ2oMh+PYXFq__PhzQa72Rtaa0hddtmNBs1evWX3RKRWZK_Mkw@mail.gmail.com>
+Subject: Re: OS freeze after queue_setup
+From: Ran Shalit <ranshalit@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Mon, Feb 1, 2016 at 12:04 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>
+> On 02/01/2016 10:07 AM, Ran Shalit wrote:
+>> On Mon, Feb 1, 2016 at 10:14 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>
+>>>
+>>> On 02/01/2016 09:00 AM, Ran Shalit wrote:
+>>>> On Sun, Jan 31, 2016 at 10:35 PM, Ran Shalit <ranshalit@gmail.com> wrote:
+>>>>> Hello,
+>>>>>
+>>>>> Maybe someone will have some idea about the following:
+>>>>> I am using a pci card (not video card, just some dummy pci card), to
+>>>>> check v4l2 template for PCIe card (I used solo6x10 as template for the
+>>>>> driver and moved all hardware related to video into remarks).
+>>>>> I don't use any register read/write to hardware (just dummy functions).
+>>>>>
+>>>>> I get that load/unload of module is successful.
+>>>>> But on trying to start reading video frames (using read method with
+>>>>> v4l API userspace example), I get that the whole operating system is
+>>>>> freezed, and I must reboot the machine.
+>>>>> This is the queue_setup callback:
+>>>>>
+>>>>> static int test_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+>>>>>   unsigned int *num_buffers, unsigned int *num_planes,
+>>>>>   unsigned int sizes[], void *alloc_ctxs[])
+>>>>> {
+>>>>> struct test_dev *solo_dev = vb2_get_drv_priv(q);
+>>>>> dev_info(&test_dev->pdev->dev,"test_queue_setup\n");
+>>>>> sizes[0] = test_image_size(test_dev);
+>>>>> alloc_ctxs[0] = solo_dev->alloc_ctx;
+>>>>> *num_planes = 1;
+>>>>>
+>>>>> if (*num_buffers < MIN_VID_BUFFERS)
+>>>>> *num_buffers = MIN_VID_BUFFERS;
+>>>>>
+>>>>> return 0;
+>>>>> }
+>>>>>
+>>>>> static const struct vb2_ops test_video_qops = {
+>>>>> .queue_setup = test_queue_setup,
+>>>>> .buf_queue = test_buf_queue,
+>>>>> .start_streaming = test_start_streaming, <- does nothing
+>>>>> .stop_streaming = test_stop_streaming, <- does nothing
+>>>>> .wait_prepare = vb2_ops_wait_prepare,
+>>>>> .wait_finish = vb2_ops_wait_finish,
+>>>>> };
+>>>>>
+>>>>>
+>>>>> I didn't find anything suspicious in the videobuf2 callback that can
+>>>>> explain these freeze.( start_streaming,stop_streaming contains just
+>>>>> printk with function name).
+>>>>> I also can't know where it got stuck (The system is freezed without
+>>>>> any logging on screen, all log is in dmesg).
+>>>>>
+>>>>> Thank for any idea,
+>>>>> Ran
+>>>>
+>>>> On start reading frames (using read or mmap method), it seems as if
+>>>> there is some collisions between the pci video card and another card
+>>>> (becuase the monitor is also printed with strange colors as the moment
+>>>> the OS freezes) .
+>>>> I validated again that the PCIe boards IDs in the table are correct
+>>>> (it matches only the dummy pcie card when it is  connected ).
+>>>> I also tried to comment out the irq request, to be sure that there is
+>>>> no irq collision with another board, but it still get freezed anyway.
+>>>
+>>> I can't tell anything from this, I'd need to see the full source.
+>>>
+>>> Regards,
+>>>
+>>>         Hans
+>>
+>> Thank you Hans,
+>> The source code base on solo6x10 as template , and kernel 3.10.0.229
+>> (I needed to use this kernel version instead of latest as start point
+>> because of other pacakge , Intel's media sdk encoder ) :
+>>
+>> https://drive.google.com/file/d/0B22GsWueReZTSElIUEJJSHplUVU/view?usp=sharing
+>> - This package compiled with the makefile
+>> - relevant changes are in solo6x10-core.c & solo6x10-v4l2.c
+>
+> It would certainly help if you don't try to enable interrupts on your pci
+> card. Basically, don't touch the pci at all. The only purpose of using a
+> dummy PCI card is that your template driver is loaded. But touching the hardware
+> will of course have bad results since it isn't video hardware.
+>
+> Frankly, why not just take the v4l2-pci-skeleton.c as your template instead
+> of trying to strip down the solo driver? The skeleton driver is already stripped
+> down!
+>
+> Much easier.
+>
+> Regards,
+>
+>         Hans
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+Hi Hans,
 
-> But good table handling is a prerequisite for us since we rely heavily on=
- that.
+Thank you for the suggestions.
+I've tried the skeleton and I got the same behaviour.
+When using vivid device, it works (frame reading) without any issues.
+Since the whole system freezes its hard to know the exact problem.
 
-I converted an asciidoc document that included some tables to sphinx via
-docbook using pandoc; that seemed to generate workable results for me,
-but my needs are pretty simple.
-
-Asciidoc has more sophisticated table support, providing the ability to
-align text within cells and paint different kinds of borders. Sphinx
-provides for spanning rows and columns, and multi-line auto-wrapped cell
-contents. The rst docs say there's an emacs mode that can help paint the
-source format, but I haven't tried that yet.
-
-In any case, here's some tables from the document I converted:
-
-asciidoc via docbook:
-
-http://altusmetrum.org/AltOS/doc/altusmetrum.html#_altus_metrum_hardware_sp=
-ecifications
-
-sphinx:
-
-http://keithp.com/~keithp/altusmetrum-sphinx/hardwarespecs.html#altus-metru=
-m-hardware-specifications
-
-While completely unconfigurable, rst tables do at least benefit from an
-easier to read input syntax; asciidoc tables are about as readable in
-source form as troff or latex...
-
-asciidoc:
-
-	.Altus Metrum Flight Computer Electronics
-	[options=3D"header"]
-	|=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D
-	|Device | Barometer | Z-axis accel | GPS | 3D sensors | Storage | RF Outpu=
-t | Battery
-
-	|TeleMetrum v1.0
-	|MP3H6115 10km (33k')
-	|MMA2202 50g
-	|SkyTraq
-	|-
-	|1MB
-	|10mW
-	|3.7V
-
-	|TeleMetrum v1.1
-	|MP3H6115 10km (33k')
-	|MMA2202 50g
-	|SkyTraq
-	|-
-	|2MB
-	|10mW
-	|3.7V
-
-	|TeleMetrum v1.2
-	|MP3H6115 10km (33k')
-	|ADXL78 70g
-	|SkyTraq
-	|-
-	|2MB
-	|10mW
-	|3.7V
-
-	|TeleMetrum v2.0
-	|MS5607 30km (100k')
-	|MMA6555 102g
-	|uBlox Max-7Q
-	|-
-	|8MB
-	|40mW
-	|3.7V
-
-	|TeleMini v1.0
-	|MP3H6115 10km (33k')
-	|-
-	|-
-	|-
-	|5kB
-	|10mW
-	|3.7V
-
-	|EasyMini v1.0
-	|MS5607 30km (100k')
-	|-
-	|-
-	|-
-	|1MB
-	|-
-	|3.7-12V
-
-	|TeleMega v1.0
-	|MS5607 30km (100k')
-	|MMA6555 102g
-	|uBlox Max-7Q
-	|MPU6000 HMC5883
-	|8MB
-	|40mW
-	|3.7V
-
-	|EasyMega v1.0
-	|MS5607 30km (100k')
-	|MMA6555 102g
-	|-
-	|MPU6000 HMC5883
-	|8MB
-	|-
-	|3.7V
-
-	|=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
-
-rst:
-
-	+-----------+-----------+-----------+-----------+-----------+-----------+-=
-----------+-----------+
-	| Device    | Barometer | Z-axis    | GPS       | 3D        | Storage   | =
-RF Output | Battery   |
-	|           |           | accel     |           | sensors   |           | =
-          |           |
-	+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D+
-	| TeleMetru | MP3H6115  | MMA2202   | SkyTraq   | -         | 1MB       | =
-10mW      | 3.7V      |
-	| m         | 10km      | 50g       |           |           |           | =
-          |           |
-	| v1.0      | (33k')    |           |           |           |           | =
-          |           |
-	+-----------+-----------+-----------+-----------+-----------+-----------+-=
-----------+-----------+
-	| TeleMetru | MP3H6115  | MMA2202   | SkyTraq   | -         | 2MB       | =
-10mW      | 3.7V      |
-	| m         | 10km      | 50g       |           |           |           | =
-          |           |
-	| v1.1      | (33k')    |           |           |           |           | =
-          |           |
-	+-----------+-----------+-----------+-----------+-----------+-----------+-=
-----------+-----------+
-	| TeleMetru | MP3H6115  | ADXL78    | SkyTraq   | -         | 2MB       | =
-10mW      | 3.7V      |
-	| m         | 10km      | 70g       |           |           |           | =
-          |           |
-	| v1.2      | (33k')    |           |           |           |           | =
-          |           |
-	+-----------+-----------+-----------+-----------+-----------+-----------+-=
-----------+-----------+
-	| TeleMetru | MS5607    | MMA6555   | uBlox     | -         | 8MB       | =
-40mW      | 3.7V      |
-	| m         | 30km      | 102g      | Max-7Q    |           |           | =
-          |           |
-	| v2.0      | (100k')   |           |           |           |           | =
-          |           |
-	+-----------+-----------+-----------+-----------+-----------+-----------+-=
-----------+-----------+
-	| TeleMini  | MP3H6115  | -         | -         | -         | 5kB       | =
-10mW      | 3.7V      |
-	| v1.0      | 10km      |           |           |           |           | =
-          |           |
-	|           | (33k')    |           |           |           |           | =
-          |           |
-	+-----------+-----------+-----------+-----------+-----------+-----------+-=
-----------+-----------+
-	| EasyMini  | MS5607    | -         | -         | -         | 1MB       | =
--         | 3.7-12V   |
-	| v1.0      | 30km      |           |           |           |           | =
-          |           |
-	|           | (100k')   |           |           |           |           | =
-          |           |
-	+-----------+-----------+-----------+-----------+-----------+-----------+-=
-----------+-----------+
-	| TeleMega  | MS5607    | MMA6555   | uBlox     | MPU6000   | 8MB       | =
-40mW      | 3.7V      |
-	| v1.0      | 30km      | 102g      | Max-7Q    | HMC5883   |           | =
-          |           |
-	|           | (100k')   |           |           |           |           | =
-          |           |
-	+-----------+-----------+-----------+-----------+-----------+-----------+-=
-----------+-----------+
-	| EasyMega  | MS5607    | MMA6555   | -         | MPU6000   | 8MB       | =
--         | 3.7V      |
-	| v1.0      | 30km      | 102g      |           | HMC5883   |           | =
-          |           |
-	|           | (100k')   |           |           |           |           | =
-          |           |
-	+-----------+-----------+-----------+-----------+-----------+-----------+-=
-----------+-----------+
-
-
-=2D-=20
-=2Dkeith
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIVAwUBVsahXtsiGmkAAAARAQjIeQ//XuNqaSOwkYG3VkugKBegaTCRLkMAvB+Q
-5unBZzHLlybYgVRtDfkmaTwtxaE0qv+dPg1Mhubk4ix8jb8uwAYWOUHzyrGxkY/w
-qzPWPd8yzw7IRjhLcNk3Oa3e122MCEg2BGbc4Ffd8oyD/KS7PiazYUbqNXQxAuYM
-hVyM1yKfjp1IXd1H1apS1F0ChOI2lHhAuPvCuJ4cMICZKZZgKhzUVe1Bhd4StqRv
-IGFlHbWsVw9fG8mr8xxBAHi+NgryJ3YXVJxs0mDg6KxqAlLiWzrMh77UO4h1UHgy
-5vXvieXtLYGBHrRr8NjCNLqje1spSVGFw9l4AuiMrZ+hdQ+jLv866hFkAvfWNB23
-IJDTh8mpNnlTlucs0DgNPGTBGN6b7CIw1+PO2De4K0nywmG1/ee4LbtUJsu9ML44
-2ZCW/BQ2mbPut1iP9SvdNa2CQ33Zs85QwcTVjA7JBaUpVqy+SDDHB5OopkCLXBUN
-mav0uLU5F7s1AnahUhlVDR/6qEKjs3PJVX6Q+5sX7R67yhfP9sORgeMYc2hO9rHW
-aVYY3j/H/+jNFmeenQXuQ+U1LX/gYN2nYlb1BLObYfWJxG4Tax+lEiOoqUDcHgfv
-jgHjgMYA0qeHAs+O0lpaTq3yfJbv8mO6A5M4l6xEsN5WVgHRiYIjRsMAFFAMRDOU
-WqGmmAQMh2U=
-=JTNr
------END PGP SIGNATURE-----
---=-=-=--
+Regards,
+Ran
