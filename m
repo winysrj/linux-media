@@ -1,112 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:36069 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbcBKXmV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 18:42:21 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v3 14/22] media: au0828 change to use Managed Media Controller API
-Date: Thu, 11 Feb 2016 16:41:30 -0700
-Message-Id: <ab2adf4f88fa6cf372fa5b7c85017a765591be1f.1455233154.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:39722 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751538AbcBAPda (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Feb 2016 10:33:30 -0500
+Date: Mon, 1 Feb 2016 13:33:25 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
+Cc: <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] [media] cx231xx: fix close sequence for VBI + analog
+Message-ID: <20160201133325.069f22ad@recife.lan>
+In-Reply-To: <1454094304-4520-1-git-send-email-jtheou@adeneo-embedded.us>
+References: <1454092619-27700-1-git-send-email-jtheou@adeneo-embedded.us>
+	<1454094304-4520-1-git-send-email-jtheou@adeneo-embedded.us>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828 to use Managed Media Controller API to
-share media device and coordinate creating/deleting
-the shared media device with the snd-usb-audio driver.
-The shared media device is created as device resource
-of the parent usb device of the two drivers.
+Em Fri, 29 Jan 2016 11:05:04 -0800
+Jean-Baptiste Theou <jtheou@adeneo-embedded.us> escreveu:
 
-Populate media device model with USB Device product
-name instead of au0828 device board name. This change
-is necessary because, if the media device is registered
-by the snd-usb-audio driver first, and it doesn't know
-the au0828 board name.
+> For tuners with no_alt_vanc=0, and VBI and analog video device
+> open.
+> There is two ways to close the devices:
+> 
+> *First way (start with user=2)
+> 
+> VBI first (user=1): URBs for the VBI are killed properly
+> with cx231xx_uninit_vbi_isoc
+> 
+> Analog second (user=0): URBs for the Analog are killed
+> properly with cx231xx_uninit_isoc
+> 
+> *Second way (start with user=2)
+> 
+> Analog first (user=1): URBs for the Analog are NOT killed
+> properly with cx231xx_uninit_isoc, because the exit path
+> is not called this time.
+> 
+> VBI first (user=0): URBs for the VBI are killed properly with
+> cx231xx_uninit_vbi_isoc, but we are exiting the function
+> without killing the URBs for the Analog
+> 
+> This situation lead to various kernel panics, since
+> the URBs are still processed, without the device been
+> open.
+> 
+> The patch fix the issue by calling the exit path no matter
+> what, when user=0, plus remove a duplicate trace.
+> 
+> Signed-off-by: Jean-Baptiste Theou <jtheou@adeneo-embedded.us>
+> 
+> ---
+> 
+>  - v2: Avoid duplicate code and ensure that the queue are freed
+>        properly.
+> ---
+>  drivers/media/usb/cx231xx/cx231xx-video.c | 44 +++++++++----------------------
+>  1 file changed, 12 insertions(+), 32 deletions(-)
+> 
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+> index 9b88cd8..a832c83 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+> @@ -1836,10 +1836,21 @@ static int cx231xx_close(struct file *filp)
+>  
+>  	cx231xx_videodbg("users=%d\n", dev->users);
+>  
+> -	cx231xx_videodbg("users=%d\n", dev->users);
+>  	if (res_check(fh))
+>  		res_free(fh);
+>  
+> +	videobuf_stop(&fh->vb_vidq);
+> +	videobuf_mmap_free(&fh->vb_vidq);
+> +
+> +	/* the device is already disconnect,
+> +	 * free the remaining resources
+> +	 */
+> +	if (dev->state & DEV_DISCONNECTED) {
+> +		cx231xx_release_resources(dev);
+> +		fh->dev = NULL;
+> +		return 0;
+> +	}
+> +
+>  	/*
+>  	 * To workaround error number=-71 on EP0 for VideoGrabber,
+>  	 *	 need exclude following.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+Hmm... The above doesn't sound right to stop the queue unconditionally when
+users != 0, as one could do weird things like:
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index ce5afea..a740bea 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -135,10 +135,10 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
- {
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
--	if (dev->media_dev) {
-+	if (dev->media_dev &&
-+		media_devnode_is_registered(&dev->media_dev->devnode)) {
- 		media_device_unregister(dev->media_dev);
- 		media_device_cleanup(dev->media_dev);
--		kfree(dev->media_dev);
- 		dev->media_dev = NULL;
- 	}
- #endif
-@@ -224,23 +224,24 @@ static int au0828_media_device_init(struct au0828_dev *dev,
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_device *mdev;
- 
--	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-+	mdev = media_device_get_devres(&udev->dev);
- 	if (!mdev)
- 		return -ENOMEM;
- 
--	mdev->dev = &udev->dev;
-+	if (!media_devnode_is_registered(&mdev->devnode)) {
-+		mdev->dev = &udev->dev;
- 
--	if (!dev->board.name)
--		strlcpy(mdev->model, "unknown au0828", sizeof(mdev->model));
--	else
--		strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
--	if (udev->serial)
--		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
--	strcpy(mdev->bus_info, udev->devpath);
--	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
--	mdev->driver_version = LINUX_VERSION_CODE;
-+		if (udev->product)
-+			strlcpy(mdev->model, udev->product,
-+				sizeof(mdev->model));
-+		if (udev->serial)
-+			strlcpy(mdev->serial, udev->serial,
-+				sizeof(mdev->serial));
-+		strcpy(mdev->bus_info, udev->devpath);
-+		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
- 
--	media_device_init(mdev);
-+		media_device_init(mdev);
-+	}
- 
- 	dev->media_dev = mdev;
- #endif
--- 
-2.5.0
+start video
+start vbi
+stop vbi
+start vbi
+stop video
+stop vbi
 
+Those weird workflows happen when someone is using a TV application
+like TVtime for capturing images, while using a different app, like
+zvbi to get VBI data.
+
+So, I guess that the above hunked should be removed...
+
+
+> @@ -1848,19 +1859,6 @@ static int cx231xx_close(struct file *filp)
+>  	 */
+>  	if (!dev->board.no_alt_vanc)
+>  		if (fh->type == V4L2_BUF_TYPE_VBI_CAPTURE) {
+> -			videobuf_stop(&fh->vb_vidq);
+> -			videobuf_mmap_free(&fh->vb_vidq);
+> -
+> -			/* the device is already disconnect,
+> -			   free the remaining resources */
+> -			if (dev->state & DEV_DISCONNECTED) {
+> -				if (atomic_read(&dev->devlist_count) > 0) {
+> -					cx231xx_release_resources(dev);
+> -					fh->dev = NULL;
+> -					return 0;
+> -				}
+> -				return 0;
+> -			}
+>  
+>  			/* do this before setting alternate! */
+>  			cx231xx_uninit_vbi_isoc(dev);
+> @@ -1870,29 +1868,11 @@ static int cx231xx_close(struct file *filp)
+>  				cx231xx_set_alt_setting(dev, INDEX_VANC, 0);
+>  			else
+>  				cx231xx_set_alt_setting(dev, INDEX_HANC, 0);
+> -
+> -			v4l2_fh_del(&fh->fh);
+> -			v4l2_fh_exit(&fh->fh);
+> -			kfree(fh);
+> -			dev->users--;
+> -			wake_up_interruptible(&dev->open);
+> -			return 0;
+>  		}
+>  
+
+The above changes are OK...
+
+>  	v4l2_fh_del(&fh->fh);
+>  	dev->users--;
+>  	if (!dev->users) {
+> -		videobuf_stop(&fh->vb_vidq);
+> -		videobuf_mmap_free(&fh->vb_vidq);
+> -
+> -		/* the device is already disconnect,
+> -		   free the remaining resources */
+> -		if (dev->state & DEV_DISCONNECTED) {
+> -			cx231xx_release_resources(dev);
+> -			fh->dev = NULL;
+> -			return 0;
+> -		}
+> -
+
+But the above code should be kept, as we should only stop/free
+resources when neither VBI or Video is running. Other drivers do
+similar things and work properly. See em28xx for example (I'm sure
+em28xx video/vbi is working as expected, as I did such tests last
+week).
+
+>  		/* Save some power by putting tuner to sleep */
+>  		call_all(dev, core, s_power, 0);
+>  
+
+Regards,
+Mauro
