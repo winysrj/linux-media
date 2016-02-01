@@ -1,42 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34745 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750861AbcB2M5m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 07:57:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [RFC PATCH 0/2] Calculate capabilities based on device_caps
-Date: Mon, 29 Feb 2016 13:57:35 +0100
-Message-Id: <1456750657-11108-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([192.55.52.115]:31993 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932066AbcBANPD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Feb 2016 08:15:03 -0500
+Subject: Re: [v4l-utils PATCH 1/2] v4l: libv4l1, libv4l2: Use $(mkdir_p)
+ instead of deprecated $(MKDIR_P)
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+References: <1453725684-4561-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1453725684-4561-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20160201105945.20dd5087@recife.lan>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <56AF5A4D.4020500@linux.intel.com>
+Date: Mon, 1 Feb 2016 15:14:53 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160201105945.20dd5087@recife.lan>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-Once we have device_caps in struct video_device it is quite easy to
-add a capabilities field to struct v4l2_device that is the union of
-the device_caps value of all video devices.
+Mauro Carvalho Chehab wrote:
+> Em Mon, 25 Jan 2016 14:41:23 +0200
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+>> autoconf thinks $(MKDIR_P) is deprecated. Use $(mkdir_p) instead.
+> 
+> Did you get any troubles with the deprecated macro?
+> 
+> At least here (version 2.69), I don't see any error by using $(MKDIR_P).
 
-Tested with vivid.
+I have the same version.
 
-Regards,
+-----8<------
+$ autoreconf -vfi
+autoreconf: Entering directory `.'
+autoreconf: configure.ac: not using Gettext
+autoreconf: running: aclocal --force -I m4
+autoreconf: configure.ac: tracing
+autoreconf: configure.ac: AM_GNU_GETTEXT is used, but not
+AM_GNU_GETTEXT_VERSION
+autoreconf: running: libtoolize --copy --force
+libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, `build-aux'.
+libtoolize: copying file `build-aux/ltmain.sh'
+libtoolize: putting macros in AC_CONFIG_MACRO_DIR, `m4'.
+libtoolize: copying file `m4/libtool.m4'
+libtoolize: copying file `m4/ltoptions.m4'
+libtoolize: copying file `m4/ltsugar.m4'
+libtoolize: copying file `m4/ltversion.m4'
+libtoolize: copying file `m4/lt~obsolete.m4'
+autoreconf: running: /usr/bin/autoconf --force
+autoreconf: running: /usr/bin/autoheader --force
+autoreconf: running: automake --add-missing --copy --force-missing
+configure.ac:85: warning: The 'AM_PROG_MKDIR_P' macro is deprecated, and
+its use is discouraged.
+configure.ac:85: You should use the Autoconf-provided 'AC_PROG_MKDIR_P'
+macro instead,
+configure.ac:85: and use '$(MKDIR_P)' instead of '$(mkdir_p)'in your
+Makefile.am files.
+autoreconf: Leaving directory `.'
+-----8<------
 
-	Hans
+Perhaps automake version makes a difference. I have 1.14.1 here (Ubuntu
+package 1:1.14.1-2ubuntu1 from Ubuntu 14.10).
 
-Hans Verkuil (2):
-  v4l2: collect the union of all device_caps in struct v4l2_device
-  vivid: let the v4l2 core calculate the capabilities field
-
- drivers/media/platform/vivid/vivid-core.c  | 75 ++++++++++++++++--------------
- drivers/media/platform/vivid/vivid-core.h  |  9 ----
- drivers/media/platform/vivid/vivid-ctrls.c |  8 ++--
- drivers/media/v4l2-core/v4l2-dev.c         |  1 +
- drivers/media/v4l2-core/v4l2-ioctl.c       |  2 +-
- include/media/v4l2-device.h                |  2 +
- 6 files changed, 47 insertions(+), 50 deletions(-)
+There are no errors due to this, just a warning.
 
 -- 
-2.7.0
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@linux.intel.com
