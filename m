@@ -1,183 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:47375 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1946389AbcBTJL2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Feb 2016 04:11:28 -0500
-Message-ID: <1455959480.12533.11.camel@mtksdaap41>
-Subject: Re: [PATCH v4 5/8] [Media] vcodec: mediatek: Add Mediatek V4L2
- Video Encoder Driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Date: Sat, 20 Feb 2016 17:11:20 +0800
-In-Reply-To: <56C2D371.9090805@xs4all.nl>
-References: <1454585703-42428-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-2-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-3-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-4-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-5-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-6-git-send-email-tiffany.lin@mediatek.com>
-	 <56C1B4AF.1030207@xs4all.nl> <1455604653.19396.68.camel@mtksdaap41>
-	 <56C2D371.9090805@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-io0-f176.google.com ([209.85.223.176]:33852 "EHLO
+	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751811AbcBAIAZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 03:00:25 -0500
+Received: by mail-io0-f176.google.com with SMTP id 9so69438581iom.1
+        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2016 00:00:25 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <CAJ2oMh+yZ4KEpq36HgrdHW4FkvQmZ4T_tD7XUGKs0a9K=otMnw@mail.gmail.com>
+References: <CAJ2oMh+yZ4KEpq36HgrdHW4FkvQmZ4T_tD7XUGKs0a9K=otMnw@mail.gmail.com>
+Date: Mon, 1 Feb 2016 10:00:24 +0200
+Message-ID: <CAJ2oMhK+RS2Z2GVGbo3X_Ov5gWxiCRRvpT6T6YgfVKmp2rM4ew@mail.gmail.com>
+Subject: Re: OS freeze after queue_setup
+From: Ran Shalit <ranshalit@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Sun, Jan 31, 2016 at 10:35 PM, Ran Shalit <ranshalit@gmail.com> wrote:
+> Hello,
+>
+> Maybe someone will have some idea about the following:
+> I am using a pci card (not video card, just some dummy pci card), to
+> check v4l2 template for PCIe card (I used solo6x10 as template for the
+> driver and moved all hardware related to video into remarks).
+> I don't use any register read/write to hardware (just dummy functions).
+>
+> I get that load/unload of module is successful.
+> But on trying to start reading video frames (using read method with
+> v4l API userspace example), I get that the whole operating system is
+> freezed, and I must reboot the machine.
+> This is the queue_setup callback:
+>
+> static int test_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+>   unsigned int *num_buffers, unsigned int *num_planes,
+>   unsigned int sizes[], void *alloc_ctxs[])
+> {
+> struct test_dev *solo_dev = vb2_get_drv_priv(q);
+> dev_info(&test_dev->pdev->dev,"test_queue_setup\n");
+> sizes[0] = test_image_size(test_dev);
+> alloc_ctxs[0] = solo_dev->alloc_ctx;
+> *num_planes = 1;
+>
+> if (*num_buffers < MIN_VID_BUFFERS)
+> *num_buffers = MIN_VID_BUFFERS;
+>
+> return 0;
+> }
+>
+> static const struct vb2_ops test_video_qops = {
+> .queue_setup = test_queue_setup,
+> .buf_queue = test_buf_queue,
+> .start_streaming = test_start_streaming, <- does nothing
+> .stop_streaming = test_stop_streaming, <- does nothing
+> .wait_prepare = vb2_ops_wait_prepare,
+> .wait_finish = vb2_ops_wait_finish,
+> };
+>
+>
+> I didn't find anything suspicious in the videobuf2 callback that can
+> explain these freeze.( start_streaming,stop_streaming contains just
+> printk with function name).
+> I also can't know where it got stuck (The system is freezed without
+> any logging on screen, all log is in dmesg).
+>
+> Thank for any idea,
+> Ran
 
-On Tue, 2016-02-16 at 08:44 +0100, Hans Verkuil wrote:
-> On 02/16/2016 07:37 AM, tiffany lin wrote:
-> >>> +
-> >>> +const struct v4l2_ioctl_ops mtk_venc_ioctl_ops = {
-> >>> +	.vidioc_streamon		= v4l2_m2m_ioctl_streamon,
-> >>> +	.vidioc_streamoff		= v4l2_m2m_ioctl_streamoff,
-> >>> +
-> >>> +	.vidioc_reqbufs			= v4l2_m2m_ioctl_reqbufs,
-> >>> +	.vidioc_querybuf		= v4l2_m2m_ioctl_querybuf,
-> >>> +	.vidioc_qbuf			= vidioc_venc_qbuf,
-> >>> +	.vidioc_dqbuf			= vidioc_venc_dqbuf,
-> >>> +
-> >>> +	.vidioc_querycap		= vidioc_venc_querycap,
-> >>> +	.vidioc_enum_fmt_vid_cap_mplane = vidioc_enum_fmt_vid_cap_mplane,
-> >>> +	.vidioc_enum_fmt_vid_out_mplane = vidioc_enum_fmt_vid_out_mplane,
-> >>> +	.vidioc_enum_framesizes		= vidioc_enum_framesizes,
-> >>> +
-> >>> +	.vidioc_try_fmt_vid_cap_mplane	= vidioc_try_fmt_vid_cap_mplane,
-> >>> +	.vidioc_try_fmt_vid_out_mplane	= vidioc_try_fmt_vid_out_mplane,
-> >>> +	.vidioc_expbuf			= v4l2_m2m_ioctl_expbuf,
-> >>
-> >> Please add vidioc_create_bufs and vidioc_prepare_buf as well.
-> >>
-> > 
-> > Currently we do not support these use cases, do we need to add
-> > vidioc_create_bufs and vidioc_prepare_buf now?
-> 
-> I would suggest you do. The vb2 framework gives it (almost) for free.
-> prepare_buf is completely free (just add the helper) and create_bufs
-> needs a few small changes in the queue_setup function, that's all.
-> 
-After try to add vidioc_create_bufs directly using
-vb2_ioctl_create_bufs, it will have problem in 
-	int res = vb2_verify_memory_type(vdev->queue, p->memory,
-			p->format.type);
-We do not init our video_device queue in device probe function.
+On start reading frames (using read or mmap method), it seems as if
+there is some collisions between the pci video card and another card
+(becuase the monitor is also printed with strange colors as the moment
+the OS freezes) .
+I validated again that the PCIe boards IDs in the table are correct
+(it matches only the dummy pcie card when it is  connected ).
+I also tried to comment out the irq request, to be sure that there is
+no irq collision with another board, but it still get freezed anyway.
 
-Our vb2_queues for OUTPUT and CAPTURE are initialized in
-v4l2_m2m_ctx_init when ctx instance open.
-What is queue in video_device for?
-If we should init vdev->queue in probe function, this queue format
-should be CAPTURE queue or OUTPUT queue?
-
-best regards,
-Tiffany
-
-> > 
-> > 
-> >>> +	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-> >>> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-> >>> +
-> >>> +	.vidioc_s_parm			= vidioc_venc_s_parm,
-> >>> +
-> >>> +	.vidioc_s_fmt_vid_cap_mplane	= vidioc_venc_s_fmt,
-> >>> +	.vidioc_s_fmt_vid_out_mplane	= vidioc_venc_s_fmt,
-> >>> +
-> >>> +	.vidioc_g_fmt_vid_cap_mplane	= vidioc_venc_g_fmt,
-> >>> +	.vidioc_g_fmt_vid_out_mplane	= vidioc_venc_g_fmt,
-> >>> +
-> >>> +	.vidioc_g_selection		= vidioc_venc_g_s_selection,
-> >>> +	.vidioc_s_selection		= vidioc_venc_g_s_selection,
-> >>> +};
-> 
-> <snip>
-> 
-> >>> +int mtk_vcodec_enc_queue_init(void *priv, struct vb2_queue *src_vq,
-> >>> +			   struct vb2_queue *dst_vq)
-> >>> +{
-> >>> +	struct mtk_vcodec_ctx *ctx = priv;
-> >>> +	int ret;
-> >>> +
-> >>> +	src_vq->type		= V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-> >>> +	src_vq->io_modes	= VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
-> >>
-> >> I recomment dropping VB2_USERPTR. That only makes sense for scatter-gather dma,
-> >> and you use physically contiguous DMA.
-> >>
-> > Now our userspace app use VB2_USERPTR. I need to check if we could drop
-> > VB2_USERPTR.
-> > We use src_vq->mem_ops = &vb2_dma_contig_memops;
-> > And there are
-> > 	.get_userptr	= vb2_dc_get_userptr,
-> > 	.put_userptr	= vb2_dc_put_userptr,
-> > I was confused why it only make sense for scatter-gather.
-> > Could you kindly explain more?
-> 
-> VB2_USERPTR indicates that the application can use malloc to allocate buffers
-> and pass those to the driver. Since malloc uses virtual memory the physical
-> memory is scattered all over. And the first page typically does not start at
-> the beginning of the page but at a random offset.
-> 
-> To support that the DMA generally has to be able to do scatter-gather.
-> 
-> Now, where things get ugly is that a hack was added to the USERPTR support where
-> apps could pass a pointer to physically contiguous memory as a user pointer. This
-> was a hack for embedded systems that preallocated a pool of buffers and needed to
-> pass those pointers around somehow. So the dma-contig USERPTR support is for that
-> 'feature'. If you try to pass a malloc()ed buffer to a dma-contig driver it will
-> reject it. One big problem is that this specific hack isn't signaled anywhere, so
-> applications have no way of knowing if the USERPTR support is the proper version
-> or the hack where physically contiguous memory is expected.
-> 
-> This hack has been replaced with DMABUF which is the proper way of passing buffers
-> around.
-> 
-> New dma-contig drivers should not use that old hack anymore. Use dmabuf to pass
-> external buffers around.
-> 
-> How do you use it in your app? With malloc()ed buffers? Or with 'special' pointers
-> to physically contiguous buffers?
-> 
-> > 
-> >>> +	src_vq->drv_priv	= ctx;
-> >>> +	src_vq->buf_struct_size = sizeof(struct mtk_video_enc_buf);
-> >>> +	src_vq->ops		= &mtk_venc_vb2_ops;
-> >>> +	src_vq->mem_ops		= &vb2_dma_contig_memops;
-> >>> +	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> >>> +	src_vq->lock = &ctx->dev->dev_mutex;
-> >>> +
-> >>> +	ret = vb2_queue_init(src_vq);
-> >>> +	if (ret)
-> >>> +		return ret;
-> >>> +
-> >>> +	dst_vq->type		= V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-> >>> +	dst_vq->io_modes	= VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
-> >>> +	dst_vq->drv_priv	= ctx;
-> >>> +	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-> >>> +	dst_vq->ops		= &mtk_venc_vb2_ops;
-> >>> +	dst_vq->mem_ops		= &vb2_dma_contig_memops;
-> >>> +	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> >>> +	dst_vq->lock = &ctx->dev->dev_mutex;
-> >>> +
-> >>> +	return vb2_queue_init(dst_vq);
-> >>> +}
-> 
-> Regards,
-> 
-> 	Hans
-> 
-
-
+Regards,
+Ran
