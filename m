@@ -1,58 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.macqel.be ([109.135.2.61]:58982 "EHLO smtp2.macqel.be"
+Received: from lists.s-osg.org ([54.187.51.154]:39777 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750737AbcBWLzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 06:55:03 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.macqel.be (Postfix) with ESMTP id 22C9F130D8B
-	for <linux-media@vger.kernel.org>; Tue, 23 Feb 2016 12:49:45 +0100 (CET)
-Received: from smtp2.macqel.be ([127.0.0.1])
-	by localhost (mail.macqel.be [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id uuhV+Jli68c9 for <linux-media@vger.kernel.org>;
-	Tue, 23 Feb 2016 12:49:43 +0100 (CET)
-Received: from frolo.macqel.be (frolo.macqel [10.1.40.73])
-	by smtp2.macqel.be (Postfix) with ESMTP id 6297C130D43
-	for <linux-media@vger.kernel.org>; Tue, 23 Feb 2016 12:49:43 +0100 (CET)
-Date: Tue, 23 Feb 2016 12:49:43 +0100
-From: Philippe De Muyter <phdm@macq.eu>
-To: linux-media@vger.kernel.org
-Subject: i.mx6 camera interface (CSI) and mainline kernel
-Message-ID: <20160223114943.GA10944@frolo.macqel>
+	id S1753487AbcBAQID (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Feb 2016 11:08:03 -0500
+Subject: Re: [PATCH 01/31] uapi/media.h: Declare interface types for ALSA
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>, tiwai@suse.com
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <b1d228cdcc9246f7bfe28877e9f6bff174e94993.1452105878.git.shuahkh@osg.samsung.com>
+ <20160128125941.143f67d0@recife.lan>
+Cc: clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56AF82D7.1020900@osg.samsung.com>
+Date: Mon, 1 Feb 2016 09:07:51 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20160128125941.143f67d0@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 01/28/2016 07:59 AM, Mauro Carvalho Chehab wrote:
+> Em Wed,  6 Jan 2016 13:26:50 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>
+>> Declare the interface types to be used on alsa for the new
+>> G_TOPOLOGY ioctl.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>> ---
+>>  drivers/media/media-entity.c | 12 ++++++++++++
+>>  include/uapi/linux/media.h   |  8 ++++++++
+>>  2 files changed, 20 insertions(+)
+>>
+>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>> index eb38bc3..6e02d19 100644
+>> --- a/drivers/media/media-entity.c
+>> +++ b/drivers/media/media-entity.c
+>> @@ -65,6 +65,18 @@ static inline const char *intf_type(struct media_interface *intf)
+>>  		return "v4l2-subdev";
+>>  	case MEDIA_INTF_T_V4L_SWRADIO:
+>>  		return "swradio";
+>> +	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+>> +		return "pcm-capture";
+>> +	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+>> +		return "pcm-playback";
+>> +	case MEDIA_INTF_T_ALSA_CONTROL:
+>> +		return "alsa-control";
+>> +	case MEDIA_INTF_T_ALSA_COMPRESS:
+>> +		return "compress";
+>> +	case MEDIA_INTF_T_ALSA_RAWMIDI:
+>> +		return "rawmidi";
+>> +	case MEDIA_INTF_T_ALSA_HWDEP:
+>> +		return "hwdep";
+>>  	default:
+>>  		return "unknown-intf";
+>>  	}
+>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>> index cacfceb..75cbe92 100644
+>> --- a/include/uapi/linux/media.h
+>> +++ b/include/uapi/linux/media.h
+>> @@ -252,6 +252,7 @@ struct media_links_enum {
+>>  
+>>  #define MEDIA_INTF_T_DVB_BASE	0x00000100
+>>  #define MEDIA_INTF_T_V4L_BASE	0x00000200
+>> +#define MEDIA_INTF_T_ALSA_BASE	0x00000300
+>>  
+>>  /* Interface types */
+>>  
+>> @@ -267,6 +268,13 @@ struct media_links_enum {
+>>  #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+>>  #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+>>  
+>> +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
+>> +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
+>> +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
+>> +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
+>> +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+>> +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+> 
+> Patch looks ok, but please document the new media interfaces at KernelDoc
+> documentation.
+> 
 
-We use a custom imx6 based board with a canera sensor on it.
-I have written the driver for the camera sensor, based on
-the freescale so-called "3.10" and even "3.14" linux versions.
+Hi Takashi,
 
-The camera works perfectly, but we would like to switch to
-a mainline kernel for all the usual reasons (including being
-able to contribute our fixes).
+If you are okay with these changes, could you please
+Ack this patch. I am addressing documentation comment
+from Mauro.
 
->From an old mail thread (*), I have found two git repositories
-that used to contain not-yet-approved versions of mainline
-imx6 ipu-v3 drivers :
+thanks,
+-- Shuah
+>> +
+>>  /*
+>>   * MC next gen API definitions
+>>   *
 
-git://git.pengutronix.de/git/pza/linux.git test/nitrogen6x-ipu-media
-https://github.com:slongerbeam/mediatree.git, mx6-camera-staging
-
-I have tried to compile them with the imx_v6_v7_defconfig, but both
-fail directly at compile time. because of later changes in the
-v4l2_subdev infrastructure, not ported to the those branches.
-Can someone point me to compilable versions (either not rebased
-versions of those branches, or updated versions of those branches,
-or yet another place to look at). ?
-
-Thanks in advance
-
-Philippe
-
-(*) http://linux-media.vger.kernel.narkive.com/cZQ8NrZ2/i-mx6-status-for-ipu-vpu-gpu
 
 -- 
-Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
