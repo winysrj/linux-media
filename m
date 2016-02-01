@@ -1,121 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:34398 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcBOPHX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 10:07:23 -0500
-Received: by mail-ig0-f180.google.com with SMTP id g6so10834433igt.1
-        for <linux-media@vger.kernel.org>; Mon, 15 Feb 2016 07:07:23 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:39269 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932065AbcBAM74 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Feb 2016 07:59:56 -0500
+Date: Mon, 1 Feb 2016 10:59:45 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Subject: Re: [v4l-utils PATCH 1/2] v4l: libv4l1, libv4l2: Use $(mkdir_p)
+ instead of deprecated $(MKDIR_P)
+Message-ID: <20160201105945.20dd5087@recife.lan>
+In-Reply-To: <1453725684-4561-2-git-send-email-sakari.ailus@linux.intel.com>
+References: <1453725684-4561-1-git-send-email-sakari.ailus@linux.intel.com>
+	<1453725684-4561-2-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPAw7H6VbSp2HT=1y-FBYLCkwXTtf2nFGbUhUz1QxxyYVB751w@mail.gmail.com>
-References: <CAPAw7H6VbSp2HT=1y-FBYLCkwXTtf2nFGbUhUz1QxxyYVB751w@mail.gmail.com>
-Date: Mon, 15 Feb 2016 12:07:23 -0300
-Message-ID: <CAPAw7H6uo8nyUS22T5goq50gNCGQX=MZz4kxsD2nNi1hdCVYXQ@mail.gmail.com>
-Subject: Fwd: Geniatech Hybrid SBTD-T USB doesn't work
-From: =?UTF-8?Q?Rodrigo_Sep=C3=BAlveda_Heerwagen?=
-	<rodrigo.sepulveda@lox.cl>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I'd like to install a Geniatech Hybrid SBTD-T USB on Ubuntu 14.04,
-x86_64, with kernel 3.13.0-76-generic, but I can't make it work.
+Em Mon, 25 Jan 2016 14:41:23 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-Here you'll see some outputs:
+> autoconf thinks $(MKDIR_P) is deprecated. Use $(mkdir_p) instead.
 
-$ lsusb
-Bus 001 Device 009: ID 1f4d:6650 G-Tek Electronics Group
+Did you get any troubles with the deprecated macro?
 
-$ dmesg
-[ 6096.458022] usb 1-3: new high-speed USB device number 9 using ehci-pci
-[ 6096.597391] usb 1-3: New USB device found, idVendor=1f4d, idProduct=6650
-[ 6096.597408] usb 1-3: New USB device strings: Mfr=16, Product=32,
-SerialNumber=64
-[ 6096.597417] usb 1-3: Product: Hybrid SBTD-T USB
-[ 6096.597425] usb 1-3: Manufacturer: Geniatech
-[ 6096.597433] usb 1-3: SerialNumber: 2004090820040908
-
-I ran these commands to make it work:
-
-$ sudo apt-get install linux-headers-`uname -r` linux-image-`uname -r`
-build-essential dvb-apps git
-$ git clone git://linuxtv.org/media_build.git
-$ cd media_build
-$ ./build
-$ sudo make install
-$ modprobe dvb-usb-dib0700
-
-And when I tried to scan a channel list, nothing happens:
-
-$ scan channels.conf > digitalchannels.conf
-scanning channels.conf
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-main:2745: FATAL: failed to open '/dev/dvb/adapter0/frontend0': 2 No
-such file or directory
-
-Content of channels.conf...
---
-T 473142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 14
-T 479142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 15
-T 485142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 16
-T 491142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 17
-T 497142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 18
-T 503142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 19
-T 509142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 20
-T 515142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 21
-T 521142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 22
-T 527142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 23
-T 533142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 24
-T 539142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 25
-T 545142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 26
-T 551142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 27
-T 557142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 28
-T 563142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 29
-T 569142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 30
-T 575142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 31
-T 581142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 32
-T 587142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 33
-T 593142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 34
-T 599142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 35
-T 605142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 36
-# canal 37 no se usa
-T 617142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 38
-T 623142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 39
-T 629142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 40
-T 635142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 41
-T 641142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 42
-T 647142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 43
-T 653142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 44
-T 659142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 45
-T 665142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 46
-T 671142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 47
-T 677142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 48
-T 683142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 49
-T 689142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 50
-T 695142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 51
-T 701142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 52
-T 707142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 53
-T 713142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 54
-T 719142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 55
-T 725142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 56
-T 731142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 57
-T 737142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 58
-T 743142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 59
-T 749142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 60
-T 755142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 61
-T 761142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 62
-T 767142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 63
-T 773142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 64
-T 779142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 65
-T 785142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 66
-T 791142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 67
-T 797142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 68
-T 803142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 69
---
-
-Please help me with this. Thanks in advance.
+At least here (version 2.69), I don't see any error by using $(MKDIR_P).
 
 Regards,
-Rodrigo S.
+Mauro
+
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  lib/libv4l1/Makefile.am | 2 +-
+>  lib/libv4l2/Makefile.am | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/lib/libv4l1/Makefile.am b/lib/libv4l1/Makefile.am
+> index 005ae10..f768eaa 100644
+> --- a/lib/libv4l1/Makefile.am
+> +++ b/lib/libv4l1/Makefile.am
+> @@ -7,7 +7,7 @@ if WITH_V4L_WRAPPERS
+>  libv4l1priv_LTLIBRARIES = v4l1compat.la
+>  
+>  install-exec-hook:
+> -	$(MKDIR_P) $(DESTDIR)/$(libdir)
+> +	$(mkdir_p) $(DESTDIR)/$(libdir)
+>  	(cd $(DESTDIR)/$(libdir) && rm -f v4l1compat.so && $(LN_S) $(libv4l1subdir)/v4l1compat.so v4l1compat.so)
+>  
+>  endif
+> diff --git a/lib/libv4l2/Makefile.am b/lib/libv4l2/Makefile.am
+> index b6f4d3b..1314a99 100644
+> --- a/lib/libv4l2/Makefile.am
+> +++ b/lib/libv4l2/Makefile.am
+> @@ -7,7 +7,7 @@ if WITH_V4L_WRAPPERS
+>  libv4l2priv_LTLIBRARIES = v4l2convert.la
+>  
+>  install-exec-hook:
+> -	$(MKDIR_P) $(DESTDIR)/$(libdir)
+> +	$(mkdir_p) $(DESTDIR)/$(libdir)
+>  	(cd $(DESTDIR)/$(libdir) && rm -f v4l2convert.so && $(LN_S) $(libv4l2subdir)/v4l2convert.so v4l2convert.so)
+>  
+>  endif
