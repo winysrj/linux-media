@@ -1,55 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58854 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750698AbcBHI5G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2016 03:57:06 -0500
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 8372C6009F
-	for <linux-media@vger.kernel.org>; Mon,  8 Feb 2016 10:57:02 +0200 (EET)
-Date: Mon, 8 Feb 2016 10:57:02 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT FIXES for v4.5] Error handling fixes
-Message-ID: <20160208085702.GF32612@valkosipuli.retiisi.org.uk>
+Received: from mail-ig0-f169.google.com ([209.85.213.169]:35865 "EHLO
+	mail-ig0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752044AbcBAJHP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 04:07:15 -0500
+Received: by mail-ig0-f169.google.com with SMTP id z14so30121863igp.1
+        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2016 01:07:15 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <56AF13EA.2070206@xs4all.nl>
+References: <CAJ2oMh+yZ4KEpq36HgrdHW4FkvQmZ4T_tD7XUGKs0a9K=otMnw@mail.gmail.com>
+	<CAJ2oMhK+RS2Z2GVGbo3X_Ov5gWxiCRRvpT6T6YgfVKmp2rM4ew@mail.gmail.com>
+	<56AF13EA.2070206@xs4all.nl>
+Date: Mon, 1 Feb 2016 11:07:15 +0200
+Message-ID: <CAJ2oMh+5_8Ngtn3G2HxFKw3su-rgQuyUYqjN5oOmgekW2cTrNA@mail.gmail.com>
+Subject: Re: OS freeze after queue_setup
+From: Ran Shalit <ranshalit@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, Feb 1, 2016 at 10:14 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>
+> On 02/01/2016 09:00 AM, Ran Shalit wrote:
+>> On Sun, Jan 31, 2016 at 10:35 PM, Ran Shalit <ranshalit@gmail.com> wrote:
+>>> Hello,
+>>>
+>>> Maybe someone will have some idea about the following:
+>>> I am using a pci card (not video card, just some dummy pci card), to
+>>> check v4l2 template for PCIe card (I used solo6x10 as template for the
+>>> driver and moved all hardware related to video into remarks).
+>>> I don't use any register read/write to hardware (just dummy functions).
+>>>
+>>> I get that load/unload of module is successful.
+>>> But on trying to start reading video frames (using read method with
+>>> v4l API userspace example), I get that the whole operating system is
+>>> freezed, and I must reboot the machine.
+>>> This is the queue_setup callback:
+>>>
+>>> static int test_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+>>>   unsigned int *num_buffers, unsigned int *num_planes,
+>>>   unsigned int sizes[], void *alloc_ctxs[])
+>>> {
+>>> struct test_dev *solo_dev = vb2_get_drv_priv(q);
+>>> dev_info(&test_dev->pdev->dev,"test_queue_setup\n");
+>>> sizes[0] = test_image_size(test_dev);
+>>> alloc_ctxs[0] = solo_dev->alloc_ctx;
+>>> *num_planes = 1;
+>>>
+>>> if (*num_buffers < MIN_VID_BUFFERS)
+>>> *num_buffers = MIN_VID_BUFFERS;
+>>>
+>>> return 0;
+>>> }
+>>>
+>>> static const struct vb2_ops test_video_qops = {
+>>> .queue_setup = test_queue_setup,
+>>> .buf_queue = test_buf_queue,
+>>> .start_streaming = test_start_streaming, <- does nothing
+>>> .stop_streaming = test_stop_streaming, <- does nothing
+>>> .wait_prepare = vb2_ops_wait_prepare,
+>>> .wait_finish = vb2_ops_wait_finish,
+>>> };
+>>>
+>>>
+>>> I didn't find anything suspicious in the videobuf2 callback that can
+>>> explain these freeze.( start_streaming,stop_streaming contains just
+>>> printk with function name).
+>>> I also can't know where it got stuck (The system is freezed without
+>>> any logging on screen, all log is in dmesg).
+>>>
+>>> Thank for any idea,
+>>> Ran
+>>
+>> On start reading frames (using read or mmap method), it seems as if
+>> there is some collisions between the pci video card and another card
+>> (becuase the monitor is also printed with strange colors as the moment
+>> the OS freezes) .
+>> I validated again that the PCIe boards IDs in the table are correct
+>> (it matches only the dummy pcie card when it is  connected ).
+>> I also tried to comment out the irq request, to be sure that there is
+>> no irq collision with another board, but it still get freezed anyway.
+>
+> I can't tell anything from this, I'd need to see the full source.
+>
+> Regards,
+>
+>         Hans
 
-Here are two patches for error handling fixes in adp1653 and davinci_vpfe
-drivers. Please pull.
+Thank you Hans,
+The source code base on solo6x10 as template , and kernel 3.10.0.229
+(I needed to use this kernel version instead of latest as start point
+because of other pacakge , Intel's media sdk encoder ) :
 
+https://drive.google.com/file/d/0B22GsWueReZTSElIUEJJSHplUVU/view?usp=sharing
+- This package compiled with the makefile
+- relevant changes are in solo6x10-core.c & solo6x10-v4l2.c
 
-The following changes since commit 1f2c450185b7b8d50d38d37ee30387ff4cd337f8:
-
-  [media] vb2-core: call threadio->fnc() if !VB2_BUF_STATE_ERROR (2016-02-04 09:15:51 -0200)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git fixes
-
-for you to fetch changes up to ffc649a3bbe2274071874ea1613bdba9d72932ec:
-
-  media: i2c/adp1653: probe: fix erroneous return value (2016-02-07 20:05:47 +0200)
-
-----------------------------------------------------------------
-Anton Protopopov (1):
-      media: i2c/adp1653: probe: fix erroneous return value
-
-Wei Yongjun (1):
-      media: davinci_vpfe: fix missing unlock on error in vpfe_prepare_pipeline()
-
- drivers/media/i2c/adp1653.c                     | 2 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Best Regards,
+Ran
