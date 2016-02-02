@@ -1,130 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:35527 "EHLO
-	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753795AbcBALRA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 06:17:00 -0500
-Received: by mail-io0-f176.google.com with SMTP id d63so136005739ioj.2
-        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2016 03:16:59 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:50927 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754893AbcBBXSH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2016 18:18:07 -0500
+Subject: Re: [PATCH] media: Media Controller fix to not let stream_count go
+ negative
+To: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@osg.samsung.com
+References: <1454184652-2427-1-git-send-email-shuahkh@osg.samsung.com>
+ <20160202225321.GS14876@valkosipuli.retiisi.org.uk>
+ <56B13612.1050101@osg.samsung.com>
+ <20160202230908.GT14876@valkosipuli.retiisi.org.uk>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56B1392D.6070800@osg.samsung.com>
+Date: Tue, 2 Feb 2016 16:18:05 -0700
 MIME-Version: 1.0
-In-Reply-To: <56AF2DB9.8010609@xs4all.nl>
-References: <CAJ2oMh+yZ4KEpq36HgrdHW4FkvQmZ4T_tD7XUGKs0a9K=otMnw@mail.gmail.com>
-	<CAJ2oMhK+RS2Z2GVGbo3X_Ov5gWxiCRRvpT6T6YgfVKmp2rM4ew@mail.gmail.com>
-	<56AF13EA.2070206@xs4all.nl>
-	<CAJ2oMh+5_8Ngtn3G2HxFKw3su-rgQuyUYqjN5oOmgekW2cTrNA@mail.gmail.com>
-	<56AF2DB9.8010609@xs4all.nl>
-Date: Mon, 1 Feb 2016 13:16:59 +0200
-Message-ID: <CAJ2oMh+PYXFq__PhzQa72Rtaa0hddtmNBs1evWX3RKRWZK_Mkw@mail.gmail.com>
-Subject: Re: OS freeze after queue_setup
-From: Ran Shalit <ranshalit@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20160202230908.GT14876@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 1, 2016 at 12:04 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
->
-> On 02/01/2016 10:07 AM, Ran Shalit wrote:
->> On Mon, Feb 1, 2016 at 10:14 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On 02/02/2016 04:09 PM, Sakari Ailus wrote:
+> Hi Shuah,
+> 
+> On Tue, Feb 02, 2016 at 04:04:50PM -0700, Shuah Khan wrote:
+>> On 02/02/2016 03:53 PM, Sakari Ailus wrote:
+>>> Hi Shuah,
 >>>
->>>
->>> On 02/01/2016 09:00 AM, Ran Shalit wrote:
->>>> On Sun, Jan 31, 2016 at 10:35 PM, Ran Shalit <ranshalit@gmail.com> wrote:
->>>>> Hello,
->>>>>
->>>>> Maybe someone will have some idea about the following:
->>>>> I am using a pci card (not video card, just some dummy pci card), to
->>>>> check v4l2 template for PCIe card (I used solo6x10 as template for the
->>>>> driver and moved all hardware related to video into remarks).
->>>>> I don't use any register read/write to hardware (just dummy functions).
->>>>>
->>>>> I get that load/unload of module is successful.
->>>>> But on trying to start reading video frames (using read method with
->>>>> v4l API userspace example), I get that the whole operating system is
->>>>> freezed, and I must reboot the machine.
->>>>> This is the queue_setup callback:
->>>>>
->>>>> static int test_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
->>>>>   unsigned int *num_buffers, unsigned int *num_planes,
->>>>>   unsigned int sizes[], void *alloc_ctxs[])
->>>>> {
->>>>> struct test_dev *solo_dev = vb2_get_drv_priv(q);
->>>>> dev_info(&test_dev->pdev->dev,"test_queue_setup\n");
->>>>> sizes[0] = test_image_size(test_dev);
->>>>> alloc_ctxs[0] = solo_dev->alloc_ctx;
->>>>> *num_planes = 1;
->>>>>
->>>>> if (*num_buffers < MIN_VID_BUFFERS)
->>>>> *num_buffers = MIN_VID_BUFFERS;
->>>>>
->>>>> return 0;
->>>>> }
->>>>>
->>>>> static const struct vb2_ops test_video_qops = {
->>>>> .queue_setup = test_queue_setup,
->>>>> .buf_queue = test_buf_queue,
->>>>> .start_streaming = test_start_streaming, <- does nothing
->>>>> .stop_streaming = test_stop_streaming, <- does nothing
->>>>> .wait_prepare = vb2_ops_wait_prepare,
->>>>> .wait_finish = vb2_ops_wait_finish,
->>>>> };
->>>>>
->>>>>
->>>>> I didn't find anything suspicious in the videobuf2 callback that can
->>>>> explain these freeze.( start_streaming,stop_streaming contains just
->>>>> printk with function name).
->>>>> I also can't know where it got stuck (The system is freezed without
->>>>> any logging on screen, all log is in dmesg).
->>>>>
->>>>> Thank for any idea,
->>>>> Ran
+>>> On Sat, Jan 30, 2016 at 01:10:52PM -0700, Shuah Khan wrote:
+>>>> Change media_entity_pipeline_stop() to not decrement
+>>>> stream_count of an inactive media pipeline. Doing so,
+>>>> results in preventing starting the pipeline.
 >>>>
->>>> On start reading frames (using read or mmap method), it seems as if
->>>> there is some collisions between the pci video card and another card
->>>> (becuase the monitor is also printed with strange colors as the moment
->>>> the OS freezes) .
->>>> I validated again that the PCIe boards IDs in the table are correct
->>>> (it matches only the dummy pcie card when it is  connected ).
->>>> I also tried to comment out the irq request, to be sure that there is
->>>> no irq collision with another board, but it still get freezed anyway.
+>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>>> ---
+>>>>  drivers/media/media-entity.c | 18 ++++++++++++------
+>>>>  1 file changed, 12 insertions(+), 6 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>>>> index e89d85a..f2e4360 100644
+>>>> --- a/drivers/media/media-entity.c
+>>>> +++ b/drivers/media/media-entity.c
+>>>> @@ -452,9 +452,12 @@ error:
+>>>>  	media_entity_graph_walk_start(graph, entity_err);
+>>>>  
+>>>>  	while ((entity_err = media_entity_graph_walk_next(graph))) {
+>>>> -		entity_err->stream_count--;
+>>>> -		if (entity_err->stream_count == 0)
+>>>> -			entity_err->pipe = NULL;
+>>>> +		/* don't let the stream_count go negative */
+>>>> +		if (entity->stream_count > 0) {
+>>>> +			entity_err->stream_count--;
+>>>> +			if (entity_err->stream_count == 0)
+>>>> +				entity_err->pipe = NULL;
+>>>> +		}
+>>>>  
+>>>>  		/*
+>>>>  		 * We haven't increased stream_count further than this
+>>>> @@ -486,9 +489,12 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+>>>>  	media_entity_graph_walk_start(graph, entity);
+>>>>  
+>>>>  	while ((entity = media_entity_graph_walk_next(graph))) {
+>>>> -		entity->stream_count--;
+>>>> -		if (entity->stream_count == 0)
+>>>> -			entity->pipe = NULL;
+>>>> +		/* don't let the stream_count go negative */
+>>>> +		if (entity->stream_count > 0) {
+>>>> +			entity->stream_count--;
+>>>> +			if (entity->stream_count == 0)
+>>>> +				entity->pipe = NULL;
+>>>> +		}
+>>>>  	}
+>>>>  
+>>>>  	if (!--pipe->streaming_count)
 >>>
->>> I can't tell anything from this, I'd need to see the full source.
+>>> Have you seen issues with a certain driver, for instance?
 >>>
->>> Regards,
+>>> In the original design the streaming count is really a count --- streaming
+>>> starts when count becomes non-zero, and stops when it reaches zero again.
 >>>
->>>         Hans
+>>> The calls to media_entity_pipeline_start() and media_entity_pipeline_stop()
+>>> should thus always be balanced. I'm fine with the patch, but the framework
+>>> should shout loud when the count would be decremented when it's zero.
+>>>
+>>> That was some four or more years ago. I have to say I really haven't been
+>>> able to see good reasons for making this a count --- rather what's needed is
+>>> to mark the entity as busy so that its link configuration isn't touched. The
+>>> request API is a completely different matter then.
+>>>
+>>> Such change would require more discussion IMHO.
+>>>
 >>
->> Thank you Hans,
->> The source code base on solo6x10 as template , and kernel 3.10.0.229
->> (I needed to use this kernel version instead of latest as start point
->> because of other pacakge , Intel's media sdk encoder ) :
+>> Yes. I found problems with au0828 and ALSA
+>> media controller use-case. It got into a state
+>> where pipeline was essentially locked in a state.
+>> It took some work to debug and find that the
+>> stream_count was negative.
 >>
->> https://drive.google.com/file/d/0B22GsWueReZTSElIUEJJSHplUVU/view?usp=sharing
->> - This package compiled with the makefile
->> - relevant changes are in solo6x10-core.c & solo6x10-v4l2.c
->
-> It would certainly help if you don't try to enable interrupts on your pci
-> card. Basically, don't touch the pci at all. The only purpose of using a
-> dummy PCI card is that your template driver is loaded. But touching the hardware
-> will of course have bad results since it isn't video hardware.
->
-> Frankly, why not just take the v4l2-pci-skeleton.c as your template instead
-> of trying to strip down the solo driver? The skeleton driver is already stripped
-> down!
->
-> Much easier.
->
-> Regards,
->
->         Hans
+>> Granted the start and stop should be balanced, however,
+>> the media_entity_pipeline_stop() still needs to protect
+>> the stream_count from going negative.
+> 
+> Agreed; I'm fine with the patch, except I think it should complain when that
+> happens rather than silently ignoring it.
+> 
+> WARN_ON(1) perhaps? Or how about dev_err() loudly complaining about a driver
+> bug?
+> 
 
-Hi Hans,
+Yes. I can add a WARN_ON(1). Looks like we are using
+it in other places in media-entity.c
 
-Thank you for the suggestions.
-I've tried the skeleton and I got the same behaviour.
-When using vivid device, it works (frame reading) without any issues.
-Since the whole system freezes its hard to know the exact problem.
+thanks,
+-- Shuah
 
-Regards,
-Ran
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
