@@ -1,69 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cust-smtp-lb.metrocast.net ([65.175.128.166]:40763 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753885AbcBVU2z (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33312 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751705AbcBBEBL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 15:28:55 -0500
-In-Reply-To: <6a4d1872a94ba8450c9aff6599d1e86b515fd2a9.1456167652.git.mchehab@osg.samsung.com>
-References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com><4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com> <6a4d1872a94ba8450c9aff6599d1e86b515fd2a9.1456167652.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain;
- charset=UTF-8
-Subject: Re: [PATCH 9/9] ivtv-mailbox: avoid confusing smatch
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Mon, 22 Feb 2016 15:22:57 -0500
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-ID: <79AC97AC-35F8-4EF2-8ABB-FA23FC52F1BC@md.metrocast.net>
+	Mon, 1 Feb 2016 23:01:11 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 03DEB180C4C
+	for <linux-media@vger.kernel.org>; Tue,  2 Feb 2016 05:01:06 +0100 (CET)
+Date: Tue, 02 Feb 2016 05:01:05 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160202040106.03DEB180C4C@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On February 22, 2016 2:09:23 PM EST, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
->The current logic causes smatch to be confused:
->	include/linux/jiffies.h:359:41: error: strange non-value function or
->array
->	include/linux/jiffies.h:361:42: error: strange non-value function or
->array
->	include/linux/jiffies.h:359:41: error: strange non-value function or
->array
->	include/linux/jiffies.h:361:42: error: strange non-value function or
->array
->
->Use a different logic.
->
->Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->---
-> drivers/media/pci/ivtv/ivtv-mailbox.c | 6 ++++--
-> 1 file changed, 4 insertions(+), 2 deletions(-)
->
->diff --git a/drivers/media/pci/ivtv/ivtv-mailbox.c
->b/drivers/media/pci/ivtv/ivtv-mailbox.c
->index e3ce96763785..4d6a3ad265a5 100644
->--- a/drivers/media/pci/ivtv/ivtv-mailbox.c
->+++ b/drivers/media/pci/ivtv/ivtv-mailbox.c
->@@ -177,8 +177,10 @@ static int get_mailbox(struct ivtv *itv, struct
->ivtv_mailbox_data *mbdata, int f
-> 
-> 		/* Sleep before a retry, if not atomic */
-> 		if (!(flags & API_NO_WAIT_MB)) {
->-			if (time_after(jiffies,
->-				       then + msecs_to_jiffies(10*retries)))
->+			unsigned int timeout;
->+
->+			timeout = msecs_to_jiffies(10 * retries);
->+			if (time_after(jiffies, then + timeout))
-> 			       break;
-> 			ivtv_msleep_timeout(10, 0);
-> 		}
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Hi:
+Results of the daily build of media_tree:
 
-then is an unsigned long.
-msecs_to_jiffies() returns an unsigned long.
+date:		Tue Feb  2 04:00:31 CET 2016
+git branch:	test
+git hash:	6b3f99989eb73e5250bba9dfeaa852939acfbf70
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.3.0-164
 
-timeout should be an unsigned long.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
-Regards,
-Andy
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
