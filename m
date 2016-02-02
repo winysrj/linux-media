@@ -1,268 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:43173 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965536AbcBDEET (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:19 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v2 11/22] media: dvb-frontend invoke enable/disable_source handlers
-Date: Wed,  3 Feb 2016 21:03:43 -0700
-Message-Id: <a404ddaef8fbfbc291d5afa013888fbc239cde8e.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44396 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750927AbcBBXJL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2016 18:09:11 -0500
+Date: Wed, 3 Feb 2016 01:09:08 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: Media Controller fix to not let stream_count go
+ negative
+Message-ID: <20160202230908.GT14876@valkosipuli.retiisi.org.uk>
+References: <1454184652-2427-1-git-send-email-shuahkh@osg.samsung.com>
+ <20160202225321.GS14876@valkosipuli.retiisi.org.uk>
+ <56B13612.1050101@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56B13612.1050101@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change dvb frontend to check if tuner is free when
-device opened in RW mode. Call to enable_source
-handler either returns with an active pipeline to
-tuner or error if tuner is busy. Tuner is released
-when frontend is released calling the disable_source
-handler.
+Hi Shuah,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 139 +++++-----------------------------
- drivers/media/dvb-core/dvb_frontend.h |   3 +
- 2 files changed, 24 insertions(+), 118 deletions(-)
+On Tue, Feb 02, 2016 at 04:04:50PM -0700, Shuah Khan wrote:
+> On 02/02/2016 03:53 PM, Sakari Ailus wrote:
+> > Hi Shuah,
+> > 
+> > On Sat, Jan 30, 2016 at 01:10:52PM -0700, Shuah Khan wrote:
+> >> Change media_entity_pipeline_stop() to not decrement
+> >> stream_count of an inactive media pipeline. Doing so,
+> >> results in preventing starting the pipeline.
+> >>
+> >> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> >> ---
+> >>  drivers/media/media-entity.c | 18 ++++++++++++------
+> >>  1 file changed, 12 insertions(+), 6 deletions(-)
+> >>
+> >> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> >> index e89d85a..f2e4360 100644
+> >> --- a/drivers/media/media-entity.c
+> >> +++ b/drivers/media/media-entity.c
+> >> @@ -452,9 +452,12 @@ error:
+> >>  	media_entity_graph_walk_start(graph, entity_err);
+> >>  
+> >>  	while ((entity_err = media_entity_graph_walk_next(graph))) {
+> >> -		entity_err->stream_count--;
+> >> -		if (entity_err->stream_count == 0)
+> >> -			entity_err->pipe = NULL;
+> >> +		/* don't let the stream_count go negative */
+> >> +		if (entity->stream_count > 0) {
+> >> +			entity_err->stream_count--;
+> >> +			if (entity_err->stream_count == 0)
+> >> +				entity_err->pipe = NULL;
+> >> +		}
+> >>  
+> >>  		/*
+> >>  		 * We haven't increased stream_count further than this
+> >> @@ -486,9 +489,12 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+> >>  	media_entity_graph_walk_start(graph, entity);
+> >>  
+> >>  	while ((entity = media_entity_graph_walk_next(graph))) {
+> >> -		entity->stream_count--;
+> >> -		if (entity->stream_count == 0)
+> >> -			entity->pipe = NULL;
+> >> +		/* don't let the stream_count go negative */
+> >> +		if (entity->stream_count > 0) {
+> >> +			entity->stream_count--;
+> >> +			if (entity->stream_count == 0)
+> >> +				entity->pipe = NULL;
+> >> +		}
+> >>  	}
+> >>  
+> >>  	if (!--pipe->streaming_count)
+> > 
+> > Have you seen issues with a certain driver, for instance?
+> > 
+> > In the original design the streaming count is really a count --- streaming
+> > starts when count becomes non-zero, and stops when it reaches zero again.
+> > 
+> > The calls to media_entity_pipeline_start() and media_entity_pipeline_stop()
+> > should thus always be balanced. I'm fine with the patch, but the framework
+> > should shout loud when the count would be decremented when it's zero.
+> > 
+> > That was some four or more years ago. I have to say I really haven't been
+> > able to see good reasons for making this a count --- rather what's needed is
+> > to mark the entity as busy so that its link configuration isn't touched. The
+> > request API is a completely different matter then.
+> > 
+> > Such change would require more discussion IMHO.
+> > 
+> 
+> Yes. I found problems with au0828 and ALSA
+> media controller use-case. It got into a state
+> where pipeline was essentially locked in a state.
+> It took some work to debug and find that the
+> stream_count was negative.
+> 
+> Granted the start and stop should be balanced, however,
+> the media_entity_pipeline_stop() still needs to protect
+> the stream_count from going negative.
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 03cc508..2b17e8b 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -131,11 +131,6 @@ struct dvb_frontend_private {
- 	int quality;
- 	unsigned int check_wrapped;
- 	enum dvbfe_search algo_status;
--
--#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
--	struct media_pipeline pipe;
--	struct media_entity *pipe_start_entity;
--#endif
- };
- 
- static void dvb_frontend_wakeup(struct dvb_frontend *fe);
-@@ -596,104 +591,12 @@ static void dvb_frontend_wakeup(struct dvb_frontend *fe)
- 	wake_up_interruptible(&fepriv->wait_queue);
- }
- 
--/**
-- * dvb_enable_media_tuner() - tries to enable the DVB tuner
-- *
-- * @fe:		struct dvb_frontend pointer
-- *
-- * This function ensures that just one media tuner is enabled for a given
-- * frontend. It has two different behaviors:
-- * - For trivial devices with just one tuner:
-- *   it just enables the existing tuner->fe link
-- * - For devices with more than one tuner:
-- *   It is up to the driver to implement the logic that will enable one tuner
-- *   and disable the other ones. However, if more than one tuner is enabled for
-- *   the same frontend, it will print an error message and return -EINVAL.
-- *
-- * At return, it will return the error code returned by media_entity_setup_link,
-- * or 0 if everything is OK, if no tuner is linked to the frontend or if the
-- * mdev is NULL.
-- */
--#ifdef CONFIG_MEDIA_CONTROLLER_DVB
--static int dvb_enable_media_tuner(struct dvb_frontend *fe)
--{
--	struct dvb_frontend_private *fepriv = fe->frontend_priv;
--	struct dvb_adapter *adapter = fe->dvb;
--	struct media_device *mdev = adapter->mdev;
--	struct media_entity  *entity, *source;
--	struct media_link *link, *found_link = NULL;
--	int ret, n_links = 0, active_links = 0;
--
--	fepriv->pipe_start_entity = NULL;
--
--	if (!mdev)
--		return 0;
--
--	entity = fepriv->dvbdev->entity;
--	fepriv->pipe_start_entity = entity;
--
--	list_for_each_entry(link, &entity->links, list) {
--		if (link->sink->entity == entity) {
--			found_link = link;
--			n_links++;
--			if (link->flags & MEDIA_LNK_FL_ENABLED)
--				active_links++;
--		}
--	}
--
--	if (!n_links || active_links == 1 || !found_link)
--		return 0;
--
--	/*
--	 * If a frontend has more than one tuner linked, it is up to the driver
--	 * to select with one will be the active one, as the frontend core can't
--	 * guess. If the driver doesn't do that, it is a bug.
--	 */
--	if (n_links > 1 && active_links != 1) {
--		dev_err(fe->dvb->device,
--			"WARNING: there are %d active links among %d tuners. This is a driver's bug!\n",
--			active_links, n_links);
--		return -EINVAL;
--	}
--
--	source = found_link->source->entity;
--	fepriv->pipe_start_entity = source;
--	list_for_each_entry(link, &source->links, list) {
--		struct media_entity *sink;
--		int flags = 0;
--
--		sink = link->sink->entity;
--		if (sink == entity)
--			flags = MEDIA_LNK_FL_ENABLED;
--
--		ret = media_entity_setup_link(link, flags);
--		if (ret) {
--			dev_err(fe->dvb->device,
--				"Couldn't change link %s->%s to %s. Error %d\n",
--				source->name, sink->name,
--				flags ? "enabled" : "disabled",
--				ret);
--			return ret;
--		} else
--			dev_dbg(fe->dvb->device,
--				"link %s->%s was %s\n",
--				source->name, sink->name,
--				flags ? "ENABLED" : "disabled");
--	}
--	return 0;
--}
--#endif
--
- static int dvb_frontend_thread(void *data)
- {
- 	struct dvb_frontend *fe = data;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	enum fe_status s;
- 	enum dvbfe_algo algo;
--#ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	int ret;
--#endif
--
- 	bool re_tune = false;
- 	bool semheld = false;
- 
-@@ -706,20 +609,6 @@ static int dvb_frontend_thread(void *data)
- 	fepriv->wakeup = 0;
- 	fepriv->reinitialise = 0;
- 
--#ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	ret = dvb_enable_media_tuner(fe);
--	if (ret) {
--		/* FIXME: return an error if it fails */
--		dev_info(fe->dvb->device,
--			"proceeding with FE task\n");
--	} else if (fepriv->pipe_start_entity) {
--		ret = media_entity_pipeline_start(fepriv->pipe_start_entity,
--						  &fepriv->pipe);
--		if (ret)
--			return ret;
--	}
--#endif
--
- 	dvb_frontend_init(fe);
- 
- 	set_freezable();
-@@ -829,12 +718,6 @@ restart:
- 		}
- 	}
- 
--#ifdef CONFIG_MEDIA_CONTROLLER_DVB
--	if (fepriv->pipe_start_entity)
--		media_entity_pipeline_stop(fepriv->pipe_start_entity);
--	fepriv->pipe_start_entity = NULL;
--#endif
--
- 	if (dvb_powerdown_on_sleep) {
- 		if (fe->ops.set_voltage)
- 			fe->ops.set_voltage(fe, SEC_VOLTAGE_OFF);
-@@ -2612,9 +2495,20 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
- 		fepriv->tone = -1;
- 		fepriv->voltage = -1;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+		if (fe->dvb->mdev && fe->dvb->mdev->enable_source) {
-+			ret = fe->dvb->mdev->enable_source(dvbdev->entity,
-+							   &fe->pipe);
-+			if (ret) {
-+				dev_err(fe->dvb->device,
-+					"Tuner is busy. Error %d\n", ret);
-+				goto err2;
-+			}
-+		}
-+#endif
- 		ret = dvb_frontend_start (fe);
- 		if (ret)
--			goto err2;
-+			goto err3;
- 
- 		/*  empty event queue */
- 		fepriv->events.eventr = fepriv->events.eventw = 0;
-@@ -2624,7 +2518,12 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
- 		mutex_unlock (&adapter->mfe_lock);
- 	return ret;
- 
-+err3:
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+	if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
-+		fe->dvb->mdev->disable_source(dvbdev->entity);
- err2:
-+#endif
- 	dvb_generic_release(inode, file);
- err1:
- 	if (dvbdev->users == -1 && fe->ops.ts_bus_ctrl)
-@@ -2653,6 +2552,10 @@ static int dvb_frontend_release(struct inode *inode, struct file *file)
- 
- 	if (dvbdev->users == -1) {
- 		wake_up(&fepriv->wait_queue);
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+		if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
-+			fe->dvb->mdev->disable_source(dvbdev->entity);
-+#endif
- 		if (fe->exit != DVB_FE_NO_EXIT)
- 			wake_up(&dvbdev->wait_queue);
- 		if (fe->ops.ts_bus_ctrl)
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index 458bcce..9466906 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -686,6 +686,9 @@ struct dvb_frontend {
- 	int (*callback)(void *adapter_priv, int component, int cmd, int arg);
- 	int id;
- 	unsigned int exit;
-+#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
-+	struct media_pipeline pipe;
-+#endif
- };
- 
- /**
+Agreed; I'm fine with the patch, except I think it should complain when that
+happens rather than silently ignoring it.
+
+WARN_ON(1) perhaps? Or how about dev_err() loudly complaining about a driver
+bug?
+
 -- 
-2.5.0
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
