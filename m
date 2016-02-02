@@ -1,110 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55761 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:50850 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754684AbcBET7G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2016 14:59:06 -0500
-Date: Fri, 5 Feb 2016 17:59:00 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.5-rc3] media fixes
-Message-ID: <20160205175900.3a239ace@recife.lan>
+	id S1753955AbcBBXFD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2016 18:05:03 -0500
+Subject: Re: [PATCH] media: Media Controller fix to not let stream_count go
+ negative
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1454184652-2427-1-git-send-email-shuahkh@osg.samsung.com>
+ <20160202225321.GS14876@valkosipuli.retiisi.org.uk>
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56B13612.1050101@osg.samsung.com>
+Date: Tue, 2 Feb 2016 16:04:50 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160202225321.GS14876@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+On 02/02/2016 03:53 PM, Sakari Ailus wrote:
+> Hi Shuah,
+> 
+> On Sat, Jan 30, 2016 at 01:10:52PM -0700, Shuah Khan wrote:
+>> Change media_entity_pipeline_stop() to not decrement
+>> stream_count of an inactive media pipeline. Doing so,
+>> results in preventing starting the pipeline.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/media-entity.c | 18 ++++++++++++------
+>>  1 file changed, 12 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>> index e89d85a..f2e4360 100644
+>> --- a/drivers/media/media-entity.c
+>> +++ b/drivers/media/media-entity.c
+>> @@ -452,9 +452,12 @@ error:
+>>  	media_entity_graph_walk_start(graph, entity_err);
+>>  
+>>  	while ((entity_err = media_entity_graph_walk_next(graph))) {
+>> -		entity_err->stream_count--;
+>> -		if (entity_err->stream_count == 0)
+>> -			entity_err->pipe = NULL;
+>> +		/* don't let the stream_count go negative */
+>> +		if (entity->stream_count > 0) {
+>> +			entity_err->stream_count--;
+>> +			if (entity_err->stream_count == 0)
+>> +				entity_err->pipe = NULL;
+>> +		}
+>>  
+>>  		/*
+>>  		 * We haven't increased stream_count further than this
+>> @@ -486,9 +489,12 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+>>  	media_entity_graph_walk_start(graph, entity);
+>>  
+>>  	while ((entity = media_entity_graph_walk_next(graph))) {
+>> -		entity->stream_count--;
+>> -		if (entity->stream_count == 0)
+>> -			entity->pipe = NULL;
+>> +		/* don't let the stream_count go negative */
+>> +		if (entity->stream_count > 0) {
+>> +			entity->stream_count--;
+>> +			if (entity->stream_count == 0)
+>> +				entity->pipe = NULL;
+>> +		}
+>>  	}
+>>  
+>>  	if (!--pipe->streaming_count)
+> 
+> Have you seen issues with a certain driver, for instance?
+> 
+> In the original design the streaming count is really a count --- streaming
+> starts when count becomes non-zero, and stops when it reaches zero again.
+> 
+> The calls to media_entity_pipeline_start() and media_entity_pipeline_stop()
+> should thus always be balanced. I'm fine with the patch, but the framework
+> should shout loud when the count would be decremented when it's zero.
+> 
+> That was some four or more years ago. I have to say I really haven't been
+> able to see good reasons for making this a count --- rather what's needed is
+> to mark the entity as busy so that its link configuration isn't touched. The
+> request API is a completely different matter then.
+> 
+> Such change would require more discussion IMHO.
+> 
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.5-3
+Yes. I found problems with au0828 and ALSA
+media controller use-case. It got into a state
+where pipeline was essentially locked in a state.
+It took some work to debug and find that the
+stream_count was negative.
 
-For the following fixes:
-  * vb2: fix a vb2_thread regression and DVB read() breakages;
-  * vsp1: fix compilation and links creation;
-  * s5k6a3: Fix VIDIOC_SUBDEV_G_FMT ioctl for TRY format
-  * exynos4-is: fix a build issue, format negotiation and sensor detection
-  * Fix a regression with pvrusb2 and ir-kbd-i2c
-  * atmel-isi: fix debug message which only show the first format
-  * tda1004x: fix a tuning bug if G_PROPERTY is called too early
-  * saa7134-alsa: fix a bug at device unbinding/driver removal
-  * Fix build of one driver if !HAS_DMA
-  * soc_camera: cleanup control device on async_unbind
+Granted the start and stop should be balanced, however,
+the media_entity_pipeline_stop() still needs to protect
+the stream_count from going negative.
 
-Thanks!
-Mauro
+thanks,
+-- Shuah
 
--
-
-The following changes since commit 92e963f50fc74041b5e9e744c330dca48e04f08d:
-
-  Linux 4.5-rc1 (2016-01-24 13:06:47 -0800)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.5-3
-
-for you to fetch changes up to ac75fe5d8fe4a0bf063be18fb29684405279e79e:
-
-  [media] saa7134-alsa: Only frees registered sound cards (2016-02-04 16:26:10 -0200)
-
-----------------------------------------------------------------
-media fixes for v4.5-rc3
-
-----------------------------------------------------------------
-Anders Roxell (1):
-      [media] drivers/media: vsp1_video: fix compile error
-
-Arnd Bergmann (1):
-      [media] exynos4-is: make VIDEO_SAMSUNG_EXYNOS4_IS tristate
-
-Hans Verkuil (1):
-      [media] vb2: fix nasty vb2_thread regression
-
-Jacek Anaszewski (3):
-      [media] s5k6a3: Fix VIDIOC_SUBDEV_G_FMT ioctl for TRY format
-      [media] exynos4-is: Open shouldn't fail when sensor entity is not linked
-      [media] exynos4-is: Wait for 100us before opening sensor
-
-Javier Martinez Canillas (2):
-      [media] v4l: vsp1: Fix wrong entities links creation
-      [media] media: i2c: Don't export ir-kbd-i2c module alias
-
-Josh Wu (1):
-      [media] atmel-isi: fix debug message which only show the first format
-
-Mauro Carvalho Chehab (3):
-      [media] tda1004x: only update the frontend properties if locked
-      [media] vb2-core: call threadio->fnc() if !VB2_BUF_STATE_ERROR
-      [media] saa7134-alsa: Only frees registered sound cards
-
-Rasmus Villemoes (1):
-      [media] exynos4-is: fix a format string bug
-
-Sudip Mukherjee (1):
-      [media] media: Kconfig: add dependency of HAS_DMA
-
-Wolfram Sang (1):
-      [media] soc_camera: cleanup control device on async_unbind
-
- drivers/media/dvb-frontends/tda1004x.c             |  9 ++
- drivers/media/i2c/ir-kbd-i2c.c                     |  1 -
- drivers/media/i2c/s5k6a3.c                         |  3 +-
- drivers/media/pci/saa7134/saa7134-alsa.c           |  5 +-
- drivers/media/platform/Kconfig                     |  1 +
- drivers/media/platform/exynos4-is/Kconfig          |  2 +-
- drivers/media/platform/exynos4-is/fimc-is.c        |  6 ++
- drivers/media/platform/exynos4-is/fimc-isp-video.c |  4 +-
- drivers/media/platform/exynos4-is/media-dev.c      | 95 +++++++++++++++++-----
- drivers/media/platform/soc_camera/atmel-isi.c      |  2 +-
- drivers/media/platform/soc_camera/soc_camera.c     |  2 +
- drivers/media/platform/vsp1/vsp1_drv.c             |  7 +-
- drivers/media/platform/vsp1/vsp1_video.c           |  2 +-
- drivers/media/v4l2-core/videobuf2-core.c           | 95 ++++++++++------------
- drivers/media/v4l2-core/videobuf2-v4l2.c           |  2 +-
- include/media/videobuf2-core.h                     |  3 +-
- 16 files changed, 155 insertions(+), 84 deletions(-)
-
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
