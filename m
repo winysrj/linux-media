@@ -1,38 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:35670 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046AbcBOLZ1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 06:25:27 -0500
-MIME-Version: 1.0
-In-Reply-To: <370b7726279759abc41a71843c6a59cdb1e5cdb1.1455513464.git.knightrider@are.ma>
-References: <cover.1455513464.git.knightrider@are.ma>
-	<370b7726279759abc41a71843c6a59cdb1e5cdb1.1455513464.git.knightrider@are.ma>
-Date: Mon, 15 Feb 2016 12:25:25 +0100
-Message-ID: <CA+MoWDrra14ZWC-UAhQYMnik69owy8tW0M5uDgzH5+c4=2SygA@mail.gmail.com>
-Subject: Re: [media 1/7] raise adapter number limit
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: info@are.ma
-Cc: linux-media <linux-media@vger.kernel.org>,
-	=?UTF-8?B?0JHRg9C00Lgg0KDQvtC80LDQvdGC0L4sIEFyZU1hIEluYw==?=
-	<knightrider@are.ma>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	mchehab@osg.samsung.com, Hans De Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	mkrufky@linuxtv.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	g.liakhovetski@gmx.de
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from bombadil.infradead.org ([198.137.202.9]:33056 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874AbcBCWcD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 17:32:03 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH] [media] vb2-core: call threadio->fnc() if !VB2_BUF_STATE_ERROR
+Date: Wed,  3 Feb 2016 20:30:46 -0200
+Message-Id: <788b10195174037a7d3d3011c9f2a4a7170bc0a8.1454538542.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 15, 2016 at 7:08 AM,  <info@are.ma> wrote:
-> From: Буди Романто, AreMa Inc <knightrider@are.ma>
->
-> The current limit is too low for latest cards with 8+ tuners on a single slot, change to 64.
->
-> Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
-I think that here goes only your name, not <name>, <company>.
+changeset 70433a152f0 ("media: videobuf2: Refactor vb2_fileio_data
+and vb2_thread") broke videobuf2-dvb.
+
+The root cause is that, instead of calling threadio->fnc() for
+all types of events except for VB2_BUF_STATE_ERROR, it was calling
+it only for VB2_BUF_STATE_DONE.
+
+With that, the DVB thread were never called.
+
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Junghak Sung <jh1009.sung@samsung.com>
+Cc: Matthias Schwarzott <zzam@gentoo.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+
+This patch should be applied after https://patchwork.linuxtv.org/patch/32734/
+
+ drivers/media/v4l2-core/videobuf2-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 27b3ed01ce4d..dab94080ec3a 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2743,7 +2743,7 @@ static int vb2_thread(void *data)
+ 			break;
+ 		try_to_freeze();
+ 
+-		if (vb->state == VB2_BUF_STATE_DONE)
++		if (vb->state != VB2_BUF_STATE_ERROR)
+ 			if (threadio->fnc(vb, threadio->priv))
+ 				break;
+ 		call_void_qop(q, wait_finish, q);
+-- 
+2.5.0
+
+
