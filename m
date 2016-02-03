@@ -1,72 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f51.google.com ([209.85.215.51]:35287 "EHLO
-	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753355AbcBPUSH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2016 15:18:07 -0500
-Received: by mail-lf0-f51.google.com with SMTP id l143so114597195lfe.2
-        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2016 12:18:06 -0800 (PST)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 2/2] cx23885: fix reversed I2C bus numbering
-Date: Tue, 16 Feb 2016 22:17:45 +0200
-Message-Id: <1455653865-13005-2-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1455653865-13005-1-git-send-email-olli.salonen@iki.fi>
-References: <1455653865-13005-1-git-send-email-olli.salonen@iki.fi>
+Received: from lists.s-osg.org ([54.187.51.154]:53437 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751944AbcBCNq4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2016 08:46:56 -0500
+To: Wolfram Sang <wsa@the-dreams.de>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: tvp5150 regression after commit 9f924169c035
+Cc: linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <56B204CB.60602@osg.samsung.com>
+Date: Wed, 3 Feb 2016 10:46:51 -0300
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I2C buses for DVBSky T980C and S950C were numbered in an opposite
-way compared to every other board in the driver. Switch numbering
-to a more logical way.
+Hello Wolfram,
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/pci/cx23885/cx23885-dvb.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+I've a issue with a I2C video decoder driver (drivers/media/i2c/tvp5150.c).
 
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 6e40dec..f041b69 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -1988,8 +1988,8 @@ static int dvb_register(struct cx23885_tsport *port)
- 		break;
- 	case CX23885_BOARD_DVBSKY_T980C:
- 	case CX23885_BOARD_TT_CT2_4500_CI:
--		i2c_bus = &dev->i2c_bus[1];
--		i2c_bus2 = &dev->i2c_bus[0];
-+		i2c_bus = &dev->i2c_bus[0];
-+		i2c_bus2 = &dev->i2c_bus[1];
- 
- 		/* attach frontend */
- 		memset(&si2168_config, 0, sizeof(si2168_config));
-@@ -2001,7 +2001,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 		info.addr = 0x64;
- 		info.platform_data = &si2168_config;
- 		request_module(info.type);
--		client_demod = i2c_new_device(&i2c_bus->i2c_adap, &info);
-+		client_demod = i2c_new_device(&i2c_bus2->i2c_adap, &info);
- 		if (client_demod == NULL || client_demod->dev.driver == NULL)
- 			goto frontend_detach;
- 		if (!try_module_get(client_demod->dev.driver->owner)) {
-@@ -2030,13 +2030,13 @@ static int dvb_register(struct cx23885_tsport *port)
- 		port->i2c_client_tuner = client_tuner;
- 		break;
- 	case CX23885_BOARD_DVBSKY_S950C:
--		i2c_bus = &dev->i2c_bus[1];
--		i2c_bus2 = &dev->i2c_bus[0];
-+		i2c_bus = &dev->i2c_bus[0];
-+		i2c_bus2 = &dev->i2c_bus[1];
- 
- 		/* attach frontend */
- 		fe0->dvb.frontend = dvb_attach(m88ds3103_attach,
- 				&dvbsky_s950c_m88ds3103_config,
--				&i2c_bus->i2c_adap, &adapter);
-+				&i2c_bus2->i2c_adap, &adapter);
- 		if (fe0->dvb.frontend == NULL)
- 			break;
- 
+In v4.5-rc1, the driver gets I2C read / writes timeouts when accessing the
+device I2C registers:
+
+tvp5150 1-005c: i2c i/o error: rc == -110
+tvp5150: probe of 1-005c failed with error -110
+
+The driver used to work up to v4.4 so this is a regression in v4.5-rc1:
+
+tvp5150 1-005c: tvp5151 (1.0) chip found @ 0xb8 (OMAP I2C adapter)
+tvp5150 1-005c: tvp5151 detected.
+
+I tracked down to commit 9f924169c035 ("i2c: always enable RuntimePM for
+the adapter device") and reverting that commit makes things to work again.
+
+The tvp5150 driver doesn't have runtime PM support but the I2C controller
+driver does (drivers/i2c/busses/i2c-omap.c) FWIW.
+
+I tried adding runtime PM support to tvp5150 (basically calling pm_runtime
+enable/get on probe before the first I2C read to resume the controller) but
+that it did not work.
+
+Not filling the OMAP I2C driver's runtime PM callbacks does not help either.
+
+Any hints about the proper way to fix this issue?
+
+Best regards,
 -- 
-1.9.1
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
