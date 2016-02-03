@@ -1,83 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f172.google.com ([209.85.223.172]:33347 "EHLO
-	mail-io0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751449AbcBNTGL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2016 14:06:11 -0500
-Received: by mail-io0-f172.google.com with SMTP id z135so69528335iof.0
-        for <linux-media@vger.kernel.org>; Sun, 14 Feb 2016 11:06:11 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:54198 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754698AbcBCTcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2016 14:32:55 -0500
+Subject: Re: [PATCH 29/31] media: track media device unregister in progress
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1452105878.git.shuahkh@osg.samsung.com>
+ <151cfbe0e59b3d5396951bdcc29666614575f5bc.1452105878.git.shuahkh@osg.samsung.com>
+ <20160128150105.06a9a18d@recife.lan> <56AA4A18.8030303@osg.samsung.com>
+ <20160128152843.5ce581fa@recife.lan> <56AA7D3B.6090603@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56B255D6.9080908@osg.samsung.com>
+Date: Wed, 3 Feb 2016 12:32:38 -0700
 MIME-Version: 1.0
-In-Reply-To: <alpine.LFD.2.20.1602141139110.13632@knanqh.ubzr>
-References: <1455287246-3540549-1-git-send-email-arnd@arndb.de>
-	<2712691.b9gkR7KMX7@wuerfel>
-	<alpine.LFD.2.20.1602121305180.13632@knanqh.ubzr>
-	<6737272.LXr2g355Yt@wuerfel>
-	<CAKv+Gu8dFz28tGgQTv+WYAvKpeiFXaj8JANUFtOJwKPRsB8F5A@mail.gmail.com>
-	<alpine.LFD.2.20.1602131652560.13632@knanqh.ubzr>
-	<CAKv+Gu9YWEkArjssR9Urh0_MOR3duNOo2UNiV=tXoQNgFtDngQ@mail.gmail.com>
-	<alpine.LFD.2.20.1602141139110.13632@knanqh.ubzr>
-Date: Sun, 14 Feb 2016 20:06:10 +0100
-Message-ID: <CAKv+Gu_z0xeQx-n7PPaWYUNjV8xWPXwTrGS3RnyByW8xw3Yf+w@mail.gmail.com>
-Subject: Re: [PATCH] [media] zl10353: use div_u64 instead of do_div
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-To: Nicolas Pitre <nicolas.pitre@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	linux-media@vger.kernel.org,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <56AA7D3B.6090603@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14 February 2016 at 17:52, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
-> On Sun, 14 Feb 2016, Ard Biesheuvel wrote:
->
->> On 13 February 2016 at 22:57, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
->> > On Sat, 13 Feb 2016, Ard Biesheuvel wrote:
->> >
->> >> On 12 February 2016 at 22:01, Arnd Bergmann <arnd@arndb.de> wrote:
->> >> > However, I did stumble over an older patch I did now, which I could
->> >> > not remember what it was good for. It does fix the problem, and
->> >> > it seems to be a better solution.
->> >> >
->> >> >         Arnd
->> >> >
->> >> > diff --git a/include/linux/compiler.h b/include/linux/compiler.h
->> >> > index b5acbb404854..b5ff9881bef8 100644
->> >> > --- a/include/linux/compiler.h
->> >> > +++ b/include/linux/compiler.h
->> >> > @@ -148,7 +148,7 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
->> >> >   */
->> >> >  #define if(cond, ...) __trace_if( (cond , ## __VA_ARGS__) )
->> >> >  #define __trace_if(cond) \
->> >> > -       if (__builtin_constant_p((cond)) ? !!(cond) :                   \
->> >> > +       if (__builtin_constant_p(!!(cond)) ? !!(cond) :                 \
->> >> >         ({                                                              \
->> >> >                 int ______r;                                            \
->> >> >                 static struct ftrace_branch_data                        \
->> >> >
->> >>
->> >> I remember seeing this patch, but I don't remember the exact context.
->> >> But when you think about it, !!cond can be a build time constant even
->> >> if cond is not, as long as you can prove statically that cond != 0. So
->> >
->> > You're right.  I just tested it and to my surprise gcc is smart enough
->> > to figure that case out.
->> >
->> >> I think this change is obviously correct, and an improvement since it
->> >> will remove the profiling overhead of branches that are not true
->> >> branches in the first place.
->> >
->> > Indeed.
->> >
+On 01/28/2016 01:42 PM, Shuah Khan wrote:
+> On 01/28/2016 10:28 AM, Mauro Carvalho Chehab wrote:
+>> Em Thu, 28 Jan 2016 10:04:24 -0700
+>> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 >>
->> ... and perhaps we should not evaluate cond twice either?
->
-> It is not. The value of the argument to __builtin_constant_p() is not
-> itself evaluated and therefore does not produce side effects.
->
+>>> On 01/28/2016 10:01 AM, Mauro Carvalho Chehab wrote:
+>>>> Em Wed,  6 Jan 2016 13:27:18 -0700
+>>>> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+>>>>   
+>>>>> Add support to track media device unregister in progress
+>>>>> state to prevent more than one driver entering unregister.
+>>>>> This enables fixing the general protection faults while
+>>>>> snd-usb-audio was cleaning up media resources for pcm
+>>>>> streams and mixers. In this patch a new interface is added
+>>>>> to return the unregister in progress state. Subsequent
+>>>>> patches to snd-usb-audio and au0828-core use this interface
+>>>>> to avoid entering unregister and attempting to unregister
+>>>>> entities and remove devnodes while unregister is in progress.
+>>>>> Media device unregister removes entities and interface nodes.  
+>>>>
+>>>> Hmm... isn't the spinlock enough to serialize it? It seems weird the
+>>>> need of an extra bool here to warrant that this is really serialized.
+>>>>   
+>>>
+>>> The spinlock and check for media_devnode_is_registered(&mdev->devnode)
+>>> aren't enough to ensure only one driver enters the unregister. 
+>>>
+>>> Please
+>>> note that the devnode isn't marked unregistered until the end in
+>>> media_device_unregister().
+>>
+>> I guess the call to:
+>> 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+>>
+>> IMO, This should be, instead, at media_devnode_unregister().
+>>
+>> Then, we can change the logic at media_devnode_unregister() to:
+>>
+>> void media_devnode_unregister(struct media_devnode *mdev)
+>> {
+>> 	mutex_lock(&media_devnode_lock);
+>>
+>> 	/* Check if mdev was ever registered at all */
+>> 	if (!media_devnode_is_registered(mdev)) {
+>> 		mutex_unlock(&media_devnode_lock);
+>> 		return;
+>> 	}
+>>
+>> 	clear_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
+>> 	mutex_unlock(&media_devnode_lock);
+>> 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+>> 	device_unregister(&mdev->dev);
+>> }
+>>
+>> This sounds enough to avoid device_unregister() or device_remove_file()
+>> to be called twice.
+>>
+> 
+> I can give it a try. There might other problems that could
+> result from media device being a devres in this case. The
+> last put_device on the usbdev parent device (media device
+> is created as devres for this), all device resources get
+> released. That might have to be solved in a different way.
+> 
+> For now I will see if your solution works.
 
-Interesting, thanks for clarifying.
+Hi Mauro,
+
+Moving device_remove_file() won't be easy without
+making more changes. The file is created in
+media_device_regsiter() and all the attributes are
+handled in media-device.c
+
+One solution I can think of is clearing the
+MEDIA_FLAG_REGISTERED bit very early in
+media_device_unregister()
+
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -759,6 +759,9 @@ void media_device_unregister(struct media_device *mdev)
+                return;
+        }
+ 
++       /* Protect unregister path - clear MEDIA_FLAG_REGISTERED */
++       clear_bit(MEDIA_FLAG_REGISTERED, &mdev->devnode.flags);
++
+        /* Remove all entities from the media device */
+        list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+                __media_device_unregister_entity(entity);
+
+and changing media_devnode_unregister() to simply call
+device_unregister(&mdev->dev);
+
+Again clearing MEDIA_FLAG_REGISTERED bit in
+media_device_unregister() some problems.
+For one thing clearing this bit should be
+done holding media_devnode_lock. It can be
+done cleanly if we do the following:
+
+How about if we split media_devnode_unregister()
+into twp ohases:
+
+media_devnode_start_unregister()
+to clear this bit. It can do:
+
+media_devnode_start_unregister()
+{
+	mutex_lock(&media_devnode_lock);
+	if (!media_devnode_is_registered(mdev)) {
+		mutex_unlock(&media_devnode_lock);
+		return;
+	}
+	clear_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
+	mutex_unlock(&media_devnode_lock);
+}
+
+then:media_device_unregister(struct media_device *mdev)
+will call this first thing and then hold mdev->lock
+do the rest and the call media_devnode_unregister()
+and which will be changed to as follows:
+
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -274,13 +274,6 @@ error:
+ 
+ void media_devnode_unregister(struct media_devnode *mdev)
+ {
+-       /* Check if mdev was ever registered at all */
+-       if (!media_devnode_is_registered(mdev))
+-               return;
+-
+-       mutex_lock(&media_devnode_lock);
+-       clear_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
+-       mutex_unlock(&media_devnode_lock);
+        device_unregister(&mdev->dev);
+ }
+
+thanks,
+-- Shuah
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
