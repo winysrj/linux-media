@@ -1,160 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f195.google.com ([209.85.160.195]:36215 "EHLO
-	mail-yk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755765AbcBHQLo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 11:11:44 -0500
+Received: from mout.gmx.net ([212.227.17.22]:61330 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932779AbcBCRJA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2016 12:09:00 -0500
+Date: Wed, 3 Feb 2016 18:08:52 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Aviv Greenberg <avivgr@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 2/2] UVC: Add support for R200 depth camera.
+In-Reply-To: <Pine.LNX.4.64.1602031251210.16491@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1602031259160.16491@axis700.grange>
+References: <Pine.LNX.4.64.1602031251210.16491@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1602071449170.11458@axis700.grange>
-References: <1453652009-4291-1-git-send-email-ykaneko0929@gmail.com>
-	<Pine.LNX.4.64.1602071449170.11458@axis700.grange>
-Date: Tue, 9 Feb 2016 01:11:43 +0900
-Message-ID: <CAH1o70Lw+qM0gKmx7qQOR9_BrugOmtXaKuUWEM_1nQQJGh9YwA@mail.gmail.com>
-Subject: Re: [PATCH v5] media: soc_camera: rcar_vin: Add ARGB8888 caputre
- format support
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux-sh list <linux-sh@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi-san,
+From: Aviv Greenberg <avivgr@gmail.com>
 
-2016-02-07 22:49 GMT+09:00 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> Hi Kaneko-san,
->
-> On Mon, 25 Jan 2016, Yoshihiro Kaneko wrote:
->
->> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->>
->> This patch adds ARGB8888 capture format support for R-Car Gen3.
->>
->> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
->> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
->
-> Thanks for the patch. I'll queue it for 4.6.
+Add support for Intel R200 depth camera in uvc driver.
+This includes adding new uvc GUIDs for the new pixel formats,
+adding new V4L pixel format definition to user api headers,
+and updating the uvc driver GUID-to-4cc tables with the new formats.
 
-Thank you very much for your help.
+Tested-by: Greenberg, Aviv D <aviv.d.greenberg@intel.com>
+Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
+ drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
+ include/uapi/linux/videodev2.h     |  3 +++
+ 3 files changed, 35 insertions(+)
 
->
-> Guennadi
-
-Best regards,
-kaneko
-
->
->> ---
->>
->> This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
->>
->> v5 [Yoshihiro Kaneko]
->> * As suggested by Guennadi Liakhovetski
->>   rcar_vin_setup():
->>     - add a common error handler instead of a falling through to the
->>       default case.
->> * compile tested only
->>
->> v4 [Yoshihiro Kaneko]
->> * As suggested by Sergei Shtylyov
->>   - revised an error message.
->>
->> v3 [Yoshihiro Kaneko]
->> * rebased to for-4.6-1 branch of Guennadi's tree.
->>
->> v2 [Yoshihiro Kaneko]
->> * As suggested by Sergei Shtylyov
->>   - fix the coding style of the braces.
->>
->>  drivers/media/platform/soc_camera/rcar_vin.c | 39 +++++++++++++++++++++-------
->>  1 file changed, 29 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
->> index dc75a80..3b8edf4 100644
->> --- a/drivers/media/platform/soc_camera/rcar_vin.c
->> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
->> @@ -124,7 +124,7 @@
->>  #define VNDMR_EXRGB          (1 << 8)
->>  #define VNDMR_BPSM           (1 << 4)
->>  #define VNDMR_DTMD_YCSEP     (1 << 1)
->> -#define VNDMR_DTMD_ARGB1555  (1 << 0)
->> +#define VNDMR_DTMD_ARGB              (1 << 0)
->>
->>  /* Video n Data Mode Register 2 bits */
->>  #define VNDMR2_VPS           (1 << 30)
->> @@ -643,21 +643,26 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->>               output_is_yuv = true;
->>               break;
->>       case V4L2_PIX_FMT_RGB555X:
->> -             dmr = VNDMR_DTMD_ARGB1555;
->> +             dmr = VNDMR_DTMD_ARGB;
->>               break;
->>       case V4L2_PIX_FMT_RGB565:
->>               dmr = 0;
->>               break;
->>       case V4L2_PIX_FMT_RGB32:
->> -             if (priv->chip == RCAR_GEN2 || priv->chip == RCAR_H1 ||
->> -                 priv->chip == RCAR_E1) {
->> -                     dmr = VNDMR_EXRGB;
->> -                     break;
->> -             }
->> +             if (priv->chip != RCAR_GEN2 && priv->chip != RCAR_H1 &&
->> +                 priv->chip != RCAR_E1)
->> +                     goto e_format;
->> +
->> +             dmr = VNDMR_EXRGB;
->> +             break;
->> +     case V4L2_PIX_FMT_ARGB32:
->> +             if (priv->chip != RCAR_GEN3)
->> +                     goto e_format;
->> +
->> +             dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
->> +             break;
->>       default:
->> -             dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
->> -                      icd->current_fmt->host_fmt->fourcc);
->> -             return -EINVAL;
->> +             goto e_format;
->>       }
->>
->>       /* Always update on field change */
->> @@ -679,6 +684,11 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
->>       iowrite32(vnmc | VNMC_ME, priv->base + VNMC_REG);
->>
->>       return 0;
->> +
->> +e_format:
->> +     dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
->> +              icd->current_fmt->host_fmt->fourcc);
->> +     return -EINVAL;
->>  }
->>
->>  static void rcar_vin_capture(struct rcar_vin_priv *priv)
->> @@ -1304,6 +1314,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
->>               .order                  = SOC_MBUS_ORDER_LE,
->>               .layout                 = SOC_MBUS_LAYOUT_PACKED,
->>       },
->> +     {
->> +             .fourcc                 = V4L2_PIX_FMT_ARGB32,
->> +             .name                   = "ARGB8888",
->> +             .bits_per_sample        = 32,
->> +             .packing                = SOC_MBUS_PACKING_NONE,
->> +             .order                  = SOC_MBUS_ORDER_LE,
->> +             .layout                 = SOC_MBUS_LAYOUT_PACKED,
->> +     },
->>  };
->>
->>  static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
->> @@ -1611,6 +1629,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
->>       case V4L2_PIX_FMT_RGB32:
->>               can_scale = priv->chip != RCAR_E1;
->>               break;
->> +     case V4L2_PIX_FMT_ARGB32:
->>       case V4L2_PIX_FMT_UYVY:
->>       case V4L2_PIX_FMT_YUYV:
->>       case V4L2_PIX_FMT_RGB565:
->> --
->> 1.9.1
->>
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 4b5b3e8..bcbb6cf 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -147,6 +147,26 @@ static struct uvc_format_desc uvc_fmts[] = {
+ 		.guid		= UVC_GUID_FORMAT_H264,
+ 		.fcc		= V4L2_PIX_FMT_H264,
+ 	},
++	{
++		.name		= "Greyscale 8 L/R (Y8I)",
++		.guid		= UVC_GUID_FORMAT_Y8I,
++		.fcc		= V4L2_PIX_FMT_Y8I,
++	},
++	{
++		.name		= "Greyscale 12 L/R (Y12I)",
++		.guid		= UVC_GUID_FORMAT_Y12I,
++		.fcc		= V4L2_PIX_FMT_Y12I,
++	},
++	{
++		.name		= "Depth data 16-bit (Z16)",
++		.guid		= UVC_GUID_FORMAT_Z16,
++		.fcc		= V4L2_PIX_FMT_Z16,
++	},
++	{
++		.name		= "Bayer 10-bit (SRGGB10P)",
++		.guid		= UVC_GUID_FORMAT_RW10,
++		.fcc		= V4L2_PIX_FMT_SRGGB10P,
++	},
+ };
+ 
+ /* ------------------------------------------------------------------------
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 816dd1a..b38bb2e 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -119,6 +119,18 @@
+ #define UVC_GUID_FORMAT_H264 \
+ 	{ 'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_Y8I \
++	{ 'Y',  '8',  'I',  ' ', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_Y12I \
++	{ 'Y',  '1',  '2',  'I', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_Z16 \
++	{ 'Z',  '1',  '6',  ' ', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_RW10 \
++	{ 'R',  'W',  '1',  '0', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+ 
+ /* ------------------------------------------------------------------------
+  * Driver specific constants.
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 3228fbe..14274c1 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -606,6 +606,9 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_JPGL	v4l2_fourcc('J', 'P', 'G', 'L') /* JPEG-Lite */
+ #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
+ #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
++#define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
++#define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
++#define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+ 
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
