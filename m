@@ -1,145 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48635 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750905AbcBKHad (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 02:30:33 -0500
-Subject: [PATCHv12 18/17] cec: check for RC_CORE support
-To: linux-media@vger.kernel.org
-References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
- <1455108711-29850-18-git-send-email-hverkuil@xs4all.nl>
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56BC3893.10208@xs4all.nl>
-Date: Thu, 11 Feb 2016 08:30:27 +0100
+Received: from sauhun.de ([89.238.76.85]:59047 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752167AbcBCOXa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2016 09:23:30 -0500
+Date: Wed, 3 Feb 2016 15:23:24 +0100
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tvp5150 regression after commit 9f924169c035
+Message-ID: <20160203142323.GA8620@tetsubishi>
+References: <56B204CB.60602@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <1455108711-29850-18-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="0OAP2g/MAC+5xKAE"
+Content-Disposition: inline
+In-Reply-To: <56B204CB.60602@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If CONFIG_RC_CORE is not enabled, then remove the rc support, otherwise
-the module won't link.
 
-This will be folded into patch 07/17 for the final pull request.
+--0OAP2g/MAC+5xKAE
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/Kconfig |  2 --
- drivers/media/cec.c   | 16 ++++++++++++++++
- 2 files changed, 16 insertions(+), 2 deletions(-)
+Hi,
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 4f7fd52..ef8192e 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -82,8 +82,6 @@ config MEDIA_RC_SUPPORT
+thanks for reporting the issue!
 
- config MEDIA_CEC
- 	tristate "CEC API (EXPERIMENTAL)"
--	depends on MEDIA_RC_SUPPORT
--	select RC_CORE
- 	---help---
- 	  Enable the CEC API.
+> Not filling the OMAP I2C driver's runtime PM callbacks does not help eith=
+er.
+>=20
+> Any hints about the proper way to fix this issue?
 
-diff --git a/drivers/media/cec.c b/drivers/media/cec.c
-index a14ac73..e9fa698 100644
---- a/drivers/media/cec.c
-+++ b/drivers/media/cec.c
-@@ -744,6 +744,7 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 		if (!(adap->capabilities & CEC_CAP_RC))
- 			break;
+Can the I2C device be en-/disabled in some way? Which board is this
+happening with? Any specs for it publicly available?
 
-+#if IS_ENABLED(CONFIG_RC_CORE)
- 		switch (msg->msg[2]) {
- 		/*
- 		 * Play function, this message can have variable length
-@@ -773,12 +774,15 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 			rc_keydown(adap->rc, RC_TYPE_CEC, msg->msg[2], 0);
- 			break;
- 		}
-+#endif
- 		break;
+Regards,
 
- 	case CEC_MSG_USER_CONTROL_RELEASED:
- 		if (!(adap->capabilities & CEC_CAP_RC))
- 			break;
-+#if IS_ENABLED(CONFIG_RC_CORE)
- 		rc_keyup(adap->rc);
-+#endif
- 		break;
-
- 	/*
-@@ -2059,6 +2063,7 @@ struct cec_adapter *cec_create_adapter(const struct cec_adap_ops *ops,
- 	if (!(caps & CEC_CAP_RC))
- 		return adap;
-
-+#if IS_ENABLED(CONFIG_RC_CORE)
- 	/* Prepare the RC input device */
- 	adap->rc = rc_allocate_device();
- 	if (!adap->rc) {
-@@ -2089,6 +2094,9 @@ struct cec_adapter *cec_create_adapter(const struct cec_adap_ops *ops,
- 	adap->rc->priv = adap;
- 	adap->rc->map_name = RC_MAP_CEC;
- 	adap->rc->timeout = MS_TO_NS(100);
-+#else
-+	adap->capabilities &= ~CEC_CAP_RC;
-+#endif
- 	return adap;
- }
- EXPORT_SYMBOL_GPL(cec_create_adapter);
-@@ -2097,6 +2105,7 @@ int cec_register_adapter(struct cec_adapter *adap)
- {
- 	int res;
-
-+#if IS_ENABLED(CONFIG_RC_CORE)
- 	if (adap->capabilities & CEC_CAP_RC) {
- 		res = rc_register_device(adap->rc);
-
-@@ -2108,13 +2117,16 @@ int cec_register_adapter(struct cec_adapter *adap)
- 			return res;
- 		}
- 	}
-+#endif
-
- 	res = cec_devnode_register(&adap->devnode, adap->owner);
-+#if IS_ENABLED(CONFIG_RC_CORE)
- 	if (res) {
- 		/* Note: rc_unregister also calls rc_free */
- 		rc_unregister_device(adap->rc);
- 		adap->rc = NULL;
- 	}
-+#endif
- 	return res;
- }
- EXPORT_SYMBOL_GPL(cec_register_adapter);
-@@ -2123,9 +2135,11 @@ void cec_unregister_adapter(struct cec_adapter *adap)
- {
- 	if (IS_ERR_OR_NULL(adap))
- 		return;
-+#if IS_ENABLED(CONFIG_RC_CORE)
- 	/* Note: rc_unregister also calls rc_free */
- 	rc_unregister_device(adap->rc);
- 	adap->rc = NULL;
-+#endif
- 	cec_devnode_unregister(&adap->devnode);
- }
- EXPORT_SYMBOL_GPL(cec_unregister_adapter);
-@@ -2139,8 +2153,10 @@ void cec_delete_adapter(struct cec_adapter *adap)
- 		kthread_stop(adap->kthread_config);
- 	if (adap->is_enabled)
- 		cec_enable(adap, false);
-+#if IS_ENABLED(CONFIG_RC_CORE)
- 	if (adap->rc)
- 		rc_free_device(adap->rc);
-+#endif
- 	kfree(adap->name);
- 	kfree(adap);
- }
--- 
-2.7.0
+   Wolfram
 
 
+--0OAP2g/MAC+5xKAE
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWsg1bAAoJEBQN5MwUoCm2X6kQAImG58xwqBPFOCNd0o+b1AND
+I6ACswtwwqQJjaHk5QQjLTX+Q6jCFPGLeNG8W+i5znhJ94V6/fQLhN5sGTuIuHGW
+jjJNdk1w6+8HczL5X6/ieNZ7LdNT9bJCA0FLU7lWSQIqwdR1ufSWpZsqthDNFfSZ
+xF7Za4qOSdux7L89FjGN3rqFcT5T6bkCjxnjC0u6Zzer5ZYbwZ7k34yUjYyyakll
+aZP1dtDi5CPTSiry8Auez7Gdww7v3dw0aKwAOADpov2SLeGhtaLCZdZg4OPdET2Y
+8kJFR8iSbECeNh+4v9QxN/XYYAcL0j/CLI0ZEuL9ApF1X+kaLcxuHHTemXdQ50lB
+Ulrw54ADoZdInCDChvIeyrMzX4xZRPsy7DxoQWDPGc1KJeEWPtSNPVxbew45y7Ai
+zxWMbdLL08lxzryzfQqYdfjiK/xBNNuyOFNpuQk2WwKLtnt+cPtgY1aXwC7DD13S
+ma/uusQ9Y/Mbwqspl8apVWH9Cc/mIpQZ1Lt5ubQgWcs1tyEuOhXGEcwTA5eDQvlb
+fT6PCLoLnsy9sIOJGQFsU9rZIlgsyRNQDDJqzEu8ie4iS/2xv35Szb8RI1BZD2jE
+/Z8HsX+2F5ORXWMzXpqw56/XY6/ci3iiU7wPG1vd7ICVLEUvKYWIyeqntTF95qDu
+D7/K7b8iRSdpp+PVIDHC
+=jbFB
+-----END PGP SIGNATURE-----
+
+--0OAP2g/MAC+5xKAE--
