@@ -1,115 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:49005 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1426118AbcBRMHL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 07:07:11 -0500
-Subject: Re: Kernel docs: muddying the waters a bit
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jani Nikula <jani.nikula@intel.com>
-References: <20160213145317.247c63c7@lwn.net> <86fuwwcdmd.fsf@hiro.keithp.com>
- <CAKMK7uGeU_grgC7pRCdqw+iDGWQfXhHwvX+tkSgRmdimxMrthA@mail.gmail.com>
- <20160217151401.3cb82f65@lwn.net>
- <CAKMK7uEqbSrhc2nh0LjC1fztciM4eTjtKE9T_wMVCqAkkTnzkA@mail.gmail.com>
- <874md6fkna.fsf@intel.com>
- <CAKMK7uE72wFEFCyw1dHbt+f3-ex3fr_9MbjoGfnKFZkd5+9S2Q@mail.gmail.com>
- <20160218082657.5a1a5b0f@recife.lan> <87r3gadzye.fsf@intel.com>
- <20160218100427.6471cb22@recife.lan>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56C5B3E7.6030509@xs4all.nl>
-Date: Thu, 18 Feb 2016 13:07:03 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:54265 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754752AbcBCWkI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2016 17:40:08 -0500
+Date: Wed, 3 Feb 2016 20:39:57 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Matthias Schwarzott <zzam@gentoo.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Junghak Sung <jh1009.sung@samsung.com>
+Subject: Re: [PATCH for v4.5] vb2: fix nasty vb2_thread regression
+Message-ID: <20160203203957.2c592fa8@recife.lan>
+In-Reply-To: <56A9364D.5010806@xs4all.nl>
+References: <56A8B34A.7010606@xs4all.nl>
+	<56A92F1C.9080005@gentoo.org>
+	<56A9364D.5010806@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20160218100427.6471cb22@recife.lan>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/18/16 13:04, Mauro Carvalho Chehab wrote:
-> Em Thu, 18 Feb 2016 13:23:37 +0200
-> Jani Nikula <jani.nikula@intel.com> escreveu:
-> 
->> On Thu, 18 Feb 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
->>> For simple documents like the one produced by kernel-doc, I guess
->>> all markup languages would work equally.
->>>
->>> The problem is for complex documents like the media kAPI one, where
->>> the document was written to produce a book. So, it uses some complex
->>> features found at DocBook. One of such features we use extensively
->>> is the capability of having a table with per-line columns. This way,
->>> we can produce things like:
->>>
->>> V4L2_CID_COLOR_KILLER	boolean	Enable the color killer (i. e. force a black & white image in case of a weak video signal).
->>> V4L2_CID_COLORFX	enum	Selects a color effect. The following values are defined:
->>> 				V4L2_COLORFX_NONE 		Color effect is disabled.
->>> 				V4L2_COLORFX_ANTIQUE 		An aging (old photo) effect.
->>> 				V4L2_COLORFX_ART_FREEZE 	Frost color effect.
->>>
->>> In the above example, we have a main 3 columns table, and we embed
->>> a 2 columns table at the third field of V4L2_CID_COLORFX to represent
->>> possible values for this menu control.
->>>
->>> See https://linuxtv.org/downloads/v4l-dvb-apis/control.html for the
->>> complete output of it.
->>>
->>> This is used extensively inside the media DocBook, and properly
->>> supporting it is one of our major concerns.
->>>
->>> Are there any way to represent those things with the markup
->>> languages currently being analyzed?
->>>
->>> Converting those tables will likely require manual work, as I don't
->>> think automatic tools will properly handle it, specially since we
->>> use some DocBook macros to help creating such tables.  
->>
->> Since I've let myself be told that asciidoc handles tables better than
->> reStructuredText, I tested this a bit with the presumably inferior one.
->>
->> rst has two table types, simple tables and grid tables [1]. It seems
->> like grid tables can do pretty much anything, but they can be cumbersome
->> to work with. So I tried to check what can be done with simple tables.
->>
->> Here's a sample, converted using rst2html (Sphinx will be prettier, but
->> rst2html works for simple things like this):
->>
->> https://people.freedesktop.org/~jani/v4l-table-within-table.rst
->> https://people.freedesktop.org/~jani/v4l-table-within-table.html
-> 
-> Yes, this would work. Can we remove the border from the main table?
-> I guess it would be nicer.
-> 
->>
->> Rather than using nested tables, you might want to consider using
->> definition lists within tables:
->>
->> https://people.freedesktop.org/~jani/v4l-definition-list-within-table.rst
->> https://people.freedesktop.org/~jani/v4l-definition-list-within-table.html
->>
->> You be the judge, but I think this is workable.
-> 
-> It is workable, but I guess nested tables produced a better result.
-> 
-> I did myself a test with nested tables with asciidoc too:
-> 
-> https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.html
-> https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.ascii
-> 
-> With looks very decent to me.
+Em Wed, 27 Jan 2016 22:27:41 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-It does, except for the vertical alignment of the third column (at least when viewed
-with google chrome).
+> On 01/27/2016 09:57 PM, Matthias Schwarzott wrote:
+> > Am 27.01.2016 um 13:08 schrieb Hans Verkuil:  
+> >> The vb2_thread implementation was made generic and was moved from
+> >> videobuf2-v4l2.c to videobuf2-core.c in commit af3bac1a. Unfortunately
+> >> that clearly was never tested since it broke read() causing NULL address
+> >> references.
+> >>
+> >> The root cause was confused handling of vb2_buffer vs v4l2_buffer (the pb
+> >> pointer in various core functions).
+> >>
+> >> The v4l2_buffer no longer exists after moving the code into the core and
+> >> it is no longer needed. However, the vb2_thread code passed a pointer to
+> >> a vb2_buffer to the core functions were a v4l2_buffer pointer was expected
+> >> and vb2_thread expected that the vb2_buffer fields would be filled in
+> >> correctly.
+> >>
+> >> This is obviously wrong since v4l2_buffer != vb2_buffer. Note that the
+> >> pb pointer is a void pointer, so no type-checking took place.
+> >>
+> >> This patch fixes this problem:
+> >>
+> >> 1) allow pb to be NULL for vb2_core_(d)qbuf. The vb2_thread code will use
+> >>    a NULL pointer here since they don't care about v4l2_buffer anyway.
+> >> 2) let vb2_core_dqbuf pass back the index of the received buffer. This is
+> >>    all vb2_thread needs: this index is the index into the q->bufs array
+> >>    and vb2_thread just gets the vb2_buffer from there.
+> >> 3) the fileio->b pointer (that originally contained a v4l2_buffer) is
+> >>    removed altogether since it is no longer needed.
+> >>
+> >> Tested with vivid and the cobalt driver.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> Reported-by: Matthias Schwarzott <zzam@gentoo.org>  
+> > 
+> > Hi Hans!
+> > 
+> > Thank you for this patch.
+> > I gave this patch a try on the latest sources from
+> > git://linuxtv.org/media_tree.git
+> > 
+> > Compiled for kernel 4.2.8 with media_build.
+> > 
+> > Now it no longer oopses.  
+> 
+> Good.
+> 
+> > It tunes fine (according to femon), but I still do not get a
+> > picture/dvbtraffic reports nothing.  
+> 
+> I will try to do a DVB test tomorrow. I can't spend too much time on it so
+> if I can't reproduce it I'll probably ask Mauro to take a look. After tomorrow
+> it will take at least a week before I have another chance of testing this due
+> to traveling.
 
-	Hans
+There is one other unrelated bug, fixed on this patch:
+	https://patchwork.linuxtv.org/patch/32814/
 
-> 
-> I had to manually add the nested table, as pandoc conversion sent the
-> DocBook's nested table to /dev/null.
-> 
-> Thanks,
-> Mauro
-> 
+I added both patches on my experimental tree, together with a fix
+for tda10046 demod, at:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=vb2-dvb-fixup
+
+Please test. At least here, it is working fine:
+
+$ LANG=C ~/v4l-utils/utils/dvb/dvbv5-scan -Ichannel ~/dvbt-teste -F
+Cannot calc frequency shift. Either bandwidth/symbol-rate is unavailable (yet).
+Scanning frequency #1 562000000
+Lock   (0x1f) Signal= 70.20% C/N= 92.16% UCB= 60395 postBER= 8
+Service D8, provider NTN: digital television
+Service BFM TV, provider NTN: digital television
+Service i>TELE, provider NTN: digital television
+Service D17, provider NTN: digital television
+Service Gulli, provider NTN: digital television
+Service France 4, provider NTN: digital television
+
+
+$ LANG=C ~/v4l-utils/utils/dvb/dvbv5-zap -Ichannel -c ~/dvbt-teste -m 562000000
+
+ PID          FREQ         SPEED       TOTAL
+0000      9.70 p/s     14.2 Kbps       12 KB
+0010      2.14 p/s      3.1 Kbps        2 KB
+0012     82.04 p/s    120.5 Kbps      105 KB
+0015      1.85 p/s      2.7 Kbps        2 KB
+006e      9.84 p/s     14.5 Kbps       12 KB
+0078   2170.21 p/s   3187.5 Kbps     2792 KB
+0082    130.26 p/s    191.3 Kbps      167 KB
+0083    130.26 p/s    191.3 Kbps      167 KB
+008c      2.43 p/s      3.6 Kbps        3 KB
+008d      2.43 p/s      3.6 Kbps        3 KB
+00aa      2.00 p/s      2.9 Kbps        2 KB
+0136      9.84 p/s     14.5 Kbps       12 KB
+0140   2864.03 p/s   4206.5 Kbps     3685 KB
+014a    130.26 p/s    191.3 Kbps      167 KB
+0154      2.57 p/s      3.8 Kbps        3 KB
+019a      9.84 p/s     14.5 Kbps       12 KB
+01a4   2316.16 p/s   3401.9 Kbps     2980 KB
+01ae    130.12 p/s    191.1 Kbps      167 KB
+01b8      2.43 p/s      3.6 Kbps        3 KB
+01d6      2.00 p/s      2.9 Kbps        2 KB
+01fe      9.84 p/s     14.5 Kbps       12 KB
+0208   2276.22 p/s   3343.2 Kbps     2929 KB
+0212    130.40 p/s    191.5 Kbps      167 KB
+0213    130.40 p/s    191.5 Kbps      167 KB
+021c      7.42 p/s     10.9 Kbps        9 KB
+021d      2.57 p/s      3.8 Kbps        3 KB
+0221     24.68 p/s     36.3 Kbps       31 KB
+023a      2.00 p/s      2.9 Kbps        2 KB
+0262      9.84 p/s     14.5 Kbps       12 KB
+026c   2209.16 p/s   3244.7 Kbps     2842 KB
+0276    130.26 p/s    191.3 Kbps      167 KB
+0277    130.26 p/s    191.3 Kbps      167 KB
+0280      2.43 p/s      3.6 Kbps        3 KB
+0281      2.43 p/s      3.6 Kbps        3 KB
+02c6      9.84 p/s     14.5 Kbps       12 KB
+02d0   2187.76 p/s   3213.3 Kbps     2815 KB
+02da    130.40 p/s    191.5 Kbps      167 KB
+02db    130.40 p/s    191.5 Kbps      167 KB
+02e4      2.57 p/s      3.8 Kbps        3 KB
+02e5      2.57 p/s      3.8 Kbps        3 KB
+0302      2.00 p/s      2.9 Kbps        2 KB
+0303    177.20 p/s    260.3 Kbps      228 KB
+1fff   5060.78 p/s   7433.0 Kbps     6512 KB
+TOT   20782.42 p/s  30524.2 Kbps    26743 KB
+
+
+Lock   (0x1f) Signal= 70.20% C/N= 100.00% UCB= 65535 postBER= 24
+
+Please test. I should be applying both patches tomorrow, in order
+to send them as quick as possible to 4.5-rc.
+
+Regards,
+Mauro
+
+
+
+
