@@ -1,60 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:33300 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918AbcB2NOG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 08:14:06 -0500
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-renesas-soc@vger.kernel.org
-Subject: [PATCH/RFC 2/4] media: soc_camera: rcar_vin: Add get_selection callback function
-Date: Mon, 29 Feb 2016 22:12:41 +0900
-Message-Id: <1456751563-21246-3-git-send-email-ykaneko0929@gmail.com>
-In-Reply-To: <1456751563-21246-1-git-send-email-ykaneko0929@gmail.com>
-References: <1456751563-21246-1-git-send-email-ykaneko0929@gmail.com>
+Received: from userp1040.oracle.com ([156.151.31.81]:50171 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755468AbcBCEmL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2016 23:42:11 -0500
+Date: Wed, 3 Feb 2016 07:42:02 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] em28xx: add media controller support
+Message-ID: <20160203044202.GA12152@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+Hello Mauro Carvalho Chehab,
 
-Add get_selection callback function because it is required for
-clipping processing.
+The patch 37ecc7b1278f: "[media] em28xx: add media controller
+support" from Jan 27, 2016, leads to the following static checker
+warning:
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
----
- drivers/media/platform/soc_camera/rcar_vin.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+	drivers/media/usb/em28xx/em28xx-cards.c:3028 em28xx_media_device_init()
+	warn: this array is probably non-NULL. 'dev->name'
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index a22141b..9225992 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1906,6 +1906,13 @@ static int rcar_vin_init_videobuf2(struct vb2_queue *vq,
- 	return vb2_queue_init(vq);
- }
- 
-+static int rcar_vin_get_selection(struct soc_camera_device *icd,
-+				  struct v4l2_selection *sel)
-+{
-+	/* TODO */
-+	return 0;
-+}
-+
- static struct soc_camera_host_ops rcar_vin_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= rcar_vin_add_device,
-@@ -1920,6 +1927,7 @@ static struct soc_camera_host_ops rcar_vin_host_ops = {
- 	.querycap	= rcar_vin_querycap,
- 	.set_bus_param	= rcar_vin_set_bus_param,
- 	.init_videobuf2	= rcar_vin_init_videobuf2,
-+	.get_selection	= rcar_vin_get_selection,
- };
- 
- #ifdef CONFIG_OF
--- 
-1.9.1
+drivers/media/usb/em28xx/em28xx-cards.c
+  3016  static int em28xx_media_device_init(struct em28xx *dev,
+  3017                                      struct usb_device *udev)
+  3018  {
+  3019  #ifdef CONFIG_MEDIA_CONTROLLER
+  3020          struct media_device *mdev;
+  3021  
+  3022          mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+  3023          if (!mdev)
+  3024                  return -ENOMEM;
+  3025  
+  3026          mdev->dev = &udev->dev;
+  3027  
+  3028          if (!dev->name)
+  3029                  strlcpy(mdev->model, "unknown em28xx", sizeof(mdev->model));
+  3030          else
+  3031                  strlcpy(mdev->model, dev->name, sizeof(mdev->model));
 
+We either want to remove the NULL test or test for the empty string.
+
+  3032          if (udev->serial)
+  3033                  strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
+  3034          strcpy(mdev->bus_info, udev->devpath);
+  3035          mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+  3036          mdev->driver_version = LINUX_VERSION_CODE;
+  3037  
+  3038          media_device_init(mdev);
+  3039  
+  3040          dev->media_dev = mdev;
+  3041  #endif
+  3042          return 0;
+  3043  }
+
+regards,
+dan carpenter
