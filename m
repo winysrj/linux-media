@@ -1,898 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:33974 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751076AbcBJNAI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2016 08:00:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv12 16/17] cec: s5p-cec: Add s5p-cec driver
-Date: Wed, 10 Feb 2016 13:51:50 +0100
-Message-Id: <1455108711-29850-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
-References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mga04.intel.com ([192.55.52.120]:5830 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754034AbcBDGaV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2016 01:30:21 -0500
+Date: Thu, 4 Feb 2016 14:29:06 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: kbuild-all@01.org, mchehab@osg.samsung.com, tiwai@suse.com,
+	clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, Shuah Khan <shuahkh@osg.samsung.com>,
+	pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH v2 07/22] media: v4l-core add enable/disable source
+ common interfaces
+Message-ID: <201602041429.bpP3FQ3A%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="TB36FDmn/VVEgNH/"
+Content-Disposition: inline
+In-Reply-To: <7df34ecdf35d473535abefa6643b2db24457b8e6.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
 
-Add CEC interface driver present in the Samsung Exynos range of
-SoCs.
+--TB36FDmn/VVEgNH/
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The following files were based on work by SangPil Moon:
-- exynos_hdmi_cec.h
-- exynos_hdmi_cecctl.c
+Hi Shuah,
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+[auto build test WARNING on linuxtv-media/master]
+[also build test WARNING on next-20160203]
+[cannot apply to v4.5-rc2]
+[if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
+
+url:    https://github.com/0day-ci/linux/commits/Shuah-Khan/Sharing-media-resources-across-ALSA-and-au0828-drivers/20160204-121414
+base:   git://linuxtv.org/media_tree.git master
+reproduce: make htmldocs
+
+All warnings (new ones prefixed by >>):
+
+   include/linux/init.h:1: warning: no structured comments found
+   kernel/sys.c:1: warning: no structured comments found
+   drivers/dma-buf/seqno-fence.c:1: warning: no structured comments found
+   drivers/dma-buf/reservation.c:1: warning: no structured comments found
+   include/linux/reservation.h:1: warning: no structured comments found
+>> include/media/v4l2-mc.h:114: warning: No description found for parameter 'vdev'
+   include/media/v4l2-mc.h:128: warning: No description found for parameter 'vdev'
+   include/media/media-device.h:357: warning: No description found for parameter 'entity_notify'
+   include/media/media-device.h:357: warning: No description found for parameter 'source_priv'
+   include/media/media-device.h:357: warning: No description found for parameter 'enable_source'
+   include/media/media-device.h:357: warning: No description found for parameter 'disable_source'
+   include/media/media-device.h:357: warning: No description found for parameter 'entity_notify'
+   include/media/media-device.h:357: warning: No description found for parameter 'source_priv'
+   include/media/media-device.h:357: warning: No description found for parameter 'enable_source'
+   include/media/media-device.h:357: warning: No description found for parameter 'disable_source'
+   include/media/media-entity.h:840: warning: No description found for parameter 'entity'
+   include/media/media-entity.h:840: warning: No description found for parameter 'pipe'
+   include/media/media-entity.h:860: warning: No description found for parameter 'entity'
+   include/linux/spi/spi.h:540: warning: No description found for parameter 'max_transfer_size'
+
+vim +/vdev +114 include/media/v4l2-mc.h
+
+    98	/**
+    99	 * v4l_enable_media_source() -	Hold media source for exclusive use
+   100	 *				if free
+   101	 *
+   102	 * @vdev - poniter to struct video_device
+   103	 *
+   104	 * This interface calls enable_source handler to determine if
+   105	 * media source is free for use. The enable_source handler is
+   106	 * responsible for checking is the media source is free and
+   107	 * start a pipeline between the media source and the media
+   108	 * entity associated with the video device. This interface
+   109	 * should be called from v4l2-core and dvb-core interfaces
+   110	 * that change the source configuration.
+   111	 *
+   112	 * Return: returns zero on success or a negative error code.
+   113	 */
+ > 114	int v4l_enable_media_source(struct video_device *vdev);
+   115	
+   116	/**
+   117	 * v4l_disable_media_source() -	Release media source
+   118	 *
+   119	 * @vdev - poniter to struct video_device
+   120	 *
+   121	 * This interface calls disable_source handler to release
+   122	 * the media source. The disable_source handler stops the
+
 ---
- .../devicetree/bindings/media/s5p-cec.txt          |  31 +++
- MAINTAINERS                                        |   7 +
- drivers/media/platform/Kconfig                     |  12 +
- drivers/media/platform/Makefile                    |   1 +
- drivers/media/platform/s5p-cec/Makefile            |   2 +
- drivers/media/platform/s5p-cec/exynos_hdmi_cec.h   |  38 +++
- .../media/platform/s5p-cec/exynos_hdmi_cecctrl.c   | 210 +++++++++++++++
- drivers/media/platform/s5p-cec/regs-cec.h          |  96 +++++++
- drivers/media/platform/s5p-cec/s5p_cec.c           | 296 +++++++++++++++++++++
- drivers/media/platform/s5p-cec/s5p_cec.h           |  76 ++++++
- 10 files changed, 769 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/s5p-cec.txt
- create mode 100644 drivers/media/platform/s5p-cec/Makefile
- create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
- create mode 100644 drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
- create mode 100644 drivers/media/platform/s5p-cec/regs-cec.h
- create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.c
- create mode 100644 drivers/media/platform/s5p-cec/s5p_cec.h
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
-diff --git a/Documentation/devicetree/bindings/media/s5p-cec.txt b/Documentation/devicetree/bindings/media/s5p-cec.txt
-new file mode 100644
-index 0000000..925ab4d
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/s5p-cec.txt
-@@ -0,0 +1,31 @@
-+* Samsung HDMI CEC driver
-+
-+The HDMI CEC module is present is Samsung SoCs and its purpose is to
-+handle communication between HDMI connected devices over the CEC bus.
-+
-+Required properties:
-+  - compatible : value should be following
-+	"samsung,s5p-cec"
-+
-+  - reg : Physical base address of the IP registers and length of memory
-+	  mapped region.
-+
-+  - interrupts : HDMI CEC interrupt number to the CPU.
-+  - clocks : from common clock binding: handle to HDMI CEC clock.
-+  - clock-names : from common clock binding: must contain "hdmicec",
-+		  corresponding to entry in the clocks property.
-+  - samsung,syscon-phandle - phandle to the PMU system controller
-+
-+Example:
-+
-+hdmicec: cec@100B0000 {
-+	compatible = "samsung,s5p-cec";
-+	reg = <0x100B0000 0x200>;
-+	interrupts = <0 114 0>;
-+	clocks = <&clock CLK_HDMI_CEC>;
-+	clock-names = "hdmicec";
-+	samsung,syscon-phandle = <&pmu_system_controller>;
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&hdmi_cec>;
-+	status = "okay";
-+};
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 65ccec4..5896d20 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1536,6 +1536,13 @@ L:	linux-media@vger.kernel.org
- S:	Maintained
- F:	drivers/media/platform/s5p-tv/
- 
-+ARM/SAMSUNG S5P SERIES HDMI CEC SUBSYSTEM SUPPORT
-+M:	Kyungmin Park <kyungmin.park@samsung.com>
-+L:	linux-arm-kernel@lists.infradead.org
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/platform/s5p-cec/
-+
- ARM/SAMSUNG S5P SERIES JPEG CODEC SUPPORT
- M:	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
- M:	Jacek Anaszewski <j.anaszewski@samsung.com>
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index fd4fcd5..bde5ea3 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -117,6 +117,18 @@ config VIDEO_S3C_CAMIF
- source "drivers/media/platform/soc_camera/Kconfig"
- source "drivers/media/platform/exynos4-is/Kconfig"
- source "drivers/media/platform/s5p-tv/Kconfig"
-+
-+config VIDEO_SAMSUNG_S5P_CEC
-+	tristate "Samsung S5P CEC driver"
-+	depends on VIDEO_DEV && VIDEO_V4L2 && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
-+	select MEDIA_CEC
-+	default n
-+	---help---
-+	  This is a driver for Samsung S5P HDMI CEC interface. It uses the
-+	  generic CEC framework interface.
-+	  CEC bus is present in the HDMI connector and enables communication
-+	  between compatible devices.
-+
- source "drivers/media/platform/am437x/Kconfig"
- source "drivers/media/platform/xilinx/Kconfig"
- 
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 028a723..a6d058d 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
- 
- obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
-+obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC)	+= s5p-cec/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
-diff --git a/drivers/media/platform/s5p-cec/Makefile b/drivers/media/platform/s5p-cec/Makefile
-new file mode 100644
-index 0000000..0e2cf45
---- /dev/null
-+++ b/drivers/media/platform/s5p-cec/Makefile
-@@ -0,0 +1,2 @@
-+obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC)	+= s5p-cec.o
-+s5p-cec-y += s5p_cec.o exynos_hdmi_cecctrl.o
-diff --git a/drivers/media/platform/s5p-cec/exynos_hdmi_cec.h b/drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
-new file mode 100644
-index 0000000..3e4fc7b
---- /dev/null
-+++ b/drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
-@@ -0,0 +1,38 @@
-+/* drivers/media/platform/s5p-cec/exynos_hdmi_cec.h
-+ *
-+ * Copyright (c) 2010, 2014 Samsung Electronics
-+ *		http://www.samsung.com/
-+ *
-+ * Header file for interface of Samsung Exynos hdmi cec hardware
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef _EXYNOS_HDMI_CEC_H_
-+#define _EXYNOS_HDMI_CEC_H_ __FILE__
-+
-+#include <linux/regmap.h>
-+#include <linux/miscdevice.h>
-+#include "s5p_cec.h"
-+
-+void s5p_cec_set_divider(struct s5p_cec_dev *cec);
-+void s5p_cec_enable_rx(struct s5p_cec_dev *cec);
-+void s5p_cec_mask_rx_interrupts(struct s5p_cec_dev *cec);
-+void s5p_cec_unmask_rx_interrupts(struct s5p_cec_dev *cec);
-+void s5p_cec_mask_tx_interrupts(struct s5p_cec_dev *cec);
-+void s5p_cec_unmask_tx_interrupts(struct s5p_cec_dev *cec);
-+void s5p_cec_reset(struct s5p_cec_dev *cec);
-+void s5p_cec_tx_reset(struct s5p_cec_dev *cec);
-+void s5p_cec_rx_reset(struct s5p_cec_dev *cec);
-+void s5p_cec_threshold(struct s5p_cec_dev *cec);
-+void s5p_cec_copy_packet(struct s5p_cec_dev *cec, char *data,
-+			 size_t count, u8 retries);
-+void s5p_cec_set_addr(struct s5p_cec_dev *cec, u32 addr);
-+u32 s5p_cec_get_status(struct s5p_cec_dev *cec);
-+void s5p_clr_pending_tx(struct s5p_cec_dev *cec);
-+void s5p_clr_pending_rx(struct s5p_cec_dev *cec);
-+void s5p_cec_get_rx_buf(struct s5p_cec_dev *cec, u32 size, u8 *buffer);
-+
-+#endif /* _EXYNOS_HDMI_CEC_H_ */
-diff --git a/drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c b/drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
-new file mode 100644
-index 0000000..d7550d5
---- /dev/null
-+++ b/drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
-@@ -0,0 +1,210 @@
-+/* drivers/media/platform/s5p-cec/exynos_hdmi_cecctrl.c
-+ *
-+ * Copyright (c) 2009, 2014 Samsung Electronics
-+ *		http://www.samsung.com/
-+ *
-+ * cec ftn file for Samsung TVOUT driver
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/io.h>
-+#include <linux/device.h>
-+
-+#include "exynos_hdmi_cec.h"
-+#include "regs-cec.h"
-+
-+#define S5P_HDMI_FIN			24000000
-+#define CEC_DIV_RATIO			320000
-+
-+#define CEC_MESSAGE_BROADCAST_MASK	0x0F
-+#define CEC_MESSAGE_BROADCAST		0x0F
-+#define CEC_FILTER_THRESHOLD		0x15
-+
-+void s5p_cec_set_divider(struct s5p_cec_dev *cec)
-+{
-+	u32 div_ratio, div_val;
-+	unsigned int reg;
-+
-+	div_ratio  = S5P_HDMI_FIN / CEC_DIV_RATIO - 1;
-+
-+	if (regmap_read(cec->pmu, EXYNOS_HDMI_PHY_CONTROL, &reg)) {
-+		dev_err(cec->dev, "failed to read phy control\n");
-+		return;
-+	}
-+
-+	reg = (reg & ~(0x3FF << 16)) | (div_ratio << 16);
-+
-+	if (regmap_write(cec->pmu, EXYNOS_HDMI_PHY_CONTROL, reg)) {
-+		dev_err(cec->dev, "failed to write phy control\n");
-+		return;
-+	}
-+
-+	div_val = CEC_DIV_RATIO * 0.00005 - 1;
-+
-+	writeb(0x0, cec->reg + S5P_CEC_DIVISOR_3);
-+	writeb(0x0, cec->reg + S5P_CEC_DIVISOR_2);
-+	writeb(0x0, cec->reg + S5P_CEC_DIVISOR_1);
-+	writeb(div_val, cec->reg + S5P_CEC_DIVISOR_0);
-+}
-+
-+void s5p_cec_enable_rx(struct s5p_cec_dev *cec)
-+{
-+	u8 reg;
-+
-+	reg = readb(cec->reg + S5P_CEC_RX_CTRL);
-+	reg |= S5P_CEC_RX_CTRL_ENABLE;
-+	writeb(reg, cec->reg + S5P_CEC_RX_CTRL);
-+}
-+
-+void s5p_cec_mask_rx_interrupts(struct s5p_cec_dev *cec)
-+{
-+	u8 reg;
-+
-+	reg = readb(cec->reg + S5P_CEC_IRQ_MASK);
-+	reg |= S5P_CEC_IRQ_RX_DONE;
-+	reg |= S5P_CEC_IRQ_RX_ERROR;
-+	writeb(reg, cec->reg + S5P_CEC_IRQ_MASK);
-+}
-+
-+void s5p_cec_unmask_rx_interrupts(struct s5p_cec_dev *cec)
-+{
-+	u8 reg;
-+
-+	reg = readb(cec->reg + S5P_CEC_IRQ_MASK);
-+	reg &= ~S5P_CEC_IRQ_RX_DONE;
-+	reg &= ~S5P_CEC_IRQ_RX_ERROR;
-+	writeb(reg, cec->reg + S5P_CEC_IRQ_MASK);
-+}
-+
-+void s5p_cec_mask_tx_interrupts(struct s5p_cec_dev *cec)
-+{
-+	u8 reg;
-+
-+	reg = readb(cec->reg + S5P_CEC_IRQ_MASK);
-+	reg |= S5P_CEC_IRQ_TX_DONE;
-+	reg |= S5P_CEC_IRQ_TX_ERROR;
-+	writeb(reg, cec->reg + S5P_CEC_IRQ_MASK);
-+
-+}
-+
-+void s5p_cec_unmask_tx_interrupts(struct s5p_cec_dev *cec)
-+{
-+	u8 reg;
-+
-+	reg = readb(cec->reg + S5P_CEC_IRQ_MASK);
-+	reg &= ~S5P_CEC_IRQ_TX_DONE;
-+	reg &= ~S5P_CEC_IRQ_TX_ERROR;
-+	writeb(reg, cec->reg + S5P_CEC_IRQ_MASK);
-+}
-+
-+void s5p_cec_reset(struct s5p_cec_dev *cec)
-+{
-+	u8 reg;
-+
-+	writeb(S5P_CEC_RX_CTRL_RESET, cec->reg + S5P_CEC_RX_CTRL);
-+	writeb(S5P_CEC_TX_CTRL_RESET, cec->reg + S5P_CEC_TX_CTRL);
-+
-+	reg = readb(cec->reg + 0xc4);
-+	reg &= ~0x1;
-+	writeb(reg, cec->reg + 0xc4);
-+}
-+
-+void s5p_cec_tx_reset(struct s5p_cec_dev *cec)
-+{
-+	writeb(S5P_CEC_TX_CTRL_RESET, cec->reg + S5P_CEC_TX_CTRL);
-+}
-+
-+void s5p_cec_rx_reset(struct s5p_cec_dev *cec)
-+{
-+	u8 reg;
-+
-+	writeb(S5P_CEC_RX_CTRL_RESET, cec->reg + S5P_CEC_RX_CTRL);
-+
-+	reg = readb(cec->reg + 0xc4);
-+	reg &= ~0x1;
-+	writeb(reg, cec->reg + 0xc4);
-+}
-+
-+void s5p_cec_threshold(struct s5p_cec_dev *cec)
-+{
-+	writeb(CEC_FILTER_THRESHOLD, cec->reg + S5P_CEC_RX_FILTER_TH);
-+	writeb(0, cec->reg + S5P_CEC_RX_FILTER_CTRL);
-+}
-+
-+void s5p_cec_copy_packet(struct s5p_cec_dev *cec, char *data,
-+			 size_t count, u8 retries)
-+{
-+	char debug[40];
-+	int i = 0;
-+	u8 reg;
-+
-+	while (i < count) {
-+		writeb(data[i], cec->reg + (S5P_CEC_TX_BUFF0 + (i * 4)));
-+		sprintf(debug + i * 2, "%02x ", data[i]);
-+		i++;
-+	}
-+
-+	writeb(count, cec->reg + S5P_CEC_TX_BYTES);
-+	reg = readb(cec->reg + S5P_CEC_TX_CTRL);
-+	reg |= S5P_CEC_TX_CTRL_START;
-+	reg &= ~0x70;
-+	reg |= retries << 4;
-+
-+	if ((data[0] & CEC_MESSAGE_BROADCAST_MASK) == CEC_MESSAGE_BROADCAST) {
-+		dev_dbg(cec->dev, "Broadcast");
-+		reg |= S5P_CEC_TX_CTRL_BCAST;
-+	} else {
-+		dev_dbg(cec->dev, "No Broadcast");
-+		reg &= ~S5P_CEC_TX_CTRL_BCAST;
-+	}
-+
-+	writeb(reg, cec->reg + S5P_CEC_TX_CTRL);
-+	dev_dbg(cec->dev, "cec-tx: cec count(%zu): %s", count, debug);
-+}
-+
-+void s5p_cec_set_addr(struct s5p_cec_dev *cec, u32 addr)
-+{
-+	writeb(addr & 0x0F, cec->reg + S5P_CEC_LOGIC_ADDR);
-+}
-+
-+u32 s5p_cec_get_status(struct s5p_cec_dev *cec)
-+{
-+	u32 status = 0;
-+
-+	status = readb(cec->reg + S5P_CEC_STATUS_0);
-+	status |= readb(cec->reg + S5P_CEC_STATUS_1) << 8;
-+	status |= readb(cec->reg + S5P_CEC_STATUS_2) << 16;
-+	status |= readb(cec->reg + S5P_CEC_STATUS_3) << 24;
-+
-+	dev_dbg(cec->dev, "status = 0x%x!\n", status);
-+
-+	return status;
-+}
-+
-+void s5p_clr_pending_tx(struct s5p_cec_dev *cec)
-+{
-+	writeb(S5P_CEC_IRQ_TX_DONE | S5P_CEC_IRQ_TX_ERROR,
-+					cec->reg + S5P_CEC_IRQ_CLEAR);
-+}
-+
-+void s5p_clr_pending_rx(struct s5p_cec_dev *cec)
-+{
-+	writeb(S5P_CEC_IRQ_RX_DONE | S5P_CEC_IRQ_RX_ERROR,
-+					cec->reg + S5P_CEC_IRQ_CLEAR);
-+}
-+
-+void s5p_cec_get_rx_buf(struct s5p_cec_dev *cec, u32 size, u8 *buffer)
-+{
-+	u32 i = 0;
-+	char debug[40];
-+
-+	while (i < size) {
-+		buffer[i] = readb(cec->reg + S5P_CEC_RX_BUFF0 + (i * 4));
-+		sprintf(debug + i * 2, "%02x ", buffer[i]);
-+		i++;
-+	}
-+	dev_dbg(cec->dev, "cec-rx: cec size(%d): %s", size, debug);
-+}
-diff --git a/drivers/media/platform/s5p-cec/regs-cec.h b/drivers/media/platform/s5p-cec/regs-cec.h
-new file mode 100644
-index 0000000..b2e7e12
---- /dev/null
-+++ b/drivers/media/platform/s5p-cec/regs-cec.h
-@@ -0,0 +1,96 @@
-+/* drivers/media/platform/s5p-cec/regs-cec.h
-+ *
-+ * Copyright (c) 2010 Samsung Electronics
-+ *		http://www.samsung.com/
-+ *
-+ *  register header file for Samsung TVOUT driver
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __EXYNOS_REGS__H
-+#define __EXYNOS_REGS__H
-+
-+/*
-+ * Register part
-+ */
-+#define S5P_CEC_STATUS_0			(0x0000)
-+#define S5P_CEC_STATUS_1			(0x0004)
-+#define S5P_CEC_STATUS_2			(0x0008)
-+#define S5P_CEC_STATUS_3			(0x000C)
-+#define S5P_CEC_IRQ_MASK			(0x0010)
-+#define S5P_CEC_IRQ_CLEAR			(0x0014)
-+#define S5P_CEC_LOGIC_ADDR			(0x0020)
-+#define S5P_CEC_DIVISOR_0			(0x0030)
-+#define S5P_CEC_DIVISOR_1			(0x0034)
-+#define S5P_CEC_DIVISOR_2			(0x0038)
-+#define S5P_CEC_DIVISOR_3			(0x003C)
-+
-+#define S5P_CEC_TX_CTRL				(0x0040)
-+#define S5P_CEC_TX_BYTES			(0x0044)
-+#define S5P_CEC_TX_STAT0			(0x0060)
-+#define S5P_CEC_TX_STAT1			(0x0064)
-+#define S5P_CEC_TX_BUFF0			(0x0080)
-+#define S5P_CEC_TX_BUFF1			(0x0084)
-+#define S5P_CEC_TX_BUFF2			(0x0088)
-+#define S5P_CEC_TX_BUFF3			(0x008C)
-+#define S5P_CEC_TX_BUFF4			(0x0090)
-+#define S5P_CEC_TX_BUFF5			(0x0094)
-+#define S5P_CEC_TX_BUFF6			(0x0098)
-+#define S5P_CEC_TX_BUFF7			(0x009C)
-+#define S5P_CEC_TX_BUFF8			(0x00A0)
-+#define S5P_CEC_TX_BUFF9			(0x00A4)
-+#define S5P_CEC_TX_BUFF10			(0x00A8)
-+#define S5P_CEC_TX_BUFF11			(0x00AC)
-+#define S5P_CEC_TX_BUFF12			(0x00B0)
-+#define S5P_CEC_TX_BUFF13			(0x00B4)
-+#define S5P_CEC_TX_BUFF14			(0x00B8)
-+#define S5P_CEC_TX_BUFF15			(0x00BC)
-+
-+#define S5P_CEC_RX_CTRL				(0x00C0)
-+#define S5P_CEC_RX_STAT0			(0x00E0)
-+#define S5P_CEC_RX_STAT1			(0x00E4)
-+#define S5P_CEC_RX_BUFF0			(0x0100)
-+#define S5P_CEC_RX_BUFF1			(0x0104)
-+#define S5P_CEC_RX_BUFF2			(0x0108)
-+#define S5P_CEC_RX_BUFF3			(0x010C)
-+#define S5P_CEC_RX_BUFF4			(0x0110)
-+#define S5P_CEC_RX_BUFF5			(0x0114)
-+#define S5P_CEC_RX_BUFF6			(0x0118)
-+#define S5P_CEC_RX_BUFF7			(0x011C)
-+#define S5P_CEC_RX_BUFF8			(0x0120)
-+#define S5P_CEC_RX_BUFF9			(0x0124)
-+#define S5P_CEC_RX_BUFF10			(0x0128)
-+#define S5P_CEC_RX_BUFF11			(0x012C)
-+#define S5P_CEC_RX_BUFF12			(0x0130)
-+#define S5P_CEC_RX_BUFF13			(0x0134)
-+#define S5P_CEC_RX_BUFF14			(0x0138)
-+#define S5P_CEC_RX_BUFF15			(0x013C)
-+
-+#define S5P_CEC_RX_FILTER_CTRL			(0x0180)
-+#define S5P_CEC_RX_FILTER_TH			(0x0184)
-+
-+/*
-+ * Bit definition part
-+ */
-+#define S5P_CEC_IRQ_TX_DONE			(1<<0)
-+#define S5P_CEC_IRQ_TX_ERROR			(1<<1)
-+#define S5P_CEC_IRQ_RX_DONE			(1<<4)
-+#define S5P_CEC_IRQ_RX_ERROR			(1<<5)
-+
-+#define S5P_CEC_TX_CTRL_START			(1<<0)
-+#define S5P_CEC_TX_CTRL_BCAST			(1<<1)
-+#define S5P_CEC_TX_CTRL_RETRY			(0x04<<4)
-+#define S5P_CEC_TX_CTRL_RESET			(1<<7)
-+
-+#define S5P_CEC_RX_CTRL_ENABLE			(1<<0)
-+#define S5P_CEC_RX_CTRL_RESET			(1<<7)
-+
-+#define S5P_CEC_LOGIC_ADDR_MASK			(0xF)
-+
-+/* PMU Registers for PHY */
-+#define EXYNOS_HDMI_PHY_CONTROL			0x700
-+
-+#endif	/* __EXYNOS_REGS__H	*/
-diff --git a/drivers/media/platform/s5p-cec/s5p_cec.c b/drivers/media/platform/s5p-cec/s5p_cec.c
-new file mode 100644
-index 0000000..c5c8165
---- /dev/null
-+++ b/drivers/media/platform/s5p-cec/s5p_cec.c
-@@ -0,0 +1,296 @@
-+/* drivers/media/platform/s5p-cec/s5p_cec.c
-+ *
-+ * Samsung S5P CEC driver
-+ *
-+ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This driver is based on the "cec interface driver for exynos soc" by
-+ * SangPil Moon.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/timer.h>
-+#include <linux/version.h>
-+#include <linux/workqueue.h>
-+#include <media/cec.h>
-+
-+#include "exynos_hdmi_cec.h"
-+#include "regs-cec.h"
-+#include "s5p_cec.h"
-+
-+#define CEC_NAME	"s5p-cec"
-+
-+static int debug;
-+module_param(debug, int, 0644);
-+MODULE_PARM_DESC(debug, "debug level (0-2)");
-+
-+static int s5p_cec_adap_enable(struct cec_adapter *adap, bool enable)
-+{
-+	struct s5p_cec_dev *cec = adap->priv;
-+	int ret;
-+
-+	if (enable) {
-+		ret = pm_runtime_get_sync(cec->dev);
-+
-+		s5p_cec_reset(cec);
-+
-+		s5p_cec_set_divider(cec);
-+		s5p_cec_threshold(cec);
-+
-+		s5p_cec_unmask_tx_interrupts(cec);
-+		s5p_cec_unmask_rx_interrupts(cec);
-+		s5p_cec_enable_rx(cec);
-+	} else {
-+		s5p_cec_mask_tx_interrupts(cec);
-+		s5p_cec_mask_rx_interrupts(cec);
-+		pm_runtime_disable(cec->dev);
-+	}
-+
-+	return 0;
-+}
-+
-+static int s5p_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
-+{
-+	struct s5p_cec_dev *cec = adap->priv;
-+
-+	s5p_cec_set_addr(cec, addr);
-+	return 0;
-+}
-+
-+static int s5p_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-+				 u32 signal_free_time_ms, struct cec_msg *msg)
-+{
-+	struct s5p_cec_dev *cec = adap->priv;
-+
-+	/*
-+	 * Unclear if 0 retries are allowed by the hardware, so have 1 as
-+	 * the minimum.
-+	 */
-+	s5p_cec_copy_packet(cec, msg->msg, msg->len, max(1, attempts - 1));
-+	return 0;
-+}
-+
-+static irqreturn_t s5p_cec_irq_handler(int irq, void *priv)
-+{
-+	struct s5p_cec_dev *cec = priv;
-+	u32 status = 0;
-+
-+	status = s5p_cec_get_status(cec);
-+
-+	dev_dbg(cec->dev, "irq received\n");
-+
-+	if (status & CEC_STATUS_TX_DONE) {
-+		if (status & CEC_STATUS_TX_ERROR) {
-+			dev_dbg(cec->dev, "CEC_STATUS_TX_ERROR set\n");
-+			cec->tx = STATE_ERROR;
-+		} else {
-+			dev_dbg(cec->dev, "CEC_STATUS_TX_DONE\n");
-+			cec->tx = STATE_DONE;
-+		}
-+		s5p_clr_pending_tx(cec);
-+	}
-+
-+	if (status & CEC_STATUS_RX_DONE) {
-+		if (status & CEC_STATUS_RX_ERROR) {
-+			dev_dbg(cec->dev, "CEC_STATUS_RX_ERROR set\n");
-+			s5p_cec_rx_reset(cec);
-+			s5p_cec_enable_rx(cec);
-+		} else {
-+			dev_dbg(cec->dev, "CEC_STATUS_RX_DONE set\n");
-+			if (cec->rx != STATE_IDLE)
-+				dev_dbg(cec->dev, "Buffer overrun (worker did not process previous message)\n");
-+			cec->rx = STATE_BUSY;
-+			cec->msg.len = status >> 24;
-+			cec->msg.rx_status = CEC_RX_STATUS_OK;
-+			s5p_cec_get_rx_buf(cec, cec->msg.len,
-+					cec->msg.msg);
-+			cec->rx = STATE_DONE;
-+			s5p_cec_enable_rx(cec);
-+		}
-+		/* Clear interrupt pending bit */
-+		s5p_clr_pending_rx(cec);
-+	}
-+	return IRQ_WAKE_THREAD;
-+}
-+
-+static irqreturn_t s5p_cec_irq_handler_thread(int irq, void *priv)
-+{
-+	struct s5p_cec_dev *cec = priv;
-+
-+	dev_dbg(cec->dev, "irq processing thread\n");
-+	switch (cec->tx) {
-+	case STATE_DONE:
-+		cec_transmit_done(cec->adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
-+		cec->tx = STATE_IDLE;
-+		break;
-+	case STATE_ERROR:
-+		cec_transmit_done(cec->adap,
-+			CEC_TX_STATUS_MAX_RETRIES | CEC_TX_STATUS_ERROR,
-+			0, 0, 0, 1);
-+		cec->tx = STATE_IDLE;
-+		break;
-+	case STATE_BUSY:
-+		dev_err(cec->dev, "state set to busy, this should not occur here\n");
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	switch (cec->rx) {
-+	case STATE_DONE:
-+		cec_received_msg(cec->adap, &cec->msg);
-+		cec->rx = STATE_IDLE;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static const struct cec_adap_ops s5p_cec_adap_ops = {
-+	.adap_enable = s5p_cec_adap_enable,
-+	.adap_log_addr = s5p_cec_adap_log_addr,
-+	.adap_transmit = s5p_cec_adap_transmit,
-+};
-+
-+static int s5p_cec_probe(struct platform_device *pdev)
-+{
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct s5p_cec_dev *cec;
-+	int ret;
-+
-+	cec = devm_kzalloc(&pdev->dev, sizeof(*cec), GFP_KERNEL);
-+	if (!dev)
-+		return -ENOMEM;
-+
-+	cec->dev = dev;
-+
-+	cec->irq = platform_get_irq(pdev, 0);
-+	if (IS_ERR_VALUE(cec->irq))
-+		return cec->irq;
-+
-+	ret = devm_request_threaded_irq(dev, cec->irq, s5p_cec_irq_handler,
-+		s5p_cec_irq_handler_thread, 0, pdev->name, cec);
-+	if (IS_ERR_VALUE(ret))
-+		return ret;
-+
-+	cec->clk = devm_clk_get(dev, "hdmicec");
-+	if (IS_ERR(cec->clk))
-+		return PTR_ERR(cec->clk);
-+
-+	cec->pmu = syscon_regmap_lookup_by_phandle(dev->of_node,
-+						 "samsung,syscon-phandle");
-+	if (IS_ERR(cec->pmu))
-+		return -EPROBE_DEFER;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	cec->reg = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(cec->reg))
-+		return PTR_ERR(cec->reg);
-+
-+	cec->adap = cec_create_adapter(&s5p_cec_adap_ops, cec,
-+		CEC_NAME, CEC_CAP_STATE |
-+		CEC_CAP_PHYS_ADDR | CEC_CAP_LOG_ADDRS | CEC_CAP_IO |
-+		CEC_CAP_IS_SOURCE,
-+		0, THIS_MODULE, &pdev->dev);
-+	ret = PTR_ERR_OR_ZERO(cec->adap);
-+	if (ret)
-+		return ret;
-+	cec->adap->available_log_addrs = 1;
-+	ret = cec_register_adapter(cec->adap);
-+	if (ret) {
-+		cec_delete_adapter(cec->adap);
-+		return ret;
-+	}
-+
-+	platform_set_drvdata(pdev, cec);
-+	pm_runtime_enable(dev);
-+
-+	dev_dbg(dev, "successfuly probed\n");
-+	return 0;
-+}
-+
-+static int s5p_cec_remove(struct platform_device *pdev)
-+{
-+	struct s5p_cec_dev *cec = platform_get_drvdata(pdev);
-+
-+	cec_unregister_adapter(cec->adap);
-+	pm_runtime_disable(&pdev->dev);
-+	return 0;
-+}
-+
-+static int s5p_cec_runtime_suspend(struct device *dev)
-+{
-+	struct s5p_cec_dev *cec = dev_get_drvdata(dev);
-+
-+	clk_disable_unprepare(cec->clk);
-+	return 0;
-+}
-+
-+static int s5p_cec_runtime_resume(struct device *dev)
-+{
-+	struct s5p_cec_dev *cec = dev_get_drvdata(dev);
-+	int ret;
-+
-+	ret = clk_prepare_enable(cec->clk);
-+	if (ret < 0)
-+		return ret;
-+	return 0;
-+}
-+
-+static int s5p_cec_suspend(struct device *dev)
-+{
-+	if (pm_runtime_suspended(dev))
-+		return 0;
-+	return s5p_cec_runtime_suspend(dev);
-+}
-+
-+static int s5p_cec_resume(struct device *dev)
-+{
-+	if (pm_runtime_suspended(dev))
-+		return 0;
-+	return s5p_cec_runtime_resume(dev);
-+}
-+
-+static const struct dev_pm_ops s5p_cec_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(s5p_cec_suspend, s5p_cec_resume)
-+	SET_RUNTIME_PM_OPS(s5p_cec_runtime_suspend, s5p_cec_runtime_resume,
-+			   NULL)
-+};
-+
-+static const struct of_device_id s5p_cec_match[] = {
-+	{
-+		.compatible	= "samsung,s5p-cec",
-+	},
-+	{},
-+};
-+
-+static struct platform_driver s5p_cec_pdrv = {
-+	.probe	= s5p_cec_probe,
-+	.remove	= s5p_cec_remove,
-+	.driver	= {
-+		.name		= CEC_NAME,
-+		.of_match_table	= s5p_cec_match,
-+		.pm		= &s5p_cec_pm_ops,
-+	},
-+};
-+
-+module_platform_driver(s5p_cec_pdrv);
-+
-+MODULE_AUTHOR("Kamil Debski <kamil@wypas.org>");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("Samsung S5P CEC driver");
-diff --git a/drivers/media/platform/s5p-cec/s5p_cec.h b/drivers/media/platform/s5p-cec/s5p_cec.h
-new file mode 100644
-index 0000000..03732c1
---- /dev/null
-+++ b/drivers/media/platform/s5p-cec/s5p_cec.h
-@@ -0,0 +1,76 @@
-+/* drivers/media/platform/s5p-cec/s5p_cec.h
-+ *
-+ * Samsung S5P HDMI CEC driver
-+ *
-+ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef _S5P_CEC_H_
-+#define _S5P_CEC_H_ __FILE__
-+
-+#include <linux/clk.h>
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/timer.h>
-+#include <linux/version.h>
-+#include <linux/workqueue.h>
-+#include <media/cec.h>
-+
-+#include "exynos_hdmi_cec.h"
-+#include "regs-cec.h"
-+#include "s5p_cec.h"
-+
-+#define CEC_NAME	"s5p-cec"
-+
-+#define CEC_STATUS_TX_RUNNING		(1 << 0)
-+#define CEC_STATUS_TX_TRANSFERRING	(1 << 1)
-+#define CEC_STATUS_TX_DONE		(1 << 2)
-+#define CEC_STATUS_TX_ERROR		(1 << 3)
-+#define CEC_STATUS_TX_BYTES		(0xFF << 8)
-+#define CEC_STATUS_RX_RUNNING		(1 << 16)
-+#define CEC_STATUS_RX_RECEIVING		(1 << 17)
-+#define CEC_STATUS_RX_DONE		(1 << 18)
-+#define CEC_STATUS_RX_ERROR		(1 << 19)
-+#define CEC_STATUS_RX_BCAST		(1 << 20)
-+#define CEC_STATUS_RX_BYTES		(0xFF << 24)
-+
-+#define CEC_WORKER_TX_DONE		(1 << 0)
-+#define CEC_WORKER_RX_MSG		(1 << 1)
-+
-+/* CEC Rx buffer size */
-+#define CEC_RX_BUFF_SIZE		16
-+/* CEC Tx buffer size */
-+#define CEC_TX_BUFF_SIZE		16
-+
-+enum cec_state {
-+	STATE_IDLE,
-+	STATE_BUSY,
-+	STATE_DONE,
-+	STATE_ERROR
-+};
-+
-+struct s5p_cec_dev {
-+	struct cec_adapter	*adap;
-+	struct clk		*clk;
-+	struct device		*dev;
-+	struct mutex		lock;
-+	struct regmap           *pmu;
-+	int			irq;
-+	void __iomem		*reg;
-+
-+	enum cec_state		rx;
-+	enum cec_state		tx;
-+	struct cec_msg		msg;
-+};
-+
-+#endif /* _S5P_CEC_H_ */
--- 
-2.7.0
+--TB36FDmn/VVEgNH/
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
 
+H4sICP7tslYAAy5jb25maWcAjDxbc9s2s+/9FZz0PLQzJ4ljO/7SOeMHiARFVATJEKAk+4Wj
+yHSiqS35k+Q2+fdnFyDF20JpZzK1sIvbYu9Y8NdffvXY63H3vDpu1qunpx/e12pb7VfH6sF7
+3DxV/+cFqZek2uOB0O8AOd5sX7+/31x9uvGu3318d/F2v/7gzar9tnry/N32cfP1FXpvdttf
+fgVsP01CMS1vridCe5uDt90dvUN1/KVuX366Ka8ub390frc/RKJ0XvhapEkZcD8NeN4C00Jn
+hS7DNJdM376pnh6vLt/iqt40GCz3I+gX2p+3b1b79bf33z/dvF+bVR7MHsqH6tH+PvWLU38W
+8KxURZaluW6nVJr5M50zn49hUhbtDzOzlCwr8yQoYeeqlCK5/XQOzpa3H25oBD+VGdM/HaeH
+1hsu4Two1bQMJCtjnkx11K51yhOeC78UiiF8DIgWXEwjPdwduysjNudl5pdh4LfQfKG4LJd+
+NGVBULJ4muZCR3I8rs9iMcmZ5nBGMbsbjB8xVfpZUeYAW1Iw5ke8jEUCZyHueYthFqW4LrIy
+47kZg+W8sy9DjAbE5QR+hSJXuvSjIpk58DI25TSaXZGY8DxhhlOzVCkxifkARRUq43BKDvCC
+JbqMCpglk3BWEayZwjDEY7HB1PFkNIfhSlWmmRYSyBKADAGNRDJ1YQZ8UkzN9lgMjN+TRJDM
+Mmb3d+VUDfdreaL0w5gB8M3bR1Qdbw+rv6uHt9X6u9dvePj+hp69yPJ0wjujh2JZcpbHd/C7
+lLzDNtlUMyAb8O+cx+r2smk/CTgwgwJF8P5p8+X98+7h9ak6vP+fImGSIxNxpvj7dwNJF/nn
+cpHmndOcFCIOgHa85Es7n7JibpTZ1GjGJ1Rgry/Q0nTK0xlPSlixkllXfQld8mQOe8bFSaFv
+r07L9nPgAyOyAnjhzZtWVdZtpeaK0phwSCye81wBr/X6dQElK3RKdDbCMQNW5XE5vRfZQGxq
+yAQglzQovu+qiC5kee/qkboA1y2gv6bTnroL6m5niIDLOgdf3p/vnZ4HXxOkBL5jRQwymyqN
+THb75rftblv93jkRdafmIvPJse35A4en+V3JNFiWiMQLI5YEMSdhheKgQl3HbCSNFWC1YR3A
+GnHDxcD13uH1y+HH4Vg9t1x8MgQgFEYsCRsBIBWliw6PQwuYYB80jY5AzQY9VaMyliuOSG2b
+j+ZVpQX0AZWm/ShIh8qpixIwzejOc7AfAZqPmKFWvvNjYsVGlOctAYY2CMcDhZJodRaIZrdk
+wZ+F0gSeTFGT4VoaEuvNc7U/UFSO7tGmiDQQfpfRkxQhwnXSBkxCItDDoN+U2WmuujjW/8qK
+93p1+Ms7wpK81fbBOxxXx4O3Wq93r9vjZvu1XZsW/swaTN9Pi0TbszxNhWdt6NmCR9PlfuGp
+8a4B964EWHc4+AlKFohBaTk1QNZMzRR2IYmAQ4FzFseoPGWakEg659xgGg/OOQ4uCWSGl5M0
+1SSWsRHgZiWXtGiLmf3DJZgFuLXWtIALE1g26+7Vn+ZpkSlabUTcn2WpAFcADl2nOb0ROzIa
+ATMWvVn0uugNxjNQb3NjwPKAXod/8jFQ/o0PRuyXJWCLRAKeuxoYgUIEHzquPkqojoH4Ps+M
+F2UOadAn81U2y8ssZhrd/hZq2ahLQwmqWYB+zGnygPMkgaPKWjHQSHcqVGcxZgBQd5I+qSyH
+Q5o5GGhKd+nvj+4LfkwZFo4VhYXmSxLCs9S1TzFNWBzS52y0igNmVKMDNsnC88SNwPSRECZo
+Y8yCuYCt14PSNMcDN1bZsSqYc8LyXPTZotkOhgIBD4ZMB0OWJxNhlFwd7GbV/nG3f15t15XH
+/662oFUZ6Fcf9Spo/1b79Yc4raZ2vREICy/n0njg5MLn0vYvjeId6Pme54gBYE6znYoZ5Syo
+uJh0l6XidOISCA2hHVrkEvxMEQrfRDwO9k9DEQ9MRJeuqcXoyHjTUiZSWMbrLuvPQmZg6iec
+Zqg6kqBtJM5nMhAQjwK3o2r0fa6Ua208hL0JpDfED70eA08Fzw3NAdi3cqIWbOhQC1DQGJ7D
+4vQANBuGPrY155oEgLalO9hWDD5CSmeaZRpAlKazARDzAfBbi2mRFoQHBOGM8Ulq344ISCGA
+vAPvFz0to09NvmYwS86nCixBYPMnNSFLlgliNdBq5WIAixbA1pxZ0zeASbGE82nBysw4tDeg
+GqBdF3kC3pQG5u0mk4aSjixIQYmBG/nN6+0FhRxygaFWy7+jbMbcsrxiIQdnMsPcyXCEmgkt
+fU24PsCo+9ko0AEL0sKReIAopbS+ehNZEjtQ3EcNAzF6rEfEA4fA7B85nfvgmPQ8miGQELwR
+DhxTws+OgsdRxIy28WNsIF7q1keEd+sQpQTDGl6na/pHIdOgiEEaUS/wGPllfNrKQkAgUjnO
+XI1Tg+fSim0q0B5Cmt3VslrquNMTfMwENBWQY8HyoANIwZMFB6BOTl2NAMxkX0/5Dz+dv/2y
+OlQP3l/WBr7sd4+bp14UcdomYpeNTu+FX2axjZKxSijiSNJOIgb9HIUm8fZDx4Bb+hJn2FDe
+ePkxqLqil0iYoJNNdDPpMZgoAwVeJIjUj1ZruKGohZ+DkX0XOUYTjs5dYL93P1HGdIpKNpeL
+AQZy2ueCF6gcYBMmPnaj5IsGoXUZgWD3fYfInHW2362rw2G3944/Xmzk+Fitjq/76tBN7N8j
+YwWO7AvYD7Idc4shZ6CMQfMx6TDbBgtj+wYVM2JuVL7UwMKYsz3nP9dpTZELeiQbOQGxYdoc
+c4fGpDjiiOgOtD+4paBcpgWdroPIHQNJm8ps+fj60w3toX48A9CK9g4RJuWSkoobc5/SYoKU
+Q1wkhaAHOoHPw2nSNtBrGjpzbGz2H0f7J7rdzwuV0mGvNI4bd7ikciESPwJT51hIDb5yxQ4x
+c4w75RDgTpcfzkDLmA7LpH+Xi6WT3nPB/KuSTn0aoIN2Pvidjl6oSZySUetkx0WdEQQM5uvb
+FxWJUN9+7KLEHwaw3vAZWAOQ5sSncgWIgKrKIJk8hyo6MT6CQQD6DbVnc3M9bE7n/RYpEiEL
+abJbIfir8V1/3cbn9HUsVc9xgaWgs4rOA4/Bi6D8FhgR1LQhTsfENc3mfHtXnA2EyYBABxFi
+RT4GGL9Dcgi9qLEK6dv2VjVlXNsgijzsQApKWZnLLgUW97R/zmWmR65Y0z5PY3CVWE7nkWos
+J7chETJB6zRzaI40nWE0Dr7JHQTGDn3pBOgUWHNC2yvxiY6cccKcox4PxdKVmjMrVjS5DVNm
+haBVS5JiFneQEGnO0UKue5nYuvHmmvJm51JlMZivq16XthVDSQfJLMolnZ1qwT8d4QO1LnOF
+moah4vr24rt/Yf8b7HPguoRgyqG15AkjblRNxOIGG4ltrljAP+yKp4iRgeLGuuNlQsFvT6s5
+27dZlGRJYWKt1nk4rcjCCCrUnfujlUap2n6d4LEdDiIZLTq6z8a9XE76TmWvuR60O6CtiBDK
+hyCg272fKan9FdBoYWoGoZJG5pwzbSYyOuN6kIfy3amh6A4c2iDIS+2sC2ncSiTPtD2XuchB
+q4FLVfR82JmiRKe5oTMRk73ACfLb64s/brqXAuNwjlKM3VqAWc+V82POEmPz6DDU4RrfZ2lK
+Z7LuJwWtJu7VOENYg5pYylydN1kn95V/yPO8n00wuf6hism0W/8aAw0xaIqX2HleZMPj7qlO
+BW4yhmWL25sOn0id0+rSrNdGyM4FADHcwYUxxuCQ0k5XncigXfr78sPFBaWI78vLjxc9Et2X
+V33UwSj0MLcwzDDeiHK8e6MvGfiSu66QmYpMvonStiBkwgcNB6ojR4X7oda33fuf1GfmJupc
+f5N6gv6Xg+51snkeKDpf78vARLgTF5+DVhXhXRkHmrop6HKCVe+NNo5SncUmQWjj1N0/1d57
+Xm1XX6vnans0kSrzM+HtXrAKrRet1nkOWi3RvKbCnqfUXKp64b7672u1Xf/wDutVnQFpN49u
+Zs4/kz3Fw1M1RHbe/BoCoPpRJzy8BMhiHowGn7wemk17v2W+8Krj+t3v3amwkUiC2NKvOiXb
+ekPKEdX7yAwkKI0d5Q7ARbQsJlx//HhBh06Zj4bKrQHuVDgZEYF/r9avx9WXp8qUL3rmiuZ4
+8N57/Pn1aTViiQmYOakxJ0dfZFmw8nORUYbKJu3Soqc8607YfG5QKRwBPYZvDrm289lskEit
+lu8Sc0SPoPp7s668YL/5215KtZVMm3Xd7KVjUSnshVPE48wVQ/C5llnoyKNoUN8M046u0MAM
+H4pcLsD82kt1EjVcgOFggWMRaBEX5raaItrgri3Ixdy5GYPA57kjGwXc1sn3kCinghAQVBhJ
++GSmsouFN/RNrU0nNmO2ADAAqoQhkZtDQX8w59o7MqlpCqYhsQybTDZVfE0dJ/hBdVFre062
+abQCuTmsqSXAAcg7TGSSC4HIP04VpvLQIRjSpyV1zmhd7F+Si+EcaCi9w+vLy25/7C7HQso/
+rvzlzaibrr6vDp7YHo7712dzfXv4ttpXD95xv9oecCgP9HrlPcBeNy/4ZyM97OlY7VdemE0Z
+KJn98z/QzXvY/bN92q0ePFt82OCK7bF68kBczalZeWtgyhch0dx2iXaHoxPor/YP1IBO/N3L
+Kaerjqtj5cnWav7mp0r+3lETLQ39yGHhl7FJ0zuBdf0cmBUnCueRS8mJ4FROpXwlam7rnPLJ
+HCmBzkQvEMM2V1ZaMh/8wxR9J6MPxkVTYvvyehxP2FrGJCvGbBjBeRhOEO9TD7v0XQ+s+vp3
+cmhQu9uZMslJzveBYVdrYEZKFrWm0zKgmlzFFwCauWAik6K01YiObPjinM+ezF1Snfmf/nN1
+872cZo7Sj0T5biCsaGqDEXe2S/vwz+HfQaDgDy+HLBNc+uTZO6q+lIPLVSZpQKTGjmWWKWrO
+LBvzKLbVLzV2ptSw6WWhOvPWT7v1X0MA3xrXCNx7LB1FXxmcBqyBRo/fkBAst8ywcOO4g9kq
+7/it8lYPDxv0EFZPdtTDu8F9n7lFTk0QCDEDHhYM32Nh20RSYuFw/9IF3qpD2Bo78osGAaNL
+2s2ycDZ3VIUsnJWCEc8lo6OWpmSVyomoSbe632qu3XazPnhq87RZ77beZLX+6+Vpte35/9CP
+GG3igxswHG6yBwOz3j17h5dqvXkEB47JCeu5s4OEg7XWr0/HzePrdo1n2Oi1h7Gql2Fg3Cha
+bSIwh3jfEY5GGj0ICBqvnN1nXGYOLw/BUt9c/eG40QCwkq5AgU2WHy8uzi8dY0zXxRCAtSiZ
+vLr6uMRLBhY4LtoQUToUkS1G0A7fUPJAsCYHMzqg6X718g0ZhRD+oH+TaUDhfvVceV9eHx9B
+9Qdj1R/SgoYFALExNbEfUItpM7lThjlHR3VpWvRj6CZkAAFII1+UsdAa4lSItAXrlJIgfPRw
+ChtPJQOR3zPjhRrHd9hmfLOHfkSD7dm3Hwd8xObFqx9oE8ccjrOBonOk4TMDX/pczEkMhE5Z
+MHXom2JBk11KBztxqZx5n4RD3ANhP83wpoZKTARQ+o44CR4wv4kSIXQtOg+FDKg9hdbNg3Zi
+pBykeqDKscmPmaKXBl4XEfu0Ky+WgVCZq/S4cAiXSfy63LX5Zg+KjTpu7CZSOID+sHUIs97v
+DrvHoxf9eKn2b+fe19cK3G1CBEEUpoNSxl4moqk4oKK+1t2NIBThJ9zxNk7+o3rZbI3tHrC4
+bxrV7nXfU9/N+PFM5X4pPl1+7NTxQCuE6UTrJA5Ore3paAkOeyZo/gaP2fhYpS9/giB1QV8/
+nzC0pEv5uawRQDIc3ruIJymdTBKplIVTyebV8+5YYQxEsYrS3Fz0yDLHW99x75fnw9fhiShA
+/E2Zxw5eugV3fPPye2ubiWBKFclSuANcGK907Dsz3DVMKrZ0W2qneTN5U5pgDnHLFtSFCgMO
+n4JGkWxZJnm3Lkur609ggF1xv8iwMnJS0IJhHDhTh5qnsSu4COX4SFCRdx+bjBIxLk2Prm62
+ZOXlp0SiH06r5x4WqH6ao8HhKmfg9RqMszNG4uby8mJo1Prequ+41JD+2BJ268+fwc+EOIBS
+Xjkbqxq2fdjvNg9dNIjc8tR1Qe0MGJV2tttckBNav+KCFpU6ct/2FkdHo+WbxEvvrTnwwWjj
+BmvUtUnXUJmOwJGBbJKUQAXXrVPA47jMJ7RSC/xgwmjmn6bpNOanKYj1QrRmObyj6wNbZANx
+W6cwvV2vwsBBLAHkeCaCFZkY9LqMWqhMjbQjf3AGJiysdD69CdmZ3p+LVNM5GwPxNb0dzKKG
+6rp0pKJDrCpywFJwKMAXGYAtU6zW3wZetRrd81pBPFSvDztz3dCeVCvXYE1c0xuYH4k4yDmt
+vDGH5kqx4wMlOhSzr8PPQ8vhXXfrqZj/ARc5BsB7C8ND9kUIjZTEY5LWD2e+QRTcf3hovqkA
+1sM8J+94p6bXy36zPf5lchUPzxUY4fZi72ThlMJL7BhlaQ46o776v72uj3L3/AKH89a8gYRT
+Xf91MMOtbfueuiq0FwJYA0HbW3snCTKL36bIcu5DtOR4J1VfXxbm4wGcrEO2taY42u2Hi8vr
+rqrMRVYyBQrT9dIMC5DNDEzRyrhIQAIwApaT1PFyyhbnLJKztyMhdZ0RcbybUXZn4+dNitvv
+dwDPSEyd0Jw8QLJkTZOYim3afFOvQHdQ1Pyz0t16R6l5hszZrKnucPic6PYAt/f9m95QNtnd
+8KwEX3P/A0LzL69fvw4uhw2tTbWycpXIDL7KcAYnnfwJxHO+ZKrXBoYrhk2Oj6eBnJnBPmsp
+lEtbWKy5K6FsgBCGFY6EmsWo7/axCuUM1pkyuXazZr2o18PYvFSnttOAXSMZHkPajLj61HiO
+YtHAEa4vYoEXvBhCuNcXq36i1fZrT+egSS4yGGX8SqYzBQJBiSf2VTSdpfxMJio7LJgAQ4PE
+pWlG8U4PPiyOs0CM0vDae1TL4lSZFmzZCb+E8jMy4gwzzjPqnTmSsZUu77dDHTIf/td7fj1W
+3yv4A6sf3vXrH+rzqR9KnONHfEjrCOQtxmJhkfC95CJjmtZsFtdUybklGbyA+Xl/zAyACbkz
+kzTpnhhI9pO1wDTmpZ3iceh+VGEmBTY8vb1w+PLNR5HOTDqzaurcsoRj/FoVip9hKJpyFti8
++Dt3oH7OA3zAwAjHBT88QOtyc3Su7xLU37/Azwqcs0U/pbH5asG/Qjr/aYPP9fd+aIetplHJ
+8zzNQYz/5O4aTltZSeJ0zTTmdBu1CwG5tg8lzTM1W+FP6WcSkZihfXTp+CaXUeVhkfjtFwWG
+zxZP0GnOsuhf4YSZOYPh49X6GSz5CLcPLBdCR9RT0hoszftDQPAhvBug1JVydqH2tevwIWbd
+0Y7SArEHyj2R+g1HbGOZHr8PAg6zrg7HAdsjAYxAms8j0XmR9lzwvaObbSfmyZ4TbtXazfVJ
+WdEihAuK+NJZAGQQkLeSaV3TROsCgzcDRO3IMRoE83EHumDMwHNg/MhVWmm/HxKkvsp734Dp
+vX92j10Ezg93gG/i1tNMZvTTyY7HMw16mX78fU60i4liCYwMXtv/93E1vQ3CMPQvtetlV0hB
+84YogrQqvaBt6qGnSWg97N/Pdmg+qJ0rLxRKEn/F75EQiON4hrSD0LxlOHGf+eC6uKq0hcPZ
+gUyzAlXeMY4rD4PrWVd0TlxPdEaOgyv4llaOfoIYxmQ8SH8gbQR5AFOv2WrmIh7M2ZvjIIcS
+S3Ebd4suXEAHHYoxhIPT2Zvs2FXT5vy6CRHdGsOZ2MqYW3xBfS1FmSa0e8L4YXFjaQCUlNmP
+yCx2P6ZdNRn6T7o4qfgV43DVdEVmr3l5m4eCXmbeMGxQCuyeW7ZQOLjr702pBYbBtZKIdkfS
+lCOT+Pzm7kDi+n2fb79/UkXjoxqVQlJljj3YES1QNXA9nvdedqxYC3h88vCDRURaWaOp6l0/
+dhnJulPCuVjySbjo+iMltEU/CobapQ+3r/kT8/P5546u7RqVkrz0he1bg9FHTf2DFGkI6hg4
+pKlaBa2hfQhLliCohnUGfAPvClIvC1oCTJBmtaOugVQxxfS43AxYeSIR3coMObrPbjd7kB0c
+wWAx1tTQnXxQgojc29FAyXdpLAcjE4FZ2m4RjHNcBIG9GsIM7kzbveTDiPOFhGYz0FSad3GR
+DjRrMa/LXSIbnHKw2PHFIop+Kn2kQ8+Bmmv4Fk6pBgZGdso/3O/l7IL1/FTxp4XKlXPTA51d
+F9AKr0z+ZmKXheA/6IG/MUpYAAA=
+
+--TB36FDmn/VVEgNH/--
