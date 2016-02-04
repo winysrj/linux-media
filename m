@@ -1,65 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:33223 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S965744AbcBDLtt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 06:49:49 -0500
-Message-ID: <1454586583.7571.3.camel@mtksdaap41>
-Subject: Re: [PATCH v3 1/8] dt-bindings: Add a binding for Mediatek Video
- Processor
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Rob Herring <robh@kernel.org>
-CC: "daniel.thompson@linaro.org" <daniel.thompson@linaro.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Eddie Huang =?UTF-8?Q?=28=E9=BB=83=E6=99=BA=E5=82=91=29?=
-	<eddie.huang@mediatek.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-mediatek@lists.infradead.org"
-	<linux-mediatek@lists.infradead.org>,
-	Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?=
-	<Andrew-CT.Chen@mediatek.com>
-Date: Thu, 4 Feb 2016 19:49:43 +0800
-In-Reply-To: <20160104141506.GA22801@rob-hp-laptop>
-References: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1451902316-55931-2-git-send-email-tiffany.lin@mediatek.com>
-	 <20160104141506.GA22801@rob-hp-laptop>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:54480 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965840AbcBDJZ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2016 04:25:28 -0500
+Date: Thu, 4 Feb 2016 07:25:13 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH v2 07/22] media: v4l-core add enable/disable source
+ common interfaces
+Message-ID: <20160204072513.02619079@recife.lan>
+In-Reply-To: <7df34ecdf35d473535abefa6643b2db24457b8e6.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+	<7df34ecdf35d473535abefa6643b2db24457b8e6.1454557589.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Em Wed, 03 Feb 2016 21:03:39 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-
-
-
-On Mon, 2016-01-04 at 22:15 +0800, Rob Herring wrote:
-> On Mon, Jan 04, 2016 at 06:11:49PM +0800, Tiffany Lin wrote:
-> > From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-> > 
-> > Add a DT binding documentation of Video Processor Unit for the
-> > MT8173 SoC from Mediatek.
-> > 
-> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> Add a new interfaces to be used by v4l-core to invoke enable
+> source and disable_source handlers in the media_device. The
+> enable_source helper function invokes the enable_source handler
+> to find media source entity connected to the entity and check
+> is it is available or busy. If source is available, link is
+> activated and pipeline is started. The disable_source helper
+> function invokes the disable_source handler to deactivate and
+> stop the pipeline.
 > 
-> Please add acks when sending new versions as I already acked the last 
-> version.
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/v4l2-core/Makefile  |  2 +-
+>  drivers/media/v4l2-core/v4l2-mc.c | 60 +++++++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-dev.h          |  1 +
+>  include/media/v4l2-mc.h           | 52 +++++++++++++++++++++++++++++++++
+>  4 files changed, 114 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/media/v4l2-core/v4l2-mc.c
 > 
-Since we remove iommu attach and add 4GB support for VPU.
-We send the new device tree and binding document.
-We do not add Acked-by in v4 patches.
+> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+> index 1dc8bba..c6acc01 100644
+> --- a/drivers/media/v4l2-core/Makefile
+> +++ b/drivers/media/v4l2-core/Makefile
+> @@ -6,7 +6,7 @@ tuner-objs	:=	tuner-core.o
+>  
+>  videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+>  			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
+> -			v4l2-async.o
+> +			v4l2-async.o v4l2-mc.o
+>  ifeq ($(CONFIG_COMPAT),y)
+>    videodev-objs += v4l2-compat-ioctl32.o
+>  endif
+> diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+> new file mode 100644
+> index 0000000..87416df
+> --- /dev/null
+> +++ b/drivers/media/v4l2-core/v4l2-mc.c
+> @@ -0,0 +1,60 @@
+> +/*
+> + * v4l2-mc.c - Media Controller V4L2 Common Interfaces
+> + *
+> + * Copyright (C) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <media/v4l2-mc.h>
+> +#include <media/media-device.h>
+> +#include <media/videobuf2-core.h>
+> +#include <media/v4l2-fh.h>
+> +
+> +int v4l_enable_media_source(struct video_device *vdev)
+> +{
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	struct media_device *mdev = vdev->entity.graph_obj.mdev;
+> +	int ret;
+> +
+> +	if (!mdev || !mdev->enable_source)
+> +		return 0;
+> +	ret = mdev->enable_source(&vdev->entity, &vdev->pipe);
+> +	if (ret)
+> +		return -EBUSY;
+> +	return 0;
+> +#endif /* CONFIG_MEDIA_CONTROLLER */
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l_enable_media_source);
+> +
+> +void v4l_disable_media_source(struct video_device *vdev)
+> +{
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	struct media_device *mdev = vdev->entity.graph_obj.mdev;
+> +
+> +	if (mdev && mdev->disable_source)
+> +		mdev->disable_source(&vdev->entity);
+> +#endif /* CONFIG_MEDIA_CONTROLLER */
+> +}
+> +EXPORT_SYMBOL_GPL(v4l_disable_media_source);
+> +
+> +int v4l_vb2q_enable_media_source(struct vb2_queue *q)
+> +{
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +	struct v4l2_fh *fh = q->owner;
+> +
+> +	return v4l_enable_media_source(fh->vdev);
+> +#endif /* CONFIG_MEDIA_CONTROLLER */
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
+> +
 
-> Acked-by: Rob Herring <robh@kernel.org>
+The code itself is ok. However, the above code would work better if you
+declare them as static inline at the header file (v4l2-mc.h). That would
+allow the compiler to optimize them with the caller codr (where the
+declared structs like mdev, fh are likely already stored on some registers), 
+and even removing the function completely if compiled without the media
+controller.
 
-best regards,
-Tiffany
-
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index eeabf20..76056ab 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -87,6 +87,7 @@ struct video_device
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	struct media_entity entity;
+>  	struct media_intf_devnode *intf_devnode;
+> +	struct media_pipeline pipe;
+>  #endif
+>  	/* device ops */
+>  	const struct v4l2_file_operations *fops;
+> diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+> index df11519..df1a98f 100644
+> --- a/include/media/v4l2-mc.h
+> +++ b/include/media/v4l2-mc.h
+> @@ -14,6 +14,11 @@
+>   * GNU General Public License for more details.
+>   */
+>  
+> +#ifndef _V4L2_MC_H
+> +#define _V4L2_MC_H
+> +
+> +#include <media/v4l2-dev.h>
+> +
+>  /**
+>   * enum tuner_pad_index - tuner pad index for MEDIA_ENT_F_TUNER
+>   *
+> @@ -89,3 +94,50 @@ enum demod_pad_index {
+>  	DEMOD_PAD_VBI_OUT,
+>  	DEMOD_NUM_PADS
+>  };
+> +
+> +/**
+> + * v4l_enable_media_source() -	Hold media source for exclusive use
+> + *				if free
+> + *
+> + * @vdev - poniter to struct video_device
+> + *
+> + * This interface calls enable_source handler to determine if
+> + * media source is free for use. The enable_source handler is
+> + * responsible for checking is the media source is free and
+> + * start a pipeline between the media source and the media
+> + * entity associated with the video device. This interface
+> + * should be called from v4l2-core and dvb-core interfaces
+> + * that change the source configuration.
+> + *
+> + * Return: returns zero on success or a negative error code.
+> + */
+> +int v4l_enable_media_source(struct video_device *vdev);
+> +
+> +/**
+> + * v4l_disable_media_source() -	Release media source
+> + *
+> + * @vdev - poniter to struct video_device
+> + *
+> + * This interface calls disable_source handler to release
+> + * the media source. The disable_source handler stops the
+> + * active media pipeline between the media source and the
+> + * media entity associated with the video device.
+> + *
+> + * Return: returns zero on success or a negative error code.
+> + */
+> +void v4l_disable_media_source(struct video_device *vdev);
+> +/*
+> + * v4l_vb2q_enable_media_tuner -  Hold media source for exclusive use
+> + *				  if free.
+> + * @q - pointer to struct vb2_queue
+> + *
+> + * Wrapper for v4l_enable_media_source(). This function should
+> + * be called from v4l2-core to enable the media source with
+> + * pointer to struct vb2_queue as the input argument. Some
+> + * v4l2-core interfaces don't have access to video device and
+> + * this interface finds the struct video_device for the q and
+> + * calls v4l_enable_media_source().
+> + */
+> +int v4l_vb2q_enable_media_source(struct vb2_queue *q);
+> +
+> +#endif /* _V4L2_MC_H */
