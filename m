@@ -1,77 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53193 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751185AbcBZHpx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2016 02:45:53 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 7A280180981
-	for <linux-media@vger.kernel.org>; Fri, 26 Feb 2016 08:45:48 +0100 (CET)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.6] Fixes, enhancement and move 3 soc-camera drivers
- to staging
-Message-ID: <56D002AC.7020005@xs4all.nl>
-Date: Fri, 26 Feb 2016 08:45:48 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout.easymail.ca ([64.68.201.169]:43051 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933681AbcBDEEM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:12 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v2 07/22] media: v4l-core add enable/disable source common interfaces
+Date: Wed,  3 Feb 2016 21:03:39 -0700
+Message-Id: <7df34ecdf35d473535abefa6643b2db24457b8e6.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 3915d367932609f9c0bdc79c525b5dd5a806ab18:
+Add a new interfaces to be used by v4l-core to invoke enable
+source and disable_source handlers in the media_device. The
+enable_source helper function invokes the enable_source handler
+to find media source entity connected to the entity and check
+is it is available or busy. If source is available, link is
+activated and pipeline is started. The disable_source helper
+function invokes the disable_source handler to deactivate and
+stop the pipeline.
 
-  [media] ttpci: cleanup a bogus smatch warning (2016-02-23 07:26:22 -0300)
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/v4l2-core/Makefile  |  2 +-
+ drivers/media/v4l2-core/v4l2-mc.c | 60 +++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-dev.h          |  1 +
+ include/media/v4l2-mc.h           | 52 +++++++++++++++++++++++++++++++++
+ 4 files changed, 114 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-mc.c
 
-are available in the git repository at:
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index 1dc8bba..c6acc01 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -6,7 +6,7 @@ tuner-objs	:=	tuner-core.o
+ 
+ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+ 			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
+-			v4l2-async.o
++			v4l2-async.o v4l2-mc.o
+ ifeq ($(CONFIG_COMPAT),y)
+   videodev-objs += v4l2-compat-ioctl32.o
+ endif
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+new file mode 100644
+index 0000000..87416df
+--- /dev/null
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -0,0 +1,60 @@
++/*
++ * v4l2-mc.c - Media Controller V4L2 Common Interfaces
++ *
++ * Copyright (C) 2016 Shuah Khan <shuahkh@osg.samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <media/v4l2-mc.h>
++#include <media/media-device.h>
++#include <media/videobuf2-core.h>
++#include <media/v4l2-fh.h>
++
++int v4l_enable_media_source(struct video_device *vdev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = vdev->entity.graph_obj.mdev;
++	int ret;
++
++	if (!mdev || !mdev->enable_source)
++		return 0;
++	ret = mdev->enable_source(&vdev->entity, &vdev->pipe);
++	if (ret)
++		return -EBUSY;
++	return 0;
++#endif /* CONFIG_MEDIA_CONTROLLER */
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l_enable_media_source);
++
++void v4l_disable_media_source(struct video_device *vdev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = vdev->entity.graph_obj.mdev;
++
++	if (mdev && mdev->disable_source)
++		mdev->disable_source(&vdev->entity);
++#endif /* CONFIG_MEDIA_CONTROLLER */
++}
++EXPORT_SYMBOL_GPL(v4l_disable_media_source);
++
++int v4l_vb2q_enable_media_source(struct vb2_queue *q)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct v4l2_fh *fh = q->owner;
++
++	return v4l_enable_media_source(fh->vdev);
++#endif /* CONFIG_MEDIA_CONTROLLER */
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
++
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index eeabf20..76056ab 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -87,6 +87,7 @@ struct video_device
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct media_entity entity;
+ 	struct media_intf_devnode *intf_devnode;
++	struct media_pipeline pipe;
+ #endif
+ 	/* device ops */
+ 	const struct v4l2_file_operations *fops;
+diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+index df11519..df1a98f 100644
+--- a/include/media/v4l2-mc.h
++++ b/include/media/v4l2-mc.h
+@@ -14,6 +14,11 @@
+  * GNU General Public License for more details.
+  */
+ 
++#ifndef _V4L2_MC_H
++#define _V4L2_MC_H
++
++#include <media/v4l2-dev.h>
++
+ /**
+  * enum tuner_pad_index - tuner pad index for MEDIA_ENT_F_TUNER
+  *
+@@ -89,3 +94,50 @@ enum demod_pad_index {
+ 	DEMOD_PAD_VBI_OUT,
+ 	DEMOD_NUM_PADS
+ };
++
++/**
++ * v4l_enable_media_source() -	Hold media source for exclusive use
++ *				if free
++ *
++ * @vdev - poniter to struct video_device
++ *
++ * This interface calls enable_source handler to determine if
++ * media source is free for use. The enable_source handler is
++ * responsible for checking is the media source is free and
++ * start a pipeline between the media source and the media
++ * entity associated with the video device. This interface
++ * should be called from v4l2-core and dvb-core interfaces
++ * that change the source configuration.
++ *
++ * Return: returns zero on success or a negative error code.
++ */
++int v4l_enable_media_source(struct video_device *vdev);
++
++/**
++ * v4l_disable_media_source() -	Release media source
++ *
++ * @vdev - poniter to struct video_device
++ *
++ * This interface calls disable_source handler to release
++ * the media source. The disable_source handler stops the
++ * active media pipeline between the media source and the
++ * media entity associated with the video device.
++ *
++ * Return: returns zero on success or a negative error code.
++ */
++void v4l_disable_media_source(struct video_device *vdev);
++/*
++ * v4l_vb2q_enable_media_tuner -  Hold media source for exclusive use
++ *				  if free.
++ * @q - pointer to struct vb2_queue
++ *
++ * Wrapper for v4l_enable_media_source(). This function should
++ * be called from v4l2-core to enable the media source with
++ * pointer to struct vb2_queue as the input argument. Some
++ * v4l2-core interfaces don't have access to video device and
++ * this interface finds the struct video_device for the q and
++ * calls v4l_enable_media_source().
++ */
++int v4l_vb2q_enable_media_source(struct vb2_queue *q);
++
++#endif /* _V4L2_MC_H */
+-- 
+2.5.0
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.6f
-
-for you to fetch changes up to 16295c7590a2272050fb1ae935ce65860f930351:
-
-  soc_camera/mx3_camera.c: move to staging in preparation, for removal (2016-02-26 08:21:05 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (5):
-      tc358743: use - instead of non-ascii wide-dash character
-      vivid: support new multiplanar YUV formats
-      soc_camera/omap1: move to staging in preparation for removal
-      soc_camera/mx2_camera.c: move to staging in preparation, for removal
-      soc_camera/mx3_camera.c: move to staging in preparation, for removal
-
-Philipp Zabel (2):
-      coda: add support for native order firmware files with Freescale header
-      coda: add support for firmware files named as distributed by NXP
-
-Ulrich Hecht (1):
-      adv7604: fix SPA register location for ADV7612
-
- drivers/media/i2c/adv7604.c                                          |  3 +-
- drivers/media/i2c/tc358743.c                                         | 30 +++++-----
- drivers/media/platform/coda/coda-common.c                            | 96 ++++++++++++++++++++++++++------
- drivers/media/platform/coda/coda.h                                   |  3 +-
- drivers/media/platform/soc_camera/Kconfig                            | 28 ----------
- drivers/media/platform/soc_camera/Makefile                           |  3 -
- drivers/media/platform/vivid/vivid-tpg.c                             | 32 +++++++++++
- drivers/media/platform/vivid/vivid-vid-common.c                      | 39 ++++++++++++-
- drivers/staging/media/Kconfig                                        |  6 ++
- drivers/staging/media/Makefile                                       |  3 +
- drivers/staging/media/mx2/Kconfig                                    | 12 ++++
- drivers/staging/media/mx2/Makefile                                   |  3 +
- .../{media/platform/soc_camera => staging/media/mx2}/mx2_camera.c    |  0
- drivers/staging/media/mx3/Kconfig                                    | 15 +++++
- drivers/staging/media/mx3/Makefile                                   |  3 +
- .../{media/platform/soc_camera => staging/media/mx3}/mx3_camera.c    |  0
- drivers/staging/media/omap1/Kconfig                                  | 13 +++++
- drivers/staging/media/omap1/Makefile                                 |  3 +
- .../platform/soc_camera => staging/media/omap1}/omap1_camera.c       |  0
- 19 files changed, 224 insertions(+), 68 deletions(-)
- create mode 100644 drivers/staging/media/mx2/Kconfig
- create mode 100644 drivers/staging/media/mx2/Makefile
- rename drivers/{media/platform/soc_camera => staging/media/mx2}/mx2_camera.c (100%)
- create mode 100644 drivers/staging/media/mx3/Kconfig
- create mode 100644 drivers/staging/media/mx3/Makefile
- rename drivers/{media/platform/soc_camera => staging/media/mx3}/mx3_camera.c (100%)
- create mode 100644 drivers/staging/media/omap1/Kconfig
- create mode 100644 drivers/staging/media/omap1/Makefile
- rename drivers/{media/platform/soc_camera => staging/media/omap1}/omap1_camera.c (100%)
