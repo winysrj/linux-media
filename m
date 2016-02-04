@@ -1,61 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35431 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754121AbcBGUOU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2016 15:14:20 -0500
-Received: by mail-wm0-f66.google.com with SMTP id g62so12489788wme.2
-        for <linux-media@vger.kernel.org>; Sun, 07 Feb 2016 12:14:20 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 0/3] media: rc: core: expose raw packet data via sysfs
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56B7A573.10804@gmail.com>
-Date: Sun, 7 Feb 2016 21:13:39 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout.easymail.ca ([64.68.201.169]:43114 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933893AbcBDEEP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:15 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v2 09/22] media: au8522 change to create MC pad for ALSA Audio Out
+Date: Wed,  3 Feb 2016 21:03:41 -0700
+Message-Id: <ddcfbd7fbb8a2f30474a7fcbbe14cbbf6b4c945c.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds functionality for exposing raw data via sysfs
-to the core. Up to 128 bytes received since the last break of >= 1s
-can be read via a binary sysfs attribute.
+Add new pad for ALSA Audio Out to au8522_media_pads.
 
-There are two major use cases:
-- getting raw data to be used for defining a wakeup sequence on chips
-  supporting wakeup via RC (e.g. nuvoton-cir)
-- debugging and raw data analysis purposes
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/au8522.h         | 1 +
+ drivers/media/dvb-frontends/au8522_decoder.c | 1 +
+ 2 files changed, 2 insertions(+)
 
-First user of this new feature is the nuvoton-cir driver.
-
-Motivation for this extension is to allow for an easy way to set
-wakeup sequences. There have been some attempts in the past for the
-nuvoton driver but AFAICS it was never finished.
-
-This patch series is going to be complemented with a patch for the
-nuvoton-cir driver adding functionality to set a wakeup sequence
-via sysfs.
-
-Eventually setting a wakeup sequence would be as easy as:
-- press key to be used for wakeup
-- read raw key data from sysfs
-- cut raw data after sequence length to be used
-- write raw wakeup sequence to sysfs
-
-Works fine here on a Zotac CI321 with nuvoton-cir.
-
-Heiner Kallweit (3):
-  media: rc: add core functionality to store the most recent raw data
-  media: rc: expose most recent raw packet via sysfs
-  media: rc: nuvoton: expose most recent raw packet via sysfs
-
- drivers/media/rc/nuvoton-cir.c  |  2 ++
- drivers/media/rc/rc-core-priv.h |  6 +++++
- drivers/media/rc/rc-ir-raw.c    | 34 ++++++++++++++++++++++++++
- drivers/media/rc/rc-main.c      | 53 +++++++++++++++++++++++++++++++++++++++++
- include/media/rc-core.h         |  5 +++-
- 5 files changed, 99 insertions(+), 1 deletion(-)
-
+diff --git a/drivers/media/dvb-frontends/au8522.h b/drivers/media/dvb-frontends/au8522.h
+index 3c72f40..d7a997f 100644
+--- a/drivers/media/dvb-frontends/au8522.h
++++ b/drivers/media/dvb-frontends/au8522.h
+@@ -94,6 +94,7 @@ enum au8522_media_pads {
+ 	AU8522_PAD_INPUT,
+ 	AU8522_PAD_VID_OUT,
+ 	AU8522_PAD_VBI_OUT,
++	AU8522_PAD_AUDIO_OUT,
+ 
+ 	AU8522_NUM_PADS
+ };
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 73612c5..0ab9f1e 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -766,6 +766,7 @@ static int au8522_probe(struct i2c_client *client,
+ 	state->pads[AU8522_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[AU8522_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	state->pads[AU8522_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	state->pads[AU8522_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+ 	ret = media_entity_pads_init(&sd->entity, ARRAY_SIZE(state->pads),
 -- 
-2.7.0
+2.5.0
 
