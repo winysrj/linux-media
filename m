@@ -1,92 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44214 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752747AbcBBWxz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2016 17:53:55 -0500
-Date: Wed, 3 Feb 2016 00:53:21 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: Media Controller fix to not let stream_count go
- negative
-Message-ID: <20160202225321.GS14876@valkosipuli.retiisi.org.uk>
-References: <1454184652-2427-1-git-send-email-shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1454184652-2427-1-git-send-email-shuahkh@osg.samsung.com>
+Received: from mailout.easymail.ca ([64.68.201.169]:42879 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933681AbcBDEEE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:04 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v2 02/22] media: Add ALSA Media Controller function entities
+Date: Wed,  3 Feb 2016 21:03:34 -0700
+Message-Id: <7e6aa938056da01e75f1e9d844f621baf47ffa74.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+Add ALSA Media Controller capture, playback, and mixer
+function entity defines.
 
-On Sat, Jan 30, 2016 at 01:10:52PM -0700, Shuah Khan wrote:
-> Change media_entity_pipeline_stop() to not decrement
-> stream_count of an inactive media pipeline. Doing so,
-> results in preventing starting the pipeline.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/media-entity.c | 18 ++++++++++++------
->  1 file changed, 12 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index e89d85a..f2e4360 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -452,9 +452,12 @@ error:
->  	media_entity_graph_walk_start(graph, entity_err);
->  
->  	while ((entity_err = media_entity_graph_walk_next(graph))) {
-> -		entity_err->stream_count--;
-> -		if (entity_err->stream_count == 0)
-> -			entity_err->pipe = NULL;
-> +		/* don't let the stream_count go negative */
-> +		if (entity->stream_count > 0) {
-> +			entity_err->stream_count--;
-> +			if (entity_err->stream_count == 0)
-> +				entity_err->pipe = NULL;
-> +		}
->  
->  		/*
->  		 * We haven't increased stream_count further than this
-> @@ -486,9 +489,12 @@ void media_entity_pipeline_stop(struct media_entity *entity)
->  	media_entity_graph_walk_start(graph, entity);
->  
->  	while ((entity = media_entity_graph_walk_next(graph))) {
-> -		entity->stream_count--;
-> -		if (entity->stream_count == 0)
-> -			entity->pipe = NULL;
-> +		/* don't let the stream_count go negative */
-> +		if (entity->stream_count > 0) {
-> +			entity->stream_count--;
-> +			if (entity->stream_count == 0)
-> +				entity->pipe = NULL;
-> +		}
->  	}
->  
->  	if (!--pipe->streaming_count)
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ include/uapi/linux/media.h | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-Have you seen issues with a certain driver, for instance?
-
-In the original design the streaming count is really a count --- streaming
-starts when count becomes non-zero, and stops when it reaches zero again.
-
-The calls to media_entity_pipeline_start() and media_entity_pipeline_stop()
-should thus always be balanced. I'm fine with the patch, but the framework
-should shout loud when the count would be decremented when it's zero.
-
-That was some four or more years ago. I have to say I really haven't been
-able to see good reasons for making this a count --- rather what's needed is
-to mark the entity as busy so that its link configuration isn't touched. The
-request API is a completely different matter then.
-
-Such change would require more discussion IMHO.
-
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index ee020e8..7d50480 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -98,6 +98,17 @@ struct media_device_info {
+ #define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 42)
+ 
+ /*
++ * DOC: Media Controller Next Generation ALSA Function Entities
++ *
++ * MEDIA_ENT_F_AUDIO_CAPTURE - Audio Capture Function
++ * MEDIA_ENT_F_AUDIO_PLAYBACK - Audio Play Back Function
++ * MEDIA_ENT_F_AUDIO_MIXER - Audio Mixer Function
++*/
++#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 200)
++#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 201)
++#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 202)
++
++/*
+  * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
+  * MEDIA_ENT_F_OLD_SUBDEV_BASE are kept to keep backward compatibility
+  * with the legacy v1 API.The number range is out of range by purpose:
 -- 
-Kind regards,
+2.5.0
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
