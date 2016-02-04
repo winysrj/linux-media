@@ -1,104 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39597 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932117AbcBAN0W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2016 08:26:22 -0500
-Date: Mon, 1 Feb 2016 11:26:10 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Richard Weinberger <richard@nod.at>
-Cc: linux-kernel@vger.kernel.org,
-	user-mode-linux-devel@lists.sourceforge.net,
-	Olli Salonen <olli.salonen@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 17/22] media: Fix dependencies for !HAS_IOMEM archs
-Message-ID: <20160201112610.6dc22cd0@recife.lan>
-In-Reply-To: <1453760661-1444-18-git-send-email-richard@nod.at>
-References: <1453760661-1444-1-git-send-email-richard@nod.at>
-	<1453760661-1444-18-git-send-email-richard@nod.at>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mailgw01.mediatek.com ([210.61.82.183]:33223 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S965744AbcBDLtt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 06:49:49 -0500
+Message-ID: <1454586583.7571.3.camel@mtksdaap41>
+Subject: Re: [PATCH v3 1/8] dt-bindings: Add a binding for Mediatek Video
+ Processor
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Rob Herring <robh@kernel.org>
+CC: "daniel.thompson@linaro.org" <daniel.thompson@linaro.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Eddie Huang =?UTF-8?Q?=28=E9=BB=83=E6=99=BA=E5=82=91=29?=
+	<eddie.huang@mediatek.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-mediatek@lists.infradead.org"
+	<linux-mediatek@lists.infradead.org>,
+	Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?=
+	<Andrew-CT.Chen@mediatek.com>
+Date: Thu, 4 Feb 2016 19:49:43 +0800
+In-Reply-To: <20160104141506.GA22801@rob-hp-laptop>
+References: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
+	 <1451902316-55931-2-git-send-email-tiffany.lin@mediatek.com>
+	 <20160104141506.GA22801@rob-hp-laptop>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 25 Jan 2016 23:24:16 +0100
-Richard Weinberger <richard@nod.at> escreveu:
+Hi Rob,
 
-> Not every arch has io memory.
-> While the driver has correct dependencies the select statement
-> will bypass the HAS_IOMEM dependency.
 
-No, if a driver has:
-	config foo
-	depends on HAS_IOMEM
-	select I2C
 
-the select will only be handled if HAS_IOMEM. It won't bypass HAS_IOMEM
-(and if it is bypassing, then there's some regression at the building
-system, and lots of other things would break).
 
-Also, changing from select to depends on I2C_MUX is not nice for users,
-as it is not intuitive that a driver would need such core support for
-a media driver to work.
-
-> So, unbreak the build by rendering it into a real dependency.
+On Mon, 2016-01-04 at 22:15 +0800, Rob Herring wrote:
+> On Mon, Jan 04, 2016 at 06:11:49PM +0800, Tiffany Lin wrote:
+> > From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+> > 
+> > Add a DT binding documentation of Video Processor Unit for the
+> > MT8173 SoC from Mediatek.
+> > 
+> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
 > 
-> Signed-off-by: Richard Weinberger <richard@nod.at>
-> ---
->  drivers/media/Kconfig             | 3 +--
->  drivers/media/usb/cx231xx/Kconfig | 2 +-
->  2 files changed, 2 insertions(+), 3 deletions(-)
+> Please add acks when sending new versions as I already acked the last 
+> version.
 > 
-> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> index a8518fb..5553cb1 100644
-> --- a/drivers/media/Kconfig
-> +++ b/drivers/media/Kconfig
-> @@ -187,8 +187,7 @@ config MEDIA_SUBDRV_AUTOSELECT
->  	bool "Autoselect ancillary drivers (tuners, sensors, i2c, frontends)"
->  	depends on MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_CAMERA_SUPPORT || MEDIA_SDR_SUPPORT
->  	depends on HAS_IOMEM
-> -	select I2C
-> -	select I2C_MUX
-> +	depends on I2C_MUX && I2C
->  	default y
->  	help
->  	  By default, a media driver auto-selects all possible ancillary
+Since we remove iommu attach and add 4GB support for VPU.
+We send the new device tree and binding document.
+We do not add Acked-by in v4 patches.
 
-Here, everything is OK. No need to convert it to depends on.
+> Acked-by: Rob Herring <robh@kernel.org>
 
-> diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
-> index 0cced3e..30ae67d 100644
-> --- a/drivers/media/usb/cx231xx/Kconfig
-> +++ b/drivers/media/usb/cx231xx/Kconfig
-> @@ -1,13 +1,13 @@
->  config VIDEO_CX231XX
->  	tristate "Conexant cx231xx USB video capture support"
->  	depends on VIDEO_DEV && I2C
-> +	depends on I2C_MUX
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	depends on RC_CORE
->  	select VIDEOBUF_VMALLOC
->  	select VIDEO_CX25840
->  	select VIDEO_CX2341X
-> -	select I2C_MUX
-
-So, just this should be enough to fix the dependencies for HAS_IOMEM/I2C_MUX
-at the drivers under drivers/media:
-
-diff --git a/drivers/media/usb/cx231xx/Kconfig b/drivers/media/usb/cx231xx/Kconfig
-index 0cced3e5b040..67d21b026054 100644
---- a/drivers/media/usb/cx231xx/Kconfig
-+++ b/drivers/media/usb/cx231xx/Kconfig
-@@ -7,6 +7,7 @@ config VIDEO_CX231XX
- 	select VIDEOBUF_VMALLOC
- 	select VIDEO_CX25840
- 	select VIDEO_CX2341X
-+	depends on HAS_IOMEM # due to I2C_MUX
- 	select I2C_MUX
- 
- 	---help---
-
-
-Regards,
-Mauro
+best regards,
+Tiffany
 
