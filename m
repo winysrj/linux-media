@@ -1,66 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f53.google.com ([209.85.192.53]:36438 "EHLO
-	mail-qg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360AbcBMV5o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2016 16:57:44 -0500
-Received: by mail-qg0-f53.google.com with SMTP id y9so87845731qgd.3
-        for <linux-media@vger.kernel.org>; Sat, 13 Feb 2016 13:57:44 -0800 (PST)
-Date: Sat, 13 Feb 2016 16:57:41 -0500 (EST)
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-cc: Arnd Bergmann <arnd@arndb.de>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	linux-media@vger.kernel.org,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH] [media] zl10353: use div_u64 instead of do_div
-In-Reply-To: <CAKv+Gu8dFz28tGgQTv+WYAvKpeiFXaj8JANUFtOJwKPRsB8F5A@mail.gmail.com>
-Message-ID: <alpine.LFD.2.20.1602131652560.13632@knanqh.ubzr>
-References: <1455287246-3540549-1-git-send-email-arnd@arndb.de> <2712691.b9gkR7KMX7@wuerfel> <alpine.LFD.2.20.1602121305180.13632@knanqh.ubzr> <6737272.LXr2g355Yt@wuerfel> <CAKv+Gu8dFz28tGgQTv+WYAvKpeiFXaj8JANUFtOJwKPRsB8F5A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mailout.easymail.ca ([64.68.201.169]:43283 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965593AbcBDEEZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:25 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v2 15/22] media: au0828 handle media_init and media_register window
+Date: Wed,  3 Feb 2016 21:03:47 -0700
+Message-Id: <2e68e6dee69075554630570581117bcece00185a.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 13 Feb 2016, Ard Biesheuvel wrote:
+Media device initialization and registration
+steps are split. There is a window between
+media device init and media device register
+during usb probe.
 
-> On 12 February 2016 at 22:01, Arnd Bergmann <arnd@arndb.de> wrote:
-> > However, I did stumble over an older patch I did now, which I could
-> > not remember what it was good for. It does fix the problem, and
-> > it seems to be a better solution.
-> >
-> >         Arnd
-> >
-> > diff --git a/include/linux/compiler.h b/include/linux/compiler.h
-> > index b5acbb404854..b5ff9881bef8 100644
-> > --- a/include/linux/compiler.h
-> > +++ b/include/linux/compiler.h
-> > @@ -148,7 +148,7 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
-> >   */
-> >  #define if(cond, ...) __trace_if( (cond , ## __VA_ARGS__) )
-> >  #define __trace_if(cond) \
-> > -       if (__builtin_constant_p((cond)) ? !!(cond) :                   \
-> > +       if (__builtin_constant_p(!!(cond)) ? !!(cond) :                 \
-> >         ({                                                              \
-> >                 int ______r;                                            \
-> >                 static struct ftrace_branch_data                        \
-> >
-> 
-> I remember seeing this patch, but I don't remember the exact context.
-> But when you think about it, !!cond can be a build time constant even
-> if cond is not, as long as you can prove statically that cond != 0. So
+au0828 bridge driver and snd-usb-audio could
+try to initialize the media device, if they
+simply checked, whether the device has been
+registered. They also need to check whether
+the device has been initialized.
 
-You're right.  I just tested it and to my surprise gcc is smart enough 
-to figure that case out.
+Change the au0828-core to check if media device
+is already initialized during initialization step
+and check if media device is already registered
+during the registration step.
 
-> I think this change is obviously correct, and an improvement since it
-> will remove the profiling overhead of branches that are not true
-> branches in the first place.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c | 26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
-Indeed.
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index b8c4bdd..e43618d 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -227,7 +227,8 @@ static int au0828_media_device_init(struct au0828_dev *dev,
+ 	if (!mdev)
+ 		return -ENOMEM;
+ 
+-	if (!media_devnode_is_registered(&mdev->devnode)) {
++	/* check if media device is already initialized */
++	if (!mdev->dev) {
+ 		mdev->dev = &udev->dev;
+ 
+ 		if (udev->product)
+@@ -325,6 +326,27 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 	return 0;
+ }
+ 
++static int au0828_media_device_register(struct au0828_dev *dev,
++					struct usb_device *udev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	int ret;
++
++	if (dev->media_dev &&
++		!media_devnode_is_registered(&dev->media_dev->devnode)) {
++
++		/* register media device */
++		ret = media_device_register(dev->media_dev);
++		if (ret) {
++			dev_err(&udev->dev,
++				"Media Device Register Error: %d\n", ret);
++			return ret;
++		}
++	}
++#endif
++	return 0;
++}
++
+ static int au0828_usb_probe(struct usb_interface *interface,
+ 	const struct usb_device_id *id)
+ {
+@@ -452,7 +474,7 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 	}
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-	retval = media_device_register(dev->media_dev);
++	retval = au0828_media_device_register(dev, usbdev);
+ #endif
+ 
+ done:
+-- 
+2.5.0
 
-
-Nicolas
