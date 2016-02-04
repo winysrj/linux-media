@@ -1,94 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37040 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752823AbcBWUPt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 15:15:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
-Date: Tue, 23 Feb 2016 22:15:46 +0200
-Message-ID: <3174978.uNIbAnUxCz@avalon>
-In-Reply-To: <56CC8593.6090005@xs4all.nl>
-References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com> <20160223161150.GA32612@valkosipuli.retiisi.org.uk> <56CC8593.6090005@xs4all.nl>
+Received: from mail-ig0-f194.google.com ([209.85.213.194]:34108 "EHLO
+	mail-ig0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756718AbcBDQg7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 11:36:59 -0500
+Received: by mail-ig0-f194.google.com with SMTP id ik10so4513907igb.1
+        for <linux-media@vger.kernel.org>; Thu, 04 Feb 2016 08:36:58 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <2612145d4e46ee78d7e1c38386c43d9c3f597600.1454600641.git.mchehab@osg.samsung.com>
+References: <cover.1454600641.git.mchehab@osg.samsung.com>
+	<2612145d4e46ee78d7e1c38386c43d9c3f597600.1454600641.git.mchehab@osg.samsung.com>
+Date: Thu, 4 Feb 2016 11:36:58 -0500
+Message-ID: <CAOcJUbwyu173s5NoAC0tsB1ZNZ9xqy3nuTtXt7AMJEovCGf3Ag@mail.gmail.com>
+Subject: Re: [PATCH 6/7] [media] dvb_frontend: pass the props cache to
+ get_frontend() as arg
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Jemma Denson <jdenson@gmail.com>,
+	Patrick Boettcher <patrick.boettcher@posteo.de>,
+	Sergey Kozlov <serjk@netup.ru>,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Jiri Kosina <jkosina@suse.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Fred Richter <frichter@hauppauge.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Abhilash Jindal <klock.android@gmail.com>,
+	Peter Griffin <peter.griffin@linaro.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Thu, Feb 4, 2016 at 10:57 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Instead of using the DTV properties cache directly, pass the get
+> frontend data as an argument. For now, everything should remain
+> the same, but the next patch will prevent get_frontend to
+> affect the global cache.
+>
+> This is needed because several drivers don't care enough to only
+> change the properties if locked. Due to that, calling
+> G_PROPERTY before locking on those drivers will make them to
+> never lock. Ok, those drivers are crap and should never be
+> merged like that, but the core should not rely that the drivers
+> would be doing the right thing.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-On Tuesday 23 February 2016 17:15:15 Hans Verkuil wrote:
-> On 02/23/2016 05:11 PM, Sakari Ailus wrote:
-> > On Tue, Feb 23, 2016 at 01:18:53PM +0100, Hans Verkuil wrote:
-> >> On 02/21/16 22:29, Sakari Ailus wrote:
-> >>> Add a new topic option for -h to allow listing supported media bus codes
-> >>> in conversion functions. This is useful in figuring out which media bus
-> >>> codes are actually supported by the library. The numeric values of the
-> >>> codes are listed as well.
-> >>> 
-> >>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>> ---
-> >>> 
-> >>>  utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++++++----
-> >>>  1 file changed, 38 insertions(+), 4 deletions(-)
-> >>> 
-> >>> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-> >>> index 0afc9c2..55cdd29 100644
-> >>> --- a/utils/media-ctl/options.c
-> >>> +++ b/utils/media-ctl/options.c
-> >>> @@ -22,7 +22,9 @@
-> >>>  #include <getopt.h>
-> >>>  #include <stdio.h>
-> >>>  #include <stdlib.h>
-> >>> +#include <string.h>
-> >>>  #include <unistd.h>
-> >>> +#include <v4l2subdev.h>
-> >>> 
-> >>>  #include <linux/videodev2.h>
-> >>> 
-> >>> @@ -45,7 +47,8 @@ static void usage(const char *argv0)
-> >>>  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to
-> >>>  	setup\n");
-> >>>  	printf("    --get-v4l2 pad	Print the active format on a given 
-pad\n");
-> >>>  	printf("    --set-dv pad	Configure DV timings on a given pad\n");
-> >>> -	printf("-h, --help		Show verbose help and exit\n");
-> >>> +	printf("-h, --help[=topic]	Show verbose help and exit\n");
-> >>> +	printf("			topics:	mbus-fmt: List supported media bus pixel 
-codes\n");
-> >> 
-> >> OK, this is ugly. It has nothing to do with usage help.
-> >> 
-> >> Just make a new option --list-mbus-fmts to list supported media bus pixel
-> >> codes.
-> >> 
-> >> That would make much more sense.
-> > 
-> > I added it as a --help option argument in order to imply it's a part of
-> > the program's usage instructions, which is what it indeed is. It's not a
-> > list of media bus formats supported by a device.
-> > 
-> > A separate option is fine, but it should be clear that it's about just
-> > listing supported formats. E.g. --list-supported-mbus-fmts. But that's a
-> > long one. Long options are loooong.
-> 
-> --list-known-mbus-fmts will do the trick.
-
-That doesn't feel right. Isn't it a help option, really, given that it lists 
-the formats you can use as command line arguments ?
-
-Another option would actually be to always print the formats when the -h 
-switch is given. We could print them in a comma-separated list with multiple 
-formats per line, possibly dropping the numerical value, it should hopefully 
-not be horrible.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
