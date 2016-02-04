@@ -1,65 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f170.google.com ([209.85.161.170]:36005 "EHLO
-	mail-yw0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423525AbcBQQMQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 11:12:16 -0500
-Received: by mail-yw0-f170.google.com with SMTP id e63so16693452ywc.3
-        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2016 08:12:15 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1455705771-25771-1-git-send-email-jung.zhao@rock-chips.com>
-References: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
-	<1455705771-25771-1-git-send-email-jung.zhao@rock-chips.com>
-Date: Wed, 17 Feb 2016 08:12:15 -0800
-Message-ID: <CAD=FV=V8tZvvqVCC4CMD9T-PYL+_3DojGq8jBEtm1raMYzw=3Q@mail.gmail.com>
-Subject: Re: [PATCH v2 3/4] [NOT FOR REVIEW] videobuf2-dc: Let drivers specify
- DMA attrs
-From: Doug Anderson <dianders@chromium.org>
-To: Jung Zhao <jung.zhao@rock-chips.com>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	"open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:32544 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750727AbcBDOXH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 09:23:07 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O2100L431AG0590@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Feb 2016 14:23:04 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'ayaka' <ayaka@soulik.info>, linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, jtp.park@samsung.com,
+	mchehab@osg.samsung.com, linux-arm-kernel@lists.infradead.org
+References: <1454180017-29071-1-git-send-email-ayaka@soulik.info>
+ <1454180017-29071-4-git-send-email-ayaka@soulik.info>
+In-reply-to: <1454180017-29071-4-git-send-email-ayaka@soulik.info>
+Subject: RE: [PATCH 3/4] [media] s5p-mfc: don't close instance after free
+ OUTPUT buffers
+Date: Thu, 04 Feb 2016 15:23:02 +0100
+Message-id: <003501d15f57$8f1904b0$ad4b0e10$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-On Wed, Feb 17, 2016 at 2:42 AM, Jung Zhao <jung.zhao@rock-chips.com> wrote:
-> From: Tomasz Figa <tfiga@chromium.org>
+> From: ayaka [mailto:ayaka@soulik.info]
+> Sent: Saturday, January 30, 2016 7:54 PM
 >
-> DMA allocations might be subject to certain reqiurements specific to the
-> hardware using the buffers, such as availability of kernel mapping (for
-> contents fix-ups in the driver). The only entity that knows them is the
-> driver, so it must share this knowledge with vb2-dc.
->
-> This patch extends the alloc_ctx initialization interface to let the
-> driver specify DMA attrs, which are then stored inside the allocation
-> context and will be used for all allocations with that context.
->
-> As a side effect, all dma_*_coherent() calls are turned into
-> dma_*_attrs() calls, because the attributes need to be carried over
-> through all DMA operations.
->
-> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
-> Signed-off-by: Jung Zhao <jung.zhao@rock-chips.com>
+> Free buffers in OUTPUT is quite normal to detect the driver's buffer
+capacity,
+> it doesn't mean the application want to close that mfc instance.
+> 
+> Signed-off-by: ayaka <ayaka@soulik.info>
 > ---
-> Changes in v2: None
->
->  drivers/media/v4l2-core/videobuf2-dma-contig.c | 33 +++++++++++++++++---------
->  include/media/videobuf2-dma-contig.h           | 11 ++++++++-
->  2 files changed, 32 insertions(+), 12 deletions(-)
+>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> index aebe4fd..609b17b 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -474,7 +474,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev,
+> struct s5p_mfc_ctx *ctx,
+>  		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
+>  		if (ret)
+>  			goto out;
+> -		s5p_mfc_close_mfc_inst(dev, ctx);
+>  		ctx->src_bufs_cnt = 0;
+>  		ctx->output_state = QUEUE_FREE;
+>  	} else if (ctx->output_state == QUEUE_FREE) {
 
-This patch is already present in linuxnext.  I submitted it to Russell
-King's Patch Tracking System a bit ago and got notice that it landed.
-Checking linuxnext today I see:
+What exactly do you mean by "detecting buffer capacity"  ? Is it the max
+number of buffer
+that can be allocated?
 
-ccc66e738252 ARM: 8508/2: videobuf2-dc: Let drivers specify DMA attrs
+Anyway, if the instance is not closed, then in a consecutive call to reqbufs
+(with cound != 0)
+the instance will be opened for a second time. So either the instance has to
+be closed, or
+it should be opened in another place.
 
--Doug
+Best wishes,
+-- 
+Kamil Debski
+Samsung R&D Institute Poland
+
