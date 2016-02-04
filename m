@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:43383 "EHLO
+Received: from mailout.easymail.ca ([64.68.201.169]:43546 "EHLO
 	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965599AbcBDEE2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:28 -0500
+	with ESMTP id S965692AbcBDEEi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:38 -0500
 From: Shuah Khan <shuahkh@osg.samsung.com>
 To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
 	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
@@ -25,9 +25,9 @@ Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
 	geliangtang@163.com, linux-kernel@vger.kernel.org,
 	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
 	alsa-devel@alsa-project.org
-Subject: [PATCH v2 17/22] media: au0828 disable tuner to demod link
-Date: Wed,  3 Feb 2016 21:03:49 -0700
-Message-Id: <ce0a0d11f4ebe26b7d7ff7011cf98c4b64892905.1454557589.git.shuahkh@osg.samsung.com>
+Subject: [PATCH v2 22/22] media: Ensure media device unregister is done only once
+Date: Wed,  3 Feb 2016 21:03:54 -0700
+Message-Id: <9c22d4395f92102051383110cae9de09494d7257.1454557589.git.shuahkh@osg.samsung.com>
 In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
 References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
@@ -35,60 +35,115 @@ References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828_create_media_graph() to find and disable
-tuner and demod link. This helps avoid an additional
-disable step when tuner is requested by video or audio.
+media_device_unregister() checks if the media device
+is registered or not as the first step. However, the
+MEDIA_FLAG_REGISTERED bit doesn't get cleared until
+the end leaving a large window for two drivers to
+attempt media device unregister.
+
+The above leads to general protection faults when
+device is removed.
+
+Fix the problem with two phase media device unregister.
+Add a new interface media_devnode_start_unregister()
+to clear the MEDIA_FLAG_REGISTERED bit. Change
+media_device_unregister() call this interface to mark
+the start of unregister. This will ensure that media
+device unregister is done only once.
 
 Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/usb/au0828/au0828-core.c | 20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ drivers/media/media-device.c  | 12 ++++++------
+ drivers/media/media-devnode.c | 15 ++++++++++-----
+ include/media/media-devnode.h | 17 +++++++++++++++++
+ 3 files changed, 33 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 868babe..b02a122 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -254,7 +254,7 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_device *mdev = dev->media_dev;
- 	struct media_entity *entity;
--	struct media_entity *tuner = NULL, *decoder = NULL;
-+	struct media_entity *tuner = NULL, *decoder = NULL, *demod = NULL;
- 	int i, ret;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 1f5d67e..584d46e 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -747,17 +747,17 @@ void media_device_unregister(struct media_device *mdev)
+ 	struct media_entity *next;
+ 	struct media_interface *intf, *tmp_intf;
+ 	struct media_entity_notify *notify, *nextp;
++	int ret;
  
- 	if (!mdev)
-@@ -268,6 +268,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 		case MEDIA_ENT_F_ATV_DECODER:
- 			decoder = entity;
- 			break;
-+		case MEDIA_ENT_F_DTV_DEMOD:
-+			demod = entity;
-+			break;
- 		}
- 	}
+ 	if (mdev == NULL)
+ 		return;
  
-@@ -322,6 +325,21 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 			break;
- 		}
- 	}
+-	spin_lock(&mdev->lock);
+-
+-	/* Check if mdev was ever registered at all */
+-	if (!media_devnode_is_registered(&mdev->devnode)) {
+-		spin_unlock(&mdev->lock);
++	/* Start unregister - continue if necessary */
++	ret = media_devnode_start_unregister(&mdev->devnode);
++	if (ret)
+ 		return;
+-	}
 +
-+	/*
-+	 * Disable tuner to demod link to avoid disable step
-+	 * when tuner is requested by video or audio
-+	*/
-+	if (tuner && demod) {
-+		struct media_link *link;
-+
-+		list_for_each_entry(link, &demod->links, list) {
-+			if (link->sink->entity == demod &&
-+			    link->source->entity == tuner) {
-+				media_entity_setup_link(link, 0);
-+			}
-+		}
-+	}
- #endif
- 	return 0;
++	spin_lock(&mdev->lock);
+ 
+ 	/* Remove all entities from the media device */
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index 29409f4..c27f9e7 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -272,15 +272,20 @@ error:
+ 	return ret;
  }
+ 
+-void media_devnode_unregister(struct media_devnode *mdev)
++int __must_check media_devnode_start_unregister(struct media_devnode *mdev)
+ {
+-	/* Check if mdev was ever registered at all */
+-	if (!media_devnode_is_registered(mdev))
+-		return;
+-
+ 	mutex_lock(&media_devnode_lock);
++	if (!media_devnode_is_registered(mdev)) {
++		mutex_unlock(&media_devnode_lock);
++		return -EINVAL;
++	}
+ 	clear_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
+ 	mutex_unlock(&media_devnode_lock);
++	return 0;
++}
++
++void media_devnode_unregister(struct media_devnode *mdev)
++{
+ 	device_unregister(&mdev->dev);
+ }
+ 
+diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+index fe42f08..6f08677 100644
+--- a/include/media/media-devnode.h
++++ b/include/media/media-devnode.h
+@@ -120,6 +120,23 @@ int __must_check media_devnode_register(struct media_devnode *mdev,
+ 					struct module *owner);
+ 
+ /**
++ * media_devnode_start_unregister - start unregister on a media device node
++ * @mdev: the device node to start unregister
++ *
++ * This clears the MEDIA_FLAG_REGISTERED bit to indicate that unregister
++ * is in progress.
++ *
++ * This function can safely be called if the device node has never been
++ * registered or has already been unregistered.
++ *
++ * Zero is returned on success.
++ *
++ * -EINVAL is returned if the device node has never been
++ * registered or has already been unregistered.
++ */
++int __must_check media_devnode_start_unregister(struct media_devnode *mdev);
++
++/**
+  * media_devnode_unregister - unregister a media device node
+  * @mdev: the device node to unregister
+  *
 -- 
 2.5.0
 
