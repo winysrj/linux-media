@@ -1,118 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:7599 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756519AbcBQIB0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 03:01:26 -0500
-Message-ID: <1455696068.26202.4.camel@mtksdaap41>
-Subject: Re: [PATCH v4 5/8] [Media] vcodec: mediatek: Add Mediatek V4L2
- Video Encoder Driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hansverk@cisco.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Date: Wed, 17 Feb 2016 16:01:08 +0800
-In-Reply-To: <56C328AF.5030604@cisco.com>
-References: <1454585703-42428-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-2-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-3-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-4-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-5-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-6-git-send-email-tiffany.lin@mediatek.com>
-	 <56C1B4AF.1030207@xs4all.nl> <1455604653.19396.68.camel@mtksdaap41>
-	 <56C2D371.9090805@xs4all.nl> <1455628805.19396.82.camel@mtksdaap41>
-	 <56C328AF.5030604@cisco.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from mailout.easymail.ca ([64.68.201.169]:43148 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965516AbcBDEER (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:17 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v2 10/22] media: Change v4l-core to check if source is free
+Date: Wed,  3 Feb 2016 21:03:42 -0700
+Message-Id: <a2cb324f737fad4d594b9aa18cf5448ac9352217.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2016-02-16 at 14:48 +0100, Hans Verkuil wrote:
-> Hi Tiffany,
-> 
-> >>>>> +int mtk_vcodec_enc_queue_init(void *priv, struct vb2_queue *src_vq,
-> >>>>> +			   struct vb2_queue *dst_vq)
-> >>>>> +{
-> >>>>> +	struct mtk_vcodec_ctx *ctx = priv;
-> >>>>> +	int ret;
-> >>>>> +
-> >>>>> +	src_vq->type		= V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-> >>>>> +	src_vq->io_modes	= VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
-> >>>>
-> >>>> I recomment dropping VB2_USERPTR. That only makes sense for scatter-gather dma,
-> >>>> and you use physically contiguous DMA.
-> >>>>
-> >>> Now our userspace app use VB2_USERPTR. I need to check if we could drop
-> >>> VB2_USERPTR.
-> >>> We use src_vq->mem_ops = &vb2_dma_contig_memops;
-> >>> And there are
-> >>> 	.get_userptr	= vb2_dc_get_userptr,
-> >>> 	.put_userptr	= vb2_dc_put_userptr,
-> >>> I was confused why it only make sense for scatter-gather.
-> >>> Could you kindly explain more?
-> >>
-> >> VB2_USERPTR indicates that the application can use malloc to allocate buffers
-> >> and pass those to the driver. Since malloc uses virtual memory the physical
-> >> memory is scattered all over. And the first page typically does not start at
-> >> the beginning of the page but at a random offset.
-> >>
-> >> To support that the DMA generally has to be able to do scatter-gather.
-> >>
-> >> Now, where things get ugly is that a hack was added to the USERPTR support where
-> >> apps could pass a pointer to physically contiguous memory as a user pointer. This
-> >> was a hack for embedded systems that preallocated a pool of buffers and needed to
-> >> pass those pointers around somehow. So the dma-contig USERPTR support is for that
-> >> 'feature'. If you try to pass a malloc()ed buffer to a dma-contig driver it will
-> >> reject it. One big problem is that this specific hack isn't signaled anywhere, so
-> >> applications have no way of knowing if the USERPTR support is the proper version
-> >> or the hack where physically contiguous memory is expected.
-> >>
-> >> This hack has been replaced with DMABUF which is the proper way of passing buffers
-> >> around.
-> >>
-> >> New dma-contig drivers should not use that old hack anymore. Use dmabuf to pass
-> >> external buffers around.
-> >>
-> >> How do you use it in your app? With malloc()ed buffers? Or with 'special' pointers
-> >> to physically contiguous buffers?
-> >>
-> > Understood now. Thanks for your explanation.
-> > Now our app use malloc()ed buffers and we hook vb2_dma_contig_memops. 
-> > I don't know why that dma-contig driver do not reject it.
-> > I will try to figure it out.
-> 
-> Is there an iommu involved that turns the scatter-gather list into what looks like
-> contiguous memory for the DMA?
-> 
-Yes, We have iommu that could make scatter-gather list looks like
-contiguous memory.
+Change s_input, s_fmt, s_tuner, s_frequency, querystd,
+s_hw_freq_seek, and vb2_core_streamon interfaces that
+alter the tuner configuration to check if it is free,
+by calling v4l_enable_media_source(). If source isn't
+free, return -EBUSY. v4l_disable_media_source() is
+called from v4l2_fh_exit() to release tuner (source).
+vb2_core_streamon() uses v4l_vb2q_enable_media_source().
 
-> At the end of vb2_dc_get_userptr() in videobuf2-dma-contig.c there is a check
-> 'if (contig_size < size)' that verifies that the sg DMA is contiguous. This would
-> work if there is an iommu involved (if I understand it correctly).
-> 
-I see. We saw this error before we add iommu support.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-fh.c        |  2 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c     | 30 ++++++++++++++++++++++++++++++
+ drivers/media/v4l2-core/videobuf2-core.c |  4 ++++
+ 3 files changed, 36 insertions(+)
 
-> If that's the case, then it's OK to keep VB2_USERPTR because you have real sg
-> support (although not via the DMA engine, but via iommu mappings).
-> 
-Got it. We will keep VB2_USERPTR.
-
-> Regards,
-> 
-> 	Hans
-
+diff --git a/drivers/media/v4l2-core/v4l2-fh.c b/drivers/media/v4l2-core/v4l2-fh.c
+index c97067a..c183f09 100644
+--- a/drivers/media/v4l2-core/v4l2-fh.c
++++ b/drivers/media/v4l2-core/v4l2-fh.c
+@@ -29,6 +29,7 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-mc.h>
+ 
+ void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+ {
+@@ -92,6 +93,7 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
+ {
+ 	if (fh->vdev == NULL)
+ 		return;
++	v4l_disable_media_source(fh->vdev);
+ 	v4l2_event_unsubscribe_all(fh);
+ 	fh->vdev = NULL;
+ }
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 8a018c6..ceaa44a 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -27,6 +27,7 @@
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-device.h>
+ #include <media/videobuf2-v4l2.h>
++#include <media/v4l2-mc.h>
+ 
+ #include <trace/events/v4l2.h>
+ 
+@@ -1041,6 +1042,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
+ static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
++	struct video_device *vfd = video_devdata(file);
++	int ret;
++
++	ret = v4l_enable_media_source(vfd);
++	if (ret)
++		return ret;
+ 	return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
+ }
+ 
+@@ -1448,6 +1455,9 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 	int ret;
+ 
++	ret = v4l_enable_media_source(vfd);
++	if (ret)
++		return ret;
+ 	v4l_sanitize_format(p);
+ 
+ 	switch (p->type) {
+@@ -1637,7 +1647,11 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
+ {
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_tuner *p = arg;
++	int ret;
+ 
++	ret = v4l_enable_media_source(vfd);
++	if (ret)
++		return ret;
+ 	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+ 			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 	return ops->vidioc_s_tuner(file, fh, p);
+@@ -1691,7 +1705,11 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+ 	struct video_device *vfd = video_devdata(file);
+ 	const struct v4l2_frequency *p = arg;
+ 	enum v4l2_tuner_type type;
++	int ret;
+ 
++	ret = v4l_enable_media_source(vfd);
++	if (ret)
++		return ret;
+ 	if (vfd->vfl_type == VFL_TYPE_SDR) {
+ 		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
+ 			return -EINVAL;
+@@ -1746,7 +1764,11 @@ static int v4l_s_std(const struct v4l2_ioctl_ops *ops,
+ {
+ 	struct video_device *vfd = video_devdata(file);
+ 	v4l2_std_id id = *(v4l2_std_id *)arg, norm;
++	int ret;
+ 
++	ret = v4l_enable_media_source(vfd);
++	if (ret)
++		return ret;
+ 	norm = id & vfd->tvnorms;
+ 	if (vfd->tvnorms && !norm)	/* Check if std is supported */
+ 		return -EINVAL;
+@@ -1760,7 +1782,11 @@ static int v4l_querystd(const struct v4l2_ioctl_ops *ops,
+ {
+ 	struct video_device *vfd = video_devdata(file);
+ 	v4l2_std_id *p = arg;
++	int ret;
+ 
++	ret = v4l_enable_media_source(vfd);
++	if (ret)
++		return ret;
+ 	/*
+ 	 * If no signal is detected, then the driver should return
+ 	 * V4L2_STD_UNKNOWN. Otherwise it should return tvnorms with
+@@ -1779,7 +1805,11 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_hw_freq_seek *p = arg;
+ 	enum v4l2_tuner_type type;
++	int ret;
+ 
++	ret = v4l_enable_media_source(vfd);
++	if (ret)
++		return ret;
+ 	/* s_hw_freq_seek is not supported for SDR for now */
+ 	if (vfd->vfl_type == VFL_TYPE_SDR)
+ 		return -EINVAL;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index ec5b78e..d381478 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -25,6 +25,7 @@
+ #include <linux/kthread.h>
+ 
+ #include <media/videobuf2-core.h>
++#include <media/v4l2-mc.h>
+ 
+ #include <trace/events/vb2.h>
+ 
+@@ -1873,6 +1874,9 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
+ 	 * are available.
+ 	 */
+ 	if (q->queued_count >= q->min_buffers_needed) {
++		ret = v4l_vb2q_enable_media_source(q);
++		if (ret)
++			return ret;
+ 		ret = vb2_start_streaming(q);
+ 		if (ret) {
+ 			__vb2_queue_cancel(q);
+-- 
+2.5.0
 
