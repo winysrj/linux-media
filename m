@@ -1,24 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [103.40.102.123] ([103.40.102.123]:4144 "HELO tl5280.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752471AbcBBQp7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2016 11:45:59 -0500
-Date: Wed, 3 Feb 2016 00:46:07 +0800
-From: "dfbh25" <dfbh25@tL5280.com>
-Reply-To: comebaby25@sohu.com
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: Happy New Year's Day
-Message-ID: <201602030046073128410@tL5280.com>
+Received: from mail.kernel.org ([198.145.29.136]:43571 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750748AbcBDSEi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2016 13:04:38 -0500
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: base64
+In-Reply-To: <1454586583.7571.3.camel@mtksdaap41>
+References: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
+ <1451902316-55931-2-git-send-email-tiffany.lin@mediatek.com>
+ <20160104141506.GA22801@rob-hp-laptop> <1454586583.7571.3.camel@mtksdaap41>
+From: Rob Herring <robh@kernel.org>
+Date: Thu, 4 Feb 2016 12:04:14 -0600
+Message-ID: <CAL_JsqJqQ+QRgg6HGQeGk0=rBEwQq7i-ZfoDahZwXLuvMC-=_A@mail.gmail.com>
+Subject: Re: [PATCH v3 1/8] dt-bindings: Add a binding for Mediatek Video Processor
+To: tiffany lin <tiffany.lin@mediatek.com>
+Cc: "daniel.thompson@linaro.org" <daniel.thompson@linaro.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	=?UTF-8?B?RWRkaWUgSHVhbmcgKOm7g+aZuuWCkSk=?=
+	<eddie.huang@mediatek.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-mediatek@lists.infradead.org"
+	<linux-mediatek@lists.infradead.org>,
+	=?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
+	<Andrew-CT.Chen@mediatek.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-xPq6wyHD5rbUvrrV+bykwdK1xM3iw7O7t76zo6y6o83iv827p9fK1LS1xNX5tuGjuyANCtPF1sq/
-zbun18rUtLXE1fm24aOstaXSu7XEuqPN4r+qt6LEo8q90tG+rczUzK2jrNPryrG+4734tPO1qLOi
-ytSyxcTcsru2z7XEtLTQwqO7DQrN4sOzv6q3osjtvP6w78Tjv+zL2dX7us/E48PH0NDStbXEyKvH
-8rXExL+x6r/Nu6fXytS0o6zTtdPQ18rUtNPFysajrM7Sw8e4/NT2vNPBy83avvK439bKwb+1xL/N
-u6e1xLPvwuujuw0K0rvM19b3tq+z9rv3v6q3or/Nu6e1xM+1zbOjrMTczqrE+rT4wLSyu9K70fm1
-xL6qz7KjodTaz9/OqsT60d3KvqOsz+rH6dfJ0a9RLS1ROjIwMzYwMTk1MTk=
+On Thu, Feb 4, 2016 at 5:49 AM, tiffany lin <tiffany.lin@mediatek.com> wrote:
+> Hi Rob,
+>
+>
+>
+>
+> On Mon, 2016-01-04 at 22:15 +0800, Rob Herring wrote:
+>> On Mon, Jan 04, 2016 at 06:11:49PM +0800, Tiffany Lin wrote:
+>> > From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+>> >
+>> > Add a DT binding documentation of Video Processor Unit for the
+>> > MT8173 SoC from Mediatek.
+>> >
+>> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+>> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+>>
+>> Please add acks when sending new versions as I already acked the last
+>> version.
+>>
+> Since we remove iommu attach and add 4GB support for VPU.
+> We send the new device tree and binding document.
+> We do not add Acked-by in v4 patches.
+
+Okay, then you should explain that in the patch.
+
+Rob
