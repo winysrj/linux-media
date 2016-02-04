@@ -1,54 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41598 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751244AbcBYVwP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2016 16:52:15 -0500
-Date: Thu, 25 Feb 2016 23:52:11 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH v5 4/4] media-ctl: List supported media bus formats
-Message-ID: <20160225215211.GF11084@valkosipuli.retiisi.org.uk>
-References: <1456331128-7036-1-git-send-email-sakari.ailus@linux.intel.com>
- <1456331128-7036-5-git-send-email-sakari.ailus@linux.intel.com>
- <7141573.SjGf7uf7rF@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7141573.SjGf7uf7rF@avalon>
+Received: from mailout.easymail.ca ([64.68.201.169]:43210 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965563AbcBDEEU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:20 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v2 12/22] media: au0828 video remove au0828_enable_analog_tuner()
+Date: Wed,  3 Feb 2016 21:03:44 -0700
+Message-Id: <8d43a2cfe4dcdf843d2e587e35a4bd4681eebe36.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Remove au0828_enable_analog_tuner() as it is
+no longer needed because v4l2-core implements
+common interfaces to check for media source
+availability.
 
-On Thu, Feb 25, 2016 at 11:38:02PM +0200, Laurent Pinchart wrote:
-...
-> > +static void list_known_mbus_formats(void)
-> > +{
-> > +	unsigned int ncodes;
-> > +	const unsigned int *code = v4l2_subdev_pixelcode_list(&ncodes);
-> > +
-> > +	while (ncodes--) {
-> > +		const char *str = v4l2_subdev_pixelcode_to_string(*code);
-> > +		int spaces = 30 - (int)strlen(str);
-> > +
-> > +		if (*code == 0)
-> > +			break;
-> > +
-> > +		if (spaces < 0)
-> > +			spaces = 0;
-> > +
-> > +		printf("%s %*c 0x%8.8x\n", str, spaces, ' ', *code);
-> > +
-> > +		code++;
-> > +	}
-> > +}
+In addition, queue_setup() no longer needs the
+tuner availability check since v4l2-core does it.
 
-I remember I intended to change s/8\.8/4.4/ but I forgot to do that to this
-version. I'll resubmit.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-video.c | 61 ---------------------------------
+ 1 file changed, 61 deletions(-)
 
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 8c54fd2..81952c8 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -638,64 +638,6 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
+ 	return rc;
+ }
+ 
+-static int au0828_enable_analog_tuner(struct au0828_dev *dev)
+-{
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	struct media_device *mdev = dev->media_dev;
+-	struct media_entity *source;
+-	struct media_link *link, *found_link = NULL;
+-	int ret, active_links = 0;
+-
+-	if (!mdev || !dev->decoder)
+-		return 0;
+-
+-	/*
+-	 * This will find the tuner that is connected into the decoder.
+-	 * Technically, this is not 100% correct, as the device may be
+-	 * using an analog input instead of the tuner. However, as we can't
+-	 * do DVB streaming while the DMA engine is being used for V4L2,
+-	 * this should be enough for the actual needs.
+-	 */
+-	list_for_each_entry(link, &dev->decoder->links, list) {
+-		if (link->sink->entity == dev->decoder) {
+-			found_link = link;
+-			if (link->flags & MEDIA_LNK_FL_ENABLED)
+-				active_links++;
+-			break;
+-		}
+-	}
+-
+-	if (active_links == 1 || !found_link)
+-		return 0;
+-
+-	source = found_link->source->entity;
+-	list_for_each_entry(link, &source->links, list) {
+-		struct media_entity *sink;
+-		int flags = 0;
+-
+-		sink = link->sink->entity;
+-
+-		if (sink == dev->decoder)
+-			flags = MEDIA_LNK_FL_ENABLED;
+-
+-		ret = media_entity_setup_link(link, flags);
+-		if (ret) {
+-			pr_err(
+-				"Couldn't change link %s->%s to %s. Error %d\n",
+-				source->name, sink->name,
+-				flags ? "enabled" : "disabled",
+-				ret);
+-			return ret;
+-		} else
+-			au0828_isocdbg(
+-				"link %s->%s was %s\n",
+-				source->name, sink->name,
+-				flags ? "ENABLED" : "disabled");
+-	}
+-#endif
+-	return 0;
+-}
+-
+ static int queue_setup(struct vb2_queue *vq,
+ 		       unsigned int *nbuffers, unsigned int *nplanes,
+ 		       unsigned int sizes[], void *alloc_ctxs[])
+@@ -707,9 +649,6 @@ static int queue_setup(struct vb2_queue *vq,
+ 		return sizes[0] < size ? -EINVAL : 0;
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-
+-	au0828_enable_analog_tuner(dev);
+-
+ 	return 0;
+ }
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.5.0
+
