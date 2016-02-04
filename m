@@ -1,123 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39241 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756508AbcBDP6r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 10:58:47 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 0/7] Don't let G_PROPERTY interfere at tuner locking
-Date: Thu,  4 Feb 2016 13:57:25 -0200
-Message-Id: <cover.1454600641.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:36799 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161057AbcBDTtL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 14:49:11 -0500
+MIME-Version: 1.0
+Reply-To: mtk.manpages@gmail.com
+In-Reply-To: <56B361C5.8000101@osg.samsung.com>
+References: <CALCETrUNxPhcKiT+aswO5rr+ZpPPCkT30+Exd0iWwQnMN921Qg@mail.gmail.com>
+ <CAKgNAkg+cjJS2G5TKvYAYizXWaPewVNtdBQN1x0otbPM7huy5g@mail.gmail.com> <56B361C5.8000101@osg.samsung.com>
+From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
+Date: Thu, 4 Feb 2016 20:48:50 +0100
+Message-ID: <CAKgNAkj-veqrgChhTwkOPOXTsA=wytha26aokMixVrZmAxNz6Q@mail.gmail.com>
+Subject: Re: linux-api scope (Re: [PATCH v2 11/22] media: dvb-frontend invoke
+ enable/disable_source handlers)
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Andy Lutomirski <luto@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org, Linux API <linux-api@vger.kernel.org>,
+	ALSA development <alsa-devel@alsa-project.org>,
+	Josh Triplett <josh@joshtriplett.org>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yesterday, I used an old hardware to test a VB2 issue with DVB. On the
-tests, I noticed that some very old drivers don't play nice if either
-G_PROPERTY or GET_FRONTEND is called while the driver didn't lock.
+Hi Shuah,
 
-The driver simply overrides the tuning cache with some random data,
-causing tune to fail. This is wrong, and frontend drivers should be fixed
-with patches like this one:
-	https://patchwork.linuxtv.org/patch/32813/
+On 4 February 2016 at 15:35, Shuah Khan <shuahkh@osg.samsung.com> wrote:
+> On 02/04/2016 07:04 AM, Michael Kerrisk (man-pages) wrote:
+>> [expanding the CC a little]
+>>
+>> Hi Andy, (and Shuah)
+>>
+>> On 4 February 2016 at 05:51, Andy Lutomirski <luto@kernel.org> wrote:
+>>> [cc list heavily trimmed]
+>>>
+>>> On Wed, Feb 3, 2016 at 8:03 PM, Shuah Khan <shuahkh@osg.samsung.com> wrote:
+>>>> Change dvb frontend to check if tuner is free when
+>>>> device opened in RW mode. Call to enable_source
+>>>> handler either returns with an active pipeline to
+>>>> tuner or error if tuner is busy. Tuner is released
+>>>> when frontend is released calling the disable_source
+>>>> handler.
+>>>
+>>> As an actual subscriber to linux-api, I prefer for the linux-api list
+>>> to be lowish-volume and mostly limited to API-related things.  Is this
+>>> API related?  Do people think that these series should be sent to
+>>> linux-api?
+>>
+>> I think not, and I'd like to stem the flood of mail to the list.
+>> There's two things that we could do:
+>
+> I simply followed the getmaintainers generate3d list.
+> A bit surprised to see linux-api, but didn't want to
+> leave it out.
 
-Yet, the core should be smarter to not let the driver to not tune due to
-such driver bugs.
+Yep -- you and many others. That's the problem with automated solutions ;-).
 
-So, make the core more robust by passing a separate DTV properties
-struct to the drivers on get_frontend(). This way, if the driver updates
-it with bogus values, it won't interere with digital TV zig-zag routines.
+>> 1. Shuah, I know we talked about this in the past, and it made some
+>> sense to me at the time for kselftest to use linux-api@, but maybe
+>> it's time to create a dedicated list, and move the traffic there? It'd
+>> help focus the traffic of linux-api more on its original purpose.
+>
+> Yes that is a good plan - I will request a new mailing list and
+> send in a patch to Kselftest MAINTIANER's entry.
 
-Please also notice that drivers may simply update the cache either
-at set_frontend(), at get_status() or via some driver kthread. This
-should work too with the new logic.
+Thanks, and sorry for the inconvenience. I guess a prominent mail onto
+linux-api@ advertising the new list, once it has been created, would
+not go amiss.
 
-Tested on my device with tda1004x with the fix reverted, and with 
-the fix applied.
+Cheers,
 
-Mauro Carvalho Chehab (7):
-  [media] dvb_frontend: add props argument to dtv_get_frontend()
-  [media] siano: remove get_frontend stub
-  [media] friio-fe: remove get_frontend() callback
-  [media] lgs8gxx: don't export get_frontend() callback
-  [media] mb86a20s: get rid of dummy get_frontend()
-  [media] dvb_frontend: pass the props cache to get_frontend() as arg
-  [media] dvb_frontend: Don't let drivers to trash data at cache
-
- drivers/media/common/siano/smsdvb-main.c      |  7 ---
- drivers/media/dvb-core/dvb_frontend.c         | 55 +++++++++++++-------
- drivers/media/dvb-core/dvb_frontend.h         |  3 +-
- drivers/media/dvb-frontends/af9013.c          |  4 +-
- drivers/media/dvb-frontends/af9033.c          |  4 +-
- drivers/media/dvb-frontends/as102_fe.c        |  4 +-
- drivers/media/dvb-frontends/atbm8830.c        |  4 +-
- drivers/media/dvb-frontends/au8522_dig.c      |  4 +-
- drivers/media/dvb-frontends/cx22700.c         |  4 +-
- drivers/media/dvb-frontends/cx22702.c         |  4 +-
- drivers/media/dvb-frontends/cx24110.c         |  4 +-
- drivers/media/dvb-frontends/cx24117.c         |  4 +-
- drivers/media/dvb-frontends/cx24120.c         |  4 +-
- drivers/media/dvb-frontends/cx24123.c         |  4 +-
- drivers/media/dvb-frontends/cxd2820r_c.c      |  4 +-
- drivers/media/dvb-frontends/cxd2820r_core.c   |  9 ++--
- drivers/media/dvb-frontends/cxd2820r_priv.h   |  9 ++--
- drivers/media/dvb-frontends/cxd2820r_t.c      |  4 +-
- drivers/media/dvb-frontends/cxd2820r_t2.c     |  6 +--
- drivers/media/dvb-frontends/cxd2841er.c       |  4 +-
- drivers/media/dvb-frontends/dib3000mb.c       |  9 ++--
- drivers/media/dvb-frontends/dib3000mc.c       |  6 +--
- drivers/media/dvb-frontends/dib7000m.c        |  6 +--
- drivers/media/dvb-frontends/dib7000p.c        |  6 +--
- drivers/media/dvb-frontends/dib8000.c         | 75 ++++++++++++++-------------
- drivers/media/dvb-frontends/dib9000.c         | 23 ++++----
- drivers/media/dvb-frontends/dvb_dummy_fe.c    |  7 ++-
- drivers/media/dvb-frontends/hd29l2.c          |  4 +-
- drivers/media/dvb-frontends/l64781.c          |  4 +-
- drivers/media/dvb-frontends/lg2160.c          | 62 +++++++++++-----------
- drivers/media/dvb-frontends/lgdt3305.c        |  4 +-
- drivers/media/dvb-frontends/lgdt3306a.c       |  4 +-
- drivers/media/dvb-frontends/lgdt330x.c        |  5 +-
- drivers/media/dvb-frontends/lgs8gl5.c         |  5 +-
- drivers/media/dvb-frontends/lgs8gxx.c         | 13 +----
- drivers/media/dvb-frontends/m88ds3103.c       |  4 +-
- drivers/media/dvb-frontends/m88rs2000.c       |  5 +-
- drivers/media/dvb-frontends/mb86a20s.c        | 11 ----
- drivers/media/dvb-frontends/mt312.c           |  4 +-
- drivers/media/dvb-frontends/mt352.c           |  4 +-
- drivers/media/dvb-frontends/or51132.c         |  4 +-
- drivers/media/dvb-frontends/rtl2830.c         |  4 +-
- drivers/media/dvb-frontends/rtl2832.c         |  4 +-
- drivers/media/dvb-frontends/s5h1409.c         |  4 +-
- drivers/media/dvb-frontends/s5h1411.c         |  4 +-
- drivers/media/dvb-frontends/s5h1420.c         |  4 +-
- drivers/media/dvb-frontends/s921.c            |  4 +-
- drivers/media/dvb-frontends/stb0899_drv.c     |  4 +-
- drivers/media/dvb-frontends/stb6100.c         |  2 +-
- drivers/media/dvb-frontends/stv0297.c         |  4 +-
- drivers/media/dvb-frontends/stv0299.c         |  4 +-
- drivers/media/dvb-frontends/stv0367.c         |  8 +--
- drivers/media/dvb-frontends/stv0900_core.c    |  4 +-
- drivers/media/dvb-frontends/tc90522.c         | 10 ++--
- drivers/media/dvb-frontends/tda10021.c        |  4 +-
- drivers/media/dvb-frontends/tda10023.c        |  4 +-
- drivers/media/dvb-frontends/tda10048.c        |  4 +-
- drivers/media/dvb-frontends/tda1004x.c        |  4 +-
- drivers/media/dvb-frontends/tda10071.c        |  4 +-
- drivers/media/dvb-frontends/tda10086.c        |  4 +-
- drivers/media/dvb-frontends/tda8083.c         |  4 +-
- drivers/media/dvb-frontends/ves1820.c         |  4 +-
- drivers/media/dvb-frontends/ves1x93.c         |  4 +-
- drivers/media/dvb-frontends/zl10353.c         |  4 +-
- drivers/media/pci/bt8xx/dst.c                 |  4 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-demod.c |  4 +-
- drivers/media/usb/dvb-usb/af9005-fe.c         |  4 +-
- drivers/media/usb/dvb-usb/dtt200u-fe.c        |  5 +-
- drivers/media/usb/dvb-usb/friio-fe.c          | 37 ++++++-------
- 69 files changed, 281 insertions(+), 283 deletions(-)
+Michael
 
 -- 
-2.5.0
-
-
+Michael Kerrisk
+Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
+Linux/UNIX System Programming Training: http://man7.org/training/
