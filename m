@@ -1,64 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:56181 "EHLO mout.gmx.net"
+Received: from lists.s-osg.org ([54.187.51.154]:54347 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751094AbcBURcM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 12:32:12 -0500
-Date: Sun, 21 Feb 2016 17:50:15 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
-In-Reply-To: <874md2xgg9.fsf@belgarion.home>
-Message-ID: <Pine.LNX.4.64.1602211749460.5959@axis700.grange>
-References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
- <87io5wwahg.fsf@belgarion.home> <Pine.LNX.4.64.1510272306300.21185@axis700.grange>
- <87twpcj6vj.fsf@belgarion.home> <Pine.LNX.4.64.1510291656580.694@axis700.grange>
- <87d1s72bls.fsf@belgarion.home> <Pine.LNX.4.64.1602211400050.5959@axis700.grange>
- <874md2xgg9.fsf@belgarion.home>
+	id S964847AbcBDIjP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2016 03:39:15 -0500
+Date: Thu, 4 Feb 2016 06:38:54 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH v2 01/22] uapi/media.h: Declare interface types for ALSA
+Message-ID: <20160204063854.308fcbb7@recife.lan>
+In-Reply-To: <6d8fe067fa0ec07e9f667dbd2e163b6b63b4a614.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+	<6d8fe067fa0ec07e9f667dbd2e163b6b63b4a614.1454557589.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 21 Feb 2016, Robert Jarzmik wrote:
+Em Wed, 03 Feb 2016 21:03:33 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> Declare the interface types to be used on alsa for
+> the new G_TOPOLOGY ioctl.
 > 
-> >> Okay Guennadi, I retested this version on top of v4.5-rc2, still good to
-> >> go. There is a minor conflict in the includes since this submission, and I can
-> >> repost a v6 which solves it.
-> >
-> > How did you test it with that patchg #3??
-> I rebased my patches on top of v4.5-rc2. To be exact, I rebased the tree I had
-> with these last patches on top of v4.5-rc2. I'll recheck, it's been some time
-> ...
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/media-entity.c | 16 ++++++++++++++++
+>  include/uapi/linux/media.h   | 22 ++++++++++++++++++++++
+>  2 files changed, 38 insertions(+)
 > 
-> > What's a minor conflict?
-> A conflict on a context line :
-> #include <mach/dma.h>
-> #include <linux/platform_data/media/camera-pxa.h>
-> 
-> I think linux/platform_data/media/camera-pxa.h changed from my last submssion,
-> hence the conflict.
-> 
-> > If a patch doesn't apply at all or applies with a fuzz, yes, please fix. If
-> > it's just a few lines off, no need to fix that. But you'll do a v6 anyway, I
-> > assume.
-> But of course, let us have a v6 which cleanly applies on v4.5-rc2, and restested
-> once more. I'll try to have it done this evening.
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index f2e4360..6179543 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -65,6 +65,22 @@ static inline const char *intf_type(struct media_interface *intf)
+>  		return "v4l2-subdev";
+>  	case MEDIA_INTF_T_V4L_SWRADIO:
+>  		return "swradio";
+> +	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+> +		return "pcm-capture";
+> +	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+> +		return "pcm-playback";
+> +	case MEDIA_INTF_T_ALSA_CONTROL:
+> +		return "alsa-control";
+> +	case MEDIA_INTF_T_ALSA_COMPRESS:
+> +		return "compress";
+> +	case MEDIA_INTF_T_ALSA_RAWMIDI:
+> +		return "rawmidi";
+> +	case MEDIA_INTF_T_ALSA_HWDEP:
+> +		return "hwdep";
+> +	case MEDIA_INTF_T_ALSA_SEQUENCER:
+> +		return "sequencer";
+> +	case MEDIA_INTF_T_ALSA_TIMER:
+> +		return "timer";
+>  	default:
+>  		return "unknown-intf";
+>  	}
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index c9eb42a..ee020e8 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -265,6 +265,7 @@ struct media_links_enum {
+>  
+>  #define MEDIA_INTF_T_DVB_BASE	0x00000100
+>  #define MEDIA_INTF_T_V4L_BASE	0x00000200
+> +#define MEDIA_INTF_T_ALSA_BASE	0x00000300
+>  
+>  /* Interface types */
+>  
+> @@ -280,6 +281,27 @@ struct media_links_enum {
+>  #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+>  #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+>  
+> +/**
+> + * DOC: Media Controller Next Generation ALSA Interface Types
+> + *
+> + * MEDIA_INTF_T_ALSA_PCM_CAPTURE - PCM Capture Interface (pcm-capture)
+> + * MEDIA_INTF_T_ALSA_PCM_PLAYBACK -  PCM Playback Interface (pcm-playback)
+> + * MEDIA_INTF_T_ALSA_CONTROL -  ALSA Control Interface (alsa-control)
+> + * MEDIA_INTF_T_ALSA_COMPRESS - ALSA Compression Interface (compress)
+> + * MEDIA_INTF_T_ALSA_RAWMIDI - ALSA Raw MIDI Interface (rawmidi)
+> + * MEDIA_INTF_T_ALSA_HWDEP - ALSA Hardware Dependent Interface (hwdep)
+> + * MEDIA_INTF_T_ALSA_SEQUENCER - ALSA Sequencer (sequencer)
+> + * MEDIA_INTF_T_ALSA_TIMER - ALSA Timer (timer)
+> + */
 
-Please, have a look at 
-http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/log/?h=for-4.6-2
-If all is good there, no need for a v6
+We don't document the userspace API using kernel-doc, as it is too
+poor for that. Also, we migrated the uAPI documentation from LaTex
+(at DVB side) and from a separate DocBook document. Migrating those to
+kernel-doc would need some rich documentation markup language, and
+someone with lots of spare time.
 
-Thanks
-Guennadi
+Instead, we document them at a separate DocBook volume:
+	Documentation/DocBook/media_api.tmpl
 
-> 
-> Cheers.
-> 
-> -- 
-> Robert
-> 
+The actual DocBook documents are at:
+	Documentation/DocBook/media/dvb - for the DVB side
+	Documentation/DocBook/media/v4l - for V4L2, RC and Media Controller
+
+In the specific case of the Media Controller, the description of those
+defines are at:
+	Documentation/DocBook/media/v4l/media-types.xml
+
+Just edit it with some text editor and add the new fields there at the
+right places.
+
+Please test if the documentation is producing the right data, by using
+the enclosed small script. The extra xmllint lines validate the syntax,
+helping to identify hidden missing tags. The last line will produce a
+single html file, instead of one html file per page (with is the default
+for make htmldocs).
+
+Regards,
+Mauro
+
+#!/bin/bash
+LC_ALL=en_US.UTF-8
+make cleanmediadocs
+make DOCBOOKS=media_api.xml htmldocs 2>&1 | grep -v "element.*: validity error : ID .* already defined"
+xmllint --noent --postvalid "$PWD/Documentation/DocBook/media_api.xml" >/tmp/x.xml 2>/dev/null
+xmllint --noent --postvalid --noout /tmp/x.xml
+xmlto html-nochunks -m ./Documentation/DocBook/stylesheet.xsl -o Documentation/DocBook/media Documentation/DocBook/media_api.xml >/dev/null 2>&1
