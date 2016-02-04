@@ -1,97 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:46202 "EHLO
-	mailgw02.hq.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756718AbcBDLf0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Feb 2016 06:35:26 -0500
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v4 8/8] arm64: dts: mediatek: Add Video Encoder for MT8173
-Date: Thu, 4 Feb 2016 19:35:03 +0800
-Message-ID: <1454585703-42428-9-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1454585703-42428-8-git-send-email-tiffany.lin@mediatek.com>
-References: <1454585703-42428-1-git-send-email-tiffany.lin@mediatek.com>
- <1454585703-42428-2-git-send-email-tiffany.lin@mediatek.com>
- <1454585703-42428-3-git-send-email-tiffany.lin@mediatek.com>
- <1454585703-42428-4-git-send-email-tiffany.lin@mediatek.com>
- <1454585703-42428-5-git-send-email-tiffany.lin@mediatek.com>
- <1454585703-42428-6-git-send-email-tiffany.lin@mediatek.com>
- <1454585703-42428-7-git-send-email-tiffany.lin@mediatek.com>
- <1454585703-42428-8-git-send-email-tiffany.lin@mediatek.com>
+Received: from lists.s-osg.org ([54.187.51.154]:54566 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755978AbcBDKAa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2016 05:00:30 -0500
+Date: Thu, 4 Feb 2016 08:00:13 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH v2 13/22] media: au0828 video change to use
+ v4l_enable_media_source()
+Message-ID: <20160204080013.0a2648ad@recife.lan>
+In-Reply-To: <fe282e5160ee480d9b4d792a94c94549c54545cd.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+	<fe282e5160ee480d9b4d792a94c94549c54545cd.1454557589.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add video encoder node for MT8173
+Em Wed, 03 Feb 2016 21:03:45 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   39 ++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+> Change au0828 to check if tuner is free or not
+> before changing tuner configuration.
+> 
+> vidioc_g_tuner(), and au0828_v4l2_close() now call
+> v4l-core interface v4l_enable_media_source() before
+> changing tuner configuration.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/usb/au0828/au0828-video.c | 14 ++++++++++++--
+>  1 file changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+> index 81952c8..8087215 100644
+> --- a/drivers/media/usb/au0828/au0828-video.c
+> +++ b/drivers/media/usb/au0828/au0828-video.c
+> @@ -1006,8 +1006,12 @@ static int au0828_v4l2_close(struct file *filp)
+>  		goto end;
+>  
+>  	if (dev->users == 1) {
+> -		/* Save some power by putting tuner to sleep */
+> -		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+> +		/* Save some power by putting tuner to sleep, if it is free */
+> +		/* What happens when radio is using tuner?? */
+> +		ret = v4l_enable_media_source(vdev);
+> +		if (ret == 0)
+> +			v4l2_device_call_all(&dev->v4l2_dev, 0, core,
+> +					     s_power, 0);
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index 5b0b38a..f61669d 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -1150,6 +1150,45 @@
- 			clock-names = "apb", "smi";
- 		};
- 
-+		vcodec_enc: vcodec@18002000 {
-+			compatible = "mediatek,mt8173-vcodec-enc";
-+			reg = <0 0x18002000 0 0x1000>,	/* VENC_SYS */
-+			      <0 0x19002000 0 0x1000>;	/* VENC_LT_SYS */
-+			interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
-+				     <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
-+			mediatek,larb = <&larb3>,
-+					<&larb5>;
-+			iommus = <&iommu M4U_PORT_VENC_RCPU>,
-+				 <&iommu M4U_PORT_VENC_REC>,
-+				 <&iommu M4U_PORT_VENC_BSDMA>,
-+				 <&iommu M4U_PORT_VENC_SV_COMV>,
-+				 <&iommu M4U_PORT_VENC_RD_COMV>,
-+				 <&iommu M4U_PORT_VENC_CUR_LUMA>,
-+				 <&iommu M4U_PORT_VENC_CUR_CHROMA>,
-+				 <&iommu M4U_PORT_VENC_REF_LUMA>,
-+				 <&iommu M4U_PORT_VENC_REF_CHROMA>,
-+				 <&iommu M4U_PORT_VENC_NBM_RDMA>,
-+				 <&iommu M4U_PORT_VENC_NBM_WDMA>,
-+				 <&iommu M4U_PORT_VENC_RCPU_SET2>,
-+				 <&iommu M4U_PORT_VENC_REC_FRM_SET2>,
-+				 <&iommu M4U_PORT_VENC_BSDMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_SV_COMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_RD_COMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_CUR_LUMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_CUR_CHROMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_REF_LUMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_REC_CHROMA_SET2>;
-+			mediatek,vpu = <&vpu>;
-+			clocks = <&topckgen CLK_TOP_VENCPLL_D2>,
-+				 <&topckgen CLK_TOP_VENC_SEL>,
-+				 <&topckgen CLK_TOP_UNIVPLL1_D2>,
-+				 <&topckgen CLK_TOP_VENC_LT_SEL>;
-+			clock-names = "vencpll_d2",
-+				      "venc_sel",
-+				      "univpll1_d2",
-+				      "venc_lt_sel";
-+		};
-+
- 		vencltsys: clock-controller@19000000 {
- 			compatible = "mediatek,mt8173-vencltsys", "syscon";
- 			reg = <0 0x19000000 0 0x1000>;
--- 
-1.7.9.5
+Actually, for most USB devices (and this is the case of au0828), the
+tuner can safely be disabled here if ALSA is not streaming, as, except
+for some very old USB tuner models (like em28xx-based WinTV USB2) have
+a separate audio output jack.
 
+Btw, those devices that have a separate audio output jack have
+analog tuners, like Philips FM1236. Those devices are always on, so
+the s_power callback are silently ignored.
+
+So, the best logic here would be to disable the tuner if:
+	- ALSA is not streaming;
+	- the last V4L2 file handler is closed.
+
+Additionally, media source can be disabled if the above conditions
+are met and if the device doesn't have a separate audio out plug
+(or doesn't use a silicon tuner like xc2028/3028/4000/5000).
+
+Of course, as ALSA may stream anytime, a callback would be needed to
+enable the media source and power on the tuner, for radio to work.
+
+I understand that the above would require some other non-trivial
+changes, with would be best addressed on a separate patch series.
+
+So, for now, I would add a FIXME there explaining the above.
+
+>  		dev->std_set_in_tuner_core = 0;
+>  
+>  		/* When close the device, set the usb intf0 into alt0 to free
+> @@ -1408,10 +1412,16 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
+>  static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+>  {
+>  	struct au0828_dev *dev = video_drvdata(file);
+> +	struct video_device *vfd = video_devdata(file);
+> +	int ret;
+>  
+>  	if (t->index != 0)
+>  		return -EINVAL;
+>  
+> +	ret = v4l_enable_media_source(vfd);
+> +	if (ret)
+> +		return ret;
+> +
+>  	dprintk(1, "%s called std_set %d dev_state %d\n", __func__,
+>  		dev->std_set_in_tuner_core, dev->dev_state);
+>  
