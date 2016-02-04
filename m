@@ -1,121 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37445 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751348AbcBIDzE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2016 22:55:04 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id F2E57180A47
-	for <linux-media@vger.kernel.org>; Tue,  9 Feb 2016 04:54:56 +0100 (CET)
-Date: Tue, 09 Feb 2016 04:54:56 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160209035456.F2E57180A47@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:54892 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965793AbcBDPAc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2016 10:00:32 -0500
+Subject: Re: [PATCH v2 06/22] media: Media Controller non-locking
+ __media_entity_pipeline_start/stop()
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+ <5c5a74a0d87db11dd1519248d8fda5c8fa9826be.1454557589.git.shuahkh@osg.samsung.com>
+ <20160204071803.29d3682d@recife.lan>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56B36787.4060304@osg.samsung.com>
+Date: Thu, 4 Feb 2016 08:00:23 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160204071803.29d3682d@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 02/04/2016 02:18 AM, Mauro Carvalho Chehab wrote:
+> Em Wed, 03 Feb 2016 21:03:38 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> Add non-locking __media_entity_pipeline_start/stop() interfaces
+>> to be called from code paths that hold the graph_mutex. For this
+>> change, the media_entity_pipeline_start() routine is renamed to
+>> __media_entity_pipeline_start() minus the graph_mutex lock and
+>> unlock. media_entity_pipeline_start() now calls the non-locking
+>> __media_entity_pipeline_start() holding the graph_lock. The stop
+>> interface, media_entity_pipeline_stop() routine is renamed to
+>> __media_entity_pipeline_stop() minus the graph_mutex lock and
+>> unlock. media_entity_pipeline_stop() now calls the non-locking
+>> __media_entity_pipeline_stop() holding the graph_lock.
+> 
+> Please write a better patch descriptions. The above could easily
+> be split into 3 or 4 paragraphs, with would make it easier to
+> read.
+> 
 
-Results of the daily build of media_tree:
+Removed linux-api from cc list
 
-date:		Tue Feb  9 04:00:20 CET 2016
-git branch:	test
-git hash:	210bd104c6acd31c3c6b8b075b3f12d4a9f6b60d
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.3.0-164
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+ok - I updated several changelogs based on your earlier
+comments and this one slipped by.
 
-Detailed results are available here:
+-- Shuah
+> Also, too much details, written on a spaghetti style;)
+> 
+> It is obvious by anyone that looked at the patch that
+> "media_entity_pipeline_start() routine is renamed to 
+> __media_entity_pipeline_start() minus the graph_mutex lock and
+> unlock."
+> 
+> I read exactly the same thing at the C code, *and* at the
+> subject of the e-mail. Patch subject/description should tell
+> what, why and how (but you should not repeat what can easily
+> be inferred from looking at the diff).
+> 
+> I would describe it as:
+> 
+>    Currently, media pipeline graph traversal routines take
+>    the graph_mutex lock.
+> 
+>    While this works for the current code, we'll need 
+>    unlocked versions of them because
+>    (some explanation *why* you need it, with is the main
+>     thing that should be at the description).
+> 
+>    So, add non-locking media_entity_pipeline_start/stop()
+>    variations.
+> 
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/media-entity.c | 34 ++++++++++++++++++++++++----------
+>>  include/media/media-entity.h | 12 ++++++++++++
+>>  2 files changed, 36 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>> index 9b4d712..b78e4c2 100644
+>> --- a/drivers/media/media-entity.c
+>> +++ b/drivers/media/media-entity.c
+>> @@ -365,8 +365,8 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
+>>   * Pipeline management
+>>   */
+>>  
+>> -__must_check int media_entity_pipeline_start(struct media_entity *entity,
+>> -					     struct media_pipeline *pipe)
+>> +__must_check int __media_entity_pipeline_start(struct media_entity *entity,
+>> +					       struct media_pipeline *pipe)
+>>  {
+>>  	struct media_device *mdev = entity->graph_obj.mdev;
+>>  	struct media_entity_graph *graph = &pipe->graph;
+>> @@ -374,8 +374,6 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+>>  	struct media_link *link;
+>>  	int ret;
+>>  
+>> -	mutex_lock(&mdev->graph_mutex);
+>> -
+>>  	if (!pipe->streaming_count++) {
+>>  		ret = media_entity_graph_walk_init(&pipe->graph, mdev);
+>>  		if (ret)
+>> @@ -456,8 +454,6 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+>>  		}
+>>  	}
+>>  
+>> -	mutex_unlock(&mdev->graph_mutex);
+>> -
+>>  	return 0;
+>>  
+>>  error:
+>> @@ -487,19 +483,28 @@ error_graph_walk_start:
+>>  	if (!--pipe->streaming_count)
+>>  		media_entity_graph_walk_cleanup(graph);
+>>  
+>> -	mutex_unlock(&mdev->graph_mutex);
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(__media_entity_pipeline_start);
+>>  
+>> +__must_check int media_entity_pipeline_start(struct media_entity *entity,
+>> +					     struct media_pipeline *pipe)
+>> +{
+>> +	struct media_device *mdev = entity->graph_obj.mdev;
+>> +	int ret;
+>> +
+>> +	mutex_lock(&mdev->graph_mutex);
+>> +	ret = __media_entity_pipeline_start(entity, pipe);
+>> +	mutex_unlock(&mdev->graph_mutex);
+>>  	return ret;
+>>  }
+>>  EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
+>>  
+>> -void media_entity_pipeline_stop(struct media_entity *entity)
+>> +void __media_entity_pipeline_stop(struct media_entity *entity)
+>>  {
+>> -	struct media_device *mdev = entity->graph_obj.mdev;
+>>  	struct media_entity_graph *graph = &entity->pipe->graph;
+>>  	struct media_pipeline *pipe = entity->pipe;
+>>  
+>> -	mutex_lock(&mdev->graph_mutex);
+>>  
+>>  	WARN_ON(!pipe->streaming_count);
+>>  	media_entity_graph_walk_start(graph, entity);
+>> @@ -516,6 +521,15 @@ void media_entity_pipeline_stop(struct media_entity *entity)
+>>  	if (!--pipe->streaming_count)
+>>  		media_entity_graph_walk_cleanup(graph);
+>>  
+>> +}
+>> +EXPORT_SYMBOL_GPL(__media_entity_pipeline_stop);
+>> +
+>> +void media_entity_pipeline_stop(struct media_entity *entity)
+>> +{
+>> +	struct media_device *mdev = entity->graph_obj.mdev;
+>> +
+>> +	mutex_lock(&mdev->graph_mutex);
+>> +	__media_entity_pipeline_stop(entity);
+>>  	mutex_unlock(&mdev->graph_mutex);
+>>  }
+>>  EXPORT_SYMBOL_GPL(media_entity_pipeline_stop);
+>> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+>> index fe485d3..c7583db 100644
+>> --- a/include/media/media-entity.h
+>> +++ b/include/media/media-entity.h
+>> @@ -832,6 +832,12 @@ media_entity_graph_walk_next(struct media_entity_graph *graph);
+>>   */
+>>  __must_check int media_entity_pipeline_start(struct media_entity *entity,
+>>  					     struct media_pipeline *pipe);
+>> +/**
+>> + * non-locking __media_entity_pipeline_start() can be called from
+>> + * code paths that hold the graph_mutex
+>> + */
+>> +__must_check int __media_entity_pipeline_start(struct media_entity *entity,
+>> +					       struct media_pipeline *pipe);
+>>  
+>>  /**
+>>   * media_entity_pipeline_stop - Mark a pipeline as not streaming
+>> @@ -848,6 +854,12 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
+>>  void media_entity_pipeline_stop(struct media_entity *entity);
+>>  
+>>  /**
+>> + * non-locking __media_entity_pipeline_stop() can be called from
+>> + * code paths that hold the graph_mutex
+>> + */
+>> +void __media_entity_pipeline_stop(struct media_entity *entity);
+>> +
+>> +/**
+>>   * media_devnode_create() - creates and initializes a device node interface
+>>   *
+>>   * @mdev:	pointer to struct &media_device
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
