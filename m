@@ -1,208 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:58995 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752668AbcBWQEM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 11:04:12 -0500
-Date: Tue, 23 Feb 2016 17:03:59 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] soc_camera/omap1: move to staging in preparation for
- removal
-In-Reply-To: <56CC8125.60205@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1602231701380.17650@axis700.grange>
-References: <56CC4CD0.7050308@xs4all.nl> <Pine.LNX.4.64.1602231554230.17650@axis700.grange>
- <56CC73B7.6070804@xs4all.nl> <Pine.LNX.4.64.1602231604460.17650@axis700.grange>
- <56CC8125.60205@xs4all.nl>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:48405 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758048AbcBDLfa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 06:35:30 -0500
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Subject: [PATCH v4 3/8] arm64: dts: mediatek: Add node for Mediatek Video Processor Unit
+Date: Thu, 4 Feb 2016 19:34:58 +0800
+Message-ID: <1454585703-42428-4-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1454585703-42428-3-git-send-email-tiffany.lin@mediatek.com>
+References: <1454585703-42428-1-git-send-email-tiffany.lin@mediatek.com>
+ <1454585703-42428-2-git-send-email-tiffany.lin@mediatek.com>
+ <1454585703-42428-3-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 23 Feb 2016, Hans Verkuil wrote:
+Add VPU drivers for MT8173
 
-> On 02/23/2016 04:05 PM, Guennadi Liakhovetski wrote:
-> > On Tue, 23 Feb 2016, Hans Verkuil wrote:
-> > 
-> >> On 02/23/16 15:55, Guennadi Liakhovetski wrote:
-> >>> Hi Hans,
-> >>>
-> >>> On Tue, 23 Feb 2016, Hans Verkuil wrote:
-> >>>
-> >>>> This driver is deprecated: it needs to be converted to vb2 and
-> >>>> it should become a stand-alone driver instead of using the
-> >>>> soc-camera framework.
-> >>>>
-> >>>> Unless someone is willing to take this on (unlikely with such
-> >>>> ancient hardware) it is going to be removed from the kernel
-> >>>> soon.
-> >>>>
-> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>
-> >>> I guess I won't be pulling this through my tree, right?
-> >>
-> >> Right.
-> >>
-> >>>
-> >>> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >>
-> >> Thanks!
-> >>
-> >> This one was easy.
-> > 
-> > mx2, mx3 should be easy too?
-> 
-> Sure. Are you certain these can be deprecated? I haven't heard
-> anything regarding the status of these driver. You probably know that
-> best.
-> 
-> If you give me the go ahead, then I'll prepare patches for these to
-> move them to staging.
+Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-I asked pengutronix guys, they don't care about them any more. We had 
-someone from freescale on CC in the original discussion, they didn't 
-report back either, so... Up to you really, I'd put the probability of 
-someone coming forward with a strong enough case to keep them at 4% :-) Is 
-it good enough for you to prepare that patch?
+diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+index 60a1284..5b0b38a 100644
+--- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
++++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+@@ -200,6 +200,18 @@
+ 		clock-output-names = "cpum_ck";
+ 	};
+ 
++	reserved-memory {
++		#address-cells = <2>;
++		#size-cells = <2>;
++		ranges;
++		vpu_dma_reserved: vpu_dma_mem_region {
++			compatible = "shared-dma-pool";
++			reg = <0 0xb7000000 0 0x500000>;
++			alignment = <0x1000>;
++			no-map;
++		};
++	};
++
+ 	thermal-zones {
+ 		cpu_thermal: cpu_thermal {
+ 			polling-delay-passive = <1000>; /* milliseconds */
+@@ -422,6 +434,17 @@
+ 			clocks = <&infracfg CLK_INFRA_CEC>;
+ 		};
+ 
++		vpu: vpu@10020000 {
++			compatible = "mediatek,mt8173-vpu";
++			reg = <0 0x10020000 0 0x30000>,
++			      <0 0x10050000 0 0x100>;
++			reg-names = "tcm", "cfg_reg";
++			interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&topckgen CLK_TOP_SCP_SEL>;
++			clock-names = "main";
++			memory-region = <&vpu_dma_reserved>;
++		};
++
+ 		sysirq: intpol-controller@10200620 {
+ 			compatible = "mediatek,mt8173-sysirq",
+ 				     "mediatek,mt6577-sysirq";
+-- 
+1.7.9.5
 
-Thanks
-Guennadi
-
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > Guennadi
-> > 
-> >> For the sh renesas drivers I will take one final look during the weekend.
-> >> See what works and what doesn't. I actually have hardware for it, after
-> >> all.
-> >>
-> >> Regards,
-> >>
-> >> 	Hans
-> >>
-> >>>
-> >>> Thanks
-> >>> Guennadi
-> >>>
-> >>>> ---
-> >>>>  drivers/media/platform/soc_camera/Kconfig                   | 10 ----------
-> >>>>  drivers/media/platform/soc_camera/Makefile                  |  1 -
-> >>>>  drivers/staging/media/Kconfig                               |  2 ++
-> >>>>  drivers/staging/media/Makefile                              |  1 +
-> >>>>  drivers/staging/media/omap1/Kconfig                         | 13 +++++++++++++
-> >>>>  drivers/staging/media/omap1/Makefile                        |  3 +++
-> >>>>  .../soc_camera => staging/media/omap1}/omap1_camera.c       |  0
-> >>>>  7 files changed, 19 insertions(+), 11 deletions(-)
-> >>>>  create mode 100644 drivers/staging/media/omap1/Kconfig
-> >>>>  create mode 100644 drivers/staging/media/omap1/Makefile
-> >>>>  rename drivers/{media/platform/soc_camera => staging/media/omap1}/omap1_camera.c (100%)
-> >>>>
-> >>>> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-> >>>> index f2776cd..954dd36 100644
-> >>>> --- a/drivers/media/platform/soc_camera/Kconfig
-> >>>> +++ b/drivers/media/platform/soc_camera/Kconfig
-> >>>> @@ -60,16 +60,6 @@ config VIDEO_SH_MOBILE_CEU
-> >>>>  	---help---
-> >>>>  	  This is a v4l2 driver for the SuperH Mobile CEU Interface
-> >>>>
-> >>>> -config VIDEO_OMAP1
-> >>>> -	tristate "OMAP1 Camera Interface driver"
-> >>>> -	depends on VIDEO_DEV && SOC_CAMERA
-> >>>> -	depends on ARCH_OMAP1
-> >>>> -	depends on HAS_DMA
-> >>>> -	select VIDEOBUF_DMA_CONTIG
-> >>>> -	select VIDEOBUF_DMA_SG
-> >>>> -	---help---
-> >>>> -	  This is a v4l2 driver for the TI OMAP1 camera interface
-> >>>> -
-> >>>>  config VIDEO_MX2
-> >>>>  	tristate "i.MX27 Camera Sensor Interface driver"
-> >>>>  	depends on VIDEO_DEV && SOC_CAMERA
-> >>>> diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
-> >>>> index 2826382..bdd7fc9 100644
-> >>>> --- a/drivers/media/platform/soc_camera/Makefile
-> >>>> +++ b/drivers/media/platform/soc_camera/Makefile
-> >>>> @@ -9,7 +9,6 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
-> >>>>  obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
-> >>>>  obj-$(CONFIG_VIDEO_MX2)			+= mx2_camera.o
-> >>>>  obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
-> >>>> -obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
-> >>>>  obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
-> >>>>  obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
-> >>>>  obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
-> >>>> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-> >>>> index d48a5c2..382d868 100644
-> >>>> --- a/drivers/staging/media/Kconfig
-> >>>> +++ b/drivers/staging/media/Kconfig
-> >>>> @@ -29,6 +29,8 @@ source "drivers/staging/media/mn88472/Kconfig"
-> >>>>
-> >>>>  source "drivers/staging/media/mn88473/Kconfig"
-> >>>>
-> >>>> +source "drivers/staging/media/omap1/Kconfig"
-> >>>> +
-> >>>>  source "drivers/staging/media/omap4iss/Kconfig"
-> >>>>
-> >>>>  source "drivers/staging/media/timb/Kconfig"
-> >>>> diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-> >>>> index fb94f04..89d038c 100644
-> >>>> --- a/drivers/staging/media/Makefile
-> >>>> +++ b/drivers/staging/media/Makefile
-> >>>> @@ -2,6 +2,7 @@ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
-> >>>>  obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
-> >>>>  obj-$(CONFIG_LIRC_STAGING)	+= lirc/
-> >>>>  obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
-> >>>> +obj-$(CONFIG_VIDEO_OMAP1)	+= omap1/
-> >>>>  obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
-> >>>>  obj-$(CONFIG_DVB_MN88472)       += mn88472/
-> >>>>  obj-$(CONFIG_DVB_MN88473)       += mn88473/
-> >>>> diff --git a/drivers/staging/media/omap1/Kconfig b/drivers/staging/media/omap1/Kconfig
-> >>>> new file mode 100644
-> >>>> index 0000000..6cfab3a
-> >>>> --- /dev/null
-> >>>> +++ b/drivers/staging/media/omap1/Kconfig
-> >>>> @@ -0,0 +1,13 @@
-> >>>> +config VIDEO_OMAP1
-> >>>> +	tristate "OMAP1 Camera Interface driver"
-> >>>> +	depends on VIDEO_DEV && SOC_CAMERA
-> >>>> +	depends on ARCH_OMAP1
-> >>>> +	depends on HAS_DMA
-> >>>> +	select VIDEOBUF_DMA_CONTIG
-> >>>> +	select VIDEOBUF_DMA_SG
-> >>>> +	---help---
-> >>>> +	  This is a v4l2 driver for the TI OMAP1 camera interface
-> >>>> +
-> >>>> +	  This driver is deprecated and will be removed soon unless someone
-> >>>> +	  will start the work to convert this driver to the vb2 framework
-> >>>> +	  and remove the soc-camera dependency.
-> >>>> diff --git a/drivers/staging/media/omap1/Makefile b/drivers/staging/media/omap1/Makefile
-> >>>> new file mode 100644
-> >>>> index 0000000..2885622
-> >>>> --- /dev/null
-> >>>> +++ b/drivers/staging/media/omap1/Makefile
-> >>>> @@ -0,0 +1,3 @@
-> >>>> +# Makefile for OMAP1 driver
-> >>>> +
-> >>>> +obj-$(CONFIG_VIDEO_OMAP1) += omap1_camera.o
-> >>>> diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/staging/media/omap1/omap1_camera.c
-> >>>> similarity index 100%
-> >>>> rename from drivers/media/platform/soc_camera/omap1_camera.c
-> >>>> rename to drivers/staging/media/omap1/omap1_camera.c
-> >>>> -- 
-> >>>> 2.7.0
-> >>>>
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >>> the body of a message to majordomo@vger.kernel.org
-> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>>
-> >>
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
