@@ -1,67 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44078 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751158AbcBOKsU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 05:48:20 -0500
-Subject: Re: [RFC/PATCH] [media] rcar-vin: add Renesas R-Car VIN IP core
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>, mchehab@osg.samsung.com,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com
-References: <1455468932-8573-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
- <56C19A2B.2080502@xs4all.nl>
-Cc: linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56C1ACEE.4060203@xs4all.nl>
-Date: Mon, 15 Feb 2016 11:48:14 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:54517 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755548AbcBDJgG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2016 04:36:06 -0500
+Date: Thu, 4 Feb 2016 07:35:46 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH v2 11/22] media: dvb-frontend invoke
+ enable/disable_source handlers
+Message-ID: <20160204073546.6150cd81@recife.lan>
+In-Reply-To: <a404ddaef8fbfbc291d5afa013888fbc239cde8e.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+	<a404ddaef8fbfbc291d5afa013888fbc239cde8e.1454557589.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <56C19A2B.2080502@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/15/2016 10:28 AM, Hans Verkuil wrote:
->> +static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->> +	.vidioc_querycap		= rvin_querycap,
->> +	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
->> +	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
->> +	.vidioc_s_fmt_vid_cap		= rvin_s_fmt_vid_cap,
->> +	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
->> +
->> +	/* TODO:
->> +	 * .vidioc_g_selection		= rvin_g_selection,
->> +	 * .vidioc_s_selection		= rvin_s_selection,
->> +	 */
->> +
->> +	.vidioc_enum_input		= rvin_enum_input,
->> +	.vidioc_g_input			= rvin_g_input,
->> +	.vidioc_s_input			= rvin_s_input,
+Em Wed, 03 Feb 2016 21:03:43 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+
+> Change dvb frontend to check if tuner is free when
+> device opened in RW mode. Call to enable_source
+> handler either returns with an active pipeline to
+> tuner or error if tuner is busy. Tuner is released
+> when frontend is released calling the disable_source
+> handler.
+
+This patch seems too early in the series, as I'm not seeing any patch
+providing a replacement for the removed code yet.
+
 > 
-> I'm missing g/s/querystd here!
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/dvb-core/dvb_frontend.c | 139 +++++-----------------------------
+>  drivers/media/dvb-core/dvb_frontend.h |   3 +
+>  2 files changed, 24 insertions(+), 118 deletions(-)
 > 
-> (enum_std is handled by the core)
-> 
->> +
->> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
->> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
->> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
->> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
->> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
->> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index 03cc508..2b17e8b 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -131,11 +131,6 @@ struct dvb_frontend_private {
+>  	int quality;
+>  	unsigned int check_wrapped;
+>  	enum dvbfe_search algo_status;
+> -
+> -#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+> -	struct media_pipeline pipe;
+> -	struct media_entity *pipe_start_entity;
+> -#endif
+>  };
+>  
+>  static void dvb_frontend_wakeup(struct dvb_frontend *fe);
+> @@ -596,104 +591,12 @@ static void dvb_frontend_wakeup(struct dvb_frontend *fe)
+>  	wake_up_interruptible(&fepriv->wait_queue);
+>  }
+>  
+> -/**
+> - * dvb_enable_media_tuner() - tries to enable the DVB tuner
+> - *
+> - * @fe:		struct dvb_frontend pointer
+> - *
+> - * This function ensures that just one media tuner is enabled for a given
+> - * frontend. It has two different behaviors:
+> - * - For trivial devices with just one tuner:
+> - *   it just enables the existing tuner->fe link
+> - * - For devices with more than one tuner:
+> - *   It is up to the driver to implement the logic that will enable one tuner
+> - *   and disable the other ones. However, if more than one tuner is enabled for
+> - *   the same frontend, it will print an error message and return -EINVAL.
+> - *
+> - * At return, it will return the error code returned by media_entity_setup_link,
+> - * or 0 if everything is OK, if no tuner is linked to the frontend or if the
+> - * mdev is NULL.
+> - */
+> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -static int dvb_enable_media_tuner(struct dvb_frontend *fe)
+> -{
+> -	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+> -	struct dvb_adapter *adapter = fe->dvb;
+> -	struct media_device *mdev = adapter->mdev;
+> -	struct media_entity  *entity, *source;
+> -	struct media_link *link, *found_link = NULL;
+> -	int ret, n_links = 0, active_links = 0;
+> -
+> -	fepriv->pipe_start_entity = NULL;
+> -
+> -	if (!mdev)
+> -		return 0;
+> -
+> -	entity = fepriv->dvbdev->entity;
+> -	fepriv->pipe_start_entity = entity;
+> -
+> -	list_for_each_entry(link, &entity->links, list) {
+> -		if (link->sink->entity == entity) {
+> -			found_link = link;
+> -			n_links++;
+> -			if (link->flags & MEDIA_LNK_FL_ENABLED)
+> -				active_links++;
+> -		}
+> -	}
+> -
+> -	if (!n_links || active_links == 1 || !found_link)
+> -		return 0;
+> -
+> -	/*
+> -	 * If a frontend has more than one tuner linked, it is up to the driver
+> -	 * to select with one will be the active one, as the frontend core can't
+> -	 * guess. If the driver doesn't do that, it is a bug.
+> -	 */
+> -	if (n_links > 1 && active_links != 1) {
+> -		dev_err(fe->dvb->device,
+> -			"WARNING: there are %d active links among %d tuners. This is a driver's bug!\n",
+> -			active_links, n_links);
+> -		return -EINVAL;
+> -	}
+> -
+> -	source = found_link->source->entity;
+> -	fepriv->pipe_start_entity = source;
+> -	list_for_each_entry(link, &source->links, list) {
+> -		struct media_entity *sink;
+> -		int flags = 0;
+> -
+> -		sink = link->sink->entity;
+> -		if (sink == entity)
+> -			flags = MEDIA_LNK_FL_ENABLED;
+> -
+> -		ret = media_entity_setup_link(link, flags);
+> -		if (ret) {
+> -			dev_err(fe->dvb->device,
+> -				"Couldn't change link %s->%s to %s. Error %d\n",
+> -				source->name, sink->name,
+> -				flags ? "enabled" : "disabled",
+> -				ret);
+> -			return ret;
+> -		} else
+> -			dev_dbg(fe->dvb->device,
+> -				"link %s->%s was %s\n",
+> -				source->name, sink->name,
+> -				flags ? "ENABLED" : "disabled");
+> -	}
+> -	return 0;
+> -}
+> -#endif
+> -
+>  static int dvb_frontend_thread(void *data)
+>  {
+>  	struct dvb_frontend *fe = data;
+>  	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>  	enum fe_status s;
+>  	enum dvbfe_algo algo;
+> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -	int ret;
+> -#endif
+> -
+>  	bool re_tune = false;
+>  	bool semheld = false;
+>  
+> @@ -706,20 +609,6 @@ static int dvb_frontend_thread(void *data)
+>  	fepriv->wakeup = 0;
+>  	fepriv->reinitialise = 0;
+>  
+> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -	ret = dvb_enable_media_tuner(fe);
+> -	if (ret) {
+> -		/* FIXME: return an error if it fails */
+> -		dev_info(fe->dvb->device,
+> -			"proceeding with FE task\n");
+> -	} else if (fepriv->pipe_start_entity) {
+> -		ret = media_entity_pipeline_start(fepriv->pipe_start_entity,
+> -						  &fepriv->pipe);
+> -		if (ret)
+> -			return ret;
+> -	}
+> -#endif
+> -
+>  	dvb_frontend_init(fe);
+>  
+>  	set_freezable();
+> @@ -829,12 +718,6 @@ restart:
+>  		}
+>  	}
+>  
+> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -	if (fepriv->pipe_start_entity)
+> -		media_entity_pipeline_stop(fepriv->pipe_start_entity);
+> -	fepriv->pipe_start_entity = NULL;
+> -#endif
+> -
+>  	if (dvb_powerdown_on_sleep) {
+>  		if (fe->ops.set_voltage)
+>  			fe->ops.set_voltage(fe, SEC_VOLTAGE_OFF);
+> @@ -2612,9 +2495,20 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
+>  		fepriv->tone = -1;
+>  		fepriv->voltage = -1;
+>  
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +		if (fe->dvb->mdev && fe->dvb->mdev->enable_source) {
+> +			ret = fe->dvb->mdev->enable_source(dvbdev->entity,
+> +							   &fe->pipe);
+> +			if (ret) {
+> +				dev_err(fe->dvb->device,
+> +					"Tuner is busy. Error %d\n", ret);
+> +				goto err2;
+> +			}
+> +		}
+> +#endif
+>  		ret = dvb_frontend_start (fe);
+>  		if (ret)
+> -			goto err2;
+> +			goto err3;
+>  
+>  		/*  empty event queue */
+>  		fepriv->events.eventr = fepriv->events.eventw = 0;
+> @@ -2624,7 +2518,12 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
+>  		mutex_unlock (&adapter->mfe_lock);
+>  	return ret;
+>  
+> +err3:
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +	if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
+> +		fe->dvb->mdev->disable_source(dvbdev->entity);
+>  err2:
+> +#endif
+>  	dvb_generic_release(inode, file);
+>  err1:
+>  	if (dvbdev->users == -1 && fe->ops.ts_bus_ctrl)
+> @@ -2653,6 +2552,10 @@ static int dvb_frontend_release(struct inode *inode, struct file *file)
+>  
+>  	if (dvbdev->users == -1) {
+>  		wake_up(&fepriv->wait_queue);
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +		if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
+> +			fe->dvb->mdev->disable_source(dvbdev->entity);
+> +#endif
+>  		if (fe->exit != DVB_FE_NO_EXIT)
+>  			wake_up(&dvbdev->wait_queue);
+>  		if (fe->ops.ts_bus_ctrl)
+> diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+> index 458bcce..9466906 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.h
+> +++ b/drivers/media/dvb-core/dvb_frontend.h
+> @@ -686,6 +686,9 @@ struct dvb_frontend {
+>  	int (*callback)(void *adapter_priv, int component, int cmd, int arg);
+>  	int id;
+>  	unsigned int exit;
+> +#if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+> +	struct media_pipeline pipe;
+> +#endif
 
-Please add .vidioc_prepare_buf = vb2_ioctl_prepare_buf here as well.
+Why moving this to the non-private part of the data?
 
-Regards,
-
-	Hans
-
->> +
->> +	.vidioc_streamon		= rvin_streamon,
->> +	.vidioc_streamoff		= rvin_streamoff,
->> +
->> +	.vidioc_log_status		= v4l2_ctrl_log_status,
->> +	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
->> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
->> +};
+>  };
+>  
+>  /**
