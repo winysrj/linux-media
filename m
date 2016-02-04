@@ -1,102 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45254 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1423915AbcBRGxQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 01:53:16 -0500
-Subject: Re: V4L docs and docbook
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <20160217145254.3085b333@lwn.net>
-Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-doc@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Jani Nikula <jani.nikula@intel.com>,
-	Keith Packard <keithp@keithp.com>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56C56A56.8010107@xs4all.nl>
-Date: Thu, 18 Feb 2016 07:53:10 +0100
-MIME-Version: 1.0
-In-Reply-To: <20160217145254.3085b333@lwn.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout.easymail.ca ([64.68.201.169]:43449 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965638AbcBDEEc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:32 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v2 19/22] media: au0828-core register entity_notify hook
+Date: Wed,  3 Feb 2016 21:03:51 -0700
+Message-Id: <90c306d638c26bc5abb35d39d33772270d3abb1b.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jon,
+Register entity_notify async hook to create links
+between existing bridge driver entities and a newly
+added non-bridge driver entities. For example, this
+handler creates link between V4L decoder entity and
+ALSA mixer entity.
 
-On 02/17/2016 10:52 PM, Jonathan Corbet wrote:
-> Hey, Mauro,
-> 
-> There's been a conversation going on that I keep meaning to bring you
-> into.  In short, there's a fair amount of interest in improving our
-> formatted kernel documentation, and, in particular, making it easier to
-> write; I'd like to be sure that work doesn't leave media behind.
-> 
-> Work pushed by Daniel Vetter and company has been aiming toward the
-> ability to use a lightweight markup language in the in-source kerneldoc
-> comments.  Initially Markdown was targeted; the most likely choice now
-> looks like ReStructuredText, though no decision has been made.  I've been
-> pushing for moving all of our formatted documentation to whatever markup
-> we use, leaving DocBook behind.  There are, I think, a lot of good
-> reasons to want to do that, including consistency between the template
-> files and the in-source comments, ease of authoring, and a less unwieldy
-> toolchain.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c | 43 ++++++++++++++++++++++++++++++++--
+ drivers/media/usb/au0828/au0828.h      |  1 +
+ 2 files changed, 42 insertions(+), 2 deletions(-)
 
-I looked at ReStructuredText and it looks like it will be a pain to convert
-the media DocBook code to that, and the main reason is the poor table support.
-The syntax for that looks very painful and the media DocBook is full of tables.
-
-BTW, my daily build scripts also rebuilds the media spec and it is available
-here: https://hverkuil.home.xs4all.nl/spec/media.html
-
-Also missing in ReStructuredText seems to be support for formulas (see for
-example the Colorspaces section in the spec), although to be fair standard
-DocBook doesn't do a great job at that either.
-
-Now, I hate DocBook so going to something easier would certainly be nice,
-but I think it is going to be a difficult task.
-
-Someone would have to prove that going to another formatting tool will
-produce good results for our documentation. We can certainly give a few
-representative sections of our doc to someone to convert, and if that
-looks OK, then the full conversion can be done.
-
-We have (and still are) put a lot of effort into our documentation and
-we would like to keep the same level of quality.
-
-Regards,
-
-	Hans
-
-> 
-> Various proof-of-concept patches have gone around showing that this idea
-> seems to be feasible.  The latest discussion is at:
-> 
-> 	http://thread.gmane.org/gmane.linux.documentation/35773
-> 
-> The media community has a lot of investment in DocBook documentation.
-> Converting to another markup form is relatively easy, and it's something
-> I would be willing to help with when the time comes.  But it occurred to
-> me that I should probably ask what you all think of this.
-> 
-> There is no flag day here; there's no reason to rip out the current
-> DocBook-based build infrastructure as long as somebody's using it.  But
-> it would be nice to get rid of it eventually and work toward the creation
-> of a more integrated set of kernel documentation.
-> 
-> So...is this an idea that fills you with horror, or does it maybe have
-> some appeal?  Do you have any questions?
-> 
-> One other question I had for you was: which of the allegedly supported
-> output formats are important to you?
-> 
-> Thanks,
-> 
-> jon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 92d22ed..4c90f28 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -347,14 +347,42 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 	return 0;
+ }
+ 
++void au0828_media_graph_notify(struct media_entity *new, void *notify_data)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct au0828_dev *dev = (struct au0828_dev *) notify_data;
++	int ret;
++
++	if (!dev->decoder)
++		return;
++
++	switch (new->function) {
++	case MEDIA_ENT_F_AUDIO_MIXER:
++		ret = media_create_pad_link(dev->decoder,
++					    AU8522_PAD_AUDIO_OUT,
++					    new, 0,
++					    MEDIA_LNK_FL_ENABLED);
++		if (ret)
++			dev_err(&dev->usbdev->dev,
++				"Mixer Pad Link Create Error: %d\n",
++				ret);
++		break;
++	default:
++		break;
++	}
++#endif
++}
++
+ static int au0828_media_device_register(struct au0828_dev *dev,
+ 					struct usb_device *udev)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	int ret;
+ 
+-	if (dev->media_dev &&
+-		!media_devnode_is_registered(&dev->media_dev->devnode)) {
++	if (!dev->media_dev)
++		return 0;
++
++	if (!media_devnode_is_registered(&dev->media_dev->devnode)) {
+ 
+ 		/* register media device */
+ 		ret = media_device_register(dev->media_dev);
+@@ -364,6 +392,17 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 			return ret;
+ 		}
+ 	}
++	/* register entity_notify callback */
++	dev->entity_notify.notify_data = (void *) dev;
++	dev->entity_notify.notify = (void *) au0828_media_graph_notify;
++	ret = media_device_register_entity_notify(dev->media_dev,
++						  &dev->entity_notify);
++	if (ret) {
++		dev_err(&udev->dev,
++			"Media Device register entity_notify Error: %d\n",
++			ret);
++		return ret;
++	}
+ #endif
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 8276072..54379ec 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -283,6 +283,7 @@ struct au0828_dev {
+ 	struct media_entity *decoder;
+ 	struct media_entity input_ent[AU0828_MAX_INPUT];
+ 	struct media_pad input_pad[AU0828_MAX_INPUT];
++	struct media_entity_notify entity_notify;
+ #endif
+ };
+ 
+-- 
+2.5.0
 
