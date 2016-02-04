@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48274 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751938AbcBHLNx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:13:53 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Franck Jullien <franck.jullien@gmail.com>
-Cc: linux-media@vger.kernel.org, Chris Kohn <christian.kohn@xilinx.com>
-Subject: Re: Use xilinx video drivers in PCIe device
-Date: Mon, 08 Feb 2016 13:14:10 +0200
-Message-ID: <3104943.upkGDP3not@avalon>
-In-Reply-To: <CAJfOKBymfpRHx5XXLPP1+zAJ+N_C7bzW-pJTvj8S8uGWixNw0w@mail.gmail.com>
-References: <CAJfOKByVva72g_1kJyMKGFHr2Jz+Yo6BgZPp_EENj9m4vXOHBA@mail.gmail.com> <1672061.k75230d3Eh@avalon> <CAJfOKBymfpRHx5XXLPP1+zAJ+N_C7bzW-pJTvj8S8uGWixNw0w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout.easymail.ca ([64.68.201.169]:43349 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965598AbcBDEE0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:26 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v2 16/22] media: au0828 create tuner to decoder link in disabled state
+Date: Wed,  3 Feb 2016 21:03:48 -0700
+Message-Id: <60f24188de51a03ead47457333078d23c02dc7af.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frank,
+Create tuner to demod pad link in disabled state to
+avoid disable step when tuner resource is requested
+by dvb.
 
-On Monday 08 February 2016 08:40:11 Franck Jullien wrote:
-> 2016-02-04 10:45 GMT+01:00 Laurent Pinchart:
-> > On Tuesday 02 February 2016 17:05:06 Franck Jullien wrote:
-> >> Hi,
-> >> 
-> >> I need to use a Xilinx video infrastructure on a PCIe board.
-> >> As far as I understand it, all Xilinx video drivers make use of the
-> >> device-tree for configuration.
-> > 
-> > Correct. Those drivers target the Xilinx SoC FPGAs, no standalone FPGAs
-> > connected to an external CPU.
-> > 
-> >> However, my idea is to create a MFD device to bind video drivers. That
-> >> would require Xilinx video drivers to check platform_data and continue
-> >> with device tree configuration if it is null or use platform data if
-> >> available.
-> >> 
-> >> Do you think such a change in Xilinx drivers can be considered
-> >> upstream ? Is this the way to go ?
-> > 
-> > Your use case is certainly valid, so I'm certainly open to supporting it
-> > in the drivers.
-> > 
-> > I'm wondering whether your MFD decide driver could create a DT fragment to
-> > describe the IP cores topology. That way we could reuse the existing DT
-> > support in individual drivers.
-> 
-> I'm working on such a solution (DT framgent, or more precisely
-> devitree dynamic feature).
-> I'll keep you informed whenever I get something usable.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thank you. If you're faced with design choices please feel free to pick our 
-brains at any time without waiting for a complete implementation.
-
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index e43618d..868babe 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -278,9 +278,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 		return -EINVAL;
+ 
+ 	if (tuner) {
++		/* create tuner to decoder link in deactivated state */
+ 		ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+-					    decoder, 0,
+-					    MEDIA_LNK_FL_ENABLED);
++					    decoder, 0, 0);
+ 		if (ret)
+ 			return ret;
+ 	}
 -- 
-Regards,
-
-Laurent Pinchart
+2.5.0
 
