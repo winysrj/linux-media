@@ -1,107 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:1303 "EHLO
-	mailgw02.hq.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751122AbcBOL1m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 06:27:42 -0500
-Message-ID: <1455535656.27088.6.camel@mtksdaap41>
-Subject: Re: [PATCH v4 2/8] [media] VPU: mediatek: support Mediatek VPU
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Date: Mon, 15 Feb 2016 19:27:36 +0800
-In-Reply-To: <56C1A4C6.7040601@xs4all.nl>
-References: <1454585703-42428-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-2-git-send-email-tiffany.lin@mediatek.com>
-	 <1454585703-42428-3-git-send-email-tiffany.lin@mediatek.com>
-	 <56C1A4C6.7040601@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from mailout.easymail.ca ([64.68.201.169]:42907 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933719AbcBDEEF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:05 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v2 03/22] media: Media Controller register/unregister entity_notify API
+Date: Wed,  3 Feb 2016 21:03:35 -0700
+Message-Id: <1ab0510de0a73669409523c1cee2984f4688f14c.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2016-02-15 at 11:13 +0100, Hans Verkuil wrote:
-> On 02/04/2016 12:34 PM, Tiffany Lin wrote:
-> > The VPU driver for hw video codec embedded in Mediatek's MT8173 SOCs.
-> > It is able to handle video decoding/encoding of in a range of formats.
-> > The driver provides with VPU firmware download, memory management and
-> > the communication interface between CPU and VPU.
-> > For VPU initialization, it will create virtual memory for CPU access and
-> > IOMMU address for vcodec hw device access. When a decode/encode instance
-> > opens a device node, vpu driver will download vpu firmware to the device.
-> > A decode/encode instant will decode/encode a frame using VPU
-> > interface to interrupt vpu to handle decoding/encoding jobs.
-> > 
-> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> > ---
-> >  drivers/media/platform/Kconfig           |    9 +
-> >  drivers/media/platform/Makefile          |    2 +
-> >  drivers/media/platform/mtk-vpu/Makefile  |    1 +
-> >  drivers/media/platform/mtk-vpu/mtk_vpu.c |  994 ++++++++++++++++++++++++++++++
-> >  drivers/media/platform/mtk-vpu/mtk_vpu.h |  167 +++++
-> >  5 files changed, 1173 insertions(+)
-> >  create mode 100644 drivers/media/platform/mtk-vpu/Makefile
-> >  create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu.c
-> >  create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu.h
-> > 
-> > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> > index ccbc974..ba812d6 100644
-> > --- a/drivers/media/platform/Kconfig
-> > +++ b/drivers/media/platform/Kconfig
-> > @@ -148,6 +148,15 @@ config VIDEO_CODA
-> >  	   Coda is a range of video codec IPs that supports
-> >  	   H.264, MPEG-4, and other video formats.
-> >  
-> > +config VIDEO_MEDIATEK_VPU
-> > +	tristate "Mediatek Video Processor Unit"
-> > +	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MEDIATEK
-> > +	---help---
-> > +	    This driver provides downloading VPU firmware and
-> > +	    communicating with VPU. This driver for hw video
-> > +	    codec embedded in new Mediatek's SOCs. It is able
-> > +	    to handle video decoding/encoding in a range of formats.
-> 
-> Can you be more specific in this text and mention for which Mediatek SoCs
-> this driver is for? Just like you did in the commit log.
-> 
-Got it. We will add more specific description in Kconfig in next
-version.
+Add new interfaces to register and unregister entity_notify
+hook to media device. These interfaces allow drivers to add
+hooks to take appropriate actions when new entities get added
+to a shared media device. For example, au0828 bridge driver
+registers an entity_notify hook to create links as needed
+between media graph nodes.
 
-> Also add something like this:
-> 
->           To compile this driver as a module, choose M here: the module
->           will be called mtk-vpu.
-> 
-> I always find it useful if the Kconfig text mentions the module name.
-> 
-Got it. We will fix this. Thanks for sharing experience.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/media-device.c | 61 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/media-device.h | 25 ++++++++++++++++++
+ 2 files changed, 86 insertions(+)
 
-
-best regards,
-Tiffany
-
-> Regards,
-> 
-> 	Hans
-> 
-> > +
-> >  config VIDEO_MEM2MEM_DEINTERLACE
-> >  	tristate "Deinterlace support"
-> >  	depends on VIDEO_DEV && VIDEO_V4L2 && DMA_ENGINE
-> 
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 4d1c13d..1f5d67e 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -536,6 +536,7 @@ static void media_device_release(struct media_devnode *mdev)
+ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity)
+ {
++	struct media_entity_notify *notify, *next;
+ 	unsigned int i;
+ 	int ret;
+ 
+@@ -575,6 +576,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
+ 			       &entity->pads[i].graph_obj);
+ 
++	/* invoke entity_notify callbacks */
++	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
++		(notify)->notify(entity, notify->notify_data);
++	}
++
+ 	spin_unlock(&mdev->lock);
+ 
+ 	return 0;
+@@ -608,6 +614,8 @@ static void __media_device_unregister_entity(struct media_entity *entity)
+ 	/* Remove the entity */
+ 	media_gobj_destroy(&entity->graph_obj);
+ 
++	/* invoke entity_notify callbacks to handle entity removal?? */
++
+ 	entity->graph_obj.mdev = NULL;
+ }
+ 
+@@ -640,6 +648,7 @@ void media_device_init(struct media_device *mdev)
+ 	INIT_LIST_HEAD(&mdev->interfaces);
+ 	INIT_LIST_HEAD(&mdev->pads);
+ 	INIT_LIST_HEAD(&mdev->links);
++	INIT_LIST_HEAD(&mdev->entity_notify);
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+ 	ida_init(&mdev->entity_internal_idx);
+@@ -685,11 +694,59 @@ int __must_check __media_device_register(struct media_device *mdev,
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+ 
++/**
++ * media_device_register_entity_notify - Register a media entity notify
++ * callback with a media device. When a new entity is registered, all
++ * the registered media_entity_notify callbacks are invoked.
++ * @mdev:      The media device
++ * @nptr:      The media_entity_notify
++ */
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	spin_lock(&mdev->lock);
++	list_add_tail(&nptr->list, &mdev->entity_notify);
++	spin_unlock(&mdev->lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
++
++/**
++ * __media_device_unregister_entity_notify - Unregister a media entity notify
++ * callback with a media device. When a new entity is registered, all
++ * the registered media_entity_notify callbacks are invoked.
++ * @mdev:      The media device
++ * @nptr:      The media_entity_notify
++ * Non-locking version. Should be called with mdev->lock held.
++ */
++static void __media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	list_del(&nptr->list);
++}
++
++/**
++ * media_device_unregister_entity_notify - Unregister a media entity notify
++ * callback with a media device. When a new entity is registered, all
++ * the registered media_entity_notify callbacks are invoked.
++ * @mdev:      The media device
++ * @nptr:      The media_entity_notify
++ */
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	spin_lock(&mdev->lock);
++	__media_device_unregister_entity_notify(mdev, nptr);
++	spin_unlock(&mdev->lock);
++}
++EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
++
+ void media_device_unregister(struct media_device *mdev)
+ {
+ 	struct media_entity *entity;
+ 	struct media_entity *next;
+ 	struct media_interface *intf, *tmp_intf;
++	struct media_entity_notify *notify, *nextp;
+ 
+ 	if (mdev == NULL)
+ 		return;
+@@ -706,6 +763,10 @@ void media_device_unregister(struct media_device *mdev)
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+ 		__media_device_unregister_entity(entity);
+ 
++	/* Remove all entity_notify callbacks from the media device */
++	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
++		__media_device_unregister_entity_notify(mdev, notify);
++
+ 	/* Remove all interfaces from the media device */
+ 	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
+ 				 graph_obj.list) {
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index d385589..bad8242a 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -264,6 +264,12 @@
+ struct ida;
+ struct device;
+ 
++struct media_entity_notify {
++	struct list_head list;
++	void *notify_data;
++	void (*notify)(struct media_entity *entity, void *notify_data);
++};
++
+ /**
+  * struct media_device - Media device
+  * @dev:	Parent device
+@@ -319,6 +325,9 @@ struct media_device {
+ 	struct list_head pads;
+ 	struct list_head links;
+ 
++	/* notify callback list invoked when a new entity is registered */
++	struct list_head entity_notify;
++
+ 	/* Protects the graph objects creation/removal */
+ 	spinlock_t lock;
+ 	/* Serializes graph operations. */
+@@ -497,6 +506,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+  */
+ void media_device_unregister_entity(struct media_entity *entity);
+ 
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr);
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr);
++
+ /**
+  * media_device_get_devres() -	get media device as device resource
+  *				creates if one doesn't exist
+@@ -552,6 +566,17 @@ static inline int media_device_register_entity(struct media_device *mdev,
+ static inline void media_device_unregister_entity(struct media_entity *entity)
+ {
+ }
++static inline int media_device_register_entity_notify(
++					struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	return 0;
++}
++static inline void media_device_unregister_entity_notify(
++					struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++}
+ static inline struct media_device *media_device_get_devres(struct device *dev)
+ {
+ 	return NULL;
+-- 
+2.5.0
 
