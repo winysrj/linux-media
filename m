@@ -1,44 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:45485 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750970AbcBJMwK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2016 07:52:10 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv12 04/17] input.h: add BUS_CEC type
-Date: Wed, 10 Feb 2016 13:51:38 +0100
-Message-Id: <1455108711-29850-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
-References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout.easymail.ca ([64.68.201.169]:42837 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933609AbcBDEEC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:02 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v2 01/22] uapi/media.h: Declare interface types for ALSA
+Date: Wed,  3 Feb 2016 21:03:33 -0700
+Message-Id: <6d8fe067fa0ec07e9f667dbd2e163b6b63b4a614.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Declare the interface types to be used on alsa for
+the new G_TOPOLOGY ioctl.
 
-Inputs can come in over the HDMI CEC bus, so add a new type for this.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- include/uapi/linux/input.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/media-entity.c | 16 ++++++++++++++++
+ include/uapi/linux/media.h   | 22 ++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
-index 2758687..4f8c813 100644
---- a/include/uapi/linux/input.h
-+++ b/include/uapi/linux/input.h
-@@ -246,6 +246,7 @@ struct input_mask {
- #define BUS_GSC			0x1A
- #define BUS_ATARI		0x1B
- #define BUS_SPI			0x1C
-+#define BUS_CEC			0x1D
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index f2e4360..6179543 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -65,6 +65,22 @@ static inline const char *intf_type(struct media_interface *intf)
+ 		return "v4l2-subdev";
+ 	case MEDIA_INTF_T_V4L_SWRADIO:
+ 		return "swradio";
++	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
++		return "pcm-capture";
++	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
++		return "pcm-playback";
++	case MEDIA_INTF_T_ALSA_CONTROL:
++		return "alsa-control";
++	case MEDIA_INTF_T_ALSA_COMPRESS:
++		return "compress";
++	case MEDIA_INTF_T_ALSA_RAWMIDI:
++		return "rawmidi";
++	case MEDIA_INTF_T_ALSA_HWDEP:
++		return "hwdep";
++	case MEDIA_INTF_T_ALSA_SEQUENCER:
++		return "sequencer";
++	case MEDIA_INTF_T_ALSA_TIMER:
++		return "timer";
+ 	default:
+ 		return "unknown-intf";
+ 	}
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index c9eb42a..ee020e8 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -265,6 +265,7 @@ struct media_links_enum {
  
+ #define MEDIA_INTF_T_DVB_BASE	0x00000100
+ #define MEDIA_INTF_T_V4L_BASE	0x00000200
++#define MEDIA_INTF_T_ALSA_BASE	0x00000300
+ 
+ /* Interface types */
+ 
+@@ -280,6 +281,27 @@ struct media_links_enum {
+ #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+ #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+ 
++/**
++ * DOC: Media Controller Next Generation ALSA Interface Types
++ *
++ * MEDIA_INTF_T_ALSA_PCM_CAPTURE - PCM Capture Interface (pcm-capture)
++ * MEDIA_INTF_T_ALSA_PCM_PLAYBACK -  PCM Playback Interface (pcm-playback)
++ * MEDIA_INTF_T_ALSA_CONTROL -  ALSA Control Interface (alsa-control)
++ * MEDIA_INTF_T_ALSA_COMPRESS - ALSA Compression Interface (compress)
++ * MEDIA_INTF_T_ALSA_RAWMIDI - ALSA Raw MIDI Interface (rawmidi)
++ * MEDIA_INTF_T_ALSA_HWDEP - ALSA Hardware Dependent Interface (hwdep)
++ * MEDIA_INTF_T_ALSA_SEQUENCER - ALSA Sequencer (sequencer)
++ * MEDIA_INTF_T_ALSA_TIMER - ALSA Timer (timer)
++ */
++#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
++#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
++#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
++#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
++#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
++#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
++#define MEDIA_INTF_T_ALSA_SEQUENCER     (MEDIA_INTF_T_ALSA_BASE + 6)
++#define MEDIA_INTF_T_ALSA_TIMER         (MEDIA_INTF_T_ALSA_BASE + 7)
++
  /*
-  * MT_TOOL types
+  * MC next gen API definitions
+  *
 -- 
-2.7.0
+2.5.0
 
