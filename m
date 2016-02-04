@@ -1,86 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56783 "EHLO
-	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1161427AbcBQNVh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 08:21:37 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Philipp Zabel <philipp.zabel@gmail.com>
-Subject: [PATCH] [media] coda: add support for native order firmware files with Freescale header
-Date: Wed, 17 Feb 2016 14:21:10 +0100
-Message-Id: <1455715270-23757-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-qg0-f57.google.com ([209.85.192.57]:33985 "EHLO
+	mail-qg0-f57.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757748AbcBDLVH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 06:21:07 -0500
+Received: by mail-qg0-f57.google.com with SMTP id 69so12585510qgn.1
+        for <linux-media@vger.kernel.org>; Thu, 04 Feb 2016 03:21:05 -0800 (PST)
+Date: Wed, 3 Feb 2016 22:48:39 -0800 (PST)
+From: yangkkokk@gmail.com
+To: linux-sunxi <linux-sunxi@googlegroups.com>
+Cc: patapovich@gmail.com, linux-media@vger.kernel.org
+Message-Id: <1a36e3cf-2ec4-4428-92db-1b721d7873c8@googlegroups.com>
+In-Reply-To: <CA+C5N_r6Vm8O==F4-EDakMPDnzTVKW9aifDPiEtFCW=9UBkQ8Q@mail.gmail.com>
+References: <520BC1EF.9030204@gmail.com>
+ <ed81b21e-44e4-40db-bfaa-6fbad2b5d7cb@googlegroups.com>
+ <53E9C88B.7050400@gmail.com>
+ <729740fb-4a6f-4a7e-a151-dd12d2d8d944@googlegroups.com>
+ <CA+C5N_r6Vm8O==F4-EDakMPDnzTVKW9aifDPiEtFCW=9UBkQ8Q@mail.gmail.com>
+Subject: Re: [PATCH v4 2/2] [stage/sunxi-3.4] Add support for Allwinner
+ (DVB/ATSC) Transport Stream Controller(s) (TSC)
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_Part_54_86844627.1454568519524"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Freescale distribute their VPU firmware files with a 16 byte header
-in BIT processor native order. This patch allows to detect the header
-and to reorder the firmware on the fly.
-With this patch it should be possible to use the distributed
-vpu_fw_imx{53,6q,6d}.bin files directly after renaming them to
-v4l-coda*-imx{53,6q,6dl}.bin.
+------=_Part_54_86844627.1454568519524
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
----
- drivers/media/platform/coda/coda-common.c | 35 +++++++++++++++++++++++++++++--
- 1 file changed, 33 insertions(+), 2 deletions(-)
+=E5=9C=A8 2014=E5=B9=B48=E6=9C=8812=E6=97=A5=E6=98=9F=E6=9C=9F=E4=BA=8C UTC=
++8=E4=B8=8B=E5=8D=8811:20:16=EF=BC=8Canuroop kamu=E5=86=99=E9=81=93=EF=BC=
+=9A
+> Hi Miska, Thanks for that Doc
+>=20
+>=20
+> I am still not able to visualize it fully. if this Tsc driver works well,=
+ which buffer/fifo will the data be available?=C2=A0
+> Do I need to make a separate media player app to get this data? Or any de=
+fault media player can play the video directly from /dev/tsc_dev (or /dev/v=
+ideo0) ?
+>=20
+> I am trying to use the default AW TS driver for A20.
+>=20
+>=20
+> please correct me if my understanding is wrong.
+>=20
+>=20
+> thanks
+> Anuroop=C2=A0
+>=20
+>=20
+>=20
+>=20
+>=20
+> On Tue, Aug 12, 2014 at 5:51 PM, Mihail Tommonen <patap...@gmail.com> wro=
+te:
+>=20
+>=20
+> Hi,
+>=20
+>=20
+> 2. I've suspended my TSC project until a complete A20 TSC manual is avail=
+able or I get the time for register probe rev. engineering.
+>=20
+>=20
+>=20
+> Have you seen this: http://dl.linux-sunxi.org/A10/A10%20Transport%20Strea=
+m%20Controller%20V1.00%2020120917.pdf
+>=20
+> I expect a20 tsc to be really similiart to a10.=20
+>=20
+> WBR
+>=20
+> Miska
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 2d782ce..0bc544d 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1950,6 +1950,38 @@ static int coda_register_device(struct coda_dev *dev, int i)
- 	return video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- }
- 
-+static void coda_copy_firmware(struct coda_dev *dev, const u8 * const buf,
-+			       size_t size)
-+{
-+	u32 *src = (u32 *)buf;
-+
-+	/* Check if the firmware has a 16-byte Freescale header, skip it */
-+	if (buf[0] == 'M' && buf[1] == 'X')
-+		src += 4;
-+	/*
-+	 * Check whether the firmware is in native order or pre-reordered for
-+	 * memory access. The first instruction opcode always is 0xe40e.
-+	 */
-+	if (__le16_to_cpup((__le16 *)src) == 0xe40e) {
-+		u32 *dst = dev->codebuf.vaddr;
-+		int i;
-+
-+		/* Firmware in native order, reorder while copying */
-+		if (dev->devtype->product == CODA_DX6) {
-+			for (i = 0; i < (size - 16) / 4; i++)
-+				dst[i] = (src[i] << 16) | (src[i] >> 16);
-+		} else {
-+			for (i = 0; i < (size - 16) / 4; i += 2) {
-+				dst[i] = (src[i + 1] << 16) | (src[i + 1] >> 16);
-+				dst[i + 1] = (src[i] << 16) | (src[i] >> 16);
-+			}
-+		}
-+	} else {
-+		/* Copy the already reordered firmware image */
-+		memcpy(dev->codebuf.vaddr, src, size);
-+	}
-+}
-+
- static void coda_fw_callback(const struct firmware *fw, void *context)
- {
- 	struct coda_dev *dev = context;
-@@ -1967,8 +1999,7 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 	if (ret < 0)
- 		goto put_pm;
- 
--	/* Copy the whole firmware image to the code buffer */
--	memcpy(dev->codebuf.vaddr, fw->data, fw->size);
-+	coda_copy_firmware(dev, fw->data, fw->size);
- 	release_firmware(fw);
- 
- 	ret = coda_hw_init(dev);
--- 
-2.7.0
-
+hi
+  you must have a tsdeviver like dibcom 3000 or anything,so you can done it=
+.
+------=_Part_54_86844627.1454568519524--
