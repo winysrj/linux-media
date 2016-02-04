@@ -1,38 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36353 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:45145 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754747AbcBXLHT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2016 06:07:19 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: mchehab@osg.samsung.com
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH tvtime 3/4] docs/Makefile.am: Actually install the appdata / ship it in make dist
-Date: Wed, 24 Feb 2016 12:07:06 +0100
-Message-Id: <1456312027-8484-3-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1456312027-8484-1-git-send-email-hdegoede@redhat.com>
-References: <1456312027-8484-1-git-send-email-hdegoede@redhat.com>
+	id S1751333AbcBDQOm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2016 11:14:42 -0500
+Subject: Re: PCTV 292e weirdness
+To: Russel Winder <russel@itzinteractive.com>,
+	DVB_Linux_Media <linux-media@vger.kernel.org>
+References: <1454523447.1970.15.camel@itzinteractive.com>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <56B378F0.6020301@iki.fi>
+Date: Thu, 4 Feb 2016 18:14:40 +0200
+MIME-Version: 1.0
+In-Reply-To: <1454523447.1970.15.camel@itzinteractive.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- docs/Makefile.am | 2 ++
- 1 file changed, 2 insertions(+)
+Moikka!
 
-diff --git a/docs/Makefile.am b/docs/Makefile.am
-index 8e8e937..a3ad41d 100644
---- a/docs/Makefile.am
-+++ b/docs/Makefile.am
-@@ -34,6 +34,8 @@ EXTRA_DIST = $(docs_html) tvtime.16x16.png \
- # http://www.freedesktop.org/standards/desktop-entry-spec/
- desktopdatadir = $(datadir)/applications
- dist_desktopdata_DATA = tvtime.desktop
-+appdatadir = $(datadir)/appdata
-+dist_appdata_DATA = tvtime.appdata.xml
- 
- # We use $(datadir)/icons/hicolor as our theme from the freedesktop spec
- # http://www.freedesktop.org/standards/menu-spec/
+On 02/03/2016 08:17 PM, Russel Winder wrote:
+> I am fairly sure I didn't see this before, but then I am not sure I
+> have a new kernel, libdvbv5 or dvbtools. Also people are bad witnesses.
+> However, if I plug the device in I can either scan with it or tune it,
+> but only once thereafter it goes into "won't do anything so there"
+> mode. For example:
+>
+>
+> |> dvbv5-zap -c save_channels.conf "BBC NEWS"
+> using demux '/dev/dvb/adapter0/demux0'
+> reading channels from file 'save_channels.conf'
+> service has pid type 05:  7270
+> tuning to 490000000 Hz
+> video pid 501
+>    dvb_set_pesfilter 501
+> audio pid 502
+>    dvb_set_pesfilter 502
+>         (0x00)
+> Lock   (0x1f) Signal= -51.00dBm C/N= 23.50dB
+> 582 anglides:~/Repositories/Git/Git/Me-TV (git:master)
+> |> dvbv5-zap -c save_channels.conf "BBC NEWS"
+> using demux '/dev/dvb/adapter0/demux0'
+> reading channels from file 'save_channels.conf'
+> service has pid type 05:  7270
+> tuning to 490000000 Hz
+> video pid 501
+>    dvb_set_pesfilter 501
+> audio pid 502
+>    dvb_set_pesfilter 502
+>         (0x00) C/N= 23.50dB
+>         (0x00) Signal= -67.00dBm C/N= 23.50dB
+>         (0x00) Signal= -67.00dBm C/N= 23.50dB
+>         (0x00) Signal= -109.00dBm C/N= 23.50dB
+>         (0x00) Signal= -109.00dBm C/N= 23.50dB
+>         (0x00) Signal= -109.00dBm C/N= 23.50dB
+>         (0x00) Signal= -109.00dBm C/N= 23.50dB
+>         (0x00) Signal= -109.00dBm C/N= 23.50dB
+>         (0x00) Signal= -109.00dBm C/N= 23.50dB
+>         (0x00) Signal= -109.00dBm C/N= 23.50dB
+>         (0x00) Signal= -109.00dBm C/N= 23.50dB
+>
+>
+> If I use a PCTV 282e this does not happen. As far as I can tell there
+> has been no change of firmware either, and yet…
+
+Are you using DVB-T, T2 or C? I quickly tested T and T2 with dvbv5-zap 
+and it worked (kernel media 4.5.0-rc1+).
+
+PCTV 282e seems to be dibcom based DVB-T only device, so you are using 
+DVB-T?
+
+regards
+Antti
+
 -- 
-2.7.1
-
+http://palosaari.fi/
