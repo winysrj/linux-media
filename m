@@ -1,9 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:35778 "EHLO
+Received: from mailout.easymail.ca ([64.68.201.169]:42956 "EHLO
 	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306AbcBKXlz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 18:41:55 -0500
+	with ESMTP id S932604AbcBDEEH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:07 -0500
 From: Shuah Khan <shuahkh@osg.samsung.com>
 To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
 	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
@@ -23,16 +22,16 @@ Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
 	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
 	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
 	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	geliangtang@163.com, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
 	alsa-devel@alsa-project.org
-Subject: [PATCH v3 06/22] media: Media Controller enable/disable source handler API
-Date: Thu, 11 Feb 2016 16:41:22 -0700
-Message-Id: <2d8b035ec723346dfeed5db859aba67738e049cc.1455233153.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+Subject: [PATCH v2 04/22] media: Media Controller enable/disable source handler API
+Date: Wed,  3 Feb 2016 21:03:36 -0700
+Message-Id: <ea4c54aba28ea5ec8e31fbea6f09ca527bb7984f.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -47,56 +46,31 @@ Bridge driver is expected to implement and set these handlers.
 
 Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- include/media/media-device.h | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ include/media/media-device.h | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
 diff --git a/include/media/media-device.h b/include/media/media-device.h
-index 075a482..1a04644 100644
+index bad8242a..9415f1b 100644
 --- a/include/media/media-device.h
 +++ b/include/media/media-device.h
-@@ -302,6 +302,11 @@ struct media_entity_notify {
-  * @entity_notify: List of registered entity_notify callbacks
-  * @lock:	Entities list lock
-  * @graph_mutex: Entities graph operation lock
-+ *
-+ * @source_priv: Driver Private data for enable/disable source handlers
-+ * @enable_source: Enable Source Handler function pointer
-+ * @disable_source: Disable Source Handler function pointer
-+ *
-  * @link_notify: Link state change notification callback
-  *
-  * This structure represents an abstract high-level media device. It allows easy
-@@ -313,6 +318,26 @@ struct media_entity_notify {
-  *
-  * @model is a descriptive model name exported through sysfs. It doesn't have to
-  * be unique.
-+ *
-+ * @enable_source is a handler to find source entity for the
-+ * sink entity  and activate the link between them if source
-+ * entity is free. Drivers should call this handler before
-+ * accessing the source.
-+ *
-+ * @disable_source is a handler to find source entity for the
-+ * sink entity  and deactivate the link between them. Drivers
-+ * should call this handler to release the source.
-+ *
-+ * Note: Bridge driver is expected to implement and set the
-+ * handler when media_device is registered or when
-+ * bridge driver finds the media_device during probe.
-+ * Bridge driver sets source_priv with information
-+ * necessary to run enable/disable source handlers.
-+ *
-+ * Use-case: find tuner entity connected to the decoder
-+ * entity and check if it is available, and activate the
-+ * the link between them from enable_source and deactivate
-+ * from disable_source.
-  */
- struct media_device {
- 	/* dev->driver_data points to this struct. */
-@@ -344,6 +369,11 @@ struct media_device {
+@@ -333,6 +333,25 @@ struct media_device {
  	/* Serializes graph operations. */
  	struct mutex graph_mutex;
  
++	/* Handlers to find source entity for the sink entity and
++	 * check if it is available, and activate the link using
++	 * media_entity_setup_link() interface and start pipeline
++	 * from the source to the entity.
++	 * Bridge driver is expected to implement and set the
++	 * handler when media_device is registered or when
++	 * bridge driver finds the media_device during probe.
++	 * Bridge driver sets source_priv with information
++	 * necessary to run enable/disable source handlers.
++	 *
++	 * Use-case: find tuner entity connected to the decoder
++	 * entity and check if it is available, and activate the
++	 * using media_entity_setup_link() if it is available.
++	*/
 +	void *source_priv;
 +	int (*enable_source)(struct media_entity *entity,
 +			     struct media_pipeline *pipe);
