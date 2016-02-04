@@ -1,60 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48304 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753105AbcBHLoD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:44:03 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 10/35] v4l: vsp1: Support VSP1 instances without any UDS
-Date: Mon,  8 Feb 2016 13:43:40 +0200
-Message-Id: <1454931845-23864-11-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:54397 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932313AbcBDIkP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2016 03:40:15 -0500
+Date: Thu, 4 Feb 2016 06:40:00 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH v2 02/22] media: Add ALSA Media Controller function
+ entities
+Message-ID: <20160204064000.3bdd9418@recife.lan>
+In-Reply-To: <7e6aa938056da01e75f1e9d844f621baf47ffa74.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+	<7e6aa938056da01e75f1e9d844f621baf47ffa74.1454557589.git.shuahkh@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Not all VSP1 instances include a UDS. Make the renesas,#uds DT property
-optional and accept a number of UDS equal to 0 as valid.
+Em Wed, 03 Feb 2016 21:03:34 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- Documentation/devicetree/bindings/media/renesas,vsp1.txt | 3 ++-
- drivers/media/platform/vsp1/vsp1_drv.c                   | 2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+> Add ALSA Media Controller capture, playback, and mixer
+> function entity defines.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  include/uapi/linux/media.h | 11 +++++++++++
+>  1 file changed, 11 insertions(+)
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index ee020e8..7d50480 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -98,6 +98,17 @@ struct media_device_info {
+>  #define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 42)
+>  
+>  /*
+> + * DOC: Media Controller Next Generation ALSA Function Entities
+> + *
+> + * MEDIA_ENT_F_AUDIO_CAPTURE - Audio Capture Function
+> + * MEDIA_ENT_F_AUDIO_PLAYBACK - Audio Play Back Function
+> + * MEDIA_ENT_F_AUDIO_MIXER - Audio Mixer Function
+> +*/
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-index 87fe08abf36d..674c8c30d046 100644
---- a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-+++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
-@@ -13,12 +13,13 @@ Required properties:
-   - clocks: A phandle + clock-specifier pair for the VSP1 functional clock.
- 
-   - renesas,#rpf: Number of Read Pixel Formatter (RPF) modules in the VSP1.
--  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1.
-   - renesas,#wpf: Number of Write Pixel Formatter (WPF) modules in the VSP1.
- 
- 
- Optional properties:
- 
-+  - renesas,#uds: Number of Up Down Scaler (UDS) modules in the VSP1. Defaults
-+    to 0 if not present.
-   - renesas,has-lif: Boolean, indicates that the LCD Interface (LIF) module is
-     available.
-   - renesas,has-lut: Boolean, indicates that the Look Up Table (LUT) module is
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 8a7b11153073..773c9f0b0971 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -511,7 +511,7 @@ static int vsp1_parse_dt(struct vsp1_device *vsp1)
- 		return -EINVAL;
- 	}
- 
--	if (pdata->uds_count <= 0 || pdata->uds_count > VSP1_MAX_UDS) {
-+	if (pdata->uds_count > VSP1_MAX_UDS) {
- 		dev_err(vsp1->dev, "invalid number of UDS (%u)\n",
- 			pdata->uds_count);
- 		return -EINVAL;
--- 
-2.4.10
+Wrong way to document it. Please see my comments to patch 01/22.
+
+> +#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 200)
+> +#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 201)
+> +#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 202)
+> +
+> +/*
+>   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
+>   * MEDIA_ENT_F_OLD_SUBDEV_BASE are kept to keep backward compatibility
+>   * with the legacy v1 API.The number range is out of range by purpose:
+
 
