@@ -1,51 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f180.google.com ([209.85.223.180]:34087 "EHLO
-	mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754742AbcBVUsT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 15:48:19 -0500
-Received: by mail-io0-f180.google.com with SMTP id 9so192710234iom.1
-        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2016 12:48:18 -0800 (PST)
+Received: from mailgw01.mediatek.com ([210.61.82.183]:26746 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753199AbcBDLfZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 06:35:25 -0500
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v4 4/8] dt-bindings: Add a binding for Mediatek Video Encoder
+Date: Thu, 4 Feb 2016 19:34:59 +0800
+Message-ID: <1454585703-42428-5-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1454585703-42428-4-git-send-email-tiffany.lin@mediatek.com>
+References: <1454585703-42428-1-git-send-email-tiffany.lin@mediatek.com>
+ <1454585703-42428-2-git-send-email-tiffany.lin@mediatek.com>
+ <1454585703-42428-3-git-send-email-tiffany.lin@mediatek.com>
+ <1454585703-42428-4-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <e151c4d64bba4c070ee4e5e444b6683592b628c2.1456167652.git.mchehab@osg.samsung.com>
-References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
-	<e151c4d64bba4c070ee4e5e444b6683592b628c2.1456167652.git.mchehab@osg.samsung.com>
-Date: Mon, 22 Feb 2016 15:48:18 -0500
-Message-ID: <CAOcJUbzPOHj0BOBbBNvrSRaLH8btBDsZ534z9CR6unRFEaYpAQ@mail.gmail.com>
-Subject: Re: [PATCH 5/9] [media] dib9000: read16/write16 could return an error code
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 22, 2016 at 2:09 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Both dib9000_read16_attr and dib9000_write16_attr can return an
-> error code. However, they currently return an u16. This produces the
-> following warnings on smatch:
->
->         drivers/media/dvb-frontends/dib9000.c:262 dib9000_read16_attr() warn: signedness bug returning '(-121)'
->         drivers/media/dvb-frontends/dib9000.c:321 dib9000_write16_attr() warn: signedness bug returning '(-22)'
->         drivers/media/dvb-frontends/dib9000.c:353 dib9000_write16_attr() warn: signedness bug returning '(-121)'
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/dvb-frontends/dib9000.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+Add a DT binding documentation of Video Encoder for the
+MT8173 SoC from Mediatek.
 
-While reviewing this, I was originally concerned with
-"dib9000_read16_attr" but after tracing through the functions, I see
-that the change looks OK.
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ .../devicetree/bindings/media/mediatek-vcodec.txt  |   59 ++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
 
-For the function, "dib9000_write16_attr",  we will only ever return
--EINVAL, 0, or possibly the return value of i2c_transfer.  It is OK to
-convert the function to return 'int' here instead of 'u16'.
+diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+new file mode 100644
+index 0000000..572bfdd
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+@@ -0,0 +1,59 @@
++Mediatek Video Codec
++
++Mediatek Video Codec is the video codec hw present in Mediatek SoCs which
++supports high resolution encoding functionalities.
++
++Required properties:
++- compatible : "mediatek,mt8173-vcodec-enc" for encoder
++- reg : Physical base address of the video codec registers and length of
++  memory mapped region.
++- interrupts : interrupt number to the cpu.
++- mediatek,larb : must contain the local arbiters in the current Socs.
++- clocks : list of clock specifiers, corresponding to entries in
++  the clock-names property.
++- clock-names: encoder must contain "vencpll_d2", "venc_sel", "univpll1_d2",
++  "venc_lt_sel".
++- iommus : should point to the respective IOMMU block with master port as
++  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
++  for details.
++- mediatek,vpu : the node of video processor unit
++
++Example:
++vcodec_enc: vcodec@0x18002000 {
++    compatible = "mediatek,mt8173-vcodec-enc";
++    reg = <0 0x18002000 0 0x1000>,    /*VENC_SYS*/
++          <0 0x19002000 0 0x1000>;    /*VENC_LT_SYS*/
++    interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
++           <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
++    mediatek,larb = <&larb3>,
++		    <&larb5>;
++    iommus = <&iommu M4U_PORT_VENC_RCPU>,
++             <&iommu M4U_PORT_VENC_REC>,
++             <&iommu M4U_PORT_VENC_BSDMA>,
++             <&iommu M4U_PORT_VENC_SV_COMV>,
++             <&iommu M4U_PORT_VENC_RD_COMV>,
++             <&iommu M4U_PORT_VENC_CUR_LUMA>,
++             <&iommu M4U_PORT_VENC_CUR_CHROMA>,
++             <&iommu M4U_PORT_VENC_REF_LUMA>,
++             <&iommu M4U_PORT_VENC_REF_CHROMA>,
++             <&iommu M4U_PORT_VENC_NBM_RDMA>,
++             <&iommu M4U_PORT_VENC_NBM_WDMA>,
++             <&iommu M4U_PORT_VENC_RCPU_SET2>,
++             <&iommu M4U_PORT_VENC_REC_FRM_SET2>,
++             <&iommu M4U_PORT_VENC_BSDMA_SET2>,
++             <&iommu M4U_PORT_VENC_SV_COMA_SET2>,
++             <&iommu M4U_PORT_VENC_RD_COMA_SET2>,
++             <&iommu M4U_PORT_VENC_CUR_LUMA_SET2>,
++             <&iommu M4U_PORT_VENC_CUR_CHROMA_SET2>,
++             <&iommu M4U_PORT_VENC_REF_LUMA_SET2>,
++             <&iommu M4U_PORT_VENC_REC_CHROMA_SET2>;
++    mediatek,vpu = <&vpu>;
++    clocks = <&topckgen CLK_TOP_VENCPLL_D2>,
++             <&topckgen CLK_TOP_VENC_SEL>,
++             <&topckgen CLK_TOP_UNIVPLL1_D2>,
++             <&topckgen CLK_TOP_VENC_LT_SEL>;
++    clock-names = "vencpll_d2",
++                  "venc_sel",
++                  "univpll1_d2",
++                  "venc_lt_sel";
++  };
+-- 
+1.7.9.5
 
-This change looks reasonable as well.
-
-Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
