@@ -1,125 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:55075 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754014AbcB2M1B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 07:27:01 -0500
-Subject: Re: [PATCH 5/5] media-entity.h: rename _io to _video_device and add
- real _io
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl>
- <1456746345-1431-6-git-send-email-hverkuil@xs4all.nl>
- <1896521.YBlpbiMzc0@avalon>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D43910.8080107@xs4all.nl>
-Date: Mon, 29 Feb 2016 13:26:56 +0100
-MIME-Version: 1.0
-In-Reply-To: <1896521.YBlpbiMzc0@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:39242 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756195AbcBDP6r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 10:58:47 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tina Ruchandani <ruchandani.tina@gmail.com>
+Subject: [PATCH 1/7] [media] dvb_frontend: add props argument to dtv_get_frontend()
+Date: Thu,  4 Feb 2016 13:57:26 -0200
+Message-Id: <2ea9a08d59b99fbb257bcd8c47e2cbc8be136f8c.1454600641.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1454600641.git.mchehab@osg.samsung.com>
+References: <cover.1454600641.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1454600641.git.mchehab@osg.samsung.com>
+References: <cover.1454600641.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/29/2016 01:23 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Monday 29 February 2016 12:45:45 Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> The is_media_entity_v4l2_io() function should be renamed to
->> is_media_entity_v4l2_video_device.
->>
->> Add a is_media_entity_v4l2_io to v4l2-common.h (since this is V4L2 specific)
->> that checks if the entity is a video_device AND if it does I/O.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  include/media/media-entity.h |  4 ++--
->>  include/media/v4l2-common.h  | 28 ++++++++++++++++++++++++++++
->>  2 files changed, 30 insertions(+), 2 deletions(-)
->>
->> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
->> index cbd3753..e5108f0 100644
->> --- a/include/media/media-entity.h
->> +++ b/include/media/media-entity.h
->> @@ -356,14 +356,14 @@ static inline u32 media_gobj_gen_id(enum
->> media_gobj_type type, u64 local_id) }
->>
->>  /**
->> - * is_media_entity_v4l2_io() - Check if the entity is a video_device
->> + * is_media_entity_v4l2_video_device() - Check if the entity is a
->> video_device * @entity:	pointer to entity
->>   *
->>   * Return: true if the entity is an instance of a video_device object and
->> can * safely be cast to a struct video_device using the container_of()
->> macro, or * false otherwise.
->>   */
->> -static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
->> +static inline bool is_media_entity_v4l2_video_device(struct media_entity
->> *entity) {
-> 
-> While at it, do you think this function should be moved to include/media/v4l2-
-> common.h ?
+Instead of implicitly using the DTV cache properties at
+dtv_get_frontend(), pass it as an additional argument.
 
-I don't think so. It might be useful for other subsystems to ignore v4l2
-entities, and they can use this function for that.
+This patch prepares to use a separate cache for G_PROPERTY,
+in order to avoid it to mangle with the DVB thread
+zigzag logic.
 
-> 
->>  	return entity && entity->type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
->>  }
->> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
->> index 1cc0c5b..858b165 100644
->> --- a/include/media/v4l2-common.h
->> +++ b/include/media/v4l2-common.h
->> @@ -189,4 +189,32 @@ const struct v4l2_frmsize_discrete
->> *v4l2_find_nearest_format(
->>
->>  void v4l2_get_timestamp(struct timeval *tv);
->>
->> +#ifdef CONFIG_MEDIA_CONTROLLER
->> +/**
->> + * is_media_entity_v4l2_io() - Check if the entity is a video_device and
->> can do I/O
->> + * @entity:	pointer to entity
->> + *
->> + * Return: true if the entity is an instance of a video_device object and
->> can
->> + * safely be cast to a struct video_device using the container_of() macro
->> and
->> + * can do I/O, or false otherwise.
->> + */
->> +static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
-> 
-> Does this really qualify for an inline function ?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 30 ++++++++++++++++++------------
+ 1 file changed, 18 insertions(+), 12 deletions(-)
 
-No, I was too lazy to move it to v4l2-common.c :-)
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index b1255b7c0b0e..ca6d60f9d492 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -140,9 +140,12 @@ struct dvb_frontend_private {
+ 
+ static void dvb_frontend_wakeup(struct dvb_frontend *fe);
+ static int dtv_get_frontend(struct dvb_frontend *fe,
++			    struct dtv_frontend_properties *c,
+ 			    struct dvb_frontend_parameters *p_out);
+-static int dtv_property_legacy_params_sync(struct dvb_frontend *fe,
+-					   struct dvb_frontend_parameters *p);
++static int
++dtv_property_legacy_params_sync(struct dvb_frontend *fe,
++				const struct dtv_frontend_properties *c,
++				struct dvb_frontend_parameters *p);
+ 
+ static bool has_get_frontend(struct dvb_frontend *fe)
+ {
+@@ -202,6 +205,7 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe,
+ 				   enum fe_status status)
+ {
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_fe_events *events = &fepriv->events;
+ 	struct dvb_frontend_event *e;
+ 	int wp;
+@@ -209,7 +213,7 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe,
+ 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+ 
+ 	if ((status & FE_HAS_LOCK) && has_get_frontend(fe))
+-		dtv_get_frontend(fe, &fepriv->parameters_out);
++		dtv_get_frontend(fe, c, &fepriv->parameters_out);
+ 
+ 	mutex_lock(&events->mtx);
+ 
+@@ -687,6 +691,7 @@ static int dvb_enable_media_tuner(struct dvb_frontend *fe)
+ static int dvb_frontend_thread(void *data)
+ {
+ 	struct dvb_frontend *fe = data;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	enum fe_status s;
+ 	enum dvbfe_algo algo;
+@@ -807,7 +812,7 @@ restart:
+ 					fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
+ 					fepriv->delay = HZ / 2;
+ 				}
+-				dtv_property_legacy_params_sync(fe, &fepriv->parameters_out);
++				dtv_property_legacy_params_sync(fe, c, &fepriv->parameters_out);
+ 				fe->ops.read_status(fe, &s);
+ 				if (s != fepriv->status) {
+ 					dvb_frontend_add_event(fe, s); /* update event list */
+@@ -1274,11 +1279,11 @@ static int dtv_property_cache_sync(struct dvb_frontend *fe,
+ /* Ensure the cached values are set correctly in the frontend
+  * legacy tuning structures, for the advanced tuning API.
+  */
+-static int dtv_property_legacy_params_sync(struct dvb_frontend *fe,
+-					    struct dvb_frontend_parameters *p)
++static int
++dtv_property_legacy_params_sync(struct dvb_frontend *fe,
++				const struct dtv_frontend_properties *c,
++				struct dvb_frontend_parameters *p)
+ {
+-	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-
+ 	p->frequency = c->frequency;
+ 	p->inversion = c->inversion;
+ 
+@@ -1350,6 +1355,7 @@ static int dtv_property_legacy_params_sync(struct dvb_frontend *fe,
+  * If p_out is not null, it will update the DVBv3 params pointed by it.
+  */
+ static int dtv_get_frontend(struct dvb_frontend *fe,
++			    struct dtv_frontend_properties *c,
+ 			    struct dvb_frontend_parameters *p_out)
+ {
+ 	int r;
+@@ -1359,7 +1365,7 @@ static int dtv_get_frontend(struct dvb_frontend *fe,
+ 		if (unlikely(r < 0))
+ 			return r;
+ 		if (p_out)
+-			dtv_property_legacy_params_sync(fe, p_out);
++			dtv_property_legacy_params_sync(fe, c, p_out);
+ 		return 0;
+ 	}
+ 
+@@ -2107,7 +2113,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 		 * is not idle. Otherwise, returns the cached content
+ 		 */
+ 		if (fepriv->state != FESTATE_IDLE) {
+-			err = dtv_get_frontend(fe, NULL);
++			err = dtv_get_frontend(fe, c, NULL);
+ 			if (err < 0)
+ 				goto out;
+ 		}
+@@ -2147,7 +2153,7 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
+ 	 * the user. FE_SET_FRONTEND triggers an initial frontend event
+ 	 * with status = 0, which copies output parameters to userspace.
+ 	 */
+-	dtv_property_legacy_params_sync(fe, &fepriv->parameters_out);
++	dtv_property_legacy_params_sync(fe, c, &fepriv->parameters_out);
+ 
+ 	/*
+ 	 * Be sure that the bandwidth will be filled for all
+@@ -2518,7 +2524,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 		break;
+ 
+ 	case FE_GET_FRONTEND:
+-		err = dtv_get_frontend(fe, parg);
++		err = dtv_get_frontend(fe, c, parg);
+ 		break;
+ 
+ 	case FE_SET_FRONTEND_TUNE_MODE:
+-- 
+2.5.0
 
-Regards,
-
-	Hans
-
-> 
->> +{
->> +	struct video_device *vdev;
->> +
->> +	if (!is_media_entity_v4l2_video_device(entity))
->> +		return false;
->> +	vdev = container_of(entity, struct video_device, entity);
->> +	/*
->> +	 * For now assume that is device_caps == 0, then I/O is available
->> +	 * unless it is a radio device.
->> +	 * Eventually all drivers should set vdev->device_caps and then
->> +	 * this assumption should be removed.
->> +	 */
->> +	if (vdev->device_caps == 0)
->> +		return vdev->vfl_type != VFL_TYPE_RADIO;
->> +	return vdev->device_caps & (V4L2_CAP_READWRITE | V4L2_CAP_STREAMING);
->> +}
->> +#endif
->> +
->>  #endif /* V4L2_COMMON_H_ */
-> 
 
