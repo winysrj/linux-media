@@ -1,147 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43415 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129AbcB2L7K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 06:59:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 3/5] vivid: set device_caps in video_device.
-Date: Mon, 29 Feb 2016 13:59:17 +0200
-Message-ID: <1680460.3rPA81enpL@avalon>
-In-Reply-To: <1456746345-1431-4-git-send-email-hverkuil@xs4all.nl>
-References: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl> <1456746345-1431-4-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:54610 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751127AbcBDKFP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2016 05:05:15 -0500
+Date: Thu, 4 Feb 2016 08:05:00 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH v2 14/22] media: au0828 change to use Managed Media
+ Controller API
+Message-ID: <20160204080500.5c5eaa90@recife.lan>
+In-Reply-To: <94d3a1146cea1999dea2a7a55c18f848897f4e6d.1454557589.git.shuahkh@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+	<94d3a1146cea1999dea2a7a55c18f848897f4e6d.1454557589.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Wed, 03 Feb 2016 21:03:46 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-Thank you for the patch.
-
-On Monday 29 February 2016 12:45:43 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> Change au0828 to use Managed Media Controller API to
+> share media device and coordinate creating/deleting
+> the shared media device with the snd-usb-audio driver.
+> The shared media device is created as device resource
+> of the parent usb device of the two drivers.
 > 
-> This simplifies the querycap function.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 > ---
-> #
-> #WARNING: line over 80 characters
-> ##48: FILE: include/media/v4l2-common.h:194:
-> #+ * is_media_entity_v4l2_io() - Check if the entity is a video_device and
-> can do I/O #
-> #total: 0 errors, 1 warnings, 64 lines checked
-> #
-> #Your patch has style problems, please review.
-> #
-> #NOTE: If any of the errors are false positives, please report
-> #      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-> ---
->  drivers/media/platform/vivid/vivid-core.c | 22 +++++++---------------
->  1 file changed, 7 insertions(+), 15 deletions(-)
+>  drivers/media/usb/au0828/au0828-core.c | 29 +++++++++++++++--------------
+>  1 file changed, 15 insertions(+), 14 deletions(-)
 > 
-> diff --git a/drivers/media/platform/vivid/vivid-core.c
-> b/drivers/media/platform/vivid/vivid-core.c index ec125bec..c14da84 100644
-> --- a/drivers/media/platform/vivid/vivid-core.c
-> +++ b/drivers/media/platform/vivid/vivid-core.c
-> @@ -200,27 +200,12 @@ static int vidioc_querycap(struct file *file, void 
-> *priv, struct v4l2_capability *cap)
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index df2bc3f..b8c4bdd 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -134,10 +134,10 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
 >  {
->  	struct vivid_dev *dev = video_drvdata(file);
-> -	struct video_device *vdev = video_devdata(file);
-> 
->  	strcpy(cap->driver, "vivid");
->  	strcpy(cap->card, "vivid");
->  	snprintf(cap->bus_info, sizeof(cap->bus_info),
->  			"platform:%s", dev->v4l2_dev.name);
-> 
-> -	if (vdev->vfl_type == VFL_TYPE_GRABBER && vdev->vfl_dir == VFL_DIR_RX)
-> -		cap->device_caps = dev->vid_cap_caps;
-> -	if (vdev->vfl_type == VFL_TYPE_GRABBER && vdev->vfl_dir == VFL_DIR_TX)
-> -		cap->device_caps = dev->vid_out_caps;
-> -	else if (vdev->vfl_type == VFL_TYPE_VBI && vdev->vfl_dir == VFL_DIR_RX)
-> -		cap->device_caps = dev->vbi_cap_caps;
-> -	else if (vdev->vfl_type == VFL_TYPE_VBI && vdev->vfl_dir == VFL_DIR_TX)
-> -		cap->device_caps = dev->vbi_out_caps;
-> -	else if (vdev->vfl_type == VFL_TYPE_SDR)
-> -		cap->device_caps = dev->sdr_cap_caps;
-> -	else if (vdev->vfl_type == VFL_TYPE_RADIO && vdev->vfl_dir == VFL_DIR_RX)
-> -		cap->device_caps = dev->radio_rx_caps;
-> -	else if (vdev->vfl_type == VFL_TYPE_RADIO && vdev->vfl_dir == VFL_DIR_TX)
-> -		cap->device_caps = dev->radio_tx_caps;
->  	cap->capabilities = dev->vid_cap_caps | dev->vid_out_caps |
->  		dev->vbi_cap_caps | dev->vbi_out_caps |
->  		dev->radio_rx_caps | dev->radio_tx_caps |
-> @@ -1135,6 +1120,7 @@ static int vivid_create_instance(struct
-> platform_device *pdev, int inst) strlcpy(vfd->name, "vivid-vid-cap",
-> sizeof(vfd->name));
->  		vfd->fops = &vivid_fops;
->  		vfd->ioctl_ops = &vivid_ioctl_ops;
-> +		vfd->device_caps = dev->vid_cap_caps;
->  		vfd->release = video_device_release_empty;
->  		vfd->v4l2_dev = &dev->v4l2_dev;
->  		vfd->queue = &dev->vb_vid_cap_q;
-> @@ -1160,6 +1146,7 @@ static int vivid_create_instance(struct
-> platform_device *pdev, int inst) vfd->vfl_dir = VFL_DIR_TX;
->  		vfd->fops = &vivid_fops;
->  		vfd->ioctl_ops = &vivid_ioctl_ops;
-> +		vfd->device_caps = dev->vid_out_caps;
->  		vfd->release = video_device_release_empty;
->  		vfd->v4l2_dev = &dev->v4l2_dev;
->  		vfd->queue = &dev->vb_vid_out_q;
-> @@ -1184,6 +1171,7 @@ static int vivid_create_instance(struct
-> platform_device *pdev, int inst) strlcpy(vfd->name, "vivid-vbi-cap",
-> sizeof(vfd->name));
->  		vfd->fops = &vivid_fops;
->  		vfd->ioctl_ops = &vivid_ioctl_ops;
-> +		vfd->device_caps = dev->vbi_cap_caps;
->  		vfd->release = video_device_release_empty;
->  		vfd->v4l2_dev = &dev->v4l2_dev;
->  		vfd->queue = &dev->vb_vbi_cap_q;
-> @@ -1207,6 +1195,7 @@ static int vivid_create_instance(struct
-> platform_device *pdev, int inst) vfd->vfl_dir = VFL_DIR_TX;
->  		vfd->fops = &vivid_fops;
->  		vfd->ioctl_ops = &vivid_ioctl_ops;
-> +		vfd->device_caps = dev->vbi_out_caps;
->  		vfd->release = video_device_release_empty;
->  		vfd->v4l2_dev = &dev->v4l2_dev;
->  		vfd->queue = &dev->vb_vbi_out_q;
-> @@ -1229,6 +1218,7 @@ static int vivid_create_instance(struct
-> platform_device *pdev, int inst) strlcpy(vfd->name, "vivid-sdr-cap",
-> sizeof(vfd->name));
->  		vfd->fops = &vivid_fops;
->  		vfd->ioctl_ops = &vivid_ioctl_ops;
-> +		vfd->device_caps = dev->sdr_cap_caps;
->  		vfd->release = video_device_release_empty;
->  		vfd->v4l2_dev = &dev->v4l2_dev;
->  		vfd->queue = &dev->vb_sdr_cap_q;
-> @@ -1247,6 +1237,7 @@ static int vivid_create_instance(struct
-> platform_device *pdev, int inst) strlcpy(vfd->name, "vivid-rad-rx",
-> sizeof(vfd->name));
->  		vfd->fops = &vivid_radio_fops;
->  		vfd->ioctl_ops = &vivid_ioctl_ops;
-> +		vfd->device_caps = dev->radio_rx_caps;
->  		vfd->release = video_device_release_empty;
->  		vfd->v4l2_dev = &dev->v4l2_dev;
->  		vfd->lock = &dev->mutex;
-> @@ -1265,6 +1256,7 @@ static int vivid_create_instance(struct
-> platform_device *pdev, int inst) vfd->vfl_dir = VFL_DIR_TX;
->  		vfd->fops = &vivid_radio_fops;
->  		vfd->ioctl_ops = &vivid_ioctl_ops;
-> +		vfd->device_caps = dev->radio_tx_caps;
->  		vfd->release = video_device_release_empty;
->  		vfd->v4l2_dev = &dev->v4l2_dev;
->  		vfd->lock = &dev->mutex;
+>  
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+> -	if (dev->media_dev) {
+> +	if (dev->media_dev &&
+> +		media_devnode_is_registered(&dev->media_dev->devnode)) {
+>  		media_device_unregister(dev->media_dev);
+>  		media_device_cleanup(dev->media_dev);
+> -		kfree(dev->media_dev);
+>  		dev->media_dev = NULL;
+>  	}
+>  #endif
+> @@ -223,23 +223,24 @@ static int au0828_media_device_init(struct au0828_dev *dev,
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	struct media_device *mdev;
+>  
+> -	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+> +	mdev = media_device_get_devres(&udev->dev);
+>  	if (!mdev)
+>  		return -ENOMEM;
+>  
+> -	mdev->dev = &udev->dev;
+> +	if (!media_devnode_is_registered(&mdev->devnode)) {
+> +		mdev->dev = &udev->dev;
+>  
+> -	if (!dev->board.name)
+> -		strlcpy(mdev->model, "unknown au0828", sizeof(mdev->model));
+> -	else
+> -		strlcpy(mdev->model, dev->board.name, sizeof(mdev->model));
+> -	if (udev->serial)
+> -		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
+> -	strcpy(mdev->bus_info, udev->devpath);
+> -	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+> -	mdev->driver_version = LINUX_VERSION_CODE;
+> +		if (udev->product)
+> +			strlcpy(mdev->model, udev->product,
+> +				sizeof(mdev->model));
 
--- 
-Regards,
+Why did you change that? On some boards, udev->product doesn't reflect
+the brand name, but have just some random generic data.
 
-Laurent Pinchart
+Also, as the other logs associated with the device uses dev->board.name,
+we want the media controller to use the same name here. Ok, if this
+is null, we could use udev->product as a replacement.
 
+> +		if (udev->serial)
+> +			strlcpy(mdev->serial, udev->serial,
+> +				sizeof(mdev->serial));
+> +		strcpy(mdev->bus_info, udev->devpath);
+> +		mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
+>  
+> -	media_device_init(mdev);
+> +		media_device_init(mdev);
+> +	}
+>  
+>  	dev->media_dev = mdev;
+>  #endif
