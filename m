@@ -1,80 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f182.google.com ([209.85.223.182]:35859 "EHLO
-	mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755538AbcBXIkA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2016 03:40:00 -0500
-MIME-Version: 1.0
-In-Reply-To: <56CD59C3.2030401@xs4all.nl>
-References: <1456279679-11342-1-git-send-email-horms+renesas@verge.net.au>
-	<2212155.BHpL65I02t@avalon>
-	<20160224061721.GK5435@verge.net.au>
-	<56CD59C3.2030401@xs4all.nl>
-Date: Wed, 24 Feb 2016 09:39:59 +0100
-Message-ID: <CAMuHMdVeDOe7hQ0LRvdiiW1kKUCF44yOZg4E-FGjDfKenESFfQ@mail.gmail.com>
-Subject: Re: [PATCH] v4l2: remove MIPI CSI-2 driver for SH-Mobile platforms
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Simon Horman <horms@verge.net.au>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
+Received: from bombadil.infradead.org ([198.137.202.9]:39256 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754093AbcBDP6s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 10:58:48 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 5/7] [media] mb86a20s: get rid of dummy get_frontend()
+Date: Thu,  4 Feb 2016 13:57:30 -0200
+Message-Id: <ff54e73fc89550573fc37c06a9e2f378fb1d3d1d.1454600641.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1454600641.git.mchehab@osg.samsung.com>
+References: <cover.1454600641.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1454600641.git.mchehab@osg.samsung.com>
+References: <cover.1454600641.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This is not needed, as the core handles well if get_frontend()
+is not present.
 
-On Wed, Feb 24, 2016 at 8:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 02/24/2016 07:17 AM, Simon Horman wrote:
->> On Wed, Feb 24, 2016 at 07:59:57AM +0200, Laurent Pinchart wrote:
->>> Hi Simon,
->>>
->>> Thank you for the patch.
->>>
->>> On Wednesday 24 February 2016 11:07:59 Simon Horman wrote:
->>>> This driver does not appear to have ever been used by any SoC's defconfig
->>>> and does not appear to support DT. In sort it seems unused an unlikely
->>>> to be used.
->>>>
->>>> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
->>>> ---
->>>>  drivers/media/platform/soc_camera/Kconfig          |   7 -
->>>>  drivers/media/platform/soc_camera/Makefile         |   1 -
->>>>  drivers/media/platform/soc_camera/sh_mobile_csi2.c | 400 ------------------
->>>
->>> Shouldn't you also remove include/media/drv-intf/sh_mobile_csi2.h ? You would
->>> then need to update drivers/media/platform/soc_camera/sh_mobile_ceu.c
->>> accordingly, or remove it altogether.
->>
->> Thanks.
->>
->> sh_mobile_ceu appears to be used by several SH boards so I'd rather
->> not remove it, at least not for this reason.
->>
->> So I'd prefer to look into updating sh_mobile_ceu.c and removing
->> sh_mobile_csi2.h.
->
-> Last time I checked the ceu driver failed to work (missing clock). I'll test
-> again this weekend with the latest kernel. See what the status is of this driver.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 11 -----------
+ 1 file changed, 11 deletions(-)
 
-I don't know when you tested last time, but as Simon postponed "[PATCH 3/4]
-drivers: sh: Stop using the legacy clock domain on ARM"
-(http://www.spinics.net/lists/arm-kernel/msg483561.html), clocks may still be
-broken.
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index cfc005ee11d8..fb88dddaf3a3 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -2028,16 +2028,6 @@ static int mb86a20s_read_signal_strength_from_cache(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-static int mb86a20s_get_frontend_dummy(struct dvb_frontend *fe)
+-{
+-	/*
+-	 * get_frontend is now handled together with other stats
+-	 * retrival, when read_status() is called, as some statistics
+-	 * will depend on the layers detection.
+-	 */
+-	return 0;
+-};
+-
+ static int mb86a20s_tune(struct dvb_frontend *fe,
+ 			bool re_tune,
+ 			unsigned int mode_flags,
+@@ -2136,7 +2126,6 @@ static struct dvb_frontend_ops mb86a20s_ops = {
+ 
+ 	.init = mb86a20s_initfe,
+ 	.set_frontend = mb86a20s_set_frontend,
+-	.get_frontend = mb86a20s_get_frontend_dummy,
+ 	.read_status = mb86a20s_read_status_and_stats,
+ 	.read_signal_strength = mb86a20s_read_signal_strength_from_cache,
+ 	.tune = mb86a20s_tune,
+-- 
+2.5.0
 
-I'll send a simple fix for the regression only.
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
