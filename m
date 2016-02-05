@@ -1,55 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f172.google.com ([209.85.213.172]:36090 "EHLO
-	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753925AbcBHHkM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 02:40:12 -0500
-Received: by mail-ig0-f172.google.com with SMTP id xg9so50138160igb.1
-        for <linux-media@vger.kernel.org>; Sun, 07 Feb 2016 23:40:12 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1672061.k75230d3Eh@avalon>
-References: <CAJfOKByVva72g_1kJyMKGFHr2Jz+Yo6BgZPp_EENj9m4vXOHBA@mail.gmail.com>
-	<1672061.k75230d3Eh@avalon>
-Date: Mon, 8 Feb 2016 08:40:11 +0100
-Message-ID: <CAJfOKBymfpRHx5XXLPP1+zAJ+N_C7bzW-pJTvj8S8uGWixNw0w@mail.gmail.com>
-Subject: Re: Use xilinx video drivers in PCIe device
-From: Franck Jullien <franck.jullien@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Chris Kohn <christian.kohn@xilinx.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55973 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753723AbcBEP2R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Feb 2016 10:28:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv11 01/17] dts: exynos4*: add HDMI CEC pin definition to pinctrl
+Date: Fri,  5 Feb 2016 16:27:44 +0100
+Message-Id: <1454686080-39018-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
+References: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-02-04 10:45 GMT+01:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Frank,
->
-> On Tuesday 02 February 2016 17:05:06 Franck Jullien wrote:
->> Hi,
->>
->> I need to use a Xilinx video infrastructure on a PCIe board.
->> As far as I understand it, all Xilinx video drivers make use of the
->> device-tree for configuration.
->
-> Correct. Those drivers target the Xilinx SoC FPGAs, no standalone FPGAs
-> connected to an external CPU.
->
->> However, my idea is to create a MFD device to bind video drivers. That
->> would require Xilinx video drivers to check platform_data and continue
->> with device tree configuration if it is null or use platform data if
->> available.
->>
->> Do you think such a change in Xilinx drivers can be considered
->> upstream ? Is this the way to go ?
->
-> Your use case is certainly valid, so I'm certainly open to supporting it in
-> the drivers.
->
-> I'm wondering whether your MFD decide driver could create a DT fragment to
-> describe the IP cores topology. That way we could reuse the existing DT
-> support in individual drivers.
->
+From: Kamil Debski <kamil@wypas.org>
 
-I'm working on such a solution (DT framgent, or more precisely
-devitree dynamic feature).
-I'll keep you informed whenever I get something usable.
+Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
+Exynos4x12 SoCs. These are required by the HDMI CEC device.
 
-Franck.
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+---
+ arch/arm/boot/dts/exynos4210-pinctrl.dtsi | 7 +++++++
+ arch/arm/boot/dts/exynos4x12-pinctrl.dtsi | 7 +++++++
+ 2 files changed, 14 insertions(+)
+
+diff --git a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
+index a7c2128..9331c62 100644
+--- a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
++++ b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
+@@ -820,6 +820,13 @@
+ 			samsung,pin-pud = <1>;
+ 			samsung,pin-drv = <0>;
+ 		};
++
++		hdmi_cec: hdmi-cec {
++			samsung,pins = "gpx3-6";
++			samsung,pin-function = <3>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <0>;
++		};
+ 	};
+ 
+ 	pinctrl@03860000 {
+diff --git a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
+index bac25c6..856b292 100644
+--- a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
++++ b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
+@@ -885,6 +885,13 @@
+ 			samsung,pin-pud = <0>;
+ 			samsung,pin-drv = <0>;
+ 		};
++
++		hdmi_cec: hdmi-cec {
++			samsung,pins = "gpx3-6";
++			samsung,pin-function = <3>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <0>;
++		};
+ 	};
+ 
+ 	pinctrl_2: pinctrl@03860000 {
+-- 
+2.7.0
+
