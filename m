@@ -1,134 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:60717 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753150AbcBWQjQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 11:39:16 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/2] soc_camera/mx3_camera.c: move to staging in
- preparation,for removal
-Message-ID: <56CC8B2E.1050809@xs4all.nl>
-Date: Tue, 23 Feb 2016 17:39:10 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:44118 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752590AbcBEJwb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Feb 2016 04:52:31 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 2/2] [media] em2xx: use v4l2_mc_create_media_graph()
+Date: Fri,  5 Feb 2016 07:51:15 -0200
+Message-Id: <59857dfeea3d7b2590c05f58cf273745d99d1415.1454665849.git.mchehab@osg.samsung.com>
+In-Reply-To: <6e3da35783650a6e555d20524421f4549d919821.1454665849.git.mchehab@osg.samsung.com>
+References: <6e3da35783650a6e555d20524421f4549d919821.1454665849.git.mchehab@osg.samsung.com>
+In-Reply-To: <6e3da35783650a6e555d20524421f4549d919821.1454665849.git.mchehab@osg.samsung.com>
+References: <6e3da35783650a6e555d20524421f4549d919821.1454665849.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is deprecated: it should become a stand-alone driver
-instead of using the soc-camera framework.
+Now that the core has a function to create the media graph,
+we can get rid of the specialized code at em28xx.
 
-Unless someone is willing to take this on (unlikely with such
-ancient hardware) it is going to be removed from the kernel
-soon.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/soc_camera/Kconfig                 |  9 ---------
- drivers/media/platform/soc_camera/Makefile                |  1 -
- drivers/staging/media/Kconfig                             |  2 ++
- drivers/staging/media/Makefile                            |  1 +
- drivers/staging/media/mx3/Kconfig                         | 15 +++++++++++++++
- drivers/staging/media/mx3/Makefile                        |  3 +++
- .../soc_camera => staging/media/mx3}/mx3_camera.c         |  0
- 7 files changed, 21 insertions(+), 10 deletions(-)
- create mode 100644 drivers/staging/media/mx3/Kconfig
- create mode 100644 drivers/staging/media/mx3/Makefile
- rename drivers/{media/platform/soc_camera => staging/media/mx3}/mx3_camera.c (100%)
+ drivers/media/usb/em28xx/em28xx-video.c | 131 +-------------------------------
+ 1 file changed, 1 insertion(+), 130 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index 449ab78..292b6e3 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -17,15 +17,6 @@ config SOC_CAMERA_PLATFORM
- 	help
- 	  This is a generic SoC camera platform driver, useful for testing
-
--config VIDEO_MX3
--	tristate "i.MX3x Camera Sensor Interface driver"
--	depends on VIDEO_DEV && MX3_IPU && SOC_CAMERA
--	depends on MX3_IPU || COMPILE_TEST
--	depends on HAS_DMA
--	select VIDEOBUF2_DMA_CONTIG
--	---help---
--	  This is a v4l2 driver for the i.MX3x Camera Sensor Interface
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 16a2d4039330..e7fd0bac4a08 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -883,135 +883,6 @@ static void em28xx_v4l2_media_release(struct em28xx *dev)
+  * Media Controller helper functions
+  */
+ 
+-static int em28xx_v4l2_create_media_graph(struct em28xx *dev)
+-{
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+-	struct media_device *mdev = dev->media_dev;
+-	struct media_entity *entity;
+-	struct media_entity *if_vid = NULL, *if_aud = NULL;
+-	struct media_entity *tuner = NULL, *decoder = NULL;
+-	int i, ret;
 -
- config VIDEO_PXA27x
- 	tristate "PXA27x Quick Capture Interface driver"
- 	depends on VIDEO_DEV && PXA27x && SOC_CAMERA
-diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
-index dad56b9..7ee71ae 100644
---- a/drivers/media/platform/soc_camera/Makefile
-+++ b/drivers/media/platform/soc_camera/Makefile
-@@ -7,7 +7,6 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
-
- # soc-camera host drivers have to be linked after camera drivers
- obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
--obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
- obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
- obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
- obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
-diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-index 11d62b2..be27108 100644
---- a/drivers/staging/media/Kconfig
-+++ b/drivers/staging/media/Kconfig
-@@ -31,6 +31,8 @@ source "drivers/staging/media/mn88473/Kconfig"
-
- source "drivers/staging/media/mx2/Kconfig"
-
-+source "drivers/staging/media/mx3/Kconfig"
-+
- source "drivers/staging/media/omap1/Kconfig"
-
- source "drivers/staging/media/omap4iss/Kconfig"
-diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-index d3ff2d0..4861163 100644
---- a/drivers/staging/media/Makefile
-+++ b/drivers/staging/media/Makefile
-@@ -3,6 +3,7 @@ obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
- obj-$(CONFIG_LIRC_STAGING)	+= lirc/
- obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
- obj-$(CONFIG_VIDEO_MX2)		+= mx2/
-+obj-$(CONFIG_VIDEO_MX3)		+= mx3/
- obj-$(CONFIG_VIDEO_OMAP1)	+= omap1/
- obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
- obj-$(CONFIG_DVB_MN88472)       += mn88472/
-diff --git a/drivers/staging/media/mx3/Kconfig b/drivers/staging/media/mx3/Kconfig
-new file mode 100644
-index 0000000..595d5fe
---- /dev/null
-+++ b/drivers/staging/media/mx3/Kconfig
-@@ -0,0 +1,15 @@
-+config VIDEO_MX3
-+	tristate "i.MX3x Camera Sensor Interface driver"
-+	depends on VIDEO_DEV && MX3_IPU && SOC_CAMERA
-+	depends on MX3_IPU || COMPILE_TEST
-+	depends on HAS_DMA
-+	select VIDEOBUF2_DMA_CONTIG
-+	---help---
-+	  This is a v4l2 driver for the i.MX3x Camera Sensor Interface
-+
-+	  This driver is deprecated: it should become a stand-alone driver
-+	  instead of using the soc-camera framework.
-+
-+	  Unless someone is willing to take this on (unlikely with such
-+	  ancient hardware) it is going to be removed from the kernel
-+	  soon.
-diff --git a/drivers/staging/media/mx3/Makefile b/drivers/staging/media/mx3/Makefile
-new file mode 100644
-index 0000000..6d91dcd
---- /dev/null
-+++ b/drivers/staging/media/mx3/Makefile
-@@ -0,0 +1,3 @@
-+# Makefile for i.MX3x Camera Sensor driver
-+
-+obj-$(CONFIG_VIDEO_MX3) += mx3_camera.o
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/staging/media/mx3/mx3_camera.c
-similarity index 100%
-rename from drivers/media/platform/soc_camera/mx3_camera.c
-rename to drivers/staging/media/mx3/mx3_camera.c
+-	if (!mdev)
+-		return 0;
+-
+-	/* Webcams are really simple */
+-	if (dev->board.is_webcam) {
+-		media_device_for_each_entity(entity, mdev) {
+-			if (entity->function != MEDIA_ENT_F_CAM_SENSOR)
+-				continue;
+-			ret = media_create_pad_link(entity, 0,
+-						    &v4l2->vdev.entity, 0,
+-						    MEDIA_LNK_FL_ENABLED);
+-			if (ret)
+-				return ret;
+-		}
+-		return 0;
+-	}
+-
+-	/* Non-webcams have analog TV decoder and other complexities */
+-
+-	media_device_for_each_entity(entity, mdev) {
+-		switch (entity->function) {
+-		case MEDIA_ENT_F_IF_VID_DECODER:
+-			if_vid = entity;
+-			break;
+-		case MEDIA_ENT_F_IF_AUD_DECODER:
+-			if_aud = entity;
+-			break;
+-		case MEDIA_ENT_F_TUNER:
+-			tuner = entity;
+-			break;
+-		case MEDIA_ENT_F_ATV_DECODER:
+-			decoder = entity;
+-			break;
+-		}
+-	}
+-
+-	/* Analog setup, using tuner as a link */
+-
+-	/* Something bad happened! */
+-	if (!decoder)
+-		return -EINVAL;
+-
+-	if (tuner) {
+-		if (if_vid) {
+-			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+-						    if_vid,
+-						    IF_VID_DEC_PAD_IF_INPUT,
+-						    MEDIA_LNK_FL_ENABLED);
+-			if (ret)
+-				return ret;
+-			ret = media_create_pad_link(if_vid, IF_VID_DEC_PAD_OUT,
+-						decoder, DEMOD_PAD_IF_INPUT,
+-						MEDIA_LNK_FL_ENABLED);
+-			if (ret)
+-				return ret;
+-		} else {
+-			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+-						decoder, DEMOD_PAD_IF_INPUT,
+-						MEDIA_LNK_FL_ENABLED);
+-			if (ret)
+-				return ret;
+-		}
+-
+-		if (if_aud) {
+-			ret = media_create_pad_link(tuner, TUNER_PAD_AUD_OUT,
+-						    if_aud,
+-						    IF_AUD_DEC_PAD_IF_INPUT,
+-						    MEDIA_LNK_FL_ENABLED);
+-			if (ret)
+-				return ret;
+-		} else {
+-			if_aud = tuner;
+-		}
+-
+-	}
+-	ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
+-				    &v4l2->vdev.entity, 0,
+-				    MEDIA_LNK_FL_ENABLED);
+-	if (ret)
+-		return ret;
+-
+-	if (em28xx_vbi_supported(dev)) {
+-		ret = media_create_pad_link(decoder, DEMOD_PAD_VBI_OUT,
+-					    &v4l2->vbi_dev.entity, 0,
+-					    MEDIA_LNK_FL_ENABLED);
+-		if (ret)
+-			return ret;
+-	}
+-
+-	for (i = 0; i < MAX_EM28XX_INPUT; i++) {
+-		struct media_entity *ent = &dev->input_ent[i];
+-
+-		if (!INPUT(i)->type)
+-			break;
+-
+-		switch (INPUT(i)->type) {
+-		case EM28XX_VMUX_COMPOSITE:
+-		case EM28XX_VMUX_SVIDEO:
+-			ret = media_create_pad_link(ent, 0, decoder,
+-						    DEMOD_PAD_IF_INPUT, 0);
+-			if (ret)
+-				return ret;
+-			break;
+-		default: /* EM28XX_VMUX_TELEVISION or EM28XX_RADIO */
+-			if (!tuner)
+-				break;
+-
+-			ret = media_create_pad_link(ent, 0, tuner,
+-						    TUNER_PAD_RF_INPUT,
+-						    MEDIA_LNK_FL_ENABLED);
+-			if (ret)
+-				return ret;
+-			break;
+-		}
+-	}
+-#endif
+-	return 0;
+-}
+-
+ static int em28xx_enable_analog_tuner(struct em28xx *dev)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER
+@@ -2842,7 +2713,7 @@ static int em28xx_v4l2_init(struct em28xx *dev)
+ 	/* Init entities at the Media Controller */
+ 	em28xx_v4l2_create_entities(dev);
+ 
+-	ret = em28xx_v4l2_create_media_graph(dev);
++	ret = v4l2_mc_create_media_graph(dev->media_dev);
+ 	if (ret) {
+ 		em28xx_errdev("failed to create media graph\n");
+ 		em28xx_v4l2_media_release(dev);
 -- 
-2.7.0
+2.5.0
 
