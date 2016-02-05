@@ -1,392 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48304 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753229AbcBHLoQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:44:16 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 26/35] v4l: vsp1: Move format info to vsp1_pipe.c
-Date: Mon,  8 Feb 2016 13:43:56 +0200
-Message-Id: <1454931845-23864-27-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:55284 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753163AbcBETK3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Feb 2016 14:10:29 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 4/8] [media] tvp5150: store dev id and rom version
+Date: Fri,  5 Feb 2016 16:09:54 -0300
+Message-Id: <1454699398-8581-5-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1454699398-8581-1-git-send-email-javier@osg.samsung.com>
+References: <1454699398-8581-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Format information and the related helper function are not specific to
-the V4L2 API, move them from vsp1_video.c to vsp1_pipe.c.
+Not all tvp5150 variants support the same, for example some have an
+internal signal generator that can output a black screen.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+So the device id and rom version have to be stored in the driver's
+state to know what variant is a given device.
+
+While being there, remove some redundant comments about the device
+version since there is already calls to v4l2_info() with that info.
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_pipe.c  | 130 +++++++++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_pipe.h  |  29 +++++++
- drivers/media/platform/vsp1/vsp1_video.c | 127 ------------------------------
- drivers/media/platform/vsp1/vsp1_video.h |  27 -------
- 4 files changed, 159 insertions(+), 154 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 584a9d408144..b850aeb885bf 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -26,6 +26,136 @@
- #include "vsp1_uds.h"
+ drivers/media/i2c/tvp5150.c | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index c7eeb59a999b..093ff80f944c 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -49,6 +49,9 @@ struct tvp5150 {
+ 	u32 output;
+ 	int enable;
  
- /* -----------------------------------------------------------------------------
-+ * Helper Functions
-+ */
++	u16 dev_id;
++	u16 rom_ver;
 +
-+static const struct vsp1_format_info vsp1_video_formats[] = {
-+	{ V4L2_PIX_FMT_RGB332, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_RGB_332, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 8, 0, 0 }, false, false, 1, 1, false },
-+	{ V4L2_PIX_FMT_ARGB444, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_ARGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS,
-+	  1, { 16, 0, 0 }, false, false, 1, 1, true },
-+	{ V4L2_PIX_FMT_XRGB444, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_XRGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS,
-+	  1, { 16, 0, 0 }, false, false, 1, 1, true },
-+	{ V4L2_PIX_FMT_ARGB555, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_ARGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS,
-+	  1, { 16, 0, 0 }, false, false, 1, 1, true },
-+	{ V4L2_PIX_FMT_XRGB555, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_XRGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS,
-+	  1, { 16, 0, 0 }, false, false, 1, 1, false },
-+	{ V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_RGB_565, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS,
-+	  1, { 16, 0, 0 }, false, false, 1, 1, false },
-+	{ V4L2_PIX_FMT_BGR24, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_BGR_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 24, 0, 0 }, false, false, 1, 1, false },
-+	{ V4L2_PIX_FMT_RGB24, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_RGB_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 24, 0, 0 }, false, false, 1, 1, false },
-+	{ V4L2_PIX_FMT_ABGR32, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
-+	  1, { 32, 0, 0 }, false, false, 1, 1, true },
-+	{ V4L2_PIX_FMT_XBGR32, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
-+	  1, { 32, 0, 0 }, false, false, 1, 1, false },
-+	{ V4L2_PIX_FMT_ARGB32, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 32, 0, 0 }, false, false, 1, 1, true },
-+	{ V4L2_PIX_FMT_XRGB32, MEDIA_BUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 32, 0, 0 }, false, false, 1, 1, false },
-+	{ V4L2_PIX_FMT_UYVY, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 16, 0, 0 }, false, false, 2, 1, false },
-+	{ V4L2_PIX_FMT_VYUY, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 16, 0, 0 }, false, true, 2, 1, false },
-+	{ V4L2_PIX_FMT_YUYV, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 16, 0, 0 }, true, false, 2, 1, false },
-+	{ V4L2_PIX_FMT_YVYU, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 16, 0, 0 }, true, true, 2, 1, false },
-+	{ V4L2_PIX_FMT_NV12M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  2, { 8, 16, 0 }, false, false, 2, 2, false },
-+	{ V4L2_PIX_FMT_NV21M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  2, { 8, 16, 0 }, false, true, 2, 2, false },
-+	{ V4L2_PIX_FMT_NV16M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  2, { 8, 16, 0 }, false, false, 2, 1, false },
-+	{ V4L2_PIX_FMT_NV61M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  2, { 8, 16, 0 }, false, true, 2, 1, false },
-+	{ V4L2_PIX_FMT_YUV420M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, false, 2, 2, false },
-+	{ V4L2_PIX_FMT_YVU420M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, true, 2, 2, false },
-+	{ V4L2_PIX_FMT_YUV422M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, false, 2, 1, false },
-+	{ V4L2_PIX_FMT_YVU422M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, true, 2, 1, false },
-+	{ V4L2_PIX_FMT_YUV444M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, false, 1, 1, false },
-+	{ V4L2_PIX_FMT_YVU444M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, true, 1, 1, false },
-+};
-+
-+/*
-+ * vsp1_get_format_info - Retrieve format information for a 4CC
-+ * @fourcc: the format 4CC
-+ *
-+ * Return a pointer to the format information structure corresponding to the
-+ * given V4L2 format 4CC, or NULL if no corresponding format can be found.
-+ */
-+const struct vsp1_format_info *vsp1_get_format_info(u32 fourcc)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(vsp1_video_formats); ++i) {
-+		const struct vsp1_format_info *info = &vsp1_video_formats[i];
-+
-+		if (info->fourcc == fourcc)
-+			return info;
-+	}
-+
-+	return NULL;
-+}
-+
-+/* -----------------------------------------------------------------------------
-  * Pipeline Management
-  */
+ 	enum v4l2_mbus_type mbus_type;
+ };
  
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 9c8ded1c29f6..f9035c739e9a 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -21,6 +21,33 @@
+@@ -1180,8 +1183,6 @@ static int tvp5150_detect_version(struct tvp5150 *core)
+ 	struct v4l2_subdev *sd = &core->sd;
+ 	struct i2c_client *c = v4l2_get_subdevdata(sd);
+ 	unsigned int i;
+-	u16 dev_id;
+-	u16 rom_ver;
+ 	u8 regs[4];
+ 	int res;
  
- struct vsp1_rwpf;
+@@ -1196,23 +1197,25 @@ static int tvp5150_detect_version(struct tvp5150 *core)
+ 		regs[i] = res;
+ 	}
  
-+/*
-+ * struct vsp1_format_info - VSP1 video format description
-+ * @mbus: media bus format code
-+ * @fourcc: V4L2 pixel format FCC identifier
-+ * @planes: number of planes
-+ * @bpp: bits per pixel
-+ * @hwfmt: VSP1 hardware format
-+ * @swap_yc: the Y and C components are swapped (Y comes before C)
-+ * @swap_uv: the U and V components are swapped (V comes before U)
-+ * @hsub: horizontal subsampling factor
-+ * @vsub: vertical subsampling factor
-+ * @alpha: has an alpha channel
-+ */
-+struct vsp1_format_info {
-+	u32 fourcc;
-+	unsigned int mbus;
-+	unsigned int hwfmt;
-+	unsigned int swap;
-+	unsigned int planes;
-+	unsigned int bpp[3];
-+	bool swap_yc;
-+	bool swap_uv;
-+	unsigned int hsub;
-+	unsigned int vsub;
-+	bool alpha;
-+};
-+
- enum vsp1_pipeline_state {
- 	VSP1_PIPELINE_STOPPED,
- 	VSP1_PIPELINE_RUNNING,
-@@ -97,4 +124,6 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
- void vsp1_pipelines_suspend(struct vsp1_device *vsp1);
- void vsp1_pipelines_resume(struct vsp1_device *vsp1);
+-	dev_id = (regs[0] << 8) | regs[1];
+-	rom_ver = (regs[2] << 8) | regs[3];
++	core->dev_id = (regs[0] << 8) | regs[1];
++	core->rom_ver = (regs[2] << 8) | regs[3];
  
-+const struct vsp1_format_info *vsp1_get_format_info(u32 fourcc);
-+
- #endif /* __VSP1_PIPE_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 7cf73d4f0963..92eb39c509df 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -48,133 +48,6 @@
-  * Helper functions
-  */
+ 	v4l2_info(sd, "tvp%04x (%u.%u) chip found @ 0x%02x (%s)\n",
+-		  dev_id, regs[2], regs[3], c->addr << 1, c->adapter->name);
++		  core->dev_id, regs[2], regs[3], c->addr << 1,
++		  c->adapter->name);
  
--static const struct vsp1_format_info vsp1_video_formats[] = {
--	{ V4L2_PIX_FMT_RGB332, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_RGB_332, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  1, { 8, 0, 0 }, false, false, 1, 1, false },
--	{ V4L2_PIX_FMT_ARGB444, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_ARGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS,
--	  1, { 16, 0, 0 }, false, false, 1, 1, true },
--	{ V4L2_PIX_FMT_XRGB444, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_XRGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS,
--	  1, { 16, 0, 0 }, false, false, 1, 1, true },
--	{ V4L2_PIX_FMT_ARGB555, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_ARGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS,
--	  1, { 16, 0, 0 }, false, false, 1, 1, true },
--	{ V4L2_PIX_FMT_XRGB555, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_XRGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS,
--	  1, { 16, 0, 0 }, false, false, 1, 1, false },
--	{ V4L2_PIX_FMT_RGB565, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_RGB_565, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS,
--	  1, { 16, 0, 0 }, false, false, 1, 1, false },
--	{ V4L2_PIX_FMT_BGR24, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_BGR_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  1, { 24, 0, 0 }, false, false, 1, 1, false },
--	{ V4L2_PIX_FMT_RGB24, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_RGB_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  1, { 24, 0, 0 }, false, false, 1, 1, false },
--	{ V4L2_PIX_FMT_ABGR32, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
--	  1, { 32, 0, 0 }, false, false, 1, 1, true },
--	{ V4L2_PIX_FMT_XBGR32, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
--	  1, { 32, 0, 0 }, false, false, 1, 1, false },
--	{ V4L2_PIX_FMT_ARGB32, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  1, { 32, 0, 0 }, false, false, 1, 1, true },
--	{ V4L2_PIX_FMT_XRGB32, MEDIA_BUS_FMT_ARGB8888_1X32,
--	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  1, { 32, 0, 0 }, false, false, 1, 1, false },
--	{ V4L2_PIX_FMT_UYVY, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  1, { 16, 0, 0 }, false, false, 2, 1, false },
--	{ V4L2_PIX_FMT_VYUY, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  1, { 16, 0, 0 }, false, true, 2, 1, false },
--	{ V4L2_PIX_FMT_YUYV, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  1, { 16, 0, 0 }, true, false, 2, 1, false },
--	{ V4L2_PIX_FMT_YVYU, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  1, { 16, 0, 0 }, true, true, 2, 1, false },
--	{ V4L2_PIX_FMT_NV12M, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  2, { 8, 16, 0 }, false, false, 2, 2, false },
--	{ V4L2_PIX_FMT_NV21M, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  2, { 8, 16, 0 }, false, true, 2, 2, false },
--	{ V4L2_PIX_FMT_NV16M, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  2, { 8, 16, 0 }, false, false, 2, 1, false },
--	{ V4L2_PIX_FMT_NV61M, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  2, { 8, 16, 0 }, false, true, 2, 1, false },
--	{ V4L2_PIX_FMT_YUV420M, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  3, { 8, 8, 8 }, false, false, 2, 2, false },
--	{ V4L2_PIX_FMT_YVU420M, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  3, { 8, 8, 8 }, false, true, 2, 2, false },
--	{ V4L2_PIX_FMT_YUV422M, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  3, { 8, 8, 8 }, false, false, 2, 1, false },
--	{ V4L2_PIX_FMT_YVU422M, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  3, { 8, 8, 8 }, false, true, 2, 1, false },
--	{ V4L2_PIX_FMT_YUV444M, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  3, { 8, 8, 8 }, false, false, 1, 1, false },
--	{ V4L2_PIX_FMT_YVU444M, MEDIA_BUS_FMT_AYUV8_1X32,
--	  VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
--	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
--	  3, { 8, 8, 8 }, false, true, 1, 1, false },
--};
--
--/*
-- * vsp1_get_format_info - Retrieve format information for a 4CC
-- * @fourcc: the format 4CC
-- *
-- * Return a pointer to the format information structure corresponding to the
-- * given V4L2 format 4CC, or NULL if no corresponding format can be found.
-- */
--static const struct vsp1_format_info *vsp1_get_format_info(u32 fourcc)
--{
--	unsigned int i;
--
--	for (i = 0; i < ARRAY_SIZE(vsp1_video_formats); ++i) {
--		const struct vsp1_format_info *info = &vsp1_video_formats[i];
--
--		if (info->fourcc == fourcc)
--			return info;
--	}
--
--	return NULL;
--}
--
--
- static struct v4l2_subdev *
- vsp1_video_remote_subdev(struct media_pad *local, u32 *pad)
- {
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index faccb2aede5c..64abd39ee1e7 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -21,33 +21,6 @@
- #include "vsp1_pipe.h"
- #include "vsp1_rwpf.h"
+-	if (dev_id == 0x5150 && rom_ver == 0x0321) { /* TVP51510A */
++	if (core->dev_id == 0x5150 && core->rom_ver == 0x0321) {
+ 		v4l2_info(sd, "tvp5150a detected.\n");
+-	} else if (dev_id == 0x5150 && rom_ver == 0x0400) { /* TVP5150AM1 */
++	} else if (core->dev_id == 0x5150 && core->rom_ver == 0x0400) {
+ 		v4l2_info(sd, "tvp5150am1 detected.\n");
  
--/*
-- * struct vsp1_format_info - VSP1 video format description
-- * @mbus: media bus format code
-- * @fourcc: V4L2 pixel format FCC identifier
-- * @planes: number of planes
-- * @bpp: bits per pixel
-- * @hwfmt: VSP1 hardware format
-- * @swap_yc: the Y and C components are swapped (Y comes before C)
-- * @swap_uv: the U and V components are swapped (V comes before U)
-- * @hsub: horizontal subsampling factor
-- * @vsub: vertical subsampling factor
-- * @alpha: has an alpha channel
-- */
--struct vsp1_format_info {
--	u32 fourcc;
--	unsigned int mbus;
--	unsigned int hwfmt;
--	unsigned int swap;
--	unsigned int planes;
--	unsigned int bpp[3];
--	bool swap_yc;
--	bool swap_uv;
--	unsigned int hsub;
--	unsigned int vsub;
--	bool alpha;
--};
--
- struct vsp1_vb2_buffer {
- 	struct vb2_v4l2_buffer buf;
- 	struct list_head queue;
+ 		/* ITU-T BT.656.4 timing */
+ 		tvp5150_write(sd, TVP5150_REV_SELECT, 0);
+-	} else if (dev_id == 0x5151 && rom_ver == 0x0100) { /* TVP5151 */
++	} else if (core->dev_id == 0x5151 && core->rom_ver == 0x0100) {
+ 		v4l2_info(sd, "tvp5151 detected.\n");
+ 	} else {
+-		v4l2_info(sd, "*** unknown tvp%04x chip detected.\n", dev_id);
++		v4l2_info(sd, "*** unknown tvp%04x chip detected.\n",
++			  core->dev_id);
+ 	}
+ 
+ 	return 0;
 -- 
-2.4.10
+2.5.0
 
