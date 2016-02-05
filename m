@@ -1,225 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:11047 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752938AbcBOMWw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 07:22:52 -0500
-Subject: Re: [PATCH 02/15] mediactl: Add support for v4l2-ctrl-redir config
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
-References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
- <1453133860-21571-3-git-send-email-j.anaszewski@samsung.com>
- <56C1AF5F.3060702@linux.intel.com> <56C1B904.5080305@samsung.com>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <56C1C308.9030402@linux.intel.com>
-Date: Mon, 15 Feb 2016 14:22:32 +0200
+Received: from v-smtpgw2.han.skanova.net ([81.236.60.205]:39540 "EHLO
+	v-smtpgw2.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754604AbcBETHe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Feb 2016 14:07:34 -0500
+Subject: Re: PCTV 292e weirdness
+To: Rune Petersen <rune@megahurts.dk>,
+	Russel Winder <russel@itzinteractive.com>,
+	Antti Palosaari <crope@iki.fi>,
+	DVB_Linux_Media <linux-media@vger.kernel.org>
+References: <1454523447.1970.15.camel@itzinteractive.com>
+ <56B378F0.6020301@iki.fi> <1454612780.4401.66.camel@itzinteractive.com>
+ <56B46E25.7070405@megahurts.dk>
+From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
+Message-ID: <56B4F2FF.5080206@mbox200.swipnet.se>
+Date: Fri, 5 Feb 2016 20:07:43 +0100
 MIME-Version: 1.0
-In-Reply-To: <56C1B904.5080305@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <56B46E25.7070405@megahurts.dk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+This is probably the problems i have seen.
+my usb based card also have a si2168.
 
-Jacek Anaszewski wrote:
-> Hi Sakari,
-> 
-> Thanks for the review.
-> 
-> On 02/15/2016 11:58 AM, Sakari Ailus wrote:
->> Hi Jacek,
+since i don't have any good physical machine i used a vm (kvm) and 
+attached the usb device there.
+this works best if the device is in cold state, if driver finds it in 
+warm state things dont work very well.
+
+but at the moment i also got another issue with the last round of 
+updates to media_build.
+a few weeks ago modueles was loading properly and earlier in the week 
+when i tested the modules dont load at all and errors during loading.
+can test again and post output of dmesg
+this is a new issue.
+
+kernel modules from a few weeks ago loads but tuning only works once 
+after module load.
+then there is no signal at all and it doesnt lock on to the signa.
+
+On 2016-02-05 10:40, Rune Petersen wrote:
+> (sent email again since I managed to reply only to Russel)
+>
+> I have the same issue - haven't had time to look into it much.
+>
+> the problem is that si2157 & si2168 doesn't resume properly from suspend.
+>
+> I have attached 2 patches that disable suspend.
+>
+> What i have found out:
+> I can resume the si2157 from suspend by replacing "goto warm" with "goto
+> skip_fw_download" in si2157_init()
+>
+> I can 'resume' the si2168 from suspend if I set "dev->fw_loaded = 0" in
+> si2168_sleep()
+>
+>
+> Rune
+>
+>
+> On 04/02/16 20:06, Russel Winder wrote:
+>> On Thu, 2016-02-04 at 18:14 +0200, Antti Palosaari wrote:
+>> […]
+>>>
+>>> Are you using DVB-T, T2 or C? I quickly tested T and T2 with dvbv5-
+>>> zap
+>>> and it worked (kernel media 4.5.0-rc1+).
 >>
->> Jacek Anaszewski wrote:
->>> Make struct v4l2_subdev capable of aggregating v4l2-ctrl-redir
->>> media device configuration entries. Added are also functions for
->>> validating the config and checking whether a v4l2 sub-device
->>> expects to receive ioctls related to the v4l2-control with given id.
->>>
->>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->>> ---
->>>   utils/media-ctl/libv4l2subdev.c |   49
->>> ++++++++++++++++++++++++++++++++++++++-
->>>   utils/media-ctl/v4l2subdev.h    |   30 ++++++++++++++++++++++++
->>>   2 files changed, 78 insertions(+), 1 deletion(-)
->>>
->>> diff --git a/utils/media-ctl/libv4l2subdev.c
->>> b/utils/media-ctl/libv4l2subdev.c
->>> index 3977ce5..069ded6 100644
->>> --- a/utils/media-ctl/libv4l2subdev.c
->>> +++ b/utils/media-ctl/libv4l2subdev.c
->>> @@ -26,7 +26,6 @@
->>>   #include <ctype.h>
->>>   #include <errno.h>
->>>   #include <fcntl.h>
->>> -#include <stdbool.h>
->>>   #include <stdio.h>
->>>   #include <stdlib.h>
->>>   #include <string.h>
->>> @@ -50,7 +49,15 @@ int v4l2_subdev_create(struct media_entity *entity)
->>>
->>>       entity->sd->fd = -1;
->>>
->>> +    entity->sd->v4l2_control_redir = malloc(sizeof(__u32));
->>> +    if (entity->sd->v4l2_control_redir == NULL)
->>> +        goto err_v4l2_control_redir_alloc;
->>> +
->>>       return 0;
->>> +
->>> +err_v4l2_control_redir_alloc:
->>> +    free(entity->sd);
->>> +    return -ENOMEM;
->>>   }
->>>
->>>   int v4l2_subdev_create_with_fd(struct media_entity *entity, int fd)
->>> @@ -870,3 +877,43 @@ enum v4l2_field
->>> v4l2_subdev_string_to_field(const char *string,
->>>
->>>       return fields[i].field;
->>>   }
->>> +
->>> +int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
->>> +                   struct media_entity *entity,
->>> +                   __u32 ctrl_id)
->>> +{
->>> +    struct v4l2_queryctrl queryctrl = {};
->>> +    int ret;
->>> +
->>> +    ret = v4l2_subdev_open(entity);
->>> +    if (ret < 0)
->>> +        return ret;
->>> +
->>> +    queryctrl.id = ctrl_id;
->>> +
->>> +    ret = ioctl(entity->sd->fd, VIDIOC_QUERYCTRL, &queryctrl);
->>> +    if (ret < 0)
->>> +        return ret;
->>> +
->>> +    media_dbg(media, "Validated control \"%s\" (0x%8.8x) on entity
->>> %s\n",
->>> +          queryctrl.name, queryctrl.id, entity->info.name);
->>> +
->>> +    return 0;
->>> +}
->>> +
->>> +bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
->>> +                  struct media_entity *entity,
->>> +                  int ctrl_id)
->>> +{
->>> +    struct v4l2_subdev *sd = entity->sd;
->>> +    int i;
->>> +
->>> +    if (!sd)
->>> +        return false;
->>> +
->>> +    for (i = 0; i < sd->v4l2_control_redir_num; ++i)
->>> +        if (sd->v4l2_control_redir[i] == ctrl_id)
->>> +            return true;
->>> +
->>> +    return false;
->>> +}
->>> diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
->>> index ba9b8c4..f395065 100644
->>> --- a/utils/media-ctl/v4l2subdev.h
->>> +++ b/utils/media-ctl/v4l2subdev.h
->>> @@ -23,12 +23,17 @@
->>>   #define __SUBDEV_H__
->>>
->>>   #include <linux/v4l2-subdev.h>
->>> +#include <stdbool.h>
->>>
->>>   struct media_device;
->>>   struct media_entity;
->>> +struct media_device;
->>>
->>>   struct v4l2_subdev {
->>>       int fd;
->>> +
->>> +    __u32 *v4l2_control_redir;
->>> +    unsigned int v4l2_control_redir_num;
->>>   };
->>>
->>>   /**
->>> @@ -316,5 +321,30 @@ const char *v4l2_subdev_field_to_string(enum
->>> v4l2_field field);
->>>    */
->>>   enum v4l2_field v4l2_subdev_string_to_field(const char *string,
->>>                           unsigned int length);
->>> +/**
->>> + * @brief Validate v4l2 control for a sub-device
->>> + * @param media - media device.
->>> + * @param entity - subdev-device media entity.
->>> + * @param ctrl_id - id of the v4l2 control to validate.
->>> + *
->>> + * Verify if the entity supports v4l2-control with given ctrl_id.
->>> + *
->>> + * @return 1 if the control is supported, 0 otherwise.
->>> + */
->>> +int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
->>> +                   struct media_entity *entity,
->>> +                   __u32 ctrl_id);
->>> +/**
->>> + * @brief Check if there was a v4l2_control redirection defined for
->>> the entity
->>> + * @param media - media device.
->>> + * @param entity - subdev-device media entity.
->>> + * @param ctrl_id - v4l2 control identifier.
->>> + *
->>> + * Check if there was a v4l2-ctrl-redir entry defined for the entity.
->>> + *
->>> + * @return true if the entry exists, false otherwise
->>> + */
->>> +bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
->>> +    struct media_entity *entity, int ctrl_id);
->>>
->>>   #endif
->>>
+>> Definitely T and T2. I had been assuming dvbv5-zap switched mode based
+>> on the entry in the virtual channel file. In this case "BBC NEWS" is in
+>> a T multiplex.
 >>
->> Where do you need this?
-> 
-> It is used in v4l2_subdev_get_pipeline_entity_by_cid, which returns the
-> first entity in the pipeline the control setting is to be redirected to.
-> The v4l2_subdev_get_pipeline_entity_by_cid() is in turn required in
-> libv4l2media_ioctl.c, in the functions that apply control settings to
-> the pipeline. The actual sub-device to apply the settings on is being
-> selected basing on the v4l2-ctrl-redir config entry.
-> 
-> This is required in case more than one sub-device in the pipeline
-> supports a control and we want to choose specific hardware
-> implementation thereof. For example both S5C73M3 and fimc.0.capture
-> sub-devices support "Color Effects", but the effects differ visually -
-> e.g. Sepia realized by S5C73M3 is more "orange" than the one from
-> fimc.0.capture.
-
-Right.
-
-libv4l2subdev still deals with sub-devices, and I don't think this
-functionality belongs there. Instead, I'd put it in libv4l2media_ioctl.
-
-> 
-> And we can set controls with GStreamer pipeline :
-> 
-> gst-launch-1.0 v4l2src device=/dev/video1
-> extra-controls="c,color_effects=2" ! video/x-raw,width=960,height=920 !
-> fbdevsink
-> 
+>>> PCTV 282e seems to be dibcom based DVB-T only device, so you are
+>>> using
+>>> DVB-T?
 >>
->> If you have an application that's aware of V4L2 sub-devices (and thus
->> multiple devices)), I'd expect it to set the controls on the sub-devices
->> the controls are implemented in rather than rely on them being
->> redirected.
+>> Yes, 282e is T only, ditto Terratec XXS. I haven't been able to get
+>> anything working with WinTVSoloHD or WinTVdualHD as yet.
 >>
->> This would make perfect sense IMO when implementing plain V4L2 interface
->> support on top of drivers that expose MC/V4L2 subdev/V4L2 APIs. But I
->> wouldn't implement it in libv4l2subdev.
->>
-> 
-> 
 
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
