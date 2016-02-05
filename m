@@ -1,79 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42488 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753319AbcBWQMX (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53606 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752078AbcBEDl0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 11:12:23 -0500
-Date: Tue, 23 Feb 2016 18:11:51 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
-Message-ID: <20160223161150.GA32612@valkosipuli.retiisi.org.uk>
-References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
- <1456090187-1191-5-git-send-email-sakari.ailus@linux.intel.com>
- <56CC4E2D.7010702@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <56CC4E2D.7010702@xs4all.nl>
+	Thu, 4 Feb 2016 22:41:26 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 44F81180DD1
+	for <linux-media@vger.kernel.org>; Fri,  5 Feb 2016 04:41:21 +0100 (CET)
+Date: Fri, 05 Feb 2016 04:41:21 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160205034121.44F81180DD1@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Tue, Feb 23, 2016 at 01:18:53PM +0100, Hans Verkuil wrote:
-> On 02/21/16 22:29, Sakari Ailus wrote:
-> > Add a new topic option for -h to allow listing supported media bus codes
-> > in conversion functions. This is useful in figuring out which media bus
-> > codes are actually supported by the library. The numeric values of the
-> > codes are listed as well.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++++++++----
-> >  1 file changed, 38 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-> > index 0afc9c2..55cdd29 100644
-> > --- a/utils/media-ctl/options.c
-> > +++ b/utils/media-ctl/options.c
-> > @@ -22,7 +22,9 @@
-> >  #include <getopt.h>
-> >  #include <stdio.h>
-> >  #include <stdlib.h>
-> > +#include <string.h>
-> >  #include <unistd.h>
-> > +#include <v4l2subdev.h>
-> >  
-> >  #include <linux/videodev2.h>
-> >  
-> > @@ -45,7 +47,8 @@ static void usage(const char *argv0)
-> >  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
-> >  	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
-> >  	printf("    --set-dv pad	Configure DV timings on a given pad\n");
-> > -	printf("-h, --help		Show verbose help and exit\n");
-> > +	printf("-h, --help[=topic]	Show verbose help and exit\n");
-> > +	printf("			topics:	mbus-fmt: List supported media bus pixel codes\n");
-> 
-> OK, this is ugly. It has nothing to do with usage help.
-> 
-> Just make a new option --list-mbus-fmts to list supported media bus pixel
-> codes.
-> 
-> That would make much more sense.
+Results of the daily build of media_tree:
 
-I added it as a --help option argument in order to imply it's a part of the
-program's usage instructions, which is what it indeed is. It's not a list of
-media bus formats supported by a device.
+date:		Fri Feb  5 04:00:23 CET 2016
+git branch:	test
+git hash:	210bd104c6acd31c3c6b8b075b3f12d4a9f6b60d
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.3.0-164
 
-A separate option is fine, but it should be clear that it's about just
-listing supported formats. E.g. --list-supported-mbus-fmts. But that's a
-long one. Long options are loooong.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
 
--- 
-Kind regards,
+Detailed results are available here:
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
