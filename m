@@ -1,63 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51526 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388AbcBCTuO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 14:50:14 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [PATCH 2/2] tda1004x: only update the frontend properties if locked
-Date: Wed,  3 Feb 2016 17:48:57 -0200
-Message-Id: <90ea50b8392841faa19d3c8f3c6dfd096a00928f.1454528618.git.mchehab@osg.samsung.com>
-In-Reply-To: <1f4b7b810391d19c5643af01fd5a39ca6b193768.1454528618.git.mchehab@osg.samsung.com>
-References: <1f4b7b810391d19c5643af01fd5a39ca6b193768.1454528618.git.mchehab@osg.samsung.com>
-In-Reply-To: <1f4b7b810391d19c5643af01fd5a39ca6b193768.1454528618.git.mchehab@osg.samsung.com>
-References: <1f4b7b810391d19c5643af01fd5a39ca6b193768.1454528618.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58124 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754521AbcBEP2U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Feb 2016 10:28:20 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv11 05/17] HID: add HDMI CEC specific keycodes
+Date: Fri,  5 Feb 2016 16:27:48 +0100
+Message-Id: <1454686080-39018-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
+References: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tda1004x was updating the properties cache before locking.
-If the device is not locked, the data at the registers are just
-random values with no real meaning.
+From: Kamil Debski <kamil@wypas.org>
 
-This caused the driver to fail with libdvbv5, as such library
-calls GET_PROPERTY from time to time, in order to return the
-DVB stats.
+Add HDMI CEC specific keycodes to the keycodes definition.
 
-Tested with a saa7134 card 78: (ASUSTeK P7131 Dual , vendor PCI ID: 1043:4862:
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/tda1004x.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/uapi/linux/input-event-codes.h | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/tda1004x.c b/drivers/media/dvb-frontends/tda1004x.c
-index 0e209b56c76c..c6abeb4fba9d 100644
---- a/drivers/media/dvb-frontends/tda1004x.c
-+++ b/drivers/media/dvb-frontends/tda1004x.c
-@@ -903,9 +903,18 @@ static int tda1004x_get_fe(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *fe_params = &fe->dtv_property_cache;
- 	struct tda1004x_state* state = fe->demodulator_priv;
-+	int status;
+diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
+index 87cf351..2662500 100644
+--- a/include/uapi/linux/input-event-codes.h
++++ b/include/uapi/linux/input-event-codes.h
+@@ -611,6 +611,34 @@
+ #define KEY_KBDINPUTASSIST_ACCEPT		0x264
+ #define KEY_KBDINPUTASSIST_CANCEL		0x265
  
- 	dprintk("%s\n", __func__);
- 
-+	status = tda1004x_read_byte(state, TDA1004X_STATUS_CD);
-+	if (status == -1)
-+		return -EIO;
++#define KEY_RIGHT_UP			0x266
++#define KEY_RIGHT_DOWN			0x267
++#define KEY_LEFT_UP			0x268
++#define KEY_LEFT_DOWN			0x269
++#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
++#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
++#define KEY_NUMERIC_11			0x26c
++#define KEY_NUMERIC_12			0x26d
++/*
++ * Toggle Audio Description: refers to an audio service that helps blind and
++ * visually impaired consumers understand the action in a program. Note: in
++ * some countries this is referred to as "Video Description".
++ */
++#define KEY_AUDIO_DESC			0x26e
++#define KEY_3D_MODE			0x26f
++#define KEY_NEXT_FAVORITE		0x270
++#define KEY_STOP_RECORD			0x271
++#define KEY_PAUSE_RECORD		0x272
++#define KEY_VOD				0x273 /* Video on Demand */
++#define KEY_UNMUTE			0x274
++#define KEY_FASTREVERSE			0x275
++#define KEY_SLOWREVERSE			0x276
++/*
++ * Control a data application associated with the currently viewed channel,
++ * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
++ */
++#define KEY_DATA			0x275
 +
-+	/* Only update the properties cache if device is locked */
-+	if (!(status & 8))
-+		return 0;
-+
- 	// inversion status
- 	fe_params->inversion = INVERSION_OFF;
- 	if (tda1004x_read_byte(state, TDA1004X_CONFC1) & 0x20)
+ #define BTN_TRIGGER_HAPPY		0x2c0
+ #define BTN_TRIGGER_HAPPY1		0x2c0
+ #define BTN_TRIGGER_HAPPY2		0x2c1
 -- 
-2.5.0
-
+2.7.0
 
