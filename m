@@ -1,102 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44482 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753125AbcBZNsK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2016 08:48:10 -0500
-Subject: Re: [RFC] Representing hardware connections via MC
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-References: <20160226091317.5a07c374@recife.lan> <56D051DC.5070900@xs4all.nl>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Message-ID: <56D0578C.3000904@osg.samsung.com>
-Date: Fri, 26 Feb 2016 10:47:56 -0300
-MIME-Version: 1.0
-In-Reply-To: <56D051DC.5070900@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58124 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753750AbcBEP2d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Feb 2016 10:28:33 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Hans Verkuil <hansverk@cisco.com>,
+	Kamil Debski <kamil@wypas.org>
+Subject: [PATCHv11 11/17] v4l2-subdev: add HDMI CEC ops
+Date: Fri,  5 Feb 2016 16:27:54 +0100
+Message-Id: <1454686080-39018-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
+References: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 02/26/2016 10:23 AM, Hans Verkuil wrote:
-> On 02/26/2016 01:13 PM, Mauro Carvalho Chehab wrote:
+Add CEC callbacks to the new v4l2_subdev_cec_ops struct. These are the
+low-level CEC ops that subdevs that support CEC have to implement.
 
-[snip]
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+---
+ include/media/v4l2-subdev.h | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
->>
->> #define MEDIA_ENT_F_INPUT_RF		(MEDIA_ENT_F_BASE + 10001)
->> #define MEDIA_ENT_F_INPUT_SVIDEO	(MEDIA_ENT_F_BASE + 10002)
->> #define MEDIA_ENT_F_INPUT_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
->>
->> The MEDIA_ENT_F_INPUT_RF and MEDIA_ENT_F_INPUT_COMPOSITE will have
->> just one sink PAD each, as they carry just one signal. As we're
->> describing the logical input, it doesn't matter the physical
->> connector type. So, except for re-naming the define, nothing
->> changes for them.
->
-> What if my device has an SVIDEO output (e.g. ivtv)? 'INPUT' denotes
-> the direction, and I don't think that's something you want in the
-> define for the connector entity.
->
-> As was discussed on irc we are really talking about signals received
-> or transmitted by/from a connector. I still prefer F_SIG_ or F_SIGNAL_
-> or F_CONN_SIG_ or something along those lines.
->
-> I'm not sure where F_INPUT came from, certainly not from the irc
-> discussion.
->
-
-Indeed, I missed that when reviewing the proposal.
-
->> Devices with S-Video input will have one MEDIA_ENT_F_INPUT_SVIDEO
->> per each different S-Video input. Each one will have two sink pads,
->> one for the Y signal and another for the C signal.
->>
->> So, a device like Terratec AV350, that has one Composite and one
->> S-Video input[1] would be represented as:
->> 	https://mchehab.fedorapeople.org/terratec_av350-modified.png
->>
->>
->> [1] Physically, it has a SCART connector that could be enabled
->> via a physical switch, but logically, the device will still switch
->> from S-Video over SCART or composite over SCART.
->>
->> More complex devices would be represented like:
->> 	https://hverkuil.home.xs4all.nl/adv7604.png
->> 	https://hverkuil.home.xs4all.nl/adv7842.png
->>
->> NOTE:
->>
->> The labels at the PADs currently can't be represented, but the
->> idea is adding it as a property via the upcoming properties API.
->
-> I think this is a separate discussion. It's not needed for now.
-> When working on the adv7604/7842 examples I realized that pad names help
-> understand the topology a lot better, but they are not needed for the actual
-> functionality.
->
-
-It's true that is a separate discussion but it would be good to agree
-on it at least before the G_TOPOLOGY ioctl is available since we may
-need to add a label/name field to struct media_v2_pad, that is filled
-by the kernel and copied to user-space so it can't be changed later.
-
->>
->> Anyone disagree?
->
-> I agree except for the naming.
->
-> Regards,
->
-> 	Hans
->
-
-Best regards,
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index b273cf9..8504d4c 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -42,6 +42,17 @@
+ 
+ #define	V4L2_DEVICE_NOTIFY_EVENT		_IOW('v', 2, struct v4l2_event)
+ 
++struct v4l2_subdev_cec_tx_done {
++	u8 status;
++	u8 arb_lost_cnt;
++	u8 nack_cnt;
++	u8 error_cnt;
++};
++
++#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 3, struct v4l2_subdev_cec_tx_done)
++#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 4, struct cec_msg)
++#define V4L2_SUBDEV_CEC_CONN_INPUTS		_IOW('v', 5, u16)
++
+ struct v4l2_device;
+ struct v4l2_ctrl_handler;
+ struct v4l2_event;
+@@ -51,6 +62,7 @@ struct v4l2_subdev;
+ struct v4l2_subdev_fh;
+ struct tuner_setup;
+ struct v4l2_mbus_frame_desc;
++struct cec_msg;
+ 
+ /* decode_vbi_line */
+ struct v4l2_decode_vbi_line {
+@@ -642,6 +654,14 @@ struct v4l2_subdev_pad_ops {
+ 			      struct v4l2_mbus_frame_desc *fd);
+ };
+ 
++struct v4l2_subdev_cec_ops {
++	unsigned (*adap_available_log_addrs)(struct v4l2_subdev *sd);
++	int (*adap_enable)(struct v4l2_subdev *sd, bool enable);
++	int (*adap_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
++	int (*adap_transmit)(struct v4l2_subdev *sd, u8 *retries,
++			     u32 signal_free_time_ms, struct cec_msg *msg);
++};
++
+ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_core_ops	*core;
+ 	const struct v4l2_subdev_tuner_ops	*tuner;
+@@ -651,6 +671,7 @@ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_ir_ops		*ir;
+ 	const struct v4l2_subdev_sensor_ops	*sensor;
+ 	const struct v4l2_subdev_pad_ops	*pad;
++	const struct v4l2_subdev_cec_ops	*cec;
+ };
+ 
+ /*
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.7.0
+
