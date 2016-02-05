@@ -1,100 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f169.google.com ([209.85.192.169]:33996 "EHLO
-	mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745AbcBOGIy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 01:08:54 -0500
-From: info@are.ma
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD?=
-	 =?UTF-8?q?=D1=82=D0=BE=2C=20AreMa=20Inc?= <knightrider@are.ma>,
-	linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
-	mchehab@osg.samsung.com, hdegoede@redhat.com,
-	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
-	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
-	peter.senna@gmail.com
-Subject: [media 0/7] Driver bundle for PT3 & PX-Q3PE
-Date: Mon, 15 Feb 2016 15:08:42 +0900
-Message-Id: <cover.1455513464.git.knightrider@are.ma>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:55700 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751823AbcBEBoy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 20:44:54 -0500
+Message-ID: <1454636687.24985.2.camel@mtksdaap41>
+Subject: Re: [PATCH v3 1/8] dt-bindings: Add a binding for Mediatek Video
+ Processor
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Rob Herring <robh@kernel.org>
+CC: "daniel.thompson@linaro.org" <daniel.thompson@linaro.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Eddie Huang =?UTF-8?Q?=28=E9=BB=83=E6=99=BA=E5=82=91=29?=
+	<eddie.huang@mediatek.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-mediatek@lists.infradead.org"
+	<linux-mediatek@lists.infradead.org>,
+	Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?=
+	<Andrew-CT.Chen@mediatek.com>
+Date: Fri, 5 Feb 2016 09:44:47 +0800
+In-Reply-To: <CAL_JsqJqQ+QRgg6HGQeGk0=rBEwQq7i-ZfoDahZwXLuvMC-=_A@mail.gmail.com>
+References: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
+	 <1451902316-55931-2-git-send-email-tiffany.lin@mediatek.com>
+	 <20160104141506.GA22801@rob-hp-laptop> <1454586583.7571.3.camel@mtksdaap41>
+	 <CAL_JsqJqQ+QRgg6HGQeGk0=rBEwQq7i-ZfoDahZwXLuvMC-=_A@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Буди Романто, AreMa Inc <knightrider@are.ma>
+Hi Rob,
 
-Polished driver bundle for PT3 & PX-Q3PE, two of the most powerful ISDB-S/ISDB-T receiver cards
-currently available in Japan. Useless features are removed.
 
-Main Components:
-A. PT3 (2 ISDB-S + 2 ISDB-T receiver)
- 1. Altera	EP4CGX15BF14C8N	: customized FPGA PCI bridge
- 2. Toshiba	TC90522XBG	: quad demodulator (2ch OFDM + 2ch 8PSK)
- 3. Sharp	VA4M6JC2103	: contains 2 ISDB-S + 2 ISDB-T tuners
-	ISDB-S : Sharp QM1D1C0042 RF-IC
-	ISDB-T : MaxLinear CMOS Hybrid TV MxL301RF
+On Thu, 2016-02-04 at 12:04 -0600, Rob Herring wrote:
+> On Thu, Feb 4, 2016 at 5:49 AM, tiffany lin <tiffany.lin@mediatek.com> wrote:
+> > Hi Rob,
+> >
+> >
+> >
+> >
+> > On Mon, 2016-01-04 at 22:15 +0800, Rob Herring wrote:
+> >> On Mon, Jan 04, 2016 at 06:11:49PM +0800, Tiffany Lin wrote:
+> >> > From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+> >> >
+> >> > Add a DT binding documentation of Video Processor Unit for the
+> >> > MT8173 SoC from Mediatek.
+> >> >
+> >> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+> >> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> >>
+> >> Please add acks when sending new versions as I already acked the last
+> >> version.
+> >>
+> > Since we remove iommu attach and add 4GB support for VPU.
+> > We send the new device tree and binding document.
+> > We do not add Acked-by in v4 patches.
+> 
+> Okay, then you should explain that in the patch.
+> 
+Got it. I explained that in cover-letter "[PATCH v4 0/8] Add MT8173
+Video Encoder Driver and VPU Driver", I will explain it in the patch in
+next version.
 
-B. PX-Q3PE (4 ISDB-S + 4 ISDB-T receiver)
- 1. ASICEN	ASV5220		: PCI-E bridge
- 2. Toshiba	TC90522XBG	: quad demodulator (2ch OFDM + 2ch 8PSK)
- 3. NXP Semiconductors TDA20142	: ISDB-S tuner
- 4. Newport Media NM120		: ISDB-T tuner
+> Rob
 
-Буди Романто, AreMa Inc (7):
-  raise adapter number limit
-  add NXP tda2014x & Newport Media nm120/130/131 tuners
-  drop backstabbing drivers
-  Toshiba TC90522XBG quad demodulator (2ch OFDM + 2ch 8PSK) used by both PT3 & PX-Q3PE
-  MaxLinear MxL301RF ISDB-T tuner
-  Sharp QM1D1C0042 ISDB-S tuner
-  PCI bridge driver for PT3 & PXQ3PE
-
- drivers/media/dvb-core/dvbdev.h       |   2 +-
- drivers/media/dvb-frontends/tc90522.c | 959 +++++++---------------------------
- drivers/media/dvb-frontends/tc90522.h |  36 +-
- drivers/media/pci/Kconfig             |   2 +-
- drivers/media/pci/Makefile            |   2 +-
- drivers/media/pci/pt3/Kconfig         |  10 -
- drivers/media/pci/pt3/Makefile        |   8 -
- drivers/media/pci/pt3/pt3.c           | 873 -------------------------------
- drivers/media/pci/pt3/pt3.h           | 186 -------
- drivers/media/pci/pt3/pt3_dma.c       | 225 --------
- drivers/media/pci/pt3/pt3_i2c.c       | 240 ---------
- drivers/media/pci/ptx/Kconfig         |  21 +
- drivers/media/pci/ptx/Makefile        |   8 +
- drivers/media/pci/ptx/pt3_pci.c       | 509 ++++++++++++++++++
- drivers/media/pci/ptx/ptx_common.c    | 215 ++++++++
- drivers/media/pci/ptx/ptx_common.h    |  68 +++
- drivers/media/pci/ptx/pxq3pe_pci.c    | 607 +++++++++++++++++++++
- drivers/media/tuners/Kconfig          |  14 +
- drivers/media/tuners/Makefile         |   2 +
- drivers/media/tuners/mxl301rf.c       | 468 +++++++----------
- drivers/media/tuners/mxl301rf.h       |  19 +-
- drivers/media/tuners/nm131.c          | 272 ++++++++++
- drivers/media/tuners/nm131.h          |  13 +
- drivers/media/tuners/qm1d1c0042.c     | 566 +++++++-------------
- drivers/media/tuners/qm1d1c0042.h     |  30 +-
- drivers/media/tuners/tda2014x.c       | 356 +++++++++++++
- drivers/media/tuners/tda2014x.h       |  13 +
- 27 files changed, 2691 insertions(+), 3033 deletions(-)
- delete mode 100644 drivers/media/pci/pt3/Kconfig
- delete mode 100644 drivers/media/pci/pt3/Makefile
- delete mode 100644 drivers/media/pci/pt3/pt3.c
- delete mode 100644 drivers/media/pci/pt3/pt3.h
- delete mode 100644 drivers/media/pci/pt3/pt3_dma.c
- delete mode 100644 drivers/media/pci/pt3/pt3_i2c.c
- create mode 100644 drivers/media/pci/ptx/Kconfig
- create mode 100644 drivers/media/pci/ptx/Makefile
- create mode 100644 drivers/media/pci/ptx/pt3_pci.c
- create mode 100644 drivers/media/pci/ptx/ptx_common.c
- create mode 100644 drivers/media/pci/ptx/ptx_common.h
- create mode 100644 drivers/media/pci/ptx/pxq3pe_pci.c
- create mode 100644 drivers/media/tuners/nm131.c
- create mode 100644 drivers/media/tuners/nm131.h
- create mode 100644 drivers/media/tuners/tda2014x.c
- create mode 100644 drivers/media/tuners/tda2014x.h
-
--- 
-2.3.10
 
