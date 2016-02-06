@@ -1,80 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f57.google.com ([209.85.192.57]:33985 "EHLO
-	mail-qg0-f57.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757748AbcBDLVH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 06:21:07 -0500
-Received: by mail-qg0-f57.google.com with SMTP id 69so12585510qgn.1
-        for <linux-media@vger.kernel.org>; Thu, 04 Feb 2016 03:21:05 -0800 (PST)
-Date: Wed, 3 Feb 2016 22:48:39 -0800 (PST)
-From: yangkkokk@gmail.com
-To: linux-sunxi <linux-sunxi@googlegroups.com>
-Cc: patapovich@gmail.com, linux-media@vger.kernel.org
-Message-Id: <1a36e3cf-2ec4-4428-92db-1b721d7873c8@googlegroups.com>
-In-Reply-To: <CA+C5N_r6Vm8O==F4-EDakMPDnzTVKW9aifDPiEtFCW=9UBkQ8Q@mail.gmail.com>
-References: <520BC1EF.9030204@gmail.com>
- <ed81b21e-44e4-40db-bfaa-6fbad2b5d7cb@googlegroups.com>
- <53E9C88B.7050400@gmail.com>
- <729740fb-4a6f-4a7e-a151-dd12d2d8d944@googlegroups.com>
- <CA+C5N_r6Vm8O==F4-EDakMPDnzTVKW9aifDPiEtFCW=9UBkQ8Q@mail.gmail.com>
-Subject: Re: [PATCH v4 2/2] [stage/sunxi-3.4] Add support for Allwinner
- (DVB/ATSC) Transport Stream Controller(s) (TSC)
+Received: from v-smtpgw1.han.skanova.net ([81.236.60.204]:46346 "EHLO
+	v-smtpgw1.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751794AbcBFKqY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Feb 2016 05:46:24 -0500
+Received: from [192.168.0.3] (tobbe.lan [192.168.0.3])
+	by gammdatan.lan (8.15.2/8.14.7) with ESMTP id u16AkKF9007476
+	for <linux-media@vger.kernel.org>; Sat, 6 Feb 2016 11:46:20 +0100
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
+Subject: dvb_usb_dvbsky module not loading (ida_remove something)
+Message-ID: <56B5CEFC.3080105@mbox200.swipnet.se>
+Date: Sat, 6 Feb 2016 11:46:20 +0100
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_54_86844627.1454568519524"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-------=_Part_54_86844627.1454568519524
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hello.
 
-=E5=9C=A8 2014=E5=B9=B48=E6=9C=8812=E6=97=A5=E6=98=9F=E6=9C=9F=E4=BA=8C UTC=
-+8=E4=B8=8B=E5=8D=8811:20:16=EF=BC=8Canuroop kamu=E5=86=99=E9=81=93=EF=BC=
-=9A
-> Hi Miska, Thanks for that Doc
->=20
->=20
-> I am still not able to visualize it fully. if this Tsc driver works well,=
- which buffer/fifo will the data be available?=C2=A0
-> Do I need to make a separate media player app to get this data? Or any de=
-fault media player can play the video directly from /dev/tsc_dev (or /dev/v=
-ideo0) ?
->=20
-> I am trying to use the default AW TS driver for A20.
->=20
->=20
-> please correct me if my understanding is wrong.
->=20
->=20
-> thanks
-> Anuroop=C2=A0
->=20
->=20
->=20
->=20
->=20
-> On Tue, Aug 12, 2014 at 5:51 PM, Mihail Tommonen <patap...@gmail.com> wro=
-te:
->=20
->=20
-> Hi,
->=20
->=20
-> 2. I've suspended my TSC project until a complete A20 TSC manual is avail=
-able or I get the time for register probe rev. engineering.
->=20
->=20
->=20
-> Have you seen this: http://dl.linux-sunxi.org/A10/A10%20Transport%20Strea=
-m%20Controller%20V1.00%2020120917.pdf
->=20
-> I expect a20 tsc to be really similiart to a10.=20
->=20
-> WBR
->=20
-> Miska
+i was testing media_build on a test vm with one of my usb dvb-t2 devices.
+a few weeks ago this worked fine and modules loaded but now during boot 
+i get the below errors in dmesg.
 
-hi
-  you must have a tsdeviver like dibcom 3000 or anything,so you can done it=
-.
-------=_Part_54_86844627.1454568519524--
+any idea whats going on?
+
+can someone also tell me how to go back to an earlier version or point 
+me to where i can do some reading about it so i can try to find out when 
+it broke?
+
+
+
+----
+[    5.377423] WARNING: You are using an experimental version of the 
+media stack.
+                 As the driver is backported to an older kernel, it 
+doesn't offer
+                 enough quality for its usage in production.
+                 Use it with care.
+                Latest git patches (needed if you report a bug to 
+linux-media@vger.kernel.org):
+                 e545ac872ff884801a48beb7e6e0fc7513555fd9 [media] 
+tvp5150: Add pad-level subdev operations
+                 4f57d27be2a5a10ad042fcfd97c5ea9f4d5215f7 [media] 
+tvp5150: fix tvp5150_fill_fmt()
+                 841502d731f1708aae907d5bdf1659e8a372fc9a Revert [media] 
+tvp5150: Fix breakage for serial usage
+[    5.559672] usb 1-5: dvb_usb_v2: found a 'TechnoTrend TT-connect 
+CT2-4650 CI v1.1' in warm state
+[    5.559759] usb 1-5: dvb_usb_v2: will pass the complete MPEG2 
+transport stream to the software demuxer
+[    5.559777] DVB: registering new adapter (TechnoTrend TT-connect 
+CT2-4650 CI v1.1)
+[    5.559781] usb 1-5: media controller created
+[    5.561329] usb 1-5: dvb_usb_v2: MAC address: bc:ea:2b:65:06:6f
+[    5.561816] dvb_create_media_entity: media entity 'dvb-demux' registered.
+[    5.566366] i2c i2c-1: Added multiplexed i2c bus 2
+[    5.566369] si2168 1-0064: Silicon Labs Si2168 successfully attached
+[    5.577179] si2157 2-0060: Silicon Labs Si2147/2148/2157/2158 
+successfully attached
+[    5.587843] dvb_create_media_entity: media entity 'dvb-ca-en50221' 
+registered.
+[    5.588476] sp2 1-0040: CIMaX SP2 successfully attached
+[    5.588484] usb 1-5: DVB: registering adapter 0 frontend 0 (Silicon 
+Labs Si2168)...
+[    5.588488] dvb_create_media_entity: media entity 'Silicon Labs 
+Si2168' registered.
+[    5.591376] ------------[ cut here ]------------
+[    5.591383] WARNING: CPU: 1 PID: 560 at lib/idr.c:1051 
+ida_remove+0xef/0x120()
+[    5.591384] ida_remove called for id=512 which is not allocated.
+[    5.591385] Modules linked in: sp2(OE) si2157(OE) si2168(OE) 
+dvb_usb_dvbsky(OE+) m88ds3103(OE) dvb_usb_v2(OE) i2c_mux dvb_core(OE) 
+rc_core(OE) media(OE) joydev ppdev iosf_mbi crct10dif_pclmul 
+crc32_pclmul crc32c_intel snd_hda_codec_generic snd_hda_intel 
+snd_hda_codec snd_hda_core snd_hwdep snd_seq snd_seq_device 
+virtio_balloon snd_pcm snd_timer pvpanic snd parport_pc parport 
+i2c_piix4 soundcore acpi_cpufreq tpm_tis tpm qxl drm_kms_helper ttm 
+8021q garp stp virtio_console llc virtio_blk mrp virtio_net drm 
+serio_raw virtio_pci virtio_ring virtio ata_generic pata_acpi
+[    5.591436] CPU: 1 PID: 560 Comm: systemd-udevd Tainted: G 
+OE   4.3.4-200.fc22.x86_64 #1
+[    5.591437] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+[    5.591438]  0000000000000000 00000000999f62be ffff8800369cb6f8 
+ffffffff813a625f
+[    5.591440]  ffff8800369cb740 ffff8800369cb730 ffffffff810a07c2 
+ffff88007b61b3e8
+[    5.591442]  ffff88007b61b3e8 0000000000000206 ffff8800369e3500 
+ffff88007b45c158
+[    5.591491] Call Trace:
+[    5.591504]  [<ffffffff813a625f>] dump_stack+0x44/0x55
+[    5.591507]  [<ffffffff810a07c2>] warn_slowpath_common+0x82/0xc0
+[    5.591516]  [<ffffffff810a085c>] warn_slowpath_fmt+0x5c/0x80
+[    5.591519]  [<ffffffff813bab85>] ? find_next_bit+0x15/0x20
+[    5.591521]  [<ffffffff813a73ff>] ida_remove+0xef/0x120
+[    5.591523]  [<ffffffff813a7e7b>] ida_simple_remove+0x2b/0x50
+[    5.591527]  [<ffffffffa022004d>] 
+__media_device_unregister_entity+0x2d/0xd0 [media]
+[    5.591529]  [<ffffffffa022011c>] 
+media_device_unregister_entity+0x2c/0x40 [media]
+[    5.591532]  [<ffffffffa023a0ff>] dvb_media_device_free+0x1f/0x130 
+[dvb_core]
+[    5.591535]  [<ffffffffa023a252>] dvb_unregister_device+0x42/0x80 
+[dvb_core]
+[    5.591539]  [<ffffffffa0240a05>] dvb_ca_en50221_release+0x75/0xb0 
+[dvb_core]
+[    5.591541]  [<ffffffffa0235289>] sp2_remove+0x49/0xa0 [sp2]
+[    5.591554]  [<ffffffff815dc18b>] i2c_device_remove+0x4b/0xa0
+[    5.591557]  [<ffffffff814d9501>] __device_release_driver+0xa1/0x150
+[    5.591566]  [<ffffffff814d95d3>] device_release_driver+0x23/0x30
+[    5.591568]  [<ffffffff814d8c21>] bus_remove_device+0x101/0x170
+[    5.591571]  [<ffffffff814d4ec9>] device_del+0x139/0x260
+[    5.591573]  [<ffffffff813a8647>] ? kobject_put+0x27/0x50
+[    5.591575]  [<ffffffff815dc680>] ? __unregister_dummy+0x30/0x30
+[    5.591577]  [<ffffffff814d500e>] device_unregister+0x1e/0x60
+[    5.591578]  [<ffffffff815dc6be>] __unregister_client+0x3e/0x50
+[    5.591581]  [<ffffffff814d4970>] device_for_each_child+0x50/0x90
+[    5.591583]  [<ffffffff815de99e>] i2c_del_adapter+0x20e/0x300
+[    5.591586]  [<ffffffff81203ed8>] ? kfree+0x128/0x130
+[    5.591599]  [<ffffffffa0263974>] dvb_usbv2_exit+0x1c4/0x3c0 [dvb_usb_v2]
+[    5.591602]  [<ffffffffa026444f>] dvb_usbv2_probe+0xff/0x1270 
+[dvb_usb_v2]
+[    5.591605]  [<ffffffff814e4619>] ? __pm_runtime_set_status+0x189/0x230
+[    5.591616]  [<ffffffff81570282>] usb_probe_interface+0x1b2/0x2d0
+[    5.591658]  [<ffffffff814d9b82>] driver_probe_device+0x222/0x480
+[    5.591660]  [<ffffffff814d9e64>] __driver_attach+0x84/0x90
+[    5.591662]  [<ffffffff814d9de0>] ? driver_probe_device+0x480/0x480
+[    5.591663]  [<ffffffff814d765c>] bus_for_each_dev+0x6c/0xc0
+[    5.591665]  [<ffffffff814d933e>] driver_attach+0x1e/0x20
+[    5.591666]  [<ffffffff814d8e7b>] bus_add_driver+0x1eb/0x280
+[    5.591668]  [<ffffffff814da6b0>] driver_register+0x60/0xe0
+[    5.591670]  [<ffffffff8156eb24>] usb_register_driver+0x84/0x140
+[    5.591672]  [<ffffffffa003f000>] ? 0xffffffffa003f000
+[    5.591675]  [<ffffffffa003f01e>] dvbsky_usb_driver_init+0x1e/0x1000 
+[dvb_usb_dvbsky]
+[    5.591677]  [<ffffffff81002123>] do_one_initcall+0xb3/0x200
+[    5.591680]  [<ffffffff8120427e>] ? kmem_cache_alloc_trace+0x19e/0x220
+[    5.591682]  [<ffffffff811a4947>] ? do_init_module+0x27/0x1e5
+[    5.591684]  [<ffffffff811a497f>] do_init_module+0x5f/0x1e5
+[    5.591688]  [<ffffffff811254fe>] load_module+0x201e/0x2630
+[    5.591700]  [<ffffffff811219c0>] ? __symbol_put+0x60/0x60
+[    5.591703]  [<ffffffff81229830>] ? kernel_read+0x50/0x80
+[    5.591706]  [<ffffffff81125d59>] SyS_finit_module+0xb9/0xf0
+[    5.591716]  [<ffffffff8178182e>] entry_SYSCALL_64_fastpath+0x12/0x71
+[    5.591718] ---[ end trace 60bef98e54788a23 ]---
+[    5.592176] dvb_usb_dvbsky: probe of 1-5:1.0 failed with error -12
+[    5.592198] usbcore: registered new interface driver dvb_usb_dvbsky
+----
