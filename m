@@ -1,78 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40771 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753107AbcBIPth (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2016 10:49:37 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH] [media] au0828: only create V4L2 graph if V4L2 is registered
-Date: Tue,  9 Feb 2016 13:48:13 -0200
-Message-Id: <3a61444b9edbcb05dab9d5e6c6703e13ca6dbe3d.1455032887.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from plane.gmane.org ([80.91.229.3]:45582 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753080AbcBFVKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Feb 2016 16:10:06 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1aSA7H-0004rP-Tw
+	for linux-media@vger.kernel.org; Sat, 06 Feb 2016 22:10:03 +0100
+Received: from p5DC5EEEC.dip0.t-ipconnect.de ([93.197.238.236])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 06 Feb 2016 22:10:03 +0100
+Received: from lists by p5DC5EEEC.dip0.t-ipconnect.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 06 Feb 2016 22:10:03 +0100
+To: linux-media@vger.kernel.org
+From: Hendrik Grewe <lists@b4ckbone.de>
+Subject: Re: Problems with TV card "TeVii S472"
+Date: Sat, 6 Feb 2016 20:50:00 +0000 (UTC)
+Message-ID: <loom.20160206T214500-421@post.gmane.org>
+References: <1449844281.21939.5.camel@oenings.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It doesn't make sense to try to create the analog TV graph,
-if the device fails to register at V4L2, or if it doesn't have
-V4L2 support.
-
-Thanks to Shuah for pointing this issue.
-
-Reported-by: Shuah Khan <shuahkh@osg.samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index df2bc3f732b6..0a8afbf181c9 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -419,8 +419,21 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 
- #ifdef CONFIG_VIDEO_AU0828_V4L2
- 	/* Analog TV */
--	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED)
--		au0828_analog_register(dev, interface);
-+	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED) {
-+		retval = au0828_analog_register(dev, interface);
-+		if (retval) {
-+			pr_err("%s() au0282_dev_register failed to register on V4L2\n",
-+			       __func__);
-+			goto done;
-+		}
-+
-+		retval = au0828_create_media_graph(dev);
-+		if (retval) {
-+			pr_err("%s() au0282_dev_register failed to create graph\n",
-+			       __func__);
-+			goto done;
-+		}
-+	}
- #endif
- 
- 	/* Digital TV */
-@@ -443,13 +456,6 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 
- 	mutex_unlock(&dev->lock);
- 
--	retval = au0828_create_media_graph(dev);
--	if (retval) {
--		pr_err("%s() au0282_dev_register failed to create graph\n",
--		       __func__);
--		goto done;
--	}
--
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	retval = media_device_register(dev->media_dev);
- #endif
--- 
-2.5.0
+SGVuZHJpayBPZW5pbmdzIDxkZWJpYW4gPGF0PiBvZW5pbmdzLmRlPiB3cml0ZXM6Cgo+IAo+IEhpIGFsbCwKPiAKPiBJJ3ZlIGdvdCBhIERWQi1TMiBQQ0ktRXhwcmVzcyB0diBjYXJkICgiVGV2aWkgUzQ3MiIswqBodHRwOi8vdGV2aWkuY29tL1AKPiByb2R1Y3RzX1M0NzJfMS5hc3ApIHdpdGggRGViaWFuIHRlc3RpbmcsIGJ1dCBJJ20gbm90IGFibGUgdG8gZ2V0IGl0Cj4gd29yay4KCgpBbnkgbmV3cyBvbiB0aGlzPyBZT3UgZ290IGl0IHRvIHdvcms/CgoKSSBoYXZlIGEgdmVyeSBzaW1pbGFyIHByb2JsZW0gd2l0aCBhIFRldmlpIFM0NzAgWzFdKG5vdCkgcnVubmluZyBvbiBVYnVudHUgCjE1LjEwIHdpdGggNC4yIG9yIDQuMyBrZXJuZWxzLgoKVGhlIERWQi1TIGNhcmQgd29ya2VkIHdpdGhvdXQgcHJvYmxlbSB3aXRoIHVidW50dSAxNC4wNCBidXQgbm93IGl0IGlzIG5vdCAKZXZlbiBsaXN0ZWQgYnkgbHNwY2kgLi4uCgoKWzFdClJGIFR1bmVyOiBNb250YWdlIE04OFRTMjAyMApEZW1vZHVsYXRvcjogTW9udGFnZSBNODhEUzMwMDAKUENJZSBicmlkZ2U6IENvbmV4YW50IGN4MjM4ODUKCiBodHRwczovL3d3dy5saW51eHR2Lm9yZy93aWtpL2luZGV4LnBocC9UZVZpaV9TNDcw
 
