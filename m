@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53437 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751944AbcBCNq4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2016 08:46:56 -0500
-To: Wolfram Sang <wsa@the-dreams.de>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: tvp5150 regression after commit 9f924169c035
-Cc: linux-i2c@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <56B204CB.60602@osg.samsung.com>
-Date: Wed, 3 Feb 2016 10:46:51 -0300
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34056 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754121AbcBGUOZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2016 15:14:25 -0500
+Received: by mail-wm0-f67.google.com with SMTP id p63so12474209wmp.1
+        for <linux-media@vger.kernel.org>; Sun, 07 Feb 2016 12:14:24 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 3/3] media: rc: nuvoton: expose most recent raw packet via
+ sysfs
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <56B7A596.3050503@gmail.com>
+Date: Sun, 7 Feb 2016 21:14:14 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Wolfram,
+Make use of the recently introduced functionality to expose raw packet data
+via sysfs.
 
-I've a issue with a I2C video decoder driver (drivers/media/i2c/tvp5150.c).
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-In v4.5-rc1, the driver gets I2C read / writes timeouts when accessing the
-device I2C registers:
-
-tvp5150 1-005c: i2c i/o error: rc == -110
-tvp5150: probe of 1-005c failed with error -110
-
-The driver used to work up to v4.4 so this is a regression in v4.5-rc1:
-
-tvp5150 1-005c: tvp5151 (1.0) chip found @ 0xb8 (OMAP I2C adapter)
-tvp5150 1-005c: tvp5151 detected.
-
-I tracked down to commit 9f924169c035 ("i2c: always enable RuntimePM for
-the adapter device") and reverting that commit makes things to work again.
-
-The tvp5150 driver doesn't have runtime PM support but the I2C controller
-driver does (drivers/i2c/busses/i2c-omap.c) FWIW.
-
-I tried adding runtime PM support to tvp5150 (basically calling pm_runtime
-enable/get on probe before the first I2C read to resume the controller) but
-that it did not work.
-
-Not filling the OMAP I2C driver's runtime PM callbacks does not help either.
-
-Any hints about the proper way to fix this issue?
-
-Best regards,
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index c96da3a..4b97a6f 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -692,6 +692,7 @@ static void nvt_process_rx_ir_data(struct nvt_dev *nvt)
+ 
+ 	for (i = 0; i < nvt->pkts; i++) {
+ 		sample = nvt->buf[i];
++		ir_raw_store_sysfs_lrp(nvt->rdev, sample);
+ 
+ 		rawir.pulse = ((sample & BUF_PULSE_BIT) != 0);
+ 		rawir.duration = US_TO_NS((sample & BUF_LEN_MASK)
+@@ -1102,6 +1103,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 	rdev->timeout = MS_TO_NS(100);
+ 	/* rx resolution is hardwired to 50us atm, 1, 25, 100 also possible */
+ 	rdev->rx_resolution = US_TO_NS(CIR_SAMPLE_PERIOD);
++	rdev->enable_sysfs_lrp = true;
+ #if 0
+ 	rdev->min_timeout = XYZ;
+ 	rdev->max_timeout = XYZ;
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.7.0
+
