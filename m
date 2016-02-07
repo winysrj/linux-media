@@ -1,110 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52527 "EHLO comal.ext.ti.com"
+Received: from mout.web.de ([212.227.17.12]:51093 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751910AbcBOUBs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 15:01:48 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [Patch] media: ti-vpe: cal: Fix syntax check warnings
-Date: Mon, 15 Feb 2016 14:01:42 -0600
-Message-ID: <1455566502-29576-1-git-send-email-bparrot@ti.com>
+	id S1750997AbcBGTXI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2016 14:23:08 -0500
+Subject: Re: [PATCH] media: dvb_ringbuffer: Add memory barriers
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1451248920-4935-1-git-send-email-smoch@web.de>
+Cc: Soeren Moch <smoch@web.de>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+From: Soeren Moch <smoch@web.de>
+Message-ID: <56B7997C.1070503@web.de>
+Date: Sun, 7 Feb 2016 20:22:36 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1451248920-4935-1-git-send-email-smoch@web.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the following sparse warnings:
+On 27.12.2015 21:41, Soeren Moch wrote:
+> Implement memory barriers according to Documentation/circular-buffers.txt:
+> - use smp_store_release() to update ringbuffer read/write pointers
+> - use smp_load_acquire() to load write pointer on reader side
+> - use ACCESS_ONCE() to load read pointer on writer side
+>
+> This fixes data stream corruptions observed e.g. on an ARM Cortex-A9
+> quad core system with different types (PCI, USB) of DVB tuners.
+>
+> Signed-off-by: Soeren Moch <smoch@web.de>
+> Cc: stable@vger.kernel.org # 3.14+
 
-ti-vpe/cal.c:387:26: warning: incorrect type in return expression (different address spaces)
-ti-vpe/cal.c:459:26: warning: incorrect type in return expression (different address spaces)
-ti-vpe/cal.c:503:27: warning: incorrect type in argument 6 (different address spaces)
-ti-vpe/cal.c:509:47: warning: incorrect type in argument 6 (different address spaces)
-ti-vpe/cal.c:518:47: warning: incorrect type in argument 6 (different address spaces)
-ti-vpe/cal.c:526:31: warning: incorrect type in argument 6 (different address spaces)
-ti-vpe/cal.c:1807:24: warning: Using plain integer as NULL pointer
-ti-vpe/cal.c:1844:16: warning: Using plain integer as NULL pointer
+Mauro,
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- drivers/media/platform/ti-vpe/cal.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+any news or comments on this?
+Since this is a real fix for broken behaviour, can you pick this up, please?
 
-diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-index 69ec79ba49ee..35fa1071c5b2 100644
---- a/drivers/media/platform/ti-vpe/cal.c
-+++ b/drivers/media/platform/ti-vpe/cal.c
-@@ -384,7 +384,7 @@ static struct cm_data *cm_create(struct cal_dev *dev)
- 	cm->base = devm_ioremap_resource(&pdev->dev, cm->res);
- 	if (IS_ERR(cm->base)) {
- 		cal_err(dev, "failed to ioremap\n");
--		return cm->base;
-+		return ERR_CAST(cm->base);
- 	}
- 
- 	cal_dbg(1, dev, "ioresource %s at %pa - %pa\n",
-@@ -456,7 +456,7 @@ static struct cc_data *cc_create(struct cal_dev *dev, unsigned int core)
- 	cc->base = devm_ioremap_resource(&pdev->dev, cc->res);
- 	if (IS_ERR(cc->base)) {
- 		cal_err(dev, "failed to ioremap\n");
--		return cc->base;
-+		return ERR_CAST(cc->base);
- 	}
- 
- 	cal_dbg(1, dev, "ioresource %s at %pa - %pa\n",
-@@ -500,13 +500,14 @@ static void cal_quickdump_regs(struct cal_dev *dev)
- {
- 	cal_info(dev, "CAL Registers @ 0x%pa:\n", &dev->res->start);
- 	print_hex_dump(KERN_INFO, "", DUMP_PREFIX_OFFSET, 16, 4,
--		       dev->base, resource_size(dev->res), false);
-+		       (__force const void *)dev->base,
-+		       resource_size(dev->res), false);
- 
- 	if (dev->ctx[0]) {
- 		cal_info(dev, "CSI2 Core 0 Registers @ %pa:\n",
- 			 &dev->ctx[0]->cc->res->start);
- 		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_OFFSET, 16, 4,
--			       dev->ctx[0]->cc->base,
-+			       (__force const void *)dev->ctx[0]->cc->base,
- 			       resource_size(dev->ctx[0]->cc->res),
- 			       false);
- 	}
-@@ -515,7 +516,7 @@ static void cal_quickdump_regs(struct cal_dev *dev)
- 		cal_info(dev, "CSI2 Core 1 Registers @ %pa:\n",
- 			 &dev->ctx[1]->cc->res->start);
- 		print_hex_dump(KERN_INFO, "", DUMP_PREFIX_OFFSET, 16, 4,
--			       dev->ctx[1]->cc->base,
-+			       (__force const void *)dev->ctx[1]->cc->base,
- 			       resource_size(dev->ctx[1]->cc->res),
- 			       false);
- 	}
-@@ -523,7 +524,7 @@ static void cal_quickdump_regs(struct cal_dev *dev)
- 	cal_info(dev, "CAMERRX_Control Registers @ %pa:\n",
- 		 &dev->cm->res->start);
- 	print_hex_dump(KERN_INFO, "", DUMP_PREFIX_OFFSET, 16, 4,
--		       dev->cm->base,
-+		       (__force const void *)dev->cm->base,
- 		       resource_size(dev->cm->res), false);
- }
- 
-@@ -1804,7 +1805,7 @@ static struct cal_ctx *cal_create_instance(struct cal_dev *dev, int inst)
- 
- 	ctx = devm_kzalloc(&dev->pdev->dev, sizeof(*ctx), GFP_KERNEL);
- 	if (!ctx)
--		return 0;
-+		return NULL;
- 
- 	/* save the cal_dev * for future ref */
- 	ctx->dev = dev;
-@@ -1841,7 +1842,7 @@ free_hdl:
- unreg_dev:
- 	v4l2_device_unregister(&ctx->v4l2_dev);
- err_exit:
--	return 0;
-+	return NULL;
- }
- 
- static int cal_probe(struct platform_device *pdev)
--- 
-1.8.5.1
+Regards,
+Soeren
+
+> ---
+> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+>
+> Since smp_store_release() and smp_load_acquire() were introduced in linux-3.14,
+> a 3.14+ stable tag was added. Is it desired to apply a similar patch to older
+> stable kernels?
+> ---
+>  drivers/media/dvb-core/dvb_ringbuffer.c | 27 ++++++++++++++-------------
+>  1 file changed, 14 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/media/dvb-core/dvb_ringbuffer.c b/drivers/media/dvb-core/dvb_ringbuffer.c
+> index 1100e98..58b5968 100644
+> --- a/drivers/media/dvb-core/dvb_ringbuffer.c
+> +++ b/drivers/media/dvb-core/dvb_ringbuffer.c
+> @@ -55,7 +55,7 @@ void dvb_ringbuffer_init(struct dvb_ringbuffer *rbuf, void *data, size_t len)
+>  
+>  int dvb_ringbuffer_empty(struct dvb_ringbuffer *rbuf)
+>  {
+> -	return (rbuf->pread==rbuf->pwrite);
+> +	return (rbuf->pread == smp_load_acquire(&rbuf->pwrite));
+>  }
+>  
+>  
+> @@ -64,7 +64,7 @@ ssize_t dvb_ringbuffer_free(struct dvb_ringbuffer *rbuf)
+>  {
+>  	ssize_t free;
+>  
+> -	free = rbuf->pread - rbuf->pwrite;
+> +	free = ACCESS_ONCE(rbuf->pread) - rbuf->pwrite;
+>  	if (free <= 0)
+>  		free += rbuf->size;
+>  	return free-1;
+> @@ -76,7 +76,7 @@ ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf)
+>  {
+>  	ssize_t avail;
+>  
+> -	avail = rbuf->pwrite - rbuf->pread;
+> +	avail = smp_load_acquire(&rbuf->pwrite) - rbuf->pread;
+>  	if (avail < 0)
+>  		avail += rbuf->size;
+>  	return avail;
+> @@ -86,14 +86,15 @@ ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf)
+>  
+>  void dvb_ringbuffer_flush(struct dvb_ringbuffer *rbuf)
+>  {
+> -	rbuf->pread = rbuf->pwrite;
+> +	smp_store_release(&rbuf->pread, smp_load_acquire(&rbuf->pwrite));
+>  	rbuf->error = 0;
+>  }
+>  EXPORT_SYMBOL(dvb_ringbuffer_flush);
+>  
+>  void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf)
+>  {
+> -	rbuf->pread = rbuf->pwrite = 0;
+> +	smp_store_release(&rbuf->pread, 0);
+> +	smp_store_release(&rbuf->pwrite, 0);
+>  	rbuf->error = 0;
+>  }
+>  
+> @@ -119,12 +120,12 @@ ssize_t dvb_ringbuffer_read_user(struct dvb_ringbuffer *rbuf, u8 __user *buf, si
+>  			return -EFAULT;
+>  		buf += split;
+>  		todo -= split;
+> -		rbuf->pread = 0;
+> +		smp_store_release(&rbuf->pread, 0);
+>  	}
+>  	if (copy_to_user(buf, rbuf->data+rbuf->pread, todo))
+>  		return -EFAULT;
+>  
+> -	rbuf->pread = (rbuf->pread + todo) % rbuf->size;
+> +	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
+>  
+>  	return len;
+>  }
+> @@ -139,11 +140,11 @@ void dvb_ringbuffer_read(struct dvb_ringbuffer *rbuf, u8 *buf, size_t len)
+>  		memcpy(buf, rbuf->data+rbuf->pread, split);
+>  		buf += split;
+>  		todo -= split;
+> -		rbuf->pread = 0;
+> +		smp_store_release(&rbuf->pread, 0);
+>  	}
+>  	memcpy(buf, rbuf->data+rbuf->pread, todo);
+>  
+> -	rbuf->pread = (rbuf->pread + todo) % rbuf->size;
+> +	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
+>  }
+>  
+>  
+> @@ -158,10 +159,10 @@ ssize_t dvb_ringbuffer_write(struct dvb_ringbuffer *rbuf, const u8 *buf, size_t
+>  		memcpy(rbuf->data+rbuf->pwrite, buf, split);
+>  		buf += split;
+>  		todo -= split;
+> -		rbuf->pwrite = 0;
+> +		smp_store_release(&rbuf->pwrite, 0);
+>  	}
+>  	memcpy(rbuf->data+rbuf->pwrite, buf, todo);
+> -	rbuf->pwrite = (rbuf->pwrite + todo) % rbuf->size;
+> +	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
+>  
+>  	return len;
+>  }
+> @@ -181,12 +182,12 @@ ssize_t dvb_ringbuffer_write_user(struct dvb_ringbuffer *rbuf,
+>  			return len - todo;
+>  		buf += split;
+>  		todo -= split;
+> -		rbuf->pwrite = 0;
+> +		smp_store_release(&rbuf->pwrite, 0);
+>  	}
+>  	status = copy_from_user(rbuf->data+rbuf->pwrite, buf, todo);
+>  	if (status)
+>  		return len - todo;
+> -	rbuf->pwrite = (rbuf->pwrite + todo) % rbuf->size;
+> +	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
+>  
+>  	return len;
+>  }
+
 
