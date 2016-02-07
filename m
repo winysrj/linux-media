@@ -1,100 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:34239 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751968AbcBOJ1l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 04:27:41 -0500
-From: info@are.ma
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD?=
-	 =?UTF-8?q?=D1=82=D0=BE=2C=20AreMa=20Inc?= <knightrider@are.ma>,
-	linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
-	mchehab@osg.samsung.com, hdegoede@redhat.com,
-	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
-	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
-	peter.senna@gmail.com
-Subject: [media 0/7] Driver bundle for PT3 & PX-Q3PE
-Date: Mon, 15 Feb 2016 18:27:30 +0900
-Message-Id: <cover.1455528251.git.knightrider@are.ma>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33380 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754797AbcBGUOY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2016 15:14:24 -0500
+Received: by mail-wm0-f66.google.com with SMTP id r129so12481421wmr.0
+        for <linux-media@vger.kernel.org>; Sun, 07 Feb 2016 12:14:23 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 2/3] media: rc: expose most recent raw packet via sysfs
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <56B7A592.9060700@gmail.com>
+Date: Sun, 7 Feb 2016 21:14:10 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Буди Романто, AreMa Inc <knightrider@are.ma>
+This patch introduces a binary read-only sysfs attribute last_raw_packet
+to expose the most recent raw packet to userspace.
 
-Polished driver bundle for PT3 & PX-Q3PE, two of the most powerful ISDB-S/ISDB-T receiver cards
-currently available in Japan. Useless features are removed.
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/rc-main.c | 53 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/media/rc-core.h    |  2 +-
+ 2 files changed, 54 insertions(+), 1 deletion(-)
 
-Main Components:
-A. PT3 (2 ISDB-S + 2 ISDB-T receiver)
- 1. Altera	EP4CGX15BF14C8N	: customized FPGA PCI bridge
- 2. Toshiba	TC90522XBG	: quad demodulator (2ch OFDM + 2ch 8PSK)
- 3. Sharp	VA4M6JC2103	: contains 2 ISDB-S + 2 ISDB-T tuners
-	ISDB-S : Sharp QM1D1C0042 RF-IC
-	ISDB-T : MaxLinear CMOS Hybrid TV MxL301RF
-
-B. PX-Q3PE (4 ISDB-S + 4 ISDB-T receiver)
- 1. ASICEN	ASV5220		: PCI-E bridge
- 2. Toshiba	TC90522XBG	: quad demodulator (2ch OFDM + 2ch 8PSK)
- 3. NXP Semiconductors TDA20142	: ISDB-S tuner
- 4. Newport Media NM120		: ISDB-T tuner
-
-Буди Романто, AreMa Inc (7):
-  raise adapter number limit
-  add NXP tda2014x & Newport Media nm120/130/131 tuners
-  drop backstabbing drivers
-  Toshiba TC90522XBG quad demod (2ch OFDM + 2ch 8PSK) for PT3 & PXQ3PE
-  MaxLinear MxL301RF ISDB-T tuner
-  Sharp QM1D1C0042 ISDB-S tuner
-  PCI bridge driver for PT3 & PXQ3PE
-
- drivers/media/dvb-core/dvbdev.h       |   2 +-
- drivers/media/dvb-frontends/tc90522.c | 960 +++++++---------------------------
- drivers/media/dvb-frontends/tc90522.h |  36 +-
- drivers/media/pci/Kconfig             |   2 +-
- drivers/media/pci/Makefile            |   2 +-
- drivers/media/pci/pt3/Kconfig         |  10 -
- drivers/media/pci/pt3/Makefile        |   8 -
- drivers/media/pci/pt3/pt3.c           | 873 -------------------------------
- drivers/media/pci/pt3/pt3.h           | 186 -------
- drivers/media/pci/pt3/pt3_dma.c       | 225 --------
- drivers/media/pci/pt3/pt3_i2c.c       | 240 ---------
- drivers/media/pci/ptx/Kconfig         |  21 +
- drivers/media/pci/ptx/Makefile        |   8 +
- drivers/media/pci/ptx/pt3_pci.c       | 509 ++++++++++++++++++
- drivers/media/pci/ptx/ptx_common.c    | 215 ++++++++
- drivers/media/pci/ptx/ptx_common.h    |  69 +++
- drivers/media/pci/ptx/pxq3pe_pci.c    | 607 +++++++++++++++++++++
- drivers/media/tuners/Kconfig          |  14 +
- drivers/media/tuners/Makefile         |   2 +
- drivers/media/tuners/mxl301rf.c       | 468 +++++++----------
- drivers/media/tuners/mxl301rf.h       |  19 +-
- drivers/media/tuners/nm131.c          | 272 ++++++++++
- drivers/media/tuners/nm131.h          |  13 +
- drivers/media/tuners/qm1d1c0042.c     | 566 +++++++-------------
- drivers/media/tuners/qm1d1c0042.h     |  30 +-
- drivers/media/tuners/tda2014x.c       | 356 +++++++++++++
- drivers/media/tuners/tda2014x.h       |  13 +
- 27 files changed, 2691 insertions(+), 3035 deletions(-)
- delete mode 100644 drivers/media/pci/pt3/Kconfig
- delete mode 100644 drivers/media/pci/pt3/Makefile
- delete mode 100644 drivers/media/pci/pt3/pt3.c
- delete mode 100644 drivers/media/pci/pt3/pt3.h
- delete mode 100644 drivers/media/pci/pt3/pt3_dma.c
- delete mode 100644 drivers/media/pci/pt3/pt3_i2c.c
- create mode 100644 drivers/media/pci/ptx/Kconfig
- create mode 100644 drivers/media/pci/ptx/Makefile
- create mode 100644 drivers/media/pci/ptx/pt3_pci.c
- create mode 100644 drivers/media/pci/ptx/ptx_common.c
- create mode 100644 drivers/media/pci/ptx/ptx_common.h
- create mode 100644 drivers/media/pci/ptx/pxq3pe_pci.c
- create mode 100644 drivers/media/tuners/nm131.c
- create mode 100644 drivers/media/tuners/nm131.h
- create mode 100644 drivers/media/tuners/tda2014x.c
- create mode 100644 drivers/media/tuners/tda2014x.h
-
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 1042fa3..1b1ae6d 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1246,6 +1246,47 @@ unlock:
+ 	return (ret < 0) ? ret : len;
+ }
+ 
++/**
++ * last_raw_packet_read() - shows the most recent packet of raw bytes
++ * This is a binary attribute.
++ *
++ * This routine is a callback routine to read the most recent packet of
++ * raw bytes received.
++ * It is triggered by reading /sys/class/rc/rc?/last_raw_packet.
++ * Most recent means up to BUF_SYSFS_LRP_SZ bytes after the last break
++ * of at least RESTART_SYSFS_LRP_MS milliseconds.
++ *
++ * Primary use is assembling a wakeup sequence for chips supporting this
++ * feature (e.g. nuvoton-cir). Apart from that it can be used for
++ * debugging purposes.
++ */
++static ssize_t last_raw_packet_read(struct file *fp, struct kobject *kobj,
++				    struct bin_attribute *attr, char *buf,
++				    loff_t off, size_t count)
++{
++	struct device *dev = kobj_to_dev(kobj);
++	struct rc_dev *rc_dev = to_rc_dev(dev);
++	unsigned long flags;
++	size_t cnt;
++
++	if (!rc_dev->raw)
++		return 0;
++
++	spin_lock_irqsave(&rc_dev->raw->lock, flags);
++
++	if (off >= rc_dev->raw->buf_sysfs_lrp_cnt) {
++		spin_unlock_irqrestore(&rc_dev->raw->lock, flags);
++		return 0;
++	}
++
++	cnt = min_t(size_t, count, rc_dev->raw->buf_sysfs_lrp_cnt - off);
++	memcpy(buf, rc_dev->raw->buf_sysfs_lrp + off, cnt);
++
++	spin_unlock_irqrestore(&rc_dev->raw->lock, flags);
++
++	return cnt;
++}
++
+ static void rc_dev_release(struct device *device)
+ {
+ }
+@@ -1284,6 +1325,7 @@ static RC_FILTER_ATTR(wakeup_filter, S_IRUGO|S_IWUSR,
+ 		      show_filter, store_filter, RC_FILTER_WAKEUP, false);
+ static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
+ 		      show_filter, store_filter, RC_FILTER_WAKEUP, true);
++static BIN_ATTR_RO(last_raw_packet, BUF_SYSFS_LRP_SZ);
+ 
+ static struct attribute *rc_dev_protocol_attrs[] = {
+ 	&dev_attr_protocols.attr.attr,
+@@ -1323,6 +1365,15 @@ static struct attribute_group rc_dev_wakeup_filter_attr_grp = {
+ 	.attrs	= rc_dev_wakeup_filter_attrs,
+ };
+ 
++static struct bin_attribute *rc_dev_raw_lrp_attrs[] = {
++	&bin_attr_last_raw_packet,
++	NULL,
++};
++
++static struct attribute_group rc_dev_raw_lrp_attr_grp = {
++	.bin_attrs = rc_dev_raw_lrp_attrs,
++};
++
+ static struct device_type rc_dev_type = {
+ 	.release	= rc_dev_release,
+ 	.uevent		= rc_dev_uevent,
+@@ -1417,6 +1468,8 @@ int rc_register_device(struct rc_dev *dev)
+ 		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
+ 	if (dev->change_wakeup_protocol)
+ 		dev->sysfs_groups[attr++] = &rc_dev_wakeup_protocol_attr_grp;
++	if (dev->enable_sysfs_lrp)
++		dev->sysfs_groups[attr++] = &rc_dev_raw_lrp_attr_grp;
+ 	dev->sysfs_groups[attr++] = NULL;
+ 
+ 	/*
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 9542891..e2d89ea 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -122,7 +122,7 @@ enum rc_filter_type {
+  */
+ struct rc_dev {
+ 	struct device			dev;
+-	const struct attribute_group	*sysfs_groups[5];
++	const struct attribute_group	*sysfs_groups[6];
+ 	const char			*input_name;
+ 	const char			*input_phys;
+ 	struct input_id			input_id;
 -- 
-2.3.10
+2.7.0
 
