@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37508 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750996AbcBXGAC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2016 01:00:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Simon Horman <horms+renesas@verge.net.au>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] v4l2: remove MIPI CSI-2 driver for SH-Mobile platforms
-Date: Wed, 24 Feb 2016 07:59:57 +0200
-Message-ID: <2212155.BHpL65I02t@avalon>
-In-Reply-To: <1456279679-11342-1-git-send-email-horms+renesas@verge.net.au>
-References: <1456279679-11342-1-git-send-email-horms+renesas@verge.net.au>
+Received: from mail-pf0-f171.google.com ([209.85.192.171]:36598 "EHLO
+	mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753774AbcBGUIj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2016 15:08:39 -0500
+From: info@are.ma
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD?=
+	 =?UTF-8?q?=D1=82=D0=BE=2C=20AreMa=20Inc?= <knightrider@are.ma>,
+	linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
+	mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 1/1] DVB_MAX_ADAPTERS too low
+Date: Mon,  8 Feb 2016 05:08:35 +0900
+Message-Id: <1e56fb833a2f152c56b33b7f76bcd8f74959fd18.1454874979.git.knightrider@are.ma>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Simon,
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-Thank you for the patch.
+Latest DTV receivers have 8+ tuners per card.
+These cards will not work with the current limit.
+Raise to 64.
 
-On Wednesday 24 February 2016 11:07:59 Simon Horman wrote:
-> This driver does not appear to have ever been used by any SoC's defconfig
-> and does not appear to support DT. In sort it seems unused an unlikely
-> to be used.
-> 
-> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-> ---
->  drivers/media/platform/soc_camera/Kconfig          |   7 -
->  drivers/media/platform/soc_camera/Makefile         |   1 -
->  drivers/media/platform/soc_camera/sh_mobile_csi2.c | 400 ------------------
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+---
+ drivers/media/dvb-core/dvbdev.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Shouldn't you also remove include/media/drv-intf/sh_mobile_csi2.h ? You would 
-then need to update drivers/media/platform/soc_camera/sh_mobile_ceu.c 
-accordingly, or remove it altogether.
-
->  3 files changed, 408 deletions(-)
->  delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_csi2.c
-> 
->  Based on the master branch of media_tree
-
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index 4aff7bd..950decd 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -34,7 +34,7 @@
+ #if defined(CONFIG_DVB_MAX_ADAPTERS) && CONFIG_DVB_MAX_ADAPTERS > 0
+   #define DVB_MAX_ADAPTERS CONFIG_DVB_MAX_ADAPTERS
+ #else
+-  #define DVB_MAX_ADAPTERS 8
++  #define DVB_MAX_ADAPTERS 64
+ #endif
+ 
+ #define DVB_UNSET (-1)
 -- 
-Regards,
-
-Laurent Pinchart
+2.3.10
 
