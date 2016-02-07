@@ -1,124 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:50927 "EHLO lists.s-osg.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:58731 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754893AbcBBXSH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2016 18:18:07 -0500
-Subject: Re: [PATCH] media: Media Controller fix to not let stream_count go
- negative
-To: Sakari Ailus <sakari.ailus@iki.fi>, mchehab@osg.samsung.com
-References: <1454184652-2427-1-git-send-email-shuahkh@osg.samsung.com>
- <20160202225321.GS14876@valkosipuli.retiisi.org.uk>
- <56B13612.1050101@osg.samsung.com>
- <20160202230908.GT14876@valkosipuli.retiisi.org.uk>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56B1392D.6070800@osg.samsung.com>
-Date: Tue, 2 Feb 2016 16:18:05 -0700
-MIME-Version: 1.0
-In-Reply-To: <20160202230908.GT14876@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	id S1754379AbcBGTzJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Feb 2016 14:55:09 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Benjamin Larsson <benjamin@southpole.se>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 4/4] rtl2832: move stats polling to read status
+Date: Sun,  7 Feb 2016 21:54:50 +0200
+Message-Id: <1454874890-10724-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1454874890-10724-1-git-send-email-crope@iki.fi>
+References: <1454874890-10724-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/02/2016 04:09 PM, Sakari Ailus wrote:
-> Hi Shuah,
-> 
-> On Tue, Feb 02, 2016 at 04:04:50PM -0700, Shuah Khan wrote:
->> On 02/02/2016 03:53 PM, Sakari Ailus wrote:
->>> Hi Shuah,
->>>
->>> On Sat, Jan 30, 2016 at 01:10:52PM -0700, Shuah Khan wrote:
->>>> Change media_entity_pipeline_stop() to not decrement
->>>> stream_count of an inactive media pipeline. Doing so,
->>>> results in preventing starting the pipeline.
->>>>
->>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->>>> ---
->>>>  drivers/media/media-entity.c | 18 ++++++++++++------
->>>>  1 file changed, 12 insertions(+), 6 deletions(-)
->>>>
->>>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
->>>> index e89d85a..f2e4360 100644
->>>> --- a/drivers/media/media-entity.c
->>>> +++ b/drivers/media/media-entity.c
->>>> @@ -452,9 +452,12 @@ error:
->>>>  	media_entity_graph_walk_start(graph, entity_err);
->>>>  
->>>>  	while ((entity_err = media_entity_graph_walk_next(graph))) {
->>>> -		entity_err->stream_count--;
->>>> -		if (entity_err->stream_count == 0)
->>>> -			entity_err->pipe = NULL;
->>>> +		/* don't let the stream_count go negative */
->>>> +		if (entity->stream_count > 0) {
->>>> +			entity_err->stream_count--;
->>>> +			if (entity_err->stream_count == 0)
->>>> +				entity_err->pipe = NULL;
->>>> +		}
->>>>  
->>>>  		/*
->>>>  		 * We haven't increased stream_count further than this
->>>> @@ -486,9 +489,12 @@ void media_entity_pipeline_stop(struct media_entity *entity)
->>>>  	media_entity_graph_walk_start(graph, entity);
->>>>  
->>>>  	while ((entity = media_entity_graph_walk_next(graph))) {
->>>> -		entity->stream_count--;
->>>> -		if (entity->stream_count == 0)
->>>> -			entity->pipe = NULL;
->>>> +		/* don't let the stream_count go negative */
->>>> +		if (entity->stream_count > 0) {
->>>> +			entity->stream_count--;
->>>> +			if (entity->stream_count == 0)
->>>> +				entity->pipe = NULL;
->>>> +		}
->>>>  	}
->>>>  
->>>>  	if (!--pipe->streaming_count)
->>>
->>> Have you seen issues with a certain driver, for instance?
->>>
->>> In the original design the streaming count is really a count --- streaming
->>> starts when count becomes non-zero, and stops when it reaches zero again.
->>>
->>> The calls to media_entity_pipeline_start() and media_entity_pipeline_stop()
->>> should thus always be balanced. I'm fine with the patch, but the framework
->>> should shout loud when the count would be decremented when it's zero.
->>>
->>> That was some four or more years ago. I have to say I really haven't been
->>> able to see good reasons for making this a count --- rather what's needed is
->>> to mark the entity as busy so that its link configuration isn't touched. The
->>> request API is a completely different matter then.
->>>
->>> Such change would require more discussion IMHO.
->>>
->>
->> Yes. I found problems with au0828 and ALSA
->> media controller use-case. It got into a state
->> where pipeline was essentially locked in a state.
->> It took some work to debug and find that the
->> stream_count was negative.
->>
->> Granted the start and stop should be balanced, however,
->> the media_entity_pipeline_stop() still needs to protect
->> the stream_count from going negative.
-> 
-> Agreed; I'm fine with the patch, except I think it should complain when that
-> happens rather than silently ignoring it.
-> 
-> WARN_ON(1) perhaps? Or how about dev_err() loudly complaining about a driver
-> bug?
-> 
+Do statistics polling on read status in order to avoid
+unnecessary delayed work.
 
-Yes. I can add a WARN_ON(1). Looks like we are using
-it in other places in media-entity.c
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/rtl2832.c      | 79 ++++++++++++------------------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  1 -
+ 2 files changed, 30 insertions(+), 50 deletions(-)
 
-thanks,
--- Shuah
-
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index a9b2646..cb50488 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -408,8 +408,6 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	c->post_bit_count.len = 1;
+ 	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+-	/* start statistics polling */
+-	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
+ 	dev->sleeping = false;
+ 
+ 	return 0;
+@@ -427,8 +425,6 @@ static int rtl2832_sleep(struct dvb_frontend *fe)
+ 	dev_dbg(&client->dev, "\n");
+ 
+ 	dev->sleeping = true;
+-	/* stop statistics polling */
+-	cancel_delayed_work_sync(&dev->stat_work);
+ 	dev->fe_status = 0;
+ 
+ 	ret = rtl2832_wr_demod_reg(dev, DVBT_SOFT_RST, 0x1);
+@@ -691,8 +687,11 @@ static int rtl2832_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ {
+ 	struct rtl2832_dev *dev = fe->demodulator_priv;
+ 	struct i2c_client *client = dev->client;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	u32 uninitialized_var(tmp);
++	u8 u8tmp, buf[2];
++	u16 u16tmp;
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+@@ -713,45 +712,6 @@ static int rtl2832_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 	}
+ 
+ 	dev->fe_status = *status;
+-	return 0;
+-err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
+-	return ret;
+-}
+-
+-static int rtl2832_read_snr(struct dvb_frontend *fe, u16 *snr)
+-{
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-
+-	/* report SNR in resolution of 0.1 dB */
+-	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL)
+-		*snr = div_s64(c->cnr.stat[0].svalue, 100);
+-	else
+-		*snr = 0;
+-
+-	return 0;
+-}
+-
+-static int rtl2832_read_ber(struct dvb_frontend *fe, u32 *ber)
+-{
+-	struct rtl2832_dev *dev = fe->demodulator_priv;
+-
+-	*ber = (dev->post_bit_error - dev->post_bit_error_prev);
+-	dev->post_bit_error_prev = dev->post_bit_error;
+-
+-	return 0;
+-}
+-
+-static void rtl2832_stat_work(struct work_struct *work)
+-{
+-	struct rtl2832_dev *dev = container_of(work, struct rtl2832_dev, stat_work.work);
+-	struct i2c_client *client = dev->client;
+-	struct dtv_frontend_properties *c = &dev->fe.dtv_property_cache;
+-	int ret, tmp;
+-	u8 u8tmp, buf[2];
+-	u16 u16tmp;
+-
+-	dev_dbg(&client->dev, "\n");
+ 
+ 	/* signal strength */
+ 	if (dev->fe_status & FE_HAS_SIGNAL) {
+@@ -788,11 +748,11 @@ static void rtl2832_stat_work(struct work_struct *work)
+ 
+ 		constellation = (u8tmp >> 2) & 0x03; /* [3:2] */
+ 		if (constellation > CONSTELLATION_NUM - 1)
+-			goto err_schedule_delayed_work;
++			goto err;
+ 
+ 		hierarchy = (u8tmp >> 4) & 0x07; /* [6:4] */
+ 		if (hierarchy > HIERARCHY_NUM - 1)
+-			goto err_schedule_delayed_work;
++			goto err;
+ 
+ 		ret = rtl2832_bulk_read(client, 0x40c, buf, 2);
+ 		if (ret)
+@@ -834,11 +794,33 @@ static void rtl2832_stat_work(struct work_struct *work)
+ 		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	}
+ 
+-err_schedule_delayed_work:
+-	schedule_delayed_work(&dev->stat_work, msecs_to_jiffies(2000));
+-	return;
++	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int rtl2832_read_snr(struct dvb_frontend *fe, u16 *snr)
++{
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++
++	/* report SNR in resolution of 0.1 dB */
++	if (c->cnr.stat[0].scale == FE_SCALE_DECIBEL)
++		*snr = div_s64(c->cnr.stat[0].svalue, 100);
++	else
++		*snr = 0;
++
++	return 0;
++}
++
++static int rtl2832_read_ber(struct dvb_frontend *fe, u32 *ber)
++{
++	struct rtl2832_dev *dev = fe->demodulator_priv;
++
++	*ber = (dev->post_bit_error - dev->post_bit_error_prev);
++	dev->post_bit_error_prev = dev->post_bit_error;
++
++	return 0;
+ }
+ 
+ /*
+@@ -1235,7 +1217,6 @@ static int rtl2832_probe(struct i2c_client *client,
+ 	dev->pdata = client->dev.platform_data;
+ 	dev->sleeping = true;
+ 	INIT_DELAYED_WORK(&dev->i2c_gate_work, rtl2832_i2c_gate_work);
+-	INIT_DELAYED_WORK(&dev->stat_work, rtl2832_stat_work);
+ 	/* create regmap */
+ 	mutex_init(&dev->regmap_mutex);
+ 	dev->regmap_config.reg_bits =  8,
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index 5dcd3a4..6b875f4 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -38,7 +38,6 @@ struct rtl2832_dev {
+ 	struct regmap *regmap;
+ 	struct i2c_adapter *i2c_adapter_tuner;
+ 	struct dvb_frontend fe;
+-	struct delayed_work stat_work;
+ 	enum fe_status fe_status;
+ 	u64 post_bit_error_prev; /* for old DVBv3 read_ber() calculation */
+ 	u64 post_bit_error;
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+http://palosaari.fi/
+
