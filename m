@@ -1,64 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 85.76.238.89.in-addr.arpa.manitu.net ([89.238.76.85]:33094 "EHLO
-	pokefinder.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751452AbcBLWWP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 17:22:15 -0500
-Date: Fri, 12 Feb 2016 23:22:09 +0100
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-i2c@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>,
-	Tony Lindgren <tony@atomide.com>
-Subject: Re: tvp5150 regression after commit 9f924169c035
-Message-ID: <20160212222208.GD1529@katana>
-References: <56B204CB.60602@osg.samsung.com>
- <20160208105417.GD2220@tetsubishi>
- <56BE57FC.3020407@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="M38YqGLZlgb6RLPS"
-Content-Disposition: inline
-In-Reply-To: <56BE57FC.3020407@osg.samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:39631 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754384AbcBGTzJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Feb 2016 14:55:09 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Benjamin Larsson <benjamin@southpole.se>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 0/4] move mn88473 out of staging
+Date: Sun,  7 Feb 2016 21:54:46 +0200
+Message-Id: <1454874890-10724-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+These patches are available also:
+http://git.linuxtv.org/anttip/media_tree.git/log/?h=astrometa
 
---M38YqGLZlgb6RLPS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Firmware:
+http://palosaari.fi/linux/v4l-dvb/firmware/MN88473/01/
 
+Antti
 
-> I'm adding Tony Lindgren to the cc list as well since he is the OMAP
-> maintainer and I see that has struggled lately with runtime PM issues
-> so maybe he has more ideas.
+Antti Palosaari (4):
+  mn88473: move out of staging
+  mn88473: finalize driver
+  rtl2832: improve slave TS control
+  rtl2832: move stats polling to read status
 
-Good idea. Did you try his patch which is in my for-current branch
-("i2c: omap: Fix PM regression with deferred probe for
-pm_runtime_reinit")?
+ MAINTAINERS                                  |   4 +-
+ drivers/media/dvb-frontends/Kconfig          |   8 +
+ drivers/media/dvb-frontends/Makefile         |   1 +
+ drivers/media/dvb-frontends/mn88473.c        | 606 +++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/mn88473.h        |  14 +-
+ drivers/media/dvb-frontends/mn88473_priv.h   |  36 ++
+ drivers/media/dvb-frontends/rtl2832.c        | 151 ++++---
+ drivers/media/dvb-frontends/rtl2832.h        |   4 +-
+ drivers/media/dvb-frontends/rtl2832_priv.h   |   1 -
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c      |  24 +-
+ drivers/staging/media/Kconfig                |   2 -
+ drivers/staging/media/Makefile               |   1 -
+ drivers/staging/media/mn88473/Kconfig        |   7 -
+ drivers/staging/media/mn88473/Makefile       |   5 -
+ drivers/staging/media/mn88473/TODO           |  21 -
+ drivers/staging/media/mn88473/mn88473.c      | 522 -----------------------
+ drivers/staging/media/mn88473/mn88473_priv.h |  37 --
+ 17 files changed, 743 insertions(+), 701 deletions(-)
+ create mode 100644 drivers/media/dvb-frontends/mn88473.c
+ create mode 100644 drivers/media/dvb-frontends/mn88473_priv.h
+ delete mode 100644 drivers/staging/media/mn88473/Kconfig
+ delete mode 100644 drivers/staging/media/mn88473/Makefile
+ delete mode 100644 drivers/staging/media/mn88473/TODO
+ delete mode 100644 drivers/staging/media/mn88473/mn88473.c
+ delete mode 100644 drivers/staging/media/mn88473/mn88473_priv.h
 
+-- 
+http://palosaari.fi/
 
---M38YqGLZlgb6RLPS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWvlsQAAoJEBQN5MwUoCm2lfAP/ibPbFrUBjw11FYq7WHnx3ER
-S0pkaLw3pKz5yq6j8xiVKBFaK5bgTXqusLNT8GYe3Mv62VdQj0ii5ibm9Q6EjO73
-eN6JNyHdoqFgK7whvL+eFqQY70ZH99H0BLE4EJCwrFI/Mbh6EWtot/IkPEw985OO
-D/NrMp36ZxRcqS+feMTzyTzjR8a1jg9rQPhJJM4+jhIi8oFtc5GbFt54jHtTmWk4
-/011y391j6bgRx6yVMEJyxpe23bUPOqIiyC7ETrzlgxhgsTeSDFHINDpFtDfezfD
-pZQSG7stvq5x4em+NEKcdKlmXSVkP7Q+hppNO7BXFoHBBZZjLM2mr7yB6hKKG2dr
-Ug6HS0Nb+wWHYfh6a+pBDEo8rStlSp6kL05aTgQOBSilApzg6bYsqLEn7YS4sHrQ
-cdlL32Hu17TgS0+CqfevTl3w5XbuxbWHZu4DssEP5zNVKtMeD5zlbMm0+XWNvwb6
-EdJyYH58He1FHLTTwpp7vQnkBsLgjI8SpQn1vnkQC9GAE7oSAtrcizYspKUYv+XJ
-utjiTeJtdnM9VEjcJN6Q1FhhHa/am9LPIYJTjk4LO8Dye7Wyf7KL4pNVowENRtOM
-Dm9AmJYB3LvKTISFKpg6FnF6fyupF0ISS1j0B2aqDFExIa8nTwOtdUoQ0xtjruyl
-Ns21y451F5NZstM6h6g8
-=BMRY
------END PGP SIGNATURE-----
-
---M38YqGLZlgb6RLPS--
