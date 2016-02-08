@@ -1,70 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39871 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753409AbcBINmn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Feb 2016 08:42:43 -0500
-Date: Tue, 9 Feb 2016 11:42:28 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
-	j.anaszewski@samsung.com, geliangtang@163.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH v2 20/22] media: au0828 add enable, disable source
- handlers
-Message-ID: <20160209114228.70539d24@recife.lan>
-In-Reply-To: <56B91E0A.90705@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
-	<1ebb3d41fa42581f8741e493f3109357ad1a0b3c.1454557589.git.shuahkh@osg.samsung.com>
-	<20160204082649.0ad08a16@recife.lan>
-	<56B919C7.80801@osg.samsung.com>
-	<56B91E0A.90705@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48305 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753252AbcBHLoS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:44:18 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 29/35] v4l: vsp1: Set the alpha value manually in RPF and WPF s_stream handlers
+Date: Mon,  8 Feb 2016 13:43:59 +0200
+Message-Id: <1454931845-23864-30-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 08 Feb 2016 16:00:26 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+The RPF and WPF alpha values are set through V4L2 controls and applied
+when starting the video stream by a call to v4l2_ctrl_handler_setup().
+As that function uses the control handler mutex it can't be called in
+interrupt context, where the VSP+DU pipeline handler might need to
+reconfigure the pipeline.
 
-> >>> +	ret = __media_entity_pipeline_start(entity, pipe);
-> >>> +	if (ret) {
-> >>> +		pr_err("Start Pipeline: %s->%s Error %d\n",
-> >>> +			source->name, entity->name, ret);
-> >>> +		ret = __media_entity_setup_link(found_link, 0);
-> >>> +		pr_err("Deactive link Error %d\n", ret);
-> >>> +		goto end;
-> >>> +	}  
-> >>
-> >> Hmm... isn't it to early to activate the pipeline here? My original
-> >> guess is that, on the analog side, this should happen only at the stream
-> >> on code. Wouldn't this break apps like mythTV?  
-> 
-> On analog side, there are a few ioctls that
-> change the configuration on the tuner way
-> before stream on step. Is there a reason to
-> separate the setup_link() and pipeline_start()
-> steps? I can separate these two steps, but I
-> am not really seeing the reason for that.
+Set the alpha value manually in the RPF and WPF s_stream handler to
+ensure that the hardware is properly configured even when controlled
+without the userspace API. If the userspace API is enabled protect that
+with the control lock to avoid race conditions with userspace.
 
-I'm actually ok with that, provided that it won't break existing
-apps. Did you test it with MythTV?
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 16 ++++++++++++++--
+ drivers/media/platform/vsp1/vsp1_rwpf.h |  2 ++
+ drivers/media/platform/vsp1/vsp1_wpf.c  |  7 ++++---
+ 3 files changed, 20 insertions(+), 5 deletions(-)
 
-Regards,
-Mauro
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index b9c39f9e4458..b1d4a46f230e 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -68,7 +68,9 @@ static const struct v4l2_ctrl_ops rpf_ctrl_ops = {
+ 
+ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ {
++	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&subdev->entity);
+ 	struct vsp1_rwpf *rpf = to_rwpf(subdev);
++	struct vsp1_device *vsp1 = rpf->entity.vsp1;
+ 	const struct vsp1_format_info *fmtinfo = rpf->fmtinfo;
+ 	const struct v4l2_pix_format_mplane *format = &rpf->format;
+ 	const struct v4l2_rect *crop = &rpf->crop;
+@@ -148,6 +150,15 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	vsp1_rpf_write(rpf, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_AEXT_EXT |
+ 		       (fmtinfo->alpha ? VI6_RPF_ALPH_SEL_ASEL_PACKED
+ 				       : VI6_RPF_ALPH_SEL_ASEL_FIXED));
++
++	if (vsp1->pdata.uapi)
++		mutex_lock(rpf->ctrls.lock);
++	vsp1_rpf_write(rpf, VI6_RPF_VRTCOL_SET,
++		       rpf->alpha->cur.val << VI6_RPF_VRTCOL_SET_LAYA_SHIFT);
++	vsp1_pipeline_propagate_alpha(pipe, &rpf->entity, rpf->alpha->cur.val);
++	if (vsp1->pdata.uapi)
++		mutex_unlock(rpf->ctrls.lock);
++
+ 	vsp1_rpf_write(rpf, VI6_RPF_MSK_CTRL, 0);
+ 	vsp1_rpf_write(rpf, VI6_RPF_CKEY_CTRL, 0);
+ 
+@@ -245,8 +256,9 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 
+ 	/* Initialize the control handler. */
+ 	v4l2_ctrl_handler_init(&rpf->ctrls, 1);
+-	v4l2_ctrl_new_std(&rpf->ctrls, &rpf_ctrl_ops, V4L2_CID_ALPHA_COMPONENT,
+-			  0, 255, 1, 255);
++	rpf->alpha = v4l2_ctrl_new_std(&rpf->ctrls, &rpf_ctrl_ops,
++				       V4L2_CID_ALPHA_COMPONENT,
++				       0, 255, 1, 255);
+ 
+ 	rpf->entity.subdev.ctrl_handler = &rpf->ctrls;
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index 1a90c7c8e972..8e8235682ada 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -23,6 +23,7 @@
+ #define RWPF_PAD_SINK				0
+ #define RWPF_PAD_SOURCE				1
+ 
++struct v4l2_ctrl;
+ struct vsp1_rwpf;
+ struct vsp1_video;
+ 
+@@ -40,6 +41,7 @@ struct vsp1_rwpf_operations {
+ struct vsp1_rwpf {
+ 	struct vsp1_entity entity;
+ 	struct v4l2_ctrl_handler ctrls;
++	struct v4l2_ctrl *alpha;
+ 
+ 	struct vsp1_video *video;
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index d0edcde721bd..40eeaf2d76d2 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -156,7 +156,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	 */
+ 	if (vsp1->pdata.uapi)
+ 		mutex_lock(wpf->ctrls.lock);
+-	outfmt |= vsp1_wpf_read(wpf, VI6_WPF_OUTFMT) & VI6_WPF_OUTFMT_PDV_MASK;
++	outfmt |= wpf->alpha->cur.val << VI6_WPF_OUTFMT_PDV_SHIFT;
+ 	vsp1_wpf_write(wpf, VI6_WPF_OUTFMT, outfmt);
+ 	if (vsp1->pdata.uapi)
+ 		mutex_unlock(wpf->ctrls.lock);
+@@ -254,8 +254,9 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 
+ 	/* Initialize the control handler. */
+ 	v4l2_ctrl_handler_init(&wpf->ctrls, 1);
+-	v4l2_ctrl_new_std(&wpf->ctrls, &wpf_ctrl_ops, V4L2_CID_ALPHA_COMPONENT,
+-			  0, 255, 1, 255);
++	wpf->alpha = v4l2_ctrl_new_std(&wpf->ctrls, &wpf_ctrl_ops,
++				       V4L2_CID_ALPHA_COMPONENT,
++				       0, 255, 1, 255);
+ 
+ 	wpf->entity.subdev.ctrl_handler = &wpf->ctrls;
+ 
+-- 
+2.4.10
+
