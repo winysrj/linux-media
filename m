@@ -1,62 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37549 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751945AbcBVTJc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 14:09:32 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 7/9] [media] av7110: remove a bogus smatch warning
-Date: Mon, 22 Feb 2016 16:09:21 -0300
-Message-Id: <511a46afa33c8dfaf755fb4e4c03ae6f31215034.1456167652.git.mchehab@osg.samsung.com>
-In-Reply-To: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
-References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
-In-Reply-To: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
-References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-io0-f177.google.com ([209.85.223.177]:35984 "EHLO
+	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049AbcBHKX6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 05:23:58 -0500
+Received: by mail-io0-f177.google.com with SMTP id g73so190159323ioe.3
+        for <linux-media@vger.kernel.org>; Mon, 08 Feb 2016 02:23:58 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <56B866D9.5070606@xs4all.nl>
+References: <1451785302-3173-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+	<56938969.30104@xs4all.nl>
+	<CAM_ZknVgTETBNXu+8N6eJa=cf_Mmj=+tA=ocKB9SJL5rkSyijQ@mail.gmail.com>
+	<56B866D9.5070606@xs4all.nl>
+Date: Mon, 8 Feb 2016 12:23:57 +0200
+Message-ID: <CAM_ZknVjRo0vo2_SLmZSW7R_8LpNkmj-c3q1uBahEa_bSBK0hQ@mail.gmail.com>
+Subject: Re: [RFC PATCH v0] Add tw5864 driver
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
+	devel@driverdev.osuosl.org,
+	kernel-janitors <kernel-janitors@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Andrey Utkin <andrey.od.utkin@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove this bogus smatch warning:
-	drivers/media/pci/ttpci/av7110.c:2211 frontend_init() warn: missing break? reassigning 'av7110->fe'
+On Mon, Feb 8, 2016 at 11:58 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Andrey,
+>
+> Hmm, it looks like I forgot to reply. Sorry about that.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/pci/ttpci/av7110.c | 13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+Thank you very much anyway.
 
-diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
-index 18d229fa65cf..382caf200ba1 100644
---- a/drivers/media/pci/ttpci/av7110.c
-+++ b/drivers/media/pci/ttpci/av7110.c
-@@ -2198,13 +2198,18 @@ static int frontend_init(struct av7110 *av7110)
- 			break;
- 
- 		case 0x0001: // Hauppauge/TT Nexus-T premium rev1.X
-+		{
-+			struct dvb_frontend *fe;
-+
- 			// try ALPS TDLB7 first, then Grundig 29504-401
--			av7110->fe = dvb_attach(sp8870_attach, &alps_tdlb7_config, &av7110->i2c_adap);
--			if (av7110->fe) {
--				av7110->fe->ops.tuner_ops.set_params = alps_tdlb7_tuner_set_params;
-+			fe = dvb_attach(sp8870_attach, &alps_tdlb7_config, &av7110->i2c_adap);
-+			if (fe) {
-+				fe->ops.tuner_ops.set_params = alps_tdlb7_tuner_set_params;
-+				av7110->fe = fe;
- 				break;
- 			}
--			/* fall-thru */
-+		}
-+		/* fall-thru */
- 
- 		case 0x0008: // Hauppauge/TT DVB-T
- 			// Grundig 29504-401
+> I wouldn't change the memcpy: in my experience it is very useful to get a
+> well-formed compressed stream out of the hardware. And the overhead of
+> having to do a memcpy is a small price to pay and on modern CPUs should
+> be barely noticeable for SDTV inputs.
+
+So there's no usecase for scatter-gather approach, right?
+
+> I don't believe that the lockups you see are related to the memcpy as
+> such. The trace says that a cpu is stuck for 22s, no way that is related
+> to something like that. It looks more like a deadlock somewhere.
+
+There was a locking issue (lack of _irqsave) and was fixed since then.
+
+> Regarding the compliance tests: don't pass VB2_USERPTR (doesn't work well
+> with videobuf2-dma-contig). Also add vidioc_expbuf = vb2_ioctl_expbuf for
+> the DMABUF support. That should clear up some of the errors you see.
+
+Thank you!
+
 -- 
-2.5.0
-
+Bluecherry developer.
