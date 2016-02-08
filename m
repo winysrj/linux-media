@@ -1,132 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:36208 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751183AbcBKXm2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 18:42:28 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v3 18/22] media: au0828-core register entity_notify hook
-Date: Thu, 11 Feb 2016 16:41:34 -0700
-Message-Id: <8f8e50e0310ece0990038b87d794c4bb378d3acd.1455233155.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48274 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751938AbcBHLNx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:13:53 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Franck Jullien <franck.jullien@gmail.com>
+Cc: linux-media@vger.kernel.org, Chris Kohn <christian.kohn@xilinx.com>
+Subject: Re: Use xilinx video drivers in PCIe device
+Date: Mon, 08 Feb 2016 13:14:10 +0200
+Message-ID: <3104943.upkGDP3not@avalon>
+In-Reply-To: <CAJfOKBymfpRHx5XXLPP1+zAJ+N_C7bzW-pJTvj8S8uGWixNw0w@mail.gmail.com>
+References: <CAJfOKByVva72g_1kJyMKGFHr2Jz+Yo6BgZPp_EENj9m4vXOHBA@mail.gmail.com> <1672061.k75230d3Eh@avalon> <CAJfOKBymfpRHx5XXLPP1+zAJ+N_C7bzW-pJTvj8S8uGWixNw0w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Register entity_notify async hook to create links
-between existing bridge driver entities and a newly
-added non-bridge driver entities. For example, this
-handler creates link between V4L decoder entity and
-ALSA mixer entity.
+Hi Frank,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 43 ++++++++++++++++++++++++++++++++--
- drivers/media/usb/au0828/au0828.h      |  1 +
- 2 files changed, 42 insertions(+), 2 deletions(-)
+On Monday 08 February 2016 08:40:11 Franck Jullien wrote:
+> 2016-02-04 10:45 GMT+01:00 Laurent Pinchart:
+> > On Tuesday 02 February 2016 17:05:06 Franck Jullien wrote:
+> >> Hi,
+> >> 
+> >> I need to use a Xilinx video infrastructure on a PCIe board.
+> >> As far as I understand it, all Xilinx video drivers make use of the
+> >> device-tree for configuration.
+> > 
+> > Correct. Those drivers target the Xilinx SoC FPGAs, no standalone FPGAs
+> > connected to an external CPU.
+> > 
+> >> However, my idea is to create a MFD device to bind video drivers. That
+> >> would require Xilinx video drivers to check platform_data and continue
+> >> with device tree configuration if it is null or use platform data if
+> >> available.
+> >> 
+> >> Do you think such a change in Xilinx drivers can be considered
+> >> upstream ? Is this the way to go ?
+> > 
+> > Your use case is certainly valid, so I'm certainly open to supporting it
+> > in the drivers.
+> > 
+> > I'm wondering whether your MFD decide driver could create a DT fragment to
+> > describe the IP cores topology. That way we could reuse the existing DT
+> > support in individual drivers.
+> 
+> I'm working on such a solution (DT framgent, or more precisely
+> devitree dynamic feature).
+> I'll keep you informed whenever I get something usable.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 92d22ed..4c90f28 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -347,14 +347,42 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 	return 0;
- }
- 
-+void au0828_media_graph_notify(struct media_entity *new, void *notify_data)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct au0828_dev *dev = (struct au0828_dev *) notify_data;
-+	int ret;
-+
-+	if (!dev->decoder)
-+		return;
-+
-+	switch (new->function) {
-+	case MEDIA_ENT_F_AUDIO_MIXER:
-+		ret = media_create_pad_link(dev->decoder,
-+					    AU8522_PAD_AUDIO_OUT,
-+					    new, 0,
-+					    MEDIA_LNK_FL_ENABLED);
-+		if (ret)
-+			dev_err(&dev->usbdev->dev,
-+				"Mixer Pad Link Create Error: %d\n",
-+				ret);
-+		break;
-+	default:
-+		break;
-+	}
-+#endif
-+}
-+
- static int au0828_media_device_register(struct au0828_dev *dev,
- 					struct usb_device *udev)
- {
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	int ret;
- 
--	if (dev->media_dev &&
--		!media_devnode_is_registered(&dev->media_dev->devnode)) {
-+	if (!dev->media_dev)
-+		return 0;
-+
-+	if (!media_devnode_is_registered(&dev->media_dev->devnode)) {
- 
- 		/* register media device */
- 		ret = media_device_register(dev->media_dev);
-@@ -364,6 +392,17 @@ static int au0828_media_device_register(struct au0828_dev *dev,
- 			return ret;
- 		}
- 	}
-+	/* register entity_notify callback */
-+	dev->entity_notify.notify_data = (void *) dev;
-+	dev->entity_notify.notify = (void *) au0828_media_graph_notify;
-+	ret = media_device_register_entity_notify(dev->media_dev,
-+						  &dev->entity_notify);
-+	if (ret) {
-+		dev_err(&udev->dev,
-+			"Media Device register entity_notify Error: %d\n",
-+			ret);
-+		return ret;
-+	}
- #endif
- 	return 0;
- }
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 8276072..54379ec 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -283,6 +283,7 @@ struct au0828_dev {
- 	struct media_entity *decoder;
- 	struct media_entity input_ent[AU0828_MAX_INPUT];
- 	struct media_pad input_pad[AU0828_MAX_INPUT];
-+	struct media_entity_notify entity_notify;
- #endif
- };
- 
+Thank you. If you're faced with design choices please feel free to pick our 
+brains at any time without waiting for a complete implementation.
+
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
 
