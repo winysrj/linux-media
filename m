@@ -1,192 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36560 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751083AbcBMSsD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2016 13:48:03 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (Postfix) with ESMTPS id F2F7DC00124C
-	for <linux-media@vger.kernel.org>; Sat, 13 Feb 2016 18:48:02 +0000 (UTC)
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH tvtime 10/17] mixer: Silence mixer probe errors
-Date: Sat, 13 Feb 2016 19:47:31 +0100
-Message-Id: <1455389258-13470-10-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
-References: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
+Received: from smtp09.smtpout.orange.fr ([80.12.242.131]:30961 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755398AbcBHUZk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 15:25:40 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
+References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+	<87io5wwahg.fsf@belgarion.home>
+	<Pine.LNX.4.64.1510272306300.21185@axis700.grange>
+	<87twpcj6vj.fsf@belgarion.home>
+	<Pine.LNX.4.64.1510291656580.694@axis700.grange>
+Date: Mon, 08 Feb 2016 21:25:35 +0100
+In-Reply-To: <Pine.LNX.4.64.1510291656580.694@axis700.grange> (Guennadi
+	Liakhovetski's message of "Thu, 29 Oct 2015 17:01:17 +0100 (CET)")
+Message-ID: <87d1s72bls.fsf@belgarion.home>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On most systems now a days we end up using digital loopback and do not
-have a valid mixer config, silence mixer error spew on startup.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- src/mixer-alsa.c | 34 ++++++++++++++++++++++------------
- src/mixer-oss.c  | 12 ++++++++----
- src/mixer.c      |  4 ++--
- src/mixer.h      |  2 +-
- 4 files changed, 33 insertions(+), 19 deletions(-)
+> Hi Robert,
+>
+> On Tue, 27 Oct 2015, Robert Jarzmik wrote:
+>
+>> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+>> 
+>> > Hi Robert,
+>> >
+>> > Didn't you tell me, that your dmaengine patch got rejected and therefore 
+>> > these your patches were on hold?
+>> They were reverted, and then revamped into DMA_CTRL_REUSE, upstreamed and
+>> merged, as in the commit 272420214d26 ("dmaengine: Add DMA_CTRL_REUSE"). I'd
+>> 
+>> Of course a pending fix is still underway
+>> (http://www.serverphorums.com/read.php?12,1318680). But that shouldn't stop us
+>> from reviewing to get ready to merge.
+>> 
+>> I want this serie to be ready, so that as soon as Vinod merges the fix, I can
+>> ping you to trigger the merge into your tree, without doing (and waiting)
+>> additional review cycles.
+>
+> Thanks, understand now. As we discussed before, correct me if I am wrong, 
+> this is your hobby project. PXA270 is a legacy platform, nobody except you 
+> is interested in this work. I have nothing against hobby projects and I 
+> want to support them as much as I can, but I hope you'll understand, that 
+> I don't have too much free time, so I cannot handle such projects with a 
+> high priority. I understand your desire to process these patches ASAP, 
+> however, I'd like to try to minimise my work too. So, I can propose the 
+> following: let us wait, until your PXA dmaengine patches are _indeed_ in 
+> the mainline. Then you test your camera patches on top of that tree again, 
+> perform any eventually necessary updates and either let me know, that 
+> either your last version is ok and I can now review it, or submit a new 
+> version, that _works_ on top of then current tree.
 
-diff --git a/src/mixer-alsa.c b/src/mixer-alsa.c
-index a549899..e84a3d0 100644
---- a/src/mixer-alsa.c
-+++ b/src/mixer-alsa.c
-@@ -33,24 +33,28 @@ static snd_mixer_elem_t *elem = NULL;
- 
- static long alsa_min, alsa_max, alsa_vol;
- 
--static void alsa_open_mixer( void )
-+static void alsa_open_mixer( int verbose )
- {
-     int err;
-     static snd_mixer_selem_id_t *sid = NULL;
-     if ((err = snd_mixer_open (&handle, 0)) < 0) {
--        fprintf(stderr, "mixer: open error: %s\n", snd_strerror(err));
-+        if (verbose)
-+            fprintf(stderr, "mixer: open error: %s\n", snd_strerror(err));
-         return;
-     }
-     if ((err = snd_mixer_attach (handle, card)) < 0) {
--        fprintf(stderr, "mixer: attach error: %s\n", snd_strerror(err));
-+        if (verbose)
-+            fprintf(stderr, "mixer: attach error: %s\n", snd_strerror(err));
-         goto error;
-     }
-     if ((err = snd_mixer_selem_register (handle, NULL, NULL)) < 0) {
--        fprintf(stderr, "mixer: register error: %s\n", snd_strerror(err));
-+        if (verbose)
-+            fprintf(stderr, "mixer: register error: %s\n", snd_strerror(err));
-         goto error;
-     }
-     if ((err = snd_mixer_load (handle)) < 0) {
--        fprintf(stderr, "mixer: load error: %s\n", snd_strerror(err));
-+        if (verbose)
-+            fprintf(stderr, "mixer: load error: %s\n", snd_strerror(err));
-         goto error;
-     }
-     snd_mixer_selem_id_malloc(&sid);
-@@ -58,16 +62,20 @@ static void alsa_open_mixer( void )
-         goto error;
-     snd_mixer_selem_id_set_name(sid, channel);
-     if (!(elem = snd_mixer_find_selem(handle, sid))) {
--        fprintf(stderr, "mixer: unable to find mixer for channel %s\n", channel);
-+        if (verbose)
-+            fprintf(stderr, "mixer: unable to find mixer for channel %s\n",
-+                    channel);
-         goto error;
-     }
-     if (!snd_mixer_selem_has_playback_volume(elem)) {
--        fprintf(stderr, "mixer: no playback\n");
-+        if (verbose)
-+            fprintf(stderr, "mixer: no playback\n");
-         goto error;
-     }
-     snd_mixer_selem_get_playback_volume_range(elem, &alsa_min, &alsa_max);
-     if ((alsa_max - alsa_min) <= 0) {
--        fprintf(stderr, "mixer: no valid playback range\n");
-+        if (verbose)
-+            fprintf(stderr, "mixer: no valid playback range\n");
-         goto error;
-     }
-     snd_mixer_selem_id_free(sid);
-@@ -174,7 +182,7 @@ static int alsa_ismute( void )
-     return muted;
- }
- 
--static int alsa_set_device( const char *devname )
-+static int alsa_set_device( const char *devname, int verbose )
- {
-     int i;
- 
-@@ -189,10 +197,12 @@ static int alsa_set_device( const char *devname )
-         card[i] = 0;
-         channel = card + i + 1;
-     }
--    alsa_open_mixer();
-+    alsa_open_mixer( verbose );
-     if (!handle) {
--        fprintf( stderr, "mixer: Can't open mixer %s (channel %s), "
--                 "mixer volume and mute unavailable.\n", card, channel );
-+        if( verbose ) {
-+            fprintf( stderr, "mixer: Can't open mixer %s (channel %s), "
-+                     "mixer volume and mute unavailable.\n", card, channel );
-+        }
-         return -1;
-     }
-     return 0;
-diff --git a/src/mixer-oss.c b/src/mixer-oss.c
-index 08aa0ca..f2441fe 100644
---- a/src/mixer-oss.c
-+++ b/src/mixer-oss.c
-@@ -181,7 +181,7 @@ static int oss_ismute( void )
- 
- static char *oss_core_devnames[] = SOUND_DEVICE_NAMES;
- 
--static int oss_set_device( const char *devname )
-+static int oss_set_device( const char *devname, int verbose )
- {
-     const char *channame;
-     int found = 0;
-@@ -198,8 +198,10 @@ static int oss_set_device( const char *devname )
-         channame = mixer_device + i + 1;
-     }
-     if( !file_is_openable_for_read( mixer_device ) ) {
--        fprintf( stderr, "mixer: Can't open device %s, "
--                 "mixer volume and mute unavailable.\n", mixer_device );
-+        if( verbose ) {
-+            fprintf( stderr, "mixer: Can't open device %s, "
-+                     "mixer volume and mute unavailable.\n", mixer_device );
-+        }
-         return -1;
-     }
- 
-@@ -212,7 +214,9 @@ static int oss_set_device( const char *devname )
-         }
-     }
-     if( !found ) {
--        fprintf( stderr, "mixer: No such mixer channel '%s', using channel 'line'.\n", channame );
-+        if( verbose ) {
-+            fprintf( stderr, "mixer: No such mixer channel '%s'.\n", channame );
-+        }
-         return -1;
-     }
-     mixer_dev_mask = 1 << mixer_channel;
-diff --git a/src/mixer.c b/src/mixer.c
-index 5356d2b..c87df3a 100644
---- a/src/mixer.c
-+++ b/src/mixer.c
-@@ -29,7 +29,7 @@
- /**
-  * Sets the mixer device and channel.
-  */
--static int null_set_device( const char *devname )
-+static int null_set_device( const char *devname, int verbose )
- {
-     return 0;
- }
-@@ -159,7 +159,7 @@ void mixer_init( config_t *cfg, const char *v4ldev )
-         mixer = mixers[i];
-         if (!mixer)
-             continue;
--        if (mixer->set_device(devname) == 0)
-+        if( mixer->set_device( devname, config_get_verbose( cfg ) ) == 0 )
-             break;
-     }
- 
-diff --git a/src/mixer.h b/src/mixer.h
-index f51f481..9b6f67b 100644
---- a/src/mixer.h
-+++ b/src/mixer.h
-@@ -40,7 +40,7 @@ struct mixer {
- /**
-  * Sets the mixer device and channel.
-  */
--int (* set_device)( const char *devname );
-+int (* set_device)( const char *devname, int verbose );
- 
- /**
-  * Sets the initial state of the mixer device.
--- 
-2.5.0
+Okay Guennadi, I retested this version on top of v4.5-rc2, still good to
+go. There is a minor conflict in the includes since this submission, and I can
+repost a v6 which solves it.
 
+So please tell me how I should proceed, either repost a rebased v6 or take v5 or
+anything else ...
+
+Cheers.
+
+--
+Robert
