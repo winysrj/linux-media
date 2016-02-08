@@ -1,274 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:33978 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753323AbcBOO50 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 09:57:26 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0O2L007URG7N0C40@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Feb 2016 14:57:23 +0000 (GMT)
-Message-id: <56C1E752.2090908@samsung.com>
-Date: Mon, 15 Feb 2016 15:57:22 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 05/15] mediactl: Add media device graph helpers
-References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
- <1453133860-21571-6-git-send-email-j.anaszewski@samsung.com>
- <56C1BE3A.2090603@linux.intel.com> <56C1C876.7060803@samsung.com>
- <56C1DD36.6070909@linux.intel.com>
-In-reply-to: <56C1DD36.6070909@linux.intel.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48304 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753223AbcBHLoR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:44:17 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 28/35] v4l: vsp1: Make pipeline inputs array index by RPF index
+Date: Mon,  8 Feb 2016 13:43:58 +0200
+Message-Id: <1454931845-23864-29-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/15/2016 03:14 PM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> Jacek Anaszewski wrote:
->> Hi Sakari,
->>
->> Thanks for the review.
->>
->> On 02/15/2016 01:02 PM, Sakari Ailus wrote:
->>> Hi Jacek,
->>>
->>> Jacek Anaszewski wrote:
->>>> Add new graph helpers useful for video pipeline discovering.
->>>>
->>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->>>> ---
->>>>    utils/media-ctl/libmediactl.c |   48
->>>> +++++++++++++++++++++++++++++++++++++++++
->>>>    utils/media-ctl/mediactl.h    |   36 +++++++++++++++++++++++++++++++
->>>>    2 files changed, 84 insertions(+)
->>>>
->>>> diff --git a/utils/media-ctl/libmediactl.c
->>>> b/utils/media-ctl/libmediactl.c
->>>> index 61b5f50..0be1845 100644
->>>> --- a/utils/media-ctl/libmediactl.c
->>>> +++ b/utils/media-ctl/libmediactl.c
->>>> @@ -35,6 +35,7 @@
->>>>    #include <unistd.h>
->>>>
->>>>    #include <linux/media.h>
->>>> +#include <linux/kdev_t.h>
->>>>    #include <linux/videodev2.h>
->>>>
->>>>    #include "mediactl.h"
->>>> @@ -87,6 +88,29 @@ struct media_entity
->>>> *media_get_entity_by_name(struct media_device *media,
->>>>        return NULL;
->>>>    }
->>>>
->>>> +struct media_entity *media_get_entity_by_devname(struct media_device
->>>> *media,
->>>> +                         const char *devname,
->>>> +                         size_t length)
->>>> +{
->>>> +    unsigned int i;
->>>> +
->>>> +    /* A match is impossible if the entity devname is longer than the
->>>> +     * maximum size we can get from the kernel.
->>>> +     */
->>>> +    if (length >= FIELD_SIZEOF(struct media_entity, devname))
->>>> +        return NULL;
->>>> +
->>>> +    for (i = 0; i < media->entities_count; ++i) {
->>>> +        struct media_entity *entity = &media->entities[i];
->>>> +
->>>> +        if (strncmp(entity->devname, devname, length) == 0 &&
->>>> +            entity->devname[length] == '\0')
->>>> +            return entity;
->>>> +    }
->>>> +
->>>> +    return NULL;
->>>> +}
->>>
->>> Just out of curiosity: where do you need this? I.e. why do you need to
->>> translate a device name to an entity?
->>
->> It is needed in media_device_new_by_entity_devname() and directly in
->> libv4l-exynos4-camera.c, plugin_init(). Please especially refer to
->> the plugin_init(). You were asking about this in the review of v4
->> (over one year ago :) ), and I provided an explanation in the
->> following message [1].
->
-> That's a bit long review time indeed. :-P
->
-> You have the sub-device fd. Obtaining major and minor using fstat, you
-> can find the relevant sub-device in sysfs without having to open all the
-> media devices. Once you have that, you can use the sysfs link to the
-> media device, and obtain the media device major and minor.
->
-> E.g.
->
-> $ cat /sys/class/video4linux/v4l-subdev0/dev
-> 81:20
-> $ cat /sys/class/video4linux/v4l-subdev0/device/media0/dev
-> 248:0
->
-> Additionally, you avoid assuming your media devices will be /dev/media*.
-> In sysfs the files are always in the same locations independently of the
-> user space file system layout (with the exception of /sys itself).
+The pipeline inputs array stores pointers to all RPFs contained in the
+pipeline. It's currently indexed contiguously by adding RPFs in the
+order they are found during graph walk. This can't easily support
+dynamic addition and removal of RPFs while streaming, which will be
+required for combined VSP+DU support.
 
-Thanks for the hints. I'll change the code accordingly.
+Make the array indexed by RPF index instead and skip NULL elements when
+iterating over RPFs.
 
->>
->>>> +
->>>>    struct media_entity *media_get_entity_by_id(struct media_device
->>>> *media,
->>>>                            __u32 id)
->>>>    {
->>>> @@ -145,6 +169,11 @@ const char *media_entity_get_devname(struct
->>>> media_entity *entity)
->>>>        return entity->devname[0] ? entity->devname : NULL;
->>>>    }
->>>>
->>>> +const char *media_entity_get_name(struct media_entity *entity)
->>>> +{
->>>> +    return entity->info.name;
->>>> +}
->>>
->>> You should instead use media_get_info()->name . If you have an entity,
->>> the return value will be valid.
->>
->> OK.
->>
->>>> +
->>>>    struct media_entity *media_get_default_entity(struct media_device
->>>> *media,
->>>>                              unsigned int type)
->>>>    {
->>>> @@ -177,6 +206,25 @@ const struct media_entity_desc
->>>> *media_entity_get_info(struct media_entity *entit
->>>>        return &entity->info;
->>>>    }
->>>>
->>>> +int media_get_backlinks_by_entity(struct media_entity *entity,
->>>
->>> How about calling this media_entity_get_backlinks()?
->
-> ^
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_pipe.c  |  6 +++++-
+ drivers/media/platform/vsp1/vsp1_pipe.h  |  2 +-
+ drivers/media/platform/vsp1/vsp1_video.c | 16 ++++++++++++----
+ drivers/media/platform/vsp1/vsp1_wpf.c   |  5 ++++-
+ 4 files changed, 22 insertions(+), 7 deletions(-)
 
-Right, it's better.
-
->>>
->>>> +                struct media_link **backlinks,
->>>> +                int *num_backlinks)
->>>
->>> unsigned int.
->>
->> OK.
->>
->>>> +{
->>>> +    int num_bklinks = 0, i;
->>>
->>> Same here.
->>
->> OK.
->>
->>>> +
->>>> +    if (entity == NULL || backlinks == NULL || num_backlinks == NULL)
->>>> +        return -EINVAL;
->>>> +
->>>> +    for (i = 0; i < entity->num_links; ++i)
->>>> +        if ((entity->links[i].flags & MEDIA_LNK_FL_ENABLED) &&
->>>> +            (entity->links[i].sink->entity == entity))
->>>> +            backlinks[num_bklinks++] = &entity->links[i];
->>>> +
->>>> +    *num_backlinks = num_bklinks;
->>>> +
->>>> +    return 0;
->>>> +}
->>>> +
->>>>    /*
->>>> -----------------------------------------------------------------------------
->>>>
->>>>     * Open/close
->>>>     */
->>>> diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
->>>> index 3faee71..9db40a8 100644
->>>> --- a/utils/media-ctl/mediactl.h
->>>> +++ b/utils/media-ctl/mediactl.h
->>>> @@ -231,6 +231,15 @@ const struct media_link
->>>> *media_entity_get_link(struct media_entity *entity,
->>>>    const char *media_entity_get_devname(struct media_entity *entity);
->>>>
->>>>    /**
->>>> + * @brief Get the name for an entity
->>>> + * @param entity - media entity.
->>>> + *
->>>> + * This function returns the name of the entity.
->>>> + *
->>>> + * @return A pointer to the string with entity name
->>>> + */
->>>> +const char *media_entity_get_name(struct media_entity *entity);
->>>> +
->>>>     * @brief Get the type of an entity.
->>>>     * @param entity - the entity.
->>>>     *
->>>> @@ -255,6 +264,19 @@ struct media_entity
->>>> *media_get_entity_by_name(struct media_device *media,
->>>>        const char *name, size_t length);
->>>>
->>>>    /**
->>>> + * @brief Find an entity by the corresponding device node name.
->>>> + * @param media - media device.
->>>> + * @param devname - device node name.
->>>> + * @param length - size of @a devname.
->>>> + *
->>>> + * Search for an entity with a device node name equal to @a devname.
->>>> + *
->>>> + * @return A pointer to the entity if found, or NULL otherwise.
->>>> + */
->>>> +struct media_entity *media_get_entity_by_devname(struct media_device
->>>> *media,
->>>> +    const char *devname, size_t length);
->>>> +
->>>> +/**
->>>>     * @brief Find an entity by its ID.
->>>>     * @param media - media device.
->>>>     * @param id - entity ID.
->>>> @@ -434,4 +456,18 @@ int media_parse_setup_link(struct media_device
->>>> *media,
->>>>     */
->>>>    int media_parse_setup_links(struct media_device *media, const char
->>>> *p);
->>>>
->>>> +/**
->>>> + * @brief Get entity's enabled backlinks
->>>> + * @param entity - media entity.
->>>> + * @param backlinks - array of pointers to matching backlinks.
->>>> + * @param num_backlinks - number of matching backlinks.
->>>> + *
->>>> + * Get links that are connected to the entity sink pads.
->>>> + *
->>>> + * @return 0 on success, or a negative error code on failure.
->>>> + */
->>>> +int media_get_backlinks_by_entity(struct media_entity *entity,
->>>> +                struct media_link **backlinks,
->>>> +                int *num_backlinks);
->>>> +
->>>>    #endif
->>>>
->>>
->>>
->>
->> [1]
->> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/88446
->>
->>
->
->
-
-
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index b850aeb885bf..05d4c3870cff 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -161,14 +161,18 @@ const struct vsp1_format_info *vsp1_get_format_info(u32 fourcc)
+ 
+ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
+ {
++	unsigned int i;
++
+ 	if (pipe->bru) {
+ 		struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
+-		unsigned int i;
+ 
+ 		for (i = 0; i < ARRAY_SIZE(bru->inputs); ++i)
+ 			bru->inputs[i].rpf = NULL;
+ 	}
+ 
++	for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i)
++		pipe->inputs[i] = NULL;
++
+ 	INIT_LIST_HEAD(&pipe->entities);
+ 	pipe->state = VSP1_PIPELINE_STOPPED;
+ 	pipe->buffers_ready = 0;
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index f9035c739e9a..c4c300561c5c 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -66,7 +66,7 @@ enum vsp1_pipeline_state {
+  * @stream_count: number of streaming video nodes
+  * @buffers_ready: bitmask of RPFs and WPFs with at least one buffer available
+  * @num_inputs: number of RPFs
+- * @inputs: array of RPFs in the pipeline
++ * @inputs: array of RPFs in the pipeline (indexed by RPF index)
+  * @output: WPF at the output of the pipeline
+  * @bru: BRU entity, if present
+  * @lif: LIF entity, if present
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 92eb39c509df..b2eecabdc399 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -298,8 +298,8 @@ static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
+ 
+ 		if (e->type == VSP1_ENTITY_RPF) {
+ 			rwpf = to_rwpf(subdev);
+-			pipe->inputs[pipe->num_inputs++] = rwpf;
+-			rwpf->video->pipe_index = pipe->num_inputs;
++			pipe->inputs[rwpf->entity.index] = rwpf;
++			rwpf->video->pipe_index = ++pipe->num_inputs;
+ 		} else if (e->type == VSP1_ENTITY_WPF) {
+ 			rwpf = to_rwpf(subdev);
+ 			pipe->output = rwpf;
+@@ -324,7 +324,10 @@ static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
+ 	/* Follow links downstream for each input and make sure the graph
+ 	 * contains no loop and that all branches end at the output WPF.
+ 	 */
+-	for (i = 0; i < pipe->num_inputs; ++i) {
++	for (i = 0; i < video->vsp1->pdata.rpf_count; ++i) {
++		if (!pipe->inputs[i])
++			continue;
++
+ 		ret = vsp1_video_pipeline_validate_branch(pipe, pipe->inputs[i],
+ 							  pipe->output);
+ 		if (ret < 0)
+@@ -449,11 +452,16 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
+ 
+ static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ {
++	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+ 	unsigned int i;
+ 
+ 	/* Complete buffers on all video nodes. */
+-	for (i = 0; i < pipe->num_inputs; ++i)
++	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
++		if (!pipe->inputs[i])
++			continue;
++
+ 		vsp1_video_frame_end(pipe, pipe->inputs[i]);
++	}
+ 
+ 	if (!pipe->lif)
+ 		vsp1_video_frame_end(pipe, pipe->output);
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 184a7e01aad5..d0edcde721bd 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -97,9 +97,12 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	 * inputs as sub-layers and select the virtual RPF as the master
+ 	 * layer.
+ 	 */
+-	for (i = 0; i < pipe->num_inputs; ++i) {
++	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
+ 		struct vsp1_rwpf *input = pipe->inputs[i];
+ 
++		if (!input)
++			continue;
++
+ 		srcrpf |= (!pipe->bru && pipe->num_inputs == 1)
+ 			? VI6_WPF_SRCRPF_RPF_ACT_MST(input->entity.index)
+ 			: VI6_WPF_SRCRPF_RPF_ACT_SUB(input->entity.index);
 -- 
-Best regards,
-Jacek Anaszewski
+2.4.10
+
