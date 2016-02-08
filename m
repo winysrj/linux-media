@@ -1,51 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yotta.elopez.com.ar ([185.83.216.59]:56746 "EHLO
-	yotta.elopez.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752304AbcBVBtV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 20:49:21 -0500
-From: =?UTF-8?q?Emilio=20L=C3=B3pez?= <emilio@elopez.com.ar>
-To: vinod.koul@intel.com, maxime.ripard@free-electrons.com,
-	wens@csie.org, mchehab@osg.samsung.com, balbi@kernel.org,
-	hdegoede@redhat.com
-Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	=?UTF-8?q?Emilio=20L=C3=B3pez?= <emilio.lopez@collabora.co.uk>
-Subject: [PATCH 2/3] dmaengine: sun4i: support module autoloading
-Date: Sun, 21 Feb 2016 22:26:35 -0300
-Message-Id: <1456104396-13282-2-git-send-email-emilio@elopez.com.ar>
-In-Reply-To: <1456104396-13282-1-git-send-email-emilio@elopez.com.ar>
-References: <1456104396-13282-1-git-send-email-emilio@elopez.com.ar>
+Received: from ns3.dns-engine.com ([87.106.189.53]:39200 "EHLO
+	ns3.dns-engine.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756340AbcBHVSc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 16:18:32 -0500
+From: Carl Brunning <carlb@cblinux.co.uk>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: cxd2843 how far the driver got
+Date: Mon, 8 Feb 2016 21:18:27 +0000
+Message-ID: <44fd3a3ffa3c46a29402744781aba9e7@exchange02.cblinux.co.uk>
+References: <57e8ac1e7a684ffeab9bc5e3a8072623@exchange02.cblinux.co.uk>
+ <22201.1297.403374.342819@morden.metzler>
+In-Reply-To: <22201.1297.403374.342819@morden.metzler>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Emilio López <emilio.lopez@collabora.co.uk>
+Thanks for that 
+I have them driver and have got loaded but for some reason when using w_scan it very quick but not tunning any DVBT or DVBT2
+So was checking to see if there was newer
+Not sure how to debug the code to see why it not doing any scan
 
-MODULE_DEVICE_TABLE() is missing, so the module isn't auto-loading on
-supported systems. This commit adds the missing line so it loads
-automatically when building it as a module and running on a system
-with the early sunxi DMA engine.
+Thanks
+Carl Brunning
 
-Signed-off-by: Emilio López <emilio.lopez@collabora.co.uk>
----
- drivers/dma/sun4i-dma.c | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/dma/sun4i-dma.c b/drivers/dma/sun4i-dma.c
-index 1661d518..e0df233 100644
---- a/drivers/dma/sun4i-dma.c
-+++ b/drivers/dma/sun4i-dma.c
-@@ -1271,6 +1271,7 @@ static const struct of_device_id sun4i_dma_match[] = {
- 	{ .compatible = "allwinner,sun4i-a10-dma" },
- 	{ /* sentinel */ },
- };
-+MODULE_DEVICE_TABLE(of, sun4i_dma_match);
- 
- static struct platform_driver sun4i_dma_driver = {
- 	.probe	= sun4i_dma_probe,
--- 
-2.7.1
 
+
+-----Original Message-----
+From: Ralph Metzler [mailto:rjkm@metzlerbros.de] 
+Sent: 08 February 2016 21:14
+To: Carl Brunning <carlb@cblinux.co.uk>
+Cc: linux-media@vger.kernel.org
+Subject: cxd2843 how far the driver got
+
+Hi,
+
+Carl Brunning writes:
+ > Hi all
+ > I saw that someone did some driver for the cxd2843 but was wanting to know if this has had any more work done  > and was there newer version of the driver around that I could test with  >  > so if there newer version of this driver where can I find or who can I talk to get the drivers working and have supported in linux  > 
+
+This is where you can always find the latest version:
+
+https://github.com/DigitalDevices/dddvb/tree/master/frontends
+
+
+Regards,
+Ralph
