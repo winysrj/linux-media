@@ -1,161 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54817 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756713AbcBDOtq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Feb 2016 09:49:46 -0500
-Subject: Re: [PATCH v2 12/22] media: au0828 video remove
- au0828_enable_analog_tuner()
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
- <8d43a2cfe4dcdf843d2e587e35a4bd4681eebe36.1454557589.git.shuahkh@osg.samsung.com>
- <20160204073712.25d96fcd@recife.lan>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
-	j.anaszewski@samsung.com, geliangtang@163.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56B36501.1090803@osg.samsung.com>
-Date: Thu, 4 Feb 2016 07:49:37 -0700
+Received: from mail-yk0-f195.google.com ([209.85.160.195]:36215 "EHLO
+	mail-yk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755765AbcBHQLo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 11:11:44 -0500
 MIME-Version: 1.0
-In-Reply-To: <20160204073712.25d96fcd@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.64.1602071449170.11458@axis700.grange>
+References: <1453652009-4291-1-git-send-email-ykaneko0929@gmail.com>
+	<Pine.LNX.4.64.1602071449170.11458@axis700.grange>
+Date: Tue, 9 Feb 2016 01:11:43 +0900
+Message-ID: <CAH1o70Lw+qM0gKmx7qQOR9_BrugOmtXaKuUWEM_1nQQJGh9YwA@mail.gmail.com>
+Subject: Re: [PATCH v5] media: soc_camera: rcar_vin: Add ARGB8888 caputre
+ format support
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Simon Horman <horms@verge.net.au>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux-sh list <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/04/2016 02:37 AM, Mauro Carvalho Chehab wrote:
-> Em Wed, 03 Feb 2016 21:03:44 -0700
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> 
->> Remove au0828_enable_analog_tuner() as it is
->> no longer needed because v4l2-core implements
->> common interfaces to check for media source
->> availability.
-> 
-> I didn't see such code at v4l2-core yet. Missing patch?
+Hi Guennadi-san,
 
-Removed linux-api from cc:
-
-Please see Patch 10/22 for v4l2-core changes.
-[PATCH v2 10/22] media: Change v4l-core to check if source is free
-
-thanks,
--- Shuah
-
-> 
+2016-02-07 22:49 GMT+09:00 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> Hi Kaneko-san,
+>
+> On Mon, 25 Jan 2016, Yoshihiro Kaneko wrote:
+>
+>> From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
 >>
->> In addition, queue_setup() no longer needs the
->> tuner availability check since v4l2-core does it.
+>> This patch adds ARGB8888 capture format support for R-Car Gen3.
 >>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+>> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+>
+> Thanks for the patch. I'll queue it for 4.6.
+
+Thank you very much for your help.
+
+>
+> Guennadi
+
+Best regards,
+kaneko
+
+>
 >> ---
->>  drivers/media/usb/au0828/au0828-video.c | 61 ---------------------------------
->>  1 file changed, 61 deletions(-)
 >>
->> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
->> index 8c54fd2..81952c8 100644
->> --- a/drivers/media/usb/au0828/au0828-video.c
->> +++ b/drivers/media/usb/au0828/au0828-video.c
->> @@ -638,64 +638,6 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
->>  	return rc;
+>> This patch is based on the for-4.6-1 branch of Guennadi's v4l-dvb tree.
+>>
+>> v5 [Yoshihiro Kaneko]
+>> * As suggested by Guennadi Liakhovetski
+>>   rcar_vin_setup():
+>>     - add a common error handler instead of a falling through to the
+>>       default case.
+>> * compile tested only
+>>
+>> v4 [Yoshihiro Kaneko]
+>> * As suggested by Sergei Shtylyov
+>>   - revised an error message.
+>>
+>> v3 [Yoshihiro Kaneko]
+>> * rebased to for-4.6-1 branch of Guennadi's tree.
+>>
+>> v2 [Yoshihiro Kaneko]
+>> * As suggested by Sergei Shtylyov
+>>   - fix the coding style of the braces.
+>>
+>>  drivers/media/platform/soc_camera/rcar_vin.c | 39 +++++++++++++++++++++-------
+>>  1 file changed, 29 insertions(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+>> index dc75a80..3b8edf4 100644
+>> --- a/drivers/media/platform/soc_camera/rcar_vin.c
+>> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
+>> @@ -124,7 +124,7 @@
+>>  #define VNDMR_EXRGB          (1 << 8)
+>>  #define VNDMR_BPSM           (1 << 4)
+>>  #define VNDMR_DTMD_YCSEP     (1 << 1)
+>> -#define VNDMR_DTMD_ARGB1555  (1 << 0)
+>> +#define VNDMR_DTMD_ARGB              (1 << 0)
+>>
+>>  /* Video n Data Mode Register 2 bits */
+>>  #define VNDMR2_VPS           (1 << 30)
+>> @@ -643,21 +643,26 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>>               output_is_yuv = true;
+>>               break;
+>>       case V4L2_PIX_FMT_RGB555X:
+>> -             dmr = VNDMR_DTMD_ARGB1555;
+>> +             dmr = VNDMR_DTMD_ARGB;
+>>               break;
+>>       case V4L2_PIX_FMT_RGB565:
+>>               dmr = 0;
+>>               break;
+>>       case V4L2_PIX_FMT_RGB32:
+>> -             if (priv->chip == RCAR_GEN2 || priv->chip == RCAR_H1 ||
+>> -                 priv->chip == RCAR_E1) {
+>> -                     dmr = VNDMR_EXRGB;
+>> -                     break;
+>> -             }
+>> +             if (priv->chip != RCAR_GEN2 && priv->chip != RCAR_H1 &&
+>> +                 priv->chip != RCAR_E1)
+>> +                     goto e_format;
+>> +
+>> +             dmr = VNDMR_EXRGB;
+>> +             break;
+>> +     case V4L2_PIX_FMT_ARGB32:
+>> +             if (priv->chip != RCAR_GEN3)
+>> +                     goto e_format;
+>> +
+>> +             dmr = VNDMR_EXRGB | VNDMR_DTMD_ARGB;
+>> +             break;
+>>       default:
+>> -             dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
+>> -                      icd->current_fmt->host_fmt->fourcc);
+>> -             return -EINVAL;
+>> +             goto e_format;
+>>       }
+>>
+>>       /* Always update on field change */
+>> @@ -679,6 +684,11 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
+>>       iowrite32(vnmc | VNMC_ME, priv->base + VNMC_REG);
+>>
+>>       return 0;
+>> +
+>> +e_format:
+>> +     dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
+>> +              icd->current_fmt->host_fmt->fourcc);
+>> +     return -EINVAL;
 >>  }
->>  
->> -static int au0828_enable_analog_tuner(struct au0828_dev *dev)
->> -{
->> -#ifdef CONFIG_MEDIA_CONTROLLER
->> -	struct media_device *mdev = dev->media_dev;
->> -	struct media_entity *source;
->> -	struct media_link *link, *found_link = NULL;
->> -	int ret, active_links = 0;
->> -
->> -	if (!mdev || !dev->decoder)
->> -		return 0;
->> -
->> -	/*
->> -	 * This will find the tuner that is connected into the decoder.
->> -	 * Technically, this is not 100% correct, as the device may be
->> -	 * using an analog input instead of the tuner. However, as we can't
->> -	 * do DVB streaming while the DMA engine is being used for V4L2,
->> -	 * this should be enough for the actual needs.
->> -	 */
->> -	list_for_each_entry(link, &dev->decoder->links, list) {
->> -		if (link->sink->entity == dev->decoder) {
->> -			found_link = link;
->> -			if (link->flags & MEDIA_LNK_FL_ENABLED)
->> -				active_links++;
->> -			break;
->> -		}
->> -	}
->> -
->> -	if (active_links == 1 || !found_link)
->> -		return 0;
->> -
->> -	source = found_link->source->entity;
->> -	list_for_each_entry(link, &source->links, list) {
->> -		struct media_entity *sink;
->> -		int flags = 0;
->> -
->> -		sink = link->sink->entity;
->> -
->> -		if (sink == dev->decoder)
->> -			flags = MEDIA_LNK_FL_ENABLED;
->> -
->> -		ret = media_entity_setup_link(link, flags);
->> -		if (ret) {
->> -			pr_err(
->> -				"Couldn't change link %s->%s to %s. Error %d\n",
->> -				source->name, sink->name,
->> -				flags ? "enabled" : "disabled",
->> -				ret);
->> -			return ret;
->> -		} else
->> -			au0828_isocdbg(
->> -				"link %s->%s was %s\n",
->> -				source->name, sink->name,
->> -				flags ? "ENABLED" : "disabled");
->> -	}
->> -#endif
->> -	return 0;
->> -}
->> -
->>  static int queue_setup(struct vb2_queue *vq,
->>  		       unsigned int *nbuffers, unsigned int *nplanes,
->>  		       unsigned int sizes[], void *alloc_ctxs[])
->> @@ -707,9 +649,6 @@ static int queue_setup(struct vb2_queue *vq,
->>  		return sizes[0] < size ? -EINVAL : 0;
->>  	*nplanes = 1;
->>  	sizes[0] = size;
->> -
->> -	au0828_enable_analog_tuner(dev);
->> -
->>  	return 0;
->>  }
->>  
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+>>
+>>  static void rcar_vin_capture(struct rcar_vin_priv *priv)
+>> @@ -1304,6 +1314,14 @@ static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
+>>               .order                  = SOC_MBUS_ORDER_LE,
+>>               .layout                 = SOC_MBUS_LAYOUT_PACKED,
+>>       },
+>> +     {
+>> +             .fourcc                 = V4L2_PIX_FMT_ARGB32,
+>> +             .name                   = "ARGB8888",
+>> +             .bits_per_sample        = 32,
+>> +             .packing                = SOC_MBUS_PACKING_NONE,
+>> +             .order                  = SOC_MBUS_ORDER_LE,
+>> +             .layout                 = SOC_MBUS_LAYOUT_PACKED,
+>> +     },
+>>  };
+>>
+>>  static int rcar_vin_get_formats(struct soc_camera_device *icd, unsigned int idx,
+>> @@ -1611,6 +1629,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+>>       case V4L2_PIX_FMT_RGB32:
+>>               can_scale = priv->chip != RCAR_E1;
+>>               break;
+>> +     case V4L2_PIX_FMT_ARGB32:
+>>       case V4L2_PIX_FMT_UYVY:
+>>       case V4L2_PIX_FMT_YUYV:
+>>       case V4L2_PIX_FMT_RGB565:
+>> --
+>> 1.9.1
+>>
