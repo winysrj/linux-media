@@ -1,170 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:33118 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075AbcBHT0I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 14:26:08 -0500
-Received: by mail-wm0-f43.google.com with SMTP id g62so146651982wme.0
-        for <linux-media@vger.kernel.org>; Mon, 08 Feb 2016 11:26:08 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH] media: rc: nuvoton: support reading / writing wakeup sequence
- via sysfs
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56B8EBC7.2020508@gmail.com>
-Date: Mon, 8 Feb 2016 20:25:59 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48305 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753091AbcBHLn5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:43:57 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 03/35] v4l: vsp1: Group all link creation code in a single file
+Date: Mon,  8 Feb 2016 13:43:33 +0200
+Message-Id: <1454931845-23864-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a binary attribute /sys/class/rc/rc?/wakeup_data which
-allows to read / write the wakeup sequence.
+There's no need to spread the code across multiple source files.
 
-In combination with the core extension for exposing the most recent raw
-packet this allows to easily define and set a wakeup sequence.
-
-At least on my Zotac CI321 the BIOS resets the wakeup sequence at each boot
-to a factory default. Therefore I use a udev rule
-SUBSYSTEM=="rc", DRIVERS=="nuvoton-cir", ACTION=="add", RUN+="<script>"
-with the script basically doing
-cat <stored wakeup sequence> >/sys${DEVPATH}/wakeup_data
-
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/rc/nuvoton-cir.c | 85 ++++++++++++++++++++++++++++++++++++++++++
- drivers/media/rc/nuvoton-cir.h |  3 ++
- 2 files changed, 88 insertions(+)
+ drivers/media/platform/vsp1/vsp1_drv.c  | 50 +++++++++++++++++++++++----------
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 20 -------------
+ drivers/media/platform/vsp1/vsp1_rwpf.h |  5 ----
+ drivers/media/platform/vsp1/vsp1_wpf.c  | 25 -----------------
+ 4 files changed, 35 insertions(+), 65 deletions(-)
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 4b97a6f..75f428c 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -39,6 +39,8 @@
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 533bc796391e..d7f653123712 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -82,6 +82,19 @@ static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
+ 	unsigned int pad;
+ 	int ret;
  
- #include "nuvoton-cir.h"
- 
-+static void nvt_clear_cir_wake_fifo(struct nvt_dev *nvt);
++	if (sink->type == VSP1_ENTITY_RPF) {
++		struct vsp1_rwpf *rpf = to_rwpf(&sink->subdev);
 +
- static const struct nvt_chip nvt_chips[] = {
- 	{ "w83667hg", NVT_W83667HG },
- 	{ "NCT6775F", NVT_6775F },
-@@ -177,6 +179,83 @@ static void nvt_set_ioaddr(struct nvt_dev *nvt, unsigned long *ioaddr)
- 	}
- }
- 
-+static ssize_t wakeup_data_read(struct file *fp, struct kobject *kobj,
-+				struct bin_attribute *bin_attr,
-+				char *buf, loff_t off, size_t count)
-+{
-+	struct device *dev = kobj_to_dev(kobj);
-+	struct rc_dev *rc_dev = to_rc_dev(dev);
-+	struct nvt_dev *nvt = rc_dev->priv;
-+	int fifo_len, len;
-+	unsigned long flags;
-+	int i;
-+
-+	spin_lock_irqsave(&nvt->nvt_lock, flags);
-+
-+	fifo_len = nvt_cir_wake_reg_read(nvt, CIR_WAKE_FIFO_COUNT);
-+	len = min(fifo_len, WAKEUP_MAX_SIZE);
-+
-+	if (off >= len) {
-+		spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-+		return 0;
++		/* RPFs have no source entities, just connect their source pad
++		 * to their video device.
++		 */
++		return media_create_pad_link(&rpf->video.video.entity, 0,
++					     &rpf->entity.subdev.entity,
++					     RWPF_PAD_SINK,
++					     MEDIA_LNK_FL_ENABLED |
++					     MEDIA_LNK_FL_IMMUTABLE);
 +	}
 +
-+	if (len > count)
-+		len = count;
-+
-+	/* go to first element to be read */
-+	while(nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY_IDX) != off)
-+		nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
-+
-+	for (i = 0; i < len; i++)
-+		buf[i] = nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
-+
-+	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-+
-+	return len;
-+}
-+
-+static ssize_t wakeup_data_write(struct file *fp, struct kobject *kobj,
-+				struct bin_attribute *bin_attr,
-+				char *buf, loff_t off, size_t count)
-+{
-+	struct device *dev = kobj_to_dev(kobj);
-+	struct rc_dev *rc_dev = to_rc_dev(dev);
-+	struct nvt_dev *nvt = rc_dev->priv;
-+	unsigned long flags;
-+	u8 tolerance, config;
-+	int i;
-+
-+	if (off > 0)
-+		return -EINVAL;
-+
-+	/* hardcode the tolerance to 10% */
-+	tolerance = DIV_ROUND_UP(count, 10);
-+
-+	spin_lock_irqsave(&nvt->nvt_lock, flags);
-+
-+	nvt_clear_cir_wake_fifo(nvt);
-+	nvt_cir_wake_reg_write(nvt, count, CIR_WAKE_FIFO_CMP_DEEP);
-+	nvt_cir_wake_reg_write(nvt, tolerance, CIR_WAKE_FIFO_CMP_TOL);
-+
-+	config = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
-+
-+	/* enable writes to wake fifo */
-+	nvt_cir_wake_reg_write(nvt, config | CIR_WAKE_IRCON_MODE1,
-+			       CIR_WAKE_IRCON);
-+
-+	for (i = 0; i < count; i++)
-+		nvt_cir_wake_reg_write(nvt, buf[i], CIR_WAKE_WR_FIFO_DATA);
-+
-+	nvt_cir_wake_reg_write(nvt, config, CIR_WAKE_IRCON);
-+
-+	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-+
-+	return count;
-+}
-+
-+static BIN_ATTR_RW(wakeup_data, WAKEUP_MAX_SIZE);
-+
- /* dump current cir register contents */
- static void cir_dump_regs(struct nvt_dev *nvt)
- {
-@@ -1135,6 +1214,10 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 			     NVT_DRIVER_NAME "-wake", (void *)nvt))
- 		goto exit_unregister_device;
+ 	list_for_each_entry(source, &vsp1->entities, list_dev) {
+ 		u32 flags;
  
-+	ret = device_create_bin_file(&rdev->dev, &bin_attr_wakeup_data);
-+	if (ret)
-+		goto exit_unregister_device;
-+
- 	device_init_wakeup(&pdev->dev, true);
+@@ -112,6 +125,23 @@ static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
+ 		}
+ 	}
  
- 	dev_notice(&pdev->dev, "driver has been successfully loaded\n");
-@@ -1158,6 +1241,8 @@ static void nvt_remove(struct pnp_dev *pdev)
- {
- 	struct nvt_dev *nvt = pnp_get_drvdata(pdev);
- 
-+	device_remove_bin_file(&nvt->rdev->dev, &bin_attr_wakeup_data);
++	if (sink->type == VSP1_ENTITY_WPF) {
++		struct vsp1_rwpf *wpf = to_rwpf(&sink->subdev);
++		unsigned int flags = MEDIA_LNK_FL_ENABLED;
 +
- 	nvt_disable_cir(nvt);
- 
- 	/* enable CIR Wake (for IR power-on) */
-diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-index 4a5650d..c9c98eb 100644
---- a/drivers/media/rc/nuvoton-cir.h
-+++ b/drivers/media/rc/nuvoton-cir.h
-@@ -417,3 +417,6 @@ struct nvt_dev {
- /* as VISTA MCE definition, valid carrier value */
- #define MAX_CARRIER 60000
- #define MIN_CARRIER 30000
++		/* Connect the video device to the WPF. All connections are
++		 * immutable except for the WPF0 source link if a LIF is
++		 * present.
++		 */
++		if (!(vsp1->pdata.features & VSP1_HAS_LIF) || sink->index != 0)
++			flags |= MEDIA_LNK_FL_IMMUTABLE;
 +
-+/* max wakeup sequence length */
-+#define WAKEUP_MAX_SIZE 65
++		return media_create_pad_link(&wpf->entity.subdev.entity,
++					     RWPF_PAD_SOURCE,
++					     &wpf->video.video.entity, 0,
++					     flags);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -256,22 +286,12 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 
+ 	/* Create links. */
+ 	list_for_each_entry(entity, &vsp1->entities, list_dev) {
+-		if (entity->type == VSP1_ENTITY_WPF) {
+-			ret = vsp1_wpf_create_links(vsp1, entity);
+-			if (ret < 0)
+-				goto done;
+-		} else if (entity->type == VSP1_ENTITY_RPF) {
+-			ret = vsp1_rpf_create_links(vsp1, entity);
+-			if (ret < 0)
+-				goto done;
+-		}
++		if (entity->type == VSP1_ENTITY_LIF)
++			continue;
+ 
+-		if (entity->type != VSP1_ENTITY_LIF &&
+-		    entity->type != VSP1_ENTITY_RPF) {
+-			ret = vsp1_create_links(vsp1, entity);
+-			if (ret < 0)
+-				goto done;
+-		}
++		ret = vsp1_create_links(vsp1, entity);
++		if (ret < 0)
++			goto done;
+ 	}
+ 
+ 	if (vsp1->pdata.features & VSP1_HAS_LIF) {
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 924538223d3e..b988e46818a5 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -283,23 +283,3 @@ error:
+ 	vsp1_entity_destroy(&rpf->entity);
+ 	return ERR_PTR(ret);
+ }
+-
+-/*
+- * vsp1_rpf_create_links() - RPF pads links creation
+- * @vsp1: Pointer to VSP1 device
+- * @entity: Pointer to VSP1 entity
+- *
+- * return negative error code or zero on success
+- */
+-int vsp1_rpf_create_links(struct vsp1_device *vsp1,
+-			       struct vsp1_entity *entity)
+-{
+-	struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
+-
+-	/* Connect the video device to the RPF. */
+-	return media_create_pad_link(&rpf->video.video.entity, 0,
+-				     &rpf->entity.subdev.entity,
+-				     RWPF_PAD_SINK,
+-				     MEDIA_LNK_FL_ENABLED |
+-				     MEDIA_LNK_FL_IMMUTABLE);
+-}
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index 731d36e5258d..f452dce1a931 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -50,11 +50,6 @@ static inline struct vsp1_rwpf *to_rwpf(struct v4l2_subdev *subdev)
+ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index);
+ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index);
+ 
+-int vsp1_rpf_create_links(struct vsp1_device *vsp1,
+-			       struct vsp1_entity *entity);
+-int vsp1_wpf_create_links(struct vsp1_device *vsp1,
+-			       struct vsp1_entity *entity);
+-
+ int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			     struct v4l2_subdev_pad_config *cfg,
+ 			     struct v4l2_subdev_mbus_code_enum *code);
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index cbf514a6582d..1d722f7e2407 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -283,28 +283,3 @@ error:
+ 	vsp1_entity_destroy(&wpf->entity);
+ 	return ERR_PTR(ret);
+ }
+-
+-/*
+- * vsp1_wpf_create_links() - RPF pads links creation
+- * @vsp1: Pointer to VSP1 device
+- * @entity: Pointer to VSP1 entity
+- *
+- * return negative error code or zero on success
+- */
+-int vsp1_wpf_create_links(struct vsp1_device *vsp1,
+-			       struct vsp1_entity *entity)
+-{
+-	struct vsp1_rwpf *wpf = to_rwpf(&entity->subdev);
+-	unsigned int flags;
+-
+-	/* Connect the video device to the WPF. All connections are immutable
+-	 * except for the WPF0 source link if a LIF is present.
+-	 */
+-	flags = MEDIA_LNK_FL_ENABLED;
+-	if (!(vsp1->pdata.features & VSP1_HAS_LIF) || entity->index != 0)
+-		flags |= MEDIA_LNK_FL_IMMUTABLE;
+-
+-	return media_create_pad_link(&wpf->entity.subdev.entity,
+-				     RWPF_PAD_SOURCE,
+-				     &wpf->video.video.entity, 0, flags);
+-}
 -- 
-2.7.1
-
+2.4.10
 
