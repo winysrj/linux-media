@@ -1,82 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f175.google.com ([209.85.220.175]:35706 "EHLO
-	mail-qk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756330AbcBRF65 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 00:58:57 -0500
-Received: by mail-qk0-f175.google.com with SMTP id o6so14946085qkc.2
-        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2016 21:58:56 -0800 (PST)
-Received: from mail-qg0-f43.google.com (mail-qg0-f43.google.com. [209.85.192.43])
-        by smtp.gmail.com with ESMTPSA id o75sm16840875qgd.12.2016.02.17.21.58.55
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Wed, 17 Feb 2016 21:58:55 -0800 (PST)
-Received: by mail-qg0-f43.google.com with SMTP id b67so29873420qgb.1
-        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2016 21:58:55 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <56C4A712.4050403@xs4all.nl>
-References: <1452533428-12762-1-git-send-email-dianders@chromium.org>
- <1452533428-12762-5-git-send-email-dianders@chromium.org> <56C4A712.4050403@xs4all.nl>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Thu, 18 Feb 2016 14:58:35 +0900
-Message-ID: <CAAFQd5AEKS+Cmett-dHLK6n_BChZ4XhMHLPKScSbjRjQo5F_fQ@mail.gmail.com>
-Subject: Re: [PATCH v6 4/5] videobuf2-dc: Let drivers specify DMA attrs
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Douglas Anderson <dianders@chromium.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48305 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753169AbcBHLoI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:44:08 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 15/35] v4l: vsp1: Rename video pipeline functions to use vsp1_video prefix
+Date: Mon,  8 Feb 2016 13:43:45 +0200
+Message-Id: <1454931845-23864-16-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Those functions are specific to video nodes, rename them for
+consistency.
 
-On Thu, Feb 18, 2016 at 2:00 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Doug,
->
-> Is there any reason to think that different planes will need different
-> DMA attrs? I ask because this patch series of mine:
->
-> http://www.spinics.net/lists/linux-media/msg97522.html
->
-> does away with allocating allocation contexts (struct vb2_dc_conf).
->
-> For dma_attr this would mean that struct dma_attrs would probably be implemented
-> as a struct dma_attrs pointer in the vb2_queue struct once I rebase that patch series
-> on top of this patch. In other words, the same dma_attrs struct would be used for all
-> planes.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-I could think of some format consisting of video and metadata planes
-(such as V4L2_PIX_FMT_S5C_UYVY_JPG) and some hypothetical hardware,
-which generates the metadata in a way that requires patching in
-.buf_finish(). In this case, we can allocate video plane without
-kernel mapping, but for metadata plane kernel mapping is necessary to
-do the patching.
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 6b9f115746b2..d616cbeb100a 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -298,9 +298,9 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
+  * Pipeline Management
+  */
+ 
+-static int vsp1_pipeline_validate_branch(struct vsp1_pipeline *pipe,
+-					 struct vsp1_rwpf *input,
+-					 struct vsp1_rwpf *output)
++static int vsp1_video_pipeline_validate_branch(struct vsp1_pipeline *pipe,
++					       struct vsp1_rwpf *input,
++					       struct vsp1_rwpf *output)
+ {
+ 	struct vsp1_entity *entity;
+ 	struct media_entity_enum ent_enum;
+@@ -391,8 +391,8 @@ out:
+ 	return rval;
+ }
+ 
+-static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+-				  struct vsp1_video *video)
++static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
++					struct vsp1_video *video)
+ {
+ 	struct media_entity_graph graph;
+ 	struct media_entity *entity = &video->video.entity;
+@@ -452,8 +452,8 @@ static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
+ 	 * contains no loop and that all branches end at the output WPF.
+ 	 */
+ 	for (i = 0; i < pipe->num_inputs; ++i) {
+-		ret = vsp1_pipeline_validate_branch(pipe, pipe->inputs[i],
+-						    pipe->output);
++		ret = vsp1_video_pipeline_validate_branch(pipe, pipe->inputs[i],
++							  pipe->output);
+ 		if (ret < 0)
+ 			goto error;
+ 	}
+@@ -465,8 +465,8 @@ error:
+ 	return ret;
+ }
+ 
+-static int vsp1_pipeline_init(struct vsp1_pipeline *pipe,
+-			      struct vsp1_video *video)
++static int vsp1_video_pipeline_init(struct vsp1_pipeline *pipe,
++				    struct vsp1_video *video)
+ {
+ 	int ret;
+ 
+@@ -474,7 +474,7 @@ static int vsp1_pipeline_init(struct vsp1_pipeline *pipe,
+ 
+ 	/* If we're the first user validate and initialize the pipeline. */
+ 	if (pipe->use_count == 0) {
+-		ret = vsp1_pipeline_validate(pipe, video);
++		ret = vsp1_video_pipeline_validate(pipe, video);
+ 		if (ret < 0)
+ 			goto done;
+ 	}
+@@ -487,7 +487,7 @@ done:
+ 	return ret;
+ }
+ 
+-static void vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
++static void vsp1_video_pipeline_cleanup(struct vsp1_pipeline *pipe)
+ {
+ 	mutex_lock(&pipe->lock);
+ 
+@@ -755,7 +755,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 	}
+ 	mutex_unlock(&pipe->lock);
+ 
+-	vsp1_pipeline_cleanup(pipe);
++	vsp1_video_pipeline_cleanup(pipe);
+ 	media_entity_pipeline_stop(&video->video.entity);
+ 
+ 	/* Remove all buffers from the IRQ queue. */
+@@ -896,7 +896,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (ret < 0)
+ 		goto err_stop;
+ 
+-	ret = vsp1_pipeline_init(pipe, video);
++	ret = vsp1_video_pipeline_init(pipe, video);
+ 	if (ret < 0)
+ 		goto err_stop;
+ 
+@@ -908,7 +908,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	return 0;
+ 
+ err_cleanup:
+-	vsp1_pipeline_cleanup(pipe);
++	vsp1_video_pipeline_cleanup(pipe);
+ err_stop:
+ 	media_entity_pipeline_stop(&video->video.entity);
+ 	return ret;
+-- 
+2.4.10
 
-However the above is only a hypothetical "what if" of mine, since
-personally I haven't seen such case yet. Our real use case is
-allocating raw video planes without kernel mapping, while keeping
-kernel mapping available for encoded bitstream, which needs some extra
-patching. The reason for disabling kernel mapping is that vmalloc
-space can be easily exhausted when processing high resolution video
-with long buffer queues (e.g. high resolution H264 decode/encode).
-
->
-> Second question: would specifying dma_attrs also make sense for videobuf2-dma-sg.c?
-
-For our particular use case, probably not, because I don't see kernel
-mapping being implicitly created at videobuf2-dma-sg level for
-allocated MMAP buffers. AFAICT only if vb2_plane_vaddr() or respective
-DMA-BUF op is called then the mapping is created, which is unavoidable
-because the caller apparently needs it for something.
-
-Best regards,
-Tomasz
