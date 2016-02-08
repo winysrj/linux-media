@@ -1,62 +1,432 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:33365 "EHLO
-	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992523AbcB0RVz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2016 12:21:55 -0500
-Received: by mail-lf0-f52.google.com with SMTP id m1so70172364lfg.0
-        for <linux-media@vger.kernel.org>; Sat, 27 Feb 2016 09:21:55 -0800 (PST)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Sat, 27 Feb 2016 18:21:52 +0100
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ulrich.hecht@gmail.com, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCHv2] [media] rcar-vin: add Renesas R-Car VIN driver
-Message-ID: <20160227172152.GC27233@bigcity.dyn.berto.se>
-References: <1456282709-13861-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
- <56D1893E.9070007@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <56D1893E.9070007@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48303 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752997AbcBHLnv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:43:51 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 01/35] v4l: Add YUV 4:2:2 and YUV 4:4:4 tri-planar non-contiguous formats
+Date: Mon,  8 Feb 2016 13:43:31 +0200
+Message-Id: <1454931845-23864-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The formats use three planes through the multiplanar API, allowing for
+non-contiguous planes in memory.
 
-On 2016-02-27 12:32:14 +0100, Hans Verkuil wrote:
-> On 02/24/2016 03:58 AM, Niklas Söderlund wrote:
-> > A V4L2 driver for Renesas R-Car VIN driver that do not depend on
-> > soc_camera. The driver is heavily based on its predecessor and aims to
-> > replace it.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> > 
-> > The driver is tested on Koelsch and can do streaming using qv4l2 and
-> > grab frames using yavta. It passes a v4l2-compliance (git master) run
-> > without failures, see bellow for output. Some issues I know about but
-> > will have to wait for future work in other patches.
-> >  - The soc_camera driver provides some pixel formats that do not display
-> >    properly for me in qv4l2 or yavta. I have ported these formats as is
-> >    (not working correctly?) to the new driver.
-> >  - One can not bind/unbind the subdevice and continue using the driver.
-> > 
-> > As stated in commit message the driver is based on its soc_camera
-> > version but some features have been drooped (for now?).
-> >  - The driver no longer try to use the subdev for cropping (using
-> >    cropcrop/s_crop).
-> >  - Do not interrogate the subdev using g_mbus_config.
-> 
-> A quick question: was this tested with the adv7180 only? Or do you also
-> have access to a sensor to test with?
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml | 166 +++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml | 177 +++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |   2 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   4 +
+ include/uapi/linux/videodev2.h                     |   4 +
+ 5 files changed, 353 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml
 
-I'm not sure I understand your question. I have only tested on Koelsch 
-with a adv7180 connected to the VIN. But I have had both a NTSC camera 
-and a PAL Super Nintendo connected to the Koelsch (adv7180).
-
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml b/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
+new file mode 100644
+index 000000000000..dd502802cb75
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
+@@ -0,0 +1,166 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_YUV422M ('YM16'), V4L2_PIX_FMT_YVU422M ('YM61')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-YUV422M"><constant>V4L2_PIX_FMT_YUV422M</constant></refname>
++	<refname id="V4L2-PIX-FMT-YVU422M"><constant>V4L2_PIX_FMT_YVU422M</constant></refname>
++	<refpurpose>Planar formats with &frac12; horizontal resolution, also
++	known as YUV and YVU 4:2:2</refpurpose>
++      </refnamediv>
++
++      <refsect1>
++	<title>Description</title>
++
++	<para>This is a multi-planar format, as opposed to a packed format.
++The three components are separated into three sub-images or planes.</para>
++
++	<para>The Y plane is first. The Y plane has one byte per pixel.
++For <constant>V4L2_PIX_FMT_YUV422M</constant> the Cb data
++constitutes the second plane which is half the width of the Y plane (and of the
++image). Each Cb belongs to two pixels. For example,
++Cb<subscript>0</subscript> belongs to Y'<subscript>00</subscript>,
++Y'<subscript>01</subscript>. The Cr data, just like the Cb plane, is
++in the third plane. </para>
++
++	<para><constant>V4L2_PIX_FMT_YVU422M</constant> is the same except
++the Cr data is stored in the second plane and the Cb data in the third plane.
++</para>
++
++	<para>If the Y plane has pad bytes after each row, then the Cb
++and Cr planes have half as many pad bytes after their rows. In other
++words, two Cx rows (including padding) is exactly as long as one Y row
++(including padding).</para>
++
++	<para><constant>V4L2_PIX_FMT_YUV422M</constant> and
++<constant>V4L2_PIX_FMT_YVU422M</constant> are intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_YUV422M</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;2:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;6:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>31</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;0:</entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;2:</entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;4:</entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;6:</entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry><entry></entry>
++		      <entry>Y</entry><entry>C</entry><entry>Y</entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml b/Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml
+new file mode 100644
+index 000000000000..1b7335940bc7
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml
+@@ -0,0 +1,177 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_YUV444M ('YM24'), V4L2_PIX_FMT_YVU444M ('YM42')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-YUV444M"><constant>V4L2_PIX_FMT_YUV444M</constant></refname>
++	<refname id="V4L2-PIX-FMT-YVU444M"><constant>V4L2_PIX_FMT_YVU444M</constant></refname>
++	<refpurpose>Planar formats with full horizontal resolution, also
++	known as YUV and YVU 4:4:4</refpurpose>
++      </refnamediv>
++
++      <refsect1>
++	<title>Description</title>
++
++	<para>This is a multi-planar format, as opposed to a packed format.
++The three components are separated into three sub-images or planes.</para>
++
++	<para>The Y plane is first. The Y plane has one byte per pixel.
++For <constant>V4L2_PIX_FMT_YUV444M</constant> the Cb data
++constitutes the second plane which is the same width and height as the Y plane
++(and as the image). The Cr data, just like the Cb plane, is in the third plane.
++</para>
++
++	<para><constant>V4L2_PIX_FMT_YVU444M</constant> is the same except
++the Cr data is stored in the second plane and the Cb data in the third plane.
++</para>
++	<para>If the Y plane has pad bytes after each row, then the Cb
++and Cr planes have the same number of pad bytes after their rows.</para>
++
++	<para><constant>V4L2_PIX_FMT_YUV444M</constant> and
++<constant>V4L2_PIX_FMT_YUV444M</constant> are intended to be
++used only in drivers and applications that support the multi-planar API,
++described in <xref linkend="planar-apis"/>. </para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_YUV444M</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start0&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cb<subscript>02</subscript></entry>
++		      <entry>Cb<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cb<subscript>12</subscript></entry>
++		      <entry>Cb<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cb<subscript>22</subscript></entry>
++		      <entry>Cb<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start1&nbsp;+&nbsp;12:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cb<subscript>32</subscript></entry>
++		      <entry>Cb<subscript>33</subscript></entry>
++		    </row>
++		    <row><entry></entry></row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;0:</entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>02</subscript></entry>
++		      <entry>Cr<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;4:</entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>12</subscript></entry>
++		      <entry>Cr<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;8:</entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		      <entry>Cr<subscript>22</subscript></entry>
++		      <entry>Cr<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start2&nbsp;+&nbsp;12:</entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		      <entry>Cr<subscript>32</subscript></entry>
++		      <entry>Cr<subscript>33</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++
++	  <formalpara>
++	    <title>Color Sample Location.</title>
++	    <para>
++		<informaltable frame="none">
++		<tgroup cols="7" align="center">
++		  <tbody valign="top">
++		    <row>
++		      <entry></entry>
++		      <entry>0</entry><entry></entry><entry>1</entry><entry></entry>
++		      <entry>2</entry><entry></entry><entry>3</entry>
++		    </row>
++		    <row>
++		      <entry>0</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		    <row>
++		      <entry>1</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		    <row>
++		      <entry>2</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		    <row>
++		      <entry>3</entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry><entry></entry>
++		      <entry>YC</entry><entry></entry><entry>YC</entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 9e77ff353feb..2f02f9441443 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1628,6 +1628,8 @@ information.</para>
+     &sub-y41p;
+     &sub-yuv420;
+     &sub-yuv420m;
++    &sub-yuv422m;
++    &sub-yuv444m;
+     &sub-yuv410;
+     &sub-yuv422p;
+     &sub-yuv411p;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 8a018c6dd16a..14843090fd61 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1191,6 +1191,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_NV12MT_16X16:	descr = "Y/CbCr 4:2:0 (16x16 MB, N-C)"; break;
+ 	case V4L2_PIX_FMT_YUV420M:	descr = "Planar YUV 4:2:0 (N-C)"; break;
+ 	case V4L2_PIX_FMT_YVU420M:	descr = "Planar YVU 4:2:0 (N-C)"; break;
++	case V4L2_PIX_FMT_YUV422M:	descr = "Planar YUV 4:2:2 (N-C)"; break;
++	case V4L2_PIX_FMT_YVU422M:	descr = "Planar YVU 4:2:2 (N-C)"; break;
++	case V4L2_PIX_FMT_YUV444M:	descr = "Planar YUV 4:4:4 (N-C)"; break;
++	case V4L2_PIX_FMT_YVU444M:	descr = "Planar YVU 4:4:4 (N-C)"; break;
+ 	case V4L2_PIX_FMT_SBGGR8:	descr = "8-bit Bayer BGBG/GRGR"; break;
+ 	case V4L2_PIX_FMT_SGBRG8:	descr = "8-bit Bayer GBGB/RGRG"; break;
+ 	case V4L2_PIX_FMT_SGRBG8:	descr = "8-bit Bayer GRGR/BGBG"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 14cd5ebfee6d..466458422385 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -546,6 +546,10 @@ struct v4l2_pix_format {
+ /* three non contiguous planes - Y, Cb, Cr */
+ #define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
+ #define V4L2_PIX_FMT_YVU420M v4l2_fourcc('Y', 'M', '2', '1') /* 12  YVU420 planar */
++#define V4L2_PIX_FMT_YUV422M v4l2_fourcc('Y', 'M', '1', '6') /* 16  YUV422 planar */
++#define V4L2_PIX_FMT_YVU422M v4l2_fourcc('Y', 'M', '6', '1') /* 16  YVU422 planar */
++#define V4L2_PIX_FMT_YUV444M v4l2_fourcc('Y', 'M', '2', '4') /* 24  YUV444 planar */
++#define V4L2_PIX_FMT_YVU444M v4l2_fourcc('Y', 'M', '4', '2') /* 24  YVU444 planar */
+ 
+ /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
+ #define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
 -- 
-Regards,
-Niklas Söderlund
+2.4.10
+
