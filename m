@@ -1,63 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51157 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751104AbcBPTyJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2016 14:54:09 -0500
-Date: Tue, 16 Feb 2016 13:53:51 -0600
-From: Benoit Parrot <bparrot@ti.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-CC: <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [media] v4l2-async: Don't fail if registered_async isn't
- implemented
-Message-ID: <20160216195351.GG1380@ti.com>
-References: <1455648666-4377-1-git-send-email-javier@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1455648666-4377-1-git-send-email-javier@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48305 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753178AbcBHLoK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:44:10 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v3 19/35] v4l: vsp1: Document the vsp1_pipeline structure
+Date: Mon,  8 Feb 2016 13:43:49 +0200
+Message-Id: <1454931845-23864-20-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Javier Martinez Canillas <javier@osg.samsung.com> wrote on Tue [2016-Feb-16 15:51:05 -0300]:
-> After sub-dev registration in v4l2_async_test_notify(), the v4l2-async
-> core calls the registered_async callback but if a sub-dev driver does
-> not implement it, v4l2_subdev_call() will return a -ENOIOCTLCMD which
-> should not be considered an error.
-> 
-> Reported-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> ---
-> 
->  drivers/media/v4l2-core/v4l2-async.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 716bfd47daab..4d809115ba49 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -113,7 +113,7 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
->  	list_move(&sd->async_list, &notifier->done);
->  
->  	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-> -	if (ret < 0) {
-> +	if (ret < 0 && ret != -ENOIOCTLCMD) {
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_pipe.h | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-NAK.
-This fix should be on the next if block.
-The one that actually invokes the registered_async call back.
-As is it does not help.
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index 8553d5a03aa3..9c8ded1c29f6 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -29,9 +29,23 @@ enum vsp1_pipeline_state {
+ 
+ /*
+  * struct vsp1_pipeline - A VSP1 hardware pipeline
+- * @media: the media pipeline
++ * @pipe: the media pipeline
+  * @irqlock: protects the pipeline state
++ * @state: current state
++ * @wq: work queue to wait for state change completion
++ * @frame_end: frame end interrupt handler
+  * @lock: protects the pipeline use count and stream count
++ * @use_count: number of video nodes using the pipeline
++ * @stream_count: number of streaming video nodes
++ * @buffers_ready: bitmask of RPFs and WPFs with at least one buffer available
++ * @num_inputs: number of RPFs
++ * @inputs: array of RPFs in the pipeline
++ * @output: WPF at the output of the pipeline
++ * @bru: BRU entity, if present
++ * @lif: LIF entity, if present
++ * @uds: UDS entity, if present
++ * @uds_input: entity at the input of the UDS, if the UDS is present
++ * @entities: list of entities in the pipeline
+  */
+ struct vsp1_pipeline {
+ 	struct media_pipeline pipe;
+-- 
+2.4.10
 
-Benoit
-
->  		if (notifier->unbind)
->  			notifier->unbind(notifier, sd, asd);
->  		return ret;
-> -- 
-> 2.5.0
-> 
