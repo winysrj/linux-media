@@ -1,73 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39798 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752009AbcB2TSG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 14:18:06 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Wesley Post <pa4wdh@xs4all.nl>, Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 2/2] gspca: Remove unused ovfx2_vga_mode/ovfx2_cif_mode arrays
-Date: Mon, 29 Feb 2016 20:17:52 +0100
-Message-Id: <1456773472-8334-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1456773472-8334-1-git-send-email-hdegoede@redhat.com>
-References: <1456773472-8334-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-ig0-f172.google.com ([209.85.213.172]:36090 "EHLO
+	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753925AbcBHHkM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 02:40:12 -0500
+Received: by mail-ig0-f172.google.com with SMTP id xg9so50138160igb.1
+        for <linux-media@vger.kernel.org>; Sun, 07 Feb 2016 23:40:12 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1672061.k75230d3Eh@avalon>
+References: <CAJfOKByVva72g_1kJyMKGFHr2Jz+Yo6BgZPp_EENj9m4vXOHBA@mail.gmail.com>
+	<1672061.k75230d3Eh@avalon>
+Date: Mon, 8 Feb 2016 08:40:11 +0100
+Message-ID: <CAJfOKBymfpRHx5XXLPP1+zAJ+N_C7bzW-pJTvj8S8uGWixNw0w@mail.gmail.com>
+Subject: Re: Use xilinx video drivers in PCIe device
+From: Franck Jullien <franck.jullien@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Chris Kohn <christian.kohn@xilinx.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the unused ovfx2_vga_mode/ovfx2_cif_mode arrays from the ov519
-driver.
+2016-02-04 10:45 GMT+01:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Frank,
+>
+> On Tuesday 02 February 2016 17:05:06 Franck Jullien wrote:
+>> Hi,
+>>
+>> I need to use a Xilinx video infrastructure on a PCIe board.
+>> As far as I understand it, all Xilinx video drivers make use of the
+>> device-tree for configuration.
+>
+> Correct. Those drivers target the Xilinx SoC FPGAs, no standalone FPGAs
+> connected to an external CPU.
+>
+>> However, my idea is to create a MFD device to bind video drivers. That
+>> would require Xilinx video drivers to check platform_data and continue
+>> with device tree configuration if it is null or use platform data if
+>> available.
+>>
+>> Do you think such a change in Xilinx drivers can be considered
+>> upstream ? Is this the way to go ?
+>
+> Your use case is certainly valid, so I'm certainly open to supporting it in
+> the drivers.
+>
+> I'm wondering whether your MFD decide driver could create a DT fragment to
+> describe the IP cores topology. That way we could reuse the existing DT
+> support in individual drivers.
+>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/usb/gspca/ov519.c | 34 ----------------------------------
- 1 file changed, 34 deletions(-)
+I'm working on such a solution (DT framgent, or more precisely
+devitree dynamic feature).
+I'll keep you informed whenever I get something usable.
 
-diff --git a/drivers/media/usb/gspca/ov519.c b/drivers/media/usb/gspca/ov519.c
-index eb668e7..965372a 100644
---- a/drivers/media/usb/gspca/ov519.c
-+++ b/drivers/media/usb/gspca/ov519.c
-@@ -360,40 +360,6 @@ static const struct v4l2_pix_format ov511_sif_mode[] = {
- 		.priv = 0},
- };
- 
--static const struct v4l2_pix_format ovfx2_vga_mode[] = {
--	{320, 240, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 320,
--		.sizeimage = 320 * 240,
--		.colorspace = V4L2_COLORSPACE_SRGB,
--		.priv = 1},
--	{640, 480, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 640,
--		.sizeimage = 640 * 480,
--		.colorspace = V4L2_COLORSPACE_SRGB,
--		.priv = 0},
--};
--static const struct v4l2_pix_format ovfx2_cif_mode[] = {
--	{160, 120, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 160,
--		.sizeimage = 160 * 120,
--		.colorspace = V4L2_COLORSPACE_SRGB,
--		.priv = 3},
--	{176, 144, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 176,
--		.sizeimage = 176 * 144,
--		.colorspace = V4L2_COLORSPACE_SRGB,
--		.priv = 1},
--	{320, 240, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 320,
--		.sizeimage = 320 * 240,
--		.colorspace = V4L2_COLORSPACE_SRGB,
--		.priv = 2},
--	{352, 288, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
--		.bytesperline = 352,
--		.sizeimage = 352 * 288,
--		.colorspace = V4L2_COLORSPACE_SRGB,
--		.priv = 0},
--};
- static const struct v4l2_pix_format ovfx2_ov2610_mode[] = {
- 	{800, 600, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
- 		.bytesperline = 800,
--- 
-2.7.2
-
+Franck.
