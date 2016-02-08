@@ -1,121 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58729 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752823AbcBVD3Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 22:29:16 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 37A3918008B
-	for <linux-media@vger.kernel.org>; Mon, 22 Feb 2016 04:29:11 +0100 (CET)
-Date: Mon, 22 Feb 2016 04:29:11 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160222032911.37A3918008B@tschai.lan>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:33118 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751075AbcBHT0I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 14:26:08 -0500
+Received: by mail-wm0-f43.google.com with SMTP id g62so146651982wme.0
+        for <linux-media@vger.kernel.org>; Mon, 08 Feb 2016 11:26:08 -0800 (PST)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH] media: rc: nuvoton: support reading / writing wakeup sequence
+ via sysfs
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <56B8EBC7.2020508@gmail.com>
+Date: Mon, 8 Feb 2016 20:25:59 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch adds a binary attribute /sys/class/rc/rc?/wakeup_data which
+allows to read / write the wakeup sequence.
 
-Results of the daily build of media_tree:
+In combination with the core extension for exposing the most recent raw
+packet this allows to easily define and set a wakeup sequence.
 
-date:		Mon Feb 22 04:00:13 CET 2016
-git branch:	test
-git hash:	f7b5dff0b59b20469b2a4889e6170c0069d37c8d
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.4.0-164
+At least on my Zotac CI321 the BIOS resets the wakeup sequence at each boot
+to a factory default. Therefore I use a udev rule
+SUBSYSTEM=="rc", DRIVERS=="nuvoton-cir", ACTION=="add", RUN+="<script>"
+with the script basically doing
+cat <stored wakeup sequence> >/sys${DEVPATH}/wakeup_data
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: ERRORS
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: OK
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 85 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/nuvoton-cir.h |  3 ++
+ 2 files changed, 88 insertions(+)
 
-Detailed results are available here:
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 4b97a6f..75f428c 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -39,6 +39,8 @@
+ 
+ #include "nuvoton-cir.h"
+ 
++static void nvt_clear_cir_wake_fifo(struct nvt_dev *nvt);
++
+ static const struct nvt_chip nvt_chips[] = {
+ 	{ "w83667hg", NVT_W83667HG },
+ 	{ "NCT6775F", NVT_6775F },
+@@ -177,6 +179,83 @@ static void nvt_set_ioaddr(struct nvt_dev *nvt, unsigned long *ioaddr)
+ 	}
+ }
+ 
++static ssize_t wakeup_data_read(struct file *fp, struct kobject *kobj,
++				struct bin_attribute *bin_attr,
++				char *buf, loff_t off, size_t count)
++{
++	struct device *dev = kobj_to_dev(kobj);
++	struct rc_dev *rc_dev = to_rc_dev(dev);
++	struct nvt_dev *nvt = rc_dev->priv;
++	int fifo_len, len;
++	unsigned long flags;
++	int i;
++
++	spin_lock_irqsave(&nvt->nvt_lock, flags);
++
++	fifo_len = nvt_cir_wake_reg_read(nvt, CIR_WAKE_FIFO_COUNT);
++	len = min(fifo_len, WAKEUP_MAX_SIZE);
++
++	if (off >= len) {
++		spin_unlock_irqrestore(&nvt->nvt_lock, flags);
++		return 0;
++	}
++
++	if (len > count)
++		len = count;
++
++	/* go to first element to be read */
++	while(nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY_IDX) != off)
++		nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
++
++	for (i = 0; i < len; i++)
++		buf[i] = nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
++
++	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
++
++	return len;
++}
++
++static ssize_t wakeup_data_write(struct file *fp, struct kobject *kobj,
++				struct bin_attribute *bin_attr,
++				char *buf, loff_t off, size_t count)
++{
++	struct device *dev = kobj_to_dev(kobj);
++	struct rc_dev *rc_dev = to_rc_dev(dev);
++	struct nvt_dev *nvt = rc_dev->priv;
++	unsigned long flags;
++	u8 tolerance, config;
++	int i;
++
++	if (off > 0)
++		return -EINVAL;
++
++	/* hardcode the tolerance to 10% */
++	tolerance = DIV_ROUND_UP(count, 10);
++
++	spin_lock_irqsave(&nvt->nvt_lock, flags);
++
++	nvt_clear_cir_wake_fifo(nvt);
++	nvt_cir_wake_reg_write(nvt, count, CIR_WAKE_FIFO_CMP_DEEP);
++	nvt_cir_wake_reg_write(nvt, tolerance, CIR_WAKE_FIFO_CMP_TOL);
++
++	config = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
++
++	/* enable writes to wake fifo */
++	nvt_cir_wake_reg_write(nvt, config | CIR_WAKE_IRCON_MODE1,
++			       CIR_WAKE_IRCON);
++
++	for (i = 0; i < count; i++)
++		nvt_cir_wake_reg_write(nvt, buf[i], CIR_WAKE_WR_FIFO_DATA);
++
++	nvt_cir_wake_reg_write(nvt, config, CIR_WAKE_IRCON);
++
++	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
++
++	return count;
++}
++
++static BIN_ATTR_RW(wakeup_data, WAKEUP_MAX_SIZE);
++
+ /* dump current cir register contents */
+ static void cir_dump_regs(struct nvt_dev *nvt)
+ {
+@@ -1135,6 +1214,10 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 			     NVT_DRIVER_NAME "-wake", (void *)nvt))
+ 		goto exit_unregister_device;
+ 
++	ret = device_create_bin_file(&rdev->dev, &bin_attr_wakeup_data);
++	if (ret)
++		goto exit_unregister_device;
++
+ 	device_init_wakeup(&pdev->dev, true);
+ 
+ 	dev_notice(&pdev->dev, "driver has been successfully loaded\n");
+@@ -1158,6 +1241,8 @@ static void nvt_remove(struct pnp_dev *pdev)
+ {
+ 	struct nvt_dev *nvt = pnp_get_drvdata(pdev);
+ 
++	device_remove_bin_file(&nvt->rdev->dev, &bin_attr_wakeup_data);
++
+ 	nvt_disable_cir(nvt);
+ 
+ 	/* enable CIR Wake (for IR power-on) */
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index 4a5650d..c9c98eb 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -417,3 +417,6 @@ struct nvt_dev {
+ /* as VISTA MCE definition, valid carrier value */
+ #define MAX_CARRIER 60000
+ #define MIN_CARRIER 30000
++
++/* max wakeup sequence length */
++#define WAKEUP_MAX_SIZE 65
+-- 
+2.7.1
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
