@@ -1,59 +1,317 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39245 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:37714 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753864AbcBAMfe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2016 07:35:34 -0500
-Date: Mon, 1 Feb 2016 10:35:28 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Roland Zitzke <zitzke@gmx.de>
-Cc: linux-media@vger.kernel.org, Roland Zitzke <zitzke@telos.de>
-Subject: Re: [Patch] Support AVerMedia DVD EZMaker 7 (C039)
-Message-ID: <20160201103528.4f375dc5@recife.lan>
-In-Reply-To: <0214E8CF-724D-47C8-B621-CD7D434CD1AE@gmx.de>
-References: <0214E8CF-724D-47C8-B621-CD7D434CD1AE@gmx.de>
+	id S1755142AbcBHXAg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2016 18:00:36 -0500
+Subject: Re: [PATCH v2 20/22] media: au0828 add enable, disable source
+ handlers
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+ <1ebb3d41fa42581f8741e493f3109357ad1a0b3c.1454557589.git.shuahkh@osg.samsung.com>
+ <20160204082649.0ad08a16@recife.lan> <56B919C7.80801@osg.samsung.com>
+Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56B91E0A.90705@osg.samsung.com>
+Date: Mon, 8 Feb 2016 16:00:26 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <56B919C7.80801@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 20 Jan 2016 11:55:42 +0100
-Roland Zitzke <zitzke@gmx.de> escreveu:
-
-> Hello,
-> this is an USB grabber card based on the CX231XX chip.
+On 02/08/2016 03:42 PM, Shuah Khan wrote:
+> On 02/04/2016 03:26 AM, Mauro Carvalho Chehab wrote:
+>> Em Wed, 03 Feb 2016 21:03:52 -0700
+>> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+>>
+>>> Add enable_source and disable_source handlers.
+>>> The enable source handler is called from
+>>> v4l2-core, dvb-core, and ALSA drivers to check
+>>> if the shared media source is free. The disable
+>>> source handler is called to release the shared
+>>> media source.
+>>>
+>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>> ---
+>>>  drivers/media/usb/au0828/au0828-core.c | 149 +++++++++++++++++++++++++++++++++
+>>>  drivers/media/usb/au0828/au0828.h      |   3 +
+>>>  2 files changed, 152 insertions(+)
+>>>
+>>> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+>>> index 4c90f28..fd2265c 100644
+>>> --- a/drivers/media/usb/au0828/au0828-core.c
+>>> +++ b/drivers/media/usb/au0828/au0828-core.c
+>>> @@ -282,6 +282,7 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+>>>  		return -EINVAL;
+>>>  
+>>>  	if (tuner) {
+>>> +		dev->tuner = tuner;
+>>>  		/* create tuner to decoder link in deactivated state */
+>>>  		ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+>>>  					    decoder, 0, 0);
+>>> @@ -373,6 +374,150 @@ void au0828_media_graph_notify(struct media_entity *new, void *notify_data)
+>>>  #endif
+>>>  }
+>>>  
+>>> +static int au0828_enable_source(struct media_entity *entity,
+>>> +				struct media_pipeline *pipe)
+>>> +{
+>>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>>> +	struct media_entity  *source;
+>>> +	struct media_entity *sink;
+>>> +	struct media_link *link, *found_link = NULL;
+>>> +	int ret = 0;
+>>> +	struct media_device *mdev = entity->graph_obj.mdev;
+>>> +	struct au0828_dev *dev;
+>>> +
+>>> +	if (!mdev)
+>>> +		return -ENODEV;
+>>> +
+>>> +	/* for Audio and Video entities, source is the decoder */
+>>> +	mutex_lock(&mdev->graph_mutex);
+>>> +
+>>> +	dev = mdev->source_priv;
+>>> +	if (!dev->tuner || !dev->decoder) {
+>>> +		ret = -ENODEV;
+>>> +		goto end;
+>>> +	}
+>>
+>> This is wrong. There are devices without tuner (capture devices) and
+>> without analog decoder (pure DVB devices).
 > 
-> The Linux TV wiki has some rather contradicting information on this card. However I can confirm that the latest Conexant  driver works just fine once it is compiled with the additional product and vendor id of this card.
-> https://www.linuxtv.org/wiki/index.php/AVerMedia_DVD_EZMaker_7_(C039)
+> Removed linux-api from the list.
 > 
-> The following simple patch does the job on the recent v4l tree.
-> Is there a way to get it included without setting up a git infrastructure?
-
-Well, your patches need to be signed. Also, if you're using the media-build
-tree, the best would be to produce the patch under the /linux directory,
-as the patch would be in the right place.
-
-Finally, your e-mailer is mangling whitespaces, causing it to not
-apply.
-
-Regards,
-Mauro
-
-> Thanks and best regards
-> Roland
-> --- v4l/cx231xx-cards_old.c	2016-01-20 08:42:06.391203025 +0100
-> +++ v4l/cx231xx-cards.c	2016-01-20 10:37:41.862148030 +0100
-> @@ -908,6 +908,8 @@ struct usb_device_id cx231xx_id_table[]
->  	 .driver_info = CX231XX_BOARD_OTG102},
->  	{USB_DEVICE(USB_VID_TERRATEC, 0x00a6),
->  	 .driver_info = CX231XX_BOARD_TERRATEC_GRABBY},
-> +    {USB_DEVICE(0x07ca, 0xc039),
-> +     .driver_info = CX231XX_BOARD_CNXT_VIDEO_GRABBER},
->  	{},
->  };
->  
+> Yes this logic is making an assumption that both
+> decoder and tuner are present. Based on your comment
+> here, is the following check for decoder in 
+> au0828_create_media_graph() incorrect? When decoder
+> is null, au0828_usb_probe() bails out. Please see
+> au0828_create_media_graph() return handling in
+> au0828_usb_probe()?
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+>        /* Something bad happened! */
+>         if (!decoder)
+>                 return -EINVAL;
+> 
+>>
+>> In the case of pure DVB devices (e. g. no dev->decoder), it should
+>> just enable the DVB path.
+>>
+>> In the case of devices without tuner, it should use the same logic
+>> needed to handle the S-Video/Composite connector inputs.
+>>
+>> Btw, I'm not seeing how this logic would do the right thing if the user
+>> selects either S-Video or Composite connectors.
+>>
+>>> +
+>>> +	/*
+>>> +	 * For Audio and V4L2 entity, find the link to which decoder
+>>> +	 * is the sink. Look for an active link between decoder and
+>>> +	 * tuner, if one exists, nothing to do. If not, look for any
+>>> +	 * active links between tuner and any other entity. If one
+>>> +	 * exists, tuner is busy. If tuner is free, setup link and
+>>> +	 * start pipeline from source (tuner).
+>>> +	 * For DVB FE entity, the source for the link is the tuner.
+>>> +	 * Check if tuner is available and setup link and start
+>>> +	 * pipeline.
+>>> +	*/
+>>> +	if (entity->function != MEDIA_ENT_F_DTV_DEMOD)
+>>> +		sink = dev->decoder;
+>>> +	else
+>>> +		sink = entity;
+>>> +
+>>> +	/* Is an active link between sink and tuner */
+>>> +	if (dev->active_link) {
+>>> +		if (dev->active_link->sink->entity == sink &&
+>>> +		    dev->active_link->source->entity == dev->tuner) {
+>>> +			ret = 0;
+>>> +			goto end;
+>>> +		} else {
+>>> +			ret = -EBUSY;
+>>> +			goto end;
+>>> +		}
+>>> +	}
+>>> +
+>>> +	list_for_each_entry(link, &sink->links, list) {
+>>> +		/* Check sink, and source */
+>>> +		if (link->sink->entity == sink &&
+>>> +		    link->source->entity == dev->tuner) {
+>>> +			found_link = link;
+>>> +			break;
+>>> +		}
+>>> +	}
+>>> +
+>>> +	if (!found_link) {
+>>> +		ret = -ENODEV;
+>>> +		goto end;
+>>> +	}
+>>> +
+>>> +	/* activate link between source and sink and start pipeline */
+>>> +	source = found_link->source->entity;
+>>> +	ret = __media_entity_setup_link(found_link, MEDIA_LNK_FL_ENABLED);
+>>> +	if (ret) {
+>>> +		pr_err(
+>>> +			"Activate tuner link %s->%s. Error %d\n",
+>>> +			source->name, sink->name, ret);
+>>> +		goto end;
+>>> +	}
+>>> +
+>>> +	ret = __media_entity_pipeline_start(entity, pipe);
+>>> +	if (ret) {
+>>> +		pr_err("Start Pipeline: %s->%s Error %d\n",
+>>> +			source->name, entity->name, ret);
+>>> +		ret = __media_entity_setup_link(found_link, 0);
+>>> +		pr_err("Deactive link Error %d\n", ret);
+>>> +		goto end;
+>>> +	}
+>>
+>> Hmm... isn't it to early to activate the pipeline here? My original
+>> guess is that, on the analog side, this should happen only at the stream
+>> on code. Wouldn't this break apps like mythTV?
+
+On analog side, there are a few ioctls that
+change the configuration on the tuner way
+before stream on step. Is there a reason to
+separate the setup_link() and pipeline_start()
+steps? I can separate these two steps, but I
+am not really seeing the reason for that.
+
+>>
+>>> +	/*
+>>> +	 * save active link and active link owner to avoid audio
+>>> +	 * deactivating video owned link from disable_source and
+>>> +	 * vice versa
+>>> +	*/
+>>> +	dev->active_link = found_link;
+>>> +	dev->active_link_owner = entity;
+>>> +end:
+>>> +	mutex_unlock(&mdev->graph_mutex);
+>>> +	pr_debug("au0828_enable_source() end %s %d %d\n",
+>>> +		entity->name, entity->function, ret);
+>>> +	return ret;
+>>> +#endif
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static void au0828_disable_source(struct media_entity *entity)
+>>> +{
+>>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>>> +	struct media_entity *sink;
+>>> +	int ret = 0;
+>>> +	struct media_device *mdev = entity->graph_obj.mdev;
+>>> +	struct au0828_dev *dev;
+>>> +
+>>> +	if (!mdev)
+>>> +		return;
+>>> +
+>>> +	mutex_lock(&mdev->graph_mutex);
+>>> +	dev = mdev->source_priv;
+>>> +	if (!dev->tuner || !dev->decoder || !dev->active_link) {
+>>> +		ret = -ENODEV;
+>>> +		goto end;
+>>> +	}
+>>
+>> Same note as before.
+> 
+> Same comment as before here about au0828_create_media_graph()
+> and au0828_usb_probe() handling.
+> 
+>>
+>>> +
+>>> +	if (entity->function != MEDIA_ENT_F_DTV_DEMOD)
+>>> +		sink = dev->decoder;
+>>> +	else
+>>> +		sink = entity;
+>>> +
+>>> +	/* link is active - stop pipeline from source (tuner) */
+>>> +	if (dev->active_link && dev->active_link->sink->entity == sink &&
+>>> +	    dev->active_link->source->entity == dev->tuner) {
+>>> +		/*
+>>> +		 * prevent video from deactivating link when audio
+>>> +		 * has active pipeline
+>>> +		*/
+>>> +		if (dev->active_link_owner != entity)
+>>> +			goto end;
+>>> +		__media_entity_pipeline_stop(entity);
+>>> +		ret = __media_entity_setup_link(dev->active_link, 0);
+>>> +		if (ret)
+>>> +			pr_err("Deactive link Error %d\n", ret);
+>>> +		dev->active_link = NULL;
+>>> +		dev->active_link_owner = NULL;
+>>> +	}
+>>
+>> Most code here looks like the one at au0828_enable_source(). Wouldn't
+>> be simpler to merge those code and add a "bool enable" to the function
+>> parameters?
+> 
+> I would rather keep these separate. A very short
+> section is common really.
+> 
+> thanks,
+> -- Shuah
+> 
+>>
+>>> +
+>>> +end:
+>>> +	mutex_unlock(&mdev->graph_mutex);
+>>> +#endif
+>>> +}
+>>> +
+>>>  static int au0828_media_device_register(struct au0828_dev *dev,
+>>>  					struct usb_device *udev)
+>>>  {
+>>> @@ -403,6 +548,10 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+>>>  			ret);
+>>>  		return ret;
+>>>  	}
+>>> +	/* set enable_source */
+>>> +	dev->media_dev->source_priv = (void *) dev;
+>>> +	dev->media_dev->enable_source = au0828_enable_source;
+>>> +	dev->media_dev->disable_source = au0828_disable_source;
+>>>  #endif
+>>>  	return 0;
+>>>  }
+>>> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+>>> index 54379ec..a7c88a1 100644
+>>> --- a/drivers/media/usb/au0828/au0828.h
+>>> +++ b/drivers/media/usb/au0828/au0828.h
+>>> @@ -284,6 +284,9 @@ struct au0828_dev {
+>>>  	struct media_entity input_ent[AU0828_MAX_INPUT];
+>>>  	struct media_pad input_pad[AU0828_MAX_INPUT];
+>>>  	struct media_entity_notify entity_notify;
+>>> +	struct media_entity *tuner;
+>>> +	struct media_link *active_link;
+>>> +	struct media_entity *active_link_owner;
+>>>  #endif
+>>>  };
+>>>  
+> 
+> 
+
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
