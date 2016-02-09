@@ -1,121 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:38093 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753952AbcB2EAF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Feb 2016 23:00:05 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id BE87718063B
-	for <linux-media@vger.kernel.org>; Mon, 29 Feb 2016 04:59:58 +0100 (CET)
-Date: Mon, 29 Feb 2016 04:59:58 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160229035958.BE87718063B@tschai.lan>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:32872 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932197AbcBIQk3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2016 11:40:29 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk,
+	sergei.shtylyov@cogentembedded.com,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v4] adv7604: add direct interrupt handling
+Date: Tue,  9 Feb 2016 17:40:19 +0100
+Message-Id: <1455036019-7066-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+When probed from device tree, the i2c client driver can handle the
+interrupt on its own.
 
-Results of the daily build of media_tree:
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+v4: As suggested by Hans and Lars-Peter, this revision attempts to parse the
+interrupts node to determine polarity, and passes the appropriate flags to
+devm_request_threaded_irq().
 
-date:		Mon Feb 29 04:00:16 CET 2016
-git branch:	test
-git hash:	b19581a94fb1c49afc0339a65f1ebd0e4ff80dcd
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.4.0-164
+v3: uses IRQ_RETVAL
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+v2: implements the suggested style changes and drops the IRQF_TRIGGER_LOW
+flag, which is handled in the device tree.
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+ drivers/media/i2c/adv7604.c | 50 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 49 insertions(+), 1 deletion(-)
 
-Full logs are available here:
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 66dbe86..2a1ae6d 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -31,6 +31,8 @@
+ #include <linux/gpio/consumer.h>
+ #include <linux/hdmi.h>
+ #include <linux/i2c.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+@@ -1971,6 +1973,16 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	return 0;
+ }
+ 
++static irqreturn_t adv76xx_irq_handler(int irq, void *devid)
++{
++	struct adv76xx_state *state = devid;
++	bool handled;
++
++	adv76xx_isr(&state->sd, 0, &handled);
++
++	return IRQ_RETVAL(handled);
++}
++
+ static int adv76xx_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ {
+ 	struct adv76xx_state *state = to_state(sd);
+@@ -2799,6 +2811,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	struct device_node *endpoint;
+ 	struct device_node *np;
+ 	unsigned int flags;
++	u32 irq[2];
+ 	u32 v= -1;
+ 
+ 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
+@@ -2844,8 +2857,20 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 		state->pdata.op_656_range = 1;
+ 	}
+ 
+-	/* Disable the interrupt for now as no DT-based board uses it. */
+ 	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
++	if (!of_property_read_u32_array(np, "interrupts", irq, 2)) {
++		switch (irq[1]) {
++		case IRQ_TYPE_LEVEL_LOW:
++			state->pdata.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_LOW;
++			break;
++		case IRQ_TYPE_LEVEL_HIGH:
++			state->pdata.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_HIGH;
++			break;
++		default:
++			WARN(1, "Unsupported interrupt configuration.");
++			break;
++		}
++	}
+ 
+ 	/* Use the default I2C addresses. */
+ 	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
+@@ -3235,6 +3260,29 @@ static int adv76xx_probe(struct i2c_client *client,
+ 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
+ 			client->addr << 1, client->adapter->name);
+ 
++	if (client->irq) {
++		unsigned long flags = IRQF_ONESHOT;
++
++		switch (state->pdata.int1_config) {
++		case ADV76XX_INT1_CONFIG_ACTIVE_LOW:
++			flags |= IRQF_TRIGGER_LOW;
++			break;
++		case ADV76XX_INT1_CONFIG_ACTIVE_HIGH:
++			flags |= IRQF_TRIGGER_HIGH;
++			break;
++		default:
++			break;
++		}
++
++		err = devm_request_threaded_irq(&client->dev,
++						client->irq,
++						NULL, adv76xx_irq_handler,
++						flags,
++						dev_name(&client->dev), state);
++		if (err)
++			goto err_entity;
++	}
++
+ 	err = v4l2_async_register_subdev(sd);
+ 	if (err)
+ 		goto err_entity;
+-- 
+2.6.4
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
