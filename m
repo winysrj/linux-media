@@ -1,67 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:35704 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751286AbcBKXlw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 18:41:52 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v3 04/22] media: Add ALSA Media Controller function entities
-Date: Thu, 11 Feb 2016 16:41:20 -0700
-Message-Id: <423baaaf7ae51eb9098b7d0adc5ad668a590449e.1455233153.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54691 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751929AbcBILAD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Feb 2016 06:00:03 -0500
+Received: from int-mx13.intmail.prod.int.phx2.redhat.com (int-mx13.intmail.prod.int.phx2.redhat.com [10.5.11.26])
+	by mx1.redhat.com (Postfix) with ESMTPS id 86831C0AA378
+	for <linux-media@vger.kernel.org>; Tue,  9 Feb 2016 11:00:03 +0000 (UTC)
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH tvtime 1/2] Remove -lsupc++ from LDFLAGS
+Date: Tue,  9 Feb 2016 11:59:57 +0100
+Message-Id: <1455015598-18805-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add ALSA Media Controller capture, playback, and mixer
-function entity defines.
+tvtime does not use any functions from libsupc++, so there is no need
+to link to it.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- include/uapi/linux/media.h | 7 +++++++
- 1 file changed, 7 insertions(+)
+ src/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 3cc0366..449462e 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -98,6 +98,13 @@ struct media_device_info {
- #define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 42)
+diff --git a/src/Makefile.am b/src/Makefile.am
+index d3e7044..4b4612f 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -83,7 +83,7 @@ tvtime_CFLAGS = $(TTF_CFLAGS) $(PNG_CFLAGS) $(OPT_CFLAGS) \
+ 	$(PLUGIN_CFLAGS) $(X11_CFLAGS) $(XML2_FLAG) $(ALSA_CFLAGS) \
+ 	$(FONT_CFLAGS) $(AM_CFLAGS)
+ tvtime_LDFLAGS  = $(TTF_LIBS) $(ZLIB_LIBS) $(PNG_LIBS) \
+-	$(X11_LIBS) $(XML2_LIBS) $(ALSA_LIBS) -lm -lsupc++
++	$(X11_LIBS) $(XML2_LIBS) $(ALSA_LIBS) -lm
  
- /*
-+ * Audio Entity Functions
-+ */
-+#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 200)
-+#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 201)
-+#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 202)
-+
-+/*
-  * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
-  * MEDIA_ENT_F_OLD_SUBDEV_BASE are kept to keep backward compatibility
-  * with the legacy v1 API.The number range is out of range by purpose:
+ tvtime_command_SOURCES = utils.h utils.c tvtimeconf.h tvtimeconf.c \
+ 	tvtime-command.c
 -- 
 2.5.0
 
