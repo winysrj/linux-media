@@ -1,57 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:43631 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880AbcBUTxx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 14:53:53 -0500
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
-References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
-	<87io5wwahg.fsf@belgarion.home>
-	<Pine.LNX.4.64.1510272306300.21185@axis700.grange>
-	<87twpcj6vj.fsf@belgarion.home>
-	<Pine.LNX.4.64.1510291656580.694@axis700.grange>
-	<87d1s72bls.fsf@belgarion.home>
-	<Pine.LNX.4.64.1602211400050.5959@axis700.grange>
-Date: Sun, 21 Feb 2016 15:53:42 +0100
-In-Reply-To: <Pine.LNX.4.64.1602211400050.5959@axis700.grange> (Guennadi
-	Liakhovetski's message of "Sun, 21 Feb 2016 14:01:32 +0100 (CET)")
-Message-ID: <874md2xgg9.fsf@belgarion.home>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49658 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754182AbcBIRVo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2016 12:21:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, hans.verkuil@cisco.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk, sergei.shtylyov@cogentembedded.com
+Subject: Re: [PATCH v4] adv7604: add direct interrupt handling
+Date: Tue, 09 Feb 2016 19:22:05 +0200
+Message-ID: <6444162.Rd25FHs0Jy@avalon>
+In-Reply-To: <1455036019-7066-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1455036019-7066-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+Hi Ulrich,
 
->> Okay Guennadi, I retested this version on top of v4.5-rc2, still good to
->> go. There is a minor conflict in the includes since this submission, and I can
->> repost a v6 which solves it.
->
-> How did you test it with that patchg #3??
-I rebased my patches on top of v4.5-rc2. To be exact, I rebased the tree I had
-with these last patches on top of v4.5-rc2. I'll recheck, it's been some time
-...
+Thank you for the patch.
 
-> What's a minor conflict?
-A conflict on a context line :
-#include <mach/dma.h>
-#include <linux/platform_data/media/camera-pxa.h>
+On Tuesday 09 February 2016 17:40:19 Ulrich Hecht wrote:
+> When probed from device tree, the i2c client driver can handle the
+> interrupt on its own.
+> 
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+> v4: As suggested by Hans and Lars-Peter, this revision attempts to parse the
+> interrupts node to determine polarity, and passes the appropriate flags to
+> devm_request_threaded_irq().
 
-I think linux/platform_data/media/camera-pxa.h changed from my last submssion,
-hence the conflict.
+I should have replied before you posted v4, sorry about that, but I think this 
+is unneeded.
 
-> If a patch doesn't apply at all or applies with a fuzz, yes, please fix. If
-> it's just a few lines off, no need to fix that. But you'll do a v6 anyway, I
-> assume.
-But of course, let us have a v6 which cleanly applies on v4.5-rc2, and restested
-once more. I'll try to have it done this evening.
+The I2C core retrieves the interrupt with of_irq_get_byname() or of_irq_get(). 
+The former calls the latter, and the call stack continues with 
+irq_create_of_mapping() and irq_create_fwspec_mapping(). That function will 
+call irq_domain_translate() to translate the IRQ spec retrieved from DT to an 
+IRQ type, and then set the type with irq_set_irq_type().
 
-Cheers.
+If my understanding is correct all the work is done for you already.
+
+The real problem is how to configure the adv7604 interrupt polarity. You can 
+simply call irq_get_trigger_type() to retrieve the trigger type, but that 
+would leave open the question of what to do if the board includes an inverter 
+on the IRQ line. I wonder whether it wouldn't be better to hardcode the IRQ 
+polarity on the adv7604 side, and document the DT IRQ flag as the polarity at 
+the SoC interrupt pin to match the hardcoded (and documented) polarity at the 
+adv7604 pin.
+
+> v3: uses IRQ_RETVAL
+> 
+> v2: implements the suggested style changes and drops the IRQF_TRIGGER_LOW
+> flag, which is handled in the device tree.
+> 
+> 
+>  drivers/media/i2c/adv7604.c | 50 +++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 49 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+> index 66dbe86..2a1ae6d 100644
+> --- a/drivers/media/i2c/adv7604.c
+> +++ b/drivers/media/i2c/adv7604.c
+> @@ -31,6 +31,8 @@
+>  #include <linux/gpio/consumer.h>
+>  #include <linux/hdmi.h>
+>  #include <linux/i2c.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/irq.h>
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/slab.h>
+> @@ -1971,6 +1973,16 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32
+> status, bool *handled) return 0;
+>  }
+> 
+> +static irqreturn_t adv76xx_irq_handler(int irq, void *devid)
+> +{
+> +	struct adv76xx_state *state = devid;
+> +	bool handled;
+> +
+> +	adv76xx_isr(&state->sd, 0, &handled);
+> +
+> +	return IRQ_RETVAL(handled);
+> +}
+> +
+>  static int adv76xx_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+> {
+>  	struct adv76xx_state *state = to_state(sd);
+> @@ -2799,6 +2811,7 @@ static int adv76xx_parse_dt(struct adv76xx_state
+> *state) struct device_node *endpoint;
+>  	struct device_node *np;
+>  	unsigned int flags;
+> +	u32 irq[2];
+>  	u32 v= -1;
+> 
+>  	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
+> @@ -2844,8 +2857,20 @@ static int adv76xx_parse_dt(struct adv76xx_state
+> *state) state->pdata.op_656_range = 1;
+>  	}
+> 
+> -	/* Disable the interrupt for now as no DT-based board uses it. */
+>  	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
+> +	if (!of_property_read_u32_array(np, "interrupts", irq, 2)) {
+> +		switch (irq[1]) {
+> +		case IRQ_TYPE_LEVEL_LOW:
+> +			state->pdata.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_LOW;
+> +			break;
+> +		case IRQ_TYPE_LEVEL_HIGH:
+> +			state->pdata.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_HIGH;
+> +			break;
+> +		default:
+> +			WARN(1, "Unsupported interrupt configuration.");
+> +			break;
+> +		}
+> +	}
+> 
+>  	/* Use the default I2C addresses. */
+>  	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
+> @@ -3235,6 +3260,29 @@ static int adv76xx_probe(struct i2c_client *client,
+>  	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
+>  			client->addr << 1, client->adapter->name);
+> 
+> +	if (client->irq) {
+> +		unsigned long flags = IRQF_ONESHOT;
+> +
+> +		switch (state->pdata.int1_config) {
+> +		case ADV76XX_INT1_CONFIG_ACTIVE_LOW:
+> +			flags |= IRQF_TRIGGER_LOW;
+> +			break;
+> +		case ADV76XX_INT1_CONFIG_ACTIVE_HIGH:
+> +			flags |= IRQF_TRIGGER_HIGH;
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +
+> +		err = devm_request_threaded_irq(&client->dev,
+> +						client->irq,
+> +						NULL, adv76xx_irq_handler,
+> +						flags,
+> +						dev_name(&client->dev), state);
+> +		if (err)
+> +			goto err_entity;
+> +	}
+> +
+>  	err = v4l2_async_register_subdev(sd);
+>  	if (err)
+>  		goto err_entity;
 
 -- 
-Robert
+Regards,
+
+Laurent Pinchart
+
