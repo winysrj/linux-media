@@ -1,255 +1,520 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sg-smtp01.263.net ([54.255.195.220]:46231 "EHLO
-	sg-smtp01.263.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161472AbcBRA7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 19:59:52 -0500
-From: Jung Zhao <jung.zhao@rock-chips.com>
-To: tfiga@chromium.org, posciak@chromium.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+Received: from bombadil.infradead.org ([198.137.202.9]:51181 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752818AbcBISA1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2016 13:00:27 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 2/4] [NOT FOR REVIEW] v4l: Add VP8 low-level decoder API controls.
-Date: Wed, 17 Feb 2016 18:42:33 +0800
-Message-Id: <1455705753-25687-1-git-send-email-jung.zhao@rock-chips.com>
-In-Reply-To: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
-References: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Geunyoung Kim <nenggun.kim@samsung.com>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] au0828: move V4L2-specific code to au0828-core.c
+Date: Tue,  9 Feb 2016 15:59:06 -0200
+Message-Id: <5b23293902507e588408d2b1a1c3b8928d231a9d.1455040739.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+Instead of having lots of #ifdefs inside au0828-core due to
+V4L2, move the dependencies to au0828-video.c. That allows
+removing all those ifdefs, as au0828-video is only compiled if
+CONFIG_VIDEO_AU0828_V4L2.
 
-These controls are to be used with the new low-level decoder API for VP8
-to provide additional parameters for the hardware that cannot parse the
-input stream.
+This fixes the following warnings reported by Kbuild test
+with a random config with au0828 enabled, but V4L2 is disabled.
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
-Signed-off-by: Jung Zhao <jung.zhao@rock-chips.com>
+All warnings (new ones prefixed by >>):
+
+   drivers/media/usb/au0828/au0828-core.c: In function 'au0828_usb_probe':
+>> drivers/media/usb/au0828/au0828-core.c:463:1: warning: label 'done' defined but not used [-Wunused-label]
+    done:
+    ^
+   drivers/media/usb/au0828/au0828-core.c: At top level:
+   drivers/media/usb/au0828/au0828-core.c:250:12: warning: 'au0828_create_media_graph' defined but not used [-Wunused-function]
+    static int au0828_create_media_graph(struct au0828_dev *dev)
+               ^
+
+Compile-tested only.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
-Changes in v2: None
+ drivers/media/usb/au0828/au0828-core.c  | 157 ++-----------------------------
+ drivers/media/usb/au0828/au0828-video.c | 162 +++++++++++++++++++++++++++++++-
+ drivers/media/usb/au0828/au0828.h       |  20 +++-
+ 3 files changed, 187 insertions(+), 152 deletions(-)
 
- drivers/media/v4l2-core/v4l2-ctrls.c |  9 ++++
- drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
- include/media/v4l2-ctrls.h           |  2 +
- include/uapi/linux/v4l2-controls.h   | 94 ++++++++++++++++++++++++++++++++++++
- include/uapi/linux/videodev2.h       |  3 ++
- 5 files changed, 109 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 527d65c..ffc513e 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -762,6 +762,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
- 
-+	case V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR:			return "VP8 Frame Header";
-+
- 	/* CAMERA controls */
- 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
- 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-@@ -1126,6 +1128,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_RDS_TX_ALT_FREQS:
- 		*type = V4L2_CTRL_TYPE_U32;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR:
-+		*type = V4L2_CTRL_TYPE_VP8_FRAME_HDR;
-+		break;
- 	default:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-@@ -1529,6 +1534,7 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 	case V4L2_CTRL_TYPE_PRIVATE:
- 		return 0;
- 
-+	case V4L2_CTRL_TYPE_VP8_FRAME_HDR:
- 	default:
- 		return -EINVAL;
- 	}
-@@ -2078,6 +2084,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	case V4L2_CTRL_TYPE_U32:
- 		elem_size = sizeof(u32);
- 		break;
-+	case V4L2_CTRL_TYPE_VP8_FRAME_HDR:
-+		elem_size = sizeof(struct v4l2_ctrl_vp8_frame_hdr);
-+		break;
- 	default:
- 		if (type < V4L2_CTRL_COMPOUND_TYPES)
- 			elem_size = sizeof(s32);
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 7d028d1..915dc2c 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1259,6 +1259,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 		case V4L2_PIX_FMT_VC1_ANNEX_G:	descr = "VC-1 (SMPTE 412M Annex G)"; break;
- 		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
- 		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
-+		case V4L2_PIX_FMT_VP8_FRAME:	descr = "VP8 FRAME"; break;
- 		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
- 		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
- 		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 5f9526f..0424cdc 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -46,6 +46,7 @@ struct poll_table_struct;
-  * @p_u16:	Pointer to a 16-bit unsigned value.
-  * @p_u32:	Pointer to a 32-bit unsigned value.
-  * @p_char:	Pointer to a string.
-+ * @p_vp8_frame_hdr:	Pointer to a struct v4l2_ctrl_vp8_frame_hdr.
-  * @p:		Pointer to a compound value.
-  */
- union v4l2_ctrl_ptr {
-@@ -55,6 +56,7 @@ union v4l2_ctrl_ptr {
- 	u16 *p_u16;
- 	u32 *p_u32;
- 	char *p_char;
-+	struct v4l2_ctrl_vp8_frame_hdr *p_vp8_frame_hdr;
- 	void *p;
- };
- 
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 2d225bc..894de37 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -578,6 +578,8 @@ enum v4l2_vp8_golden_frame_sel {
- #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
- #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
- 
-+#define V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR		(V4L2_CID_MPEG_BASE+512)
-+
- /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
- #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
- #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
-@@ -963,4 +965,96 @@ enum v4l2_detect_md_mode {
- #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
- #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
- 
-+#define V4L2_VP8_SEGMNT_HDR_FLAG_ENABLED              0x01
-+#define V4L2_VP8_SEGMNT_HDR_FLAG_UPDATE_MAP           0x02
-+#define V4L2_VP8_SEGMNT_HDR_FLAG_UPDATE_FEATURE_DATA  0x04
-+struct v4l2_vp8_sgmnt_hdr {
-+	__u8 segment_feature_mode;
-+
-+	__s8 quant_update[4];
-+	__s8 lf_update[4];
-+	__u8 segment_probs[3];
-+
-+	__u8 flags;
-+};
-+
-+#define V4L2_VP8_LF_HDR_ADJ_ENABLE	0x01
-+#define V4L2_VP8_LF_HDR_DELTA_UPDATE	0x02
-+struct v4l2_vp8_loopfilter_hdr {
-+	__u8 type;
-+	__u8 level;
-+	__u8 sharpness_level;
-+	__s8 ref_frm_delta_magnitude[4];
-+	__s8 mb_mode_delta_magnitude[4];
-+
-+	__u8 flags;
-+};
-+
-+struct v4l2_vp8_quantization_hdr {
-+	__u8 y_ac_qi;
-+	__s8 y_dc_delta;
-+	__s8 y2_dc_delta;
-+	__s8 y2_ac_delta;
-+	__s8 uv_dc_delta;
-+	__s8 uv_ac_delta;
-+	__u16 dequant_factors[4][3][2];
-+};
-+
-+struct v4l2_vp8_entropy_hdr {
-+	__u8 coeff_probs[4][8][3][11];
-+	__u8 y_mode_probs[4];
-+	__u8 uv_mode_probs[3];
-+	__u8 mv_probs[2][19];
-+};
-+
-+#define V4L2_VP8_FRAME_HDR_FLAG_EXPERIMENTAL		0x01
-+#define V4L2_VP8_FRAME_HDR_FLAG_SHOW_FRAME		0x02
-+#define V4L2_VP8_FRAME_HDR_FLAG_MB_NO_SKIP_COEFF	0x04
-+struct v4l2_ctrl_vp8_frame_hdr {
-+	/* 0: keyframe, 1: not a keyframe */
-+	__u8 key_frame;
-+	__u8 version;
-+
-+	/* Populated also if not a key frame */
-+	__u16 width;
-+	__u8 horizontal_scale;
-+	__u16 height;
-+	__u8 vertical_scale;
-+
-+	struct v4l2_vp8_sgmnt_hdr sgmnt_hdr;
-+	struct v4l2_vp8_loopfilter_hdr lf_hdr;
-+	struct v4l2_vp8_quantization_hdr quant_hdr;
-+	struct v4l2_vp8_entropy_hdr entropy_hdr;
-+
-+	__u8 sign_bias_golden;
-+	__u8 sign_bias_alternate;
-+
-+	__u8 prob_skip_false;
-+	__u8 prob_intra;
-+	__u8 prob_last;
-+	__u8 prob_gf;
-+
-+	__u32 first_part_size;
-+	__u32 first_part_offset;
-+	/*
-+	 * Offset in bits of MB data in first partition,
-+	 * i.e. bit offset starting from first_part_offset.
-+	 */
-+	__u32 macroblock_bit_offset;
-+
-+	__u8 num_dct_parts;
-+	__u32 dct_part_sizes[8];
-+
-+	__u8 bool_dec_range;
-+	__u8 bool_dec_value;
-+	__u8 bool_dec_count;
-+
-+	/* v4l2_buffer indices of reference frames */
-+	__u32 last_frame;
-+	__u32 golden_frame;
-+	__u32 alt_frame;
-+
-+	__u8 flags;
-+};
-+
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 0a8afbf181c9..f23da7e7984b 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -143,7 +143,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
  #endif
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 53ac896..1493ec4 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -593,6 +593,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
- #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
- #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
-+#define V4L2_PIX_FMT_VP8_FRAME v4l2_fourcc('V', 'P', '8', 'F') /* VP8 parsed frames */
+ }
  
- /*  Vendor-specific formats   */
- #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
-@@ -1473,6 +1474,7 @@ struct v4l2_ext_control {
- 		__u8 __user *p_u8;
- 		__u16 __user *p_u16;
- 		__u32 __user *p_u32;
-+		struct v4l2_ctrl_vp8_frame_hdr __user *p_vp8_frame_hdr;
- 		void __user *ptr;
- 	};
- } __attribute__ ((packed));
-@@ -1517,6 +1519,7 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_U8	     = 0x0100,
- 	V4L2_CTRL_TYPE_U16	     = 0x0101,
- 	V4L2_CTRL_TYPE_U32	     = 0x0102,
-+	V4L2_CTRL_TYPE_VP8_FRAME_HDR	= 0x108,
+-static void au0828_usb_release(struct au0828_dev *dev)
++void au0828_usb_release(struct au0828_dev *dev)
+ {
+ 	au0828_unregister_media_device(dev);
  
- 	V4L2_CTRL_TYPE_PRIVATE       = 0xffff,
- };
+@@ -153,33 +153,6 @@ static void au0828_usb_release(struct au0828_dev *dev)
+ 	kfree(dev);
+ }
+ 
+-#ifdef CONFIG_VIDEO_AU0828_V4L2
+-
+-static void au0828_usb_v4l2_media_release(struct au0828_dev *dev)
+-{
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	int i;
+-
+-	for (i = 0; i < AU0828_MAX_INPUT; i++) {
+-		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
+-			return;
+-		media_device_unregister_entity(&dev->input_ent[i]);
+-	}
+-#endif
+-}
+-
+-static void au0828_usb_v4l2_release(struct v4l2_device *v4l2_dev)
+-{
+-	struct au0828_dev *dev =
+-		container_of(v4l2_dev, struct au0828_dev, v4l2_dev);
+-
+-	v4l2_ctrl_handler_free(&dev->v4l2_ctrl_hdl);
+-	v4l2_device_unregister(&dev->v4l2_dev);
+-	au0828_usb_v4l2_media_release(dev);
+-	au0828_usb_release(dev);
+-}
+-#endif
+-
+ static void au0828_usb_disconnect(struct usb_interface *interface)
+ {
+ 	struct au0828_dev *dev = usb_get_intfdata(interface);
+@@ -202,18 +175,13 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
+ 	mutex_lock(&dev->mutex);
+ 	dev->usbdev = NULL;
+ 	mutex_unlock(&dev->mutex);
+-#ifdef CONFIG_VIDEO_AU0828_V4L2
+-	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED) {
+-		au0828_analog_unregister(dev);
+-		v4l2_device_disconnect(&dev->v4l2_dev);
+-		v4l2_device_put(&dev->v4l2_dev);
++	if (au0828_analog_unregister(dev)) {
+ 		/*
+ 		 * No need to call au0828_usb_release() if V4L2 is enabled,
+ 		 * as this is already called via au0828_usb_v4l2_release()
+ 		 */
+ 		return;
+ 	}
+-#endif
+ 	au0828_usb_release(dev);
+ }
+ 
+@@ -247,83 +215,6 @@ static int au0828_media_device_init(struct au0828_dev *dev,
+ }
+ 
+ 
+-static int au0828_create_media_graph(struct au0828_dev *dev)
+-{
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	struct media_device *mdev = dev->media_dev;
+-	struct media_entity *entity;
+-	struct media_entity *tuner = NULL, *decoder = NULL;
+-	int i, ret;
+-
+-	if (!mdev)
+-		return 0;
+-
+-	media_device_for_each_entity(entity, mdev) {
+-		switch (entity->function) {
+-		case MEDIA_ENT_F_TUNER:
+-			tuner = entity;
+-			break;
+-		case MEDIA_ENT_F_ATV_DECODER:
+-			decoder = entity;
+-			break;
+-		}
+-	}
+-
+-	/* Analog setup, using tuner as a link */
+-
+-	/* Something bad happened! */
+-	if (!decoder)
+-		return -EINVAL;
+-
+-	if (tuner) {
+-		ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+-					    decoder, 0,
+-					    MEDIA_LNK_FL_ENABLED);
+-		if (ret)
+-			return ret;
+-	}
+-	ret = media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
+-				    MEDIA_LNK_FL_ENABLED);
+-	if (ret)
+-		return ret;
+-	ret = media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
+-				    MEDIA_LNK_FL_ENABLED);
+-	if (ret)
+-		return ret;
+-
+-	for (i = 0; i < AU0828_MAX_INPUT; i++) {
+-		struct media_entity *ent = &dev->input_ent[i];
+-
+-		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
+-			break;
+-
+-		switch (AUVI_INPUT(i).type) {
+-		case AU0828_VMUX_CABLE:
+-		case AU0828_VMUX_TELEVISION:
+-		case AU0828_VMUX_DVB:
+-			if (!tuner)
+-				break;
+-
+-			ret = media_create_pad_link(ent, 0, tuner,
+-						    TUNER_PAD_RF_INPUT,
+-						    MEDIA_LNK_FL_ENABLED);
+-			if (ret)
+-				return ret;
+-			break;
+-		case AU0828_VMUX_COMPOSITE:
+-		case AU0828_VMUX_SVIDEO:
+-		default: /* AU0828_VMUX_DEBUG */
+-			/* FIXME: fix the decoder PAD */
+-			ret = media_create_pad_link(ent, 0, decoder, 0, 0);
+-			if (ret)
+-				return ret;
+-			break;
+-		}
+-	}
+-#endif
+-	return 0;
+-}
+-
+ static int au0828_usb_probe(struct usb_interface *interface,
+ 	const struct usb_device_id *id)
+ {
+@@ -378,32 +269,13 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 		return retval;
+ 	}
+ 
+-#ifdef CONFIG_VIDEO_AU0828_V4L2
+-	dev->v4l2_dev.release = au0828_usb_v4l2_release;
+-
+-	/* Create the v4l2_device */
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	dev->v4l2_dev.mdev = dev->media_dev;
+-#endif
+-	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
++	retval = au0828_v4l2_device_register(interface, dev);
+ 	if (retval) {
+-		pr_err("%s() v4l2_device_register failed\n",
+-		       __func__);
++		au0828_usb_v4l2_media_release(dev);
+ 		mutex_unlock(&dev->lock);
+ 		kfree(dev);
+ 		return retval;
+ 	}
+-	/* This control handler will inherit the controls from au8522 */
+-	retval = v4l2_ctrl_handler_init(&dev->v4l2_ctrl_hdl, 4);
+-	if (retval) {
+-		pr_err("%s() v4l2_ctrl_handler_init failed\n",
+-		       __func__);
+-		mutex_unlock(&dev->lock);
+-		kfree(dev);
+-		return retval;
+-	}
+-	dev->v4l2_dev.ctrl_handler = &dev->v4l2_ctrl_hdl;
+-#endif
+ 
+ 	/* Power Up the bridge */
+ 	au0828_write(dev, REG_600, 1 << 4);
+@@ -417,24 +289,13 @@ static int au0828_usb_probe(struct usb_interface *interface,
+ 	/* Setup */
+ 	au0828_card_setup(dev);
+ 
+-#ifdef CONFIG_VIDEO_AU0828_V4L2
+ 	/* Analog TV */
+-	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED) {
+-		retval = au0828_analog_register(dev, interface);
+-		if (retval) {
+-			pr_err("%s() au0282_dev_register failed to register on V4L2\n",
+-			       __func__);
+-			goto done;
+-		}
+-
+-		retval = au0828_create_media_graph(dev);
+-		if (retval) {
+-			pr_err("%s() au0282_dev_register failed to create graph\n",
+-			       __func__);
+-			goto done;
+-		}
++	retval = au0828_analog_register(dev, interface);
++	if (retval) {
++		pr_err("%s() au0282_dev_register failed to register on V4L2\n",
++			__func__);
++		goto done;
+ 	}
+-#endif
+ 
+ 	/* Digital TV */
+ 	retval = au0828_dvb_register(dev);
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 8c54fd21022e..4164302dd8ac 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -638,6 +638,144 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
+ 	return rc;
+ }
+ 
++void au0828_usb_v4l2_media_release(struct au0828_dev *dev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	int i;
++
++	for (i = 0; i < AU0828_MAX_INPUT; i++) {
++		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
++			return;
++		media_device_unregister_entity(&dev->input_ent[i]);
++	}
++#endif
++}
++
++static int au0828_create_media_graph(struct au0828_dev *dev)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = dev->media_dev;
++	struct media_entity *entity;
++	struct media_entity *tuner = NULL, *decoder = NULL;
++	int i, ret;
++
++	if (!mdev)
++		return 0;
++
++	media_device_for_each_entity(entity, mdev) {
++		switch (entity->function) {
++		case MEDIA_ENT_F_TUNER:
++			tuner = entity;
++			break;
++		case MEDIA_ENT_F_ATV_DECODER:
++			decoder = entity;
++			break;
++		}
++	}
++
++	/* Analog setup, using tuner as a link */
++
++	/* Something bad happened! */
++	if (!decoder)
++		return -EINVAL;
++
++	if (tuner) {
++		ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
++					    decoder, 0,
++					    MEDIA_LNK_FL_ENABLED);
++		if (ret)
++			return ret;
++	}
++	ret = media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
++				    MEDIA_LNK_FL_ENABLED);
++	if (ret)
++		return ret;
++	ret = media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
++				    MEDIA_LNK_FL_ENABLED);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < AU0828_MAX_INPUT; i++) {
++		struct media_entity *ent = &dev->input_ent[i];
++
++		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
++			break;
++
++		switch (AUVI_INPUT(i).type) {
++		case AU0828_VMUX_CABLE:
++		case AU0828_VMUX_TELEVISION:
++		case AU0828_VMUX_DVB:
++			if (!tuner)
++				break;
++
++			ret = media_create_pad_link(ent, 0, tuner,
++						    TUNER_PAD_RF_INPUT,
++						    MEDIA_LNK_FL_ENABLED);
++			if (ret)
++				return ret;
++			break;
++		case AU0828_VMUX_COMPOSITE:
++		case AU0828_VMUX_SVIDEO:
++		default: /* AU0828_VMUX_DEBUG */
++			/* FIXME: fix the decoder PAD */
++			ret = media_create_pad_link(ent, 0, decoder, 0, 0);
++			if (ret)
++				return ret;
++			break;
++		}
++	}
++#endif
++	return 0;
++}
++
++static void au0828_usb_v4l2_release(struct v4l2_device *v4l2_dev)
++{
++	struct au0828_dev *dev =
++		container_of(v4l2_dev, struct au0828_dev, v4l2_dev);
++
++	v4l2_ctrl_handler_free(&dev->v4l2_ctrl_hdl);
++	v4l2_device_unregister(&dev->v4l2_dev);
++	au0828_usb_v4l2_media_release(dev);
++	au0828_usb_release(dev);
++}
++
++int au0828_v4l2_device_register(struct usb_interface *interface,
++				struct au0828_dev *dev)
++{
++	int retval;
++
++	if (AUVI_INPUT(0).type == AU0828_VMUX_UNDEFINED)
++		return 0;
++
++	/* Create the v4l2_device */
++#ifdef CONFIG_MEDIA_CONTROLLER
++	dev->v4l2_dev.mdev = dev->media_dev;
++#endif
++	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
++	if (retval) {
++		pr_err("%s() v4l2_device_register failed\n",
++		       __func__);
++		mutex_unlock(&dev->lock);
++		kfree(dev);
++		return retval;
++	}
++
++	dev->v4l2_dev.release = au0828_usb_v4l2_release;
++
++	/* This control handler will inherit the controls from au8522 */
++	retval = v4l2_ctrl_handler_init(&dev->v4l2_ctrl_hdl, 4);
++	if (retval) {
++		pr_err("%s() v4l2_ctrl_handler_init failed\n",
++		       __func__);
++		mutex_unlock(&dev->lock);
++		kfree(dev);
++		return retval;
++	}
++	dev->v4l2_dev.ctrl_handler = &dev->v4l2_ctrl_hdl;
++
++	return 0;
++}
++
+ static int au0828_enable_analog_tuner(struct au0828_dev *dev)
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER
+@@ -949,13 +1087,23 @@ static struct vb2_ops au0828_video_qops = {
+  * au0828_analog_unregister
+  * unregister v4l2 devices
+  */
+-void au0828_analog_unregister(struct au0828_dev *dev)
++int au0828_analog_unregister(struct au0828_dev *dev)
+ {
+ 	dprintk(1, "au0828_analog_unregister called\n");
++
++	/* No analog TV */
++	if (AUVI_INPUT(0).type == AU0828_VMUX_UNDEFINED)
++		return 0;
++
+ 	mutex_lock(&au0828_sysfs_lock);
+ 	video_unregister_device(&dev->vdev);
+ 	video_unregister_device(&dev->vbi_dev);
+ 	mutex_unlock(&au0828_sysfs_lock);
++
++	v4l2_device_disconnect(&dev->v4l2_dev);
++	v4l2_device_put(&dev->v4l2_dev);
++
++	return 1;
+ }
+ 
+ /* This function ensures that video frames continue to be delivered even if
+@@ -1871,6 +2019,10 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	dprintk(1, "au0828_analog_register called for intf#%d!\n",
+ 		interface->cur_altsetting->desc.bInterfaceNumber);
+ 
++	/* No analog TV */
++	if (AUVI_INPUT(0).type == AU0828_VMUX_UNDEFINED)
++		return 0;
++
+ 	/* set au0828 usb interface0 to as5 */
+ 	retval = usb_set_interface(dev->usbdev,
+ 			interface->cur_altsetting->desc.bInterfaceNumber, 5);
+@@ -1976,6 +2128,14 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 		ret = -ENODEV;
+ 		goto err_reg_vbi_dev;
+ 	}
++	retval = au0828_create_media_graph(dev);
++	if (retval) {
++		pr_err("%s() au0282_dev_register failed to create graph\n",
++			__func__);
++		ret = -ENODEV;
++		goto err_reg_vbi_dev;
++	}
++
+ 
+ 	dprintk(1, "%s completed!\n", __func__);
+ 
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 8276072bc55a..43f2af731088 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -301,6 +301,7 @@ struct au0828_dev {
+ /* au0828-core.c */
+ extern u32 au0828_read(struct au0828_dev *dev, u16 reg);
+ extern u32 au0828_write(struct au0828_dev *dev, u16 reg, u32 val);
++extern void au0828_usb_release(struct au0828_dev *dev);
+ extern int au0828_debug;
+ 
+ /* ----------------------------------------------------------- */
+@@ -319,16 +320,29 @@ extern int au0828_i2c_unregister(struct au0828_dev *dev);
+ 
+ /* ----------------------------------------------------------- */
+ /* au0828-video.c */
+-extern int au0828_analog_register(struct au0828_dev *dev,
+-			   struct usb_interface *interface);
+-extern void au0828_analog_unregister(struct au0828_dev *dev);
+ extern int au0828_start_analog_streaming(struct vb2_queue *vq,
+ 						unsigned int count);
+ extern void au0828_stop_vbi_streaming(struct vb2_queue *vq);
+ #ifdef CONFIG_VIDEO_AU0828_V4L2
++extern int au0828_v4l2_device_register(struct usb_interface *interface,
++				      struct au0828_dev *dev);
++
++extern int au0828_analog_register(struct au0828_dev *dev,
++			   struct usb_interface *interface);
++extern int au0828_analog_unregister(struct au0828_dev *dev);
++extern void au0828_usb_v4l2_media_release(struct au0828_dev *dev);
+ extern void au0828_v4l2_suspend(struct au0828_dev *dev);
+ extern void au0828_v4l2_resume(struct au0828_dev *dev);
+ #else
++static inline int au0828_v4l2_device_register(struct usb_interface *interface,
++					      struct au0828_dev *dev)
++{ return 0; };
++static inline au0828_analog_register(struct au0828_dev *dev,
++				     struct usb_interface *interface)
++{ return 0; };
++static inline int au0828_analog_unregister(struct au0828_dev *dev)
++{ return 0; };
++static inline void au0828_usb_v4l2_media_release(struct au0828_dev *dev) { };
+ static inline void au0828_v4l2_suspend(struct au0828_dev *dev) { };
+ static inline void au0828_v4l2_resume(struct au0828_dev *dev) { };
+ #endif
 -- 
-1.9.1
+2.5.0
 
