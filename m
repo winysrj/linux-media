@@ -1,80 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:38929 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752004AbcBXX42 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2016 18:56:28 -0500
-Date: Thu, 25 Feb 2016 08:56:22 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] media: platform: rcar_jpu, sh_vou, vsp1: Use ARCH_RENESAS
-Message-ID: <20160224235619.GA5936@verge.net.au>
-References: <1456280542-13113-1-git-send-email-horms+renesas@verge.net.au>
- <CAMuHMdUwvgaLtLLSk7jdg1N7mafpGz0VsikhbcFsuGQDHAunVw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdUwvgaLtLLSk7jdg1N7mafpGz0VsikhbcFsuGQDHAunVw@mail.gmail.com>
+Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:33721 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754012AbcBIIJj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2016 03:09:39 -0500
+From: Philippe Valembois <lephilousophe@users.sourceforge.net>
+Cc: Philippe Valembois <lephilousophe@users.sourceforge.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] Fix AverMedia RM-KS remote keymap
+Date: Tue,  9 Feb 2016 09:09:32 +0100
+Message-Id: <1455005372-25546-1-git-send-email-lephilousophe@users.sourceforge.net>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 24, 2016 at 08:46:31AM +0100, Geert Uytterhoeven wrote:
-> Hi Simon,
-> 
-> On Wed, Feb 24, 2016 at 3:22 AM, Simon Horman
-> <horms+renesas@verge.net.au> wrote:
-> > Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
-> >
-> > This is part of an ongoing process to migrate from ARCH_SHMOBILE to
-> > ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
-> > appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
-> >
-> > Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-> > ---
-> >  drivers/media/platform/Kconfig | 6 +++---
-> >  1 file changed, 3 insertions(+), 3 deletions(-)
-> >
-> >  Based on media_tree/master
-> >
-> > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> > index 201f5c296a95..662c029400de 100644
-> > --- a/drivers/media/platform/Kconfig
-> > +++ b/drivers/media/platform/Kconfig
-> > @@ -37,7 +37,7 @@ config VIDEO_SH_VOU
-> >         tristate "SuperH VOU video output driver"
-> >         depends on MEDIA_CAMERA_SUPPORT
-> >         depends on VIDEO_DEV && I2C && HAS_DMA
-> > -       depends on ARCH_SHMOBILE || COMPILE_TEST
-> > +       depends on ARCH_RENESAS || COMPILE_TEST
-> 
-> This driver is used on sh7722/sh7723/sh7724 only.
-> While these are Renesas parts, ARCH_RENESAS isn't set for SuperH SoCs,
-> making this driver unavailable where needed.
+Fix AverMedia RM-KS keymap using user guide to meet LinuxTV wiki rules.
+The remote command didn't seem to change in itself since its creation: it's
+just to make keys more standard and remove the FIXME.
 
-Thanks for pointing that out, I had missed that detail.
+Signed-off-by: Philippe Valembois <lephilousophe@users.sourceforge.net>
+---
+ drivers/media/rc/keymaps/rc-avermedia-rm-ks.c | 56 +++++++++++++--------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
-Ideally I would like to stop setting ARCH_SHMOBILE for ARM Based
-SoCs. So perhaps the following would be best?
+diff --git a/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c b/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c
+index 8344bcc..2583400 100644
+--- a/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c
++++ b/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c
+@@ -23,35 +23,35 @@
+ 
+ /* Initial keytable is from Jose Alberto Reguero <jareguero@telefonica.net>
+    and Felipe Morales Moreno <felipe.morales.moreno@gmail.com> */
+-/* FIXME: mappings are not 100% correct? */
++/* Keytable fixed by Philippe Valembois <lephilousophe@users.sourceforge.net> */
+ static struct rc_map_table avermedia_rm_ks[] = {
+-	{ 0x0501, KEY_POWER2 },
+-	{ 0x0502, KEY_CHANNELUP },
+-	{ 0x0503, KEY_CHANNELDOWN },
+-	{ 0x0504, KEY_VOLUMEUP },
+-	{ 0x0505, KEY_VOLUMEDOWN },
+-	{ 0x0506, KEY_MUTE },
+-	{ 0x0507, KEY_RIGHT },
+-	{ 0x0508, KEY_RED },
+-	{ 0x0509, KEY_1 },
+-	{ 0x050a, KEY_2 },
+-	{ 0x050b, KEY_3 },
+-	{ 0x050c, KEY_4 },
+-	{ 0x050d, KEY_5 },
+-	{ 0x050e, KEY_6 },
+-	{ 0x050f, KEY_7 },
+-	{ 0x0510, KEY_8 },
+-	{ 0x0511, KEY_9 },
+-	{ 0x0512, KEY_0 },
+-	{ 0x0513, KEY_AUDIO },
+-	{ 0x0515, KEY_EPG },
+-	{ 0x0516, KEY_PLAY },
+-	{ 0x0517, KEY_RECORD },
+-	{ 0x0518, KEY_STOP },
+-	{ 0x051c, KEY_BACK },
+-	{ 0x051d, KEY_FORWARD },
+-	{ 0x054d, KEY_LEFT },
+-	{ 0x0556, KEY_ZOOM },
++	{ 0x0501, KEY_POWER2 }, /* Power (RED POWER BUTTON) */
++	{ 0x0502, KEY_CHANNELUP }, /* Channel+ */
++	{ 0x0503, KEY_CHANNELDOWN }, /* Channel- */
++	{ 0x0504, KEY_VOLUMEUP }, /* Volume+ */
++	{ 0x0505, KEY_VOLUMEDOWN }, /* Volume- */
++	{ 0x0506, KEY_MUTE }, /* Mute */
++	{ 0x0507, KEY_AGAIN }, /* Recall */
++	{ 0x0508, KEY_VIDEO }, /* Source */
++	{ 0x0509, KEY_1 }, /* 1 */
++	{ 0x050a, KEY_2 }, /* 2 */
++	{ 0x050b, KEY_3 }, /* 3 */
++	{ 0x050c, KEY_4 }, /* 4 */
++	{ 0x050d, KEY_5 }, /* 5 */
++	{ 0x050e, KEY_6 }, /* 6 */
++	{ 0x050f, KEY_7 }, /* 7 */
++	{ 0x0510, KEY_8 }, /* 8 */
++	{ 0x0511, KEY_9 }, /* 9 */
++	{ 0x0512, KEY_0 }, /* 0 */
++	{ 0x0513, KEY_AUDIO }, /* Audio */
++	{ 0x0515, KEY_EPG }, /* EPG */
++	{ 0x0516, KEY_PLAYPAUSE }, /* Play/Pause */
++	{ 0x0517, KEY_RECORD }, /* Record */
++	{ 0x0518, KEY_STOP }, /* Stop */
++	{ 0x051c, KEY_BACK }, /* << */
++	{ 0x051d, KEY_FORWARD }, /* >> */
++	{ 0x054d, KEY_INFO }, /* Display information */
++	{ 0x0556, KEY_ZOOM }, /* Fullscreen */
+ };
+ 
+ static struct rc_map_list avermedia_rm_ks_map = {
+-- 
+2.5.0
 
-	depends on ARCH_SHMOBILE || ARCH_RENESAS || COMPILE_TEST
-
-> >         select VIDEOBUF2_DMA_CONTIG
-> >         help
-> >           Support for the Video Output Unit (VOU) on SuperH SoCs.
-> 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
