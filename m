@@ -1,150 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39860 "EHLO lists.s-osg.org"
+Received: from mail.kernel.org ([198.145.29.136]:50219 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752019AbcBAREo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2016 12:04:44 -0500
-Subject: Re: [PATCH 01/31] uapi/media.h: Declare interface types for ALSA
-To: Takashi Iwai <tiwai@suse.de>
-References: <cover.1452105878.git.shuahkh@osg.samsung.com>
- <b1d228cdcc9246f7bfe28877e9f6bff174e94993.1452105878.git.shuahkh@osg.samsung.com>
- <20160128125941.143f67d0@recife.lan> <56AF82D7.1020900@osg.samsung.com>
- <s5hr3gwl7zz.wl-tiwai@suse.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	alsa-devel@alsa-project.org, arnd@arndb.de,
-	ricard.wanderlof@axis.com, hans.verkuil@cisco.com,
-	labbott@fedoraproject.org, chehabrafael@gmail.com,
-	misterpib@gmail.com, prabhakar.csengg@gmail.com,
-	ricardo.ribalda@gmail.com, ruchandani.tina@gmail.com,
-	takamichiho@gmail.com, tvboxspy@gmail.com, dominic.sacre@gmx.de,
-	laurent.pinchart@ideasonboard.com, crope@iki.fi, julian@jusst.de,
-	clemens@ladisch.de, pierre-louis.bossart@linux.intel.com,
-	sakari.ailus@linux.intel.com, corbet@lwn.net, joe@oampo.co.uk,
-	johan@oljud.se, dan.carpenter@oracle.com, pawel@osciak.com,
-	javier@osg.samsung.com, p.zabel@pengutronix.de, perex@perex.cz,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, k.kozlowski@samsung.com,
-	kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	sw0312.kim@samsung.com, elfring@users.sourceforge.net,
-	linux-api@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linuxbugs@vittgam.net,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, daniel@zonque.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56AF9026.9080102@osg.samsung.com>
-Date: Mon, 1 Feb 2016 10:04:38 -0700
+	id S964809AbcBIAPr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2016 19:15:47 -0500
+Date: Mon, 8 Feb 2016 18:15:40 -0600
+From: Rob Herring <robh@kernel.org>
+To: Jean-Michel Hautbois <jhautbois@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	devicetree@vger.kernel.org, jslaby@suse.com, joe@perches.com,
+	kvalo@codeaurora.org, davem@davemloft.net,
+	gregkh@linuxfoundation.org, akpm@linux-foundation.org,
+	mchehab@osg.samsung.com, galak@codeaurora.org,
+	ijc+devicetree@hellion.org.uk, mark.rutland@arm.com,
+	pawel.moll@arm.com, laurent.pinchart@ideasonboard.com,
+	Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Subject: Re: [PATCH v6] media: spi: Add support for LMH0395
+Message-ID: <20160209001540.GA23750@rob-hp-laptop>
+References: <1454930424-6030-1-git-send-email-jean-michel.hautbois@veo-labs.com>
 MIME-Version: 1.0
-In-Reply-To: <s5hr3gwl7zz.wl-tiwai@suse.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1454930424-6030-1-git-send-email-jean-michel.hautbois@veo-labs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/01/2016 09:18 AM, Takashi Iwai wrote:
-> On Mon, 01 Feb 2016 17:07:51 +0100,
-> Shuah Khan wrote:
->>
->> On 01/28/2016 07:59 AM, Mauro Carvalho Chehab wrote:
->>> Em Wed,  6 Jan 2016 13:26:50 -0700
->>> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
->>>
->>>> From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>>
->>>> Declare the interface types to be used on alsa for the new
->>>> G_TOPOLOGY ioctl.
->>>>
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>> ---
->>>>  drivers/media/media-entity.c | 12 ++++++++++++
->>>>  include/uapi/linux/media.h   |  8 ++++++++
->>>>  2 files changed, 20 insertions(+)
->>>>
->>>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
->>>> index eb38bc3..6e02d19 100644
->>>> --- a/drivers/media/media-entity.c
->>>> +++ b/drivers/media/media-entity.c
->>>> @@ -65,6 +65,18 @@ static inline const char *intf_type(struct media_interface *intf)
->>>>  		return "v4l2-subdev";
->>>>  	case MEDIA_INTF_T_V4L_SWRADIO:
->>>>  		return "swradio";
->>>> +	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
->>>> +		return "pcm-capture";
->>>> +	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
->>>> +		return "pcm-playback";
->>>> +	case MEDIA_INTF_T_ALSA_CONTROL:
->>>> +		return "alsa-control";
->>>> +	case MEDIA_INTF_T_ALSA_COMPRESS:
->>>> +		return "compress";
->>>> +	case MEDIA_INTF_T_ALSA_RAWMIDI:
->>>> +		return "rawmidi";
->>>> +	case MEDIA_INTF_T_ALSA_HWDEP:
->>>> +		return "hwdep";
->>>>  	default:
->>>>  		return "unknown-intf";
->>>>  	}
->>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
->>>> index cacfceb..75cbe92 100644
->>>> --- a/include/uapi/linux/media.h
->>>> +++ b/include/uapi/linux/media.h
->>>> @@ -252,6 +252,7 @@ struct media_links_enum {
->>>>  
->>>>  #define MEDIA_INTF_T_DVB_BASE	0x00000100
->>>>  #define MEDIA_INTF_T_V4L_BASE	0x00000200
->>>> +#define MEDIA_INTF_T_ALSA_BASE	0x00000300
->>>>  
->>>>  /* Interface types */
->>>>  
->>>> @@ -267,6 +268,13 @@ struct media_links_enum {
->>>>  #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
->>>>  #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
->>>>  
->>>> +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
->>>> +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
->>>> +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
->>>> +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
->>>> +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
->>>> +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
->>>
->>> Patch looks ok, but please document the new media interfaces at KernelDoc
->>> documentation.
->>>
->>
->> Hi Takashi,
->>
->> If you are okay with these changes, could you please
->> Ack this patch. I am addressing documentation comment
->> from Mauro.
+On Mon, Feb 08, 2016 at 12:20:24PM +0100, Jean-Michel Hautbois wrote:
+> This device is a SPI based device from TI.
+> It is a 3 Gbps HD/SD SDI Dual Output Low Power
+> Extended Reach Adaptive Cable Equalizer.
 > 
-> Well, the available ALSA devices are:
+> LMH0395 enables the use of up to two outputs.
+> These can be configured using DT.
+> The name gives the spi bus, and the CS associated.
+> Example : lmh0395-1@spi2
+> LMH0395 is on bus SPI2 with CS number 1.
 > 
-> CONTROL
-> SEQUENCER
-> TIMER
-> COMPRESS
-> HWDEP
-> RAWMIDI
-> PCM_PLAYBACK
-> PCM_CAPTURE
+> Controls should be accessible from userspace too.
+> This will have to be done later.
+
+Your line wrap should be ~72 columns.
+
+> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+> ---
+> v2: Add DT support
+> v3: Change the bit set/clear in output_type as disabled means 'set the bit'
+> v4: Clearer description of endpoints usage in Doc, and some init changes.
+>     Add a dependency on OF and don't test CONFIG_OF anymore.
+> v5: Change port description in Documentation
+>     Multiple ports : required #address-cells and #size-cells
+>     Alphabetical order for include files
+>     Simplify register set/clear
+>     Check device ID
+>     Implement log_status handler
+> v6: Take Laurent Pinchart remarks into account
+>     Correct register settings
+>     Use next generation MC
 > 
-> as found in sound/minors.h.
+>  .../devicetree/bindings/media/spi/lmh0395.txt      |  51 +++
+>  MAINTAINERS                                        |   6 +
+>  drivers/media/Kconfig                              |   1 +
+>  drivers/media/Makefile                             |   2 +-
+>  drivers/media/spi/Kconfig                          |  15 +
+>  drivers/media/spi/Makefile                         |   1 +
+>  drivers/media/spi/lmh0395.c                        | 477 +++++++++++++++++++++
+>  drivers/media/spi/lmh039x.h                        |  55 +++
+>  8 files changed, 607 insertions(+), 1 deletion(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/spi/lmh0395.txt
+>  create mode 100644 drivers/media/spi/Kconfig
+>  create mode 100644 drivers/media/spi/Makefile
+>  create mode 100644 drivers/media/spi/lmh0395.c
+>  create mode 100644 drivers/media/spi/lmh039x.h
 > 
-> Any reason not to define for some of them?
+> diff --git a/Documentation/devicetree/bindings/media/spi/lmh0395.txt b/Documentation/devicetree/bindings/media/spi/lmh0395.txt
+> new file mode 100644
+> index 0000000..5c6ab4a
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/spi/lmh0395.txt
+> @@ -0,0 +1,51 @@
+> +* Texas Instruments lmh0395 3G HD/SD SDI equalizer
+> +
+> +"The LMH0395 is an SDI equalizer designed to extend the reach of SDI signals
+> +transmitted over cable by equalizing the input signal and generating clean
+> +outputs. It has one differential input and two differential output that can be
+> +independently controlled."
+> +
+> +Required Properties :
+> +- compatible: Must be "ti,lmh0395"
 
-Looks like SEQUENCER and TIMER are missing in
-the MC defines. I can see how SEQUENCER could
-be relevant as an MC node, however not sure
-about TIMER use-case. That said, I don't see
-any reason for not including it.
+You don't state this is a SPI device and uses standard SPI device 
+properties.
 
-I will add Media Interface Types for both
-of these missing ones.
+> +
+> +The device node must contain one 'port' child node per device input and output
+> +port, in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +The LMH0395 has three ports numbered as follows.
+> +
+> +  Port			LMH0395
+> +------------------------------------------------------------
+> +  SDI (SDI input)	0
+> +  SDO0 (SDI output 0)	1
+> +  SDO1 (SDI output 1)	2
+> +
+> +Example:
+> +
+> +ecspi@02010000 {
 
-thanks,
--- Shuah
+s/ecspi/spi/ and drop the leading 0.
 
+Presumbly the dts you based this on was wrong.
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+> +	...
+> +	...
+> +
+> +	lmh0395@1 {
+> +		compatible = "ti,lmh0395";
+> +		reg = <1>;
+> +		spi-max-frequency = <20000000>;
+> +		ports {
+> +			port@0 {
+> +				#address-cells = <1>;
+> +				#size-cells = <0>;
+
+These belong up one level in ports.
+
+> +				reg = <0>;
+> +				sdi0_in: endpoint {};
+> +			};
+> +			port@1 {
+> +				reg = <1>;
+> +				sdi0_out0: endpoint {};
+> +			};
+> +			port@2 {
+> +				reg = <2>;
+> +				/* endpoint not specified, disable output */
+> +			};
+> +		};
+> +	};
+> +	...
+> +};
