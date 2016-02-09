@@ -1,132 +1,319 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:33107 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161577AbcBQPtR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 10:49:17 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH/RFC 6/9] media: rcar-vin: add DV timings support
-Date: Wed, 17 Feb 2016 16:48:42 +0100
-Message-Id: <1455724125-13004-7-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:41488 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751402AbcBILAG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Feb 2016 06:00:06 -0500
+Received: from int-mx13.intmail.prod.int.phx2.redhat.com (int-mx13.intmail.prod.int.phx2.redhat.com [10.5.11.26])
+	by mx1.redhat.com (Postfix) with ESMTPS id 0F6B614AA9
+	for <linux-media@vger.kernel.org>; Tue,  9 Feb 2016 11:00:06 +0000 (UTC)
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH tvtime 2/2] xvoutput: Add support for planar yuv formats
+Date: Tue,  9 Feb 2016 11:59:58 +0100
+Message-Id: <1455015598-18805-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1455015598-18805-1-git-send-email-hdegoede@redhat.com>
+References: <1455015598-18805-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds ioctls DV_TIMINGS_CAP, ENUM_DV_TIMINGS, G_DV_TIMINGS, S_DV_TIMINGS,
-and QUERY_DV_TIMINGS.
+When running on video cards which are using the modesetting driver +
+glamor, or when running under XWayland + glamor, only planar yuv
+formats are supported by the XVideo extension.
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+This commits adds support for planar yuv formats to tvtime, making it
+works on these kind of video-cards and XWayland.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 69 ++++++++++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+ src/xvoutput.c | 148 +++++++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 112 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 6b23c968..d40b39b 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -511,12 +511,17 @@ static int rvin_enum_input(struct file *file, void *priv,
- 		struct v4l2_input *i)
- {
- 	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_sd(vin);
+diff --git a/src/xvoutput.c b/src/xvoutput.c
+index d9d9656..4c3f076 100644
+--- a/src/xvoutput.c
++++ b/src/xvoutput.c
+@@ -41,18 +41,21 @@
+ #include "xcommon.h"
  
- 	if (i->index != 0)
- 		return -EINVAL;
+ #define FOURCC_YUY2 0x32595559
++#define FOURCC_YV12 0x32315659
++#define FOURCC_I420 0x30323449
  
- 	i->type = V4L2_INPUT_TYPE_CAMERA;
- 	i->std = vin->vdev.tvnorms;
-+
-+	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap))
-+		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
-+
- 	strlcpy(i->name, "Camera", sizeof(i->name));
+ static Display *display;
+ static Window output_window;
  
- 	return 0;
-@@ -572,6 +577,64 @@ static int rvin_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
- 	return ret;
+ static XvImage *image;
+-static uint8_t *image_data;
++static uint8_t *front_buf, *back_buf;
+ static XShmSegmentInfo shminfo;
+ static XvPortID xv_port;
+ 
+ static int input_width, input_height;
+ static int xvoutput_verbose;
+ static int xvoutput_error = 0;
++static int xvoutput_fourcc_id;
+ static int use_shm = 1;
+ 
+ static int HandleXError( Display *display, XErrorEvent *xevent )
+@@ -85,7 +88,8 @@ static void x11_InstallXErrorHandler( void )
+     XFlush( display );
  }
  
-+static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
-+				    struct v4l2_enum_dv_timings *timings)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_sd(vin);
-+
-+	timings->pad = 0;
-+	return v4l2_subdev_call(sd,
-+			pad, enum_dv_timings, timings);
-+}
-+
-+static int rvin_s_dv_timings(struct file *file, void *priv_fh,
-+				    struct v4l2_dv_timings *timings)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_sd(vin);
-+	int err;
-+
-+	err = v4l2_subdev_call(sd,
-+			video, s_dv_timings, timings);
-+	if (!err) {
-+		vin->sensor.width = timings->bt.width;
-+		vin->sensor.height = timings->bt.height;
-+	}
-+	return err;
-+}
-+
-+static int rvin_g_dv_timings(struct file *file, void *priv_fh,
-+				    struct v4l2_dv_timings *timings)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_sd(vin);
-+
-+	return v4l2_subdev_call(sd,
-+			video, g_dv_timings, timings);
-+}
-+
-+static int rvin_query_dv_timings(struct file *file, void *priv_fh,
-+				    struct v4l2_dv_timings *timings)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_sd(vin);
-+
-+	return v4l2_subdev_call(sd,
-+			video, query_dv_timings, timings);
-+}
-+
-+static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
-+				    struct v4l2_dv_timings_cap *cap)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_sd(vin);
-+
-+	cap->pad = 0;
-+	return v4l2_subdev_call(sd,
-+			pad, dv_timings_cap, cap);
-+}
-+
- static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
- 	.vidioc_querycap		= rvin_querycap,
- 	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
-@@ -588,6 +651,12 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
- 	.vidioc_g_input			= rvin_g_input,
- 	.vidioc_s_input			= rvin_s_input,
+-static int xv_port_has_yuy2( XvPortID port )
++static int xv_port_has_fourcc( XvPortID port, int fourcc_id,
++                               const char *fourcc_str )
+ {
+     XvImageFormatValues *formatValues;
+     int formats;
+@@ -93,7 +97,8 @@ static int xv_port_has_yuy2( XvPortID port )
  
-+	.vidioc_dv_timings_cap		= rvin_dv_timings_cap,
-+	.vidioc_enum_dv_timings		= rvin_enum_dv_timings,
-+	.vidioc_g_dv_timings		= rvin_g_dv_timings,
-+	.vidioc_s_dv_timings		= rvin_s_dv_timings,
-+	.vidioc_query_dv_timings	= rvin_query_dv_timings,
+     formatValues = XvListImageFormats( display, port, &formats );
+     for( i = 0; i < formats; i++ ) {
+-        if((formatValues[ i ].id == FOURCC_YUY2) && (!(strcmp( formatValues[ i ].guid, "YUY2" )))) {
++        if( formatValues[ i ].id == fourcc_id &&
++            !strcmp( formatValues[ i ].guid, fourcc_str ) ) {
+             XFree (formatValues);
+             return 1;
+         }
+@@ -102,7 +107,7 @@ static int xv_port_has_yuy2( XvPortID port )
+     return 0;
+ }
+ 
+-static int xv_check_extension( void )
++static int xv_check_extension( int fourcc_id, const char *fourcc_str )
+ {
+     unsigned int version;
+     unsigned int release;
+@@ -110,7 +115,7 @@ static int xv_check_extension( void )
+     unsigned int adaptors;
+     unsigned int i;
+     unsigned long j;
+-    int has_yuy2 = 0;
++    int has_fourcc = 0;
+     XvAdaptorInfo *adaptorInfo;
+ 
+     if( ( XvQueryExtension( display, &version, &release,
+@@ -126,7 +131,8 @@ static int xv_check_extension( void )
+     for( i = 0; i < adaptors; i++ ) {
+         if( adaptorInfo[ i ].type & XvImageMask ) {
+             for( j = 0; j < adaptorInfo[ i ].num_ports; j++ ) {
+-                if( xv_port_has_yuy2( adaptorInfo[ i ].base_id + j ) ) {
++                if( xv_port_has_fourcc( adaptorInfo[ i ].base_id + j,
++                                        fourcc_id, fourcc_str ) ) {
+                     if( XvGrabPort( display, adaptorInfo[ i ].base_id + j, 0 ) == Success ) {
+                         xv_port = adaptorInfo[ i ].base_id + j;
+                         if( xvoutput_verbose ) {
+@@ -134,9 +140,10 @@ static int xv_check_extension( void )
+                                      adaptorInfo[ i ].base_id + j, adaptorInfo[ i ].name );
+                         }
+                         XvFreeAdaptorInfo( adaptorInfo );
++                        xvoutput_fourcc_id = fourcc_id;
+                         return 1;
+                     }
+-                    has_yuy2 = 1;
++                    has_fourcc = 1;
+                 }
+             }
+         }
+@@ -144,24 +151,14 @@ static int xv_check_extension( void )
+ 
+     XvFreeAdaptorInfo( adaptorInfo );
+ 
+-    if( has_yuy2 ) {
+-        fprintf( stderr, "xvoutput: No YUY2 XVIDEO port available.\n" );
++    if( has_fourcc ) {
++        fprintf( stderr, "xvoutput: No %s XVIDEO port available.\n", fourcc_str );
+ 
+-        fprintf( stderr, "\n*** tvtime requires a hardware YUY2 overlay.  One is supported\n"
++        fprintf( stderr, "\n*** tvtime requires a hardware %s overlay.  One is supported\n"
+                            "*** by your driver, but we could not grab it.  It is likely\n"
+                            "*** being used by another application, either another tvtime\n"
+                            "*** instance or a media player.  Please shut down this other\n"
+-                           "*** application and try tvtime again.\n\n" );
+-    } else {
+-        fprintf( stderr, "xvoutput: No XVIDEO port found which supports YUY2 images.\n" );
+-
+-        fprintf( stderr, "\n*** tvtime requires hardware YUY2 overlay support from your video card\n"
+-                           "*** driver.  If you are using an older NVIDIA card (TNT2), then\n"
+-                           "*** this capability is only available with their binary drivers.\n"
+-                           "*** For some ATI cards, this feature may be found in the experimental\n"
+-                           "*** GATOS drivers: http://gatos.sourceforge.net/\n"
+-                           "*** If unsure, please check with your distribution to see if your\n"
+-                           "*** X driver supports hardware overlay surfaces.\n\n" );
++                           "*** application and try tvtime again.\n\n", fourcc_str );
+     }
+     return 0;
+ }
+@@ -229,32 +226,91 @@ static void *create_shm( int size )
+     }
+ }
+ 
++/* Note for simplicity this code always blits to dest coordinates 0x0! */
++static void xv_blit( uint8_t *dest, uint8_t *src,
++                     int x, int y, int width, int height )
++{
++    uint8_t *y_dest, *u_dest, *v_dest, *src1;
 +
- 	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
- 	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
- 	.vidioc_querybuf		= vb2_ioctl_querybuf,
++    /* Adjust src for x and y start coordinates */
++    src += y * input_width * 2 + (x & ~1) * 2;
++
++    /* copy the Y values */
++    src1 = src;
++    y_dest = dest + image->offsets[0];
++    for( y = 0; y < height; y++ ) {
++        for( x = 0; x < width; x += 2 ) {
++            *y_dest++ = src1[0];
++            *y_dest++ = src1[2];
++            src1 += 4;
++        }
++        src1 += (input_width - width) * 2;
++        y_dest += image->pitches[0] - width;
++    }
++
++    /* copy the U and V values */
++    src = src;
++    src1 = src + input_width * 2; /* next line */
++    if( xvoutput_fourcc_id == FOURCC_I420 ) {
++        u_dest = dest + image->offsets[1];
++        v_dest = dest + image->offsets[2];
++    } else { /* FOURCC_YV12 */
++        v_dest = dest + image->offsets[1];
++        u_dest = dest + image->offsets[2];
++    }
++    for( y = 0; y < height; y += 2 ) {
++        for( x = 0; x < width; x += 2 ) {
++            *u_dest++ = ((int) src[1] + src1[1]) / 2; /* U */
++            *v_dest++ = ((int) src[3] + src1[3]) / 2; /* V */
++            src += 4;
++            src1 += 4;
++        }
++        src += (2 * input_width - width) * 2;
++        src1 += (2 * input_width - width) * 2;
++        /* Assume both plane pitches are identical */
++        u_dest += image->pitches[1] - width / 2;
++        v_dest += image->pitches[1] - width / 2;
++    }
++}
++
+ static int xv_alloc_frame( void )
+ {
+     int size;
+-    uint8_t *alloc;
+ 
+-    size = input_width * input_height * 2;
++    if( xvoutput_fourcc_id == FOURCC_YUY2 ) {
++        size = input_width * input_height * 2;
++    } else {
++        size = ((input_width + 7) & ~7) * input_height * 3 / 2;
++    }
++
+     if( use_shm ) {
+-        alloc = create_shm( size );
++        front_buf = create_shm( size );
++    } else {
++        front_buf = malloc( size );
++    }
++
++    if( xvoutput_fourcc_id == FOURCC_YUY2 ) {
++        back_buf = front_buf;
+     } else {
+-        alloc = malloc( input_width * input_height * 2 );
++        back_buf = malloc( input_width * input_height * 2 );
+     }
+ 
+-    if( alloc ) {
++    if( front_buf && back_buf ) {
+         /* Initialize the input image to black. */
+-        blit_colour_packed422_scanline( alloc, input_width * input_height,
++        blit_colour_packed422_scanline( back_buf, input_width * input_height,
+                                         16, 128, 128 );
+         if( use_shm ) {
+-            image = XvShmCreateImage( display, xv_port, FOURCC_YUY2,
+-                                      (char *) alloc, input_width,
++            image = XvShmCreateImage( display, xv_port, xvoutput_fourcc_id,
++                                      (char *) front_buf, input_width,
+                                       input_height, &shminfo );
+         } else {
+-            image = XvCreateImage( display, xv_port, FOURCC_YUY2,
+-                                   (char *) alloc, input_width,
++            image = XvCreateImage( display, xv_port, xvoutput_fourcc_id,
++                                   (char *) front_buf, input_width,
+                                    input_height );
+         }
+-        image_data = alloc;
++        if( front_buf != back_buf ) {
++            xv_blit( front_buf, back_buf, 0, 0, input_width, input_height );
++        }
+         return 1;
+     }
+ 
+@@ -309,7 +365,15 @@ static int xv_init( const char *user_geometry, int aspect, int squarepixel, int
+     display = xcommon_get_display();
+     output_window = xcommon_get_output_window();
+ 
+-    if( !xv_check_extension() ) return 0;
++    if( !xv_check_extension( FOURCC_YUY2, "YUY2" ) &&
++        !xv_check_extension( FOURCC_YV12, "YV12" ) &&
++        !xv_check_extension( FOURCC_YV12, "YV12" ) ) {
++        fprintf( stderr, "xvoutput: No XVIDEO port which supports YUY2 or YV12 or I420 images found.\n\n"
++                         "*** tvtime requires hardware overlay support from your video card\n"
++                         "*** If unsure, please check with your distribution to see if your\n"
++                         "*** X driver supports hardware overlay surfaces.\n\n" );
++        return 0;
++    }
+     xcommon_set_colourkey( get_colourkey() );
+     return 1;
+ }
+@@ -327,6 +391,11 @@ static int xv_show_frame( int x, int y, int width, int height )
+     xcommon_set_video_scale( scale_area );
+ 
+     xcommon_ping_screensaver();
++    if( front_buf != back_buf ) {
++        xv_blit( front_buf, back_buf, x, y, width, height );
++        x = 0; /* xv_blit blits to dest 0x0 */
++        y = 0; /* xv_blit blits to dest 0x0 */
++    }
+     if( use_shm ) {
+         XvShmPutImage( display, xv_port, output_window, xcommon_get_gc(),
+                        image, x, y, width, height, video_area.x, video_area.y,
+@@ -358,18 +427,25 @@ static int xv_set_input_size( int inputwidth, int inputheight )
+ 
+ static void xv_quit( void )
+ {
++    if( back_buf != front_buf) {
++        free( back_buf );
++    }
+     if( use_shm ) {
+         XShmDetach( display, &shminfo );
+         shmdt( shminfo.shmaddr );
+     } else {
+-        free( image_data );
++        free( front_buf );
+     }
+     xcommon_close_display();
+ }
+ 
+ static int xv_get_stride( void )
+ {
+-    return image->pitches[ 0 ];
++    if( front_buf == back_buf ) {
++        return image->pitches[ 0 ];
++    } else {
++        return input_width * 2;
++    }
+ }
+ 
+ static int xv_is_interlaced( void )
+@@ -391,7 +467,7 @@ static void xv_unlock_output( void )
+ 
+ static uint8_t *xv_get_output( void )
+ {
+-    return image_data;
++    return back_buf;
+ }
+ 
+ static int xv_can_read_from_buffer( void )
 -- 
-2.6.4
+2.5.0
 
