@@ -1,49 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41845 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1425960AbcBRKDU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 05:03:20 -0500
-Date: Thu, 18 Feb 2016 08:03:13 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Russel Winder <russel@winder.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Keith Packard <keithp@keithp.com>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: V4L docs and docbook
-Message-ID: <20160218080313.12e0821a@recife.lan>
-In-Reply-To: <87y4aie4uy.fsf@intel.com>
-References: <20160217145254.3085b333@lwn.net>
-	<20160217215138.15b6de82@recife.lan>
-	<1455783420.10645.21.camel@winder.org.uk>
-	<20160218063114.370b84cf@recife.lan>
-	<87y4aie4uy.fsf@intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37465 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756478AbcBIQuW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Feb 2016 11:50:22 -0500
+Subject: Re: [PATCH tvtime 2/2] xvoutput: Add support for planar yuv formats
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+References: <1455015598-18805-1-git-send-email-hdegoede@redhat.com>
+ <1455015598-18805-2-git-send-email-hdegoede@redhat.com>
+ <CAGoCfiz+qpbyskJJzXgNkTEea5w_6Np1Q7_GgDY53ZMFu=YswQ@mail.gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Message-ID: <56BA18CA.8090803@redhat.com>
+Date: Tue, 9 Feb 2016 17:50:18 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <CAGoCfiz+qpbyskJJzXgNkTEea5w_6Np1Q7_GgDY53ZMFu=YswQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 18 Feb 2016 11:37:41 +0200
-Jani Nikula <jani.nikula@intel.com> escreveu:
+Hi,
 
-> On Thu, 18 Feb 2016, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> > Are there any tools that would convert from DocBook to ASCIIDoc?  
-> 
-> I used pandoc when I tested the asciidoc pipeline. Something along the
-> lines of this for filtering docbook in stdin to asciidoc in stdout:
-> 
-> pandoc --atx-headers -f docbook -t asciidoc
+On 02/09/2016 03:20 PM, Devin Heitmueller wrote:
+> On Tue, Feb 9, 2016 at 5:59 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> When running on video cards which are using the modesetting driver +
+>> glamor, or when running under XWayland + glamor, only planar yuv
+>> formats are supported by the XVideo extension.
+>>
+>> This commits adds support for planar yuv formats to tvtime, making it
+>> works on these kind of video-cards and XWayland.
 >
+> This is certainly a welcome change.  Does it work with the overlay
+> though (i.e. hit tab to show the on-screen menu)?
 
-Results are at:
-	https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/
+Yes it does. Note I'm also working on some audio handling improvements,
+so expect another tvtime patch-set from me soonish.
 
-pandoc/asciidoc also broke the tables.
+Regards,
 
-
-Thanks,
-Mauro
+Hans
