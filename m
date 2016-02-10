@@ -1,60 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:42394 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754296AbcBPJJo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2016 04:09:44 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH 0/12] TW686x driver
-References: <m337tif6om.fsf@t19.piap.pl> <56B872C0.1050200@xs4all.nl>
-Date: Tue, 16 Feb 2016 10:09:41 +0100
-In-Reply-To: <56B872C0.1050200@xs4all.nl> (Hans Verkuil's message of "Mon, 8
-	Feb 2016 11:49:36 +0100")
-Message-ID: <m3h9h9qawa.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:50857 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751014AbcBJMwL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2016 07:52:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv12 05/17] HID: add HDMI CEC specific keycodes
+Date: Wed, 10 Feb 2016 13:51:39 +0100
+Message-Id: <1455108711-29850-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
+References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+From: Kamil Debski <kamil@wypas.org>
 
-> Now, I am not planning to merge that, but I will compare it to what Ezequiel has
-> and use that comparison as a starting point for further discussions.
+Add HDMI CEC specific keycodes to the keycodes definition.
 
-I'm not opposed to Ezequiel's changes in general - I only want him to
-present them as changes, and not as a "rewritten driver". Unless they
-are considered a rewritten driver, of course.
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/input-event-codes.h | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-> As I mentioned before, my preference is to merge a driver that supports both
-> frame and field modes (or whatever they are called).
-
-Well, I don't know about his, but my version presently only support
-frame mode (V4L2_FIELD_SEQ_*). It specifically doesn't support
-INTERLACED frame mode (SG DMA hw limitation) and it doesn't support
-field mode, except for FIELD_TOP and FIELD_BOTTOM (only specific fields)
-which I use to get a lower resolution image.
-
-I also plan to use an INTERLACED frame mode with a DMA (non-SG to CMA,
-it turned out it works well on my systems), but I would rather like to
-have the driver in the tree before submitting further (non-essential)
-patches.
-
-Field modes are of course possible, though I've never seen any interest
-for them, so I haven't bothered. Can add, it's a simple thing and it
-works fine (apart from increased QBUF/DQBUF rate).
-
-There is also a specific YUV420 mode (with a custom encoding) which
-I'd like to add (unfortunately unavailable in V4L2_FIELD_SEQ_*, but
-usable in INTERLACED and FIELD_*). This mode requires two separate line
-lengths - odd lines contain YUV data and are twice as long as even lines
-which only contain Y.
-How do I set up such a mode (fmt.pix.bytesperline)?
-This mode is useful on low-performance machines, e.g. feeding data to
-H.264 encoders.
+diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
+index 87cf351..2662500 100644
+--- a/include/uapi/linux/input-event-codes.h
++++ b/include/uapi/linux/input-event-codes.h
+@@ -611,6 +611,34 @@
+ #define KEY_KBDINPUTASSIST_ACCEPT		0x264
+ #define KEY_KBDINPUTASSIST_CANCEL		0x265
+ 
++#define KEY_RIGHT_UP			0x266
++#define KEY_RIGHT_DOWN			0x267
++#define KEY_LEFT_UP			0x268
++#define KEY_LEFT_DOWN			0x269
++#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
++#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
++#define KEY_NUMERIC_11			0x26c
++#define KEY_NUMERIC_12			0x26d
++/*
++ * Toggle Audio Description: refers to an audio service that helps blind and
++ * visually impaired consumers understand the action in a program. Note: in
++ * some countries this is referred to as "Video Description".
++ */
++#define KEY_AUDIO_DESC			0x26e
++#define KEY_3D_MODE			0x26f
++#define KEY_NEXT_FAVORITE		0x270
++#define KEY_STOP_RECORD			0x271
++#define KEY_PAUSE_RECORD		0x272
++#define KEY_VOD				0x273 /* Video on Demand */
++#define KEY_UNMUTE			0x274
++#define KEY_FASTREVERSE			0x275
++#define KEY_SLOWREVERSE			0x276
++/*
++ * Control a data application associated with the currently viewed channel,
++ * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
++ */
++#define KEY_DATA			0x275
++
+ #define BTN_TRIGGER_HAPPY		0x2c0
+ #define BTN_TRIGGER_HAPPY1		0x2c0
+ #define BTN_TRIGGER_HAPPY2		0x2c1
 -- 
-Krzysztof Halasa
+2.7.0
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
