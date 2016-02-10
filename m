@@ -1,76 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36897 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751809AbcBVJyV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 04:54:21 -0500
-Date: Mon, 22 Feb 2016 06:54:15 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC 2/4] media: Rearrange the fields in the G_TOPOLOGY IOCTL
- argument
-Message-ID: <20160222065415.473a8c64@recife.lan>
-In-Reply-To: <1456090575-28354-3-git-send-email-sakari.ailus@linux.intel.com>
-References: <1456090575-28354-1-git-send-email-sakari.ailus@linux.intel.com>
-	<1456090575-28354-3-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:45485 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751122AbcBJMwR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2016 07:52:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv12 08/17] cec: add compat32 ioctl support
+Date: Wed, 10 Feb 2016 13:51:42 +0100
+Message-Id: <1455108711-29850-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
+References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 21 Feb 2016 23:36:13 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> This avoids having multiple reserved fields in the struct. Reserved fields
-> are added in order to align the struct size to a power of two as well.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  include/uapi/linux/media.h | 15 +++++----------
->  1 file changed, 5 insertions(+), 10 deletions(-)
-> 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 008d077..77a95db 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -341,21 +341,16 @@ struct media_v2_link {
->  struct media_v2_topology {
->  	__u64 topology_version;
->  
-> -	__u32 num_entities;
-> -	__u32 reserved1;
->  	__u64 ptr_entities;
-> -
-> -	__u32 num_interfaces;
-> -	__u32 reserved2;
->  	__u64 ptr_interfaces;
-> -
-> -	__u32 num_pads;
-> -	__u32 reserved3;
->  	__u64 ptr_pads;
-> +	__u64 ptr_links;
->  
-> +	__u32 num_entities;
-> +	__u32 num_interfaces;
-> +	__u32 num_pads;
->  	__u32 num_links;
-> -	__u32 reserved4;
-> -	__u64 ptr_links;
-> +	__u32 reserved[18];
->  };
+The CEC ioctls didn't have compat32 support, so they returned -ENOTTY
+when used in a 32 bit application on a 64 bit kernel.
 
-This patch deserves more discussion. I suggest we discuss it on our
-next IRC meeting about the MC (likely today).
+Since all the CEC ioctls are 32-bit compatible adding support for this
+API is trivial.
 
->  
->  static inline void __user *media_get_uptr(__u64 arg)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ fs/compat_ioctl.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index 6402eaf..cf03466 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -57,6 +57,7 @@
+ #include <linux/i2c-dev.h>
+ #include <linux/atalk.h>
+ #include <linux/gfp.h>
++#include <linux/cec.h>
+ 
+ #include "internal.h"
+ 
+@@ -1399,6 +1400,24 @@ COMPATIBLE_IOCTL(VIDEO_GET_NAVI)
+ COMPATIBLE_IOCTL(VIDEO_SET_ATTRIBUTES)
+ COMPATIBLE_IOCTL(VIDEO_GET_SIZE)
+ COMPATIBLE_IOCTL(VIDEO_GET_FRAME_RATE)
++/* cec */
++COMPATIBLE_IOCTL(CEC_ADAP_G_CAPS)
++COMPATIBLE_IOCTL(CEC_ADAP_G_LOG_ADDRS)
++COMPATIBLE_IOCTL(CEC_ADAP_S_LOG_ADDRS)
++COMPATIBLE_IOCTL(CEC_ADAP_G_STATE)
++COMPATIBLE_IOCTL(CEC_ADAP_S_STATE)
++COMPATIBLE_IOCTL(CEC_ADAP_G_PHYS_ADDR)
++COMPATIBLE_IOCTL(CEC_ADAP_S_PHYS_ADDR)
++COMPATIBLE_IOCTL(CEC_ADAP_G_VENDOR_ID)
++COMPATIBLE_IOCTL(CEC_ADAP_S_VENDOR_ID)
++COMPATIBLE_IOCTL(CEC_G_MONITOR)
++COMPATIBLE_IOCTL(CEC_S_MONITOR)
++COMPATIBLE_IOCTL(CEC_CLAIM)
++COMPATIBLE_IOCTL(CEC_RELEASE)
++COMPATIBLE_IOCTL(CEC_G_PASSTHROUGH)
++COMPATIBLE_IOCTL(CEC_TRANSMIT)
++COMPATIBLE_IOCTL(CEC_RECEIVE)
++COMPATIBLE_IOCTL(CEC_DQEVENT)
+ 
+ /* joystick */
+ COMPATIBLE_IOCTL(JSIOCGVERSION)
 -- 
-Thanks,
-Mauro
+2.7.0
+
