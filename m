@@ -1,66 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35410 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752011AbcB2Lpz (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:10798 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751645AbcBJKJO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 06:45:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/5] v4l2: add device_caps to struct video_device
-Date: Mon, 29 Feb 2016 12:45:41 +0100
-Message-Id: <1456746345-1431-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl>
-References: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 10 Feb 2016 05:09:14 -0500
+Received: from [10.47.79.81] ([10.47.79.81])
+	(authenticated bits=0)
+	by aer-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id u1AA9AnC018690
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 10 Feb 2016 10:09:11 GMT
+To: linux-media <linux-media@vger.kernel.org>
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH for v4.5] adv7604: fix tx 5v detect regression
+Message-ID: <56BB0C46.4020200@cisco.com>
+Date: Wed, 10 Feb 2016 11:09:10 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Instead of letting drivers fill in device_caps at querycap time,
-let them fill it in when the video device is registered.
-
-This has the advantage that in the future the v4l2 core can access
-the video device's capabilities and take decisions based on that.
+The 5 volt detect functionality broke in 3.14: the code reads IO register 0x70
+again after it has already been cleared. Instead it should use the cached
+irq_reg_0x70 value and the io_write to 0x71 to clear 0x70 can be dropped since
+this has already been done.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: <stable@vger.kernel.org>      # for v3.14 and up
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
- include/media/v4l2-dev.h             | 3 +++
- 2 files changed, 6 insertions(+)
+ drivers/media/i2c/adv7604.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 86c4c19..706bb42 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1020,9 +1020,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
- 	struct v4l2_capability *cap = (struct v4l2_capability *)arg;
-+	struct video_device *vfd = video_devdata(file);
- 	int ret;
- 
- 	cap->version = LINUX_VERSION_CODE;
-+	cap->device_caps = vfd->device_caps;
-+	cap->capabilities = vfd->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	ret = ops->vidioc_querycap(file, fh, cap);
- 
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 76056ab..25a3190 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -92,6 +92,9 @@ struct video_device
- 	/* device ops */
- 	const struct v4l2_file_operations *fops;
- 
-+	/* device capabilities as used in v4l2_capabilities */
-+	u32 device_caps;
-+
- 	/* sysfs */
- 	struct device dev;		/* v4l device */
- 	struct cdev *cdev;		/* character device */
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 45a3e12..9355553 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2199,10 +2199,9 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 	adv76xx_cec_isr(sd, handled);
+
+ 	/* tx 5v detect */
+-	tx_5v = io_read(sd, 0x70) & info->cable_det_mask;
++	tx_5v = irq_reg_0x70 & info->cable_det_mask;
+ 	if (tx_5v) {
+ 		v4l2_dbg(1, debug, sd, "%s: tx_5v: 0x%x\n", __func__, tx_5v);
+-		io_write(sd, 0x71, tx_5v);
+ 		adv76xx_s_detect_tx_5v_ctrl(sd);
+ 		if (handled)
+ 			*handled = true;
 -- 
-2.7.0
+2.6.1
 
