@@ -1,95 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:37526 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161621AbcBQPtS (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:36136 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187AbcBKXmZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 10:49:18 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH/RFC 7/9] media: rcar-vin: initialize EDID data
-Date: Wed, 17 Feb 2016 16:48:43 +0100
-Message-Id: <1455724125-13004-8-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Thu, 11 Feb 2016 18:42:25 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v3 16/22] media: au0828 create tuner to decoder link in disabled state
+Date: Thu, 11 Feb 2016 16:41:32 -0700
+Message-Id: <4b08f5a814bb63bb8e7bcf0b4a386d0c936f3388.1455233155.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initializes the decoder subdevice with a fixed EDID blob.
+Create tuner to demod pad link in disabled state to
+avoid disable step when tuner resource is requested
+by dvb.
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 46 ++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ drivers/media/usb/au0828/au0828-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index d40b39b..4f93a3d 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -953,6 +953,41 @@ error:
- 	return ret;
- }
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 99f8022..66b44c9 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -279,9 +279,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 		return -EINVAL;
  
-+static u8 edid[256] = {
-+	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
-+	0x48, 0xAE, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
-+	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
-+	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
-+	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
-+	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
-+	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
-+	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
-+	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
-+	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
-+	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
-+	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
-+	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-+	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
-+	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
-+	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
-+	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
-+	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
-+	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
-+	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
-+};
-+
- int rvin_dma_on(struct rvin_dev *vin)
- {
- 	struct v4l2_subdev *sd;
-@@ -1029,6 +1064,17 @@ int rvin_dma_on(struct rvin_dev *vin)
- 		vin->format.field	= mf->field;
+ 	if (tuner) {
++		/* create tuner to decoder link in deactivated state */
+ 		ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+-					    decoder, 0,
+-					    MEDIA_LNK_FL_ENABLED);
++					    decoder, 0, 0);
+ 		if (ret)
+ 			return ret;
  	}
- 
-+	{
-+		struct v4l2_subdev_edid rvin_edid = {
-+			.pad = 0,
-+			.start_block = 0,
-+			.blocks = 2,
-+			.edid = edid,
-+		};
-+		v4l2_subdev_call(sd, pad, set_edid,
-+				&rvin_edid);
-+	}
-+
- remove_device:
- 	rvin_remove_device(vin);
- 
 -- 
-2.6.4
+2.5.0
 
