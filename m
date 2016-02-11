@@ -1,65 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39463 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756340AbcB0RYR (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:36171 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751857AbcBKXm1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2016 12:24:17 -0500
-Subject: Re: [PATCHv2] [media] rcar-vin: add Renesas R-Car VIN driver
-To: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ulrich.hecht@gmail.com, linux-renesas-soc@vger.kernel.org
-References: <1456282709-13861-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
- <56D1893E.9070007@xs4all.nl> <20160227172152.GC27233@bigcity.dyn.berto.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D1DBBA.8040108@xs4all.nl>
-Date: Sat, 27 Feb 2016 18:24:10 +0100
-MIME-Version: 1.0
-In-Reply-To: <20160227172152.GC27233@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+	Thu, 11 Feb 2016 18:42:27 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v3 17/22] media: au0828 disable tuner to demod link
+Date: Thu, 11 Feb 2016 16:41:33 -0700
+Message-Id: <3a84b88cf0e17586f41d69d3341f5db0d4ef916f.1455233155.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/27/2016 06:21 PM, Niklas Söderlund wrote:
-> Hi Hans,
-> 
-> On 2016-02-27 12:32:14 +0100, Hans Verkuil wrote:
->> On 02/24/2016 03:58 AM, Niklas Söderlund wrote:
->>> A V4L2 driver for Renesas R-Car VIN driver that do not depend on
->>> soc_camera. The driver is heavily based on its predecessor and aims to
->>> replace it.
->>>
->>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>> ---
->>>
->>> The driver is tested on Koelsch and can do streaming using qv4l2 and
->>> grab frames using yavta. It passes a v4l2-compliance (git master) run
->>> without failures, see bellow for output. Some issues I know about but
->>> will have to wait for future work in other patches.
->>>  - The soc_camera driver provides some pixel formats that do not display
->>>    properly for me in qv4l2 or yavta. I have ported these formats as is
->>>    (not working correctly?) to the new driver.
->>>  - One can not bind/unbind the subdevice and continue using the driver.
->>>
->>> As stated in commit message the driver is based on its soc_camera
->>> version but some features have been drooped (for now?).
->>>  - The driver no longer try to use the subdev for cropping (using
->>>    cropcrop/s_crop).
->>>  - Do not interrogate the subdev using g_mbus_config.
->>
->> A quick question: was this tested with the adv7180 only? Or do you also
->> have access to a sensor to test with?
-> 
-> I'm not sure I understand your question. I have only tested on Koelsch 
-> with a adv7180 connected to the VIN. But I have had both a NTSC camera 
-> and a PAL Super Nintendo connected to the Koelsch (adv7180).
+Change au0828_create_media_graph() to find and disable
+tuner and demod link. This helps avoid an additional
+disable step when tuner is requested by video or audio.
 
-OK, that's what I was looking for. I believe it is possible to connect an
-external camera sensor as well to the board, so I was just wondering if you
-had perhaps done that. But that's clearly not the case.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c | 20 +++++++++++++++++++-
+ 1 file changed, 19 insertions(+), 1 deletion(-)
 
-No problem, I was just curious.
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 66b44c9..92d22ed 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -255,7 +255,7 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_device *mdev = dev->media_dev;
+ 	struct media_entity *entity;
+-	struct media_entity *tuner = NULL, *decoder = NULL;
++	struct media_entity *tuner = NULL, *decoder = NULL, *demod = NULL;
+ 	int i, ret;
+ 
+ 	if (!mdev)
+@@ -269,6 +269,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 		case MEDIA_ENT_F_ATV_DECODER:
+ 			decoder = entity;
+ 			break;
++		case MEDIA_ENT_F_DTV_DEMOD:
++			demod = entity;
++			break;
+ 		}
+ 	}
+ 
+@@ -325,6 +328,21 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 			break;
+ 		}
+ 	}
++
++	/*
++	 * Disable tuner to demod link to avoid disable step
++	 * when tuner is requested by video or audio
++	*/
++	if (tuner && demod) {
++		struct media_link *link;
++
++		list_for_each_entry(link, &demod->links, list) {
++			if (link->sink->entity == demod &&
++			    link->source->entity == tuner) {
++				media_entity_setup_link(link, 0);
++			}
++		}
++	}
+ #endif
+ 	return 0;
+ }
+-- 
+2.5.0
 
-Regards,
-
-	Hans
