@@ -1,200 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37883 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752378AbcB2I2Y (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:35550 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751183AbcBKXlq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 03:28:24 -0500
-Subject: Re: [PATCH] media: Add type field to struct media_entity
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1456105996-20845-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <20160226102141.01afcda6@recife.lan> <56D05A66.2010207@xs4all.nl>
- <7962216.zi3BEj9HKN@avalon>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D40122.6090502@xs4all.nl>
-Date: Mon, 29 Feb 2016 09:28:18 +0100
-MIME-Version: 1.0
-In-Reply-To: <7962216.zi3BEj9HKN@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 11 Feb 2016 18:41:46 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v3 00/22] Sharing media resources across ALSA and au0828 drivers
+Date: Thu, 11 Feb 2016 16:41:16 -0700
+Message-Id: <cover.1455233150.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/28/2016 08:09 PM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Friday 26 February 2016 15:00:06 Hans Verkuil wrote:
->> On 02/26/2016 02:21 PM, Mauro Carvalho Chehab wrote:
->>> Em Fri, 26 Feb 2016 13:18:30 +0200 Laurent Pinchart escreveu:
->>>> On Monday 22 February 2016 23:20:58 Sakari Ailus wrote:
->>>>> On Mon, Feb 22, 2016 at 06:46:01AM -0300, Mauro Carvalho Chehab wrote:
->>>>>> Em Mon, 22 Feb 2016 03:53:16 +0200 Laurent Pinchart escreveu:
->>>>>>> Code that processes media entities can require knowledge of the
->>>>>>> structure type that embeds a particular media entity instance in order
->>>>>>> to use the API provided by that structure. This needs is shown by the
->>>>>>> presence of the is_media_entity_v4l2_io and
->>>>>>> is_media_entity_v4l2_subdev
->>>>>>> functions.
->>>>>>>
->>>>>>> The implementation of those two functions relies on the entity
->>>>>>> function field, which is both a wrong and an inefficient design,
->>>>>>> without even
->>>>>
->>>>> I wouldn't necessarily say "wrong", but it is risky. A device's function
->>>>> not only defines the interface it offers but also which struct is
->>>>> considered to contain the media entity. Having a wrong value in the
->>>>> function field may thus lead memory corruption and / or system crash.
->>>>>
->>>>>>> mentioning the maintenance issue involved in updating the functions
->>>>>>> every time a new entity function is added. Fix this by adding add a
->>>>>>> type field to the media entity structure to carry the information.
->>>>>>>
->>>>>>> Signed-off-by: Laurent Pinchart
->>>>>>> <laurent.pinchart+renesas@ideasonboard.com>
->>>>>>> ---
->>>>>>>
->>>>>>>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
->>>>>>>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
->>>>>>>  include/media/media-entity.h          | 65  +++++++++----------------
->>>>>>>  3 files changed, 30 insertions(+), 37 deletions(-)
->>>>
->>>> [snip]
->>>>
->>>>>>> diff --git a/include/media/media-entity.h
->>>>>>> b/include/media/media-entity.h
->>>>>>> index fe485d367985..2be38483f3a4 100644
->>>>>>> --- a/include/media/media-entity.h
->>>>>>> +++ b/include/media/media-entity.h
->>>>>>> @@ -187,10 +187,27 @@ struct media_entity_operations {
->>>>>>>  };
->>>>>>>  
->>>>>>>  /**
->>>>>>> + * enum MEDIA_ENTITY_TYPE_NONE - Media entity type
->>>>>>> + *
->>>>>>
->>>>>> s/MEDIA_ENTITY_TYPE_NONE/media_entity_type/
->>>>>>
->>>>>> (it seems you didn't test producing the docbook, otherwise you would
->>>>>> have seen this error - Please always generate the docbook when the
->>>>>> patch contains kernel-doc markups)
->>>>
->>>> Oops, sorry. I'll fix that.
->>>>
->>>>>> I don't like the idea of calling it as "type", as this is confusing,
->>>>>> specially since we used to call entity.type for what we now call
->>>>>> function.
->>>>>
->>>>> What that field essentially defines is which struct embeds the media
->>>>> entity. (Well, there's some cleanups to be done there, as we have extra
->>>>> entity for V4L2 subdevices, but that's another story.)
->>>>>
->>>>> The old type field had that information, plus the "function" of the
->>>>> entity.
->>>>>
->>>>> I think "type" isn't a bad name for this field, as what we would really
->>>>> need is inheritance. It refers to the object type. What would you think
->>>>> of "class"?
->>>>
->>>> I'd prefer type as class has other meanings in the kernel, but I can live
->>>> with it. Mauro, I agree with Sakari here, what the field contains is
->>>> really the object type in an object-oriented programming context.
->>>
->>> Well, as we could have entities not embedded on some other object, this
->>> is actually not an object type, even on OO programming. What we're
->>> actually representing here is a graph object class.
->>>
->>> The problem is that "type" is a very generic term, and, as we used it
->>> before with some other meaning, so I prefer to call it as something else.
->>>
->>> I'm ok with any other name, although I agree that Kernel uses "class" for
->>> other things. Maybe gr_class or obj_class?
->>
->> I had to think about this a bit, but IMHO it is an entity classification
->> that a subsystem sets when creating the entity.
->>
->> So v4l2 has the classifications V4L2_SUBDEV and V4L2_IO. And while all
->> entities of the V4L2_SUBDEV classification are indeed embedded in a struct
->> v4l2_subdev, that is not true for V4L2_IO (radio interface entities are
->> embedded in struct video_device, but are not of the V4L2_IO class).
->>
->> Other subsystems may need other classifications.
->>
->> So what about this:
->>
->> enum media_entity_class {
->> 	MEDIA_ENTITY_CLASS_UNDEFINED, // Actually, CLASS_NONE would work here too
->> 	MEDIA_ENTITY_CLASS_V4L2_IO,
->> 	MEDIA_ENTITY_CLASS_V4L2_SUBDEV,
->> };
-> 
-> The purpose of the type is solely to identify the type of the media_entity 
-> instance to safely cast it to the proper object type (in an OOP sense). That's 
-> what I want the name of the field to describe. It's not about a 
-> classification, it's about object instance type identification.
+This patch series updates ALSA driver, and au0828 core
+driver to use Managed Media controller API and Media
+Controller API to share media resource (tuner).
 
-No, it's not. The way it is used is to find entities that are embedded in a
-video_device AND that do I/O. While all I/O V4L2 entities are a video_device,
-the reverse is not true. Most obviously radio devices, but video devices can
-also be used for control only and not for I/O. For example (a real-life example)
-a sensor -> FPGA -> HDMI TX pipeline where video devices are used to control
-the sensor and HDMI transmitter, but no I/O to/from memory happens since that's
-all inside the FPGA.
+This Patch v3 series is based on linux_media master.
+This work addresses Mauro and Takashi's comments on
+Patch v2 series.
 
-So this really is CLASS_V4L2_IO.
+Changes since Patch v2 series:
+- Added documentation for uapi and new MC interfaces
+  1. Ran make for documentation and Mauro's doc script.
+     Thanks for sharing the script.
+- Updated commit logs as needed for clarity.
+- media: v4l-core add enable/disable source common interfaces
+  Addressed comments - added static inlines in header file
+- media: dvb-frontend invoke enable/disable_source handlers
+  Moved the patch after enable/disable handlers and left
+  pipe in dvb_frontend_private
+- media: au0828 video remove au0828_enable_analog_tuner() and
+  media: au0828 video change to use v4l_enable_media_source()
+  1. Collapsed these two patches - it doesn't make sense to keep
+     them separate. Also added FIXME as per Mauro's suggestion.
+- media: au0828 change to use Managed Media Controller API
+  1. Added comment explaining the need for using udev->product
+     instead of dev->board.name
+- media: au0828 add enable, disable source handlers
+  1. Changed to handle S-Video and Composite inputs.
+  2. Fixed a bug that lets Video in when ALSA holds the
+     source.
+  3. Added comments to one FIXME for s_input changes.
+     Fix is in progress and will send it in a day or two
+     combined with other issues found in au0828 video in
+     the way it handles input. Doesn't impact this routine,
+     changes are all in au0828-video.
+- sound/usb: Use Media Controller API to share media resources
+  1. Addressed comments from Mauro and Takashi about void pointer
+     use.
+  2. Fixed kbuildbot error when MEDIA_SUPPORT=m
+- Dropped media: Ensure media device unregister is done only once
+  Device removal worked without any changes to media unregister
+  path. This work isn't necessary.
 
-And the name is_media_entity_v4l2_io is OK too.
+Shuah Khan (22):
+  [media] Docbook: media-types.xml: Add ALSA Media Controller Intf types
+  uapi/media.h: Declare interface types for ALSA
+  [media] Docbook: media-types.xml: Add Audio Function Entities
+  media: Add ALSA Media Controller function entities
+  media: Media Controller register/unregister entity_notify API
+  media: Media Controller enable/disable source handler API
+  media: Media Controller export non locking __media_entity_setup_link()
+  edia: Media Controller non-locking
+    __media_entity_pipeline_start/stop()
+  media: v4l-core add enable/disable source common interfaces
+  media: Move au8522_media_pads enum to au8522.h from au8522_priv.h
+  media: au8522 change to create MC pad for ALSA Audio Out
+  media: au0828 Use au8522_media_pads enum for pad defines
+  media: Change v4l-core to check if source is free
+  media: au0828 change to use Managed Media Controller API
+  media: au0828 handle media_init and media_register window
+  media: au0828 create tuner to decoder link in disabled state
+  media: au0828 disable tuner to demod link
+  media: au0828-core register entity_notify hook
+  media: au0828 add enable, disable source handlers
+  media: dvb-frontend invoke enable/disable_source handlers
+  media: au0828 video change to use v4l_enable_media_source()
+  sound/usb: Use Media Controller API to share media resources
 
-This could be done differently, though, but it requires more work.
+ Documentation/DocBook/media/v4l/media-types.xml |  52 ++++
+ drivers/media/dvb-core/dvb_frontend.c           | 135 ++--------
+ drivers/media/dvb-frontends/au8522.h            |   8 +
+ drivers/media/dvb-frontends/au8522_decoder.c    |   1 +
+ drivers/media/dvb-frontends/au8522_priv.h       |   8 -
+ drivers/media/media-device.c                    |  42 +++
+ drivers/media/media-entity.c                    |  51 +++-
+ drivers/media/usb/au0828/au0828-core.c          | 325 ++++++++++++++++++++++--
+ drivers/media/usb/au0828/au0828-video.c         | 102 +++-----
+ drivers/media/usb/au0828/au0828.h               |   6 +
+ drivers/media/v4l2-core/Makefile                |   1 +
+ drivers/media/v4l2-core/v4l2-fh.c               |   2 +
+ drivers/media/v4l2-core/v4l2-ioctl.c            |  30 +++
+ drivers/media/v4l2-core/v4l2-mc.c               |  52 ++++
+ drivers/media/v4l2-core/videobuf2-core.c        |   4 +
+ include/media/media-device.h                    |  86 +++++++
+ include/media/media-entity.h                    |  19 ++
+ include/media/v4l2-dev.h                        |   1 +
+ include/media/v4l2-mc.h                         |  65 +++++
+ include/uapi/linux/media.h                      |  17 ++
+ sound/usb/Kconfig                               |   4 +
+ sound/usb/Makefile                              |   2 +
+ sound/usb/card.c                                |  14 +
+ sound/usb/card.h                                |   3 +
+ sound/usb/media.c                               | 318 +++++++++++++++++++++++
+ sound/usb/media.h                               |  72 ++++++
+ sound/usb/mixer.h                               |   3 +
+ sound/usb/pcm.c                                 |  28 +-
+ sound/usb/quirks-table.h                        |   1 +
+ sound/usb/stream.c                              |   2 +
+ sound/usb/usbaudio.h                            |   6 +
+ 31 files changed, 1240 insertions(+), 220 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-mc.c
+ create mode 100644 sound/usb/media.c
+ create mode 100644 sound/usb/media.h
 
-I do think it would be useful to know that the entity is embedded in the video_device,
-so I agree with you on that.
-
-But to make is_media_entity_v4l2_io work you would need to know if the device
-could do I/O. One way this can be done is to make the device_caps of v4l2_capabilities
-part of struct video_device.
-
-This would have other beneficial results as well since the core can now know the
-caps of the device and it can take decisions accordingly. I've thought about
-this before but never had enough of a reason to implement it.
-
-So the is_media_entity_v4l2_io() function would check if the entity is of type
-VIDEO_DEVICE, then use container_of to get the caps from video_device and check for
-(CAP_STREAMING | CAP_READWRITE).
-
-In this case I would call it:
-
-enum media_entity_is_of_type {
-	MEDIA_ENTITY_TYPE_UNDEFINED,
-	MEDIA_ENTITY_TYPE_V4L2_VIDEO_DEVICE,
-	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
-};
-
-And the field name would be:
-
-	enum media_entity_is_of_type type;
-
-But this requires more work since all drivers need to be modified, starting with
-those used by those drivers are also use the is_media_entity_* functions. I do
-think it would be beneficial to make the device_caps part of video_device
-regardless.
-
-Regards,
-
-	Hans
-
-> From that point of view, the V4L2_IO class/type is wrong. We want to tell that 
-> the entity instance is a video_device instance (and given that we use C, this 
-> OOP construct is implemented by embedding the struct media_entity in a struct 
-> video_device). We really want VIDEO_DEVICE here, there is no struct v4l2_io.
-> 
->> and the field enum media_entity_class class; in struct media_entity with
->> documentation:
->>
->> @class:	Classification of the media_entity, subsystems can set this to
->> quickly classify what sort of media_entity this is.
-> 
+-- 
+2.5.0
 
