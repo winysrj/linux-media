@@ -1,56 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:34089 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751488AbcBZNJ6 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:45007 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157AbcBKNIt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2016 08:09:58 -0500
-Subject: Re: [PATCH v5 0/8] Add MT8173 Video Encoder Driver and VPU Driver
-To: Stanimir Varbanov <svarbanov@mm-sol.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-References: <1456215081-16858-1-git-send-email-tiffany.lin@mediatek.com>
- <56CC1CAB.1060409@xs4all.nl> <56D03DE2.1090400@mm-sol.com>
-Cc: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D04E98.8040209@xs4all.nl>
-Date: Fri, 26 Feb 2016 14:09:44 +0100
-MIME-Version: 1.0
-In-Reply-To: <56D03DE2.1090400@mm-sol.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 11 Feb 2016 08:08:49 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] em28xx-cards: fix compilation breakage caused by cs 622f9260802e
+Date: Thu, 11 Feb 2016 11:07:24 -0200
+Message-Id: <87749d1653e4cf3af1c009e9b16c476957382325.1455196043.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/26/2016 12:58 PM, Stanimir Varbanov wrote:
-> Hi Hans,
-> 
-> <snip>
-> 
->> Nice!
->>
->> Can you try 'v4l2-compliance -s'? Note that this may not work since I know
->> that v4l2-compliance doesn't work all that well with codecs, but I am
->> curious what the output is when you try streaming.
-> 
-> Sorry for the off topic question.
-> 
-> Does every new v4l2 encoder/decoder driver must use v4l2 mem2mem device
-> framework, with other words is that mandatory?
-> 
+changeset 622f9260802e ("tvp5150: move input definition header to
+dt-bindings") broke compilation of em28xx, as it moved one header
+file used there.
 
-No, that's not mandatory. In most cases it will simplify your code, but
-sometimes it only makes it harder and then you are better off doing it
-yourself.
+Fix it by pointing to the newer file location.
 
-Regards,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	Hans
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index ba442c967415..06a09b4e4a83 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -32,7 +32,7 @@
+ #include <media/tuner.h>
+ #include <media/drv-intf/msp3400.h>
+ #include <media/i2c/saa7115.h>
+-#include <media/i2c/tvp5150.h>
++#include <dt-bindings/media/tvp5150.h>
+ #include <media/i2c/tvaudio.h>
+ #include <media/i2c-addr.h>
+ #include <media/tveeprom.h>
+-- 
+2.5.0
+
