@@ -1,115 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:58696 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751986AbcB2Kia (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:35747 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751291AbcBKXly (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 05:38:30 -0500
-Subject: Re: [PATCH for 4.5] media.h: use hex values for the range offsets,
- move connectors base up.
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <56D3FB27.7000202@xs4all.nl> <7005747.SQRvpaCij5@avalon>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D41FA0.40107@xs4all.nl>
-Date: Mon, 29 Feb 2016 11:38:24 +0100
-MIME-Version: 1.0
-In-Reply-To: <7005747.SQRvpaCij5@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 11 Feb 2016 18:41:54 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: [PATCH v3 05/22] media: Media Controller register/unregister entity_notify API
+Date: Thu, 11 Feb 2016 16:41:21 -0700
+Message-Id: <5045cdb7ec9cec401509dcf714bf1065d8b765dc.1455233153.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/29/2016 11:35 AM, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Monday 29 February 2016 09:02:47 Hans Verkuil wrote:
->> Make the base offset hexadecimal to simplify debugging since the base
->> addresses are hex too.
-> 
-> This is much better, it will help debugging.
-> 
-> Before applying the patch, though, I wonder whether 4096 functions by 
-> categories isn't a bit overkill. Have you given that any thought, or did you 
-> select 1000/0x1000 just for convenience ?
+Add new interfaces to register and unregister entity_notify
+hook to media device. These interfaces allow drivers to add
+hooks to take appropriate actions when new entities get added
+to a shared media device. For example, au0828 bridge driver
+registers an entity_notify hook to create links as needed
+between media graph nodes.
 
-Convenience. It's overkill, yes, but we have 32 bits to play with, so no
-need to restrict ourselves unnecessary.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/media-device.c | 42 +++++++++++++++++++++++++++++++++
+ include/media/media-device.h | 56 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 98 insertions(+)
 
-It's also easy to read the hex value and quickly see which range it is.
-
-Regards,
-
-	Hans
-
-> 
->> The offsets for connectors is also changed to start after the 'reserved'
->> range 0x10000-0x2ffff.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
->> index 95e126e..79960ae 100644
->> --- a/include/uapi/linux/media.h
->> +++ b/include/uapi/linux/media.h
->> @@ -66,17 +66,17 @@ struct media_device_info {
->>  /*
->>   * DVB entities
->>   */
->> -#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 1)
->> -#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 2)
->> -#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 3)
->> -#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 4)
->> +#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 0x00001)
->> +#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 0x00002)
->> +#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 0x00003)
->> +#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 0x00004)
->>
->>  /*
->>   * I/O entities
->>   */
->> -#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 1001)
->> -#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 1002)
->> -#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 1003)
->> +#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 0x01001)
->> +#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 0x01002)
->> +#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 0x01003)
->>
->>  /*
->>   * Analog TV IF-PLL decoders
->> @@ -84,23 +84,23 @@ struct media_device_info {
->>   * It is a responsibility of the master/bridge drivers to create links
->>   * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
->>   */
->> -#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 2001)
->> -#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 2002)
->> +#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 0x02001)
->> +#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 0x02002)
->>
->>  /*
->>   * Audio Entity Functions
->>   */
->> -#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 3000)
->> -#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 3001)
->> -#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 3002)
->> +#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03000)
->> +#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03001)
->> +#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03002)
->>
->>  /*
->>   * Connectors
->>   */
->>  /* It is a responsibility of the entity drivers to add connectors and links
->> */ -#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
->> -#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
->> -#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
->> +#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
->> +#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
->> +#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
->>
->>  /*
->>   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
-> 
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 4d1c13d..9c1cf70 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -536,6 +536,7 @@ static void media_device_release(struct media_devnode *mdev)
+ int __must_check media_device_register_entity(struct media_device *mdev,
+ 					      struct media_entity *entity)
+ {
++	struct media_entity_notify *notify, *next;
+ 	unsigned int i;
+ 	int ret;
+ 
+@@ -575,6 +576,11 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
+ 			       &entity->pads[i].graph_obj);
+ 
++	/* invoke entity_notify callbacks */
++	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
++		(notify)->notify(entity, notify->notify_data);
++	}
++
+ 	spin_unlock(&mdev->lock);
+ 
+ 	return 0;
+@@ -608,6 +614,8 @@ static void __media_device_unregister_entity(struct media_entity *entity)
+ 	/* Remove the entity */
+ 	media_gobj_destroy(&entity->graph_obj);
+ 
++	/* invoke entity_notify callbacks to handle entity removal?? */
++
+ 	entity->graph_obj.mdev = NULL;
+ }
+ 
+@@ -640,6 +648,7 @@ void media_device_init(struct media_device *mdev)
+ 	INIT_LIST_HEAD(&mdev->interfaces);
+ 	INIT_LIST_HEAD(&mdev->pads);
+ 	INIT_LIST_HEAD(&mdev->links);
++	INIT_LIST_HEAD(&mdev->entity_notify);
+ 	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+ 	ida_init(&mdev->entity_internal_idx);
+@@ -685,11 +694,40 @@ int __must_check __media_device_register(struct media_device *mdev,
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+ 
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	spin_lock(&mdev->lock);
++	list_add_tail(&nptr->list, &mdev->entity_notify);
++	spin_unlock(&mdev->lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
++
++/**
++ * Note: Should be called with mdev->lock held.
++ */
++static void __media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	list_del(&nptr->list);
++}
++
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	spin_lock(&mdev->lock);
++	__media_device_unregister_entity_notify(mdev, nptr);
++	spin_unlock(&mdev->lock);
++}
++EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
++
+ void media_device_unregister(struct media_device *mdev)
+ {
+ 	struct media_entity *entity;
+ 	struct media_entity *next;
+ 	struct media_interface *intf, *tmp_intf;
++	struct media_entity_notify *notify, *nextp;
+ 
+ 	if (mdev == NULL)
+ 		return;
+@@ -706,6 +744,10 @@ void media_device_unregister(struct media_device *mdev)
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+ 		__media_device_unregister_entity(entity);
+ 
++	/* Remove all entity_notify callbacks from the media device */
++	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
++		__media_device_unregister_entity_notify(mdev, notify);
++
+ 	/* Remove all interfaces from the media device */
+ 	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
+ 				 graph_obj.list) {
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index d385589..075a482 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -265,6 +265,22 @@ struct ida;
+ struct device;
+ 
+ /**
++ * struct media_entity_notify - Media Entity Notify
++ *
++ * @list: List head
++ * @notify_data: Input data to invoke the callback
++ * @notify: Callback function pointer
++ *
++ * Drivers may register a callback to take action when
++ * new entities get registered with the media device.
++ */
++struct media_entity_notify {
++	struct list_head list;
++	void *notify_data;
++	void (*notify)(struct media_entity *entity, void *notify_data);
++};
++
++/**
+  * struct media_device - Media device
+  * @dev:	Parent device
+  * @devnode:	Media device node
+@@ -283,6 +299,7 @@ struct device;
+  * @interfaces:	List of registered interfaces
+  * @pads:	List of registered pads
+  * @links:	List of registered links
++ * @entity_notify: List of registered entity_notify callbacks
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
+  * @link_notify: Link state change notification callback
+@@ -319,6 +336,9 @@ struct media_device {
+ 	struct list_head pads;
+ 	struct list_head links;
+ 
++	/* notify callback list invoked when a new entity is registered */
++	struct list_head entity_notify;
++
+ 	/* Protects the graph objects creation/removal */
+ 	spinlock_t lock;
+ 	/* Serializes graph operations. */
+@@ -498,6 +518,31 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ void media_device_unregister_entity(struct media_entity *entity);
+ 
+ /**
++ * media_device_register_entity_notify() - Registers a media entity_notify
++ *					   callback
++ *
++ * @mdev:      The media device
++ * @nptr:      The media_entity_notify
++ *
++ * Note: When a new entity is registered, all the registered
++ * media_entity_notify callbacks are invoked.
++ */
++
++int __must_check media_device_register_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr);
++
++/**
++ * media_device_unregister_entity_notify() - Unregister a media entity notify
++ *					     callback
++ *
++ * @mdev:      The media device
++ * @nptr:      The media_entity_notify
++ *
++ */
++void media_device_unregister_entity_notify(struct media_device *mdev,
++					struct media_entity_notify *nptr);
++
++/**
+  * media_device_get_devres() -	get media device as device resource
+  *				creates if one doesn't exist
+  *
+@@ -552,6 +597,17 @@ static inline int media_device_register_entity(struct media_device *mdev,
+ static inline void media_device_unregister_entity(struct media_entity *entity)
+ {
+ }
++static inline int media_device_register_entity_notify(
++					struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++	return 0;
++}
++static inline void media_device_unregister_entity_notify(
++					struct media_device *mdev,
++					struct media_entity_notify *nptr)
++{
++}
+ static inline struct media_device *media_device_get_devres(struct device *dev)
+ {
+ 	return NULL;
+-- 
+2.5.0
 
