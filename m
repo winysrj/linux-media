@@ -1,45 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback4.mail.ru ([94.100.181.169]:43679 "EHLO
-	fallback4.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992581AbcB0Xe7 (ORCPT
+Received: from mail-ig0-f176.google.com ([209.85.213.176]:34700 "EHLO
+	mail-ig0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752618AbcBKN3D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2016 18:34:59 -0500
-From: andreykosh000@mail.ru
-To: crope@iki.fi
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Andrei Koshkosh <andreykosh000@mail.ru>
-Subject: [PATCH] Fixed frequency range for Si2157 tuner to 42-870 MHz
-Date: Sun, 28 Feb 2016 09:24:58 +1000
-Message-Id: <1456615498-2261-1-git-send-email-andreykosh000@mail.ru>
+	Thu, 11 Feb 2016 08:29:03 -0500
+Received: by mail-ig0-f176.google.com with SMTP id ik10so10467593igb.1
+        for <linux-media@vger.kernel.org>; Thu, 11 Feb 2016 05:29:02 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <87749d1653e4cf3af1c009e9b16c476957382325.1455196043.git.mchehab@osg.samsung.com>
+References: <87749d1653e4cf3af1c009e9b16c476957382325.1455196043.git.mchehab@osg.samsung.com>
+Date: Thu, 11 Feb 2016 10:29:01 -0300
+Message-ID: <CABxcv==OGX7h9Bv=0bGv5kzKzBh3r8YXpJBMdy7xRHX+JudDzw@mail.gmail.com>
+Subject: Re: [PATCH] em28xx-cards: fix compilation breakage caused by cs 622f9260802e
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrei Koshkosh <andreykosh000@mail.ru>
+Hello Mauro,
 
-Signed-off-by: Andrei Koshkosh <andreykosh000@mail.ru>
+On Thu, Feb 11, 2016 at 10:07 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> changeset 622f9260802e ("tvp5150: move input definition header to
+> dt-bindings") broke compilation of em28xx, as it moved one header
+> file used there.
+>
 
-	modified:   drivers/media/tuners/si2157.c
-This tuner supports frequency range from 42MHz to 870MHz
----
- drivers/media/tuners/si2157.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Sigh, sorry for missing that the header was used in that driver too...
 
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 0e1ca2b..5da5b42 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -364,8 +364,8 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- static const struct dvb_tuner_ops si2157_ops = {
- 	.info = {
- 		.name           = "Silicon Labs Si2146/2147/2148/2157/2158",
--		.frequency_min  = 55000000,
--		.frequency_max  = 862000000,
-+		.frequency_min  = 42000000,
-+		.frequency_max  = 870000000,
- 	},
- 
- 	.init = si2157_init,
--- 
-1.9.1
+> Fix it by pointing to the newer file location.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
+Thanks a lot for fixing this.
+
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Best regards,
+Javier
