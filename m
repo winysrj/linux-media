@@ -1,76 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:31993 "EHLO mga14.intel.com"
+Received: from muru.com ([72.249.23.125]:34208 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932066AbcBANPD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2016 08:15:03 -0500
-Subject: Re: [v4l-utils PATCH 1/2] v4l: libv4l1, libv4l2: Use $(mkdir_p)
- instead of deprecated $(MKDIR_P)
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl
-References: <1453725684-4561-1-git-send-email-sakari.ailus@linux.intel.com>
- <1453725684-4561-2-git-send-email-sakari.ailus@linux.intel.com>
- <20160201105945.20dd5087@recife.lan>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <56AF5A4D.4020500@linux.intel.com>
-Date: Mon, 1 Feb 2016 15:14:53 +0200
+	id S1751183AbcBLWNz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 17:13:55 -0500
+Date: Fri, 12 Feb 2016 14:13:52 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: tvp5150 regression after commit 9f924169c035
+Message-ID: <20160212221352.GY3500@atomide.com>
+References: <56B204CB.60602@osg.samsung.com>
+ <20160208105417.GD2220@tetsubishi>
+ <56BE57FC.3020407@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <20160201105945.20dd5087@recife.lan>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56BE57FC.3020407@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-Mauro Carvalho Chehab wrote:
-> Em Mon, 25 Jan 2016 14:41:23 +0200
-> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+* Javier Martinez Canillas <javier@osg.samsung.com> [160212 14:10]:
+> Hello,
 > 
->> autoconf thinks $(MKDIR_P) is deprecated. Use $(mkdir_p) instead.
+> On 02/08/2016 07:54 AM, Wolfram Sang wrote:
+> >On Wed, Feb 03, 2016 at 10:46:51AM -0300, Javier Martinez Canillas wrote:
+> >>Hello Wolfram,
+> >>
+> >>I've a issue with a I2C video decoder driver (drivers/media/i2c/tvp5150.c).
+> >>
+> >>In v4.5-rc1, the driver gets I2C read / writes timeouts when accessing the
+> >>device I2C registers:
+> >>
+> >>tvp5150 1-005c: i2c i/o error: rc == -110
+> >>tvp5150: probe of 1-005c failed with error -110
+> >>
+> >>The driver used to work up to v4.4 so this is a regression in v4.5-rc1:
+> >>
+> >>tvp5150 1-005c: tvp5151 (1.0) chip found @ 0xb8 (OMAP I2C adapter)
+> >>tvp5150 1-005c: tvp5151 detected.
+> >>
+> >>I tracked down to commit 9f924169c035 ("i2c: always enable RuntimePM for
+> >>the adapter device") and reverting that commit makes things to work again.
+> >>
+> >>The tvp5150 driver doesn't have runtime PM support but the I2C controller
+> >>driver does (drivers/i2c/busses/i2c-omap.c) FWIW.
+> >>
+> >>I tried adding runtime PM support to tvp5150 (basically calling pm_runtime
+> >>enable/get on probe before the first I2C read to resume the controller) but
+> >>that it did not work.
+> >>
+> >>Not filling the OMAP I2C driver's runtime PM callbacks does not help either.
+> >>
+> >>Any hints about the proper way to fix this issue?
+> >
+> >Asking linux-pm for help:
+> >
+> >The commit in question enables RuntimePM for the logical adapter device
+> >which sits between the HW I2C controller and the I2C client device. This
+> >adapter device has been used with pm_runtime_no_callbacks before
+> >enabling RPM. Now, Alan explained to me that "suspend events will
+> >propagate from the I2C clients all the way up to the adapter's parent."
+> >with RPM enabled for the adapter device. Which should be a no-op if the
+> >client doesn't do any PM at all? What do I miss?
 > 
-> Did you get any troubles with the deprecated macro?
-> 
-> At least here (version 2.69), I don't see any error by using $(MKDIR_P).
+> I'm adding Tony Lindgren to the cc list as well since he is the OMAP
+> maintainer and I see that has struggled lately with runtime PM issues
+> so maybe he has more ideas.
 
-I have the same version.
+Hmm yeah I wonder if this canned solution helps here too:
 
------8<------
-$ autoreconf -vfi
-autoreconf: Entering directory `.'
-autoreconf: configure.ac: not using Gettext
-autoreconf: running: aclocal --force -I m4
-autoreconf: configure.ac: tracing
-autoreconf: configure.ac: AM_GNU_GETTEXT is used, but not
-AM_GNU_GETTEXT_VERSION
-autoreconf: running: libtoolize --copy --force
-libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, `build-aux'.
-libtoolize: copying file `build-aux/ltmain.sh'
-libtoolize: putting macros in AC_CONFIG_MACRO_DIR, `m4'.
-libtoolize: copying file `m4/libtool.m4'
-libtoolize: copying file `m4/ltoptions.m4'
-libtoolize: copying file `m4/ltsugar.m4'
-libtoolize: copying file `m4/ltversion.m4'
-libtoolize: copying file `m4/lt~obsolete.m4'
-autoreconf: running: /usr/bin/autoconf --force
-autoreconf: running: /usr/bin/autoheader --force
-autoreconf: running: automake --add-missing --copy --force-missing
-configure.ac:85: warning: The 'AM_PROG_MKDIR_P' macro is deprecated, and
-its use is discouraged.
-configure.ac:85: You should use the Autoconf-provided 'AC_PROG_MKDIR_P'
-macro instead,
-configure.ac:85: and use '$(MKDIR_P)' instead of '$(mkdir_p)'in your
-Makefile.am files.
-autoreconf: Leaving directory `.'
------8<------
+1. Check if the driver(s) are using pm_runtime_use_autosuspend()
 
-Perhaps automake version makes a difference. I have 1.14.1 here (Ubuntu
-package 1:1.14.1-2ubuntu1 from Ubuntu 14.10).
+2. If so, you must use pm_runtime_dont_use_autosuspend() before
+   pm_runtime_put_sync() to make sure that pm_runtime_put_sync()
+   works.
 
-There are no errors due to this, just a warning.
+3. Or you can use pm_runtime_put_sync_suspend() instead of
+   pm_runtime_put_sync() for sections of code where the clocks
+   need to be stopped.
 
--- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Tony
