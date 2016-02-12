@@ -1,82 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37046 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751187AbcBLJ1Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 04:27:24 -0500
-Subject: Re: [PATCHv12 05/17] HID: add HDMI CEC specific keycodes
-To: linux-media@vger.kernel.org,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
- <1455108711-29850-6-git-send-email-hverkuil@xs4all.nl>
-Cc: linux-input@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56BDA577.5060302@xs4all.nl>
-Date: Fri, 12 Feb 2016 10:27:19 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:48225 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750852AbcBLXIn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 18:08:43 -0500
+Subject: Re: tvp5150 regression after commit 9f924169c035
+To: Tony Lindgren <tony@atomide.com>
+References: <56B204CB.60602@osg.samsung.com>
+ <20160208105417.GD2220@tetsubishi> <56BE57FC.3020407@osg.samsung.com>
+ <20160212221352.GY3500@atomide.com> <56BE5C97.9070607@osg.samsung.com>
+ <20160212224018.GZ3500@atomide.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <56BE65F0.8040600@osg.samsung.com>
+Date: Fri, 12 Feb 2016 20:08:32 -0300
 MIME-Version: 1.0
-In-Reply-To: <1455108711-29850-6-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <20160212224018.GZ3500@atomide.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry,
+Hello Tony,
 
-Can you provide an Ack for this patch?
+On 02/12/2016 07:40 PM, Tony Lindgren wrote:
+> * Javier Martinez Canillas <javier@osg.samsung.com> [160212 14:29]:
+>> On 02/12/2016 07:13 PM, Tony Lindgren wrote:
+>>> Hmm yeah I wonder if this canned solution helps here too:
+>>>
+>>> 1. Check if the driver(s) are using pm_runtime_use_autosuspend()
+>>>
+>>
+>> By driver do you mean the OMAP GPIO driver or the tvp5150 I2C driver?
+>> The latter does not have runtime PM support.
+>
+> Sounds like OMAP GPIO then.
+>
 
-Thanks!
+Ok.
+  
+>>> 2. If so, you must use pm_runtime_dont_use_autosuspend() before
+>>>     pm_runtime_put_sync() to make sure that pm_runtime_put_sync()
+>>>     works.
+>>>
+>>> 3. Or you can use pm_runtime_put_sync_suspend() instead of
+>>>     pm_runtime_put_sync() for sections of code where the clocks
+>>>     need to be stopped.
+>>>
+>>
+>> I can check if the OMAP GPIO is following these and give a try but
+>> don't have access to the board right now so I'll do it on Monday.
+>
+> It does not seem to be using pm_runtime_autosuspend(). Did you
+> try reverting commit de85b9d57ab ("PM / runtime: Re-init runtime
+> PM states at probe error and driver unbind") and see if that
+> helps?
+>
 
-	Hans
+Yes, that's the first thing I tried when I noticed your patch:
 
-On 02/10/2016 01:51 PM, Hans Verkuil wrote:
-> From: Kamil Debski <kamil@wypas.org>
-> 
-> Add HDMI CEC specific keycodes to the keycodes definition.
-> 
-> Signed-off-by: Kamil Debski <kamil@wypas.org>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/uapi/linux/input-event-codes.h | 28 ++++++++++++++++++++++++++++
->  1 file changed, 28 insertions(+)
-> 
-> diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-> index 87cf351..2662500 100644
-> --- a/include/uapi/linux/input-event-codes.h
-> +++ b/include/uapi/linux/input-event-codes.h
-> @@ -611,6 +611,34 @@
->  #define KEY_KBDINPUTASSIST_ACCEPT		0x264
->  #define KEY_KBDINPUTASSIST_CANCEL		0x265
->  
-> +#define KEY_RIGHT_UP			0x266
-> +#define KEY_RIGHT_DOWN			0x267
-> +#define KEY_LEFT_UP			0x268
-> +#define KEY_LEFT_DOWN			0x269
-> +#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
-> +#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
-> +#define KEY_NUMERIC_11			0x26c
-> +#define KEY_NUMERIC_12			0x26d
-> +/*
-> + * Toggle Audio Description: refers to an audio service that helps blind and
-> + * visually impaired consumers understand the action in a program. Note: in
-> + * some countries this is referred to as "Video Description".
-> + */
-> +#define KEY_AUDIO_DESC			0x26e
-> +#define KEY_3D_MODE			0x26f
-> +#define KEY_NEXT_FAVORITE		0x270
-> +#define KEY_STOP_RECORD			0x271
-> +#define KEY_PAUSE_RECORD		0x272
-> +#define KEY_VOD				0x273 /* Video on Demand */
-> +#define KEY_UNMUTE			0x274
-> +#define KEY_FASTREVERSE			0x275
-> +#define KEY_SLOWREVERSE			0x276
-> +/*
-> + * Control a data application associated with the currently viewed channel,
-> + * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
-> + */
-> +#define KEY_DATA			0x275
-> +
->  #define BTN_TRIGGER_HAPPY		0x2c0
->  #define BTN_TRIGGER_HAPPY1		0x2c0
->  #define BTN_TRIGGER_HAPPY2		0x2c1
-> 
+("i2c: omap: Fix PM regression with deferred probe for
+pm_runtime_reinit")
 
+But neither reverting commit de85b9d57ab nor your fix made a
+difference.
+  
+> If it does, then sounds like we may have some other regression
+> as well.
+>
+
+It seems that is not related but I hope that given you were
+looking at the runtime PM core lately, maybe you can figure
+out what we are missing.
+
+I'm far from being familiar with the runtime PM framework
+but I've looked and can't figure out why Wolfram's commit
+make this driver to fail and reverting his commit make its
+work again.
+
+> Regards,
+>
+> Tony
+>
+
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
