@@ -1,62 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:43571 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750748AbcBDSEi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Feb 2016 13:04:38 -0500
-MIME-Version: 1.0
-In-Reply-To: <1454586583.7571.3.camel@mtksdaap41>
-References: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
- <1451902316-55931-2-git-send-email-tiffany.lin@mediatek.com>
- <20160104141506.GA22801@rob-hp-laptop> <1454586583.7571.3.camel@mtksdaap41>
-From: Rob Herring <robh@kernel.org>
-Date: Thu, 4 Feb 2016 12:04:14 -0600
-Message-ID: <CAL_JsqJqQ+QRgg6HGQeGk0=rBEwQq7i-ZfoDahZwXLuvMC-=_A@mail.gmail.com>
-Subject: Re: [PATCH v3 1/8] dt-bindings: Add a binding for Mediatek Video Processor
-To: tiffany lin <tiffany.lin@mediatek.com>
-Cc: "daniel.thompson@linaro.org" <daniel.thompson@linaro.org>,
+Received: from bombadil.infradead.org ([198.137.202.9]:40796 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752185AbcBLLW2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 06:22:28 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	=?UTF-8?B?RWRkaWUgSHVhbmcgKOm7g+aZuuWCkSk=?=
-	<eddie.huang@mediatek.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-mediatek@lists.infradead.org"
-	<linux-mediatek@lists.infradead.org>,
-	=?UTF-8?B?QW5kcmV3LUNUIENoZW4gKOmZs+aZuui/qik=?=
-	<Andrew-CT.Chen@mediatek.com>
-Content-Type: text/plain; charset=UTF-8
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 2/2] [media] cx231xx: get rid of CX231XX_VMUX_DEBUG
+Date: Fri, 12 Feb 2016 09:21:01 -0200
+Message-Id: <74a125ed2542ac0306e8582bc86dd0fc9a2bdc02.1455276050.git.mchehab@osg.samsung.com>
+In-Reply-To: <b39a8de587466a0052e696d8ebc3987066784384.1455276050.git.mchehab@osg.samsung.com>
+References: <b39a8de587466a0052e696d8ebc3987066784384.1455276050.git.mchehab@osg.samsung.com>
+In-Reply-To: <b39a8de587466a0052e696d8ebc3987066784384.1455276050.git.mchehab@osg.samsung.com>
+References: <b39a8de587466a0052e696d8ebc3987066784384.1455276050.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 4, 2016 at 5:49 AM, tiffany lin <tiffany.lin@mediatek.com> wrote:
-> Hi Rob,
->
->
->
->
-> On Mon, 2016-01-04 at 22:15 +0800, Rob Herring wrote:
->> On Mon, Jan 04, 2016 at 06:11:49PM +0800, Tiffany Lin wrote:
->> > From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
->> >
->> > Add a DT binding documentation of Video Processor Unit for the
->> > MT8173 SoC from Mediatek.
->> >
->> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
->> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
->>
->> Please add acks when sending new versions as I already acked the last
->> version.
->>
-> Since we remove iommu attach and add 4GB support for VPU.
-> We send the new device tree and binding document.
-> We do not add Acked-by in v4 patches.
+This macro is not used inside the driver. get rid of it.
 
-Okay, then you should explain that in the patch.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-video.c | 3 +--
+ drivers/media/usb/cx231xx/cx231xx.h       | 1 -
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-Rob
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 7222b1c27d40..6414188ffdfa 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -1103,7 +1103,6 @@ static const char *iname[] = {
+ 	[CX231XX_VMUX_TELEVISION] = "Television",
+ 	[CX231XX_VMUX_CABLE]      = "Cable TV",
+ 	[CX231XX_VMUX_DVB]        = "DVB",
+-	[CX231XX_VMUX_DEBUG]      = "for debug only",
+ };
+ 
+ void cx231xx_v4l2_create_entities(struct cx231xx *dev)
+@@ -1136,7 +1135,7 @@ void cx231xx_v4l2_create_entities(struct cx231xx *dev)
+ 			if (dev->tuner_type == TUNER_ABSENT)
+ 				continue;
+ 			/* fall though */
+-		default: /* CX231XX_VMUX_DEBUG */
++		default: /* just to shut up a gcc warning */
+ 			ent->function = MEDIA_ENT_F_CONN_RF;
+ 			break;
+ 		}
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 60e14776a6cd..69f6d20870f5 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -281,7 +281,6 @@ enum cx231xx_itype {
+ 	CX231XX_VMUX_CABLE,
+ 	CX231XX_RADIO,
+ 	CX231XX_VMUX_DVB,
+-	CX231XX_VMUX_DEBUG
+ };
+ 
+ enum cx231xx_v_input {
+-- 
+2.5.0
+
