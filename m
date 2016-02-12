@@ -1,23 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:35959 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:48204 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751438AbcBHSXc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2016 13:23:32 -0500
-Subject: Re: [PATCH 7/8] [media] tvp5150: document input connectors DT
- bindings
-To: linux-kernel@vger.kernel.org
-References: <1454699398-8581-1-git-send-email-javier@osg.samsung.com>
- <1454699398-8581-8-git-send-email-javier@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+	id S1750904AbcBLWJM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 17:09:12 -0500
+Subject: Re: tvp5150 regression after commit 9f924169c035
+To: Wolfram Sang <wsa@the-dreams.de>
+References: <56B204CB.60602@osg.samsung.com>
+ <20160208105417.GD2220@tetsubishi>
+Cc: linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>,
+	Tony Lindgren <tony@atomide.com>
 From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <56B8DD18.3060802@osg.samsung.com>
-Date: Mon, 8 Feb 2016 15:23:20 -0300
+Message-ID: <56BE57FC.3020407@osg.samsung.com>
+Date: Fri, 12 Feb 2016 19:09:00 -0300
 MIME-Version: 1.0
-In-Reply-To: <1454699398-8581-8-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <20160208105417.GD2220@tetsubishi>
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
@@ -25,82 +24,55 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hello,
 
-I noticed that I missed the DT folks in the cc list so I'm adding
-them now, sorry for the noise...
+On 02/08/2016 07:54 AM, Wolfram Sang wrote:
+> On Wed, Feb 03, 2016 at 10:46:51AM -0300, Javier Martinez Canillas wrote:
+>> Hello Wolfram,
+>>
+>> I've a issue with a I2C video decoder driver (drivers/media/i2c/tvp5150.c).
+>>
+>> In v4.5-rc1, the driver gets I2C read / writes timeouts when accessing the
+>> device I2C registers:
+>>
+>> tvp5150 1-005c: i2c i/o error: rc == -110
+>> tvp5150: probe of 1-005c failed with error -110
+>>
+>> The driver used to work up to v4.4 so this is a regression in v4.5-rc1:
+>>
+>> tvp5150 1-005c: tvp5151 (1.0) chip found @ 0xb8 (OMAP I2C adapter)
+>> tvp5150 1-005c: tvp5151 detected.
+>>
+>> I tracked down to commit 9f924169c035 ("i2c: always enable RuntimePM for
+>> the adapter device") and reverting that commit makes things to work again.
+>>
+>> The tvp5150 driver doesn't have runtime PM support but the I2C controller
+>> driver does (drivers/i2c/busses/i2c-omap.c) FWIW.
+>>
+>> I tried adding runtime PM support to tvp5150 (basically calling pm_runtime
+>> enable/get on probe before the first I2C read to resume the controller) but
+>> that it did not work.
+>>
+>> Not filling the OMAP I2C driver's runtime PM callbacks does not help either.
+>>
+>> Any hints about the proper way to fix this issue?
+>
+> Asking linux-pm for help:
+>
+> The commit in question enables RuntimePM for the logical adapter device
+> which sits between the HW I2C controller and the I2C client device. This
+> adapter device has been used with pm_runtime_no_callbacks before
+> enabling RPM. Now, Alan explained to me that "suspend events will
+> propagate from the I2C clients all the way up to the adapter's parent."
+> with RPM enabled for the adapter device. Which should be a no-op if the
+> client doesn't do any PM at all? What do I miss?
+>
+> Thanks,
+>
+>     Wolfram
+>
 
-On 02/05/2016 04:09 PM, Javier Martinez Canillas wrote:
-> The tvp5150 decoder has different input connectors so extend the device
-> tree binding to allow device tree source files to define the connectors
-> that are available on a given board.
->
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> ---
->
->   .../devicetree/bindings/media/i2c/tvp5150.txt      | 43 ++++++++++++++++++++++
->   1 file changed, 43 insertions(+)
->
-> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> index 8c0fc1a26bf0..daa20e43a8e3 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> @@ -12,6 +12,32 @@ Optional Properties:
->   - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
->   - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
->
-> +Optional nodes:
-> +- connectors: The input connectors of tvp5150 have to be defined under
-> +  a subnode name "connectors" using the following format:
-> +
-> +	input-connector-name {
-> +		input connector properties
-> +	};
-> +
-> +Each input connector must contain the following properties:
-> +
-> +	- label: a name for the connector.
-> +	- input: the input connector.
-> +
-> +The possible values for the "input" property are:
-> +	0: Composite0
-> +	1: Composite1
-> +	2: S-Video
-> +
-> +and on a tvp5150am1 and tvp5151 there is another:
-> +	4: Signal generator
-> +
-> +The list of valid input connectors are defined in dt-bindings/media/tvp5150.h
-> +header file and can be included by device tree source files.
-> +
-> +Each input connector can be defined only once.
-> +
->   The device node must contain one 'port' child node for its digital output
->   video port, in accordance with the video interface bindings defined in
->   Documentation/devicetree/bindings/media/video-interfaces.txt.
-> @@ -36,6 +62,23 @@ Example:
->   		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
->   		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
->
-> +		connectors {
-> +			composite0 {
-> +				label = "Composite0";
-> +				input = <TVP5150_COMPOSITE0>;
-> +			};
-> +
-> +			composite1 {
-> +				label = "Composite1";
-> +				input = <TVP5150_COMPOSITE1>;
-> +			};
-> +
-> +			s-video {
-> +				label = "S-Video";
-> +				input = <TVP5150_SVIDEO>;
-> +			};
-> +		};
-> +
->   		port {
->   			tvp5150_1: endpoint {
->   				remote-endpoint = <&ccdc_ep>;
->
+I'm adding Tony Lindgren to the cc list as well since he is the OMAP
+maintainer and I see that has struggled lately with runtime PM issues
+so maybe he has more ideas.
 
 Best regards,
 -- 
