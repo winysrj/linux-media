@@ -1,76 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39812 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751431AbcBYWFe (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37046 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751187AbcBLJ1Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2016 17:05:34 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philippe De Muyter <phdm@macq.eu>
-Cc: linux-media@vger.kernel.org,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: i.mx6 camera interface (CSI) and mainline kernel
-Date: Fri, 26 Feb 2016 00:05:30 +0200
-Message-ID: <4956050.OLrYA1VK2G@avalon>
-In-Reply-To: <20160223141258.GA5097@frolo.macqel>
-References: <20160223114943.GA10944@frolo.macqel> <20160223141258.GA5097@frolo.macqel>
+	Fri, 12 Feb 2016 04:27:24 -0500
+Subject: Re: [PATCHv12 05/17] HID: add HDMI CEC specific keycodes
+To: linux-media@vger.kernel.org,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>
+References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
+ <1455108711-29850-6-git-send-email-hverkuil@xs4all.nl>
+Cc: linux-input@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56BDA577.5060302@xs4all.nl>
+Date: Fri, 12 Feb 2016 10:27:19 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1455108711-29850-6-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Philippe,
+Dmitry,
 
-CC'ing Philipp and Steve.
+Can you provide an Ack for this patch?
 
-Philipp, Steve, are you still interested in getting a driver for the i.MX6 
-camera interface upstreamed ?
+Thanks!
 
-On Tuesday 23 February 2016 15:12:58 Philippe De Muyter wrote:
-> Update.
+	Hans
+
+On 02/10/2016 01:51 PM, Hans Verkuil wrote:
+> From: Kamil Debski <kamil@wypas.org>
 > 
-> On Tue, Feb 23, 2016 at 12:49:43PM +0100, Philippe De Muyter wrote:
-> > Hello,
-> > 
-> > We use a custom imx6 based board with a canera sensor on it.
-> > I have written the driver for the camera sensor, based on
-> > the freescale so-called "3.10" and even "3.14" linux versions.
-> > 
-> > The camera works perfectly, but we would like to switch to
-> > a mainline kernel for all the usual reasons (including being
-> > able to contribute our fixes).
-> > 
-> > >From an old mail thread (*), I have found two git repositories
-> > 
-> > that used to contain not-yet-approved versions of mainline
-> > imx6 ipu-v3 drivers :
-> > 
-> > git://git.pengutronix.de/git/pza/linux.git test/nitrogen6x-ipu-media
-> > https://github.com:slongerbeam/mediatree.git, mx6-camera-staging
-> > 
-> > I have tried to compile them with the imx_v6_v7_defconfig, but both
-> > fail directly at compile time. because of later changes in the
-> > v4l2_subdev infrastructure, not ported to the those branches.
+> Add HDMI CEC specific keycodes to the keycodes definition.
 > 
-> What I wrote is true for Steve Longerbeam's branch, but for Philipp Zabel's
-> branch the problem (so far) was only that CONFIG_MEDIA_CONTROLLER
-> is not defined in imx_v6_v7_defconfig, but is required for a succesfull
-> compilation of Philipp's tree.
+> Signed-off-by: Kamil Debski <kamil@wypas.org>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/uapi/linux/input-event-codes.h | 28 ++++++++++++++++++++++++++++
+>  1 file changed, 28 insertions(+)
 > 
-> > Can someone point me to compilable versions (either not rebased
-> > versions of those branches, or updated versions of those branches,
-> > or yet another place to look at). ?
-> > 
-> > Thanks in advance
-> > 
-> > Philippe
-> > 
-> > (*)
-> > http://linux-media.vger.kernel.narkive.com/cZQ8NrZ2/i-mx6-status-for-ipu-> > vpu-gpu
-
--- 
-Regards,
-
-Laurent Pinchart
+> diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
+> index 87cf351..2662500 100644
+> --- a/include/uapi/linux/input-event-codes.h
+> +++ b/include/uapi/linux/input-event-codes.h
+> @@ -611,6 +611,34 @@
+>  #define KEY_KBDINPUTASSIST_ACCEPT		0x264
+>  #define KEY_KBDINPUTASSIST_CANCEL		0x265
+>  
+> +#define KEY_RIGHT_UP			0x266
+> +#define KEY_RIGHT_DOWN			0x267
+> +#define KEY_LEFT_UP			0x268
+> +#define KEY_LEFT_DOWN			0x269
+> +#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
+> +#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
+> +#define KEY_NUMERIC_11			0x26c
+> +#define KEY_NUMERIC_12			0x26d
+> +/*
+> + * Toggle Audio Description: refers to an audio service that helps blind and
+> + * visually impaired consumers understand the action in a program. Note: in
+> + * some countries this is referred to as "Video Description".
+> + */
+> +#define KEY_AUDIO_DESC			0x26e
+> +#define KEY_3D_MODE			0x26f
+> +#define KEY_NEXT_FAVORITE		0x270
+> +#define KEY_STOP_RECORD			0x271
+> +#define KEY_PAUSE_RECORD		0x272
+> +#define KEY_VOD				0x273 /* Video on Demand */
+> +#define KEY_UNMUTE			0x274
+> +#define KEY_FASTREVERSE			0x275
+> +#define KEY_SLOWREVERSE			0x276
+> +/*
+> + * Control a data application associated with the currently viewed channel,
+> + * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
+> + */
+> +#define KEY_DATA			0x275
+> +
+>  #define BTN_TRIGGER_HAPPY		0x2c0
+>  #define BTN_TRIGGER_HAPPY1		0x2c0
+>  #define BTN_TRIGGER_HAPPY2		0x2c1
+> 
 
