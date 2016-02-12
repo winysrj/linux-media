@@ -1,104 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40793 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752178AbcBLLW1 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52570 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307AbcBLCAh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 06:22:27 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Geunyoung Kim <nenggun.kim@samsung.com>
-Subject: [PATCH 1/2] [media] au0828: get rid of AU0828_VMUX_DEBUG
-Date: Fri, 12 Feb 2016 09:21:00 -0200
-Message-Id: <b39a8de587466a0052e696d8ebc3987066784384.1455276050.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 11 Feb 2016 21:00:37 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH/RFC 5/9] v4l: vsp1: Add FCP support
+Date: Fri, 12 Feb 2016 04:00:46 +0200
+Message-Id: <1455242450-24493-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is not used on the driver. remove it.
+On some platforms the VSP performs memory accesses through an FCP. When
+that's the case get a reference to the FCP from the VSP DT node and
+enable/disable it at runtime as needed.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/usb/au0828/au0828-video.c | 12 +++---------
- drivers/media/usb/au0828/au0828.h       |  1 -
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ .../devicetree/bindings/media/renesas,vsp1.txt     |  5 +++++
+ drivers/media/platform/Kconfig                     |  1 +
+ drivers/media/platform/vsp1/vsp1.h                 |  2 ++
+ drivers/media/platform/vsp1/vsp1_drv.c             | 24 +++++++++++++++++++++-
+ 4 files changed, 31 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 4164302dd8ac..2fc2b29d2dd9 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -698,10 +698,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 	for (i = 0; i < AU0828_MAX_INPUT; i++) {
- 		struct media_entity *ent = &dev->input_ent[i];
+diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+index 627405abd144..9b695bcbf219 100644
+--- a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
++++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+@@ -14,6 +14,11 @@ Required properties:
+   - interrupts: VSP interrupt specifier.
+   - clocks: A phandle + clock-specifier pair for the VSP functional clock.
  
--		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
--			break;
--
- 		switch (AUVI_INPUT(i).type) {
-+		case AU0828_VMUX_UNDEFINED:
-+			break;
- 		case AU0828_VMUX_CABLE:
- 		case AU0828_VMUX_TELEVISION:
- 		case AU0828_VMUX_DVB:
-@@ -716,7 +715,6 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 			break;
- 		case AU0828_VMUX_COMPOSITE:
- 		case AU0828_VMUX_SVIDEO:
--		default: /* AU0828_VMUX_DEBUG */
- 			/* FIXME: fix the decoder PAD */
- 			ret = media_create_pad_link(ent, 0, decoder, 0, 0);
- 			if (ret)
-@@ -1460,7 +1458,6 @@ static int vidioc_enum_input(struct file *file, void *priv,
- 		[AU0828_VMUX_CABLE] = "Cable TV",
- 		[AU0828_VMUX_TELEVISION] = "Television",
- 		[AU0828_VMUX_DVB] = "DVB",
--		[AU0828_VMUX_DEBUG] = "tv debug"
- 	};
++Optional properties:
++
++  - renesas,fcp: A phandle referencing the FCP that handles memory accesses
++                 for the VSP. Not needed on Gen2, mandatory on Gen3.
++
  
- 	dprintk(1, "%s called std_set %d dev_state %d\n", __func__,
-@@ -1952,7 +1949,6 @@ static void au0828_analog_create_entities(struct au0828_dev *dev)
- 		[AU0828_VMUX_CABLE] = "Cable TV",
- 		[AU0828_VMUX_TELEVISION] = "Television",
- 		[AU0828_VMUX_DVB] = "DVB",
--		[AU0828_VMUX_DEBUG] = "tv debug"
- 	};
- 	int ret, i;
+ Example: R8A7790 (R-Car H2) VSP1-S node
  
-@@ -1988,11 +1984,9 @@ static void au0828_analog_create_entities(struct au0828_dev *dev)
- 		case AU0828_VMUX_CABLE:
- 		case AU0828_VMUX_TELEVISION:
- 		case AU0828_VMUX_DVB:
-+		default: /* Just to shut up a warning */
- 			ent->function = MEDIA_ENT_F_CONN_RF;
- 			break;
--		default: /* AU0828_VMUX_DEBUG */
--			ent->function = MEDIA_ENT_F_CONN_TEST;
--			break;
- 		}
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index cbb4e5735bf8..b12502555544 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -272,6 +272,7 @@ config VIDEO_RENESAS_VSP1
+ 	tristate "Renesas VSP1 Video Processing Engine"
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
+ 	depends on (ARCH_SHMOBILE && OF) || COMPILE_TEST
++	depends on m || VIDEO_RENESAS_FCP != m
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	---help---
+ 	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 910d6b8e8b50..4316766c6489 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -25,6 +25,7 @@
  
- 		ret = media_entity_pads_init(ent, 1, &dev->input_pad[i]);
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index 19fd6a841988..23f869cf11da 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -76,7 +76,6 @@ enum au0828_itype {
- 	AU0828_VMUX_CABLE,
- 	AU0828_VMUX_TELEVISION,
- 	AU0828_VMUX_DVB,
--	AU0828_VMUX_DEBUG
- };
+ struct clk;
+ struct device;
++struct rcar_fcp_device;
  
- struct au0828_input {
+ struct vsp1_dl;
+ struct vsp1_drm;
+@@ -63,6 +64,7 @@ struct vsp1_device {
+ 
+ 	void __iomem *mmio;
+ 	struct clk *clock;
++	struct rcar_fcp_device *fcp;
+ 
+ 	struct mutex lock;
+ 	int ref_count;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index da43e3f35610..f1b8343cc166 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -21,6 +21,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/videodev2.h>
+ 
++#include <media/rcar-fcp.h>
+ #include <media/v4l2-subdev.h>
+ 
+ #include "vsp1.h"
+@@ -491,8 +492,11 @@ int vsp1_device_get(struct vsp1_device *vsp1)
+ 	if (ret < 0)
+ 		goto done;
+ 
++	rcar_fcp_enable(vsp1->fcp);
++
+ 	ret = vsp1_device_init(vsp1);
+ 	if (ret < 0) {
++		rcar_fcp_disable(vsp1->fcp);
+ 		clk_disable_unprepare(vsp1->clock);
+ 		goto done;
+ 	}
+@@ -515,8 +519,10 @@ void vsp1_device_put(struct vsp1_device *vsp1)
+ {
+ 	mutex_lock(&vsp1->lock);
+ 
+-	if (--vsp1->ref_count == 0)
++	if (--vsp1->ref_count == 0) {
++		rcar_fcp_disable(vsp1->fcp);
+ 		clk_disable_unprepare(vsp1->clock);
++	}
+ 
+ 	mutex_unlock(&vsp1->lock);
+ }
+@@ -537,6 +543,7 @@ static int vsp1_pm_suspend(struct device *dev)
+ 
+ 	vsp1_pipelines_suspend(vsp1);
+ 
++	rcar_fcp_disable(vsp1->fcp);
+ 	clk_disable_unprepare(vsp1->clock);
+ 
+ 	return 0;
+@@ -552,6 +559,7 @@ static int vsp1_pm_resume(struct device *dev)
+ 		return 0;
+ 
+ 	clk_prepare_enable(vsp1->clock);
++	rcar_fcp_enable(vsp1->fcp);
+ 
+ 	vsp1_pipelines_resume(vsp1);
+ 
+@@ -633,6 +641,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ static int vsp1_probe(struct platform_device *pdev)
+ {
+ 	struct vsp1_device *vsp1;
++	struct device_node *fcp_node;
+ 	struct resource *irq;
+ 	struct resource *io;
+ 	unsigned int i;
+@@ -673,6 +682,18 @@ static int vsp1_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	/* FCP (optional) */
++	fcp_node = of_parse_phandle(pdev->dev.of_node, "renesas,fcp", 0);
++	if (fcp_node) {
++		vsp1->fcp = rcar_fcp_get(fcp_node);
++		of_node_put(fcp_node);
++		if (IS_ERR(vsp1->fcp)) {
++			dev_dbg(&pdev->dev, "FCP not found (%ld)\n",
++				PTR_ERR(vsp1->fcp));
++			return PTR_ERR(vsp1->fcp);
++		}
++	}
++
+ 	/* Configure device parameters based on the version register. */
+ 	ret = clk_prepare_enable(vsp1->clock);
+ 	if (ret < 0)
+@@ -713,6 +734,7 @@ static int vsp1_remove(struct platform_device *pdev)
+ 	struct vsp1_device *vsp1 = platform_get_drvdata(pdev);
+ 
+ 	vsp1_destroy_entities(vsp1);
++	rcar_fcp_put(vsp1->fcp);
+ 
+ 	return 0;
+ }
 -- 
-2.5.0
+2.4.10
 
