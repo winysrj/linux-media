@@ -1,68 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33409 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1948978AbcBTIyq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Feb 2016 03:54:46 -0500
-Date: Sat, 20 Feb 2016 06:54:40 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: grigore calugar <zradu1100@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: SAA7134 card stop working
-Message-ID: <20160220065440.79b76d92@recife.lan>
-In-Reply-To: <CA+S3egC3v7GeOtaKt6iNa=TvnLnL=iC472xYFFX-Lm6WYccHrg@mail.gmail.com>
-References: <CA+S3egC3v7GeOtaKt6iNa=TvnLnL=iC472xYFFX-Lm6WYccHrg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout.easymail.ca ([64.68.201.169]:36719 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751320AbcBLXSH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 18:18:07 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, hans.verkuil@cisco.com,
+	inki.dae@samsung.com, nenggun.kim@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	chehabrafael@gmail.com, prabhakar.csengg@gmail.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: au0828 set ctrl_input in au0828_s_input()
+Date: Fri, 12 Feb 2016 16:18:03 -0700
+Message-Id: <1455319083-7184-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 16 Feb 2016 02:57:55 +0200
-grigore calugar <zradu1100@gmail.com> escreveu:
+dev->ctrl_input is set in vidioc_s_input() and
+doesn't get set in au0828_s_input(). As a result,
+dev->ctrl_input is left uninitialized until user
+space calls s_input. It works correctly because
+the default input value is 0 and which is what
+dev->ctrl_input gets initialized via kzalloc().
 
-> After this series of patches
-> http://www.spinics.net/lists/linux-media/msg97115.html
-> my tv card V-Stream Studio TV Terminator has no signal in tvtime until
-> exchange audio standard from tvtime menu.
-> 
-> tvtime start with blue screen "no signal"
-> When exchange audio standard from PAL-BG to PAL-DK , PAL-I and back to
-> PAL-BG, the image appears on screen.
-> It seems that the tuner is uninitialized until I change audio norm.
+Change to set dev->ctrl_input in au0828_s_input().
+Also optimize vidioc_s_input() to return if the
+new input value is same as the current.
 
-None of the changes should have changed the tuner initialization.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-video.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-There are changes there, however, that could have changed the initialization
-for different inputs. What input are you using?
-
-Could you please send the output of the command:
-
-	$ lsmod
-
-to me?
-
-
-Also, could you please test the enclosed patch?
-
-
-
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index ffa39543eb65..f451e38e5759 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -479,7 +479,10 @@ void saa7134_set_tvnorm_hw(struct saa7134_dev *dev)
- {
- 	saa7134_set_decoder(dev);
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 9304f96..20696a4 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1345,9 +1345,11 @@ static void au0828_s_input(struct au0828_dev *dev, int index)
+ 	default:
+ 		dprintk(1, "unknown input type set [%d]\n",
+ 			AUVI_INPUT(index).type);
+-		break;
++		return;
+ 	}
  
--	saa_call_all(dev, video, s_std, dev->tvnorm->id);
-+	if (card_in(dev, n).type == SAA7134_INPUT_TV ||
-+	    card_in(dev, n).type == SAA7134_INPUT_TV_MONO)
-+		saa_call_all(dev, video, s_std, dev->tvnorm->id);
++	dev->ctrl_input = index;
 +
- 	/* Set the correct norm for the saa6752hs. This function
- 	   does nothing if there is no saa6752hs. */
- 	saa_call_empress(dev, video, s_std, dev->tvnorm->id);
-
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
+ 			AUVI_INPUT(index).vmux, 0, 0);
+ 
+@@ -1386,7 +1388,10 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
+ 		return -EINVAL;
+ 	if (AUVI_INPUT(index).type == 0)
+ 		return -EINVAL;
+-	dev->ctrl_input = index;
++
++	if (dev->ctrl_input == index)
++		return 0;
++
+ 	au0828_s_input(dev, index);
+ 	return 0;
+ }
+@@ -1901,6 +1906,7 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	dev->ctrl_ainput = 0;
+ 	dev->ctrl_freq = 960;
+ 	dev->std = V4L2_STD_NTSC_M;
++	/* Default input is TV Tuner */
+ 	au0828_s_input(dev, 0);
+ 
+ 	mutex_init(&dev->vb_queue_lock);
 -- 
-Thanks,
-Mauro
+2.5.0
+
