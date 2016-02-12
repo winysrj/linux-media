@@ -1,101 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39518 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754958AbcBWSsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 13:48:25 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	devicetree@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH] Revert "[media] tvp5150: document input connectors DT bindings"
-Date: Tue, 23 Feb 2016 15:48:08 -0300
-Message-Id: <1456253288-397-1-git-send-email-javier@osg.samsung.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:56085 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752346AbcBLMQ0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 07:16:26 -0500
+Subject: Re: [PATCH 2/2] [media] cx231xx: get rid of CX231XX_VMUX_DEBUG
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	no To-header on input <""@pop.xs4all.nl>
+References: <b39a8de587466a0052e696d8ebc3987066784384.1455276050.git.mchehab@osg.samsung.com>
+ <74a125ed2542ac0306e8582bc86dd0fc9a2bdc02.1455276050.git.mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Olli Salonen <olli.salonen@iki.fi>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56BDCD13.9070606@xs4all.nl>
+Date: Fri, 12 Feb 2016 13:16:19 +0100
+MIME-Version: 1.0
+In-Reply-To: <74a125ed2542ac0306e8582bc86dd0fc9a2bdc02.1455276050.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit 82c2ffeb217a ("[media] tvp5150: document input
-connectors DT bindings") since the DT binding is too device driver
-specific and should instead be more generic and use the bindings
-in Documentation/devicetree/bindings/display/connector/ and linked
-to the tvp5150 using the OF graph port and endpoints.
+On 02/12/2016 12:21 PM, Mauro Carvalho Chehab wrote:
+> This macro is not used inside the driver. get rid of it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-There are still ongoing discussions about how the input connectors
-will be supported by the Media Controller framework so until that
-is settled, it is better to revert the connectors portion of the
-bindings to avoid known to be broken bindings docs to hit mainline.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
----
-
- .../devicetree/bindings/media/i2c/tvp5150.txt      | 43 ----------------------
- 1 file changed, 43 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-index daa20e43a8e3..8c0fc1a26bf0 100644
---- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-@@ -12,32 +12,6 @@ Optional Properties:
- - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
- - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
- 
--Optional nodes:
--- connectors: The input connectors of tvp5150 have to be defined under
--  a subnode name "connectors" using the following format:
--
--	input-connector-name {
--		input connector properties
--	};
--
--Each input connector must contain the following properties:
--
--	- label: a name for the connector.
--	- input: the input connector.
--
--The possible values for the "input" property are:
--	0: Composite0
--	1: Composite1
--	2: S-Video
--
--and on a tvp5150am1 and tvp5151 there is another:
--	4: Signal generator
--
--The list of valid input connectors are defined in dt-bindings/media/tvp5150.h
--header file and can be included by device tree source files.
--
--Each input connector can be defined only once.
--
- The device node must contain one 'port' child node for its digital output
- video port, in accordance with the video interface bindings defined in
- Documentation/devicetree/bindings/media/video-interfaces.txt.
-@@ -62,23 +36,6 @@ Example:
- 		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
- 		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
- 
--		connectors {
--			composite0 {
--				label = "Composite0";
--				input = <TVP5150_COMPOSITE0>;
--			};
--
--			composite1 {
--				label = "Composite1";
--				input = <TVP5150_COMPOSITE1>;
--			};
--
--			s-video {
--				label = "S-Video";
--				input = <TVP5150_SVIDEO>;
--			};
--		};
--
- 		port {
- 			tvp5150_1: endpoint {
- 				remote-endpoint = <&ccdc_ep>;
--- 
-2.5.0
+> ---
+>  drivers/media/usb/cx231xx/cx231xx-video.c | 3 +--
+>  drivers/media/usb/cx231xx/cx231xx.h       | 1 -
+>  2 files changed, 1 insertion(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+> index 7222b1c27d40..6414188ffdfa 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+> @@ -1103,7 +1103,6 @@ static const char *iname[] = {
+>  	[CX231XX_VMUX_TELEVISION] = "Television",
+>  	[CX231XX_VMUX_CABLE]      = "Cable TV",
+>  	[CX231XX_VMUX_DVB]        = "DVB",
+> -	[CX231XX_VMUX_DEBUG]      = "for debug only",
+>  };
+>  
+>  void cx231xx_v4l2_create_entities(struct cx231xx *dev)
+> @@ -1136,7 +1135,7 @@ void cx231xx_v4l2_create_entities(struct cx231xx *dev)
+>  			if (dev->tuner_type == TUNER_ABSENT)
+>  				continue;
+>  			/* fall though */
+> -		default: /* CX231XX_VMUX_DEBUG */
+> +		default: /* just to shut up a gcc warning */
+>  			ent->function = MEDIA_ENT_F_CONN_RF;
+>  			break;
+>  		}
+> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+> index 60e14776a6cd..69f6d20870f5 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx.h
+> +++ b/drivers/media/usb/cx231xx/cx231xx.h
+> @@ -281,7 +281,6 @@ enum cx231xx_itype {
+>  	CX231XX_VMUX_CABLE,
+>  	CX231XX_RADIO,
+>  	CX231XX_VMUX_DVB,
+> -	CX231XX_VMUX_DEBUG
+>  };
+>  
+>  enum cx231xx_v_input {
+> 
 
