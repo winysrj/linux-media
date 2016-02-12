@@ -1,72 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:50857 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751014AbcBJMwL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2016 07:52:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv12 05/17] HID: add HDMI CEC specific keycodes
-Date: Wed, 10 Feb 2016 13:51:39 +0100
-Message-Id: <1455108711-29850-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
-References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
+Received: from muru.com ([72.249.23.125]:34276 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751320AbcBLXq0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 18:46:26 -0500
+Date: Fri, 12 Feb 2016 15:46:23 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: tvp5150 regression after commit 9f924169c035
+Message-ID: <20160212234623.GB3500@atomide.com>
+References: <56B204CB.60602@osg.samsung.com>
+ <20160208105417.GD2220@tetsubishi>
+ <56BE57FC.3020407@osg.samsung.com>
+ <20160212221352.GY3500@atomide.com>
+ <56BE5C97.9070607@osg.samsung.com>
+ <20160212224018.GZ3500@atomide.com>
+ <56BE65F0.8040600@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56BE65F0.8040600@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+* Javier Martinez Canillas <javier@osg.samsung.com> [160212 15:09]:
+> Hello Tony,
+> 
+> On 02/12/2016 07:40 PM, Tony Lindgren wrote:
+> >* Javier Martinez Canillas <javier@osg.samsung.com> [160212 14:29]:
+> >>On 02/12/2016 07:13 PM, Tony Lindgren wrote:
+> >>>Hmm yeah I wonder if this canned solution helps here too:
+> >>>
+> >>>1. Check if the driver(s) are using pm_runtime_use_autosuspend()
+> >>>
+> >>
+> >>By driver do you mean the OMAP GPIO driver or the tvp5150 I2C driver?
+> >>The latter does not have runtime PM support.
+> >
+> >Sounds like OMAP GPIO then.
+> >
+> 
+> Ok.
+> >>>2. If so, you must use pm_runtime_dont_use_autosuspend() before
+> >>>    pm_runtime_put_sync() to make sure that pm_runtime_put_sync()
+> >>>    works.
+> >>>
+> >>>3. Or you can use pm_runtime_put_sync_suspend() instead of
+> >>>    pm_runtime_put_sync() for sections of code where the clocks
+> >>>    need to be stopped.
+> >>>
+> >>
+> >>I can check if the OMAP GPIO is following these and give a try but
+> >>don't have access to the board right now so I'll do it on Monday.
+> >
+> >It does not seem to be using pm_runtime_autosuspend(). Did you
+> >try reverting commit de85b9d57ab ("PM / runtime: Re-init runtime
+> >PM states at probe error and driver unbind") and see if that
+> >helps?
+> >
+> 
+> Yes, that's the first thing I tried when I noticed your patch:
+> 
+> ("i2c: omap: Fix PM regression with deferred probe for
+> pm_runtime_reinit")
+> 
+> But neither reverting commit de85b9d57ab nor your fix made a
+> difference.
+> >If it does, then sounds like we may have some other regression
+> >as well.
 
-Add HDMI CEC specific keycodes to the keycodes definition.
+OK I doubt it's the GPIO driver if reverting 9f924169c035
+helps.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/input-event-codes.h | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+I do see some GPIO regressions in current Linux next though,
+but sounds like you're using v4.5-rc series.
 
-diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-index 87cf351..2662500 100644
---- a/include/uapi/linux/input-event-codes.h
-+++ b/include/uapi/linux/input-event-codes.h
-@@ -611,6 +611,34 @@
- #define KEY_KBDINPUTASSIST_ACCEPT		0x264
- #define KEY_KBDINPUTASSIST_CANCEL		0x265
- 
-+#define KEY_RIGHT_UP			0x266
-+#define KEY_RIGHT_DOWN			0x267
-+#define KEY_LEFT_UP			0x268
-+#define KEY_LEFT_DOWN			0x269
-+#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
-+#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
-+#define KEY_NUMERIC_11			0x26c
-+#define KEY_NUMERIC_12			0x26d
-+/*
-+ * Toggle Audio Description: refers to an audio service that helps blind and
-+ * visually impaired consumers understand the action in a program. Note: in
-+ * some countries this is referred to as "Video Description".
-+ */
-+#define KEY_AUDIO_DESC			0x26e
-+#define KEY_3D_MODE			0x26f
-+#define KEY_NEXT_FAVORITE		0x270
-+#define KEY_STOP_RECORD			0x271
-+#define KEY_PAUSE_RECORD		0x272
-+#define KEY_VOD				0x273 /* Video on Demand */
-+#define KEY_UNMUTE			0x274
-+#define KEY_FASTREVERSE			0x275
-+#define KEY_SLOWREVERSE			0x276
-+/*
-+ * Control a data application associated with the currently viewed channel,
-+ * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
-+ */
-+#define KEY_DATA			0x275
-+
- #define BTN_TRIGGER_HAPPY		0x2c0
- #define BTN_TRIGGER_HAPPY1		0x2c0
- #define BTN_TRIGGER_HAPPY2		0x2c1
--- 
-2.7.0
+> It seems that is not related but I hope that given you were
+> looking at the runtime PM core lately, maybe you can figure
+> out what we are missing.
+> 
+> I'm far from being familiar with the runtime PM framework
+> but I've looked and can't figure out why Wolfram's commit
+> make this driver to fail and reverting his commit make its
+> work again.
 
+No idea. What kind of PM runtime use case has that one been
+tested with?
+
+Regards,
+
+Tony
