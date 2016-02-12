@@ -1,89 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:34208 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751183AbcBLWNz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 17:13:55 -0500
-Date: Fri, 12 Feb 2016 14:13:52 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: tvp5150 regression after commit 9f924169c035
-Message-ID: <20160212221352.GY3500@atomide.com>
-References: <56B204CB.60602@osg.samsung.com>
- <20160208105417.GD2220@tetsubishi>
- <56BE57FC.3020407@osg.samsung.com>
+Received: from mout.kundenserver.de ([212.227.126.135]:55310 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750987AbcBLVBp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 16:01:45 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] zl10353: use div_u64 instead of do_div
+Date: Fri, 12 Feb 2016 22:01:01 +0100
+Message-ID: <6737272.LXr2g355Yt@wuerfel>
+In-Reply-To: <alpine.LFD.2.20.1602121305180.13632@knanqh.ubzr>
+References: <1455287246-3540549-1-git-send-email-arnd@arndb.de> <2712691.b9gkR7KMX7@wuerfel> <alpine.LFD.2.20.1602121305180.13632@knanqh.ubzr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <56BE57FC.3020407@osg.samsung.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-* Javier Martinez Canillas <javier@osg.samsung.com> [160212 14:10]:
-> Hello,
+On Friday 12 February 2016 13:21:33 Nicolas Pitre wrote:
+> On Fri, 12 Feb 2016, Arnd Bergmann wrote:
 > 
-> On 02/08/2016 07:54 AM, Wolfram Sang wrote:
-> >On Wed, Feb 03, 2016 at 10:46:51AM -0300, Javier Martinez Canillas wrote:
-> >>Hello Wolfram,
-> >>
-> >>I've a issue with a I2C video decoder driver (drivers/media/i2c/tvp5150.c).
-> >>
-> >>In v4.5-rc1, the driver gets I2C read / writes timeouts when accessing the
-> >>device I2C registers:
-> >>
-> >>tvp5150 1-005c: i2c i/o error: rc == -110
-> >>tvp5150: probe of 1-005c failed with error -110
-> >>
-> >>The driver used to work up to v4.4 so this is a regression in v4.5-rc1:
-> >>
-> >>tvp5150 1-005c: tvp5151 (1.0) chip found @ 0xb8 (OMAP I2C adapter)
-> >>tvp5150 1-005c: tvp5151 detected.
-> >>
-> >>I tracked down to commit 9f924169c035 ("i2c: always enable RuntimePM for
-> >>the adapter device") and reverting that commit makes things to work again.
-> >>
-> >>The tvp5150 driver doesn't have runtime PM support but the I2C controller
-> >>driver does (drivers/i2c/busses/i2c-omap.c) FWIW.
-> >>
-> >>I tried adding runtime PM support to tvp5150 (basically calling pm_runtime
-> >>enable/get on probe before the first I2C read to resume the controller) but
-> >>that it did not work.
-> >>
-> >>Not filling the OMAP I2C driver's runtime PM callbacks does not help either.
-> >>
-> >>Any hints about the proper way to fix this issue?
-> >
-> >Asking linux-pm for help:
-> >
-> >The commit in question enables RuntimePM for the logical adapter device
-> >which sits between the HW I2C controller and the I2C client device. This
-> >adapter device has been used with pm_runtime_no_callbacks before
-> >enabling RPM. Now, Alan explained to me that "suspend events will
-> >propagate from the I2C clients all the way up to the adapter's parent."
-> >with RPM enabled for the adapter device. Which should be a no-op if the
-> >client doesn't do any PM at all? What do I miss?
+> > On Friday 12 February 2016 14:32:20 Mauro Carvalho Chehab wrote:
+> > > Em Fri, 12 Feb 2016 15:27:18 +0100
+> > > Arnd Bergmann <arnd@arndb.de> escreveu:
+> > > 
+> > > > I noticed a build error in some randconfig builds in the zl10353 driver:
+> > > > 
+> > > > dvb-frontends/zl10353.c:138: undefined reference to `____ilog2_NaN'
+> > > > dvb-frontends/zl10353.c:138: undefined reference to `__aeabi_uldivmod'
+> > > > 
+> > > > The problem can be tracked down to the use of -fprofile-arcs (using
+> > > > CONFIG_GCOV_PROFILE_ALL) in combination with CONFIG_PROFILE_ALL_BRANCHES
+> > > > on gcc version 4.9 or higher, when it fails to reliably optimize
+> > > > constant expressions.
+> > > > 
+> > > > Using div_u64() instead of do_div() makes the code slightly more
+> > > > readable by both humans and by gcc, which gives the compiler enough
+> > > > of a break to figure it all out.
+> > > 
+> > > I'm not against this patch, but we have 94 occurrences of do_div() 
+> > > just at the media subsystem. If this is failing here, it would likely
+> > > fail with other drivers. So, I guess we should either fix do_div() or
+> > > convert all such occurrences to do_div64().
+> > 
+> > I agree that it's possible that the same problem exists elsewhere, but this is
+> > the only one that I ever saw (in five ranconfig builds out of 8035 last week).
+> > 
+> > I also tried changing do_div() to be an inline function with just a small
+> > macro wrapper around it for the odd calling conventions, which also made this
+> > error go away. I would assume that Nico had a good reason for doing do_div()
+> > the way he did.
 > 
-> I'm adding Tony Lindgren to the cc list as well since he is the OMAP
-> maintainer and I see that has struggled lately with runtime PM issues
-> so maybe he has more ideas.
+> The do_div() calling convention predates my work on it.  I assume it was 
+> originally done this way to better map onto the x86 instruction.
 
-Hmm yeah I wonder if this canned solution helps here too:
+Right, this goes back to the dawn of time.
 
-1. Check if the driver(s) are using pm_runtime_use_autosuspend()
+> > In some other files, I saw the object code grow by a few
+> > instructions, but the examples I looked at were otherwise identical.
+> > 
+> > I can imagine that there might be cases where the constant-argument optimization
+> > of do_div fails when we go through an inline function in some combination
+> > of Kconfig options and compiler version, though I don't think that was
+> > the case here.
+> 
+> What could be tried is to turn __div64_const32() into a static inline 
+> and see if that makes a difference with those gcc versions we currently 
+> accept.
+> 
+> > Nico, any other thoughts on this?
+> 
+> This is all related to the gcc bug for which I produced a test case 
+> here:
+> 
+> http://article.gmane.org/gmane.linux.kernel.cross-arch/29801
+> 
+> Do you know if this is fixed in recent gcc?
 
-2. If so, you must use pm_runtime_dont_use_autosuspend() before
-   pm_runtime_put_sync() to make sure that pm_runtime_put_sync()
-   works.
+I have a fairly recent gcc, but I also never got around to submit
+it properly.
 
-3. Or you can use pm_runtime_put_sync_suspend() instead of
-   pm_runtime_put_sync() for sections of code where the clocks
-   need to be stopped.
+However, I did stumble over an older patch I did now, which I could
+not remember what it was good for. It does fix the problem, and
+it seems to be a better solution.
 
-Regards,
+	Arnd
 
-Tony
+diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+index b5acbb404854..b5ff9881bef8 100644
+--- a/include/linux/compiler.h
++++ b/include/linux/compiler.h
+@@ -148,7 +148,7 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
+  */
+ #define if(cond, ...) __trace_if( (cond , ## __VA_ARGS__) )
+ #define __trace_if(cond) \
+-	if (__builtin_constant_p((cond)) ? !!(cond) :			\
++	if (__builtin_constant_p(!!(cond)) ? !!(cond) :			\
+ 	({								\
+ 		int ______r;						\
+ 		static struct ftrace_branch_data			\
+
