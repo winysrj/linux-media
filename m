@@ -1,83 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36907 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751477AbcBVJ6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 04:58:16 -0500
-Date: Mon, 22 Feb 2016 06:58:10 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC 1/4] media: Sanitise the reserved fields of the G_TOPOLOGY
- IOCTL arguments
-Message-ID: <20160222065810.751a351e@recife.lan>
-In-Reply-To: <1456090575-28354-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1456090575-28354-1-git-send-email-sakari.ailus@linux.intel.com>
-	<1456090575-28354-2-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f176.google.com ([209.85.192.176]:35826 "EHLO
+	mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751621AbcBLKxi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 05:53:38 -0500
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, kernel-testers@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Benoit Parrot <bparrot@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] [media] media: ti-vpe: add dependency of HAS_DMA
+Date: Fri, 12 Feb 2016 16:23:28 +0530
+Message-Id: <1455274408-23978-1-git-send-email-sudipm.mukherjee@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 21 Feb 2016 23:36:12 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+The build of m32r allmodconfig fails with the error:
+ drivers/media/v4l2-core/videobuf2-dma-contig.c:492:28: error: implicit
+	declaration of function 'dma_get_cache_alignment'
 
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> Align them up to a power of two.
+The build of videobuf2-dma-contig.c depends on HAS_DMA and it is
+correctly mentioned in the Kconfig but the symbol VIDEO_TI_CAL also
+selects VIDEOBUF2_DMA_CONTIG, so it is trying to compile
+videobuf2-dma-contig.c even though HAS_DMA is not defined.
 
-Looks OK to me.
+Fixes: 343e89a792a5 ("[media] media: ti-vpe: Add CAL v4l2 camera capture driver")
+Cc: Benoit Parrot <bparrot@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+---
 
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  include/uapi/linux/media.h | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 6aac2f0..008d077 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -302,7 +302,7 @@ struct media_v2_entity {
->  	__u32 id;
->  	char name[64];		/* FIXME: move to a property? (RFC says so) */
->  	__u32 function;		/* Main function of the entity */
-> -	__u16 reserved[12];
-> +	__u32 reserved[14];
->  };
->  
->  /* Should match the specific fields at media_intf_devnode */
-> @@ -315,7 +315,7 @@ struct media_v2_interface {
->  	__u32 id;
->  	__u32 intf_type;
->  	__u32 flags;
-> -	__u32 reserved[9];
-> +	__u32 reserved[13];
->  
->  	union {
->  		struct media_v2_intf_devnode devnode;
-> @@ -327,7 +327,7 @@ struct media_v2_pad {
->  	__u32 id;
->  	__u32 entity_id;
->  	__u32 flags;
-> -	__u16 reserved[9];
-> +	__u32 reserved[5];
->  };
->  
->  struct media_v2_link {
-> @@ -335,7 +335,7 @@ struct media_v2_link {
->  	__u32 source_id;
->  	__u32 sink_id;
->  	__u32 flags;
-> -	__u32 reserved[5];
-> +	__u32 reserved[4];
->  };
->  
->  struct media_v2_topology {
+build log of next-20160212 is at:
+https://travis-ci.org/sudipm-mukherjee/parport/jobs/108716158
 
+ drivers/media/platform/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index fd4fcd5..16dbe3d 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -124,6 +124,7 @@ config VIDEO_TI_CAL
+ 	tristate "TI CAL (Camera Adaptation Layer) driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	depends on SOC_DRA7XX || COMPILE_TEST
++	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	default n
+ 	---help---
 -- 
-Thanks,
-Mauro
+1.9.1
+
