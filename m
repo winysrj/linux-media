@@ -1,116 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54566 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755978AbcBDKAa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Feb 2016 05:00:30 -0500
-Date: Thu, 4 Feb 2016 08:00:13 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
-	j.anaszewski@samsung.com, geliangtang@163.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Re: [PATCH v2 13/22] media: au0828 video change to use
- v4l_enable_media_source()
-Message-ID: <20160204080013.0a2648ad@recife.lan>
-In-Reply-To: <fe282e5160ee480d9b4d792a94c94549c54545cd.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
-	<fe282e5160ee480d9b4d792a94c94549c54545cd.1454557589.git.shuahkh@osg.samsung.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:60847 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752301AbcBLMQM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 07:16:12 -0500
+Subject: Re: [PATCH 1/2] [media] au0828: get rid of AU0828_VMUX_DEBUG
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	no To-header on input <""@pop.xs4all.nl>
+References: <b39a8de587466a0052e696d8ebc3987066784384.1455276050.git.mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Geunyoung Kim <nenggun.kim@samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56BDCD04.2030002@xs4all.nl>
+Date: Fri, 12 Feb 2016 13:16:04 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <b39a8de587466a0052e696d8ebc3987066784384.1455276050.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 03 Feb 2016 21:03:45 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+On 02/12/2016 12:21 PM, Mauro Carvalho Chehab wrote:
+> This is not used on the driver. remove it.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> Change au0828 to check if tuner is free or not
-> before changing tuner configuration.
-> 
-> vidioc_g_tuner(), and au0828_v4l2_close() now call
-> v4l-core interface v4l_enable_media_source() before
-> changing tuner configuration.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
 > ---
->  drivers/media/usb/au0828/au0828-video.c | 14 ++++++++++++--
->  1 file changed, 12 insertions(+), 2 deletions(-)
+>  drivers/media/usb/au0828/au0828-video.c | 12 +++---------
+>  drivers/media/usb/au0828/au0828.h       |  1 -
+>  2 files changed, 3 insertions(+), 10 deletions(-)
 > 
 > diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-> index 81952c8..8087215 100644
+> index 4164302dd8ac..2fc2b29d2dd9 100644
 > --- a/drivers/media/usb/au0828/au0828-video.c
 > +++ b/drivers/media/usb/au0828/au0828-video.c
-> @@ -1006,8 +1006,12 @@ static int au0828_v4l2_close(struct file *filp)
->  		goto end;
+> @@ -698,10 +698,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+>  	for (i = 0; i < AU0828_MAX_INPUT; i++) {
+>  		struct media_entity *ent = &dev->input_ent[i];
 >  
->  	if (dev->users == 1) {
-> -		/* Save some power by putting tuner to sleep */
-> -		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-> +		/* Save some power by putting tuner to sleep, if it is free */
-> +		/* What happens when radio is using tuner?? */
-> +		ret = v4l_enable_media_source(vdev);
-> +		if (ret == 0)
-> +			v4l2_device_call_all(&dev->v4l2_dev, 0, core,
-> +					     s_power, 0);
-
-Actually, for most USB devices (and this is the case of au0828), the
-tuner can safely be disabled here if ALSA is not streaming, as, except
-for some very old USB tuner models (like em28xx-based WinTV USB2) have
-a separate audio output jack.
-
-Btw, those devices that have a separate audio output jack have
-analog tuners, like Philips FM1236. Those devices are always on, so
-the s_power callback are silently ignored.
-
-So, the best logic here would be to disable the tuner if:
-	- ALSA is not streaming;
-	- the last V4L2 file handler is closed.
-
-Additionally, media source can be disabled if the above conditions
-are met and if the device doesn't have a separate audio out plug
-(or doesn't use a silicon tuner like xc2028/3028/4000/5000).
-
-Of course, as ALSA may stream anytime, a callback would be needed to
-enable the media source and power on the tuner, for radio to work.
-
-I understand that the above would require some other non-trivial
-changes, with would be best addressed on a separate patch series.
-
-So, for now, I would add a FIXME there explaining the above.
-
->  		dev->std_set_in_tuner_core = 0;
+> -		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
+> -			break;
+> -
+>  		switch (AUVI_INPUT(i).type) {
+> +		case AU0828_VMUX_UNDEFINED:
+> +			break;
+>  		case AU0828_VMUX_CABLE:
+>  		case AU0828_VMUX_TELEVISION:
+>  		case AU0828_VMUX_DVB:
+> @@ -716,7 +715,6 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+>  			break;
+>  		case AU0828_VMUX_COMPOSITE:
+>  		case AU0828_VMUX_SVIDEO:
+> -		default: /* AU0828_VMUX_DEBUG */
+>  			/* FIXME: fix the decoder PAD */
+>  			ret = media_create_pad_link(ent, 0, decoder, 0, 0);
+>  			if (ret)
+> @@ -1460,7 +1458,6 @@ static int vidioc_enum_input(struct file *file, void *priv,
+>  		[AU0828_VMUX_CABLE] = "Cable TV",
+>  		[AU0828_VMUX_TELEVISION] = "Television",
+>  		[AU0828_VMUX_DVB] = "DVB",
+> -		[AU0828_VMUX_DEBUG] = "tv debug"
+>  	};
 >  
->  		/* When close the device, set the usb intf0 into alt0 to free
-> @@ -1408,10 +1412,16 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
->  static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
->  {
->  	struct au0828_dev *dev = video_drvdata(file);
-> +	struct video_device *vfd = video_devdata(file);
-> +	int ret;
->  
->  	if (t->index != 0)
->  		return -EINVAL;
->  
-> +	ret = v4l_enable_media_source(vfd);
-> +	if (ret)
-> +		return ret;
-> +
 >  	dprintk(1, "%s called std_set %d dev_state %d\n", __func__,
->  		dev->std_set_in_tuner_core, dev->dev_state);
+> @@ -1952,7 +1949,6 @@ static void au0828_analog_create_entities(struct au0828_dev *dev)
+>  		[AU0828_VMUX_CABLE] = "Cable TV",
+>  		[AU0828_VMUX_TELEVISION] = "Television",
+>  		[AU0828_VMUX_DVB] = "DVB",
+> -		[AU0828_VMUX_DEBUG] = "tv debug"
+>  	};
+>  	int ret, i;
 >  
+> @@ -1988,11 +1984,9 @@ static void au0828_analog_create_entities(struct au0828_dev *dev)
+>  		case AU0828_VMUX_CABLE:
+>  		case AU0828_VMUX_TELEVISION:
+>  		case AU0828_VMUX_DVB:
+> +		default: /* Just to shut up a warning */
+>  			ent->function = MEDIA_ENT_F_CONN_RF;
+>  			break;
+> -		default: /* AU0828_VMUX_DEBUG */
+> -			ent->function = MEDIA_ENT_F_CONN_TEST;
+> -			break;
+>  		}
+>  
+>  		ret = media_entity_pads_init(ent, 1, &dev->input_pad[i]);
+> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+> index 19fd6a841988..23f869cf11da 100644
+> --- a/drivers/media/usb/au0828/au0828.h
+> +++ b/drivers/media/usb/au0828/au0828.h
+> @@ -76,7 +76,6 @@ enum au0828_itype {
+>  	AU0828_VMUX_CABLE,
+>  	AU0828_VMUX_TELEVISION,
+>  	AU0828_VMUX_DVB,
+> -	AU0828_VMUX_DEBUG
+>  };
+>  
+>  struct au0828_input {
+> 
+
