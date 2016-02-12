@@ -1,61 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:35832 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753209AbcBONxi convert rfc822-to-8bit (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:57945 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750816AbcBLIm4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 08:53:38 -0500
-Received: by mail-yk0-f174.google.com with SMTP id r207so60457476ykd.2
-        for <linux-media@vger.kernel.org>; Mon, 15 Feb 2016 05:53:38 -0800 (PST)
+	Fri, 12 Feb 2016 03:42:56 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DAE0A180DD6
+	for <linux-media@vger.kernel.org>; Fri, 12 Feb 2016 09:42:51 +0100 (CET)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.5] adv7604: fix tx 5v detect regression
+Message-ID: <56BD9B0B.2080604@xs4all.nl>
+Date: Fri, 12 Feb 2016 09:42:51 +0100
 MIME-Version: 1.0
-Date: Mon, 15 Feb 2016 14:53:37 +0100
-Message-ID: <CAL3TaAA+Ku7=zLZP-SSAwcxdmfWmHKzCSFxy7mXEA_xUw9dZ8w@mail.gmail.com>
-Subject: CAN I GIVE YOU THIS TRUST?
-From: Lawal Abdasil <mrabdasilawal@gmail.com>
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Dear.
+The following changes since commit f7b4b54e63643b740c598e044874c4bffa0f04f2:
 
-I am pleased to introduce a business opportunity to transfer to your
-overseas account the sum of US$2.600,000 from one of the prime banks
-here in Liberia.
+  [media] tvp5150: add HW input connectors support (2016-02-11 11:11:29 -0200)
 
-I am Abdasi Lawal, Bsc Msc , the auditor general, during the January
-audit ,I discovered a floating fund in an account opened in our bank
-since 2002 and was last  operated in 2007.
+are available in the git repository at:
 
-After going through the files of the account, I discovered that the
-account has no [Heir/WILL].
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.5a
 
-I made inquiries with the local address filled in the account files
-,and was told by landlord that the former occupant was a Syrian and a
-Gold Merchant ,he traveled to Syria and never came back till date.
+for you to fetch changes up to 402d07c7fa3819c4f3a5acbcd74b5b2768014912:
 
-That, his property was sold with court injunction to pay the accrued
-arrears of his tenancy after a long period of waiting.
+  adv7604: fix tx 5v detect regression (2016-02-12 09:40:42 +0100)
 
-It is obvious he has died, It is not the first of its kind in
-financial institution. It happens often.
+----------------------------------------------------------------
+Hans Verkuil (1):
+      adv7604: fix tx 5v detect regression
 
-I want your cooperation to fill in your information as his next of
-kin/business partner ,so that I can call the attention of the
-management on the account, I will work to ensure that they trace you
-as the next of kin to the account and also work indirectly to ensure
-they contact you for the payment.
-
-At the conclusion, you will take 45% and transfer 55% to my oversea
-account which I will open on line.
-
-There is no risk in this; I am the one that will do everything as long
-as nobody suspects my relationship with you.
-
-And regarding moral justification of this, I wouldn't want you to
-consider it as a Haram, they are many aspect of lives we can touch
-than leaving the money to be converted into the bank asset.
-
-I look forward to your earliest response
-
-Mr.Abdasi Lawal.
+ drivers/media/i2c/adv7604.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
