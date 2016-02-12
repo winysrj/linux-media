@@ -1,57 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35957 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751589AbcBNCl1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2016 21:41:27 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52568 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750976AbcBLCAd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Feb 2016 21:00:33 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] mn88473: add DVB-T2 PLP support
-Date: Sun, 14 Feb 2016 04:41:06 +0200
-Message-Id: <1455417666-17755-1-git-send-email-crope@iki.fi>
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH/RFC 1/9] clk: shmobile: r8a7795: Add FCP clocks
+Date: Fri, 12 Feb 2016 04:00:42 +0200
+Message-Id: <1455242450-24493-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds PLP ID filtering for DVB-T2.
+The parent clock isn't documented in the datasheet, use S2D1 as a best
+guess for now.
 
-It is untested as I don't have any signal having PLP ID other than 0.
-There is only 2 extra registers, 0x32 and 0x36 on bank2, that are
-programmed for DVB-T2 but not for DVB-T and all the rest are
-programmed similarly - so it is likely PLP.
-
-Testing required!!
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/mn88473.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/clk/shmobile/r8a7795-cpg-mssr.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/mn88473.c b/drivers/media/dvb-frontends/mn88473.c
-index 6c5d5921..0ab8faa 100644
---- a/drivers/media/dvb-frontends/mn88473.c
-+++ b/drivers/media/dvb-frontends/mn88473.c
-@@ -223,6 +223,13 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
- 	if (ret)
- 		goto err;
- 
-+	/* PLP */
-+	if (c->delivery_system == SYS_DVBT2) {
-+		ret = regmap_write(dev->regmap[2], 0x36, c->stream_id);
-+		if (ret)
-+			goto err;
-+	}
-+
- 	/* Reset FSM */
- 	ret = regmap_write(dev->regmap[2], 0xf8, 0x9f);
- 	if (ret)
-@@ -429,7 +436,8 @@ static const struct dvb_frontend_ops mn88473_ops = {
- 			FE_CAN_GUARD_INTERVAL_AUTO     |
- 			FE_CAN_HIERARCHY_AUTO          |
- 			FE_CAN_MUTE_TS                 |
--			FE_CAN_2G_MODULATION
-+			FE_CAN_2G_MODULATION           |
-+			FE_CAN_MULTISTREAM
- 	},
- 
- 	.get_tune_settings = mn88473_get_tune_settings,
+diff --git a/drivers/clk/shmobile/r8a7795-cpg-mssr.c b/drivers/clk/shmobile/r8a7795-cpg-mssr.c
+index 13e994772dfd..ae5004ee7bdd 100644
+--- a/drivers/clk/shmobile/r8a7795-cpg-mssr.c
++++ b/drivers/clk/shmobile/r8a7795-cpg-mssr.c
+@@ -130,6 +130,21 @@ static const struct mssr_mod_clk r8a7795_mod_clks[] __initconst = {
+ 	DEF_MOD("hscif2",		 518,	R8A7795_CLK_S3D1),
+ 	DEF_MOD("hscif1",		 519,	R8A7795_CLK_S3D1),
+ 	DEF_MOD("hscif0",		 520,	R8A7795_CLK_S3D1),
++	DEF_MOD("fcpvd3",		 600,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpvd2",		 601,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpvd1",		 602,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpvd0",		 603,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpvb1",		 606,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpvb0",		 607,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpvi2",		 609,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpvi1",		 610,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpvi0",		 611,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpf2",		 613,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpf1",		 614,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpf0",		 615,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpci1",		 616,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpci0",		 617,	R8A7795_CLK_S2D1),
++	DEF_MOD("fcpcs",		 619,	R8A7795_CLK_S2D1),
+ 	DEF_MOD("vspd3",		 620,	R8A7795_CLK_S2D1),
+ 	DEF_MOD("vspd2",		 621,	R8A7795_CLK_S2D1),
+ 	DEF_MOD("vspd1",		 622,	R8A7795_CLK_S2D1),
 -- 
-http://palosaari.fi/
+2.4.10
 
