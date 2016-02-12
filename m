@@ -1,66 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:36366 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161129AbcBQPs6 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50864 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750752AbcBLDeV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 10:48:58 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH/RFC 0/9] Lager board HDMI input support
-Date: Wed, 17 Feb 2016 16:48:36 +0100
-Message-Id: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Thu, 11 Feb 2016 22:34:21 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id B579B180EB0
+	for <linux-media@vger.kernel.org>; Fri, 12 Feb 2016 04:34:15 +0100 (CET)
+Date: Fri, 12 Feb 2016 04:34:15 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160212033415.B579B180EB0@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This series implements Lager HDMI input support on top of Niklas's herculean
-rewrite of the rcar-vin driver ("[media] rcar-vin: add Renesas R-Car VIN IP
-core").
+Results of the daily build of media_tree:
 
-A couple of the included patches are pushed or have been picked up elsewhere
-already and are included here for ease of testing.
+date:		Fri Feb 12 04:00:18 CET 2016
+git branch:	test
+git hash:	f7b4b54e63643b740c598e044874c4bffa0f04f2
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.3.0-164
 
-The EDID initialization blob has been lifted wholesale from the cobalt
-driver, with only the vendor ID adjusted to "REN".
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: ERRORS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin-bf561
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
+smatch: ERRORS
 
-(Note for testing: To get up-to-date DV timings, you have to use a client
-that does QUERY_DV_TIMINGS/S_DV_TIMINGS.  Few do.)
+Detailed results are available here:
 
-CU
-Uli
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
+Full logs are available here:
 
-Ian Molton (1):
-  ARM: shmobile: lager dts: specify default-input for ADV7612
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Laurent Pinchart (1):
-  v4l: subdev: Add pad config allocator and init
+The Media Infrastructure API from this daily build is here:
 
-Ulrich Hecht (5):
-  adv7604: fix SPA register location for ADV7612
-  media: rcar_vin: Use correct pad number in try_fmt
-  media: rcar-vin: pad-aware driver initialisation
-  media: rcar-vin: add DV timings support
-  media: rcar-vin: initialize EDID data
-
-William Towle (2):
-  media: adv7604: automatic "default-input" selection
-  ARM: shmobile: lager dts: Add entries for VIN HDMI input support
-
- arch/arm/boot/dts/r8a7790-lager.dts        |  41 +++++++-
- drivers/media/i2c/adv7604.c                |  27 ++++--
- drivers/media/platform/rcar-vin/rcar-dma.c | 145 ++++++++++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-vin.h |   1 +
- drivers/media/v4l2-core/v4l2-subdev.c      |  19 +++-
- include/media/v4l2-subdev.h                |  10 ++
- 6 files changed, 229 insertions(+), 14 deletions(-)
-
--- 
-2.6.4
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
