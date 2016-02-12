@@ -1,417 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55785 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:34851 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753644AbcBEQGV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Feb 2016 11:06:21 -0500
+	with ESMTP id S1751781AbcBLJqb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2016 04:46:31 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Inki Dae <inki.dae@samsung.com>,
-	Darek Zielski <dz1125tor@gmail.com>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Subject: [PATCH 6/6] [media] saa7134: add media controller support
-Date: Fri,  5 Feb 2016 14:05:00 -0200
-Message-Id: <90683a5b5a7b46a1b5445b9b7312a17922ccdb96.1454688188.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454688187.git.mchehab@osg.samsung.com>
-References: <cover.1454688187.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454688187.git.mchehab@osg.samsung.com>
-References: <cover.1454688187.git.mchehab@osg.samsung.com>
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	Heiner Kallweit <hkallweit1@gmail.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+	James Hogan <james@albanarts.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: [PATCH 03/11] [media] rc-core: don't lock device at rc_register_device()
+Date: Fri, 12 Feb 2016 07:44:58 -0200
+Message-Id: <ac5026276ee4d2e52b159c472d9c75483477232a.1455269986.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1455269986.git.mchehab@osg.samsung.com>
+References: <cover.1455269986.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1455269986.git.mchehab@osg.samsung.com>
+References: <cover.1455269986.git.mchehab@osg.samsung.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Register saa7134 at the media controller core and provide
-support for both analog TV and DVB.
+The mutex lock at rc_register_device() was added by commit 08aeb7c9a42a
+("[media] rc: add locking to fix register/show race").
+
+It is meant to avoid race issues when trying to open a sysfs file while
+the RC register didn't complete.
+
+Adding a lock there causes troubles, as detected by the Kernel lock
+debug instrumentation at the Kernel:
+
+    ======================================================
+    [ INFO: possible circular locking dependency detected ]
+    4.5.0-rc3+ #46 Not tainted
+    -------------------------------------------------------
+    systemd-udevd/2681 is trying to acquire lock:
+     (s_active#171){++++.+}, at: [<ffffffff8171a115>] kernfs_remove_by_name_ns+0x45/0xa0
+
+    but task is already holding lock:
+     (&dev->lock){+.+.+.}, at: [<ffffffffa0724def>] rc_register_device+0xb2f/0x1450 [rc_core]
+
+    which lock already depends on the new lock.
+
+    the existing dependency chain (in reverse order) is:
+
+    -> #1 (&dev->lock){+.+.+.}:
+           [<ffffffff8124817d>] lock_acquire+0x13d/0x320
+           [<ffffffff822de966>] mutex_lock_nested+0xb6/0x860
+           [<ffffffffa0721f2b>] show_protocols+0x3b/0x3f0 [rc_core]
+           [<ffffffff81cdaba5>] dev_attr_show+0x45/0xc0
+           [<ffffffff8171f1b3>] sysfs_kf_seq_show+0x203/0x3c0
+           [<ffffffff8171a6a1>] kernfs_seq_show+0x121/0x1b0
+           [<ffffffff81617c71>] seq_read+0x2f1/0x1160
+           [<ffffffff8171c911>] kernfs_fop_read+0x321/0x460
+           [<ffffffff815abc20>] __vfs_read+0xe0/0x3d0
+           [<ffffffff815ae90e>] vfs_read+0xde/0x2d0
+           [<ffffffff815b1d01>] SyS_read+0x111/0x230
+           [<ffffffff822e8636>] entry_SYSCALL_64_fastpath+0x16/0x76
+
+    -> #0 (s_active#171){++++.+}:
+           [<ffffffff81244f24>] __lock_acquire+0x4304/0x5990
+           [<ffffffff8124817d>] lock_acquire+0x13d/0x320
+           [<ffffffff81717d3a>] __kernfs_remove+0x58a/0x810
+           [<ffffffff8171a115>] kernfs_remove_by_name_ns+0x45/0xa0
+           [<ffffffff81721592>] remove_files.isra.0+0x72/0x190
+           [<ffffffff8172174b>] sysfs_remove_group+0x9b/0x150
+           [<ffffffff81721854>] sysfs_remove_groups+0x54/0xa0
+           [<ffffffff81cd97d0>] device_remove_attrs+0xb0/0x140
+           [<ffffffff81cdb27c>] device_del+0x38c/0x6b0
+           [<ffffffffa0724b8b>] rc_register_device+0x8cb/0x1450 [rc_core]
+           [<ffffffffa1326a7b>] dvb_usb_remote_init+0x66b/0x14d0 [dvb_usb]
+           [<ffffffffa1321c81>] dvb_usb_device_init+0xf21/0x1860 [dvb_usb]
+           [<ffffffffa13517dc>] dib0700_probe+0x14c/0x410 [dvb_usb_dib0700]
+           [<ffffffff81dbb1dd>] usb_probe_interface+0x45d/0x940
+           [<ffffffff81ce7e7a>] driver_probe_device+0x21a/0xc30
+           [<ffffffff81ce89b1>] __driver_attach+0x121/0x160
+           [<ffffffff81ce21bf>] bus_for_each_dev+0x11f/0x1a0
+           [<ffffffff81ce6cdd>] driver_attach+0x3d/0x50
+           [<ffffffff81ce5df9>] bus_add_driver+0x4c9/0x770
+           [<ffffffff81cea39c>] driver_register+0x18c/0x3b0
+           [<ffffffff81db6e98>] usb_register_driver+0x1f8/0x440
+           [<ffffffffa074001e>] dib0700_driver_init+0x1e/0x1000 [dvb_usb_dib0700]
+           [<ffffffff810021b1>] do_one_initcall+0x141/0x300
+           [<ffffffff8144d8eb>] do_init_module+0x1d0/0x5ad
+           [<ffffffff812f27b6>] load_module+0x6666/0x9ba0
+           [<ffffffff812f5fe8>] SyS_finit_module+0x108/0x130
+           [<ffffffff822e8636>] entry_SYSCALL_64_fastpath+0x16/0x76
+
+    other info that might help us debug this:
+
+     Possible unsafe locking scenario:
+
+           CPU0                    CPU1
+           ----                    ----
+      lock(&dev->lock);
+                                   lock(s_active#171);
+                                   lock(&dev->lock);
+      lock(s_active#171);
+
+     *** DEADLOCK ***
+
+    3 locks held by systemd-udevd/2681:
+     #0:  (&dev->mutex){......}, at: [<ffffffff81ce8933>] __driver_attach+0xa3/0x160
+     #1:  (&dev->mutex){......}, at: [<ffffffff81ce8941>] __driver_attach+0xb1/0x160
+     #2:  (&dev->lock){+.+.+.}, at: [<ffffffffa0724def>] rc_register_device+0xb2f/0x1450 [rc_core]
+
+In this specific case, some error happened during device init,
+causing IR to be disabled.
+
+Let's fix it by adding a var that will tell when the device is
+initialized. Any calls before that will return a -EINVAL.
+
+That should prevent the race issues.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/pci/saa7134/saa7134-core.c  | 189 +++++++++++++++++++++++++++++-
- drivers/media/pci/saa7134/saa7134-dvb.c   |   9 +-
- drivers/media/pci/saa7134/saa7134-video.c |  60 ++++++++++
- drivers/media/pci/saa7134/saa7134.h       |  13 ++
- 4 files changed, 266 insertions(+), 5 deletions(-)
+ drivers/media/rc/rc-main.c | 45 ++++++++++++++++++++++++++-------------------
+ include/media/rc-core.h    |  2 ++
+ 2 files changed, 28 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
-index 31048f9b516a..ba18459b5a87 100644
---- a/drivers/media/pci/saa7134/saa7134-core.c
-+++ b/drivers/media/pci/saa7134/saa7134-core.c
-@@ -806,6 +806,151 @@ static void must_configure_manually(int has_eeprom)
- 	}
- }
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 1042fa331a07..dcf20d9cbe09 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -723,12 +723,18 @@ int rc_open(struct rc_dev *rdev)
+ 		return -EINVAL;
  
-+static void saa7134_unregister_media_device(struct saa7134_dev *dev)
-+{
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	if (!dev->media_dev)
-+		return;
-+	media_device_unregister(dev->media_dev);
-+	media_device_cleanup(dev->media_dev);
-+	kfree(dev->media_dev);
-+	dev->media_dev = NULL;
-+#endif
-+}
-+
-+static void saa7134_media_release(struct saa7134_dev *dev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	int i;
-+
-+	for (i = 0; i < SAA7134_INPUT_MAX + 1; i++) {
-+		media_device_unregister_entity(&dev->input_ent[i]);
-+	}
-+#endif
-+}
-+
-+static void saa7134_create_entities(struct saa7134_dev *dev)
-+{
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	int ret, i;
-+	struct media_entity *entity;
-+	struct media_entity *decoder = NULL;
-+
-+	/* Check if it is using an external analog TV demod */
-+	media_device_for_each_entity(entity, dev->media_dev) {
-+		if (entity->function == MEDIA_ENT_F_ATV_DECODER)
-+			decoder = entity;
-+			break;
+ 	mutex_lock(&rdev->lock);
++	if (!rdev->initialized) {
++		rval = -EINVAL;
++		goto unlock;
 +	}
 +
-+	/* SAA7134 is not using an external ATV demod. Register our own */
-+	if (!decoder) {
-+		dev->demod.name = "saa713x";
-+		dev->demod_pad[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+		dev->demod_pad[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		dev->demod_pad[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+		dev->demod.function = MEDIA_ENT_F_ATV_DECODER;
-+
-+		ret = media_entity_pads_init(&dev->demod, DEMOD_NUM_PADS,
-+					     dev->demod_pad);
-+		if (ret < 0)
-+			pr_err("failed to initialize demod pad!\n");
-+
-+		ret = media_device_register_entity(dev->media_dev, &dev->demod);
-+		if (ret < 0)
-+			pr_err("failed to register demod entity!\n");
-+
-+		dev->decoder = &dev->demod;
-+	} else {
-+		dev->decoder = decoder;
-+	}
-+
-+	/* Initialize Video, VBI and Radio pads */
-+	dev->video_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_pads_init(&dev->video_dev->entity, 1,
-+				     &dev->video_pad);
-+	if (ret < 0)
-+		pr_err("failed to initialize video media entity!\n");
-+
-+	dev->vbi_pad.flags = MEDIA_PAD_FL_SINK;
-+	ret = media_entity_pads_init(&dev->vbi_dev->entity, 1,
-+					&dev->vbi_pad);
-+	if (ret < 0)
-+		pr_err("failed to initialize vbi media entity!\n");
-+
-+	/* Create entities for each input connector */
-+	for (i = 0; i < SAA7134_INPUT_MAX; i++) {
-+		struct media_entity *ent = &dev->input_ent[i];
-+		struct saa7134_input *in = &card_in(dev, i);
-+
-+		if (in->type == SAA7134_NO_INPUT)
-+			break;
-+
-+		/* This input uses the S-Video connector */
-+		if (in->type == SAA7134_INPUT_COMPOSITE_OVER_SVIDEO)
-+			continue;
-+
-+		ent->name = saa7134_input_name[in->type];
-+		ent->flags = MEDIA_ENT_FL_CONNECTOR;
-+		dev->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
-+
-+		switch (in->type) {
-+		case SAA7134_INPUT_COMPOSITE:
-+		case SAA7134_INPUT_COMPOSITE0:
-+		case SAA7134_INPUT_COMPOSITE1:
-+		case SAA7134_INPUT_COMPOSITE2:
-+		case SAA7134_INPUT_COMPOSITE3:
-+		case SAA7134_INPUT_COMPOSITE4:
-+			ent->function = MEDIA_ENT_F_CONN_COMPOSITE;
-+			break;
-+		case SAA7134_INPUT_SVIDEO:
-+		case SAA7134_INPUT_SVIDEO0:
-+		case SAA7134_INPUT_SVIDEO1:
-+			ent->function = MEDIA_ENT_F_CONN_SVIDEO;
-+			break;
-+		default:
-+			/*
-+			 * SAA7134_INPUT_TV and SAA7134_INPUT_TV_MONO.
-+			 *
-+			 * Please notice that neither SAA7134_INPUT_MUTE or
-+			 * SAA7134_INPUT_RADIO are defined at
-+			 * saa7134_board.input.
-+			 */
-+			ent->function = MEDIA_ENT_F_CONN_RF;
-+			break;
-+		}
-+
-+		ret = media_entity_pads_init(ent, 1, &dev->input_pad[i]);
-+		if (ret < 0)
-+			pr_err("failed to initialize input pad[%d]!\n", i);
-+
-+		ret = media_device_register_entity(dev->media_dev, ent);
-+		if (ret < 0)
-+			pr_err("failed to register input entity %d!\n", i);
-+	}
-+
-+	/* Create input for Radio RF connector */
-+	if (card_has_radio(dev)) {
-+		struct saa7134_input *in = &saa7134_boards[dev->board].radio;
-+		struct media_entity *ent = &dev->input_ent[i];
-+
-+		ent->name = saa7134_input_name[in->type];
-+		ent->flags = MEDIA_ENT_FL_CONNECTOR;
-+		dev->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
-+		ent->function = MEDIA_ENT_F_CONN_RF;
-+
-+		ret = media_entity_pads_init(ent, 1, &dev->input_pad[i]);
-+		if (ret < 0)
-+			pr_err("failed to initialize input pad[%d]!\n", i);
-+
-+		ret = media_device_register_entity(dev->media_dev, ent);
-+		if (ret < 0)
-+			pr_err("failed to register input entity %d!\n", i);
-+	}
-+#endif
-+}
-+
- static struct video_device *vdev_init(struct saa7134_dev *dev,
- 				      struct video_device *template,
- 				      char *type)
-@@ -826,6 +971,8 @@ static struct video_device *vdev_init(struct saa7134_dev *dev,
+ 	if (!rdev->users++ && rdev->open != NULL)
+ 		rval = rdev->open(rdev);
  
- static void saa7134_unregister_video(struct saa7134_dev *dev)
- {
-+	saa7134_media_release(dev);
-+
- 	if (dev->video_dev) {
- 		if (video_is_registered(dev->video_dev))
- 			video_unregister_device(dev->video_dev);
-@@ -889,6 +1036,18 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 	if (NULL == dev)
- 		return -ENOMEM;
+ 	if (rval)
+ 		rdev->users--;
  
-+	dev->nr = saa7134_devcount;
-+	sprintf(dev->name,"saa%x[%d]",pci_dev->device,dev->nr);
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	dev->media_dev = v4l2_mc_pci_media_device_init(pci_dev, dev->name);
-+	if (!dev->media_dev) {
-+		err = -ENOMEM;
-+		goto fail0;
++unlock:
+ 	mutex_unlock(&rdev->lock);
+ 
+ 	return rval;
+@@ -874,6 +880,10 @@ static ssize_t show_protocols(struct device *device,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&dev->lock);
++	if (!dev->initialized) {
++		mutex_unlock(&dev->lock);
++		return -EINVAL;
 +	}
-+	dev->v4l2_dev.mdev = dev->media_dev;
-+#endif
-+
- 	err = v4l2_device_register(&pci_dev->dev, &dev->v4l2_dev);
- 	if (err)
- 		goto fail0;
-@@ -900,9 +1059,6 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 		goto fail1;
+ 
+ 	if (fattr->type == RC_FILTER_NORMAL) {
+ 		enabled = dev->enabled_protocols;
+@@ -1074,6 +1084,10 @@ static ssize_t store_protocols(struct device *device,
  	}
  
--	dev->nr = saa7134_devcount;
--	sprintf(dev->name,"saa%x[%d]",pci_dev->device,dev->nr);
+ 	mutex_lock(&dev->lock);
++	if (!dev->initialized) {
++		rc = -EINVAL;
++		goto out;
++	}
+ 
+ 	old_protocols = *current_protocols;
+ 	new_protocols = old_protocols;
+@@ -1154,12 +1168,17 @@ static ssize_t show_filter(struct device *device,
+ 	if (!dev)
+ 		return -EINVAL;
+ 
++	mutex_lock(&dev->lock);
++	if (!dev->initialized) {
++		mutex_unlock(&dev->lock);
++		return -EINVAL;
++	}
++
+ 	if (fattr->type == RC_FILTER_NORMAL)
+ 		filter = &dev->scancode_filter;
+ 	else
+ 		filter = &dev->scancode_wakeup_filter;
+ 
+-	mutex_lock(&dev->lock);
+ 	if (fattr->mask)
+ 		val = filter->mask;
+ 	else
+@@ -1222,6 +1241,10 @@ static ssize_t store_filter(struct device *device,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&dev->lock);
++	if (!dev->initialized) {
++		ret = -EINVAL;
++		goto unlock;
++	}
+ 
+ 	new_filter = *filter;
+ 	if (fattr->mask)
+@@ -1419,14 +1442,6 @@ int rc_register_device(struct rc_dev *dev)
+ 		dev->sysfs_groups[attr++] = &rc_dev_wakeup_protocol_attr_grp;
+ 	dev->sysfs_groups[attr++] = NULL;
+ 
+-	/*
+-	 * Take the lock here, as the device sysfs node will appear
+-	 * when device_add() is called, which may trigger an ir-keytable udev
+-	 * rule, which will in turn call show_protocols and access
+-	 * dev->enabled_protocols before it has been initialized.
+-	 */
+-	mutex_lock(&dev->lock);
 -
- 	/* pci quirks */
- 	if (pci_pci_problems) {
- 		if (pci_pci_problems & PCIPCI_TRITON)
-@@ -1102,6 +1258,15 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 		       dev->name, video_device_node_name(dev->radio_dev));
+ 	rc = device_add(&dev->dev);
+ 	if (rc)
+ 		goto out_unlock;
+@@ -1440,13 +1455,7 @@ int rc_register_device(struct rc_dev *dev)
+ 	dev->input_dev->phys = dev->input_phys;
+ 	dev->input_dev->name = dev->input_name;
+ 
+-	/* input_register_device can call ir_open, so unlock mutex here */
+-	mutex_unlock(&dev->lock);
+-
+ 	rc = input_register_device(dev->input_dev);
+-
+-	mutex_lock(&dev->lock);
+-
+ 	if (rc)
+ 		goto out_table;
+ 
+@@ -1475,10 +1484,7 @@ int rc_register_device(struct rc_dev *dev)
+ 			request_module_nowait("ir-lirc-codec");
+ 			raw_init = true;
+ 		}
+-		/* calls ir_register_device so unlock mutex here*/
+-		mutex_unlock(&dev->lock);
+ 		rc = ir_raw_event_register(dev);
+-		mutex_lock(&dev->lock);
+ 		if (rc < 0)
+ 			goto out_input;
+ 	}
+@@ -1491,6 +1497,8 @@ int rc_register_device(struct rc_dev *dev)
+ 		dev->enabled_protocols = rc_type;
  	}
  
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	saa7134_create_entities(dev);
-+
-+	err = v4l2_mc_create_media_graph(dev->media_dev);
-+	if (err) {
-+		pr_err("failed to create media graph\n");
-+		goto fail5;
-+	}
-+#endif
- 	/* everything worked */
- 	saa7134_devcount++;
++	mutex_lock(&dev->lock);
++	dev->initialized = true;
+ 	mutex_unlock(&dev->lock);
  
-@@ -1109,6 +1274,18 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
- 		saa7134_dmasound_init(dev);
- 
- 	request_submodules(dev);
-+
-+	/*
-+	 * Do it at the end, to reduce dynamic configuration changes during
-+	 * the device init. Yet, as request_modules() can be async, the
-+	 * topology will likely change after load the saa7134 subdrivers.
-+	 */
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	err = media_device_register(dev->media_dev);
-+	if (err)
-+		goto fail5;
-+#endif
-+
- 	return 0;
- 
-  fail5:
-@@ -1126,6 +1303,9 @@ static int saa7134_initdev(struct pci_dev *pci_dev,
-  fail1:
- 	v4l2_device_unregister(&dev->v4l2_dev);
-  fail0:
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	kfree(dev->media_dev);
-+#endif
- 	kfree(dev);
- 	return err;
+ 	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
+@@ -1512,7 +1520,6 @@ out_table:
+ out_dev:
+ 	device_del(&dev->dev);
+ out_unlock:
+-	mutex_unlock(&dev->lock);
+ 	ida_simple_remove(&rc_ida, minor);
+ 	return rc;
  }
-@@ -1188,9 +1368,10 @@ static void saa7134_finidev(struct pci_dev *pci_dev)
- 	release_mem_region(pci_resource_start(pci_dev,0),
- 			   pci_resource_len(pci_dev,0));
- 
--
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
-+	saa7134_unregister_media_device(dev);
-+
- 	/* free memory */
- 	kfree(dev);
- }
-diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
-index ed84f7dea94c..db987e5b93eb 100644
---- a/drivers/media/pci/saa7134/saa7134-dvb.c
-+++ b/drivers/media/pci/saa7134/saa7134-dvb.c
-@@ -1883,8 +1883,15 @@ static int dvb_init(struct saa7134_dev *dev)
- 	fe0->dvb.frontend->callback = saa7134_tuner_callback;
- 
- 	/* register everything else */
-+#ifndef CONFIG_MEDIA_CONTROLLER_DVB
- 	ret = vb2_dvb_register_bus(&dev->frontends, THIS_MODULE, dev,
--				   &dev->pci->dev, NULL, adapter_nr, 0);
-+				   &dev->pci->dev, NULL,
-+				   adapter_nr, 0);
-+#else
-+	ret = vb2_dvb_register_bus(&dev->frontends, THIS_MODULE, dev,
-+				   &dev->pci->dev, dev->media_dev,
-+				   adapter_nr, 0);
-+#endif
- 
- 	/* this sequence is necessary to make the tda1004x load its firmware
- 	 * and to enter analog mode of hybrid boards
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 9debfb549887..0403b34624c1 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -785,6 +785,63 @@ static int stop_preview(struct saa7134_dev *dev)
- 	return 0;
- }
- 
-+/*
-+ * Media Controller helper functions
-+ */
-+
-+static int saa7134_enable_analog_tuner(struct saa7134_dev *dev)
-+{
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *mdev = dev->media_dev;
-+	struct media_entity *source;
-+	struct media_link *link, *found_link = NULL;
-+	int ret, active_links = 0;
-+
-+	if (!mdev || !dev->decoder)
-+		return 0;
-+
-+	/*
-+	 * This will find the tuner that is connected into the decoder.
-+	 * Technically, this is not 100% correct, as the device may be
-+	 * using an analog input instead of the tuner. However, as we can't
-+	 * do DVB streaming while the DMA engine is being used for V4L2,
-+	 * this should be enough for the actual needs.
-+	 */
-+	list_for_each_entry(link, &dev->decoder->links, list) {
-+		if (link->sink->entity == dev->decoder) {
-+			found_link = link;
-+			if (link->flags & MEDIA_LNK_FL_ENABLED)
-+				active_links++;
-+			break;
-+		}
-+	}
-+
-+	if (active_links == 1 || !found_link)
-+		return 0;
-+
-+	source = found_link->source->entity;
-+	list_for_each_entry(link, &source->links, list) {
-+		struct media_entity *sink;
-+		int flags = 0;
-+
-+		sink = link->sink->entity;
-+
-+		if (sink == dev->decoder)
-+			flags = MEDIA_LNK_FL_ENABLED;
-+
-+		ret = media_entity_setup_link(link, flags);
-+		if (ret) {
-+			pr_err("Couldn't change link %s->%s to %s. Error %d\n",
-+			       source->name, sink->name,
-+			       flags ? "enabled" : "disabled",
-+			       ret);
-+			return ret;
-+		}
-+	}
-+#endif
-+	return 0;
-+}
-+
- /* ------------------------------------------------------------------ */
- 
- static int buffer_activate(struct saa7134_dev *dev,
-@@ -924,6 +981,9 @@ static int queue_setup(struct vb2_queue *q,
- 	*nplanes = 1;
- 	sizes[0] = size;
- 	alloc_ctxs[0] = dev->alloc_ctx;
-+
-+	saa7134_enable_analog_tuner(dev);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index e3e2392f87d6..8936568fab94 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -671,6 +671,19 @@ struct saa7134_dev {
- 	/* I2C keyboard data */
- 	struct IR_i2c_init_data    init_data;
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	struct media_device *media_dev;
-+
-+	struct media_entity input_ent[SAA7134_INPUT_MAX + 1];
-+	struct media_pad input_pad[SAA7134_INPUT_MAX + 1];
-+
-+	struct media_entity demod;
-+	struct media_pad demod_pad[DEMOD_NUM_PADS];
-+
-+	struct media_pad video_pad, vbi_pad;
-+	struct media_entity *decoder;
-+#endif
-+
- #if IS_ENABLED(CONFIG_VIDEO_SAA7134_DVB)
- 	/* SAA7134_MPEG_DVB only */
- 	struct vb2_dvb_frontends frontends;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index f6494709e230..c41dd7018fa8 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -60,6 +60,7 @@ enum rc_filter_type {
+ /**
+  * struct rc_dev - represents a remote control device
+  * @dev: driver model's view of this device
++ * @initialized: true if the device init has completed
+  * @sysfs_groups: sysfs attribute groups
+  * @input_name: name of the input child device
+  * @input_phys: physical path to the input child device
+@@ -121,6 +122,7 @@ enum rc_filter_type {
+  */
+ struct rc_dev {
+ 	struct device			dev;
++	bool				initialized;
+ 	const struct attribute_group	*sysfs_groups[5];
+ 	const char			*input_name;
+ 	const char			*input_phys;
 -- 
 2.5.0
 
