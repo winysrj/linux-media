@@ -1,423 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:48764 "EHLO
-	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755189AbcBPMww (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:40793 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752178AbcBLLW1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2016 07:52:52 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Fri, 12 Feb 2016 06:22:27 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Markus Elfring <elfring@users.sourceforge.net>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>,
 	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 06/12] media/platform: convert drivers to use the new vb2_queue dev field
-Date: Tue, 16 Feb 2016 13:43:01 +0100
-Message-Id: <1455626587-8051-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
-References: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
+	Geunyoung Kim <nenggun.kim@samsung.com>
+Subject: [PATCH 1/2] [media] au0828: get rid of AU0828_VMUX_DEBUG
+Date: Fri, 12 Feb 2016 09:21:00 -0200
+Message-Id: <b39a8de587466a0052e696d8ebc3987066784384.1455276050.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is not used on the driver. remove it.
 
-Stop using alloc_ctx and just fill in the device pointer.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/am437x/am437x-vpfe.c    | 10 +---------
- drivers/media/platform/am437x/am437x-vpfe.h    |  2 --
- drivers/media/platform/blackfin/bfin_capture.c | 15 ++-------------
- drivers/media/platform/coda/coda-common.c      | 16 ++--------------
- drivers/media/platform/coda/coda.h             |  1 -
- drivers/media/platform/davinci/vpbe_display.c  | 12 +-----------
- drivers/media/platform/davinci/vpif_capture.c  | 11 +----------
- drivers/media/platform/davinci/vpif_capture.h  |  2 --
- drivers/media/platform/davinci/vpif_display.c  | 11 +----------
- drivers/media/platform/davinci/vpif_display.h  |  2 --
- include/media/davinci/vpbe_display.h           |  2 --
- 11 files changed, 8 insertions(+), 76 deletions(-)
+ drivers/media/usb/au0828/au0828-video.c | 12 +++---------
+ drivers/media/usb/au0828/au0828.h       |  1 -
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index de32e3a..74c833f 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1915,7 +1915,6 @@ static int vpfe_queue_setup(struct vb2_queue *vq,
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 4164302dd8ac..2fc2b29d2dd9 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -698,10 +698,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 	for (i = 0; i < AU0828_MAX_INPUT; i++) {
+ 		struct media_entity *ent = &dev->input_ent[i];
  
- 	if (vq->num_buffers + *nbuffers < 3)
- 		*nbuffers = 3 - vq->num_buffers;
--	alloc_ctxs[0] = vpfe->alloc_ctx;
- 
- 	if (*nplanes) {
- 		if (sizes[0] < size)
-@@ -2364,13 +2363,6 @@ static int vpfe_probe_complete(struct vpfe_device *vpfe)
- 		goto probe_out;
- 
- 	/* Initialize videobuf2 queue as per the buffer type */
--	vpfe->alloc_ctx = vb2_dma_contig_init_ctx(vpfe->pdev);
--	if (IS_ERR(vpfe->alloc_ctx)) {
--		vpfe_err(vpfe, "Failed to get the context\n");
--		err = PTR_ERR(vpfe->alloc_ctx);
--		goto probe_out;
--	}
+-		if (AUVI_INPUT(i).type == AU0828_VMUX_UNDEFINED)
+-			break;
 -
- 	q = &vpfe->buffer_queue;
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
-@@ -2381,11 +2373,11 @@ static int vpfe_probe_complete(struct vpfe_device *vpfe)
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->lock = &vpfe->lock;
- 	q->min_buffers_needed = 1;
-+	q->dev = vpfe->pdev;
+ 		switch (AUVI_INPUT(i).type) {
++		case AU0828_VMUX_UNDEFINED:
++			break;
+ 		case AU0828_VMUX_CABLE:
+ 		case AU0828_VMUX_TELEVISION:
+ 		case AU0828_VMUX_DVB:
+@@ -716,7 +715,6 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 			break;
+ 		case AU0828_VMUX_COMPOSITE:
+ 		case AU0828_VMUX_SVIDEO:
+-		default: /* AU0828_VMUX_DEBUG */
+ 			/* FIXME: fix the decoder PAD */
+ 			ret = media_create_pad_link(ent, 0, decoder, 0, 0);
+ 			if (ret)
+@@ -1460,7 +1458,6 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ 		[AU0828_VMUX_CABLE] = "Cable TV",
+ 		[AU0828_VMUX_TELEVISION] = "Television",
+ 		[AU0828_VMUX_DVB] = "DVB",
+-		[AU0828_VMUX_DEBUG] = "tv debug"
+ 	};
  
- 	err = vb2_queue_init(q);
- 	if (err) {
- 		vpfe_err(vpfe, "vb2_queue_init() failed\n");
--		vb2_dma_contig_cleanup_ctx(vpfe->alloc_ctx);
- 		goto probe_out;
- 	}
+ 	dprintk(1, "%s called std_set %d dev_state %d\n", __func__,
+@@ -1952,7 +1949,6 @@ static void au0828_analog_create_entities(struct au0828_dev *dev)
+ 		[AU0828_VMUX_CABLE] = "Cable TV",
+ 		[AU0828_VMUX_TELEVISION] = "Television",
+ 		[AU0828_VMUX_DVB] = "DVB",
+-		[AU0828_VMUX_DEBUG] = "tv debug"
+ 	};
+ 	int ret, i;
  
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.h b/drivers/media/platform/am437x/am437x-vpfe.h
-index 777bf97..17d7aa4 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.h
-+++ b/drivers/media/platform/am437x/am437x-vpfe.h
-@@ -264,8 +264,6 @@ struct vpfe_device {
- 	struct v4l2_rect crop;
- 	/* Buffer queue used in video-buf */
- 	struct vb2_queue buffer_queue;
--	/* Allocator-specific contexts for each plane */
--	struct vb2_alloc_ctx *alloc_ctx;
- 	/* Queue of filled frames */
- 	struct list_head dma_queue;
- 	/* IRQ lock for DMA queue */
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index d0092da..1e244287 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -91,8 +91,6 @@ struct bcap_device {
- 	struct bcap_buffer *cur_frm;
- 	/* buffer queue used in videobuf2 */
- 	struct vb2_queue buffer_queue;
--	/* allocator-specific contexts for each plane */
--	struct vb2_alloc_ctx *alloc_ctx;
- 	/* queue of filled frames */
- 	struct list_head dma_queue;
- 	/* used in videobuf2 callback */
-@@ -209,7 +207,6 @@ static int bcap_queue_setup(struct vb2_queue *vq,
- 
- 	if (vq->num_buffers + *nbuffers < 2)
- 		*nbuffers = 2;
--	alloc_ctxs[0] = bcap_dev->alloc_ctx;
- 
- 	if (*nplanes)
- 		return sizes[0] < bcap_dev->fmt.sizeimage ? -EINVAL : 0;
-@@ -820,12 +817,6 @@ static int bcap_probe(struct platform_device *pdev)
- 	}
- 	bcap_dev->ppi->priv = bcap_dev;
- 
--	bcap_dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(bcap_dev->alloc_ctx)) {
--		ret = PTR_ERR(bcap_dev->alloc_ctx);
--		goto err_free_ppi;
--	}
--
- 	vfd = &bcap_dev->video_dev;
- 	/* initialize field of video device */
- 	vfd->release            = video_device_release_empty;
-@@ -839,7 +830,7 @@ static int bcap_probe(struct platform_device *pdev)
- 	if (ret) {
- 		v4l2_err(pdev->dev.driver,
- 				"Unable to register v4l2 device\n");
--		goto err_cleanup_ctx;
-+		goto err_free_ppi;
- 	}
- 	v4l2_info(&bcap_dev->v4l2_dev, "v4l2 device registered\n");
- 
-@@ -863,6 +854,7 @@ static int bcap_probe(struct platform_device *pdev)
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->lock = &bcap_dev->mutex;
- 	q->min_buffers_needed = 1;
-+	q->dev = &pdev->dev;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret)
-@@ -967,8 +959,6 @@ err_free_handler:
- 	v4l2_ctrl_handler_free(&bcap_dev->ctrl_handler);
- err_unreg_v4l2:
- 	v4l2_device_unregister(&bcap_dev->v4l2_dev);
--err_cleanup_ctx:
--	vb2_dma_contig_cleanup_ctx(bcap_dev->alloc_ctx);
- err_free_ppi:
- 	ppi_delete_instance(bcap_dev->ppi);
- err_free_dev:
-@@ -986,7 +976,6 @@ static int bcap_remove(struct platform_device *pdev)
- 	video_unregister_device(&bcap_dev->video_dev);
- 	v4l2_ctrl_handler_free(&bcap_dev->ctrl_handler);
- 	v4l2_device_unregister(v4l2_dev);
--	vb2_dma_contig_cleanup_ctx(bcap_dev->alloc_ctx);
- 	ppi_delete_instance(bcap_dev->ppi);
- 	kfree(bcap_dev);
- 	return 0;
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 2d782ce..f1955f5 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1151,9 +1151,6 @@ static int coda_queue_setup(struct vb2_queue *vq,
- 	*nplanes = 1;
- 	sizes[0] = size;
- 
--	/* Set to vb2-dma-contig allocator context, ignored by vb2-vmalloc */
--	alloc_ctxs[0] = ctx->dev->alloc_ctx;
--
- 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
- 		 "get %d buffer(s) of size %d each.\n", *nbuffers, size);
- 
-@@ -1599,6 +1596,7 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
- 	 * that videobuf2 will keep the value of bytesused intact.
- 	 */
- 	vq->allow_zero_bytesused = 1;
-+	vq->dev = &ctx->dev->plat_dev->dev;
- 
- 	return vb2_queue_init(vq);
- }
-@@ -1981,16 +1979,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
- 	if (ret < 0)
- 		goto put_pm;
- 
--	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(dev->alloc_ctx)) {
--		v4l2_err(&dev->v4l2_dev, "Failed to alloc vb2 context\n");
--		goto put_pm;
--	}
--
- 	dev->m2m_dev = v4l2_m2m_init(&coda_m2m_ops);
- 	if (IS_ERR(dev->m2m_dev)) {
- 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
--		goto rel_ctx;
-+		goto put_pm;
- 	}
- 
- 	for (i = 0; i < dev->devtype->num_vdevs; i++) {
-@@ -2013,8 +2005,6 @@ rel_vfd:
- 	while (--i >= 0)
- 		video_unregister_device(&dev->vfd[i]);
- 	v4l2_m2m_release(dev->m2m_dev);
--rel_ctx:
--	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
- put_pm:
- 	pm_runtime_put_sync(&pdev->dev);
- }
-@@ -2266,8 +2256,6 @@ static int coda_remove(struct platform_device *pdev)
- 	if (dev->m2m_dev)
- 		v4l2_m2m_release(dev->m2m_dev);
- 	pm_runtime_disable(&pdev->dev);
--	if (dev->alloc_ctx)
--		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 	destroy_workqueue(dev->workqueue);
- 	if (dev->iram.vaddr)
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index d08e984..05befdb 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -91,7 +91,6 @@ struct coda_dev {
- 	struct mutex		coda_mutex;
- 	struct workqueue_struct	*workqueue;
- 	struct v4l2_m2m_dev	*m2m_dev;
--	struct vb2_alloc_ctx	*alloc_ctx;
- 	struct list_head	instances;
- 	unsigned long		instance_mask;
- 	struct dentry		*debugfs_root;
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 0abcdfe..2a4c291 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -242,7 +242,6 @@ vpbe_buffer_queue_setup(struct vb2_queue *vq,
- 	/* Store number of buffers allocated in numbuffer member */
- 	if (vq->num_buffers + *nbuffers < VPBE_DEFAULT_NUM_BUFS)
- 		*nbuffers = VPBE_DEFAULT_NUM_BUFS - vq->num_buffers;
--	alloc_ctxs[0] = layer->alloc_ctx;
- 
- 	if (*nplanes)
- 		return sizes[0] < layer->pix_fmt.sizeimage ? -EINVAL : 0;
-@@ -1451,20 +1450,13 @@ static int vpbe_display_probe(struct platform_device *pdev)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 1;
- 		q->lock = &disp_dev->dev[i]->opslock;
-+		q->dev = disp_dev->vpbe_dev->pdev;
- 		err = vb2_queue_init(q);
- 		if (err) {
- 			v4l2_err(v4l2_dev, "vb2_queue_init() failed\n");
- 			goto probe_out;
+@@ -1988,11 +1984,9 @@ static void au0828_analog_create_entities(struct au0828_dev *dev)
+ 		case AU0828_VMUX_CABLE:
+ 		case AU0828_VMUX_TELEVISION:
+ 		case AU0828_VMUX_DVB:
++		default: /* Just to shut up a warning */
+ 			ent->function = MEDIA_ENT_F_CONN_RF;
+ 			break;
+-		default: /* AU0828_VMUX_DEBUG */
+-			ent->function = MEDIA_ENT_F_CONN_TEST;
+-			break;
  		}
  
--		disp_dev->dev[i]->alloc_ctx =
--			vb2_dma_contig_init_ctx(disp_dev->vpbe_dev->pdev);
--		if (IS_ERR(disp_dev->dev[i]->alloc_ctx)) {
--			v4l2_err(v4l2_dev, "Failed to get the context\n");
--			err = PTR_ERR(disp_dev->dev[i]->alloc_ctx);
--			goto probe_out;
--		}
--
- 		INIT_LIST_HEAD(&disp_dev->dev[i]->dma_queue);
+ 		ret = media_entity_pads_init(ent, 1, &dev->input_pad[i]);
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 19fd6a841988..23f869cf11da 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -76,7 +76,6 @@ enum au0828_itype {
+ 	AU0828_VMUX_CABLE,
+ 	AU0828_VMUX_TELEVISION,
+ 	AU0828_VMUX_DVB,
+-	AU0828_VMUX_DEBUG
+ };
  
- 		if (register_device(disp_dev->dev[i], disp_dev, pdev)) {
-@@ -1482,7 +1474,6 @@ probe_out:
- 	for (k = 0; k < VPBE_DISPLAY_MAX_DEVICES; k++) {
- 		/* Unregister video device */
- 		if (disp_dev->dev[k] != NULL) {
--			vb2_dma_contig_cleanup_ctx(disp_dev->dev[k]->alloc_ctx);
- 			video_unregister_device(&disp_dev->dev[k]->video_dev);
- 			kfree(disp_dev->dev[k]);
- 		}
-@@ -1510,7 +1501,6 @@ static int vpbe_display_remove(struct platform_device *pdev)
- 	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
- 		/* Get the pointer to the layer object */
- 		vpbe_display_layer = disp_dev->dev[i];
--		vb2_dma_contig_cleanup_ctx(vpbe_display_layer->alloc_ctx);
- 		/* Unregister video device */
- 		video_unregister_device(&vpbe_display_layer->video_dev);
- 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 08f7028..d5afab0 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -133,7 +133,6 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
- 
- 	*nplanes = 1;
- 	sizes[0] = size;
--	alloc_ctxs[0] = common->alloc_ctx;
- 
- 	/* Calculate the offset for Y and C data in the buffer */
- 	vpif_calculate_offsets(ch);
-@@ -1371,6 +1370,7 @@ static int vpif_probe_complete(void)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 1;
- 		q->lock = &common->lock;
-+		q->dev = vpif_dev;
- 
- 		err = vb2_queue_init(q);
- 		if (err) {
-@@ -1378,13 +1378,6 @@ static int vpif_probe_complete(void)
- 			goto probe_out;
- 		}
- 
--		common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
--		if (IS_ERR(common->alloc_ctx)) {
--			vpif_err("Failed to get the context\n");
--			err = PTR_ERR(common->alloc_ctx);
--			goto probe_out;
--		}
--
- 		INIT_LIST_HEAD(&common->dma_queue);
- 
- 		/* Initialize the video_device structure */
-@@ -1412,7 +1405,6 @@ probe_out:
- 		/* Get the pointer to the channel object */
- 		ch = vpif_obj.dev[k];
- 		common = &ch->common[k];
--		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
- 		/* Unregister video device */
- 		video_unregister_device(&ch->video_dev);
- 	}
-@@ -1546,7 +1538,6 @@ static int vpif_remove(struct platform_device *device)
- 		/* Get the pointer to the channel object */
- 		ch = vpif_obj.dev[i];
- 		common = &ch->common[VPIF_VIDEO_INDEX];
--		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
- 		/* Unregister video device */
- 		video_unregister_device(&ch->video_dev);
- 		kfree(vpif_obj.dev[i]);
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 4a76009..9e35b67 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -65,8 +65,6 @@ struct common_obj {
- 	struct v4l2_format fmt;
- 	/* Buffer queue used in video-buf */
- 	struct vb2_queue buffer_queue;
--	/* allocator-specific contexts for each plane */
--	struct vb2_alloc_ctx *alloc_ctx;
- 	/* Queue of filled frames */
- 	struct list_head dma_queue;
- 	/* Used in video-buf */
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index f40755c..5d77884 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -126,7 +126,6 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
- 
- 	*nplanes = 1;
- 	sizes[0] = size;
--	alloc_ctxs[0] = common->alloc_ctx;
- 
- 	/* Calculate the offset for Y and C data  in the buffer */
- 	vpif_calculate_offsets(ch);
-@@ -1191,19 +1190,13 @@ static int vpif_probe_complete(void)
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 1;
- 		q->lock = &common->lock;
-+		q->dev = vpif_dev;
- 		err = vb2_queue_init(q);
- 		if (err) {
- 			vpif_err("vpif_display: vb2_queue_init() failed\n");
- 			goto probe_out;
- 		}
- 
--		common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
--		if (IS_ERR(common->alloc_ctx)) {
--			vpif_err("Failed to get the context\n");
--			err = PTR_ERR(common->alloc_ctx);
--			goto probe_out;
--		}
--
- 		INIT_LIST_HEAD(&common->dma_queue);
- 
- 		/* register video device */
-@@ -1233,7 +1226,6 @@ probe_out:
- 	for (k = 0; k < j; k++) {
- 		ch = vpif_obj.dev[k];
- 		common = &ch->common[k];
--		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
- 		video_unregister_device(&ch->video_dev);
- 	}
- 	return err;
-@@ -1355,7 +1347,6 @@ static int vpif_remove(struct platform_device *device)
- 		/* Get the pointer to the channel object */
- 		ch = vpif_obj.dev[i];
- 		common = &ch->common[VPIF_VIDEO_INDEX];
--		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
- 		/* Unregister video device */
- 		video_unregister_device(&ch->video_dev);
- 		kfree(vpif_obj.dev[i]);
-diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
-index e7a1723..af2765f 100644
---- a/drivers/media/platform/davinci/vpif_display.h
-+++ b/drivers/media/platform/davinci/vpif_display.h
-@@ -74,8 +74,6 @@ struct common_obj {
- 	struct v4l2_format fmt;			/* Used to store the format */
- 	struct vb2_queue buffer_queue;		/* Buffer queue used in
- 						 * video-buf */
--	/* allocator-specific contexts for each plane */
--	struct vb2_alloc_ctx *alloc_ctx;
- 
- 	struct list_head dma_queue;		/* Queue of filled frames */
- 	spinlock_t irqlock;			/* Used in video-buf */
-diff --git a/include/media/davinci/vpbe_display.h b/include/media/davinci/vpbe_display.h
-index e14a937..12783fd 100644
---- a/include/media/davinci/vpbe_display.h
-+++ b/include/media/davinci/vpbe_display.h
-@@ -81,8 +81,6 @@ struct vpbe_layer {
- 	 * Buffer queue used in video-buf
- 	 */
- 	struct vb2_queue buffer_queue;
--	/* allocator-specific contexts for each plane */
--	struct vb2_alloc_ctx *alloc_ctx;
- 	/* Queue of filled frames */
- 	struct list_head dma_queue;
- 	/* Used in video-buf */
+ struct au0828_input {
 -- 
-2.7.0
+2.5.0
 
