@@ -1,149 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40696 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751376AbcBZNXq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2016 08:23:46 -0500
-Subject: Re: [RFC] Representing hardware connections via MC
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-References: <20160226091317.5a07c374@recife.lan>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D051DC.5070900@xs4all.nl>
-Date: Fri, 26 Feb 2016 14:23:40 +0100
-MIME-Version: 1.0
-In-Reply-To: <20160226091317.5a07c374@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:60974 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751083AbcBMSru (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Feb 2016 13:47:50 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (Postfix) with ESMTPS id 05ED08E258
+	for <linux-media@vger.kernel.org>; Sat, 13 Feb 2016 18:47:50 +0000 (UTC)
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH tvtime 04/17] mute: Enable / disable digital loopback on mute
+Date: Sat, 13 Feb 2016 19:47:25 +0100
+Message-Id: <1455389258-13470-4-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
+References: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/26/2016 01:13 PM, Mauro Carvalho Chehab wrote:
-> We had some discussions on Feb, 12 about how to represent connectors via
-> the Media Controller:
-> 	https://linuxtv.org/irc/irclogger_log/v4l?date=2016-02-12,Fri&sel=31#l27
-> 
-> We tried to finish those discussions on the last two weeks, but people
-> doesn't seem to be available at the same time for the discussions. So,
-> let's proceed with the discussions via e-mail.
-> 
-> So, I'd like to do such discussions via e-mail, as we need to close
-> this question next week.
-> 
-> QUESTION:
-> ========
-> 
-> How to represent the hardware connection for inputs (and outputs) like:
-> 	- Composite TV video;
-> 	- stereo analog audio;
-> 	- S-Video;
-> 	- HDMI
-> 
-> Problem description:
-> ===================
-> 
-> During the MC summit last year, we decided to add an entity called
-> "connector" for such things. So, we added, so far, 3 types of
-> connectors:
-> 
-> #define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
-> #define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
-> #define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-> 
-> However, while implementing it, we saw that the mapping on hardware
-> is actually more complex, as one physical connector may have multiple
-> signals with can eventually used on a different way.
-> 
-> One simple example of this is the S-Video connector. It has internally
-> two video streams, one for chrominance and another one for luminance.
-> 
-> It is very common for vendors to ship devices with a S-Video input
-> and a "S-Video to RCA" cable.
-> 
-> At the driver's level, drivers need to know if such cable is
-> plugged, as they need to configure a different input setting to
-> enable either S-Video or composite decoding.
-> 
-> So, the V4L2 API usually maps "S-Video" on a different input
-> than "Composite over S-Video". This can be seen, for example, at the
-> saa7134 driver, who gained recently support for MC.
-> 
-> Additionally, it is interesting to describe the physical aspects
-> of the connector (color, position, label, etc).
-> 
-> Proposal:
-> ========
-> 
-> It seems that there was an agreement that the physical aspects of
-> the connector should be mapped via the upcoming properties API,
-> with the properties present only when it is possible to find them
-> in the hardware. So, it seems that all such properties should be
-> optional.
-> 
-> However, we didn't finish the meeting, as we ran out of time. Yet,
-> I guess the last proposal there fulfills the requirements. So,
-> let's focus our discussions on it. So, let me formulate it as a
-> proposal
-> 
-> We should represent the entities based on the inputs. So, for the
-> already implemented entities, we'll have, instead:
-> 
-> #define MEDIA_ENT_F_INPUT_RF		(MEDIA_ENT_F_BASE + 10001)
-> #define MEDIA_ENT_F_INPUT_SVIDEO	(MEDIA_ENT_F_BASE + 10002)
-> #define MEDIA_ENT_F_INPUT_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-> 
-> The MEDIA_ENT_F_INPUT_RF and MEDIA_ENT_F_INPUT_COMPOSITE will have
-> just one sink PAD each, as they carry just one signal. As we're
-> describing the logical input, it doesn't matter the physical
-> connector type. So, except for re-naming the define, nothing
-> changes for them.
+This makes muting work properly with the alsa digital loopback.
 
-What if my device has an SVIDEO output (e.g. ivtv)? 'INPUT' denotes
-the direction, and I don't think that's something you want in the
-define for the connector entity.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ src/Makefile.am      |  3 +--
+ src/commands.c       |  2 +-
+ src/mixer.c          | 43 +++++++++++++++++++++++++++++++++++++++++--
+ src/mixer.h          |  6 +++++-
+ src/tvtime-scanner.c |  5 +++++
+ src/tvtime.c         | 18 +++---------------
+ src/videoinput.c     |  6 +++---
+ 7 files changed, 59 insertions(+), 24 deletions(-)
 
-As was discussed on irc we are really talking about signals received
-or transmitted by/from a connector. I still prefer F_SIG_ or F_SIGNAL_
-or F_CONN_SIG_ or something along those lines.
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 4b4612f..bf05b90 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -94,8 +94,7 @@ tvtime_configure_SOURCES = utils.h utils.c tvtimeconf.h tvtimeconf.c \
+ tvtime_configure_CFLAGS = $(OPT_CFLAGS) $(XML2_FLAG) $(AM_CFLAGS)
+ tvtime_configure_LDFLAGS  = $(ZLIB_LIBS) $(XML2_LIBS)
+ tvtime_scanner_SOURCES = utils.h utils.c videoinput.h videoinput.c \
+-	tvtimeconf.h tvtimeconf.c station.h station.c tvtime-scanner.c \
+-	mixer.h mixer.c
++	tvtimeconf.h tvtimeconf.c station.h station.c tvtime-scanner.c
+ tvtime_scanner_CFLAGS = $(OPT_CFLAGS) $(XML2_FLAG) $(ALSA_CFLAGS) $(AM_CFLAGS)
+ tvtime_scanner_LDFLAGS  = $(ZLIB_LIBS) $(XML2_LIBS) $(ALSA_LIBS)
+ 
+diff --git a/src/commands.c b/src/commands.c
+index 841bb5b..586d2c7 100644
+--- a/src/commands.c
++++ b/src/commands.c
+@@ -3021,7 +3021,7 @@ void commands_handle( commands_t *cmd, int tvtime_cmd, const char *arg )
+         break;
+ 
+     case TVTIME_MIXER_TOGGLE_MUTE:
+-        mixer->mute( !mixer->ismute() );
++        mixer_mute( !mixer->ismute() );
+ 
+         if( cmd->osd ) {
+             tvtime_osd_show_data_bar( cmd->osd, _("Volume"), (mixer->get_volume()) & 0xff );
+diff --git a/src/mixer.c b/src/mixer.c
+index 901ef78..06e61a2 100644
+--- a/src/mixer.c
++++ b/src/mixer.c
+@@ -19,7 +19,10 @@
+  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+  */
+ 
++#include <stdio.h>
++#include "alsa_stream.h"
+ #include "mixer.h"
++#include "tvtimeconf.h"
+ 
+ /**
+  * Sets the mixer device and channel.
+@@ -104,14 +107,21 @@ static struct mixer *mixers[] = {
+ /* The actual access method. */
+ struct mixer *mixer = &null_mixer;
+ 
++/* Config settings */
++config_t *mixer_cfg;
++
+ /**
+  * Sets the mixer device and channel.
+  * Try each access method until one succeeds.
+  */
+-void mixer_set_device( const char *devname )
++void mixer_init( config_t *cfg )
+ {
++    const char *devname;
+     int i;
+-    mixer->close_device();
++
++    mixer_cfg = cfg;
++    devname = config_get_mixer_device( mixer_cfg );
++
+     for (i = 0; i < sizeof(mixers)/sizeof(mixers[0]); i++) {
+         mixer = mixers[i];
+         if (!mixer)
+@@ -119,4 +129,33 @@ void mixer_set_device( const char *devname )
+         if (mixer->set_device(devname) == 0)
+             break;
+     }
++
++    /* Always start muted, video_input.c will unmute later */
++    mixer->set_state( 1, config_get_unmute_volume( mixer_cfg ) );
++}
++
++void mixer_exit( void )
++{
++    alsa_thread_stop();
++
++    if( config_get_mute_on_exit( mixer_cfg ) ) {
++        mixer->mute( 1 );
++    }
++
++    mixer->close_device();
++}
++
++void mixer_mute( int mute )
++{
++    if( mute ) {
++        alsa_thread_stop();
++        mixer->mute( 1 );
++    } else {
++        mixer->mute( 0 );
++        alsa_thread_startup( config_get_alsa_outputdev( mixer_cfg ),
++                             config_get_alsa_inputdev( mixer_cfg ),
++                             config_get_alsa_latency( mixer_cfg ),
++                             stderr,
++                             config_get_verbose( mixer_cfg ) );
++    }
+ }
+diff --git a/src/mixer.h b/src/mixer.h
+index a26fc88..9b5365a 100644
+--- a/src/mixer.h
++++ b/src/mixer.h
+@@ -22,6 +22,8 @@
+ #ifndef MIXER_H_INCLUDED
+ #define MIXER_H_INCLUDED
+ 
++#include "tvtimeconf.h"
++
+ #ifdef __cplusplus
+ extern "C" {
+ #endif
+@@ -30,7 +32,9 @@ extern "C" {
+  * Sets the mixer device and channel.
+  * All interfaces are scanned until one succeeds.
+  */
+-void mixer_set_device( const char *devname );
++void mixer_init( config_t *cfg );
++void mixer_exit( void );
++void mixer_mute( int mute );
+ 
+ struct mixer {
+ /**
+diff --git a/src/tvtime-scanner.c b/src/tvtime-scanner.c
+index fbecc7e..fefae00 100644
+--- a/src/tvtime-scanner.c
++++ b/src/tvtime-scanner.c
+@@ -40,6 +40,11 @@
+ #include "station.h"
+ #include "utils.h"
+ 
++/* Dummy mixer_mute for video_input.c */
++void mixer_mute( int mute )
++{
++}
++
+ int main( int argc, char **argv )
+ {
+     config_t *cfg;
+diff --git a/src/tvtime.c b/src/tvtime.c
+index e0c5e62..b6b1017 100644
+--- a/src/tvtime.c
++++ b/src/tvtime.c
+@@ -77,7 +77,6 @@
+ #include "mm_accel.h"
+ #include "menu.h"
+ #include "tvtimeglyphs.h"
+-#include "alsa_stream.h"
+ 
+ /**
+  * This is how many frames to wait until deciding if the pulldown phase
+@@ -1254,12 +1253,6 @@ int tvtime_main( rtctimer_t *rtctimer, int read_stdin, int realtime,
+         return 1;
+     }
+ 
+-    /* Setup the ALSA streaming device */
+-    alsa_thread_startup(config_get_alsa_outputdev( ct ),
+-			config_get_alsa_inputdev( ct ),
+-			config_get_alsa_latency( ct ),
+-			stderr, verbose );
+-
+     /* Setup the speedy calls. */
+     setup_speedy_calls( mm_accel(), verbose );
+ 
+@@ -1426,9 +1419,8 @@ int tvtime_main( rtctimer_t *rtctimer, int read_stdin, int realtime,
+     blit_packed422_scanline( saveframe, blueframe, width * height );
+     secondlastframe = lastframe = blueframe;
+ 
+-    /* Set the mixer device. */
+-    mixer_set_device( config_get_mixer_device( ct ) );
+-    mixer->set_state( config_get_muted( ct ), config_get_unmute_volume( ct ) );
++    /* Init the mixer (and alsa digital loopback) */
++    mixer_init( ct );
+ 
+     /* Setup OSD stuff. */
+     pixel_aspect = ( (double) width ) /
+@@ -2560,10 +2552,6 @@ int tvtime_main( rtctimer_t *rtctimer, int read_stdin, int realtime,
+     snprintf( number, 4, "%d", mixer->ismute() );
+     config_save( ct, "Muted", number );
+ 
+-    if( config_get_mute_on_exit( ct ) ) {
+-        mixer->mute( 1 );
+-    }
+-
+     if( vidin ) {
+         snprintf( number, 4, "%d", videoinput_get_input_num( vidin ) );
+         config_save( ct, "V4LInput", number );
+@@ -2598,7 +2586,7 @@ int tvtime_main( rtctimer_t *rtctimer, int read_stdin, int realtime,
+     if( osd ) {
+         tvtime_osd_delete( osd );
+     }
+-    mixer->close_device();
++    mixer_exit();
+ 
+     /* Free temporary memory. */
+     free( colourbars );
+diff --git a/src/videoinput.c b/src/videoinput.c
+index 9ac97da..e3ad7d1 100644
+--- a/src/videoinput.c
++++ b/src/videoinput.c
+@@ -739,7 +739,7 @@ void videoinput_set_tuner_freq( videoinput_t *vidin, int freqKHz )
+         }
+ 
+         vidin->change_muted = 1;
+-        mixer->mute( 1 );
++        mixer_mute( 1 );
+         videoinput_do_mute( vidin, vidin->user_muted || vidin->change_muted );
+         vidin->cur_tuner_state = TUNER_STATE_SIGNAL_DETECTED;
+         vidin->signal_acquire_wait = SIGNAL_ACQUIRE_DELAY;
+@@ -912,7 +912,7 @@ int videoinput_check_for_signal( videoinput_t *vidin, int check_freq_present )
+             if( vidin->change_muted ) {
+                 vidin->change_muted = 0;
+                 videoinput_do_mute( vidin, vidin->user_muted || vidin->change_muted );
+-                mixer->mute( 0 );
++                mixer_mute( 0 );
+             }
+             break;
+         }
+@@ -923,7 +923,7 @@ int videoinput_check_for_signal( videoinput_t *vidin, int check_freq_present )
+             vidin->cur_tuner_state = TUNER_STATE_SIGNAL_LOST;
+             vidin->signal_recover_wait = SIGNAL_RECOVER_DELAY;
+             vidin->change_muted = 1;
+-            mixer->mute( 1 );
++            mixer_mute( 1 );
+             videoinput_do_mute( vidin, vidin->user_muted || vidin->change_muted );
+         case TUNER_STATE_SIGNAL_LOST:
+             if( vidin->signal_recover_wait ) {
+-- 
+2.5.0
 
-I'm not sure where F_INPUT came from, certainly not from the irc
-discussion.
-
-> Devices with S-Video input will have one MEDIA_ENT_F_INPUT_SVIDEO
-> per each different S-Video input. Each one will have two sink pads,
-> one for the Y signal and another for the C signal.
-> 
-> So, a device like Terratec AV350, that has one Composite and one
-> S-Video input[1] would be represented as:
-> 	https://mchehab.fedorapeople.org/terratec_av350-modified.png
-> 
-> 
-> [1] Physically, it has a SCART connector that could be enabled
-> via a physical switch, but logically, the device will still switch
-> from S-Video over SCART or composite over SCART.
-> 
-> More complex devices would be represented like:
-> 	https://hverkuil.home.xs4all.nl/adv7604.png
-> 	https://hverkuil.home.xs4all.nl/adv7842.png
-> 
-> NOTE:
-> 
-> The labels at the PADs currently can't be represented, but the
-> idea is adding it as a property via the upcoming properties API.
-
-I think this is a separate discussion. It's not needed for now.
-When working on the adv7604/7842 examples I realized that pad names help
-understand the topology a lot better, but they are not needed for the actual
-functionality.
-
-> 
-> Anyone disagree?
-
-I agree except for the naming.
-
-Regards,
-
-	Hans
