@@ -1,88 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58124 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753750AbcBEP2d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2016 10:28:33 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hansverk@cisco.com>,
-	Kamil Debski <kamil@wypas.org>
-Subject: [PATCHv11 11/17] v4l2-subdev: add HDMI CEC ops
-Date: Fri,  5 Feb 2016 16:27:54 +0100
-Message-Id: <1454686080-39018-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
-References: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:55617 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751083AbcBMSrw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Feb 2016 13:47:52 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (Postfix) with ESMTPS id 1BF91804E0
+	for <linux-media@vger.kernel.org>; Sat, 13 Feb 2016 18:47:52 +0000 (UTC)
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH tvtime 05/17] mute: Always keep the videodev and mixer mute in sync
+Date: Sat, 13 Feb 2016 19:47:26 +0100
+Message-Id: <1455389258-13470-5-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
+References: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This fixes the "m" hotkey for mute not working on cards where there
+is no mute on the videodev, and fixes the last setting for mute not
+being properly restored on the next run.
 
-Add CEC callbacks to the new v4l2_subdev_cec_ops struct. These are the
-low-level CEC ops that subdevs that support CEC have to implement.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
-Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- include/media/v4l2-subdev.h | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ src/commands.c       |  9 +--------
+ src/tvtime-scanner.c |  5 +----
+ src/tvtime.c         | 11 ++++-------
+ src/videoinput.c     | 32 +++++++++++++++++++++-----------
+ src/videoinput.h     |  4 ++--
+ 5 files changed, 29 insertions(+), 32 deletions(-)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index b273cf9..8504d4c 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -42,6 +42,17 @@
+diff --git a/src/commands.c b/src/commands.c
+index 586d2c7..9ed6b44 100644
+--- a/src/commands.c
++++ b/src/commands.c
+@@ -3020,14 +3020,6 @@ void commands_handle( commands_t *cmd, int tvtime_cmd, const char *arg )
+         }
+         break;
  
- #define	V4L2_DEVICE_NOTIFY_EVENT		_IOW('v', 2, struct v4l2_event)
+-    case TVTIME_MIXER_TOGGLE_MUTE:
+-        mixer_mute( !mixer->ismute() );
+-
+-        if( cmd->osd ) {
+-            tvtime_osd_show_data_bar( cmd->osd, _("Volume"), (mixer->get_volume()) & 0xff );
+-        }
+-        break;
+-
+     case TVTIME_MIXER_UP:
  
-+struct v4l2_subdev_cec_tx_done {
-+	u8 status;
-+	u8 arb_lost_cnt;
-+	u8 nack_cnt;
-+	u8 error_cnt;
-+};
+         /* If the user increases the volume, drop us out of mute mode. */
+@@ -3050,6 +3042,7 @@ void commands_handle( commands_t *cmd, int tvtime_cmd, const char *arg )
+         }
+         break;
+ 
++    case TVTIME_MIXER_TOGGLE_MUTE:
+     case TVTIME_TOGGLE_MUTE:
+         if( cmd->vidin ) {
+             videoinput_mute( cmd->vidin, !videoinput_get_muted( cmd->vidin ) );
+diff --git a/src/tvtime-scanner.c b/src/tvtime-scanner.c
+index fefae00..371d668 100644
+--- a/src/tvtime-scanner.c
++++ b/src/tvtime-scanner.c
+@@ -105,10 +105,7 @@ int main( int argc, char **argv )
+         return 1;
+     }
+ 
+-    vidin = videoinput_new( config_get_v4l_device( cfg ), 
+-                            config_get_inputwidth( cfg ), 
+-                            config_get_audio_boost( cfg ), 
+-                            norm, verbose, error_string );
++    vidin = videoinput_new( cfg, norm, verbose, error_string );
+     if( !vidin ) {
+         station_delete( stationmgr );
+         config_delete( cfg );
+diff --git a/src/tvtime.c b/src/tvtime.c
+index b6b1017..afc8940 100644
+--- a/src/tvtime.c
++++ b/src/tvtime.c
+@@ -1321,10 +1321,7 @@ int tvtime_main( rtctimer_t *rtctimer, int read_stdin, int realtime,
+     /* Default to a width specified on the command line. */
+     width = config_get_inputwidth( ct );
+ 
+-    vidin = videoinput_new( config_get_v4l_device( ct ), 
+-                            config_get_inputwidth( ct ), 
+-                            config_get_audio_boost( ct ), 
+-                            norm, verbose, error_string2 );
++    vidin = videoinput_new( ct, norm, verbose, error_string2 );
+     if( !vidin ) {
+         if( asprintf( &error_string,
+                       _("Cannot open capture device %s."),
+@@ -2549,10 +2546,10 @@ int tvtime_main( rtctimer_t *rtctimer, int read_stdin, int realtime,
+     snprintf( number, 6, "%d", mixer->get_unmute_volume() );
+     config_save( ct, "UnmuteVolume", number );
+ 
+-    snprintf( number, 4, "%d", mixer->ismute() );
+-    config_save( ct, "Muted", number );
+-
+     if( vidin ) {
++        snprintf( number, 4, "%d", videoinput_get_muted( vidin ) );
++        config_save( ct, "Muted", number );
 +
-+#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 3, struct v4l2_subdev_cec_tx_done)
-+#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 4, struct cec_msg)
-+#define V4L2_SUBDEV_CEC_CONN_INPUTS		_IOW('v', 5, u16)
+         snprintf( number, 4, "%d", videoinput_get_input_num( vidin ) );
+         config_save( ct, "V4LInput", number );
+ 
+diff --git a/src/videoinput.c b/src/videoinput.c
+index e3ad7d1..0af6ab7 100644
+--- a/src/videoinput.c
++++ b/src/videoinput.c
+@@ -312,14 +312,19 @@ int videoinput_buffer_invalid( videoinput_t *vidin, int frameid )
+     return vidin->capbuffers[ frameid ].free;
+ }
+ 
+-videoinput_t *videoinput_new( const char *v4l_device, int capwidth,
+-                              int volume, int norm, int verbose, char *error_string )
++videoinput_t *videoinput_new( config_t *cfg, int norm, int verbose,
++                              char *error_string )
+ {
+     videoinput_t *vidin = malloc( sizeof( videoinput_t ) );
+     struct v4l2_capability caps_v4l2;
+     struct v4l2_input in;
+     int i;
+ 
++    const char *v4l_device = config_get_v4l_device( cfg );
++    int capwidth = config_get_inputwidth( cfg );
++    int volume = config_get_audio_boost( cfg );
++    int user_muted = config_get_muted( cfg );
 +
- struct v4l2_device;
- struct v4l2_ctrl_handler;
- struct v4l2_event;
-@@ -51,6 +62,7 @@ struct v4l2_subdev;
- struct v4l2_subdev_fh;
- struct tuner_setup;
- struct v4l2_mbus_frame_desc;
-+struct cec_msg;
+     if( capwidth & 1 ) {
+         capwidth -= 1;
+         if( verbose ) {
+@@ -355,7 +360,7 @@ videoinput_t *videoinput_new( const char *v4l_device, int capwidth,
+     vidin->signal_recover_wait = 0;
+     vidin->signal_acquire_wait = 0;
+     vidin->change_muted = 1;
+-    vidin->user_muted = 0;
++    vidin->user_muted = user_muted;
+     vidin->hw_muted = 1;
+     vidin->hasaudio = 1;
+     vidin->audiomode = 0;
+@@ -698,8 +703,13 @@ void videoinput_set_saturation_relative( videoinput_t *vidin, int offset )
+     }
+ }
  
- /* decode_vbi_line */
- struct v4l2_decode_vbi_line {
-@@ -642,6 +654,14 @@ struct v4l2_subdev_pad_ops {
- 			      struct v4l2_mbus_frame_desc *fd);
- };
- 
-+struct v4l2_subdev_cec_ops {
-+	unsigned (*adap_available_log_addrs)(struct v4l2_subdev *sd);
-+	int (*adap_enable)(struct v4l2_subdev *sd, bool enable);
-+	int (*adap_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
-+	int (*adap_transmit)(struct v4l2_subdev *sd, u8 *retries,
-+			     u32 signal_free_time_ms, struct cec_msg *msg);
-+};
+-static void videoinput_do_mute( videoinput_t *vidin, int mute )
++static void videoinput_do_mute( videoinput_t *vidin )
+ {
++    int mute = vidin->user_muted || vidin->change_muted;
 +
- struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_core_ops	*core;
- 	const struct v4l2_subdev_tuner_ops	*tuner;
-@@ -651,6 +671,7 @@ struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_ir_ops		*ir;
- 	const struct v4l2_subdev_sensor_ops	*sensor;
- 	const struct v4l2_subdev_pad_ops	*pad;
-+	const struct v4l2_subdev_cec_ops	*cec;
- };
++    if( mute )
++        mixer_mute( 1 );
++
+     if( vidin->hasaudio && mute != vidin->hw_muted ) {
+ 	struct v4l2_control control;
  
- /*
+@@ -717,6 +727,9 @@ static void videoinput_do_mute( videoinput_t *vidin, int mute )
+ 	}
+         vidin->hw_muted = mute;
+     }
++
++    if( !mute )
++        mixer_mute( 0 );
+ }
+ 
+ /* freqKHz is in KHz (duh) */
+@@ -739,8 +752,7 @@ void videoinput_set_tuner_freq( videoinput_t *vidin, int freqKHz )
+         }
+ 
+         vidin->change_muted = 1;
+-        mixer_mute( 1 );
+-        videoinput_do_mute( vidin, vidin->user_muted || vidin->change_muted );
++        videoinput_do_mute( vidin );
+         vidin->cur_tuner_state = TUNER_STATE_SIGNAL_DETECTED;
+         vidin->signal_acquire_wait = SIGNAL_ACQUIRE_DELAY;
+         vidin->signal_recover_wait = 0;
+@@ -911,8 +923,7 @@ int videoinput_check_for_signal( videoinput_t *vidin, int check_freq_present )
+         default:
+             if( vidin->change_muted ) {
+                 vidin->change_muted = 0;
+-                videoinput_do_mute( vidin, vidin->user_muted || vidin->change_muted );
+-                mixer_mute( 0 );
++                videoinput_do_mute( vidin );
+             }
+             break;
+         }
+@@ -923,8 +934,7 @@ int videoinput_check_for_signal( videoinput_t *vidin, int check_freq_present )
+             vidin->cur_tuner_state = TUNER_STATE_SIGNAL_LOST;
+             vidin->signal_recover_wait = SIGNAL_RECOVER_DELAY;
+             vidin->change_muted = 1;
+-            mixer_mute( 1 );
+-            videoinput_do_mute( vidin, vidin->user_muted || vidin->change_muted );
++            videoinput_do_mute( vidin );
+         case TUNER_STATE_SIGNAL_LOST:
+             if( vidin->signal_recover_wait ) {
+                 vidin->signal_recover_wait--;
+@@ -960,7 +970,7 @@ void videoinput_switch_pal_secam( videoinput_t *vidin, int norm )
+ void videoinput_mute( videoinput_t *vidin, int mute )
+ {
+     vidin->user_muted = mute;
+-    videoinput_do_mute( vidin, vidin->user_muted || vidin->change_muted );
++    videoinput_do_mute( vidin );
+ }
+ 
+ int videoinput_get_muted( videoinput_t *vidin )
+diff --git a/src/videoinput.h b/src/videoinput.h
+index 7187deb..808896d 100644
+--- a/src/videoinput.h
++++ b/src/videoinput.h
+@@ -24,6 +24,7 @@
+ #else
+ # include <stdint.h>
+ #endif
++#include "tvtimeconf.h"
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -108,8 +109,7 @@ const char *videoinput_get_audio_mode_name( videoinput_t *vidin, int mode );
+  * The verbose flag indicates we should print to stderr when things go
+  * bad, and maybe for some helpful information messages.
+  */
+-videoinput_t *videoinput_new( const char *v4l_device, int capwidth,
+-                              int volume, int norm, int verbose,
++videoinput_t *videoinput_new( config_t *cfg, int norm, int verbose,
+                               char *error_string );
+ 
+ /**
 -- 
-2.7.0
+2.5.0
 
