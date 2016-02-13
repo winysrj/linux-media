@@ -1,769 +1,432 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:45097 "EHLO lists.s-osg.org"
+Received: from mx1.redhat.com ([209.132.183.28]:60970 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754817AbcBZTeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2016 14:34:00 -0500
-Subject: Re: [PATCH v3 22/22] sound/usb: Use Media Controller API to share
- media resources
-To: mchehab@osg.samsung.com, tiwai@suse.com
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
- <0822f80e0acc5119e6f6deccf002ccadeb3b145b.1455233156.git.shuahkh@osg.samsung.com>
-Cc: clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
-	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56D0A8A3.4090600@osg.samsung.com>
-Date: Fri, 26 Feb 2016 12:33:55 -0700
-MIME-Version: 1.0
-In-Reply-To: <0822f80e0acc5119e6f6deccf002ccadeb3b145b.1455233156.git.shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	id S1750970AbcBMSrn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Feb 2016 13:47:43 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (Postfix) with ESMTPS id BEDE691D10
+	for <linux-media@vger.kernel.org>; Sat, 13 Feb 2016 18:47:43 +0000 (UTC)
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH tvtime 01/17] alsa_stream: Sync with xawtv3 version
+Date: Sat, 13 Feb 2016 19:47:22 +0100
+Message-Id: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/11/2016 04:41 PM, Shuah Khan wrote:
-> Change ALSA driver to use Media Controller API to
-> share media resources with DVB and V4L2 drivers
-> on a AU0828 media device. Media Controller specific
-> initialization is done after sound card is registered.
-> ALSA creates Media interface and entity function graph
-> nodes for Control, Mixer, PCM Playback, and PCM Capture
-> devices.
-> 
-> snd_usb_hw_params() will call Media Controller enable
-> source handler interface to request the media resource.
-> If resource request is granted, it will release it from
-> snd_usb_hw_free(). If resource is busy, -EBUSY is returned.
-> 
-> Media specific cleanup is done in usb_audio_disconnect().
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+The xawtv3 copy of alsa_stream.c has several improvements / bug fixes,
+sync these into tvtime.
 
-Hi Takashi,
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ src/alsa_stream.c | 199 +++++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 136 insertions(+), 63 deletions(-)
 
-Hope you are okay with this version. I addressed all
-your comments. Could you please Ack it or let me know
-if there is something I still need to address.
-
-thanks,
--- Shuah
-
-> ---
->  sound/usb/Kconfig        |   4 +
->  sound/usb/Makefile       |   2 +
->  sound/usb/card.c         |  14 +++
->  sound/usb/card.h         |   3 +
->  sound/usb/media.c        | 318 +++++++++++++++++++++++++++++++++++++++++++++++
->  sound/usb/media.h        |  72 +++++++++++
->  sound/usb/mixer.h        |   3 +
->  sound/usb/pcm.c          |  28 ++++-
->  sound/usb/quirks-table.h |   1 +
->  sound/usb/stream.c       |   2 +
->  sound/usb/usbaudio.h     |   6 +
->  11 files changed, 448 insertions(+), 5 deletions(-)
->  create mode 100644 sound/usb/media.c
->  create mode 100644 sound/usb/media.h
-> 
-> diff --git a/sound/usb/Kconfig b/sound/usb/Kconfig
-> index a452ad7..ba117f5 100644
-> --- a/sound/usb/Kconfig
-> +++ b/sound/usb/Kconfig
-> @@ -15,6 +15,7 @@ config SND_USB_AUDIO
->  	select SND_RAWMIDI
->  	select SND_PCM
->  	select BITREVERSE
-> +	select SND_USB_AUDIO_USE_MEDIA_CONTROLLER if MEDIA_CONTROLLER && MEDIA_SUPPORT
->  	help
->  	  Say Y here to include support for USB audio and USB MIDI
->  	  devices.
-> @@ -22,6 +23,9 @@ config SND_USB_AUDIO
->  	  To compile this driver as a module, choose M here: the module
->  	  will be called snd-usb-audio.
->  
-> +config SND_USB_AUDIO_USE_MEDIA_CONTROLLER
-> +	bool
-> +
->  config SND_USB_UA101
->  	tristate "Edirol UA-101/UA-1000 driver"
->  	select SND_PCM
-> diff --git a/sound/usb/Makefile b/sound/usb/Makefile
-> index 2d2d122..8dca3c4 100644
-> --- a/sound/usb/Makefile
-> +++ b/sound/usb/Makefile
-> @@ -15,6 +15,8 @@ snd-usb-audio-objs := 	card.o \
->  			quirks.o \
->  			stream.o
->  
-> +snd-usb-audio-$(CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER) += media.o
-> +
->  snd-usbmidi-lib-objs := midi.o
->  
->  # Toplevel Module Dependency
-> diff --git a/sound/usb/card.c b/sound/usb/card.c
-> index 1f09d95..35fe256 100644
-> --- a/sound/usb/card.c
-> +++ b/sound/usb/card.c
-> @@ -66,6 +66,7 @@
->  #include "format.h"
->  #include "power.h"
->  #include "stream.h"
-> +#include "media.h"
->  
->  MODULE_AUTHOR("Takashi Iwai <tiwai@suse.de>");
->  MODULE_DESCRIPTION("USB Audio");
-> @@ -561,6 +562,11 @@ static int usb_audio_probe(struct usb_interface *intf,
->  	if (err < 0)
->  		goto __error;
->  
-> +	if (quirk->media_device) {
-> +		/* don't want to fail when media_device_create() fails */
-> +		media_device_create(chip, intf);
-> +	}
-> +
->  	usb_chip[chip->index] = chip;
->  	chip->num_interfaces++;
->  	usb_set_intfdata(intf, chip);
-> @@ -617,6 +623,14 @@ static void usb_audio_disconnect(struct usb_interface *intf)
->  		list_for_each(p, &chip->midi_list) {
->  			snd_usbmidi_disconnect(p);
->  		}
-> +		/*
-> +		 * Nice to check quirk && quirk->media_device
-> +		 * need some special handlings. Doesn't look like
-> +		 * we have access to quirk here
-> +		 * Acceses mixer_list
-> +		*/
-> +		media_device_delete(chip);
-> +
->  		/* release mixer resources */
->  		list_for_each_entry(mixer, &chip->mixer_list, list) {
->  			snd_usb_mixer_disconnect(mixer);
-> diff --git a/sound/usb/card.h b/sound/usb/card.h
-> index 71778ca..34a0898 100644
-> --- a/sound/usb/card.h
-> +++ b/sound/usb/card.h
-> @@ -105,6 +105,8 @@ struct snd_usb_endpoint {
->  	struct list_head list;
->  };
->  
-> +struct media_ctl;
-> +
->  struct snd_usb_substream {
->  	struct snd_usb_stream *stream;
->  	struct usb_device *dev;
-> @@ -156,6 +158,7 @@ struct snd_usb_substream {
->  	} dsd_dop;
->  
->  	bool trigger_tstamp_pending_update; /* trigger timestamp being updated from initial estimate */
-> +	struct media_ctl *media_ctl;
->  };
->  
->  struct snd_usb_stream {
-> diff --git a/sound/usb/media.c b/sound/usb/media.c
-> new file mode 100644
-> index 0000000..cff1459
-> --- /dev/null
-> +++ b/sound/usb/media.c
-> @@ -0,0 +1,318 @@
-> +/*
-> + * media.c - Media Controller specific ALSA driver code
-> + *
-> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-> + *
-> + * This file is released under the GPLv2.
-> + */
-> +
-> +/*
-> + * This file adds Media Controller support to ALSA driver
-> + * to use the Media Controller API to share tuner with DVB
-> + * and V4L2 drivers that control media device. Media device
-> + * is created based on existing quirks framework. Using this
-> + * approach, the media controller API usage can be added for
-> + * a specific device.
-> +*/
-> +
-> +#include <linux/init.h>
-> +#include <linux/list.h>
-> +#include <linux/mutex.h>
-> +#include <linux/slab.h>
-> +#include <linux/usb.h>
-> +
-> +#include <sound/pcm.h>
-> +#include <sound/core.h>
-> +
-> +#include "usbaudio.h"
-> +#include "card.h"
-> +#include "mixer.h"
-> +#include "media.h"
-> +
-> +static int media_enable_source(struct media_ctl *mctl)
-> +{
-> +	if (mctl && mctl->media_dev->enable_source)
-> +		return mctl->media_dev->enable_source(&mctl->media_entity,
-> +						      &mctl->media_pipe);
-> +	return 0;
-> +}
-> +
-> +static void media_disable_source(struct media_ctl *mctl)
-> +{
-> +	if (mctl && mctl->media_dev->disable_source)
-> +		mctl->media_dev->disable_source(&mctl->media_entity);
-> +}
-> +
-> +int media_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
-> +			int stream)
-> +{
-> +	struct media_device *mdev;
-> +	struct media_ctl *mctl;
-> +	struct device *pcm_dev = &pcm->streams[stream].dev;
-> +	u32 intf_type;
-> +	int ret = 0;
-> +	u16 mixer_pad;
-> +	struct media_entity *entity;
-> +
-> +	mdev = subs->stream->chip->media_dev;
-> +	if (!mdev)
-> +		return -ENODEV;
-> +
-> +	if (subs->media_ctl)
-> +		return 0;
-> +
-> +	/* allocate media_ctl */
-> +	mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
-> +	if (!mctl)
-> +		return -ENOMEM;
-> +
-> +	mctl->media_dev = mdev;
-> +	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
-> +		intf_type = MEDIA_INTF_T_ALSA_PCM_PLAYBACK;
-> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_PLAYBACK;
-> +		mctl->media_pad.flags = MEDIA_PAD_FL_SOURCE;
-> +		mixer_pad = 1;
-> +	} else {
-> +		intf_type = MEDIA_INTF_T_ALSA_PCM_CAPTURE;
-> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_CAPTURE;
-> +		mctl->media_pad.flags = MEDIA_PAD_FL_SINK;
-> +		mixer_pad = 2;
-> +	}
-> +	mctl->media_entity.name = pcm->name;
-> +	media_entity_pads_init(&mctl->media_entity, 1, &mctl->media_pad);
-> +	ret =  media_device_register_entity(mctl->media_dev,
-> +					    &mctl->media_entity);
-> +	if (ret)
-> +		goto err1;
-> +
-> +	mctl->intf_devnode = media_devnode_create(mdev, intf_type, 0,
-> +						  MAJOR(pcm_dev->devt),
-> +						  MINOR(pcm_dev->devt));
-> +	if (!mctl->intf_devnode) {
-> +		ret = -ENOMEM;
-> +		goto err2;
-> +	}
-> +	mctl->intf_link = media_create_intf_link(&mctl->media_entity,
-> +						 &mctl->intf_devnode->intf,
-> +						 MEDIA_LNK_FL_ENABLED);
-> +	if (!mctl->intf_link) {
-> +		ret = -ENOMEM;
-> +		goto err3;
-> +	}
-> +
-> +	/* create link between mixer and audio */
-> +	media_device_for_each_entity(entity, mdev) {
-> +		switch (entity->function) {
-> +		case MEDIA_ENT_F_AUDIO_MIXER:
-> +			ret = media_create_pad_link(entity, mixer_pad,
-> +						    &mctl->media_entity, 0,
-> +						    MEDIA_LNK_FL_ENABLED);
-> +			if (ret)
-> +				goto err4;
-> +			break;
-> +		}
-> +	}
-> +
-> +	subs->media_ctl = mctl;
-> +	return 0;
-> +
-> +err4:
-> +	media_remove_intf_link(mctl->intf_link);
-> +err3:
-> +	media_devnode_remove(mctl->intf_devnode);
-> +err2:
-> +	media_device_unregister_entity(&mctl->media_entity);
-> +err1:
-> +	kfree(mctl);
-> +	return ret;
-> +}
-> +
-> +void media_stream_delete(struct snd_usb_substream *subs)
-> +{
-> +	struct media_ctl *mctl = subs->media_ctl;
-> +
-> +	if (mctl && mctl->media_dev) {
-> +		struct media_device *mdev;
-> +
-> +		mdev = subs->stream->chip->media_dev;
-> +		if (mdev && media_devnode_is_registered(&mdev->devnode)) {
-> +			media_devnode_remove(mctl->intf_devnode);
-> +			media_device_unregister_entity(&mctl->media_entity);
-> +			media_entity_cleanup(&mctl->media_entity);
-> +		}
-> +		kfree(mctl);
-> +		subs->media_ctl = NULL;
-> +	}
-> +}
-> +
-> +int media_start_pipeline(struct snd_usb_substream *subs)
-> +{
-> +	struct media_ctl *mctl = subs->media_ctl;
-> +
-> +	if (mctl)
-> +		return media_enable_source(mctl);
-> +	return 0;
-> +}
-> +
-> +void media_stop_pipeline(struct snd_usb_substream *subs)
-> +{
-> +	struct media_ctl *mctl = subs->media_ctl;
-> +
-> +	if (mctl)
-> +		media_disable_source(mctl);
-> +}
-> +
-> +int media_mixer_init(struct snd_usb_audio *chip)
-> +{
-> +	struct device *ctl_dev = &chip->card->ctl_dev;
-> +	struct media_intf_devnode *ctl_intf;
-> +	struct usb_mixer_interface *mixer;
-> +	struct media_device *mdev = chip->media_dev;
-> +	struct media_mixer_ctl *mctl;
-> +	u32 intf_type = MEDIA_INTF_T_ALSA_CONTROL;
-> +	int ret;
-> +
-> +	if (!mdev)
-> +		return -ENODEV;
-> +
-> +	ctl_intf = chip->ctl_intf_media_devnode;
-> +	if (!ctl_intf) {
-> +		ctl_intf = media_devnode_create(mdev, intf_type, 0,
-> +						MAJOR(ctl_dev->devt),
-> +						MINOR(ctl_dev->devt));
-> +		if (!ctl_intf)
-> +			return -ENOMEM;
-> +		chip->ctl_intf_media_devnode = ctl_intf;
-> +	}
-> +
-> +	list_for_each_entry(mixer, &chip->mixer_list, list) {
-> +
-> +		if (mixer->media_mixer_ctl)
-> +			continue;
-> +
-> +		/* allocate media_mixer_ctl */
-> +		mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
-> +		if (!mctl)
-> +			return -ENOMEM;
-> +
-> +		mctl->media_dev = mdev;
-> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_MIXER;
-> +		mctl->media_entity.name = chip->card->mixername;
-> +		mctl->media_pad[0].flags = MEDIA_PAD_FL_SINK;
-> +		mctl->media_pad[1].flags = MEDIA_PAD_FL_SOURCE;
-> +		mctl->media_pad[2].flags = MEDIA_PAD_FL_SOURCE;
-> +		media_entity_pads_init(&mctl->media_entity, MEDIA_MIXER_PAD_MAX,
-> +				  mctl->media_pad);
-> +		ret =  media_device_register_entity(mctl->media_dev,
-> +						    &mctl->media_entity);
-> +		if (ret) {
-> +			kfree(mctl);
-> +			return ret;
-> +		}
-> +
-> +		mctl->intf_link = media_create_intf_link(&mctl->media_entity,
-> +							 &ctl_intf->intf,
-> +							 MEDIA_LNK_FL_ENABLED);
-> +		if (!mctl->intf_link) {
-> +			media_device_unregister_entity(&mctl->media_entity);
-> +			media_entity_cleanup(&mctl->media_entity);
-> +			kfree(mctl);
-> +			return -ENOMEM;
-> +		}
-> +		mctl->intf_devnode = ctl_intf;
-> +		mixer->media_mixer_ctl = mctl;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static void media_mixer_delete(struct snd_usb_audio *chip)
-> +{
-> +	struct usb_mixer_interface *mixer;
-> +	struct media_device *mdev = chip->media_dev;
-> +
-> +	if (!mdev)
-> +		return;
-> +
-> +	list_for_each_entry(mixer, &chip->mixer_list, list) {
-> +		struct media_mixer_ctl *mctl;
-> +
-> +		mctl = mixer->media_mixer_ctl;
-> +		if (!mixer->media_mixer_ctl)
-> +			continue;
-> +
-> +		if (media_devnode_is_registered(&mdev->devnode)) {
-> +			media_device_unregister_entity(&mctl->media_entity);
-> +			media_entity_cleanup(&mctl->media_entity);
-> +		}
-> +		kfree(mctl);
-> +		mixer->media_mixer_ctl = NULL;
-> +	}
-> +	if (media_devnode_is_registered(&mdev->devnode))
-> +		media_devnode_remove(chip->ctl_intf_media_devnode);
-> +	chip->ctl_intf_media_devnode = NULL;
-> +}
-> +
-> +int media_device_create(struct snd_usb_audio *chip,
-> +			struct usb_interface *iface)
-> +{
-> +	struct media_device *mdev;
-> +	struct usb_device *usbdev = interface_to_usbdev(iface);
-> +	int ret;
-> +
-> +	mdev = media_device_get_devres(&usbdev->dev);
-> +	if (!mdev)
-> +		return -ENOMEM;
-> +	if (!mdev->dev) {
-> +		/* register media device */
-> +		mdev->dev = &usbdev->dev;
-> +		if (usbdev->product)
-> +			strlcpy(mdev->model, usbdev->product,
-> +				sizeof(mdev->model));
-> +		if (usbdev->serial)
-> +			strlcpy(mdev->serial, usbdev->serial,
-> +				sizeof(mdev->serial));
-> +		strcpy(mdev->bus_info, usbdev->devpath);
-> +		mdev->hw_revision = le16_to_cpu(usbdev->descriptor.bcdDevice);
-> +		media_device_init(mdev);
-> +	}
-> +	if (!media_devnode_is_registered(&mdev->devnode)) {
-> +		ret = media_device_register(mdev);
-> +		if (ret) {
-> +			dev_err(&usbdev->dev,
-> +				"Couldn't register media device. Error: %d\n",
-> +				ret);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	/* save media device - avoid lookups */
-> +	chip->media_dev = mdev;
-> +
-> +	/* Create media entities for mixer and control dev */
-> +	ret = media_mixer_init(chip);
-> +	if (ret) {
-> +		dev_err(&usbdev->dev,
-> +			"Couldn't create media mixer entities. Error: %d\n",
-> +			ret);
-> +
-> +		/* clear saved media_dev */
-> +		chip->media_dev = NULL;
-> +
-> +		return ret;
-> +	}
-> +	return 0;
-> +}
-> +
-> +void media_device_delete(struct snd_usb_audio *chip)
-> +{
-> +	struct media_device *mdev = chip->media_dev;
-> +
-> +	media_mixer_delete(chip);
-> +
-> +	if (mdev) {
-> +		if (media_devnode_is_registered(&mdev->devnode))
-> +			media_device_unregister(mdev);
-> +		chip->media_dev = NULL;
-> +	}
-> +}
-> diff --git a/sound/usb/media.h b/sound/usb/media.h
-> new file mode 100644
-> index 0000000..f66b4d7
-> --- /dev/null
-> +++ b/sound/usb/media.h
-> @@ -0,0 +1,72 @@
-> +/*
-> + * media.h - Media Controller specific ALSA driver code
-> + *
-> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-> + *
-> + * This file is released under the GPLv2.
-> + */
-> +
-> +/*
-> + * This file adds Media Controller support to ALSA driver
-> + * to use the Media Controller API to share tuner with DVB
-> + * and V4L2 drivers that control media device. Media device
-> + * is created based on existing quirks framework. Using this
-> + * approach, the media controller API usage can be added for
-> + * a specific device.
-> +*/
-> +#ifndef __MEDIA_H
-> +
-> +#ifdef CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER
-> +
-> +#include <media/media-device.h>
-> +#include <media/media-entity.h>
-> +#include <sound/asound.h>
-> +
-> +struct media_ctl {
-> +	struct media_device *media_dev;
-> +	struct media_entity media_entity;
-> +	struct media_intf_devnode *intf_devnode;
-> +	struct media_link *intf_link;
-> +	struct media_pad media_pad;
-> +	struct media_pipeline media_pipe;
-> +};
-> +
-> +/*
-> + * One source pad each for SNDRV_PCM_STREAM_CAPTURE and
-> + * SNDRV_PCM_STREAM_PLAYBACK. One for sink pad to link
-> + * to AUDIO Source
-> +*/
-> +#define MEDIA_MIXER_PAD_MAX    (SNDRV_PCM_STREAM_LAST + 2)
-> +
-> +struct media_mixer_ctl {
-> +	struct media_device *media_dev;
-> +	struct media_entity media_entity;
-> +	struct media_intf_devnode *intf_devnode;
-> +	struct media_link *intf_link;
-> +	struct media_pad media_pad[MEDIA_MIXER_PAD_MAX];
-> +	struct media_pipeline media_pipe;
-> +};
-> +
-> +int media_device_create(struct snd_usb_audio *chip,
-> +			struct usb_interface *iface);
-> +void media_device_delete(struct snd_usb_audio *chip);
-> +int media_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
-> +			int stream);
-> +void media_stream_delete(struct snd_usb_substream *subs);
-> +int media_start_pipeline(struct snd_usb_substream *subs);
-> +void media_stop_pipeline(struct snd_usb_substream *subs);
-> +#else
-> +static inline int media_device_create(struct snd_usb_audio *chip,
-> +				      struct usb_interface *iface)
-> +						{ return 0; }
-> +static inline void media_device_delete(struct snd_usb_audio *chip) { }
-> +static inline int media_stream_init(struct snd_usb_substream *subs,
-> +					struct snd_pcm *pcm, int stream)
-> +						{ return 0; }
-> +static inline void media_stream_delete(struct snd_usb_substream *subs) { }
-> +static inline int media_start_pipeline(struct snd_usb_substream *subs)
-> +					{ return 0; }
-> +static inline void media_stop_pipeline(struct snd_usb_substream *subs) { }
-> +#endif
-> +#endif /* __MEDIA_H */
-> diff --git a/sound/usb/mixer.h b/sound/usb/mixer.h
-> index 3417ef3..f378944 100644
-> --- a/sound/usb/mixer.h
-> +++ b/sound/usb/mixer.h
-> @@ -3,6 +3,8 @@
->  
->  #include <sound/info.h>
->  
-> +struct media_mixer_ctl;
-> +
->  struct usb_mixer_interface {
->  	struct snd_usb_audio *chip;
->  	struct usb_host_interface *hostif;
-> @@ -22,6 +24,7 @@ struct usb_mixer_interface {
->  	struct urb *rc_urb;
->  	struct usb_ctrlrequest *rc_setup_packet;
->  	u8 rc_buffer[6];
-> +	struct media_mixer_ctl *media_mixer_ctl;
->  };
->  
->  #define MAX_CHANNELS	16	/* max logical channels */
-> diff --git a/sound/usb/pcm.c b/sound/usb/pcm.c
-> index 9245f52..c3b8486 100644
-> --- a/sound/usb/pcm.c
-> +++ b/sound/usb/pcm.c
-> @@ -35,6 +35,7 @@
->  #include "pcm.h"
->  #include "clock.h"
->  #include "power.h"
-> +#include "media.h"
->  
->  #define SUBSTREAM_FLAG_DATA_EP_STARTED	0
->  #define SUBSTREAM_FLAG_SYNC_EP_STARTED	1
-> @@ -715,10 +716,14 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
->  	struct audioformat *fmt;
->  	int ret;
->  
-> +	ret = media_start_pipeline(subs);
-> +	if (ret)
-> +		return ret;
-> +
->  	ret = snd_pcm_lib_alloc_vmalloc_buffer(substream,
->  					       params_buffer_bytes(hw_params));
->  	if (ret < 0)
-> -		return ret;
-> +		goto err_ret;
->  
->  	subs->pcm_format = params_format(hw_params);
->  	subs->period_bytes = params_period_bytes(hw_params);
-> @@ -732,22 +737,27 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
->  		dev_dbg(&subs->dev->dev,
->  			"cannot set format: format = %#x, rate = %d, channels = %d\n",
->  			   subs->pcm_format, subs->cur_rate, subs->channels);
-> -		return -EINVAL;
-> +		ret = -EINVAL;
-> +		goto err_ret;
->  	}
->  
->  	ret = snd_usb_lock_shutdown(subs->stream->chip);
->  	if (ret < 0)
-> -		return ret;
-> +		goto err_ret;
->  	ret = set_format(subs, fmt);
->  	snd_usb_unlock_shutdown(subs->stream->chip);
->  	if (ret < 0)
-> -		return ret;
-> +		goto err_ret;
->  
->  	subs->interface = fmt->iface;
->  	subs->altset_idx = fmt->altset_idx;
->  	subs->need_setup_ep = true;
->  
->  	return 0;
-> +
-> +err_ret:
-> +	media_stop_pipeline(subs);
-> +	return ret;
->  }
->  
->  /*
-> @@ -759,6 +769,7 @@ static int snd_usb_hw_free(struct snd_pcm_substream *substream)
->  {
->  	struct snd_usb_substream *subs = substream->runtime->private_data;
->  
-> +	media_stop_pipeline(subs);
->  	subs->cur_audiofmt = NULL;
->  	subs->cur_rate = 0;
->  	subs->period_bytes = 0;
-> @@ -1219,6 +1230,7 @@ static int snd_usb_pcm_open(struct snd_pcm_substream *substream, int direction)
->  	struct snd_usb_stream *as = snd_pcm_substream_chip(substream);
->  	struct snd_pcm_runtime *runtime = substream->runtime;
->  	struct snd_usb_substream *subs = &as->substream[direction];
-> +	int ret;
->  
->  	subs->interface = -1;
->  	subs->altset_idx = 0;
-> @@ -1232,7 +1244,12 @@ static int snd_usb_pcm_open(struct snd_pcm_substream *substream, int direction)
->  	subs->dsd_dop.channel = 0;
->  	subs->dsd_dop.marker = 1;
->  
-> -	return setup_hw_info(runtime, subs);
-> +	ret = setup_hw_info(runtime, subs);
-> +	if (ret == 0)
-> +		ret = media_stream_init(subs, as->pcm, direction);
-> +	if (ret)
-> +		snd_usb_autosuspend(subs->stream->chip);
-> +	return ret;
->  }
->  
->  static int snd_usb_pcm_close(struct snd_pcm_substream *substream, int direction)
-> @@ -1241,6 +1258,7 @@ static int snd_usb_pcm_close(struct snd_pcm_substream *substream, int direction)
->  	struct snd_usb_substream *subs = &as->substream[direction];
->  
->  	stop_endpoints(subs, true);
-> +	media_stop_pipeline(subs);
->  
->  	if (subs->interface >= 0 &&
->  	    !snd_usb_lock_shutdown(subs->stream->chip)) {
-> diff --git a/sound/usb/quirks-table.h b/sound/usb/quirks-table.h
-> index c60a776..9d087b1 100644
-> --- a/sound/usb/quirks-table.h
-> +++ b/sound/usb/quirks-table.h
-> @@ -2886,6 +2886,7 @@ YAMAHA_DEVICE(0x7010, "UB99"),
->  		.product_name = pname, \
->  		.ifnum = QUIRK_ANY_INTERFACE, \
->  		.type = QUIRK_AUDIO_ALIGN_TRANSFER, \
-> +		.media_device = 1, \
->  	} \
->  }
->  
-> diff --git a/sound/usb/stream.c b/sound/usb/stream.c
-> index c4dc577..6c7f5c1 100644
-> --- a/sound/usb/stream.c
-> +++ b/sound/usb/stream.c
-> @@ -36,6 +36,7 @@
->  #include "format.h"
->  #include "clock.h"
->  #include "stream.h"
-> +#include "media.h"
->  
->  /*
->   * free a substream
-> @@ -52,6 +53,7 @@ static void free_substream(struct snd_usb_substream *subs)
->  		kfree(fp);
->  	}
->  	kfree(subs->rate_list.list);
-> +	media_stream_delete(subs);
->  }
->  
->  
-> diff --git a/sound/usb/usbaudio.h b/sound/usb/usbaudio.h
-> index b665d85..a161c7c 100644
-> --- a/sound/usb/usbaudio.h
-> +++ b/sound/usb/usbaudio.h
-> @@ -30,6 +30,9 @@
->   *
->   */
->  
-> +struct media_device;
-> +struct media_intf_devnode;
-> +
->  struct snd_usb_audio {
->  	int index;
->  	struct usb_device *dev;
-> @@ -60,6 +63,8 @@ struct snd_usb_audio {
->  	bool autoclock;			/* from the 'autoclock' module param */
->  
->  	struct usb_host_interface *ctrl_intf;	/* the audio control interface */
-> +	struct media_device *media_dev;
-> +	struct media_intf_devnode *ctl_intf_media_devnode;
->  };
->  
->  #define usb_audio_err(chip, fmt, args...) \
-> @@ -110,6 +115,7 @@ struct snd_usb_audio_quirk {
->  	const char *product_name;
->  	int16_t ifnum;
->  	uint16_t type;
-> +	bool media_device;
->  	const void *data;
->  };
->  
-> 
-
-
+diff --git a/src/alsa_stream.c b/src/alsa_stream.c
+index 99cea05..509787a 100644
+--- a/src/alsa_stream.c
++++ b/src/alsa_stream.c
+@@ -1,8 +1,9 @@
+ /*
+- *  tvtime ALSA device support
++ *  ALSA streaming support
+  *
+- *  Copyright (c) by Devin Heitmueller <dheitmueller@kernellabs.com>
+- * 
++ *  Originally written by:
++ *      Copyright (c) by Devin Heitmueller <dheitmueller@kernellabs.com>
++ *	for usage at tvtime
+  *  Derived from the alsa-driver test tool latency.c:
+  *    Copyright (c) by Jaroslav Kysela <perex@perex.cz>
+  *
+@@ -25,6 +26,8 @@
+  *
+  */
+ 
++#include "config.h"
++
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -37,8 +40,9 @@
+ #include <math.h>
+ #include "alsa_stream.h"
+ 
++#define ARRAY_SIZE(a) (sizeof(a)/sizeof(*(a)))
++
+ /* Private vars to control alsa thread status */
+-static int alsa_is_running = 0;
+ static int stop_alsa = 0;
+ 
+ /* Error handlers */
+@@ -56,7 +60,7 @@ struct final_params {
+ static int setparams_stream(snd_pcm_t *handle,
+ 			    snd_pcm_hw_params_t *params,
+ 			    snd_pcm_format_t format,
+-			    int channels,
++			    int *channels,
+ 			    const char *id)
+ {
+     int err;
+@@ -83,10 +87,16 @@ static int setparams_stream(snd_pcm_t *handle,
+ 	       snd_strerror(err));
+ 	return err;
+     }
+-    err = snd_pcm_hw_params_set_channels(handle, params, channels);
++
++retry:
++    err = snd_pcm_hw_params_set_channels(handle, params, *channels);
+     if (err < 0) {
++	if (strcmp(id, "capture") == 0 && *channels == 2) {
++	    *channels = 1;
++	    goto retry; /* Retry with mono capture */
++	}
+ 	fprintf(error_fp, "alsa: Channels count (%i) not available for %s: %s\n",
+-		channels, id, snd_strerror(err));
++		*channels, id, snd_strerror(err));
+ 	return err;
+     }
+ 
+@@ -97,9 +107,10 @@ static void getparams_periods(snd_pcm_t *handle,
+ 		      snd_pcm_hw_params_t *params,
+ 		      unsigned int *usecs,
+ 		      unsigned int *count,
+-		      const char *id)
++		      int allow_adjust, const char *id)
+ {
+     unsigned min = 0, max = 0;
++    unsigned desired = *usecs * *count;
+ 
+     snd_pcm_hw_params_get_periods_min(params, &min, 0);
+     snd_pcm_hw_params_get_periods_max(params, &max, 0);
+@@ -125,6 +136,13 @@ static void getparams_periods(snd_pcm_t *handle,
+ 	if (*usecs > max)
+ 	    *usecs = max;
+     }
++
++    /* If we deviate from the desired size by more then 20% adjust count */
++    if (allow_adjust && (((*usecs * *count) < (desired *  8 / 10)) ||
++                         ((*usecs * *count) > (desired * 12 / 10)))) {
++        *count = (desired + *usecs / 2) / *usecs;
++        getparams_periods(handle, params, usecs, count, 0, id);
++    }
+ }
+ 
+ static int setparams_periods(snd_pcm_t *handle,
+@@ -199,6 +217,33 @@ static int setparams_set(snd_pcm_t *handle,
+     return 0;
+ }
+ 
++static int alsa_try_rate(snd_pcm_t *phandle, snd_pcm_t *chandle,
++                        snd_pcm_hw_params_t *p_hwparams,
++                        snd_pcm_hw_params_t *c_hwparams,
++                        int allow_resample, unsigned *ratep, unsigned *ratec)
++{
++    int err;
++
++    err = snd_pcm_hw_params_set_rate_near(chandle, c_hwparams, ratec, 0);
++    if (err)
++        return err;
++
++    *ratep = *ratec;
++    err = snd_pcm_hw_params_set_rate_near(phandle, p_hwparams, ratep, 0);
++    if (err)
++        return err;
++
++    if (*ratep == *ratec)
++        return 0;
++
++    if (verbose)
++        fprintf(error_fp,
++                "alsa_try_rate: capture wanted %u, playback wanted %u%s\n",
++                *ratec, *ratep, allow_resample ? " with resample enabled": "");
++
++    return 1; /* No error, but also no match */
++}
++
+ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
+ 		     snd_pcm_format_t format,
+ 		     int latency, int allow_resample,
+@@ -214,16 +259,17 @@ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
+     /* Our latency is 2 periods (in usecs) */
+     unsigned int c_periods = 2, p_periods;
+     unsigned int c_periodtime, p_periodtime;
++    const unsigned int prefered_rates[] = { 44100, 48000, 32000 };
+ 
+     snd_pcm_hw_params_alloca(&p_hwparams);
+     snd_pcm_hw_params_alloca(&c_hwparams);
+     snd_pcm_sw_params_alloca(&p_swparams);
+     snd_pcm_sw_params_alloca(&c_swparams);
+ 
+-    if (setparams_stream(phandle, p_hwparams, format, channels, "playback"))
++    if (setparams_stream(chandle, c_hwparams, format, &channels, "capture"))
+ 	return 1;
+ 
+-    if (setparams_stream(chandle, c_hwparams, format, channels, "capture"))
++    if (setparams_stream(phandle, p_hwparams, format, &channels, "playback"))
+ 	return 1;
+ 
+     if (allow_resample) {
+@@ -258,25 +304,40 @@ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
+     }
+ 
+     if (verbose)
+-	fprintf(error_fp, "alsa: Will search a common rate between %u and %u\n",
++	fprintf(error_fp,
++	        "alsa: Will search a common rate between %u and %u\n",
+ 		ratemin, ratemax);
+ 
+-    for (i = ratemax; i <= ratemin; i -= 100) {
+-	err = snd_pcm_hw_params_set_rate_near(chandle, c_hwparams, &i, 0);
+-	if (err)
+-	    continue;
+-	ratec = i;
+-	ratep = i;
+-	err = snd_pcm_hw_params_set_rate_near(phandle, p_hwparams, &ratep, 0);
+-	if (err)
+-	    continue;
+-	if (ratep == ratec)
+-	    break;
+-	if (verbose)
+-	    fprintf(error_fp,
+-		    "alsa: Failed to set to %u: capture wanted %u, playback wanted %u%s\n",
+-		    i, ratec, ratep,
+-		    allow_resample ? " with resample enabled": "");
++    /* First try a set of common rates */
++    err = -1;
++    for (i = 0; i < ARRAY_SIZE(prefered_rates); i++) {
++        if (prefered_rates[i] < ratemin || prefered_rates[i] > ratemax)
++            continue;
++        ratep = ratec = prefered_rates[i];
++        err = alsa_try_rate(phandle, chandle, p_hwparams, c_hwparams,
++                            allow_resample, &ratep, &ratec);
++        if (err == 0)
++            break;
++    }
++
++    if (err != 0) {
++        if (ratemin >= 44100) {
++            for (i = ratemin; i <= ratemax; i += 100) {
++                ratep = ratec = i;
++                err = alsa_try_rate(phandle, chandle, p_hwparams, c_hwparams,
++                                    allow_resample, &ratep, &ratec);
++                if (err == 0)
++                    break;
++            }
++        } else {
++            for (i = ratemax; i >= ratemin; i -= 100) {
++                ratep = ratec = i;
++                err = alsa_try_rate(phandle, chandle, p_hwparams, c_hwparams,
++                                    allow_resample, &ratep, &ratec);
++                if (err == 0)
++                    break;
++            }
++        }
+     }
+ 
+     if (err < 0) {
+@@ -293,15 +354,19 @@ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
+     if (verbose)
+ 	fprintf(error_fp, "alsa: Using Rate %d\n", ratec);
+ 
+-    /* Negociate period parameters */
++    /* Negotiate period parameters */
+ 
+     c_periodtime = latency * 1000 / c_periods;
+-    getparams_periods(chandle, c_hwparams, &c_periodtime, &c_periods, "capture");
++    getparams_periods(chandle, c_hwparams, &c_periodtime, &c_periods, 1, "capture");
+     p_periods = c_periods * 2;
+     p_periodtime = c_periodtime;
+-    getparams_periods(phandle, p_hwparams, &p_periodtime, &p_periods, "playback");
++    getparams_periods(phandle, p_hwparams, &p_periodtime, &p_periods, 0, "playback");
+     c_periods = p_periods / 2;
+ 
++    if (verbose)
++	fprintf(error_fp, "alsa: Capture %u periods of %u usecs, Playback %u periods of %u usecs\n",
++		c_periods, c_periodtime, p_periods, p_periodtime);
++
+     /*
+      * Some playback devices support a very limited periodtime range. If the user needs to
+      * use a higher latency to avoid overrun/underrun, use an alternate algorithm of incresing
+@@ -310,10 +375,10 @@ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
+     if (p_periodtime < c_periodtime) {
+ 	c_periodtime = p_periodtime;
+ 	c_periods = round (latency * 1000.0 / c_periodtime + 0.5);
+-	getparams_periods(chandle, c_hwparams, &c_periodtime, &c_periods, "capture");
++	getparams_periods(chandle, c_hwparams, &c_periodtime, &c_periods, 0, "capture");
+ 	p_periods = c_periods * 2;
+ 	p_periodtime = c_periodtime;
+-	getparams_periods(phandle, p_hwparams, &p_periodtime, &p_periods, "playback");
++	getparams_periods(phandle, p_hwparams, &p_periodtime, &p_periods, 0, "playback");
+ 	c_periods = p_periods / 2;
+     }
+ 
+@@ -427,6 +492,7 @@ static int alsa_stream(const char *pdevice, const char *cdevice, int latency)
+ 			    SND_PCM_NONBLOCK)) < 0) {
+ 	fprintf(error_fp, "alsa: Cannot open capture device %s: %s\n",
+ 		cdevice, snd_strerror(err));
++	snd_pcm_close(phandle);
+ 	return 0;
+     }
+ 
+@@ -445,6 +511,8 @@ static int alsa_stream(const char *pdevice, const char *cdevice, int latency)
+ 				0)) < 0) {
+ 	    fprintf(error_fp, "alsa: Cannot open playback device %s: %s\n",
+ 		    pdevice, snd_strerror(err));
++	    snd_pcm_close(chandle);
++	    return 0;
+ 	}
+ 
+ 	err = setparams(phandle, chandle, format, latency, 1, &negotiated);
+@@ -452,6 +520,8 @@ static int alsa_stream(const char *pdevice, const char *cdevice, int latency)
+ 
+     if (err != 0) {
+ 	fprintf(error_fp, "alsa: setparams failed\n");
++	snd_pcm_close(phandle);
++	snd_pcm_close(chandle);
+ 	return 1;
+     }
+ 
+@@ -459,20 +529,17 @@ static int alsa_stream(const char *pdevice, const char *cdevice, int latency)
+ 		    * negotiated.channels);
+     if (buffer == NULL) {
+ 	fprintf(error_fp, "alsa: Failed allocating buffer for audio\n");
++	snd_pcm_close(phandle);
++	snd_pcm_close(chandle);
+ 	return 0;
+     }
+ 
+-    /*
+-     * Buffering delay is due for capture and for playback, so we
+-     * need to multiply it by two.
+-     */
+-    fprintf(error_fp,
++    if (verbose)
++        fprintf(error_fp,
+ 	    "alsa: stream started from %s to %s (%i Hz, buffer delay = %.2f ms)\n",
+ 	    cdevice, pdevice, negotiated.rate,
+ 	    negotiated.latency * 1000.0 / negotiated.rate);
+ 
+-    alsa_is_running = 1;
+-
+     while (!stop_alsa) {
+ 	/* We start with a read and not a wait to auto(re)start the capture */
+ 	r = readbuf(chandle, buffer, negotiated.bufsize);
+@@ -481,12 +548,12 @@ static int alsa_stream(const char *pdevice, const char *cdevice, int latency)
+ 	if (r > 0)
+ 	    writebuf(phandle, buffer, r);
+ 	/* use poll to wait for next event */
+-	snd_pcm_wait(chandle, 1000);
++	while (!stop_alsa && !snd_pcm_wait(chandle, 50))
++	    ;
+     }
+ 
+     snd_pcm_drop(chandle);
+-    snd_pcm_nonblock(phandle, 0);
+-    snd_pcm_drain(phandle);
++    snd_pcm_drop(phandle);
+ 
+     snd_pcm_unlink(chandle);
+     snd_pcm_hw_free(phandle);
+@@ -495,7 +562,6 @@ static int alsa_stream(const char *pdevice, const char *cdevice, int latency)
+     snd_pcm_close(phandle);
+     snd_pcm_close(chandle);
+ 
+-    alsa_is_running = 0;
+     return 0;
+ }
+ 
+@@ -513,7 +579,8 @@ static void *alsa_thread_entry(void *whatever)
+ 	fprintf(error_fp, "alsa: starting copying alsa stream from %s to %s\n",
+ 		inputs->cdevice, inputs->pdevice);
+     alsa_stream(inputs->pdevice, inputs->cdevice, inputs->latency);
+-    fprintf(error_fp, "alsa: stream stopped\n");
++    if (verbose)
++        fprintf(error_fp, "alsa: stream stopped\n");
+ 
+     free(inputs->pdevice);
+     free(inputs->cdevice);
+@@ -526,12 +593,18 @@ static void *alsa_thread_entry(void *whatever)
+  Public functions
+  *************************************************************************/
+ 
++static int alsa_is_running = 0;
++static pthread_t alsa_thread;
++
+ int alsa_thread_startup(const char *pdevice, const char *cdevice, int latency,
+ 			FILE *__error_fp, int __verbose)
+ {
+     int ret;
+-    pthread_t thread;
+-    struct input_params *inputs = malloc(sizeof(struct input_params));
++    struct input_params *inputs;
++
++    if ((strcasecmp(pdevice, "disabled") == 0) ||
++	(strcasecmp(cdevice, "disabled") == 0))
++	return 0;
+ 
+     if (__error_fp)
+ 	error_fp = __error_fp;
+@@ -540,41 +613,41 @@ int alsa_thread_startup(const char *pdevice, const char *cdevice, int latency,
+ 
+     verbose = __verbose;
+ 
++    if (alsa_is_running) {
++        fprintf(error_fp, "alsa: Already running\n");
++        return EBUSY;
++    }
+ 
++    inputs = malloc(sizeof(struct input_params));
+     if (inputs == NULL) {
+ 	fprintf(error_fp, "alsa: failed allocating memory for inputs\n");
+-	return 0;
+-    }
+-
+-    if ((strcasecmp(pdevice, "disabled") == 0) ||
+-	(strcasecmp(cdevice, "disabled") == 0)) {
+-	free(inputs);
+-	return 0;
++	return ENOMEM;
+     }
+ 
+     inputs->pdevice = strdup(pdevice);
+     inputs->cdevice = strdup(cdevice);
+     inputs->latency = latency;
+ 
+-    if (alsa_is_running) {
+-       stop_alsa = 1;
+-       while ((volatile int)alsa_is_running)
+-	       usleep(10);
+-    }
+-
+     stop_alsa = 0;
+-
+-    ret = pthread_create(&thread, NULL,
++    ret = pthread_create(&alsa_thread, NULL,
+ 			 &alsa_thread_entry, (void *) inputs);
++    if (ret == 0)
++        alsa_is_running = 1;
++
+     return ret;
+ }
+ 
+ void alsa_thread_stop(void)
+ {
+-	stop_alsa = 1;
++    if (!alsa_is_running)
++        return;
++
++    stop_alsa = 1;
++    pthread_join(alsa_thread, NULL);
++    alsa_is_running = 0;
+ }
+ 
+ int alsa_thread_is_running(void)
+ {
+-	return alsa_is_running;
++    return alsa_is_running;
+ }
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.5.0
+
