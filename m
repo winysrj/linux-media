@@ -1,71 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out.selfhost.de ([82.98.82.95]:58038 "EHLO outgoing.selfhost.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752928AbcBWO2E convert rfc822-to-8bit (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:51692 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752371AbcBMBj6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 09:28:04 -0500
-Date: Tue, 23 Feb 2016 15:21:22 +0100
-From: Hendrik Oenings <debian@oenings.de>
-To: Hendrik Grewe <lists@b4ckbone.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Problems with TV card "TeVii S472"
-Message-ID: <20160223152122.67e87cd7@spock>
-In-Reply-To: <loom.20160206T214500-421@post.gmane.org>
-References: <1449844281.21939.5.camel@oenings.de>
-	<loom.20160206T214500-421@post.gmane.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 12 Feb 2016 20:39:58 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH] selftests: add a new test for Media Controller API
+Date: Fri, 12 Feb 2016 18:39:54 -0700
+Message-Id: <1455327594-8498-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Sat, 6 Feb 2016 20:50:00 +0000 (UTC)
-schrieb Hendrik Grewe <lists@b4ckbone.de>:
+This test opens user specified Media Device and calls
+MEDIA_IOC_DEVICE_INFO ioctl in a loop once every 10
+seconds. This test is for detecting errors in device
+removal path.
 
-> Hendrik Oenings <debian <at> oenings.de> writes:
-> 
-> > 
-> > Hi all,
-> > 
-> > I've got a DVB-S2 PCI-Express tv card ("Tevii
-> > S472", http://tevii.com/P roducts_S472_1.asp) with Debian testing,
-> > but I'm not able to get it work.  
-> 
-> 
-> Any news on this? YOu got it to work?
-> 
-> 
-> I have a very similar problem with a Tevii S470 [1](not) running on
-> Ubuntu 15.10 with 4.2 or 4.3 kernels.
-> 
-> The DVB-S card worked without problem with ubuntu 14.04 but now it is
-> not even listed by lspci ...
-> 
-> 
-> [1]
-> RF Tuner: Montage M88TS2020
-> Demodulator: Montage M88DS3000
-> PCIe bridge: Conexant cx23885
-> 
->  https://www.linuxtv.org/wiki/index.php/TeVii_S470N_____r__y____b_X____v_^_)__{.n_+____{___bj)____w*jg__________j/___z_____2_______&_)___a_____G___h__j:+v___w____
+Usage:
+    sudo ./media_devkref_test -d /dev/mediaX
 
-Sorry for answering that late, I hadn't seen your answer.
+While test is running, remove the device and
+ensure there are no use after free errors and
+other Oops in the dmesg. Enable KaSan kernel
+config option for use-after-free error detection.
 
-I've tried several drivers and several distris, but either the
-compilation fails because of the kernel version, or the kernel is
-crashing when loading the driver, so I'm still not able to use my tv
-card :(. Actually I'm using a 4.3er kernel with Debian unstable.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ tools/testing/selftests/media_tests/.gitignore     |  1 +
+ tools/testing/selftests/media_tests/Makefile       |  7 ++
+ .../selftests/media_tests/media_device_test.c      | 94 ++++++++++++++++++++++
+ 3 files changed, 102 insertions(+)
+ create mode 100644 tools/testing/selftests/media_tests/.gitignore
+ create mode 100644 tools/testing/selftests/media_tests/Makefile
+ create mode 100644 tools/testing/selftests/media_tests/media_device_test.c
 
-I'll write to TeVii again, maybe they'll offer me a solution.
+diff --git a/tools/testing/selftests/media_tests/.gitignore b/tools/testing/selftests/media_tests/.gitignore
+new file mode 100644
+index 0000000..1c07117
+--- /dev/null
++++ b/tools/testing/selftests/media_tests/.gitignore
+@@ -0,0 +1 @@
++media_device_test
+diff --git a/tools/testing/selftests/media_tests/Makefile b/tools/testing/selftests/media_tests/Makefile
+new file mode 100644
+index 0000000..7071bcc
+--- /dev/null
++++ b/tools/testing/selftests/media_tests/Makefile
+@@ -0,0 +1,7 @@
++TEST_PROGS := media_device_test
++all: $(TEST_PROGS)
++
++include ../lib.mk
++
++clean:
++	rm -fr media_device_test
+diff --git a/tools/testing/selftests/media_tests/media_device_test.c b/tools/testing/selftests/media_tests/media_device_test.c
+new file mode 100644
+index 0000000..a47880b
+--- /dev/null
++++ b/tools/testing/selftests/media_tests/media_device_test.c
+@@ -0,0 +1,94 @@
++/*
++ * media_devkref_test.c - Media Controller Device Kref API Test
++ *
++ * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
++ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
++ *
++ * This file is released under the GPLv2.
++ */
++
++/*
++ * This file adds a test for Media Controller API.
++ * This test should be run as root and should not be
++ * included in the Kselftest run. This test should be
++ * run when hardware and driver that makes use Media
++ * Controller API are present in the system.
++ *
++ * This test opens user specified Media Device and calls
++ * MEDIA_IOC_DEVICE_INFO ioctl in a loop once every 10
++ * seconds.
++ *
++ * Usage:
++ *	sudo ./media_devkref_test -d /dev/mediaX
++ *
++ *	While test is running, remove the device and
++ *	ensure there are no use after free errors and
++ *	other Oops in the dmesg. Enable KaSan kernel
++ *	config option for use-after-free error detection.
++*/
++
++#include <stdio.h>
++#include <unistd.h>
++#include <stdlib.h>
++#include <errno.h>
++#include <string.h>
++#include <fcntl.h>
++#include <sys/ioctl.h>
++#include <sys/stat.h>
++#include <linux/media.h>
++
++int main(int argc, char **argv)
++{
++	int opt;
++	char media_device[256];
++	int count = 0;
++	struct media_device_info mdi;
++	int ret;
++	int fd;
++
++	if (argc < 2) {
++		printf("Usage: %s [-d </dev/mediaX>]\n", argv[0]);
++		exit(-1);
++	}
++
++	/* Process arguments */
++	while ((opt = getopt(argc, argv, "d:")) != -1) {
++		switch (opt) {
++		case 'd':
++			strncpy(media_device, optarg, sizeof(media_device) - 1);
++			media_device[sizeof(media_device)-1] = '\0';
++			break;
++		default:
++			printf("Usage: %s [-d </dev/mediaX>]\n", argv[0]);
++			exit(-1);
++		}
++	}
++
++	if (getuid() != 0) {
++		printf("Please run the test as root - Exiting.\n");
++		exit(-1);
++	}
++
++	/* Open Media device and keep it open */
++	fd = open(media_device, O_RDWR);
++	if (fd == -1) {
++		printf("Media Device open errno %s\n", strerror(errno));
++		exit(-1);
++	}
++
++	printf("\nNote:\n"
++	       "While test is running, remove the device and\n"
++	       "ensure there are no use after free errors and\n"
++	       "other Oops in the dmesg. Enable KaSan kernel\n"
++	       "config option for use-after-free error detection.\n\n");
++
++	while (count < 100) {
++		ret = ioctl(fd, MEDIA_IOC_DEVICE_INFO, &mdi);
++		if (ret < 0)
++			printf("Media Device Info errno %s\n", strerror(errno));
++		printf("Media device model %s driver %s\n",
++			mdi.model, mdi.driver);
++		sleep(10);
++		count++;
++	}
++}
+-- 
+2.5.0
 
-I think I forgot writing the result of $ lspci, here is it:
-$ lspci
-...
-03:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI
-Video and Audio Decoder (rev 04)
-...
-
-If anyone has an idea how to get it work, I'm still interested in a
-solution.
-
-Regards, Hendrik
