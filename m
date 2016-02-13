@@ -1,105 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:61330 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932779AbcBCRJA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2016 12:09:00 -0500
-Date: Wed, 3 Feb 2016 18:08:52 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Aviv Greenberg <avivgr@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/2] UVC: Add support for R200 depth camera.
-In-Reply-To: <Pine.LNX.4.64.1602031251210.16491@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1602031259160.16491@axis700.grange>
-References: <Pine.LNX.4.64.1602031251210.16491@axis700.grange>
+Received: from mail-io0-f182.google.com ([209.85.223.182]:36412 "EHLO
+	mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750926AbcBMIjg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Feb 2016 03:39:36 -0500
+Received: by mail-io0-f182.google.com with SMTP id l127so114037505iof.3
+        for <linux-media@vger.kernel.org>; Sat, 13 Feb 2016 00:39:36 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <6737272.LXr2g355Yt@wuerfel>
+References: <1455287246-3540549-1-git-send-email-arnd@arndb.de>
+	<2712691.b9gkR7KMX7@wuerfel>
+	<alpine.LFD.2.20.1602121305180.13632@knanqh.ubzr>
+	<6737272.LXr2g355Yt@wuerfel>
+Date: Sat, 13 Feb 2016 09:39:35 +0100
+Message-ID: <CAKv+Gu8dFz28tGgQTv+WYAvKpeiFXaj8JANUFtOJwKPRsB8F5A@mail.gmail.com>
+Subject: Re: [PATCH] [media] zl10353: use div_u64 instead of do_div
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Nicolas Pitre <nicolas.pitre@linaro.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	linux-media@vger.kernel.org,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Aviv Greenberg <avivgr@gmail.com>
+On 12 February 2016 at 22:01, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Friday 12 February 2016 13:21:33 Nicolas Pitre wrote:
+>> On Fri, 12 Feb 2016, Arnd Bergmann wrote:
+>>
+>> > On Friday 12 February 2016 14:32:20 Mauro Carvalho Chehab wrote:
+>> > > Em Fri, 12 Feb 2016 15:27:18 +0100
+>> > > Arnd Bergmann <arnd@arndb.de> escreveu:
+>> > >
+>> > > > I noticed a build error in some randconfig builds in the zl10353 driver:
+>> > > >
+>> > > > dvb-frontends/zl10353.c:138: undefined reference to `____ilog2_NaN'
+>> > > > dvb-frontends/zl10353.c:138: undefined reference to `__aeabi_uldivmod'
+>> > > >
+>> > > > The problem can be tracked down to the use of -fprofile-arcs (using
+>> > > > CONFIG_GCOV_PROFILE_ALL) in combination with CONFIG_PROFILE_ALL_BRANCHES
+>> > > > on gcc version 4.9 or higher, when it fails to reliably optimize
+>> > > > constant expressions.
+>> > > >
+>> > > > Using div_u64() instead of do_div() makes the code slightly more
+>> > > > readable by both humans and by gcc, which gives the compiler enough
+>> > > > of a break to figure it all out.
+>> > >
+>> > > I'm not against this patch, but we have 94 occurrences of do_div()
+>> > > just at the media subsystem. If this is failing here, it would likely
+>> > > fail with other drivers. So, I guess we should either fix do_div() or
+>> > > convert all such occurrences to do_div64().
+>> >
+>> > I agree that it's possible that the same problem exists elsewhere, but this is
+>> > the only one that I ever saw (in five ranconfig builds out of 8035 last week).
+>> >
+>> > I also tried changing do_div() to be an inline function with just a small
+>> > macro wrapper around it for the odd calling conventions, which also made this
+>> > error go away. I would assume that Nico had a good reason for doing do_div()
+>> > the way he did.
+>>
+>> The do_div() calling convention predates my work on it.  I assume it was
+>> originally done this way to better map onto the x86 instruction.
+>
+> Right, this goes back to the dawn of time.
+>
+>> > In some other files, I saw the object code grow by a few
+>> > instructions, but the examples I looked at were otherwise identical.
+>> >
+>> > I can imagine that there might be cases where the constant-argument optimization
+>> > of do_div fails when we go through an inline function in some combination
+>> > of Kconfig options and compiler version, though I don't think that was
+>> > the case here.
+>>
+>> What could be tried is to turn __div64_const32() into a static inline
+>> and see if that makes a difference with those gcc versions we currently
+>> accept.
+>>
+>> > Nico, any other thoughts on this?
+>>
+>> This is all related to the gcc bug for which I produced a test case
+>> here:
+>>
+>> http://article.gmane.org/gmane.linux.kernel.cross-arch/29801
+>>
+>> Do you know if this is fixed in recent gcc?
+>
+> I have a fairly recent gcc, but I also never got around to submit
+> it properly.
+>
+> However, I did stumble over an older patch I did now, which I could
+> not remember what it was good for. It does fix the problem, and
+> it seems to be a better solution.
+>
+>         Arnd
+>
+> diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+> index b5acbb404854..b5ff9881bef8 100644
+> --- a/include/linux/compiler.h
+> +++ b/include/linux/compiler.h
+> @@ -148,7 +148,7 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
+>   */
+>  #define if(cond, ...) __trace_if( (cond , ## __VA_ARGS__) )
+>  #define __trace_if(cond) \
+> -       if (__builtin_constant_p((cond)) ? !!(cond) :                   \
+> +       if (__builtin_constant_p(!!(cond)) ? !!(cond) :                 \
+>         ({                                                              \
+>                 int ______r;                                            \
+>                 static struct ftrace_branch_data                        \
+>
 
-Add support for Intel R200 depth camera in uvc driver.
-This includes adding new uvc GUIDs for the new pixel formats,
-adding new V4L pixel format definition to user api headers,
-and updating the uvc driver GUID-to-4cc tables with the new formats.
-
-Tested-by: Greenberg, Aviv D <aviv.d.greenberg@intel.com>
-Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
- drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
- include/uapi/linux/videodev2.h     |  3 +++
- 3 files changed, 35 insertions(+)
-
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 4b5b3e8..bcbb6cf 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -147,6 +147,26 @@ static struct uvc_format_desc uvc_fmts[] = {
- 		.guid		= UVC_GUID_FORMAT_H264,
- 		.fcc		= V4L2_PIX_FMT_H264,
- 	},
-+	{
-+		.name		= "Greyscale 8 L/R (Y8I)",
-+		.guid		= UVC_GUID_FORMAT_Y8I,
-+		.fcc		= V4L2_PIX_FMT_Y8I,
-+	},
-+	{
-+		.name		= "Greyscale 12 L/R (Y12I)",
-+		.guid		= UVC_GUID_FORMAT_Y12I,
-+		.fcc		= V4L2_PIX_FMT_Y12I,
-+	},
-+	{
-+		.name		= "Depth data 16-bit (Z16)",
-+		.guid		= UVC_GUID_FORMAT_Z16,
-+		.fcc		= V4L2_PIX_FMT_Z16,
-+	},
-+	{
-+		.name		= "Bayer 10-bit (SRGGB10P)",
-+		.guid		= UVC_GUID_FORMAT_RW10,
-+		.fcc		= V4L2_PIX_FMT_SRGGB10P,
-+	},
- };
- 
- /* ------------------------------------------------------------------------
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 816dd1a..b38bb2e 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -119,6 +119,18 @@
- #define UVC_GUID_FORMAT_H264 \
- 	{ 'H',  '2',  '6',  '4', 0x00, 0x00, 0x10, 0x00, \
- 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_Y8I \
-+	{ 'Y',  '8',  'I',  ' ', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_Y12I \
-+	{ 'Y',  '1',  '2',  'I', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_Z16 \
-+	{ 'Z',  '1',  '6',  ' ', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_RW10 \
-+	{ 'R',  'W',  '1',  '0', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
- 
- /* ------------------------------------------------------------------------
-  * Driver specific constants.
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 3228fbe..14274c1 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -606,6 +606,9 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_JPGL	v4l2_fourcc('J', 'P', 'G', 'L') /* JPEG-Lite */
- #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
- #define V4L2_PIX_FMT_S5C_UYVY_JPG v4l2_fourcc('S', '5', 'C', 'I') /* S5C73M3 interleaved UYVY/JPEG */
-+#define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
-+#define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
-+#define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
- 
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+I remember seeing this patch, but I don't remember the exact context.
+But when you think about it, !!cond can be a build time constant even
+if cond is not, as long as you can prove statically that cond != 0. So
+I think this change is obviously correct, and an improvement since it
+will remove the profiling overhead of branches that are not true
+branches in the first place.
