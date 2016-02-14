@@ -1,103 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34841 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751747AbcBLJqb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 04:46:31 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 08/11] [media] cx231xx: use v4l2 core function to create the MC graph
-Date: Fri, 12 Feb 2016 07:45:03 -0200
-Message-Id: <b4a6cd80d5561da2c87677815dd1e0001ca8a8a4.1455269986.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1455269986.git.mchehab@osg.samsung.com>
-References: <cover.1455269986.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1455269986.git.mchehab@osg.samsung.com>
-References: <cover.1455269986.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mx1.redhat.com ([209.132.183.28]:52062 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751410AbcBNNBQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Feb 2016 08:01:16 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (Postfix) with ESMTPS id 1EEDC8E24E
+	for <linux-media@vger.kernel.org>; Sun, 14 Feb 2016 13:01:16 +0000 (UTC)
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH tvtime 2/2] Remove redhat packaging files
+Date: Sun, 14 Feb 2016 14:01:08 +0100
+Message-Id: <1455454868-28512-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1455454868-28512-1-git-send-email-hdegoede@redhat.com>
+References: <1455454868-28512-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of having its own routine, use the one defined at the
-core, as it is generic enough to handle the cx231xx usecases.
+These are no longer used by the Red Hat / Fedora pkgs.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-cards.c | 47 +------------------------------
- 1 file changed, 1 insertion(+), 46 deletions(-)
+ redhat/custom-tvtime.desktop |  8 ----
+ redhat/tvtime-0.9.6.spec     | 36 ------------------
+ redhat/tvtime-0.9.7.spec     | 87 --------------------------------------------
+ 3 files changed, 131 deletions(-)
+ delete mode 100644 redhat/custom-tvtime.desktop
+ delete mode 100644 redhat/tvtime-0.9.6.spec
+ delete mode 100644 redhat/tvtime-0.9.7.spec
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index a8d0655f7250..0b8b5011f80e 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -1221,51 +1221,6 @@ static int cx231xx_media_device_init(struct cx231xx *dev,
- 	return 0;
- }
- 
--static int cx231xx_create_media_graph(struct cx231xx *dev)
--{
--#ifdef CONFIG_MEDIA_CONTROLLER
--	struct media_device *mdev = dev->media_dev;
--	struct media_entity *entity;
--	struct media_entity *tuner = NULL, *decoder = NULL;
--	int ret;
+diff --git a/redhat/custom-tvtime.desktop b/redhat/custom-tvtime.desktop
+deleted file mode 100644
+index 9c35ae2..0000000
+--- a/redhat/custom-tvtime.desktop
++++ /dev/null
+@@ -1,8 +0,0 @@
+-[Desktop Entry]
+-Comment=High quality TV viewer
+-Icon=tvtime-logo.png
+-Exec=tvtime
+-Name=Television Viewer
+-Terminal=0
+-Type=Application
+-Categories=Application;AudioVideo;
+diff --git a/redhat/tvtime-0.9.6.spec b/redhat/tvtime-0.9.6.spec
+deleted file mode 100644
+index a995e09..0000000
+--- a/redhat/tvtime-0.9.6.spec
++++ /dev/null
+@@ -1,36 +0,0 @@
+-Summary: A high quality TV viewer.
+-Name: tvtime
+-Version: 0.9.6
+-Release: 1
+-URL: http://tvtime.sourceforge.net
+-Source0: %{name}-%{version}.tar.gz
+-License: GPL
+-Group: Applications/Multimedia
+-BuildRoot: %{_tmppath}/%{name}-root
 -
--	if (!mdev)
--		return 0;
+-%description
+-tvtime is a high quality television application for use with video capture cards. tvtime processes the input from a capture card and displays it on a computer monitor or projector.
 -
--	media_device_for_each_entity(entity, mdev) {
--		switch (entity->function) {
--		case MEDIA_ENT_F_TUNER:
--			tuner = entity;
--			break;
--		case MEDIA_ENT_F_ATV_DECODER:
--			decoder = entity;
--			break;
--		}
--	}
+-%prep
+-%setup -q
 -
--	/* Analog setup, using tuner as a link */
+-%build
+-%configure
+-make %{_smp_mflags}
 -
--	if (!decoder)
--		return 0;
+-%install
+-rm -rf %{buildroot}
+-%makeinstall
 -
--	if (tuner) {
--		ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT, decoder, 0,
--					    MEDIA_LNK_FL_ENABLED);
--		if (ret < 0)
--			return ret;
--	}
--	ret = media_create_pad_link(decoder, 1, &dev->vdev.entity, 0,
--				    MEDIA_LNK_FL_ENABLED);
--	if (ret < 0)
--		return ret;
--	ret = media_create_pad_link(decoder, 2, &dev->vbi_dev.entity, 0,
--				    MEDIA_LNK_FL_ENABLED);
--	if (ret < 0)
--		return ret;
--#endif
--	return 0;
--}
+-%clean
+-rm -rf %{buildroot}
 -
- /*
-  * cx231xx_init_dev()
-  * allocates and inits the device structs, registers i2c bus and v4l device
-@@ -1729,7 +1684,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
- 	/* load other modules required */
- 	request_modules(dev);
- 
--	retval = cx231xx_create_media_graph(dev);
-+	retval = v4l2_mc_create_media_graph(dev->media_dev);
- 	if (retval < 0)
- 		goto done;
- 
+-%files
+-%defattr(-,root,root)
+-%doc AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README ./docs/DESIGN ./docs/TODO
+-%{_bindir}/tvtime
+-%{_datadir}/tvtime
+-
+-%changelog
+-* Thu Nov 14 2002 Paul Jara
+-- Initial build.
+diff --git a/redhat/tvtime-0.9.7.spec b/redhat/tvtime-0.9.7.spec
+deleted file mode 100644
+index 01c0995..0000000
+--- a/redhat/tvtime-0.9.7.spec
++++ /dev/null
+@@ -1,87 +0,0 @@
+-# Some useful constants
+-%define ver 0.9.7
+-#%define beta beta
+-%define rpm_ver 2
+-%define rh_addon tvtime-redhat.tar.gz
+-%define docsdir docs
+-%define rhdocsdir redhat
+-%define icon %{docsdir}/tvtime-icon-black.png
+-%define desktop_filename %{rhdocsdir}/custom-tvtime.desktop
+-
+-# Check if we're running RedHat 8.0 or higher
+-%{!?rh_ver:%define rh_ver %(cut -d' ' -f5 /etc/redhat-release )}
+-
+-Summary: A high quality TV viewer.
+-Name: tvtime
+-Version: %{ver}
+-Release: %{!?beta:0.%{beta}.}%{rpm_ver}
+-URL: http://%{name}.sourceforge.net
+-Source0: %{name}-%{version}.tar.gz
+-Source1: %{rh_addon}
+-License: GPL
+-Group: Applications/Multimedia
+-BuildRoot: %{_tmppath}/%{name}-root
+-BuildRequires: freetype-devel zlib-devel libstdc++-devel libpng-devel XFree86-libs libgcc freetype-devel glibc-debug textutils
+-Requires: sh-utils desktop-file-utils
+-
+-%description
+-%{name} is a high quality television application for use with video capture cards. %{name} processes the input from a capture card and displays it on a computer monitor or projector.
+-
+-%prep
+-%setup -q -b1
+-
+-%build
+-%configure
+-%{__make} %{_smp_mflags}
+-
+-%install
+-%{__rm} -rf %{buildroot}
+-%makeinstall
+-
+-# Remove freefont source from binary
+-%{__rm} %{buildroot}%{_datadir}/%{name}/freefont-sfd.tar.gz
+-
+-# On RedHat 8.0+ distributions, add a menu entry
+-%if "%{rh_ver}" >= "8.0"
+-
+-# Copy icon
+-install -D -m 644 %{icon} %{buildroot}%{_datadir}/pixmaps/%{name}-logo.png
+-
+-# Copy desktop file
+-%{__mkdir_p} %{buildroot}%{_datadir}/applications
+-desktop-file-install --vendor custom --delete-original --dir %{buildroot}%{_datadir}/applications --add-category X-Red-Hat-Extra --add-category Application --add-category AudioVideo %{desktop_filename}
+-%endif
+-
+-# Add man pages
+-%{__mkdir_p} %{_mandir}/man1
+-%{__mkdir_p} %{_mandir}/man5
+-install -D -m 644 %{docsdir}/%{name}.1 %{buildroot}%{_mandir}/man1/%{name}.1
+-install -D -m 644 %{docsdir}/%{name}rc.5 %{buildroot}%{_mandir}/man5/%{name}rc.5
+-%clean
+-%{__rm} -rf %{buildroot}
+-
+-%files
+-%defattr(-,root,root)
+-%doc AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README docs/DESIGN docs/default.tvtimerc
+-%{_bindir}/%{name}
+-%{_datadir}/%{name}
+-%{_datadir}/pixmaps/%{name}-logo.png
+-%{_datadir}/applications/*%{name}.desktop
+-%{_mandir}/man1/%{name}.1*
+-%{_mandir}/man5/%{name}rc.5*
+-
+-%changelog
+-* Thu Feb 27 2003 Paul Jara <rascasse at users.sourceforge.net>
+-- Binary RPM no longer contains freefont source code
+-* Wed Feb 26 2003 Paul Jara <rascasse at users.sourceforge.net>
+-- Initial build with official tvtime 0.9.7 source
+-* Mon Feb 24 2003 Paul Jara <rascasse at users.sourceforge.net>
+-- Added default.tvtimerc to docs directory
+-- Sync'd with latest CVS version
+-- tvscanner replaced with timingtest
+-* Mon Feb 24 2003 Paul Jara <rascasse at users.sourceforge.net>
+-- Added man pages for tvtime and tvtimerc
+-- Macro-ized some common shell commands
+-- Added icon and menu entry for RedHat 8.0+
+-* Sun Feb 23 2003 Paul Jara <rascasse at users.sourceforge.net>
+-- Initial build.
 -- 
-2.5.0
-
+2.7.1
 
