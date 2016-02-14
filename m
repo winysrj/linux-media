@@ -1,110 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52151 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753992AbcBJLcc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2016 06:32:32 -0500
-Received: from [64.103.36.133] (proxy-ams-1.cisco.com [64.103.36.133])
-	by tschai.lan (Postfix) with ESMTPSA id ED886180EBF
-	for <linux-media@vger.kernel.org>; Wed, 10 Feb 2016 12:32:26 +0100 (CET)
-To: linux-media <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2] adv7511: TX_EDID_PRESENT is still 1 after a disconnect
-Message-ID: <56BB1FC9.5080801@xs4all.nl>
-Date: Wed, 10 Feb 2016 12:32:25 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:35957 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751589AbcBNCl1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Feb 2016 21:41:27 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] mn88473: add DVB-T2 PLP support
+Date: Sun, 14 Feb 2016 04:41:06 +0200
+Message-Id: <1455417666-17755-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_CID_TX_EDID_PRESENT control reports if an EDID is present.
-The adv7511 however still reported the EDID present after disconnecting
-the HDMI cable. Fix the logic regarding this control. And when the EDID
-is disconnected also call ADV7511_EDID_DETECT to notify the bridge driver.
-This was also missing.
+Adds PLP ID filtering for DVB-T2.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: <stable@vger.kernel.org>      # for v3.12 and up
+It is untested as I don't have any signal having PLP ID other than 0.
+There is only 2 extra registers, 0x32 and 0x36 on bank2, that are
+programmed for DVB-T2 but not for DVB-T and all the rest are
+programmed similarly - so it is likely PLP.
+
+Testing required!!
 ---
+ drivers/media/dvb-frontends/mn88473.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-Changes since v1:
-
-- the ADV7511_EDID_DETECT notify was also not called on disconnect.
-
----
- drivers/media/i2c/adv7511.c | 24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index 471fd23..08d2c6b 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -1161,12 +1161,23 @@ static void adv7511_dbg_dump_edid(int lvl, int debug, struct v4l2_subdev *sd, in
- 	}
- }
-
-+static void adv7511_notify_no_edid(struct v4l2_subdev *sd)
-+{
-+	struct adv7511_state *state = get_adv7511_state(sd);
-+	struct adv7511_edid_detect ed;
+diff --git a/drivers/media/dvb-frontends/mn88473.c b/drivers/media/dvb-frontends/mn88473.c
+index 6c5d5921..0ab8faa 100644
+--- a/drivers/media/dvb-frontends/mn88473.c
++++ b/drivers/media/dvb-frontends/mn88473.c
+@@ -223,6 +223,13 @@ static int mn88473_set_frontend(struct dvb_frontend *fe)
+ 	if (ret)
+ 		goto err;
+ 
++	/* PLP */
++	if (c->delivery_system == SYS_DVBT2) {
++		ret = regmap_write(dev->regmap[2], 0x36, c->stream_id);
++		if (ret)
++			goto err;
++	}
 +
-+	/* We failed to read the EDID, so send an event for this. */
-+	ed.present = false;
-+	ed.segment = adv7511_rd(sd, 0xc4);
-+	v4l2_subdev_notify(sd, ADV7511_EDID_DETECT, (void *)&ed);
-+	v4l2_ctrl_s_ctrl(state->have_edid0_ctrl, 0x0);
-+}
-+
- static void adv7511_edid_handler(struct work_struct *work)
- {
- 	struct delayed_work *dwork = to_delayed_work(work);
- 	struct adv7511_state *state = container_of(dwork, struct adv7511_state, edid_handler);
- 	struct v4l2_subdev *sd = &state->sd;
--	struct adv7511_edid_detect ed;
+ 	/* Reset FSM */
+ 	ret = regmap_write(dev->regmap[2], 0xf8, 0x9f);
+ 	if (ret)
+@@ -429,7 +436,8 @@ static const struct dvb_frontend_ops mn88473_ops = {
+ 			FE_CAN_GUARD_INTERVAL_AUTO     |
+ 			FE_CAN_HIERARCHY_AUTO          |
+ 			FE_CAN_MUTE_TS                 |
+-			FE_CAN_2G_MODULATION
++			FE_CAN_2G_MODULATION           |
++			FE_CAN_MULTISTREAM
+ 	},
+ 
+ 	.get_tune_settings = mn88473_get_tune_settings,
+-- 
+http://palosaari.fi/
 
- 	v4l2_dbg(1, debug, sd, "%s:\n", __func__);
-
-@@ -1191,9 +1202,7 @@ static void adv7511_edid_handler(struct work_struct *work)
- 	}
-
- 	/* We failed to read the EDID, so send an event for this. */
--	ed.present = false;
--	ed.segment = adv7511_rd(sd, 0xc4);
--	v4l2_subdev_notify(sd, ADV7511_EDID_DETECT, (void *)&ed);
-+	adv7511_notify_no_edid(sd);
- 	v4l2_dbg(1, debug, sd, "%s: no edid found\n", __func__);
- }
-
-@@ -1264,7 +1273,6 @@ static void adv7511_check_monitor_present_status(struct v4l2_subdev *sd)
- 	/* update read only ctrls */
- 	v4l2_ctrl_s_ctrl(state->hotplug_ctrl, adv7511_have_hotplug(sd) ? 0x1 : 0x0);
- 	v4l2_ctrl_s_ctrl(state->rx_sense_ctrl, adv7511_have_rx_sense(sd) ? 0x1 : 0x0);
--	v4l2_ctrl_s_ctrl(state->have_edid0_ctrl, state->edid.segments ? 0x1 : 0x0);
-
- 	if ((status & MASK_ADV7511_HPD_DETECT) && ((status & MASK_ADV7511_MSEN_DETECT) || state->edid.segments)) {
- 		v4l2_dbg(1, debug, sd, "%s: hotplug and (rx-sense or edid)\n", __func__);
-@@ -1294,6 +1302,7 @@ static void adv7511_check_monitor_present_status(struct v4l2_subdev *sd)
- 		}
- 		adv7511_s_power(sd, false);
- 		memset(&state->edid, 0, sizeof(struct adv7511_state_edid));
-+		adv7511_notify_no_edid(sd);
- 	}
- }
-
-@@ -1370,6 +1379,7 @@ static bool adv7511_check_edid_status(struct v4l2_subdev *sd)
- 		}
- 		/* one more segment read ok */
- 		state->edid.segments = segment + 1;
-+		v4l2_ctrl_s_ctrl(state->have_edid0_ctrl, 0x1);
- 		if (((state->edid.data[0x7e] >> 1) + 1) > state->edid.segments) {
- 			/* Request next EDID segment */
- 			v4l2_dbg(1, debug, sd, "%s: request segment %d\n", __func__, state->edid.segments);
-@@ -1389,7 +1399,6 @@ static bool adv7511_check_edid_status(struct v4l2_subdev *sd)
- 		ed.present = true;
- 		ed.segment = 0;
- 		state->edid_detect_counter++;
--		v4l2_ctrl_s_ctrl(state->have_edid0_ctrl, state->edid.segments ? 0x1 : 0x0);
- 		v4l2_subdev_notify(sd, ADV7511_EDID_DETECT, (void *)&ed);
- 		return ed.present;
- 	}
