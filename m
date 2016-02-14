@@ -1,58 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:52108 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751102AbcBLKO5 (ORCPT
+Received: from mail-io0-f174.google.com ([209.85.223.174]:34555 "EHLO
+	mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751321AbcBNH5g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 05:14:57 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] v4l2-mc: remove the unused sensor var
-Date: Fri, 12 Feb 2016 08:13:33 -0200
-Message-Id: <ff1ecda875c7278da1b585f0423224f2e645ce96.1455272007.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sun, 14 Feb 2016 02:57:36 -0500
+Received: by mail-io0-f174.google.com with SMTP id 9so131587499iom.1
+        for <linux-media@vger.kernel.org>; Sat, 13 Feb 2016 23:57:36 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <alpine.LFD.2.20.1602131652560.13632@knanqh.ubzr>
+References: <1455287246-3540549-1-git-send-email-arnd@arndb.de>
+	<2712691.b9gkR7KMX7@wuerfel>
+	<alpine.LFD.2.20.1602121305180.13632@knanqh.ubzr>
+	<6737272.LXr2g355Yt@wuerfel>
+	<CAKv+Gu8dFz28tGgQTv+WYAvKpeiFXaj8JANUFtOJwKPRsB8F5A@mail.gmail.com>
+	<alpine.LFD.2.20.1602131652560.13632@knanqh.ubzr>
+Date: Sun, 14 Feb 2016 08:57:36 +0100
+Message-ID: <CAKv+Gu9YWEkArjssR9Urh0_MOR3duNOo2UNiV=tXoQNgFtDngQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] zl10353: use div_u64 instead of do_div
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+To: Nicolas Pitre <nicolas.pitre@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	linux-media@vger.kernel.org,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes this warning:
+On 13 February 2016 at 22:57, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
+> On Sat, 13 Feb 2016, Ard Biesheuvel wrote:
+>
+>> On 12 February 2016 at 22:01, Arnd Bergmann <arnd@arndb.de> wrote:
+>> > However, I did stumble over an older patch I did now, which I could
+>> > not remember what it was good for. It does fix the problem, and
+>> > it seems to be a better solution.
+>> >
+>> >         Arnd
+>> >
+>> > diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+>> > index b5acbb404854..b5ff9881bef8 100644
+>> > --- a/include/linux/compiler.h
+>> > +++ b/include/linux/compiler.h
+>> > @@ -148,7 +148,7 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
+>> >   */
+>> >  #define if(cond, ...) __trace_if( (cond , ## __VA_ARGS__) )
+>> >  #define __trace_if(cond) \
+>> > -       if (__builtin_constant_p((cond)) ? !!(cond) :                   \
+>> > +       if (__builtin_constant_p(!!(cond)) ? !!(cond) :                 \
+>> >         ({                                                              \
+>> >                 int ______r;                                            \
+>> >                 static struct ftrace_branch_data                        \
+>> >
+>>
+>> I remember seeing this patch, but I don't remember the exact context.
+>> But when you think about it, !!cond can be a build time constant even
+>> if cond is not, as long as you can prove statically that cond != 0. So
+>
+> You're right.  I just tested it and to my surprise gcc is smart enough
+> to figure that case out.
+>
+>> I think this change is obviously correct, and an improvement since it
+>> will remove the profiling overhead of branches that are not true
+>> branches in the first place.
+>
+> Indeed.
+>
 
-	v4l2-mc.c: In function 'v4l2_mc_create_media_graph':
-	v4l2-mc.c:60:69: warning: variable 'sensor' set but not used [-Wunused-but-set-variable]
-
-We could solve it the other way: don't do the second loop for
-webcams. However, that would fail if a chip would have two sensors
-plugged. This is not the current case, but it doesn't hurt to be
-future-safe here, specially since this code runs only once during
-device probe. So, performance is not an issue here.
-
-Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/v4l2-core/v4l2-mc.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index ab5e42a86cc5..b61f8d969958 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -96,7 +96,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 
- {
- 	struct media_entity *entity;
--	struct media_entity *if_vid = NULL, *if_aud = NULL, *sensor = NULL;
-+	struct media_entity *if_vid = NULL, *if_aud = NULL;
- 	struct media_entity *tuner = NULL, *decoder = NULL;
- 	struct media_entity *io_v4l = NULL, *io_vbi = NULL, *io_swradio = NULL;
- 	bool is_webcam = false;
-@@ -130,7 +130,6 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
- 			io_swradio = entity;
- 			break;
- 		case MEDIA_ENT_F_CAM_SENSOR:
--			sensor = entity;
- 			is_webcam = true;
- 			break;
- 		}
--- 
-2.5.0
-
+... and perhaps we should not evaluate cond twice either?
