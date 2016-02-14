@@ -1,75 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:55700 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751823AbcBEBoy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 20:44:54 -0500
-Message-ID: <1454636687.24985.2.camel@mtksdaap41>
-Subject: Re: [PATCH v3 1/8] dt-bindings: Add a binding for Mediatek Video
- Processor
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Rob Herring <robh@kernel.org>
-CC: "daniel.thompson@linaro.org" <daniel.thompson@linaro.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Eddie Huang =?UTF-8?Q?=28=E9=BB=83=E6=99=BA=E5=82=91=29?=
-	<eddie.huang@mediatek.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+Received: from mail-qk0-f170.google.com ([209.85.220.170]:33629 "EHLO
+	mail-qk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751580AbcBNQwN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Feb 2016 11:52:13 -0500
+Received: by mail-qk0-f170.google.com with SMTP id s5so48371025qkd.0
+        for <linux-media@vger.kernel.org>; Sun, 14 Feb 2016 08:52:13 -0800 (PST)
+Date: Sun, 14 Feb 2016 11:52:10 -0500 (EST)
+From: Nicolas Pitre <nicolas.pitre@linaro.org>
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+cc: Arnd Bergmann <arnd@arndb.de>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	linux-media@vger.kernel.org,
 	"linux-arm-kernel@lists.infradead.org"
 	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-mediatek@lists.infradead.org"
-	<linux-mediatek@lists.infradead.org>,
-	Andrew-CT Chen =?UTF-8?Q?=28=E9=99=B3=E6=99=BA=E8=BF=AA=29?=
-	<Andrew-CT.Chen@mediatek.com>
-Date: Fri, 5 Feb 2016 09:44:47 +0800
-In-Reply-To: <CAL_JsqJqQ+QRgg6HGQeGk0=rBEwQq7i-ZfoDahZwXLuvMC-=_A@mail.gmail.com>
-References: <1451902316-55931-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1451902316-55931-2-git-send-email-tiffany.lin@mediatek.com>
-	 <20160104141506.GA22801@rob-hp-laptop> <1454586583.7571.3.camel@mtksdaap41>
-	 <CAL_JsqJqQ+QRgg6HGQeGk0=rBEwQq7i-ZfoDahZwXLuvMC-=_A@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: [PATCH] [media] zl10353: use div_u64 instead of do_div
+In-Reply-To: <CAKv+Gu9YWEkArjssR9Urh0_MOR3duNOo2UNiV=tXoQNgFtDngQ@mail.gmail.com>
+Message-ID: <alpine.LFD.2.20.1602141139110.13632@knanqh.ubzr>
+References: <1455287246-3540549-1-git-send-email-arnd@arndb.de> <2712691.b9gkR7KMX7@wuerfel> <alpine.LFD.2.20.1602121305180.13632@knanqh.ubzr> <6737272.LXr2g355Yt@wuerfel> <CAKv+Gu8dFz28tGgQTv+WYAvKpeiFXaj8JANUFtOJwKPRsB8F5A@mail.gmail.com>
+ <alpine.LFD.2.20.1602131652560.13632@knanqh.ubzr> <CAKv+Gu9YWEkArjssR9Urh0_MOR3duNOo2UNiV=tXoQNgFtDngQ@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+On Sun, 14 Feb 2016, Ard Biesheuvel wrote:
 
-
-On Thu, 2016-02-04 at 12:04 -0600, Rob Herring wrote:
-> On Thu, Feb 4, 2016 at 5:49 AM, tiffany lin <tiffany.lin@mediatek.com> wrote:
-> > Hi Rob,
+> On 13 February 2016 at 22:57, Nicolas Pitre <nicolas.pitre@linaro.org> wrote:
+> > On Sat, 13 Feb 2016, Ard Biesheuvel wrote:
 > >
-> >
-> >
-> >
-> > On Mon, 2016-01-04 at 22:15 +0800, Rob Herring wrote:
-> >> On Mon, Jan 04, 2016 at 06:11:49PM +0800, Tiffany Lin wrote:
-> >> > From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+> >> On 12 February 2016 at 22:01, Arnd Bergmann <arnd@arndb.de> wrote:
+> >> > However, I did stumble over an older patch I did now, which I could
+> >> > not remember what it was good for. It does fix the problem, and
+> >> > it seems to be a better solution.
 > >> >
-> >> > Add a DT binding documentation of Video Processor Unit for the
-> >> > MT8173 SoC from Mediatek.
+> >> >         Arnd
 > >> >
-> >> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-> >> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> >> > diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+> >> > index b5acbb404854..b5ff9881bef8 100644
+> >> > --- a/include/linux/compiler.h
+> >> > +++ b/include/linux/compiler.h
+> >> > @@ -148,7 +148,7 @@ void ftrace_likely_update(struct ftrace_branch_data *f, int val, int expect);
+> >> >   */
+> >> >  #define if(cond, ...) __trace_if( (cond , ## __VA_ARGS__) )
+> >> >  #define __trace_if(cond) \
+> >> > -       if (__builtin_constant_p((cond)) ? !!(cond) :                   \
+> >> > +       if (__builtin_constant_p(!!(cond)) ? !!(cond) :                 \
+> >> >         ({                                                              \
+> >> >                 int ______r;                                            \
+> >> >                 static struct ftrace_branch_data                        \
+> >> >
 > >>
-> >> Please add acks when sending new versions as I already acked the last
-> >> version.
-> >>
-> > Since we remove iommu attach and add 4GB support for VPU.
-> > We send the new device tree and binding document.
-> > We do not add Acked-by in v4 patches.
+> >> I remember seeing this patch, but I don't remember the exact context.
+> >> But when you think about it, !!cond can be a build time constant even
+> >> if cond is not, as long as you can prove statically that cond != 0. So
+> >
+> > You're right.  I just tested it and to my surprise gcc is smart enough
+> > to figure that case out.
+> >
+> >> I think this change is obviously correct, and an improvement since it
+> >> will remove the profiling overhead of branches that are not true
+> >> branches in the first place.
+> >
+> > Indeed.
+> >
 > 
-> Okay, then you should explain that in the patch.
-> 
-Got it. I explained that in cover-letter "[PATCH v4 0/8] Add MT8173
-Video Encoder Driver and VPU Driver", I will explain it in the patch in
-next version.
+> ... and perhaps we should not evaluate cond twice either?
 
-> Rob
+It is not. The value of the argument to __builtin_constant_p() is not 
+itself evaluated and therefore does not produce side effects.
 
 
+Nicolas
