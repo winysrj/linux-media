@@ -1,97 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:9087 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756930AbcBWIL3 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55868 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752780AbcBOM12 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 03:11:29 -0500
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v5 8/8] arm64: dts: mediatek: Add Video Encoder for MT8173
-Date: Tue, 23 Feb 2016 16:11:21 +0800
-Message-ID: <1456215081-16858-9-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1456215081-16858-8-git-send-email-tiffany.lin@mediatek.com>
-References: <1456215081-16858-1-git-send-email-tiffany.lin@mediatek.com>
- <1456215081-16858-2-git-send-email-tiffany.lin@mediatek.com>
- <1456215081-16858-3-git-send-email-tiffany.lin@mediatek.com>
- <1456215081-16858-4-git-send-email-tiffany.lin@mediatek.com>
- <1456215081-16858-5-git-send-email-tiffany.lin@mediatek.com>
- <1456215081-16858-6-git-send-email-tiffany.lin@mediatek.com>
- <1456215081-16858-7-git-send-email-tiffany.lin@mediatek.com>
- <1456215081-16858-8-git-send-email-tiffany.lin@mediatek.com>
+	Mon, 15 Feb 2016 07:27:28 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH/RFC 2/9] clk: shmobile: r8a7795: Add LVDS module clock
+Date: Mon, 15 Feb 2016 14:27:56 +0200
+Message-ID: <5705334.hmO8A4cGMT@avalon>
+In-Reply-To: <CAMuHMdVFHjn6A9i8xK_D9M2fmaq8gVOh5d3V7-ULJ6amnz6uGA@mail.gmail.com>
+References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1455242450-24493-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdVFHjn6A9i8xK_D9M2fmaq8gVOh5d3V7-ULJ6amnz6uGA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add video encoder node for MT8173
+Hi Geert,
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   39 ++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+On Monday 15 February 2016 10:24:02 Geert Uytterhoeven wrote:
+> On Fri, Feb 12, 2016 at 3:00 AM, Laurent Pinchart wrote:
+> > The parent clock hasn't been validated yet.
+> 
+> I assume the driver doesn't depend on the clock rate?
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index 5b0b38a..26aeffe 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -1150,6 +1150,45 @@
- 			clock-names = "apb", "smi";
- 		};
- 
-+		vcodec_enc: vcodec@18002000 {
-+			compatible = "mediatek,mt8173-vcodec-enc";
-+			reg = <0 0x18002000 0 0x1000>,	/* VENC_SYS */
-+			      <0 0x19002000 0 0x1000>;	/* VENC_LT_SYS */
-+			interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
-+				     <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
-+			mediatek,larb = <&larb3>,
-+					<&larb5>;
-+			iommus = <&iommu M4U_PORT_VENC_RCPU>,
-+				 <&iommu M4U_PORT_VENC_REC>,
-+				 <&iommu M4U_PORT_VENC_BSDMA>,
-+				 <&iommu M4U_PORT_VENC_SV_COMV>,
-+				 <&iommu M4U_PORT_VENC_RD_COMV>,
-+				 <&iommu M4U_PORT_VENC_CUR_LUMA>,
-+				 <&iommu M4U_PORT_VENC_CUR_CHROMA>,
-+				 <&iommu M4U_PORT_VENC_REF_LUMA>,
-+				 <&iommu M4U_PORT_VENC_REF_CHROMA>,
-+				 <&iommu M4U_PORT_VENC_NBM_RDMA>,
-+				 <&iommu M4U_PORT_VENC_NBM_WDMA>,
-+				 <&iommu M4U_PORT_VENC_RCPU_SET2>,
-+				 <&iommu M4U_PORT_VENC_REC_FRM_SET2>,
-+				 <&iommu M4U_PORT_VENC_BSDMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_SV_COMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_RD_COMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_CUR_LUMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_CUR_CHROMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_REF_LUMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_REC_CHROMA_SET2>;
-+			mediatek,vpu = <&vpu>;
-+			clocks = <&topckgen CLK_TOP_VENCPLL_D2>,
-+				 <&topckgen CLK_TOP_VENC_SEL>,
-+				 <&topckgen CLK_TOP_UNIVPLL1_D2>,
-+				 <&topckgen CLK_TOP_VENC_LT_SEL>;
-+			clock-names = "venc_sel_src",
-+				      "venc_sel",
-+				      "venc_lt_sel_src",
-+				      "venc_lt_sel";
-+		};
-+
- 		vencltsys: clock-controller@19000000 {
- 			compatible = "mediatek,mt8173-vencltsys", "syscon";
- 			reg = <0 0x19000000 0 0x1000>;
+Correct.
+
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+
+Thank you.
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
