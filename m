@@ -1,72 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58124 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754521AbcBEP2U (ORCPT
+Received: from mail-pf0-f169.google.com ([209.85.192.169]:33996 "EHLO
+	mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745AbcBOGIy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2016 10:28:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 15 Feb 2016 01:08:54 -0500
+From: info@are.ma
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv11 05/17] HID: add HDMI CEC specific keycodes
-Date: Fri,  5 Feb 2016 16:27:48 +0100
-Message-Id: <1454686080-39018-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
-References: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD?=
+	 =?UTF-8?q?=D1=82=D0=BE=2C=20AreMa=20Inc?= <knightrider@are.ma>,
+	linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
+	mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 0/7] Driver bundle for PT3 & PX-Q3PE
+Date: Mon, 15 Feb 2016 15:08:42 +0900
+Message-Id: <cover.1455513464.git.knightrider@are.ma>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-Add HDMI CEC specific keycodes to the keycodes definition.
+Polished driver bundle for PT3 & PX-Q3PE, two of the most powerful ISDB-S/ISDB-T receiver cards
+currently available in Japan. Useless features are removed.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/input-event-codes.h | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+Main Components:
+A. PT3 (2 ISDB-S + 2 ISDB-T receiver)
+ 1. Altera	EP4CGX15BF14C8N	: customized FPGA PCI bridge
+ 2. Toshiba	TC90522XBG	: quad demodulator (2ch OFDM + 2ch 8PSK)
+ 3. Sharp	VA4M6JC2103	: contains 2 ISDB-S + 2 ISDB-T tuners
+	ISDB-S : Sharp QM1D1C0042 RF-IC
+	ISDB-T : MaxLinear CMOS Hybrid TV MxL301RF
 
-diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-index 87cf351..2662500 100644
---- a/include/uapi/linux/input-event-codes.h
-+++ b/include/uapi/linux/input-event-codes.h
-@@ -611,6 +611,34 @@
- #define KEY_KBDINPUTASSIST_ACCEPT		0x264
- #define KEY_KBDINPUTASSIST_CANCEL		0x265
- 
-+#define KEY_RIGHT_UP			0x266
-+#define KEY_RIGHT_DOWN			0x267
-+#define KEY_LEFT_UP			0x268
-+#define KEY_LEFT_DOWN			0x269
-+#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
-+#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
-+#define KEY_NUMERIC_11			0x26c
-+#define KEY_NUMERIC_12			0x26d
-+/*
-+ * Toggle Audio Description: refers to an audio service that helps blind and
-+ * visually impaired consumers understand the action in a program. Note: in
-+ * some countries this is referred to as "Video Description".
-+ */
-+#define KEY_AUDIO_DESC			0x26e
-+#define KEY_3D_MODE			0x26f
-+#define KEY_NEXT_FAVORITE		0x270
-+#define KEY_STOP_RECORD			0x271
-+#define KEY_PAUSE_RECORD		0x272
-+#define KEY_VOD				0x273 /* Video on Demand */
-+#define KEY_UNMUTE			0x274
-+#define KEY_FASTREVERSE			0x275
-+#define KEY_SLOWREVERSE			0x276
-+/*
-+ * Control a data application associated with the currently viewed channel,
-+ * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
-+ */
-+#define KEY_DATA			0x275
-+
- #define BTN_TRIGGER_HAPPY		0x2c0
- #define BTN_TRIGGER_HAPPY1		0x2c0
- #define BTN_TRIGGER_HAPPY2		0x2c1
+B. PX-Q3PE (4 ISDB-S + 4 ISDB-T receiver)
+ 1. ASICEN	ASV5220		: PCI-E bridge
+ 2. Toshiba	TC90522XBG	: quad demodulator (2ch OFDM + 2ch 8PSK)
+ 3. NXP Semiconductors TDA20142	: ISDB-S tuner
+ 4. Newport Media NM120		: ISDB-T tuner
+
+Буди Романто, AreMa Inc (7):
+  raise adapter number limit
+  add NXP tda2014x & Newport Media nm120/130/131 tuners
+  drop backstabbing drivers
+  Toshiba TC90522XBG quad demodulator (2ch OFDM + 2ch 8PSK) used by both PT3 & PX-Q3PE
+  MaxLinear MxL301RF ISDB-T tuner
+  Sharp QM1D1C0042 ISDB-S tuner
+  PCI bridge driver for PT3 & PXQ3PE
+
+ drivers/media/dvb-core/dvbdev.h       |   2 +-
+ drivers/media/dvb-frontends/tc90522.c | 959 +++++++---------------------------
+ drivers/media/dvb-frontends/tc90522.h |  36 +-
+ drivers/media/pci/Kconfig             |   2 +-
+ drivers/media/pci/Makefile            |   2 +-
+ drivers/media/pci/pt3/Kconfig         |  10 -
+ drivers/media/pci/pt3/Makefile        |   8 -
+ drivers/media/pci/pt3/pt3.c           | 873 -------------------------------
+ drivers/media/pci/pt3/pt3.h           | 186 -------
+ drivers/media/pci/pt3/pt3_dma.c       | 225 --------
+ drivers/media/pci/pt3/pt3_i2c.c       | 240 ---------
+ drivers/media/pci/ptx/Kconfig         |  21 +
+ drivers/media/pci/ptx/Makefile        |   8 +
+ drivers/media/pci/ptx/pt3_pci.c       | 509 ++++++++++++++++++
+ drivers/media/pci/ptx/ptx_common.c    | 215 ++++++++
+ drivers/media/pci/ptx/ptx_common.h    |  68 +++
+ drivers/media/pci/ptx/pxq3pe_pci.c    | 607 +++++++++++++++++++++
+ drivers/media/tuners/Kconfig          |  14 +
+ drivers/media/tuners/Makefile         |   2 +
+ drivers/media/tuners/mxl301rf.c       | 468 +++++++----------
+ drivers/media/tuners/mxl301rf.h       |  19 +-
+ drivers/media/tuners/nm131.c          | 272 ++++++++++
+ drivers/media/tuners/nm131.h          |  13 +
+ drivers/media/tuners/qm1d1c0042.c     | 566 +++++++-------------
+ drivers/media/tuners/qm1d1c0042.h     |  30 +-
+ drivers/media/tuners/tda2014x.c       | 356 +++++++++++++
+ drivers/media/tuners/tda2014x.h       |  13 +
+ 27 files changed, 2691 insertions(+), 3033 deletions(-)
+ delete mode 100644 drivers/media/pci/pt3/Kconfig
+ delete mode 100644 drivers/media/pci/pt3/Makefile
+ delete mode 100644 drivers/media/pci/pt3/pt3.c
+ delete mode 100644 drivers/media/pci/pt3/pt3.h
+ delete mode 100644 drivers/media/pci/pt3/pt3_dma.c
+ delete mode 100644 drivers/media/pci/pt3/pt3_i2c.c
+ create mode 100644 drivers/media/pci/ptx/Kconfig
+ create mode 100644 drivers/media/pci/ptx/Makefile
+ create mode 100644 drivers/media/pci/ptx/pt3_pci.c
+ create mode 100644 drivers/media/pci/ptx/ptx_common.c
+ create mode 100644 drivers/media/pci/ptx/ptx_common.h
+ create mode 100644 drivers/media/pci/ptx/pxq3pe_pci.c
+ create mode 100644 drivers/media/tuners/nm131.c
+ create mode 100644 drivers/media/tuners/nm131.h
+ create mode 100644 drivers/media/tuners/tda2014x.c
+ create mode 100644 drivers/media/tuners/tda2014x.h
+
 -- 
-2.7.0
+2.3.10
 
