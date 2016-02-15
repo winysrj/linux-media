@@ -1,121 +1,560 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34052 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1427649AbcBTDn5 (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:17615 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753040AbcBONGK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2016 22:43:57 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 5AFF21800AB
-	for <linux-media@vger.kernel.org>; Sat, 20 Feb 2016 04:43:52 +0100 (CET)
-Date: Sat, 20 Feb 2016 04:43:52 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160220034352.5AFF21800AB@tschai.lan>
+	Mon, 15 Feb 2016 08:06:10 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O2L006XHB28OS10@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 15 Feb 2016 13:06:08 +0000 (GMT)
+Message-id: <56C1CD3E.6090108@samsung.com>
+Date: Mon, 15 Feb 2016 14:06:06 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 13/15] mediactl: Add media device ioctl API
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+ <1453133860-21571-14-git-send-email-j.anaszewski@samsung.com>
+ <56C1C775.2090002@linux.intel.com>
+In-reply-to: <56C1C775.2090002@linux.intel.com>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sakari,
 
-Results of the daily build of media_tree:
+Thanks for the review.
 
-date:		Sat Feb 20 04:00:28 CET 2016
-git branch:	test
-git hash:	f7b5dff0b59b20469b2a4889e6170c0069d37c8d
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.4.0-164
+On 02/15/2016 01:41 PM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> Jacek Anaszewski wrote:
+>> Ioctls executed on complex media devices need special handling.
+>> For instance some ioctls need to be targeted for specific sub-devices,
+>> depending on the media device configuration. The APIs being introduced
+>> address such requirements.
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>>   utils/media-ctl/Makefile.am          |    2 +-
+>>   utils/media-ctl/libv4l2media_ioctl.c |  404 ++++++++++++++++++++++++++++++++++
+>>   utils/media-ctl/libv4l2media_ioctl.h |   48 ++++
+>>   3 files changed, 453 insertions(+), 1 deletion(-)
+>>   create mode 100644 utils/media-ctl/libv4l2media_ioctl.c
+>>   create mode 100644 utils/media-ctl/libv4l2media_ioctl.h
+>>
+>> diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+>> index 3e883e0..7f18624 100644
+>> --- a/utils/media-ctl/Makefile.am
+>> +++ b/utils/media-ctl/Makefile.am
+>> @@ -1,6 +1,6 @@
+>>   noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la libmediatext.la
+>>
+>> -libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
+>> +libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h libv4l2media_ioctl.c libv4l2media_ioctl.h
+>>   libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
+>>   libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
+>>
+>> diff --git a/utils/media-ctl/libv4l2media_ioctl.c b/utils/media-ctl/libv4l2media_ioctl.c
+>> new file mode 100644
+>> index 0000000..b186121
+>> --- /dev/null
+>> +++ b/utils/media-ctl/libv4l2media_ioctl.c
+>> @@ -0,0 +1,404 @@
+>> +/*
+>> + * Copyright (c) 2015 Samsung Electronics Co., Ltd.
+>> + *              http://www.samsung.com
+>> + *
+>> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU Lesser General Public License as published by
+>> + * the Free Software Foundation; either version 2.1 of the License, or
+>> + * (at your option) any later version.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>> + * Lesser General Public License for more details.
+>> + */
+>> +
+>> +#include <errno.h>
+>> +#include <stdlib.h>
+>> +#include <sys/syscall.h>
+>> +#include <unistd.h>
+>> +
+>> +#include <linux/videodev2.h>
+>> +
+>> +#include "libv4l2media_ioctl.h"
+>> +#include "mediactl-priv.h"
+>> +#include "mediactl.h"
+>> +#include "v4l2subdev.h"
+>> +
+>> +#define VIDIOC_CTRL(type)					\
+>> +	((type) == VIDIOC_S_CTRL ? "VIDIOC_S_CTRL" :		\
+>> +				   "VIDIOC_G_CTRL")
+>> +
+>> +#define VIDIOC_EXT_CTRL(type)					\
+>> +	((type) == VIDIOC_S_EXT_CTRLS ? 			\
+>> +		"VIDIOC_S_EXT_CTRLS"	:			\
+>> +		 ((type) == VIDIOC_G_EXT_CTRLS ? 		\
+>> +				    "VIDIOC_G_EXT_CTRLS" :	\
+>> +				    "VIDIOC_TRY_EXT_CTRLS"))
+>> +
+>> +#define SYS_IOCTL(fd, cmd, arg) \
+>> +	syscall(SYS_ioctl, (int)(fd), (unsigned long)(cmd), (void *)(arg))
+>> +
+>> +
+>> +int media_ioctl_ctrl(struct media_device *media, int request,
+>
+> unsigned int request
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-sh: ERRORS
-linux-git-x86_64: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+OK.
 
-Detailed results are available here:
+>
+>> +		     struct v4l2_control *arg)
+>
+> I wonder if it'd make sense to always use v4l2_ext_control instead. You
+> can't access 64-bit integer controls with VIDIOC_S_CTRL for instance.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+This function is meant to handle VIDIOC_S_CTRL/VIDIOC_G_CTRL ioctls.
+For ext ctrls there is media_ioctl_ext_ctrl().
 
-Full logs are available here:
+> As this is a user space library, I'd probably add a function to handle
+> S/G/TRY control each.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+There is media_ioctl_ext_ctrl() that handles VIDIOC_S_EXT_CTRLS,
+VIDIOC_G_EXT_CTRLS and VIDIOC_TRY_EXT_CTRLS.
 
-The Media Infrastructure API from this daily build is here:
+> Have you considered binding the control to a video node rather than a
+> media device? We have many sensors on current media devices already, and
+> e.g. exposure time control can be found in multiple sub-devices.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Doesn't v4l2-ctrl-redir config entry address that?
+
+>> +{
+>> +	struct media_entity *entity = media->pipeline;
+>> +	struct v4l2_control ctrl = *arg;
+>> +	struct v4l2_queryctrl queryctrl;
+>> +	bool ctrl_found = 0;
+>> +	int ret;
+>> +
+>> +	/*
+>> +	 * The control has to be reset to the default value
+>> +	 * on all of the pipeline entities, prior setting a new
+>> +	 * value. This is required in cases when the control config
+>> +	 * is changed between subsequent calls to VIDIOC_S_CTRL,
+>> +	 * to avoid the situation when a control is set on more
+>> +	 * than one sub-device.
+>> +	 */
+>> +	if (request == VIDIOC_S_CTRL) {
+>> +		while (entity) {
+>> +			queryctrl.id = ctrl.id;
+>> +
+>> +			ret = SYS_IOCTL(entity->sd->fd, VIDIOC_QUERYCTRL,
+>> +					&queryctrl);
+>> +			if (ret < 0) {
+>> +				entity = entity->next;
+>> +				continue;
+>> +			}
+>> +
+>> +			ctrl_found = true;
+>> +
+>> +			if (queryctrl.type & V4L2_CTRL_TYPE_BUTTON)
+>> +				break;
+>> +
+>> +			ctrl.value = queryctrl.default_value;
+>> +			ret = SYS_IOCTL(entity->sd->fd, VIDIOC_S_CTRL, &ctrl);
+>> +			if (ret < 0)
+>> +				return -EINVAL;
+>> +
+>> +			entity = entity->next;
+>> +		}
+>> +
+>> +		ctrl.value = arg->value;
+>> +	}
+>> +
+>> +	if (!ctrl_found) {
+>> +		ret = -EINVAL;
+>> +		goto exit;
+>> +	}
+>> +
+>> +	entity = v4l2_subdev_get_pipeline_entity_by_cid(media, ctrl.id);
+>> +
+>> +	if (entity) {
+>> +		ret = SYS_IOCTL(entity->sd->fd, request, &ctrl);
+>> +	} else {
+>> +		/* Walk the pipeline until the request succeeds */
+>> +		entity = media->pipeline;
+>> +
+>> +		ret = -ENOENT;
+>> +
+>> +		while (entity) {
+>> +			ret = SYS_IOCTL(entity->sd->fd, request, &ctrl);
+>> +			if (!ret)
+>> +				break;
+>> +
+>> +			entity = entity->next;
+>> +		}
+>> +	}
+>> +
+>> +exit:
+>> +	*arg = ctrl;
+>> +
+>> +	media_dbg(media, "%s [id: 0x%8.8x, name: %s, entity: %s] (%d)\n",
+>> +		  VIDIOC_CTRL(request), ctrl.id, ret ? NULL : queryctrl.name,
+>> +		  entity ? entity->info.name : NULL, ret);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static int media_ioctl_single_ext_ctrl(struct media_device *media,
+>> +				int request, struct v4l2_ext_controls *arg)
+>> +{
+>> +	struct media_entity *entity = media->pipeline;
+>> +	struct v4l2_ext_controls ctrls = *arg;
+>> +	struct v4l2_ext_control *ctrl;
+>> +	struct v4l2_query_ext_ctrl queryctrl;
+>> +	bool ctrl_found = 0;
+>> +	int ret = -EINVAL;
+>> +
+>> +	ctrl = &ctrls.controls[0];
+>> +
+>> +	/*
+>> +	 * The control has to be reset to the default value
+>> +	 * on all of the pipeline entities, prior setting a new
+>> +	 * value. This is required in cases when the control config
+>> +	 * is changed between subsequent calls to VIDIOC_S_EXT_CTRLS,
+>> +	 * to avoid the situation when a control is set on more
+>> +	 * than one sub-device.
+>> +	 */
+>> +	if (request == VIDIOC_S_EXT_CTRLS) {
+>> +		while (entity) {
+>> +			queryctrl.id = ctrl->id;
+>> +
+>> +			ret = SYS_IOCTL(entity->sd->fd, VIDIOC_QUERY_EXT_CTRL,
+>> +					&queryctrl);
+>> +			if (ret < 0) {
+>> +				entity = entity->next;
+>> +				continue;
+>> +			}
+>> +
+>> +			ctrl_found = true;
+>> +
+>> +			if (queryctrl.type & V4L2_CTRL_TYPE_BUTTON)
+>> +				break;
+>> +
+>> +			ctrl->value64 = queryctrl.default_value;
+>> +
+>> +			ret = SYS_IOCTL(entity->sd->fd, VIDIOC_S_EXT_CTRLS,
+>> +					&ctrls);
+>> +			if (ret < 0)
+>> +				return -EINVAL;
+>> +
+>> +			entity = entity->next;
+>> +		}
+>> +
+>> +		ctrl->value64 = arg->controls[0].value64;
+>> +	}
+>> +
+>> +	if (!ctrl_found) {
+>> +		ret = -EINVAL;
+>> +		goto exit;
+>> +	}
+>> +
+>> +	entity = v4l2_subdev_get_pipeline_entity_by_cid(media, ctrl->id);
+>> +
+>> +	if (entity) {
+>> +		ret = SYS_IOCTL(entity->sd->fd, request, &ctrls);
+>> +	} else {
+>> +		/* Walk the pipeline until the request succeeds */
+>> +		entity = media->pipeline;
+>> +
+>> +		while (entity) {
+>> +			ret = SYS_IOCTL(entity->sd->fd, request, &ctrls);
+>> +			if (!ret)
+>> +				break;
+>> +
+>> +			entity = entity->next;
+>> +		}
+>> +	}
+>> +
+>> +exit:
+>> +	*arg = ctrls;
+>> +
+>> +	media_dbg(media, "%s [id: 0x%8.8x, entity: %s] (%d)\n",
+>> +		  VIDIOC_EXT_CTRL(request), ctrl->id,
+>> +		  entity ? entity->info.name : NULL, ret);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +int media_ioctl_ext_ctrl(struct media_device *media, int request,
+>> +			 struct v4l2_ext_controls *arg)
+>> +{
+>> +	struct v4l2_ext_controls out_ctrls = *arg, ctrls = *arg;
+>> +	int ret = -EINVAL, i;
+>> +
+>> +	ctrls.count = 1;
+>> +
+>> +	/*
+>> +	 * Split cluster to individual ioctl calls for each control
+>> +	 * from the array, to make possible redirection of every
+>> +	 * single control to different sub-device, according to the
+>> +	 * configuration settings.
+>> +	 */
+>> +	for (i = 0; i < arg->count; ++i) {
+>> +		ctrls.controls = &arg->controls[i];
+>> +
+>> +		ret = media_ioctl_single_ext_ctrl(media, request, &ctrls);
+>> +		out_ctrls.controls[i] = ctrls.controls[i];
+>> +		if (ret < 0) {
+>> +			if (ctrls.error_idx == 1)
+>> +				out_ctrls.error_idx = ctrls.count;
+>> +			else
+>> +				out_ctrls.error_idx = i;
+>> +			break;
+>> +		}
+>> +	}
+>> +
+>> +	*arg = out_ctrls;
+>> +	return ret;
+>> +}
+>> +
+>> +int sort_ctrls(const void * a, const void * b)
+>> +{
+>> +	const struct media_entity_to_cid *ctrl_a = a, *ctrl_b = b;
+>> +
+>> +	return ctrl_a->queryctrl.id - ctrl_b->queryctrl.id;
+>> +}
+>> +
+>> +int media_ioctl_queryctrl(struct media_device *media,
+>> +			  struct v4l2_queryctrl *arg)
+>> +{
+>> +	struct media_entity *entity = media->pipeline, *target_entity;
+>> +	struct v4l2_queryctrl queryctrl = *arg;
+>> +	int ret = -EINVAL, num_ctrls = 0;
+>> +	struct media_entity_to_cid *ctrls_found;
+>> +
+>> +	/*
+>> +	 * If id is or'ed with V4L2_CTRL_FLAG_NEXT_CTRL then the control to
+>> +	 * be found is the one with the next lowest id among all entities
+>> +	 * in the pipeline.
+>> +	 */
+>> +	if (queryctrl.id & V4L2_CTRL_FLAG_NEXT_CTRL) {
+>> +		ctrls_found = malloc(sizeof(*ctrls_found));
+>> +
+>> +		while (entity) {
+>> +			queryctrl = *arg;
+>> +
+>> +			ret = SYS_IOCTL(entity->sd->fd, VIDIOC_QUERYCTRL,
+>> +					&queryctrl);
+>> +			if (!ret) {
+>> +				ctrls_found = realloc(ctrls_found,
+>> +					sizeof(*ctrls_found) * (num_ctrls + 1));
+>> +				ctrls_found[num_ctrls].queryctrl = queryctrl;
+>> +				ctrls_found[num_ctrls].entity = entity;
+>> +				++num_ctrls;
+>> +			}
+>> +
+>> +			entity = entity->next;
+>> +		}
+>> +
+>> +		if (num_ctrls == 0) {
+>> +			ret = -EINVAL;
+>> +			entity = NULL;
+>> +			goto done;
+>> +		}
+>> +
+>> +		qsort(ctrls_found, num_ctrls, sizeof(*ctrls_found), sort_ctrls);
+>> +
+>> +		queryctrl = ctrls_found[0].queryctrl;
+>> +		target_entity = ctrls_found[0].entity;
+>> +
+>> +		free(ctrls_found);
+>> +	}
+>> +
+>> +	entity = v4l2_subdev_get_pipeline_entity_by_cid(media, queryctrl.id);
+>> +	if (entity)
+>> +		target_entity = entity;
+>> +
+>> +	ret = SYS_IOCTL(target_entity->sd->fd, VIDIOC_QUERYCTRL,
+>> +				&queryctrl);
+>> +
+>> +done:
+>> +	media_dbg(media,
+>> +		  "VIDIOC_QUERYCTRL [id: 0x%8.8x, name: %s, entity: %s] (%d)\n",
+>> +		  ret ? arg->id : queryctrl.id, ret ? NULL : queryctrl.name,
+>> +		  target_entity ? target_entity->info.name : NULL, ret);
+>> +
+>> +	*arg = queryctrl;
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +int media_ioctl_query_ext_ctrl(struct media_device *media,
+>> +			       struct v4l2_query_ext_ctrl *arg)
+>> +{
+>> +	struct media_entity *entity = media->pipeline, *target_entity;
+>> +	struct v4l2_query_ext_ctrl query_ext_ctrl = *arg;
+>> +	int ret = -EINVAL, num_ctrls = 0;
+>> +	struct media_entity_to_cid *ctrls_found;
+>> +
+>> +	/*
+>> +	 * If id is or'ed with V4L2_CTRL_FLAG_NEXT_CTRL then the control to
+>> +	 * be found is the one with the next lowest id among all entities
+>> +	 * in the pipeline.
+>> +	 */
+>> +	if (query_ext_ctrl.id & V4L2_CTRL_FLAG_NEXT_CTRL) {
+>> +		ctrls_found = malloc(sizeof(*ctrls_found));
+>> +
+>> +		while (entity) {
+>> +			query_ext_ctrl = *arg;
+>> +
+>> +			ret = SYS_IOCTL(entity->sd->fd, VIDIOC_QUERY_EXT_CTRL,
+>> +					&query_ext_ctrl.id);
+>> +			if (!ret) {
+>> +				ctrls_found = realloc(ctrls_found,
+>> +					sizeof(*ctrls_found) * (num_ctrls + 1));
+>> +				ctrls_found[num_ctrls].query_ext_ctrl =
+>> +								query_ext_ctrl;
+>> +				ctrls_found[num_ctrls].entity = entity;
+>> +				++num_ctrls;
+>> +			}
+>> +
+>> +			entity = entity->next;
+>> +		}
+>> +
+>> +		if (num_ctrls == 0) {
+>> +			ret = -EINVAL;
+>> +			entity = NULL;
+>> +			goto done;
+>> +		}
+>> +
+>> +		qsort(ctrls_found, num_ctrls, sizeof(*ctrls_found), sort_ctrls);
+>> +
+>> +		query_ext_ctrl = ctrls_found[0].query_ext_ctrl;
+>> +		target_entity = ctrls_found[0].entity;
+>> +
+>> +		free(ctrls_found);
+>> +	}
+>> +
+>> +	entity = v4l2_subdev_get_pipeline_entity_by_cid(media, query_ext_ctrl.id);
+>> +	if (entity)
+>> +		target_entity = entity;
+>> +
+>> +	ret = SYS_IOCTL(target_entity->sd->fd, VIDIOC_QUERYCTRL,
+>> +				&query_ext_ctrl);
+>> +
+>> +done:
+>> +	media_dbg(media,
+>> +		  "VIDIOC_QUERY_EXT_CTRL [id: 0x%8.8x, name: %s, entity: %s] (%d)\n",
+>> +		  ret ? arg->id : query_ext_ctrl.id,
+>> +		  ret ? NULL : query_ext_ctrl.name,
+>> +		  target_entity ? target_entity->info.name : NULL, ret);
+>> +
+>> +	*arg = query_ext_ctrl;
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +int media_ioctl_querymenu(struct media_device *media,
+>> +			  struct v4l2_querymenu *arg)
+>> +{
+>> +	struct media_entity *entity = media->pipeline;
+>> +	struct v4l2_querymenu querymenu = *arg;
+>> +	int ret = -EINVAL;
+>> +
+>> +	entity = v4l2_subdev_get_pipeline_entity_by_cid(media, querymenu.id);
+>> +	if (entity) {
+>> +		ret = SYS_IOCTL(entity->sd->fd, VIDIOC_QUERYMENU, &querymenu);
+>> +		goto exit;
+>> +	}
+>> +
+>> +	entity = media->pipeline;
+>> +
+>> +	while (entity) {
+>> +		ret = SYS_IOCTL(entity->sd->fd, VIDIOC_QUERYMENU, &querymenu);
+>> +		if (!ret)
+>> +			break;
+>> +
+>> +		entity = entity->next;
+>> +	}
+>> +
+>> +exit:
+>> +	*arg = querymenu;
+>> +
+>> +	media_dbg(media, "VIDIOC_QUERYMENU [id: 0x%8.8x, name: %s, entity: %s] (%d)\n",
+>> +		  querymenu.id, ret ? NULL : querymenu.name,
+>> +		  entity ? entity->info.name : NULL, ret);
+>> +
+>> +	return ret;
+>> +}
+>> diff --git a/utils/media-ctl/libv4l2media_ioctl.h b/utils/media-ctl/libv4l2media_ioctl.h
+>> new file mode 100644
+>> index 0000000..5501895
+>> --- /dev/null
+>> +++ b/utils/media-ctl/libv4l2media_ioctl.h
+>> @@ -0,0 +1,48 @@
+>> +/*
+>> + * Copyright (c) 2015 Samsung Electronics Co., Ltd.
+>> + *              http://www.samsung.com
+>> + *
+>> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU Lesser General Public License as published by
+>> + * the Free Software Foundation; either version 2.1 of the License, or
+>> + * (at your option) any later version.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>> + * Lesser General Public License for more details.
+>> + */
+>> +
+>> +#ifndef __LIBV4L2MEDIA_IOCTL_H
+>> +#define __LIBV4L2MEDIA_IOCTL_H
+>> +
+>> +#include <linux/videodev2.h>
+>> +
+>> +struct media_device;
+>> +
+>> +struct media_entity_to_cid {
+>> +	struct media_entity *entity;
+>> +	union {
+>> +		struct v4l2_queryctrl queryctrl;
+>> +		struct v4l2_query_ext_ctrl query_ext_ctrl;
+>> +	};
+>> +};
+>> +
+>> +int media_ioctl_ctrl(struct media_device *media, int request,
+>> +			struct v4l2_control *arg);
+>> +
+>> +int media_ioctl_ext_ctrl(struct media_device *media, int request,
+>> +			struct v4l2_ext_controls *arg);
+>> +
+>> +int media_ioctl_queryctrl(struct media_device *media,
+>> +			struct v4l2_queryctrl *arg);
+>> +
+>> +int media_ioctl_query_ext_ctrl(struct media_device *media,
+>> +			struct v4l2_query_ext_ctrl *arg);
+>> +
+>> +int media_ioctl_querymenu(struct media_device *media,
+>> +			struct v4l2_querymenu *arg);
+>> +
+>> +#endif /* __LIBV4L2MEDIA_IOCTL_H */
+>>
+>
+>
+
+
+-- 
+Best regards,
+Jacek Anaszewski
