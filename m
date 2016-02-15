@@ -1,97 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:37167 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756223AbcBDOFI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 09:05:08 -0500
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44078 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751158AbcBOKsU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2016 05:48:20 -0500
+Subject: Re: [RFC/PATCH] [media] rcar-vin: add Renesas R-Car VIN IP core
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com
+References: <1455468932-8573-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+ <56C19A2B.2080502@xs4all.nl>
+Cc: linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56C1ACEE.4060203@xs4all.nl>
+Date: Mon, 15 Feb 2016 11:48:14 +0100
 MIME-Version: 1.0
-Reply-To: mtk.manpages@gmail.com
-In-Reply-To: <CALCETrUNxPhcKiT+aswO5rr+ZpPPCkT30+Exd0iWwQnMN921Qg@mail.gmail.com>
-References: <CALCETrUNxPhcKiT+aswO5rr+ZpPPCkT30+Exd0iWwQnMN921Qg@mail.gmail.com>
-From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Date: Thu, 4 Feb 2016 15:04:47 +0100
-Message-ID: <CAKgNAkg+cjJS2G5TKvYAYizXWaPewVNtdBQN1x0otbPM7huy5g@mail.gmail.com>
-Subject: Re: linux-api scope (Re: [PATCH v2 11/22] media: dvb-frontend invoke
- enable/disable_source handlers)
-To: Andy Lutomirski <luto@kernel.org>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org, Linux API <linux-api@vger.kernel.org>,
-	ALSA development <alsa-devel@alsa-project.org>,
-	Josh Triplett <josh@joshtriplett.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Andrew Morton <akpm@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <56C19A2B.2080502@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[expanding the CC a little]
+On 02/15/2016 10:28 AM, Hans Verkuil wrote:
+>> +static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+>> +	.vidioc_querycap		= rvin_querycap,
+>> +	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
+>> +	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
+>> +	.vidioc_s_fmt_vid_cap		= rvin_s_fmt_vid_cap,
+>> +	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
+>> +
+>> +	/* TODO:
+>> +	 * .vidioc_g_selection		= rvin_g_selection,
+>> +	 * .vidioc_s_selection		= rvin_s_selection,
+>> +	 */
+>> +
+>> +	.vidioc_enum_input		= rvin_enum_input,
+>> +	.vidioc_g_input			= rvin_g_input,
+>> +	.vidioc_s_input			= rvin_s_input,
+> 
+> I'm missing g/s/querystd here!
+> 
+> (enum_std is handled by the core)
+> 
+>> +
+>> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
+>> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
+>> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
+>> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
+>> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
+>> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
 
-Hi Andy, (and Shuah)
+Please add .vidioc_prepare_buf = vb2_ioctl_prepare_buf here as well.
 
-On 4 February 2016 at 05:51, Andy Lutomirski <luto@kernel.org> wrote:
-> [cc list heavily trimmed]
->
-> On Wed, Feb 3, 2016 at 8:03 PM, Shuah Khan <shuahkh@osg.samsung.com> wrote:
->> Change dvb frontend to check if tuner is free when
->> device opened in RW mode. Call to enable_source
->> handler either returns with an active pipeline to
->> tuner or error if tuner is busy. Tuner is released
->> when frontend is released calling the disable_source
->> handler.
->
-> As an actual subscriber to linux-api, I prefer for the linux-api list
-> to be lowish-volume and mostly limited to API-related things.  Is this
-> API related?  Do people think that these series should be sent to
-> linux-api?
+Regards,
 
-I think not, and I'd like to stem the flood of mail to the list.
-There's two things that we could do:
+	Hans
 
-1. Shuah, I know we talked about this in the past, and it made some
-sense to me at the time for kselftest to use linux-api@, but maybe
-it's time to create a dedicated list, and move the traffic there? It'd
-help focus the traffic of linux-api more on its original purpose.
-
-2. However, I think the bigger cause of the flood is the change made
-to MAINTAINERS by Josh's commit
-ea8f8fc8631d9f890580a94d57a18bfeb827fa2e:
-
-+ABI/API
-+L:     linux-api@vger.kernel.org
-+F:     Documentation/ABI/
-+F:     include/linux/syscalls.h
-+F:     include/uapi/
-+F:     kernel/sys_ni.c
-
-The change was well-intentioned (I Acked it), but folk run
-scripts/get-maintainers.pl without thinking too much about its output
-and add all of the resulting lists and CCs to their patch submissions.
-This means we get a lot of useless noise relating to drivers and
-unrelated Documentation changes, and actually miss some of the really
-important changes (e.g., extensions of system calls; and new /proc
-entries tend to get lost in the noise). Furthermore, people doing
-things such as adding new system calls often don't tun
-scripts/get-maintainers.pl it seems. Certainly, I have to often enough
-remind peple to CC linux-api when adding new system calls.
-
-I'll craft a patch to trim the MAINTAINERS entry.
-
-Cheers,
-
-Michael
-
-
-
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-api" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
-Michael Kerrisk
-Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
-Linux/UNIX System Programming Training: http://man7.org/training/
+>> +
+>> +	.vidioc_streamon		= rvin_streamon,
+>> +	.vidioc_streamoff		= rvin_streamoff,
+>> +
+>> +	.vidioc_log_status		= v4l2_ctrl_log_status,
+>> +	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
+>> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+>> +};
