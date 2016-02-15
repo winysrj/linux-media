@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:35078 "EHLO
-	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161721AbcBQPtV (ORCPT
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:33649 "EHLO
+	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751667AbcBOGI5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 10:49:21 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH/RFC 9/9] ARM: shmobile: lager dts: specify default-input for ADV7612
-Date: Wed, 17 Feb 2016 16:48:45 +0100
-Message-Id: <1455724125-13004-10-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Mon, 15 Feb 2016 01:08:57 -0500
+From: info@are.ma
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD?=
+	 =?UTF-8?q?=D1=82=D0=BE=2C=20AreMa=20Inc?= <knightrider@are.ma>,
+	linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
+	mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 1/7] raise adapter number limit
+Date: Mon, 15 Feb 2016 15:08:43 +0900
+Message-Id: <370b7726279759abc41a71843c6a59cdb1e5cdb1.1455513464.git.knightrider@are.ma>
+In-Reply-To: <cover.1455513464.git.knightrider@are.ma>
+References: <cover.1455513464.git.knightrider@are.ma>
+In-Reply-To: <cover.1455513464.git.knightrider@are.ma>
+References: <cover.1455513464.git.knightrider@are.ma>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ian Molton <ian.molton@codethink.co.uk>
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-Set the 'default-input' property for ADV7612, enabling image and video
-capture without the need to have userspace specifying routing.
+The current limit is too low for latest cards with 8+ tuners on a single slot, change to 64.
 
-(This version places the property in the adv7612 node, in line with
-Ian's documentation)
-
-Signed-off-by: Ian Molton <ian.molton@codethink.co.uk>
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
 ---
- arch/arm/boot/dts/r8a7790-lager.dts | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/dvb-core/dvbdev.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index 920205e..30371bb 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -573,6 +573,7 @@
- 		interrupt-parent = <&gpio1>;
- 		interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
- 		remote = <&vin0>;
-+		default-input = <0>;
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index 4aff7bd..950decd 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -34,7 +34,7 @@
+ #if defined(CONFIG_DVB_MAX_ADAPTERS) && CONFIG_DVB_MAX_ADAPTERS > 0
+   #define DVB_MAX_ADAPTERS CONFIG_DVB_MAX_ADAPTERS
+ #else
+-  #define DVB_MAX_ADAPTERS 8
++  #define DVB_MAX_ADAPTERS 64
+ #endif
  
- 		port {
- 			adv7612: endpoint {
+ #define DVB_UNSET (-1)
 -- 
-2.6.4
+2.3.10
 
