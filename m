@@ -1,177 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44505 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751449AbcBZOBB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2016 09:01:01 -0500
-Date: Fri, 26 Feb 2016 11:00:55 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Representing hardware connections via MC
-Message-ID: <20160226110055.2acf936f@recife.lan>
-In-Reply-To: <56D051DC.5070900@xs4all.nl>
-References: <20160226091317.5a07c374@recife.lan>
-	<56D051DC.5070900@xs4all.nl>
+Received: from mail-io0-f169.google.com ([209.85.223.169]:33388 "EHLO
+	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881AbcBOJcg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2016 04:32:36 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1455242450-24493-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<1455242450-24493-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Date: Mon, 15 Feb 2016 10:32:35 +0100
+Message-ID: <CAMuHMdW1bWPPL-4hRM=dx-216V4Aew1dg=i=ApkLww4RFXQgmg@mail.gmail.com>
+Subject: Re: [PATCH/RFC 3/9] v4l: Add Renesas R-Car FCP driver
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 26 Feb 2016 14:23:40 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Laurent,
 
-> On 02/26/2016 01:13 PM, Mauro Carvalho Chehab wrote:
-> > We had some discussions on Feb, 12 about how to represent connectors via
-> > the Media Controller:
-> > 	https://linuxtv.org/irc/irclogger_log/v4l?date=2016-02-12,Fri&sel=31#l27
-> > 
-> > We tried to finish those discussions on the last two weeks, but people
-> > doesn't seem to be available at the same time for the discussions. So,
-> > let's proceed with the discussions via e-mail.
-> > 
-> > So, I'd like to do such discussions via e-mail, as we need to close
-> > this question next week.
-> > 
-> > QUESTION:
-> > ========
-> > 
-> > How to represent the hardware connection for inputs (and outputs) like:
-> > 	- Composite TV video;
-> > 	- stereo analog audio;
-> > 	- S-Video;
-> > 	- HDMI
-> > 
-> > Problem description:
-> > ===================
-> > 
-> > During the MC summit last year, we decided to add an entity called
-> > "connector" for such things. So, we added, so far, 3 types of
-> > connectors:
-> > 
-> > #define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
-> > #define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
-> > #define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-> > 
-> > However, while implementing it, we saw that the mapping on hardware
-> > is actually more complex, as one physical connector may have multiple
-> > signals with can eventually used on a different way.
-> > 
-> > One simple example of this is the S-Video connector. It has internally
-> > two video streams, one for chrominance and another one for luminance.
-> > 
-> > It is very common for vendors to ship devices with a S-Video input
-> > and a "S-Video to RCA" cable.
-> > 
-> > At the driver's level, drivers need to know if such cable is
-> > plugged, as they need to configure a different input setting to
-> > enable either S-Video or composite decoding.
-> > 
-> > So, the V4L2 API usually maps "S-Video" on a different input
-> > than "Composite over S-Video". This can be seen, for example, at the
-> > saa7134 driver, who gained recently support for MC.
-> > 
-> > Additionally, it is interesting to describe the physical aspects
-> > of the connector (color, position, label, etc).
-> > 
-> > Proposal:
-> > ========
-> > 
-> > It seems that there was an agreement that the physical aspects of
-> > the connector should be mapped via the upcoming properties API,
-> > with the properties present only when it is possible to find them
-> > in the hardware. So, it seems that all such properties should be
-> > optional.
-> > 
-> > However, we didn't finish the meeting, as we ran out of time. Yet,
-> > I guess the last proposal there fulfills the requirements. So,
-> > let's focus our discussions on it. So, let me formulate it as a
-> > proposal
-> > 
-> > We should represent the entities based on the inputs. So, for the
-> > already implemented entities, we'll have, instead:
-> > 
-> > #define MEDIA_ENT_F_INPUT_RF		(MEDIA_ENT_F_BASE + 10001)
-> > #define MEDIA_ENT_F_INPUT_SVIDEO	(MEDIA_ENT_F_BASE + 10002)
-> > #define MEDIA_ENT_F_INPUT_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-> > 
-> > The MEDIA_ENT_F_INPUT_RF and MEDIA_ENT_F_INPUT_COMPOSITE will have
-> > just one sink PAD each, as they carry just one signal. As we're
-> > describing the logical input, it doesn't matter the physical
-> > connector type. So, except for re-naming the define, nothing
-> > changes for them.  
-> 
-> What if my device has an SVIDEO output (e.g. ivtv)? 'INPUT' denotes
-> the direction, and I don't think that's something you want in the
-> define for the connector entity.
-> 
-> As was discussed on irc we are really talking about signals received
-> or transmitted by/from a connector. I still prefer F_SIG_ or F_SIGNAL_
-> or F_CONN_SIG_ or something along those lines.
-> 
-> I'm not sure where F_INPUT came from, certainly not from the irc
-> discussion.
+On Fri, Feb 12, 2016 at 3:00 AM, Laurent Pinchart
+<laurent.pinchart+renesas@ideasonboard.com> wrote:
+> The FCP is a companion module of video processing modules in the
+> Renesas R-Car Gen3 SoCs. It provides data compression and decompression,
+> data caching, and converting of AXI transaction in order to reduce the
 
-Well, the idea of "F_CONN_SIG" came when we were talking about
-representing each signal, and not the hole thing.
+"conversion"?
 
-I think using it would be a little bit misleading, but I'm OK
-with that, provided that we make clear that a MEDIA_ENT_F_CONN_SIG_SVIDEO
-should contain two pads, one for each signal.
+> memory bandwidth.
+>
+> The driver is not meant to be used standalone but provides an API to the
+> video processing modules to control the FCP.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-> 
-> > Devices with S-Video input will have one MEDIA_ENT_F_INPUT_SVIDEO
-> > per each different S-Video input. Each one will have two sink pads,
-> > one for the Y signal and another for the C signal.
-> > 
-> > So, a device like Terratec AV350, that has one Composite and one
-> > S-Video input[1] would be represented as:
-> > 	https://mchehab.fedorapeople.org/terratec_av350-modified.png
-> > 
-> > 
-> > [1] Physically, it has a SCART connector that could be enabled
-> > via a physical switch, but logically, the device will still switch
-> > from S-Video over SCART or composite over SCART.
-> > 
-> > More complex devices would be represented like:
-> > 	https://hverkuil.home.xs4all.nl/adv7604.png
-> > 	https://hverkuil.home.xs4all.nl/adv7842.png
-> > 
-> > NOTE:
-> > 
-> > The labels at the PADs currently can't be represented, but the
-> > idea is adding it as a property via the upcoming properties API.  
-> 
-> I think this is a separate discussion. It's not needed for now.
+Thanks for your patch!
 
-Agreed.
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> @@ -0,0 +1,24 @@
+> +Renesas R-Car Frame Compression Processor (FCP)
+> +-----------------------------------------------
+> +
+> +The FCP is a companion module of video processing modules in the Renesas R-Car
+> +Gen3 SoCs. It provides data compression and decompression, data caching, and
+> +converting of AXI transaction in order to reduce the memory bandwidth.
 
-> When working on the adv7604/7842 examples I realized that pad names help
-> understand the topology a lot better, but they are not needed for the actual
-> functionality.
+"conversion"?
 
-Yes. PAD names help a lot when someone needs to view the topology as
-a graph. It could also be useful when the driver needs to do the
-connections themselves (for example, connecting VBI and VIDEO pads
-on a tv demux).
+> +
+> +There are three types of FCP whose configuration and behaviour highly depend
+> +on the module they are paired with.
+> +
+> + - compatible: Must be one of the following
+> +   - "renesas,fcpv" for the 'FCP for VSP' device
 
-Yet, this is a separate discussion, to be done when we add the 
-properties API.
+Any chance this module can turn up in another SoC later? I guess yes.
+What about future-proofing using "renesas,r8a7795-fcpv" and
+"renesas,rcar-gen3-fcpv"?
 
-> 
-> > 
-> > Anyone disagree?  
-> 
-> I agree except for the naming.
-> 
-> Regards,
-> 
-> 	Hans
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index fd4fcd5a7184..cbb4e5735bf8 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -255,6 +255,19 @@ config VIDEO_RENESAS_JPU
+>           To compile this driver as a module, choose M here: the module
+>           will be called rcar_jpu.
+>
+> +config VIDEO_RENESAS_FCP
+> +       tristate "Renesas Frame Compression Processor"
+> +       depends on ARCH_SHMOBILE || COMPILE_TEST
 
+ARCH_RENESAS
 
--- 
-Thanks,
-Mauro
+> diff --git a/drivers/media/platform/rcar-fcp.c b/drivers/media/platform/rcar-fcp.c
+> new file mode 100644
+> index 000000000000..cf8cb629ae4f
+> --- /dev/null
+> +++ b/drivers/media/platform/rcar-fcp.c
+
+> +struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
+> +{
+> +       struct rcar_fcp_device *fcp;
+> +
+> +       mutex_lock(&fcp_lock);
+> +
+> +       list_for_each_entry(fcp, &fcp_devices, list) {
+> +               if (fcp->dev->of_node != np)
+> +                       continue;
+> +
+> +               /*
+> +                * Make sure the module won't be unloaded behind our back. This
+> +                * is a poor's man safety net, the module should really not be
+
+poor man's
+
+> diff --git a/include/media/rcar-fcp.h b/include/media/rcar-fcp.h
+> new file mode 100644
+> index 000000000000..4260cf48d3b1
+> --- /dev/null
+> +++ b/include/media/rcar-fcp.h
+> @@ -0,0 +1,34 @@
+> +/*
+> + * rcar-fcp.h  --  R-Car Frame Compression Processor Driver
+> + *
+> + * Copyright (C) 2016 Renesas Electronics Corporation
+> + *
+> + * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +#ifndef __MEDIA_RCAR_FCP_H__
+> +#define __MEDIA_RCAR_FCP_H__
+> +
+> +struct device_node;
+> +struct rcar_fcp_device;
+> +
+> +#if IS_ENABLED(CONFIG_VIDEO_RENESAS_FCP)
+> +struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np);
+> +void rcar_fcp_put(struct rcar_fcp_device *fcp);
+> +void rcar_fcp_enable(struct rcar_fcp_device *fcp);
+> +void rcar_fcp_disable(struct rcar_fcp_device *fcp);
+> +#else
+> +static inline struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
+> +{
+> +       return ERR_PTR(-ENOENT);
+> +}
+> +static inline void rcar_fcp_put(struct rcar_fcp_device *fcp) { }
+> +static inline void rcar_fcp_enable(struct rcar_fcp_device *fcp) { }
+> +static inline void rcar_fcp_disable(struct rcar_fcp_device *fcp) { }
+
+Given the dummies, the vsp driver can also work when FCP support is not
+enabled?
+Or is this meant purely to avoid #ifdefs in the vsp driver when compiling for
+R-Car Gen2?
+
+In case of the latter, you may want to enforce this in Kconfig.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
