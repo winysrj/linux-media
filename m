@@ -1,68 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f172.google.com ([209.85.160.172]:35096 "EHLO
-	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752167AbcBAVho (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 16:37:44 -0500
-Received: by mail-yk0-f172.google.com with SMTP id r207so119231175ykd.2
-        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2016 13:37:44 -0800 (PST)
+Received: from mail-pf0-f178.google.com ([209.85.192.178]:35484 "EHLO
+	mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642AbcBOJ1o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2016 04:27:44 -0500
+From: info@are.ma
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD?=
+	 =?UTF-8?q?=D1=82=D0=BE=2C=20AreMa=20Inc?= <knightrider@are.ma>,
+	linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
+	mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 1/7] raise adapter number limit
+Date: Mon, 15 Feb 2016 18:27:31 +0900
+Message-Id: <370b7726279759abc41a71843c6a59cdb1e5cdb1.1455528251.git.knightrider@are.ma>
+In-Reply-To: <cover.1455528251.git.knightrider@are.ma>
+References: <cover.1455528251.git.knightrider@are.ma>
+In-Reply-To: <cover.1455528251.git.knightrider@are.ma>
+References: <cover.1455528251.git.knightrider@are.ma>
 MIME-Version: 1.0
-In-Reply-To: <56AF5DB5.6000402@samsung.com>
-References: <1452533428-12762-1-git-send-email-dianders@chromium.org>
-	<1452533428-12762-5-git-send-email-dianders@chromium.org>
-	<56AF5DB5.6000402@samsung.com>
-Date: Mon, 1 Feb 2016 13:37:43 -0800
-Message-ID: <CAD=FV=URO2kMHJD+XTMsWw29VjGAX43fgzi_s+FsyBrjJo8FgA@mail.gmail.com>
-Subject: Re: [PATCH v6 4/5] videobuf2-dc: Let drivers specify DMA attrs
-From: Doug Anderson <dianders@chromium.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Russell King <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Tomasz Figa <tfiga@chromium.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Christoph Hellwig <hch@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 1, 2016 at 5:29 AM, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> Hello,
->
-> On 2016-01-11 18:30, Douglas Anderson wrote:
->>
->> From: Tomasz Figa <tfiga@chromium.org>
->>
->> DMA allocations might be subject to certain reqiurements specific to the
->> hardware using the buffers, such as availability of kernel mapping (for
->> contents fix-ups in the driver). The only entity that knows them is the
->> driver, so it must share this knowledge with vb2-dc.
->>
->> This patch extends the alloc_ctx initialization interface to let the
->> driver specify DMA attrs, which are then stored inside the allocation
->> context and will be used for all allocations with that context.
->>
->> As a side effect, all dma_*_coherent() calls are turned into
->> dma_*_attrs() calls, because the attributes need to be carried over
->> through all DMA operations.
->>
->> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
->> Signed-off-by: Douglas Anderson <dianders@chromium.org>
->
->
-> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-Added both your ans Mauro's acks to the current patch in RMK's patch
-tracker.  You can see the patch at
-<http://www.arm.linux.org.uk/developer/patches/viewpatch.php?id=8508/2>
+The current limit is too low for latest cards with 8+ tuners on a single slot, change to 64.
 
-Note that Javier has tested this series upstream on a Samsung
-Chromebook and validated that the allocations are working as intended,
-even if MFC is a bit tricky to get working properly upstream.
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+---
+ drivers/media/dvb-core/dvbdev.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index 4aff7bd..950decd 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -34,7 +34,7 @@
+ #if defined(CONFIG_DVB_MAX_ADAPTERS) && CONFIG_DVB_MAX_ADAPTERS > 0
+   #define DVB_MAX_ADAPTERS CONFIG_DVB_MAX_ADAPTERS
+ #else
+-  #define DVB_MAX_ADAPTERS 8
++  #define DVB_MAX_ADAPTERS 64
+ #endif
+ 
+ #define DVB_UNSET (-1)
+-- 
+2.3.10
 
--Doug
