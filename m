@@ -1,269 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:36663 "EHLO
-	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946585AbcBRPGc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 10:06:32 -0500
-Received: by mail-wm0-f48.google.com with SMTP id g62so32400859wme.1
-        for <linux-media@vger.kernel.org>; Thu, 18 Feb 2016 07:06:31 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linux-security-module@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, zoltan.kuscsik@linaro.org,
-	sumit.semwal@linaro.org, cc.ma@mediatek.com
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v6 2/3] SMAF: add CMA allocator
-Date: Thu, 18 Feb 2016 16:05:16 +0100
-Message-Id: <1455807917-19901-3-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1455807917-19901-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1455807917-19901-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from mga03.intel.com ([134.134.136.65]:11047 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752938AbcBOMWw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2016 07:22:52 -0500
+Subject: Re: [PATCH 02/15] mediactl: Add support for v4l2-ctrl-redir config
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+ <1453133860-21571-3-git-send-email-j.anaszewski@samsung.com>
+ <56C1AF5F.3060702@linux.intel.com> <56C1B904.5080305@samsung.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <56C1C308.9030402@linux.intel.com>
+Date: Mon, 15 Feb 2016 14:22:32 +0200
+MIME-Version: 1.0
+In-Reply-To: <56C1B904.5080305@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SMAF CMA allocator implement helpers functions to allow SMAF
-to allocate contiguous memory.
+Hi Jacek,
 
-match() each if at least one of the attached devices have coherent_dma_mask
-set to DMA_BIT_MASK(32).
+Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> Thanks for the review.
+> 
+> On 02/15/2016 11:58 AM, Sakari Ailus wrote:
+>> Hi Jacek,
+>>
+>> Jacek Anaszewski wrote:
+>>> Make struct v4l2_subdev capable of aggregating v4l2-ctrl-redir
+>>> media device configuration entries. Added are also functions for
+>>> validating the config and checking whether a v4l2 sub-device
+>>> expects to receive ioctls related to the v4l2-control with given id.
+>>>
+>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>> ---
+>>>   utils/media-ctl/libv4l2subdev.c |   49
+>>> ++++++++++++++++++++++++++++++++++++++-
+>>>   utils/media-ctl/v4l2subdev.h    |   30 ++++++++++++++++++++++++
+>>>   2 files changed, 78 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/utils/media-ctl/libv4l2subdev.c
+>>> b/utils/media-ctl/libv4l2subdev.c
+>>> index 3977ce5..069ded6 100644
+>>> --- a/utils/media-ctl/libv4l2subdev.c
+>>> +++ b/utils/media-ctl/libv4l2subdev.c
+>>> @@ -26,7 +26,6 @@
+>>>   #include <ctype.h>
+>>>   #include <errno.h>
+>>>   #include <fcntl.h>
+>>> -#include <stdbool.h>
+>>>   #include <stdio.h>
+>>>   #include <stdlib.h>
+>>>   #include <string.h>
+>>> @@ -50,7 +49,15 @@ int v4l2_subdev_create(struct media_entity *entity)
+>>>
+>>>       entity->sd->fd = -1;
+>>>
+>>> +    entity->sd->v4l2_control_redir = malloc(sizeof(__u32));
+>>> +    if (entity->sd->v4l2_control_redir == NULL)
+>>> +        goto err_v4l2_control_redir_alloc;
+>>> +
+>>>       return 0;
+>>> +
+>>> +err_v4l2_control_redir_alloc:
+>>> +    free(entity->sd);
+>>> +    return -ENOMEM;
+>>>   }
+>>>
+>>>   int v4l2_subdev_create_with_fd(struct media_entity *entity, int fd)
+>>> @@ -870,3 +877,43 @@ enum v4l2_field
+>>> v4l2_subdev_string_to_field(const char *string,
+>>>
+>>>       return fields[i].field;
+>>>   }
+>>> +
+>>> +int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
+>>> +                   struct media_entity *entity,
+>>> +                   __u32 ctrl_id)
+>>> +{
+>>> +    struct v4l2_queryctrl queryctrl = {};
+>>> +    int ret;
+>>> +
+>>> +    ret = v4l2_subdev_open(entity);
+>>> +    if (ret < 0)
+>>> +        return ret;
+>>> +
+>>> +    queryctrl.id = ctrl_id;
+>>> +
+>>> +    ret = ioctl(entity->sd->fd, VIDIOC_QUERYCTRL, &queryctrl);
+>>> +    if (ret < 0)
+>>> +        return ret;
+>>> +
+>>> +    media_dbg(media, "Validated control \"%s\" (0x%8.8x) on entity
+>>> %s\n",
+>>> +          queryctrl.name, queryctrl.id, entity->info.name);
+>>> +
+>>> +    return 0;
+>>> +}
+>>> +
+>>> +bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
+>>> +                  struct media_entity *entity,
+>>> +                  int ctrl_id)
+>>> +{
+>>> +    struct v4l2_subdev *sd = entity->sd;
+>>> +    int i;
+>>> +
+>>> +    if (!sd)
+>>> +        return false;
+>>> +
+>>> +    for (i = 0; i < sd->v4l2_control_redir_num; ++i)
+>>> +        if (sd->v4l2_control_redir[i] == ctrl_id)
+>>> +            return true;
+>>> +
+>>> +    return false;
+>>> +}
+>>> diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+>>> index ba9b8c4..f395065 100644
+>>> --- a/utils/media-ctl/v4l2subdev.h
+>>> +++ b/utils/media-ctl/v4l2subdev.h
+>>> @@ -23,12 +23,17 @@
+>>>   #define __SUBDEV_H__
+>>>
+>>>   #include <linux/v4l2-subdev.h>
+>>> +#include <stdbool.h>
+>>>
+>>>   struct media_device;
+>>>   struct media_entity;
+>>> +struct media_device;
+>>>
+>>>   struct v4l2_subdev {
+>>>       int fd;
+>>> +
+>>> +    __u32 *v4l2_control_redir;
+>>> +    unsigned int v4l2_control_redir_num;
+>>>   };
+>>>
+>>>   /**
+>>> @@ -316,5 +321,30 @@ const char *v4l2_subdev_field_to_string(enum
+>>> v4l2_field field);
+>>>    */
+>>>   enum v4l2_field v4l2_subdev_string_to_field(const char *string,
+>>>                           unsigned int length);
+>>> +/**
+>>> + * @brief Validate v4l2 control for a sub-device
+>>> + * @param media - media device.
+>>> + * @param entity - subdev-device media entity.
+>>> + * @param ctrl_id - id of the v4l2 control to validate.
+>>> + *
+>>> + * Verify if the entity supports v4l2-control with given ctrl_id.
+>>> + *
+>>> + * @return 1 if the control is supported, 0 otherwise.
+>>> + */
+>>> +int v4l2_subdev_validate_v4l2_ctrl(struct media_device *media,
+>>> +                   struct media_entity *entity,
+>>> +                   __u32 ctrl_id);
+>>> +/**
+>>> + * @brief Check if there was a v4l2_control redirection defined for
+>>> the entity
+>>> + * @param media - media device.
+>>> + * @param entity - subdev-device media entity.
+>>> + * @param ctrl_id - v4l2 control identifier.
+>>> + *
+>>> + * Check if there was a v4l2-ctrl-redir entry defined for the entity.
+>>> + *
+>>> + * @return true if the entry exists, false otherwise
+>>> + */
+>>> +bool v4l2_subdev_has_v4l2_control_redir(struct media_device *media,
+>>> +    struct media_entity *entity, int ctrl_id);
+>>>
+>>>   #endif
+>>>
+>>
+>> Where do you need this?
+> 
+> It is used in v4l2_subdev_get_pipeline_entity_by_cid, which returns the
+> first entity in the pipeline the control setting is to be redirected to.
+> The v4l2_subdev_get_pipeline_entity_by_cid() is in turn required in
+> libv4l2media_ioctl.c, in the functions that apply control settings to
+> the pipeline. The actual sub-device to apply the settings on is being
+> selected basing on the v4l2-ctrl-redir config entry.
+> 
+> This is required in case more than one sub-device in the pipeline
+> supports a control and we want to choose specific hardware
+> implementation thereof. For example both S5C73M3 and fimc.0.capture
+> sub-devices support "Color Effects", but the effects differ visually -
+> e.g. Sepia realized by S5C73M3 is more "orange" than the one from
+> fimc.0.capture.
 
-For allocation it use dma_alloc_attrs() with DMA_ATTR_WRITE_COMBINE and not
-dma_alloc_writecombine to be compatible with ARM 64bits architecture
+Right.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- drivers/smaf/Kconfig    |   6 ++
- drivers/smaf/Makefile   |   1 +
- drivers/smaf/smaf-cma.c | 199 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 206 insertions(+)
- create mode 100644 drivers/smaf/smaf-cma.c
+libv4l2subdev still deals with sub-devices, and I don't think this
+functionality belongs there. Instead, I'd put it in libv4l2media_ioctl.
 
-diff --git a/drivers/smaf/Kconfig b/drivers/smaf/Kconfig
-index d36651a..058ec4c 100644
---- a/drivers/smaf/Kconfig
-+++ b/drivers/smaf/Kconfig
-@@ -3,3 +3,9 @@ config SMAF
- 	depends on DMA_SHARED_BUFFER
- 	help
- 	  Choose this option to enable Secure Memory Allocation Framework
-+
-+config SMAF_CMA
-+	tristate "SMAF CMA allocator"
-+	depends on SMAF && HAVE_DMA_ATTRS
-+	help
-+	  Choose this option to enable CMA allocation within SMAF
-diff --git a/drivers/smaf/Makefile b/drivers/smaf/Makefile
-index 40cd882..05bab01b 100644
---- a/drivers/smaf/Makefile
-+++ b/drivers/smaf/Makefile
-@@ -1 +1,2 @@
- obj-$(CONFIG_SMAF) += smaf-core.o
-+obj-$(CONFIG_SMAF_CMA) += smaf-cma.o
-diff --git a/drivers/smaf/smaf-cma.c b/drivers/smaf/smaf-cma.c
-new file mode 100644
-index 0000000..6366777
---- /dev/null
-+++ b/drivers/smaf/smaf-cma.c
-@@ -0,0 +1,199 @@
-+/*
-+ * smaf-cma.c
-+ *
-+ * Copyright (C) Linaro SA 2015
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include <linux/dma-mapping.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/smaf-allocator.h>
-+
-+struct smaf_cma_buffer_info {
-+	struct device *dev;
-+	size_t size;
-+	void *vaddr;
-+	dma_addr_t paddr;
-+};
-+
-+/**
-+ * find_matching_device - iterate over the attached devices to find one
-+ * with coherent_dma_mask correctly set to DMA_BIT_MASK(32).
-+ * Matching device (if any) will be used to aim CMA area.
-+ */
-+static struct device *find_matching_device(struct dma_buf *dmabuf)
-+{
-+	struct dma_buf_attachment *attach_obj;
-+
-+	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
-+		if (attach_obj->dev->coherent_dma_mask == DMA_BIT_MASK(32))
-+			return attach_obj->dev;
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ * smaf_cma_match - return true if at least one device has been found
-+ */
-+static bool smaf_cma_match(struct dma_buf *dmabuf)
-+{
-+	return !!find_matching_device(dmabuf);
-+}
-+
-+static void smaf_cma_release(struct dma_buf *dmabuf)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+
-+	dma_free_attrs(info->dev, info->size, info->vaddr, info->paddr, &attrs);
-+
-+	kfree(info);
-+}
-+
-+static struct sg_table *smaf_cma_map(struct dma_buf_attachment *attachment,
-+				     enum dma_data_direction direction)
-+{
-+	struct smaf_cma_buffer_info *info = attachment->dmabuf->priv;
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt)
-+		return NULL;
-+
-+	ret = dma_get_sgtable(info->dev, sgt, info->vaddr,
-+			      info->paddr, info->size);
-+	if (ret < 0)
-+		goto out;
-+
-+	sg_dma_address(sgt->sgl) = info->paddr;
-+	return sgt;
-+
-+out:
-+	kfree(sgt);
-+	return NULL;
-+}
-+
-+static void smaf_cma_unmap(struct dma_buf_attachment *attachment,
-+			   struct sg_table *sgt,
-+			   enum dma_data_direction direction)
-+{
-+	/* do nothing */
-+}
-+
-+static int smaf_cma_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+	int ret;
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+
-+	if (info->size < vma->vm_end - vma->vm_start)
-+		return -EINVAL;
-+
-+	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	ret = dma_mmap_attrs(info->dev, vma, info->vaddr, info->paddr,
-+			     info->size, &attrs);
-+
-+	return ret;
-+}
-+
-+static void *smaf_cma_vmap(struct dma_buf *dmabuf)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+
-+	return info->vaddr;
-+}
-+
-+static void *smaf_kmap_atomic(struct dma_buf *dmabuf, unsigned long offset)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+
-+	return (void *)info->vaddr + offset;
-+}
-+
-+static struct dma_buf_ops smaf_cma_ops = {
-+	.map_dma_buf = smaf_cma_map,
-+	.unmap_dma_buf = smaf_cma_unmap,
-+	.mmap = smaf_cma_mmap,
-+	.release = smaf_cma_release,
-+	.kmap_atomic = smaf_kmap_atomic,
-+	.kmap = smaf_kmap_atomic,
-+	.vmap = smaf_cma_vmap,
-+};
-+
-+static struct dma_buf *smaf_cma_allocate(struct dma_buf *dmabuf,
-+					 size_t length, unsigned int flags)
-+{
-+	struct dma_buf_attachment *attach_obj;
-+	struct smaf_cma_buffer_info *info;
-+	struct dma_buf *cma_dmabuf;
-+	int ret;
-+
-+	DEFINE_DMA_BUF_EXPORT_INFO(export);
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-+
-+	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	if (!info)
-+		return NULL;
-+
-+	info->dev = find_matching_device(dmabuf);
-+	info->size = length;
-+	info->vaddr = dma_alloc_attrs(info->dev, info->size, &info->paddr,
-+				      GFP_KERNEL | __GFP_NOWARN, &attrs);
-+	if (!info->vaddr) {
-+		ret = -ENOMEM;
-+		goto error;
-+	}
-+
-+	export.ops = &smaf_cma_ops;
-+	export.size = info->size;
-+	export.flags = flags;
-+	export.priv = info;
-+
-+	cma_dmabuf = dma_buf_export(&export);
-+	if (IS_ERR(cma_dmabuf))
-+		goto error;
-+
-+	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
-+		dma_buf_attach(cma_dmabuf, attach_obj->dev);
-+	}
-+
-+	return cma_dmabuf;
-+
-+error:
-+	kfree(info);
-+	return NULL;
-+}
-+
-+static struct smaf_allocator smaf_cma = {
-+	.match = smaf_cma_match,
-+	.allocate = smaf_cma_allocate,
-+	.name = "smaf-cma",
-+	.ranking = 0,
-+};
-+
-+static int __init smaf_cma_init(void)
-+{
-+	INIT_LIST_HEAD(&smaf_cma.list_node);
-+	return smaf_register_allocator(&smaf_cma);
-+}
-+module_init(smaf_cma_init);
-+
-+static void __exit smaf_cma_deinit(void)
-+{
-+	smaf_unregister_allocator(&smaf_cma);
-+}
-+module_exit(smaf_cma_deinit);
-+
-+MODULE_DESCRIPTION("SMAF CMA module");
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
+> 
+> And we can set controls with GStreamer pipeline :
+> 
+> gst-launch-1.0 v4l2src device=/dev/video1
+> extra-controls="c,color_effects=2" ! video/x-raw,width=960,height=920 !
+> fbdevsink
+> 
+>>
+>> If you have an application that's aware of V4L2 sub-devices (and thus
+>> multiple devices)), I'd expect it to set the controls on the sub-devices
+>> the controls are implemented in rather than rely on them being
+>> redirected.
+>>
+>> This would make perfect sense IMO when implementing plain V4L2 interface
+>> support on top of drivers that expose MC/V4L2 subdev/V4L2 APIs. But I
+>> wouldn't implement it in libv4l2subdev.
+>>
+> 
+> 
+
+
 -- 
-1.9.1
+Regards,
 
+Sakari Ailus
+sakari.ailus@linux.intel.com
