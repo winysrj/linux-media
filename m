@@ -1,1733 +1,322 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-1.cisco.com ([173.38.203.51]:48764 "EHLO
-	aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755150AbcBPMwm (ORCPT
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:34332 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752103AbcBOGJK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2016 07:52:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 15 Feb 2016 01:09:10 -0500
+From: info@are.ma
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 12/12] vb2: replace void *alloc_ctxs by struct device *alloc_devs
-Date: Tue, 16 Feb 2016 13:43:07 +0100
-Message-Id: <1455626587-8051-13-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
-References: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD?=
+	 =?UTF-8?q?=D1=82=D0=BE=2C=20AreMa=20Inc?= <knightrider@are.ma>,
+	linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
+	mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 6/7] Sharp QM1D1C0042 ISDB-S tuner
+Date: Mon, 15 Feb 2016 15:08:48 +0900
+Message-Id: <dc92fd04f70394ecd1bd4723592f6d0e4d95318b.1455513464.git.knightrider@are.ma>
+In-Reply-To: <cover.1455513464.git.knightrider@are.ma>
+References: <cover.1455513464.git.knightrider@are.ma>
+In-Reply-To: <cover.1455513464.git.knightrider@are.ma>
+References: <cover.1455513464.git.knightrider@are.ma>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-Make this a proper typed array. Drop the old allocate context code since
-that is no longer used.
-
-Note that the memops functions now get a struct device pointer instead of
-the struct device ** that was there initially (actually a void pointer to
-a struct containing only a struct device pointer).
-
-This code is now a lot cleaner.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-#
-#total: 0 errors, 0 warnings, 24 lines checked
-#
-#Your patch has no obvious style problems and is ready for submission.
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
 ---
- Documentation/video4linux/v4l2-pci-skeleton.c      |  2 +-
- drivers/input/touchscreen/sur40.c                  |  2 +-
- drivers/media/dvb-frontends/rtl2832_sdr.c          |  2 +-
- drivers/media/pci/cobalt/cobalt-v4l2.c             |  2 +-
- drivers/media/pci/cx23885/cx23885-417.c            |  2 +-
- drivers/media/pci/cx23885/cx23885-dvb.c            |  2 +-
- drivers/media/pci/cx23885/cx23885-vbi.c            |  2 +-
- drivers/media/pci/cx23885/cx23885-video.c          |  2 +-
- drivers/media/pci/cx25821/cx25821-video.c          |  2 +-
- drivers/media/pci/cx88/cx88-blackbird.c            |  2 +-
- drivers/media/pci/cx88/cx88-dvb.c                  |  2 +-
- drivers/media/pci/cx88/cx88-vbi.c                  |  2 +-
- drivers/media/pci/cx88/cx88-video.c                |  2 +-
- drivers/media/pci/dt3155/dt3155.c                  |  2 +-
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  2 +-
- drivers/media/pci/saa7134/saa7134-ts.c             |  2 +-
- drivers/media/pci/saa7134/saa7134-vbi.c            |  2 +-
- drivers/media/pci/saa7134/saa7134-video.c          |  2 +-
- drivers/media/pci/saa7134/saa7134.h                |  2 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     |  2 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2.c         |  2 +-
- drivers/media/pci/sta2x11/sta2x11_vip.c            |  2 +-
- drivers/media/pci/tw68/tw68-video.c                |  2 +-
- drivers/media/platform/am437x/am437x-vpfe.c        |  4 +--
- drivers/media/platform/blackfin/bfin_capture.c     |  2 +-
- drivers/media/platform/coda/coda-common.c          |  2 +-
- drivers/media/platform/davinci/vpbe_display.c      |  2 +-
- drivers/media/platform/davinci/vpif_capture.c      |  4 +--
- drivers/media/platform/davinci/vpif_display.c      |  4 +--
- drivers/media/platform/exynos-gsc/gsc-core.h       |  1 -
- drivers/media/platform/exynos-gsc/gsc-m2m.c        |  2 +-
- drivers/media/platform/exynos4-is/fimc-capture.c   |  2 +-
- drivers/media/platform/exynos4-is/fimc-isp-video.c |  2 +-
- drivers/media/platform/exynos4-is/fimc-lite.c      |  2 +-
- drivers/media/platform/exynos4-is/fimc-m2m.c       |  2 +-
- drivers/media/platform/m2m-deinterlace.c           |  2 +-
- drivers/media/platform/marvell-ccic/mcam-core.c    |  2 +-
- drivers/media/platform/mx2_emmaprp.c               |  2 +-
- drivers/media/platform/omap3isp/ispvideo.c         |  2 +-
- drivers/media/platform/rcar_jpu.c                  |  2 +-
- drivers/media/platform/s3c-camif/camif-capture.c   |  2 +-
- drivers/media/platform/s5p-g2d/g2d.c               |  2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 10 +++---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 12 +++----
- drivers/media/platform/s5p-tv/mixer_video.c        |  2 +-
- drivers/media/platform/sh_veu.c                    |  2 +-
- drivers/media/platform/sh_vou.c                    |  2 +-
- drivers/media/platform/soc_camera/atmel-isi.c      |  2 +-
- drivers/media/platform/soc_camera/mx2_camera.c     |  2 +-
- drivers/media/platform/soc_camera/mx3_camera.c     |  2 +-
- drivers/media/platform/soc_camera/rcar_vin.c       |  2 +-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |  2 +-
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c      |  2 +-
- drivers/media/platform/ti-vpe/cal.c                |  2 +-
- drivers/media/platform/ti-vpe/vpe.c                |  2 +-
- drivers/media/platform/vim2m.c                     |  7 +---
- drivers/media/platform/vivid/vivid-sdr-cap.c       |  2 +-
- drivers/media/platform/vivid/vivid-vbi-cap.c       |  2 +-
- drivers/media/platform/vivid/vivid-vbi-out.c       |  2 +-
- drivers/media/platform/vivid/vivid-vid-cap.c       |  7 +---
- drivers/media/platform/vivid/vivid-vid-out.c       |  7 +---
- drivers/media/platform/vsp1/vsp1_video.c           |  2 +-
- drivers/media/platform/xilinx/xilinx-dma.c         |  2 +-
- drivers/media/usb/airspy/airspy.c                  |  2 +-
- drivers/media/usb/au0828/au0828-vbi.c              |  2 +-
- drivers/media/usb/au0828/au0828-video.c            |  2 +-
- drivers/media/usb/em28xx/em28xx-vbi.c              |  2 +-
- drivers/media/usb/em28xx/em28xx-video.c            |  2 +-
- drivers/media/usb/go7007/go7007-v4l2.c             |  2 +-
- drivers/media/usb/hackrf/hackrf.c                  |  2 +-
- drivers/media/usb/msi2500/msi2500.c                |  2 +-
- drivers/media/usb/pwc/pwc-if.c                     |  2 +-
- drivers/media/usb/s2255/s2255drv.c                 |  2 +-
- drivers/media/usb/stk1160/stk1160-v4l.c            |  2 +-
- drivers/media/usb/usbtv/usbtv-video.c              |  2 +-
- drivers/media/usb/uvc/uvc_queue.c                  |  2 +-
- drivers/media/v4l2-core/videobuf2-core.c           | 18 +++++-----
- drivers/media/v4l2-core/videobuf2-dma-contig.c     | 39 +++-----------------
- drivers/media/v4l2-core/videobuf2-dma-sg.c         | 42 ++++------------------
- drivers/media/v4l2-core/videobuf2-vmalloc.c        |  6 ++--
- drivers/staging/media/davinci_vpfe/vpfe_video.c    |  4 +--
- drivers/staging/media/omap4iss/iss_video.c         |  2 +-
- drivers/usb/gadget/function/uvc_queue.c            |  2 +-
- include/media/videobuf2-core.h                     | 19 +++++-----
- include/media/videobuf2-dma-contig.h               |  3 --
- include/media/videobuf2-dma-sg.h                   |  3 --
- 87 files changed, 125 insertions(+), 205 deletions(-)
+ drivers/media/tuners/qm1d1c0042.c | 246 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/tuners/qm1d1c0042.h |  23 ++++
+ 2 files changed, 269 insertions(+)
+ create mode 100644 drivers/media/tuners/qm1d1c0042.c
+ create mode 100644 drivers/media/tuners/qm1d1c0042.h
 
-diff --git a/Documentation/video4linux/v4l2-pci-skeleton.c b/Documentation/video4linux/v4l2-pci-skeleton.c
-index 62b6aed..76e9440 100644
---- a/Documentation/video4linux/v4l2-pci-skeleton.c
-+++ b/Documentation/video4linux/v4l2-pci-skeleton.c
-@@ -163,7 +163,7 @@ static irqreturn_t skeleton_irq(int irq, void *dev_id)
-  */
- static int queue_setup(struct vb2_queue *vq,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
--		       unsigned int sizes[], void *alloc_ctxs[])
-+		       unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct skeleton *skel = vb2_get_drv_priv(vq);
- 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index 4608010..4df666a 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -638,7 +638,7 @@ static void sur40_disconnect(struct usb_interface *interface)
-  */
- static int sur40_queue_setup(struct vb2_queue *q,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
--		       unsigned int sizes[], void *alloc_ctxs[])
-+		       unsigned int sizes[], struct device *alloc_devs[])
- {
- 	if (q->num_buffers + *nbuffers < 3)
- 		*nbuffers = 3 - q->num_buffers;
-diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
-index b860f02..dfe2667 100644
---- a/drivers/media/dvb-frontends/rtl2832_sdr.c
-+++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
-@@ -491,7 +491,7 @@ static int rtl2832_sdr_querycap(struct file *file, void *fh,
- /* Videobuf2 operations */
- static int rtl2832_sdr_queue_setup(struct vb2_queue *vq,
- 		unsigned int *nbuffers,
--		unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
-+		unsigned int *nplanes, unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct rtl2832_sdr_dev *dev = vb2_get_drv_priv(vq);
- 	struct platform_device *pdev = dev->pdev;
-diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
-index 6c19cdf..d05672f 100644
---- a/drivers/media/pci/cobalt/cobalt-v4l2.c
-+++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
-@@ -45,7 +45,7 @@ static const struct v4l2_dv_timings cea1080p60 = V4L2_DV_BT_CEA_1920X1080P60;
- 
- static int cobalt_queue_setup(struct vb2_queue *q,
- 			unsigned int *num_buffers, unsigned int *num_planes,
--			unsigned int sizes[], void *alloc_ctxs[])
-+			unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cobalt_stream *s = q->drv_priv;
- 	unsigned size = s->stride * s->height;
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index 0174d08..efec2d1 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -1140,7 +1140,7 @@ static int cx23885_initialize_codec(struct cx23885_dev *dev, int startencoder)
- 
- static int queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cx23885_dev *dev = q->drv_priv;
- 
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 9433c8c..d19beae 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -94,7 +94,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- static int queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cx23885_tsport *port = q->drv_priv;
- 
-diff --git a/drivers/media/pci/cx23885/cx23885-vbi.c b/drivers/media/pci/cx23885/cx23885-vbi.c
-index 2de9485..75e7fa7 100644
---- a/drivers/media/pci/cx23885/cx23885-vbi.c
-+++ b/drivers/media/pci/cx23885/cx23885-vbi.c
-@@ -122,7 +122,7 @@ static int cx23885_start_vbi_dma(struct cx23885_dev    *dev,
- 
- static int queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cx23885_dev *dev = q->drv_priv;
- 	unsigned lines = VBI_PAL_LINE_COUNT;
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 3ff86d6..6d73522 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -335,7 +335,7 @@ static int cx23885_start_video_dma(struct cx23885_dev *dev,
- 
- static int queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cx23885_dev *dev = q->drv_priv;
- 
-diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
-index 45fc23e..adcd09b 100644
---- a/drivers/media/pci/cx25821/cx25821-video.c
-+++ b/drivers/media/pci/cx25821/cx25821-video.c
-@@ -143,7 +143,7 @@ int cx25821_video_irq(struct cx25821_dev *dev, int chan_num, u32 status)
- 
- static int cx25821_queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cx25821_channel *chan = q->drv_priv;
- 	unsigned size = (chan->fmt->depth * chan->width * chan->height) >> 3;
-diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
-index 7c026c1c..04fe9af 100644
---- a/drivers/media/pci/cx88/cx88-blackbird.c
-+++ b/drivers/media/pci/cx88/cx88-blackbird.c
-@@ -639,7 +639,7 @@ static int blackbird_stop_codec(struct cx8802_dev *dev)
- 
- static int queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cx8802_dev *dev = q->drv_priv;
- 
-diff --git a/drivers/media/pci/cx88/cx88-dvb.c b/drivers/media/pci/cx88/cx88-dvb.c
-index 4d91d16..5bb63e7 100644
---- a/drivers/media/pci/cx88/cx88-dvb.c
-+++ b/drivers/media/pci/cx88/cx88-dvb.c
-@@ -84,7 +84,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- static int queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cx8802_dev *dev = q->drv_priv;
- 
-diff --git a/drivers/media/pci/cx88/cx88-vbi.c b/drivers/media/pci/cx88/cx88-vbi.c
-index 2479f7d..d3237cf 100644
---- a/drivers/media/pci/cx88/cx88-vbi.c
-+++ b/drivers/media/pci/cx88/cx88-vbi.c
-@@ -109,7 +109,7 @@ int cx8800_restart_vbi_queue(struct cx8800_dev    *dev,
- 
- static int queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cx8800_dev *dev = q->drv_priv;
- 
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index 9764d6f..5dc1e3f 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -431,7 +431,7 @@ static int restart_video_queue(struct cx8800_dev    *dev,
- 
- static int queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cx8800_dev *dev = q->drv_priv;
- 	struct cx88_core *core = dev->core;
-diff --git a/drivers/media/pci/dt3155/dt3155.c b/drivers/media/pci/dt3155/dt3155.c
-index ec8f58a..6a21969 100644
---- a/drivers/media/pci/dt3155/dt3155.c
-+++ b/drivers/media/pci/dt3155/dt3155.c
-@@ -133,7 +133,7 @@ static int wait_i2c_reg(void __iomem *addr)
- static int
- dt3155_queue_setup(struct vb2_queue *vq,
- 		unsigned int *nbuffers, unsigned int *num_planes,
--		unsigned int sizes[], void *alloc_ctxs[])
-+		unsigned int sizes[], struct device *alloc_devs[])
- 
- {
- 	struct dt3155_priv *pd = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-index 2b667b3..fd6443d 100644
---- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-+++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-@@ -280,7 +280,7 @@ static int netup_unidvb_queue_setup(struct vb2_queue *vq,
- 				    unsigned int *nbuffers,
- 				    unsigned int *nplanes,
- 				    unsigned int sizes[],
--				    void *alloc_ctxs[])
-+				    struct device *alloc_devs[])
- {
- 	struct netup_dma *dma = vb2_get_drv_priv(vq);
- 
-diff --git a/drivers/media/pci/saa7134/saa7134-ts.c b/drivers/media/pci/saa7134/saa7134-ts.c
-index 8c68a93..7eaf36a 100644
---- a/drivers/media/pci/saa7134/saa7134-ts.c
-+++ b/drivers/media/pci/saa7134/saa7134-ts.c
-@@ -118,7 +118,7 @@ EXPORT_SYMBOL_GPL(saa7134_ts_buffer_prepare);
- 
- int saa7134_ts_queue_setup(struct vb2_queue *q,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct saa7134_dmaqueue *dmaq = q->drv_priv;
- 	struct saa7134_dev *dev = dmaq->dev;
-diff --git a/drivers/media/pci/saa7134/saa7134-vbi.c b/drivers/media/pci/saa7134/saa7134-vbi.c
-index e9bffb3..cf9a31e 100644
---- a/drivers/media/pci/saa7134/saa7134-vbi.c
-+++ b/drivers/media/pci/saa7134/saa7134-vbi.c
-@@ -140,7 +140,7 @@ static int buffer_prepare(struct vb2_buffer *vb2)
- 
- static int queue_setup(struct vb2_queue *q,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct saa7134_dmaqueue *dmaq = q->drv_priv;
- 	struct saa7134_dev *dev = dmaq->dev;
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 573e565..a036401 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -963,7 +963,7 @@ static int buffer_prepare(struct vb2_buffer *vb2)
- 
- static int queue_setup(struct vb2_queue *q,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct saa7134_dmaqueue *dmaq = q->drv_priv;
- 	struct saa7134_dev *dev = dmaq->dev;
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 08ca7b3..4185ec6 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -852,7 +852,7 @@ int saa7134_ts_buffer_init(struct vb2_buffer *vb2);
- int saa7134_ts_buffer_prepare(struct vb2_buffer *vb2);
- int saa7134_ts_queue_setup(struct vb2_queue *q,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[]);
-+			   unsigned int sizes[], struct device *alloc_devs[]);
- int saa7134_ts_start_streaming(struct vb2_queue *vq, unsigned int count);
- void saa7134_ts_stop_streaming(struct vb2_queue *vq);
- 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-index f48ef33..8b1cde5 100644
---- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-@@ -664,7 +664,7 @@ static int solo_ring_thread(void *data)
- static int solo_enc_queue_setup(struct vb2_queue *q,
- 				unsigned int *num_buffers,
- 				unsigned int *num_planes, unsigned int sizes[],
--				void *alloc_ctxs[])
-+				struct device *alloc_devs[])
- {
- 	sizes[0] = FRAME_BUF_SIZE;
- 	*num_planes = 1;
-diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
-index 56affad..5a66176 100644
---- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
-@@ -315,7 +315,7 @@ static void solo_stop_thread(struct solo_dev *solo_dev)
- 
- static int solo_queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct solo_dev *solo_dev = vb2_get_drv_priv(q);
- 
-diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
-index 7f201c3..963e0dd 100644
---- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-+++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
-@@ -265,7 +265,7 @@ static void vip_active_buf_next(struct sta2x11_vip *vip)
- /* Videobuf2 Operations */
- static int queue_setup(struct vb2_queue *vq,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
--		       unsigned int sizes[], void *alloc_ctxs[])
-+		       unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct sta2x11_vip *vip = vb2_get_drv_priv(vq);
- 
-diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
-index c675f9a..5e82128 100644
---- a/drivers/media/pci/tw68/tw68-video.c
-+++ b/drivers/media/pci/tw68/tw68-video.c
-@@ -378,7 +378,7 @@ static int tw68_buffer_count(unsigned int size, unsigned int count)
- 
- static int tw68_queue_setup(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct tw68_dev *dev = vb2_get_drv_priv(q);
- 	unsigned tot_bufs = q->num_buffers + *num_buffers;
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index 74c833f..b889c62 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1901,14 +1901,14 @@ static void vpfe_calculate_offsets(struct vpfe_device *vpfe)
-  * @nbuffers: ptr to number of buffers requested by application
-  * @nplanes:: contains number of distinct video planes needed to hold a frame
-  * @sizes[]: contains the size (in bytes) of each plane.
-- * @alloc_ctxs: ptr to allocation context
-+ * @alloc_devs: ptr to allocation context
-  *
-  * This callback function is called when reqbuf() is called to adjust
-  * the buffer count and buffer size
-  */
- static int vpfe_queue_setup(struct vb2_queue *vq,
- 			    unsigned int *nbuffers, unsigned int *nplanes,
--			    unsigned int sizes[], void *alloc_ctxs[])
-+			    unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct vpfe_device *vpfe = vb2_get_drv_priv(vq);
- 	unsigned size = vpfe->fmt.fmt.pix.sizeimage;
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 1e244287..8eb0339 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -201,7 +201,7 @@ static void bcap_free_sensor_formats(struct bcap_device *bcap_dev)
- 
- static int bcap_queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
- 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index f1955f5..8a3602a 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1139,7 +1139,7 @@ static void set_default_params(struct coda_ctx *ctx)
-  */
- static int coda_queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct coda_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct coda_q_data *q_data;
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 2a4c291..0b1709e 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -230,7 +230,7 @@ static int vpbe_buffer_prepare(struct vb2_buffer *vb)
- static int
- vpbe_buffer_queue_setup(struct vb2_queue *vq,
- 			unsigned int *nbuffers, unsigned int *nplanes,
--			unsigned int sizes[], void *alloc_ctxs[])
-+			unsigned int sizes[], struct device *alloc_devs[])
- 
- {
- 	/* Get the file handle object and layer object */
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index d5afab0..5104cc0 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -107,14 +107,14 @@ static int vpif_buffer_prepare(struct vb2_buffer *vb)
-  * @nbuffers: ptr to number of buffers requested by application
-  * @nplanes:: contains number of distinct video planes needed to hold a frame
-  * @sizes[]: contains the size (in bytes) of each plane.
-- * @alloc_ctxs: ptr to allocation context
-+ * @alloc_devs: ptr to allocation context
-  *
-  * This callback function is called when reqbuf() is called to adjust
-  * the buffer count and buffer size
-  */
- static int vpif_buffer_queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct channel_obj *ch = vb2_get_drv_priv(vq);
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 5d77884..75b2723 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -102,14 +102,14 @@ static int vpif_buffer_prepare(struct vb2_buffer *vb)
-  * @nbuffers: ptr to number of buffers requested by application
-  * @nplanes:: contains number of distinct video planes needed to hold a frame
-  * @sizes[]: contains the size (in bytes) of each plane.
-- * @alloc_ctxs: ptr to allocation context
-+ * @alloc_devs: ptr to allocation context
-  *
-  * This callback function is called when reqbuf() is called to adjust
-  * the buffer count and buffer size
-  */
- static int vpif_buffer_queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct channel_obj *ch = vb2_get_drv_priv(vq);
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
-index b2b01b9..b75f4b6 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.h
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.h
-@@ -327,7 +327,6 @@ struct gsc_driverdata {
-  * @irq_queue:	interrupt handler waitqueue
-  * @m2m:	memory-to-memory V4L2 device information
-  * @state:	flags used to synchronize m2m and capture mode operation
-- * @alloc_ctx:	videobuf2 memory allocator context
-  * @vdev:	video device for G-Scaler instance
-  */
- struct gsc_dev {
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 622709c..ec6494c 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -213,7 +213,7 @@ put_device:
- 
- static int gsc_m2m_queue_setup(struct vb2_queue *vq,
- 			unsigned int *num_buffers, unsigned int *num_planes,
--			unsigned int sizes[], void *allocators[])
-+			unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct gsc_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct gsc_frame *frame;
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index 512b254..fdec499 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -340,7 +340,7 @@ int fimc_capture_resume(struct fimc_dev *fimc)
- 
- static int queue_setup(struct vb2_queue *vq,
- 		       unsigned int *num_buffers, unsigned int *num_planes,
--		       unsigned int sizes[], void *allocators[])
-+		       unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct fimc_ctx *ctx = vq->drv_priv;
- 	struct fimc_frame *frame = &ctx->d_frame;
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-index abc3389..400ce0c 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
-+++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
-@@ -40,7 +40,7 @@
- 
- static int isp_video_capture_queue_setup(struct vb2_queue *vq,
- 			unsigned int *num_buffers, unsigned int *num_planes,
--			unsigned int sizes[], void *allocators[])
-+			unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct fimc_isp *isp = vb2_get_drv_priv(vq);
- 	struct v4l2_pix_format_mplane *vid_fmt = &isp->video_capture.pixfmt;
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index 9bb7f76..717cc37 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -357,7 +357,7 @@ static void stop_streaming(struct vb2_queue *q)
- 
- static int queue_setup(struct vb2_queue *vq,
- 		       unsigned int *num_buffers, unsigned int *num_planes,
--		       unsigned int sizes[], void *allocators[])
-+		       unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct fimc_lite *fimc = vq->drv_priv;
- 	struct flite_frame *frame = &fimc->out_frame;
-diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
-index 365f06e..94fda34 100644
---- a/drivers/media/platform/exynos4-is/fimc-m2m.c
-+++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
-@@ -178,7 +178,7 @@ static void fimc_job_abort(void *priv)
- 
- static int fimc_queue_setup(struct vb2_queue *vq,
- 			    unsigned int *num_buffers, unsigned int *num_planes,
--			    unsigned int sizes[], void *allocators[])
-+			    unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct fimc_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct fimc_frame *f;
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index 15110ea..0fcb5c78 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -798,7 +798,7 @@ struct vb2_dc_conf {
- 
- static int deinterlace_queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct deinterlace_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct deinterlace_q_data *q_data;
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 8a1f12d..9171174 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1051,7 +1051,7 @@ static int mcam_read_setup(struct mcam_camera *cam)
- static int mcam_vb_queue_setup(struct vb2_queue *vq,
- 		unsigned int *nbufs,
- 		unsigned int *num_planes, unsigned int sizes[],
--		void *alloc_ctxs[])
-+		struct device *alloc_devs[])
- {
- 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
- 	int minbufs = (cam->buffer_mode == B_DMA_contig) ? 3 : 2;
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index 88b3d98..c639406 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -689,7 +689,7 @@ static const struct v4l2_ioctl_ops emmaprp_ioctl_ops = {
-  */
- static int emmaprp_queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct emmaprp_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct emmaprp_q_data *q_data;
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index e121ae7..9ac2bda 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -329,7 +329,7 @@ isp_video_check_format(struct isp_video *video, struct isp_video_fh *vfh)
- 
- static int isp_video_queue_setup(struct vb2_queue *queue,
- 				 unsigned int *count, unsigned int *num_planes,
--				 unsigned int sizes[], void *alloc_ctxs[])
-+				 unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct isp_video_fh *vfh = vb2_get_drv_priv(queue);
- 	struct isp_video *video = vfh->video;
-diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
-index d81c410..16782ce 100644
---- a/drivers/media/platform/rcar_jpu.c
-+++ b/drivers/media/platform/rcar_jpu.c
-@@ -1014,7 +1014,7 @@ error_free:
-  */
- static int jpu_queue_setup(struct vb2_queue *vq,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct jpu_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct jpu_q_data *q_data;
-diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-index 5eb5df1..0413a86 100644
---- a/drivers/media/platform/s3c-camif/camif-capture.c
-+++ b/drivers/media/platform/s3c-camif/camif-capture.c
-@@ -437,7 +437,7 @@ static void stop_streaming(struct vb2_queue *vq)
- 
- static int queue_setup(struct vb2_queue *vq,
- 		       unsigned int *num_buffers, unsigned int *num_planes,
--		       unsigned int sizes[], void *allocators[])
-+		       unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct camif_vp *vp = vb2_get_drv_priv(vq);
- 	struct camif_frame *frame = &vp->out_frame;
-diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-index 999ad8f..2c590da 100644
---- a/drivers/media/platform/s5p-g2d/g2d.c
-+++ b/drivers/media/platform/s5p-g2d/g2d.c
-@@ -103,7 +103,7 @@ static struct g2d_frame *get_frame(struct g2d_ctx *ctx,
- 
- static int g2d_queue_setup(struct vb2_queue *vq,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct g2d_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct g2d_frame *f = get_frame(ctx, vq->type);
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index 44bffdc..cc811ae 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -2431,7 +2431,7 @@ static struct v4l2_m2m_ops exynos4_jpeg_m2m_ops = {
- 
- static int s5p_jpeg_queue_setup(struct vb2_queue *vq,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct s5p_jpeg_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct s5p_jpeg_q_data *q_data = NULL;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 7e7c11c..e9f59ac 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -890,7 +890,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
- static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 			unsigned int *buf_count,
- 			unsigned int *plane_count, unsigned int psize[],
--			void *allocators[])
-+			struct device *alloc_devs[])
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
- 	struct s5p_mfc_dev *dev = ctx->dev;
-@@ -931,14 +931,14 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		psize[1] = ctx->chroma_size;
- 
- 		if (IS_MFCV6_PLUS(dev))
--			allocators[0] = &ctx->dev->mem_dev_l;
-+			alloc_devs[0] = ctx->dev->mem_dev_l;
- 		else
--			allocators[0] = &ctx->dev->mem_dev_r;
--		allocators[1] = &ctx->dev->mem_dev_l;
-+			alloc_devs[0] = ctx->dev->mem_dev_r;
-+		alloc_devs[1] = ctx->dev->mem_dev_l;
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
- 		   ctx->state == MFCINST_INIT) {
- 		psize[0] = ctx->dec_src_buf_size;
--		allocators[0] = &ctx->dev->mem_dev_l;
-+		alloc_devs[0] = ctx->dev->mem_dev_l;
- 	} else {
- 		mfc_err("This video node is dedicated to decoding. Decoding not initialized\n");
- 		return -EINVAL;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 76279d0..49163dd 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1805,7 +1805,7 @@ static int check_vb_with_fmt(struct s5p_mfc_fmt *fmt, struct vb2_buffer *vb)
- 
- static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 			unsigned int *buf_count, unsigned int *plane_count,
--			unsigned int psize[], void *allocators[])
-+			unsigned int psize[], struct device *alloc_devs[])
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
- 	struct s5p_mfc_dev *dev = ctx->dev;
-@@ -1825,7 +1825,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		if (*buf_count > MFC_MAX_BUFFERS)
- 			*buf_count = MFC_MAX_BUFFERS;
- 		psize[0] = ctx->enc_dst_buf_size;
--		allocators[0] = &ctx->dev->mem_dev_l;
-+		alloc_devs[0] = ctx->dev->mem_dev_l;
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		if (ctx->src_fmt)
- 			*plane_count = ctx->src_fmt->num_planes;
-@@ -1841,11 +1841,11 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		psize[1] = ctx->chroma_size;
- 
- 		if (IS_MFCV6_PLUS(dev)) {
--			allocators[0] = &ctx->dev->mem_dev_l;
--			allocators[1] = &ctx->dev->mem_dev_l;
-+			alloc_devs[0] = ctx->dev->mem_dev_l;
-+			alloc_devs[1] = ctx->dev->mem_dev_l;
- 		} else {
--			allocators[0] = &ctx->dev->mem_dev_r;
--			allocators[1] = &ctx->dev->mem_dev_r;
-+			alloc_devs[0] = ctx->dev->mem_dev_r;
-+			alloc_devs[1] = ctx->dev->mem_dev_r;
- 		}
- 	} else {
- 		mfc_err("invalid queue type: %d\n", vq->type);
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index 1b6d5d1..608d355 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -871,7 +871,7 @@ static const struct v4l2_file_operations mxr_fops = {
- 
- static int queue_setup(struct vb2_queue *vq,
- 	unsigned int *nbuffers, unsigned int *nplanes, unsigned int sizes[],
--	void *alloc_ctxs[])
-+	struct device *alloc_devs[])
- {
- 	struct mxr_layer *layer = vb2_get_drv_priv(vq);
- 	const struct mxr_format *fmt = layer->fmt;
-diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-index afd21c9..15a562a 100644
---- a/drivers/media/platform/sh_veu.c
-+++ b/drivers/media/platform/sh_veu.c
-@@ -865,7 +865,7 @@ static const struct v4l2_ioctl_ops sh_veu_ioctl_ops = {
- 
- static int sh_veu_queue_setup(struct vb2_queue *vq,
- 			      unsigned int *nbuffers, unsigned int *nplanes,
--			      unsigned int sizes[], void *alloc_ctxs[])
-+			      unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct sh_veu_dev *veu = vb2_get_drv_priv(vq);
- 	struct sh_veu_vfmt *vfmt = sh_veu_get_vfmt(veu, vq->type);
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 59830a4..e1f39b4 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -244,7 +244,7 @@ static void sh_vou_stream_config(struct sh_vou_device *vou_dev)
- /* Locking: caller holds fop_lock mutex */
- static int sh_vou_queue_setup(struct vb2_queue *vq,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
--		       unsigned int sizes[], void *alloc_ctxs[])
-+		       unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct sh_vou_device *vou_dev = vb2_get_drv_priv(vq);
- 	struct v4l2_pix_format *pix = &vou_dev->pix;
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 25ed30c..4e13447 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -303,7 +303,7 @@ static int atmel_isi_wait_status(struct atmel_isi *isi, int wait_reset)
-    ------------------------------------------------------------------*/
- static int queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index b5d0e60..3829372 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -469,7 +469,7 @@ static void mx2_camera_clock_stop(struct soc_camera_host *ici)
-  */
- static int mx2_videobuf_setup(struct vb2_queue *vq,
- 			unsigned int *count, unsigned int *num_planes,
--			unsigned int sizes[], void *alloc_ctxs[])
-+			unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index 628b4a6..912ed24 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -185,7 +185,7 @@ static void mx3_cam_dma_done(void *arg)
-  */
- static int mx3_videobuf_setup(struct vb2_queue *vq,
- 			unsigned int *count, unsigned int *num_planes,
--			unsigned int sizes[], void *alloc_ctxs[])
-+			unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 3f65d53..2ca1a64 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -533,7 +533,7 @@ struct rcar_vin_cam {
- static int rcar_vin_videobuf_setup(struct vb2_queue *vq,
- 				   unsigned int *count,
- 				   unsigned int *num_planes,
--				   unsigned int sizes[], void *alloc_ctxs[])
-+				   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index 8f87fbe..02b519d 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -210,7 +210,7 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
-  */
- static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
- 			unsigned int *count, unsigned int *num_planes,
--			unsigned int sizes[], void *alloc_ctxs[])
-+			unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-index b3e8b5a..3b1ac68 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-@@ -439,7 +439,7 @@ static void bdisp_ctrls_delete(struct bdisp_ctx *ctx)
- 
- static int bdisp_queue_setup(struct vb2_queue *vq,
- 			     unsigned int *nb_buf, unsigned int *nb_planes,
--			     unsigned int sizes[], void *alloc_ctxs[])
-+			     unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct bdisp_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct bdisp_frame *frame = ctx_get_frame(ctx, vq->type);
-diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-index af31693..afbb779 100644
---- a/drivers/media/platform/ti-vpe/cal.c
-+++ b/drivers/media/platform/ti-vpe/cal.c
-@@ -1244,7 +1244,7 @@ static int cal_enum_frameintervals(struct file *file, void *priv,
-  */
- static int cal_queue_setup(struct vb2_queue *vq,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct cal_ctx *ctx = vb2_get_drv_priv(vq);
- 	unsigned size = ctx->v_fmt.fmt.pix.sizeimage;
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 3fefd8a..55a1458 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1796,7 +1796,7 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
-  */
- static int vpe_queue_setup(struct vb2_queue *vq,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	int i;
- 	struct vpe_ctx *ctx = vb2_get_drv_priv(vq);
-diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-index c4b5fab..6b17015 100644
---- a/drivers/media/platform/vim2m.c
-+++ b/drivers/media/platform/vim2m.c
-@@ -711,7 +711,7 @@ static const struct v4l2_ioctl_ops vim2m_ioctl_ops = {
- 
- static int vim2m_queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct vim2m_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct vim2m_q_data *q_data;
-@@ -731,11 +731,6 @@ static int vim2m_queue_setup(struct vb2_queue *vq,
- 	*nplanes = 1;
- 	sizes[0] = size;
- 
--	/*
--	 * videobuf2-vmalloc allocator is context-less so no need to set
--	 * alloc_ctxs array.
--	 */
--
- 	dprintk(ctx->dev, "get %d buffer(s) of size %d each.\n", count, size);
- 
- 	return 0;
-diff --git a/drivers/media/platform/vivid/vivid-sdr-cap.c b/drivers/media/platform/vivid/vivid-sdr-cap.c
-index 3d1604c..2dcdff1 100644
---- a/drivers/media/platform/vivid/vivid-sdr-cap.c
-+++ b/drivers/media/platform/vivid/vivid-sdr-cap.c
-@@ -215,7 +215,7 @@ static int vivid_thread_sdr_cap(void *data)
- 
- static int sdr_cap_queue_setup(struct vb2_queue *vq,
- 		       unsigned *nbuffers, unsigned *nplanes,
--		       unsigned sizes[], void *alloc_ctxs[])
-+		       unsigned sizes[], struct device *alloc_devs[])
- {
- 	/* 2 = max 16-bit sample returned */
- 	sizes[0] = SDR_CAP_SAMPLES_PER_BUF * 2;
-diff --git a/drivers/media/platform/vivid/vivid-vbi-cap.c b/drivers/media/platform/vivid/vivid-vbi-cap.c
-index cda45a5..d66ef95 100644
---- a/drivers/media/platform/vivid/vivid-vbi-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-cap.c
-@@ -137,7 +137,7 @@ void vivid_sliced_vbi_cap_process(struct vivid_dev *dev,
- 
- static int vbi_cap_queue_setup(struct vb2_queue *vq,
- 		       unsigned *nbuffers, unsigned *nplanes,
--		       unsigned sizes[], void *alloc_ctxs[])
-+		       unsigned sizes[], struct device *alloc_devs[])
- {
- 	struct vivid_dev *dev = vb2_get_drv_priv(vq);
- 	bool is_60hz = dev->std_cap & V4L2_STD_525_60;
-diff --git a/drivers/media/platform/vivid/vivid-vbi-out.c b/drivers/media/platform/vivid/vivid-vbi-out.c
-index 3c5a469..d298919 100644
---- a/drivers/media/platform/vivid/vivid-vbi-out.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-out.c
-@@ -29,7 +29,7 @@
- 
- static int vbi_out_queue_setup(struct vb2_queue *vq,
- 		       unsigned *nbuffers, unsigned *nplanes,
--		       unsigned sizes[], void *alloc_ctxs[])
-+		       unsigned sizes[], struct device *alloc_devs[])
- {
- 	struct vivid_dev *dev = vb2_get_drv_priv(vq);
- 	bool is_60hz = dev->std_out & V4L2_STD_525_60;
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index b84f081..6647ddc 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -97,7 +97,7 @@ static const struct v4l2_discrete_probe webcam_probe = {
- 
- static int vid_cap_queue_setup(struct vb2_queue *vq,
- 		       unsigned *nbuffers, unsigned *nplanes,
--		       unsigned sizes[], void *alloc_ctxs[])
-+		       unsigned sizes[], struct device *alloc_devs[])
- {
- 	struct vivid_dev *dev = vb2_get_drv_priv(vq);
- 	unsigned buffers = tpg_g_buffers(&dev->tpg);
-@@ -144,11 +144,6 @@ static int vid_cap_queue_setup(struct vb2_queue *vq,
- 
- 	*nplanes = buffers;
- 
--	/*
--	 * videobuf2-vmalloc allocator is context-less so no need to set
--	 * alloc_ctxs array.
--	 */
--
- 	dprintk(dev, 1, "%s: count=%d\n", __func__, *nbuffers);
- 	for (p = 0; p < buffers; p++)
- 		dprintk(dev, 1, "%s: size[%u]=%u\n", __func__, p, sizes[p]);
-diff --git a/drivers/media/platform/vivid/vivid-vid-out.c b/drivers/media/platform/vivid/vivid-vid-out.c
-index 64e4d66..6190d4d 100644
---- a/drivers/media/platform/vivid/vivid-vid-out.c
-+++ b/drivers/media/platform/vivid/vivid-vid-out.c
-@@ -33,7 +33,7 @@
- 
- static int vid_out_queue_setup(struct vb2_queue *vq,
- 		       unsigned *nbuffers, unsigned *nplanes,
--		       unsigned sizes[], void *alloc_ctxs[])
-+		       unsigned sizes[], struct device *alloc_devs[])
- {
- 	struct vivid_dev *dev = vb2_get_drv_priv(vq);
- 	const struct vivid_fmt *vfmt = dev->fmt_out;
-@@ -86,11 +86,6 @@ static int vid_out_queue_setup(struct vb2_queue *vq,
- 
- 	*nplanes = planes;
- 
--	/*
--	 * videobuf2-vmalloc allocator is context-less so no need to set
--	 * alloc_ctxs array.
--	 */
--
- 	dprintk(dev, 1, "%s: count=%d\n", __func__, *nbuffers);
- 	for (p = 0; p < planes; p++)
- 		dprintk(dev, 1, "%s: size[%u]=%u\n", __func__, p, sizes[p]);
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 435fed9..33883eb 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -784,7 +784,7 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
- static int
- vsp1_video_queue_setup(struct vb2_queue *vq,
- 		     unsigned int *nbuffers, unsigned int *nplanes,
--		     unsigned int sizes[], void *alloc_ctxs[])
-+		     unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct vsp1_video *video = vb2_get_drv_priv(vq);
- 	const struct v4l2_pix_format_mplane *format = &video->format;
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 3838e11..7ae1a13 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -318,7 +318,7 @@ static void xvip_dma_complete(void *param)
- static int
- xvip_dma_queue_setup(struct vb2_queue *vq,
- 		     unsigned int *nbuffers, unsigned int *nplanes,
--		     unsigned int sizes[], void *alloc_ctxs[])
-+		     unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct xvip_dma *dma = vb2_get_drv_priv(vq);
- 
-diff --git a/drivers/media/usb/airspy/airspy.c b/drivers/media/usb/airspy/airspy.c
-index 0d4ac59..3362700 100644
---- a/drivers/media/usb/airspy/airspy.c
-+++ b/drivers/media/usb/airspy/airspy.c
-@@ -489,7 +489,7 @@ static void airspy_disconnect(struct usb_interface *intf)
- /* Videobuf2 operations */
- static int airspy_queue_setup(struct vb2_queue *vq,
- 		unsigned int *nbuffers,
--		unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
-+		unsigned int *nplanes, unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct airspy *s = vb2_get_drv_priv(vq);
- 
-diff --git a/drivers/media/usb/au0828/au0828-vbi.c b/drivers/media/usb/au0828/au0828-vbi.c
-index b4efc10..e0930ce 100644
---- a/drivers/media/usb/au0828/au0828-vbi.c
-+++ b/drivers/media/usb/au0828/au0828-vbi.c
-@@ -32,7 +32,7 @@
- 
- static int vbi_queue_setup(struct vb2_queue *vq,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct au0828_dev *dev = vb2_get_drv_priv(vq);
- 	unsigned long size = dev->vbi_width * dev->vbi_height * 2;
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 2fc2b29..e843959 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -834,7 +834,7 @@ static int au0828_enable_analog_tuner(struct au0828_dev *dev)
- 
- static int queue_setup(struct vb2_queue *vq,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
--		       unsigned int sizes[], void *alloc_ctxs[])
-+		       unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct au0828_dev *dev = vb2_get_drv_priv(vq);
- 	unsigned long size = dev->height * dev->bytesperline;
-diff --git a/drivers/media/usb/em28xx/em28xx-vbi.c b/drivers/media/usb/em28xx/em28xx-vbi.c
-index fe94c92..836c6b5 100644
---- a/drivers/media/usb/em28xx/em28xx-vbi.c
-+++ b/drivers/media/usb/em28xx/em28xx-vbi.c
-@@ -33,7 +33,7 @@
- 
- static int vbi_queue_setup(struct vb2_queue *vq,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct em28xx *dev = vb2_get_drv_priv(vq);
- 	struct em28xx_v4l2 *v4l2 = dev->v4l2;
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index f772e26..fdf834e 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1013,7 +1013,7 @@ static void em28xx_v4l2_create_entities(struct em28xx *dev)
- 
- static int queue_setup(struct vb2_queue *vq,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
--		       unsigned int sizes[], void *alloc_ctxs[])
-+		       unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct em28xx *dev = vb2_get_drv_priv(vq);
- 	struct em28xx_v4l2 *v4l2 = dev->v4l2;
-diff --git a/drivers/media/usb/go7007/go7007-v4l2.c b/drivers/media/usb/go7007/go7007-v4l2.c
-index 358c1c1..7d4ca5d 100644
---- a/drivers/media/usb/go7007/go7007-v4l2.c
-+++ b/drivers/media/usb/go7007/go7007-v4l2.c
-@@ -370,7 +370,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 
- static int go7007_queue_setup(struct vb2_queue *q,
- 		unsigned int *num_buffers, unsigned int *num_planes,
--		unsigned int sizes[], void *alloc_ctxs[])
-+		unsigned int sizes[], struct device *alloc_devs[])
- {
- 	sizes[0] = GO7007_BUF_SIZE;
- 	*num_planes = 1;
-diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-index 9e700ca..b1e229a 100644
---- a/drivers/media/usb/hackrf/hackrf.c
-+++ b/drivers/media/usb/hackrf/hackrf.c
-@@ -760,7 +760,7 @@ static void hackrf_return_all_buffers(struct vb2_queue *vq,
- 
- static int hackrf_queue_setup(struct vb2_queue *vq,
- 		unsigned int *nbuffers,
--		unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
-+		unsigned int *nplanes, unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct hackrf_dev *dev = vb2_get_drv_priv(vq);
- 
-diff --git a/drivers/media/usb/msi2500/msi2500.c b/drivers/media/usb/msi2500/msi2500.c
-index 2d33033..e7f167d 100644
---- a/drivers/media/usb/msi2500/msi2500.c
-+++ b/drivers/media/usb/msi2500/msi2500.c
-@@ -618,7 +618,7 @@ static int msi2500_querycap(struct file *file, void *fh,
- static int msi2500_queue_setup(struct vb2_queue *vq,
- 			       unsigned int *nbuffers,
- 			       unsigned int *nplanes, unsigned int sizes[],
--			       void *alloc_ctxs[])
-+			       struct device *alloc_devs[])
- {
- 	struct msi2500_dev *dev = vb2_get_drv_priv(vq);
- 
-diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-index 18aed5d..dd43652 100644
---- a/drivers/media/usb/pwc/pwc-if.c
-+++ b/drivers/media/usb/pwc/pwc-if.c
-@@ -573,7 +573,7 @@ static void pwc_video_release(struct v4l2_device *v)
- 
- static int queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct pwc_device *pdev = vb2_get_drv_priv(vq);
- 	int size;
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 9acdaa3..43ba71a 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -662,7 +662,7 @@ static void s2255_fillbuff(struct s2255_vc *vc,
- 
- static int queue_setup(struct vb2_queue *vq,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
--		       unsigned int sizes[], void *alloc_ctxs[])
-+		       unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct s2255_vc *vc = vb2_get_drv_priv(vq);
- 	if (*nbuffers < S2255_MIN_BUFS)
-diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
-index 77131fd..82574c5 100644
---- a/drivers/media/usb/stk1160/stk1160-v4l.c
-+++ b/drivers/media/usb/stk1160/stk1160-v4l.c
-@@ -666,7 +666,7 @@ static const struct v4l2_ioctl_ops stk1160_ioctl_ops = {
-  */
- static int queue_setup(struct vb2_queue *vq,
- 				unsigned int *nbuffers, unsigned int *nplanes,
--				unsigned int sizes[], void *alloc_ctxs[])
-+				unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct stk1160 *dev = vb2_get_drv_priv(vq);
- 	unsigned long size;
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index f6cfad4..7e28204 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -608,7 +608,7 @@ static struct v4l2_file_operations usbtv_fops = {
- 
- static int usbtv_queue_setup(struct vb2_queue *vq,
- 	unsigned int *nbuffers,
--	unsigned int *nplanes, unsigned int sizes[], void *alloc_ctxs[])
-+	unsigned int *nplanes, unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct usbtv *usbtv = vb2_get_drv_priv(vq);
- 	unsigned size = USBTV_CHUNK * usbtv->n_chunks * 2 * sizeof(u32);
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index 5439472..773fefb 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -71,7 +71,7 @@ static void uvc_queue_return_buffers(struct uvc_video_queue *queue,
- 
- static int uvc_queue_setup(struct vb2_queue *vq,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
- 	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index a50ff08..73ca9bf 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -206,7 +206,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
- 
- 		mem_priv = call_ptr_memop(vb, alloc,
--				q->alloc_ctx[plane] ? : &q->dev,
-+				q->alloc_devs[plane] ? : q->dev,
- 				size, dma_dir, q->gfp_flags);
- 		if (IS_ERR_OR_NULL(mem_priv))
- 			goto free;
-@@ -737,7 +737,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 	 */
- 	num_buffers = min_t(unsigned int, *count, VB2_MAX_FRAME);
- 	num_buffers = max_t(unsigned int, num_buffers, q->min_buffers_needed);
--	memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
-+	memset(q->alloc_devs, 0, sizeof(q->alloc_devs));
- 	q->memory = memory;
- 
- 	/*
-@@ -745,7 +745,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 	 * Driver also sets the size and allocator context for each plane.
- 	 */
- 	ret = call_qop(q, queue_setup, q, &num_buffers, &num_planes,
--		       plane_sizes, q->alloc_ctx);
-+		       plane_sizes, q->alloc_devs);
- 	if (ret)
- 		return ret;
- 
-@@ -778,7 +778,7 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 		num_planes = 0;
- 
- 		ret = call_qop(q, queue_setup, q, &num_buffers,
--			       &num_planes, plane_sizes, q->alloc_ctx);
-+			       &num_planes, plane_sizes, q->alloc_devs);
- 
- 		if (!ret && allocated_buffers < num_buffers)
- 			ret = -ENOMEM;
-@@ -844,7 +844,7 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- 	}
- 
- 	if (!q->num_buffers) {
--		memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
-+		memset(q->alloc_devs, 0, sizeof(q->alloc_devs));
- 		q->memory = memory;
- 		q->waiting_for_buffers = !q->is_output;
- 	}
-@@ -861,7 +861,7 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- 	 * buffer and their sizes are acceptable
- 	 */
- 	ret = call_qop(q, queue_setup, q, &num_buffers,
--		       &num_planes, plane_sizes, q->alloc_ctx);
-+		       &num_planes, plane_sizes, q->alloc_devs);
- 	if (ret)
- 		return ret;
- 
-@@ -884,7 +884,7 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
- 		 * queue driver has set up
- 		 */
- 		ret = call_qop(q, queue_setup, q, &num_buffers,
--			       &num_planes, plane_sizes, q->alloc_ctx);
-+			       &num_planes, plane_sizes, q->alloc_devs);
- 
- 		if (!ret && allocated_buffers < num_buffers)
- 			ret = -ENOMEM;
-@@ -1132,7 +1132,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- 
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, get_userptr,
--				q->alloc_ctx[plane] ? : &q->dev,
-+				q->alloc_devs[plane] ? : q->dev,
- 				planes[plane].m.userptr,
- 				planes[plane].length, dma_dir);
- 		if (IS_ERR_OR_NULL(mem_priv)) {
-@@ -1257,7 +1257,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
- 
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, attach_dmabuf,
--				q->alloc_ctx[plane] ? : &q->dev,
-+				q->alloc_devs[plane] ? : q->dev,
- 				dbuf, planes[plane].length, dma_dir);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed to attach dmabuf\n");
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index c331272..ebff876 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -21,10 +21,6 @@
- #include <media/videobuf2-dma-contig.h>
- #include <media/videobuf2-memops.h>
- 
--struct vb2_dc_conf {
--	struct device		*dev;
--};
--
- struct vb2_dc_buf {
- 	struct device			*dev;
- 	void				*vaddr;
-@@ -136,11 +132,9 @@ static void vb2_dc_put(void *buf_priv)
- 	kfree(buf);
- }
- 
--static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
-+static void *vb2_dc_alloc(struct device *dev, unsigned long size,
- 			  enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
--	struct vb2_dc_conf *conf = alloc_ctx;
--	struct device *dev = conf->dev;
- 	struct vb2_dc_buf *buf;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-@@ -470,10 +464,9 @@ static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn
- }
- #endif
- 
--static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
-+static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
- 	unsigned long size, enum dma_data_direction dma_dir)
- {
--	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
- 	struct frame_vector *vec;
- 	unsigned long offset;
-@@ -501,7 +494,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
--	buf->dev = conf->dev;
-+	buf->dev = dev;
- 	buf->dma_dir = dma_dir;
- 
- 	offset = vaddr & ~PAGE_MASK;
-@@ -668,10 +661,9 @@ static void vb2_dc_detach_dmabuf(void *mem_priv)
- 	kfree(buf);
- }
- 
--static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
-+static void *vb2_dc_attach_dmabuf(struct device *dev, struct dma_buf *dbuf,
- 	unsigned long size, enum dma_data_direction dma_dir)
- {
--	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
- 	struct dma_buf_attachment *dba;
- 
-@@ -682,7 +674,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
--	buf->dev = conf->dev;
-+	buf->dev = dev;
- 	/* create attachment for the dmabuf with the user device */
- 	dba = dma_buf_attach(dbuf, buf->dev);
- 	if (IS_ERR(dba)) {
-@@ -721,27 +713,6 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
- };
- EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
- 
--void *vb2_dma_contig_init_ctx(struct device *dev)
--{
--	struct vb2_dc_conf *conf;
--
--	conf = kzalloc(sizeof *conf, GFP_KERNEL);
--	if (!conf)
--		return ERR_PTR(-ENOMEM);
--
--	conf->dev = dev;
--
--	return conf;
--}
--EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
--
--void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
--{
--	if (!IS_ERR_OR_NULL(alloc_ctx))
--		kfree(alloc_ctx);
--}
--EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
--
- MODULE_DESCRIPTION("DMA-contig memory handling routines for videobuf2");
- MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 9985c89..175ed7f 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -30,10 +30,6 @@ module_param(debug, int, 0644);
- 			printk(KERN_DEBUG "vb2-dma-sg: " fmt, ## arg);	\
- 	} while (0)
- 
--struct vb2_dma_sg_conf {
--	struct device		*dev;
--};
--
- struct vb2_dma_sg_buf {
- 	struct device			*dev;
- 	void				*vaddr;
-@@ -99,10 +95,9 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
- 	return 0;
- }
- 
--static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
-+static void *vb2_dma_sg_alloc(struct device *dev, unsigned long size,
- 			      enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
--	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
- 	struct sg_table *sgt;
- 	int ret;
-@@ -111,7 +106,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
- 
- 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
- 
--	if (WARN_ON(alloc_ctx == NULL))
-+	if (WARN_ON(dev == NULL))
- 		return NULL;
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
-@@ -140,7 +135,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
- 		goto fail_table_alloc;
- 
- 	/* Prevent the device from being released while the buffer is used */
--	buf->dev = get_device(conf->dev);
-+	buf->dev = get_device(dev);
- 
- 	sgt = &buf->sg_table;
- 	/*
-@@ -226,11 +221,10 @@ static void vb2_dma_sg_finish(void *buf_priv)
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
- }
- 
--static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
-+static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
- 				    unsigned long size,
- 				    enum dma_data_direction dma_dir)
- {
--	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
- 	struct sg_table *sgt;
- 	DEFINE_DMA_ATTRS(attrs);
-@@ -242,7 +236,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		return NULL;
- 
- 	buf->vaddr = NULL;
--	buf->dev = conf->dev;
-+	buf->dev = dev;
- 	buf->dma_dir = dma_dir;
- 	buf->offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
-@@ -616,10 +610,9 @@ static void vb2_dma_sg_detach_dmabuf(void *mem_priv)
- 	kfree(buf);
- }
- 
--static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
-+static void *vb2_dma_sg_attach_dmabuf(struct device *dev, struct dma_buf *dbuf,
- 	unsigned long size, enum dma_data_direction dma_dir)
- {
--	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
- 	struct dma_buf_attachment *dba;
- 
-@@ -630,7 +623,7 @@ static void *vb2_dma_sg_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
--	buf->dev = conf->dev;
-+	buf->dev = dev;
- 	/* create attachment for the dmabuf with the user device */
- 	dba = dma_buf_attach(dbuf, buf->dev);
- 	if (IS_ERR(dba)) {
-@@ -672,27 +665,6 @@ const struct vb2_mem_ops vb2_dma_sg_memops = {
- };
- EXPORT_SYMBOL_GPL(vb2_dma_sg_memops);
- 
--void *vb2_dma_sg_init_ctx(struct device *dev)
--{
--	struct vb2_dma_sg_conf *conf;
--
--	conf = kzalloc(sizeof(*conf), GFP_KERNEL);
--	if (!conf)
--		return ERR_PTR(-ENOMEM);
--
--	conf->dev = dev;
--
--	return conf;
--}
--EXPORT_SYMBOL_GPL(vb2_dma_sg_init_ctx);
--
--void vb2_dma_sg_cleanup_ctx(void *alloc_ctx)
--{
--	if (!IS_ERR_OR_NULL(alloc_ctx))
--		kfree(alloc_ctx);
--}
--EXPORT_SYMBOL_GPL(vb2_dma_sg_cleanup_ctx);
--
- MODULE_DESCRIPTION("dma scatter/gather memory handling routines for videobuf2");
- MODULE_AUTHOR("Andrzej Pietrasiewicz");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 1c30274..1643a14 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -33,7 +33,7 @@ struct vb2_vmalloc_buf {
- 
- static void vb2_vmalloc_put(void *buf_priv);
- 
--static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size,
-+static void *vb2_vmalloc_alloc(struct device *dev, unsigned long size,
- 			       enum dma_data_direction dma_dir, gfp_t gfp_flags)
- {
- 	struct vb2_vmalloc_buf *buf;
-@@ -69,7 +69,7 @@ static void vb2_vmalloc_put(void *buf_priv)
- 	}
- }
- 
--static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
-+static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
- 				     unsigned long size,
- 				     enum dma_data_direction dma_dir)
- {
-@@ -403,7 +403,7 @@ static void vb2_vmalloc_detach_dmabuf(void *mem_priv)
- 	kfree(buf);
- }
- 
--static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
-+static void *vb2_vmalloc_attach_dmabuf(struct device *dev, struct dma_buf *dbuf,
- 	unsigned long size, enum dma_data_direction dma_dir)
- {
- 	struct vb2_vmalloc_buf *buf;
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 1c4774b..4818d75 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -1087,7 +1087,7 @@ vpfe_g_dv_timings(struct file *file, void *fh,
-  * @nbuffers: ptr to number of buffers requested by application
-  * @nplanes:: contains number of distinct video planes needed to hold a frame
-  * @sizes[]: contains the size (in bytes) of each plane.
-- * @alloc_ctxs: ptr to allocation context
-+ * @alloc_devs: ptr to allocation context
-  *
-  * This callback function is called when reqbuf() is called to adjust
-  * the buffer nbuffers and buffer size
-@@ -1095,7 +1095,7 @@ vpfe_g_dv_timings(struct file *file, void *fh,
- static int
- vpfe_buffer_queue_setup(struct vb2_queue *vq,
- 			unsigned int *nbuffers, unsigned int *nplanes,
--			unsigned int sizes[], void *alloc_ctxs[])
-+			unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct vpfe_fh *fh = vb2_get_drv_priv(vq);
- 	struct vpfe_video_device *video = fh->video;
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index 2ac10d8..69f39b9 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -296,7 +296,7 @@ iss_video_check_format(struct iss_video *video, struct iss_video_fh *vfh)
- 
- static int iss_video_queue_setup(struct vb2_queue *vq,
- 				 unsigned int *count, unsigned int *num_planes,
--				 unsigned int sizes[], void *alloc_ctxs[])
-+				 unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct iss_video_fh *vfh = vb2_get_drv_priv(vq);
- 	struct iss_video *video = vfh->video;
-diff --git a/drivers/usb/gadget/function/uvc_queue.c b/drivers/usb/gadget/function/uvc_queue.c
-index 912694f..6377e9f 100644
---- a/drivers/usb/gadget/function/uvc_queue.c
-+++ b/drivers/usb/gadget/function/uvc_queue.c
-@@ -43,7 +43,7 @@
- 
- static int uvc_queue_setup(struct vb2_queue *vq,
- 			   unsigned int *nbuffers, unsigned int *nplanes,
--			   unsigned int sizes[], void *alloc_ctxs[])
-+			   unsigned int sizes[], struct device *alloc_devs[])
- {
- 	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
- 	struct uvc_video *video = container_of(queue, struct uvc_video, queue);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 0f8b97b..be4c514 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -27,7 +27,6 @@ enum vb2_memory {
- 	VB2_MEMORY_DMABUF	= 4,
- };
- 
--struct vb2_alloc_ctx;
- struct vb2_fileio_data;
- struct vb2_threadio_data;
- 
-@@ -57,7 +56,7 @@ struct vb2_threadio_data;
-  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
-  *		 be used.
-  * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
-- *		   used for DMABUF memory types; alloc_ctx is the alloc context
-+ *		   used for DMABUF memory types; dev is the alloc device
-  *		   dbuf is the shared dma_buf; returns NULL on failure;
-  *		   allocator private per-buffer structure on success;
-  *		   this needs to be used for further accesses to the buffer.
-@@ -93,13 +92,13 @@ struct vb2_threadio_data;
-  *				  unmap_dmabuf.
-  */
- struct vb2_mem_ops {
--	void		*(*alloc)(void *alloc_ctx, unsigned long size,
-+	void		*(*alloc)(struct device *dev, unsigned long size,
- 				  enum dma_data_direction dma_dir,
- 				  gfp_t gfp_flags);
- 	void		(*put)(void *buf_priv);
- 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
- 
--	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
-+	void		*(*get_userptr)(struct device *dev, unsigned long vaddr,
- 					unsigned long size,
- 					enum dma_data_direction dma_dir);
- 	void		(*put_userptr)(void *buf_priv);
-@@ -107,7 +106,7 @@ struct vb2_mem_ops {
- 	void		(*prepare)(void *buf_priv);
- 	void		(*finish)(void *buf_priv);
- 
--	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
-+	void		*(*attach_dmabuf)(struct device *dev, struct dma_buf *dbuf,
- 					  unsigned long size,
- 					  enum dma_data_direction dma_dir);
- 	void		(*detach_dmabuf)(void *buf_priv);
-@@ -282,7 +281,7 @@ struct vb2_buffer {
-  *			in *num_buffers, the required number of planes per
-  *			buffer in *num_planes, the size of each plane should be
-  *			set in the sizes[] array and optional per-plane
-- *			allocator specific context in the alloc_ctxs[] array.
-+ *			allocator specific device in the alloc_devs[] array.
-  *			When called from VIDIOC_REQBUFS, *num_planes == 0, the
-  *			driver has to use the currently configured format to
-  *			determine the plane sizes and *num_buffers is the total
-@@ -356,7 +355,7 @@ struct vb2_buffer {
- struct vb2_ops {
- 	int (*queue_setup)(struct vb2_queue *q,
- 			   unsigned int *num_buffers, unsigned int *num_planes,
--			   unsigned int sizes[], void *alloc_ctxs[]);
-+			   unsigned int sizes[], struct device *alloc_devs[]);
- 
- 	void (*wait_prepare)(struct vb2_queue *q);
- 	void (*wait_finish)(struct vb2_queue *q);
-@@ -398,7 +397,7 @@ struct vb2_buf_ops {
-  *		the V4L2_BUF_TYPE_* in include/uapi/linux/videodev2.h
-  * @io_modes:	supported io methods (see vb2_io_modes enum)
-  * @dev:	device to use for the default allocation context if the driver
-- *		doesn't fill in the @alloc_ctx array.
-+ *		doesn't fill in the @alloc_devs array.
-  * @fileio_read_once:		report EOF after reading the first buffer
-  * @fileio_write_immediately:	queue buffer after each write() call
-  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
-@@ -442,7 +441,7 @@ struct vb2_buf_ops {
-  * @done_list:	list of buffers ready to be dequeued to userspace
-  * @done_lock:	lock to protect done_list list
-  * @done_wq:	waitqueue for processes waiting for buffers ready to be dequeued
-- * @alloc_ctx:	memory type/allocator-specific contexts for each plane
-+ * @alloc_devs:	memory type/allocator-specific per-plane device
-  * @streaming:	current streaming state
-  * @start_streaming_called: start_streaming() was called successfully and we
-  *		started streaming.
-@@ -494,7 +493,7 @@ struct vb2_queue {
- 	spinlock_t			done_lock;
- 	wait_queue_head_t		done_wq;
- 
--	void				*alloc_ctx[VB2_MAX_PLANES];
-+	struct device			*alloc_devs[VB2_MAX_PLANES];
- 
- 	unsigned int			streaming:1;
- 	unsigned int			start_streaming_called:1;
-diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
-index c33dfa6..513fa81 100644
---- a/include/media/videobuf2-dma-contig.h
-+++ b/include/media/videobuf2-dma-contig.h
-@@ -24,9 +24,6 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
- 	return *addr;
- }
- 
--void *vb2_dma_contig_init_ctx(struct device *dev);
--void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
--
- extern const struct vb2_mem_ops vb2_dma_contig_memops;
- 
- #endif
-diff --git a/include/media/videobuf2-dma-sg.h b/include/media/videobuf2-dma-sg.h
-index 8d1083f..52afa0e 100644
---- a/include/media/videobuf2-dma-sg.h
-+++ b/include/media/videobuf2-dma-sg.h
-@@ -21,9 +21,6 @@ static inline struct sg_table *vb2_dma_sg_plane_desc(
- 	return (struct sg_table *)vb2_plane_cookie(vb, plane_no);
- }
- 
--void *vb2_dma_sg_init_ctx(struct device *dev);
--void vb2_dma_sg_cleanup_ctx(void *alloc_ctx);
--
- extern const struct vb2_mem_ops vb2_dma_sg_memops;
- 
- #endif
+diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
+new file mode 100644
+index 0000000..19754d2
+--- /dev/null
++++ b/drivers/media/tuners/qm1d1c0042.c
+@@ -0,0 +1,246 @@
++/*
++ * Sharp VA4M6JC2103 - Earthsoft PT3 ISDB-S tuner driver QM1D1C0042
++ *
++ * Copyright (C) Budi Rachmanto, AreMa Inc. <info@are.ma>
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "dvb_frontend.h"
++#include "qm1d1c0042.h"
++
++struct qm1d1c0042 {
++	struct i2c_adapter *i2c;
++	u8 adr_tuner, reg[32];
++};
++
++bool qm1d1c0042_r(struct dvb_frontend *fe, u8 slvadr, u8 *dat)
++{
++	struct qm1d1c0042 *t = fe->tuner_priv;
++	u8		buf[]	= {0xFE, t->adr_tuner << 1, slvadr, 0xFE, (t->adr_tuner << 1) | 1, 0};
++	struct i2c_msg	msg[]	= {
++		{.addr = fe->id,	.flags = 0,		.buf = buf,	.len = 3,},
++		{.addr = fe->id,	.flags = 0,		.buf = buf + 3,	.len = 2,},
++		{.addr = fe->id,	.flags = I2C_M_RD,	.buf = buf + 5,	.len = 1,},
++	};
++	bool	ret = i2c_transfer(t->i2c, msg, 3) == 3;
++
++	*dat = buf[5];
++	return ret;
++}
++
++int qm1d1c0042_w(struct dvb_frontend *fe, u8 slvadr, u8 *dat, int len)
++{
++	u8 buf[len + 1];
++	struct qm1d1c0042 *t = fe->tuner_priv;
++	struct i2c_msg msg[] = {
++		{.addr = fe->id,	.flags = 0,	.buf = buf,	.len = len + 1,},
++	};
++
++	buf[0] = slvadr;
++	memcpy(buf + 1, dat, len);
++	return i2c_transfer(t->i2c, msg, 1) == 1 ? 0 : -EIO;
++}
++
++int qm1d1c0042_w_tuner(struct dvb_frontend *fe, u8 adr, u8 dat)
++{
++	struct qm1d1c0042 *t = fe->tuner_priv;
++	u8 buf[] = {t->adr_tuner << 1, adr, dat};
++	int err = qm1d1c0042_w(fe, 0xFE, buf, 3);
++
++	t->reg[adr] = dat;
++	return err;
++}
++
++enum qm1d1c0042_agc {
++	QM1D1C0042_AGC_AUTO,
++	QM1D1C0042_AGC_MANUAL,
++};
++
++int qm1d1c0042_set_agc(struct dvb_frontend *fe, enum qm1d1c0042_agc agc)
++{
++	u8	dat		= (agc == QM1D1C0042_AGC_AUTO) ? 0xff : 0x00,
++		pskmsrst	= 0x01;
++	int	err		= qm1d1c0042_w(fe, 0x0a, &dat, 1);
++
++	if (err)
++		return err;
++	dat = 0xb0 | (agc == QM1D1C0042_AGC_AUTO ? 1 : 0);
++	err = qm1d1c0042_w(fe, 0x10, &dat, 1);
++	if (err)
++		return err;
++	dat = (agc == QM1D1C0042_AGC_AUTO) ? 0x40 : 0x00;
++	return	(err = qm1d1c0042_w(fe, 0x11, &dat, 1)) ?
++		err : qm1d1c0042_w(fe, 0x03, &pskmsrst, 1);
++}
++
++int qm1d1c0042_sleep(struct dvb_frontend *fe)
++{
++	struct qm1d1c0042 *t = fe->tuner_priv;
++	u8 buf = 1;
++
++	t->reg[0x01] &= (~(1 << 3)) & 0xff;
++	t->reg[0x01] |= 1 << 0;
++	t->reg[0x05] |= 1 << 3;
++	return	qm1d1c0042_set_agc(fe, QM1D1C0042_AGC_MANUAL)	||
++		qm1d1c0042_w_tuner(fe, 0x05, t->reg[0x05])	||
++		qm1d1c0042_w_tuner(fe, 0x01, t->reg[0x01])	||
++		qm1d1c0042_w(fe, 0x17, &buf, 1);
++}
++
++int qm1d1c0042_wakeup(struct dvb_frontend *fe)
++{
++	struct qm1d1c0042 *t = fe->tuner_priv;
++	u8 buf = 0;
++
++	t->reg[0x01] |= 1 << 3;
++	t->reg[0x01] &= (~(1 << 0)) & 0xff;
++	t->reg[0x05] &= (~(1 << 3)) & 0xff;
++	return	qm1d1c0042_w(fe, 0x17, &buf, 1)			||
++		qm1d1c0042_w_tuner(fe, 0x01, t->reg[0x01])	||
++		qm1d1c0042_w_tuner(fe, 0x05, t->reg[0x05]);
++}
++
++int qm1d1c0042_tune(struct dvb_frontend *fe)
++{
++	u32 freq2ch(u32 kHz)
++	{
++		u32 freq = kHz / 10,
++		    ch0 = (freq - 104948) / 3836, diff0 = freq - (104948 + 3836 * ch0),
++		    ch1 = (freq - 161300) / 4000, diff1 = freq - (161300 + 4000 * ch1),
++		    ch2 = (freq - 159300) / 4000, diff2 = freq - (159300 + 4000 * ch2),
++		    min = diff0 < diff1 ? diff0 : diff1;
++
++		if (diff2 < min)
++			return ch2 + 24;
++		if (min == diff1)
++			return ch1 + 12;
++		return ch0;
++	}
++
++	struct qm1d1c0042	*t	= fe->tuner_priv;
++	u32	fgap_tab[9][3]	= {
++		{2151000, 1, 7},	{1950000, 1, 6},	{1800000, 1, 5},
++		{1600000, 1, 4},	{1450000, 1, 3},	{1250000, 1, 2},
++		{1200000, 0, 7},	{ 975000, 0, 6},	{ 950000, 0, 0}
++	};
++	u32	sd_tab[24][3]	= {
++		{0x38fae1, 0x0d, 0x5},	{0x3f570a, 0x0e, 0x3},	{0x05b333, 0x0e, 0x5},	{0x3c0f5c, 0x0f, 0x4},
++		{0x026b85, 0x0f, 0x6},	{0x38c7ae, 0x10, 0x5},	{0x3f23d7, 0x11, 0x3},	{0x058000, 0x11, 0x5},
++		{0x3bdc28, 0x12, 0x4},	{0x023851, 0x12, 0x6},	{0x38947a, 0x13, 0x5},	{0x3ef0a3, 0x14, 0x3},
++		{0x3c8000, 0x16, 0x4},	{0x048000, 0x16, 0x6},	{0x3c8000, 0x17, 0x5},	{0x048000, 0x18, 0x3},
++		{0x3c8000, 0x18, 0x6},	{0x048000, 0x19, 0x4},	{0x3c8000, 0x1a, 0x3},	{0x048000, 0x1a, 0x5},
++		{0x3c8000, 0x1b, 0x4},	{0x048000, 0x1b, 0x6},	{0x3c8000, 0x1c, 0x5},	{0x048000, 0x1d, 0x3},
++	};
++	int	err	= qm1d1c0042_set_agc(fe, QM1D1C0042_AGC_MANUAL);
++	u32	kHz	= fe->dtv_property_cache.frequency,
++		ch	= freq2ch(kHz),
++		N	= sd_tab[ch][1],
++		A	= sd_tab[ch][2],
++		sd	= 0,
++		i;
++
++	if (err || ch >= 24)
++		return -EIO;
++	t->reg[0x08] &= 0xf0;
++	t->reg[0x08] |= 0x09;
++	t->reg[0x13] &= 0x9f;
++	t->reg[0x13] |= 0x20;
++	for (i = 0; i < 8; i++)
++		if ((fgap_tab[i+1][0] <= kHz - 500) && (kHz - 500 < fgap_tab[i][0]))
++			qm1d1c0042_w_tuner(fe, 0x02, (t->reg[0x02] & 0x0f) | fgap_tab[i][1] << 7 | fgap_tab[i][2] << 4);
++	sd = sd_tab[ch][0];
++	t->reg[0x06] &= 0x40;
++	t->reg[0x06] |= N;
++	t->reg[0x07] &= 0xf0;
++	t->reg[0x07] |= A & 0x0f;
++	err =	qm1d1c0042_w_tuner(fe, 0x06, t->reg[0x06])	||
++		qm1d1c0042_w_tuner(fe, 0x07, t->reg[0x07])	||
++		qm1d1c0042_w_tuner(fe, 0x08, (t->reg[0x08] & 0xf0) | 2);
++	if (err)
++		return err;
++	t->reg[0x09] &= 0xc0;
++	t->reg[0x09] |= (sd >> 16) & 0x3f;
++	t->reg[0x0a] = (sd >> 8) & 0xff;
++	t->reg[0x0b] = (sd >> 0) & 0xff;
++	err =	qm1d1c0042_w_tuner(fe, 0x09, t->reg[0x09])	||
++		qm1d1c0042_w_tuner(fe, 0x0a, t->reg[0x0a])	||
++		qm1d1c0042_w_tuner(fe, 0x0b, t->reg[0x0b])	||
++		qm1d1c0042_w_tuner(fe, 0x0c, t->reg[0x0c] & 0x3f);
++	if (err)
++		return err;
++	msleep_interruptible(1);
++	err =	qm1d1c0042_w_tuner(fe, 0x0c, t->reg[0x0c] | 0xc0)	||
++		qm1d1c0042_w_tuner(fe, 0x08, 0x09)			||
++		qm1d1c0042_w_tuner(fe, 0x13, t->reg[0x13]);
++	if (err)
++		return err;
++	for (i = 0; i < 500; i++) {
++		if (!qm1d1c0042_r(fe, 0x0d, &t->reg[0x0d]))
++			return -EIO;
++		if (t->reg[0x0d] & 0x40)	/* locked */
++			return qm1d1c0042_set_agc(fe, QM1D1C0042_AGC_AUTO);
++		msleep_interruptible(1);
++	}
++	return -ETIMEDOUT;
++}
++
++static struct dvb_tuner_ops qm1d1c0042_ops = {
++	.set_params	= qm1d1c0042_tune,
++	.sleep		= qm1d1c0042_sleep,
++	.init		= qm1d1c0042_wakeup,
++};
++
++int qm1d1c0042_remove(struct i2c_client *c)
++{
++	kfree(i2c_get_clientdata(c));
++	return 0;
++}
++
++int qm1d1c0042_probe(struct i2c_client *c, const struct i2c_device_id *id)
++{
++	u8 reg_rw[] = {
++		0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,	0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
++		0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,	0x8c, 0xcf, 0xb8, 0xf1, 0xa8, 0xf2, 0x89, 0x00,
++	};
++	u8	d[] = {0x10, 0x15, 0x04};
++	struct dvb_frontend	*fe	= c->dev.platform_data;
++	struct qm1d1c0042	*t	= kzalloc(sizeof(struct qm1d1c0042), GFP_KERNEL);
++
++	if (!t)
++		return -ENOMEM;
++	fe->tuner_priv	= t;
++	t->i2c		= c->adapter;
++	t->adr_tuner	= c->addr;
++	memcpy(&fe->ops.tuner_ops, &qm1d1c0042_ops, sizeof(struct dvb_tuner_ops));
++	memcpy(t->reg, reg_rw, sizeof(reg_rw));
++	i2c_set_clientdata(c, t);
++	return	qm1d1c0042_w(fe, 0x1e, d,   1)	||
++		qm1d1c0042_w(fe, 0x1c, d+1, 1)	||
++		qm1d1c0042_w(fe, 0x1f, d+2, 1);
++}
++
++static struct i2c_device_id qm1d1c0042_id[] = {
++	{QM1D1C0042_MODNAME, 0},
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, qm1d1c0042_id);
++
++static struct i2c_driver qm1d1c0042_driver = {
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= qm1d1c0042_id->name,
++	},
++	.probe		= qm1d1c0042_probe,
++	.remove		= qm1d1c0042_remove,
++	.id_table	= qm1d1c0042_id,
++};
++module_i2c_driver(qm1d1c0042_driver);
++
++MODULE_AUTHOR("Budi Rachmanto, AreMa Inc. <knightrider(@)are.ma>");
++MODULE_DESCRIPTION("Earthsoft PT3 QM1D1C0042 ISDB-S tuner driver");
++MODULE_LICENSE("GPL");
++
+diff --git a/drivers/media/tuners/qm1d1c0042.h b/drivers/media/tuners/qm1d1c0042.h
+new file mode 100644
+index 0000000..b342b82
+--- /dev/null
++++ b/drivers/media/tuners/qm1d1c0042.h
+@@ -0,0 +1,23 @@
++/*
++ * Sharp VA4M6JC2103 - Earthsoft PT3 ISDB-S tuner driver QM1D1C0042
++ *
++ * Copyright (C) 2014 Budi Rachmanto, AreMa Inc. <info@are.ma>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef QM1D1C0042_H
++#define QM1D1C0042_H
++
++#define QM1D1C0042_MODNAME "qm1d1c0042"
++
++#endif
++
 -- 
-2.7.0
+2.3.10
 
