@@ -1,199 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:58182 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928AbcBKXme (ORCPT
+Received: from mail-ig0-f181.google.com ([209.85.213.181]:38406 "EHLO
+	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753299AbcBOOtv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 18:42:34 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v3 21/22] media: au0828 video change to use v4l_enable_media_source()
-Date: Thu, 11 Feb 2016 16:41:37 -0700
-Message-Id: <8aa1bf61a24ea273b87a20cb83a502f8a01bedfe.1455233156.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+	Mon, 15 Feb 2016 09:49:51 -0500
+Received: by mail-ig0-f181.google.com with SMTP id y8so56267351igp.1
+        for <linux-media@vger.kernel.org>; Mon, 15 Feb 2016 06:49:51 -0800 (PST)
+MIME-Version: 1.0
+Date: Mon, 15 Feb 2016 11:49:50 -0300
+Message-ID: <CAPAw7H6VbSp2HT=1y-FBYLCkwXTtf2nFGbUhUz1QxxyYVB751w@mail.gmail.com>
+Subject: Geniatech Hybrid SBTD-T USB doesn't work
+From: =?UTF-8?Q?Rodrigo_Sep=C3=BAlveda_Heerwagen?=
+	<rodrigo.sepulveda@lox.cl>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change au0828 to check if tuner is free or not
-before changing tuner configuration.
+Hi,
+I'd like to install a Geniatech Hybrid SBTD-T USB on Ubuntu 14.04,
+x86_64, with kernel 3.13.0-76-generic, but I can't make it work.
 
-vidioc_g_tuner(), and au0828_v4l2_close() now call
-v4l-core interface v4l_enable_media_source() before
-changing tuner configuration.
+Here you'll see some outputs:
 
-Remove au0828_enable_analog_tuner() as it is
-no longer needed because v4l2-core implements
-common interfaces to check for media source
-availability.
+$ lsusb
+Bus 001 Device 009: ID 1f4d:6650 G-Tek Electronics Group
 
-In addition, queue_setup() no longer needs the
-tuner availability check since v4l2-core does it.
+$ dmesg
+[ 6096.458022] usb 1-3: new high-speed USB device number 9 using ehci-pci
+[ 6096.597391] usb 1-3: New USB device found, idVendor=1f4d, idProduct=6650
+[ 6096.597408] usb 1-3: New USB device strings: Mfr=16, Product=32,
+SerialNumber=64
+[ 6096.597417] usb 1-3: Product: Hybrid SBTD-T USB
+[ 6096.597425] usb 1-3: Manufacturer: Geniatech
+[ 6096.597433] usb 1-3: SerialNumber: 2004090820040908
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-video.c | 102 ++++++++++++--------------------
- 1 file changed, 39 insertions(+), 63 deletions(-)
+I ran these commands to make it work:
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 8c54fd2..9304f96 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -638,64 +638,6 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
- 	return rc;
- }
- 
--static int au0828_enable_analog_tuner(struct au0828_dev *dev)
--{
--#ifdef CONFIG_MEDIA_CONTROLLER
--	struct media_device *mdev = dev->media_dev;
--	struct media_entity *source;
--	struct media_link *link, *found_link = NULL;
--	int ret, active_links = 0;
--
--	if (!mdev || !dev->decoder)
--		return 0;
--
--	/*
--	 * This will find the tuner that is connected into the decoder.
--	 * Technically, this is not 100% correct, as the device may be
--	 * using an analog input instead of the tuner. However, as we can't
--	 * do DVB streaming while the DMA engine is being used for V4L2,
--	 * this should be enough for the actual needs.
--	 */
--	list_for_each_entry(link, &dev->decoder->links, list) {
--		if (link->sink->entity == dev->decoder) {
--			found_link = link;
--			if (link->flags & MEDIA_LNK_FL_ENABLED)
--				active_links++;
--			break;
--		}
--	}
--
--	if (active_links == 1 || !found_link)
--		return 0;
--
--	source = found_link->source->entity;
--	list_for_each_entry(link, &source->links, list) {
--		struct media_entity *sink;
--		int flags = 0;
--
--		sink = link->sink->entity;
--
--		if (sink == dev->decoder)
--			flags = MEDIA_LNK_FL_ENABLED;
--
--		ret = media_entity_setup_link(link, flags);
--		if (ret) {
--			pr_err(
--				"Couldn't change link %s->%s to %s. Error %d\n",
--				source->name, sink->name,
--				flags ? "enabled" : "disabled",
--				ret);
--			return ret;
--		} else
--			au0828_isocdbg(
--				"link %s->%s was %s\n",
--				source->name, sink->name,
--				flags ? "ENABLED" : "disabled");
--	}
--#endif
--	return 0;
--}
--
- static int queue_setup(struct vb2_queue *vq,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
- 		       unsigned int sizes[], void *alloc_ctxs[])
-@@ -707,9 +649,6 @@ static int queue_setup(struct vb2_queue *vq,
- 		return sizes[0] < size ? -EINVAL : 0;
- 	*nplanes = 1;
- 	sizes[0] = size;
--
--	au0828_enable_analog_tuner(dev);
--
- 	return 0;
- }
- 
-@@ -1067,8 +1006,39 @@ static int au0828_v4l2_close(struct file *filp)
- 		goto end;
- 
- 	if (dev->users == 1) {
--		/* Save some power by putting tuner to sleep */
--		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
-+		/*
-+		 * Avoid putting tuner in sleep if DVB or ALSA are
-+		 * streaming.
-+		 *
-+		 * On most USB devices  like au0828 the tuner can
-+		 * be safely put in sleep stare here if ALSA isn't
-+		 * streaming. Exceptions are some very old USB tuner
-+		 * models such as em28xx-based WinTV USB2 which have
-+		 * a separate audio output jack. The devices that have
-+		 * a separate audio output jack have analog tuners,
-+		 * like Philips FM1236. Those devices are always on,
-+		 * so the s_power callback are silently ignored.
-+		 * So, the current logic here does the following:
-+		 * Disable (put tuner to sleep) when
-+		 * - ALSA and DVB aren't not streaming;
-+		 * - the last V4L2 file handler is closed.
-+		 *
-+		 * FIXME:
-+		 *
-+		 * Additionally, this logic could be improved to
-+		 * disable the media source if the above conditions
-+		 * are met and if the device:
-+		 * - doesn't have a separate audio out plug (or
-+		 * - doesn't use a silicon tuner like xc2028/3028/4000/5000).
-+		 *
-+		 * Once this additional logic is in place, a callback
-+		 * is needed to enable the media source and power on
-+		 * the tuner, for radio to work.
-+		*/
-+		ret = v4l_enable_media_source(vdev);
-+		if (ret == 0)
-+			v4l2_device_call_all(&dev->v4l2_dev, 0, core,
-+					     s_power, 0);
- 		dev->std_set_in_tuner_core = 0;
- 
- 		/* When close the device, set the usb intf0 into alt0 to free
-@@ -1469,10 +1439,16 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
- static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- {
- 	struct au0828_dev *dev = video_drvdata(file);
-+	struct video_device *vfd = video_devdata(file);
-+	int ret;
- 
- 	if (t->index != 0)
- 		return -EINVAL;
- 
-+	ret = v4l_enable_media_source(vfd);
-+	if (ret)
-+		return ret;
-+
- 	dprintk(1, "%s called std_set %d dev_state %d\n", __func__,
- 		dev->std_set_in_tuner_core, dev->dev_state);
- 
--- 
-2.5.0
+$ sudo apt-get install linux-headers-`uname -r` linux-image-`uname -r`
+build-essential dvb-apps git
+$ git clone git://linuxtv.org/media_build.git
+$ cd media_build
+$ ./build
+$ sudo make install
+$ modprobe dvb-usb-dib0700
 
+And when I tried to scan a channel list, nothing happens:
+
+$ scan channels.conf > digitalchannels.conf
+scanning channels.conf
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+main:2745: FATAL: failed to open '/dev/dvb/adapter0/frontend0': 2 No
+such file or directory
+
+Content of channels.conf...
+--
+T 473142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 14
+T 479142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 15
+T 485142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 16
+T 491142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 17
+T 497142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 18
+T 503142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 19
+T 509142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 20
+T 515142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 21
+T 521142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 22
+T 527142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 23
+T 533142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 24
+T 539142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 25
+T 545142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 26
+T 551142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 27
+T 557142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 28
+T 563142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 29
+T 569142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 30
+T 575142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 31
+T 581142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 32
+T 587142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 33
+T 593142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 34
+T 599142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 35
+T 605142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 36
+# canal 37 no se usa
+T 617142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 38
+T 623142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 39
+T 629142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 40
+T 635142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 41
+T 641142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 42
+T 647142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 43
+T 653142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 44
+T 659142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 45
+T 665142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 46
+T 671142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 47
+T 677142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 48
+T 683142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 49
+T 689142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 50
+T 695142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 51
+T 701142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 52
+T 707142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 53
+T 713142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 54
+T 719142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 55
+T 725142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 56
+T 731142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 57
+T 737142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 58
+T 743142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 59
+T 749142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 60
+T 755142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 61
+T 761142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 62
+T 767142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 63
+T 773142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 64
+T 779142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 65
+T 785142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 66
+T 791142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 67
+T 797142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 68
+T 803142857 6MHz 3/4 AUTO AUTO AUTO AUTO NONE # canal 69
+--
+
+Please help me with this. Thanks in advance.
+
+Regards,
+Rodrigo S.
