@@ -1,46 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:37548 "EHLO
-	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933828AbcBQO6J (ORCPT
+Received: from mail-io0-f181.google.com ([209.85.223.181]:33703 "EHLO
+	mail-io0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751791AbcBOJWX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 09:58:09 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v2] adv7604: fix SPA register location for ADV7612
-Date: Wed, 17 Feb 2016 15:57:56 +0100
-Message-Id: <1455721076-11458-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Mon, 15 Feb 2016 04:22:23 -0500
+MIME-Version: 1.0
+In-Reply-To: <1455242450-24493-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<1455242450-24493-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Date: Mon, 15 Feb 2016 10:22:22 +0100
+Message-ID: <CAMuHMdVoZ31hA6hitMhjWxizoEAPdYM1rubx4LRg275Lvz2Duw@mail.gmail.com>
+Subject: Re: [PATCH/RFC 1/9] clk: shmobile: r8a7795: Add FCP clocks
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SPA location LSB register is at 0x70.
+On Fri, Feb 12, 2016 at 3:00 AM, Laurent Pinchart
+<laurent.pinchart+renesas@ideasonboard.com> wrote:
+> The parent clock isn't documented in the datasheet, use S2D1 as a best
+> guess for now.
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
-As suggested by Lars-Peter, this applies the change to the ADV7611 case as
-well.
+Looks like a good guess...
+I assume the driver doesn't depend on the clock rate?
 
- drivers/media/i2c/adv7604.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 2097c48..1680c0e 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2110,7 +2110,8 @@ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 		rep_write(sd, 0x76, spa_loc & 0xff);
- 		rep_write_clr_set(sd, 0x77, 0x40, (spa_loc & 0x100) >> 2);
- 	} else {
--		/* FIXME: Where is the SPA location LSB register ? */
-+		/* ADV7612 Software Manual Rev. A, p. 15 */
-+		rep_write(sd, 0x70, spa_loc & 0xff);
- 		rep_write_clr_set(sd, 0x71, 0x01, (spa_loc & 0x100) >> 8);
- 	}
- 
--- 
-2.6.4
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
