@@ -1,125 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49999 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755774AbcBCDqD (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54618 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751117AbcBOPbW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2016 22:46:03 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1D71B184765
-	for <linux-media@vger.kernel.org>; Wed,  3 Feb 2016 04:45:58 +0100 (CET)
-Date: Wed, 03 Feb 2016 04:45:58 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160203034558.1D71B184765@tschai.lan>
+	Mon, 15 Feb 2016 10:31:22 -0500
+Date: Mon, 15 Feb 2016 17:31:18 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH v3 3/4] libv4l2subdev: Add a function to list library
+ supported pixel codes
+Message-ID: <20160215153118.GL32612@valkosipuli.retiisi.org.uk>
+References: <1453725585-4165-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1453725585-4165-4-git-send-email-sakari.ailus@linux.intel.com>
+ <6161184.n3EnhYCWYZ@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6161184.n3EnhYCWYZ@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Laurent,
 
-Results of the daily build of media_tree:
+On Mon, Feb 15, 2016 at 04:43:12PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Monday 25 January 2016 14:39:44 Sakari Ailus wrote:
+> > Also mark which format definitions are compat definitions for the
+> > pre-existing codes. This way we don't end up listing the same formats
+> > twice.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  utils/media-ctl/.gitignore      |  1 +
+> >  utils/media-ctl/Makefile.am     |  6 +++-
+> >  utils/media-ctl/libv4l2subdev.c | 71 ++++++++++++++++++++++---------------
+> >  utils/media-ctl/v4l2subdev.h    | 10 ++++++
+> >  4 files changed, 57 insertions(+), 31 deletions(-)
+> > 
+> > diff --git a/utils/media-ctl/.gitignore b/utils/media-ctl/.gitignore
+> > index 799ab33..5354fec 100644
+> > --- a/utils/media-ctl/.gitignore
+> > +++ b/utils/media-ctl/.gitignore
+> > @@ -1,2 +1,3 @@
+> >  media-ctl
+> >  media-bus-format-names.h
+> > +media-bus-format-codes.h
+> > diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+> > index 23ad90b..ee7dcc9 100644
+> > --- a/utils/media-ctl/Makefile.am
+> > +++ b/utils/media-ctl/Makefile.am
+> > @@ -8,7 +8,11 @@ media-bus-format-names.h:
+> > ../../include/linux/media-bus-format.h sed -e '/#define MEDIA_BUS_FMT/ ! d;
+> > s/.*FMT_//; /FIXED/ d; s/\t.*//; s/.*/{ \"&\", MEDIA_BUS_FMT_& },/;' \ < $<
+> > > $@
+> > 
+> > -BUILT_SOURCES = media-bus-format-names.h
+> > +media-bus-format-codes.h: ../../include/linux/media-bus-format.h
+> > +	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*#define //; /FIXED/ d; s/\t.*//;
+> > s/.*/ &,/;' \ +	< $< > $@
+> > +
+> > +BUILT_SOURCES = media-bus-format-names.h media-bus-format-codes.h
+> >  CLEANFILES = $(BUILT_SOURCES)
+> > 
+> >  nodist_libv4l2subdev_la_SOURCES = $(BUILT_SOURCES)
+> > diff --git a/utils/media-ctl/libv4l2subdev.c
+> > b/utils/media-ctl/libv4l2subdev.c index f3c0a9a..408f1cf 100644
+> > --- a/utils/media-ctl/libv4l2subdev.c
+> > +++ b/utils/media-ctl/libv4l2subdev.c
+> > @@ -718,38 +718,44 @@ int v4l2_subdev_parse_setup_formats(struct
+> > media_device *media, const char *p) static const struct {
+> >  	const char *name;
+> >  	enum v4l2_mbus_pixelcode code;
+> > +	bool compat;
+> >  } mbus_formats[] = {
+> >  #include "media-bus-format-names.h"
+> > -	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
+> > -	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
+> > -	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
+> > -	{ "YUYV", MEDIA_BUS_FMT_YUYV8_1X16 },
+> > -	{ "YUYV1_5X8", MEDIA_BUS_FMT_YUYV8_1_5X8 },
+> > -	{ "YUYV2X8", MEDIA_BUS_FMT_YUYV8_2X8 },
+> > -	{ "UYVY", MEDIA_BUS_FMT_UYVY8_1X16 },
+> > -	{ "UYVY1_5X8", MEDIA_BUS_FMT_UYVY8_1_5X8 },
+> > -	{ "UYVY2X8", MEDIA_BUS_FMT_UYVY8_2X8 },
+> > -	{ "VUY24", MEDIA_BUS_FMT_VUY8_1X24 },
+> > -	{ "SBGGR8", MEDIA_BUS_FMT_SBGGR8_1X8 },
+> > -	{ "SGBRG8", MEDIA_BUS_FMT_SGBRG8_1X8 },
+> > -	{ "SGRBG8", MEDIA_BUS_FMT_SGRBG8_1X8 },
+> > -	{ "SRGGB8", MEDIA_BUS_FMT_SRGGB8_1X8 },
+> > -	{ "SBGGR10", MEDIA_BUS_FMT_SBGGR10_1X10 },
+> > -	{ "SGBRG10", MEDIA_BUS_FMT_SGBRG10_1X10 },
+> > -	{ "SGRBG10", MEDIA_BUS_FMT_SGRBG10_1X10 },
+> > -	{ "SRGGB10", MEDIA_BUS_FMT_SRGGB10_1X10 },
+> > -	{ "SBGGR10_DPCM8", MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8 },
+> > -	{ "SGBRG10_DPCM8", MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8 },
+> > -	{ "SGRBG10_DPCM8", MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8 },
+> > -	{ "SRGGB10_DPCM8", MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8 },
+> > -	{ "SBGGR12", MEDIA_BUS_FMT_SBGGR12_1X12 },
+> > -	{ "SGBRG12", MEDIA_BUS_FMT_SGBRG12_1X12 },
+> > -	{ "SGRBG12", MEDIA_BUS_FMT_SGRBG12_1X12 },
+> > -	{ "SRGGB12", MEDIA_BUS_FMT_SRGGB12_1X12 },
+> > -	{ "AYUV32", MEDIA_BUS_FMT_AYUV8_1X32 },
+> > -	{ "RBG24", MEDIA_BUS_FMT_RBG888_1X24 },
+> > -	{ "RGB32", MEDIA_BUS_FMT_RGB888_1X32_PADHI },
+> > -	{ "ARGB32", MEDIA_BUS_FMT_ARGB8888_1X32 },
+> > +	{ "Y8", MEDIA_BUS_FMT_Y8_1X8, true },
+> > +	{ "Y10", MEDIA_BUS_FMT_Y10_1X10, true },
+> > +	{ "Y12", MEDIA_BUS_FMT_Y12_1X12, true },
+> > +	{ "YUYV", MEDIA_BUS_FMT_YUYV8_1X16, true },
+> > +	{ "YUYV1_5X8", MEDIA_BUS_FMT_YUYV8_1_5X8, true },
+> > +	{ "YUYV2X8", MEDIA_BUS_FMT_YUYV8_2X8, true },
+> > +	{ "UYVY", MEDIA_BUS_FMT_UYVY8_1X16, true },
+> > +	{ "UYVY1_5X8", MEDIA_BUS_FMT_UYVY8_1_5X8, true },
+> > +	{ "UYVY2X8", MEDIA_BUS_FMT_UYVY8_2X8, true },
+> > +	{ "VUY24", MEDIA_BUS_FMT_VUY8_1X24, true },
+> > +	{ "SBGGR8", MEDIA_BUS_FMT_SBGGR8_1X8, true },
+> > +	{ "SGBRG8", MEDIA_BUS_FMT_SGBRG8_1X8, true },
+> > +	{ "SGRBG8", MEDIA_BUS_FMT_SGRBG8_1X8, true },
+> > +	{ "SRGGB8", MEDIA_BUS_FMT_SRGGB8_1X8, true },
+> > +	{ "SBGGR10", MEDIA_BUS_FMT_SBGGR10_1X10, true },
+> > +	{ "SGBRG10", MEDIA_BUS_FMT_SGBRG10_1X10, true },
+> > +	{ "SGRBG10", MEDIA_BUS_FMT_SGRBG10_1X10, true },
+> > +	{ "SRGGB10", MEDIA_BUS_FMT_SRGGB10_1X10, true },
+> > +	{ "SBGGR10_DPCM8", MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8, true },
+> > +	{ "SGBRG10_DPCM8", MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8, true },
+> > +	{ "SGRBG10_DPCM8", MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8, true },
+> > +	{ "SRGGB10_DPCM8", MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8, true },
+> > +	{ "SBGGR12", MEDIA_BUS_FMT_SBGGR12_1X12, true },
+> > +	{ "SGBRG12", MEDIA_BUS_FMT_SGBRG12_1X12, true },
+> > +	{ "SGRBG12", MEDIA_BUS_FMT_SGRBG12_1X12, true },
+> > +	{ "SRGGB12", MEDIA_BUS_FMT_SRGGB12_1X12, true },
+> > +	{ "AYUV32", MEDIA_BUS_FMT_AYUV8_1X32, true },
+> > +	{ "RBG24", MEDIA_BUS_FMT_RBG888_1X24, true },
+> > +	{ "RGB32", MEDIA_BUS_FMT_RGB888_1X32_PADHI, true },
+> > +	{ "ARGB32", MEDIA_BUS_FMT_ARGB8888_1X32, true },
+> > +};
+> > +
+> > +static const enum v4l2_mbus_pixelcode mbus_codes[] = {
+> > +#include "media-bus-format-codes.h"
+> > +	0 /* guardian */
+> >  };
+> > 
+> >  const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code)
+> > @@ -821,3 +827,8 @@ enum v4l2_field v4l2_subdev_string_to_field(const char
+> > *string,
+> > 
+> >  	return fields[i].field;
+> >  }
+> > +
+> > +const enum v4l2_mbus_pixelcode *v4l2_subdev_pixelcode_list(void)
+> > +{
+> > +	return mbus_codes;
+> > +}
+> > diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+> > index 104e420..33327d6 100644
+> > --- a/utils/media-ctl/v4l2subdev.h
+> > +++ b/utils/media-ctl/v4l2subdev.h
+> > @@ -279,4 +279,14 @@ const char *v4l2_subdev_field_to_string(enum v4l2_field
+> > field); enum v4l2_field v4l2_subdev_string_to_field(const char *string,
+> >  					    unsigned int length);
+> > 
+> > +/**
+> > + * @brief Enumerate library supported media bus pixel codes.
+> > + *
+> > + * Obtain pixel codes supported by libv4l2subdev. The list is zero
+> > + * terminated.
+> > + *
+> > + * @return media bus pixelcode on success, -1 on failure.
+> > + */
+> > +const enum v4l2_mbus_pixelcode *v4l2_subdev_pixelcode_list(void);
+> > +
+> 
+> Would it make sense to also return the array length ? Patch 4/4 doesn't use 
+> it, but other callers could.
 
-date:		Wed Feb  3 04:00:20 CET 2016
-git branch:	test
-git hash:	24095e766037018e7a4b636834a383f86a9b30f2
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.3.0-164
+I'm not sure if there would be use for that, but I can add it.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-rc1-i686: OK
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+> 
+> I'm also wondering whether it wouldn't make sense to expose the mbus_formats 
+> array instead, to avoid the call to v4l2_subdev_pixelcode_to_string() in patch 
+> 4/4.
+> 
+> Do you think this should be a public or private API ?
 
-Detailed results are available here:
+I think it's relevant for the test program. Supposing that the test program
+is intended to be also used as an example, it'd be odd the test program
+required the use of private APIs.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
