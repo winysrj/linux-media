@@ -1,54 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56235 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751463AbcBLJzt (ORCPT
+Received: from mail-ig0-f170.google.com ([209.85.213.170]:38495 "EHLO
+	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751604AbcBOJpk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 04:55:49 -0500
-Subject: Re: [PATCH 06/11] [media] v4l2-mc: use usb_make_path() to provide bus
- info
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	no To-header on input <""@pop.xs4all.nl>
-References: <cover.1455269986.git.mchehab@osg.samsung.com>
- <9b8fed2b73514df87fced36481f84a0a745b674d.1455269986.git.mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56BDAC21.9000005@xs4all.nl>
-Date: Fri, 12 Feb 2016 10:55:45 +0100
+	Mon, 15 Feb 2016 04:45:40 -0500
 MIME-Version: 1.0
-In-Reply-To: <9b8fed2b73514df87fced36481f84a0a745b674d.1455269986.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1455242450-24493-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<1455242450-24493-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Date: Mon, 15 Feb 2016 10:45:39 +0100
+Message-ID: <CAMuHMdWXdY0DS--sfOy83jixKyBzu5gFPAY2BQs5PBCDh0Fxdw@mail.gmail.com>
+Subject: Re: [PATCH/RFC 6/9] ARM64: renesas: r8a7795: Add FCPV nodes
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/12/2016 10:45 AM, Mauro Carvalho Chehab wrote:
-> Report the bus info on the same way as VIDIOC_QUERYCAP. Also,
-> currently, it is reporting just PORT/DEV.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hi Laurent,
+
+On Fri, Feb 12, 2016 at 3:00 AM, Laurent Pinchart
+<laurent.pinchart+renesas@ideasonboard.com> wrote:
+> The FCPs handle the interface between various IP cores and memory. Add
+> the instances related to the VSP2s.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 > ---
->  drivers/media/v4l2-core/v4l2-mc.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-> index 649972e87621..ab5e42a86cc5 100644
-> --- a/drivers/media/v4l2-core/v4l2-mc.c
-> +++ b/drivers/media/v4l2-core/v4l2-mc.c
-> @@ -79,7 +79,7 @@ struct media_device * __v4l2_mc_usb_media_device_init(struct usb_device *udev,
->  		strlcpy(mdev->model, "unknown model", sizeof(mdev->model));
->  	if (udev->serial)
->  		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
-> -	strcpy(mdev->bus_info, udev->devpath);
-> +	usb_make_path(udev, mdev->bus_info, sizeof(mdev->bus_info));
->  	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
->  	mdev->driver_version = LINUX_VERSION_CODE;
->  
-> 
+>  arch/arm64/boot/dts/renesas/r8a7795.dtsi | 63 ++++++++++++++++++++++++++++++++
+>  1 file changed, 63 insertions(+)
+>
+> diff --git a/arch/arm64/boot/dts/renesas/r8a7795.dtsi b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
+> index b5e46e4ff72a..f62d6fa28acc 100644
+> --- a/arch/arm64/boot/dts/renesas/r8a7795.dtsi
+> +++ b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
+> @@ -960,5 +960,68 @@
+>                         #dma-cells = <1>;
+>                         dma-channels = <2>;
+>                 };
+> +
+> +               fcpvb1: fcp@fe92f000 {
+> +                       compatible = "renesas,fcpv";
+> +                       reg = <0 0xfe92f000 0 0x200>;
+> +                       clocks = <&cpg CPG_MOD 606>;
+> +                       power-domains = <&cpg>;
+> +               };
 
-Please fold this in patch 02/11 and you can disregard my comment about
-strcpy vs strlcpy.
+The FCP_V modules are located in the A3VP Power Area. But adding this
+information to DT depends on the SYSC PM Domain driver.
 
-Regards,
+I'll try to post my WIP PM Domain patchset for R-Car ASAP...
 
-	Hans
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
