@@ -1,197 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48305 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55871 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753233AbcBHLoQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:44:16 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 27/35] v4l: vsp1: Make the userspace API optional
-Date: Mon,  8 Feb 2016 13:43:57 +0200
-Message-Id: <1454931845-23864-28-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	with ESMTP id S1752938AbcBOMfJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2016 07:35:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH/RFC 3/9] v4l: Add Renesas R-Car FCP driver
+Date: Mon, 15 Feb 2016 14:35:37 +0200
+Message-ID: <7803268.ksEo9HOBee@avalon>
+In-Reply-To: <CAMuHMdW1bWPPL-4hRM=dx-216V4Aew1dg=i=ApkLww4RFXQgmg@mail.gmail.com>
+References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1455242450-24493-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdW1bWPPL-4hRM=dx-216V4Aew1dg=i=ApkLww4RFXQgmg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The R-Car Gen3 SoCs include VSP instances dedicated to the DU that will
-be controlled entirely by the rcar-du-drm driver through the KMS API. To
-support that use case make the userspace V4L2 API optional.
+Hi Geert,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1.h        |  1 +
- drivers/media/platform/vsp1/vsp1_drv.c    | 46 +++++++++++++++++++------------
- drivers/media/platform/vsp1/vsp1_entity.c |  2 +-
- drivers/media/platform/vsp1/vsp1_sru.c    |  6 ++--
- drivers/media/platform/vsp1/vsp1_wpf.c    |  6 ++--
- 5 files changed, 38 insertions(+), 23 deletions(-)
+Thank you for the review.
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index d980f32aac0b..4fd4386a7049 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -50,6 +50,7 @@ struct vsp1_platform_data {
- 	unsigned int uds_count;
- 	unsigned int wpf_count;
- 	unsigned int num_bru_inputs;
-+	bool uapi;
- };
- 
- struct vsp1_device {
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 8d67a06c86ea..63892b2f4484 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -143,6 +143,9 @@ static int vsp1_create_links(struct vsp1_device *vsp1)
- 			return ret;
- 	}
- 
-+	if (!vsp1->pdata.uapi)
-+		return 0;
-+
- 	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
- 		struct vsp1_rwpf *rpf = vsp1->rpf[i];
- 
-@@ -267,7 +270,6 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 	}
- 
- 	for (i = 0; i < vsp1->pdata.rpf_count; ++i) {
--		struct vsp1_video *video;
- 		struct vsp1_rwpf *rpf;
- 
- 		rpf = vsp1_rpf_create(vsp1, i);
-@@ -279,13 +281,16 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		vsp1->rpf[i] = rpf;
- 		list_add_tail(&rpf->entity.list_dev, &vsp1->entities);
- 
--		video = vsp1_video_create(vsp1, rpf);
--		if (IS_ERR(video)) {
--			ret = PTR_ERR(video);
--			goto done;
--		}
-+		if (vsp1->pdata.uapi) {
-+			struct vsp1_video *video = vsp1_video_create(vsp1, rpf);
- 
--		list_add_tail(&video->list, &vsp1->videos);
-+			if (IS_ERR(video)) {
-+				ret = PTR_ERR(video);
-+				goto done;
-+			}
-+
-+			list_add_tail(&video->list, &vsp1->videos);
-+		}
- 	}
- 
- 	if (vsp1->pdata.features & VSP1_HAS_SRU) {
-@@ -312,7 +317,6 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 	}
- 
- 	for (i = 0; i < vsp1->pdata.wpf_count; ++i) {
--		struct vsp1_video *video;
- 		struct vsp1_rwpf *wpf;
- 
- 		wpf = vsp1_wpf_create(vsp1, i);
-@@ -324,14 +328,17 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		vsp1->wpf[i] = wpf;
- 		list_add_tail(&wpf->entity.list_dev, &vsp1->entities);
- 
--		video = vsp1_video_create(vsp1, wpf);
--		if (IS_ERR(video)) {
--			ret = PTR_ERR(video);
--			goto done;
--		}
-+		if (vsp1->pdata.uapi) {
-+			struct vsp1_video *video = vsp1_video_create(vsp1, wpf);
- 
--		list_add_tail(&video->list, &vsp1->videos);
--		wpf->entity.sink = &video->video.entity;
-+			if (IS_ERR(video)) {
-+				ret = PTR_ERR(video);
-+				goto done;
-+			}
-+
-+			list_add_tail(&video->list, &vsp1->videos);
-+			wpf->entity.sink = &video->video.entity;
-+		}
- 	}
- 
- 	/* Register all subdevs. */
-@@ -347,9 +354,11 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 	if (ret < 0)
- 		goto done;
- 
--	ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
--	if (ret < 0)
--		goto done;
-+	if (vsp1->pdata.uapi) {
-+		ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
-+		if (ret < 0)
-+			goto done;
-+	}
- 
- 	ret = media_device_register(mdev);
- 
-@@ -545,6 +554,7 @@ static int vsp1_parse_dt(struct vsp1_device *vsp1)
- 
- 	pdata->features |= VSP1_HAS_BRU;
- 	pdata->num_bru_inputs = 4;
-+	pdata->uapi = true;
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 479029fd4e90..338a1b0b4fad 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -45,7 +45,7 @@ int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
- 	if (!streaming)
- 		return 0;
- 
--	if (!entity->subdev.ctrl_handler)
-+	if (!entity->vsp1->pdata.uapi || !entity->subdev.ctrl_handler)
- 		return 0;
- 
- 	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index d41ae950d1a1..cff4a1d82e3b 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -151,11 +151,13 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	/* Take the control handler lock to ensure that the CTRL0 value won't be
- 	 * changed behind our back by a set control operation.
- 	 */
--	mutex_lock(sru->ctrls.lock);
-+	if (sru->entity.vsp1->pdata.uapi)
-+		mutex_lock(sru->ctrls.lock);
- 	ctrl0 |= vsp1_sru_read(sru, VI6_SRU_CTRL0)
- 	       & (VI6_SRU_CTRL0_PARAM0_MASK | VI6_SRU_CTRL0_PARAM1_MASK);
- 	vsp1_sru_write(sru, VI6_SRU_CTRL0, ctrl0);
--	mutex_unlock(sru->ctrls.lock);
-+	if (sru->entity.vsp1->pdata.uapi)
-+		mutex_unlock(sru->ctrls.lock);
- 
- 	vsp1_sru_write(sru, VI6_SRU_CTRL1, VI6_SRU_CTRL1_PARAM5);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index d2537b46fc46..184a7e01aad5 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -151,10 +151,12 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	/* Take the control handler lock to ensure that the PDV value won't be
- 	 * changed behind our back by a set control operation.
- 	 */
--	mutex_lock(wpf->ctrls.lock);
-+	if (vsp1->pdata.uapi)
-+		mutex_lock(wpf->ctrls.lock);
- 	outfmt |= vsp1_wpf_read(wpf, VI6_WPF_OUTFMT) & VI6_WPF_OUTFMT_PDV_MASK;
- 	vsp1_wpf_write(wpf, VI6_WPF_OUTFMT, outfmt);
--	mutex_unlock(wpf->ctrls.lock);
-+	if (vsp1->pdata.uapi)
-+		mutex_unlock(wpf->ctrls.lock);
- 
- 	vsp1_write(vsp1, VI6_DPR_WPF_FPORCH(wpf->entity.index),
- 		   VI6_DPR_WPF_FPORCH_FP_WPFN);
+On Monday 15 February 2016 10:32:35 Geert Uytterhoeven wrote:
+> On Fri, Feb 12, 2016 at 3:00 AM, Laurent Pinchart wrote:
+> > The FCP is a companion module of video processing modules in the
+> > Renesas R-Car Gen3 SoCs. It provides data compression and decompression,
+> > data caching, and converting of AXI transaction in order to reduce the
+> 
+> "conversion"?
+
+Of course. Can you submit a similar patch to the Gen3 datasheet ? ;-)
+
+> > memory bandwidth.
+> > 
+> > The driver is not meant to be used standalone but provides an API to the
+> > video processing modules to control the FCP.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> Thanks for your patch!
+> 
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> > @@ -0,0 +1,24 @@
+> > +Renesas R-Car Frame Compression Processor (FCP)
+> > +-----------------------------------------------
+> > +
+> > +The FCP is a companion module of video processing modules in the Renesas
+> > R-Car
+> > +Gen3 SoCs. It provides data compression and decompression, data caching,
+> > and
+> > +converting of AXI transaction in order to reduce the memory bandwidth.
+>
+> "conversion"?
+> 
+> > +
+> > +There are three types of FCP whose configuration and behaviour highly
+> > depend +on the module they are paired with.
+> > +
+> > + - compatible: Must be one of the following
+> > +   - "renesas,fcpv" for the 'FCP for VSP' device
+> 
+> Any chance this module can turn up in another SoC later? I guess yes.
+
+It's not just that it can, it will.
+
+> What about future-proofing using "renesas,r8a7795-fcpv" and "renesas,rcar-
+> gen3-fcpv"?
+
+Given that the device currently has registers and clock only, I wanted to keep 
+the DT bindings simple. My plan is to introduce new compat strings later as 
+needed, if needed, when incompatible FCP instances will be introduced. Feel 
+free to challenge that :-)
+
+> > diff --git a/drivers/media/platform/Kconfig
+> > b/drivers/media/platform/Kconfig index fd4fcd5a7184..cbb4e5735bf8 100644
+> > --- a/drivers/media/platform/Kconfig
+> > +++ b/drivers/media/platform/Kconfig
+> > @@ -255,6 +255,19 @@ config VIDEO_RENESAS_JPU
+> >           To compile this driver as a module, choose M here: the module
+> >           will be called rcar_jpu.
+> > 
+> > +config VIDEO_RENESAS_FCP
+> > +       tristate "Renesas Frame Compression Processor"
+> > +       depends on ARCH_SHMOBILE || COMPILE_TEST
+> 
+> ARCH_RENESAS
+
+Ah, that's finally merged, great.
+
+> > diff --git a/drivers/media/platform/rcar-fcp.c
+> > b/drivers/media/platform/rcar-fcp.c new file mode 100644
+> > index 000000000000..cf8cb629ae4f
+> > --- /dev/null
+> > +++ b/drivers/media/platform/rcar-fcp.c
+> > 
+> > +struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
+> > +{
+> > +       struct rcar_fcp_device *fcp;
+> > +
+> > +       mutex_lock(&fcp_lock);
+> > +
+> > +       list_for_each_entry(fcp, &fcp_devices, list) {
+> > +               if (fcp->dev->of_node != np)
+> > +                       continue;
+> > +
+> > +               /*
+> > +                * Make sure the module won't be unloaded behind our back.
+> > This
+> > +                * is a poor's man safety net, the module should really
+> > not be
+>
+> poor man's
+> 
+> > diff --git a/include/media/rcar-fcp.h b/include/media/rcar-fcp.h
+> > new file mode 100644
+> > index 000000000000..4260cf48d3b1
+> > --- /dev/null
+> > +++ b/include/media/rcar-fcp.h
+> > @@ -0,0 +1,34 @@
+> > +/*
+> > + * rcar-fcp.h  --  R-Car Frame Compression Processor Driver
+> > + *
+> > + * Copyright (C) 2016 Renesas Electronics Corporation
+> > + *
+> > + * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License as published by
+> > + * the Free Software Foundation; either version 2 of the License, or
+> > + * (at your option) any later version.
+> > + */
+> > +#ifndef __MEDIA_RCAR_FCP_H__
+> > +#define __MEDIA_RCAR_FCP_H__
+> > +
+> > +struct device_node;
+> > +struct rcar_fcp_device;
+> > +
+> > +#if IS_ENABLED(CONFIG_VIDEO_RENESAS_FCP)
+> > +struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np);
+> > +void rcar_fcp_put(struct rcar_fcp_device *fcp);
+> > +void rcar_fcp_enable(struct rcar_fcp_device *fcp);
+> > +void rcar_fcp_disable(struct rcar_fcp_device *fcp);
+> > +#else
+> > +static inline struct rcar_fcp_device *rcar_fcp_get(const struct
+> > device_node *np)
+> > +{
+> > +       return ERR_PTR(-ENOENT);
+> > +}
+> > +static inline void rcar_fcp_put(struct rcar_fcp_device *fcp) { }
+> > +static inline void rcar_fcp_enable(struct rcar_fcp_device *fcp) { }
+> > +static inline void rcar_fcp_disable(struct rcar_fcp_device *fcp) { }
+> 
+> Given the dummies, the vsp driver can also work when FCP support is not
+> enabled?
+> Or is this meant purely to avoid #ifdefs in the vsp driver when compiling
+> for R-Car Gen2?
+> 
+> In case of the latter, you may want to enforce this in Kconfig.
+
+It's the latter, I'll enforce it in Kconfig in the patch that adds FCP support 
+in the VSP driver (and keep the stubs here for Gen2).
+
 -- 
-2.4.10
+Regards,
+
+Laurent Pinchart
 
