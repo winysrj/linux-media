@@ -1,79 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dimen.winder.org.uk ([87.127.116.10]:54290 "EHLO
-	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756499AbcBQHpZ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56056 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753483AbcBOOjY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 02:45:25 -0500
-Message-ID: <1455695088.1893.11.camel@winder.org.uk>
-Subject: Looking for a bit of help with DVB-T(2) and GStreamer
-From: Russel Winder <russel@winder.org.uk>
-To: DVB_Linux_Media <linux-media@vger.kernel.org>
-Date: Wed, 17 Feb 2016 07:44:48 +0000
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-iYQoPmefJDSem7RMw0wW"
-Mime-Version: 1.0
+	Mon, 15 Feb 2016 09:39:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH v3 2/4] libv4l2subdev: Use generated format definitions in libv4l2subdev
+Date: Mon, 15 Feb 2016 16:39:51 +0200
+Message-ID: <1578035.eQDnOypy7J@avalon>
+In-Reply-To: <1453725585-4165-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1453725585-4165-1-git-send-email-sakari.ailus@linux.intel.com> <1453725585-4165-3-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
---=-iYQoPmefJDSem7RMw0wW
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
-I feel I have exhausted Google, Stack Overflow, and the manuals, so I
-am asking here as there might be people here with experience and
-knowledge. So as to avoid cluttering up this list with what might be
-seen as OT material please feel free to email me directly. I can then
-summarize to the list later.
+On Monday 25 January 2016 14:39:43 Sakari Ailus wrote:
+> Instead of manually adding each and every new media bus pixel code to
+> libv4l2subdev, generate the list automatically. The pre-existing formats
+> that do not match the list are not modified so that existing users are
+> unaffected by this change, with the exception of converting codes to
+> strings, which will use the new definitions.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-With dvbv5-zap I can tune DVB-T and DVB-T2 devices and then use mplayer
-to play the MPEG stream from the appropriate dvr0 file.
+> ---
+>  utils/media-ctl/.gitignore      | 1 +
+>  utils/media-ctl/Makefile.am     | 8 ++++++++
+>  utils/media-ctl/libv4l2subdev.c | 1 +
+>  3 files changed, 10 insertions(+)
+> 
+> diff --git a/utils/media-ctl/.gitignore b/utils/media-ctl/.gitignore
+> index 95b6a57..799ab33 100644
+> --- a/utils/media-ctl/.gitignore
+> +++ b/utils/media-ctl/.gitignore
+> @@ -1 +1,2 @@
+>  media-ctl
+> +media-bus-format-names.h
+> diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+> index a3931fb..23ad90b 100644
+> --- a/utils/media-ctl/Makefile.am
+> +++ b/utils/media-ctl/Makefile.am
+> @@ -4,6 +4,14 @@ libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
+>  libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
+>  libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
+> 
+> +media-bus-format-names.h: ../../include/linux/media-bus-format.h
+> +	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*FMT_//; /FIXED/ d; s/\t.*//;
+> s/.*/{ \"&\", MEDIA_BUS_FMT_& },/;' \ +	< $< > $@
+> +
+> +BUILT_SOURCES = media-bus-format-names.h
+> +CLEANFILES = $(BUILT_SOURCES)
+> +
+> +nodist_libv4l2subdev_la_SOURCES = $(BUILT_SOURCES)
+>  libv4l2subdev_la_SOURCES = libv4l2subdev.c
+>  libv4l2subdev_la_LIBADD = libmediactl.la
+>  libv4l2subdev_la_CFLAGS = -static
+> diff --git a/utils/media-ctl/libv4l2subdev.c
+> b/utils/media-ctl/libv4l2subdev.c index e45834f..f3c0a9a 100644
+> --- a/utils/media-ctl/libv4l2subdev.c
+> +++ b/utils/media-ctl/libv4l2subdev.c
+> @@ -719,6 +719,7 @@ static const struct {
+>  	const char *name;
+>  	enum v4l2_mbus_pixelcode code;
+>  } mbus_formats[] = {
+> +#include "media-bus-format-names.h"
+>  	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
+>  	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
+>  	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
 
-Using the dvbv5-zap and dvbv5-tune C code as reference, I have some C++
-code (it's on GitHub if anyone wants to take a look and have a giggle
-:-) that can scan using and tune the DVB-T(2) devices. I can use
-mplayer to prove the dvr0 stream is as it should be and I can even get
-some playing directly using VLC (though it has problems but this may be
-my set up of VLC).
+-- 
+Regards,
 
-The core problem I am having is that I cannot get a GStreamer pipeline
-either in C++ code nor using gst-launch-1.0 to play a properly set up
-dvr0 file. In all case I end up with:
-
-Setting pipeline to PAUSED ...
-Pipeline is PREROLLING ...
-
-and no actual activity. Has anyone ever managed to get GStreamer to
-play a valid MPEG stream from a properly (and provable with mplayer)
-set up dvr0 file? I have no problem playing MPEG-4 or MPEG-2 files with
-GStreamer, just no success with the dvr0 file.
-
-
---=20
-Russel.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
-et
-41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
-London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
-
-
---=-iYQoPmefJDSem7RMw0wW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEABECAAYFAlbEJPEACgkQ+ooS3F10Be/29QCbB4cls6udQpaGz10Usm6B9WUN
-QWkAoPvys9OcIv7eEHTM4SL7SXjwq+99
-=1cqm
------END PGP SIGNATURE-----
-
---=-iYQoPmefJDSem7RMw0wW--
+Laurent Pinchart
 
