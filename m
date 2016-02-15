@@ -1,107 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40210 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751285AbcBXPpQ (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:1303 "EHLO
+	mailgw02.hq.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751122AbcBOL1m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2016 10:45:16 -0500
-Date: Wed, 24 Feb 2016 17:44:39 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 15 Feb 2016 06:27:42 -0500
+Message-ID: <1455535656.27088.6.camel@mtksdaap41>
+Subject: Re: [PATCH v4 2/8] [media] VPU: mediatek: support Mediatek VPU
+From: tiffany lin <tiffany.lin@mediatek.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
-Message-ID: <20160224154439.GC11084@valkosipuli.retiisi.org.uk>
-References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
- <3174978.uNIbAnUxCz@avalon>
- <20160223202400.GA11084@valkosipuli.retiisi.org.uk>
- <5560544.fDzogjZUfJ@avalon>
- <56CDCE92.1060200@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Date: Mon, 15 Feb 2016 19:27:36 +0800
+In-Reply-To: <56C1A4C6.7040601@xs4all.nl>
+References: <1454585703-42428-1-git-send-email-tiffany.lin@mediatek.com>
+	 <1454585703-42428-2-git-send-email-tiffany.lin@mediatek.com>
+	 <1454585703-42428-3-git-send-email-tiffany.lin@mediatek.com>
+	 <56C1A4C6.7040601@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <56CDCE92.1060200@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Wed, Feb 24, 2016 at 04:38:58PM +0100, Hans Verkuil wrote:
-> On 02/23/16 21:30, Laurent Pinchart wrote:
-> > Hi Sakari,
+On Mon, 2016-02-15 at 11:13 +0100, Hans Verkuil wrote:
+> On 02/04/2016 12:34 PM, Tiffany Lin wrote:
+> > The VPU driver for hw video codec embedded in Mediatek's MT8173 SOCs.
+> > It is able to handle video decoding/encoding of in a range of formats.
+> > The driver provides with VPU firmware download, memory management and
+> > the communication interface between CPU and VPU.
+> > For VPU initialization, it will create virtual memory for CPU access and
+> > IOMMU address for vcodec hw device access. When a decode/encode instance
+> > opens a device node, vpu driver will download vpu firmware to the device.
+> > A decode/encode instant will decode/encode a frame using VPU
+> > interface to interrupt vpu to handle decoding/encoding jobs.
 > > 
-> > On Tuesday 23 February 2016 22:24:00 Sakari Ailus wrote:
-> >> On Tue, Feb 23, 2016 at 10:15:46PM +0200, Laurent Pinchart wrote:
-> >>> On Tuesday 23 February 2016 17:15:15 Hans Verkuil wrote:
-> >>>> On 02/23/2016 05:11 PM, Sakari Ailus wrote:
-> >>>>> On Tue, Feb 23, 2016 at 01:18:53PM +0100, Hans Verkuil wrote:
-> >>>>>> On 02/21/16 22:29, Sakari Ailus wrote:
-> >>>>>>> Add a new topic option for -h to allow listing supported media bus
-> >>>>>>> codes in conversion functions. This is useful in figuring out which
-> >>>>>>> media bus codes are actually supported by the library. The numeric
-> >>>>>>> values of the codes are listed as well.
-> >>>>>>>
-> >>>>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>>>>>> ---
-> >>>>>>>
-> >>>>>>>  utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++----
-> >>>>>>>  1 file changed, 38 insertions(+), 4 deletions(-)
-> >>>>>>>
-> >>>>>>> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-> >>>>>>> index 0afc9c2..55cdd29 100644
-> >>>>>>> --- a/utils/media-ctl/options.c
-> >>>>>>> +++ b/utils/media-ctl/options.c
+> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> > ---
+> >  drivers/media/platform/Kconfig           |    9 +
+> >  drivers/media/platform/Makefile          |    2 +
+> >  drivers/media/platform/mtk-vpu/Makefile  |    1 +
+> >  drivers/media/platform/mtk-vpu/mtk_vpu.c |  994 ++++++++++++++++++++++++++++++
+> >  drivers/media/platform/mtk-vpu/mtk_vpu.h |  167 +++++
+> >  5 files changed, 1173 insertions(+)
+> >  create mode 100644 drivers/media/platform/mtk-vpu/Makefile
+> >  create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu.c
+> >  create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu.h
 > > 
-> > [snip]
-> > 
-> >>>>>>> @@ -45,7 +47,8 @@ static void usage(const char *argv0)
-> >>>>>>>
-> >>>>>>>  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to
-> >>>>>>>  	setup\n");
-> >>>>>>>  	printf("    --get-v4l2 pad	Print the active format on a given
-> >>>>>>> pad\n");
-> >>>>>>>  	printf("    --set-dv pad	Configure DV timings on a given pad\n");
-> >>>>>>>
-> >>>>>>> -	printf("-h, --help		Show verbose help and exit\n");
-> >>>>>>> +	printf("-h, --help[=topic]	Show verbose help and exit\n");
-> >>>>>>> +	printf("			topics:	mbus-fmt: List supported media bus pixel
-> >>>>>>> codes\n");
-> >>>>>>
-> >>>>>> OK, this is ugly. It has nothing to do with usage help.
-> >>>>>>
-> >>>>>> Just make a new option --list-mbus-fmts to list supported media bus
-> >>>>>> pixel codes.
-> >>>>>>
-> >>>>>> That would make much more sense.
-> >>>>>
-> >>>>> I added it as a --help option argument in order to imply it's a part
-> >>>>> of the program's usage instructions, which is what it indeed is. It's
-> >>>>> not a list of media bus formats supported by a device.
-> >>>>>
-> >>>>> A separate option is fine, but it should be clear that it's about just
-> >>>>> listing supported formats. E.g. --list-supported-mbus-fmts. But that's
-> >>>>> a long one. Long options are loooong.
-> >>>>
-> >>>> --list-known-mbus-fmts will do the trick.
-> >>>
-> >>> That doesn't feel right. Isn't it a help option, really, given that it
-> >>> lists the formats you can use as command line arguments ?
+> > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> > index ccbc974..ba812d6 100644
+> > --- a/drivers/media/platform/Kconfig
+> > +++ b/drivers/media/platform/Kconfig
+> > @@ -148,6 +148,15 @@ config VIDEO_CODA
+> >  	   Coda is a range of video codec IPs that supports
+> >  	   H.264, MPEG-4, and other video formats.
+> >  
+> > +config VIDEO_MEDIATEK_VPU
+> > +	tristate "Mediatek Video Processor Unit"
+> > +	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MEDIATEK
+> > +	---help---
+> > +	    This driver provides downloading VPU firmware and
+> > +	    communicating with VPU. This driver for hw video
+> > +	    codec embedded in new Mediatek's SOCs. It is able
+> > +	    to handle video decoding/encoding in a range of formats.
 > 
-> The help arguments don't have 'options'. You could provide a --help-list-mbus-fmts,
-> though.
-
-You could ask that from GCC.
-
+> Can you be more specific in this text and mention for which Mediatek SoCs
+> this driver is for? Just like you did in the commit log.
 > 
-> >>> Another option would actually be to always print the formats when the -h
-> >>> switch is given. We could print them in a comma-separated list with
-> >>> multiple formats per line, possibly dropping the numerical value, it
-> >>> should hopefully not be horrible.
+Got it. We will add more specific description in Kconfig in next
+version.
+
+> Also add something like this:
 > 
-> Just always printing the list when -h is given works for me too.
+>           To compile this driver as a module, choose M here: the module
+>           will be called mtk-vpu.
+> 
+> I always find it useful if the Kconfig text mentions the module name.
+> 
+Got it. We will fix this. Thanks for sharing experience.
 
-Well, I'm fine with that as well.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+best regards,
+Tiffany
+
+> Regards,
+> 
+> 	Hans
+> 
+> > +
+> >  config VIDEO_MEM2MEM_DEINTERLACE
+> >  	tristate "Deinterlace support"
+> >  	depends on VIDEO_DEV && VIDEO_V4L2 && DMA_ENGINE
+> 
+
+
