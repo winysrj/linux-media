@@ -1,482 +1,327 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:39925 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755375AbcBCNOr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 08:14:47 -0500
-Subject: Re: [PATCH v1 1/3] media: v4l: Add VP8 format support in V4L2 framework
-To: Jung Zhao <jung.zhao@rock-chips.com>, pawel@osciak.com,
-	kyungmin.park@samsung.com, mchehab@osg.samsung.com, heiko@sntech.de
-References: <1453799046-307-1-git-send-email-jung.zhao@rock-chips.com>
- <1453799046-307-2-git-send-email-jung.zhao@rock-chips.com>
-Cc: linux-rockchip@lists.infradead.org, herman.chen@rock-chips.com,
-	alpha.lin@rock-chips.com, Antti Palosaari <crope@iki.fi>,
-	linux-api@vger.kernel.org, Benoit Parrot <bparrot@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	linux-kernel@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <56B1FD42.1000205@samsung.com>
-Date: Wed, 03 Feb 2016 14:14:42 +0100
-MIME-version: 1.0
-In-reply-to: <1453799046-307-2-git-send-email-jung.zhao@rock-chips.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:35995 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753119AbcBORYy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2016 12:24:54 -0500
+From: info@are.ma
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD?=
+	 =?UTF-8?q?=D1=82=D0=BE=2C=20AreMa=20Inc?= <knightrider@are.ma>,
+	linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
+	mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 5/7] MaxLinear MxL301RF ISDB-T tuner
+Date: Tue, 16 Feb 2016 02:24:34 +0900
+Message-Id: <21dad260e220e308a0a167cd429b249d2f814a75.1455556118.git.knightrider@are.ma>
+In-Reply-To: <cover.1455556118.git.knightrider@are.ma>
+References: <cover.1455556118.git.knightrider@are.ma>
+In-Reply-To: <cover.1455556118.git.knightrider@are.ma>
+References: <cover.1455556118.git.knightrider@are.ma>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-On 2016-01-26 10:04, Jung Zhao wrote:
-> From: zhaojun <jung.zhao@rock-chips.com>
->
-> Signed-off-by: zhaojun <jung.zhao@rock-chips.com>
-> ---
->
->   drivers/media/v4l2-core/v4l2-ctrls.c           | 17 ++++-
->   drivers/media/v4l2-core/v4l2-ioctl.c           |  3 +
->   drivers/media/v4l2-core/videobuf2-dma-contig.c | 51 +++++++++-----
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+---
+ drivers/media/tuners/mxl301rf.c | 251 ++++++++++++++++++++++++++++++++++++++++
+ drivers/media/tuners/mxl301rf.h |  23 ++++
+ 2 files changed, 274 insertions(+)
+ create mode 100644 drivers/media/tuners/mxl301rf.c
+ create mode 100644 drivers/media/tuners/mxl301rf.h
 
-There is a separate patch for videobuf2-dma-contig changes: 
-http://www.spinics.net/lists/linux-media/msg96345.html, please rebase 
-onto it instead of including it in this bloated patch.
-
->   include/media/v4l2-ctrls.h                     |  2 +
->   include/media/videobuf2-dma-contig.h           | 11 ++-
->   include/uapi/linux/v4l2-controls.h             | 98 ++++++++++++++++++++++++++
->   include/uapi/linux/videodev2.h                 |  5 ++
->   7 files changed, 166 insertions(+), 21 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 890520d..22821e94 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -761,7 +761,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->   	case V4L2_CID_MPEG_VIDEO_VPX_I_FRAME_QP:		return "VPX I-Frame QP Value";
->   	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
->   	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
-> -
-> +	case V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR:			return "VP8 Frame Header";
->   	/* CAMERA controls */
->   	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
->   	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-> @@ -1126,6 +1126,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->   	case V4L2_CID_RDS_TX_ALT_FREQS:
->   		*type = V4L2_CTRL_TYPE_U32;
->   		break;
-> +	case V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR:
-> +		*type = V4L2_CTRL_TYPE_VP8_FRAME_HDR;
-> +		break;
->   	default:
->   		*type = V4L2_CTRL_TYPE_INTEGER;
->   		break;
-> @@ -1525,6 +1528,13 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
->   			return -ERANGE;
->   		return 0;
->   
-> +	/* FIXME:just return 0 for now */
-> +	case V4L2_CTRL_TYPE_PRIVATE:
-> +		return 0;
-> +
-> +	case V4L2_CTRL_TYPE_VP8_FRAME_HDR:
-> +		return 0;
-> +
->   	default:
->   		return -EINVAL;
->   	}
-> @@ -2074,6 +2084,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
->   	case V4L2_CTRL_TYPE_U32:
->   		elem_size = sizeof(u32);
->   		break;
-> +	case V4L2_CTRL_TYPE_VP8_FRAME_HDR:
-> +		elem_size = sizeof(struct v4l2_ctrl_vp8_frame_hdr);
-> +		break;
->   	default:
->   		if (type < V4L2_CTRL_COMPOUND_TYPES)
->   			elem_size = sizeof(s32);
-> @@ -2098,7 +2111,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
->   		handler_set_err(hdl, -ERANGE);
->   		return NULL;
->   	}
-> -	if (is_array &&
-> +	if ((is_array || (flags & V4L2_CTRL_FLAG_REQ_KEEP)) &&
->   	    (type == V4L2_CTRL_TYPE_BUTTON ||
->   	     type == V4L2_CTRL_TYPE_CTRL_CLASS)) {
->   		handler_set_err(hdl, -EINVAL);
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 7d028d1..8aa5812 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1259,6 +1259,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
->   		case V4L2_PIX_FMT_VC1_ANNEX_G:	descr = "VC-1 (SMPTE 412M Annex G)"; break;
->   		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
->   		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
-> +		case V4L2_PIX_FMT_VP8_FRAME:
-> +			descr = "VP8 FRAME";
-> +			break;
->   		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
->   		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
->   		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index c331272..aebcc7f 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -23,13 +23,16 @@
->   
->   struct vb2_dc_conf {
->   	struct device		*dev;
-> +	struct dma_attrs	attrs;
->   };
->   
->   struct vb2_dc_buf {
->   	struct device			*dev;
->   	void				*vaddr;
->   	unsigned long			size;
-> +	void				*cookie;
->   	dma_addr_t			dma_addr;
-> +	struct dma_attrs		attrs;
->   	enum dma_data_direction		dma_dir;
->   	struct sg_table			*dma_sgt;
->   	struct frame_vector		*vec;
-> @@ -131,7 +134,8 @@ static void vb2_dc_put(void *buf_priv)
->   		sg_free_table(buf->sgt_base);
->   		kfree(buf->sgt_base);
->   	}
-> -	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
-> +	dma_free_attrs(buf->dev, buf->size, buf->cookie, buf->dma_addr,
-> +			&buf->attrs);
->   	put_device(buf->dev);
->   	kfree(buf);
->   }
-> @@ -143,18 +147,22 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
->   	struct device *dev = conf->dev;
->   	struct vb2_dc_buf *buf;
->   
-> -	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-> +	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
->   	if (!buf)
->   		return ERR_PTR(-ENOMEM);
->   
-> -	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
-> -						GFP_KERNEL | gfp_flags);
-> -	if (!buf->vaddr) {
-> +	buf->attrs = conf->attrs;
-> +	buf->cookie = dma_alloc_attrs(dev, size, &buf->dma_addr,
-> +					GFP_KERNEL | gfp_flags, &buf->attrs);
-> +	if (!buf->cookie) {
->   		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
->   		kfree(buf);
->   		return ERR_PTR(-ENOMEM);
->   	}
->   
-> +	if (!dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, &buf->attrs))
-> +		buf->vaddr = buf->cookie;
-> +
->   	/* Prevent the device from being released while the buffer is used */
->   	buf->dev = get_device(dev);
->   	buf->size = size;
-> @@ -185,8 +193,8 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
->   	 */
->   	vma->vm_pgoff = 0;
->   
-> -	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
-> -		buf->dma_addr, buf->size);
-> +	ret = dma_mmap_attrs(buf->dev, vma, buf->cookie,
-> +		buf->dma_addr, buf->size, &buf->attrs);
->   
->   	if (ret) {
->   		pr_err("Remapping memory failed, error: %d\n", ret);
-> @@ -329,7 +337,7 @@ static void *vb2_dc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
->   {
->   	struct vb2_dc_buf *buf = dbuf->priv;
->   
-> -	return buf->vaddr + pgnum * PAGE_SIZE;
-> +	return buf->vaddr ? buf->vaddr + pgnum * PAGE_SIZE : NULL;
->   }
->   
->   static void *vb2_dc_dmabuf_ops_vmap(struct dma_buf *dbuf)
-> @@ -368,8 +376,8 @@ static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
->   		return NULL;
->   	}
->   
-> -	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
-> -		buf->size);
-> +	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
-> +		buf->size, &buf->attrs);
->   	if (ret < 0) {
->   		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
->   		kfree(sgt);
-> @@ -448,22 +456,26 @@ static void vb2_dc_put_userptr(void *buf_priv)
->    */
->   
->   #ifdef __arch_pfn_to_dma
-> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-> +static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev,
-> +					   unsigned long pfn)
->   {
->   	return (dma_addr_t)__arch_pfn_to_dma(dev, pfn);
->   }
->   #elif defined(__pfn_to_bus)
-> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-> +static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev,
-> +					   unsigned long pfn)
->   {
->   	return (dma_addr_t)__pfn_to_bus(pfn);
->   }
->   #elif defined(__pfn_to_phys)
-> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-> +static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev,
-> +					   unsigned long pfn)
->   {
->   	return (dma_addr_t)__pfn_to_phys(pfn);
->   }
->   #else
-> -static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-> +static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev,
-> +					   unsigned long pfn)
->   {
->   	/* really, we cannot do anything better at this point */
->   	return (dma_addr_t)(pfn) << PAGE_SHIFT;
-> @@ -497,7 +509,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
->   		return ERR_PTR(-EINVAL);
->   	}
->   
-> -	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-> +	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
->   	if (!buf)
->   		return ERR_PTR(-ENOMEM);
->   
-> @@ -721,19 +733,22 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
->   };
->   EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
->   
-> -void *vb2_dma_contig_init_ctx(struct device *dev)
-> +void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
-> +				    struct dma_attrs *attrs)
->   {
->   	struct vb2_dc_conf *conf;
->   
-> -	conf = kzalloc(sizeof *conf, GFP_KERNEL);
-> +	conf = kzalloc(sizeof(*conf), GFP_KERNEL);
->   	if (!conf)
->   		return ERR_PTR(-ENOMEM);
->   
->   	conf->dev = dev;
-> +	if (attrs)
-> +		conf->attrs = *attrs;
->   
->   	return conf;
->   }
-> -EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
-> +EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx_attrs);
->   
->   void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
->   {
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 5f9526f..0424cdc 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -46,6 +46,7 @@ struct poll_table_struct;
->    * @p_u16:	Pointer to a 16-bit unsigned value.
->    * @p_u32:	Pointer to a 32-bit unsigned value.
->    * @p_char:	Pointer to a string.
-> + * @p_vp8_frame_hdr:	Pointer to a struct v4l2_ctrl_vp8_frame_hdr.
->    * @p:		Pointer to a compound value.
->    */
->   union v4l2_ctrl_ptr {
-> @@ -55,6 +56,7 @@ union v4l2_ctrl_ptr {
->   	u16 *p_u16;
->   	u32 *p_u32;
->   	char *p_char;
-> +	struct v4l2_ctrl_vp8_frame_hdr *p_vp8_frame_hdr;
->   	void *p;
->   };
->   
-> diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
-> index c33dfa6..2087c9a 100644
-> --- a/include/media/videobuf2-dma-contig.h
-> +++ b/include/media/videobuf2-dma-contig.h
-> @@ -16,6 +16,8 @@
->   #include <media/videobuf2-v4l2.h>
->   #include <linux/dma-mapping.h>
->   
-> +struct dma_attrs;
-> +
->   static inline dma_addr_t
->   vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
->   {
-> @@ -24,7 +26,14 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
->   	return *addr;
->   }
->   
-> -void *vb2_dma_contig_init_ctx(struct device *dev);
-> +void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
-> +				    struct dma_attrs *attrs);
-> +
-> +static inline void *vb2_dma_contig_init_ctx(struct device *dev)
-> +{
-> +	return vb2_dma_contig_init_ctx_attrs(dev, NULL);
-> +}
-> +
->   void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
->   
->   extern const struct vb2_mem_ops vb2_dma_contig_memops;
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 2d225bc..63c65d9 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -520,6 +520,7 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type {
->   };
->   #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
->   #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
-> +
->   #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
->   #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
->   #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
-> @@ -578,6 +579,8 @@ enum v4l2_vp8_golden_frame_sel {
->   #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
->   #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
->   
-> +#define V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR		(V4L2_CID_MPEG_BASE+512)
-> +
->   /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
->   #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
->   #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
-> @@ -963,4 +966,99 @@ enum v4l2_detect_md_mode {
->   #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
->   #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
->   
-> +
-> +/* Complex controls */
-> +
-> +#define V4L2_VP8_SEGMNT_HDR_FLAG_ENABLED              0x01
-> +#define V4L2_VP8_SEGMNT_HDR_FLAG_UPDATE_MAP           0x02
-> +#define V4L2_VP8_SEGMNT_HDR_FLAG_UPDATE_FEATURE_DATA  0x04
-> +struct v4l2_vp8_sgmnt_hdr {
-> +	__u8 segment_feature_mode;
-> +
-> +	__s8 quant_update[4];
-> +	__s8 lf_update[4];
-> +	__u8 segment_probs[3];
-> +
-> +	__u8 flags;
-> +};
-> +
-> +#define V4L2_VP8_LF_HDR_ADJ_ENABLE	0x01
-> +#define V4L2_VP8_LF_HDR_DELTA_UPDATE	0x02
-> +struct v4l2_vp8_loopfilter_hdr {
-> +	__u8 type;
-> +	__u8 level;
-> +	__u8 sharpness_level;
-> +	__s8 ref_frm_delta_magnitude[4];
-> +	__s8 mb_mode_delta_magnitude[4];
-> +
-> +	__u8 flags;
-> +};
-> +
-> +struct v4l2_vp8_quantization_hdr {
-> +	__u8 y_ac_qi;
-> +	__s8 y_dc_delta;
-> +	__s8 y2_dc_delta;
-> +	__s8 y2_ac_delta;
-> +	__s8 uv_dc_delta;
-> +	__s8 uv_ac_delta;
-> +	__u16 dequant_factors[4][3][2];
-> +};
-> +
-> +struct v4l2_vp8_entropy_hdr {
-> +	__u8 coeff_probs[4][8][3][11];
-> +	__u8 y_mode_probs[4];
-> +	__u8 uv_mode_probs[3];
-> +	__u8 mv_probs[2][19];
-> +};
-> +
-> +#define V4L2_VP8_FRAME_HDR_FLAG_EXPERIMENTAL		0x01
-> +#define V4L2_VP8_FRAME_HDR_FLAG_SHOW_FRAME		0x02
-> +#define V4L2_VP8_FRAME_HDR_FLAG_MB_NO_SKIP_COEFF	0x04
-> +struct v4l2_ctrl_vp8_frame_hdr {
-> +	/* 0: keyframe, 1: not a keyframe */
-> +	__u8 key_frame;
-> +	__u8 version;
-> +
-> +	/* Populated also if not a key frame */
-> +	__u16 width;
-> +	__u8 horizontal_scale;
-> +	__u16 height;
-> +	__u8 vertical_scale;
-> +
-> +	struct v4l2_vp8_sgmnt_hdr sgmnt_hdr;
-> +	struct v4l2_vp8_loopfilter_hdr lf_hdr;
-> +	struct v4l2_vp8_quantization_hdr quant_hdr;
-> +	struct v4l2_vp8_entropy_hdr entropy_hdr;
-> +
-> +	__u8 sign_bias_golden;
-> +	__u8 sign_bias_alternate;
-> +
-> +	__u8 prob_skip_false;
-> +	__u8 prob_intra;
-> +	__u8 prob_last;
-> +	__u8 prob_gf;
-> +
-> +	__u32 first_part_size;
-> +	__u32 first_part_offset;
-> +	/*
-> +	 * Offset in bits of MB data in first partition,
-> +	 * i.e. bit offset starting from first_part_offset.
-> +	 */
-> +	__u32 macroblock_bit_offset;
-> +
-> +	__u8 num_dct_parts;
-> +	__u32 dct_part_sizes[8];
-> +
-> +	__u8 bool_dec_range;
-> +	__u8 bool_dec_value;
-> +	__u8 bool_dec_count;
-> +
-> +	/* v4l2_buffer indices of reference frames */
-> +	__u32 last_frame;
-> +	__u32 golden_frame;
-> +	__u32 alt_frame;
-> +
-> +	__u8 flags;
-> +};
-> +
->   #endif
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 29a6b78..191ca19 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -593,6 +593,7 @@ struct v4l2_pix_format {
->   #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
->   #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
->   #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
-> +#define V4L2_PIX_FMT_VP8_FRAME	v4l2_fourcc('V', 'P', '8', 'F') /* VP8 parsed frames */
->   
->   /*  Vendor-specific formats   */
->   #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
-> @@ -1473,6 +1474,7 @@ struct v4l2_ext_control {
->   		__u8 __user *p_u8;
->   		__u16 __user *p_u16;
->   		__u32 __user *p_u32;
-> +		struct v4l2_ctrl_vp8_frame_hdr __user *p_vp8_frame_hdr;
->   		void __user *ptr;
->   	};
->   } __attribute__ ((packed));
-> @@ -1517,6 +1519,9 @@ enum v4l2_ctrl_type {
->   	V4L2_CTRL_TYPE_U8	     = 0x0100,
->   	V4L2_CTRL_TYPE_U16	     = 0x0101,
->   	V4L2_CTRL_TYPE_U32	     = 0x0102,
-> +	V4L2_CTRL_TYPE_VP8_FRAME_HDR	= 0x108,
-> +
-> +	V4L2_CTRL_TYPE_PRIVATE       = 0xffff,
->   };
->   
->   /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
-
-Best regards
+diff --git a/drivers/media/tuners/mxl301rf.c b/drivers/media/tuners/mxl301rf.c
+new file mode 100644
+index 0000000..2f1f1eb
+--- /dev/null
++++ b/drivers/media/tuners/mxl301rf.c
+@@ -0,0 +1,251 @@
++/*
++ * Sharp VA4M6JC2103 - Earthsoft PT3 ISDB-T tuner MaxLinear CMOS Hybrid TV MxL301RF
++ *
++ * Copyright (C) Budi Rachmanto, AreMa Inc. <info@are.ma>
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include "dvb_frontend.h"
++#include "mxl301rf.h"
++
++struct mxl301rf {
++	struct i2c_adapter *i2c;
++	u8 adr_tuner;
++};
++
++int mxl301rf_w(struct dvb_frontend *fe, u8 slvadr, const u8 *dat, int len)
++{
++	u8 buf[len + 1];
++	struct mxl301rf	*t = fe->tuner_priv;
++	struct i2c_msg	msg[] = {
++		{.addr = fe->id,	.flags = 0,	.buf = buf,	.len = len + 1,},
++	};
++
++	buf[0] = slvadr;
++	memcpy(buf + 1, dat, len);
++	return i2c_transfer(t->i2c, msg, 1) == 1 ? 0 : -EIO;
++}
++
++int mxl301rf_w_tuner(struct dvb_frontend *fe, const u8 *dat, int len)
++{
++	u8 buf[len + 1];
++
++	buf[0] = ((struct mxl301rf *)fe->tuner_priv)->adr_tuner << 1;
++	memcpy(buf + 1, dat, len);
++	return mxl301rf_w(fe, 0xFE, buf, len + 1);
++}
++
++void mxl301rf_r(struct dvb_frontend *fe, u8 regadr, u8 *dat)
++{
++	struct mxl301rf *t = fe->tuner_priv;
++	u8	wbuf[]	= {0xFB, regadr},
++		rbuf[]	= {0xFE, (t->adr_tuner << 1) | 1, 0};
++	struct i2c_msg msg[] = {
++		{.addr	= fe->id,	.flags	= 0,		.buf	= rbuf,		.len	= 2,},
++		{.addr	= fe->id,	.flags	= I2C_M_RD,	.buf	= rbuf + 2,	.len	= 1,},
++	};
++	mxl301rf_w_tuner(fe, wbuf, sizeof(wbuf));
++	*dat	= t->adr_tuner && (i2c_transfer(t->i2c, msg, 2) == 2) ? rbuf[2] : 0;
++}
++
++enum mxl301rf_agc {
++	MXL301RF_AGC_AUTO,
++	MXL301RF_AGC_MANUAL,
++};
++
++int mxl301rf_set_agc(struct dvb_frontend *fe, enum mxl301rf_agc agc)
++{
++	u8	dat	= agc == MXL301RF_AGC_AUTO ? 0x40 : 0x00,
++		imsrst	= 0x01 << 6;
++	int	err	= mxl301rf_w(fe, 0x25, &dat, 1);
++
++	dat = 0x4c | (agc == MXL301RF_AGC_AUTO ? 0 : 1);
++	return	err				||
++		mxl301rf_w(fe, 0x23, &dat, 1)	||
++		mxl301rf_w(fe, 0x01, &imsrst, 1);
++}
++
++int mxl301rf_sleep(struct dvb_frontend *fe)
++{
++	u8	buf	= (1 << 7) | (1 << 4),
++		dat[]	= {0x01, 0x00, 0x13, 0x00};
++	int	err	= mxl301rf_set_agc(fe, MXL301RF_AGC_MANUAL);
++
++	if (err)
++		return err;
++	mxl301rf_w_tuner(fe, dat, sizeof(dat));
++	return mxl301rf_w(fe, 0x03, &buf, 1);
++}
++
++int mxl301rf_tune(struct dvb_frontend *fe)
++{
++	struct shf_dvbt {
++		u32	freq,		/* Channel center frequency @ kHz	*/
++			freq_th;	/* Offset frequency threshold @ kHz	*/
++		u8	shf_val,	/* Spur shift value			*/
++			shf_dir;	/* Spur shift direction			*/
++	} shf_dvbt_tab[] = {
++		{ 64500, 500, 0x92, 0x07},
++		{191500, 300, 0xe2, 0x07},
++		{205500, 500, 0x2c, 0x04},
++		{212500, 500, 0x1e, 0x04},
++		{226500, 500, 0xd4, 0x07},
++		{ 99143, 500, 0x9c, 0x07},
++		{173143, 500, 0xd4, 0x07},
++		{191143, 300, 0xd4, 0x07},
++		{207143, 500, 0xce, 0x07},
++		{225143, 500, 0xce, 0x07},
++		{243143, 500, 0xd4, 0x07},
++		{261143, 500, 0xd4, 0x07},
++		{291143, 500, 0xd4, 0x07},
++		{339143, 500, 0x2c, 0x04},
++		{117143, 500, 0x7a, 0x07},
++		{135143, 300, 0x7a, 0x07},
++		{153143, 500, 0x01, 0x07}
++	};
++	u8 rf_dat[] = {
++		0x13, 0x00,	/* abort tune		*/
++		0x3b, 0xc0,
++		0x3b, 0x80,
++		0x10, 0x95,	/* BW			*/
++		0x1a, 0x05,
++		0x61, 0x00,
++		0x62, 0xa0,
++		0x11, 0x40,	/* 2 bytes to store RF	*/
++		0x12, 0x0e,	/* 2 bytes to store RF	*/
++		0x13, 0x01	/* start tune		*/
++	};
++	const u8 idac[] = {
++		0x0d, 0x00,
++		0x0c, 0x67,
++		0x6f, 0x89,
++		0x70, 0x0c,
++		0x6f, 0x8a,
++		0x70, 0x0e,
++		0x6f, 0x8b,
++		0x70, 0x10+12,
++	};
++	u8	dat[20];
++	int	err	= mxl301rf_set_agc(fe, MXL301RF_AGC_MANUAL);
++	u32	freq	= fe->dtv_property_cache.frequency,
++		kHz	= 1000,
++		MHz	= 1000000,
++		dig_rf	= freq / MHz,
++		tmp	= freq % MHz,
++		i,
++		fdiv	= 1000000;
++	bool	rfsynth_locked,
++		refsynth_locked;
++	unsigned long timeout;
++
++	if (err)
++		return err;
++	for (i = 0; i < 6; i++) {
++		dig_rf <<= 1;
++		fdiv /= 2;
++		if (tmp > fdiv) {
++			tmp -= fdiv;
++			dig_rf++;
++		}
++	}
++	if (tmp > 7812)
++		dig_rf++;
++	rf_dat[2 * 7 + 1]	= (u8)(dig_rf);
++	rf_dat[2 * 8 + 1]	= (u8)(dig_rf >> 8);
++	for (i = 0; i < ARRAY_SIZE(shf_dvbt_tab); i++) {
++		if ((freq >= (shf_dvbt_tab[i].freq - shf_dvbt_tab[i].freq_th) * kHz) &&
++				(freq <= (shf_dvbt_tab[i].freq + shf_dvbt_tab[i].freq_th) * kHz)) {
++			rf_dat[2 * 5 + 1] = shf_dvbt_tab[i].shf_val;
++			rf_dat[2 * 6 + 1] = 0xa0 | shf_dvbt_tab[i].shf_dir;
++			break;
++		}
++	}
++	memcpy(dat, rf_dat, sizeof(rf_dat));
++
++	mxl301rf_w_tuner(fe, dat, 14);
++	msleep_interruptible(1);
++	mxl301rf_w_tuner(fe, dat + 14, 6);
++	msleep_interruptible(1);
++	dat[0] = 0x1a;
++	dat[1] = 0x0d;
++	mxl301rf_w_tuner(fe, dat, 2);
++	mxl301rf_w_tuner(fe, idac, sizeof(idac));
++	timeout = jiffies + msecs_to_jiffies(100);
++	while (time_before(jiffies, timeout)) {
++		mxl301rf_r(fe, 0x16, dat);
++		rfsynth_locked	= (*dat & 0x0c) == 0x0c;
++		mxl301rf_r(fe, 0x16, dat);
++		refsynth_locked	= (*dat & 0x03) == 0x03;
++		if (rfsynth_locked && refsynth_locked)
++			return mxl301rf_set_agc(fe, MXL301RF_AGC_AUTO);
++		msleep_interruptible(1);
++	}
++	return -ETIMEDOUT;
++}
++
++int mxl301rf_wakeup(struct dvb_frontend *fe)
++{
++	u8	buf	= (1 << 7) | (0 << 4),
++		dat[2]	= {0x01, 0x01};
++	int	err	= mxl301rf_w(fe, 0x03, &buf, 1);
++
++	if (err)
++		return err;
++	mxl301rf_w_tuner(fe, dat, sizeof(dat));
++	return 0;
++}
++
++static struct dvb_tuner_ops mxl301rf_ops = {
++	.set_params	= mxl301rf_tune,
++	.sleep		= mxl301rf_sleep,
++	.init		= mxl301rf_wakeup,
++};
++
++int mxl301rf_remove(struct i2c_client *c)
++{
++	kfree(i2c_get_clientdata(c));
++	return 0;
++}
++
++int mxl301rf_probe(struct i2c_client *c, const struct i2c_device_id *id)
++{
++	struct dvb_frontend	*fe	= c->dev.platform_data;
++	struct mxl301rf		*t	= kzalloc(sizeof(struct mxl301rf), GFP_KERNEL);
++	u8			d[]	= {0x10, 0x01};
++
++	if (!t)
++		return -ENOMEM;
++	t->i2c		= c->adapter;
++	t->adr_tuner	= c->addr;
++	fe->tuner_priv	= t;
++	memcpy(&fe->ops.tuner_ops, &mxl301rf_ops, sizeof(struct dvb_tuner_ops));
++	i2c_set_clientdata(c, t);
++	return	mxl301rf_w(fe, 0x1c, d, 1)	||
++		mxl301rf_w(fe, 0x1d, d+1, 1);
++}
++
++static struct i2c_device_id mxl301rf_id[] = {
++	{MXL301RF_MODNAME, 0},
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, mxl301rf_id);
++
++static struct i2c_driver mxl301rf_driver = {
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= mxl301rf_id->name,
++	},
++	.probe		= mxl301rf_probe,
++	.remove		= mxl301rf_remove,
++	.id_table	= mxl301rf_id,
++};
++module_i2c_driver(mxl301rf_driver);
++
++MODULE_AUTHOR("Budi Rachmanto, AreMa Inc. <knightrider(@)are.ma>");
++MODULE_DESCRIPTION("Earthsoft PT3 MxL301RF MaxLinear CMOS Hybrid TV ISDB-T tuner driver");
++MODULE_LICENSE("GPL");
++
+diff --git a/drivers/media/tuners/mxl301rf.h b/drivers/media/tuners/mxl301rf.h
+new file mode 100644
+index 0000000..32a31b0
+--- /dev/null
++++ b/drivers/media/tuners/mxl301rf.h
+@@ -0,0 +1,23 @@
++/*
++ * Sharp VA4M6JC2103 - Earthsoft PT3 ISDB-T tuner MaxLinear CMOS Hybrid TV MxL301RF
++ *
++ * Copyright (C) 2014 Budi Rachmanto, AreMa Inc. <info@are.ma>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef MXL301RF_H
++#define MXL301RF_H
++
++#define MXL301RF_MODNAME "mxl301rf"
++
++#endif
++
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+2.3.10
 
