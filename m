@@ -1,130 +1,113 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34947 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752180AbcB2Lp5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 06:45:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/5] vivid: set device_caps in video_device.
-Date: Mon, 29 Feb 2016 12:45:43 +0100
-Message-Id: <1456746345-1431-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl>
-References: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+ by www.linuxtv.org with esmtp (Exim 4.84)
+ (envelope-from <rodrigo.sepulveda@lox.cl>) id 1aVKpA-0005Hc-Ly
+ for linux-dvb@linuxtv.org; Mon, 15 Feb 2016 15:12:29 +0000
+Received: from mail-io0-f175.google.com ([209.85.223.175])
+ by mail.tu-berlin.de (exim-4.76/mailfrontend-5) with esmtps
+ [UNKNOWN:AES128-GCM-SHA256:128] for <linux-dvb@linuxtv.org>
+ id 1aVKp9-0005jh-6h; Mon, 15 Feb 2016 16:12:28 +0100
+Received: by mail-io0-f175.google.com with SMTP id l127so160693389iof.3
+ for <linux-dvb@linuxtv.org>; Mon, 15 Feb 2016 07:12:26 -0800 (PST)
+MIME-Version: 1.0
+Date: Mon, 15 Feb 2016 12:12:25 -0300
+Message-ID: <CAPAw7H7Vd0oNfuAYWfq2hV6b_Q5cFNkfF9PrDToh7nxSRz7Rhw@mail.gmail.com>
+From: =?UTF-8?Q?Rodrigo_Sep=C3=BAlveda_Heerwagen?= <rodrigo.sepulveda@lox.cl>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Geniatech Hybrid SBTD-T USB doesn't work
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+ <mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb/>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+ <mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Reply-To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Sender: "linux-dvb" <linux-dvb-bounces@linuxtv.org>
+Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-This simplifies the querycap function.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-#
-#WARNING: line over 80 characters
-##48: FILE: include/media/v4l2-common.h:194:
-#+ * is_media_entity_v4l2_io() - Check if the entity is a video_device and can do I/O
-#
-#total: 0 errors, 1 warnings, 64 lines checked
-#
-#Your patch has style problems, please review.
-#
-#NOTE: If any of the errors are false positives, please report
-#      them to the maintainer, see CHECKPATCH in MAINTAINERS.
----
- drivers/media/platform/vivid/vivid-core.c | 22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index ec125bec..c14da84 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -200,27 +200,12 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
- {
- 	struct vivid_dev *dev = video_drvdata(file);
--	struct video_device *vdev = video_devdata(file);
- 
- 	strcpy(cap->driver, "vivid");
- 	strcpy(cap->card, "vivid");
- 	snprintf(cap->bus_info, sizeof(cap->bus_info),
- 			"platform:%s", dev->v4l2_dev.name);
- 
--	if (vdev->vfl_type == VFL_TYPE_GRABBER && vdev->vfl_dir == VFL_DIR_RX)
--		cap->device_caps = dev->vid_cap_caps;
--	if (vdev->vfl_type == VFL_TYPE_GRABBER && vdev->vfl_dir == VFL_DIR_TX)
--		cap->device_caps = dev->vid_out_caps;
--	else if (vdev->vfl_type == VFL_TYPE_VBI && vdev->vfl_dir == VFL_DIR_RX)
--		cap->device_caps = dev->vbi_cap_caps;
--	else if (vdev->vfl_type == VFL_TYPE_VBI && vdev->vfl_dir == VFL_DIR_TX)
--		cap->device_caps = dev->vbi_out_caps;
--	else if (vdev->vfl_type == VFL_TYPE_SDR)
--		cap->device_caps = dev->sdr_cap_caps;
--	else if (vdev->vfl_type == VFL_TYPE_RADIO && vdev->vfl_dir == VFL_DIR_RX)
--		cap->device_caps = dev->radio_rx_caps;
--	else if (vdev->vfl_type == VFL_TYPE_RADIO && vdev->vfl_dir == VFL_DIR_TX)
--		cap->device_caps = dev->radio_tx_caps;
- 	cap->capabilities = dev->vid_cap_caps | dev->vid_out_caps |
- 		dev->vbi_cap_caps | dev->vbi_out_caps |
- 		dev->radio_rx_caps | dev->radio_tx_caps |
-@@ -1135,6 +1120,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		strlcpy(vfd->name, "vivid-vid-cap", sizeof(vfd->name));
- 		vfd->fops = &vivid_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->vid_cap_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->queue = &dev->vb_vid_cap_q;
-@@ -1160,6 +1146,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->vfl_dir = VFL_DIR_TX;
- 		vfd->fops = &vivid_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->vid_out_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->queue = &dev->vb_vid_out_q;
-@@ -1184,6 +1171,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		strlcpy(vfd->name, "vivid-vbi-cap", sizeof(vfd->name));
- 		vfd->fops = &vivid_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->vbi_cap_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->queue = &dev->vb_vbi_cap_q;
-@@ -1207,6 +1195,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->vfl_dir = VFL_DIR_TX;
- 		vfd->fops = &vivid_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->vbi_out_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->queue = &dev->vb_vbi_out_q;
-@@ -1229,6 +1218,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		strlcpy(vfd->name, "vivid-sdr-cap", sizeof(vfd->name));
- 		vfd->fops = &vivid_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->sdr_cap_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->queue = &dev->vb_sdr_cap_q;
-@@ -1247,6 +1237,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		strlcpy(vfd->name, "vivid-rad-rx", sizeof(vfd->name));
- 		vfd->fops = &vivid_radio_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->radio_rx_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->lock = &dev->mutex;
-@@ -1265,6 +1256,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->vfl_dir = VFL_DIR_TX;
- 		vfd->fops = &vivid_radio_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->radio_tx_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->lock = &dev->mutex;
--- 
-2.7.0
-
+SGksCkknZCBsaWtlIHRvIGluc3RhbGwgYSBHZW5pYXRlY2ggSHlicmlkIFNCVEQtVCBVU0Igb24g
+VWJ1bnR1IDE0LjA0LAp4ODZfNjQsIHdpdGgga2VybmVsIDMuMTMuMC03Ni1nZW5lcmljLCBidXQg
+SSBjYW4ndCBtYWtlIGl0IHdvcmsuCgpIZXJlIHlvdSdsbCBzZWUgc29tZSBvdXRwdXRzOgoKJCBs
+c3VzYgpCdXMgMDAxIERldmljZSAwMDk6IElEIDFmNGQ6NjY1MCBHLVRlayBFbGVjdHJvbmljcyBH
+cm91cAoKJCBkbWVzZwpbIDYwOTYuNDU4MDIyXSB1c2IgMS0zOiBuZXcgaGlnaC1zcGVlZCBVU0Ig
+ZGV2aWNlIG51bWJlciA5IHVzaW5nIGVoY2ktcGNpClsgNjA5Ni41OTczOTFdIHVzYiAxLTM6IE5l
+dyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0xZjRkLCBpZFByb2R1Y3Q9NjY1MApbIDYwOTYu
+NTk3NDA4XSB1c2IgMS0zOiBOZXcgVVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MTYsIFByb2R1Y3Q9
+MzIsClNlcmlhbE51bWJlcj02NApbIDYwOTYuNTk3NDE3XSB1c2IgMS0zOiBQcm9kdWN0OiBIeWJy
+aWQgU0JURC1UIFVTQgpbIDYwOTYuNTk3NDI1XSB1c2IgMS0zOiBNYW51ZmFjdHVyZXI6IEdlbmlh
+dGVjaApbIDYwOTYuNTk3NDMzXSB1c2IgMS0zOiBTZXJpYWxOdW1iZXI6IDIwMDQwOTA4MjAwNDA5
+MDgKCkkgcmFuIHRoZXNlIGNvbW1hbmRzIHRvIG1ha2UgaXQgd29yazoKCiQgc3VkbyBhcHQtZ2V0
+IGluc3RhbGwgbGludXgtaGVhZGVycy1gdW5hbWUgLXJgIGxpbnV4LWltYWdlLWB1bmFtZSAtcmAK
+YnVpbGQtZXNzZW50aWFsIGR2Yi1hcHBzIGdpdAokIGdpdCBjbG9uZSBnaXQ6Ly9saW51eHR2Lm9y
+Zy9tZWRpYV9idWlsZC5naXQKJCBjZCBtZWRpYV9idWlsZAokIC4vYnVpbGQKJCBzdWRvIG1ha2Ug
+aW5zdGFsbAokIG1vZHByb2JlIGR2Yi11c2ItZGliMDcwMAoKQW5kIHdoZW4gSSB0cmllZCB0byBz
+Y2FuIGEgY2hhbm5lbCBsaXN0LCBub3RoaW5nIGhhcHBlbnM6CgokIHNjYW4gY2hhbm5lbHMuY29u
+ZiA+IGRpZ2l0YWxjaGFubmVscy5jb25mCnNjYW5uaW5nIGNoYW5uZWxzLmNvbmYKdXNpbmcgJy9k
+ZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAn
+Cm1haW46Mjc0NTogRkFUQUw6IGZhaWxlZCB0byBvcGVuICcvZGV2L2R2Yi9hZGFwdGVyMC9mcm9u
+dGVuZDAnOiAyIE5vCnN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKCkNvbnRlbnQgb2YgY2hhbm5lbHMu
+Y29uZi4uLgotLQpUIDQ3MzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAxNApUIDQ3OTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAxNQpUIDQ4NTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAxNgpUIDQ5MTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAxNwpUIDQ5NzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAxOApUIDUwMzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAxOQpUIDUwOTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAyMApUIDUxNTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAyMQpUIDUyMTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAyMgpUIDUyNzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAyMwpUIDUzMzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAyNApUIDUzOTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAyNQpUIDU0NTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAyNgpUIDU1MTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAyNwpUIDU1NzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAyOApUIDU2MzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAyOQpUIDU2OTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAzMApUIDU3NTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAzMQpUIDU4MTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAzMgpUIDU4NzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAzMwpUIDU5MzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAzNApUIDU5OTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAzNQpUIDYwNTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
+IyBjYW5hbCAzNgojIGNhbmFsIDM3IG5vIHNlIHVzYQpUIDYxNzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCAzOApUIDYyMzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCAzOQpUIDYyOTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0MApUIDYzNTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0MQpUIDY0MTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0MgpUIDY0NzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0MwpUIDY1MzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0NApUIDY1OTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0NQpUIDY2NTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0NgpUIDY3MTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0NwpUIDY3NzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0OApUIDY4MzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0OQpUIDY4OTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1MApUIDY5NTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1MQpUIDcwMTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1MgpUIDcwNzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1MwpUIDcxMzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1NApUIDcxOTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1NQpUIDcyNTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1NgpUIDczMTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1NwpUIDczNzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1OApUIDc0MzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1OQpUIDc0OTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2MApUIDc1NTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2MQpUIDc2MTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2MgpUIDc2NzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2MwpUIDc3MzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2NApUIDc3OTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2NQpUIDc4NTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2NgpUIDc5MTE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2NwpUIDc5NzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2OApUIDgwMzE0Mjg1NyA2TUh6IDMvNCBBVVRP
+IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2OQotLQoKUGxlYXNlIGhlbHAgbWUgd2l0aCB0
+aGlzLiBUaGFua3MgaW4gYWR2YW5jZS4KClJlZ2FyZHMsClJvZHJpZ28gUy4KCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiB1c2VycyBtYWls
+aW5nIGxpc3QKRm9yIFY0TC9EVkIgZGV2ZWxvcG1lbnQsIHBsZWFzZSB1c2UgaW5zdGVhZCBsaW51
+eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cu
+bGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
