@@ -1,95 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:34276 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751320AbcBLXq0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 18:46:26 -0500
-Date: Fri, 12 Feb 2016 15:46:23 -0800
-From: Tony Lindgren <tony@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51858 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756026AbcBPUMF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2016 15:12:05 -0500
+Date: Tue, 16 Feb 2016 14:11:51 -0600
+From: Benoit Parrot <bparrot@ti.com>
 To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org,
+CC: <linux-kernel@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: tvp5150 regression after commit 9f924169c035
-Message-ID: <20160212234623.GB3500@atomide.com>
-References: <56B204CB.60602@osg.samsung.com>
- <20160208105417.GD2220@tetsubishi>
- <56BE57FC.3020407@osg.samsung.com>
- <20160212221352.GY3500@atomide.com>
- <56BE5C97.9070607@osg.samsung.com>
- <20160212224018.GZ3500@atomide.com>
- <56BE65F0.8040600@osg.samsung.com>
+	Bryan Wu <cooloney@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] [media] v4l2-async: Don't fail if registered_async
+ isn't implemented
+Message-ID: <20160216201151.GH1380@ti.com>
+References: <1455653001-10043-1-git-send-email-javier@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Disposition: inline
-In-Reply-To: <56BE65F0.8040600@osg.samsung.com>
+In-Reply-To: <1455653001-10043-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Javier Martinez Canillas <javier@osg.samsung.com> [160212 15:09]:
-> Hello Tony,
-> 
-> On 02/12/2016 07:40 PM, Tony Lindgren wrote:
-> >* Javier Martinez Canillas <javier@osg.samsung.com> [160212 14:29]:
-> >>On 02/12/2016 07:13 PM, Tony Lindgren wrote:
-> >>>Hmm yeah I wonder if this canned solution helps here too:
-> >>>
-> >>>1. Check if the driver(s) are using pm_runtime_use_autosuspend()
-> >>>
-> >>
-> >>By driver do you mean the OMAP GPIO driver or the tvp5150 I2C driver?
-> >>The latter does not have runtime PM support.
-> >
-> >Sounds like OMAP GPIO then.
-> >
-> 
-> Ok.
-> >>>2. If so, you must use pm_runtime_dont_use_autosuspend() before
-> >>>    pm_runtime_put_sync() to make sure that pm_runtime_put_sync()
-> >>>    works.
-> >>>
-> >>>3. Or you can use pm_runtime_put_sync_suspend() instead of
-> >>>    pm_runtime_put_sync() for sections of code where the clocks
-> >>>    need to be stopped.
-> >>>
-> >>
-> >>I can check if the OMAP GPIO is following these and give a try but
-> >>don't have access to the board right now so I'll do it on Monday.
-> >
-> >It does not seem to be using pm_runtime_autosuspend(). Did you
-> >try reverting commit de85b9d57ab ("PM / runtime: Re-init runtime
-> >PM states at probe error and driver unbind") and see if that
-> >helps?
-> >
-> 
-> Yes, that's the first thing I tried when I noticed your patch:
-> 
-> ("i2c: omap: Fix PM regression with deferred probe for
-> pm_runtime_reinit")
-> 
-> But neither reverting commit de85b9d57ab nor your fix made a
-> difference.
-> >If it does, then sounds like we may have some other regression
-> >as well.
+Tested-by: Benoit Parrot <bparrot@ti.com>
 
-OK I doubt it's the GPIO driver if reverting 9f924169c035
-helps.
-
-I do see some GPIO regressions in current Linux next though,
-but sounds like you're using v4.5-rc series.
-
-> It seems that is not related but I hope that given you were
-> looking at the runtime PM core lately, maybe you can figure
-> out what we are missing.
+Javier Martinez Canillas <javier@osg.samsung.com> wrote on Tue [2016-Feb-16 17:03:21 -0300]:
+> After sub-dev registration in v4l2_async_test_notify(), the v4l2-async
+> core calls the registered_async callback but if a sub-dev driver does
+> not implement it, v4l2_subdev_call() will return a -ENOIOCTLCMD which
+> should not be considered an error.
 > 
-> I'm far from being familiar with the runtime PM framework
-> but I've looked and can't figure out why Wolfram's commit
-> make this driver to fail and reverting his commit make its
-> work again.
-
-No idea. What kind of PM runtime use case has that one been
-tested with?
-
-Regards,
-
-Tony
+> Reported-by: Benoit Parrot <bparrot@ti.com>
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> ---
+> 
+> Changes in v2:
+> - Check the return of v4l2_subdev_call (Benoit).
+> 
+>  drivers/media/v4l2-core/v4l2-async.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 716bfd47daab..a4b224d92572 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -120,7 +120,7 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+>  	}
+>  
+>  	ret = v4l2_subdev_call(sd, core, registered_async);
+> -	if (ret < 0) {
+> +	if (ret < 0 && ret != -ENOIOCTLCMD) {
+>  		if (notifier->unbind)
+>  			notifier->unbind(notifier, sd, asd);
+>  		return ret;
+> -- 
+> 2.5.0
+> 
