@@ -1,144 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60052 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757383AbcBWIrq (ORCPT
+Received: from mail-qg0-f49.google.com ([209.85.192.49]:36198 "EHLO
+	mail-qg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752053AbcBPCH0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 03:47:46 -0500
-Subject: Re: [PATCH v5 0/8] Add MT8173 Video Encoder Driver and VPU Driver
-To: Tiffany Lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-References: <1456215081-16858-1-git-send-email-tiffany.lin@mediatek.com>
-Cc: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56CC1CAB.1060409@xs4all.nl>
-Date: Tue, 23 Feb 2016 09:47:39 +0100
+	Mon, 15 Feb 2016 21:07:26 -0500
 MIME-Version: 1.0
-In-Reply-To: <1456215081-16858-1-git-send-email-tiffany.lin@mediatek.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201602152005.UfVs7xXd%fengguang.wu@intel.com>
+References: <a0c13be89c5f43de0693f37144a00255c6090ffd.1455528251.git.knightrider@are.ma>
+	<201602152005.UfVs7xXd%fengguang.wu@intel.com>
+Date: Tue, 16 Feb 2016 11:07:26 +0900
+Message-ID: <CAKnK8-TjJcohucT-cAViSTXyMD2+HL_GY-jDhUApLKVoxOsc-g@mail.gmail.com>
+Subject: Re: [media 7/7] PCI bridge driver for PT3 & PXQ3PE
+From: "AreMa Inc." <info@are.ma>
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, linux-media <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans De Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/23/16 09:11, Tiffany Lin wrote:
-> ==============
->  Introduction
-> ==============
-> 
-> The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
-> Mediatek Video Codec is able to handle video encoding of in a range of formats.
-> 
-> This patch series also include VPU driver. Mediatek Video Codec driver rely on VPU driver to load,
-> communicate with VPU.
-> 
-> Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI.
-> MTK IOMMU[1] and MTK SMI[2] have not yet been merged, but we wanted to start discussion about the driver
-> earlier so it could be merged sooner.
-> 
-> [1]https://patchwork.kernel.org/patch/8335461/
-> [2]https://patchwork.kernel.org/patch/7596181/
+2016-02-15 21:57 GMT+09:00 kbuild test robot <lkp@intel.com>:
+> Hi Буди,
+>
+> [auto build test ERROR on linuxtv-media/master]
+> [cannot apply to v4.5-rc4 next-20160215]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improving the system]
+>
+> url:    https://github.com/0day-ci/linux/commits/info-are-ma/Driver-bundle-for-PT3-PX-Q3PE/20160215-173307
+> base:   git://linuxtv.org/media_tree.git master
+> config: x86_64-allyesconfig (attached as .config)
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=x86_64
 
-<snip>
-
-> v4l2-compliance test output:
-> localhost ~ # /usr/bin/v4l2-compliance -d /dev/video1
-> Driver Info:
->         Driver name   : mtk-vcodec-enc
->         Card type     : platform:mt8173
->         Bus info      : platform:mt8173
->         Driver version: 4.4.0
->         Capabilities  : 0x84204000
->                 Video Memory-to-Memory Multiplanar
->                 Streaming
->                 Extended Pix Format
->                 Device Capabilities
->         Device Caps   : 0x04204000
->                 Video Memory-to-Memory Multiplanar
->                 Streaming
->                 Extended Pix Format
-> 
-> Compliance test for device /dev/video1 (not using libv4l2):
-> 
-> Required ioctls:
->         test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
->         test second video open: OK
->         test VIDIOC_QUERYCAP: OK
->         test VIDIOC_G/S_PRIORITY: OK
-> 
-> Debug ioctls:
->         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->         test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
-> Input ioctls:
->         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->         test VIDIOC_ENUMAUDIO: OK (Not Supported)
->         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDIO: OK (Not Supported)
->         Inputs: 0 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
->         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->         Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Input/Output configuration ioctls:
->         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->         test VIDIOC_G/S_EDID: OK (Not Supported)
-> 
->         Control ioctls:
->                 test VIDIOC_QUERYCTRL/MENU: OK
->                 test VIDIOC_G/S_CTRL: OK
->                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK
->                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
->                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->                 Standard Controls: 12 Private Controls: 0
-> 
->         Format ioctls:
->                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->                 test VIDIOC_G/S_PARM: OK
->                 test VIDIOC_G_FBUF: OK (Not Supported)
->                 test VIDIOC_G_FMT: OK
->                 test VIDIOC_TRY_FMT: OK
->                 test VIDIOC_S_FMT: OK
->                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> 
->         Codec ioctls:
->                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
->         Buffer ioctls:
->                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->                 test VIDIOC_EXPBUF: OK
-> 
-> Total: 38, Succeeded: 38, Failed: 0, Warnings: 0
-
-Nice!
-
-Can you try 'v4l2-compliance -s'? Note that this may not work since I know
-that v4l2-compliance doesn't work all that well with codecs, but I am
-curious what the output is when you try streaming.
-
-Don't bother trying to chase down reported failures, those are likely from
-v4l2-compliance itself. It is something I would like to improve, but -ENOTIME.
-
-Regards,
-
-	Hans
+We tried to reproduce. It compiles successfully. Nothing wrong.
+Your attached .config is corrupted, it doesn't match the kernel
+mentioned (v4.5-rc4 next-20160215).
+Remaking .config solved the problem. Voila!
