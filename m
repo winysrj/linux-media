@@ -1,82 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:48804 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422785AbcBQMZU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 07:25:20 -0500
-Date: Wed, 17 Feb 2016 10:25:05 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>, tiwai@suse.com
-Cc: clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
-	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH v3 04/22] media: Add ALSA Media Controller function
- entities
-Message-ID: <20160217102505.200675ac@recife.lan>
-In-Reply-To: <423baaaf7ae51eb9098b7d0adc5ad668a590449e.1455233153.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
-	<423baaaf7ae51eb9098b7d0adc5ad668a590449e.1455233153.git.shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58129 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932539AbcBPN4R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2016 08:56:17 -0500
+Message-ID: <1455630974.7377.4.camel@pengutronix.de>
+Subject: Re: [PATCH 06/12] media/platform: convert drivers to use the new
+ vb2_queue dev field
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+Date: Tue, 16 Feb 2016 14:56:14 +0100
+In-Reply-To: <1455626587-8051-7-git-send-email-hverkuil@xs4all.nl>
+References: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
+	 <1455626587-8051-7-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 11 Feb 2016 16:41:20 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi Hans,
 
-> Add ALSA Media Controller capture, playback, and mixer
-> function entity defines.
+Am Dienstag, den 16.02.2016, 13:43 +0100 schrieb Hans Verkuil:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  include/uapi/linux/media.h | 7 +++++++
->  1 file changed, 7 insertions(+)
+> Stop using alloc_ctx and just fill in the device pointer.
 > 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 3cc0366..449462e 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -98,6 +98,13 @@ struct media_device_info {
->  #define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 42)
->  
->  /*
-> + * Audio Entity Functions
-> + */
-> +#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 200)
-> +#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 201)
-> +#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 202)
-> +
-> +/*
->   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
->   * MEDIA_ENT_F_OLD_SUBDEV_BASE are kept to keep backward compatibility
->   * with the legacy v1 API.The number range is out of range by purpose:
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+> Cc: Philipp Zabel <p.zabel@pengutronix.de>
 
-Looks OK to me. 
+Patches 1 and 12 and the coda part
+Reviewed-by: Philipp Zabel <p.zabel@pengutronix.de>
+and for coda
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-This won't apply anymore on master, because we changed the numberspace, 
-but it is a trivial conflict. No need to rebase.
+best regards
+Philipp
 
-Takashi,
-
-If OK for you, please ack.
-
-
--- 
-Thanks,
-Mauro
