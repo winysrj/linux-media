@@ -1,122 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48302 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753016AbcBHLnv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:43:51 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 00/35] VSP: Add R-Car Gen3 support
-Date: Mon,  8 Feb 2016 13:43:30 +0200
-Message-Id: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from outmx-006.london.gridhost.co.uk ([95.142.156.174]:40226 "EHLO
+	outmx-006.london.gridhost.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755252AbcBPUUS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2016 15:20:18 -0500
+Received: from mail-qk0-f174.google.com (unknown [209.85.220.174])
+	(Authenticated sender: sendmail@nucblog.net)
+	by outmx-006.london.gridhost.co.uk (Postfix) with ESMTPA id 12E0287A552
+	for <linux-media@vger.kernel.org>; Tue, 16 Feb 2016 20:20:15 +0000 (GMT)
+Received: by mail-qk0-f174.google.com with SMTP id s5so71602700qkd.0
+        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2016 12:20:16 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <56ADCBE4.6050609@mbox200.swipnet.se>
+References: <1436697509.2446.14.camel@xs4all.nl>
+	<1440352250.13381.3.camel@xs4all.nl>
+	<55F332FE.7040201@mbox200.swipnet.se>
+	<1442041326.2442.2.camel@xs4all.nl>
+	<CAAZRmGxvrXjanCTcd0Ybk-qzHhqO5e6JhrpSWxNXSa+zzPsdUg@mail.gmail.com>
+	<1454007436.13371.4.camel@xs4all.nl>
+	<CAAZRmGwuinufZpCpTs8t+BRyTcfio-4z34PCKH7Ha3J+dxXNqw@mail.gmail.com>
+	<56ADCBE4.6050609@mbox200.swipnet.se>
+Date: Tue, 16 Feb 2016 22:20:15 +0200
+Message-ID: <CAAZRmGy21S+qkrC9d0hz02J98woUc9p+LtnhK8Det=yWmb_myg@mail.gmail.com>
+Subject: Re: DVBSky T980C CI issues (kernel 4.0.x)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
+Cc: Jurgen Kramer <gtmkramer@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi all,
 
-This patch set adds support for the Renesas R-Car Gen3 SoC family to the VSP1
-driver. The large number of patches is caused by a change in the display
-controller architecture that makes usage of the VSP mandatory as the display
-controller has lost the ability to read data from memory.
+Found the issue and submitted a patch.
 
-Patch 01/35 extends V4L2 with support for missing tri-planar non-contiguous
-pixel formats that are needed by the driver. Patchs 02/35 to 32/35 prepare for
-the implementation of an API exported to the DRM driver in patch 33/35. Patch
-34/35 enables support for the R-Car Gen3 family, and patch 35/35 finally
-enhances perfomances by implementing support for display lists.
+The I2C buses for T980C/T2-4500CI were crossed when CI registration
+was moved to its own function.
 
-The major change compared to v2 is the addition of tri-planar formats support
-and the rebase on top of a merge of linuxtv/master and linuxtv/fixes (the
-latter due to a conflict with this series).
+Cheers,
+-olli
 
-The major change compared to v1 is the usage of the IP version register
-instead of DT properties to configure device parameters such as the number of
-BRU inputs or the availability of the BRU.
-
-Laurent Pinchart (34):
-  v4l: Add YUV 4:2:2 and YUV 4:4:4 tri-planar non-contiguous formats
-  v4l: vsp1: Add tri-planar memory formats support
-  v4l: vsp1: Group all link creation code in a single file
-  v4l: vsp1: Change the type of the rwpf field in struct vsp1_video
-  v4l: vsp1: Store the memory format in struct vsp1_rwpf
-  v4l: vsp1: Move video operations to vsp1_rwpf
-  v4l: vsp1: Rename vsp1_video_buffer to vsp1_vb2_buffer
-  v4l: vsp1: Move video device out of struct vsp1_rwpf
-  v4l: vsp1: Make rwpf operations independent of video device
-  v4l: vsp1: Support VSP1 instances without any UDS
-  v4l: vsp1: Move vsp1_video pointer from vsp1_entity to vsp1_rwpf
-  v4l: vsp1: Remove struct vsp1_pipeline num_video field
-  v4l: vsp1: Decouple pipeline end of frame processing from vsp1_video
-  v4l: vsp1: Split pipeline management code from vsp1_video.c
-  v4l: vsp1: Rename video pipeline functions to use vsp1_video prefix
-  v4l: vsp1: Extract pipeline initialization code into a function
-  v4l: vsp1: Reuse local variable instead of recomputing it
-  v4l: vsp1: Extract link creation to separate function
-  v4l: vsp1: Document the vsp1_pipeline structure
-  v4l: vsp1: Fix typo in VI6_DISP_IRQ_STA_DST register bit name
-  v4l: vsp1: Set the SRU CTRL0 register when starting the stream
-  v4l: vsp1: Remove unused module read functions
-  v4l: vsp1: Move entity route setup function to vsp1_entity.c
-  v4l: vsp1: Make number of BRU inputs configurable
-  v4l: vsp1: Make the BRU optional
-  v4l: vsp1: Move format info to vsp1_pipe.c
-  v4l: vsp1: Make the userspace API optional
-  v4l: vsp1: Make pipeline inputs array index by RPF index
-  v4l: vsp1: Set the alpha value manually in RPF and WPF s_stream
-    handlers
-  v4l: vsp1: Don't validate links when the userspace API is disabled
-  v4l: vsp1: Add VSP+DU support
-  v4l: vsp1: Disconnect unused RPFs from the DRM pipeline
-  v4l: vsp1: Implement atomic update for the DRM driver
-  v4l: vsp1: Add support for the R-Car Gen3 VSP2
-
-Takashi Saito (1):
-  v4l: vsp1: Add display list support
-
- Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml | 166 ++++++
- Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml | 177 ++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |   2 +
- .../devicetree/bindings/media/renesas,vsp1.txt     |  21 +-
- drivers/media/platform/vsp1/Makefile               |   3 +-
- drivers/media/platform/vsp1/vsp1.h                 |  24 +
- drivers/media/platform/vsp1/vsp1_bru.c             |  33 +-
- drivers/media/platform/vsp1/vsp1_bru.h             |   3 +-
- drivers/media/platform/vsp1/vsp1_dl.c              | 305 +++++++++++
- drivers/media/platform/vsp1/vsp1_dl.h              |  42 ++
- drivers/media/platform/vsp1/vsp1_drm.c             | 597 +++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_drm.h             |  38 ++
- drivers/media/platform/vsp1/vsp1_drv.c             | 267 +++++++--
- drivers/media/platform/vsp1/vsp1_entity.c          |  31 +-
- drivers/media/platform/vsp1/vsp1_entity.h          |  14 +-
- drivers/media/platform/vsp1/vsp1_hsit.c            |   2 +-
- drivers/media/platform/vsp1/vsp1_lif.c             |  11 +-
- drivers/media/platform/vsp1/vsp1_lut.c             |   7 +-
- drivers/media/platform/vsp1/vsp1_pipe.c            | 426 +++++++++++++++
- drivers/media/platform/vsp1/vsp1_pipe.h            | 134 +++++
- drivers/media/platform/vsp1/vsp1_regs.h            |  32 +-
- drivers/media/platform/vsp1/vsp1_rpf.c             |  88 ++-
- drivers/media/platform/vsp1/vsp1_rwpf.h            |  29 +-
- drivers/media/platform/vsp1/vsp1_sru.c             |   9 +-
- drivers/media/platform/vsp1/vsp1_uds.c             |   8 +-
- drivers/media/platform/vsp1/vsp1_video.c           | 518 ++++--------------
- drivers/media/platform/vsp1/vsp1_video.h           | 111 +---
- drivers/media/platform/vsp1/vsp1_wpf.c             |  98 ++--
- drivers/media/v4l2-core/v4l2-ioctl.c               |   4 +
- include/media/vsp1.h                               |  33 ++
- include/uapi/linux/videodev2.h                     |   4 +
- 31 files changed, 2451 insertions(+), 786 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yuv422m.xml
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-yuv444m.xml
- create mode 100644 drivers/media/platform/vsp1/vsp1_dl.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_dl.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_drm.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_drm.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_pipe.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_pipe.h
- create mode 100644 include/media/vsp1.h
-
--- 
-Regards,
-
-Laurent Pinchart
-
+On 31 January 2016 at 10:55, Torbjorn Jansson
+<torbjorn.jansson@mbox200.swipnet.se> wrote:
+> this ci problem is the reason i decided to buy the CT2-4650 usb based device
+> instead.
+> but the 4650 was a slightly newer revision needing a patch i submitted
+> earlier.
+> and also this 4650 device does not have auto switching between dvb-t and t2
+> like the dvbsky card have, so i also need an updated version of mythtv.
+>
+> my long term wish is to not have to patch things or build custom kernels or
+> modules.
+> so anything done to improve the dvbsky card or the 4650 is much appreciated.
+>
+>
+> On 2016-01-28 20:42, Olli Salonen wrote:
+>>
+>> Hi Jürgen & Mauro,
+>>
+>> I did bisect this and it seems this rather big patch broke it:
+>>
+>> 2b0aac3011bc7a9db27791bed4978554263ef079 is the first bad commit
+>> commit 2b0aac3011bc7a9db27791bed4978554263ef079
+>> Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>> Date:   Tue Dec 23 13:48:07 2014 -0200
+>>
+>>      [media] cx23885: move CI/MAC registration to a separate function
+>>
+>>      As reported by smatch:
+>>          drivers/media/pci/cx23885/cx23885-dvb.c:2080 dvb_register()
+>> Function too hairy.  Giving up.
+>>
+>>      This is indeed a too complex function, with lots of stuff inside.
+>>      Breaking this into two functions makes it a little bit less hairy.
+>>
+>>      Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>
+>> It's getting a bit late, so I'll call it a day now and have a look at
+>> the patch to see what goes wrong there.
+>>
+>> Cheers,
+>> -olli
+>>
+>> On 28 January 2016 at 20:57, Jurgen Kramer <gtmkramer@xs4all.nl> wrote:
+>>>
+>>> Hi Olli,
+>>>
+>>> On Thu, 2016-01-28 at 19:26 +0200, Olli Salonen wrote:
+>>>>
+>>>> Hi Jürgen,
+>>>>
+>>>> Did you get anywhere with this?
+>>>>
+>>>> I have a clone of your card and was just starting to look at this
+>>>> issue. Kernel 3.19 seems to work ok, but 4.3 not. Did you have any
+>>>> time to try to pinpoint this more?
+>>>
+>>> No, unfortunately not. I have spend a few hours adding printk's but it
+>>> did not get me any closer what causes the issue. This really needs
+>>> investigation from someone who is more familiar with linux media.
+>>>
+>>> Last thing I tried was the latest (semi open) drivers from dvbsky on a
+>>> 4.3 kernel. Here the CI and CAM registered successfully.
+>>>
+>>> Greetings,
+>>> Jurgen
+>>>
+>>>> Cheers,
+>>>> -olli
+>>>>
+>>>> On 12 September 2015 at 10:02, Jurgen Kramer <gtmkramer@xs4all.nl>
+>>>> wrote:
+>>>>>
+>>>>> On Fri, 2015-09-11 at 22:01 +0200, Torbjorn Jansson wrote:
+>>>>>>
+>>>>>> On 2015-08-23 19:50, Jurgen Kramer wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>> On Sun, 2015-07-12 at 12:38 +0200, Jurgen Kramer wrote:
+>>>>>>>>
+>>>>>>>> I have been running a couple of DVBSky T980C's with CIs with
+>>>>>>>> success
+>>>>>>>> using an older kernel (3.17.8) with media-build and some
+>>>>>>>> added patches
+>>>>>>>> from the mailing list.
+>>>>>>>>
+>>>>>>>> I thought lets try a current 4.0 kernel to see if I no longer
+>>>>>>>> need to be
+>>>>>>>> running a custom kernel. Everything works just fine except
+>>>>>>>> the CAM
+>>>>>>>> module. I am seeing these:
+>>>>>>>>
+>>>>>>>> [  456.574969] dvb_ca adapter 0: Invalid PC card inserted :(
+>>>>>>>> [  456.626943] dvb_ca adapter 1: Invalid PC card inserted :(
+>>>>>>>> [  456.666932] dvb_ca adapter 2: Invalid PC card inserted :(
+>>>>>>>>
+>>>>>>>> The normal 'CAM detected and initialised' messages to do show
+>>>>>>>> up with
+>>>>>>>> 4.0.8
+>>>>>>>>
+>>>>>>>> I am not sure what changed in the recent kernels, what is
+>>>>>>>> needed to
+>>>>>>>> debug this?
+>>>>>>>>
+>>>>>>>> Jurgen
+>>>>>>>
+>>>>>>> Retest. I've isolated one T980C on another PC with kernel
+>>>>>>> 4.1.5, still the same 'Invalid PC card inserted :(' message.
+>>>>>>> Even after installed today's media_build from git no
+>>>>>>> improvement.
+>>>>>>>
+>>>>>>> Any hints where to start looking would be appreciated!
+>>>>>>>
+>>>>>>> cimax2.c|h do not seem to have changed. There are changes to
+>>>>>>> dvb_ca_en50221.c
+>>>>>>>
+>>>>>>> Jurgen
+>>>>>>>
+>>>>>>
+>>>>>> did you get it to work?
+>>>>>
+>>>>>
+>>>>> No, it needs a thorough debug session. So far no one seems able to
+>>>>> help...
+>>>>>
+>>>>>> i got a dvbsky T980C too for dvb-t2 reception and so far the only
+>>>>>> drivers that have worked at all is the ones from dvbsky directly.
+>>>>>>
+>>>>>> i was very happy when i noticed that recent kernels have support
+>>>>>> for it
+>>>>>> built in but unfortunately only the modules and firmware loads
+>>>>>> but then
+>>>>>> nothing actually works.
+>>>>>> i use mythtv and it complains a lot about the signal, running
+>>>>>> femon also
+>>>>>> produces lots of errors.
+>>>>>>
+>>>>>> so i had to switch back to kernel 4.0.4 with mediabuild from
+>>>>>> dvbsky.
+>>>>>>
+>>>>>> if there were any other dvb-t2 card with ci support that had
+>>>>>> better
+>>>>>> drivers i would change right away.
+>>>>>>
+>>>>>> one problem i have with the mediabuilt from dvbsky is that at
+>>>>>> boot the
+>>>>>> cam never works and i have to first tune a channel, then remove
+>>>>>> and
+>>>>>> reinstert the cam to get it to work.
+>>>>>> without that nothing works.
+>>>>>>
+>>>>>> and finally a problem i ran into when i tried mediabuilt from
+>>>>>> linuxtv.org.
+>>>>>> fedora uses kernel modules with .ko.xz extension so when you
+>>>>>> install the
+>>>>>> mediabuilt modulels you get one modulename.ko and one
+>>>>>> modulename.ko.xz
+>>>>>>
+>>>>>> before a make install from mediabuild overwrote the needed
+>>>>>> modules.
+>>>>>> any advice on how to handle this now?
+>>>>>>
+>>>>>>
+>>>>>
+>>>>>
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-
+>>>>> media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
