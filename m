@@ -1,158 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58913 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753794AbcBSQy3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2016 11:54:29 -0500
-Date: Fri, 19 Feb 2016 14:54:23 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Benoit Parrot <bparrot@ti.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [Patch v6 3/3] media: ti-vpe: Add CAL v4l2 camera capture
- driver
-Message-ID: <20160219145423.49aaa0b9@recife.lan>
-In-Reply-To: <1452123446-5424-4-git-send-email-bparrot@ti.com>
-References: <1452123446-5424-1-git-send-email-bparrot@ti.com>
-	<1452123446-5424-4-git-send-email-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:33587 "EHLO
+	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756057AbcBPUR6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2016 15:17:58 -0500
+Received: by mail-lf0-f41.google.com with SMTP id m1so115091676lfg.0
+        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2016 12:17:57 -0800 (PST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 1/2] cx23885: incorrect I2C bus used in the CI registration
+Date: Tue, 16 Feb 2016 22:17:44 +0200
+Message-Id: <1455653865-13005-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 6 Jan 2016 17:37:26 -0600
-Benoit Parrot <bparrot@ti.com> escreveu:
+This patch fixes a bug that was introduced by the commit:
 
-> The Camera Adaptation Layer (CAL) is a block which consists of a dual
-> port CSI2/MIPI camera capture engine.
-> Port #0 can handle CSI2 camera connected to up to 4 data lanes.
-> Port #1 can handle CSI2 camera connected to up to 2 data lanes.
-> The driver implements the required API/ioctls to be V4L2 compliant.
-> Driver supports the following:
->     - V4L2 API using DMABUF/MMAP buffer access based on videobuf2 api
->     - Asynchronous sensor sub device registration
->     - DT support
-> 
-> Signed-off-by: Benoit Parrot <bparrot@ti.com>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
+commit 2b0aac3011bc7a9db27791bed4978554263ef079
+Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date:   Tue Dec 23 13:48:07 2014 -0200
 
-...
+    [media] cx23885: move CI/MAC registration to a separate function
 
-> +/* timeperframe is arbitrary and continuous */
-> +static int cal_enum_frameintervals(struct file *file, void *priv,
-> +				   struct v4l2_frmivalenum *fival)
-> +{
-> +	struct cal_ctx *ctx = video_drvdata(file);
-> +	const struct cal_fmt *fmt;
-> +	struct v4l2_subdev_frame_size_enum fse;
-> +	int ret;
-> +
-> +	if (fival->index)
-> +		return -EINVAL;
-> +
-> +	fmt = find_format_by_pix(ctx, fival->pixel_format);
-> +	if (!fmt)
-> +		return -EINVAL;
-> +
-> +	/* check for valid width/height */
-> +	ret = 0;
-> +	fse.pad = 0;
-> +	fse.code = fmt->code;
-> +	fse.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> +	for (fse.index = 0; ; fse.index++) {
-> +		ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_size,
-> +				       NULL, &fse);
-> +		if (ret)
-> +			return -EINVAL;
-> +
-> +		if ((fival->width == fse.max_width) &&
-> +		    (fival->height == fse.max_height))
-> +			break;
-> +		else if ((fival->width >= fse.min_width) &&
-> +			 (fival->width <= fse.max_width) &&
-> +			 (fival->height >= fse.min_height) &&
-> +			 (fival->height <= fse.max_height))
-> +			break;
-> +
-> +		return -EINVAL;
-> +	}
-> +
-> +	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-> +	fival->discrete.numerator = 1;
-> +	fival->discrete.denominator = 30;
-> +
-> +	return 0;
-> +}
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/pci/cx23885/cx23885-dvb.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The above routine is too complex and sounds wrong. Why do you
-need a loop there, if the loop will either return -EINVAL or
-be aborted the first time it runs?
-
-The way it is, it is just confusing and produces a smatch error:
-
-	drivers/media/platform/ti-vpe/cal.c:1219 cal_enum_frameintervals() info: ignoring unreachable code.
-
-If all you want here is to run the loop once, this patch would do the
-same, with a clearer logic.
-
-ti-vpe/cal: Simplify the logic to avoid confusing smatch
-
-drivers/media/platform/ti-vpe/cal.c:1219 cal_enum_frameintervals() info: ignoring unreachable code.
-
-This is caused by a very confusing logic that looks like a loop, but
-it runs only once.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-index 35fa1071c5b2..62721ee7b9bc 100644
---- a/drivers/media/platform/ti-vpe/cal.c
-+++ b/drivers/media/platform/ti-vpe/cal.c
-@@ -1216,29 +1216,28 @@ static int cal_enum_frameintervals(struct file *file, void *priv,
- 	fse.pad = 0;
- 	fse.code = fmt->code;
- 	fse.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--	for (fse.index = 0; ; fse.index++) {
--		ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_size,
--				       NULL, &fse);
--		if (ret)
--			return -EINVAL;
--
--		if ((fival->width == fse.max_width) &&
--		    (fival->height == fse.max_height))
--			break;
--		else if ((fival->width >= fse.min_width) &&
--			 (fival->width <= fse.max_width) &&
--			 (fival->height >= fse.min_height) &&
--			 (fival->height <= fse.max_height))
--			break;
-+	fse.index = 0;
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 5131c9f..6e40dec 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1139,7 +1139,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
+ 		u8 eeprom[256]; /* 24C02 i2c eeprom */
+ 		struct sp2_config sp2_config;
+ 		struct i2c_board_info info;
+-		struct cx23885_i2c *i2c_bus2 = &dev->i2c_bus[1];
++		struct cx23885_i2c *i2c_bus = &dev->i2c_bus[0];
  
-+	ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_size,
-+			       NULL, &fse);
-+	if (ret)
- 		return -EINVAL;
--	}
- 
- 	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
- 	fival->discrete.numerator = 1;
- 	fival->discrete.denominator = 30;
- 
--	return 0;
-+	if ((fival->width == fse.max_width) &&
-+	    (fival->height == fse.max_height))
-+		return 0;
-+
-+	if ((fival->width >= fse.min_width) &&
-+	    (fival->width <= fse.max_width) &&
-+	    (fival->height >= fse.min_height) &&
-+	    (fival->height <= fse.max_height))
-+		return 0;
-+
-+	return -EINVAL;
- }
- 
- /*
+ 		/* attach CI */
+ 		memset(&sp2_config, 0, sizeof(sp2_config));
+@@ -1151,7 +1151,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
+ 		info.addr = 0x40;
+ 		info.platform_data = &sp2_config;
+ 		request_module(info.type);
+-		client_ci = i2c_new_device(&i2c_bus2->i2c_adap, &info);
++		client_ci = i2c_new_device(&i2c_bus->i2c_adap, &info);
+ 		if (client_ci == NULL || client_ci->dev.driver == NULL)
+ 			return -ENODEV;
+ 		if (!try_module_get(client_ci->dev.driver->owner)) {
+-- 
+1.9.1
 
