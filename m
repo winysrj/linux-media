@@ -1,68 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55884 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112AbcBOMuC (ORCPT
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:32928 "EHLO
+	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755535AbcBPU1T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 07:50:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH/RFC 6/9] ARM64: renesas: r8a7795: Add FCPV nodes
-Date: Mon, 15 Feb 2016 14:50:29 +0200
-Message-ID: <1555014.Ze7EhO0YPL@avalon>
-In-Reply-To: <CAMuHMdWXdY0DS--sfOy83jixKyBzu5gFPAY2BQs5PBCDh0Fxdw@mail.gmail.com>
-References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1455242450-24493-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdWXdY0DS--sfOy83jixKyBzu5gFPAY2BQs5PBCDh0Fxdw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 16 Feb 2016 15:27:19 -0500
+Received: by mail-lf0-f54.google.com with SMTP id m1so115247053lfg.0
+        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2016 12:27:19 -0800 (PST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: stable@vger.kernel.org, Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH] cx23885: incorrect I2C bus used in the CI registration
+Date: Tue, 16 Feb 2016 22:27:09 +0200
+Message-Id: <1455654429-13234-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+This patch fixes a bug that was introduced by the commit:
 
-Thank you for the review.
+commit 2b0aac3011bc7a9db27791bed4978554263ef079
+Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date:   Tue Dec 23 13:48:07 2014 -0200
 
-On Monday 15 February 2016 10:45:39 Geert Uytterhoeven wrote:
-> On Fri, Feb 12, 2016 at 3:00 AM, Laurent Pinchart wrote:
-> > The FCPs handle the interface between various IP cores and memory. Add
-> > the instances related to the VSP2s.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> >  arch/arm64/boot/dts/renesas/r8a7795.dtsi | 63 ++++++++++++++++++++++++++
-> >  1 file changed, 63 insertions(+)
-> > 
-> > diff --git a/arch/arm64/boot/dts/renesas/r8a7795.dtsi
-> > b/arch/arm64/boot/dts/renesas/r8a7795.dtsi index
-> > b5e46e4ff72a..f62d6fa28acc 100644
-> > --- a/arch/arm64/boot/dts/renesas/r8a7795.dtsi
-> > +++ b/arch/arm64/boot/dts/renesas/r8a7795.dtsi
-> > @@ -960,5 +960,68 @@
-> >                         #dma-cells = <1>;
-> >                         dma-channels = <2>;
-> >                 };
-> > 
-> > +
-> > +               fcpvb1: fcp@fe92f000 {
-> > +                       compatible = "renesas,fcpv";
-> > +                       reg = <0 0xfe92f000 0 0x200>;
-> > +                       clocks = <&cpg CPG_MOD 606>;
-> > +                       power-domains = <&cpg>;
-> > +               };
-> 
-> The FCP_V modules are located in the A3VP Power Area. But adding this
-> information to DT depends on the SYSC PM Domain driver.
-> 
-> I'll try to post my WIP PM Domain patchset for R-Car ASAP...
+    [media] cx23885: move CI/MAC registration to a separate function
 
-As soon as you add the A3VP power domain to DT I'll make sure to make use of 
-it :-)
+Cc to stable, as this bug exists in all 4.x kernels.
 
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/pci/cx23885/cx23885-dvb.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 5131c9f..6e40dec 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1139,7 +1139,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
+ 		u8 eeprom[256]; /* 24C02 i2c eeprom */
+ 		struct sp2_config sp2_config;
+ 		struct i2c_board_info info;
+-		struct cx23885_i2c *i2c_bus2 = &dev->i2c_bus[1];
++		struct cx23885_i2c *i2c_bus = &dev->i2c_bus[0];
+ 
+ 		/* attach CI */
+ 		memset(&sp2_config, 0, sizeof(sp2_config));
+@@ -1151,7 +1151,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
+ 		info.addr = 0x40;
+ 		info.platform_data = &sp2_config;
+ 		request_module(info.type);
+-		client_ci = i2c_new_device(&i2c_bus2->i2c_adap, &info);
++		client_ci = i2c_new_device(&i2c_bus->i2c_adap, &info);
+ 		if (client_ci == NULL || client_ci->dev.driver == NULL)
+ 			return -ENODEV;
+ 		if (!try_module_get(client_ci->dev.driver->owner)) {
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
