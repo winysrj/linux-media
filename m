@@ -1,183 +1,445 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52062 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751410AbcBNNBQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2016 08:01:16 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (Postfix) with ESMTPS id 1EEDC8E24E
-	for <linux-media@vger.kernel.org>; Sun, 14 Feb 2016 13:01:16 +0000 (UTC)
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH tvtime 2/2] Remove redhat packaging files
-Date: Sun, 14 Feb 2016 14:01:08 +0100
-Message-Id: <1455454868-28512-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1455454868-28512-1-git-send-email-hdegoede@redhat.com>
-References: <1455454868-28512-1-git-send-email-hdegoede@redhat.com>
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:24122 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755152AbcBPMwm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2016 07:52:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 10/12] media/platform: convert drivers to use the new vb2_queue dev field
+Date: Tue, 16 Feb 2016 13:43:05 +0100
+Message-Id: <1455626587-8051-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
+References: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These are no longer used by the Red Hat / Fedora pkgs.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Stop using alloc_ctx and just fill in the device pointer.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- redhat/custom-tvtime.desktop |  8 ----
- redhat/tvtime-0.9.6.spec     | 36 ------------------
- redhat/tvtime-0.9.7.spec     | 87 --------------------------------------------
- 3 files changed, 131 deletions(-)
- delete mode 100644 redhat/custom-tvtime.desktop
- delete mode 100644 redhat/tvtime-0.9.6.spec
- delete mode 100644 redhat/tvtime-0.9.7.spec
+ drivers/media/platform/exynos-gsc/gsc-core.c     | 11 +----------
+ drivers/media/platform/exynos-gsc/gsc-core.h     |  1 -
+ drivers/media/platform/exynos-gsc/gsc-m2m.c      |  6 +++---
+ drivers/media/platform/s3c-camif/camif-capture.c |  3 +--
+ drivers/media/platform/s3c-camif/camif-core.c    | 11 +----------
+ drivers/media/platform/s3c-camif/camif-core.h    |  2 --
+ drivers/media/platform/s5p-g2d/g2d.c             | 14 +++-----------
+ drivers/media/platform/s5p-g2d/g2d.h             |  1 -
+ drivers/media/platform/s5p-jpeg/jpeg-core.c      | 18 ++++--------------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h      |  2 --
+ drivers/media/platform/s5p-tv/mixer.h            |  2 --
+ drivers/media/platform/s5p-tv/mixer_video.c      | 16 ++--------------
+ 12 files changed, 15 insertions(+), 72 deletions(-)
 
-diff --git a/redhat/custom-tvtime.desktop b/redhat/custom-tvtime.desktop
-deleted file mode 100644
-index 9c35ae2..0000000
---- a/redhat/custom-tvtime.desktop
-+++ /dev/null
-@@ -1,8 +0,0 @@
--[Desktop Entry]
--Comment=High quality TV viewer
--Icon=tvtime-logo.png
--Exec=tvtime
--Name=Television Viewer
--Terminal=0
--Type=Application
--Categories=Application;AudioVideo;
-diff --git a/redhat/tvtime-0.9.6.spec b/redhat/tvtime-0.9.6.spec
-deleted file mode 100644
-index a995e09..0000000
---- a/redhat/tvtime-0.9.6.spec
-+++ /dev/null
-@@ -1,36 +0,0 @@
--Summary: A high quality TV viewer.
--Name: tvtime
--Version: 0.9.6
--Release: 1
--URL: http://tvtime.sourceforge.net
--Source0: %{name}-%{version}.tar.gz
--License: GPL
--Group: Applications/Multimedia
--BuildRoot: %{_tmppath}/%{name}-root
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 9b9e423..ec92d4d 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1139,19 +1139,11 @@ static int gsc_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_m2m;
+ 
+-	/* Initialize continious memory allocator */
+-	gsc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+-	if (IS_ERR(gsc->alloc_ctx)) {
+-		ret = PTR_ERR(gsc->alloc_ctx);
+-		goto err_pm;
+-	}
 -
--%description
--tvtime is a high quality television application for use with video capture cards. tvtime processes the input from a capture card and displays it on a computer monitor or projector.
+ 	dev_dbg(dev, "gsc-%d registered successfully\n", gsc->id);
+ 
+ 	pm_runtime_put(dev);
+ 	return 0;
+-err_pm:
+-	pm_runtime_put(dev);
++
+ err_m2m:
+ 	gsc_unregister_m2m_device(gsc);
+ err_v4l2:
+@@ -1168,7 +1160,6 @@ static int gsc_remove(struct platform_device *pdev)
+ 	gsc_unregister_m2m_device(gsc);
+ 	v4l2_device_unregister(&gsc->v4l2_dev);
+ 
+-	vb2_dma_contig_cleanup_ctx(gsc->alloc_ctx);
+ 	pm_runtime_disable(&pdev->dev);
+ 	gsc_clk_put(gsc);
+ 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
+index e93a233..b2b01b9 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.h
++++ b/drivers/media/platform/exynos-gsc/gsc-core.h
+@@ -342,7 +342,6 @@ struct gsc_dev {
+ 	struct gsc_m2m_device		m2m;
+ 	struct exynos_platform_gscaler	*pdata;
+ 	unsigned long			state;
+-	struct vb2_alloc_ctx		*alloc_ctx;
+ 	struct video_device		vdev;
+ 	struct v4l2_device		v4l2_dev;
+ };
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index a600e32..622709c 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -227,10 +227,8 @@ static int gsc_m2m_queue_setup(struct vb2_queue *vq,
+ 		return -EINVAL;
+ 
+ 	*num_planes = frame->fmt->num_planes;
+-	for (i = 0; i < frame->fmt->num_planes; i++) {
++	for (i = 0; i < frame->fmt->num_planes; i++)
+ 		sizes[i] = frame->payload[i];
+-		allocators[i] = ctx->gsc_dev->alloc_ctx;
+-	}
+ 	return 0;
+ }
+ 
+@@ -591,6 +589,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->gsc_dev->lock;
++	src_vq->dev = &ctx->gsc_dev->pdev->dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -605,6 +604,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &ctx->gsc_dev->lock;
++	dst_vq->dev = &ctx->gsc_dev->pdev->dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index bd060ef..5eb5df1 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -440,7 +440,6 @@ static int queue_setup(struct vb2_queue *vq,
+ 		       unsigned int sizes[], void *allocators[])
+ {
+ 	struct camif_vp *vp = vb2_get_drv_priv(vq);
+-	struct camif_dev *camif = vp->camif;
+ 	struct camif_frame *frame = &vp->out_frame;
+ 	const struct camif_fmt *fmt = vp->out_fmt;
+ 	unsigned int size;
+@@ -449,7 +448,6 @@ static int queue_setup(struct vb2_queue *vq,
+ 		return -EINVAL;
+ 
+ 	size = (frame->f_width * frame->f_height * fmt->depth) / 8;
+-	allocators[0] = camif->alloc_ctx;
+ 
+ 	if (*num_planes)
+ 		return sizes[0] < size ? -EINVAL : 0;
+@@ -1138,6 +1136,7 @@ int s3c_camif_register_video_node(struct camif_dev *camif, int idx)
+ 	q->drv_priv = vp;
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->lock = &vp->camif->lock;
++	q->dev = camif->v4l2_dev.dev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret)
+diff --git a/drivers/media/platform/s3c-camif/camif-core.c b/drivers/media/platform/s3c-camif/camif-core.c
+index 0b44b9a..4e699b2 100644
+--- a/drivers/media/platform/s3c-camif/camif-core.c
++++ b/drivers/media/platform/s3c-camif/camif-core.c
+@@ -474,16 +474,9 @@ static int s3c_camif_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto err_pm;
+ 
+-	/* Initialize contiguous memory allocator */
+-	camif->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+-	if (IS_ERR(camif->alloc_ctx)) {
+-		ret = PTR_ERR(camif->alloc_ctx);
+-		goto err_alloc;
+-	}
 -
--%prep
--%setup -q
+ 	ret = camif_media_dev_init(camif);
+ 	if (ret < 0)
+-		goto err_mdev;
++		goto err_alloc;
+ 
+ 	ret = camif_register_sensor(camif);
+ 	if (ret < 0)
+@@ -523,8 +516,6 @@ err_sens:
+ 	media_device_unregister(&camif->media_dev);
+ 	media_device_cleanup(&camif->media_dev);
+ 	camif_unregister_media_entities(camif);
+-err_mdev:
+-	vb2_dma_contig_cleanup_ctx(camif->alloc_ctx);
+ err_alloc:
+ 	pm_runtime_put(dev);
+ 	pm_runtime_disable(dev);
+diff --git a/drivers/media/platform/s3c-camif/camif-core.h b/drivers/media/platform/s3c-camif/camif-core.h
+index 57cbc3d..1f5c8c9 100644
+--- a/drivers/media/platform/s3c-camif/camif-core.h
++++ b/drivers/media/platform/s3c-camif/camif-core.h
+@@ -254,7 +254,6 @@ struct camif_vp {
+  * @ctrl_handler: v4l2 control handler (owned by @subdev)
+  * @test_pattern: test pattern controls
+  * @vp:           video path (DMA) description (codec/preview)
+- * @alloc_ctx:    memory buffer allocator context
+  * @variant:      variant information for this device
+  * @dev:	  pointer to the CAMIF device struct
+  * @pdata:	  a copy of the driver's platform data
+@@ -291,7 +290,6 @@ struct camif_dev {
+ 	u8				colorfx_cr;
+ 
+ 	struct camif_vp			vp[CAMIF_VP_NUM];
+-	struct vb2_alloc_ctx		*alloc_ctx;
+ 
+ 	const struct s3c_camif_variant	*variant;
+ 	struct device			*dev;
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index 74bd46c..999ad8f 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -113,7 +113,6 @@ static int g2d_queue_setup(struct vb2_queue *vq,
+ 
+ 	sizes[0] = f->size;
+ 	*nplanes = 1;
+-	alloc_ctxs[0] = ctx->dev->alloc_ctx;
+ 
+ 	if (*nbuffers == 0)
+ 		*nbuffers = 1;
+@@ -159,6 +158,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->dev->mutex;
++	src_vq->dev = ctx->dev->v4l2_dev.dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -172,6 +172,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &ctx->dev->mutex;
++	dst_vq->dev = ctx->dev->v4l2_dev.dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -681,15 +682,9 @@ static int g2d_probe(struct platform_device *pdev)
+ 		goto put_clk_gate;
+ 	}
+ 
+-	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(dev->alloc_ctx)) {
+-		ret = PTR_ERR(dev->alloc_ctx);
+-		goto unprep_clk_gate;
+-	}
 -
--%build
--%configure
--make %{_smp_mflags}
+ 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+ 	if (ret)
+-		goto alloc_ctx_cleanup;
++		goto unprep_clk_gate;
+ 	vfd = video_device_alloc();
+ 	if (!vfd) {
+ 		v4l2_err(&dev->v4l2_dev, "Failed to allocate video device\n");
+@@ -738,8 +733,6 @@ rel_vdev:
+ 	video_device_release(vfd);
+ unreg_v4l2_dev:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+-alloc_ctx_cleanup:
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ unprep_clk_gate:
+ 	clk_unprepare(dev->gate);
+ put_clk_gate:
+@@ -760,7 +753,6 @@ static int g2d_remove(struct platform_device *pdev)
+ 	v4l2_m2m_release(dev->m2m_dev);
+ 	video_unregister_device(dev->vfd);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ 	clk_unprepare(dev->gate);
+ 	clk_put(dev->gate);
+ 	clk_unprepare(dev->clk);
+diff --git a/drivers/media/platform/s5p-g2d/g2d.h b/drivers/media/platform/s5p-g2d/g2d.h
+index b0e52ab..c7bb545 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.h
++++ b/drivers/media/platform/s5p-g2d/g2d.h
+@@ -25,7 +25,6 @@ struct g2d_dev {
+ 	struct mutex		mutex;
+ 	spinlock_t		ctrl_lock;
+ 	atomic_t		num_inst;
+-	struct vb2_alloc_ctx	*alloc_ctx;
+ 	void __iomem		*regs;
+ 	struct clk		*clk;
+ 	struct clk		*gate;
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index c3b13a6..44bffdc 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -2452,7 +2452,6 @@ static int s5p_jpeg_queue_setup(struct vb2_queue *vq,
+ 	*nbuffers = count;
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-	alloc_ctxs[0] = ctx->jpeg->alloc_ctx;
+ 
+ 	return 0;
+ }
+@@ -2558,6 +2557,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->jpeg->lock;
++	src_vq->dev = ctx->jpeg->dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -2571,6 +2571,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &ctx->jpeg->lock;
++	dst_vq->dev = ctx->jpeg->dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -2838,19 +2839,12 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 		goto device_register_rollback;
+ 	}
+ 
+-	jpeg->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(jpeg->alloc_ctx)) {
+-		v4l2_err(&jpeg->v4l2_dev, "Failed to init memory allocator\n");
+-		ret = PTR_ERR(jpeg->alloc_ctx);
+-		goto m2m_init_rollback;
+-	}
 -
--%install
--rm -rf %{buildroot}
--%makeinstall
+ 	/* JPEG encoder /dev/videoX node */
+ 	jpeg->vfd_encoder = video_device_alloc();
+ 	if (!jpeg->vfd_encoder) {
+ 		v4l2_err(&jpeg->v4l2_dev, "Failed to allocate video device\n");
+ 		ret = -ENOMEM;
+-		goto vb2_allocator_rollback;
++		goto m2m_init_rollback;
+ 	}
+ 	snprintf(jpeg->vfd_encoder->name, sizeof(jpeg->vfd_encoder->name),
+ 				"%s-enc", S5P_JPEG_M2M_NAME);
+@@ -2866,7 +2860,7 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 	if (ret) {
+ 		v4l2_err(&jpeg->v4l2_dev, "Failed to register video device\n");
+ 		video_device_release(jpeg->vfd_encoder);
+-		goto vb2_allocator_rollback;
++		goto m2m_init_rollback;
+ 	}
+ 
+ 	video_set_drvdata(jpeg->vfd_encoder, jpeg);
+@@ -2915,9 +2909,6 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ enc_vdev_register_rollback:
+ 	video_unregister_device(jpeg->vfd_encoder);
+ 
+-vb2_allocator_rollback:
+-	vb2_dma_contig_cleanup_ctx(jpeg->alloc_ctx);
 -
--%clean
--rm -rf %{buildroot}
+ m2m_init_rollback:
+ 	v4l2_m2m_release(jpeg->m2m_dev);
+ 
+@@ -2936,7 +2927,6 @@ static int s5p_jpeg_remove(struct platform_device *pdev)
+ 
+ 	video_unregister_device(jpeg->vfd_decoder);
+ 	video_unregister_device(jpeg->vfd_encoder);
+-	vb2_dma_contig_cleanup_ctx(jpeg->alloc_ctx);
+ 	v4l2_m2m_release(jpeg->m2m_dev);
+ 	v4l2_device_unregister(&jpeg->v4l2_dev);
+ 
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+index 9b1db09..4492a35 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
+@@ -110,7 +110,6 @@ enum  exynos4_jpeg_img_quality_level {
+  * @irq:		JPEG IP irq
+  * @clocks:		JPEG IP clock(s)
+  * @dev:		JPEG IP struct device
+- * @alloc_ctx:		videobuf2 memory allocator's context
+  * @variant:		driver variant to be used
+  * @irq_status		interrupt flags set during single encode/decode
+ 			operation
+@@ -130,7 +129,6 @@ struct s5p_jpeg {
+ 	enum exynos4_jpeg_result irq_ret;
+ 	struct clk		*clocks[JPEG_MAX_CLOCKS];
+ 	struct device		*dev;
+-	void			*alloc_ctx;
+ 	struct s5p_jpeg_variant *variant;
+ 	u32			irq_status;
+ };
+diff --git a/drivers/media/platform/s5p-tv/mixer.h b/drivers/media/platform/s5p-tv/mixer.h
+index 42cd270..0c70678 100644
+--- a/drivers/media/platform/s5p-tv/mixer.h
++++ b/drivers/media/platform/s5p-tv/mixer.h
+@@ -245,8 +245,6 @@ struct mxr_device {
+ 
+ 	/** V4L2 device */
+ 	struct v4l2_device v4l2_dev;
+-	/** context of allocator */
+-	void *alloc_ctx;
+ 	/** event wait queue */
+ 	wait_queue_head_t event_queue;
+ 	/** state flags */
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index d9e7f03..1b6d5d1 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -80,13 +80,6 @@ int mxr_acquire_video(struct mxr_device *mdev,
+ 		goto fail;
+ 	}
+ 
+-	mdev->alloc_ctx = vb2_dma_contig_init_ctx(mdev->dev);
+-	if (IS_ERR(mdev->alloc_ctx)) {
+-		mxr_err(mdev, "could not acquire vb2 allocator\n");
+-		ret = PTR_ERR(mdev->alloc_ctx);
+-		goto fail_v4l2_dev;
+-	}
 -
--%files
--%defattr(-,root,root)
--%doc AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README ./docs/DESIGN ./docs/TODO
--%{_bindir}/tvtime
--%{_datadir}/tvtime
+ 	/* registering outputs */
+ 	mdev->output_cnt = 0;
+ 	for (i = 0; i < output_count; ++i) {
+@@ -120,7 +113,7 @@ int mxr_acquire_video(struct mxr_device *mdev,
+ 		mxr_err(mdev, "failed to register any output\n");
+ 		ret = -ENODEV;
+ 		/* skipping fail_output because there is nothing to free */
+-		goto fail_vb2_allocator;
++		goto fail_v4l2_dev;
+ 	}
+ 
+ 	return 0;
+@@ -131,10 +124,6 @@ fail_output:
+ 		kfree(mdev->output[i]);
+ 	memset(mdev->output, 0, sizeof(mdev->output));
+ 
+-fail_vb2_allocator:
+-	/* freeing allocator context */
+-	vb2_dma_contig_cleanup_ctx(mdev->alloc_ctx);
 -
--%changelog
--* Thu Nov 14 2002 Paul Jara
--- Initial build.
-diff --git a/redhat/tvtime-0.9.7.spec b/redhat/tvtime-0.9.7.spec
-deleted file mode 100644
-index 01c0995..0000000
---- a/redhat/tvtime-0.9.7.spec
-+++ /dev/null
-@@ -1,87 +0,0 @@
--# Some useful constants
--%define ver 0.9.7
--#%define beta beta
--%define rpm_ver 2
--%define rh_addon tvtime-redhat.tar.gz
--%define docsdir docs
--%define rhdocsdir redhat
--%define icon %{docsdir}/tvtime-icon-black.png
--%define desktop_filename %{rhdocsdir}/custom-tvtime.desktop
--
--# Check if we're running RedHat 8.0 or higher
--%{!?rh_ver:%define rh_ver %(cut -d' ' -f5 /etc/redhat-release )}
--
--Summary: A high quality TV viewer.
--Name: tvtime
--Version: %{ver}
--Release: %{!?beta:0.%{beta}.}%{rpm_ver}
--URL: http://%{name}.sourceforge.net
--Source0: %{name}-%{version}.tar.gz
--Source1: %{rh_addon}
--License: GPL
--Group: Applications/Multimedia
--BuildRoot: %{_tmppath}/%{name}-root
--BuildRequires: freetype-devel zlib-devel libstdc++-devel libpng-devel XFree86-libs libgcc freetype-devel glibc-debug textutils
--Requires: sh-utils desktop-file-utils
--
--%description
--%{name} is a high quality television application for use with video capture cards. %{name} processes the input from a capture card and displays it on a computer monitor or projector.
--
--%prep
--%setup -q -b1
--
--%build
--%configure
--%{__make} %{_smp_mflags}
--
--%install
--%{__rm} -rf %{buildroot}
--%makeinstall
--
--# Remove freefont source from binary
--%{__rm} %{buildroot}%{_datadir}/%{name}/freefont-sfd.tar.gz
--
--# On RedHat 8.0+ distributions, add a menu entry
--%if "%{rh_ver}" >= "8.0"
--
--# Copy icon
--install -D -m 644 %{icon} %{buildroot}%{_datadir}/pixmaps/%{name}-logo.png
--
--# Copy desktop file
--%{__mkdir_p} %{buildroot}%{_datadir}/applications
--desktop-file-install --vendor custom --delete-original --dir %{buildroot}%{_datadir}/applications --add-category X-Red-Hat-Extra --add-category Application --add-category AudioVideo %{desktop_filename}
--%endif
--
--# Add man pages
--%{__mkdir_p} %{_mandir}/man1
--%{__mkdir_p} %{_mandir}/man5
--install -D -m 644 %{docsdir}/%{name}.1 %{buildroot}%{_mandir}/man1/%{name}.1
--install -D -m 644 %{docsdir}/%{name}rc.5 %{buildroot}%{_mandir}/man5/%{name}rc.5
--%clean
--%{__rm} -rf %{buildroot}
--
--%files
--%defattr(-,root,root)
--%doc AUTHORS BUGS COPYING ChangeLog INSTALL NEWS README docs/DESIGN docs/default.tvtimerc
--%{_bindir}/%{name}
--%{_datadir}/%{name}
--%{_datadir}/pixmaps/%{name}-logo.png
--%{_datadir}/applications/*%{name}.desktop
--%{_mandir}/man1/%{name}.1*
--%{_mandir}/man5/%{name}rc.5*
--
--%changelog
--* Thu Feb 27 2003 Paul Jara <rascasse at users.sourceforge.net>
--- Binary RPM no longer contains freefont source code
--* Wed Feb 26 2003 Paul Jara <rascasse at users.sourceforge.net>
--- Initial build with official tvtime 0.9.7 source
--* Mon Feb 24 2003 Paul Jara <rascasse at users.sourceforge.net>
--- Added default.tvtimerc to docs directory
--- Sync'd with latest CVS version
--- tvscanner replaced with timingtest
--* Mon Feb 24 2003 Paul Jara <rascasse at users.sourceforge.net>
--- Added man pages for tvtime and tvtimerc
--- Macro-ized some common shell commands
--- Added icon and menu entry for RedHat 8.0+
--* Sun Feb 23 2003 Paul Jara <rascasse at users.sourceforge.net>
--- Initial build.
+ fail_v4l2_dev:
+ 	/* NOTE: automatically unregister all subdevs */
+ 	v4l2_device_unregister(v4l2_dev);
+@@ -151,7 +140,6 @@ void mxr_release_video(struct mxr_device *mdev)
+ 	for (i = 0; i < mdev->output_cnt; ++i)
+ 		kfree(mdev->output[i]);
+ 
+-	vb2_dma_contig_cleanup_ctx(mdev->alloc_ctx);
+ 	v4l2_device_unregister(&mdev->v4l2_dev);
+ }
+ 
+@@ -901,7 +889,6 @@ static int queue_setup(struct vb2_queue *vq,
+ 
+ 	*nplanes = fmt->num_subframes;
+ 	for (i = 0; i < fmt->num_subframes; ++i) {
+-		alloc_ctxs[i] = layer->mdev->alloc_ctx;
+ 		sizes[i] = planes[i].sizeimage;
+ 		mxr_dbg(mdev, "size[%d] = %08x\n", i, sizes[i]);
+ 	}
+@@ -1110,6 +1097,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+ 		.min_buffers_needed = 1,
+ 		.mem_ops = &vb2_dma_contig_memops,
+ 		.lock = &layer->mutex,
++		.dev = mdev->dev,
+ 	};
+ 
+ 	return layer;
 -- 
-2.7.1
+2.7.0
 
