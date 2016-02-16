@@ -1,85 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:45349 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425515AbcBRLXn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 06:23:43 -0500
-From: Jani Nikula <jani.nikula@intel.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Kernel docs: muddying the waters a bit
-In-Reply-To: <20160218082657.5a1a5b0f@recife.lan>
-References: <20160213145317.247c63c7@lwn.net> <86fuwwcdmd.fsf@hiro.keithp.com> <CAKMK7uGeU_grgC7pRCdqw+iDGWQfXhHwvX+tkSgRmdimxMrthA@mail.gmail.com> <20160217151401.3cb82f65@lwn.net> <CAKMK7uEqbSrhc2nh0LjC1fztciM4eTjtKE9T_wMVCqAkkTnzkA@mail.gmail.com> <874md6fkna.fsf@intel.com> <CAKMK7uE72wFEFCyw1dHbt+f3-ex3fr_9MbjoGfnKFZkd5+9S2Q@mail.gmail.com> <20160218082657.5a1a5b0f@recife.lan>
-Date: Thu, 18 Feb 2016 13:23:37 +0200
-Message-ID: <87r3gadzye.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:57989 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755199AbcBPMxA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2016 07:53:00 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH 03/12] sur40: set q->dev instead of allocating a context
+Date: Tue, 16 Feb 2016 13:42:58 +0100
+Message-Id: <1455626587-8051-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
+References: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 18 Feb 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> For simple documents like the one produced by kernel-doc, I guess
-> all markup languages would work equally.
->
-> The problem is for complex documents like the media kAPI one, where
-> the document was written to produce a book. So, it uses some complex
-> features found at DocBook. One of such features we use extensively
-> is the capability of having a table with per-line columns. This way,
-> we can produce things like:
->
-> V4L2_CID_COLOR_KILLER	boolean	Enable the color killer (i. e. force a black & white image in case of a weak video signal).
-> V4L2_CID_COLORFX	enum	Selects a color effect. The following values are defined:
-> 				V4L2_COLORFX_NONE 		Color effect is disabled.
-> 				V4L2_COLORFX_ANTIQUE 		An aging (old photo) effect.
-> 				V4L2_COLORFX_ART_FREEZE 	Frost color effect.
->
-> In the above example, we have a main 3 columns table, and we embed
-> a 2 columns table at the third field of V4L2_CID_COLORFX to represent
-> possible values for this menu control.
->
-> See https://linuxtv.org/downloads/v4l-dvb-apis/control.html for the
-> complete output of it.
->
-> This is used extensively inside the media DocBook, and properly
-> supporting it is one of our major concerns.
->
-> Are there any way to represent those things with the markup
-> languages currently being analyzed?
->
-> Converting those tables will likely require manual work, as I don't
-> think automatic tools will properly handle it, specially since we
-> use some DocBook macros to help creating such tables.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Since I've let myself be told that asciidoc handles tables better than
-reStructuredText, I tested this a bit with the presumably inferior one.
+Stop using alloc_ctx and just fill in the device pointer.
 
-rst has two table types, simple tables and grid tables [1]. It seems
-like grid tables can do pretty much anything, but they can be cumbersome
-to work with. So I tried to check what can be done with simple tables.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Florian Echtler <floe@butterbrot.org>
+#
+#total: 0 errors, 0 warnings, 304 lines checked
+#
+#Your patch has no obvious style problems and is ready for submission.
+#
+#total: 0 errors, 0 warnings, 8 lines checked
+#
+#Your patch has no obvious style problems and is ready for submission.
+---
+ drivers/input/touchscreen/sur40.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-Here's a sample, converted using rst2html (Sphinx will be prettier, but
-rst2html works for simple things like this):
-
-https://people.freedesktop.org/~jani/v4l-table-within-table.rst
-https://people.freedesktop.org/~jani/v4l-table-within-table.html
-
-Rather than using nested tables, you might want to consider using
-definition lists within tables:
-
-https://people.freedesktop.org/~jani/v4l-definition-list-within-table.rst
-https://people.freedesktop.org/~jani/v4l-definition-list-within-table.html
-
-You be the judge, but I think this is workable.
-
-BR,
-Jani.
-
-
-[1] http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#tables
-
-
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index b6c4d03..4608010 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -151,7 +151,6 @@ struct sur40_state {
+ 	struct mutex lock;
+ 
+ 	struct vb2_queue queue;
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	struct list_head buf_list;
+ 	spinlock_t qlock;
+ 	int sequence;
+@@ -573,19 +572,13 @@ static int sur40_probe(struct usb_interface *interface,
+ 	sur40->queue = sur40_queue;
+ 	sur40->queue.drv_priv = sur40;
+ 	sur40->queue.lock = &sur40->lock;
++	sur40->queue.dev = sur40->dev;
+ 
+ 	/* initialize the queue */
+ 	error = vb2_queue_init(&sur40->queue);
+ 	if (error)
+ 		goto err_unreg_v4l2;
+ 
+-	sur40->alloc_ctx = vb2_dma_sg_init_ctx(sur40->dev);
+-	if (IS_ERR(sur40->alloc_ctx)) {
+-		dev_err(sur40->dev, "Can't allocate buffer context");
+-		error = PTR_ERR(sur40->alloc_ctx);
+-		goto err_unreg_v4l2;
+-	}
+-
+ 	sur40->vdev = sur40_video_device;
+ 	sur40->vdev.v4l2_dev = &sur40->v4l2;
+ 	sur40->vdev.lock = &sur40->lock;
+@@ -626,7 +619,6 @@ static void sur40_disconnect(struct usb_interface *interface)
+ 
+ 	video_unregister_device(&sur40->vdev);
+ 	v4l2_device_unregister(&sur40->v4l2);
+-	vb2_dma_sg_cleanup_ctx(sur40->alloc_ctx);
+ 
+ 	input_unregister_polled_device(sur40->input);
+ 	input_free_polled_device(sur40->input);
+@@ -648,11 +640,8 @@ static int sur40_queue_setup(struct vb2_queue *q,
+ 		       unsigned int *nbuffers, unsigned int *nplanes,
+ 		       unsigned int sizes[], void *alloc_ctxs[])
+ {
+-	struct sur40_state *sur40 = vb2_get_drv_priv(q);
+-
+ 	if (q->num_buffers + *nbuffers < 3)
+ 		*nbuffers = 3 - q->num_buffers;
+-	alloc_ctxs[0] = sur40->alloc_ctx;
+ 
+ 	if (*nplanes)
+ 		return sizes[0] < sur40_video_format.sizeimage ? -EINVAL : 0;
 -- 
-Jani Nikula, Intel Open Source Technology Center
+2.7.0
+
