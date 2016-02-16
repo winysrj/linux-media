@@ -1,100 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:33159 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751607AbcBORYk (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:1574 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752029AbcBPCJe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 12:24:40 -0500
-From: info@are.ma
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD?=
-	 =?UTF-8?q?=D1=82=D0=BE=2C=20AreMa=20Inc?= <knightrider@are.ma>,
-	linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
-	mchehab@osg.samsung.com, hdegoede@redhat.com,
-	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
-	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
-	peter.senna@gmail.com
-Subject: [media 0/7] Driver bundle for PT3 & PX-Q3PE
-Date: Tue, 16 Feb 2016 02:24:29 +0900
-Message-Id: <cover.1455556118.git.knightrider@are.ma>
+	Mon, 15 Feb 2016 21:09:34 -0500
+Message-ID: <1455588568.19396.51.camel@mtksdaap41>
+Subject: Re: [PATCH v4 4/8] dt-bindings: Add a binding for Mediatek Video
+ Encoder
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Daniel Kurtz <djkurtz@chromium.org>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Daniel Thompson <daniel.thompson@linaro.org>,
+	Rob Herring <robh+dt@kernel.org>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	"open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	"moderated list:ARM/Mediatek SoC support"
+	<linux-mediatek@lists.infradead.org>,
+	Lin PoChun <PoChun.Lin@mediatek.com>,
+	Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 16 Feb 2016 10:09:28 +0800
+In-Reply-To: <CAGS+omAkM97TOnJX-ahEMeN8zO1R2RO43LWqeFFRDuj7gM5CzA@mail.gmail.com>
+References: <1454585703-42428-1-git-send-email-tiffany.lin@mediatek.com>
+	 <1454585703-42428-2-git-send-email-tiffany.lin@mediatek.com>
+	 <1454585703-42428-3-git-send-email-tiffany.lin@mediatek.com>
+	 <1454585703-42428-4-git-send-email-tiffany.lin@mediatek.com>
+	 <1454585703-42428-5-git-send-email-tiffany.lin@mediatek.com>
+	 <CAGS+omDQW+yqhixCWPfQb9eaHeufgiEDscrvXGwBTc05+eDGCQ@mail.gmail.com>
+	 <CAGS+omAkM97TOnJX-ahEMeN8zO1R2RO43LWqeFFRDuj7gM5CzA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Буди Романто, AreMa Inc <knightrider@are.ma>
+Hi Daniel,
 
-Polished driver bundle for PT3 & PX-Q3PE, two of the most powerful ISDB-S/ISDB-T receiver cards
-currently available in Japan. Useless features are removed.
+On Mon, 2016-02-15 at 18:42 +0800, Daniel Kurtz wrote:
+> On Tue, Feb 9, 2016 at 7:29 PM, Daniel Kurtz <djkurtz@chromium.org> wrote:
+> > Hi Tiffany,
+> >
+> > On Thu, Feb 4, 2016 at 7:34 PM, Tiffany Lin <tiffany.lin@mediatek.com> wrote:
+> >> Add a DT binding documentation of Video Encoder for the
+> >> MT8173 SoC from Mediatek.
+> >>
+> >> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> >> ---
+> >>  .../devicetree/bindings/media/mediatek-vcodec.txt  |   59 ++++++++++++++++++++
+> >>  1 file changed, 59 insertions(+)
+> >>  create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> >>
+> >> diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> >> new file mode 100644
+> >> index 0000000..572bfdd
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
+> >> @@ -0,0 +1,59 @@
+> >> +Mediatek Video Codec
+> >> +
+> >> +Mediatek Video Codec is the video codec hw present in Mediatek SoCs which
+> >> +supports high resolution encoding functionalities.
+> >> +
+> >> +Required properties:
+> >> +- compatible : "mediatek,mt8173-vcodec-enc" for encoder
+> >> +- reg : Physical base address of the video codec registers and length of
+> >> +  memory mapped region.
+> >> +- interrupts : interrupt number to the cpu.
+> >> +- mediatek,larb : must contain the local arbiters in the current Socs.
+> >> +- clocks : list of clock specifiers, corresponding to entries in
+> >> +  the clock-names property.
+> >> +- clock-names: encoder must contain "vencpll_d2", "venc_sel", "univpll1_d2",
+> >> +  "venc_lt_sel".
+> >> +- iommus : should point to the respective IOMMU block with master port as
+> >> +  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
+> >> +  for details.
+> >> +- mediatek,vpu : the node of video processor unit
+> >> +
+> >> +Example:
+> >> +vcodec_enc: vcodec@0x18002000 {
+> >> +    compatible = "mediatek,mt8173-vcodec-enc";
+> >> +    reg = <0 0x18002000 0 0x1000>,    /*VENC_SYS*/
+> >> +          <0 0x19002000 0 0x1000>;    /*VENC_LT_SYS*/
+> >
+> > This really looks like two encoder devices combined into a single
+> > device tree node.
+> > There are two register sets, two irqs, two sets of iommus, and two
+> > sets of clocks.
+> >
+> > If possible, please split this node into two, one for each encoder.
+> 
+> I chatted offline with Mediatek.  They explained that there really is
+> just one encoder hardware, that happens to support multiple formats.
+> The encoder cannot encode with both formats at the same time.  The
+> Mediatek HW designers added a new format to an existing encoder by
+> adding a second interface (register set, irq, iommus, clocks) without
+> modifying the original interface.  However in the hardware itself
+> there is really just one encoder device.
+> 
+> So, although this node looks like it is for two encoder devices (one
+> for each format), really there is just one device that supports each
+> format through its large interface.
+> 
+> So, I'm fine with this being a single device node.
+> 
+> >> +    interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
+> >> +           <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
+> >> +    mediatek,larb = <&larb3>,
+> >> +                   <&larb5>;
+> >> +    iommus = <&iommu M4U_PORT_VENC_RCPU>,
+> >> +             <&iommu M4U_PORT_VENC_REC>,
+> >> +             <&iommu M4U_PORT_VENC_BSDMA>,
+> >> +             <&iommu M4U_PORT_VENC_SV_COMV>,
+> >> +             <&iommu M4U_PORT_VENC_RD_COMV>,
+> >> +             <&iommu M4U_PORT_VENC_CUR_LUMA>,
+> >> +             <&iommu M4U_PORT_VENC_CUR_CHROMA>,
+> >> +             <&iommu M4U_PORT_VENC_REF_LUMA>,
+> >> +             <&iommu M4U_PORT_VENC_REF_CHROMA>,
+> >> +             <&iommu M4U_PORT_VENC_NBM_RDMA>,
+> >> +             <&iommu M4U_PORT_VENC_NBM_WDMA>,
+> >> +             <&iommu M4U_PORT_VENC_RCPU_SET2>,
+> >> +             <&iommu M4U_PORT_VENC_REC_FRM_SET2>,
+> >> +             <&iommu M4U_PORT_VENC_BSDMA_SET2>,
+> >> +             <&iommu M4U_PORT_VENC_SV_COMA_SET2>,
+> >> +             <&iommu M4U_PORT_VENC_RD_COMA_SET2>,
+> >> +             <&iommu M4U_PORT_VENC_CUR_LUMA_SET2>,
+> >> +             <&iommu M4U_PORT_VENC_CUR_CHROMA_SET2>,
+> >> +             <&iommu M4U_PORT_VENC_REF_LUMA_SET2>,
+> >> +             <&iommu M4U_PORT_VENC_REC_CHROMA_SET2>;
+> >> +    mediatek,vpu = <&vpu>;
+> >> +    clocks = <&topckgen CLK_TOP_VENCPLL_D2>,
+> >> +             <&topckgen CLK_TOP_VENC_SEL>,
+> >> +             <&topckgen CLK_TOP_UNIVPLL1_D2>,
+> >> +             <&topckgen CLK_TOP_VENC_LT_SEL>;
+> >> +    clock-names = "vencpll_d2",
+> >> +                  "venc_sel",
+> >> +                  "univpll1_d2",
+> >> +                  "venc_lt_sel";
+> >
+> > The names of these clocks should be from the perspective of the
+> > encoder, not the clock provider.
+> 
+> I still think these clock names should be updated, however.
+> 
+Got it. We will fix this in next version.
 
-Main Components:
-A. PT3 (2 ISDB-S + 2 ISDB-T receiver)
- 1. Altera	EP4CGX15BF14C8N	: customized FPGA PCI bridge
- 2. Toshiba	TC90522XBG	: quad demodulator (2ch OFDM + 2ch 8PSK)
- 3. Sharp	VA4M6JC2103	: contains 2 ISDB-S + 2 ISDB-T tuners
-	ISDB-S : Sharp QM1D1C0042 RF-IC
-	ISDB-T : MaxLinear CMOS Hybrid TV MxL301RF
+> -Dan
 
-B. PX-Q3PE (4 ISDB-S + 4 ISDB-T receiver)
- 1. ASICEN	ASV5220		: PCI-E bridge
- 2. Toshiba	TC90522XBG	: quad demodulator (2ch OFDM + 2ch 8PSK)
- 3. NXP Semiconductors TDA20142	: ISDB-S tuner
- 4. Newport Media NM120		: ISDB-T tuner
-
-Буди Романто, AreMa Inc (7):
-  raise adapter number limit
-  add NXP tda2014x & Newport Media nm120/130/131 tuners
-  drop backstabbing drivers
-  Toshiba TC90522XBG quad demod (2ch OFDM + 2ch 8PSK) for PT3 & PXQ3PE
-  MaxLinear MxL301RF ISDB-T tuner
-  Sharp QM1D1C0042 ISDB-S tuner
-  PCI bridge driver for PT3 & PXQ3PE
-
- drivers/media/dvb-core/dvbdev.h       |   2 +-
- drivers/media/dvb-frontends/tc90522.c | 960 +++++++---------------------------
- drivers/media/dvb-frontends/tc90522.h |  36 +-
- drivers/media/pci/Kconfig             |   2 +-
- drivers/media/pci/Makefile            |   2 +-
- drivers/media/pci/pt3/Kconfig         |  10 -
- drivers/media/pci/pt3/Makefile        |   8 -
- drivers/media/pci/pt3/pt3.c           | 873 -------------------------------
- drivers/media/pci/pt3/pt3.h           | 186 -------
- drivers/media/pci/pt3/pt3_dma.c       | 225 --------
- drivers/media/pci/pt3/pt3_i2c.c       | 240 ---------
- drivers/media/pci/ptx/Kconfig         |  21 +
- drivers/media/pci/ptx/Makefile        |   8 +
- drivers/media/pci/ptx/pt3_pci.c       | 509 ++++++++++++++++++
- drivers/media/pci/ptx/ptx_common.c    | 215 ++++++++
- drivers/media/pci/ptx/ptx_common.h    |  69 +++
- drivers/media/pci/ptx/pxq3pe_pci.c    | 609 +++++++++++++++++++++
- drivers/media/tuners/Kconfig          |  14 +
- drivers/media/tuners/Makefile         |   2 +
- drivers/media/tuners/mxl301rf.c       | 468 +++++++----------
- drivers/media/tuners/mxl301rf.h       |  19 +-
- drivers/media/tuners/nm131.c          | 272 ++++++++++
- drivers/media/tuners/nm131.h          |  13 +
- drivers/media/tuners/qm1d1c0042.c     | 566 +++++++-------------
- drivers/media/tuners/qm1d1c0042.h     |  30 +-
- drivers/media/tuners/tda2014x.c       | 356 +++++++++++++
- drivers/media/tuners/tda2014x.h       |  13 +
- 27 files changed, 2693 insertions(+), 3035 deletions(-)
- delete mode 100644 drivers/media/pci/pt3/Kconfig
- delete mode 100644 drivers/media/pci/pt3/Makefile
- delete mode 100644 drivers/media/pci/pt3/pt3.c
- delete mode 100644 drivers/media/pci/pt3/pt3.h
- delete mode 100644 drivers/media/pci/pt3/pt3_dma.c
- delete mode 100644 drivers/media/pci/pt3/pt3_i2c.c
- create mode 100644 drivers/media/pci/ptx/Kconfig
- create mode 100644 drivers/media/pci/ptx/Makefile
- create mode 100644 drivers/media/pci/ptx/pt3_pci.c
- create mode 100644 drivers/media/pci/ptx/ptx_common.c
- create mode 100644 drivers/media/pci/ptx/ptx_common.h
- create mode 100644 drivers/media/pci/ptx/pxq3pe_pci.c
- create mode 100644 drivers/media/tuners/nm131.c
- create mode 100644 drivers/media/tuners/nm131.h
- create mode 100644 drivers/media/tuners/tda2014x.c
- create mode 100644 drivers/media/tuners/tda2014x.h
-
--- 
-2.3.10
 
