@@ -1,101 +1,142 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
- by www.linuxtv.org with esmtp (Exim 4.84)
- (envelope-from <filip.beran@yahoo.com>) id 1aNMdG-0003Xq-Jy
- for linux-dvb@linuxtv.org; Sun, 24 Jan 2016 15:31:15 +0000
-Received: from nm27-vm3.bullet.mail.ne1.yahoo.com ([98.138.91.157])
- by mail.tu-berlin.de (exim-4.76/mailfrontend-8) with esmtps
- [TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
- id 1aNMdE-0004aY-m0; Sun, 24 Jan 2016 16:31:14 +0100
-Date: Sun, 24 Jan 2016 15:29:46 +0000 (UTC)
-From: Filip Beran <filip.beran@yahoo.com>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Message-ID: <1189794675.392862.1453649386032.JavaMail.yahoo@mail.yahoo.com>
-MIME-Version: 1.0
-References: <1189794675.392862.1453649386032.JavaMail.yahoo.ref@mail.yahoo.com>
-Subject: [linux-dvb] EC168 and MT2060
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
- <mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb/>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
- <mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Reply-To: linux-media@vger.kernel.org, Filip Beran <filip.beran@yahoo.com>
-Content-Type: multipart/mixed; boundary="===============8488580436727274295=="
-Sender: "linux-dvb" <linux-dvb-bounces@linuxtv.org>
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:51000 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755152AbcBPMwy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2016 07:52:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 05/12] staging/media: convert drivers to use the new vb2_queue dev field
+Date: Tue, 16 Feb 2016 13:43:00 +0100
+Message-Id: <1455626587-8051-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
+References: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
---===============8488580436727274295==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_392861_964074984.1453649386029"
-Content-Length: 3096
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-------=_Part_392861_964074984.1453649386029
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Stop using alloc_ctx and just fill in the device pointer.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 10 +---------
+ drivers/staging/media/davinci_vpfe/vpfe_video.h |  2 --
+ drivers/staging/media/omap4iss/iss_video.c      | 10 +---------
+ drivers/staging/media/omap4iss/iss_video.h      |  1 -
+ 4 files changed, 2 insertions(+), 21 deletions(-)
 
-Hello,=C2=A0
-would it be possible to extend EC168 driver to support a device with usb ID=
- 0458:400f (EC168 + MT2061F)?It is a USB DVB-T tuner "Genius TVGo DVB-T02PR=
-O", for details see the link: =C2=A0https://www.linuxtv.org/wiki/index.php/=
-E3C_EC168#Genius_TVGo_DVB-T02Q_MCE
-Device Identifications:USB-ID: =C2=A0 =C2=A00458:400fDVB-T demodulator &=C2=
-=A0USB controller: =C2=A0 =C2=A0EC168;Tuner: =C2=A0 =C2=A0MT2061F (I suppos=
-e it should work with MT2060 driver);
-Let me know if i can be of any more help like testing, capture log output, =
-dump, ...
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index db49af9..1c4774b 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -540,7 +540,6 @@ static int vpfe_release(struct file *file)
+ 		video->io_usrs = 0;
+ 		/* Free buffers allocated */
+ 		vb2_queue_release(&video->buffer_queue);
+-		vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+ 	}
+ 	/* Decrement device users counter */
+ 	video->usrs--;
+@@ -1111,7 +1110,6 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq,
+ 
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-	alloc_ctxs[0] = video->alloc_ctx;
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+ 		 "nbuffers=%d, size=%lu\n", *nbuffers, size);
+ 	return 0;
+@@ -1346,12 +1344,6 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+ 	video->memory = req_buf->memory;
+ 
+ 	/* Initialize videobuf2 queue as per the buffer type */
+-	video->alloc_ctx = vb2_dma_contig_init_ctx(vpfe_dev->pdev);
+-	if (IS_ERR(video->alloc_ctx)) {
+-		v4l2_err(&vpfe_dev->v4l2_dev, "Failed to get the context\n");
+-		return PTR_ERR(video->alloc_ctx);
+-	}
+-
+ 	q = &video->buffer_queue;
+ 	q->type = req_buf->type;
+ 	q->io_modes = VB2_MMAP | VB2_USERPTR;
+@@ -1361,11 +1353,11 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->buf_struct_size = sizeof(struct vpfe_cap_buffer);
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->dev = vpfe_dev->pdev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+ 		v4l2_err(&vpfe_dev->v4l2_dev, "vb2_queue_init() failed\n");
+-		vb2_dma_contig_cleanup_ctx(vpfe_dev->pdev);
+ 		return ret;
+ 	}
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+index 653334d..aaec440 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+@@ -123,8 +123,6 @@ struct vpfe_video_device {
+ 	/* Used to store pixel format */
+ 	struct v4l2_format			fmt;
+ 	struct vb2_queue			buffer_queue;
+-	/* allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	/* Queue of filled frames */
+ 	struct list_head			dma_queue;
+ 	spinlock_t				irqlock;
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index 058233a..2ac10d8 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -308,8 +308,6 @@ static int iss_video_queue_setup(struct vb2_queue *vq,
+ 	if (sizes[0] == 0)
+ 		return -EINVAL;
+ 
+-	alloc_ctxs[0] = video->alloc_ctx;
+-
+ 	*count = min(*count, video->capture_mem / PAGE_ALIGN(sizes[0]));
+ 
+ 	return 0;
+@@ -1021,13 +1019,6 @@ static int iss_video_open(struct file *file)
+ 		goto done;
+ 	}
+ 
+-	video->alloc_ctx = vb2_dma_contig_init_ctx(video->iss->dev);
+-	if (IS_ERR(video->alloc_ctx)) {
+-		ret = PTR_ERR(video->alloc_ctx);
+-		omap4iss_put(video->iss);
+-		goto done;
+-	}
+-
+ 	q = &handle->queue;
+ 
+ 	q->type = video->type;
+@@ -1037,6 +1028,7 @@ static int iss_video_open(struct file *file)
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->buf_struct_size = sizeof(struct iss_buffer);
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->dev = video->iss->dev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+index 34588b7..e204497 100644
+--- a/drivers/staging/media/omap4iss/iss_video.h
++++ b/drivers/staging/media/omap4iss/iss_video.h
+@@ -170,7 +170,6 @@ struct iss_video {
+ 	spinlock_t qlock;		/* protects dmaqueue and error */
+ 	struct list_head dmaqueue;
+ 	enum iss_video_dmaqueue_flags dmaqueue_flags;
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 
+ 	const struct iss_video_operations *ops;
+ };
+-- 
+2.7.0
 
-Regards,
-
-Filip
-------=_Part_392861_964074984.1453649386029
-Content-Type: text/html; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-<html><head></head><body><div style=3D"color:#000; background-color:#fff; f=
-ont-family:HelveticaNeue, Helvetica Neue, Helvetica, Arial, Lucida Grande, =
-sans-serif;font-size:16px"><div id=3D"yui_3_16_0_1_1453642546288_7113" clas=
-s=3D""><br id=3D"yui_3_16_0_1_1453642546288_7115" class=3D""></div><div id=
-=3D"yui_3_16_0_1_1453642546288_7117" class=3D"">Hello,&nbsp;</div><div id=
-=3D"yui_3_16_0_1_1453642546288_7119" class=3D""><br id=3D"yui_3_16_0_1_1453=
-642546288_7121" class=3D""></div><div id=3D"yui_3_16_0_1_1453642546288_7123=
-" class=3D"">would it be possible to extend EC168 driver to support a devic=
-e with usb ID 0458:400f (EC168 + MT2061F)?</div><div id=3D"yui_3_16_0_1_145=
-3642546288_7125" class=3D"">It is a USB DVB-T tuner "Genius TVGo DVB-T02PRO=
-", for details see the link: &nbsp;https://www.linuxtv.org/wiki/index.php/E=
-3C_EC168#Genius_TVGo_DVB-T02Q_MCE</div><div id=3D"yui_3_16_0_1_145364254628=
-8_7127" class=3D""><br></div><div id=3D"yui_3_16_0_1_1453642546288_7127" cl=
-ass=3D"">Device Identifications:</div><div id=3D"yui_3_16_0_1_1453642546288=
-_7131" class=3D"">USB-ID: &nbsp; &nbsp;0458:400f</div><div id=3D"yui_3_16_0=
-_1_1453642546288_7133" class=3D"" dir=3D"ltr">DVB-T demodulator &amp;&nbsp;=
-USB controller: &nbsp; &nbsp;EC168;</div><div id=3D"yui_3_16_0_1_1453642546=
-288_7135" class=3D"">Tuner: &nbsp; &nbsp;MT2061F (I suppose it should work =
-with MT2060 driver);</div><div id=3D"yui_3_16_0_1_1453642546288_7137" class=
-=3D""><br id=3D"yui_3_16_0_1_1453642546288_7139" class=3D""></div><div id=
-=3D"yui_3_16_0_1_1453642546288_7141" class=3D"">Let me know if i can be of =
-any more help like testing, capture log output, dump, ...</div><div id=3D"y=
-ui_3_16_0_1_1453642546288_7143" class=3D""><br id=3D"yui_3_16_0_1_145364254=
-6288_7145" class=3D""></div><div id=3D"yui_3_16_0_1_1453642546288_7143" cla=
-ss=3D""><br></div><div id=3D"yui_3_16_0_1_1453642546288_7147" class=3D"">Re=
-gards,</div><div id=3D"yui_3_16_0_1_1453642546288_7149" class=3D""><br id=
-=3D"yui_3_16_0_1_1453642546288_7151" class=3D""></div><div id=3D"yui_3_16_0=
-_1_1453642546288_7149" class=3D""><br></div><div dir=3D"ltr" id=3D"yui_3_16=
-_0_1_1453642546288_7153" class=3D"">Filip</div></div></body></html>
-------=_Part_392861_964074984.1453649386029--
-
-
---===============8488580436727274295==
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtZHZi
-IHVzZXJzIG1haWxpbmcgbGlzdApGb3IgVjRML0RWQiBkZXZlbG9wbWVudCwgcGxlYXNlIHVzZSBp
-bnN0ZWFkIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZwpsaW51eC1kdmJAbGludXh0di5vcmcK
-aHR0cDovL3d3dy5saW51eHR2Lm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8vbGludXgtZHZi
-
---===============8488580436727274295==--
