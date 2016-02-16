@@ -1,58 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48304 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753072AbcBHLnz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:43:55 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:57989 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755189AbcBPMw7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2016 07:52:59 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 02/35] v4l: vsp1: Add tri-planar memory formats support
-Date: Mon,  8 Feb 2016 13:43:32 +0200
-Message-Id: <1454931845-23864-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 02/12] v4l2-pci-skeleton: set q->dev instead of allocating a context
+Date: Tue, 16 Feb 2016 13:42:57 +0100
+Message-Id: <1455626587-8051-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
+References: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tri-planar memory formats store the Y, U and V components in separate
-planes. The VSP hardware supports them, the driver now does too.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Stop using alloc_ctx as that is now no longer needed.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ Documentation/video4linux/v4l2-pci-skeleton.c | 15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index b4dca57d1ae3..ac07dd8e4a81 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -130,6 +130,26 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
- 	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
- 	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
- 	  3, { 8, 8, 8 }, false, false, 2, 2, false },
-+	{ V4L2_PIX_FMT_YVU420M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, true, 2, 2, false },
-+	{ V4L2_PIX_FMT_YUV422M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, false, 2, 1, false },
-+	{ V4L2_PIX_FMT_YVU422M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, true, 2, 1, false },
-+	{ V4L2_PIX_FMT_YUV444M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, false, 1, 1, false },
-+	{ V4L2_PIX_FMT_YVU444M, MEDIA_BUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, true, 1, 1, false },
- };
+diff --git a/Documentation/video4linux/v4l2-pci-skeleton.c b/Documentation/video4linux/v4l2-pci-skeleton.c
+index 79af0c0..62b6aed 100644
+--- a/Documentation/video4linux/v4l2-pci-skeleton.c
++++ b/Documentation/video4linux/v4l2-pci-skeleton.c
+@@ -56,7 +56,6 @@ MODULE_LICENSE("GPL v2");
+  * @format: current pix format
+  * @input: current video input (0 = SDTV, 1 = HDTV)
+  * @queue: vb2 video capture queue
+- * @alloc_ctx: vb2 contiguous DMA context
+  * @qlock: spinlock controlling access to buf_list and sequence
+  * @buf_list: list of buffers queued for DMA
+  * @sequence: frame sequence counter
+@@ -73,7 +72,6 @@ struct skeleton {
+ 	unsigned input;
  
- /*
+ 	struct vb2_queue queue;
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 
+ 	spinlock_t qlock;
+ 	struct list_head buf_list;
+@@ -182,7 +180,6 @@ static int queue_setup(struct vb2_queue *vq,
+ 
+ 	if (vq->num_buffers + *nbuffers < 3)
+ 		*nbuffers = 3 - vq->num_buffers;
+-	alloc_ctxs[0] = skel->alloc_ctx;
+ 
+ 	if (*nplanes)
+ 		return sizes[0] < skel->format.sizeimage ? -EINVAL : 0;
+@@ -823,6 +820,7 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	q = &skel->queue;
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
++	q->dev = &pdev->dev;
+ 	q->drv_priv = skel;
+ 	q->buf_struct_size = sizeof(struct skel_buffer);
+ 	q->ops = &skel_qops;
+@@ -853,12 +851,6 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	if (ret)
+ 		goto free_hdl;
+ 
+-	skel->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(skel->alloc_ctx)) {
+-		dev_err(&pdev->dev, "Can't allocate buffer context");
+-		ret = PTR_ERR(skel->alloc_ctx);
+-		goto free_hdl;
+-	}
+ 	INIT_LIST_HEAD(&skel->buf_list);
+ 	spin_lock_init(&skel->qlock);
+ 
+@@ -886,13 +878,11 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 
+ 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret)
+-		goto free_ctx;
++		goto free_hdl;
+ 
+ 	dev_info(&pdev->dev, "V4L2 PCI Skeleton Driver loaded\n");
+ 	return 0;
+ 
+-free_ctx:
+-	vb2_dma_contig_cleanup_ctx(skel->alloc_ctx);
+ free_hdl:
+ 	v4l2_ctrl_handler_free(&skel->ctrl_handler);
+ 	v4l2_device_unregister(&skel->v4l2_dev);
+@@ -908,7 +898,6 @@ static void skeleton_remove(struct pci_dev *pdev)
+ 
+ 	video_unregister_device(&skel->vdev);
+ 	v4l2_ctrl_handler_free(&skel->ctrl_handler);
+-	vb2_dma_contig_cleanup_ctx(skel->alloc_ctx);
+ 	v4l2_device_unregister(&skel->v4l2_dev);
+ 	pci_disable_device(skel->pdev);
+ }
 -- 
-2.4.10
+2.7.0
 
