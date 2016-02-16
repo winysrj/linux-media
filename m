@@ -1,39 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36117 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752372AbcB2KQr (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:41797 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750750AbcBPKcc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 05:16:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund+renesas@ragnatech.se
-Subject: [PATCH 0/2] v4l2-ioctl: cropcap improvements
-Date: Mon, 29 Feb 2016 11:16:38 +0100
-Message-Id: <1456741000-39069-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 16 Feb 2016 05:32:32 -0500
+Subject: Re: [PATCH v4 2/2] s5p-mfc: add the support of
+ V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME.
+To: Wu-Cheng Li <wuchengli@chromium.org>, hverkuil@xs4all.nl
+References: <1453187230-97231-1-git-send-email-wuchengli@chromium.org>
+ <1453187230-97231-3-git-send-email-wuchengli@chromium.org>
+Cc: pawel@osciak.com, mchehab@osg.samsung.com, k.debski@samsung.com,
+	nicolas.dufresne@collabora.com, jtp.park@samsung.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <56C2FA13.3020106@samsung.com>
+Date: Tue, 16 Feb 2016 11:29:39 +0100
+MIME-version: 1.0
+In-reply-to: <1453187230-97231-3-git-send-email-wuchengli@chromium.org>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 19/01/16 08:07, Wu-Cheng Li wrote:
+> There is a new control V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME to
+> force an encoder key frame. It is the same as requesting
+> V4L2_MPEG_MFC51_VIDEO_FORCE_FRAME_TYPE_I_FRAME.
+> 
+> Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
 
-The first patch just simplifies the logic in the code and makes no
-functional changes.
-
-The second patch improves the vidioc_cropcap handling with respect to
-obtaining the pixel aspect ratio.
-
-It was a bit buggy which I realized after reviewing the new rcar-vin driver.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (2):
-  v4l2-ioctl: simplify code
-  v4l2-ioctl: improve cropcap handling
-
- drivers/media/v4l2-core/v4l2-ioctl.c | 71 +++++++++++++++++++++++-------------
- 1 file changed, 45 insertions(+), 26 deletions(-)
-
--- 
-2.7.0
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
