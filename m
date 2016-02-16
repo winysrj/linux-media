@@ -1,44 +1,420 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55868 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752780AbcBOM12 (ORCPT
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:17065 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755149AbcBPMwl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 07:27:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH/RFC 2/9] clk: shmobile: r8a7795: Add LVDS module clock
-Date: Mon, 15 Feb 2016 14:27:56 +0200
-Message-ID: <5705334.hmO8A4cGMT@avalon>
-In-Reply-To: <CAMuHMdVFHjn6A9i8xK_D9M2fmaq8gVOh5d3V7-ULJ6amnz6uGA@mail.gmail.com>
-References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1455242450-24493-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdVFHjn6A9i8xK_D9M2fmaq8gVOh5d3V7-ULJ6amnz6uGA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 16 Feb 2016 07:52:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Benoit Parrot <bparrot@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 07/12] media/platform: convert drivers to use the new vb2_queue dev field
+Date: Tue, 16 Feb 2016 13:43:02 +0100
+Message-Id: <1455626587-8051-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
+References: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Monday 15 February 2016 10:24:02 Geert Uytterhoeven wrote:
-> On Fri, Feb 12, 2016 at 3:00 AM, Laurent Pinchart wrote:
-> > The parent clock hasn't been validated yet.
-> 
-> I assume the driver doesn't depend on the clock rate?
+Stop using alloc_ctx and just fill in the device pointer.
 
-Correct.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Fabien Dessenne <fabien.dessenne@st.com>
+Cc: Benoit Parrot <bparrot@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+#
+#total: 0 errors, 0 warnings, 10 lines checked
+#
+#Your patch has no obvious style problems and is ready for submission.
+---
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 18 ++++--------------
+ drivers/media/platform/sti/bdisp/bdisp.h      |  2 --
+ drivers/media/platform/ti-vpe/cal.c           | 15 +--------------
+ drivers/media/platform/ti-vpe/vpe.c           | 20 ++++----------------
+ drivers/media/platform/vsp1/vsp1_video.c      | 18 +++---------------
+ drivers/media/platform/vsp1/vsp1_video.h      |  1 -
+ drivers/media/platform/xilinx/xilinx-dma.c    | 11 +----------
+ drivers/media/platform/xilinx/xilinx-dma.h    |  2 --
+ 8 files changed, 13 insertions(+), 74 deletions(-)
 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-
-Thank you.
-
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+index d12a419..b3e8b5a 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+@@ -439,7 +439,7 @@ static void bdisp_ctrls_delete(struct bdisp_ctx *ctx)
+ 
+ static int bdisp_queue_setup(struct vb2_queue *vq,
+ 			     unsigned int *nb_buf, unsigned int *nb_planes,
+-			     unsigned int sizes[], void *allocators[])
++			     unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct bdisp_ctx *ctx = vb2_get_drv_priv(vq);
+ 	struct bdisp_frame *frame = ctx_get_frame(ctx, vq->type);
+@@ -453,7 +453,6 @@ static int bdisp_queue_setup(struct vb2_queue *vq,
+ 		dev_err(ctx->bdisp_dev->dev, "Invalid format\n");
+ 		return -EINVAL;
+ 	}
+-	allocators[0] = ctx->bdisp_dev->alloc_ctx;
+ 
+ 	if (*nb_planes)
+ 		return sizes[0] < frame->sizeimage ? -EINVAL : 0;
+@@ -553,6 +552,7 @@ static int queue_init(void *priv,
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->bdisp_dev->lock;
++	src_vq->dev = ctx->bdisp_dev->v4l2_dev.dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -567,6 +567,7 @@ static int queue_init(void *priv,
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &ctx->bdisp_dev->lock;
++	dst_vq->dev = ctx->bdisp_dev->v4l2_dev.dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -1269,8 +1270,6 @@ static int bdisp_remove(struct platform_device *pdev)
+ 
+ 	bdisp_hw_free_filters(bdisp->dev);
+ 
+-	vb2_dma_contig_cleanup_ctx(bdisp->alloc_ctx);
+-
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	bdisp_debugfs_remove(bdisp);
+@@ -1371,18 +1370,11 @@ static int bdisp_probe(struct platform_device *pdev)
+ 		goto err_dbg;
+ 	}
+ 
+-	/* Continuous memory allocator */
+-	bdisp->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+-	if (IS_ERR(bdisp->alloc_ctx)) {
+-		ret = PTR_ERR(bdisp->alloc_ctx);
+-		goto err_pm;
+-	}
+-
+ 	/* Filters */
+ 	if (bdisp_hw_alloc_filters(bdisp->dev)) {
+ 		dev_err(bdisp->dev, "no memory for filters\n");
+ 		ret = -ENOMEM;
+-		goto err_vb2_dma;
++		goto err_pm;
+ 	}
+ 
+ 	/* Register */
+@@ -1401,8 +1393,6 @@ static int bdisp_probe(struct platform_device *pdev)
+ 
+ err_filter:
+ 	bdisp_hw_free_filters(bdisp->dev);
+-err_vb2_dma:
+-	vb2_dma_contig_cleanup_ctx(bdisp->alloc_ctx);
+ err_pm:
+ 	pm_runtime_put(dev);
+ err_dbg:
+diff --git a/drivers/media/platform/sti/bdisp/bdisp.h b/drivers/media/platform/sti/bdisp/bdisp.h
+index 0cf9857..b3fbf99 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp.h
++++ b/drivers/media/platform/sti/bdisp/bdisp.h
+@@ -175,7 +175,6 @@ struct bdisp_dbg {
+  * @id:         device index
+  * @m2m:        memory-to-memory V4L2 device information
+  * @state:      flags used to synchronize m2m and capture mode operation
+- * @alloc_ctx:  videobuf2 memory allocator context
+  * @clock:      IP clock
+  * @regs:       registers
+  * @irq_queue:  interrupt handler waitqueue
+@@ -193,7 +192,6 @@ struct bdisp_dev {
+ 	u16                     id;
+ 	struct bdisp_m2m_device m2m;
+ 	unsigned long           state;
+-	struct vb2_alloc_ctx    *alloc_ctx;
+ 	struct clk              *clock;
+ 	void __iomem            *regs;
+ 	wait_queue_head_t       irq_queue;
+diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+index 69ec79b..af31693 100644
+--- a/drivers/media/platform/ti-vpe/cal.c
++++ b/drivers/media/platform/ti-vpe/cal.c
+@@ -287,7 +287,6 @@ struct cal_ctx {
+ 	/* Several counters */
+ 	unsigned long		jiffies;
+ 
+-	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct cal_dmaqueue	vidq;
+ 
+ 	/* Input Number */
+@@ -1252,7 +1251,6 @@ static int cal_queue_setup(struct vb2_queue *vq,
+ 
+ 	if (vq->num_buffers + *nbuffers < 3)
+ 		*nbuffers = 3 - vq->num_buffers;
+-	alloc_ctxs[0] = ctx->alloc_ctx;
+ 
+ 	if (*nplanes) {
+ 		if (sizes[0] < size)
+@@ -1574,6 +1572,7 @@ static int cal_complete_ctx(struct cal_ctx *ctx)
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->lock = &ctx->mutex;
+ 	q->min_buffers_needed = 3;
++	q->dev = ctx->v4l2_dev.dev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret)
+@@ -1601,18 +1600,7 @@ static int cal_complete_ctx(struct cal_ctx *ctx)
+ 	v4l2_info(&ctx->v4l2_dev, "V4L2 device registered as %s\n",
+ 		  video_device_node_name(vfd));
+ 
+-	ctx->alloc_ctx = vb2_dma_contig_init_ctx(vfd->v4l2_dev->dev);
+-	if (IS_ERR(ctx->alloc_ctx)) {
+-		ctx_err(ctx, "Failed to alloc vb2 context\n");
+-		ret = PTR_ERR(ctx->alloc_ctx);
+-		goto vdev_unreg;
+-	}
+-
+ 	return 0;
+-
+-vdev_unreg:
+-	video_unregister_device(vfd);
+-	return ret;
+ }
+ 
+ static struct device_node *
+@@ -1937,7 +1925,6 @@ static int cal_remove(struct platform_device *pdev)
+ 				video_device_node_name(&ctx->vdev));
+ 			camerarx_phy_disable(ctx);
+ 			v4l2_async_notifier_unregister(&ctx->notifier);
+-			vb2_dma_contig_cleanup_ctx(ctx->alloc_ctx);
+ 			v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+ 			v4l2_device_unregister(&ctx->v4l2_dev);
+ 			video_unregister_device(&ctx->vdev);
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 1fa00c2..3fefd8a 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -362,7 +362,6 @@ struct vpe_dev {
+ 	void __iomem		*base;
+ 	struct resource		*res;
+ 
+-	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct vpdma_data	*vpdma;		/* vpdma data handle */
+ 	struct sc_data		*sc;		/* scaler data handle */
+ 	struct csc_data		*csc;		/* csc data handle */
+@@ -1807,10 +1806,8 @@ static int vpe_queue_setup(struct vb2_queue *vq,
+ 
+ 	*nplanes = q_data->fmt->coplanar ? 2 : 1;
+ 
+-	for (i = 0; i < *nplanes; i++) {
++	for (i = 0; i < *nplanes; i++)
+ 		sizes[i] = q_data->sizeimage[i];
+-		alloc_ctxs[i] = ctx->dev->alloc_ctx;
+-	}
+ 
+ 	vpe_dbg(ctx->dev, "get %d buffer(s) of size %d", *nbuffers,
+ 		sizes[VPE_LUMA]);
+@@ -1907,6 +1904,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &dev->dev_mutex;
++	src_vq->dev = dev->v4l2_dev.dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -1921,6 +1919,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &dev->dev_mutex;
++	dst_vq->dev = dev->v4l2_dev.dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -2161,7 +2160,6 @@ static void vpe_fw_cb(struct platform_device *pdev)
+ 		vpe_runtime_put(pdev);
+ 		pm_runtime_disable(&pdev->dev);
+ 		v4l2_m2m_release(dev->m2m_dev);
+-		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ 		v4l2_device_unregister(&dev->v4l2_dev);
+ 
+ 		return;
+@@ -2213,18 +2211,11 @@ static int vpe_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, dev);
+ 
+-	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(dev->alloc_ctx)) {
+-		vpe_err(dev, "Failed to alloc vb2 context\n");
+-		ret = PTR_ERR(dev->alloc_ctx);
+-		goto v4l2_dev_unreg;
+-	}
+-
+ 	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
+ 	if (IS_ERR(dev->m2m_dev)) {
+ 		vpe_err(dev, "Failed to init mem2mem device\n");
+ 		ret = PTR_ERR(dev->m2m_dev);
+-		goto rel_ctx;
++		goto v4l2_dev_unreg;
+ 	}
+ 
+ 	pm_runtime_enable(&pdev->dev);
+@@ -2269,8 +2260,6 @@ runtime_put:
+ rel_m2m:
+ 	pm_runtime_disable(&pdev->dev);
+ 	v4l2_m2m_release(dev->m2m_dev);
+-rel_ctx:
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ v4l2_dev_unreg:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 
+@@ -2286,7 +2275,6 @@ static int vpe_remove(struct platform_device *pdev)
+ 	v4l2_m2m_release(dev->m2m_dev);
+ 	video_unregister_device(&dev->vfd);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ 
+ 	vpe_set_clock_enable(dev, 0);
+ 	vpe_runtime_put(pdev);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index b4dca57..435fed9 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -794,20 +794,16 @@ vsp1_video_queue_setup(struct vb2_queue *vq,
+ 		if (*nplanes != format->num_planes)
+ 			return -EINVAL;
+ 
+-		for (i = 0; i < *nplanes; i++) {
++		for (i = 0; i < *nplanes; i++)
+ 			if (sizes[i] < format->plane_fmt[i].sizeimage)
+ 				return -EINVAL;
+-			alloc_ctxs[i] = video->alloc_ctx;
+-		}
+ 		return 0;
+ 	}
+ 
+ 	*nplanes = format->num_planes;
+ 
+-	for (i = 0; i < format->num_planes; ++i) {
++	for (i = 0; i < format->num_planes; ++i)
+ 		sizes[i] = format->plane_fmt[i].sizeimage;
+-		alloc_ctxs[i] = video->alloc_ctx;
+-	}
+ 
+ 	return 0;
+ }
+@@ -1245,13 +1241,6 @@ int vsp1_video_init(struct vsp1_video *video, struct vsp1_entity *rwpf)
+ 
+ 	video_set_drvdata(&video->video, video);
+ 
+-	/* ... and the buffers queue... */
+-	video->alloc_ctx = vb2_dma_contig_init_ctx(video->vsp1->dev);
+-	if (IS_ERR(video->alloc_ctx)) {
+-		ret = PTR_ERR(video->alloc_ctx);
+-		goto error;
+-	}
+-
+ 	video->queue.type = video->type;
+ 	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+ 	video->queue.lock = &video->lock;
+@@ -1260,6 +1249,7 @@ int vsp1_video_init(struct vsp1_video *video, struct vsp1_entity *rwpf)
+ 	video->queue.ops = &vsp1_video_queue_qops;
+ 	video->queue.mem_ops = &vb2_dma_contig_memops;
+ 	video->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	video->queue.dev = video->vsp1->dev;
+ 	ret = vb2_queue_init(&video->queue);
+ 	if (ret < 0) {
+ 		dev_err(video->vsp1->dev, "failed to initialize vb2 queue\n");
+@@ -1277,7 +1267,6 @@ int vsp1_video_init(struct vsp1_video *video, struct vsp1_entity *rwpf)
+ 	return 0;
+ 
+ error:
+-	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+ 	vsp1_video_cleanup(video);
+ 	return ret;
+ }
+@@ -1287,6 +1276,5 @@ void vsp1_video_cleanup(struct vsp1_video *video)
+ 	if (video_is_registered(&video->video))
+ 		video_unregister_device(&video->video);
+ 
+-	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+ 	media_entity_cleanup(&video->video.entity);
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index a929aa8..763beaf 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -129,7 +129,6 @@ struct vsp1_video {
+ 	unsigned int pipe_index;
+ 
+ 	struct vb2_queue queue;
+-	void *alloc_ctx;
+ 	spinlock_t irqlock;
+ 	struct list_head irqqueue;
+ 	unsigned int sequence;
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 7f6898b..3838e11 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -322,7 +322,6 @@ xvip_dma_queue_setup(struct vb2_queue *vq,
+ {
+ 	struct xvip_dma *dma = vb2_get_drv_priv(vq);
+ 
+-	alloc_ctxs[0] = dma->alloc_ctx;
+ 	/* Make sure the image size is large enough. */
+ 	if (*nplanes)
+ 		return sizes[0] < dma->format.sizeimage ? -EINVAL : 0;
+@@ -706,12 +705,6 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+ 	video_set_drvdata(&dma->video, dma);
+ 
+ 	/* ... and the buffers queue... */
+-	dma->alloc_ctx = vb2_dma_contig_init_ctx(dma->xdev->dev);
+-	if (IS_ERR(dma->alloc_ctx)) {
+-		ret = PTR_ERR(dma->alloc_ctx);
+-		goto error;
+-	}
+-
+ 	/* Don't enable VB2_READ and VB2_WRITE, as using the read() and write()
+ 	 * V4L2 APIs would be inefficient. Testing on the command line with a
+ 	 * 'cat /dev/video?' thus won't be possible, but given that the driver
+@@ -728,6 +721,7 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+ 	dma->queue.mem_ops = &vb2_dma_contig_memops;
+ 	dma->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+ 				   | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
++	dma->queue.dev = dma->xdev->dev;
+ 	ret = vb2_queue_init(&dma->queue);
+ 	if (ret < 0) {
+ 		dev_err(dma->xdev->dev, "failed to initialize VB2 queue\n");
+@@ -766,9 +760,6 @@ void xvip_dma_cleanup(struct xvip_dma *dma)
+ 	if (dma->dma)
+ 		dma_release_channel(dma->dma);
+ 
+-	if (!IS_ERR_OR_NULL(dma->alloc_ctx))
+-		vb2_dma_contig_cleanup_ctx(dma->alloc_ctx);
+-
+ 	media_entity_cleanup(&dma->video.entity);
+ 
+ 	mutex_destroy(&dma->lock);
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.h b/drivers/media/platform/xilinx/xilinx-dma.h
+index 7a1621a..e95d136 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.h
++++ b/drivers/media/platform/xilinx/xilinx-dma.h
+@@ -65,7 +65,6 @@ static inline struct xvip_pipeline *to_xvip_pipeline(struct media_entity *e)
+  * @format: active V4L2 pixel format
+  * @fmtinfo: format information corresponding to the active @format
+  * @queue: vb2 buffers queue
+- * @alloc_ctx: allocation context for the vb2 @queue
+  * @sequence: V4L2 buffers sequence number
+  * @queued_bufs: list of queued buffers
+  * @queued_lock: protects the buf_queued list
+@@ -88,7 +87,6 @@ struct xvip_dma {
+ 	const struct xvip_video_format *fmtinfo;
+ 
+ 	struct vb2_queue queue;
+-	void *alloc_ctx;
+ 	unsigned int sequence;
+ 
+ 	struct list_head queued_bufs;
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.0
 
