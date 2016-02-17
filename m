@@ -1,177 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:54169 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753739AbcBWPF3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 10:05:29 -0500
-Date: Tue, 23 Feb 2016 16:05:16 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] soc_camera/omap1: move to staging in preparation for
- removal
-In-Reply-To: <56CC73B7.6070804@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1602231604460.17650@axis700.grange>
-References: <56CC4CD0.7050308@xs4all.nl> <Pine.LNX.4.64.1602231554230.17650@axis700.grange>
- <56CC73B7.6070804@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:37148 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161129AbcBQPtA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2016 10:49:00 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk,
+	Laurent Pinchart <laurent.pinchart@linaro.org>
+Subject: [PATCH/RFC 1/9] v4l: subdev: Add pad config allocator and init
+Date: Wed, 17 Feb 2016 16:48:37 +0100
+Message-Id: <1455724125-13004-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 23 Feb 2016, Hans Verkuil wrote:
+From: Laurent Pinchart <laurent.pinchart@linaro.org>
 
-> On 02/23/16 15:55, Guennadi Liakhovetski wrote:
-> > Hi Hans,
-> > 
-> > On Tue, 23 Feb 2016, Hans Verkuil wrote:
-> > 
-> >> This driver is deprecated: it needs to be converted to vb2 and
-> >> it should become a stand-alone driver instead of using the
-> >> soc-camera framework.
-> >>
-> >> Unless someone is willing to take this on (unlikely with such
-> >> ancient hardware) it is going to be removed from the kernel
-> >> soon.
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > I guess I won't be pulling this through my tree, right?
-> 
-> Right.
-> 
-> > 
-> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-> Thanks!
-> 
-> This one was easy.
+Add a new subdev operation to initialize a subdev pad config array, and
+a helper function to allocate and initialize the array. This can be used
+by bridge drivers to implement try format based on subdev pad
+operations.
 
-mx2, mx3 should be easy too?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
+Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
+ include/media/v4l2-subdev.h           | 10 ++++++++++
+ 2 files changed, 28 insertions(+), 1 deletion(-)
 
-Guennadi
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index d630838..f32ac0d 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -35,7 +35,7 @@
+ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
++	fh->pad = v4l2_subdev_alloc_pad_config(sd);
+ 	if (fh->pad == NULL)
+ 		return -ENOMEM;
+ #endif
+@@ -569,6 +569,23 @@ int v4l2_subdev_link_validate(struct media_link *link)
+ 		sink, link, &source_fmt, &sink_fmt);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
++
++struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
++{
++	struct v4l2_subdev_pad_config *cfg;
++
++	if (!sd->entity.num_pads)
++		return NULL;
++
++	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
++	if (!cfg)
++		return NULL;
++
++	v4l2_subdev_call(sd, pad, init_cfg, cfg);
++
++	return cfg;
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
+ 
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index b273cf9..e1e25fa 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -604,6 +604,8 @@ struct v4l2_subdev_pad_config {
+  *                  may be adjusted by the subdev driver to device capabilities.
+  */
+ struct v4l2_subdev_pad_ops {
++	void (*init_cfg)(struct v4l2_subdev *sd,
++			 struct v4l2_subdev_pad_config *cfg);
+ 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code);
+@@ -798,7 +800,15 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+ 				      struct v4l2_subdev_format *source_fmt,
+ 				      struct v4l2_subdev_format *sink_fmt);
+ int v4l2_subdev_link_validate(struct media_link *link);
++
++struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
++
++static inline void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
++{
++	kfree(cfg);
++}
+ #endif /* CONFIG_MEDIA_CONTROLLER */
++
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
+-- 
+2.6.4
 
-> For the sh renesas drivers I will take one final look during the weekend.
-> See what works and what doesn't. I actually have hardware for it, after
-> all.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > Thanks
-> > Guennadi
-> > 
-> >> ---
-> >>  drivers/media/platform/soc_camera/Kconfig                   | 10 ----------
-> >>  drivers/media/platform/soc_camera/Makefile                  |  1 -
-> >>  drivers/staging/media/Kconfig                               |  2 ++
-> >>  drivers/staging/media/Makefile                              |  1 +
-> >>  drivers/staging/media/omap1/Kconfig                         | 13 +++++++++++++
-> >>  drivers/staging/media/omap1/Makefile                        |  3 +++
-> >>  .../soc_camera => staging/media/omap1}/omap1_camera.c       |  0
-> >>  7 files changed, 19 insertions(+), 11 deletions(-)
-> >>  create mode 100644 drivers/staging/media/omap1/Kconfig
-> >>  create mode 100644 drivers/staging/media/omap1/Makefile
-> >>  rename drivers/{media/platform/soc_camera => staging/media/omap1}/omap1_camera.c (100%)
-> >>
-> >> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-> >> index f2776cd..954dd36 100644
-> >> --- a/drivers/media/platform/soc_camera/Kconfig
-> >> +++ b/drivers/media/platform/soc_camera/Kconfig
-> >> @@ -60,16 +60,6 @@ config VIDEO_SH_MOBILE_CEU
-> >>  	---help---
-> >>  	  This is a v4l2 driver for the SuperH Mobile CEU Interface
-> >>
-> >> -config VIDEO_OMAP1
-> >> -	tristate "OMAP1 Camera Interface driver"
-> >> -	depends on VIDEO_DEV && SOC_CAMERA
-> >> -	depends on ARCH_OMAP1
-> >> -	depends on HAS_DMA
-> >> -	select VIDEOBUF_DMA_CONTIG
-> >> -	select VIDEOBUF_DMA_SG
-> >> -	---help---
-> >> -	  This is a v4l2 driver for the TI OMAP1 camera interface
-> >> -
-> >>  config VIDEO_MX2
-> >>  	tristate "i.MX27 Camera Sensor Interface driver"
-> >>  	depends on VIDEO_DEV && SOC_CAMERA
-> >> diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
-> >> index 2826382..bdd7fc9 100644
-> >> --- a/drivers/media/platform/soc_camera/Makefile
-> >> +++ b/drivers/media/platform/soc_camera/Makefile
-> >> @@ -9,7 +9,6 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
-> >>  obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
-> >>  obj-$(CONFIG_VIDEO_MX2)			+= mx2_camera.o
-> >>  obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
-> >> -obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
-> >>  obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
-> >>  obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
-> >>  obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
-> >> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-> >> index d48a5c2..382d868 100644
-> >> --- a/drivers/staging/media/Kconfig
-> >> +++ b/drivers/staging/media/Kconfig
-> >> @@ -29,6 +29,8 @@ source "drivers/staging/media/mn88472/Kconfig"
-> >>
-> >>  source "drivers/staging/media/mn88473/Kconfig"
-> >>
-> >> +source "drivers/staging/media/omap1/Kconfig"
-> >> +
-> >>  source "drivers/staging/media/omap4iss/Kconfig"
-> >>
-> >>  source "drivers/staging/media/timb/Kconfig"
-> >> diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-> >> index fb94f04..89d038c 100644
-> >> --- a/drivers/staging/media/Makefile
-> >> +++ b/drivers/staging/media/Makefile
-> >> @@ -2,6 +2,7 @@ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
-> >>  obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
-> >>  obj-$(CONFIG_LIRC_STAGING)	+= lirc/
-> >>  obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
-> >> +obj-$(CONFIG_VIDEO_OMAP1)	+= omap1/
-> >>  obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
-> >>  obj-$(CONFIG_DVB_MN88472)       += mn88472/
-> >>  obj-$(CONFIG_DVB_MN88473)       += mn88473/
-> >> diff --git a/drivers/staging/media/omap1/Kconfig b/drivers/staging/media/omap1/Kconfig
-> >> new file mode 100644
-> >> index 0000000..6cfab3a
-> >> --- /dev/null
-> >> +++ b/drivers/staging/media/omap1/Kconfig
-> >> @@ -0,0 +1,13 @@
-> >> +config VIDEO_OMAP1
-> >> +	tristate "OMAP1 Camera Interface driver"
-> >> +	depends on VIDEO_DEV && SOC_CAMERA
-> >> +	depends on ARCH_OMAP1
-> >> +	depends on HAS_DMA
-> >> +	select VIDEOBUF_DMA_CONTIG
-> >> +	select VIDEOBUF_DMA_SG
-> >> +	---help---
-> >> +	  This is a v4l2 driver for the TI OMAP1 camera interface
-> >> +
-> >> +	  This driver is deprecated and will be removed soon unless someone
-> >> +	  will start the work to convert this driver to the vb2 framework
-> >> +	  and remove the soc-camera dependency.
-> >> diff --git a/drivers/staging/media/omap1/Makefile b/drivers/staging/media/omap1/Makefile
-> >> new file mode 100644
-> >> index 0000000..2885622
-> >> --- /dev/null
-> >> +++ b/drivers/staging/media/omap1/Makefile
-> >> @@ -0,0 +1,3 @@
-> >> +# Makefile for OMAP1 driver
-> >> +
-> >> +obj-$(CONFIG_VIDEO_OMAP1) += omap1_camera.o
-> >> diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/staging/media/omap1/omap1_camera.c
-> >> similarity index 100%
-> >> rename from drivers/media/platform/soc_camera/omap1_camera.c
-> >> rename to drivers/staging/media/omap1/omap1_camera.c
-> >> -- 
-> >> 2.7.0
-> >>
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
