@@ -1,157 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36290 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1425363AbcBRMK1 (ORCPT
+Received: from mail-yw0-f182.google.com ([209.85.161.182]:34843 "EHLO
+	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965238AbcBQR0c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 07:10:27 -0500
-Date: Thu, 18 Feb 2016 14:09:52 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 13/15] mediactl: Add media device ioctl API
-Message-ID: <20160218120951.GO32612@valkosipuli.retiisi.org.uk>
-References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
- <1453133860-21571-14-git-send-email-j.anaszewski@samsung.com>
- <56C1C775.2090002@linux.intel.com>
- <56C1CD3E.6090108@samsung.com>
+	Wed, 17 Feb 2016 12:26:32 -0500
+Received: by mail-yw0-f182.google.com with SMTP id g127so18763018ywf.2
+        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2016 09:26:32 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <56C1CD3E.6090108@samsung.com>
+In-Reply-To: <56C4A712.4050403@xs4all.nl>
+References: <1452533428-12762-1-git-send-email-dianders@chromium.org>
+	<1452533428-12762-5-git-send-email-dianders@chromium.org>
+	<56C4A712.4050403@xs4all.nl>
+Date: Wed, 17 Feb 2016 09:26:31 -0800
+Message-ID: <CAD=FV=WQ0rOfzKDLeHQdP9mS_9RMD60DeU+nSr=69U_XVEA4cg@mail.gmail.com>
+Subject: Re: [PATCH v6 4/5] videobuf2-dc: Let drivers specify DMA attrs
+From: Doug Anderson <dianders@chromium.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>, Tomasz Figa <tfiga@chromium.org>
+Cc: Russell King <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hans,
 
-On Mon, Feb 15, 2016 at 02:06:06PM +0100, Jacek Anaszewski wrote:
-> Hi Sakari,
-> 
-> Thanks for the review.
-> 
-> On 02/15/2016 01:41 PM, Sakari Ailus wrote:
-> >Hi Jacek,
-> >
-> >Jacek Anaszewski wrote:
-> >>Ioctls executed on complex media devices need special handling.
-> >>For instance some ioctls need to be targeted for specific sub-devices,
-> >>depending on the media device configuration. The APIs being introduced
-> >>address such requirements.
-> >>
-> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>---
-> >>  utils/media-ctl/Makefile.am          |    2 +-
-> >>  utils/media-ctl/libv4l2media_ioctl.c |  404 ++++++++++++++++++++++++++++++++++
-> >>  utils/media-ctl/libv4l2media_ioctl.h |   48 ++++
-> >>  3 files changed, 453 insertions(+), 1 deletion(-)
-> >>  create mode 100644 utils/media-ctl/libv4l2media_ioctl.c
-> >>  create mode 100644 utils/media-ctl/libv4l2media_ioctl.h
-> >>
-> >>diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
-> >>index 3e883e0..7f18624 100644
-> >>--- a/utils/media-ctl/Makefile.am
-> >>+++ b/utils/media-ctl/Makefile.am
-> >>@@ -1,6 +1,6 @@
-> >>  noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la libmediatext.la
-> >>
-> >>-libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
-> >>+libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h libv4l2media_ioctl.c libv4l2media_ioctl.h
-> >>  libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
-> >>  libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
-> >>
-> >>diff --git a/utils/media-ctl/libv4l2media_ioctl.c b/utils/media-ctl/libv4l2media_ioctl.c
-> >>new file mode 100644
-> >>index 0000000..b186121
-> >>--- /dev/null
-> >>+++ b/utils/media-ctl/libv4l2media_ioctl.c
-> >>@@ -0,0 +1,404 @@
-> >>+/*
-> >>+ * Copyright (c) 2015 Samsung Electronics Co., Ltd.
-> >>+ *              http://www.samsung.com
-> >>+ *
-> >>+ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>+ *
-> >>+ * This program is free software; you can redistribute it and/or modify
-> >>+ * it under the terms of the GNU Lesser General Public License as published by
-> >>+ * the Free Software Foundation; either version 2.1 of the License, or
-> >>+ * (at your option) any later version.
-> >>+ *
-> >>+ * This program is distributed in the hope that it will be useful,
-> >>+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> >>+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> >>+ * Lesser General Public License for more details.
-> >>+ */
-> >>+
-> >>+#include <errno.h>
-> >>+#include <stdlib.h>
-> >>+#include <sys/syscall.h>
-> >>+#include <unistd.h>
-> >>+
-> >>+#include <linux/videodev2.h>
-> >>+
-> >>+#include "libv4l2media_ioctl.h"
-> >>+#include "mediactl-priv.h"
-> >>+#include "mediactl.h"
-> >>+#include "v4l2subdev.h"
-> >>+
-> >>+#define VIDIOC_CTRL(type)					\
-> >>+	((type) == VIDIOC_S_CTRL ? "VIDIOC_S_CTRL" :		\
-> >>+				   "VIDIOC_G_CTRL")
-> >>+
-> >>+#define VIDIOC_EXT_CTRL(type)					\
-> >>+	((type) == VIDIOC_S_EXT_CTRLS ? 			\
-> >>+		"VIDIOC_S_EXT_CTRLS"	:			\
-> >>+		 ((type) == VIDIOC_G_EXT_CTRLS ? 		\
-> >>+				    "VIDIOC_G_EXT_CTRLS" :	\
-> >>+				    "VIDIOC_TRY_EXT_CTRLS"))
-> >>+
-> >>+#define SYS_IOCTL(fd, cmd, arg) \
-> >>+	syscall(SYS_ioctl, (int)(fd), (unsigned long)(cmd), (void *)(arg))
-> >>+
-> >>+
-> >>+int media_ioctl_ctrl(struct media_device *media, int request,
-> >
-> >unsigned int request
-> 
-> OK.
-> 
-> >
-> >>+		     struct v4l2_control *arg)
-> >
-> >I wonder if it'd make sense to always use v4l2_ext_control instead. You
-> >can't access 64-bit integer controls with VIDIOC_S_CTRL for instance.
-> 
-> This function is meant to handle VIDIOC_S_CTRL/VIDIOC_G_CTRL ioctls.
-> For ext ctrls there is media_ioctl_ext_ctrl().
+On Wed, Feb 17, 2016 at 9:00 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Doug,
+>
+> Is there any reason to think that different planes will need different
+> DMA attrs? I ask because this patch series of mine:
+>
+> http://www.spinics.net/lists/linux-media/msg97522.html
+>
+> does away with allocating allocation contexts (struct vb2_dc_conf).
+>
+> For dma_attr this would mean that struct dma_attrs would probably be implemented
+> as a struct dma_attrs pointer in the vb2_queue struct once I rebase that patch series
+> on top of this patch. In other words, the same dma_attrs struct would be used for all
+> planes.
+>
+> Second question: would specifying dma_attrs also make sense for videobuf2-dma-sg.c?
 
-Is there any reason not to use extended control always?
+Those are all probably better questions for someone like Tomasz, who
+authored ${SUBJECT} patch.  I mostly ended up touching this codepath
+by going down the rabbit hole chasing a bug.  In my particular case I
+was seeing that video was eating up all the large chunks in the system
+needlessly and starving other memory users.  Using DMA attrs was the
+logical way to indicate that we didn't need large chunks, so I used
+it.  Other than that I'm totally unfamiliar with the video subsystem.
 
-In other words, do we have a driver that does support Media controller but
-does not support extended controls?
 
-> >As this is a user space library, I'd probably add a function to handle
-> >S/G/TRY control each.
-> 
-> There is media_ioctl_ext_ctrl() that handles VIDIOC_S_EXT_CTRLS,
-> VIDIOC_G_EXT_CTRLS and VIDIOC_TRY_EXT_CTRLS.
-> 
-> >Have you considered binding the control to a video node rather than a
-> >media device? We have many sensors on current media devices already, and
-> >e.g. exposure time control can be found in multiple sub-devices.
-> 
-> Doesn't v4l2-ctrl-redir config entry address that?
-
-How does it work if you have, say, two video nodes where you can capture
-images from a different sensor? I.e. your media graph could look like this:
-
-	sensor0 -> CSI-2 0 -> video0
-
-	sensor1 -> CSI-2 1 -> video1
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+-Doug
