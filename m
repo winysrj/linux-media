@@ -1,226 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54480 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965840AbcBDJZ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Feb 2016 04:25:28 -0500
-Date: Thu, 4 Feb 2016 07:25:13 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
-	j.anaszewski@samsung.com, geliangtang@163.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-api@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Re: [PATCH v2 07/22] media: v4l-core add enable/disable source
- common interfaces
-Message-ID: <20160204072513.02619079@recife.lan>
-In-Reply-To: <7df34ecdf35d473535abefa6643b2db24457b8e6.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
-	<7df34ecdf35d473535abefa6643b2db24457b8e6.1454557589.git.shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:33944 "EHLO
+	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161552AbcBQPtE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2016 10:49:04 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH/RFC 2/9] media: adv7604: automatic "default-input" selection
+Date: Wed, 17 Feb 2016 16:48:38 +0100
+Message-Id: <1455724125-13004-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 03 Feb 2016 21:03:39 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+From: William Towle <william.towle@codethink.co.uk>
 
-> Add a new interfaces to be used by v4l-core to invoke enable
-> source and disable_source handlers in the media_device. The
-> enable_source helper function invokes the enable_source handler
-> to find media source entity connected to the entity and check
-> is it is available or busy. If source is available, link is
-> activated and pipeline is started. The disable_source helper
-> function invokes the disable_source handler to deactivate and
-> stop the pipeline.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/v4l2-core/Makefile  |  2 +-
->  drivers/media/v4l2-core/v4l2-mc.c | 60 +++++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-dev.h          |  1 +
->  include/media/v4l2-mc.h           | 52 +++++++++++++++++++++++++++++++++
->  4 files changed, 114 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/v4l2-core/v4l2-mc.c
-> 
-> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-> index 1dc8bba..c6acc01 100644
-> --- a/drivers/media/v4l2-core/Makefile
-> +++ b/drivers/media/v4l2-core/Makefile
-> @@ -6,7 +6,7 @@ tuner-objs	:=	tuner-core.o
->  
->  videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
->  			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
-> -			v4l2-async.o
-> +			v4l2-async.o v4l2-mc.o
->  ifeq ($(CONFIG_COMPAT),y)
->    videodev-objs += v4l2-compat-ioctl32.o
->  endif
-> diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-> new file mode 100644
-> index 0000000..87416df
-> --- /dev/null
-> +++ b/drivers/media/v4l2-core/v4l2-mc.c
-> @@ -0,0 +1,60 @@
-> +/*
-> + * v4l2-mc.c - Media Controller V4L2 Common Interfaces
-> + *
-> + * Copyright (C) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <media/v4l2-mc.h>
-> +#include <media/media-device.h>
-> +#include <media/videobuf2-core.h>
-> +#include <media/v4l2-fh.h>
-> +
-> +int v4l_enable_media_source(struct video_device *vdev)
-> +{
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_device *mdev = vdev->entity.graph_obj.mdev;
-> +	int ret;
-> +
-> +	if (!mdev || !mdev->enable_source)
-> +		return 0;
-> +	ret = mdev->enable_source(&vdev->entity, &vdev->pipe);
-> +	if (ret)
-> +		return -EBUSY;
-> +	return 0;
-> +#endif /* CONFIG_MEDIA_CONTROLLER */
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l_enable_media_source);
-> +
-> +void v4l_disable_media_source(struct video_device *vdev)
-> +{
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct media_device *mdev = vdev->entity.graph_obj.mdev;
-> +
-> +	if (mdev && mdev->disable_source)
-> +		mdev->disable_source(&vdev->entity);
-> +#endif /* CONFIG_MEDIA_CONTROLLER */
-> +}
-> +EXPORT_SYMBOL_GPL(v4l_disable_media_source);
-> +
-> +int v4l_vb2q_enable_media_source(struct vb2_queue *q)
-> +{
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +	struct v4l2_fh *fh = q->owner;
-> +
-> +	return v4l_enable_media_source(fh->vdev);
-> +#endif /* CONFIG_MEDIA_CONTROLLER */
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
-> +
+Add logic such that the "default-input" property becomes unnecessary
+for chips that only have one suitable input (ADV7611 by design, and
+ADV7612 due to commit 7111cddd "[media] media: adv7604: reduce support
+to first (digital) input").
 
-The code itself is ok. However, the above code would work better if you
-declare them as static inline at the header file (v4l2-mc.h). That would
-allow the compiler to optimize them with the caller codr (where the
-declared structs like mdev, fh are likely already stored on some registers), 
-and even removing the function completely if compiled without the media
-controller.
+Additionally, Ian's documentation in commit bf9c8227 ("[media] media:
+adv7604: ability to read default input port from DT") states that the
+"default-input" property should reside directly in the node for
+adv7612. Hence, also adjust the parsing to make the implementation
+consistent with this.
 
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index eeabf20..76056ab 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -87,6 +87,7 @@ struct video_device
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	struct media_entity entity;
->  	struct media_intf_devnode *intf_devnode;
-> +	struct media_pipeline pipe;
->  #endif
->  	/* device ops */
->  	const struct v4l2_file_operations *fops;
-> diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-> index df11519..df1a98f 100644
-> --- a/include/media/v4l2-mc.h
-> +++ b/include/media/v4l2-mc.h
-> @@ -14,6 +14,11 @@
->   * GNU General Public License for more details.
->   */
->  
-> +#ifndef _V4L2_MC_H
-> +#define _V4L2_MC_H
-> +
-> +#include <media/v4l2-dev.h>
-> +
->  /**
->   * enum tuner_pad_index - tuner pad index for MEDIA_ENT_F_TUNER
->   *
-> @@ -89,3 +94,50 @@ enum demod_pad_index {
->  	DEMOD_PAD_VBI_OUT,
->  	DEMOD_NUM_PADS
->  };
-> +
-> +/**
-> + * v4l_enable_media_source() -	Hold media source for exclusive use
-> + *				if free
-> + *
-> + * @vdev - poniter to struct video_device
-> + *
-> + * This interface calls enable_source handler to determine if
-> + * media source is free for use. The enable_source handler is
-> + * responsible for checking is the media source is free and
-> + * start a pipeline between the media source and the media
-> + * entity associated with the video device. This interface
-> + * should be called from v4l2-core and dvb-core interfaces
-> + * that change the source configuration.
-> + *
-> + * Return: returns zero on success or a negative error code.
-> + */
-> +int v4l_enable_media_source(struct video_device *vdev);
-> +
-> +/**
-> + * v4l_disable_media_source() -	Release media source
-> + *
-> + * @vdev - poniter to struct video_device
-> + *
-> + * This interface calls disable_source handler to release
-> + * the media source. The disable_source handler stops the
-> + * active media pipeline between the media source and the
-> + * media entity associated with the video device.
-> + *
-> + * Return: returns zero on success or a negative error code.
-> + */
-> +void v4l_disable_media_source(struct video_device *vdev);
-> +/*
-> + * v4l_vb2q_enable_media_tuner -  Hold media source for exclusive use
-> + *				  if free.
-> + * @q - pointer to struct vb2_queue
-> + *
-> + * Wrapper for v4l_enable_media_source(). This function should
-> + * be called from v4l2-core to enable the media source with
-> + * pointer to struct vb2_queue as the input argument. Some
-> + * v4l2-core interfaces don't have access to video device and
-> + * this interface finds the struct video_device for the q and
-> + * calls v4l_enable_media_source().
-> + */
-> +int v4l_vb2q_enable_media_source(struct vb2_queue *q);
-> +
-> +#endif /* _V4L2_MC_H */
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+---
+ drivers/media/i2c/adv7604.c | 24 +++++++++++++++++-------
+ 1 file changed, 17 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index f8dd750..2097c48 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2799,7 +2799,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	struct device_node *endpoint;
+ 	struct device_node *np;
+ 	unsigned int flags;
+-	u32 v;
++	u32 v = -1;
+ 
+ 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
+ 
+@@ -2809,14 +2809,24 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 		return -EINVAL;
+ 
+ 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
+-
+-	if (!of_property_read_u32(endpoint, "default-input", &v))
+-		state->pdata.default_input = v;
+-	else
+-		state->pdata.default_input = -1;
+-
+ 	of_node_put(endpoint);
+ 
++	if (of_property_read_u32(np, "default-input", &v)) {
++		/* not specified ... can we choose automatically? */
++		switch (state->info->type) {
++		case ADV7611:
++			v = 0;
++			break;
++		case ADV7612:
++			if (state->info->max_port == ADV76XX_PAD_HDMI_PORT_A)
++				v = 0;
++			/* else is unhobbled, leave unspecified */
++		default:
++			break;
++		}
++	}
++	state->pdata.default_input = v;
++
+ 	flags = bus_cfg.bus.parallel.flags;
+ 
+ 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+-- 
+2.6.4
+
