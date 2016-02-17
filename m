@@ -1,114 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:34326 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946573AbcBRPG1 (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:37548 "EHLO
+	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933828AbcBQO6J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 10:06:27 -0500
-Received: by mail-wm0-f54.google.com with SMTP id b205so29191661wmb.1
-        for <linux-media@vger.kernel.org>; Thu, 18 Feb 2016 07:06:27 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linux-security-module@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, zoltan.kuscsik@linaro.org,
-	sumit.semwal@linaro.org, cc.ma@mediatek.com
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v6 0/3] Secure Memory Allocation Framework
-Date: Thu, 18 Feb 2016 16:05:14 +0100
-Message-Id: <1455807917-19901-1-git-send-email-benjamin.gaignard@linaro.org>
+	Wed, 17 Feb 2016 09:58:09 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v2] adv7604: fix SPA register location for ADV7612
+Date: Wed, 17 Feb 2016 15:57:56 +0100
+Message-Id: <1455721076-11458-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 6 changes:
- - rebased on kernel 4.5-rc4
- - fix mmapping bug while requested allocation size isn't a a multiple of
-   PAGE_SIZE (add a test for this in libsmaf)
+SPA location LSB register is at 0x70.
 
-version 5 changes:
- - rebased on kernel 4.3-rc6
- - rework locking schema and make handle status use an atomic_t
- - add a fake secure module to allow performing tests without trusted
-   environment
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+---
+As suggested by Lars-Peter, this applies the change to the ADV7611 case as
+well.
 
-version 4 changes:
- - rebased on kernel 4.3-rc3
- - fix missing EXPORT_SYMBOL for smaf_create_handle()
+ drivers/media/i2c/adv7604.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-version 3 changes:
- - Remove ioctl for allocator selection instead provide the name of
-   the targeted allocator with allocation request.
-   Selecting allocator from userland isn't the prefered way of working
-   but is needed when the first user of the buffer is a software component.
- - Fix issues in case of error while creating smaf handle.
- - Fix module license.
- - Update libsmaf and tests to care of the SMAF API evolution
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
-
-version 2 changes:
- - Add one ioctl to allow allocator selection from userspace.
-   This is required for the uses case where the first user of
-   the buffer is a software IP which can't perform dma_buf attachement.
- - Add name and ranking to allocator structure to be able to sort them.
- - Create a tiny library to test SMAF:
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
- - Fix one issue when try to secure buffer without secure module registered
-
-The outcome of the previous RFC about how do secure data path was the need
-of a secure memory allocator (https://lkml.org/lkml/2015/5/5/551)
-
-SMAF goal is to provide a framework that allow allocating and securing
-memory by using dma_buf. Each platform have it own way to perform those two
-features so SMAF design allow to register helper modules to perform them.
-
-To be sure to select the best allocation method for devices SMAF implement
-deferred allocation mechanism: memory allocation is only done when the first
-device effectively required it.
-Allocator modules have to implement a match() to let SMAF know if they are
-compatibles with devices needs.
-This patch set provide an example of allocator module which use
-dma_{alloc/free/mmap}_attrs() and check if at least one device have
-coherent_dma_mask set to DMA_BIT_MASK(32) in match function. 
-I have named smaf-cma.c like it is done for drm_gem_cma_helper.c even if 
-a better name could be found for this file.
-
-Secure modules are responsibles of granting and revoking devices access rights
-on the memory. Secure module is also called to check if CPU map memory into
-kernel and user address spaces.
-An example of secure module implementation can be found here:
-http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
-This code isn't yet part of the patch set because it depends on generic TEE
-which is still under discussion (https://lwn.net/Articles/644646/)
-
-For allocation part of SMAF code I get inspirated by Sumit Semwal work about
-constraint aware allocator.
-
-Benjamin Gaignard (2):
-  create SMAF module
-  SMAF: add CMA allocator
-
-benjamin.gaignard@linaro.org (1):
-  SMAF: add fake secure module
-
- drivers/Kconfig                |   2 +
- drivers/Makefile               |   1 +
- drivers/smaf/Kconfig           |  17 +
- drivers/smaf/Makefile          |   3 +
- drivers/smaf/smaf-cma.c        | 199 +++++++++++
- drivers/smaf/smaf-core.c       | 751 +++++++++++++++++++++++++++++++++++++++++
- drivers/smaf/smaf-fakesecure.c |  92 +++++
- include/linux/smaf-allocator.h |  54 +++
- include/linux/smaf-secure.h    |  75 ++++
- include/uapi/linux/smaf.h      |  52 +++
- 10 files changed, 1246 insertions(+)
- create mode 100644 drivers/smaf/Kconfig
- create mode 100644 drivers/smaf/Makefile
- create mode 100644 drivers/smaf/smaf-cma.c
- create mode 100644 drivers/smaf/smaf-core.c
- create mode 100644 drivers/smaf/smaf-fakesecure.c
- create mode 100644 include/linux/smaf-allocator.h
- create mode 100644 include/linux/smaf-secure.h
- create mode 100644 include/uapi/linux/smaf.h
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 2097c48..1680c0e 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2110,7 +2110,8 @@ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
+ 		rep_write(sd, 0x76, spa_loc & 0xff);
+ 		rep_write_clr_set(sd, 0x77, 0x40, (spa_loc & 0x100) >> 2);
+ 	} else {
+-		/* FIXME: Where is the SPA location LSB register ? */
++		/* ADV7612 Software Manual Rev. A, p. 15 */
++		rep_write(sd, 0x70, spa_loc & 0xff);
+ 		rep_write_clr_set(sd, 0x71, 0x01, (spa_loc & 0x100) >> 8);
+ 	}
+ 
 -- 
-1.9.1
+2.6.4
 
