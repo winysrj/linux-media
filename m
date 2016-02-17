@@ -1,129 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53889 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425268AbcBRMol (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 07:44:41 -0500
-Date: Thu, 18 Feb 2016 10:44:34 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160218104434.25d11e33@recife.lan>
-In-Reply-To: <56C5B3E7.6030509@xs4all.nl>
-References: <20160213145317.247c63c7@lwn.net>
-	<86fuwwcdmd.fsf@hiro.keithp.com>
-	<CAKMK7uGeU_grgC7pRCdqw+iDGWQfXhHwvX+tkSgRmdimxMrthA@mail.gmail.com>
-	<20160217151401.3cb82f65@lwn.net>
-	<CAKMK7uEqbSrhc2nh0LjC1fztciM4eTjtKE9T_wMVCqAkkTnzkA@mail.gmail.com>
-	<874md6fkna.fsf@intel.com>
-	<CAKMK7uE72wFEFCyw1dHbt+f3-ex3fr_9MbjoGfnKFZkd5+9S2Q@mail.gmail.com>
-	<20160218082657.5a1a5b0f@recife.lan>
-	<87r3gadzye.fsf@intel.com>
-	<20160218100427.6471cb22@recife.lan>
-	<56C5B3E7.6030509@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from sg-smtp01.263.net ([54.255.195.220]:46231 "EHLO
+	sg-smtp01.263.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161472AbcBRA7w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2016 19:59:52 -0500
+From: Jung Zhao <jung.zhao@rock-chips.com>
+To: tfiga@chromium.org, posciak@chromium.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 2/4] [NOT FOR REVIEW] v4l: Add VP8 low-level decoder API controls.
+Date: Wed, 17 Feb 2016 18:42:33 +0800
+Message-Id: <1455705753-25687-1-git-send-email-jung.zhao@rock-chips.com>
+In-Reply-To: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
+References: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 18 Feb 2016 13:07:03 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+From: Pawel Osciak <posciak@chromium.org>
 
-> On 02/18/16 13:04, Mauro Carvalho Chehab wrote:
-> > Em Thu, 18 Feb 2016 13:23:37 +0200
-> > Jani Nikula <jani.nikula@intel.com> escreveu:
-> >   
-> >> On Thu, 18 Feb 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:  
-> >>> For simple documents like the one produced by kernel-doc, I guess
-> >>> all markup languages would work equally.
-> >>>
-> >>> The problem is for complex documents like the media kAPI one, where
-> >>> the document was written to produce a book. So, it uses some complex
-> >>> features found at DocBook. One of such features we use extensively
-> >>> is the capability of having a table with per-line columns. This way,
-> >>> we can produce things like:
-> >>>
-> >>> V4L2_CID_COLOR_KILLER	boolean	Enable the color killer (i. e. force a black & white image in case of a weak video signal).
-> >>> V4L2_CID_COLORFX	enum	Selects a color effect. The following values are defined:
-> >>> 				V4L2_COLORFX_NONE 		Color effect is disabled.
-> >>> 				V4L2_COLORFX_ANTIQUE 		An aging (old photo) effect.
-> >>> 				V4L2_COLORFX_ART_FREEZE 	Frost color effect.
-> >>>
-> >>> In the above example, we have a main 3 columns table, and we embed
-> >>> a 2 columns table at the third field of V4L2_CID_COLORFX to represent
-> >>> possible values for this menu control.
-> >>>
-> >>> See https://linuxtv.org/downloads/v4l-dvb-apis/control.html for the
-> >>> complete output of it.
-> >>>
-> >>> This is used extensively inside the media DocBook, and properly
-> >>> supporting it is one of our major concerns.
-> >>>
-> >>> Are there any way to represent those things with the markup
-> >>> languages currently being analyzed?
-> >>>
-> >>> Converting those tables will likely require manual work, as I don't
-> >>> think automatic tools will properly handle it, specially since we
-> >>> use some DocBook macros to help creating such tables.    
-> >>
-> >> Since I've let myself be told that asciidoc handles tables better than
-> >> reStructuredText, I tested this a bit with the presumably inferior one.
-> >>
-> >> rst has two table types, simple tables and grid tables [1]. It seems
-> >> like grid tables can do pretty much anything, but they can be cumbersome
-> >> to work with. So I tried to check what can be done with simple tables.
-> >>
-> >> Here's a sample, converted using rst2html (Sphinx will be prettier, but
-> >> rst2html works for simple things like this):
-> >>
-> >> https://people.freedesktop.org/~jani/v4l-table-within-table.rst
-> >> https://people.freedesktop.org/~jani/v4l-table-within-table.html  
-> > 
-> > Yes, this would work. Can we remove the border from the main table?
-> > I guess it would be nicer.
-> >   
-> >>
-> >> Rather than using nested tables, you might want to consider using
-> >> definition lists within tables:
-> >>
-> >> https://people.freedesktop.org/~jani/v4l-definition-list-within-table.rst
-> >> https://people.freedesktop.org/~jani/v4l-definition-list-within-table.html
-> >>
-> >> You be the judge, but I think this is workable.  
-> > 
-> > It is workable, but I guess nested tables produced a better result.
-> > 
-> > I did myself a test with nested tables with asciidoc too:
-> > 
-> > https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.html
-> > https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.ascii
-> > 
-> > With looks very decent to me.  
-> 
-> It does, except for the vertical alignment of the third column (at least when viewed
-> with google chrome).
+These controls are to be used with the new low-level decoder API for VP8
+to provide additional parameters for the hardware that cannot parse the
+input stream.
 
-Not sure what you mean. Here, it looks fine on both Firefox and Chrome,
-except that the second colum size could be smaller. If this is what
-you're meaning this can be fixed by changing the second line from:
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+Signed-off-by: Jung Zhao <jung.zhao@rock-chips.com>
+---
+Changes in v2: None
 
-	[width="100%",cols="2,1,10a",options="header",frame="none", grid="none"]
+ drivers/media/v4l2-core/v4l2-ctrls.c |  9 ++++
+ drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
+ include/media/v4l2-ctrls.h           |  2 +
+ include/uapi/linux/v4l2-controls.h   | 94 ++++++++++++++++++++++++++++++++++++
+ include/uapi/linux/videodev2.h       |  3 ++
+ 5 files changed, 109 insertions(+)
 
-to:
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 527d65c..ffc513e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -762,6 +762,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+ 
++	case V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR:			return "VP8 Frame Header";
++
+ 	/* CAMERA controls */
+ 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+@@ -1126,6 +1128,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RDS_TX_ALT_FREQS:
+ 		*type = V4L2_CTRL_TYPE_U32;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR:
++		*type = V4L2_CTRL_TYPE_VP8_FRAME_HDR;
++		break;
+ 	default:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
+@@ -1529,6 +1534,7 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 	case V4L2_CTRL_TYPE_PRIVATE:
+ 		return 0;
+ 
++	case V4L2_CTRL_TYPE_VP8_FRAME_HDR:
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -2078,6 +2084,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	case V4L2_CTRL_TYPE_U32:
+ 		elem_size = sizeof(u32);
+ 		break;
++	case V4L2_CTRL_TYPE_VP8_FRAME_HDR:
++		elem_size = sizeof(struct v4l2_ctrl_vp8_frame_hdr);
++		break;
+ 	default:
+ 		if (type < V4L2_CTRL_COMPOUND_TYPES)
+ 			elem_size = sizeof(s32);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 7d028d1..915dc2c 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1259,6 +1259,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		case V4L2_PIX_FMT_VC1_ANNEX_G:	descr = "VC-1 (SMPTE 412M Annex G)"; break;
+ 		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
+ 		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
++		case V4L2_PIX_FMT_VP8_FRAME:	descr = "VP8 FRAME"; break;
+ 		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
+ 		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
+ 		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 5f9526f..0424cdc 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -46,6 +46,7 @@ struct poll_table_struct;
+  * @p_u16:	Pointer to a 16-bit unsigned value.
+  * @p_u32:	Pointer to a 32-bit unsigned value.
+  * @p_char:	Pointer to a string.
++ * @p_vp8_frame_hdr:	Pointer to a struct v4l2_ctrl_vp8_frame_hdr.
+  * @p:		Pointer to a compound value.
+  */
+ union v4l2_ctrl_ptr {
+@@ -55,6 +56,7 @@ union v4l2_ctrl_ptr {
+ 	u16 *p_u16;
+ 	u32 *p_u32;
+ 	char *p_char;
++	struct v4l2_ctrl_vp8_frame_hdr *p_vp8_frame_hdr;
+ 	void *p;
+ };
+ 
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2d225bc..894de37 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -578,6 +578,8 @@ enum v4l2_vp8_golden_frame_sel {
+ #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
+ #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
+ 
++#define V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR		(V4L2_CID_MPEG_BASE+512)
++
+ /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+ #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+ #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
+@@ -963,4 +965,96 @@ enum v4l2_detect_md_mode {
+ #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+ #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
+ 
++#define V4L2_VP8_SEGMNT_HDR_FLAG_ENABLED              0x01
++#define V4L2_VP8_SEGMNT_HDR_FLAG_UPDATE_MAP           0x02
++#define V4L2_VP8_SEGMNT_HDR_FLAG_UPDATE_FEATURE_DATA  0x04
++struct v4l2_vp8_sgmnt_hdr {
++	__u8 segment_feature_mode;
++
++	__s8 quant_update[4];
++	__s8 lf_update[4];
++	__u8 segment_probs[3];
++
++	__u8 flags;
++};
++
++#define V4L2_VP8_LF_HDR_ADJ_ENABLE	0x01
++#define V4L2_VP8_LF_HDR_DELTA_UPDATE	0x02
++struct v4l2_vp8_loopfilter_hdr {
++	__u8 type;
++	__u8 level;
++	__u8 sharpness_level;
++	__s8 ref_frm_delta_magnitude[4];
++	__s8 mb_mode_delta_magnitude[4];
++
++	__u8 flags;
++};
++
++struct v4l2_vp8_quantization_hdr {
++	__u8 y_ac_qi;
++	__s8 y_dc_delta;
++	__s8 y2_dc_delta;
++	__s8 y2_ac_delta;
++	__s8 uv_dc_delta;
++	__s8 uv_ac_delta;
++	__u16 dequant_factors[4][3][2];
++};
++
++struct v4l2_vp8_entropy_hdr {
++	__u8 coeff_probs[4][8][3][11];
++	__u8 y_mode_probs[4];
++	__u8 uv_mode_probs[3];
++	__u8 mv_probs[2][19];
++};
++
++#define V4L2_VP8_FRAME_HDR_FLAG_EXPERIMENTAL		0x01
++#define V4L2_VP8_FRAME_HDR_FLAG_SHOW_FRAME		0x02
++#define V4L2_VP8_FRAME_HDR_FLAG_MB_NO_SKIP_COEFF	0x04
++struct v4l2_ctrl_vp8_frame_hdr {
++	/* 0: keyframe, 1: not a keyframe */
++	__u8 key_frame;
++	__u8 version;
++
++	/* Populated also if not a key frame */
++	__u16 width;
++	__u8 horizontal_scale;
++	__u16 height;
++	__u8 vertical_scale;
++
++	struct v4l2_vp8_sgmnt_hdr sgmnt_hdr;
++	struct v4l2_vp8_loopfilter_hdr lf_hdr;
++	struct v4l2_vp8_quantization_hdr quant_hdr;
++	struct v4l2_vp8_entropy_hdr entropy_hdr;
++
++	__u8 sign_bias_golden;
++	__u8 sign_bias_alternate;
++
++	__u8 prob_skip_false;
++	__u8 prob_intra;
++	__u8 prob_last;
++	__u8 prob_gf;
++
++	__u32 first_part_size;
++	__u32 first_part_offset;
++	/*
++	 * Offset in bits of MB data in first partition,
++	 * i.e. bit offset starting from first_part_offset.
++	 */
++	__u32 macroblock_bit_offset;
++
++	__u8 num_dct_parts;
++	__u32 dct_part_sizes[8];
++
++	__u8 bool_dec_range;
++	__u8 bool_dec_value;
++	__u8 bool_dec_count;
++
++	/* v4l2_buffer indices of reference frames */
++	__u32 last_frame;
++	__u32 golden_frame;
++	__u32 alt_frame;
++
++	__u8 flags;
++};
++
+ #endif
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 53ac896..1493ec4 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -593,6 +593,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
+ #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+ #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
++#define V4L2_PIX_FMT_VP8_FRAME v4l2_fourcc('V', 'P', '8', 'F') /* VP8 parsed frames */
+ 
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+@@ -1473,6 +1474,7 @@ struct v4l2_ext_control {
+ 		__u8 __user *p_u8;
+ 		__u16 __user *p_u16;
+ 		__u32 __user *p_u32;
++		struct v4l2_ctrl_vp8_frame_hdr __user *p_vp8_frame_hdr;
+ 		void __user *ptr;
+ 	};
+ } __attribute__ ((packed));
+@@ -1517,6 +1519,7 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_U8	     = 0x0100,
+ 	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ 	V4L2_CTRL_TYPE_U32	     = 0x0102,
++	V4L2_CTRL_TYPE_VP8_FRAME_HDR	= 0x108,
+ 
+ 	V4L2_CTRL_TYPE_PRIVATE       = 0xffff,
+ };
+-- 
+1.9.1
 
-	[width="100%",cols="3,1,30a",options="header",frame="none", grid="none"]
-
-With regards to ReStructured Text, I've no idea how to control the
-format of a table in order to do things like hiding the borders and
-changing the column spacing.
-
-So, at least on a first glance, asciidoc seems to fit better.
-
-Thanks,
-Mauro
