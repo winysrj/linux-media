@@ -1,68 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp207.alice.it ([82.57.200.103]:46477 "EHLO smtp207.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756711AbcB0UUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2016 15:20:16 -0500
-Date: Sat, 27 Feb 2016 21:14:10 +0100
-From: Antonio Ospite <ao2@ao2.it>
-To: Jannik Becher <becher.jannik@gmail.com>
-Cc: crope@iki.fi, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Jannik Becher <Becher.Jannik@gmail.com>
-Subject: Re: [PATCH] Media: usb: hackrf: fixed a style issue
-Message-Id: <20160227211410.de7c8d21d1ab84c5870221cf@ao2.it>
-In-Reply-To: <1456602156-25011-1-git-send-email-Becher.Jannik@gmail.com>
-References: <1456602156-25011-1-git-send-email-Becher.Jannik@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:36366 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161129AbcBQPs6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2016 10:48:58 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH/RFC 0/9] Lager board HDMI input support
+Date: Wed, 17 Feb 2016 16:48:36 +0100
+Message-Id: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 27 Feb 2016 20:42:36 +0100
-Jannik Becher <becher.jannik@gmail.com> wrote:
+Hi!
 
-> Fixed a coding style issue.
->
+This series implements Lager HDMI input support on top of Niklas's herculean
+rewrite of the rcar-vin driver ("[media] rcar-vin: add Renesas R-Car VIN IP
+core").
 
-You should be more specific: which style issue?
-See also my comment below.
+A couple of the included patches are pushed or have been picked up elsewhere
+already and are included here for ease of testing.
 
-> Signed-off-by: Jannik Becher <Becher.Jannik@gmail.com>
-> ---
->  drivers/media/usb/hackrf/hackrf.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/usb/hackrf/hackrf.c b/drivers/media/usb/hackrf/hackrf.c
-> index 9e700ca..186ef2d 100644
-> --- a/drivers/media/usb/hackrf/hackrf.c
-> +++ b/drivers/media/usb/hackrf/hackrf.c
-> @@ -249,6 +249,7 @@ static int hackrf_set_params(struct hackrf_dev *dev)
->  	unsigned int uitmp, uitmp1, uitmp2;
->  	const bool rx = test_bit(RX_ON, &dev->flags);
->  	const bool tx = test_bit(TX_ON, &dev->flags);
-> +
->  	static const struct {
->  		u32 freq;
->  	} bandwidth_lut[] = {
+The EDID initialization blob has been lifted wholesale from the cobalt
+driver, with only the vendor ID adjusted to "REN".
 
-If this has been found by scripts/checkpatch.pl as:
+(Note for testing: To get up-to-date DV timings, you have to use a client
+that does QUERY_DV_TIMINGS/S_DV_TIMINGS.  Few do.)
 
-WARNING: Missing a blank line after declarations
-#252: FILE: drivers/media/usb/hackrf/hackrf.c:252:
-+       const bool tx = test_bit(TX_ON, &dev->flags);
-+       static const struct {
+CU
+Uli
 
-it is a false positive, as the code which follows the blank line is a
-declaration too.
 
-Ciao ciao,
-   Antonio
+Ian Molton (1):
+  ARM: shmobile: lager dts: specify default-input for ADV7612
+
+Laurent Pinchart (1):
+  v4l: subdev: Add pad config allocator and init
+
+Ulrich Hecht (5):
+  adv7604: fix SPA register location for ADV7612
+  media: rcar_vin: Use correct pad number in try_fmt
+  media: rcar-vin: pad-aware driver initialisation
+  media: rcar-vin: add DV timings support
+  media: rcar-vin: initialize EDID data
+
+William Towle (2):
+  media: adv7604: automatic "default-input" selection
+  ARM: shmobile: lager dts: Add entries for VIN HDMI input support
+
+ arch/arm/boot/dts/r8a7790-lager.dts        |  41 +++++++-
+ drivers/media/i2c/adv7604.c                |  27 ++++--
+ drivers/media/platform/rcar-vin/rcar-dma.c | 145 ++++++++++++++++++++++++++++-
+ drivers/media/platform/rcar-vin/rcar-vin.h |   1 +
+ drivers/media/v4l2-core/v4l2-subdev.c      |  19 +++-
+ include/media/v4l2-subdev.h                |  10 ++
+ 6 files changed, 229 insertions(+), 14 deletions(-)
 
 -- 
-Antonio Ospite
-http://ao2.it
+2.6.4
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
