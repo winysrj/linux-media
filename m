@@ -1,200 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56997 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751943AbcBWP40 (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.75]:57787 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934008AbcBQKtL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 10:56:26 -0500
-Subject: Re: [PATCH] soc_camera/omap1: move to staging in preparation for
- removal
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <56CC4CD0.7050308@xs4all.nl>
- <Pine.LNX.4.64.1602231554230.17650@axis700.grange>
- <56CC73B7.6070804@xs4all.nl>
- <Pine.LNX.4.64.1602231604460.17650@axis700.grange>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56CC8125.60205@xs4all.nl>
-Date: Tue, 23 Feb 2016 16:56:21 +0100
+	Wed, 17 Feb 2016 05:49:11 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Andrzej Hajda <a.hajda@samsung.com>, linux-kernel@vger.kernel.org,
+	linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	netdev@vger.kernel.org, linux-usb@vger.kernel.org,
+	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+	linux-serial@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linuxppc-dev@lists.ozlabs.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/7] fix IS_ERR_VALUE usage
+Date: Wed, 17 Feb 2016 11:48:38 +0100
+Message-ID: <7443859.JK6ybmGO1A@wuerfel>
+In-Reply-To: <1455546925-22119-1-git-send-email-a.hajda@samsung.com>
+References: <1455546925-22119-1-git-send-email-a.hajda@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1602231604460.17650@axis700.grange>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/23/2016 04:05 PM, Guennadi Liakhovetski wrote:
-> On Tue, 23 Feb 2016, Hans Verkuil wrote:
+On Monday 15 February 2016 15:35:18 Andrzej Hajda wrote:
 > 
->> On 02/23/16 15:55, Guennadi Liakhovetski wrote:
->>> Hi Hans,
->>>
->>> On Tue, 23 Feb 2016, Hans Verkuil wrote:
->>>
->>>> This driver is deprecated: it needs to be converted to vb2 and
->>>> it should become a stand-alone driver instead of using the
->>>> soc-camera framework.
->>>>
->>>> Unless someone is willing to take this on (unlikely with such
->>>> ancient hardware) it is going to be removed from the kernel
->>>> soon.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>
->>> I guess I won't be pulling this through my tree, right?
->>
->> Right.
->>
->>>
->>> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->>
->> Thanks!
->>
->> This one was easy.
-> 
-> mx2, mx3 should be easy too?
-
-Sure. Are you certain these can be deprecated? I haven't heard
-anything regarding the status of these driver. You probably know that
-best.
-
-If you give me the go ahead, then I'll prepare patches for these to
-move them to staging.
-
-Regards,
-
-	Hans
-
-> 
-> Guennadi
-> 
->> For the sh renesas drivers I will take one final look during the weekend.
->> See what works and what doesn't. I actually have hardware for it, after
->> all.
->>
->> Regards,
->>
->> 	Hans
->>
->>>
->>> Thanks
->>> Guennadi
->>>
->>>> ---
->>>>  drivers/media/platform/soc_camera/Kconfig                   | 10 ----------
->>>>  drivers/media/platform/soc_camera/Makefile                  |  1 -
->>>>  drivers/staging/media/Kconfig                               |  2 ++
->>>>  drivers/staging/media/Makefile                              |  1 +
->>>>  drivers/staging/media/omap1/Kconfig                         | 13 +++++++++++++
->>>>  drivers/staging/media/omap1/Makefile                        |  3 +++
->>>>  .../soc_camera => staging/media/omap1}/omap1_camera.c       |  0
->>>>  7 files changed, 19 insertions(+), 11 deletions(-)
->>>>  create mode 100644 drivers/staging/media/omap1/Kconfig
->>>>  create mode 100644 drivers/staging/media/omap1/Makefile
->>>>  rename drivers/{media/platform/soc_camera => staging/media/omap1}/omap1_camera.c (100%)
->>>>
->>>> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
->>>> index f2776cd..954dd36 100644
->>>> --- a/drivers/media/platform/soc_camera/Kconfig
->>>> +++ b/drivers/media/platform/soc_camera/Kconfig
->>>> @@ -60,16 +60,6 @@ config VIDEO_SH_MOBILE_CEU
->>>>  	---help---
->>>>  	  This is a v4l2 driver for the SuperH Mobile CEU Interface
->>>>
->>>> -config VIDEO_OMAP1
->>>> -	tristate "OMAP1 Camera Interface driver"
->>>> -	depends on VIDEO_DEV && SOC_CAMERA
->>>> -	depends on ARCH_OMAP1
->>>> -	depends on HAS_DMA
->>>> -	select VIDEOBUF_DMA_CONTIG
->>>> -	select VIDEOBUF_DMA_SG
->>>> -	---help---
->>>> -	  This is a v4l2 driver for the TI OMAP1 camera interface
->>>> -
->>>>  config VIDEO_MX2
->>>>  	tristate "i.MX27 Camera Sensor Interface driver"
->>>>  	depends on VIDEO_DEV && SOC_CAMERA
->>>> diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
->>>> index 2826382..bdd7fc9 100644
->>>> --- a/drivers/media/platform/soc_camera/Makefile
->>>> +++ b/drivers/media/platform/soc_camera/Makefile
->>>> @@ -9,7 +9,6 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
->>>>  obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
->>>>  obj-$(CONFIG_VIDEO_MX2)			+= mx2_camera.o
->>>>  obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
->>>> -obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
->>>>  obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
->>>>  obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
->>>>  obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
->>>> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
->>>> index d48a5c2..382d868 100644
->>>> --- a/drivers/staging/media/Kconfig
->>>> +++ b/drivers/staging/media/Kconfig
->>>> @@ -29,6 +29,8 @@ source "drivers/staging/media/mn88472/Kconfig"
->>>>
->>>>  source "drivers/staging/media/mn88473/Kconfig"
->>>>
->>>> +source "drivers/staging/media/omap1/Kconfig"
->>>> +
->>>>  source "drivers/staging/media/omap4iss/Kconfig"
->>>>
->>>>  source "drivers/staging/media/timb/Kconfig"
->>>> diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
->>>> index fb94f04..89d038c 100644
->>>> --- a/drivers/staging/media/Makefile
->>>> +++ b/drivers/staging/media/Makefile
->>>> @@ -2,6 +2,7 @@ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
->>>>  obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
->>>>  obj-$(CONFIG_LIRC_STAGING)	+= lirc/
->>>>  obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
->>>> +obj-$(CONFIG_VIDEO_OMAP1)	+= omap1/
->>>>  obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
->>>>  obj-$(CONFIG_DVB_MN88472)       += mn88472/
->>>>  obj-$(CONFIG_DVB_MN88473)       += mn88473/
->>>> diff --git a/drivers/staging/media/omap1/Kconfig b/drivers/staging/media/omap1/Kconfig
->>>> new file mode 100644
->>>> index 0000000..6cfab3a
->>>> --- /dev/null
->>>> +++ b/drivers/staging/media/omap1/Kconfig
->>>> @@ -0,0 +1,13 @@
->>>> +config VIDEO_OMAP1
->>>> +	tristate "OMAP1 Camera Interface driver"
->>>> +	depends on VIDEO_DEV && SOC_CAMERA
->>>> +	depends on ARCH_OMAP1
->>>> +	depends on HAS_DMA
->>>> +	select VIDEOBUF_DMA_CONTIG
->>>> +	select VIDEOBUF_DMA_SG
->>>> +	---help---
->>>> +	  This is a v4l2 driver for the TI OMAP1 camera interface
->>>> +
->>>> +	  This driver is deprecated and will be removed soon unless someone
->>>> +	  will start the work to convert this driver to the vb2 framework
->>>> +	  and remove the soc-camera dependency.
->>>> diff --git a/drivers/staging/media/omap1/Makefile b/drivers/staging/media/omap1/Makefile
->>>> new file mode 100644
->>>> index 0000000..2885622
->>>> --- /dev/null
->>>> +++ b/drivers/staging/media/omap1/Makefile
->>>> @@ -0,0 +1,3 @@
->>>> +# Makefile for OMAP1 driver
->>>> +
->>>> +obj-$(CONFIG_VIDEO_OMAP1) += omap1_camera.o
->>>> diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/staging/media/omap1/omap1_camera.c
->>>> similarity index 100%
->>>> rename from drivers/media/platform/soc_camera/omap1_camera.c
->>>> rename to drivers/staging/media/omap1/omap1_camera.c
->>>> -- 
->>>> 2.7.0
->>>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Andrzej Hajda (7):
+>   netfilter: fix IS_ERR_VALUE usage
+>   MIPS: module: fix incorrect IS_ERR_VALUE macro usages
+>   drivers: char: mem: fix IS_ERROR_VALUE usage
+>   atmel-isi: fix IS_ERR_VALUE usage
+>   serial: clps711x: fix IS_ERR_VALUE usage
+>   fbdev: exynos: fix IS_ERR_VALUE usage
+>   usb: gadget: fsl_qe_udc: fix IS_ERR_VALUE usage
 > 
 
+Can you Cc me the next time on all of the patches? I only got
+three of them this time.
+
+	Arnd
