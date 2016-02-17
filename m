@@ -1,49 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:38603 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756566AbcB0Res (ORCPT
+Received: from sg-smtp01.263.net ([54.255.195.220]:37455 "EHLO
+	sg-smtp01.263.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965658AbcBRAqk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2016 12:34:48 -0500
-Subject: Re: [PATCH] v4l2: remove MIPI CSI-2 driver for SH-Mobile platforms
-To: Simon Horman <horms+renesas@verge.net.au>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <1456279679-11342-1-git-send-email-horms+renesas@verge.net.au>
- <56CD5A19.4000906@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D1DE32.1030604@xs4all.nl>
-Date: Sat, 27 Feb 2016 18:34:42 +0100
-MIME-Version: 1.0
-In-Reply-To: <56CD5A19.4000906@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 17 Feb 2016 19:46:40 -0500
+From: Jung Zhao <jung.zhao@rock-chips.com>
+To: tfiga@chromium.org, posciak@chromium.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 1/4] [NOT FOR REVIEW] v4l: Add private compound control type.
+Date: Wed, 17 Feb 2016 18:42:10 +0800
+Message-Id: <1455705730-25607-1-git-send-email-jung.zhao@rock-chips.com>
+In-Reply-To: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
+References: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/24/2016 08:22 AM, Hans Verkuil wrote:
-> On 02/24/2016 03:07 AM, Simon Horman wrote:
->> This driver does not appear to have ever been used by any SoC's defconfig
->> and does not appear to support DT. In sort it seems unused an unlikely
->> to be used.
-> 
-> I prefer to move it to staging/media first for 1-2 kernel cycles. Just in case
-> someone does need this.
+From: Pawel Osciak <posciak@chromium.org>
 
-Now that I looked more closely how it is used I think plain removal is best.
+V4L2_CTRL_TYPE_PRIVATE is to be used for private driver compound
+controls that use the "ptr" member of struct v4l2_ext_control.
 
-There are two options:
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Jung Zhao <jung.zhao@rock-chips.com>
+---
+Changes in v2:
+- add [NOT FOR REVIEW] tag for patches from Chromium OS Tree(Tomasz)
+- update copyright message
+- list all the related signed-off names
+- make commit message more readable(Enric)
+- fix format error of commit message(Tomasz)
 
-1) If I can manage to make a replacement ceu driver (although without cropping
-support), then the old ceu and csi drivers can both go to staging and removed
-later.
+ drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
+ include/uapi/linux/videodev2.h       | 2 ++
+ 2 files changed, 6 insertions(+)
 
-2) If the ceu driver has to stay longer, then the csi part has to be stripped.
-Moving just the csi part to staging is not feasible given how ceu and csi work
-together. It would make sense that I do this job since I can test on this board,
-at least with the composite input.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 890520d..527d65c 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1525,6 +1525,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			return -ERANGE;
+ 		return 0;
+ 
++	/* FIXME:just return 0 for now */
++	case V4L2_CTRL_TYPE_PRIVATE:
++		return 0;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 29a6b78..53ac896 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1517,6 +1517,8 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_U8	     = 0x0100,
+ 	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ 	V4L2_CTRL_TYPE_U32	     = 0x0102,
++
++	V4L2_CTRL_TYPE_PRIVATE       = 0xffff,
+ };
+ 
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+-- 
+1.9.1
 
-Regards,
-
-	Hans
