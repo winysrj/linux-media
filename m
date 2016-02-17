@@ -1,293 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:61638 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932881AbcBCRIU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2016 12:08:20 -0500
-Date: Wed, 3 Feb 2016 18:08:11 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Aviv Greenberg <avivgr@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v2 1/2] V4L: add Y12I, Y8I and Z16 pixel format documentation
-In-Reply-To: <Pine.LNX.4.64.1602031251210.16491@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1602031256280.16491@axis700.grange>
-References: <Pine.LNX.4.64.1602031251210.16491@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:37526 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161621AbcBQPtS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2016 10:49:18 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH/RFC 7/9] media: rcar-vin: initialize EDID data
+Date: Wed, 17 Feb 2016 16:48:43 +0100
+Message-Id: <1455724125-13004-8-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for 3 formats, used by RealSense cameras like R200.
+Initializes the decoder subdevice with a fixed EDID blob.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
- Documentation/DocBook/media/v4l/pixfmt-y12i.xml | 49 +++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt-y8i.xml  | 80 ++++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt-z16.xml  | 81 +++++++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml      | 10 +++
- 4 files changed, 220 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-y12i.xml
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-y8i.xml
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-z16.xml
+ drivers/media/platform/rcar-vin/rcar-dma.c | 46 ++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-y12i.xml b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
-new file mode 100644
-index 0000000..4a2d1e5
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-y12i.xml
-@@ -0,0 +1,49 @@
-+<refentry id="V4L2-PIX-FMT-Y12I">
-+  <refmeta>
-+    <refentrytitle>V4L2_PIX_FMT_Y12I ('Y12I')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+  <refnamediv>
-+    <refname><constant>V4L2_PIX_FMT_Y12I</constant></refname>
-+    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-+  </refnamediv>
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>This is a grey-scale image with a depth of 12 bits per pixel, but with
-+pixels from 2 sources interleaved and bit-packed. Each pixel is stored in a
-+24-bit word in the little-endian order. On a little-endian machine these pixels
-+can be deinterlaced using</para>
-+
-+<para>
-+<programlisting>
-+__u8 *buf;
-+left0 = 0xfff &amp; *(__u16 *)buf;
-+right0 = *(__u16 *)(buf + 1) >> 4;
-+</programlisting>
-+</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_Y12I</constant> 2 pixel data stream taking 3 bytes</title>
-+
-+      <formalpara>
-+	<title>Bit-packed representation</title>
-+	<para>pixels cross the byte boundary and have a ratio of 3 bytes for each
-+          interleaved pixel.
-+	  <informaltable frame="all">
-+	    <tgroup cols="3" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>Y'<subscript>0left[7:0]</subscript></entry>
-+		  <entry>Y'<subscript>0right[3:0]</subscript>Y'<subscript>0left[11:8]</subscript></entry>
-+		  <entry>Y'<subscript>0right[11:4]</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-y8i.xml b/Documentation/DocBook/media/v4l/pixfmt-y8i.xml
-new file mode 100644
-index 0000000..99f389d
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-y8i.xml
-@@ -0,0 +1,80 @@
-+<refentry id="V4L2-PIX-FMT-Y8I">
-+  <refmeta>
-+    <refentrytitle>V4L2_PIX_FMT_Y8I ('Y8I ')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+  <refnamediv>
-+    <refname><constant>V4L2_PIX_FMT_Y8I</constant></refname>
-+    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-+  </refnamediv>
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>This is a grey-scale image with a depth of 8 bits per pixel, but with
-+pixels from 2 sources interleaved. Each pixel is stored in a 16-bit word. E.g.
-+the R200 RealSense camera stores pixel from the left sensor in lower and from
-+the right sensor in the higher 8 bits.</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_Y8I</constant> 4 &times; 4
-+pixel image</title>
-+
-+      <formalpara>
-+	<title>Byte Order.</title>
-+	<para>Each cell is one byte.
-+	  <informaltable frame="none">
-+	    <tgroup cols="9" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;0:</entry>
-+		  <entry>Y'<subscript>00left</subscript></entry>
-+		  <entry>Y'<subscript>00right</subscript></entry>
-+		  <entry>Y'<subscript>01left</subscript></entry>
-+		  <entry>Y'<subscript>01right</subscript></entry>
-+		  <entry>Y'<subscript>02left</subscript></entry>
-+		  <entry>Y'<subscript>02right</subscript></entry>
-+		  <entry>Y'<subscript>03left</subscript></entry>
-+		  <entry>Y'<subscript>03right</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;8:</entry>
-+		  <entry>Y'<subscript>10left</subscript></entry>
-+		  <entry>Y'<subscript>10right</subscript></entry>
-+		  <entry>Y'<subscript>11left</subscript></entry>
-+		  <entry>Y'<subscript>11right</subscript></entry>
-+		  <entry>Y'<subscript>12left</subscript></entry>
-+		  <entry>Y'<subscript>12right</subscript></entry>
-+		  <entry>Y'<subscript>13left</subscript></entry>
-+		  <entry>Y'<subscript>13right</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;16:</entry>
-+		  <entry>Y'<subscript>20left</subscript></entry>
-+		  <entry>Y'<subscript>20right</subscript></entry>
-+		  <entry>Y'<subscript>21left</subscript></entry>
-+		  <entry>Y'<subscript>21right</subscript></entry>
-+		  <entry>Y'<subscript>22left</subscript></entry>
-+		  <entry>Y'<subscript>22right</subscript></entry>
-+		  <entry>Y'<subscript>23left</subscript></entry>
-+		  <entry>Y'<subscript>23right</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;24:</entry>
-+		  <entry>Y'<subscript>30left</subscript></entry>
-+		  <entry>Y'<subscript>30right</subscript></entry>
-+		  <entry>Y'<subscript>31left</subscript></entry>
-+		  <entry>Y'<subscript>31right</subscript></entry>
-+		  <entry>Y'<subscript>32left</subscript></entry>
-+		  <entry>Y'<subscript>32right</subscript></entry>
-+		  <entry>Y'<subscript>33left</subscript></entry>
-+		  <entry>Y'<subscript>33right</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-z16.xml b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-new file mode 100644
-index 0000000..3d87e4b
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-z16.xml
-@@ -0,0 +1,81 @@
-+<refentry id="V4L2-PIX-FMT-Z16">
-+  <refmeta>
-+    <refentrytitle>V4L2_PIX_FMT_Z16 ('Z16 ')</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+  <refnamediv>
-+    <refname><constant>V4L2_PIX_FMT_Z16</constant></refname>
-+    <refpurpose>Interleaved grey-scale image, e.g. from a stereo-pair</refpurpose>
-+  </refnamediv>
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>This is a 16-bit format, representing depth data. Each pixel is a
-+distance to the respective point in the image coordinates. Distance unit can
-+vary and has to be negotiated with the device separately. Each pixel is stored
-+in a 16-bit word in the little endian byte order.
-+</para>
-+
-+    <example>
-+      <title><constant>V4L2_PIX_FMT_Z16</constant> 4 &times; 4
-+pixel image</title>
-+
-+      <formalpara>
-+	<title>Byte Order.</title>
-+	<para>Each cell is one byte.
-+	  <informaltable frame="none">
-+	    <tgroup cols="9" align="center">
-+	      <colspec align="left" colwidth="2*" />
-+	      <tbody valign="top">
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;0:</entry>
-+		  <entry>Z<subscript>00low</subscript></entry>
-+		  <entry>Z<subscript>00high</subscript></entry>
-+		  <entry>Z<subscript>01low</subscript></entry>
-+		  <entry>Z<subscript>01high</subscript></entry>
-+		  <entry>Z<subscript>02low</subscript></entry>
-+		  <entry>Z<subscript>02high</subscript></entry>
-+		  <entry>Z<subscript>03low</subscript></entry>
-+		  <entry>Z<subscript>03high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;8:</entry>
-+		  <entry>Z<subscript>10low</subscript></entry>
-+		  <entry>Z<subscript>10high</subscript></entry>
-+		  <entry>Z<subscript>11low</subscript></entry>
-+		  <entry>Z<subscript>11high</subscript></entry>
-+		  <entry>Z<subscript>12low</subscript></entry>
-+		  <entry>Z<subscript>12high</subscript></entry>
-+		  <entry>Z<subscript>13low</subscript></entry>
-+		  <entry>Z<subscript>13high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;16:</entry>
-+		  <entry>Z<subscript>20low</subscript></entry>
-+		  <entry>Z<subscript>20high</subscript></entry>
-+		  <entry>Z<subscript>21low</subscript></entry>
-+		  <entry>Z<subscript>21high</subscript></entry>
-+		  <entry>Z<subscript>22low</subscript></entry>
-+		  <entry>Z<subscript>22high</subscript></entry>
-+		  <entry>Z<subscript>23low</subscript></entry>
-+		  <entry>Z<subscript>23high</subscript></entry>
-+		</row>
-+		<row>
-+		  <entry>start&nbsp;+&nbsp;24:</entry>
-+		  <entry>Z<subscript>30low</subscript></entry>
-+		  <entry>Z<subscript>30high</subscript></entry>
-+		  <entry>Z<subscript>31low</subscript></entry>
-+		  <entry>Z<subscript>31high</subscript></entry>
-+		  <entry>Z<subscript>32low</subscript></entry>
-+		  <entry>Z<subscript>32high</subscript></entry>
-+		  <entry>Z<subscript>33low</subscript></entry>
-+		  <entry>Z<subscript>33high</subscript></entry>
-+		</row>
-+	      </tbody>
-+	    </tgroup>
-+	  </informaltable>
-+	</para>
-+      </formalpara>
-+    </example>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index d871245..9924732 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -1620,6 +1620,8 @@ information.</para>
-     &sub-y10b;
-     &sub-y16;
-     &sub-y16-be;
-+    &sub-y8i;
-+    &sub-y12i;
-     &sub-uv8;
-     &sub-yuyv;
-     &sub-uyvy;
-@@ -1641,6 +1643,14 @@ information.</para>
-     &sub-m420;
-   </section>
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index d40b39b..4f93a3d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -953,6 +953,41 @@ error:
+ 	return ret;
+ }
  
-+  <section id="depth-formats">
-+    <title>Depth Formats</title>
-+    <para>Depth data provides distance to points, mapped onto the image plane
-+    </para>
++static u8 edid[256] = {
++	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
++	0x48, 0xAE, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
++	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
++	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
++	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
++	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
++	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
++	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
++	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
++	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
++	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
++	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
++	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
++	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
++	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
++	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
++	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
++	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
++	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
++	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
++};
 +
-+    &sub-z16;
-+  </section>
+ int rvin_dma_on(struct rvin_dev *vin)
+ {
+ 	struct v4l2_subdev *sd;
+@@ -1029,6 +1064,17 @@ int rvin_dma_on(struct rvin_dev *vin)
+ 		vin->format.field	= mf->field;
+ 	}
+ 
++	{
++		struct v4l2_subdev_edid rvin_edid = {
++			.pad = 0,
++			.start_block = 0,
++			.blocks = 2,
++			.edid = edid,
++		};
++		v4l2_subdev_call(sd, pad, set_edid,
++				&rvin_edid);
++	}
 +
-   <section>
-     <title>Compressed Formats</title>
+ remove_device:
+ 	rvin_remove_device(vin);
  
 -- 
-1.9.3
+2.6.4
 
