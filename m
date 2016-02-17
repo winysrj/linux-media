@@ -1,80 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:33852 "EHLO
-	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751811AbcBAIAZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 03:00:25 -0500
-Received: by mail-io0-f176.google.com with SMTP id 9so69438581iom.1
-        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2016 00:00:25 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:48804 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422785AbcBQMZU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2016 07:25:20 -0500
+Date: Wed, 17 Feb 2016 10:25:05 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>, tiwai@suse.com
+Cc: clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH v3 04/22] media: Add ALSA Media Controller function
+ entities
+Message-ID: <20160217102505.200675ac@recife.lan>
+In-Reply-To: <423baaaf7ae51eb9098b7d0adc5ad668a590449e.1455233153.git.shuahkh@osg.samsung.com>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+	<423baaaf7ae51eb9098b7d0adc5ad668a590449e.1455233153.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJ2oMh+yZ4KEpq36HgrdHW4FkvQmZ4T_tD7XUGKs0a9K=otMnw@mail.gmail.com>
-References: <CAJ2oMh+yZ4KEpq36HgrdHW4FkvQmZ4T_tD7XUGKs0a9K=otMnw@mail.gmail.com>
-Date: Mon, 1 Feb 2016 10:00:24 +0200
-Message-ID: <CAJ2oMhK+RS2Z2GVGbo3X_Ov5gWxiCRRvpT6T6YgfVKmp2rM4ew@mail.gmail.com>
-Subject: Re: OS freeze after queue_setup
-From: Ran Shalit <ranshalit@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 31, 2016 at 10:35 PM, Ran Shalit <ranshalit@gmail.com> wrote:
-> Hello,
->
-> Maybe someone will have some idea about the following:
-> I am using a pci card (not video card, just some dummy pci card), to
-> check v4l2 template for PCIe card (I used solo6x10 as template for the
-> driver and moved all hardware related to video into remarks).
-> I don't use any register read/write to hardware (just dummy functions).
->
-> I get that load/unload of module is successful.
-> But on trying to start reading video frames (using read method with
-> v4l API userspace example), I get that the whole operating system is
-> freezed, and I must reboot the machine.
-> This is the queue_setup callback:
->
-> static int test_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
->   unsigned int *num_buffers, unsigned int *num_planes,
->   unsigned int sizes[], void *alloc_ctxs[])
-> {
-> struct test_dev *solo_dev = vb2_get_drv_priv(q);
-> dev_info(&test_dev->pdev->dev,"test_queue_setup\n");
-> sizes[0] = test_image_size(test_dev);
-> alloc_ctxs[0] = solo_dev->alloc_ctx;
-> *num_planes = 1;
->
-> if (*num_buffers < MIN_VID_BUFFERS)
-> *num_buffers = MIN_VID_BUFFERS;
->
-> return 0;
-> }
->
-> static const struct vb2_ops test_video_qops = {
-> .queue_setup = test_queue_setup,
-> .buf_queue = test_buf_queue,
-> .start_streaming = test_start_streaming, <- does nothing
-> .stop_streaming = test_stop_streaming, <- does nothing
-> .wait_prepare = vb2_ops_wait_prepare,
-> .wait_finish = vb2_ops_wait_finish,
-> };
->
->
-> I didn't find anything suspicious in the videobuf2 callback that can
-> explain these freeze.( start_streaming,stop_streaming contains just
-> printk with function name).
-> I also can't know where it got stuck (The system is freezed without
-> any logging on screen, all log is in dmesg).
->
-> Thank for any idea,
-> Ran
+Em Thu, 11 Feb 2016 16:41:20 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-On start reading frames (using read or mmap method), it seems as if
-there is some collisions between the pci video card and another card
-(becuase the monitor is also printed with strange colors as the moment
-the OS freezes) .
-I validated again that the PCIe boards IDs in the table are correct
-(it matches only the dummy pcie card when it is  connected ).
-I also tried to comment out the irq request, to be sure that there is
-no irq collision with another board, but it still get freezed anyway.
+> Add ALSA Media Controller capture, playback, and mixer
+> function entity defines.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  include/uapi/linux/media.h | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 3cc0366..449462e 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -98,6 +98,13 @@ struct media_device_info {
+>  #define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 42)
+>  
+>  /*
+> + * Audio Entity Functions
+> + */
+> +#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 200)
+> +#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 201)
+> +#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 202)
+> +
+> +/*
+>   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
+>   * MEDIA_ENT_F_OLD_SUBDEV_BASE are kept to keep backward compatibility
+>   * with the legacy v1 API.The number range is out of range by purpose:
 
-Regards,
-Ran
+Looks OK to me. 
+
+This won't apply anymore on master, because we changed the numberspace, 
+but it is a trivial conflict. No need to rebase.
+
+Takashi,
+
+If OK for you, please ack.
+
+
+-- 
+Thanks,
+Mauro
