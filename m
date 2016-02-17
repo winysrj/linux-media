@@ -1,134 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51808 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751849AbcBWMSx (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:55593 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756871AbcBQIbk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 07:18:53 -0500
-Subject: Re: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
- <1456090187-1191-5-git-send-email-sakari.ailus@linux.intel.com>
-Cc: laurent.pinchart@ideasonboard.com
+	Wed, 17 Feb 2016 03:31:40 -0500
+Subject: Re: [PATCH v4 5/8] [Media] vcodec: mediatek: Add Mediatek V4L2 Video
+ Encoder Driver
+To: tiffany lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hansverk@cisco.com>
+References: <1454585703-42428-1-git-send-email-tiffany.lin@mediatek.com>
+ <1454585703-42428-2-git-send-email-tiffany.lin@mediatek.com>
+ <1454585703-42428-3-git-send-email-tiffany.lin@mediatek.com>
+ <1454585703-42428-4-git-send-email-tiffany.lin@mediatek.com>
+ <1454585703-42428-5-git-send-email-tiffany.lin@mediatek.com>
+ <1454585703-42428-6-git-send-email-tiffany.lin@mediatek.com>
+ <56C1B4AF.1030207@xs4all.nl> <1455604653.19396.68.camel@mtksdaap41>
+ <56C2D371.9090805@xs4all.nl> <1455628805.19396.82.camel@mtksdaap41>
+ <56C328AF.5030604@cisco.com> <1455696068.26202.4.camel@mtksdaap41>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
+	Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56CC4E2D.7010702@xs4all.nl>
-Date: Tue, 23 Feb 2016 13:18:53 +0100
+Message-ID: <56C42FE3.8000105@xs4all.nl>
+Date: Wed, 17 Feb 2016 09:31:31 +0100
 MIME-Version: 1.0
-In-Reply-To: <1456090187-1191-5-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <1455696068.26202.4.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/21/16 22:29, Sakari Ailus wrote:
-> Add a new topic option for -h to allow listing supported media bus codes
-> in conversion functions. This is useful in figuring out which media bus
-> codes are actually supported by the library. The numeric values of the
-> codes are listed as well.
+On 02/17/16 09:01, tiffany lin wrote:
+> On Tue, 2016-02-16 at 14:48 +0100, Hans Verkuil wrote:
+>> Hi Tiffany,
+>>
+>>>>>>> +int mtk_vcodec_enc_queue_init(void *priv, struct vb2_queue *src_vq,
+>>>>>>> +			   struct vb2_queue *dst_vq)
+>>>>>>> +{
+>>>>>>> +	struct mtk_vcodec_ctx *ctx = priv;
+>>>>>>> +	int ret;
+>>>>>>> +
+>>>>>>> +	src_vq->type		= V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+>>>>>>> +	src_vq->io_modes	= VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
+>>>>>>
+>>>>>> I recomment dropping VB2_USERPTR. That only makes sense for scatter-gather dma,
+>>>>>> and you use physically contiguous DMA.
+>>>>>>
+>>>>> Now our userspace app use VB2_USERPTR. I need to check if we could drop
+>>>>> VB2_USERPTR.
+>>>>> We use src_vq->mem_ops = &vb2_dma_contig_memops;
+>>>>> And there are
+>>>>> 	.get_userptr	= vb2_dc_get_userptr,
+>>>>> 	.put_userptr	= vb2_dc_put_userptr,
+>>>>> I was confused why it only make sense for scatter-gather.
+>>>>> Could you kindly explain more?
+>>>>
+>>>> VB2_USERPTR indicates that the application can use malloc to allocate buffers
+>>>> and pass those to the driver. Since malloc uses virtual memory the physical
+>>>> memory is scattered all over. And the first page typically does not start at
+>>>> the beginning of the page but at a random offset.
+>>>>
+>>>> To support that the DMA generally has to be able to do scatter-gather.
+>>>>
+>>>> Now, where things get ugly is that a hack was added to the USERPTR support where
+>>>> apps could pass a pointer to physically contiguous memory as a user pointer. This
+>>>> was a hack for embedded systems that preallocated a pool of buffers and needed to
+>>>> pass those pointers around somehow. So the dma-contig USERPTR support is for that
+>>>> 'feature'. If you try to pass a malloc()ed buffer to a dma-contig driver it will
+>>>> reject it. One big problem is that this specific hack isn't signaled anywhere, so
+>>>> applications have no way of knowing if the USERPTR support is the proper version
+>>>> or the hack where physically contiguous memory is expected.
+>>>>
+>>>> This hack has been replaced with DMABUF which is the proper way of passing buffers
+>>>> around.
+>>>>
+>>>> New dma-contig drivers should not use that old hack anymore. Use dmabuf to pass
+>>>> external buffers around.
+>>>>
+>>>> How do you use it in your app? With malloc()ed buffers? Or with 'special' pointers
+>>>> to physically contiguous buffers?
+>>>>
+>>> Understood now. Thanks for your explanation.
+>>> Now our app use malloc()ed buffers and we hook vb2_dma_contig_memops. 
+>>> I don't know why that dma-contig driver do not reject it.
+>>> I will try to figure it out.
+>>
+>> Is there an iommu involved that turns the scatter-gather list into what looks like
+>> contiguous memory for the DMA?
+>>
+> Yes, We have iommu that could make scatter-gather list looks like
+> contiguous memory.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++++++++----
->  1 file changed, 38 insertions(+), 4 deletions(-)
+>> At the end of vb2_dc_get_userptr() in videobuf2-dma-contig.c there is a check
+>> 'if (contig_size < size)' that verifies that the sg DMA is contiguous. This would
+>> work if there is an iommu involved (if I understand it correctly).
+>>
+> I see. We saw this error before we add iommu support.
 > 
-> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-> index 0afc9c2..55cdd29 100644
-> --- a/utils/media-ctl/options.c
-> +++ b/utils/media-ctl/options.c
-> @@ -22,7 +22,9 @@
->  #include <getopt.h>
->  #include <stdio.h>
->  #include <stdlib.h>
-> +#include <string.h>
->  #include <unistd.h>
-> +#include <v4l2subdev.h>
->  
->  #include <linux/videodev2.h>
->  
-> @@ -45,7 +47,8 @@ static void usage(const char *argv0)
->  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
->  	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
->  	printf("    --set-dv pad	Configure DV timings on a given pad\n");
-> -	printf("-h, --help		Show verbose help and exit\n");
-> +	printf("-h, --help[=topic]	Show verbose help and exit\n");
-> +	printf("			topics:	mbus-fmt: List supported media bus pixel codes\n");
+>> If that's the case, then it's OK to keep VB2_USERPTR because you have real sg
+>> support (although not via the DMA engine, but via iommu mappings).
+>>
+> Got it. We will keep VB2_USERPTR.
 
-OK, this is ugly. It has nothing to do with usage help.
-
-Just make a new option --list-mbus-fmts to list supported media bus pixel codes.
-
-That would make much more sense.
+Can you add a comment here mentioning that VB2_USERPTR works with dma-contig because
+there is an iommu? That should clarify this.
 
 Regards,
 
 	Hans
-
->  	printf("-i, --interactive	Modify links interactively\n");
->  	printf("-l, --links links	Comma-separated list of link descriptors to setup\n");
->  	printf("-p, --print-topology	Print the device topology\n");
-> @@ -100,7 +103,7 @@ static struct option opts[] = {
->  	{"get-format", 1, 0, OPT_GET_FORMAT},
->  	{"get-v4l2", 1, 0, OPT_GET_FORMAT},
->  	{"set-dv", 1, 0, OPT_SET_DV},
-> -	{"help", 0, 0, 'h'},
-> +	{"help", 2, 0, 'h'},
->  	{"interactive", 0, 0, 'i'},
->  	{"links", 1, 0, 'l'},
->  	{"print-dot", 0, 0, OPT_PRINT_DOT},
-> @@ -110,6 +113,27 @@ static struct option opts[] = {
->  	{ },
->  };
->  
-> +void list_mbus_formats(void)
-> +{
-> +	unsigned int ncodes;
-> +	const unsigned int *code = v4l2_subdev_pixelcode_list(&ncodes);
-> +
-> +	printf("Supported media bus pixel codes\n");
-> +
-> +	for (ncodes++; ncodes; ncodes--, code++) {
-> +		const char *str = v4l2_subdev_pixelcode_to_string(*code);
-> +		int spaces = 30 - (int)strlen(str);
-> +
-> +		if (*code == 0)
-> +			break;
-> +
-> +		if (spaces < 0)
-> +			spaces = 0;
-> +
-> +		printf("\t%s %*c (0x%8.8x)\n", str, spaces, ' ', *code);
-> +	}
-> +}
-> +
->  int parse_cmdline(int argc, char **argv)
->  {
->  	int opt;
-> @@ -120,7 +144,8 @@ int parse_cmdline(int argc, char **argv)
->  	}
->  
->  	/* parse options */
-> -	while ((opt = getopt_long(argc, argv, "d:e:f:hil:prvV:", opts, NULL)) != -1) {
-> +	while ((opt = getopt_long(argc, argv, "d:e:f:h::il:prvV:",
-> +				  opts, NULL)) != -1) {
->  		switch (opt) {
->  		case 'd':
->  			media_opts.devname = optarg;
-> @@ -142,7 +167,16 @@ int parse_cmdline(int argc, char **argv)
->  			break;
->  
->  		case 'h':
-> -			usage(argv[0]);
-> +			if (optarg) {
-> +				if (!strcmp(optarg, "mbus-fmt"))
-> +					list_mbus_formats();
-> +				else
-> +					fprintf(stderr,
-> +						"Unknown topic \"%s\"\n",
-> +						optarg);
-> +			} else {
-> +				usage(argv[0]);
-> +			}
->  			exit(0);
->  
->  		case 'i':
-> 
