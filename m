@@ -1,44 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:57787 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934008AbcBQKtL (ORCPT
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:38210 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161552AbcBQPtN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 05:49:11 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Andrzej Hajda <a.hajda@samsung.com>, linux-kernel@vger.kernel.org,
-	linux-mips@linux-mips.org, linux-fbdev@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	netdev@vger.kernel.org, linux-usb@vger.kernel.org,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	linux-serial@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linuxppc-dev@lists.ozlabs.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/7] fix IS_ERR_VALUE usage
-Date: Wed, 17 Feb 2016 11:48:38 +0100
-Message-ID: <7443859.JK6ybmGO1A@wuerfel>
-In-Reply-To: <1455546925-22119-1-git-send-email-a.hajda@samsung.com>
-References: <1455546925-22119-1-git-send-email-a.hajda@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 17 Feb 2016 10:49:13 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH/RFC 4/9] media: rcar_vin: Use correct pad number in try_fmt
+Date: Wed, 17 Feb 2016 16:48:40 +0100
+Message-Id: <1455724125-13004-5-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 15 February 2016 15:35:18 Andrzej Hajda wrote:
-> 
-> Andrzej Hajda (7):
->   netfilter: fix IS_ERR_VALUE usage
->   MIPS: module: fix incorrect IS_ERR_VALUE macro usages
->   drivers: char: mem: fix IS_ERROR_VALUE usage
->   atmel-isi: fix IS_ERR_VALUE usage
->   serial: clps711x: fix IS_ERR_VALUE usage
->   fbdev: exynos: fix IS_ERR_VALUE usage
->   usb: gadget: fsl_qe_udc: fix IS_ERR_VALUE usage
-> 
+Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
+the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
 
-Can you Cc me the next time on all of the patches? I only got
-three of them this time.
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+[uli: adapted to rcar-vin rewrite]
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-	Arnd
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index c667ce5..70dc928 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -294,7 +294,7 @@ static int __rvin_dma_try_format_sensor(struct rvin_dev *vin,
+ 		struct rvin_sensor *sensor)
+ {
+ 	struct v4l2_subdev *sd;
+-	struct v4l2_subdev_pad_config pad_cfg;
++	struct v4l2_subdev_pad_config *pad_cfg;
+ 	struct v4l2_subdev_format format = {
+ 		.which = which,
+ 	};
+@@ -303,15 +303,20 @@ static int __rvin_dma_try_format_sensor(struct rvin_dev *vin,
+ 
+ 	sd = vin_to_sd(vin);
+ 
++	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
++	if (pad_cfg == NULL)
++		return -ENOMEM;
++
+ 	/* Requested */
+ 	rwidth = pix->width;
+ 	rheight = pix->height;
+ 
+ 	v4l2_fill_mbus_format(&format.format, pix, info->code);
++	format.pad = vin->src_pad_idx;
+ 	ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, pad, set_fmt,
+-			&pad_cfg, &format);
++			pad_cfg, &format);
+ 	if (ret < 0)
+-		return ret;
++		goto cleanup;
+ 	v4l2_fill_pix_format(pix, &format.format);
+ 
+ 	/* Sensor */
+@@ -325,7 +330,7 @@ static int __rvin_dma_try_format_sensor(struct rvin_dev *vin,
+ 		vin_dbg(vin, "sensor format mismatch, see if we can scale\n");
+ 		ret = rvin_scale_try(vin, pix, rwidth, rheight);
+ 		if (ret)
+-			return ret;
++			goto cleanup;
+ 	}
+ 
+ 	/* Store sensor output format */
+@@ -334,6 +339,8 @@ static int __rvin_dma_try_format_sensor(struct rvin_dev *vin,
+ 		sensor->height = sheight;
+ 	}
+ 
++cleanup:
++	v4l2_subdev_free_pad_config(pad_cfg);
+ 	return 0;
+ }
+ 
+-- 
+2.6.4
+
