@@ -1,58 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:53707 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756176AbcB0Jsn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2016 04:48:43 -0500
-Received: from [192.168.11.10] ([80.219.76.43]) by mail.gmx.com (mrgmx102)
- with ESMTPSA (Nemesis) id 0MLA45-1aZKVV2OmH-000Ib1 for
- <linux-media@vger.kernel.org>; Sat, 27 Feb 2016 10:48:40 +0100
-From: =?UTF-8?Q?David_M=c3=bcller?= <dave.mueller@gmx.ch>
-Subject: Unable to write V4L2 capture buffers to O_DIRECT file
-To: Linux Media <linux-media@vger.kernel.org>
-Message-ID: <56D170F7.9030200@gmx.ch>
-Date: Sat, 27 Feb 2016 10:48:39 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:36549 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1423400AbcBQO1c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2016 09:27:32 -0500
+Message-ID: <1455719247.3336.23.camel@pengutronix.de>
+Subject: Re: [PATCH] [media] coda: add support for native order firmware
+ files with Freescale header
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	Philipp Zabel <philipp.zabel@gmail.com>
+Date: Wed, 17 Feb 2016 15:27:27 +0100
+In-Reply-To: <20160217113515.19c0f87a@recife.lan>
+References: <1455715270-23757-1-git-send-email-p.zabel@pengutronix.de>
+	 <20160217113515.19c0f87a@recife.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+Hi Mauro,
 
-I'm trying to store data received from a V4L2 capture device to a SATA
-storage device.
+Am Mittwoch, den 17.02.2016, 11:35 -0200 schrieb Mauro Carvalho Chehab:
+> Em Wed, 17 Feb 2016 14:21:10 +0100
+> Philipp Zabel <p.zabel@pengutronix.de> escreveu:
+> 
+> > Freescale distribute their VPU firmware files with a 16 byte header
+> > in BIT processor native order. This patch allows to detect the header
+> > and to reorder the firmware on the fly.
+> > With this patch it should be possible to use the distributed
+> > vpu_fw_imx{53,6q,6d}.bin files directly after renaming them to
+> > v4l-coda*-imx{53,6q,6dl}.bin.
+> 
+> IMHO, the best would be to add another patch to support the files with
+> their original names, falling back to v4l-coda*. We do this on other
+> drivers where more than one firmware file could be used.
 
-For performance reasons, i would like to do the writing using a file
-opened with the O_DIRECT flag.
+thank you for the suggestion. I'll follow up with another patch that
+also supports the firmware file names as they are distributed.
 
+regards
+Philipp
 
-As a test, I have modified the v4lcap example code to support writing
-output files directly (-F option) and to select IO mode (-B option).
-
-Running this code results in a -EFAULT error returned by the write()
-function used to write to the output file as shown below:
-
-/ # v4lcap -c 2 -o -F /dev/sda1 -Bd
-IO: O_DIRECT mode
-error writing file: Bad address
-        buf: 0x76ac8000, size: 0x2DC800
-.error writing file: Bad address
-        buf: 0x767eb000, size: 0x2DC800
-
-
-Without "O_DIRECT", the v4lcap tool works ok but the overall performance
-is pretty bad.
-
-/ # v4lcap -c 2 -o -F /dev/sda1 -Bb
-IO: normal mode
-..
-
-
-Any ideas/hints how to fix this?
-
-
-HW: i.MX6Q based custom board
-SW: kernel 4.2.0 + some patches (mainly CSI capture related)
-
-
-Dave
