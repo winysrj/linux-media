@@ -1,102 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48305 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608AbcBHLoG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:44:06 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 13/35] v4l: vsp1: Decouple pipeline end of frame processing from vsp1_video
-Date: Mon,  8 Feb 2016 13:43:43 +0200
-Message-Id: <1454931845-23864-14-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from sg-smtp01.263.net ([54.255.195.220]:55744 "EHLO
+	sg-smtp01.263.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965483AbcBQTUG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2016 14:20:06 -0500
+From: Jung Zhao <jung.zhao@rock-chips.com>
+To: tfiga@chromium.org, posciak@chromium.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH v2 3/4] [NOT FOR REVIEW] videobuf2-dc: Let drivers specify DMA attrs
+Date: Wed, 17 Feb 2016 18:42:51 +0800
+Message-Id: <1455705771-25771-1-git-send-email-jung.zhao@rock-chips.com>
+In-Reply-To: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
+References: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To make the pipeline structure and operations usable without video
-devices the frame end processing must be decoupled from struct
-vsp1_video. Implement this by calling the video frame end function
-indirectly through a function pointer in struct vsp1_pipeline.
+From: Tomasz Figa <tfiga@chromium.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+DMA allocations might be subject to certain reqiurements specific to the
+hardware using the buffers, such as availability of kernel mapping (for
+contents fix-ups in the driver). The only entity that knows them is the
+driver, so it must share this knowledge with vb2-dc.
+
+This patch extends the alloc_ctx initialization interface to let the
+driver specify DMA attrs, which are then stored inside the allocation
+context and will be used for all allocations with that context.
+
+As a side effect, all dma_*_coherent() calls are turned into
+dma_*_attrs() calls, because the attributes need to be carried over
+through all DMA operations.
+
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+Signed-off-by: Jung Zhao <jung.zhao@rock-chips.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 25 +++++++++++++++++--------
- drivers/media/platform/vsp1/vsp1_video.h |  2 ++
- 2 files changed, 19 insertions(+), 8 deletions(-)
+Changes in v2: None
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 381447a4631a..8f8ff443c8fb 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -633,8 +633,9 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- }
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 33 +++++++++++++++++---------
+ include/media/videobuf2-dma-contig.h           | 11 ++++++++-
+ 2 files changed, 32 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index c331272..5361197 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -23,13 +23,16 @@
  
- static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
--				 struct vsp1_video *video)
-+				 struct vsp1_rwpf *rwpf)
+ struct vb2_dc_conf {
+ 	struct device		*dev;
++	struct dma_attrs	attrs;
+ };
+ 
+ struct vb2_dc_buf {
+ 	struct device			*dev;
+ 	void				*vaddr;
+ 	unsigned long			size;
++	void				*cookie;
+ 	dma_addr_t			dma_addr;
++	struct dma_attrs		attrs;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			*dma_sgt;
+ 	struct frame_vector		*vec;
+@@ -131,7 +134,8 @@ static void vb2_dc_put(void *buf_priv)
+ 		sg_free_table(buf->sgt_base);
+ 		kfree(buf->sgt_base);
+ 	}
+-	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
++	dma_free_attrs(buf->dev, buf->size, buf->cookie, buf->dma_addr,
++			&buf->attrs);
+ 	put_device(buf->dev);
+ 	kfree(buf);
+ }
+@@ -147,14 +151,18 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
+-						GFP_KERNEL | gfp_flags);
+-	if (!buf->vaddr) {
++	buf->attrs = conf->attrs;
++	buf->cookie = dma_alloc_attrs(dev, size, &buf->dma_addr,
++					GFP_KERNEL | gfp_flags, &buf->attrs);
++	if (!buf->cookie) {
+ 		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+ 		kfree(buf);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
++	if (!dma_get_attr(DMA_ATTR_NO_KERNEL_MAPPING, &buf->attrs))
++		buf->vaddr = buf->cookie;
++
+ 	/* Prevent the device from being released while the buffer is used */
+ 	buf->dev = get_device(dev);
+ 	buf->size = size;
+@@ -185,8 +193,8 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 	 */
+ 	vma->vm_pgoff = 0;
+ 
+-	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
+-		buf->dma_addr, buf->size);
++	ret = dma_mmap_attrs(buf->dev, vma, buf->cookie,
++		buf->dma_addr, buf->size, &buf->attrs);
+ 
+ 	if (ret) {
+ 		pr_err("Remapping memory failed, error: %d\n", ret);
+@@ -329,7 +337,7 @@ static void *vb2_dc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
  {
-+	struct vsp1_video *video = rwpf->video;
- 	struct vsp1_vb2_buffer *buf;
- 	unsigned long flags;
+ 	struct vb2_dc_buf *buf = dbuf->priv;
  
-@@ -650,21 +651,28 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+-	return buf->vaddr + pgnum * PAGE_SIZE;
++	return buf->vaddr ? buf->vaddr + pgnum * PAGE_SIZE : NULL;
  }
  
-+static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ static void *vb2_dc_dmabuf_ops_vmap(struct dma_buf *dbuf)
+@@ -368,8 +376,8 @@ static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
+ 		return NULL;
+ 	}
+ 
+-	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
+-		buf->size);
++	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
++		buf->size, &buf->attrs);
+ 	if (ret < 0) {
+ 		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
+ 		kfree(sgt);
+@@ -721,7 +729,8 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+ 
+-void *vb2_dma_contig_init_ctx(struct device *dev)
++void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
++				    struct dma_attrs *attrs)
+ {
+ 	struct vb2_dc_conf *conf;
+ 
+@@ -730,10 +739,12 @@ void *vb2_dma_contig_init_ctx(struct device *dev)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	conf->dev = dev;
++	if (attrs)
++		conf->attrs = *attrs;
+ 
+ 	return conf;
+ }
+-EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
++EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx_attrs);
+ 
+ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+ {
+diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
+index c33dfa6..2087c9a 100644
+--- a/include/media/videobuf2-dma-contig.h
++++ b/include/media/videobuf2-dma-contig.h
+@@ -16,6 +16,8 @@
+ #include <media/videobuf2-v4l2.h>
+ #include <linux/dma-mapping.h>
+ 
++struct dma_attrs;
++
+ static inline dma_addr_t
+ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
+ {
+@@ -24,7 +26,14 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
+ 	return *addr;
+ }
+ 
+-void *vb2_dma_contig_init_ctx(struct device *dev);
++void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
++				    struct dma_attrs *attrs);
++
++static inline void *vb2_dma_contig_init_ctx(struct device *dev)
 +{
-+	unsigned int i;
-+
-+	/* Complete buffers on all video nodes. */
-+	for (i = 0; i < pipe->num_inputs; ++i)
-+		vsp1_video_frame_end(pipe, pipe->inputs[i]);
-+
-+	if (!pipe->lif)
-+		vsp1_video_frame_end(pipe, pipe->output);
++	return vb2_dma_contig_init_ctx_attrs(dev, NULL);
 +}
 +
- void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
- {
- 	enum vsp1_pipeline_state state;
- 	unsigned long flags;
--	unsigned int i;
+ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
  
- 	if (pipe == NULL)
- 		return;
- 
--	/* Complete buffers on all video nodes. */
--	for (i = 0; i < pipe->num_inputs; ++i)
--		vsp1_video_frame_end(pipe, pipe->inputs[i]->video);
--
--	if (!pipe->lif)
--		vsp1_video_frame_end(pipe, pipe->output->video);
-+	/* Signal frame end to the pipeline handler. */
-+	pipe->frame_end(pipe);
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 
-@@ -1240,6 +1248,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 	INIT_LIST_HEAD(&video->pipe.entities);
- 	init_waitqueue_head(&video->pipe.wq);
- 	video->pipe.state = VSP1_PIPELINE_STOPPED;
-+	video->pipe.frame_end = vsp1_video_pipeline_frame_end;
- 
- 	/* Initialize the media entity... */
- 	ret = media_entity_pads_init(&video->video.entity, 1, &video->pad);
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index e9d0e1ab9162..b79fdaa7ebdc 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -70,6 +70,8 @@ struct vsp1_pipeline {
- 	enum vsp1_pipeline_state state;
- 	wait_queue_head_t wq;
- 
-+	void (*frame_end)(struct vsp1_pipeline *pipe);
-+
- 	struct mutex lock;
- 	unsigned int use_count;
- 	unsigned int stream_count;
+ extern const struct vb2_mem_ops vb2_dma_contig_memops;
 -- 
-2.4.10
+1.9.1
 
