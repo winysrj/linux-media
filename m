@@ -1,47 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yk0-f180.google.com ([209.85.160.180]:36623 "EHLO
-	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751134AbcBAP7b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 10:59:31 -0500
-From: Insu Yun <wuninsu@gmail.com>
-To: hverkuil@xs4all.nl, mchehab@osg.samsung.com, khoroshilov@ispras.ru,
-	arnd@arndb.de, vdronov@redhat.com, oneukum@suse.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: taesoo@gatech.edu, yeongjin.jang@gatech.edu, insu@gatech.edu,
-	changwoo@gatech.edu, Insu Yun <wuninsu@gmail.com>
-Subject: [PATCH] usbvision: fix locking error
-Date: Mon,  1 Feb 2016 10:59:30 -0500
-Message-Id: <1454342370-14609-1-git-send-email-wuninsu@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:48838 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933985AbcBQO7a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2016 09:59:30 -0500
+Subject: Re: [PATCH v3 01/22] [media] Docbook: media-types.xml: Add ALSA Media
+ Controller Intf types
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>, tiwai@suse.com
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+ <363a459c08a1fcaf04052d7f2af05f1dd43de58e.1455233152.git.shuahkh@osg.samsung.com>
+ <20160217101941.0b37ca98@recife.lan>
+Cc: clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56C48AC7.4060305@osg.samsung.com>
+Date: Wed, 17 Feb 2016 07:59:19 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160217101941.0b37ca98@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When remove_pending is non-zero, v4l2_lock is never unlocked.
+On 02/17/2016 05:19 AM, Mauro Carvalho Chehab wrote:
+> Em Thu, 11 Feb 2016 16:41:17 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> Add ALSA Media Controller Intf types
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  Documentation/DocBook/media/v4l/media-types.xml | 40 +++++++++++++++++++++++++
+>>  1 file changed, 40 insertions(+)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
+>> index 751c3d0..3730967 100644
+>> --- a/Documentation/DocBook/media/v4l/media-types.xml
+>> +++ b/Documentation/DocBook/media/v4l/media-types.xml
+>> @@ -193,6 +193,46 @@
+>>  	    <entry>Device node interface for Software Defined Radio (V4L)</entry>
+>>  	    <entry>typically, /dev/swradio?</entry>
+>>  	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_PCM_CAPTURE</constant></entry>
+>> +	    <entry>Device node interface for ASLA PCM Capture</entry>
+>> +	    <entry>typically, /dev/snd/pcmC?D?c</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_PCM_PLAYBACK</constant></entry>
+>> +	    <entry>Device node interface for ASLA PCM Playback</entry>
+>> +	    <entry>typically, /dev/snd/pcmC?D?p</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_CONTROL</constant></entry>
+>> +	    <entry>Device node interface for ASLA Control</entry>
+>> +	    <entry>typically, /dev/snd/controlC?</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_COMPRESS</constant></entry>
+>> +	    <entry>Device node interface for ASLA Compress</entry>
+>> +	    <entry>typically, /dev/snd/compr?</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_RAWMIDI</constant></entry>
+>> +	    <entry>Device node interface for ASLA Raw MIDI</entry>
+>> +	    <entry>typically, /dev/snd/midi?</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_HWDEP</constant></entry>
+>> +	    <entry>Device node interface for ASLA Hardware Dependent</entry>
+>> +	    <entry>typically, /dev/snd/hwC?D?</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_SEQUENCER</constant></entry>
+>> +	    <entry>Device node interface for ASLA Sequencer</entry>
+>> +	    <entry>typically, /dev/snd/seq</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_TIMER</constant></entry>
+>> +	    <entry>Device node interface for ASLA Timer</entry>
+>> +	    <entry>typically, /dev/snd/timer</entry>
+> 
+> On all the above:
+> 	s,ASLA,ALSA,
 
-Signed-off-by: Insu Yun <wuninsu@gmail.com>
----
- drivers/media/usb/usbvision/usbvision-video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Sorry for the typo. Sent v4 with the fix.
 
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index de9ff3b..75d06ea 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -1156,6 +1156,7 @@ static int usbvision_radio_close(struct file *file)
- 	usbvision_audio_off(usbvision);
- 	usbvision->radio = 0;
- 	usbvision->user--;
-+	mutex_unlock(&usbvision->v4l2_lock);
- 
- 	if (usbvision->remove_pending) {
- 		printk(KERN_INFO "%s: Final disconnect\n", __func__);
-@@ -1164,7 +1165,6 @@ static int usbvision_radio_close(struct file *file)
- 		return 0;
- 	}
- 
--	mutex_unlock(&usbvision->v4l2_lock);
- 	PDEBUG(DBG_IO, "success");
- 	return v4l2_fh_release(file);
- }
+> 
+> Except for that, patch looks OK for me.
+> 
+> Takashi,
+> 
+> If this is OK for you too, could you please ack?
+> 
+> Thanks,
+> Mauro
+> 
+
+-- Shuah
+
 -- 
-1.9.1
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
