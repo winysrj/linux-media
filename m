@@ -1,56 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f194.google.com ([209.85.213.194]:34108 "EHLO
-	mail-ig0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756718AbcBDQg7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 11:36:59 -0500
-Received: by mail-ig0-f194.google.com with SMTP id ik10so4513907igb.1
-        for <linux-media@vger.kernel.org>; Thu, 04 Feb 2016 08:36:58 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <2612145d4e46ee78d7e1c38386c43d9c3f597600.1454600641.git.mchehab@osg.samsung.com>
-References: <cover.1454600641.git.mchehab@osg.samsung.com>
-	<2612145d4e46ee78d7e1c38386c43d9c3f597600.1454600641.git.mchehab@osg.samsung.com>
-Date: Thu, 4 Feb 2016 11:36:58 -0500
-Message-ID: <CAOcJUbwyu173s5NoAC0tsB1ZNZ9xqy3nuTtXt7AMJEovCGf3Ag@mail.gmail.com>
-Subject: Re: [PATCH 6/7] [media] dvb_frontend: pass the props cache to
- get_frontend() as arg
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Jemma Denson <jdenson@gmail.com>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>,
-	Sergey Kozlov <serjk@netup.ru>,
-	Malcolm Priestley <tvboxspy@gmail.com>,
-	Tina Ruchandani <ruchandani.tina@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Jiri Kosina <jkosina@suse.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Fred Richter <frichter@hauppauge.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Abhilash Jindal <klock.android@gmail.com>,
-	Peter Griffin <peter.griffin@linaro.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:33654 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946086AbcBRNOo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 08:14:44 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0O2Q00J31VGIP190@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 18 Feb 2016 13:14:42 +0000 (GMT)
+Message-id: <56C5C3C0.7000808@samsung.com>
+Date: Thu, 18 Feb 2016 14:14:40 +0100
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 13/15] mediactl: Add media device ioctl API
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+ <1453133860-21571-14-git-send-email-j.anaszewski@samsung.com>
+ <56C1C775.2090002@linux.intel.com> <56C1CD3E.6090108@samsung.com>
+ <20160218120951.GO32612@valkosipuli.retiisi.org.uk>
+In-reply-to: <20160218120951.GO32612@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 4, 2016 at 10:57 AM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Instead of using the DTV properties cache directly, pass the get
-> frontend data as an argument. For now, everything should remain
-> the same, but the next patch will prevent get_frontend to
-> affect the global cache.
->
-> This is needed because several drivers don't care enough to only
-> change the properties if locked. Due to that, calling
-> G_PROPERTY before locking on those drivers will make them to
-> never lock. Ok, those drivers are crap and should never be
-> merged like that, but the core should not rely that the drivers
-> would be doing the right thing.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hi Sakari,
 
-Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
+On 02/18/2016 01:09 PM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> On Mon, Feb 15, 2016 at 02:06:06PM +0100, Jacek Anaszewski wrote:
+>> Hi Sakari,
+>>
+>> Thanks for the review.
+>>
+>> On 02/15/2016 01:41 PM, Sakari Ailus wrote:
+>>> Hi Jacek,
+>>>
+>>> Jacek Anaszewski wrote:
+>>>> Ioctls executed on complex media devices need special handling.
+>>>> For instance some ioctls need to be targeted for specific sub-devices,
+>>>> depending on the media device configuration. The APIs being introduced
+>>>> address such requirements.
+>>>>
+>>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>>> ---
+>>>>   utils/media-ctl/Makefile.am          |    2 +-
+>>>>   utils/media-ctl/libv4l2media_ioctl.c |  404 ++++++++++++++++++++++++++++++++++
+>>>>   utils/media-ctl/libv4l2media_ioctl.h |   48 ++++
+>>>>   3 files changed, 453 insertions(+), 1 deletion(-)
+>>>>   create mode 100644 utils/media-ctl/libv4l2media_ioctl.c
+>>>>   create mode 100644 utils/media-ctl/libv4l2media_ioctl.h
+>>>>
+>>>> diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+>>>> index 3e883e0..7f18624 100644
+>>>> --- a/utils/media-ctl/Makefile.am
+>>>> +++ b/utils/media-ctl/Makefile.am
+>>>> @@ -1,6 +1,6 @@
+>>>>   noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la libmediatext.la
+>>>>
+>>>> -libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
+>>>> +libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h libv4l2media_ioctl.c libv4l2media_ioctl.h
+>>>>   libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
+>>>>   libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
+>>>>
+>>>> diff --git a/utils/media-ctl/libv4l2media_ioctl.c b/utils/media-ctl/libv4l2media_ioctl.c
+>>>> new file mode 100644
+>>>> index 0000000..b186121
+>>>> --- /dev/null
+>>>> +++ b/utils/media-ctl/libv4l2media_ioctl.c
+>>>> @@ -0,0 +1,404 @@
+>>>> +/*
+>>>> + * Copyright (c) 2015 Samsung Electronics Co., Ltd.
+>>>> + *              http://www.samsung.com
+>>>> + *
+>>>> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+>>>> + *
+>>>> + * This program is free software; you can redistribute it and/or modify
+>>>> + * it under the terms of the GNU Lesser General Public License as published by
+>>>> + * the Free Software Foundation; either version 2.1 of the License, or
+>>>> + * (at your option) any later version.
+>>>> + *
+>>>> + * This program is distributed in the hope that it will be useful,
+>>>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>>>> + * Lesser General Public License for more details.
+>>>> + */
+>>>> +
+>>>> +#include <errno.h>
+>>>> +#include <stdlib.h>
+>>>> +#include <sys/syscall.h>
+>>>> +#include <unistd.h>
+>>>> +
+>>>> +#include <linux/videodev2.h>
+>>>> +
+>>>> +#include "libv4l2media_ioctl.h"
+>>>> +#include "mediactl-priv.h"
+>>>> +#include "mediactl.h"
+>>>> +#include "v4l2subdev.h"
+>>>> +
+>>>> +#define VIDIOC_CTRL(type)					\
+>>>> +	((type) == VIDIOC_S_CTRL ? "VIDIOC_S_CTRL" :		\
+>>>> +				   "VIDIOC_G_CTRL")
+>>>> +
+>>>> +#define VIDIOC_EXT_CTRL(type)					\
+>>>> +	((type) == VIDIOC_S_EXT_CTRLS ? 			\
+>>>> +		"VIDIOC_S_EXT_CTRLS"	:			\
+>>>> +		 ((type) == VIDIOC_G_EXT_CTRLS ? 		\
+>>>> +				    "VIDIOC_G_EXT_CTRLS" :	\
+>>>> +				    "VIDIOC_TRY_EXT_CTRLS"))
+>>>> +
+>>>> +#define SYS_IOCTL(fd, cmd, arg) \
+>>>> +	syscall(SYS_ioctl, (int)(fd), (unsigned long)(cmd), (void *)(arg))
+>>>> +
+>>>> +
+>>>> +int media_ioctl_ctrl(struct media_device *media, int request,
+>>>
+>>> unsigned int request
+>>
+>> OK.
+>>
+>>>
+>>>> +		     struct v4l2_control *arg)
+>>>
+>>> I wonder if it'd make sense to always use v4l2_ext_control instead. You
+>>> can't access 64-bit integer controls with VIDIOC_S_CTRL for instance.
+>>
+>> This function is meant to handle VIDIOC_S_CTRL/VIDIOC_G_CTRL ioctls.
+>> For ext ctrls there is media_ioctl_ext_ctrl().
+>
+> Is there any reason not to use extended control always?
+>
+> In other words, do we have a driver that does support Media controller but
+> does not support extended controls?
+
+Shouldn't we support non-extended controls for backward compatibility
+reasons? I am not aware of the policy in this matter.
+
+>>> As this is a user space library, I'd probably add a function to handle
+>>> S/G/TRY control each.
+>>
+>> There is media_ioctl_ext_ctrl() that handles VIDIOC_S_EXT_CTRLS,
+>> VIDIOC_G_EXT_CTRLS and VIDIOC_TRY_EXT_CTRLS.
+>>
+>>> Have you considered binding the control to a video node rather than a
+>>> media device? We have many sensors on current media devices already, and
+>>> e.g. exposure time control can be found in multiple sub-devices.
+>>
+>> Doesn't v4l2-ctrl-redir config entry address that?
+>
+> How does it work if you have, say, two video nodes where you can capture
+> images from a different sensor? I.e. your media graph could look like this:
+>
+> 	sensor0 -> CSI-2 0 -> video0
+>
+> 	sensor1 -> CSI-2 1 -> video1
+
+Exemplary config settings for this case:
+
+v4l2-ctrl-redir 0x0098091f -> "sensor0"
+v4l2-ctrl-redir 0x0098091f -> "sensor1"
+
+In media_ioctl_ctrl the v4l2_subdev_get_pipeline_entity_by_cid(media,
+ctrl.id) is called which walks through the pipeline and checks if there
+has been a v4l2 control redirection defined for given entity.
+
+If no redirection is defined then the control is set on the first
+entity in the pipeline that supports it. Effectively, for this
+arrangement no redirection would be required if the control
+is to be set on sensors. It would be required if we wanted
+to bind the control to the videoN entity. Now I am wondering
+if I should change the entry name to v4l2-ctrl-binding, or maybe
+someone has better idea?
+
+BTW, are there some unique identifiers added to the entity names if
+more than one entity of a name is to be registered? E.g. what would
+happen if I had two S5C73M3 sensors in a media device? I assumed that
+entity names are unique.
+
+-- 
+Best regards,
+Jacek Anaszewski
