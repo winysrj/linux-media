@@ -1,197 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48304 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753166AbcBHLoO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:44:14 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 24/35] v4l: vsp1: Make number of BRU inputs configurable
-Date: Mon,  8 Feb 2016 13:43:54 +0200
-Message-Id: <1454931845-23864-25-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-qk0-f175.google.com ([209.85.220.175]:35706 "EHLO
+	mail-qk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756330AbcBRF65 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 00:58:57 -0500
+Received: by mail-qk0-f175.google.com with SMTP id o6so14946085qkc.2
+        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2016 21:58:56 -0800 (PST)
+Received: from mail-qg0-f43.google.com (mail-qg0-f43.google.com. [209.85.192.43])
+        by smtp.gmail.com with ESMTPSA id o75sm16840875qgd.12.2016.02.17.21.58.55
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Wed, 17 Feb 2016 21:58:55 -0800 (PST)
+Received: by mail-qg0-f43.google.com with SMTP id b67so29873420qgb.1
+        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2016 21:58:55 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <56C4A712.4050403@xs4all.nl>
+References: <1452533428-12762-1-git-send-email-dianders@chromium.org>
+ <1452533428-12762-5-git-send-email-dianders@chromium.org> <56C4A712.4050403@xs4all.nl>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Thu, 18 Feb 2016 14:58:35 +0900
+Message-ID: <CAAFQd5AEKS+Cmett-dHLK6n_BChZ4XhMHLPKScSbjRjQo5F_fQ@mail.gmail.com>
+Subject: Re: [PATCH v6 4/5] videobuf2-dc: Let drivers specify DMA attrs
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Douglas Anderson <dianders@chromium.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Robin Murphy <robin.murphy@arm.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Christoph Hellwig <hch@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The R-Car Gen3 family has 5-inputs BRUs, support them by making the
-number of BRU inputs configurable.
+Hi Hans,
 
-As the driver assumes that the number of BRU inputs is equal to the
-number of RPFs, replace the BRU_MAX_INPUTS macro with VSP1_MAX_RPF to
-make the assumption apparent.
+On Thu, Feb 18, 2016 at 2:00 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Doug,
+>
+> Is there any reason to think that different planes will need different
+> DMA attrs? I ask because this patch series of mine:
+>
+> http://www.spinics.net/lists/linux-media/msg97522.html
+>
+> does away with allocating allocation contexts (struct vb2_dc_conf).
+>
+> For dma_attr this would mean that struct dma_attrs would probably be implemented
+> as a struct dma_attrs pointer in the vb2_queue struct once I rebase that patch series
+> on top of this patch. In other words, the same dma_attrs struct would be used for all
+> planes.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+I could think of some format consisting of video and metadata planes
+(such as V4L2_PIX_FMT_S5C_UYVY_JPG) and some hypothetical hardware,
+which generates the metadata in a way that requires patching in
+.buf_finish(). In this case, we can allocate video plane without
+kernel mapping, but for metadata plane kernel mapping is necessary to
+do the patching.
 
----
+However the above is only a hypothetical "what if" of mine, since
+personally I haven't seen such case yet. Our real use case is
+allocating raw video planes without kernel mapping, while keeping
+kernel mapping available for encoded bitstream, which needs some extra
+patching. The reason for disabling kernel mapping is that vmalloc
+space can be easily exhausted when processing high resolution video
+with long buffer queues (e.g. high resolution H264 decode/encode).
 
-Changes since vsp1-kms-gen2-20150811:
+>
+> Second question: would specifying dma_attrs also make sense for videobuf2-dma-sg.c?
 
-- Set the number of elements in the BRU inputs array to 5
-- Move to BRU registers update change to a separate patch
----
- drivers/media/platform/vsp1/vsp1.h        |  1 +
- drivers/media/platform/vsp1/vsp1_bru.c    | 19 ++++++++++---------
- drivers/media/platform/vsp1/vsp1_bru.h    |  3 +--
- drivers/media/platform/vsp1/vsp1_drv.c    |  3 +++
- drivers/media/platform/vsp1/vsp1_entity.h |  4 +++-
- 5 files changed, 18 insertions(+), 12 deletions(-)
+For our particular use case, probably not, because I don't see kernel
+mapping being implicitly created at videobuf2-dma-sg level for
+allocated MMAP buffers. AFAICT only if vb2_plane_vaddr() or respective
+DMA-BUF op is called then the mapping is created, which is unavoidable
+because the caller apparently needs it for something.
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index b25032bd37a7..29a8fd94a0aa 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -48,6 +48,7 @@ struct vsp1_platform_data {
- 	unsigned int rpf_count;
- 	unsigned int uds_count;
- 	unsigned int wpf_count;
-+	unsigned int num_bru_inputs;
- };
- 
- struct vsp1_device {
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 841bc6664bca..baebfbbef61d 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -79,7 +79,7 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	if (!enable)
- 		return 0;
- 
--	format = &bru->entity.formats[BRU_PAD_SOURCE];
-+	format = &bru->entity.formats[bru->entity.source_pad];
- 
- 	/* The hardware is extremely flexible but we have no userspace API to
- 	 * expose all the parameters, nor is it clear whether we would have use
-@@ -109,7 +109,7 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 		       VI6_BRU_ROP_CROP(VI6_ROP_NOP) |
- 		       VI6_BRU_ROP_AROP(VI6_ROP_NOP));
- 
--	for (i = 0; i < 4; ++i) {
-+	for (i = 0; i < bru->entity.source_pad; ++i) {
- 		bool premultiplied = false;
- 		u32 ctrl = 0;
- 
-@@ -291,7 +291,7 @@ static int bru_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
- 	*format = fmt->format;
- 
- 	/* Reset the compose rectangle */
--	if (fmt->pad != BRU_PAD_SOURCE) {
-+	if (fmt->pad != bru->entity.source_pad) {
- 		struct v4l2_rect *compose;
- 
- 		compose = bru_get_compose(bru, cfg, fmt->pad, fmt->which);
-@@ -305,7 +305,7 @@ static int bru_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
- 	if (fmt->pad == BRU_PAD_SINK(0)) {
- 		unsigned int i;
- 
--		for (i = 0; i <= BRU_PAD_SOURCE; ++i) {
-+		for (i = 0; i <= bru->entity.source_pad; ++i) {
- 			format = vsp1_entity_get_pad_format(&bru->entity, cfg,
- 							    i, fmt->which);
- 			format->code = fmt->format.code;
-@@ -321,7 +321,7 @@ static int bru_get_selection(struct v4l2_subdev *subdev,
- {
- 	struct vsp1_bru *bru = to_bru(subdev);
- 
--	if (sel->pad == BRU_PAD_SOURCE)
-+	if (sel->pad == bru->entity.source_pad)
- 		return -EINVAL;
- 
- 	switch (sel->target) {
-@@ -349,7 +349,7 @@ static int bru_set_selection(struct v4l2_subdev *subdev,
- 	struct v4l2_mbus_framefmt *format;
- 	struct v4l2_rect *compose;
- 
--	if (sel->pad == BRU_PAD_SOURCE)
-+	if (sel->pad == bru->entity.source_pad)
- 		return -EINVAL;
- 
- 	if (sel->target != V4L2_SEL_TGT_COMPOSE)
-@@ -358,8 +358,8 @@ static int bru_set_selection(struct v4l2_subdev *subdev,
- 	/* The compose rectangle top left corner must be inside the output
- 	 * frame.
- 	 */
--	format = vsp1_entity_get_pad_format(&bru->entity, cfg, BRU_PAD_SOURCE,
--					    sel->which);
-+	format = vsp1_entity_get_pad_format(&bru->entity, cfg,
-+					    bru->entity.source_pad, sel->which);
- 	sel->r.left = clamp_t(unsigned int, sel->r.left, 0, format->width - 1);
- 	sel->r.top = clamp_t(unsigned int, sel->r.top, 0, format->height - 1);
- 
-@@ -415,7 +415,8 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
- 
- 	bru->entity.type = VSP1_ENTITY_BRU;
- 
--	ret = vsp1_entity_init(vsp1, &bru->entity, 5);
-+	ret = vsp1_entity_init(vsp1, &bru->entity,
-+			       vsp1->pdata.num_bru_inputs + 1);
- 	if (ret < 0)
- 		return ERR_PTR(ret);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.h b/drivers/media/platform/vsp1/vsp1_bru.h
-index 16b1c6554911..dbac9686ea69 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.h
-+++ b/drivers/media/platform/vsp1/vsp1_bru.h
-@@ -23,7 +23,6 @@ struct vsp1_device;
- struct vsp1_rwpf;
- 
- #define BRU_PAD_SINK(n)				(n)
--#define BRU_PAD_SOURCE				4
- 
- struct vsp1_bru {
- 	struct vsp1_entity entity;
-@@ -33,7 +32,7 @@ struct vsp1_bru {
- 	struct {
- 		struct vsp1_rwpf *rpf;
- 		struct v4l2_rect compose;
--	} inputs[4];
-+	} inputs[VSP1_MAX_RPF];
- };
- 
- static inline struct vsp1_bru *to_bru(struct v4l2_subdev *subdev)
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 81c49bfdc8dd..447f2bfe89f9 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -17,6 +17,7 @@
- #include <linux/interrupt.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/of_device.h>
- #include <linux/platform_device.h>
- #include <linux/videodev2.h>
- 
-@@ -540,6 +541,8 @@ static int vsp1_parse_dt(struct vsp1_device *vsp1)
- 		return -EINVAL;
- 	}
- 
-+	pdata->num_bru_inputs = 4;
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 9606d0d21263..360a2e668ac2 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -32,6 +32,8 @@ enum vsp1_entity_type {
- 	VSP1_ENTITY_WPF,
- };
- 
-+#define VSP1_ENTITY_MAX_INPUTS		5	/* For the BRU */
-+
- /*
-  * struct vsp1_route - Entity routing configuration
-  * @type: Entity type this routing entry is associated with
-@@ -48,7 +50,7 @@ struct vsp1_route {
- 	enum vsp1_entity_type type;
- 	unsigned int index;
- 	unsigned int reg;
--	unsigned int inputs[4];
-+	unsigned int inputs[VSP1_ENTITY_MAX_INPUTS];
- };
- 
- struct vsp1_entity {
--- 
-2.4.10
-
+Best regards,
+Tomasz
