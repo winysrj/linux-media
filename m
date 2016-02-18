@@ -1,129 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f172.google.com ([209.85.192.172]:36697 "EHLO
-	mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753434AbcB2NOM (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:34326 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946573AbcBRPG1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 08:14:12 -0500
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Simon Horman <horms@verge.net.au>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-renesas-soc@vger.kernel.org
-Subject: [PATCH/RFC 4/4] media: soc_camera: rcar_vin: Add NV16 scaling support
-Date: Mon, 29 Feb 2016 22:12:43 +0900
-Message-Id: <1456751563-21246-5-git-send-email-ykaneko0929@gmail.com>
-In-Reply-To: <1456751563-21246-1-git-send-email-ykaneko0929@gmail.com>
-References: <1456751563-21246-1-git-send-email-ykaneko0929@gmail.com>
+	Thu, 18 Feb 2016 10:06:27 -0500
+Received: by mail-wm0-f54.google.com with SMTP id b205so29191661wmb.1
+        for <linux-media@vger.kernel.org>; Thu, 18 Feb 2016 07:06:27 -0800 (PST)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	linux-security-module@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, zoltan.kuscsik@linaro.org,
+	sumit.semwal@linaro.org, cc.ma@mediatek.com
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v6 0/3] Secure Memory Allocation Framework
+Date: Thu, 18 Feb 2016 16:05:14 +0100
+Message-Id: <1455807917-19901-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
+version 6 changes:
+ - rebased on kernel 4.5-rc4
+ - fix mmapping bug while requested allocation size isn't a a multiple of
+   PAGE_SIZE (add a test for this in libsmaf)
 
-The scaling function had been forbidden for the capture format of NV16
-until now. With this patch, a horizontal scaling-up function is
-supported to the capture format of NV16.
-This patch adds the check of the capture width for NV16 format, too.
-At the time of NV16 capture format, the user has to specify the capture
-output width of the multiple of 32 for H/W specification. At the time of
-using ioctl of VIDIOC_S_FMT, this patch adds the error handling to forbid
-specification of the capture output width which is not a multiple of 32.
+version 5 changes:
+ - rebased on kernel 4.3-rc6
+ - rework locking schema and make handle status use an atomic_t
+ - add a fake secure module to allow performing tests without trusted
+   environment
 
-Signed-off-by: Koji Matsuoka <koji.matsuoka.xm@renesas.com>
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
----
- drivers/media/platform/soc_camera/rcar_vin.c | 36 +++++++++++++++++++++++-----
- 1 file changed, 30 insertions(+), 6 deletions(-)
+version 4 changes:
+ - rebased on kernel 4.3-rc3
+ - fix missing EXPORT_SYMBOL for smaf_create_handle()
 
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 96f3c8a..979b28c 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -504,6 +504,7 @@ struct rcar_vin_priv {
- 	bool				request_to_stop;
- 	struct completion		capture_stop;
- 	enum chip_id			chip;
-+	bool				error_check_flag;
- };
- 
- #define is_continuous_transfer(priv)	(priv->vb_count > MAX_BUFFER_NUM)
-@@ -649,7 +650,7 @@ static int rcar_vin_setup(struct rcar_vin_priv *priv)
- 	/* output format */
- 	switch (icd->current_fmt->host_fmt->fourcc) {
- 	case V4L2_PIX_FMT_NV16:
--		iowrite32(ALIGN(cam->width * cam->height, 0x80),
-+		iowrite32(ALIGN(cam->out_width * cam->out_height, 0x80),
- 			  priv->base + VNUVAOF_REG);
- 		dmr = VNDMR_DTMD_YCSEP;
- 		output_is_yuv = true;
-@@ -961,6 +962,8 @@ static int rcar_vin_add_device(struct soc_camera_device *icd)
- 	dev_dbg(icd->parent, "R-Car VIN driver attached to camera %d\n",
- 		icd->devnum);
- 
-+	priv->error_check_flag = false;
-+
- 	return 0;
- }
- 
-@@ -978,6 +981,7 @@ static void rcar_vin_remove_device(struct soc_camera_device *icd)
- 
- 	priv->state = STOPPED;
- 	priv->request_to_stop = false;
-+	priv->error_check_flag = false;
- 
- 	/* make sure active buffer is cancelled */
- 	spin_lock_irq(&priv->lock);
-@@ -1166,11 +1170,19 @@ static int rcar_vin_set_rect(struct soc_camera_device *icd)
- 		break;
- 	}
- 
--	if (priv->chip == RCAR_GEN3 && is_scaling(cam) {
--		ret = rcar_vin_uds_set(priv, cam);
--		if (ret < 0)
--			return ret;
--		iowrite32(ALIGN(cam->out_width, 0x20), priv->base + VNIS_REG);
-+	if (priv->chip == RCAR_GEN3) {
-+		if (is_scaling(cam)) {
-+			ret = rcar_vin_uds_set(priv, cam);
-+			if (ret < 0)
-+				return ret;
-+		}
-+		if (is_scaling(cam) ||
-+		    icd->current_fmt->host_fmt->fourcc == V4L2_PIX_FMT_NV16)
-+			iowrite32(ALIGN(cam->out_width, 0x20),
-+				  priv->base + VNIS_REG);
-+		else
-+			iowrite32(ALIGN(cam->out_width, 0x10),
-+				  priv->base + VNIS_REG);
- 	} else {
- 		/* Set scaling coefficient */
- 		value = 0;
-@@ -1674,6 +1686,17 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
- 	dev_dbg(dev, "S_FMT(pix=0x%x, %ux%u)\n",
- 		pixfmt, pix->width, pix->height);
- 
-+	/*
-+	 * At the time of NV16 capture format, the user has to specify the
-+	 * width of the multiple of 32 for H/W specification.
-+	 */
-+	if (priv->error_check_flag == false) {
-+		priv->error_check_flag = true;
-+	} else if (pixfmt == V4L2_PIX_FMT_NV16 && (pix->width & 0x1F)) {
-+		dev_dbg(icd->parent, "specified width error in NV16 format.\n");
-+		return -EINVAL;
-+	}
-+
- 	switch (pix->field) {
- 	default:
- 		pix->field = V4L2_FIELD_NONE;
-@@ -1720,6 +1743,7 @@ static int rcar_vin_set_fmt(struct soc_camera_device *icd,
- 	case V4L2_PIX_FMT_YUYV:
- 	case V4L2_PIX_FMT_RGB565:
- 	case V4L2_PIX_FMT_RGB555X:
-+	case V4L2_PIX_FMT_NV16:
- 		can_scale = true;
- 		break;
- 	default:
+version 3 changes:
+ - Remove ioctl for allocator selection instead provide the name of
+   the targeted allocator with allocation request.
+   Selecting allocator from userland isn't the prefered way of working
+   but is needed when the first user of the buffer is a software component.
+ - Fix issues in case of error while creating smaf handle.
+ - Fix module license.
+ - Update libsmaf and tests to care of the SMAF API evolution
+   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+
+version 2 changes:
+ - Add one ioctl to allow allocator selection from userspace.
+   This is required for the uses case where the first user of
+   the buffer is a software IP which can't perform dma_buf attachement.
+ - Add name and ranking to allocator structure to be able to sort them.
+ - Create a tiny library to test SMAF:
+   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+ - Fix one issue when try to secure buffer without secure module registered
+
+The outcome of the previous RFC about how do secure data path was the need
+of a secure memory allocator (https://lkml.org/lkml/2015/5/5/551)
+
+SMAF goal is to provide a framework that allow allocating and securing
+memory by using dma_buf. Each platform have it own way to perform those two
+features so SMAF design allow to register helper modules to perform them.
+
+To be sure to select the best allocation method for devices SMAF implement
+deferred allocation mechanism: memory allocation is only done when the first
+device effectively required it.
+Allocator modules have to implement a match() to let SMAF know if they are
+compatibles with devices needs.
+This patch set provide an example of allocator module which use
+dma_{alloc/free/mmap}_attrs() and check if at least one device have
+coherent_dma_mask set to DMA_BIT_MASK(32) in match function. 
+I have named smaf-cma.c like it is done for drm_gem_cma_helper.c even if 
+a better name could be found for this file.
+
+Secure modules are responsibles of granting and revoking devices access rights
+on the memory. Secure module is also called to check if CPU map memory into
+kernel and user address spaces.
+An example of secure module implementation can be found here:
+http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
+This code isn't yet part of the patch set because it depends on generic TEE
+which is still under discussion (https://lwn.net/Articles/644646/)
+
+For allocation part of SMAF code I get inspirated by Sumit Semwal work about
+constraint aware allocator.
+
+Benjamin Gaignard (2):
+  create SMAF module
+  SMAF: add CMA allocator
+
+benjamin.gaignard@linaro.org (1):
+  SMAF: add fake secure module
+
+ drivers/Kconfig                |   2 +
+ drivers/Makefile               |   1 +
+ drivers/smaf/Kconfig           |  17 +
+ drivers/smaf/Makefile          |   3 +
+ drivers/smaf/smaf-cma.c        | 199 +++++++++++
+ drivers/smaf/smaf-core.c       | 751 +++++++++++++++++++++++++++++++++++++++++
+ drivers/smaf/smaf-fakesecure.c |  92 +++++
+ include/linux/smaf-allocator.h |  54 +++
+ include/linux/smaf-secure.h    |  75 ++++
+ include/uapi/linux/smaf.h      |  52 +++
+ 10 files changed, 1246 insertions(+)
+ create mode 100644 drivers/smaf/Kconfig
+ create mode 100644 drivers/smaf/Makefile
+ create mode 100644 drivers/smaf/smaf-cma.c
+ create mode 100644 drivers/smaf/smaf-core.c
+ create mode 100644 drivers/smaf/smaf-fakesecure.c
+ create mode 100644 include/linux/smaf-allocator.h
+ create mode 100644 include/linux/smaf-secure.h
+ create mode 100644 include/uapi/linux/smaf.h
+
 -- 
 1.9.1
 
