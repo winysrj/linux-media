@@ -1,121 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50849 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751338AbcBZD57 (ORCPT
+Received: from va-smtp01.263.net ([54.88.144.211]:56275 "EHLO
+	va-smtp01.263.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964858AbcBRA7Z convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2016 22:57:59 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2E2A0180951
-	for <linux-media@vger.kernel.org>; Fri, 26 Feb 2016 04:57:53 +0100 (CET)
-Date: Fri, 26 Feb 2016 04:57:53 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160226035753.2E2A0180951@tschai.lan>
+	Wed, 17 Feb 2016 19:59:25 -0500
+Received: from mail-ig0-f181.google.com (localhost.localdomain [127.0.0.1])
+	by va-smtp01.263.net (Postfix) with ESMTP id 555129F72C
+	for <linux-media@vger.kernel.org>; Thu, 18 Feb 2016 08:59:20 +0800 (CST)
+Received: by mail-ig0-f181.google.com with SMTP id 5so2108387igt.0
+        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2016 16:59:19 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAD=FV=V8tZvvqVCC4CMD9T-PYL+_3DojGq8jBEtm1raMYzw=3Q@mail.gmail.com>
+References: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
+	<1455705771-25771-1-git-send-email-jung.zhao@rock-chips.com>
+	<CAD=FV=V8tZvvqVCC4CMD9T-PYL+_3DojGq8jBEtm1raMYzw=3Q@mail.gmail.com>
+Date: Thu, 18 Feb 2016 08:59:17 +0800
+Message-ID: <CAD82f72vPddBJeDuRCG38-sopk6BPrY49ggAugeGQC_GUg-Fyw@mail.gmail.com>
+Subject: Re: [PATCH v2 3/4] [NOT FOR REVIEW] videobuf2-dc: Let drivers specify
+ DMA attrs
+From: Jung Zhao <jung.zhao@rock-chips.com>
+To: Doug Anderson <dianders@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Tomasz Figa <tfiga@chromium.org>,
+	"open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <posciak@chromium.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Doug,
+Thanks for your work. I will fix this mistake.
 
-Results of the daily build of media_tree:
+2016-02-18 0:12 GMT+08:00 Doug Anderson <dianders@chromium.org>:
+> Hi,
+>
+> On Wed, Feb 17, 2016 at 2:42 AM, Jung Zhao <jung.zhao@rock-chips.com> wrote:
+>> From: Tomasz Figa <tfiga@chromium.org>
+>>
+>> DMA allocations might be subject to certain reqiurements specific to the
+>> hardware using the buffers, such as availability of kernel mapping (for
+>> contents fix-ups in the driver). The only entity that knows them is the
+>> driver, so it must share this knowledge with vb2-dc.
+>>
+>> This patch extends the alloc_ctx initialization interface to let the
+>> driver specify DMA attrs, which are then stored inside the allocation
+>> context and will be used for all allocations with that context.
+>>
+>> As a side effect, all dma_*_coherent() calls are turned into
+>> dma_*_attrs() calls, because the attributes need to be carried over
+>> through all DMA operations.
+>>
+>> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+>> Signed-off-by: Jung Zhao <jung.zhao@rock-chips.com>
+>> ---
+>> Changes in v2: None
+>>
+>>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 33 +++++++++++++++++---------
+>>  include/media/videobuf2-dma-contig.h           | 11 ++++++++-
+>>  2 files changed, 32 insertions(+), 12 deletions(-)
+>
+> This patch is already present in linuxnext.  I submitted it to Russell
+> King's Patch Tracking System a bit ago and got notice that it landed.
+> Checking linuxnext today I see:
+>
+> ccc66e738252 ARM: 8508/2: videobuf2-dc: Let drivers specify DMA attrs
+>
+> -Doug
+>
+> _______________________________________________
+> Linux-rockchip mailing list
+> Linux-rockchip@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-rockchip
 
-date:		Fri Feb 26 04:00:20 CET 2016
-git branch:	test
-git hash:	3915d367932609f9c0bdc79c525b5dd5a806ab18
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.4.0-164
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
 
-Detailed results are available here:
+-- 
+Best Regards,
+Jung
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+****************************************
+福州瑞芯微电子有限公司 (Rockchip)
+赵俊 (Jung Zhao)
+算法工程师 (Algorithm Engineer)
++86-591-83991906-8944
+****************************************
