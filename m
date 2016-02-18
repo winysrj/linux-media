@@ -1,125 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44344 "EHLO lists.s-osg.org"
+Received: from mout01.posteo.de ([185.67.36.65]:50335 "EHLO mout01.posteo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752671AbcBZMN3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2016 07:13:29 -0500
-Date: Fri, 26 Feb 2016 09:13:17 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: LMML <linux-media@vger.kernel.org>
+	id S1425501AbcBRNel convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 08:34:41 -0500
+Received: from dovecot03.posteo.de (dovecot03.posteo.de [172.16.0.13])
+	by mout01.posteo.de (Postfix) with ESMTPS id 5EBF320C00
+	for <linux-media@vger.kernel.org>; Thu, 18 Feb 2016 14:34:39 +0100 (CET)
+Date: Thu, 18 Feb 2016 14:34:31 +0100
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [RFC] Representing hardware connections via MC
-Message-ID: <20160226091317.5a07c374@recife.lan>
+	Jani Nikula <jani.nikula@intel.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160218143431.2e0a9150@lappi3.vsora>
+In-Reply-To: <20160218104434.25d11e33@recife.lan>
+References: <20160213145317.247c63c7@lwn.net>
+	<86fuwwcdmd.fsf@hiro.keithp.com>
+	<CAKMK7uGeU_grgC7pRCdqw+iDGWQfXhHwvX+tkSgRmdimxMrthA@mail.gmail.com>
+	<20160217151401.3cb82f65@lwn.net>
+	<CAKMK7uEqbSrhc2nh0LjC1fztciM4eTjtKE9T_wMVCqAkkTnzkA@mail.gmail.com>
+	<874md6fkna.fsf@intel.com>
+	<CAKMK7uE72wFEFCyw1dHbt+f3-ex3fr_9MbjoGfnKFZkd5+9S2Q@mail.gmail.com>
+	<20160218082657.5a1a5b0f@recife.lan>
+	<87r3gadzye.fsf@intel.com>
+	<20160218100427.6471cb22@recife.lan>
+	<56C5B3E7.6030509@xs4all.nl>
+	<20160218104434.25d11e33@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We had some discussions on Feb, 12 about how to represent connectors via
-the Media Controller:
-	https://linuxtv.org/irc/irclogger_log/v4l?date=2016-02-12,Fri&sel=31#l27
+On Thu, 18 Feb 2016 10:44:34 -0200
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> > > It is workable, but I guess nested tables produced a better
+> > > result.
+> > > 
+> > > I did myself a test with nested tables with asciidoc too:
+> > > 
+> > > https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.html
+> > > https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.ascii
+> > > 
+> > > With looks very decent to me.    
+> > 
+> > It does, except for the vertical alignment of the third column (at
+> > least when viewed with google chrome).  
+> 
+> Not sure what you mean. Here, it looks fine on both Firefox and
+> Chrome, except that the second colum size could be smaller. If this
+> is what you're meaning this can be fixed by changing the second line
+> from:
 
-We tried to finish those discussions on the last two weeks, but people
-doesn't seem to be available at the same time for the discussions. So,
-let's proceed with the discussions via e-mail.
+I think Hans' problem (I see it as well) is coming from css-style of
+"paragraph" which is:
 
-So, I'd like to do such discussions via e-mail, as we need to close
-this question next week.
+￼    margin-top: 0.5em;
+￼    margin-bottom: 0.5em;
 
-QUESTION:
-========
+This makes the third column non-vertical-aligned
 
-How to represent the hardware connection for inputs (and outputs) like:
-	- Composite TV video;
-	- stereo analog audio;
-	- S-Video;
-	- HDMI
-
-Problem description:
-===================
-
-During the MC summit last year, we decided to add an entity called
-"connector" for such things. So, we added, so far, 3 types of
-connectors:
-
-#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
-#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
-#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-
-However, while implementing it, we saw that the mapping on hardware
-is actually more complex, as one physical connector may have multiple
-signals with can eventually used on a different way.
-
-One simple example of this is the S-Video connector. It has internally
-two video streams, one for chrominance and another one for luminance.
-
-It is very common for vendors to ship devices with a S-Video input
-and a "S-Video to RCA" cable.
-
-At the driver's level, drivers need to know if such cable is
-plugged, as they need to configure a different input setting to
-enable either S-Video or composite decoding.
-
-So, the V4L2 API usually maps "S-Video" on a different input
-than "Composite over S-Video". This can be seen, for example, at the
-saa7134 driver, who gained recently support for MC.
-
-Additionally, it is interesting to describe the physical aspects
-of the connector (color, position, label, etc).
-
-Proposal:
-========
-
-It seems that there was an agreement that the physical aspects of
-the connector should be mapped via the upcoming properties API,
-with the properties present only when it is possible to find them
-in the hardware. So, it seems that all such properties should be
-optional.
-
-However, we didn't finish the meeting, as we ran out of time. Yet,
-I guess the last proposal there fulfills the requirements. So,
-let's focus our discussions on it. So, let me formulate it as a
-proposal
-
-We should represent the entities based on the inputs. So, for the
-already implemented entities, we'll have, instead:
-
-#define MEDIA_ENT_F_INPUT_RF		(MEDIA_ENT_F_BASE + 10001)
-#define MEDIA_ENT_F_INPUT_SVIDEO	(MEDIA_ENT_F_BASE + 10002)
-#define MEDIA_ENT_F_INPUT_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-
-The MEDIA_ENT_F_INPUT_RF and MEDIA_ENT_F_INPUT_COMPOSITE will have
-just one sink PAD each, as they carry just one signal. As we're
-describing the logical input, it doesn't matter the physical
-connector type. So, except for re-naming the define, nothing
-changes for them.
-
-Devices with S-Video input will have one MEDIA_ENT_F_INPUT_SVIDEO
-per each different S-Video input. Each one will have two sink pads,
-one for the Y signal and another for the C signal.
-
-So, a device like Terratec AV350, that has one Composite and one
-S-Video input[1] would be represented as:
-	https://mchehab.fedorapeople.org/terratec_av350-modified.png
-
-
-[1] Physically, it has a SCART connector that could be enabled
-via a physical switch, but logically, the device will still switch
-from S-Video over SCART or composite over SCART.
-
-More complex devices would be represented like:
-	https://hverkuil.home.xs4all.nl/adv7604.png
-	https://hverkuil.home.xs4all.nl/adv7842.png
-
-NOTE:
-
-The labels at the PADs currently can't be represented, but the
-idea is adding it as a property via the upcoming properties API.
-
-Anyone disagree?
-
-Regards,
-Mauro
+--
+Patrick
