@@ -1,112 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-145.synserver.de ([212.40.185.145]:1244 "EHLO
-	smtp-out-195.synserver.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751489AbcBHJ34 (ORCPT
+Received: from smtpout-fallback.aon.at ([195.3.96.120]:38919 "EHLO
+	smtpout-fallback.aon.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1424543AbcBRFSa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2016 04:29:56 -0500
-Subject: Re: [PATCH v3] adv7604: add direct interrupt handling
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org
-References: <1452698143-31897-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <569CC821.6040905@xs4all.nl> <56B85ED0.9050302@xs4all.nl>
-Cc: magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	william.towle@codethink.co.uk, sergei.shtylyov@cogentembedded.com
-From: Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <56B8600F.1080003@metafoo.de>
-Date: Mon, 8 Feb 2016 10:29:51 +0100
+	Thu, 18 Feb 2016 00:18:30 -0500
+Received: from unknown (HELO smtpout.aon.at) ([172.18.1.199])
+          (envelope-sender <klammerj@a1.net>)
+          by fallback44.highway.telekom.at (qmail-ldap-1.03) with SMTP
+          for <linux-media@vger.kernel.org>; 18 Feb 2016 05:11:48 -0000
+Message-ID: <56C55273.7040407@a1.net>
+Date: Thu, 18 Feb 2016 06:11:15 +0100
+From: Johann Klammer <klammerj@a1.net>
 MIME-Version: 1.0
-In-Reply-To: <56B85ED0.9050302@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+To: lorenz.giefing@physio-geidorf.at
+CC: linux-media@vger.kernel.org
+Subject: Re: Terratec CINERGY T/C Stick
+References: <20160217201920.yq8h5szz5wogsso0@www.mail4me.at>
+In-Reply-To: <20160217201920.yq8h5szz5wogsso0@www.mail4me.at>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/08/2016 10:24 AM, Hans Verkuil wrote:
-> Hi Ulrich,
+On 02/17/2016 08:19 PM, lorenz.giefing@physio-geidorf.at wrote:
+> Hi!
+> I bought such a stick to build a linux driven video recorder.
+> But the stick istn't recognized by the kernel
 > 
-> On 01/18/2016 12:10 PM, Hans Verkuil wrote:
->> On 01/13/2016 04:15 PM, Ulrich Hecht wrote:
->>> When probed from device tree, the i2c client driver can handle the
->>> interrupt on its own.
->>>
->>> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
->>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>> ---
->>> v3: uses IRQ_RETVAL
->>>
->>> v2: implements the suggested style changes and drops the IRQF_TRIGGER_LOW
->>> flag, which is handled in the device tree.
->>>
->>>
->>>  drivers/media/i2c/adv7604.c | 24 ++++++++++++++++++++++--
->>>  1 file changed, 22 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
->>> index 5bd81bd..ab4cb25 100644
->>> --- a/drivers/media/i2c/adv7604.c
->>> +++ b/drivers/media/i2c/adv7604.c
->>> @@ -31,6 +31,7 @@
->>>  #include <linux/gpio/consumer.h>
->>>  #include <linux/hdmi.h>
->>>  #include <linux/i2c.h>
->>> +#include <linux/interrupt.h>
->>>  #include <linux/kernel.h>
->>>  #include <linux/module.h>
->>>  #include <linux/slab.h>
->>> @@ -1971,6 +1972,16 @@ static int adv76xx_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
->>>  	return 0;
->>>  }
->>>  
->>> +static irqreturn_t adv76xx_irq_handler(int irq, void *devid)
->>> +{
->>> +	struct adv76xx_state *state = devid;
->>> +	bool handled;
->>> +
->>> +	adv76xx_isr(&state->sd, 0, &handled);
->>> +
->>> +	return IRQ_RETVAL(handled);
->>> +}
->>> +
->>>  static int adv76xx_get_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
->>>  {
->>>  	struct adv76xx_state *state = to_state(sd);
->>> @@ -2844,8 +2855,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
->>>  		state->pdata.op_656_range = 1;
->>>  	}
->>>  
->>> -	/* Disable the interrupt for now as no DT-based board uses it. */
->>> -	state->pdata.int1_config = ADV76XX_INT1_CONFIG_DISABLED;
->>> +	state->pdata.int1_config = ADV76XX_INT1_CONFIG_ACTIVE_LOW;
->>
->> Hmm, this hardcodes the interrupt to active low. Can you use the DT to determine
->> whether it should be active low or high?
+> uname -a
+> Linux ESPRIMO 4.2.0-27-generic #32-Ubuntu SMP Fri Jan 22 04:49:08 UTC  
+> 2016 x86_64 x86_64 x86_64 GNU/Linux
 > 
-> Just a reminder: I don't want to accept this patch without this change. In most
-> cases an interrupt is active on high, not low, so I don't like to see this
-> hardcoded.
+> dmesg
+> Feb 17 20:06:42 ESPRIMO kernel: [35572.460078] usb 2-3: new high-speed  
+> USB device number 5 using ehci-pci
+> Feb 17 20:06:42 ESPRIMO kernel: [35572.604226] usb 2-3: New USB device  
+> found, idVendor=0ccd, idProduct=5103
+> Feb 17 20:06:42 ESPRIMO kernel: [35572.604233] usb 2-3: New USB device  
+> strings: Mfr=1, Product=2, SerialNumber=3
+> Feb 17 20:06:42 ESPRIMO kernel: [35572.604237] usb 2-3: Product: RTL2841UHIDIR
+> Feb 17 20:06:42 ESPRIMO kernel: [35572.604240] usb 2-3: Manufacturer: Realtek
+> Feb 17 20:06:42 ESPRIMO kernel: [35572.604243] usb 2-3: SerialNumber: 00000140
+> Feb 17 20:06:42 ESPRIMO mtp-probe: checking bus 2, device 5:  
+> "/sys/devices/pci0000:00/0000:00:1d.7/usb2/2-3"
+> Feb 17 20:06:42 ESPRIMO mtp-probe: bus: 2, device: 5 was not an MTP device
+> Feb 17 20:08:11 ESPRIMO colord-sane: io/hpmud/pp.c 627: unable to read  
+> device-id ret=-1
+> 
+> lsusb
+> Bus 002 Device 006: ID 0ccd:5103 TerraTec Electronic GmbH
+> 
+> I compiled the media_build successfully, but nothing changed.
+> 
+> I dind't find the ID anywhere in the net... ;-(
+> 
+> Any idea what to try next?
+> Thanks!
+> Lorenz
+> 
+> 
+0x5103 is not in the list:
+<https://github.com/torvalds/linux/blob/master/drivers/media/dvb-core/dvb-usb-ids.h>
+It's likely not supported.
+You can try to find a separate driver. 
+You can try to figure out the chipset and load a driver if one already exists. 
+You'll have to alter the drivers product id so the kernel will be able to use 
+the driver with your device.  
 
-I think the important part here is to configure the IRQ here in the same way
-as the flags that are passed to request_irq(). Right now it does not pass
-any flags to request_irq() which means the result is pretty much
-unpredictable and depends on the default configuration of the IRQ chip
-(which might change between kernel versions).
+You may want to watch this video:
+<https://archive.fosdem.org/2014/schedule/event/making_the_linux_kernel_better/>
 
->>>  	/* Use the default I2C addresses. */
->>>  	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] = 0x42;
->>> @@ -3235,6 +3245,16 @@ static int adv76xx_probe(struct i2c_client *client,
->>>  	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
->>>  			client->addr << 1, client->adapter->name);
->>>  
->>> +	if (client->irq) {
->>> +		err = devm_request_threaded_irq(&client->dev,
->>> +						client->irq,
->>> +						NULL, adv76xx_irq_handler,
->>> +						IRQF_ONESHOT,
->>> +						dev_name(&client->dev), state);
->>> +		if (err)
->>> +			goto err_entity;
->>> +	}
->>> +
+Or you throw that stick out the window....
+
 
