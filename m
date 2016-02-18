@@ -1,38 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43980 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751760AbcBXLHQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2016 06:07:16 -0500
-From: Hans de Goede <hdegoede@redhat.com>
-To: mchehab@osg.samsung.com
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH tvtime 2/4] docs/tvtime.desktop: Add Video to Categories.
-Date: Wed, 24 Feb 2016 12:07:05 +0100
-Message-Id: <1456312027-8484-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1456312027-8484-1-git-send-email-hdegoede@redhat.com>
-References: <1456312027-8484-1-git-send-email-hdegoede@redhat.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36290 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1425363AbcBRMK1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 07:10:27 -0500
+Date: Thu, 18 Feb 2016 14:09:52 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 13/15] mediactl: Add media device ioctl API
+Message-ID: <20160218120951.GO32612@valkosipuli.retiisi.org.uk>
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+ <1453133860-21571-14-git-send-email-j.anaszewski@samsung.com>
+ <56C1C775.2090002@linux.intel.com>
+ <56C1CD3E.6090108@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56C1CD3E.6090108@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Video to the desktop file Categories.
+Hi Jacek,
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- docs/tvtime.desktop | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, Feb 15, 2016 at 02:06:06PM +0100, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> Thanks for the review.
+> 
+> On 02/15/2016 01:41 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >Jacek Anaszewski wrote:
+> >>Ioctls executed on complex media devices need special handling.
+> >>For instance some ioctls need to be targeted for specific sub-devices,
+> >>depending on the media device configuration. The APIs being introduced
+> >>address such requirements.
+> >>
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>---
+> >>  utils/media-ctl/Makefile.am          |    2 +-
+> >>  utils/media-ctl/libv4l2media_ioctl.c |  404 ++++++++++++++++++++++++++++++++++
+> >>  utils/media-ctl/libv4l2media_ioctl.h |   48 ++++
+> >>  3 files changed, 453 insertions(+), 1 deletion(-)
+> >>  create mode 100644 utils/media-ctl/libv4l2media_ioctl.c
+> >>  create mode 100644 utils/media-ctl/libv4l2media_ioctl.h
+> >>
+> >>diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+> >>index 3e883e0..7f18624 100644
+> >>--- a/utils/media-ctl/Makefile.am
+> >>+++ b/utils/media-ctl/Makefile.am
+> >>@@ -1,6 +1,6 @@
+> >>  noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la libmediatext.la
+> >>
+> >>-libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
+> >>+libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h libv4l2media_ioctl.c libv4l2media_ioctl.h
+> >>  libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
+> >>  libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
+> >>
+> >>diff --git a/utils/media-ctl/libv4l2media_ioctl.c b/utils/media-ctl/libv4l2media_ioctl.c
+> >>new file mode 100644
+> >>index 0000000..b186121
+> >>--- /dev/null
+> >>+++ b/utils/media-ctl/libv4l2media_ioctl.c
+> >>@@ -0,0 +1,404 @@
+> >>+/*
+> >>+ * Copyright (c) 2015 Samsung Electronics Co., Ltd.
+> >>+ *              http://www.samsung.com
+> >>+ *
+> >>+ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>+ *
+> >>+ * This program is free software; you can redistribute it and/or modify
+> >>+ * it under the terms of the GNU Lesser General Public License as published by
+> >>+ * the Free Software Foundation; either version 2.1 of the License, or
+> >>+ * (at your option) any later version.
+> >>+ *
+> >>+ * This program is distributed in the hope that it will be useful,
+> >>+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >>+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> >>+ * Lesser General Public License for more details.
+> >>+ */
+> >>+
+> >>+#include <errno.h>
+> >>+#include <stdlib.h>
+> >>+#include <sys/syscall.h>
+> >>+#include <unistd.h>
+> >>+
+> >>+#include <linux/videodev2.h>
+> >>+
+> >>+#include "libv4l2media_ioctl.h"
+> >>+#include "mediactl-priv.h"
+> >>+#include "mediactl.h"
+> >>+#include "v4l2subdev.h"
+> >>+
+> >>+#define VIDIOC_CTRL(type)					\
+> >>+	((type) == VIDIOC_S_CTRL ? "VIDIOC_S_CTRL" :		\
+> >>+				   "VIDIOC_G_CTRL")
+> >>+
+> >>+#define VIDIOC_EXT_CTRL(type)					\
+> >>+	((type) == VIDIOC_S_EXT_CTRLS ? 			\
+> >>+		"VIDIOC_S_EXT_CTRLS"	:			\
+> >>+		 ((type) == VIDIOC_G_EXT_CTRLS ? 		\
+> >>+				    "VIDIOC_G_EXT_CTRLS" :	\
+> >>+				    "VIDIOC_TRY_EXT_CTRLS"))
+> >>+
+> >>+#define SYS_IOCTL(fd, cmd, arg) \
+> >>+	syscall(SYS_ioctl, (int)(fd), (unsigned long)(cmd), (void *)(arg))
+> >>+
+> >>+
+> >>+int media_ioctl_ctrl(struct media_device *media, int request,
+> >
+> >unsigned int request
+> 
+> OK.
+> 
+> >
+> >>+		     struct v4l2_control *arg)
+> >
+> >I wonder if it'd make sense to always use v4l2_ext_control instead. You
+> >can't access 64-bit integer controls with VIDIOC_S_CTRL for instance.
+> 
+> This function is meant to handle VIDIOC_S_CTRL/VIDIOC_G_CTRL ioctls.
+> For ext ctrls there is media_ioctl_ext_ctrl().
 
-diff --git a/docs/tvtime.desktop b/docs/tvtime.desktop
-index 566a181..941746c 100644
---- a/docs/tvtime.desktop
-+++ b/docs/tvtime.desktop
-@@ -6,5 +6,5 @@ Name=TVtime Television Viewer
- GenericName=Television Viewer
- Terminal=false
- Type=Application
--Categories=AudioVideo;
-+Categories=AudioVideo;Video;
- Keywords=tvtime;video;tv;viewer;v4l;v4l2;video4linux;deinterlacer;
+Is there any reason not to use extended control always?
+
+In other words, do we have a driver that does support Media controller but
+does not support extended controls?
+
+> >As this is a user space library, I'd probably add a function to handle
+> >S/G/TRY control each.
+> 
+> There is media_ioctl_ext_ctrl() that handles VIDIOC_S_EXT_CTRLS,
+> VIDIOC_G_EXT_CTRLS and VIDIOC_TRY_EXT_CTRLS.
+> 
+> >Have you considered binding the control to a video node rather than a
+> >media device? We have many sensors on current media devices already, and
+> >e.g. exposure time control can be found in multiple sub-devices.
+> 
+> Doesn't v4l2-ctrl-redir config entry address that?
+
+How does it work if you have, say, two video nodes where you can capture
+images from a different sensor? I.e. your media graph could look like this:
+
+	sensor0 -> CSI-2 0 -> video0
+
+	sensor1 -> CSI-2 1 -> video1
+
 -- 
-2.7.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
