@@ -1,111 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:57781 "EHLO mout.gmx.net"
+Received: from lists.s-osg.org ([54.187.51.154]:53829 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750705AbcBUTVc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 14:21:32 -0500
-Date: Sun, 21 Feb 2016 13:58:36 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 3/4] media: pxa_camera: trivial move of dma irq
- functions
-In-Reply-To: <1441539733-19201-3-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.1602211356070.5959@axis700.grange>
-References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
- <1441539733-19201-3-git-send-email-robert.jarzmik@free.fr>
+	id S1425263AbcBRMEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 07:04:34 -0500
+Date: Thu, 18 Feb 2016 10:04:27 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Jani Nikula <jani.nikula@intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160218100427.6471cb22@recife.lan>
+In-Reply-To: <87r3gadzye.fsf@intel.com>
+References: <20160213145317.247c63c7@lwn.net>
+	<86fuwwcdmd.fsf@hiro.keithp.com>
+	<CAKMK7uGeU_grgC7pRCdqw+iDGWQfXhHwvX+tkSgRmdimxMrthA@mail.gmail.com>
+	<20160217151401.3cb82f65@lwn.net>
+	<CAKMK7uEqbSrhc2nh0LjC1fztciM4eTjtKE9T_wMVCqAkkTnzkA@mail.gmail.com>
+	<874md6fkna.fsf@intel.com>
+	<CAKMK7uE72wFEFCyw1dHbt+f3-ex3fr_9MbjoGfnKFZkd5+9S2Q@mail.gmail.com>
+	<20160218082657.5a1a5b0f@recife.lan>
+	<87r3gadzye.fsf@intel.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+Em Thu, 18 Feb 2016 13:23:37 +0200
+Jani Nikula <jani.nikula@intel.com> escreveu:
 
-On Sun, 6 Sep 2015, Robert Jarzmik wrote:
-
-> This moves the dma irq handling functions up in the source file, so that
-> they are available before DMA preparation functions. It prepares the
-> conversion to DMA engine, where the descriptors are populated with these
-> functions as callbacks.
+> On Thu, 18 Feb 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> > For simple documents like the one produced by kernel-doc, I guess
+> > all markup languages would work equally.
+> >
+> > The problem is for complex documents like the media kAPI one, where
+> > the document was written to produce a book. So, it uses some complex
+> > features found at DocBook. One of such features we use extensively
+> > is the capability of having a table with per-line columns. This way,
+> > we can produce things like:
+> >
+> > V4L2_CID_COLOR_KILLER	boolean	Enable the color killer (i. e. force a black & white image in case of a weak video signal).
+> > V4L2_CID_COLORFX	enum	Selects a color effect. The following values are defined:
+> > 				V4L2_COLORFX_NONE 		Color effect is disabled.
+> > 				V4L2_COLORFX_ANTIQUE 		An aging (old photo) effect.
+> > 				V4L2_COLORFX_ART_FREEZE 	Frost color effect.
+> >
+> > In the above example, we have a main 3 columns table, and we embed
+> > a 2 columns table at the third field of V4L2_CID_COLORFX to represent
+> > possible values for this menu control.
+> >
+> > See https://linuxtv.org/downloads/v4l-dvb-apis/control.html for the
+> > complete output of it.
+> >
+> > This is used extensively inside the media DocBook, and properly
+> > supporting it is one of our major concerns.
+> >
+> > Are there any way to represent those things with the markup
+> > languages currently being analyzed?
+> >
+> > Converting those tables will likely require manual work, as I don't
+> > think automatic tools will properly handle it, specially since we
+> > use some DocBook macros to help creating such tables.  
 > 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
-> Since v1: fixed prototypes change
-> Since v4: refixed prototypes change
-> ---
->  drivers/media/platform/soc_camera/pxa_camera.c | 42 +++++++++++++++-----------
->  1 file changed, 24 insertions(+), 18 deletions(-)
+> Since I've let myself be told that asciidoc handles tables better than
+> reStructuredText, I tested this a bit with the presumably inferior one.
 > 
-> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-> index db041a5ed444..bb7054221a86 100644
-> --- a/drivers/media/platform/soc_camera/pxa_camera.c
-> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
-> @@ -311,6 +311,30 @@ static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
->  	return i + 1;
->  }
->  
-> +static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
-> +			       enum pxa_camera_active_dma act_dma);
-
-This is v5. You fixed prototypes in v1 and v4. Let's see:
-
-> +
-> +static void pxa_camera_dma_irq_y(int channel, void *data)
-> +{
-> +	struct pxa_camera_dev *pcdev = data;
-> +
-> +	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
-
-This doesn't seem fixed to me.
-
-Thanks
-Guennadi
-
-> +}
-> +
-> +static void pxa_camera_dma_irq_u(int channel, void *data)
-> +{
-> +	struct pxa_camera_dev *pcdev = data;
-> +
-> +	pxa_camera_dma_irq(channel, pcdev, DMA_U);
-> +}
-> +
-> +static void pxa_camera_dma_irq_v(int channel, void *data)
-> +{
-> +	struct pxa_camera_dev *pcdev = data;
-> +
-> +	pxa_camera_dma_irq(channel, pcdev, DMA_V);
-> +}
-> +
->  /**
->   * pxa_init_dma_channel - init dma descriptors
->   * @pcdev: pxa camera device
-> @@ -802,24 +826,6 @@ out:
->  	spin_unlock_irqrestore(&pcdev->lock, flags);
->  }
->  
-> -static void pxa_camera_dma_irq_y(int channel, void *data)
-> -{
-> -	struct pxa_camera_dev *pcdev = data;
-> -	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
-> -}
-> -
-> -static void pxa_camera_dma_irq_u(int channel, void *data)
-> -{
-> -	struct pxa_camera_dev *pcdev = data;
-> -	pxa_camera_dma_irq(channel, pcdev, DMA_U);
-> -}
-> -
-> -static void pxa_camera_dma_irq_v(int channel, void *data)
-> -{
-> -	struct pxa_camera_dev *pcdev = data;
-> -	pxa_camera_dma_irq(channel, pcdev, DMA_V);
-> -}
-> -
->  static struct videobuf_queue_ops pxa_videobuf_ops = {
->  	.buf_setup      = pxa_videobuf_setup,
->  	.buf_prepare    = pxa_videobuf_prepare,
-> -- 
-> 2.1.4
+> rst has two table types, simple tables and grid tables [1]. It seems
+> like grid tables can do pretty much anything, but they can be cumbersome
+> to work with. So I tried to check what can be done with simple tables.
 > 
+> Here's a sample, converted using rst2html (Sphinx will be prettier, but
+> rst2html works for simple things like this):
+> 
+> https://people.freedesktop.org/~jani/v4l-table-within-table.rst
+> https://people.freedesktop.org/~jani/v4l-table-within-table.html
+
+Yes, this would work. Can we remove the border from the main table?
+I guess it would be nicer.
+
+> 
+> Rather than using nested tables, you might want to consider using
+> definition lists within tables:
+> 
+> https://people.freedesktop.org/~jani/v4l-definition-list-within-table.rst
+> https://people.freedesktop.org/~jani/v4l-definition-list-within-table.html
+> 
+> You be the judge, but I think this is workable.
+
+It is workable, but I guess nested tables produced a better result.
+
+I did myself a test with nested tables with asciidoc too:
+
+https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.html
+https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.ascii
+
+With looks very decent to me.
+
+I had to manually add the nested table, as pandoc conversion sent the
+DocBook's nested table to /dev/null.
+
+Thanks,
+Mauro
