@@ -1,124 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48305 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753252AbcBHLoS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2016 06:44:18 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v3 29/35] v4l: vsp1: Set the alpha value manually in RPF and WPF s_stream handlers
-Date: Mon,  8 Feb 2016 13:43:59 +0200
-Message-Id: <1454931845-23864-30-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1454931845-23864-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:46909 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1424633AbcBRIbe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 03:31:34 -0500
+Date: Thu, 18 Feb 2016 06:31:14 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Russel Winder <russel@winder.org.uk>
+Cc: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Jani Nikula <jani.nikula@intel.com>,
+	Keith Packard <keithp@keithp.com>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: V4L docs and docbook
+Message-ID: <20160218063114.370b84cf@recife.lan>
+In-Reply-To: <1455783420.10645.21.camel@winder.org.uk>
+References: <20160217145254.3085b333@lwn.net>
+	<20160217215138.15b6de82@recife.lan>
+	<1455783420.10645.21.camel@winder.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/mqPfHCJx2xC4wGro4=Hjbgz"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The RPF and WPF alpha values are set through V4L2 controls and applied
-when starting the video stream by a call to v4l2_ctrl_handler_setup().
-As that function uses the control handler mutex it can't be called in
-interrupt context, where the VSP+DU pipeline handler might need to
-reconfigure the pipeline.
+--Sig_/mqPfHCJx2xC4wGro4=Hjbgz
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Set the alpha value manually in the RPF and WPF s_stream handler to
-ensure that the hardware is properly configured even when controlled
-without the userspace API. If the userspace API is enabled protect that
-with the control lock to avoid race conditions with userspace.
+Em Thu, 18 Feb 2016 08:17:00 +0000
+Russel Winder <russel@winder.org.uk> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_rpf.c  | 16 ++++++++++++++--
- drivers/media/platform/vsp1/vsp1_rwpf.h |  2 ++
- drivers/media/platform/vsp1/vsp1_wpf.c  |  7 ++++---
- 3 files changed, 20 insertions(+), 5 deletions(-)
+> On Wed, 2016-02-17 at 21:51 -0200, Mauro Carvalho Chehab wrote:
+> > [=E2=80=A6]
+> >=20
+> > We have 2 types of documentation for the Kernel part of the
+> > subsystem,
+> > Both using DocBook:
+> > - The uAPI documentation:
+> > 	https://linuxtv.org/downloads/v4l-dvb-apis
+> > - The kAPI documentation:
+> > 	https://linuxtv.org/downloads/v4l-dvb-internals/device-drivers/
+> > mediadev.html =20
+> [=E2=80=A6]
+>=20
+> I may not be introducing new data here but=E2=80=A6
+>=20
+> Whilst ReStructuredText and Markdown are fairly popular text markup
+> languages, they are not related to the DocBook/XML toolchain.
+>=20
+> Many people, especially authors of books etc. are not really willing to
+> write in DocBook/XML even though it is the re-purposable representation
+> of choice for most of the major publishers. This led to ASCIIDoc.
+>=20
+> ASCIIDoc is a plain text markup language in the same way
+> ReStructuredText and Markdown are, but it's intention was always to be
+> a lightweight front end to DocBook/XML so as to allow authors to write
+> in a nice markup language but work with the DocBook/XML toolchain.
+>=20
+> ASCIIDoc has gained quite a strong following. So much so that it now
+> has a life of its own separate from the DocBook/XML tool chain. There
+> is ASCIIDoctor which generates PDF, HTML,=E2=80=A6 from the source without
+> using DocBook/XML, yet the source can quite happily go through a
+> DocBook/XML toolchain as well.
+>=20
+> Many of the open source projects I am involved with are now using
+> ASCIIDoctor as the documentation form. This has increased the number of
+> non-main-contributor contributions via pull requests. It is so much
+> easier to work with ASCIIDoc(tor) source than DocBook/XML source.=C2=A0
 
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index b9c39f9e4458..b1d4a46f230e 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -68,7 +68,9 @@ static const struct v4l2_ctrl_ops rpf_ctrl_ops = {
- 
- static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- {
-+	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&subdev->entity);
- 	struct vsp1_rwpf *rpf = to_rwpf(subdev);
-+	struct vsp1_device *vsp1 = rpf->entity.vsp1;
- 	const struct vsp1_format_info *fmtinfo = rpf->fmtinfo;
- 	const struct v4l2_pix_format_mplane *format = &rpf->format;
- 	const struct v4l2_rect *crop = &rpf->crop;
-@@ -148,6 +150,15 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	vsp1_rpf_write(rpf, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_AEXT_EXT |
- 		       (fmtinfo->alpha ? VI6_RPF_ALPH_SEL_ASEL_PACKED
- 				       : VI6_RPF_ALPH_SEL_ASEL_FIXED));
-+
-+	if (vsp1->pdata.uapi)
-+		mutex_lock(rpf->ctrls.lock);
-+	vsp1_rpf_write(rpf, VI6_RPF_VRTCOL_SET,
-+		       rpf->alpha->cur.val << VI6_RPF_VRTCOL_SET_LAYA_SHIFT);
-+	vsp1_pipeline_propagate_alpha(pipe, &rpf->entity, rpf->alpha->cur.val);
-+	if (vsp1->pdata.uapi)
-+		mutex_unlock(rpf->ctrls.lock);
-+
- 	vsp1_rpf_write(rpf, VI6_RPF_MSK_CTRL, 0);
- 	vsp1_rpf_write(rpf, VI6_RPF_CKEY_CTRL, 0);
- 
-@@ -245,8 +256,9 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
- 
- 	/* Initialize the control handler. */
- 	v4l2_ctrl_handler_init(&rpf->ctrls, 1);
--	v4l2_ctrl_new_std(&rpf->ctrls, &rpf_ctrl_ops, V4L2_CID_ALPHA_COMPONENT,
--			  0, 255, 1, 255);
-+	rpf->alpha = v4l2_ctrl_new_std(&rpf->ctrls, &rpf_ctrl_ops,
-+				       V4L2_CID_ALPHA_COMPONENT,
-+				       0, 255, 1, 255);
- 
- 	rpf->entity.subdev.ctrl_handler = &rpf->ctrls;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 1a90c7c8e972..8e8235682ada 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -23,6 +23,7 @@
- #define RWPF_PAD_SINK				0
- #define RWPF_PAD_SOURCE				1
- 
-+struct v4l2_ctrl;
- struct vsp1_rwpf;
- struct vsp1_video;
- 
-@@ -40,6 +41,7 @@ struct vsp1_rwpf_operations {
- struct vsp1_rwpf {
- 	struct vsp1_entity entity;
- 	struct v4l2_ctrl_handler ctrls;
-+	struct v4l2_ctrl *alpha;
- 
- 	struct vsp1_video *video;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index d0edcde721bd..40eeaf2d76d2 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -156,7 +156,7 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	 */
- 	if (vsp1->pdata.uapi)
- 		mutex_lock(wpf->ctrls.lock);
--	outfmt |= vsp1_wpf_read(wpf, VI6_WPF_OUTFMT) & VI6_WPF_OUTFMT_PDV_MASK;
-+	outfmt |= wpf->alpha->cur.val << VI6_WPF_OUTFMT_PDV_SHIFT;
- 	vsp1_wpf_write(wpf, VI6_WPF_OUTFMT, outfmt);
- 	if (vsp1->pdata.uapi)
- 		mutex_unlock(wpf->ctrls.lock);
-@@ -254,8 +254,9 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 
- 	/* Initialize the control handler. */
- 	v4l2_ctrl_handler_init(&wpf->ctrls, 1);
--	v4l2_ctrl_new_std(&wpf->ctrls, &wpf_ctrl_ops, V4L2_CID_ALPHA_COMPONENT,
--			  0, 255, 1, 255);
-+	wpf->alpha = v4l2_ctrl_new_std(&wpf->ctrls, &wpf_ctrl_ops,
-+				       V4L2_CID_ALPHA_COMPONENT,
-+				       0, 255, 1, 255);
- 
- 	wpf->entity.subdev.ctrl_handler = &wpf->ctrls;
- 
--- 
-2.4.10
+Are there any tools that would convert from DocBook to ASCIIDoc?
 
+Thanks,
+Mauro
+
+--Sig_/mqPfHCJx2xC4wGro4=Hjbgz
+Content-Type: application/pgp-signature
+Content-Description: Assinatura digital OpenPGP
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJWxYFUAAoJEAhfPr2O5OEVpN8P/jT3y/CMPUZhsA5EjhHBEaTs
+cZwySHfmOnUkikyTdk+2pOW0nE4mqq7fR5qDEbZNUTIz3pDlDttYwQUbm/PxO8CJ
+7nY2m5kkMkFTuj5Ot7iZILywVEAQcwMKKFZq5Du9EgXS1q8N6FsMyP/jpUuXhPJY
+G4mSIuIGVzP2Cjny0tpcC3G0qEYWtbY+KPvmBUToZSQPs/A9Ic5RwkTxl2SGm9bd
+YuyYrzlUG6xWB3tnDP57YP8R3ETp9wHYyi0C+xE5/wiJPs8dhcYHu3K/dhknSpvW
+mt3Fmle08GJOHfPI3B4/4mbBFHNk7aDbhXbDjfMonnK8Pd5I6gGUqy8LM7aKuWcA
+vlN21eGmeCpiv89Ku7WUgnJNk5plu8T3GUJb59EdDqB3kys+u3spnMibL2bL2gLt
++UIuZhQfzJnbFq7GqN43qnM9/Xn/LedPva00SSzWJE7HOHe6+gC+/8tIDc3m5/1M
+g9YWwi4s/Di39Uz4Clfj7u6cSryc9gtRgCMMeJ5fxR4N9erd2ZeNnsARA1Laey7P
+TiHkyrDmoAr43QkyjfHlKqu44HTG/NvwVBrnRwr/n2mEXg687a+4IHH17anf8nic
+y0nejIHjPD9Y7XPRstmc/+uYAQpRWvhTxHZbZzDP4zAZeSFc9y7dZW24MK1k3xIs
+VwDVKa7evAA+BEivqdlm
+=2odO
+-----END PGP SIGNATURE-----
+
+--Sig_/mqPfHCJx2xC4wGro4=Hjbgz--
