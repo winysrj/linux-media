@@ -1,51 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37535 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974AbcBVTJb (ORCPT
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:36185 "EHLO
+	mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1424395AbcBRBv5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 14:09:31 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCH 4/9] [media] ivtv: steal could be NULL
-Date: Mon, 22 Feb 2016 16:09:18 -0300
-Message-Id: <69f2119e511302ff5a344f595c49271ef31b11e7.1456167652.git.mchehab@osg.samsung.com>
-In-Reply-To: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
-References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
-In-Reply-To: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
-References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 17 Feb 2016 20:51:57 -0500
+Received: by mail-lf0-f53.google.com with SMTP id 78so22878890lfy.3
+        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2016 17:51:56 -0800 (PST)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Thu, 18 Feb 2016 02:51:54 +0100
+To: Ulrich Hecht <ulrich.hecht@gmail.com>
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	Laurent <laurent.pinchart@ideasonboard.com>,
+	hans.verkuil@cisco.com, linux-renesas-soc@vger.kernel.org
+Subject: Re: [RFC/PATCH] [media] rcar-vin: add Renesas R-Car VIN IP core
+Message-ID: <20160218015153.GB12338@bigcity.dyn.berto.se>
+References: <1455468932-8573-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+ <CAO3366zt+O0JTGjPm1QA4VtksycAgDeVf3VzK3rWBeWXVtYdzg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAO3366zt+O0JTGjPm1QA4VtksycAgDeVf3VzK3rWBeWXVtYdzg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ivtv_flush_queues() calls ivtv_queue_move() with steal == NULL.
-However, part of the code assumes that steal could be not null, as
-pointed by smatch:
-	drivers/media/pci/ivtv/ivtv-queue.c:145 ivtv_queue_move() error: we previously assumed 'steal' could be null (see line 138)
+Hi Ulrich,
 
-This has the potential of causing an OOPS when the queue is
-flushed.
+Thanks for testing.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/pci/ivtv/ivtv-queue.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 2016-02-15 12:40:12 +0100, Ulrich Hecht wrote:
+> On Sun, Feb 14, 2016 at 5:55 PM, Niklas Söderlund
+> <niklas.soderlund+renesas@ragnatech.se> wrote:
+> > A V4L2 driver for Renesas R-Car VIN IP cores that do not depend on
+> > soc_camera. The driver is heavily based on its predecessor and aims to
+> > replace the soc_camera driver.
+>
+> Thanks a lot, this will allow me to implement HDMI input properly.
+>
+> One issue: With either HDMI or analog, I get a black picture using
+> MMIO, while using read() works.
 
-diff --git a/drivers/media/pci/ivtv/ivtv-queue.c b/drivers/media/pci/ivtv/ivtv-queue.c
-index 7fde36e6d227..2128c2a8d7fd 100644
---- a/drivers/media/pci/ivtv/ivtv-queue.c
-+++ b/drivers/media/pci/ivtv/ivtv-queue.c
-@@ -141,7 +141,7 @@ int ivtv_queue_move(struct ivtv_stream *s, struct ivtv_queue *from, struct ivtv_
- 		spin_unlock_irqrestore(&s->qlock, flags);
- 		return -ENOMEM;
- 	}
--	while (bytes_available < needed_bytes) {
-+	while (steal && bytes_available < needed_bytes) {
- 		struct ivtv_buffer *buf = list_entry(steal->list.prev, struct ivtv_buffer, list);
- 		u16 dma_xfer_cnt = buf->dma_xfer_cnt;
- 
--- 
-2.5.0
+I will look into it. A quick test using v4l2grab I can as you say grab
+frames using read but mmap hangs the tool. What tool are you using to
+test?
 
+>
+> > The driver is tested on Koelsch and can grab frames using yavta.  It
+> > also passes a v4l2-compliance (1.10.0) run without failures. There is
+> > however a issues sometimes if one first run v4l2-compliance and then
+> > yavta the grabbed frames are a bit fuzzy. I'm working on it.
+>
+> For the record, I have had the same problem with the old driver, but I
+> was not able to reproduce it reliably.
+
+Good to know I'm not the only one, I will see if I can fix it.
