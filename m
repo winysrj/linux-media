@@ -1,41 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54691 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751929AbcBILAD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Feb 2016 06:00:03 -0500
-Received: from int-mx13.intmail.prod.int.phx2.redhat.com (int-mx13.intmail.prod.int.phx2.redhat.com [10.5.11.26])
-	by mx1.redhat.com (Postfix) with ESMTPS id 86831C0AA378
-	for <linux-media@vger.kernel.org>; Tue,  9 Feb 2016 11:00:03 +0000 (UTC)
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH tvtime 1/2] Remove -lsupc++ from LDFLAGS
-Date: Tue,  9 Feb 2016 11:59:57 +0100
-Message-Id: <1455015598-18805-1-git-send-email-hdegoede@redhat.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:49005 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1426118AbcBRMHL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 07:07:11 -0500
+Subject: Re: Kernel docs: muddying the waters a bit
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jani Nikula <jani.nikula@intel.com>
+References: <20160213145317.247c63c7@lwn.net> <86fuwwcdmd.fsf@hiro.keithp.com>
+ <CAKMK7uGeU_grgC7pRCdqw+iDGWQfXhHwvX+tkSgRmdimxMrthA@mail.gmail.com>
+ <20160217151401.3cb82f65@lwn.net>
+ <CAKMK7uEqbSrhc2nh0LjC1fztciM4eTjtKE9T_wMVCqAkkTnzkA@mail.gmail.com>
+ <874md6fkna.fsf@intel.com>
+ <CAKMK7uE72wFEFCyw1dHbt+f3-ex3fr_9MbjoGfnKFZkd5+9S2Q@mail.gmail.com>
+ <20160218082657.5a1a5b0f@recife.lan> <87r3gadzye.fsf@intel.com>
+ <20160218100427.6471cb22@recife.lan>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56C5B3E7.6030509@xs4all.nl>
+Date: Thu, 18 Feb 2016 13:07:03 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160218100427.6471cb22@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tvtime does not use any functions from libsupc++, so there is no need
-to link to it.
+On 02/18/16 13:04, Mauro Carvalho Chehab wrote:
+> Em Thu, 18 Feb 2016 13:23:37 +0200
+> Jani Nikula <jani.nikula@intel.com> escreveu:
+> 
+>> On Thu, 18 Feb 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+>>> For simple documents like the one produced by kernel-doc, I guess
+>>> all markup languages would work equally.
+>>>
+>>> The problem is for complex documents like the media kAPI one, where
+>>> the document was written to produce a book. So, it uses some complex
+>>> features found at DocBook. One of such features we use extensively
+>>> is the capability of having a table with per-line columns. This way,
+>>> we can produce things like:
+>>>
+>>> V4L2_CID_COLOR_KILLER	boolean	Enable the color killer (i. e. force a black & white image in case of a weak video signal).
+>>> V4L2_CID_COLORFX	enum	Selects a color effect. The following values are defined:
+>>> 				V4L2_COLORFX_NONE 		Color effect is disabled.
+>>> 				V4L2_COLORFX_ANTIQUE 		An aging (old photo) effect.
+>>> 				V4L2_COLORFX_ART_FREEZE 	Frost color effect.
+>>>
+>>> In the above example, we have a main 3 columns table, and we embed
+>>> a 2 columns table at the third field of V4L2_CID_COLORFX to represent
+>>> possible values for this menu control.
+>>>
+>>> See https://linuxtv.org/downloads/v4l-dvb-apis/control.html for the
+>>> complete output of it.
+>>>
+>>> This is used extensively inside the media DocBook, and properly
+>>> supporting it is one of our major concerns.
+>>>
+>>> Are there any way to represent those things with the markup
+>>> languages currently being analyzed?
+>>>
+>>> Converting those tables will likely require manual work, as I don't
+>>> think automatic tools will properly handle it, specially since we
+>>> use some DocBook macros to help creating such tables.  
+>>
+>> Since I've let myself be told that asciidoc handles tables better than
+>> reStructuredText, I tested this a bit with the presumably inferior one.
+>>
+>> rst has two table types, simple tables and grid tables [1]. It seems
+>> like grid tables can do pretty much anything, but they can be cumbersome
+>> to work with. So I tried to check what can be done with simple tables.
+>>
+>> Here's a sample, converted using rst2html (Sphinx will be prettier, but
+>> rst2html works for simple things like this):
+>>
+>> https://people.freedesktop.org/~jani/v4l-table-within-table.rst
+>> https://people.freedesktop.org/~jani/v4l-table-within-table.html
+> 
+> Yes, this would work. Can we remove the border from the main table?
+> I guess it would be nicer.
+> 
+>>
+>> Rather than using nested tables, you might want to consider using
+>> definition lists within tables:
+>>
+>> https://people.freedesktop.org/~jani/v4l-definition-list-within-table.rst
+>> https://people.freedesktop.org/~jani/v4l-definition-list-within-table.html
+>>
+>> You be the judge, but I think this is workable.
+> 
+> It is workable, but I guess nested tables produced a better result.
+> 
+> I did myself a test with nested tables with asciidoc too:
+> 
+> https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.html
+> https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.ascii
+> 
+> With looks very decent to me.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- src/Makefile.am | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+It does, except for the vertical alignment of the third column (at least when viewed
+with google chrome).
 
-diff --git a/src/Makefile.am b/src/Makefile.am
-index d3e7044..4b4612f 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -83,7 +83,7 @@ tvtime_CFLAGS = $(TTF_CFLAGS) $(PNG_CFLAGS) $(OPT_CFLAGS) \
- 	$(PLUGIN_CFLAGS) $(X11_CFLAGS) $(XML2_FLAG) $(ALSA_CFLAGS) \
- 	$(FONT_CFLAGS) $(AM_CFLAGS)
- tvtime_LDFLAGS  = $(TTF_LIBS) $(ZLIB_LIBS) $(PNG_LIBS) \
--	$(X11_LIBS) $(XML2_LIBS) $(ALSA_LIBS) -lm -lsupc++
-+	$(X11_LIBS) $(XML2_LIBS) $(ALSA_LIBS) -lm
- 
- tvtime_command_SOURCES = utils.h utils.c tvtimeconf.h tvtimeconf.c \
- 	tvtime-command.c
--- 
-2.5.0
+	Hans
 
+> 
+> I had to manually add the nested table, as pandoc conversion sent the
+> DocBook's nested table to /dev/null.
+> 
+> Thanks,
+> Mauro
+> 
