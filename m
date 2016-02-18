@@ -1,72 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40054 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754565AbcBEP20 (ORCPT
+Received: from mail-yk0-f177.google.com ([209.85.160.177]:35094 "EHLO
+	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1424702AbcBRCuZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2016 10:28:26 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv11 08/17] cec: add compat32 ioctl support
-Date: Fri,  5 Feb 2016 16:27:51 +0100
-Message-Id: <1454686080-39018-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
-References: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 17 Feb 2016 21:50:25 -0500
+Received: by mail-yk0-f177.google.com with SMTP id r207so15651576ykd.2
+        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2016 18:50:25 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <56c5194b.4848620a.a927c.ffffaafbSMTPIN_ADDED_BROKEN@mx.google.com>
+References: <1455705673-25484-1-git-send-email-jung.zhao@rock-chips.com>
+	<1455705787-25856-1-git-send-email-jung.zhao@rock-chips.com>
+	<CAD=FV=UStodcwk6w7=x2iDizq0uVPuHSr9W8XbWDnLmrKAhQdA@mail.gmail.com>
+	<56c5194b.4848620a.a927c.ffffaafbSMTPIN_ADDED_BROKEN@mx.google.com>
+Date: Wed, 17 Feb 2016 18:50:24 -0800
+Message-ID: <CAD=FV=VPRVtMju+RRx4VRq2Rt1VdZXDrdcTENmc3UCRhWq=WNw@mail.gmail.com>
+Subject: =?UTF-8?Q?Re=3A_=E7=AD=94=E5=A4=8D=3A_=5BPATCH_v2_4=2F4=5D_media=3A_vcodec=3A_rockchip=3A_?=
+	=?UTF-8?Q?Add_Rockchip_VP8_decoder_driver?=
+From: Doug Anderson <dianders@chromium.org>
+To: Jun Zhao <jung.zhao@rock-chips.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Tomasz Figa <tfiga@chromium.org>,
+	"open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <posciak@chromium.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Jun,
 
-The CEC ioctls didn't have compat32 support, so they returned -ENOTTY
-when used in a 32 bit application on a 64 bit kernel.
+On Wed, Feb 17, 2016 at 5:06 PM, Jun Zhao <jung.zhao@rock-chips.com> wrote:
+> Hi Doug,
+> I will add your patch and your name in signed-off-by. Is that appropriate?
 
-Since all the CEC ioctls are 32-bit compatible adding support for this
-API is trivial.
+That's fine.  Make sure you're Signed-off-by is first since my little
+patch is a pretty tiny part of the whole change.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- fs/compat_ioctl.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
-
-diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
-index a5b8eb6..579734c 100644
---- a/fs/compat_ioctl.c
-+++ b/fs/compat_ioctl.c
-@@ -57,6 +57,7 @@
- #include <linux/i2c-dev.h>
- #include <linux/atalk.h>
- #include <linux/gfp.h>
-+#include <linux/cec.h>
- 
- #include "internal.h"
- 
-@@ -1396,6 +1397,24 @@ COMPATIBLE_IOCTL(VIDEO_GET_NAVI)
- COMPATIBLE_IOCTL(VIDEO_SET_ATTRIBUTES)
- COMPATIBLE_IOCTL(VIDEO_GET_SIZE)
- COMPATIBLE_IOCTL(VIDEO_GET_FRAME_RATE)
-+/* cec */
-+COMPATIBLE_IOCTL(CEC_ADAP_G_CAPS)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_LOG_ADDRS)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_LOG_ADDRS)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_STATE)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_STATE)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_PHYS_ADDR)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_PHYS_ADDR)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_VENDOR_ID)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_VENDOR_ID)
-+COMPATIBLE_IOCTL(CEC_G_MONITOR)
-+COMPATIBLE_IOCTL(CEC_S_MONITOR)
-+COMPATIBLE_IOCTL(CEC_CLAIM)
-+COMPATIBLE_IOCTL(CEC_RELEASE)
-+COMPATIBLE_IOCTL(CEC_G_PASSTHROUGH)
-+COMPATIBLE_IOCTL(CEC_TRANSMIT)
-+COMPATIBLE_IOCTL(CEC_RECEIVE)
-+COMPATIBLE_IOCTL(CEC_DQEVENT)
- 
- /* joystick */
- COMPATIBLE_IOCTL(JSIOCGVERSION)
--- 
-2.7.0
-
+-Doug
