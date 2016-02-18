@@ -1,57 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f54.google.com ([209.85.215.54]:32928 "EHLO
-	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755535AbcBPU1T (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:49163 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1425034AbcBRGgx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2016 15:27:19 -0500
-Received: by mail-lf0-f54.google.com with SMTP id m1so115247053lfg.0
-        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2016 12:27:19 -0800 (PST)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: stable@vger.kernel.org, Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH] cx23885: incorrect I2C bus used in the CI registration
-Date: Tue, 16 Feb 2016 22:27:09 +0200
-Message-Id: <1455654429-13234-1-git-send-email-olli.salonen@iki.fi>
+	Thu, 18 Feb 2016 01:36:53 -0500
+Subject: Re: [RFC/PATCH] [media] rcar-vin: add Renesas R-Car VIN IP core
+To: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	linux-renesas-soc@vger.kernel.org,
+	Ulrich Hecht <ulrich.hecht@gmail.com>
+References: <1455468932-8573-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+ <56C19A2B.2080502@xs4all.nl> <20160218001342.GA12338@bigcity.dyn.berto.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56C5667F.2000809@xs4all.nl>
+Date: Thu, 18 Feb 2016 07:36:47 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160218001342.GA12338@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes a bug that was introduced by the commit:
+On 02/18/2016 01:13 AM, Niklas Söderlund wrote:
+> Hi Hans,
+> 
+> Thanks for your comments.
+> 
+> On 2016-02-15 10:28:11 +0100, Hans Verkuil wrote:
+>> On 02/14/2016 05:55 PM, Niklas Söderlund wrote:
+>>> A V4L2 driver for Renesas R-Car VIN IP cores that do not depend on
+>>> soc_camera. The driver is heavily based on its predecessor and aims to
+>>> replace the soc_camera driver.
+>>
+>> Fantastic! I've been hoping that this would be done at some point. It
+>> was very unfortunate that Renesas went with soc-camera initially.
+>>
+>>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>> ---
+>>>
+>>> The driver is tested on Koelsch and can grab frames using yavta.  It
+>>> also passes a v4l2-compliance (1.10.0) run without failures.
+>>
+>> Did you compile v4l2-compliance from the master branch of the v4l-utils.git
+>> repo? I always recommend that.
+>>
+>> Can you post the output of 'v4l2-compliance -s' and ideally also 'v4l2-compliance -f'?
+>>
+>> I always like to see that for new drivers.
+> 
+> No I used the latest .tar.bz2 snapshot. Will build from master branch
+> and include for v2.
+> 
+>>
+>>> There is
+>>> however a issues sometimes if one first run v4l2-compliance and then
+>>> yavta the grabbed frames are a bit fuzzy. I'm working on it. Also I
+>>> could only get frames if the video signal on the composite IN was NTSC,
+>>> but this also applied to the soc_camera driver, it might be my test
+>>> setup.
+>>>
+>>> As stated in commit message the driver is based on its soc_camera
+>>> version but some features have been drooped (for now?).
+>>>  - The driver no longer try to use the subdev for cropping (using
+>>>    cropcrop/s_crop).
+>>>  - Do not interrogate the subdev using g_mbus_config.
+>>>
+>>> The goal is to replace the soc_camera driver completely to prepare for
+>>> Gen3 enablement.  Is it a good idea to aim for inheriting
+>>> CONFIG_VIDEO_RCAR_VIN in such case?  I'm thinking down the road if this
+>>> driver is good enough to simply rename the old CONFIG_VIDEO_RCAR_VIN to
+>>> something like CONFIG_VIDEO_SOC_CAMERA_RCAR_VIN mark is at deprecated
+>>> and use this one as a drop in replacement.
+>>
+>> We probably want to have both for some time with the soc-camera version
+>> marked as 'DEPRECATED'. Especially as long as they aren't at feature parity.
+> 
+> I agree. I will drop my idea of inheriting CONFIG_VIDEO_RCAR_VIN and use
+> CONFIG_VIDEO_RCAR_VIN_NEW until we can figure out something more
+> suitable. I plan to include the changes required for building in v2 to
+> ease testing.
 
-commit 2b0aac3011bc7a9db27791bed4978554263ef079
-Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Date:   Tue Dec 23 13:48:07 2014 -0200
+Actually, I'd rename the old driver to CONFIG_VIDEO_RCAR_VIN_OLD and keep
+CONFIG_VIDEO_RCAR_VIN for this driver.
 
-    [media] cx23885: move CI/MAC registration to a separate function
+And perhaps you can also move the old driver to staging/media, but that
+should be done in a final separate patch since I am not sure yet we want
+to do that at the same time as introducing the new driver.
 
-Cc to stable, as this bug exists in all 4.x kernels.
+> 
+>>
+>>> The main feature missing at this point is vidioc_[gs]_selection. The
+>>> driver can crop/scale but it's not exposed to the user. However this
+>>> will be different on Gen3 HW where not all channels have scalers.
+>>
+>> Do you plan to add this in the next version?
+> 
+> Yes.
+> 
+> [snip]
+> 
+>>> +
+>>> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
+>>> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
+>>> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
+>>> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
+>>> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
+>>> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
+>>> +
+>>> +	.vidioc_streamon		= rvin_streamon,
+>>> +	.vidioc_streamoff		= rvin_streamoff,
+>>> +
+>>> +	.vidioc_log_status		= v4l2_ctrl_log_status,
+>>> +	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
+>>> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+>>> +};
+>>
+>> General question: I'm missing HDMI support in this driver. Will that be added later?
+>>
+>> Adding that is quite simple in this driver (as opposed to adding it to soc-camera).
+> 
+> Ulrich Hecht already beat me to it with whit '[PATCH/RFC 0/9] Lager
+> board HDMI input support', thanks Ulrich.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/pci/cx23885/cx23885-dvb.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I saw that. I have a Koelsch that's still in the box, but now it is really time to
+start setting it up. I'll start working on that tomorrow.
 
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 5131c9f..6e40dec 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -1139,7 +1139,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
- 		u8 eeprom[256]; /* 24C02 i2c eeprom */
- 		struct sp2_config sp2_config;
- 		struct i2c_board_info info;
--		struct cx23885_i2c *i2c_bus2 = &dev->i2c_bus[1];
-+		struct cx23885_i2c *i2c_bus = &dev->i2c_bus[0];
- 
- 		/* attach CI */
- 		memset(&sp2_config, 0, sizeof(sp2_config));
-@@ -1151,7 +1151,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
- 		info.addr = 0x40;
- 		info.platform_data = &sp2_config;
- 		request_module(info.type);
--		client_ci = i2c_new_device(&i2c_bus2->i2c_adap, &info);
-+		client_ci = i2c_new_device(&i2c_bus->i2c_adap, &info);
- 		if (client_ci == NULL || client_ci->dev.driver == NULL)
- 			return -ENODEV;
- 		if (!try_module_get(client_ci->dev.driver->owner)) {
--- 
-1.9.1
+Regards,
 
+	Hans
