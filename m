@@ -1,59 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:51757 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750993AbcBOPz1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 10:55:27 -0500
-Date: Mon, 15 Feb 2016 17:55:24 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 07/15] mediactl: libv4l2subdev: add VYUY8_2X8 mbus code
-Message-ID: <20160215155523.GB1639@paasikivi.fi.intel.com>
-References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
- <1453133860-21571-8-git-send-email-j.anaszewski@samsung.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45254 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1423915AbcBRGxQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 01:53:16 -0500
+Subject: Re: V4L docs and docbook
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <20160217145254.3085b333@lwn.net>
+Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-doc@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Jani Nikula <jani.nikula@intel.com>,
+	Keith Packard <keithp@keithp.com>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56C56A56.8010107@xs4all.nl>
+Date: Thu, 18 Feb 2016 07:53:10 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1453133860-21571-8-git-send-email-j.anaszewski@samsung.com>
+In-Reply-To: <20160217145254.3085b333@lwn.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+Hi Jon,
 
-On Mon, Jan 18, 2016 at 05:17:32PM +0100, Jacek Anaszewski wrote:
-> The VYUY8_2X8 media bus format is the only one supported
-> by the S5C73M3 camera sensor, that is a part of the media
-> device on the Exynos4412-trats2 board.
+On 02/17/2016 10:52 PM, Jonathan Corbet wrote:
+> Hey, Mauro,
 > 
-> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  utils/media-ctl/libv4l2subdev.c |    1 +
->  1 file changed, 1 insertion(+)
+> There's been a conversation going on that I keep meaning to bring you
+> into.  In short, there's a fair amount of interest in improving our
+> formatted kernel documentation, and, in particular, making it easier to
+> write; I'd like to be sure that work doesn't leave media behind.
 > 
-> diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-> index 069ded6..5175188 100644
-> --- a/utils/media-ctl/libv4l2subdev.c
-> +++ b/utils/media-ctl/libv4l2subdev.c
-> @@ -780,6 +780,7 @@ static struct {
->  	{ "YUYV", MEDIA_BUS_FMT_YUYV8_1X16 },
->  	{ "YUYV1_5X8", MEDIA_BUS_FMT_YUYV8_1_5X8 },
->  	{ "YUYV2X8", MEDIA_BUS_FMT_YUYV8_2X8 },
-> +	{ "VYUY8_2X8", V4L2_MBUS_FMT_VYUY8_2X8 },
->  	{ "UYVY", MEDIA_BUS_FMT_UYVY8_1X16 },
->  	{ "UYVY1_5X8", MEDIA_BUS_FMT_UYVY8_1_5X8 },
->  	{ "UYVY2X8", MEDIA_BUS_FMT_UYVY8_2X8 },
+> Work pushed by Daniel Vetter and company has been aiming toward the
+> ability to use a lightweight markup language in the in-source kerneldoc
+> comments.  Initially Markdown was targeted; the most likely choice now
+> looks like ReStructuredText, though no decision has been made.  I've been
+> pushing for moving all of our formatted documentation to whatever markup
+> we use, leaving DocBook behind.  There are, I think, a lot of good
+> reasons to want to do that, including consistency between the template
+> files and the in-source comments, ease of authoring, and a less unwieldy
+> toolchain.
 
-I have a patch taking the codes directly from media-bus-fmt.h; it's here:
+I looked at ReStructuredText and it looks like it will be a pain to convert
+the media DocBook code to that, and the main reason is the poor table support.
+The syntax for that looks very painful and the media DocBook is full of tables.
 
-<URL:http://www.spinics.net/lists/linux-media/msg96651.html>
+BTW, my daily build scripts also rebuilds the media spec and it is available
+here: https://hverkuil.home.xs4all.nl/spec/media.html
 
-Could you use the definition from that one instead? (I think all you need to
-do is to drop the patch.)
+Also missing in ReStructuredText seems to be support for formulas (see for
+example the Colorspaces section in the spec), although to be fair standard
+DocBook doesn't do a great job at that either.
 
--- 
-Kind regards,
+Now, I hate DocBook so going to something easier would certainly be nice,
+but I think it is going to be a difficult task.
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Someone would have to prove that going to another formatting tool will
+produce good results for our documentation. We can certainly give a few
+representative sections of our doc to someone to convert, and if that
+looks OK, then the full conversion can be done.
+
+We have (and still are) put a lot of effort into our documentation and
+we would like to keep the same level of quality.
+
+Regards,
+
+	Hans
+
+> 
+> Various proof-of-concept patches have gone around showing that this idea
+> seems to be feasible.  The latest discussion is at:
+> 
+> 	http://thread.gmane.org/gmane.linux.documentation/35773
+> 
+> The media community has a lot of investment in DocBook documentation.
+> Converting to another markup form is relatively easy, and it's something
+> I would be willing to help with when the time comes.  But it occurred to
+> me that I should probably ask what you all think of this.
+> 
+> There is no flag day here; there's no reason to rip out the current
+> DocBook-based build infrastructure as long as somebody's using it.  But
+> it would be nice to get rid of it eventually and work toward the creation
+> of a more integrated set of kernel documentation.
+> 
+> So...is this an idea that fills you with horror, or does it maybe have
+> some appeal?  Do you have any questions?
+> 
+> One other question I had for you was: which of the allegedly supported
+> output formats are important to you?
+> 
+> Thanks,
+> 
+> jon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
