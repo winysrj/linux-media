@@ -1,197 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48419 "EHLO mail.kapsi.fi"
+Received: from mga09.intel.com ([134.134.136.24]:45349 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752918AbcBGTzJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Feb 2016 14:55:09 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Benjamin Larsson <benjamin@southpole.se>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/4] rtl2832: improve slave TS control
-Date: Sun,  7 Feb 2016 21:54:49 +0200
-Message-Id: <1454874890-10724-4-git-send-email-crope@iki.fi>
-In-Reply-To: <1454874890-10724-1-git-send-email-crope@iki.fi>
-References: <1454874890-10724-1-git-send-email-crope@iki.fi>
+	id S1425515AbcBRLXn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 06:23:43 -0500
+From: Jani Nikula <jani.nikula@intel.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: Kernel docs: muddying the waters a bit
+In-Reply-To: <20160218082657.5a1a5b0f@recife.lan>
+References: <20160213145317.247c63c7@lwn.net> <86fuwwcdmd.fsf@hiro.keithp.com> <CAKMK7uGeU_grgC7pRCdqw+iDGWQfXhHwvX+tkSgRmdimxMrthA@mail.gmail.com> <20160217151401.3cb82f65@lwn.net> <CAKMK7uEqbSrhc2nh0LjC1fztciM4eTjtKE9T_wMVCqAkkTnzkA@mail.gmail.com> <874md6fkna.fsf@intel.com> <CAKMK7uE72wFEFCyw1dHbt+f3-ex3fr_9MbjoGfnKFZkd5+9S2Q@mail.gmail.com> <20160218082657.5a1a5b0f@recife.lan>
+Date: Thu, 18 Feb 2016 13:23:37 +0200
+Message-ID: <87r3gadzye.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add callback parameter to select enable / disable slave TS and use
-it when slave demod is in use.
+On Thu, 18 Feb 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> For simple documents like the one produced by kernel-doc, I guess
+> all markup languages would work equally.
+>
+> The problem is for complex documents like the media kAPI one, where
+> the document was written to produce a book. So, it uses some complex
+> features found at DocBook. One of such features we use extensively
+> is the capability of having a table with per-line columns. This way,
+> we can produce things like:
+>
+> V4L2_CID_COLOR_KILLER	boolean	Enable the color killer (i. e. force a black & white image in case of a weak video signal).
+> V4L2_CID_COLORFX	enum	Selects a color effect. The following values are defined:
+> 				V4L2_COLORFX_NONE 		Color effect is disabled.
+> 				V4L2_COLORFX_ANTIQUE 		An aging (old photo) effect.
+> 				V4L2_COLORFX_ART_FREEZE 	Frost color effect.
+>
+> In the above example, we have a main 3 columns table, and we embed
+> a 2 columns table at the third field of V4L2_CID_COLORFX to represent
+> possible values for this menu control.
+>
+> See https://linuxtv.org/downloads/v4l-dvb-apis/control.html for the
+> complete output of it.
+>
+> This is used extensively inside the media DocBook, and properly
+> supporting it is one of our major concerns.
+>
+> Are there any way to represent those things with the markup
+> languages currently being analyzed?
+>
+> Converting those tables will likely require manual work, as I don't
+> think automatic tools will properly handle it, specially since we
+> use some DocBook macros to help creating such tables.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/rtl2832.c   | 72 ++++++++++++++++++---------------
- drivers/media/dvb-frontends/rtl2832.h   |  4 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 24 +++++------
- 3 files changed, 54 insertions(+), 46 deletions(-)
+Since I've let myself be told that asciidoc handles tables better than
+reStructuredText, I tested this a bit with the presumably inferior one.
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 10f2119..a9b2646 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -347,6 +347,10 @@ static int rtl2832_init(struct dvb_frontend *fe)
- 
- 	dev_dbg(&client->dev, "\n");
- 
-+	ret = rtl2832_wr_demod_reg(dev, DVBT_SOFT_RST, 0x0);
-+	if (ret)
-+		goto err;
-+
- 	for (i = 0; i < ARRAY_SIZE(rtl2832_initial_regs); i++) {
- 		ret = rtl2832_wr_demod_reg(dev, rtl2832_initial_regs[i].reg,
- 			rtl2832_initial_regs[i].value);
-@@ -491,11 +495,6 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
- 	if (fe->ops.tuner_ops.set_params)
- 		fe->ops.tuner_ops.set_params(fe);
- 
--	/* PIP mode related */
--	ret = rtl2832_bulk_write(client, 0x192, "\x00\x0f\xff", 3);
--	if (ret)
--		goto err;
--
- 	/* If the frontend has get_if_frequency(), use it */
- 	if (fe->ops.tuner_ops.get_if_frequency) {
- 		u32 if_freq;
-@@ -1081,37 +1080,46 @@ static struct i2c_adapter *rtl2832_get_i2c_adapter(struct i2c_client *client)
- 	return dev->i2c_adapter_tuner;
- }
- 
--static int rtl2832_enable_slave_ts(struct i2c_client *client)
-+static int rtl2832_slave_ts_ctrl(struct i2c_client *client, bool enable)
- {
- 	struct rtl2832_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 
--	dev_dbg(&client->dev, "\n");
--
--	ret = rtl2832_bulk_write(client, 0x10c, "\x5f\xff", 2);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_wr_demod_reg(dev, DVBT_PIP_ON, 0x1);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_bulk_write(client, 0x0bc, "\x18", 1);
--	if (ret)
--		goto err;
--
--	ret = rtl2832_bulk_write(client, 0x192, "\x7f\xf7\xff", 3);
--	if (ret)
--		goto err;
--
--	/* soft reset */
--	ret = rtl2832_wr_demod_reg(dev, DVBT_SOFT_RST, 0x1);
--	if (ret)
--		goto err;
-+	dev_dbg(&client->dev, "enable=%d\n", enable);
- 
--	ret = rtl2832_wr_demod_reg(dev, DVBT_SOFT_RST, 0x0);
--	if (ret)
--		goto err;
-+	if (enable) {
-+		ret = rtl2832_wr_demod_reg(dev, DVBT_SOFT_RST, 0x0);
-+		if (ret)
-+			goto err;
-+		ret = rtl2832_bulk_write(client, 0x10c, "\x5f\xff", 2);
-+		if (ret)
-+			goto err;
-+		ret = rtl2832_wr_demod_reg(dev, DVBT_PIP_ON, 0x1);
-+		if (ret)
-+			goto err;
-+		ret = rtl2832_bulk_write(client, 0x0bc, "\x18", 1);
-+		if (ret)
-+			goto err;
-+		ret = rtl2832_bulk_write(client, 0x192, "\x7f\xf7\xff", 3);
-+		if (ret)
-+			goto err;
-+	} else {
-+		ret = rtl2832_bulk_write(client, 0x192, "\x00\x0f\xff", 3);
-+		if (ret)
-+			goto err;
-+		ret = rtl2832_bulk_write(client, 0x0bc, "\x08", 1);
-+		if (ret)
-+			goto err;
-+		ret = rtl2832_wr_demod_reg(dev, DVBT_PIP_ON, 0x0);
-+		if (ret)
-+			goto err;
-+		ret = rtl2832_bulk_write(client, 0x10c, "\x00\x00", 2);
-+		if (ret)
-+			goto err;
-+		ret = rtl2832_wr_demod_reg(dev, DVBT_SOFT_RST, 0x1);
-+		if (ret)
-+			goto err;
-+	}
- 
- 	return 0;
- err:
-@@ -1267,7 +1275,7 @@ static int rtl2832_probe(struct i2c_client *client,
- 	/* setup callbacks */
- 	pdata->get_dvb_frontend = rtl2832_get_dvb_frontend;
- 	pdata->get_i2c_adapter = rtl2832_get_i2c_adapter;
--	pdata->enable_slave_ts = rtl2832_enable_slave_ts;
-+	pdata->slave_ts_ctrl = rtl2832_slave_ts_ctrl;
- 	pdata->pid_filter = rtl2832_pid_filter;
- 	pdata->pid_filter_ctrl = rtl2832_pid_filter_ctrl;
- 	pdata->bulk_read = rtl2832_bulk_read;
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index c29a4c2..6390af6 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -31,7 +31,7 @@
-  * @tuner: Used tuner model.
-  * @get_dvb_frontend: Get DVB frontend.
-  * @get_i2c_adapter: Get I2C adapter.
-- * @enable_slave_ts: Enable slave TS IF.
-+ * @slave_ts_ctrl: Control slave TS interface.
-  * @pid_filter: Set PID to PID filter.
-  * @pid_filter_ctrl: Control PID filter.
-  */
-@@ -53,7 +53,7 @@ struct rtl2832_platform_data {
- 
- 	struct dvb_frontend* (*get_dvb_frontend)(struct i2c_client *);
- 	struct i2c_adapter* (*get_i2c_adapter)(struct i2c_client *);
--	int (*enable_slave_ts)(struct i2c_client *);
-+	int (*slave_ts_ctrl)(struct i2c_client *, bool);
- 	int (*pid_filter)(struct dvb_frontend *, u8, u16, int);
- 	int (*pid_filter_ctrl)(struct dvb_frontend *, int);
- /* private: Register access for SDR module use only */
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index c4c6e92..fa72642 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1571,19 +1571,19 @@ static int rtl28xxu_frontend_ctrl(struct dvb_frontend *fe, int onoff)
- 	if (dev->chip_id == CHIP_ID_RTL2831U)
- 		return 0;
- 
--	/* control internal demod ADC */
--	if (fe->id == 0 && onoff)
--		val = 0x48; /* enable ADC */
--	else
--		val = 0x00; /* disable ADC */
--
--	ret = rtl28xxu_wr_reg_mask(d, SYS_DEMOD_CTL, val, 0x48);
--	if (ret)
--		goto err;
-+	if (fe->id == 0) {
-+		/* control internal demod ADC */
-+		if (onoff)
-+			val = 0x48; /* enable ADC */
-+		else
-+			val = 0x00; /* disable ADC */
- 
--	/* bypass slave demod TS through master demod */
--	if (fe->id == 1 && onoff) {
--		ret = pdata->enable_slave_ts(dev->i2c_client_demod);
-+		ret = rtl28xxu_wr_reg_mask(d, SYS_DEMOD_CTL, val, 0x48);
-+		if (ret)
-+			goto err;
-+	} else if (fe->id == 1) {
-+		/* bypass slave demod TS through master demod */
-+		ret = pdata->slave_ts_ctrl(dev->i2c_client_demod, onoff);
- 		if (ret)
- 			goto err;
- 	}
+rst has two table types, simple tables and grid tables [1]. It seems
+like grid tables can do pretty much anything, but they can be cumbersome
+to work with. So I tried to check what can be done with simple tables.
+
+Here's a sample, converted using rst2html (Sphinx will be prettier, but
+rst2html works for simple things like this):
+
+https://people.freedesktop.org/~jani/v4l-table-within-table.rst
+https://people.freedesktop.org/~jani/v4l-table-within-table.html
+
+Rather than using nested tables, you might want to consider using
+definition lists within tables:
+
+https://people.freedesktop.org/~jani/v4l-definition-list-within-table.rst
+https://people.freedesktop.org/~jani/v4l-definition-list-within-table.html
+
+You be the judge, but I think this is workable.
+
+BR,
+Jani.
+
+
+[1] http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#tables
+
+
 -- 
-http://palosaari.fi/
-
+Jani Nikula, Intel Open Source Technology Center
