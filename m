@@ -1,94 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59912 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1424112AbcBSOkt (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:42405 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933423AbcBRHiy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2016 09:40:49 -0500
-Date: Fri, 19 Feb 2016 16:40:46 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] media: Always keep a graph walk large enough
- around
-Message-ID: <20160219144046.GQ32612@valkosipuli.retiisi.org.uk>
-References: <1453906078-29087-1-git-send-email-sakari.ailus@iki.fi>
- <1453906078-29087-3-git-send-email-sakari.ailus@iki.fi>
- <20160219120341.076478ef@recife.lan>
+	Thu, 18 Feb 2016 02:38:54 -0500
+Received: from [192.168.1.138] (c-ce09e555.03-170-73746f36.cust.bredbandsbolaget.se [85.229.9.206])
+	(Authenticated sender: ed8153)
+	by smtp.bredband2.com (Postfix) with ESMTPA id 94D0728649
+	for <linux-media@vger.kernel.org>; Thu, 18 Feb 2016 08:38:47 +0100 (CET)
+Subject: Re: Terratec CINERGY T/C Stick
+To: linux-media <linux-media@vger.kernel.org>
+References: <20160217201920.yq8h5szz5wogsso0@www.mail4me.at>
+ <56C572E6.8060301@southpole.se>
+From: Benjamin Larsson <benjamin@southpole.se>
+Message-ID: <56C57507.4080901@southpole.se>
+Date: Thu, 18 Feb 2016 08:38:47 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160219120341.076478ef@recife.lan>
+In-Reply-To: <56C572E6.8060301@southpole.se>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-On Fri, Feb 19, 2016 at 12:03:41PM -0200, Mauro Carvalho Chehab wrote:
-> Hi Sakari,
-> 
-> Em Wed, 27 Jan 2016 16:47:55 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Re-create the graph walk object as needed in order to have one large enough
-> > available for all entities in the graph.
-> > 
-> > This enumeration is used for pipeline power management in the future.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/media-device.c | 21 +++++++++++++++++++++
-> >  include/media/media-device.h |  5 +++++
-> >  2 files changed, 26 insertions(+)
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 4d1c13d..52d7809 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -577,6 +577,26 @@ int __must_check media_device_register_entity(struct media_device *mdev,
-> >  
-> >  	spin_unlock(&mdev->lock);
-> >  
-> > +	mutex_lock(&mdev->graph_mutex);
-> > +	if (mdev->entity_internal_idx_max
-> > +	    >= mdev->pm_count_walk.ent_enum.idx_max) {
-> > +		struct media_entity_graph new = { 0 };
-> > +
-> > +		/*
-> > +		 * Initialise the new graph walk before cleaning up
-> > +		 * the old one in order not to spoil the graph walk
-> > +		 * object of the media device if graph walk init fails.
-> > +		 */
-> > +		ret = media_entity_graph_walk_init(&new, mdev);
-> > +		if (ret) {
-> > +			mutex_unlock(&mdev->graph_mutex);
-> > +			return ret;
-> > +		}
-> > +		media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
-> > +		mdev->pm_count_walk = new;
-> > +	}
-> > +	mutex_unlock(&mdev->graph_mutex);
-> > +
-> 
-> I don't like the idea of creating a new graph init and destroying the
-> previous one every time. In principle, this needs to be done only
-> when trying to start the graph - or just before registering the
-> MC devnode, if the driver needs/wants to optimize it.
+>
+> Open the device take some pictures and tell us what chips are inside. It
+> might be easy to add support.
+>
+> MvH
+> Benjamin Larsson
 
-It's not every time --- with the previous patch, that's every 32 or 64
-additional entity, depending on how many bits the unsigned long is.
+I think it is a RTL2832 (T demod + usb bridge) + a RTL2840 (C demod) 
+combo. The rtl2832 driver code is there but there is no rtl3240 code.
 
-> 
-> As kbuildtest also didn't like this patch, I'm not applying it
-> for now.
-
-For missing KernelDoc documentation for a struct field.
-
-Other fields in the struct don't have KernelDoc documentation either, and I
-didn't feel it'd fit well for this patch. I can add a patch to change the
-field documentation to the set if you like.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+MvH
+Benjamin Larsson
