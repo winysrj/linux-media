@@ -1,75 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:34826 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741AbcBLJqb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 04:46:31 -0500
+Received: from lists.s-osg.org ([54.187.51.154]:58913 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753794AbcBSQy3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2016 11:54:29 -0500
+Date: Fri, 19 Feb 2016 14:54:23 -0200
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 07/11] [media] em28xx-dvb: create RF connector on DVB-only mode
-Date: Fri, 12 Feb 2016 07:45:02 -0200
-Message-Id: <b7dff6d1f91cdaa9102f7002e3ada0359e48cb3a.1455269986.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1455269986.git.mchehab@osg.samsung.com>
-References: <cover.1455269986.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1455269986.git.mchehab@osg.samsung.com>
-References: <cover.1455269986.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Benoit Parrot <bparrot@ti.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [Patch v6 3/3] media: ti-vpe: Add CAL v4l2 camera capture
+ driver
+Message-ID: <20160219145423.49aaa0b9@recife.lan>
+In-Reply-To: <1452123446-5424-4-git-send-email-bparrot@ti.com>
+References: <1452123446-5424-1-git-send-email-bparrot@ti.com>
+	<1452123446-5424-4-git-send-email-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When in analog mode, the RF connector will be created by
-em28xx-video. However, when the device is in digital mode only,
-the RF connector is not shown. In this case, let the DVB
-core to create it for us.
+Em Wed, 6 Jan 2016 17:37:26 -0600
+Benoit Parrot <bparrot@ti.com> escreveu:
+
+> The Camera Adaptation Layer (CAL) is a block which consists of a dual
+> port CSI2/MIPI camera capture engine.
+> Port #0 can handle CSI2 camera connected to up to 4 data lanes.
+> Port #1 can handle CSI2 camera connected to up to 2 data lanes.
+> The driver implements the required API/ioctls to be V4L2 compliant.
+> Driver supports the following:
+>     - V4L2 API using DMABUF/MMAP buffer access based on videobuf2 api
+>     - Asynchronous sensor sub device registration
+>     - DT support
+> 
+> Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+
+...
+
+> +/* timeperframe is arbitrary and continuous */
+> +static int cal_enum_frameintervals(struct file *file, void *priv,
+> +				   struct v4l2_frmivalenum *fival)
+> +{
+> +	struct cal_ctx *ctx = video_drvdata(file);
+> +	const struct cal_fmt *fmt;
+> +	struct v4l2_subdev_frame_size_enum fse;
+> +	int ret;
+> +
+> +	if (fival->index)
+> +		return -EINVAL;
+> +
+> +	fmt = find_format_by_pix(ctx, fival->pixel_format);
+> +	if (!fmt)
+> +		return -EINVAL;
+> +
+> +	/* check for valid width/height */
+> +	ret = 0;
+> +	fse.pad = 0;
+> +	fse.code = fmt->code;
+> +	fse.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> +	for (fse.index = 0; ; fse.index++) {
+> +		ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_size,
+> +				       NULL, &fse);
+> +		if (ret)
+> +			return -EINVAL;
+> +
+> +		if ((fival->width == fse.max_width) &&
+> +		    (fival->height == fse.max_height))
+> +			break;
+> +		else if ((fival->width >= fse.min_width) &&
+> +			 (fival->width <= fse.max_width) &&
+> +			 (fival->height >= fse.min_height) &&
+> +			 (fival->height <= fse.max_height))
+> +			break;
+> +
+> +		return -EINVAL;
+> +	}
+> +
+> +	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> +	fival->discrete.numerator = 1;
+> +	fival->discrete.denominator = 30;
+> +
+> +	return 0;
+> +}
+
+The above routine is too complex and sounds wrong. Why do you
+need a loop there, if the loop will either return -EINVAL or
+be aborted the first time it runs?
+
+The way it is, it is just confusing and produces a smatch error:
+
+	drivers/media/platform/ti-vpe/cal.c:1219 cal_enum_frameintervals() info: ignoring unreachable code.
+
+If all you want here is to run the loop once, this patch would do the
+same, with a clearer logic.
+
+ti-vpe/cal: Simplify the logic to avoid confusing smatch
+
+drivers/media/platform/ti-vpe/cal.c:1219 cal_enum_frameintervals() info: ignoring unreachable code.
+
+This is caused by a very confusing logic that looks like a loop, but
+it runs only once.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/usb/em28xx/em28xx-dvb.c   | 7 ++++++-
- drivers/media/usb/em28xx/em28xx-video.c | 3 ++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index ea80541d58f0..7ca2fbd3b14a 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -905,6 +905,7 @@ static int em28xx_register_dvb(struct em28xx_dvb *dvb, struct module *module,
- 			       struct em28xx *dev, struct device *device)
- {
- 	int result;
-+	bool create_rf_connector = false;
+diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+index 35fa1071c5b2..62721ee7b9bc 100644
+--- a/drivers/media/platform/ti-vpe/cal.c
++++ b/drivers/media/platform/ti-vpe/cal.c
+@@ -1216,29 +1216,28 @@ static int cal_enum_frameintervals(struct file *file, void *priv,
+ 	fse.pad = 0;
+ 	fse.code = fmt->code;
+ 	fse.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+-	for (fse.index = 0; ; fse.index++) {
+-		ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_size,
+-				       NULL, &fse);
+-		if (ret)
+-			return -EINVAL;
+-
+-		if ((fival->width == fse.max_width) &&
+-		    (fival->height == fse.max_height))
+-			break;
+-		else if ((fival->width >= fse.min_width) &&
+-			 (fival->width <= fse.max_width) &&
+-			 (fival->height >= fse.min_height) &&
+-			 (fival->height <= fse.max_height))
+-			break;
++	fse.index = 0;
  
- 	mutex_init(&dvb->lock);
++	ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_size,
++			       NULL, &fse);
++	if (ret)
+ 		return -EINVAL;
+-	}
  
-@@ -998,7 +999,11 @@ static int em28xx_register_dvb(struct em28xx_dvb *dvb, struct module *module,
- 	/* register network adapter */
- 	dvb_net_init(&dvb->adapter, &dvb->net, &dvb->demux.dmx);
+ 	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+ 	fival->discrete.numerator = 1;
+ 	fival->discrete.denominator = 30;
  
--	result = dvb_create_media_graph(&dvb->adapter, false);
-+	/* If the analog part won't create RF connectors, DVB will do it */
-+	if (!dev->has_video || (dev->tuner_type == TUNER_ABSENT))
-+		create_rf_connector = true;
+-	return 0;
++	if ((fival->width == fse.max_width) &&
++	    (fival->height == fse.max_height))
++		return 0;
 +
-+	result = dvb_create_media_graph(&dvb->adapter, create_rf_connector);
- 	if (result < 0)
- 		goto fail_create_graph;
++	if ((fival->width >= fse.min_width) &&
++	    (fival->width <= fse.max_width) &&
++	    (fival->height >= fse.min_height) &&
++	    (fival->height <= fse.max_height))
++		return 0;
++
++	return -EINVAL;
+ }
  
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index e7fd0bac4a08..f772e2612608 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -990,7 +990,8 @@ static void em28xx_v4l2_create_entities(struct em28xx *dev)
- 			ent->function = MEDIA_ENT_F_CONN_SVIDEO;
- 			break;
- 		default: /* EM28XX_VMUX_TELEVISION or EM28XX_RADIO */
--			ent->function = MEDIA_ENT_F_CONN_RF;
-+			if (dev->tuner_type != TUNER_ABSENT)
-+				ent->function = MEDIA_ENT_F_CONN_RF;
- 			break;
- 		}
- 
--- 
-2.5.0
-
+ /*
 
