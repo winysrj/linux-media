@@ -1,106 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53829 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1425263AbcBRMEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 07:04:34 -0500
-Date: Thu, 18 Feb 2016 10:04:27 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160218100427.6471cb22@recife.lan>
-In-Reply-To: <87r3gadzye.fsf@intel.com>
-References: <20160213145317.247c63c7@lwn.net>
-	<86fuwwcdmd.fsf@hiro.keithp.com>
-	<CAKMK7uGeU_grgC7pRCdqw+iDGWQfXhHwvX+tkSgRmdimxMrthA@mail.gmail.com>
-	<20160217151401.3cb82f65@lwn.net>
-	<CAKMK7uEqbSrhc2nh0LjC1fztciM4eTjtKE9T_wMVCqAkkTnzkA@mail.gmail.com>
-	<874md6fkna.fsf@intel.com>
-	<CAKMK7uE72wFEFCyw1dHbt+f3-ex3fr_9MbjoGfnKFZkd5+9S2Q@mail.gmail.com>
-	<20160218082657.5a1a5b0f@recife.lan>
-	<87r3gadzye.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39413 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757173AbcBSD5r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 22:57:47 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5349C1868C8
+	for <linux-media@vger.kernel.org>; Fri, 19 Feb 2016 04:57:42 +0100 (CET)
+Date: Fri, 19 Feb 2016 04:57:42 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160219035742.5349C1868C8@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 18 Feb 2016 13:23:37 +0200
-Jani Nikula <jani.nikula@intel.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On Thu, 18 Feb 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> > For simple documents like the one produced by kernel-doc, I guess
-> > all markup languages would work equally.
-> >
-> > The problem is for complex documents like the media kAPI one, where
-> > the document was written to produce a book. So, it uses some complex
-> > features found at DocBook. One of such features we use extensively
-> > is the capability of having a table with per-line columns. This way,
-> > we can produce things like:
-> >
-> > V4L2_CID_COLOR_KILLER	boolean	Enable the color killer (i. e. force a black & white image in case of a weak video signal).
-> > V4L2_CID_COLORFX	enum	Selects a color effect. The following values are defined:
-> > 				V4L2_COLORFX_NONE 		Color effect is disabled.
-> > 				V4L2_COLORFX_ANTIQUE 		An aging (old photo) effect.
-> > 				V4L2_COLORFX_ART_FREEZE 	Frost color effect.
-> >
-> > In the above example, we have a main 3 columns table, and we embed
-> > a 2 columns table at the third field of V4L2_CID_COLORFX to represent
-> > possible values for this menu control.
-> >
-> > See https://linuxtv.org/downloads/v4l-dvb-apis/control.html for the
-> > complete output of it.
-> >
-> > This is used extensively inside the media DocBook, and properly
-> > supporting it is one of our major concerns.
-> >
-> > Are there any way to represent those things with the markup
-> > languages currently being analyzed?
-> >
-> > Converting those tables will likely require manual work, as I don't
-> > think automatic tools will properly handle it, specially since we
-> > use some DocBook macros to help creating such tables.  
-> 
-> Since I've let myself be told that asciidoc handles tables better than
-> reStructuredText, I tested this a bit with the presumably inferior one.
-> 
-> rst has two table types, simple tables and grid tables [1]. It seems
-> like grid tables can do pretty much anything, but they can be cumbersome
-> to work with. So I tried to check what can be done with simple tables.
-> 
-> Here's a sample, converted using rst2html (Sphinx will be prettier, but
-> rst2html works for simple things like this):
-> 
-> https://people.freedesktop.org/~jani/v4l-table-within-table.rst
-> https://people.freedesktop.org/~jani/v4l-table-within-table.html
+Results of the daily build of media_tree:
 
-Yes, this would work. Can we remove the border from the main table?
-I guess it would be nicer.
+date:		Fri Feb 19 04:00:19 CET 2016
+git branch:	test
+git hash:	3d0ccad0dbbd51b64d307c64cc163002334afbfa
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.3.0-164
 
-> 
-> Rather than using nested tables, you might want to consider using
-> definition lists within tables:
-> 
-> https://people.freedesktop.org/~jani/v4l-definition-list-within-table.rst
-> https://people.freedesktop.org/~jani/v4l-definition-list-within-table.html
-> 
-> You be the judge, but I think this is workable.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-It is workable, but I guess nested tables produced a better result.
+Detailed results are available here:
 
-I did myself a test with nested tables with asciidoc too:
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.html
-https://mchehab.fedorapeople.org/media-kabi-docs-test/pandoc_asciidoc/table.ascii
+Full logs are available here:
 
-With looks very decent to me.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-I had to manually add the nested table, as pandoc conversion sent the
-DocBook's nested table to /dev/null.
+The Media Infrastructure API from this daily build is here:
 
-Thanks,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
