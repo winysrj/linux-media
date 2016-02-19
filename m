@@ -1,121 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:53586 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751155AbcBUR51 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59912 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1424112AbcBSOkt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 12:57:27 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id D76A018005B
-	for <linux-media@vger.kernel.org>; Sun, 21 Feb 2016 04:30:18 +0100 (CET)
-Date: Sun, 21 Feb 2016 04:30:18 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160221033018.D76A018005B@tschai.lan>
+	Fri, 19 Feb 2016 09:40:49 -0500
+Date: Fri, 19 Feb 2016 16:40:46 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 2/5] media: Always keep a graph walk large enough
+ around
+Message-ID: <20160219144046.GQ32612@valkosipuli.retiisi.org.uk>
+References: <1453906078-29087-1-git-send-email-sakari.ailus@iki.fi>
+ <1453906078-29087-3-git-send-email-sakari.ailus@iki.fi>
+ <20160219120341.076478ef@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160219120341.076478ef@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of media_tree:
+On Fri, Feb 19, 2016 at 12:03:41PM -0200, Mauro Carvalho Chehab wrote:
+> Hi Sakari,
+> 
+> Em Wed, 27 Jan 2016 16:47:55 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Re-create the graph walk object as needed in order to have one large enough
+> > available for all entities in the graph.
+> > 
+> > This enumeration is used for pipeline power management in the future.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/media-device.c | 21 +++++++++++++++++++++
+> >  include/media/media-device.h |  5 +++++
+> >  2 files changed, 26 insertions(+)
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 4d1c13d..52d7809 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -577,6 +577,26 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+> >  
+> >  	spin_unlock(&mdev->lock);
+> >  
+> > +	mutex_lock(&mdev->graph_mutex);
+> > +	if (mdev->entity_internal_idx_max
+> > +	    >= mdev->pm_count_walk.ent_enum.idx_max) {
+> > +		struct media_entity_graph new = { 0 };
+> > +
+> > +		/*
+> > +		 * Initialise the new graph walk before cleaning up
+> > +		 * the old one in order not to spoil the graph walk
+> > +		 * object of the media device if graph walk init fails.
+> > +		 */
+> > +		ret = media_entity_graph_walk_init(&new, mdev);
+> > +		if (ret) {
+> > +			mutex_unlock(&mdev->graph_mutex);
+> > +			return ret;
+> > +		}
+> > +		media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
+> > +		mdev->pm_count_walk = new;
+> > +	}
+> > +	mutex_unlock(&mdev->graph_mutex);
+> > +
+> 
+> I don't like the idea of creating a new graph init and destroying the
+> previous one every time. In principle, this needs to be done only
+> when trying to start the graph - or just before registering the
+> MC devnode, if the driver needs/wants to optimize it.
 
-date:		Sun Feb 21 04:00:15 CET 2016
-git branch:	test
-git hash:	f7b5dff0b59b20469b2a4889e6170c0069d37c8d
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.4.0-164
+It's not every time --- with the previous patch, that's every 32 or 64
+additional entity, depending on how many bits the unsigned long is.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-sh: ERRORS
-linux-git-x86_64: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: ERRORS
-smatch: ERRORS
+> 
+> As kbuildtest also didn't like this patch, I'm not applying it
+> for now.
 
-Detailed results are available here:
+For missing KernelDoc documentation for a struct field.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Other fields in the struct don't have KernelDoc documentation either, and I
+didn't feel it'd fit well for this patch. I can add a patch to change the
+field documentation to the set if you like.
 
-Full logs are available here:
+-- 
+Kind regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
