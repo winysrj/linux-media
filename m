@@ -1,47 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52092 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751824AbcBURUa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 12:20:30 -0500
-Date: Sun, 21 Feb 2016 18:00:09 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] media: Always keep a graph walk large enough
- around
-Message-ID: <20160221160009.GT32612@valkosipuli.retiisi.org.uk>
-References: <1453906078-29087-1-git-send-email-sakari.ailus@iki.fi>
- <1453906078-29087-3-git-send-email-sakari.ailus@iki.fi>
- <20160219120341.076478ef@recife.lan>
- <20160219144046.GQ32612@valkosipuli.retiisi.org.uk>
- <20160219141423.56264355@recife.lan>
+Received: from mail.kapsi.fi ([217.30.184.167]:35090 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750919AbcBSKqq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2016 05:46:46 -0500
+Subject: Re: m88ds3103: Undefined division
+To: Peter Rosin <peda@lysator.liu.se>
+References: <56C6EA14.7080405@lysator.liu.se>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <56C6F292.3090508@iki.fi>
+Date: Fri, 19 Feb 2016 12:46:42 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160219141423.56264355@recife.lan>
+In-Reply-To: <56C6EA14.7080405@lysator.liu.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 19, 2016 at 02:14:23PM -0200, Mauro Carvalho Chehab wrote:
-...
-> > > As kbuildtest also didn't like this patch, I'm not applying it
-> > > for now.  
-> > 
-> > For missing KernelDoc documentation for a struct field.
-> > 
-> > Other fields in the struct don't have KernelDoc documentation either, and I
-> > didn't feel it'd fit well for this patch. I can add a patch to change the
-> > field documentation to the set if you like.
-> 
-> Ok, it could be done on a separate patch. Feel free to submit it.
+On 02/19/2016 12:10 PM, Peter Rosin wrote:
+> Hi!
+>
+> I'm looking at this code in drivers/media/dvb-frontends/m88ds3103.c in
+> the m88ds3103_set_frontend() function, line 600 (give or take):
+>
+> 	s32tmp = 0x10000 * (tuner_frequency - c->frequency);
+> 	s32tmp = DIV_ROUND_CLOSEST(s32tmp, priv->mclk_khz);
+> 	if (s32tmp < 0)
+> 		s32tmp += 0x10000;
+>
+> There is code that tries to handle negative s32tmp, so I assume that
+> negative s32tmp is a possibility. Further, priv->mclk_khz is an unsigned
+> type as far as I can tell. But then we have this comment for the
+> DIV_ROUND_CLOSEST macro:
+>
+> /*
+>   * Divide positive or negative dividend by positive divisor and round
+>   * to closest integer. Result is undefined for negative divisors and
+>   * for negative dividends if the divisor variable type is unsigned.
+>   */
+> #define DIV_ROUND_CLOSEST(x, divisor)(                  \
+>
+> I don't know how bad this is, and what the consequences of garbage are,
+> but from here it looks like a problem waiting to happen...
 
-I noticed the struct had KernelDoc comments but I missed them.
+Divisor type (mclk) needs to be changed signed then somehow...
 
-I'll update the patch accordingly. If you still think it'd be a good idea to
-move the graph initialisation elsewhere, let me know. In the meantime I'll
-send v3.
+regards
+Antti
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://palosaari.fi/
