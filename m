@@ -1,83 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44558 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932738AbcBZO13 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2016 09:27:29 -0500
-Date: Fri, 26 Feb 2016 11:27:23 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Representing hardware connections via MC
-Message-ID: <20160226112723.6298c464@recife.lan>
-In-Reply-To: <56D05C25.60605@xs4all.nl>
-References: <20160226091317.5a07c374@recife.lan>
-	<56D051DC.5070900@xs4all.nl>
-	<20160226110055.2acf936f@recife.lan>
-	<56D05C25.60605@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout.easymail.ca ([64.68.201.169]:51421 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1425298AbcBSA2w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2016 19:28:52 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	inki.dae@samsung.com, sw0312.kim@samsung.com,
+	jh1009.sung@samsung.com, chehabrafael@gmail.com,
+	prabhakar.csengg@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: au0828 enable the right media source when input changes
+Date: Thu, 18 Feb 2016 17:28:48 -0700
+Message-Id: <1455841728-7062-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 26 Feb 2016 15:07:33 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Change vidioc_s_input() to enable the media source
+for the newly selected input. v4l2-core enables
+source before calling au0828's vidioc_s_input()
+handler. Hence, when input selection changes,
+media source for the newly selected input needs
+to be enabled.
 
-> On 02/26/2016 03:00 PM, Mauro Carvalho Chehab wrote:
-> > Em Fri, 26 Feb 2016 14:23:40 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> On 02/26/2016 01:13 PM, Mauro Carvalho Chehab wrote:  
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-video.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-...
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 20696a4..678074d 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1381,6 +1381,7 @@ static void au0828_s_input(struct au0828_dev *dev, int index)
+ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
+ {
+ 	struct au0828_dev *dev = video_drvdata(file);
++	struct video_device *vfd = video_devdata(file);
+ 
+ 	dprintk(1, "VIDIOC_S_INPUT in function %s, input=%d\n", __func__,
+ 		index);
+@@ -1393,7 +1394,14 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
+ 		return 0;
+ 
+ 	au0828_s_input(dev, index);
+-	return 0;
++
++	/*
++	 * Input has been changed. Disable the media source
++	 * associated with the old input and enable source
++	 * for the newly set input
++	 */
++	v4l_disable_media_source(vfd);
++	return v4l_enable_media_source(vfd);
+ }
+ 
+ static int vidioc_enumaudio(struct file *file, void *priv, struct v4l2_audio *a)
+-- 
+2.5.0
 
-> >>> We should represent the entities based on the inputs. So, for the
-> >>> already implemented entities, we'll have, instead:
-> >>>
-> >>> #define MEDIA_ENT_F_INPUT_RF		(MEDIA_ENT_F_BASE + 10001)
-> >>> #define MEDIA_ENT_F_INPUT_SVIDEO	(MEDIA_ENT_F_BASE + 10002)
-> >>> #define MEDIA_ENT_F_INPUT_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-> >>>
-> >>> The MEDIA_ENT_F_INPUT_RF and MEDIA_ENT_F_INPUT_COMPOSITE will have
-> >>> just one sink PAD each, as they carry just one signal. As we're
-> >>> describing the logical input, it doesn't matter the physical
-> >>> connector type. So, except for re-naming the define, nothing
-> >>> changes for them.    
-> >>
-> >> What if my device has an SVIDEO output (e.g. ivtv)? 'INPUT' denotes
-> >> the direction, and I don't think that's something you want in the
-> >> define for the connector entity.
-> >>
-> >> As was discussed on irc we are really talking about signals received
-> >> or transmitted by/from a connector. I still prefer F_SIG_ or F_SIGNAL_
-> >> or F_CONN_SIG_ or something along those lines.
-> >>
-> >> I'm not sure where F_INPUT came from, certainly not from the irc
-> >> discussion.  
-> > 
-> > Well, the idea of "F_CONN_SIG" came when we were talking about
-> > representing each signal, and not the hole thing.
-> > 
-> > I think using it would be a little bit misleading, but I'm OK
-> > with that, provided that we make clear that a MEDIA_ENT_F_CONN_SIG_SVIDEO
-> > should contain two pads, one for each signal.  
-> 
-> I hate naming discussions :-)
-
-Me too :) 
-
-> It's certainly not F_INPUT since, well, there are outputs too :-)
-> 
-> And you are right that the signal idea was abandoned later in the discussion.
-> I'd forgotten about that. Basically the different signals are now represented
-> as pads (TMDS and CEC for example).
-> 
-> I think F_CONN_ isn't such a bad name after all.
-
-I guess we can stick with F_CONN, just making sure that it is
-properly documented.
-
-Regards,Mauro
