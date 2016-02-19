@@ -1,35 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50884 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755500AbcBVV0m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 16:26:42 -0500
-Date: Mon, 22 Feb 2016 23:26:40 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L2: fix a confusing function name
-Message-ID: <20160222212640.GY32612@valkosipuli.retiisi.org.uk>
-References: <Pine.LNX.4.64.1602222218230.15093@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1602222218230.15093@axis700.grange>
+Received: from gofer.mess.org ([80.229.237.210]:35068 "EHLO gofer.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422898AbcBSOdz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2016 09:33:55 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: Insu Yun <wuninsu@gmail.com>
+Subject: [PATCH] [media] igorplugusb: fix leaks in error path
+Date: Fri, 19 Feb 2016 14:33:53 +0000
+Message-Id: <1455892433-20701-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Reported-by: Insu Yun <wuninsu@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/igorplugusb.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-videobuf cleanups? Really? :-)
-
-On Mon, Feb 22, 2016 at 10:19:49PM +0100, Guennadi Liakhovetski wrote:
-> is_state_active_or_queued() actually returns true if the buffer's state
-> is neither active nore queued. Rename it for clarity.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/media/rc/igorplugusb.c b/drivers/media/rc/igorplugusb.c
+index b36e515..e0c531f 100644
+--- a/drivers/media/rc/igorplugusb.c
++++ b/drivers/media/rc/igorplugusb.c
+@@ -152,7 +152,7 @@ static int igorplugusb_probe(struct usb_interface *intf,
+ 	struct usb_endpoint_descriptor *ep;
+ 	struct igorplugusb *ir;
+ 	struct rc_dev *rc;
+-	int ret;
++	int ret = -ENOMEM;
+ 
+ 	udev = interface_to_usbdev(intf);
+ 	idesc = intf->cur_altsetting;
+@@ -182,7 +182,7 @@ static int igorplugusb_probe(struct usb_interface *intf,
+ 
+ 	ir->urb = usb_alloc_urb(0, GFP_KERNEL);
+ 	if (!ir->urb)
+-		return -ENOMEM;
++		goto fail;
+ 
+ 	usb_fill_control_urb(ir->urb, udev,
+ 		usb_rcvctrlpipe(udev, 0), (uint8_t *)&ir->request,
+@@ -191,6 +191,9 @@ static int igorplugusb_probe(struct usb_interface *intf,
+ 	usb_make_path(udev, ir->phys, sizeof(ir->phys));
+ 
+ 	rc = rc_allocate_device();
++	if (!rc)
++		goto fail;
++
+ 	rc->input_name = DRIVER_DESC;
+ 	rc->input_phys = ir->phys;
+ 	usb_to_input_id(udev, &rc->input_id);
+@@ -214,9 +217,7 @@ static int igorplugusb_probe(struct usb_interface *intf,
+ 	ret = rc_register_device(rc);
+ 	if (ret) {
+ 		dev_err(&intf->dev, "failed to register rc device: %d", ret);
+-		rc_free_device(rc);
+-		usb_free_urb(ir->urb);
+-		return ret;
++		goto fail;
+ 	}
+ 
+ 	usb_set_intfdata(intf, ir);
+@@ -224,6 +225,12 @@ static int igorplugusb_probe(struct usb_interface *intf,
+ 	igorplugusb_cmd(ir, SET_INFRABUFFER_EMPTY);
+ 
+ 	return 0;
++fail:
++	rc_free_device(ir->rc);
++	usb_free_urb(ir->urb);
++	del_timer(&ir->timer);
++
++	return ret;
+ }
+ 
+ static void igorplugusb_disconnect(struct usb_interface *intf)
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.4
+
