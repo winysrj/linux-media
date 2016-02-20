@@ -1,120 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:33072 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965455AbcBRANq (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48500 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759615AbcBTW74 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 19:13:46 -0500
-Received: by mail-lb0-f179.google.com with SMTP id x4so19406912lbm.0
-        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2016 16:13:45 -0800 (PST)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Thu, 18 Feb 2016 01:13:42 +0100
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	linux-renesas-soc@vger.kernel.org,
-	Ulrich Hecht <ulrich.hecht@gmail.com>
-Subject: Re: [RFC/PATCH] [media] rcar-vin: add Renesas R-Car VIN IP core
-Message-ID: <20160218001342.GA12338@bigcity.dyn.berto.se>
-References: <1455468932-8573-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
- <56C19A2B.2080502@xs4all.nl>
+	Sat, 20 Feb 2016 17:59:56 -0500
+Date: Sun, 21 Feb 2016 00:59:50 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 2/5] media: Always keep a graph walk large enough
+ around
+Message-ID: <20160220225950.GS32612@valkosipuli.retiisi.org.uk>
+References: <1453906078-29087-1-git-send-email-sakari.ailus@iki.fi>
+ <1453906078-29087-3-git-send-email-sakari.ailus@iki.fi>
+ <20160219120341.076478ef@recife.lan>
+ <20160219144046.GQ32612@valkosipuli.retiisi.org.uk>
+ <20160219141423.56264355@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <56C19A2B.2080502@xs4all.nl>
+In-Reply-To: <20160219141423.56264355@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Mauro,
 
-Thanks for your comments.
+On Fri, Feb 19, 2016 at 02:14:23PM -0200, Mauro Carvalho Chehab wrote:
+> Em Fri, 19 Feb 2016 16:40:46 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > On Fri, Feb 19, 2016 at 12:03:41PM -0200, Mauro Carvalho Chehab wrote:
+> > > Hi Sakari,
+> > > 
+> > > Em Wed, 27 Jan 2016 16:47:55 +0200
+> > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> > >   
+> > > > Re-create the graph walk object as needed in order to have one large enough
+> > > > available for all entities in the graph.
+> > > > 
+> > > > This enumeration is used for pipeline power management in the future.
+> > > > 
+> > > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > > ---
+> > > >  drivers/media/media-device.c | 21 +++++++++++++++++++++
+> > > >  include/media/media-device.h |  5 +++++
+> > > >  2 files changed, 26 insertions(+)
+> > > > 
+> > > > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > > > index 4d1c13d..52d7809 100644
+> > > > --- a/drivers/media/media-device.c
+> > > > +++ b/drivers/media/media-device.c
+> > > > @@ -577,6 +577,26 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+> > > >  
+> > > >  	spin_unlock(&mdev->lock);
+> > > >  
+> > > > +	mutex_lock(&mdev->graph_mutex);
+> > > > +	if (mdev->entity_internal_idx_max
+> > > > +	    >= mdev->pm_count_walk.ent_enum.idx_max) {
+> > > > +		struct media_entity_graph new = { 0 };
+> > > > +
+> > > > +		/*
+> > > > +		 * Initialise the new graph walk before cleaning up
+> > > > +		 * the old one in order not to spoil the graph walk
+> > > > +		 * object of the media device if graph walk init fails.
+> > > > +		 */
+> > > > +		ret = media_entity_graph_walk_init(&new, mdev);
+> > > > +		if (ret) {
+> > > > +			mutex_unlock(&mdev->graph_mutex);
+> > > > +			return ret;
+> > > > +		}
+> > > > +		media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
+> > > > +		mdev->pm_count_walk = new;
+> > > > +	}
+> > > > +	mutex_unlock(&mdev->graph_mutex);
+> > > > +  
+> > > 
+> > > I don't like the idea of creating a new graph init and destroying the
+> > > previous one every time. In principle, this needs to be done only
+> > > when trying to start the graph - or just before registering the
+> > > MC devnode, if the driver needs/wants to optimize it.  
+> > 
+> > It's not every time --- with the previous patch, that's every 32 or 64
+> > additional entity, depending on how many bits the unsigned long is.
+> 
+> Still it will be called a lot of times for DVB devices. Why doing that,
+> if such alloc can be done only after finishing registering all devices?
 
-On 2016-02-15 10:28:11 +0100, Hans Verkuil wrote:
-> On 02/14/2016 05:55 PM, Niklas Söderlund wrote:
-> > A V4L2 driver for Renesas R-Car VIN IP cores that do not depend on
-> > soc_camera. The driver is heavily based on its predecessor and aims to
-> > replace the soc_camera driver.
->
-> Fantastic! I've been hoping that this would be done at some point. It
-> was very unfortunate that Renesas went with soc-camera initially.
->
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >
-> > The driver is tested on Koelsch and can grab frames using yavta.  It
-> > also passes a v4l2-compliance (1.10.0) run without failures.
->
-> Did you compile v4l2-compliance from the master branch of the v4l-utils.git
-> repo? I always recommend that.
->
-> Can you post the output of 'v4l2-compliance -s' and ideally also 'v4l2-compliance -f'?
->
-> I always like to see that for new drivers.
+The intent is to prepare for being able to dynamically allocate and remove
+entities, and still not allocate excessive amounts of memory for the graph.
+With this set, there's a guarantee that the graph walk will always be
+successful even if entities were added to or removed from the graph.
 
-No I used the latest .tar.bz2 snapshot. Will build from master branch
-and include for v2.
+That's important as there are operations that may not fail such as
+decrementing the use count of an entity (and possibly other entities as well
+as a result; video nodes in practice).
 
->
-> > There is
-> > however a issues sometimes if one first run v4l2-compliance and then
-> > yavta the grabbed frames are a bit fuzzy. I'm working on it. Also I
-> > could only get frames if the video signal on the composite IN was NTSC,
-> > but this also applied to the soc_camera driver, it might be my test
-> > setup.
-> >
-> > As stated in commit message the driver is based on its soc_camera
-> > version but some features have been drooped (for now?).
-> >  - The driver no longer try to use the subdev for cropping (using
-> >    cropcrop/s_crop).
-> >  - Do not interrogate the subdev using g_mbus_config.
-> >
-> > The goal is to replace the soc_camera driver completely to prepare for
-> > Gen3 enablement.  Is it a good idea to aim for inheriting
-> > CONFIG_VIDEO_RCAR_VIN in such case?  I'm thinking down the road if this
-> > driver is good enough to simply rename the old CONFIG_VIDEO_RCAR_VIN to
-> > something like CONFIG_VIDEO_SOC_CAMERA_RCAR_VIN mark is at deprecated
-> > and use this one as a drop in replacement.
->
-> We probably want to have both for some time with the soc-camera version
-> marked as 'DEPRECATED'. Especially as long as they aren't at feature parity.
+I'd still like to claim that this will not have noticeable adverse effect on
+the time it takes to register the necessary entities.
 
-I agree. I will drop my idea of inheriting CONFIG_VIDEO_RCAR_VIN and use
-CONFIG_VIDEO_RCAR_VIN_NEW until we can figure out something more
-suitable. I plan to include the changes required for building in v2 to
-ease testing.
+-- 
+Kind regards,
 
->
-> > The main feature missing at this point is vidioc_[gs]_selection. The
-> > driver can crop/scale but it's not exposed to the user. However this
-> > will be different on Gen3 HW where not all channels have scalers.
->
-> Do you plan to add this in the next version?
-
-Yes.
-
-[snip]
-
-> > +
-> > +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
-> > +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-> > +	.vidioc_querybuf		= vb2_ioctl_querybuf,
-> > +	.vidioc_qbuf			= vb2_ioctl_qbuf,
-> > +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-> > +	.vidioc_expbuf			= vb2_ioctl_expbuf,
-> > +
-> > +	.vidioc_streamon		= rvin_streamon,
-> > +	.vidioc_streamoff		= rvin_streamoff,
-> > +
-> > +	.vidioc_log_status		= v4l2_ctrl_log_status,
-> > +	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-> > +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-> > +};
->
-> General question: I'm missing HDMI support in this driver. Will that be added later?
->
-> Adding that is quite simple in this driver (as opposed to adding it to soc-camera).
-
-Ulrich Hecht already beat me to it with whit '[PATCH/RFC 0/9] Lager
-board HDMI input support', thanks Ulrich.
-
-[snip]
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
