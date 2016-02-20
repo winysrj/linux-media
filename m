@@ -1,49 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp09.smtpout.orange.fr ([80.12.242.131]:36514 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753564AbcBIIIp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2016 03:08:45 -0500
-From: Philippe Valembois <lephilousophe@users.sourceforge.net>
-Cc: Philippe Valembois <lephilousophe@users.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] Add support for Avermedia AverTV Volar HD 2 (TD110)
-Date: Tue,  9 Feb 2016 09:08:01 +0100
-Message-Id: <1455005281-25407-1-git-send-email-lephilousophe@users.sourceforge.net>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34052 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1427649AbcBTDn5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2016 22:43:57 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 5AFF21800AB
+	for <linux-media@vger.kernel.org>; Sat, 20 Feb 2016 04:43:52 +0100 (CET)
+Date: Sat, 20 Feb 2016 04:43:52 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160220034352.5AFF21800AB@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philippe Valembois <lephilousophe@users.sourceforge.net>
----
- drivers/media/dvb-core/dvb-usb-ids.h  | 1 +
- drivers/media/usb/dvb-usb-v2/af9035.c | 2 ++
- 2 files changed, 3 insertions(+)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-index dbdbb84..0afad39 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -242,6 +242,7 @@
- #define USB_PID_AVERMEDIA_1867				0x1867
- #define USB_PID_AVERMEDIA_A867				0xa867
- #define USB_PID_AVERMEDIA_H335				0x0335
-+#define USB_PID_AVERMEDIA_TD110				0xa110
- #define USB_PID_AVERMEDIA_TWINSTAR			0x0825
- #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
- #define USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM	0x3009
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index b3c09fe..2638e32 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -2053,6 +2053,8 @@ static const struct usb_device_id af9035_id_table[] = {
- 		&af9035_props, "Avermedia A835B(3835)", RC_MAP_IT913X_V2) },
- 	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
- 		&af9035_props, "Avermedia A835B(4835)",	RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_TD110,
-+		&af9035_props, "Avermedia AverTV Volar HD 2 (TD110)", RC_MAP_AVERMEDIA_RM_KS) },
- 	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
- 		&af9035_props, "Avermedia H335", RC_MAP_IT913X_V2) },
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_UB499_2T_T09,
--- 
-2.5.0
+Results of the daily build of media_tree:
 
+date:		Sat Feb 20 04:00:28 CET 2016
+git branch:	test
+git hash:	f7b5dff0b59b20469b2a4889e6170c0069d37c8d
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-sh: ERRORS
+linux-git-x86_64: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
