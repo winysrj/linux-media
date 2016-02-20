@@ -1,38 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:54543 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751471AbcBOOZs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 09:25:48 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH 0/12] TW686x driver
-References: <m337tif6om.fsf@t19.piap.pl> <56B872C0.1050200@xs4all.nl>
-Date: Mon, 15 Feb 2016 15:25:45 +0100
-In-Reply-To: <56B872C0.1050200@xs4all.nl> (Hans Verkuil's message of "Mon, 8
-	Feb 2016 11:49:36 +0100")
-Message-ID: <m3twlaqcd2.fsf@t19.piap.pl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33000 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946154AbcBTBBH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2016 20:01:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL FOR v4.6] VSP1 patches
+Date: Sat, 20 Feb 2016 03:01:40 +0200
+Message-ID: <1705142.Ib2LSJfThZ@avalon>
+In-Reply-To: <20160219095216.104eeccf@recife.lan>
+References: <4317918.v13nm0kyWH@avalon> <20160219095216.104eeccf@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+Hi Mauro,
 
-> Please repost as a single patch. Also make sure it is based on the latest
-> media_tree master branch.
+On Friday 19 February 2016 09:52:16 Mauro Carvalho Chehab wrote:
+> Em Wed, 10 Feb 2016 22:55:27 +0200 Laurent Pinchart escreveu:
+> > Hi Mauro,
+> > 
+> > The following changes since commit 
+85e91f80cfc6c626f9afe1a4ca66447b8fd74315:
+> >   Merge tag 'v4.5-rc3' into patchwork (2016-02-09 08:56:42 -0200)
+> > 
+> > are available in the git repository at:
+> >   git://linuxtv.org/pinchartl/media.git vsp1/next
+> > 
+> > for you to fetch changes up to 94889923211c7d2fa9d46762c7636f43820a1692:
+> >   v4l: vsp1: Configure device based on IP version (2016-02-10 15:38:11
+> >   +0200)
+> 
+> Thanks, patches reviewed, tested and merged.
 >
-> Your current patch series breaks bisectability (basically, after patch 1 it
-> won't compile since it's not using vb2_v4l2_buffer yet).
->
-> Also, for new drivers we generally don't care about the history, we prefer a
-> single patch. That makes it easier to review as well.
+> However, as we mentioned on IRC, this driver doesn't pass at the
+> v4l2-compliance, as it doesn't implement the mandatory
+> VIDIOC_ENUM_FMT ioctl, causing it to not work properly with tools like
+> v4l2-ctl and qv4l2.
+> 
+> Please fix it on a later patch.
 
-No problem. I posted incremental patches to help with (incremental)
-review.
+Given that the pixel formats supported by the driver don't depend on subdev 
+pad configuration, ENUM_FMT could make sense. I'll see what I can do.
+
+> > Could you please merge this in a stable branch that will be sent to Linus
+> > as- is for v4.6 ? I have a series of DRM/KMS driver patches that depend
+> > on this patch set and want to get them merged in v4.6 as well.
+> > 
+> > All patches have been previously sent to the linux-media mailing list, and
+> > most included in the same pull request you've rejected for v4.5 as it
+> > conflicted with your work-in-progress media controller changes.
+> 
+> You can pass the branch "vsp1" to Daniel for it to base the DRM/KMS driver
+> patches.
+
+Thank you.
+
 -- 
-Krzysztof Halasa
+Regards,
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+Laurent Pinchart
+
