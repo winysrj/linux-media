@@ -1,294 +1,331 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:45485 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751411AbcBJMwO (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43635 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751208AbcBTRVE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2016 07:52:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv12 06/17] rc: Add HDMI CEC protocol handling
-Date: Wed, 10 Feb 2016 13:51:40 +0100
-Message-Id: <1455108711-29850-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
-References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 20 Feb 2016 12:21:04 -0500
+Message-ID: <1455988859.21645.6.camel@xs4all.nl>
+Subject: Re: DVBSky T980C CI issues (kernel 4.0.x)
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
+To: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>,
+	Olli Salonen <olli.salonen@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Sat, 20 Feb 2016 18:20:59 +0100
+In-Reply-To: <56C88CEB.3080907@mbox200.swipnet.se>
+References: <1436697509.2446.14.camel@xs4all.nl>
+	 <1440352250.13381.3.camel@xs4all.nl> <55F332FE.7040201@mbox200.swipnet.se>
+	 <1442041326.2442.2.camel@xs4all.nl>
+	 <CAAZRmGxvrXjanCTcd0Ybk-qzHhqO5e6JhrpSWxNXSa+zzPsdUg@mail.gmail.com>
+	 <1454007436.13371.4.camel@xs4all.nl>
+	 <CAAZRmGwuinufZpCpTs8t+BRyTcfio-4z34PCKH7Ha3J+dxXNqw@mail.gmail.com>
+	 <56ADCBE4.6050609@mbox200.swipnet.se>
+	 <CAAZRmGy21S+qkrC9d0hz02J98woUc9p+LtnhK8Det=yWmb_myg@mail.gmail.com>
+	 <56C88CEB.3080907@mbox200.swipnet.se>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+Hi,
 
-Add handling of remote control events coming from the HDMI CEC bus.
-This patch includes a new keymap that maps values found in the CEC
-messages to the keys pressed and released. Also, a new protocol has
-been added to the core.
+On Sat, 2016-02-20 at 16:57 +0100, Torbjorn Jansson wrote:
+> i have tested your patch with my dvbsky dvb-t2 card.
+> testing was done by compiling a custom kernel with your patch
+> included.
+> test was done against fedora 22 4.3.4-200 kernel
+> 
+> with the patch included the CI slot is found.
+> so there is some progress for sure
+> -----
+> [   10.189408] cx25840 11-0044: loaded v4l-cx23885-avcore-01.fw
+> firmware 
+> (16382 bytes)
+> [   10.206683] cx23885_dvb_register() allocating 1 frontend(s)
+> [   10.207968] cx23885[0]: cx23885 based dvb card
+> [   10.224306] i2c i2c-10: Added multiplexed i2c bus 12
+> [   10.225633] si2168 10-0064: Silicon Labs Si2168 successfully
+> attached
+> [   10.243310] si2157 12-0060: Silicon Labs Si2147/2148/2157/2158 
+> successfully attached
+> [   10.244560] DVB: registering new adapter (cx23885[0])
+> [   10.245807] cx23885 0000:07:00.0: DVB: registering adapter 0
+> frontend 
+> 0 (Silicon Labs Si2168)...
+> [   10.417402] sp2 9-0040: CIMaX SP2 successfully attached
+> [   10.447120] DVBSky T980C MAC address: 00:17:42:54:09:85
+> [   10.448844] cx23885_dev_checkrevision() Hardware revision = 0xa5
+> [   10.450550] cx23885[0]/0: found at 0000:07:00.0, rev: 4, irq: 19, 
+> latency: 0, mmio: 0xf6e00000
+> 
+> later when tuning:
+> 
+> [   67.728109] si2168 10-0064: found a 'Silicon Labs Si2168-A20'
+> [   67.802203] si2168 10-0064: downloading firmware from file 
+> 'dvb-demod-si2168-a20-01.fw'
+> [   68.968336] si2168 10-0064: firmware version: 2.0.5
+> [   68.977071] si2157 12-0060: found a 'Silicon Labs Si2158-A20'
+> [   69.961057] si2157 12-0060: downloading firmware from file 
+> 'dvb-tuner-si2158-a20-01.fw'
+> [   70.969094] si2157 12-0060: firmware version: 2.1.9
+> ----
+> 
+> but using dvbv5-scan to scan it doesn't find any channel.
+> all i get is this:
+> ----
+> Scanning frequency #1 770000000
+>         (0x00) Signal= -114.00dBm
+> Scanning frequency #2 754000000
+>         (0x00) Signal= -27.00dBm C/N= 32.50dB
+> Scanning frequency #3 546000000
+>         (0x00) Signal= -25.00dBm C/N= 33.75dB
+> Scanning frequency #4 650000000
+>         (0x00) Signal= -18.00dBm C/N= 36.00dB
+> Scanning frequency #5 522000000
+>         (0x00) Signal= -28.00dBm C/N= 33.00dB
+> ----
+> 
+> so something else is broken too.
+> 
+I have been using the patches for a few days. So far everything works
+great (using MythTV). Scanning with dvbv5_scan does indeed not work
+(never did for me). w_scan works though.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/rc/keymaps/Makefile |   1 +
- drivers/media/rc/keymaps/rc-cec.c | 174 ++++++++++++++++++++++++++++++++++++++
- drivers/media/rc/rc-main.c        |   1 +
- include/media/rc-core.h           |   1 +
- include/media/rc-map.h            |   5 +-
- 5 files changed, 181 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/rc/keymaps/rc-cec.c
+Can these patches please be included in the stable kernels ?
 
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index fbbd3bb..9cffcc6 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -18,6 +18,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-behold.o \
- 			rc-behold-columbus.o \
- 			rc-budget-ci-old.o \
-+			rc-cec.o \
- 			rc-cinergy-1400.o \
- 			rc-cinergy.o \
- 			rc-delock-61959.o \
-diff --git a/drivers/media/rc/keymaps/rc-cec.c b/drivers/media/rc/keymaps/rc-cec.c
-new file mode 100644
-index 0000000..193cdca
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-cec.c
-@@ -0,0 +1,174 @@
-+/* Keytable for the CEC remote control
-+ *
-+ * Copyright (c) 2015 by Kamil Debski
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/rc-map.h>
-+#include <linux/module.h>
-+
-+/* CEC Spec "High-Definition Multimedia Interface Specification" can be obtained
-+ * here: http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
-+ * The list of control codes is listed in Table 27: User Control Codes p. 95 */
-+
-+static struct rc_map_table cec[] = {
-+	{ 0x00, KEY_OK },
-+	{ 0x01, KEY_UP },
-+	{ 0x02, KEY_DOWN },
-+	{ 0x03, KEY_LEFT },
-+	{ 0x04, KEY_RIGHT },
-+	{ 0x05, KEY_RIGHT_UP },
-+	{ 0x06, KEY_RIGHT_DOWN },
-+	{ 0x07, KEY_LEFT_UP },
-+	{ 0x08, KEY_LEFT_DOWN },
-+	{ 0x09, KEY_ROOT_MENU }, /* CEC Spec: Device Root Menu - see Note 2 */
-+	/* Note 2: This is the initial display that a device shows. It is
-+	 * device-dependent and can be, for example, a contents menu, setup
-+	 * menu, favorite menu or other menu. The actual menu displayed
-+	 * may also depend on the device's current state. */
-+	{ 0x0a, KEY_SETUP },
-+	{ 0x0b, KEY_MENU }, /* CEC Spec: Contents Menu */
-+	{ 0x0c, KEY_FAVORITES }, /* CEC Spec: Favorite Menu */
-+	{ 0x0d, KEY_EXIT },
-+	/* 0x0e-0x0f: Reserved */
-+	{ 0x10, KEY_MEDIA_TOP_MENU },
-+	{ 0x11, KEY_CONTEXT_MENU },
-+	/* 0x12-0x1c: Reserved */
-+	{ 0x1d, KEY_DIGITS }, /* CEC Spec: select/toggle a Number Entry Mode */
-+	{ 0x1e, KEY_NUMERIC_11 },
-+	{ 0x1f, KEY_NUMERIC_12 },
-+	/* 0x20-0x29: Keys 0 to 9 */
-+	{ 0x20, KEY_NUMERIC_0 },
-+	{ 0x21, KEY_NUMERIC_1 },
-+	{ 0x22, KEY_NUMERIC_2 },
-+	{ 0x23, KEY_NUMERIC_3 },
-+	{ 0x24, KEY_NUMERIC_4 },
-+	{ 0x25, KEY_NUMERIC_5 },
-+	{ 0x26, KEY_NUMERIC_6 },
-+	{ 0x27, KEY_NUMERIC_7 },
-+	{ 0x28, KEY_NUMERIC_8 },
-+	{ 0x29, KEY_NUMERIC_9 },
-+	{ 0x2a, KEY_DOT },
-+	{ 0x2b, KEY_ENTER },
-+	{ 0x2c, KEY_CLEAR },
-+	/* 0x2d-0x2e: Reserved */
-+	{ 0x2f, KEY_NEXT_FAVORITE }, /* CEC Spec: Next Favorite */
-+	{ 0x30, KEY_CHANNELUP },
-+	{ 0x31, KEY_CHANNELDOWN },
-+	{ 0x32, KEY_PREVIOUS }, /* CEC Spec: Previous Channel */
-+	{ 0x33, KEY_SOUND }, /* CEC Spec: Sound Select */
-+	{ 0x34, KEY_VIDEO }, /* 0x34: CEC Spec: Input Select */
-+	{ 0x35, KEY_INFO }, /* CEC Spec: Display Information */
-+	{ 0x36, KEY_HELP },
-+	{ 0x37, KEY_PAGEUP },
-+	{ 0x38, KEY_PAGEDOWN },
-+	/* 0x39-0x3f: Reserved */
-+	{ 0x40, KEY_POWER },
-+	{ 0x41, KEY_VOLUMEUP },
-+	{ 0x42, KEY_VOLUMEDOWN },
-+	{ 0x43, KEY_MUTE },
-+	{ 0x44, KEY_PLAYCD },
-+	{ 0x45, KEY_STOPCD },
-+	{ 0x46, KEY_PAUSECD },
-+	{ 0x47, KEY_RECORD },
-+	{ 0x48, KEY_REWIND },
-+	{ 0x49, KEY_FASTFORWARD },
-+	{ 0x4a, KEY_EJECTCD }, /* CEC Spec: Eject */
-+	{ 0x4b, KEY_FORWARD },
-+	{ 0x4c, KEY_BACK },
-+	{ 0x4d, KEY_STOP_RECORD }, /* CEC Spec: Stop-Record */
-+	{ 0x4e, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record */
-+	/* 0x4f: Reserved */
-+	{ 0x50, KEY_ANGLE },
-+	{ 0x51, KEY_TV2 },
-+	{ 0x52, KEY_VOD }, /* CEC Spec: Video on Demand */
-+	{ 0x53, KEY_EPG },
-+	{ 0x54, KEY_TIME }, /* CEC Spec: Timer */
-+	{ 0x55, KEY_CONFIG },
-+	/* The following codes are hard to implement at this moment, as they
-+	 * carry an additional additional argument. Most likely changes to RC
-+	 * framework are necessary.
-+	 * For now they are interpreted by the CEC framework as non keycodes
-+	 * and are passed as messages enabling user application to parse them.
-+	 * */
-+	/* 0x56: CEC Spec: Select Broadcast Type */
-+	/* 0x57: CEC Spec: Select Sound presentation */
-+	{ 0x58, KEY_AUDIO_DESC }, /* CEC 2.0 and up */
-+	{ 0x59, KEY_WWW }, /* CEC 2.0 and up */
-+	{ 0x5a, KEY_3D_MODE }, /* CEC 2.0 and up */
-+	/* 0x5b-0x5f: Reserved */
-+	{ 0x60, KEY_PLAYCD }, /* CEC Spec: Play Function */
-+	{ 0x6005, KEY_FASTFORWARD },
-+	{ 0x6006, KEY_FASTFORWARD },
-+	{ 0x6007, KEY_FASTFORWARD },
-+	{ 0x6015, KEY_SLOW },
-+	{ 0x6016, KEY_SLOW },
-+	{ 0x6017, KEY_SLOW },
-+	{ 0x6009, KEY_FASTREVERSE },
-+	{ 0x600a, KEY_FASTREVERSE },
-+	{ 0x600b, KEY_FASTREVERSE },
-+	{ 0x6019, KEY_SLOWREVERSE },
-+	{ 0x601a, KEY_SLOWREVERSE },
-+	{ 0x601b, KEY_SLOWREVERSE },
-+	{ 0x6020, KEY_REWIND },
-+	{ 0x6024, KEY_PLAYCD },
-+	{ 0x6025, KEY_PAUSECD },
-+	{ 0x61, KEY_PLAYPAUSE }, /* CEC Spec: Pause-Play Function */
-+	{ 0x62, KEY_RECORD }, /* Spec: Record Function */
-+	{ 0x63, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record Function */
-+	{ 0x64, KEY_STOPCD }, /* CEC Spec: Stop Function */
-+	{ 0x65, KEY_MUTE }, /* CEC Spec: Mute Function */
-+	{ 0x66, KEY_UNMUTE }, /* CEC Spec: Restore the volume */
-+	/* The following codes are hard to implement at this moment, as they
-+	 * carry an additional additional argument. Most likely changes to RC
-+	 * framework are necessary.
-+	 * For now they are interpreted by the CEC framework as non keycodes
-+	 * and are passed as messages enabling user application to parse them.
-+	 * */
-+	/* 0x67: CEC Spec: Tune Function */
-+	/* 0x68: CEC Spec: Seleect Media Function */
-+	/* 0x69: CEC Spec: Select A/V Input Function */
-+	/* 0x6a: CEC Spec: Select Audio Input Function */
-+	{ 0x6b, KEY_POWER }, /* CEC Spec: Power Toggle Function */
-+	{ 0x6c, KEY_SLEEP }, /* CEC Spec: Power Off Function */
-+	{ 0x6d, KEY_WAKEUP }, /* CEC Spec: Power On Function */
-+	/* 0x6e-0x70: Reserved */
-+	{ 0x71, KEY_BLUE }, /* CEC Spec: F1 (Blue) */
-+	{ 0x72, KEY_RED }, /* CEC Spec: F2 (Red) */
-+	{ 0x73, KEY_GREEN }, /* CEC Spec: F3 (Green) */
-+	{ 0x74, KEY_YELLOW }, /* CEC Spec: F4 (Yellow) */
-+	{ 0x75, KEY_F5 },
-+	{ 0x76, KEY_DATA }, /* CEC Spec: Data - see Note 3 */
-+	/* Note 3: This is used, for example, to enter or leave a digital TV
-+	 * data broadcast application. */
-+	/* 0x77-0xff: Reserved */
-+};
-+
-+static struct rc_map_list cec_map = {
-+	.map = {
-+		.scan		= cec,
-+		.size		= ARRAY_SIZE(cec),
-+		.rc_type	= RC_TYPE_CEC,
-+		.name		= RC_MAP_CEC,
-+	}
-+};
-+
-+static int __init init_rc_map_cec(void)
-+{
-+	return rc_map_register(&cec_map);
-+}
-+
-+static void __exit exit_rc_map_cec(void)
-+{
-+	rc_map_unregister(&cec_map);
-+}
-+
-+module_init(init_rc_map_cec);
-+module_exit(exit_rc_map_cec);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Kamil Debski");
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 1042fa3..bbce0d0 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -802,6 +802,7 @@ static const struct {
- 	{ RC_BIT_SHARP,		"sharp",	"ir-sharp-decoder"	},
- 	{ RC_BIT_MCE_KBD,	"mce_kbd",	"ir-mce_kbd-decoder"	},
- 	{ RC_BIT_XMP,		"xmp",		"ir-xmp-decoder"	},
-+	{ RC_BIT_CEC,		"cec",		NULL			},
- };
- 
- /**
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index f649470..23e06ea 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -32,6 +32,7 @@ do {								\
- enum rc_driver_type {
- 	RC_DRIVER_SCANCODE = 0,	/* Driver or hardware generates a scancode */
- 	RC_DRIVER_IR_RAW,	/* Needs a Infra-Red pulse/space decoder */
-+	RC_DRIVER_CEC,
- };
- 
- /**
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index 7844e98..6e6557d 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -31,6 +31,7 @@ enum rc_type {
- 	RC_TYPE_RC6_MCE		= 16,	/* MCE (Philips RC6-6A-32 subtype) protocol */
- 	RC_TYPE_SHARP		= 17,	/* Sharp protocol */
- 	RC_TYPE_XMP		= 18,	/* XMP protocol */
-+	RC_TYPE_CEC		= 19,	/* CEC protocol */
- };
- 
- #define RC_BIT_NONE		0ULL
-@@ -53,6 +54,7 @@ enum rc_type {
- #define RC_BIT_RC6_MCE		(1ULL << RC_TYPE_RC6_MCE)
- #define RC_BIT_SHARP		(1ULL << RC_TYPE_SHARP)
- #define RC_BIT_XMP		(1ULL << RC_TYPE_XMP)
-+#define RC_BIT_CEC		(1ULL << RC_TYPE_CEC)
- 
- #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
- 			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
-@@ -61,7 +63,7 @@ enum rc_type {
- 			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
- 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
- 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
--			 RC_BIT_XMP)
-+			 RC_BIT_XMP | RC_BIT_CEC)
- 
- 
- #define RC_SCANCODE_UNKNOWN(x)			(x)
-@@ -123,6 +125,7 @@ void rc_map_init(void);
- #define RC_MAP_BEHOLD_COLUMBUS           "rc-behold-columbus"
- #define RC_MAP_BEHOLD                    "rc-behold"
- #define RC_MAP_BUDGET_CI_OLD             "rc-budget-ci-old"
-+#define RC_MAP_CEC                       "rc-cec"
- #define RC_MAP_CINERGY_1400              "rc-cinergy-1400"
- #define RC_MAP_CINERGY                   "rc-cinergy"
- #define RC_MAP_DELOCK_61959              "rc-delock-61959"
--- 
-2.7.0
+Jurgen
 
+
+> On 2016-02-16 21:20, Olli Salonen wrote:
+> > Hi all,
+> > 
+> > Found the issue and submitted a patch.
+> > 
+> > The I2C buses for T980C/T2-4500CI were crossed when CI registration
+> > was moved to its own function.
+> > 
+> > Cheers,
+> > -olli
+> > 
+> > On 31 January 2016 at 10:55, Torbjorn Jansson
+> > <torbjorn.jansson@mbox200.swipnet.se> wrote:
+> > > this ci problem is the reason i decided to buy the CT2-4650 usb
+> > > based device
+> > > instead.
+> > > but the 4650 was a slightly newer revision needing a patch i
+> > > submitted
+> > > earlier.
+> > > and also this 4650 device does not have auto switching between
+> > > dvb-t and t2
+> > > like the dvbsky card have, so i also need an updated version of
+> > > mythtv.
+> > > 
+> > > my long term wish is to not have to patch things or build custom
+> > > kernels or
+> > > modules.
+> > > so anything done to improve the dvbsky card or the 4650 is much
+> > > appreciated.
+> > > 
+> > > 
+> > > On 2016-01-28 20:42, Olli Salonen wrote:
+> > > > 
+> > > > Hi Jürgen & Mauro,
+> > > > 
+> > > > I did bisect this and it seems this rather big patch broke it:
+> > > > 
+> > > > 2b0aac3011bc7a9db27791bed4978554263ef079 is the first bad
+> > > > commit
+> > > > commit 2b0aac3011bc7a9db27791bed4978554263ef079
+> > > > Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > > > Date:   Tue Dec 23 13:48:07 2014 -0200
+> > > > 
+> > > >       [media] cx23885: move CI/MAC registration to a separate
+> > > > function
+> > > > 
+> > > >       As reported by smatch:
+> > > >           drivers/media/pci/cx23885/cx23885-dvb.c:2080
+> > > > dvb_register()
+> > > > Function too hairy.  Giving up.
+> > > > 
+> > > >       This is indeed a too complex function, with lots of stuff
+> > > > inside.
+> > > >       Breaking this into two functions makes it a little bit
+> > > > less hairy.
+> > > > 
+> > > >       Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung
+> > > > .com>
+> > > > 
+> > > > It's getting a bit late, so I'll call it a day now and have a
+> > > > look at
+> > > > the patch to see what goes wrong there.
+> > > > 
+> > > > Cheers,
+> > > > -olli
+> > > > 
+> > > > On 28 January 2016 at 20:57, Jurgen Kramer <gtmkramer@xs4all.nl
+> > > > > wrote:
+> > > > > 
+> > > > > Hi Olli,
+> > > > > 
+> > > > > On Thu, 2016-01-28 at 19:26 +0200, Olli Salonen wrote:
+> > > > > > 
+> > > > > > Hi Jürgen,
+> > > > > > 
+> > > > > > Did you get anywhere with this?
+> > > > > > 
+> > > > > > I have a clone of your card and was just starting to look
+> > > > > > at this
+> > > > > > issue. Kernel 3.19 seems to work ok, but 4.3 not. Did you
+> > > > > > have any
+> > > > > > time to try to pinpoint this more?
+> > > > > 
+> > > > > No, unfortunately not. I have spend a few hours adding
+> > > > > printk's but it
+> > > > > did not get me any closer what causes the issue. This really
+> > > > > needs
+> > > > > investigation from someone who is more familiar with linux
+> > > > > media.
+> > > > > 
+> > > > > Last thing I tried was the latest (semi open) drivers from
+> > > > > dvbsky on a
+> > > > > 4.3 kernel. Here the CI and CAM registered successfully.
+> > > > > 
+> > > > > Greetings,
+> > > > > Jurgen
+> > > > > 
+> > > > > > Cheers,
+> > > > > > -olli
+> > > > > > 
+> > > > > > On 12 September 2015 at 10:02, Jurgen Kramer <gtmkramer@xs4
+> > > > > > all.nl>
+> > > > > > wrote:
+> > > > > > > 
+> > > > > > > On Fri, 2015-09-11 at 22:01 +0200, Torbjorn Jansson
+> > > > > > > wrote:
+> > > > > > > > 
+> > > > > > > > On 2015-08-23 19:50, Jurgen Kramer wrote:
+> > > > > > > > > 
+> > > > > > > > > 
+> > > > > > > > > On Sun, 2015-07-12 at 12:38 +0200, Jurgen Kramer
+> > > > > > > > > wrote:
+> > > > > > > > > > 
+> > > > > > > > > > I have been running a couple of DVBSky T980C's with
+> > > > > > > > > > CIs with
+> > > > > > > > > > success
+> > > > > > > > > > using an older kernel (3.17.8) with media-build and
+> > > > > > > > > > some
+> > > > > > > > > > added patches
+> > > > > > > > > > from the mailing list.
+> > > > > > > > > > 
+> > > > > > > > > > I thought lets try a current 4.0 kernel to see if I
+> > > > > > > > > > no longer
+> > > > > > > > > > need to be
+> > > > > > > > > > running a custom kernel. Everything works just fine
+> > > > > > > > > > except
+> > > > > > > > > > the CAM
+> > > > > > > > > > module. I am seeing these:
+> > > > > > > > > > 
+> > > > > > > > > > [  456.574969] dvb_ca adapter 0: Invalid PC card
+> > > > > > > > > > inserted :(
+> > > > > > > > > > [  456.626943] dvb_ca adapter 1: Invalid PC card
+> > > > > > > > > > inserted :(
+> > > > > > > > > > [  456.666932] dvb_ca adapter 2: Invalid PC card
+> > > > > > > > > > inserted :(
+> > > > > > > > > > 
+> > > > > > > > > > The normal 'CAM detected and initialised' messages
+> > > > > > > > > > to do show
+> > > > > > > > > > up with
+> > > > > > > > > > 4.0.8
+> > > > > > > > > > 
+> > > > > > > > > > I am not sure what changed in the recent kernels,
+> > > > > > > > > > what is
+> > > > > > > > > > needed to
+> > > > > > > > > > debug this?
+> > > > > > > > > > 
+> > > > > > > > > > Jurgen
+> > > > > > > > > 
+> > > > > > > > > Retest. I've isolated one T980C on another PC with
+> > > > > > > > > kernel
+> > > > > > > > > 4.1.5, still the same 'Invalid PC card inserted :('
+> > > > > > > > > message.
+> > > > > > > > > Even after installed today's media_build from git no
+> > > > > > > > > improvement.
+> > > > > > > > > 
+> > > > > > > > > Any hints where to start looking would be
+> > > > > > > > > appreciated!
+> > > > > > > > > 
+> > > > > > > > > cimax2.c|h do not seem to have changed. There are
+> > > > > > > > > changes to
+> > > > > > > > > dvb_ca_en50221.c
+> > > > > > > > > 
+> > > > > > > > > Jurgen
+> > > > > > > > > 
+> > > > > > > > 
+> > > > > > > > did you get it to work?
+> > > > > > > 
+> > > > > > > 
+> > > > > > > No, it needs a thorough debug session. So far no one
+> > > > > > > seems able to
+> > > > > > > help...
+> > > > > > > 
+> > > > > > > > i got a dvbsky T980C too for dvb-t2 reception and so
+> > > > > > > > far the only
+> > > > > > > > drivers that have worked at all is the ones from dvbsky
+> > > > > > > > directly.
+> > > > > > > > 
+> > > > > > > > i was very happy when i noticed that recent kernels
+> > > > > > > > have support
+> > > > > > > > for it
+> > > > > > > > built in but unfortunately only the modules and
+> > > > > > > > firmware loads
+> > > > > > > > but then
+> > > > > > > > nothing actually works.
+> > > > > > > > i use mythtv and it complains a lot about the signal,
+> > > > > > > > running
+> > > > > > > > femon also
+> > > > > > > > produces lots of errors.
+> > > > > > > > 
+> > > > > > > > so i had to switch back to kernel 4.0.4 with mediabuild
+> > > > > > > > from
+> > > > > > > > dvbsky.
+> > > > > > > > 
+> > > > > > > > if there were any other dvb-t2 card with ci support
+> > > > > > > > that had
+> > > > > > > > better
+> > > > > > > > drivers i would change right away.
+> > > > > > > > 
+> > > > > > > > one problem i have with the mediabuilt from dvbsky is
+> > > > > > > > that at
+> > > > > > > > boot the
+> > > > > > > > cam never works and i have to first tune a channel,
+> > > > > > > > then remove
+> > > > > > > > and
+> > > > > > > > reinstert the cam to get it to work.
+> > > > > > > > without that nothing works.
+> > > > > > > > 
+> > > > > > > > and finally a problem i ran into when i tried
+> > > > > > > > mediabuilt from
+> > > > > > > > linuxtv.org.
+> > > > > > > > fedora uses kernel modules with .ko.xz extension so
+> > > > > > > > when you
+> > > > > > > > install the
+> > > > > > > > mediabuilt modulels you get one modulename.ko and one
+> > > > > > > > modulename.ko.xz
+> > > > > > > > 
+> > > > > > > > before a make install from mediabuild overwrote the
+> > > > > > > > needed
+> > > > > > > > modules.
+> > > > > > > > any advice on how to handle this now?
+> > > > > > > > 
+> > > > > > > > 
+> > > > > > > 
+> > > > > > > 
+> > > > > > > --
+> > > > > > > To unsubscribe from this list: send the line "unsubscribe
+> > > > > > > linux-
+> > > > > > > media" in
+> > > > > > > the body of a message to majordomo@vger.kernel.org
+> > > > > > > More majordomo info at  http://vger.kernel.org/majordomo-
+> > > > > > > info.html
+> 
