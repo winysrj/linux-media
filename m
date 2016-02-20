@@ -1,91 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:8238 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753298AbcBOOgo (ORCPT
+Received: from v-smtpgw1.han.skanova.net ([81.236.60.204]:58673 "EHLO
+	v-smtpgw1.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753570AbcBTP52 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 09:36:44 -0500
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Andrzej Hajda <a.hajda@samsung.com>, coreteam@netfilter.org,
-	linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mips@linux-mips.org,
-	linuxppc-dev@lists.ozlabs.org, linux-samsung-soc@vger.kernel.org,
-	linux-serial@vger.kernel.org, linux-usb@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 0/7] fix IS_ERR_VALUE usage
-Date: Mon, 15 Feb 2016 15:35:18 +0100
-Message-id: <1455546925-22119-1-git-send-email-a.hajda@samsung.com>
+	Sat, 20 Feb 2016 10:57:28 -0500
+Subject: Re: DVBSky T980C CI issues (kernel 4.0.x)
+To: Olli Salonen <olli.salonen@iki.fi>
+References: <1436697509.2446.14.camel@xs4all.nl>
+ <1440352250.13381.3.camel@xs4all.nl> <55F332FE.7040201@mbox200.swipnet.se>
+ <1442041326.2442.2.camel@xs4all.nl>
+ <CAAZRmGxvrXjanCTcd0Ybk-qzHhqO5e6JhrpSWxNXSa+zzPsdUg@mail.gmail.com>
+ <1454007436.13371.4.camel@xs4all.nl>
+ <CAAZRmGwuinufZpCpTs8t+BRyTcfio-4z34PCKH7Ha3J+dxXNqw@mail.gmail.com>
+ <56ADCBE4.6050609@mbox200.swipnet.se>
+ <CAAZRmGy21S+qkrC9d0hz02J98woUc9p+LtnhK8Det=yWmb_myg@mail.gmail.com>
+Cc: Jurgen Kramer <gtmkramer@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media <linux-media@vger.kernel.org>
+From: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
+Message-ID: <56C88CEB.3080907@mbox200.swipnet.se>
+Date: Sat, 20 Feb 2016 16:57:31 +0100
+MIME-Version: 1.0
+In-Reply-To: <CAAZRmGy21S+qkrC9d0hz02J98woUc9p+LtnhK8Det=yWmb_myg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+i have tested your patch with my dvbsky dvb-t2 card.
+testing was done by compiling a custom kernel with your patch included.
+test was done against fedora 22 4.3.4-200 kernel
 
-This small set of independent patches tries to fix incorrect
-IS_ERR_VALUE macro usage. It fixes most usages leading to errors
-as described in [1]. It also follows conclusion from the discussion
-[1][2] - IS_ERR_VALUE should be used only with unsigned long type,
-signed types should use comparison 'ret < 0'.
+with the patch included the CI slot is found.
+so there is some progress for sure
+-----
+[   10.189408] cx25840 11-0044: loaded v4l-cx23885-avcore-01.fw firmware 
+(16382 bytes)
+[   10.206683] cx23885_dvb_register() allocating 1 frontend(s)
+[   10.207968] cx23885[0]: cx23885 based dvb card
+[   10.224306] i2c i2c-10: Added multiplexed i2c bus 12
+[   10.225633] si2168 10-0064: Silicon Labs Si2168 successfully attached
+[   10.243310] si2157 12-0060: Silicon Labs Si2147/2148/2157/2158 
+successfully attached
+[   10.244560] DVB: registering new adapter (cx23885[0])
+[   10.245807] cx23885 0000:07:00.0: DVB: registering adapter 0 frontend 
+0 (Silicon Labs Si2168)...
+[   10.417402] sp2 9-0040: CIMaX SP2 successfully attached
+[   10.447120] DVBSky T980C MAC address: 00:17:42:54:09:85
+[   10.448844] cx23885_dev_checkrevision() Hardware revision = 0xa5
+[   10.450550] cx23885[0]/0: found at 0000:07:00.0, rev: 4, irq: 19, 
+latency: 0, mmio: 0xf6e00000
 
-The patchset does not fix errors present in net/ethernet/freescale
-and soc/fsq/qe drivers - these drivers mixes different types:
-dma_addr_t, u32, unsigned long, fixing it properly seems to me more
-challenging, maybe maintainers or brave volunteers can look it.
+later when tuning:
 
-The list of missing fixes:
-drivers/net/ethernet/freescale/fs_enet/mac-scc.c:149:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(fep -> ring_mem_addr)
-drivers/net/ethernet/freescale/ucc_geth.c:2237:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_bd_ring_offset [ j ])
-drivers/net/ethernet/freescale/ucc_geth.c:2314:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_ring_offset [ j ])
-drivers/net/ethernet/freescale/ucc_geth.c:2524:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_glbl_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2544:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_tx_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2571:46-47: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> send_q_mem_reg_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2612:42-43: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> scheduler_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2659:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_fw_statistics_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2696:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_glbl_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2715:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_rx_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2736:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_fw_statistics_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2756:53-54: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_irq_coalescing_tbl_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2822:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_qs_tbl_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2908:47-48: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> exf_glbl_param_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:292:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:3042:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_pram_offset)
-drivers/soc/fsl/qe/ucc_fast.c:271:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_tx_virtual_fifo_base_offset)
-drivers/soc/fsl/qe/ucc_fast.c:284:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_rx_virtual_fifo_base_offset)
-drivers/soc/fsl/qe/ucc_slow.c:186:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> us_pram_offset)
-drivers/soc/fsl/qe/ucc_slow.c:213:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> rx_base_offset)
-drivers/soc/fsl/qe/ucc_slow.c:224:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> tx_base_offset)
-drivers/net/ethernet/freescale/fs_enet/mac-fcc.c:110:35-36: WARNING: unknown argument type in IS_ERR_VALUE(fpi -> dpram_offset)
+[   67.728109] si2168 10-0064: found a 'Silicon Labs Si2168-A20'
+[   67.802203] si2168 10-0064: downloading firmware from file 
+'dvb-demod-si2168-a20-01.fw'
+[   68.968336] si2168 10-0064: firmware version: 2.0.5
+[   68.977071] si2157 12-0060: found a 'Silicon Labs Si2158-A20'
+[   69.961057] si2157 12-0060: downloading firmware from file 
+'dvb-tuner-si2158-a20-01.fw'
+[   70.969094] si2157 12-0060: firmware version: 2.1.9
+----
 
-[1]: http://permalink.gmane.org/gmane.linux.kernel/2120927
-[2]: http://permalink.gmane.org/gmane.linux.kernel/2150581
+but using dvbv5-scan to scan it doesn't find any channel.
+all i get is this:
+----
+Scanning frequency #1 770000000
+        (0x00) Signal= -114.00dBm
+Scanning frequency #2 754000000
+        (0x00) Signal= -27.00dBm C/N= 32.50dB
+Scanning frequency #3 546000000
+        (0x00) Signal= -25.00dBm C/N= 33.75dB
+Scanning frequency #4 650000000
+        (0x00) Signal= -18.00dBm C/N= 36.00dB
+Scanning frequency #5 522000000
+        (0x00) Signal= -28.00dBm C/N= 33.00dB
+----
 
-Regards
-Andrzej
+so something else is broken too.
 
 
-Andrzej Hajda (7):
-  netfilter: fix IS_ERR_VALUE usage
-  MIPS: module: fix incorrect IS_ERR_VALUE macro usages
-  drivers: char: mem: fix IS_ERROR_VALUE usage
-  atmel-isi: fix IS_ERR_VALUE usage
-  serial: clps711x: fix IS_ERR_VALUE usage
-  fbdev: exynos: fix IS_ERR_VALUE usage
-  usb: gadget: fsl_qe_udc: fix IS_ERR_VALUE usage
-
- arch/mips/kernel/module-rela.c                |  2 +-
- arch/mips/kernel/module.c                     |  2 +-
- drivers/char/mem.c                            |  2 +-
- drivers/media/platform/soc_camera/atmel-isi.c |  4 ++--
- drivers/tty/serial/clps711x.c                 | 14 ++++++++------
- drivers/usb/gadget/udc/fsl_qe_udc.c           |  2 +-
- drivers/video/fbdev/exynos/exynos_mipi_dsi.c  |  6 +++---
- include/linux/netfilter/x_tables.h            |  6 +++---
- net/ipv4/netfilter/arp_tables.c               | 11 +++++++----
- net/ipv4/netfilter/ip_tables.c                | 12 ++++++++----
- net/ipv6/netfilter/ip6_tables.c               | 13 +++++++++----
- 11 files changed, 44 insertions(+), 30 deletions(-)
-
--- 
-1.9.1
+On 2016-02-16 21:20, Olli Salonen wrote:
+> Hi all,
+>
+> Found the issue and submitted a patch.
+>
+> The I2C buses for T980C/T2-4500CI were crossed when CI registration
+> was moved to its own function.
+>
+> Cheers,
+> -olli
+>
+> On 31 January 2016 at 10:55, Torbjorn Jansson
+> <torbjorn.jansson@mbox200.swipnet.se> wrote:
+>> this ci problem is the reason i decided to buy the CT2-4650 usb based device
+>> instead.
+>> but the 4650 was a slightly newer revision needing a patch i submitted
+>> earlier.
+>> and also this 4650 device does not have auto switching between dvb-t and t2
+>> like the dvbsky card have, so i also need an updated version of mythtv.
+>>
+>> my long term wish is to not have to patch things or build custom kernels or
+>> modules.
+>> so anything done to improve the dvbsky card or the 4650 is much appreciated.
+>>
+>>
+>> On 2016-01-28 20:42, Olli Salonen wrote:
+>>>
+>>> Hi Jürgen & Mauro,
+>>>
+>>> I did bisect this and it seems this rather big patch broke it:
+>>>
+>>> 2b0aac3011bc7a9db27791bed4978554263ef079 is the first bad commit
+>>> commit 2b0aac3011bc7a9db27791bed4978554263ef079
+>>> Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>> Date:   Tue Dec 23 13:48:07 2014 -0200
+>>>
+>>>       [media] cx23885: move CI/MAC registration to a separate function
+>>>
+>>>       As reported by smatch:
+>>>           drivers/media/pci/cx23885/cx23885-dvb.c:2080 dvb_register()
+>>> Function too hairy.  Giving up.
+>>>
+>>>       This is indeed a too complex function, with lots of stuff inside.
+>>>       Breaking this into two functions makes it a little bit less hairy.
+>>>
+>>>       Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>
+>>> It's getting a bit late, so I'll call it a day now and have a look at
+>>> the patch to see what goes wrong there.
+>>>
+>>> Cheers,
+>>> -olli
+>>>
+>>> On 28 January 2016 at 20:57, Jurgen Kramer <gtmkramer@xs4all.nl> wrote:
+>>>>
+>>>> Hi Olli,
+>>>>
+>>>> On Thu, 2016-01-28 at 19:26 +0200, Olli Salonen wrote:
+>>>>>
+>>>>> Hi Jürgen,
+>>>>>
+>>>>> Did you get anywhere with this?
+>>>>>
+>>>>> I have a clone of your card and was just starting to look at this
+>>>>> issue. Kernel 3.19 seems to work ok, but 4.3 not. Did you have any
+>>>>> time to try to pinpoint this more?
+>>>>
+>>>> No, unfortunately not. I have spend a few hours adding printk's but it
+>>>> did not get me any closer what causes the issue. This really needs
+>>>> investigation from someone who is more familiar with linux media.
+>>>>
+>>>> Last thing I tried was the latest (semi open) drivers from dvbsky on a
+>>>> 4.3 kernel. Here the CI and CAM registered successfully.
+>>>>
+>>>> Greetings,
+>>>> Jurgen
+>>>>
+>>>>> Cheers,
+>>>>> -olli
+>>>>>
+>>>>> On 12 September 2015 at 10:02, Jurgen Kramer <gtmkramer@xs4all.nl>
+>>>>> wrote:
+>>>>>>
+>>>>>> On Fri, 2015-09-11 at 22:01 +0200, Torbjorn Jansson wrote:
+>>>>>>>
+>>>>>>> On 2015-08-23 19:50, Jurgen Kramer wrote:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> On Sun, 2015-07-12 at 12:38 +0200, Jurgen Kramer wrote:
+>>>>>>>>>
+>>>>>>>>> I have been running a couple of DVBSky T980C's with CIs with
+>>>>>>>>> success
+>>>>>>>>> using an older kernel (3.17.8) with media-build and some
+>>>>>>>>> added patches
+>>>>>>>>> from the mailing list.
+>>>>>>>>>
+>>>>>>>>> I thought lets try a current 4.0 kernel to see if I no longer
+>>>>>>>>> need to be
+>>>>>>>>> running a custom kernel. Everything works just fine except
+>>>>>>>>> the CAM
+>>>>>>>>> module. I am seeing these:
+>>>>>>>>>
+>>>>>>>>> [  456.574969] dvb_ca adapter 0: Invalid PC card inserted :(
+>>>>>>>>> [  456.626943] dvb_ca adapter 1: Invalid PC card inserted :(
+>>>>>>>>> [  456.666932] dvb_ca adapter 2: Invalid PC card inserted :(
+>>>>>>>>>
+>>>>>>>>> The normal 'CAM detected and initialised' messages to do show
+>>>>>>>>> up with
+>>>>>>>>> 4.0.8
+>>>>>>>>>
+>>>>>>>>> I am not sure what changed in the recent kernels, what is
+>>>>>>>>> needed to
+>>>>>>>>> debug this?
+>>>>>>>>>
+>>>>>>>>> Jurgen
+>>>>>>>>
+>>>>>>>> Retest. I've isolated one T980C on another PC with kernel
+>>>>>>>> 4.1.5, still the same 'Invalid PC card inserted :(' message.
+>>>>>>>> Even after installed today's media_build from git no
+>>>>>>>> improvement.
+>>>>>>>>
+>>>>>>>> Any hints where to start looking would be appreciated!
+>>>>>>>>
+>>>>>>>> cimax2.c|h do not seem to have changed. There are changes to
+>>>>>>>> dvb_ca_en50221.c
+>>>>>>>>
+>>>>>>>> Jurgen
+>>>>>>>>
+>>>>>>>
+>>>>>>> did you get it to work?
+>>>>>>
+>>>>>>
+>>>>>> No, it needs a thorough debug session. So far no one seems able to
+>>>>>> help...
+>>>>>>
+>>>>>>> i got a dvbsky T980C too for dvb-t2 reception and so far the only
+>>>>>>> drivers that have worked at all is the ones from dvbsky directly.
+>>>>>>>
+>>>>>>> i was very happy when i noticed that recent kernels have support
+>>>>>>> for it
+>>>>>>> built in but unfortunately only the modules and firmware loads
+>>>>>>> but then
+>>>>>>> nothing actually works.
+>>>>>>> i use mythtv and it complains a lot about the signal, running
+>>>>>>> femon also
+>>>>>>> produces lots of errors.
+>>>>>>>
+>>>>>>> so i had to switch back to kernel 4.0.4 with mediabuild from
+>>>>>>> dvbsky.
+>>>>>>>
+>>>>>>> if there were any other dvb-t2 card with ci support that had
+>>>>>>> better
+>>>>>>> drivers i would change right away.
+>>>>>>>
+>>>>>>> one problem i have with the mediabuilt from dvbsky is that at
+>>>>>>> boot the
+>>>>>>> cam never works and i have to first tune a channel, then remove
+>>>>>>> and
+>>>>>>> reinstert the cam to get it to work.
+>>>>>>> without that nothing works.
+>>>>>>>
+>>>>>>> and finally a problem i ran into when i tried mediabuilt from
+>>>>>>> linuxtv.org.
+>>>>>>> fedora uses kernel modules with .ko.xz extension so when you
+>>>>>>> install the
+>>>>>>> mediabuilt modulels you get one modulename.ko and one
+>>>>>>> modulename.ko.xz
+>>>>>>>
+>>>>>>> before a make install from mediabuild overwrote the needed
+>>>>>>> modules.
+>>>>>>> any advice on how to handle this now?
+>>>>>>>
+>>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> --
+>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-
+>>>>>> media" in
+>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
