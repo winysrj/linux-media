@@ -1,145 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:33086 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbcBNVXS (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60445 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1423122AbcBTIlk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2016 16:23:18 -0500
-Received: by mail-wm0-f46.google.com with SMTP id g62so126301875wme.0
-        for <linux-media@vger.kernel.org>; Sun, 14 Feb 2016 13:23:17 -0800 (PST)
-Received: from [192.168.1.100] ([86.123.157.202])
-        by smtp.gmail.com with ESMTPSA id 79sm12661599wmo.7.2016.02.14.13.23.15
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Sun, 14 Feb 2016 13:23:16 -0800 (PST)
+	Sat, 20 Feb 2016 03:41:40 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id BA67A1800EE
+	for <linux-media@vger.kernel.org>; Sat, 20 Feb 2016 09:41:35 +0100 (CET)
+Date: Sat, 20 Feb 2016 09:41:35 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-From: GEORGE <geoubuntu@gmail.com>
-Subject: [PATCH] saa7134: Add support for Snazio TvPVR PRO
-Message-ID: <56C0F043.7050401@gmail.com>
-Date: Sun, 14 Feb 2016 23:23:15 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160220084135.BA67A1800EE@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: POJAR GEORGE <geoubuntu <at> gmail.com>
----
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-diff --git a/Documentation/video4linux/CARDLIST.saa7134 
-b/Documentation/video4linux/CARDLIST.saa7134
-index 2821020..2e11644 100644
---- a/Documentation/video4linux/CARDLIST.saa7134
-+++ b/Documentation/video4linux/CARDLIST.saa7134
-@@ -194,3 +194,4 @@
-  193 -> WIS Voyager or compatible                [1905:7007]
-  194 -> AverMedia AverTV/505                     [1461:a10a]
-  195 -> Leadtek Winfast TV2100 FM                [107d:6f3a]
-+196 -> SnaZio* TvPVR PRO                        [1779:13cf]
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c 
-b/drivers/media/pci/saa7134/saa7134-cards.c
-index 9a2fdc7..612cb89 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -5733,6 +5733,36 @@ struct saa7134_board saa7134_boards[] = {
-  			.gpio = 0x08,
-  		},
-  	},
-+	[SAA7134_BOARD_SNAZIO_TVPVR_PRO] = {
-+		.name           = "SnaZio* TVPVR PRO",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_PHILIPS_TDA8290,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.gpiomask       = 1 << 21,
-+		.inputs         = {{
-+			.type = SAA7134_INPUT_TV,
-+			.vmux = 1,
-+			.amux = TV,
-+			.gpio = 0x0000000,
-+		},{
-+			.type = SAA7134_INPUT_COMPOSITE1,
-+			.vmux = 3,
-+			.amux = LINE2,
-+			.gpio = 0x0000000,
-+		},{
-+			.type = SAA7134_INPUT_SVIDEO,
-+			.vmux = 8,
-+			.amux = LINE2,
-+			.gpio = 0x0000000,
-+		}},
-+		.radio = {
-+			.type = SAA7134_INPUT_RADIO,
-+			.amux = TV,
-+			.gpio = 0x0200000,
-+		},
-+	},
+Results of the daily build of media_tree:
 
-  };
+date:		Sat Feb 20 08:46:00 CET 2016
+git branch:	test
+git hash:	f7b5dff0b59b20469b2a4889e6170c0069d37c8d
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
 
-@@ -7004,6 +7034,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
-  		.subdevice    = 0x6f3a,
-  		.driver_data  = SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM,
-  	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x1779, /* V One Multimedia PTE Ltd */
-+		.subdevice    = 0x13cf,
-+		.driver_data  = SAA7134_BOARD_SNAZIO_TVPVR_PRO,
-+	}, {
-  		/* --- boards without eeprom + subsystem ID --- */
-  		.vendor       = PCI_VENDOR_ID_PHILIPS,
-  		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-@@ -7534,6 +7570,7 @@ int saa7134_board_init1(struct saa7134_dev *dev)
-  	case SAA7134_BOARD_BEHOLD_H7:
-  	case SAA7134_BOARD_BEHOLD_A7:
-  	case SAA7134_BOARD_KWORLD_PC150U:
-+	case SAA7134_BOARD_SNAZIO_TVPVR_PRO:
-  		dev->has_remote = SAA7134_REMOTE_I2C;
-  		break;
-  	case SAA7134_BOARD_AVERMEDIA_A169_B:
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c 
-b/drivers/media/pci/saa7134/saa7134-input.c
-index 69d32d3..f62cbd9 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -975,6 +975,25 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
-  			msg_msi.addr, dev->i2c_adap.name,
-  			(1 == rc) ? "yes" : "no");
-  		break;
-+	case SAA7134_BOARD_SNAZIO_TVPVR_PRO:
-+		dev->init_data.name = "SnaZio* TVPVR PRO";
-+		dev->init_data.get_key = get_key_msi_tvanywhere_plus;
-+		dev->init_data.ir_codes = RC_MAP_MSI_TVANYWHERE_PLUS;
-+		/*
-+		 * MSI TV@nyware Plus requires more frequent polling
-+		 * otherwise it will miss some keypresses
-+		 */
-+		dev->init_data.polling_interval = 50;
-+		info.addr = 0x30;
-+		/* MSI TV@nywhere Plus controller doesn't seem to
-+		   respond to probes unless we read something from
-+		   an existing device. Weird...
-+		   REVISIT: might no longer be needed */
-+		rc = i2c_transfer(&dev->i2c_adap, &msg_msi, 1);
-+		input_dbg("probe 0x%02x @ %s: %s\n",
-+			msg_msi.addr, dev->i2c_adap.name,
-+			(1 == rc) ? "yes" : "no");
-+		break;
-  	case SAA7134_BOARD_KWORLD_PC150U:
-  		/* copied and modified from MSI TV@nywhere Plus */
-  		dev->init_data.name = "Kworld PC150-U";
-diff --git a/drivers/media/pci/saa7134/saa7134.h 
-b/drivers/media/pci/saa7134/saa7134.h
-index 8936568..69a9bbf 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -343,6 +343,7 @@ struct saa7134_card_ir {
-  #define SAA7134_BOARD_WIS_VOYAGER           193
-  #define SAA7134_BOARD_AVERMEDIA_505         194
-  #define SAA7134_BOARD_LEADTEK_WINFAST_TV2100_FM 195
-+#define SAA7134_BOARD_SNAZIO_TVPVR_PRO      196
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-  #define SAA7134_MAXBOARDS 32
-  #define SAA7134_INPUT_MAX 8
---
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
