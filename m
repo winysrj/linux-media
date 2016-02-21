@@ -1,75 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34745 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750861AbcB2M5p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 07:57:45 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/2] v4l2: collect the union of all device_caps in struct v4l2_device
-Date: Mon, 29 Feb 2016 13:57:36 +0100
-Message-Id: <1456750657-11108-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1456750657-11108-1-git-send-email-hverkuil@xs4all.nl>
-References: <1456750657-11108-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.21]:57781 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750705AbcBUTVc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2016 14:21:32 -0500
+Date: Sun, 21 Feb 2016 13:58:36 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 3/4] media: pxa_camera: trivial move of dma irq
+ functions
+In-Reply-To: <1441539733-19201-3-git-send-email-robert.jarzmik@free.fr>
+Message-ID: <Pine.LNX.4.64.1602211356070.5959@axis700.grange>
+References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+ <1441539733-19201-3-git-send-email-robert.jarzmik@free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Robert,
 
-The capabilities field of struct v4l2_capabilities should be the
-union of the capabilities of all video devices. This has always been
-annoying for drivers to calculate, but now that device_caps is part
-of struct video_device we can easily OR that with a capabilities
-field in struct v4l2_device and return that as the capabilities field
-when QUERYCAP is called.
+On Sun, 6 Sep 2015, Robert Jarzmik wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dev.c   | 1 +
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
- include/media/v4l2-device.h          | 2 ++
- 3 files changed, 4 insertions(+), 1 deletion(-)
+> This moves the dma irq handling functions up in the source file, so that
+> they are available before DMA preparation functions. It prepares the
+> conversion to DMA engine, where the descriptors are populated with these
+> functions as callbacks.
+> 
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+> Since v1: fixed prototypes change
+> Since v4: refixed prototypes change
+> ---
+>  drivers/media/platform/soc_camera/pxa_camera.c | 42 +++++++++++++++-----------
+>  1 file changed, 24 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+> index db041a5ed444..bb7054221a86 100644
+> --- a/drivers/media/platform/soc_camera/pxa_camera.c
+> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
+> @@ -311,6 +311,30 @@ static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
+>  	return i + 1;
+>  }
+>  
+> +static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
+> +			       enum pxa_camera_active_dma act_dma);
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 7e766a9..6ef9169 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -1011,6 +1011,7 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	ret = video_register_media_controller(vdev, type);
- 
- 	/* Part 6: Activate this minor. The char device can now be used. */
-+	vdev->v4l2_dev->capabilities |= vdev->device_caps;
- 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
- 
- 	return 0;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 706bb42..013d58d 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1025,7 +1025,7 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- 
- 	cap->version = LINUX_VERSION_CODE;
- 	cap->device_caps = vfd->device_caps;
--	cap->capabilities = vfd->device_caps | V4L2_CAP_DEVICE_CAPS;
-+	cap->capabilities = vfd->v4l2_dev->capabilities | V4L2_CAP_DEVICE_CAPS;
- 
- 	ret = ops->vidioc_querycap(file, fh, cap);
- 
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index 9c58157..8964d60 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -44,6 +44,8 @@ struct v4l2_device {
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	struct media_device *mdev;
- #endif
-+	/* union of the capabilities of all video devices */
-+	u32 capabilities;
- 	/* used to keep track of the registered subdevs */
- 	struct list_head subdevs;
- 	/* lock this struct; can be used by the driver as well if this
--- 
-2.7.0
+This is v5. You fixed prototypes in v1 and v4. Let's see:
 
+> +
+> +static void pxa_camera_dma_irq_y(int channel, void *data)
+> +{
+> +	struct pxa_camera_dev *pcdev = data;
+> +
+> +	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
+
+This doesn't seem fixed to me.
+
+Thanks
+Guennadi
+
+> +}
+> +
+> +static void pxa_camera_dma_irq_u(int channel, void *data)
+> +{
+> +	struct pxa_camera_dev *pcdev = data;
+> +
+> +	pxa_camera_dma_irq(channel, pcdev, DMA_U);
+> +}
+> +
+> +static void pxa_camera_dma_irq_v(int channel, void *data)
+> +{
+> +	struct pxa_camera_dev *pcdev = data;
+> +
+> +	pxa_camera_dma_irq(channel, pcdev, DMA_V);
+> +}
+> +
+>  /**
+>   * pxa_init_dma_channel - init dma descriptors
+>   * @pcdev: pxa camera device
+> @@ -802,24 +826,6 @@ out:
+>  	spin_unlock_irqrestore(&pcdev->lock, flags);
+>  }
+>  
+> -static void pxa_camera_dma_irq_y(int channel, void *data)
+> -{
+> -	struct pxa_camera_dev *pcdev = data;
+> -	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
+> -}
+> -
+> -static void pxa_camera_dma_irq_u(int channel, void *data)
+> -{
+> -	struct pxa_camera_dev *pcdev = data;
+> -	pxa_camera_dma_irq(channel, pcdev, DMA_U);
+> -}
+> -
+> -static void pxa_camera_dma_irq_v(int channel, void *data)
+> -{
+> -	struct pxa_camera_dev *pcdev = data;
+> -	pxa_camera_dma_irq(channel, pcdev, DMA_V);
+> -}
+> -
+>  static struct videobuf_queue_ops pxa_videobuf_ops = {
+>  	.buf_setup      = pxa_videobuf_setup,
+>  	.buf_prepare    = pxa_videobuf_prepare,
+> -- 
+> 2.1.4
+> 
