@@ -1,134 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48510 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751820AbcBWMNF (ORCPT
+Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:43631 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880AbcBUTxx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 07:13:05 -0500
-To: linux-media <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] soc_camera/omap1: move to staging in preparation for removal
-Message-ID: <56CC4CD0.7050308@xs4all.nl>
-Date: Tue, 23 Feb 2016 13:13:04 +0100
+	Sun, 21 Feb 2016 14:53:53 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
+References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+	<87io5wwahg.fsf@belgarion.home>
+	<Pine.LNX.4.64.1510272306300.21185@axis700.grange>
+	<87twpcj6vj.fsf@belgarion.home>
+	<Pine.LNX.4.64.1510291656580.694@axis700.grange>
+	<87d1s72bls.fsf@belgarion.home>
+	<Pine.LNX.4.64.1602211400050.5959@axis700.grange>
+Date: Sun, 21 Feb 2016 15:53:42 +0100
+In-Reply-To: <Pine.LNX.4.64.1602211400050.5959@axis700.grange> (Guennadi
+	Liakhovetski's message of "Sun, 21 Feb 2016 14:01:32 +0100 (CET)")
+Message-ID: <874md2xgg9.fsf@belgarion.home>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is deprecated: it needs to be converted to vb2 and
-it should become a stand-alone driver instead of using the
-soc-camera framework.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Unless someone is willing to take this on (unlikely with such
-ancient hardware) it is going to be removed from the kernel
-soon.
+>> Okay Guennadi, I retested this version on top of v4.5-rc2, still good to
+>> go. There is a minor conflict in the includes since this submission, and I can
+>> repost a v6 which solves it.
+>
+> How did you test it with that patchg #3??
+I rebased my patches on top of v4.5-rc2. To be exact, I rebased the tree I had
+with these last patches on top of v4.5-rc2. I'll recheck, it's been some time
+...
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/soc_camera/Kconfig                   | 10 ----------
- drivers/media/platform/soc_camera/Makefile                  |  1 -
- drivers/staging/media/Kconfig                               |  2 ++
- drivers/staging/media/Makefile                              |  1 +
- drivers/staging/media/omap1/Kconfig                         | 13 +++++++++++++
- drivers/staging/media/omap1/Makefile                        |  3 +++
- .../soc_camera => staging/media/omap1}/omap1_camera.c       |  0
- 7 files changed, 19 insertions(+), 11 deletions(-)
- create mode 100644 drivers/staging/media/omap1/Kconfig
- create mode 100644 drivers/staging/media/omap1/Makefile
- rename drivers/{media/platform/soc_camera => staging/media/omap1}/omap1_camera.c (100%)
+> What's a minor conflict?
+A conflict on a context line :
+#include <mach/dma.h>
+#include <linux/platform_data/media/camera-pxa.h>
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index f2776cd..954dd36 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -60,16 +60,6 @@ config VIDEO_SH_MOBILE_CEU
- 	---help---
- 	  This is a v4l2 driver for the SuperH Mobile CEU Interface
+I think linux/platform_data/media/camera-pxa.h changed from my last submssion,
+hence the conflict.
 
--config VIDEO_OMAP1
--	tristate "OMAP1 Camera Interface driver"
--	depends on VIDEO_DEV && SOC_CAMERA
--	depends on ARCH_OMAP1
--	depends on HAS_DMA
--	select VIDEOBUF_DMA_CONTIG
--	select VIDEOBUF_DMA_SG
--	---help---
--	  This is a v4l2 driver for the TI OMAP1 camera interface
--
- config VIDEO_MX2
- 	tristate "i.MX27 Camera Sensor Interface driver"
- 	depends on VIDEO_DEV && SOC_CAMERA
-diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
-index 2826382..bdd7fc9 100644
---- a/drivers/media/platform/soc_camera/Makefile
-+++ b/drivers/media/platform/soc_camera/Makefile
-@@ -9,7 +9,6 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
- obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
- obj-$(CONFIG_VIDEO_MX2)			+= mx2_camera.o
- obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
--obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
- obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
- obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
- obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
-diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
-index d48a5c2..382d868 100644
---- a/drivers/staging/media/Kconfig
-+++ b/drivers/staging/media/Kconfig
-@@ -29,6 +29,8 @@ source "drivers/staging/media/mn88472/Kconfig"
+> If a patch doesn't apply at all or applies with a fuzz, yes, please fix. If
+> it's just a few lines off, no need to fix that. But you'll do a v6 anyway, I
+> assume.
+But of course, let us have a v6 which cleanly applies on v4.5-rc2, and restested
+once more. I'll try to have it done this evening.
 
- source "drivers/staging/media/mn88473/Kconfig"
+Cheers.
 
-+source "drivers/staging/media/omap1/Kconfig"
-+
- source "drivers/staging/media/omap4iss/Kconfig"
-
- source "drivers/staging/media/timb/Kconfig"
-diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
-index fb94f04..89d038c 100644
---- a/drivers/staging/media/Makefile
-+++ b/drivers/staging/media/Makefile
-@@ -2,6 +2,7 @@ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
- obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
- obj-$(CONFIG_LIRC_STAGING)	+= lirc/
- obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
-+obj-$(CONFIG_VIDEO_OMAP1)	+= omap1/
- obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
- obj-$(CONFIG_DVB_MN88472)       += mn88472/
- obj-$(CONFIG_DVB_MN88473)       += mn88473/
-diff --git a/drivers/staging/media/omap1/Kconfig b/drivers/staging/media/omap1/Kconfig
-new file mode 100644
-index 0000000..6cfab3a
---- /dev/null
-+++ b/drivers/staging/media/omap1/Kconfig
-@@ -0,0 +1,13 @@
-+config VIDEO_OMAP1
-+	tristate "OMAP1 Camera Interface driver"
-+	depends on VIDEO_DEV && SOC_CAMERA
-+	depends on ARCH_OMAP1
-+	depends on HAS_DMA
-+	select VIDEOBUF_DMA_CONTIG
-+	select VIDEOBUF_DMA_SG
-+	---help---
-+	  This is a v4l2 driver for the TI OMAP1 camera interface
-+
-+	  This driver is deprecated and will be removed soon unless someone
-+	  will start the work to convert this driver to the vb2 framework
-+	  and remove the soc-camera dependency.
-diff --git a/drivers/staging/media/omap1/Makefile b/drivers/staging/media/omap1/Makefile
-new file mode 100644
-index 0000000..2885622
---- /dev/null
-+++ b/drivers/staging/media/omap1/Makefile
-@@ -0,0 +1,3 @@
-+# Makefile for OMAP1 driver
-+
-+obj-$(CONFIG_VIDEO_OMAP1) += omap1_camera.o
-diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/staging/media/omap1/omap1_camera.c
-similarity index 100%
-rename from drivers/media/platform/soc_camera/omap1_camera.c
-rename to drivers/staging/media/omap1/omap1_camera.c
 -- 
-2.7.0
-
+Robert
