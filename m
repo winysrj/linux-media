@@ -1,310 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55102 "EHLO lists.s-osg.org"
+Received: from mout.gmx.net ([212.227.15.18]:55989 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752283AbcBEOZk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2016 09:25:40 -0500
-Subject: Re: [PATCH 1/2] [media] v4l2-mc: add a generic function to create the
- media graph
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <6e3da35783650a6e555d20524421f4549d919821.1454665849.git.mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56B4B0D9.4040307@osg.samsung.com>
-Date: Fri, 5 Feb 2016 07:25:29 -0700
+	id S1751096AbcBURvM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2016 12:51:12 -0500
+Date: Sun, 21 Feb 2016 17:04:00 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Andrzej Hajda <a.hajda@samsung.com>
+cc: linux-kernel@vger.kernel.org,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/7] atmel-isi: fix IS_ERR_VALUE usage
+In-Reply-To: <1455546925-22119-5-git-send-email-a.hajda@samsung.com>
+Message-ID: <Pine.LNX.4.64.1602211700000.5959@axis700.grange>
+References: <1455546925-22119-1-git-send-email-a.hajda@samsung.com>
+ <1455546925-22119-5-git-send-email-a.hajda@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <6e3da35783650a6e555d20524421f4549d919821.1454665849.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2016 02:51 AM, Mauro Carvalho Chehab wrote:
-> The em28xx_v4l2_create_media_graph() is almost generic enough to
-> be at the core, as an ancillary function. Make it even more generic,
-> by getting rid of em28xx-specific code, relying only at the
-> media_device, in order to discover all entities found on PC-customer's
-> hardware and add it at the V4L2 core.
+Hi Andrzej,
+
+On Mon, 15 Feb 2016, Andrzej Hajda wrote:
+
+> IS_ERR_VALUE macro should be used only with unsigned long type.
+> For signed types comparison 'ret < 0' should be used.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> The patch follows conclusion from discussion on LKML [1][2].
+> 
+> [1]: http://permalink.gmane.org/gmane.linux.kernel/2120927
+> [2]: http://permalink.gmane.org/gmane.linux.kernel/2150581
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+
+Thanks for the patch, but this one
+
+https://lkml.org/lkml/2016/2/9/392
+
+came a couple of days earlier. Unless there is an important reason to use 
+yours, I'll use that one.
+
+Thanks
+Guennadi
+
 > ---
->  drivers/media/v4l2-core/Makefile  |   1 +
->  drivers/media/v4l2-core/v4l2-mc.c | 181 ++++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-mc.h           |  24 +++++
->  3 files changed, 206 insertions(+)
->  create mode 100644 drivers/media/v4l2-core/v4l2-mc.c
-
-
-Hi Mauro,
-
-The following patch I sent a couple of days ago creates
-this file rivers/media/v4l2-core/v4l2-mc.c
-
-You had some minor comments on that patch and I am working
-on addressing them.
-
-[PATCH v2 07/22] media: v4l-core add enable/disable source common interfaces
-https://lkml.org/lkml/2016/2/3/1500
-
-Looks like you added it in your patch. This would lead a conflict
-between our patches. How do you propose to resolve this?
-
-thanks,
--- Shuah
-
-
+>  drivers/media/platform/soc_camera/atmel-isi.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-> index 1dc8bba2b198..795a5352761d 100644
-> --- a/drivers/media/v4l2-core/Makefile
-> +++ b/drivers/media/v4l2-core/Makefile
-> @@ -16,6 +16,7 @@ endif
->  ifeq ($(CONFIG_TRACEPOINTS),y)
->    videodev-objs += vb2-trace.o v4l2-trace.o
->  endif
-> +videodev-$(CONFIG_MEDIA_CONTROLLER) += v4l2-mc.o
+> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+> index 1af779e..ab2d9b9 100644
+> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+> @@ -1026,7 +1026,7 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
 >  
->  obj-$(CONFIG_VIDEO_V4L2) += videodev.o
->  obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
-> diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-> new file mode 100644
-> index 000000000000..7276dbbbe830
-> --- /dev/null
-> +++ b/drivers/media/v4l2-core/v4l2-mc.c
-> @@ -0,0 +1,181 @@
-> +/*
-> + * Media Controller ancillary functions
-> + *
-> + * (c) 2016 Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; either version 2 of the License, or
-> + *  (at your option) any later version.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <media/media-entity.h>
-> +#include <media/v4l2-mc.h>
-> +
-> +int v4l2_mc_create_media_graph(struct media_device *mdev)
-> +
-> +{
-> +	struct media_entity *entity;
-> +	struct media_entity *if_vid = NULL, *if_aud = NULL, *sensor = NULL;
-> +	struct media_entity *tuner = NULL, *decoder = NULL;
-> +	struct media_entity *io_v4l = NULL, *io_vbi = NULL, *io_swradio = NULL;
-> +	bool is_webcam = false;
-> +	int ret;
-> +
-> +	if (!mdev)
-> +		return 0;
-> +
-> +	media_device_for_each_entity(entity, mdev) {
-> +		switch (entity->function) {
-> +		case MEDIA_ENT_F_IF_VID_DECODER:
-> +			if_vid = entity;
-> +			break;
-> +		case MEDIA_ENT_F_IF_AUD_DECODER:
-> +			if_aud = entity;
-> +			break;
-> +		case MEDIA_ENT_F_TUNER:
-> +			tuner = entity;
-> +			break;
-> +		case MEDIA_ENT_F_ATV_DECODER:
-> +			decoder = entity;
-> +			break;
-> +		case MEDIA_ENT_F_IO_V4L:
-> +			io_v4l = entity;
-> +			break;
-> +		case MEDIA_ENT_F_IO_VBI:
-> +			io_vbi = entity;
-> +			break;
-> +		case MEDIA_ENT_F_IO_SWRADIO:
-> +			io_swradio = entity;
-> +			break;
-> +		case MEDIA_ENT_F_CAM_SENSOR:
-> +			sensor = entity;
-> +			is_webcam = true;
-> +			break;
-> +		}
-> +	}
-> +
-> +	/* It should have at least one I/O entity */
-> +	if (!io_v4l && !io_vbi && !io_swradio)
-> +		return -EINVAL;
-> +
-> +	/*
-> +	 * Here, webcams are modeled on a very simple way: the sensor is
-> +	 * connected directly to the I/O entity. All dirty details, like
-> +	 * scaler and crop HW are hidden. While such mapping is not enough
-> +	 * for mc-centric hardware, it is enough for v4l2 interface centric
-> +	 * PC-consumer's hardware.
-> +	 */
-> +	if (is_webcam) {
-> +		if (!io_v4l)
-> +			return -EINVAL;
-> +
-> +		media_device_for_each_entity(entity, mdev) {
-> +			if (entity->function != MEDIA_ENT_F_CAM_SENSOR)
-> +				continue;
-> +			ret = media_create_pad_link(entity, 0,
-> +						    io_v4l, 0,
-> +						    MEDIA_LNK_FL_ENABLED);
-> +			if (ret)
-> +				return ret;
-> +		}
-> +		if (!decoder)
-> +			return 0;
-> +	}
-> +
-> +	/* The device isn't a webcam. So, it should have a decoder */
-> +	if (!decoder)
-> +		return -EINVAL;
-> +
-> +	/* Link the tuner and IF video output pads */
-> +	if (tuner) {
-> +		if (if_vid) {
-> +			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
-> +						    if_vid,
-> +						    IF_VID_DEC_PAD_IF_INPUT,
-> +						    MEDIA_LNK_FL_ENABLED);
-> +			if (ret)
-> +				return ret;
-> +			ret = media_create_pad_link(if_vid, IF_VID_DEC_PAD_OUT,
-> +						decoder, DEMOD_PAD_IF_INPUT,
-> +						MEDIA_LNK_FL_ENABLED);
-> +			if (ret)
-> +				return ret;
-> +		} else {
-> +			ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
-> +						decoder, DEMOD_PAD_IF_INPUT,
-> +						MEDIA_LNK_FL_ENABLED);
-> +			if (ret)
-> +				return ret;
-> +		}
-> +
-> +		if (if_aud) {
-> +			ret = media_create_pad_link(tuner, TUNER_PAD_AUD_OUT,
-> +						    if_aud,
-> +						    IF_AUD_DEC_PAD_IF_INPUT,
-> +						    MEDIA_LNK_FL_ENABLED);
-> +			if (ret)
-> +				return ret;
-> +		} else {
-> +			if_aud = tuner;
-> +		}
-> +
-> +	}
-> +
-> +	/* Create demod to V4L, VBI and SDR radio links */
-> +	if (io_v4l) {
-> +		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-> +					io_v4l, 0,
-> +					MEDIA_LNK_FL_ENABLED);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	if (io_swradio) {
-> +		ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
-> +					io_swradio, 0,
-> +					MEDIA_LNK_FL_ENABLED);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	if (io_vbi) {
-> +		ret = media_create_pad_link(decoder, DEMOD_PAD_VBI_OUT,
-> +					    io_vbi, 0,
-> +					    MEDIA_LNK_FL_ENABLED);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	/* Create links for the media connectors */
-> +	media_device_for_each_entity(entity, mdev) {
-> +		switch (entity->function) {
-> +		case MEDIA_ENT_F_CONN_RF:
-> +			if (!tuner)
-> +				continue;
-> +
-> +			ret = media_create_pad_link(entity, 0, tuner,
-> +						    TUNER_PAD_RF_INPUT,
-> +						    MEDIA_LNK_FL_ENABLED);
-> +			break;
-> +		case MEDIA_ENT_F_CONN_SVIDEO:
-> +		case MEDIA_ENT_F_CONN_COMPOSITE:
-> +		case MEDIA_ENT_F_CONN_TEST:
-> +			ret = media_create_pad_link(entity, 0, decoder,
-> +						    DEMOD_PAD_IF_INPUT, 0);
-> +			break;
-> +		default:
-> +			continue;
-> +		}
-> +		if (ret)
-> +			return ret;
-> +	}
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_mc_create_media_graph);
-> diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-> index df115195690e..3097493e6cf1 100644
-> --- a/include/media/v4l2-mc.h
-> +++ b/include/media/v4l2-mc.h
-> @@ -14,6 +14,8 @@
->   * GNU General Public License for more details.
->   */
+>  static int atmel_isi_probe(struct platform_device *pdev)
+>  {
+> -	unsigned int irq;
+> +	int irq;
+>  	struct atmel_isi *isi;
+>  	struct resource *regs;
+>  	int ret, i;
+> @@ -1086,7 +1086,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
+>  		isi->width_flags |= 1 << 9;
 >  
-> +#include <media/media-device.h>
-> +
->  /**
->   * enum tuner_pad_index - tuner pad index for MEDIA_ENT_F_TUNER
->   *
-> @@ -89,3 +91,25 @@ enum demod_pad_index {
->  	DEMOD_PAD_VBI_OUT,
->  	DEMOD_NUM_PADS
->  };
-> +
-> +/**
-> + * v4l2_mc_create_media_graph() - create Media Controller links at the graph.
-> + *
-> + * @mdev:	pointer to the &media_device struct.
-> + *
-> + * Add links between the entities commonly found on PC customer's hardware at
-> + * the V4L2 side: camera sensors, audio and video PLL-IF decoders, tuners,
-> + * analog TV decoder and I/O entities (video, VBI and Software Defined Radio).
-> + * NOTE: webcams are modeled on a very simple way: the sensor is
-> + * connected directly to the I/O entity. All dirty details, like
-> + * scaler and crop HW are hidden. While such mapping is enough for v4l2
-> + * interface centric PC-consumer's hardware, V4L2 subdev centric camera
-> + * hardware should not use this routine, as it will not build the right graph.
-> + */
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +int v4l2_mc_create_media_graph(struct media_device *mdev);
-> +#else
-> +static inline int v4l2_mc_create_media_graph(struct media_device *mdev) {
-> +	return 0;
-> +}
-> +#endif
+>  	irq = platform_get_irq(pdev, 0);
+> -	if (IS_ERR_VALUE(irq)) {
+> +	if (irq < 0) {
+>  		ret = irq;
+>  		goto err_req_irq;
+>  	}
+> -- 
+> 1.9.1
 > 
-
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
