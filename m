@@ -1,142 +1,361 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f173.google.com ([209.85.213.173]:36817 "EHLO
-	mail-ig0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753764AbcBBMhH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2016 07:37:07 -0500
-Received: by mail-ig0-f173.google.com with SMTP id z14so59128952igp.1
-        for <linux-media@vger.kernel.org>; Tue, 02 Feb 2016 04:37:07 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAJ2oMh+PYXFq__PhzQa72Rtaa0hddtmNBs1evWX3RKRWZK_Mkw@mail.gmail.com>
-References: <CAJ2oMh+yZ4KEpq36HgrdHW4FkvQmZ4T_tD7XUGKs0a9K=otMnw@mail.gmail.com>
-	<CAJ2oMhK+RS2Z2GVGbo3X_Ov5gWxiCRRvpT6T6YgfVKmp2rM4ew@mail.gmail.com>
-	<56AF13EA.2070206@xs4all.nl>
-	<CAJ2oMh+5_8Ngtn3G2HxFKw3su-rgQuyUYqjN5oOmgekW2cTrNA@mail.gmail.com>
-	<56AF2DB9.8010609@xs4all.nl>
-	<CAJ2oMh+PYXFq__PhzQa72Rtaa0hddtmNBs1evWX3RKRWZK_Mkw@mail.gmail.com>
-Date: Tue, 2 Feb 2016 14:37:07 +0200
-Message-ID: <CAJ2oMhJJEFpB_+6==HB+Qyh4Kyt5o-cztXX6STDH9iynoEvNOQ@mail.gmail.com>
-Subject: Re: OS freeze after queue_setup
-From: Ran Shalit <ranshalit@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52620 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752995AbcBURk3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2016 12:40:29 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v3 4/4] staging: v4l: omap4iss: Use V4L2 graph PM operations
+Date: Sun, 21 Feb 2016 18:25:11 +0200
+Message-Id: <1456071911-3284-5-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1456071911-3284-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1456071911-3284-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 1, 2016 at 1:16 PM, Ran Shalit <ranshalit@gmail.com> wrote:
-> On Mon, Feb 1, 2016 at 12:04 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->>
->> On 02/01/2016 10:07 AM, Ran Shalit wrote:
->>> On Mon, Feb 1, 2016 at 10:14 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>
->>>>
->>>> On 02/01/2016 09:00 AM, Ran Shalit wrote:
->>>>> On Sun, Jan 31, 2016 at 10:35 PM, Ran Shalit <ranshalit@gmail.com> wrote:
->>>>>> Hello,
->>>>>>
->>>>>> Maybe someone will have some idea about the following:
->>>>>> I am using a pci card (not video card, just some dummy pci card), to
->>>>>> check v4l2 template for PCIe card (I used solo6x10 as template for the
->>>>>> driver and moved all hardware related to video into remarks).
->>>>>> I don't use any register read/write to hardware (just dummy functions).
->>>>>>
->>>>>> I get that load/unload of module is successful.
->>>>>> But on trying to start reading video frames (using read method with
->>>>>> v4l API userspace example), I get that the whole operating system is
->>>>>> freezed, and I must reboot the machine.
->>>>>> This is the queue_setup callback:
->>>>>>
->>>>>> static int test_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
->>>>>>   unsigned int *num_buffers, unsigned int *num_planes,
->>>>>>   unsigned int sizes[], void *alloc_ctxs[])
->>>>>> {
->>>>>> struct test_dev *solo_dev = vb2_get_drv_priv(q);
->>>>>> dev_info(&test_dev->pdev->dev,"test_queue_setup\n");
->>>>>> sizes[0] = test_image_size(test_dev);
->>>>>> alloc_ctxs[0] = solo_dev->alloc_ctx;
->>>>>> *num_planes = 1;
->>>>>>
->>>>>> if (*num_buffers < MIN_VID_BUFFERS)
->>>>>> *num_buffers = MIN_VID_BUFFERS;
->>>>>>
->>>>>> return 0;
->>>>>> }
->>>>>>
->>>>>> static const struct vb2_ops test_video_qops = {
->>>>>> .queue_setup = test_queue_setup,
->>>>>> .buf_queue = test_buf_queue,
->>>>>> .start_streaming = test_start_streaming, <- does nothing
->>>>>> .stop_streaming = test_stop_streaming, <- does nothing
->>>>>> .wait_prepare = vb2_ops_wait_prepare,
->>>>>> .wait_finish = vb2_ops_wait_finish,
->>>>>> };
->>>>>>
->>>>>>
->>>>>> I didn't find anything suspicious in the videobuf2 callback that can
->>>>>> explain these freeze.( start_streaming,stop_streaming contains just
->>>>>> printk with function name).
->>>>>> I also can't know where it got stuck (The system is freezed without
->>>>>> any logging on screen, all log is in dmesg).
->>>>>>
->>>>>> Thank for any idea,
->>>>>> Ran
->>>>>
->>>>> On start reading frames (using read or mmap method), it seems as if
->>>>> there is some collisions between the pci video card and another card
->>>>> (becuase the monitor is also printed with strange colors as the moment
->>>>> the OS freezes) .
->>>>> I validated again that the PCIe boards IDs in the table are correct
->>>>> (it matches only the dummy pcie card when it is  connected ).
->>>>> I also tried to comment out the irq request, to be sure that there is
->>>>> no irq collision with another board, but it still get freezed anyway.
->>>>
->>>> I can't tell anything from this, I'd need to see the full source.
->>>>
->>>> Regards,
->>>>
->>>>         Hans
->>>
->>> Thank you Hans,
->>> The source code base on solo6x10 as template , and kernel 3.10.0.229
->>> (I needed to use this kernel version instead of latest as start point
->>> because of other pacakge , Intel's media sdk encoder ) :
->>>
->>> https://drive.google.com/file/d/0B22GsWueReZTSElIUEJJSHplUVU/view?usp=sharing
->>> - This package compiled with the makefile
->>> - relevant changes are in solo6x10-core.c & solo6x10-v4l2.c
->>
->> It would certainly help if you don't try to enable interrupts on your pci
->> card. Basically, don't touch the pci at all. The only purpose of using a
->> dummy PCI card is that your template driver is loaded. But touching the hardware
->> will of course have bad results since it isn't video hardware.
->>
->> Frankly, why not just take the v4l2-pci-skeleton.c as your template instead
->> of trying to strip down the solo driver? The skeleton driver is already stripped
->> down!
->>
->> Much easier.
->>
->> Regards,
->>
->>         Hans
->
-> Hi Hans,
->
-> Thank you for the suggestions.
-> I've tried the skeleton and I got the same behaviour.
-> When using vivid device, it works (frame reading) without any issues.
-> Since the whole system freezes its hard to know the exact problem.
->
-> Regards,
-> Ran
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Hi,
+Power on devices represented by entities in the graph through the pipeline
+state using V4L2 graph PM operations instead of what was in the omap3isp
+driver.
 
-Just to update for anyone with similar behaviour:
-On moving to a newer kernel version (3.16.0) , this issue been
-resolved  (both the skeleton and the stripped down template based on
-solo6x10.)
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/omap4iss/iss.c       | 211 +----------------------------
+ drivers/staging/media/omap4iss/iss.h       |   6 +-
+ drivers/staging/media/omap4iss/iss_video.c |  15 +-
+ drivers/staging/media/omap4iss/iss_video.h |   1 -
+ 4 files changed, 7 insertions(+), 226 deletions(-)
 
-Thank you,
-Ran
+diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
+index 30b473c..fb80d2b 100644
+--- a/drivers/staging/media/omap4iss/iss.c
++++ b/drivers/staging/media/omap4iss/iss.c
+@@ -363,215 +363,6 @@ static irqreturn_t iss_isr(int irq, void *_iss)
+ }
+ 
+ /* -----------------------------------------------------------------------------
+- * Pipeline power management
+- *
+- * Entities must be powered up when part of a pipeline that contains at least
+- * one open video device node.
+- *
+- * To achieve this use the entity use_count field to track the number of users.
+- * For entities corresponding to video device nodes the use_count field stores
+- * the users count of the node. For entities corresponding to subdevs the
+- * use_count field stores the total number of users of all video device nodes
+- * in the pipeline.
+- *
+- * The omap4iss_pipeline_pm_use() function must be called in the open() and
+- * close() handlers of video device nodes. It increments or decrements the use
+- * count of all subdev entities in the pipeline.
+- *
+- * To react to link management on powered pipelines, the link setup notification
+- * callback updates the use count of all entities in the source and sink sides
+- * of the link.
+- */
+-
+-/*
+- * iss_pipeline_pm_use_count - Count the number of users of a pipeline
+- * @entity: The entity
+- *
+- * Return the total number of users of all video device nodes in the pipeline.
+- */
+-static int iss_pipeline_pm_use_count(struct media_entity *entity,
+-				     struct media_entity_graph *graph)
+-{
+-	int use = 0;
+-
+-	media_entity_graph_walk_start(graph, entity);
+-
+-	while ((entity = media_entity_graph_walk_next(graph))) {
+-		if (is_media_entity_v4l2_io(entity))
+-			use += entity->use_count;
+-	}
+-
+-	return use;
+-}
+-
+-/*
+- * iss_pipeline_pm_power_one - Apply power change to an entity
+- * @entity: The entity
+- * @change: Use count change
+- *
+- * Change the entity use count by @change. If the entity is a subdev update its
+- * power state by calling the core::s_power operation when the use count goes
+- * from 0 to != 0 or from != 0 to 0.
+- *
+- * Return 0 on success or a negative error code on failure.
+- */
+-static int iss_pipeline_pm_power_one(struct media_entity *entity, int change)
+-{
+-	struct v4l2_subdev *subdev;
+-
+-	subdev = is_media_entity_v4l2_subdev(entity)
+-	       ? media_entity_to_v4l2_subdev(entity) : NULL;
+-
+-	if (entity->use_count == 0 && change > 0 && subdev) {
+-		int ret;
+-
+-		ret = v4l2_subdev_call(subdev, core, s_power, 1);
+-		if (ret < 0 && ret != -ENOIOCTLCMD)
+-			return ret;
+-	}
+-
+-	entity->use_count += change;
+-	WARN_ON(entity->use_count < 0);
+-
+-	if (entity->use_count == 0 && change < 0 && subdev)
+-		v4l2_subdev_call(subdev, core, s_power, 0);
+-
+-	return 0;
+-}
+-
+-/*
+- * iss_pipeline_pm_power - Apply power change to all entities in a pipeline
+- * @entity: The entity
+- * @change: Use count change
+- *
+- * Walk the pipeline to update the use count and the power state of all non-node
+- * entities.
+- *
+- * Return 0 on success or a negative error code on failure.
+- */
+-static int iss_pipeline_pm_power(struct media_entity *entity, int change,
+-				 struct media_entity_graph *graph)
+-{
+-	struct media_entity *first = entity;
+-	int ret = 0;
+-
+-	if (!change)
+-		return 0;
+-
+-	media_entity_graph_walk_start(graph, entity);
+-
+-	while (!ret && (entity = media_entity_graph_walk_next(graph)))
+-		if (is_media_entity_v4l2_subdev(entity))
+-			ret = iss_pipeline_pm_power_one(entity, change);
+-
+-	if (!ret)
+-		return 0;
+-
+-	media_entity_graph_walk_start(graph, first);
+-
+-	while ((first = media_entity_graph_walk_next(graph)) &&
+-	       first != entity)
+-		if (is_media_entity_v4l2_subdev(first))
+-			iss_pipeline_pm_power_one(first, -change);
+-
+-	return ret;
+-}
+-
+-/*
+- * omap4iss_pipeline_pm_use - Update the use count of an entity
+- * @entity: The entity
+- * @use: Use (1) or stop using (0) the entity
+- *
+- * Update the use count of all entities in the pipeline and power entities on or
+- * off accordingly.
+- *
+- * Return 0 on success or a negative error code on failure. Powering entities
+- * off is assumed to never fail. No failure can occur when the use parameter is
+- * set to 0.
+- */
+-int omap4iss_pipeline_pm_use(struct media_entity *entity, int use,
+-			     struct media_entity_graph *graph)
+-{
+-	int change = use ? 1 : -1;
+-	int ret;
+-
+-	mutex_lock(&entity->graph_obj.mdev->graph_mutex);
+-
+-	/* Apply use count to node. */
+-	entity->use_count += change;
+-	WARN_ON(entity->use_count < 0);
+-
+-	/* Apply power change to connected non-nodes. */
+-	ret = iss_pipeline_pm_power(entity, change, graph);
+-	if (ret < 0)
+-		entity->use_count -= change;
+-
+-	mutex_unlock(&entity->graph_obj.mdev->graph_mutex);
+-
+-	return ret;
+-}
+-
+-/*
+- * iss_pipeline_link_notify - Link management notification callback
+- * @link: The link
+- * @flags: New link flags that will be applied
+- *
+- * React to link management on powered pipelines by updating the use count of
+- * all entities in the source and sink sides of the link. Entities are powered
+- * on or off accordingly.
+- *
+- * Return 0 on success or a negative error code on failure. Powering entities
+- * off is assumed to never fail. This function will not fail for disconnection
+- * events.
+- */
+-static int iss_pipeline_link_notify(struct media_link *link, u32 flags,
+-				    unsigned int notification)
+-{
+-	struct media_entity_graph *graph =
+-		&container_of(link->graph_obj.mdev, struct iss_device,
+-			      media_dev)->pm_count_graph;
+-	struct media_entity *source = link->source->entity;
+-	struct media_entity *sink = link->sink->entity;
+-	int source_use;
+-	int sink_use;
+-	int ret;
+-
+-	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH) {
+-		ret = media_entity_graph_walk_init(graph,
+-						   link->graph_obj.mdev);
+-		if (ret)
+-			return ret;
+-	}
+-
+-	source_use = iss_pipeline_pm_use_count(source, graph);
+-	sink_use = iss_pipeline_pm_use_count(sink, graph);
+-
+-	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
+-	    !(flags & MEDIA_LNK_FL_ENABLED)) {
+-		/* Powering off entities is assumed to never fail. */
+-		iss_pipeline_pm_power(source, -sink_use, graph);
+-		iss_pipeline_pm_power(sink, -source_use, graph);
+-		return 0;
+-	}
+-
+-	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
+-	    (flags & MEDIA_LNK_FL_ENABLED)) {
+-		ret = iss_pipeline_pm_power(source, sink_use, graph);
+-		if (ret < 0)
+-			return ret;
+-
+-		ret = iss_pipeline_pm_power(sink, source_use, graph);
+-		if (ret < 0)
+-			iss_pipeline_pm_power(source, -sink_use, graph);
+-	}
+-
+-	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH)
+-		media_entity_graph_walk_cleanup(graph);
+-
+-	return ret;
+-}
+-
+-/* -----------------------------------------------------------------------------
+  * Pipeline stream management
+  */
+ 
+@@ -1197,7 +988,7 @@ static int iss_register_entities(struct iss_device *iss)
+ 	strlcpy(iss->media_dev.model, "TI OMAP4 ISS",
+ 		sizeof(iss->media_dev.model));
+ 	iss->media_dev.hw_revision = iss->revision;
+-	iss->media_dev.link_notify = iss_pipeline_link_notify;
++	iss->media_dev.link_notify = v4l2_pipeline_link_notify;
+ 	ret = media_device_register(&iss->media_dev);
+ 	if (ret < 0) {
+ 		dev_err(iss->dev, "Media device registration failed (%d)\n",
+diff --git a/drivers/staging/media/omap4iss/iss.h b/drivers/staging/media/omap4iss/iss.h
+index 05f08a3..760ee27 100644
+--- a/drivers/staging/media/omap4iss/iss.h
++++ b/drivers/staging/media/omap4iss/iss.h
+@@ -15,6 +15,8 @@
+ #define _OMAP4_ISS_H_
+ 
+ #include <media/v4l2-device.h>
++#include <media/v4l2-mc.h>
++
+ #include <linux/device.h>
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+@@ -87,7 +89,6 @@ struct iss_reg {
+ struct iss_device {
+ 	struct v4l2_device v4l2_dev;
+ 	struct media_device media_dev;
+-	struct media_entity_graph pm_count_graph;
+ 	struct device *dev;
+ 	u32 revision;
+ 
+@@ -152,9 +153,6 @@ void omap4iss_isp_subclk_enable(struct iss_device *iss,
+ void omap4iss_isp_subclk_disable(struct iss_device *iss,
+ 				 enum iss_isp_subclk_resource res);
+ 
+-int omap4iss_pipeline_pm_use(struct media_entity *entity, int use,
+-			     struct media_entity_graph *graph);
+-
+ int omap4iss_register_entities(struct platform_device *pdev,
+ 			       struct v4l2_device *v4l2_dev);
+ void omap4iss_unregister_entities(struct platform_device *pdev);
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index 058233a..f54349b 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -19,8 +19,10 @@
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+ #include <linux/module.h>
++
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-mc.h>
+ 
+ #include "iss_video.h"
+ #include "iss.h"
+@@ -1009,13 +1011,7 @@ static int iss_video_open(struct file *file)
+ 		goto done;
+ 	}
+ 
+-	ret = media_entity_graph_walk_init(&handle->graph,
+-					   &video->iss->media_dev);
+-	if (ret)
+-		goto done;
+-
+-	ret = omap4iss_pipeline_pm_use(&video->video.entity, 1,
+-				       &handle->graph);
++	ret = v4l2_pipeline_pm_use(&video->video.entity, 1);
+ 	if (ret < 0) {
+ 		omap4iss_put(video->iss);
+ 		goto done;
+@@ -1054,7 +1050,6 @@ static int iss_video_open(struct file *file)
+ done:
+ 	if (ret < 0) {
+ 		v4l2_fh_del(&handle->vfh);
+-		media_entity_graph_walk_cleanup(&handle->graph);
+ 		kfree(handle);
+ 	}
+ 
+@@ -1070,13 +1065,11 @@ static int iss_video_release(struct file *file)
+ 	/* Disable streaming and free the buffers queue resources. */
+ 	iss_video_streamoff(file, vfh, video->type);
+ 
+-	omap4iss_pipeline_pm_use(&video->video.entity, 0, &handle->graph);
++	v4l2_pipeline_pm_use(&video->video.entity, 0);
+ 
+ 	/* Release the videobuf2 queue */
+ 	vb2_queue_release(&handle->queue);
+ 
+-	/* Release the file handle. */
+-	media_entity_graph_walk_cleanup(&handle->graph);
+ 	v4l2_fh_del(vfh);
+ 	kfree(handle);
+ 	file->private_data = NULL;
+diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+index 34588b7..c8bd295 100644
+--- a/drivers/staging/media/omap4iss/iss_video.h
++++ b/drivers/staging/media/omap4iss/iss_video.h
+@@ -183,7 +183,6 @@ struct iss_video_fh {
+ 	struct vb2_queue queue;
+ 	struct v4l2_format format;
+ 	struct v4l2_fract timeperframe;
+-	struct media_entity_graph graph;
+ };
+ 
+ #define to_iss_video_fh(fh)	container_of(fh, struct iss_video_fh, vfh)
+-- 
+2.1.4
+
