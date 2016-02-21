@@ -1,53 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:33649 "EHLO
-	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667AbcBOGI5 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55518 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750708AbcBUVgU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 01:08:57 -0500
-From: info@are.ma
+	Sun, 21 Feb 2016 16:36:20 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD?=
-	 =?UTF-8?q?=D1=82=D0=BE=2C=20AreMa=20Inc?= <knightrider@are.ma>,
-	linux-kernel@vger.kernel.org, crope@iki.fi, m.chehab@samsung.com,
-	mchehab@osg.samsung.com, hdegoede@redhat.com,
-	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
-	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
-	peter.senna@gmail.com
-Subject: [media 1/7] raise adapter number limit
-Date: Mon, 15 Feb 2016 15:08:43 +0900
-Message-Id: <370b7726279759abc41a71843c6a59cdb1e5cdb1.1455513464.git.knightrider@are.ma>
-In-Reply-To: <cover.1455513464.git.knightrider@are.ma>
-References: <cover.1455513464.git.knightrider@are.ma>
-In-Reply-To: <cover.1455513464.git.knightrider@are.ma>
-References: <cover.1455513464.git.knightrider@are.ma>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [RFC 1/4] media: Sanitise the reserved fields of the G_TOPOLOGY IOCTL arguments
+Date: Sun, 21 Feb 2016 23:36:12 +0200
+Message-Id: <1456090575-28354-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1456090575-28354-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1456090575-28354-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Буди Романто, AreMa Inc <knightrider@are.ma>
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-The current limit is too low for latest cards with 8+ tuners on a single slot, change to 64.
+Align them up to a power of two.
 
-Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/dvb-core/dvbdev.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/uapi/linux/media.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index 4aff7bd..950decd 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -34,7 +34,7 @@
- #if defined(CONFIG_DVB_MAX_ADAPTERS) && CONFIG_DVB_MAX_ADAPTERS > 0
-   #define DVB_MAX_ADAPTERS CONFIG_DVB_MAX_ADAPTERS
- #else
--  #define DVB_MAX_ADAPTERS 8
-+  #define DVB_MAX_ADAPTERS 64
- #endif
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 6aac2f0..008d077 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -302,7 +302,7 @@ struct media_v2_entity {
+ 	__u32 id;
+ 	char name[64];		/* FIXME: move to a property? (RFC says so) */
+ 	__u32 function;		/* Main function of the entity */
+-	__u16 reserved[12];
++	__u32 reserved[14];
+ };
  
- #define DVB_UNSET (-1)
+ /* Should match the specific fields at media_intf_devnode */
+@@ -315,7 +315,7 @@ struct media_v2_interface {
+ 	__u32 id;
+ 	__u32 intf_type;
+ 	__u32 flags;
+-	__u32 reserved[9];
++	__u32 reserved[13];
+ 
+ 	union {
+ 		struct media_v2_intf_devnode devnode;
+@@ -327,7 +327,7 @@ struct media_v2_pad {
+ 	__u32 id;
+ 	__u32 entity_id;
+ 	__u32 flags;
+-	__u16 reserved[9];
++	__u32 reserved[5];
+ };
+ 
+ struct media_v2_link {
+@@ -335,7 +335,7 @@ struct media_v2_link {
+ 	__u32 source_id;
+ 	__u32 sink_id;
+ 	__u32 flags;
+-	__u32 reserved[5];
++	__u32 reserved[4];
+ };
+ 
+ struct media_v2_topology {
 -- 
-2.3.10
+2.1.4
 
