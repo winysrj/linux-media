@@ -1,88 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:44528 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932692AbcBWILb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 03:11:31 -0500
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v5 3/8] arm64: dts: mediatek: Add node for Mediatek Video Processor Unit
-Date: Tue, 23 Feb 2016 16:11:16 +0800
-Message-ID: <1456215081-16858-4-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1456215081-16858-3-git-send-email-tiffany.lin@mediatek.com>
-References: <1456215081-16858-1-git-send-email-tiffany.lin@mediatek.com>
- <1456215081-16858-2-git-send-email-tiffany.lin@mediatek.com>
- <1456215081-16858-3-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mga02.intel.com ([134.134.136.20]:28660 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751373AbcBUVcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2016 16:32:07 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [v4l-utils PATCH 1/4] v4l: libv4lsubdev: Make mbus_formats array const
+Date: Sun, 21 Feb 2016 23:29:44 +0200
+Message-Id: <1456090187-1191-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+The array is already static and may not be modified at runtime. Make it
+const.
 
-Add VPU drivers for MT8173
-
-Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ utils/media-ctl/libv4l2subdev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index 60a1284..5b0b38a 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -200,6 +200,18 @@
- 		clock-output-names = "cpum_ck";
- 	};
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index dc2cd87..e45834f 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -715,7 +715,7 @@ int v4l2_subdev_parse_setup_formats(struct media_device *media, const char *p)
+ 	return *end ? -EINVAL : 0;
+ }
  
-+	reserved-memory {
-+		#address-cells = <2>;
-+		#size-cells = <2>;
-+		ranges;
-+		vpu_dma_reserved: vpu_dma_mem_region {
-+			compatible = "shared-dma-pool";
-+			reg = <0 0xb7000000 0 0x500000>;
-+			alignment = <0x1000>;
-+			no-map;
-+		};
-+	};
-+
- 	thermal-zones {
- 		cpu_thermal: cpu_thermal {
- 			polling-delay-passive = <1000>; /* milliseconds */
-@@ -422,6 +434,17 @@
- 			clocks = <&infracfg CLK_INFRA_CEC>;
- 		};
- 
-+		vpu: vpu@10020000 {
-+			compatible = "mediatek,mt8173-vpu";
-+			reg = <0 0x10020000 0 0x30000>,
-+			      <0 0x10050000 0 0x100>;
-+			reg-names = "tcm", "cfg_reg";
-+			interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&topckgen CLK_TOP_SCP_SEL>;
-+			clock-names = "main";
-+			memory-region = <&vpu_dma_reserved>;
-+		};
-+
- 		sysirq: intpol-controller@10200620 {
- 			compatible = "mediatek,mt8173-sysirq",
- 				     "mediatek,mt6577-sysirq";
+-static struct {
++static const struct {
+ 	const char *name;
+ 	enum v4l2_mbus_pixelcode code;
+ } mbus_formats[] = {
 -- 
-1.7.9.5
+2.1.0.231.g7484e3b
 
