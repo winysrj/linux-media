@@ -1,100 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37056 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753051AbcBWUah (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 15:30:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
-Date: Tue, 23 Feb 2016 22:30:35 +0200
-Message-ID: <5560544.fDzogjZUfJ@avalon>
-In-Reply-To: <20160223202400.GA11084@valkosipuli.retiisi.org.uk>
-References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com> <3174978.uNIbAnUxCz@avalon> <20160223202400.GA11084@valkosipuli.retiisi.org.uk>
+Received: from mout.gmx.net ([212.227.17.20]:56181 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751094AbcBURcM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2016 12:32:12 -0500
+Date: Sun, 21 Feb 2016 17:50:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
+In-Reply-To: <874md2xgg9.fsf@belgarion.home>
+Message-ID: <Pine.LNX.4.64.1602211749460.5959@axis700.grange>
+References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+ <87io5wwahg.fsf@belgarion.home> <Pine.LNX.4.64.1510272306300.21185@axis700.grange>
+ <87twpcj6vj.fsf@belgarion.home> <Pine.LNX.4.64.1510291656580.694@axis700.grange>
+ <87d1s72bls.fsf@belgarion.home> <Pine.LNX.4.64.1602211400050.5959@axis700.grange>
+ <874md2xgg9.fsf@belgarion.home>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Sun, 21 Feb 2016, Robert Jarzmik wrote:
 
-On Tuesday 23 February 2016 22:24:00 Sakari Ailus wrote:
-> On Tue, Feb 23, 2016 at 10:15:46PM +0200, Laurent Pinchart wrote:
-> > On Tuesday 23 February 2016 17:15:15 Hans Verkuil wrote:
-> >> On 02/23/2016 05:11 PM, Sakari Ailus wrote:
-> >>> On Tue, Feb 23, 2016 at 01:18:53PM +0100, Hans Verkuil wrote:
-> >>>> On 02/21/16 22:29, Sakari Ailus wrote:
-> >>>>> Add a new topic option for -h to allow listing supported media bus
-> >>>>> codes in conversion functions. This is useful in figuring out which
-> >>>>> media bus codes are actually supported by the library. The numeric
-> >>>>> values of the codes are listed as well.
-> >>>>> 
-> >>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>>>> ---
-> >>>>> 
-> >>>>>  utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++----
-> >>>>>  1 file changed, 38 insertions(+), 4 deletions(-)
-> >>>>> 
-> >>>>> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-> >>>>> index 0afc9c2..55cdd29 100644
-> >>>>> --- a/utils/media-ctl/options.c
-> >>>>> +++ b/utils/media-ctl/options.c
-
-[snip]
-
-> >>>>> @@ -45,7 +47,8 @@ static void usage(const char *argv0)
-> >>>>> 
-> >>>>>  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to
-> >>>>>  	setup\n");
-> >>>>>  	printf("    --get-v4l2 pad	Print the active format on a given
-> >>>>> pad\n");
-> >>>>>  	printf("    --set-dv pad	Configure DV timings on a given pad\n");
-> >>>>> 
-> >>>>> -	printf("-h, --help		Show verbose help and exit\n");
-> >>>>> +	printf("-h, --help[=topic]	Show verbose help and exit\n");
-> >>>>> +	printf("			topics:	mbus-fmt: List supported media bus pixel
-> >>>>> codes\n");
-> >>>>
-> >>>> OK, this is ugly. It has nothing to do with usage help.
-> >>>> 
-> >>>> Just make a new option --list-mbus-fmts to list supported media bus
-> >>>> pixel codes.
-> >>>> 
-> >>>> That would make much more sense.
-> >>> 
-> >>> I added it as a --help option argument in order to imply it's a part
-> >>> of the program's usage instructions, which is what it indeed is. It's
-> >>> not a list of media bus formats supported by a device.
-> >>> 
-> >>> A separate option is fine, but it should be clear that it's about just
-> >>> listing supported formats. E.g. --list-supported-mbus-fmts. But that's
-> >>> a long one. Long options are loooong.
-> >> 
-> >> --list-known-mbus-fmts will do the trick.
-> > 
-> > That doesn't feel right. Isn't it a help option, really, given that it
-> > lists the formats you can use as command line arguments ?
-> > 
-> > Another option would actually be to always print the formats when the -h
-> > switch is given. We could print them in a comma-separated list with
-> > multiple formats per line, possibly dropping the numerical value, it
-> > should hopefully not be horrible.
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 > 
-> I'd prefer to keep the numerical value as well; the link validation code in
-> drivers may print the media bus code at each end in case they do not match.
-> To debug that, it's easy to grep that from the list media-ctl prints.
+> >> Okay Guennadi, I retested this version on top of v4.5-rc2, still good to
+> >> go. There is a minor conflict in the includes since this submission, and I can
+> >> repost a v6 which solves it.
+> >
+> > How did you test it with that patchg #3??
+> I rebased my patches on top of v4.5-rc2. To be exact, I rebased the tree I had
+> with these last patches on top of v4.5-rc2. I'll recheck, it's been some time
+> ...
+> 
+> > What's a minor conflict?
+> A conflict on a context line :
+> #include <mach/dma.h>
+> #include <linux/platform_data/media/camera-pxa.h>
+> 
+> I think linux/platform_data/media/camera-pxa.h changed from my last submssion,
+> hence the conflict.
+> 
+> > If a patch doesn't apply at all or applies with a fuzz, yes, please fix. If
+> > it's just a few lines off, no need to fix that. But you'll do a v6 anyway, I
+> > assume.
+> But of course, let us have a v6 which cleanly applies on v4.5-rc2, and restested
+> once more. I'll try to have it done this evening.
 
-Grepping media-bus-formats.h shouldn't be difficult ;-)
+Please, have a look at 
+http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/log/?h=for-4.6-2
+If all is good there, no need for a v6
 
-To shorten the output, how about printing the numerical values as 0x%04x or 
-%04x ?
+Thanks
+Guennadi
 
--- 
-Regards,
-
-Laurent Pinchart
-
+> 
+> Cheers.
+> 
+> -- 
+> Robert
+> 
