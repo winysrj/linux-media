@@ -1,95 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54993 "EHLO mx1.redhat.com"
+Received: from mout.gmx.net ([212.227.15.15]:53683 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751076AbcBEPRf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2016 10:17:35 -0500
-Received: from int-mx13.intmail.prod.int.phx2.redhat.com (int-mx13.intmail.prod.int.phx2.redhat.com [10.5.11.26])
-	by mx1.redhat.com (Postfix) with ESMTPS id D4DFFBC6C1
-	for <linux-media@vger.kernel.org>; Fri,  5 Feb 2016 15:17:35 +0000 (UTC)
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH xawtv3 1/2] alsa: Fix not being able to get a larger latency on capture devices with small max period sizes
-Date: Fri,  5 Feb 2016 16:17:29 +0100
-Message-Id: <1454685450-30470-1-git-send-email-hdegoede@redhat.com>
+	id S1752737AbcBURW7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2016 12:22:59 -0500
+Date: Sun, 21 Feb 2016 14:10:26 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 3/4] media: pxa_camera: trivial move of dma irq
+ functions
+In-Reply-To: <Pine.LNX.4.64.1602211356070.5959@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1602211410110.5959@axis700.grange>
+References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+ <1441539733-19201-3-git-send-email-robert.jarzmik@free.fr>
+ <Pine.LNX.4.64.1602211356070.5959@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On some capture devices (e.g. bttv cards) the max period size is somewhat
-small. Since we only use 2 perios on these devices we end up with only
-allowing small latencies, which is a problem when e.g. using a usb codec
-as output.
+On Sun, 21 Feb 2016, Guennadi Liakhovetski wrote:
 
-This commit fixes this by adjusting the amount of periods on the capture
-side when this happens.
+> Hi Robert,
+> 
+> On Sun, 6 Sep 2015, Robert Jarzmik wrote:
+> 
+> > This moves the dma irq handling functions up in the source file, so that
+> > they are available before DMA preparation functions. It prepares the
+> > conversion to DMA engine, where the descriptors are populated with these
+> > functions as callbacks.
+> > 
+> > Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> > ---
+> > Since v1: fixed prototypes change
+> > Since v4: refixed prototypes change
+> > ---
+> >  drivers/media/platform/soc_camera/pxa_camera.c | 42 +++++++++++++++-----------
+> >  1 file changed, 24 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+> > index db041a5ed444..bb7054221a86 100644
+> > --- a/drivers/media/platform/soc_camera/pxa_camera.c
+> > +++ b/drivers/media/platform/soc_camera/pxa_camera.c
+> > @@ -311,6 +311,30 @@ static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
+> >  	return i + 1;
+> >  }
+> >  
+> > +static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
+> > +			       enum pxa_camera_active_dma act_dma);
+> 
+> This is v5. You fixed prototypes in v1 and v4. Let's see:
+> 
+> > +
+> > +static void pxa_camera_dma_irq_y(int channel, void *data)
+> > +{
+> > +	struct pxa_camera_dev *pcdev = data;
+> > +
+> > +	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
+> 
+> This doesn't seem fixed to me.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- common/alsa_stream.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+Forget about this, I'll fix it locally.
 
-diff --git a/common/alsa_stream.c b/common/alsa_stream.c
-index 3e33b5e..1165554 100644
---- a/common/alsa_stream.c
-+++ b/common/alsa_stream.c
-@@ -109,9 +109,10 @@ static void getparams_periods(snd_pcm_t *handle,
- 		      snd_pcm_hw_params_t *params,
- 		      unsigned int *usecs,
- 		      unsigned int *count,
--		      const char *id)
-+		      int allow_adjust, const char *id)
- {
-     unsigned min = 0, max = 0;
-+    unsigned desired = *usecs * *count;
- 
-     snd_pcm_hw_params_get_periods_min(params, &min, 0);
-     snd_pcm_hw_params_get_periods_max(params, &max, 0);
-@@ -137,6 +138,13 @@ static void getparams_periods(snd_pcm_t *handle,
- 	if (*usecs > max)
- 	    *usecs = max;
-     }
-+
-+    /* If we deviate from the desired size by more then 20% adjust count */
-+    if (allow_adjust && (((*usecs * *count) < (desired *  8 / 10)) ||
-+                         ((*usecs * *count) > (desired * 12 / 10)))) {
-+        *count = (desired + *usecs / 2) / *usecs;
-+        getparams_periods(handle, params, usecs, count, 0, id);
-+    }
- }
- 
- static int setparams_periods(snd_pcm_t *handle,
-@@ -351,12 +359,16 @@ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
-     /* Negotiate period parameters */
- 
-     c_periodtime = latency * 1000 / c_periods;
--    getparams_periods(chandle, c_hwparams, &c_periodtime, &c_periods, "capture");
-+    getparams_periods(chandle, c_hwparams, &c_periodtime, &c_periods, 1, "capture");
-     p_periods = c_periods * 2;
-     p_periodtime = c_periodtime;
--    getparams_periods(phandle, p_hwparams, &p_periodtime, &p_periods, "playback");
-+    getparams_periods(phandle, p_hwparams, &p_periodtime, &p_periods, 0, "playback");
-     c_periods = p_periods / 2;
- 
-+    if (verbose)
-+	fprintf(error_fp, "alsa: Capture %u periods of %u usecs, Playback %u periods of %u usecs\n",
-+		c_periods, c_periodtime, p_periods, p_periodtime);
-+
-     /*
-      * Some playback devices support a very limited periodtime range. If the user needs to
-      * use a higher latency to avoid overrun/underrun, use an alternate algorithm of incresing
-@@ -365,10 +377,10 @@ static int setparams(snd_pcm_t *phandle, snd_pcm_t *chandle,
-     if (p_periodtime < c_periodtime) {
- 	c_periodtime = p_periodtime;
- 	c_periods = round (latency * 1000.0 / c_periodtime + 0.5);
--	getparams_periods(chandle, c_hwparams, &c_periodtime, &c_periods, "capture");
-+	getparams_periods(chandle, c_hwparams, &c_periodtime, &c_periods, 0, "capture");
- 	p_periods = c_periods * 2;
- 	p_periodtime = c_periodtime;
--	getparams_periods(phandle, p_hwparams, &p_periodtime, &p_periods, "playback");
-+	getparams_periods(phandle, p_hwparams, &p_periodtime, &p_periods, 0, "playback");
- 	c_periods = p_periods / 2;
-     }
- 
--- 
-2.5.0
-
+> 
+> Thanks
+> Guennadi
+> 
+> > +}
+> > +
+> > +static void pxa_camera_dma_irq_u(int channel, void *data)
+> > +{
+> > +	struct pxa_camera_dev *pcdev = data;
+> > +
+> > +	pxa_camera_dma_irq(channel, pcdev, DMA_U);
+> > +}
+> > +
+> > +static void pxa_camera_dma_irq_v(int channel, void *data)
+> > +{
+> > +	struct pxa_camera_dev *pcdev = data;
+> > +
+> > +	pxa_camera_dma_irq(channel, pcdev, DMA_V);
+> > +}
+> > +
+> >  /**
+> >   * pxa_init_dma_channel - init dma descriptors
+> >   * @pcdev: pxa camera device
+> > @@ -802,24 +826,6 @@ out:
+> >  	spin_unlock_irqrestore(&pcdev->lock, flags);
+> >  }
+> >  
+> > -static void pxa_camera_dma_irq_y(int channel, void *data)
+> > -{
+> > -	struct pxa_camera_dev *pcdev = data;
+> > -	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
+> > -}
+> > -
+> > -static void pxa_camera_dma_irq_u(int channel, void *data)
+> > -{
+> > -	struct pxa_camera_dev *pcdev = data;
+> > -	pxa_camera_dma_irq(channel, pcdev, DMA_U);
+> > -}
+> > -
+> > -static void pxa_camera_dma_irq_v(int channel, void *data)
+> > -{
+> > -	struct pxa_camera_dev *pcdev = data;
+> > -	pxa_camera_dma_irq(channel, pcdev, DMA_V);
+> > -}
+> > -
+> >  static struct videobuf_queue_ops pxa_videobuf_ops = {
+> >  	.buf_setup      = pxa_videobuf_setup,
+> >  	.buf_prepare    = pxa_videobuf_prepare,
+> > -- 
+> > 2.1.4
+> > 
+> 
