@@ -1,118 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:53683 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752737AbcBURW7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 12:22:59 -0500
-Date: Sun, 21 Feb 2016 14:10:26 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 3/4] media: pxa_camera: trivial move of dma irq
- functions
-In-Reply-To: <Pine.LNX.4.64.1602211356070.5959@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1602211410110.5959@axis700.grange>
-References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
- <1441539733-19201-3-git-send-email-robert.jarzmik@free.fr>
- <Pine.LNX.4.64.1602211356070.5959@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([198.137.202.9]:37575 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752641AbcBVTJe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2016 14:09:34 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Patrick Boettcher <patrick.boettcher@posteo.de>,
+	Michael Ira Krufky <mkrufky@linuxtv.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 5/9] [media] dib9000: read16/write16 could return an error code
+Date: Mon, 22 Feb 2016 16:09:19 -0300
+Message-Id: <e151c4d64bba4c070ee4e5e444b6683592b628c2.1456167652.git.mchehab@osg.samsung.com>
+In-Reply-To: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
+References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
+In-Reply-To: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
+References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 21 Feb 2016, Guennadi Liakhovetski wrote:
+Both dib9000_read16_attr and dib9000_write16_attr can return an
+error code. However, they currently return an u16. This produces the
+following warnings on smatch:
 
-> Hi Robert,
-> 
-> On Sun, 6 Sep 2015, Robert Jarzmik wrote:
-> 
-> > This moves the dma irq handling functions up in the source file, so that
-> > they are available before DMA preparation functions. It prepares the
-> > conversion to DMA engine, where the descriptors are populated with these
-> > functions as callbacks.
-> > 
-> > Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> > ---
-> > Since v1: fixed prototypes change
-> > Since v4: refixed prototypes change
-> > ---
-> >  drivers/media/platform/soc_camera/pxa_camera.c | 42 +++++++++++++++-----------
-> >  1 file changed, 24 insertions(+), 18 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-> > index db041a5ed444..bb7054221a86 100644
-> > --- a/drivers/media/platform/soc_camera/pxa_camera.c
-> > +++ b/drivers/media/platform/soc_camera/pxa_camera.c
-> > @@ -311,6 +311,30 @@ static int calculate_dma_sglen(struct scatterlist *sglist, int sglen,
-> >  	return i + 1;
-> >  }
-> >  
-> > +static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
-> > +			       enum pxa_camera_active_dma act_dma);
-> 
-> This is v5. You fixed prototypes in v1 and v4. Let's see:
-> 
-> > +
-> > +static void pxa_camera_dma_irq_y(int channel, void *data)
-> > +{
-> > +	struct pxa_camera_dev *pcdev = data;
-> > +
-> > +	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
-> 
-> This doesn't seem fixed to me.
+	drivers/media/dvb-frontends/dib9000.c:262 dib9000_read16_attr() warn: signedness bug returning '(-121)'
+	drivers/media/dvb-frontends/dib9000.c:321 dib9000_write16_attr() warn: signedness bug returning '(-22)'
+	drivers/media/dvb-frontends/dib9000.c:353 dib9000_write16_attr() warn: signedness bug returning '(-121)'
 
-Forget about this, I'll fix it locally.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/dib9000.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> 
-> Thanks
-> Guennadi
-> 
-> > +}
-> > +
-> > +static void pxa_camera_dma_irq_u(int channel, void *data)
-> > +{
-> > +	struct pxa_camera_dev *pcdev = data;
-> > +
-> > +	pxa_camera_dma_irq(channel, pcdev, DMA_U);
-> > +}
-> > +
-> > +static void pxa_camera_dma_irq_v(int channel, void *data)
-> > +{
-> > +	struct pxa_camera_dev *pcdev = data;
-> > +
-> > +	pxa_camera_dma_irq(channel, pcdev, DMA_V);
-> > +}
-> > +
-> >  /**
-> >   * pxa_init_dma_channel - init dma descriptors
-> >   * @pcdev: pxa camera device
-> > @@ -802,24 +826,6 @@ out:
-> >  	spin_unlock_irqrestore(&pcdev->lock, flags);
-> >  }
-> >  
-> > -static void pxa_camera_dma_irq_y(int channel, void *data)
-> > -{
-> > -	struct pxa_camera_dev *pcdev = data;
-> > -	pxa_camera_dma_irq(channel, pcdev, DMA_Y);
-> > -}
-> > -
-> > -static void pxa_camera_dma_irq_u(int channel, void *data)
-> > -{
-> > -	struct pxa_camera_dev *pcdev = data;
-> > -	pxa_camera_dma_irq(channel, pcdev, DMA_U);
-> > -}
-> > -
-> > -static void pxa_camera_dma_irq_v(int channel, void *data)
-> > -{
-> > -	struct pxa_camera_dev *pcdev = data;
-> > -	pxa_camera_dma_irq(channel, pcdev, DMA_V);
-> > -}
-> > -
-> >  static struct videobuf_queue_ops pxa_videobuf_ops = {
-> >  	.buf_setup      = pxa_videobuf_setup,
-> >  	.buf_prepare    = pxa_videobuf_prepare,
-> > -- 
-> > 2.1.4
-> > 
-> 
+diff --git a/drivers/media/dvb-frontends/dib9000.c b/drivers/media/dvb-frontends/dib9000.c
+index bab8c5a980a2..9f8684f4dd1e 100644
+--- a/drivers/media/dvb-frontends/dib9000.c
++++ b/drivers/media/dvb-frontends/dib9000.c
+@@ -225,7 +225,7 @@ static u16 to_fw_output_mode(u16 mode)
+ 	}
+ }
+ 
+-static u16 dib9000_read16_attr(struct dib9000_state *state, u16 reg, u8 * b, u32 len, u16 attribute)
++static int dib9000_read16_attr(struct dib9000_state *state, u16 reg, u8 * b, u32 len, u16 attribute)
+ {
+ 	u32 chunk_size = 126;
+ 	u32 l;
+@@ -309,7 +309,7 @@ static inline u16 dib9000_read_word_attr(struct dib9000_state *state, u16 reg, u
+ 
+ #define dib9000_read16_noinc_attr(state, reg, b, len, attribute) dib9000_read16_attr(state, reg, b, len, (attribute) | DATA_BUS_ACCESS_MODE_NO_ADDRESS_INCREMENT)
+ 
+-static u16 dib9000_write16_attr(struct dib9000_state *state, u16 reg, const u8 * buf, u32 len, u16 attribute)
++static int dib9000_write16_attr(struct dib9000_state *state, u16 reg, const u8 * buf, u32 len, u16 attribute)
+ {
+ 	u32 chunk_size = 126;
+ 	u32 l;
+-- 
+2.5.0
+
