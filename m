@@ -1,68 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:58405 "EHLO mout.gmx.net"
+Received: from lists.s-osg.org ([54.187.51.154]:36887 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755692AbcBVVTx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 16:19:53 -0500
-Received: from axis700.grange ([87.79.174.200]) by mail.gmx.com (mrgmx102)
- with ESMTPSA (Nemesis) id 0MdoR7-1aJIcc0rZF-00PejR for
- <linux-media@vger.kernel.org>; Mon, 22 Feb 2016 22:19:51 +0100
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id CDA7A13EC9
-	for <linux-media@vger.kernel.org>; Mon, 22 Feb 2016 22:19:49 +0100 (CET)
-Date: Mon, 22 Feb 2016 22:19:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L2: fix a confusing function name
-Message-ID: <Pine.LNX.4.64.1602222218230.15093@axis700.grange>
+	id S1752237AbcBVJw5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2016 04:52:57 -0500
+Date: Mon, 22 Feb 2016 06:52:51 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC 4/4] media: Drop media_get_uptr() macro
+Message-ID: <20160222065251.4c9be90d@recife.lan>
+In-Reply-To: <1456090575-28354-5-git-send-email-sakari.ailus@linux.intel.com>
+References: <1456090575-28354-1-git-send-email-sakari.ailus@linux.intel.com>
+	<1456090575-28354-5-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-is_state_active_or_queued() actually returns true if the buffer's state
-is neither active nore queued. Rename it for clarity.
+Em Sun, 21 Feb 2016 23:36:15 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/v4l2-core/videobuf-core.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> There's no real need for such a macro, especially not in the user space
+> header.
 
-diff --git a/drivers/media/v4l2-core/videobuf-core.c b/drivers/media/v4l2-core/videobuf-core.c
-index 6c02989..def8475 100644
---- a/drivers/media/v4l2-core/videobuf-core.c
-+++ b/drivers/media/v4l2-core/videobuf-core.c
-@@ -75,7 +75,8 @@ struct videobuf_buffer *videobuf_alloc_vb(struct videobuf_queue *q)
- }
- EXPORT_SYMBOL_GPL(videobuf_alloc_vb);
- 
--static int is_state_active_or_queued(struct videobuf_queue *q, struct videobuf_buffer *vb)
-+static int state_neither_active_nor_queued(struct videobuf_queue *q,
-+					   struct videobuf_buffer *vb)
- {
- 	unsigned long flags;
- 	bool rc;
-@@ -95,7 +96,7 @@ int videobuf_waiton(struct videobuf_queue *q, struct videobuf_buffer *vb,
- 	MAGIC_CHECK(vb->magic, MAGIC_BUFFER);
- 
- 	if (non_blocking) {
--		if (is_state_active_or_queued(q, vb))
-+		if (state_neither_active_nor_queued(q, vb))
- 			return 0;
- 		return -EAGAIN;
- 	}
-@@ -107,9 +108,10 @@ int videobuf_waiton(struct videobuf_queue *q, struct videobuf_buffer *vb,
- 	if (is_ext_locked)
- 		mutex_unlock(q->ext_lock);
- 	if (intr)
--		ret = wait_event_interruptible(vb->done, is_state_active_or_queued(q, vb));
-+		ret = wait_event_interruptible(vb->done,
-+					state_neither_active_nor_queued(q, vb));
- 	else
--		wait_event(vb->done, is_state_active_or_queued(q, vb));
-+		wait_event(vb->done, state_neither_active_nor_queued(q, vb));
- 	/* Relock */
- 	if (is_ext_locked)
- 		mutex_lock(q->ext_lock);
+Ok, good point, but I would, instead, move the macro to
+drivers/media/media-device.c. That double-casting is something unusual,
+and we don't want to start receiving patch from newbie janitors wanting
+to strip the casts.
+
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/media-device.c | 8 ++++----
+>  include/uapi/linux/media.h   | 5 -----
+>  2 files changed, 4 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index f001c27..8a20383 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -256,7 +256,7 @@ static long __media_device_get_topology(struct media_device *mdev,
+>  
+>  	/* Get entities and number of entities */
+>  	i = 0;
+> -	uentity = media_get_uptr(topo->ptr_entities);
+> +	uentity = (void __user *)(uintptr_t)topo->ptr_entities;
+>  	media_device_for_each_entity(entity, mdev) {
+>  		i++;
+>  		if (ret || !uentity)
+> @@ -282,7 +282,7 @@ static long __media_device_get_topology(struct media_device *mdev,
+>  
+>  	/* Get interfaces and number of interfaces */
+>  	i = 0;
+> -	uintf = media_get_uptr(topo->ptr_interfaces);
+> +	uintf = (void __user *)(uintptr_t)topo->ptr_interfaces;
+>  	media_device_for_each_intf(intf, mdev) {
+>  		i++;
+>  		if (ret || !uintf)
+> @@ -317,7 +317,7 @@ static long __media_device_get_topology(struct media_device *mdev,
+>  
+>  	/* Get pads and number of pads */
+>  	i = 0;
+> -	upad = media_get_uptr(topo->ptr_pads);
+> +	upad = (void __user *)(uintptr_t)topo->ptr_pads;
+>  	media_device_for_each_pad(pad, mdev) {
+>  		i++;
+>  		if (ret || !upad)
+> @@ -343,7 +343,7 @@ static long __media_device_get_topology(struct media_device *mdev,
+>  
+>  	/* Get links and number of links */
+>  	i = 0;
+> -	ulink = media_get_uptr(topo->ptr_links);
+> +	ulink = (void __user *)(uintptr_t)topo->ptr_links;
+>  	media_device_for_each_link(link, mdev) {
+>  		if (link->is_backlink)
+>  			continue;
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 77a95db..f4f7897 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -353,11 +353,6 @@ struct media_v2_topology {
+>  	__u32 reserved[18];
+>  };
+>  
+> -static inline void __user *media_get_uptr(__u64 arg)
+> -{
+> -	return (void __user *)(uintptr_t)arg;
+> -}
+> -
+>  /* ioctls */
+>  
+>  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+
+
 -- 
-1.9.3
-
+Thanks,
+Mauro
