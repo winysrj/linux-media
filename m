@@ -1,78 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:22424 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755386AbcBCExU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2016 23:53:20 -0500
-Date: Wed, 3 Feb 2016 07:53:06 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: bparrot@ti.com
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] media: ti-vpe: Add CAL v4l2 camera capture driver
-Message-ID: <20160203045306.GA20472@mwanda>
+Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:43069 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753138AbcBVVWT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2016 16:22:19 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
+References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
+	<87io5wwahg.fsf@belgarion.home>
+	<Pine.LNX.4.64.1510272306300.21185@axis700.grange>
+	<87twpcj6vj.fsf@belgarion.home>
+	<Pine.LNX.4.64.1510291656580.694@axis700.grange>
+	<87d1s72bls.fsf@belgarion.home>
+	<Pine.LNX.4.64.1602211400050.5959@axis700.grange>
+	<874md2xgg9.fsf@belgarion.home>
+	<Pine.LNX.4.64.1602211749460.5959@axis700.grange>
+Date: Mon, 22 Feb 2016 22:22:14 +0100
+In-Reply-To: <Pine.LNX.4.64.1602211749460.5959@axis700.grange> (Guennadi
+	Liakhovetski's message of "Sun, 21 Feb 2016 17:50:15 +0100 (CET)")
+Message-ID: <87fuwkwid5.fsf@belgarion.home>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Benoit Parrot,
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-The patch 343e89a792a5: "[media] media: ti-vpe: Add CAL v4l2 camera
-capture driver" from Jan 6, 2016, leads to the following static
-checker warning:
+> On Sun, 21 Feb 2016, Robert Jarzmik wrote:
+> Please, have a look at 
+> http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/log/?h=for-4.6-2
+> If all is good there, no need for a v6
 
-	drivers/media/platform/ti-vpe/cal.c:1218 cal_enum_frameintervals()
-	info: ignoring unreachable code.
+Thanks for fixing the *_dma_irq() mess, and sorry for that.
 
-drivers/media/platform/ti-vpe/cal.c
-  1197  /* timeperframe is arbitrary and continuous */
-  1198  static int cal_enum_frameintervals(struct file *file, void *priv,
-  1199                                     struct v4l2_frmivalenum *fival)
-  1200  {
-  1201          struct cal_ctx *ctx = video_drvdata(file);
-  1202          const struct cal_fmt *fmt;
-  1203          struct v4l2_subdev_frame_size_enum fse;
-  1204          int ret;
-  1205  
-  1206          if (fival->index)
-  1207                  return -EINVAL;
-  1208  
-  1209          fmt = find_format_by_pix(ctx, fival->pixel_format);
-  1210          if (!fmt)
-  1211                  return -EINVAL;
-  1212  
-  1213          /* check for valid width/height */
-  1214          ret = 0;
-  1215          fse.pad = 0;
-  1216          fse.code = fmt->code;
-  1217          fse.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-  1218          for (fse.index = 0; ; fse.index++) {
-                                      ^^^^^^^^^^^
-We never do this increment.  Is this stub code that was accidentally
-committed or how is this loop supposed to work?
+And I just tested your branch, and it's working perfectly fine.
 
-  1219                  ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_size,
-  1220                                         NULL, &fse);
-  1221                  if (ret)
-  1222                          return -EINVAL;
-  1223  
-  1224                  if ((fival->width == fse.max_width) &&
-  1225                      (fival->height == fse.max_height))
-  1226                          break;
-  1227                  else if ((fival->width >= fse.min_width) &&
-  1228                           (fival->width <= fse.max_width) &&
-  1229                           (fival->height >= fse.min_height) &&
-  1230                           (fival->height <= fse.max_height))
-  1231                          break;
-  1232  
-  1233                  return -EINVAL;
-  1234          }
-  1235  
-  1236          fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-  1237          fival->discrete.numerator = 1;
-  1238          fival->discrete.denominator = 30;
-  1239  
-  1240          return 0;
+Cheers.
 
-regards,
-dan carpenter
+-- 
+Robert
