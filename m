@@ -1,67 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39269 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932065AbcBAM74 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2016 07:59:56 -0500
-Date: Mon, 1 Feb 2016 10:59:45 -0200
+Received: from bombadil.infradead.org ([198.137.202.9]:37527 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902AbcBVTJb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2016 14:09:31 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl
-Subject: Re: [v4l-utils PATCH 1/2] v4l: libv4l1, libv4l2: Use $(mkdir_p)
- instead of deprecated $(MKDIR_P)
-Message-ID: <20160201105945.20dd5087@recife.lan>
-In-Reply-To: <1453725684-4561-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1453725684-4561-1-git-send-email-sakari.ailus@linux.intel.com>
-	<1453725684-4561-2-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mike Isely <isely@pobox.com>
+Subject: [PATCH 1/9] [media] pvrusb2-io: no need to check if sp is not NULL
+Date: Mon, 22 Feb 2016 16:09:15 -0300
+Message-Id: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 25 Jan 2016 14:41:23 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+The buffer_complete() routine assumes that sp is not NULL,
+otherwise it will fail completely. Btw, this is also
+assumed at pvr2_buffer_queue(), with is the routine that
+setups the URB handling.
 
-> autoconf thinks $(MKDIR_P) is deprecated. Use $(mkdir_p) instead.
+So, remove the bogus for the callback at buffer_complete.
 
-Did you get any troubles with the deprecated macro?
+This fix this smatch warning:
+	drivers/media/usb/pvrusb2/pvrusb2-io.c:476 buffer_complete() warn: variable dereferenced before check 'sp' (see line 472)
 
-At least here (version 2.69), I don't see any error by using $(MKDIR_P).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-io.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
-Mauro
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-io.c b/drivers/media/usb/pvrusb2/pvrusb2-io.c
+index d860344de84e..e68ce24f27e3 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-io.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-io.c
+@@ -473,7 +473,7 @@ static void buffer_complete(struct urb *urb)
+ 	}
+ 	spin_unlock_irqrestore(&sp->list_lock,irq_flags);
+ 	pvr2_buffer_set_ready(bp);
+-	if (sp && sp->callback_func) {
++	if (sp->callback_func) {
+ 		sp->callback_func(sp->callback_data);
+ 	}
+ }
+-- 
+2.5.0
 
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  lib/libv4l1/Makefile.am | 2 +-
->  lib/libv4l2/Makefile.am | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/lib/libv4l1/Makefile.am b/lib/libv4l1/Makefile.am
-> index 005ae10..f768eaa 100644
-> --- a/lib/libv4l1/Makefile.am
-> +++ b/lib/libv4l1/Makefile.am
-> @@ -7,7 +7,7 @@ if WITH_V4L_WRAPPERS
->  libv4l1priv_LTLIBRARIES = v4l1compat.la
->  
->  install-exec-hook:
-> -	$(MKDIR_P) $(DESTDIR)/$(libdir)
-> +	$(mkdir_p) $(DESTDIR)/$(libdir)
->  	(cd $(DESTDIR)/$(libdir) && rm -f v4l1compat.so && $(LN_S) $(libv4l1subdir)/v4l1compat.so v4l1compat.so)
->  
->  endif
-> diff --git a/lib/libv4l2/Makefile.am b/lib/libv4l2/Makefile.am
-> index b6f4d3b..1314a99 100644
-> --- a/lib/libv4l2/Makefile.am
-> +++ b/lib/libv4l2/Makefile.am
-> @@ -7,7 +7,7 @@ if WITH_V4L_WRAPPERS
->  libv4l2priv_LTLIBRARIES = v4l2convert.la
->  
->  install-exec-hook:
-> -	$(MKDIR_P) $(DESTDIR)/$(libdir)
-> +	$(mkdir_p) $(DESTDIR)/$(libdir)
->  	(cd $(DESTDIR)/$(libdir) && rm -f v4l2convert.so && $(LN_S) $(libv4l2subdir)/v4l2convert.so v4l2convert.so)
->  
->  endif
