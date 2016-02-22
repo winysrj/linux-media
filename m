@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58844 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756469AbcB0Kva (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2016 05:51:30 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from lists.s-osg.org ([54.187.51.154]:37237 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755327AbcBVOV6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2016 09:21:58 -0500
+Subject: Re: [PATCH 3/5] [media] tvp5150: don't go past decoder->input_ent
+ array
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <72ef5fcae1ee23265c796b0cacd64ee41b9b9301.1456150537.git.mchehab@osg.samsung.com>
+ <9d4dc6dc7e74437be0ad48495879bf0da458f713.1456150537.git.mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Cheolhyun Park <pch851130@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/7] [media] drxj: don't do math if not needed
-Date: Sat, 27 Feb 2016 07:51:08 -0300
-Message-Id: <388e3b822807eb2600fbaab514c3759131e235d6.1456570258.git.mchehab@osg.samsung.com>
-In-Reply-To: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-References: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-In-Reply-To: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-References: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <56CB197D.5040904@osg.samsung.com>
+Date: Mon, 22 Feb 2016 11:21:49 -0300
+MIME-Version: 1.0
+In-Reply-To: <9d4dc6dc7e74437be0ad48495879bf0da458f713.1456150537.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This should also avoid those smatch errors:
-	drivers/media/dvb-frontends/drx39xyj/drxj.c:9605 ctrl_get_qam_sig_quality() debug: sval_binop_unsigned: divide by zero
-	drivers/media/dvb-frontends/drx39xyj/drxj.c:9605 ctrl_get_qam_sig_quality() debug: sval_binop_unsigned: divide by zero
-	drivers/media/dvb-frontends/drx39xyj/drxj.c:9605 ctrl_get_qam_sig_quality() debug: sval_binop_unsigned: divide by zero
-	drivers/media/dvb-frontends/drx39xyj/drxj.c:9605 ctrl_get_qam_sig_quality() debug: sval_binop_unsigned: divide by zero
-	drivers/media/dvb-frontends/drx39xyj/drxj.c:9605 ctrl_get_qam_sig_quality() debug: sval_binop_unsigned: divide by zero
+Hello Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/dvb-frontends/drx39xyj/drxj.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+On 02/22/2016 11:16 AM, Mauro Carvalho Chehab wrote:
+> drivers/media/i2c/tvp5150.c:1394 tvp5150_parse_dt() warn: buffer overflow 'decoder->input_ent' 3 <= 3
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>   drivers/media/i2c/tvp5150.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index ef393f5daf2a..ff18444e19e4 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -1386,7 +1386,7 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
+>   			goto err_connector;
+>   		}
+>
+> -		if (input_type > TVP5150_INPUT_NUM) {
+> +		if (input_type >= TVP5150_INPUT_NUM) {
+>   			ret = -EINVAL;
+>   			goto err_connector;
+>   		}
+>
 
-diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-index 51715421bc4f..e48b741d439e 100644
---- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
-+++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
-@@ -9597,12 +9597,13 @@ ctrl_get_qam_sig_quality(struct drx_demod_instance *demod)
- 
- 	   Precision errors still possible.
- 	 */
--	e = post_bit_err_rs * 742686;
--	m = fec_oc_period * 100;
--	if (fec_oc_period == 0)
-+	if (!fec_oc_period) {
- 		qam_post_rs_ber = 0xFFFFFFFF;
--	else
-+	} else {
-+		e = post_bit_err_rs * 742686;
-+		m = fec_oc_period * 100;
- 		qam_post_rs_ber = e / m;
-+	}
- 
- 	/* fill signal quality data structure */
- 	p->pre_bit_count.stat[0].scale = FE_SCALE_COUNTER;
+Thanks for the fix.
+
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Best regards,
 -- 
-2.5.0
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
