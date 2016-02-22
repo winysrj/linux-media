@@ -1,192 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:43148 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965516AbcBDEER (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:17 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v2 10/22] media: Change v4l-core to check if source is free
-Date: Wed,  3 Feb 2016 21:03:42 -0700
-Message-Id: <a2cb324f737fad4d594b9aa18cf5448ac9352217.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35129 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754215AbcBVNU6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2016 08:20:58 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <josh.wu@atmel.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [RFC] Move some soc-camera drivers to staging in preparation for removal
+Date: Mon, 22 Feb 2016 15:21:37 +0200
+Message-ID: <1685709.3nM7dPdDel@avalon>
+In-Reply-To: <Pine.LNX.4.64.1602220805210.10936@axis700.grange>
+References: <56C71778.2030706@xs4all.nl> <Pine.LNX.4.64.1602220758040.10936@axis700.grange> <Pine.LNX.4.64.1602220805210.10936@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change s_input, s_fmt, s_tuner, s_frequency, querystd,
-s_hw_freq_seek, and vb2_core_streamon interfaces that
-alter the tuner configuration to check if it is free,
-by calling v4l_enable_media_source(). If source isn't
-free, return -EBUSY. v4l_disable_media_source() is
-called from v4l2_fh_exit() to release tuner (source).
-vb2_core_streamon() uses v4l_vb2q_enable_media_source().
+Hi Guennadi,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/v4l2-core/v4l2-fh.c        |  2 ++
- drivers/media/v4l2-core/v4l2-ioctl.c     | 30 ++++++++++++++++++++++++++++++
- drivers/media/v4l2-core/videobuf2-core.c |  4 ++++
- 3 files changed, 36 insertions(+)
+On Monday 22 February 2016 08:11:31 Guennadi Liakhovetski wrote:
+> On Mon, 22 Feb 2016, Guennadi Liakhovetski wrote:
+> > On Fri, 19 Feb 2016, Hans Verkuil wrote:
+> >> Hi all,
+> >> 
+> >> The soc-camera framework is a problem for reusability of sub-device
+> >> drivers since those need access to the soc-camera framework. Which
+> >> defeats the purpose of the sub-device framework. It is the reason why
+> >> we still have a media/i2c/soc-camera directory for subdevs that can
+> >> only work with soc-camera.
+> >> 
+> >> Ideally I would like to drop soc-camera completely, but it is still in
+> >> use.
+> >> 
+> >> One of the largest users is Renesas with their r-car SoC, but Niklas
+> >> Söderlund made a replacement driver that should make it possible to
+> >> remove the soc-camera r-car driver, hopefully this year.
+> >> 
+> >> What I would like to do is to move soc-camera drivers that we consider
+> >> obsolete to staging, and remove them in 1-2 kernel cycles if nobody
+> >> steps up.
+> >> 
+> >> See also this past thread from Guennadi:
+> >> 
+> >> http://www.spinics.net/lists/linux-media/msg89253.html
+> >> 
+> >> And yes, I said in that thread that I was OK with keeping soc-camera
+> >> as-is. But it still happens that companies pick this framework for new
+> >> devices (the driver for the Tegra K1 for example). It is another reason
+> >> besides the reusability issue for remove this framework more
+> >> aggressively then I intended originally.
+> >
+> > Thanks for your proposal. Sure, I'm not holding onto soc-camera just for
+> > the sake of it. I'm open to whatever is found useful. As long as all
+> > active soc-camera users are happy with it being EOLed and respective
+> > drivers either disappearing or having to be transformed to stand-alone
+> > ones, I'm fine with that too!
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> >> We have the following drivers:
+> >> 
+> >> - pxa_camera for the PXA27x Quick Capture Interface
+> >> 
+> >>   Apparently this architecture still gets attention (see the link to the
+> >>   thread above). But it does use vb1 which we really want to phase out
+> >>   soon. Does anyone know if this driver still works with the latest
+> >>   kernel? Because it is using vb1 it is a strong candidate for removing
+> >>   it (or replacing it with something better if someone steps up).
+> >> 
+> >> - mx2_camera: i.MX27 Camera Sensor Interface
+> >> 
+> >>   Have not seen any development since April 2013 (mx2-camera: move
+> >>   interface activation and deactivation to clock callbacks by Guennadi).
+> >>   No idea if it still works or if it is still in use. Does anyone know?
+> >> 
+> >> - mx3_camera: i.MX3x Camera Sensor Interface
+> >> 
+> >>   Have not seen any development since July 2013 (add support for
+> >>   asynchronous subdevice registration by Guennadi). Same as for
+> >>   mx2_camera: does it still work? Is it still in use?
+> >> 
+> >> - omap1_camera: OMAP1 Camera Interface
+> >> 
+> >>   It uses vb1, so that's one very good reason for removing it. And as
+> >>   far as I know it is unused and likely won't work.
+> >> 
+> >> - sh_mobile_ceu_camera: SuperH Mobile CEU Interface
+> >> 
+> >>   I worked on this, but I know it does function anymore. I'd say that
+> >>   this can be removed.
 
-diff --git a/drivers/media/v4l2-core/v4l2-fh.c b/drivers/media/v4l2-core/v4l2-fh.c
-index c97067a..c183f09 100644
---- a/drivers/media/v4l2-core/v4l2-fh.c
-+++ b/drivers/media/v4l2-core/v4l2-fh.c
-@@ -29,6 +29,7 @@
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-mc.h>
- 
- void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
- {
-@@ -92,6 +93,7 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
- {
- 	if (fh->vdev == NULL)
- 		return;
-+	v4l_disable_media_source(fh->vdev);
- 	v4l2_event_unsubscribe_all(fh);
- 	fh->vdev = NULL;
- }
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 8a018c6..ceaa44a 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -27,6 +27,7 @@
- #include <media/v4l2-event.h>
- #include <media/v4l2-device.h>
- #include <media/videobuf2-v4l2.h>
-+#include <media/v4l2-mc.h>
- 
- #include <trace/events/v4l2.h>
- 
-@@ -1041,6 +1042,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- static int v4l_s_input(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-+	struct video_device *vfd = video_devdata(file);
-+	int ret;
-+
-+	ret = v4l_enable_media_source(vfd);
-+	if (ret)
-+		return ret;
- 	return ops->vidioc_s_input(file, fh, *(unsigned int *)arg);
- }
- 
-@@ -1448,6 +1455,9 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
- 	int ret;
- 
-+	ret = v4l_enable_media_source(vfd);
-+	if (ret)
-+		return ret;
- 	v4l_sanitize_format(p);
- 
- 	switch (p->type) {
-@@ -1637,7 +1647,11 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_tuner *p = arg;
-+	int ret;
- 
-+	ret = v4l_enable_media_source(vfd);
-+	if (ret)
-+		return ret;
- 	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
- 			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 	return ops->vidioc_s_tuner(file, fh, p);
-@@ -1691,7 +1705,11 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd = video_devdata(file);
- 	const struct v4l2_frequency *p = arg;
- 	enum v4l2_tuner_type type;
-+	int ret;
- 
-+	ret = v4l_enable_media_source(vfd);
-+	if (ret)
-+		return ret;
- 	if (vfd->vfl_type == VFL_TYPE_SDR) {
- 		if (p->type != V4L2_TUNER_SDR && p->type != V4L2_TUNER_RF)
- 			return -EINVAL;
-@@ -1746,7 +1764,11 @@ static int v4l_s_std(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	v4l2_std_id id = *(v4l2_std_id *)arg, norm;
-+	int ret;
- 
-+	ret = v4l_enable_media_source(vfd);
-+	if (ret)
-+		return ret;
- 	norm = id & vfd->tvnorms;
- 	if (vfd->tvnorms && !norm)	/* Check if std is supported */
- 		return -EINVAL;
-@@ -1760,7 +1782,11 @@ static int v4l_querystd(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	v4l2_std_id *p = arg;
-+	int ret;
- 
-+	ret = v4l_enable_media_source(vfd);
-+	if (ret)
-+		return ret;
- 	/*
- 	 * If no signal is detected, then the driver should return
- 	 * V4L2_STD_UNKNOWN. Otherwise it should return tvnorms with
-@@ -1779,7 +1805,11 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_hw_freq_seek *p = arg;
- 	enum v4l2_tuner_type type;
-+	int ret;
- 
-+	ret = v4l_enable_media_source(vfd);
-+	if (ret)
-+		return ret;
- 	/* s_hw_freq_seek is not supported for SDR for now */
- 	if (vfd->vfl_type == VFL_TYPE_SDR)
- 		return -EINVAL;
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index ec5b78e..d381478 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -25,6 +25,7 @@
- #include <linux/kthread.h>
- 
- #include <media/videobuf2-core.h>
-+#include <media/v4l2-mc.h>
- 
- #include <trace/events/vb2.h>
- 
-@@ -1873,6 +1874,9 @@ int vb2_core_streamon(struct vb2_queue *q, unsigned int type)
- 	 * are available.
- 	 */
- 	if (q->queued_count >= q->min_buffers_needed) {
-+		ret = v4l_vb2q_enable_media_source(q);
-+		if (ret)
-+			return ret;
- 		ret = vb2_start_streaming(q);
- 		if (ret) {
- 			__vb2_queue_cancel(q);
+As far as I know Renesas (or at least the kernel upstream team) doesn't care. 
+The driver is only used on five SH boards, I'd also say it can be removed.
+
+> >> - sh_mobile_csi2: SuperH Mobile MIPI CSI-2 Interface
+> >> 
+> >>   I don't have hardware to test, but I'd be surprised if it still works.
+> >>   Can someone test? If it is broken, then it can be moved to staging.
+
+The sh-mobile-csi2 driver is only used by the sh-mobile-ceu-camera driver, so 
+I'd drop it too.
+
+> >> - rcar_vin: R-Car Video Input (VIN)
+> >> 
+> >>   Will be replaced with a regular driver as mentioned above.
+> >> 
+> >> - atmel-isi: ATMEL Image Sensor Interface (ISI)
+> >> 
+> >>   I believe this is still actively maintained. Would someone be willing
+> >>   to convert this? It doesn't look like a complex driver.
+
+That would be nice, I would like to avoid dropping this one.
+
+> >> Now I am not planning to remove soc-camera (yet), but at least we should
+> >> get rid of unmaintained drivers, especially if they don't work anymore
+> >> or if they use the old vb1 mess.
+> >> 
+> >> And we can then take a good look at what remains.
+
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
 
