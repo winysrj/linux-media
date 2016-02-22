@@ -1,105 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44182 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752369AbcBSUAr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2016 15:00:47 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [Patch] media: ti-vpe: cal: Fix warning: variable dereference before being checked
-Date: Fri, 19 Feb 2016 14:00:30 -0600
-Message-ID: <1455912030-28089-1-git-send-email-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49822 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754052AbcBVUrI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2016 15:47:08 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 3/4] media: Properly handle user pointers
+Date: Mon, 22 Feb 2016 22:47:03 +0200
+Message-Id: <1456174024-11389-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1456174024-11389-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1456174024-11389-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported ctx->sensor is being dereferenced before being checked
-in cal_get_external_info(). That being the case it was also checked
-twice in multiple other location where v4l2_subdev_call is already
-checking it so no need to explicitly check it again.
+Mark pointers containing user pointers as such.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/ti-vpe/cal.c | 29 +++++++++++------------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
+ drivers/media/media-device.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-index 76d81b61ecb3..fa714bf1dce1 100644
---- a/drivers/media/platform/ti-vpe/cal.c
-+++ b/drivers/media/platform/ti-vpe/cal.c
-@@ -804,6 +804,9 @@ static int cal_get_external_info(struct cal_ctx *ctx)
- {
- 	struct v4l2_ctrl *ctrl;
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 5ebb3cd..f001c27 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -245,10 +245,10 @@ static long __media_device_get_topology(struct media_device *mdev,
+ 	struct media_interface *intf;
+ 	struct media_pad *pad;
+ 	struct media_link *link;
+-	struct media_v2_entity kentity, *uentity;
+-	struct media_v2_interface kintf, *uintf;
+-	struct media_v2_pad kpad, *upad;
+-	struct media_v2_link klink, *ulink;
++	struct media_v2_entity kentity, __user *uentity;
++	struct media_v2_interface kintf, __user *uintf;
++	struct media_v2_pad kpad, __user *upad;
++	struct media_v2_link klink, __user *ulink;
+ 	unsigned int i;
+ 	int ret = 0;
  
-+	if (!ctx->sensor)
-+		return -ENODEV;
-+
- 	ctrl = v4l2_ctrl_find(ctx->sensor->ctrl_handler, V4L2_CID_PIXEL_RATE);
- 	if (!ctrl) {
- 		ctx_err(ctx, "no pixel rate control in subdev: %s\n",
-@@ -950,9 +953,6 @@ static int __subdev_get_format(struct cal_ctx *ctx,
- 	struct v4l2_mbus_framefmt *mbus_fmt = &sd_fmt.format;
- 	int ret;
- 
--	if (!ctx->sensor)
--		return -EINVAL;
--
- 	sd_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
- 	sd_fmt.pad = 0;
- 
-@@ -975,9 +975,6 @@ static int __subdev_set_format(struct cal_ctx *ctx,
- 	struct v4l2_mbus_framefmt *mbus_fmt = &sd_fmt.format;
- 	int ret;
- 
--	if (!ctx->sensor)
--		return -EINVAL;
--
- 	sd_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
- 	sd_fmt.pad = 0;
- 	*mbus_fmt = *fmt;
-@@ -1152,7 +1149,7 @@ static int cal_enum_framesizes(struct file *file, void *fh,
- 
- 	ret = v4l2_subdev_call(ctx->sensor, pad, enum_frame_size, NULL, &fse);
- 	if (ret)
--		return -EINVAL;
-+		return ret;
- 
- 	ctx_dbg(1, ctx, "%s: index: %d code: %x W:[%d,%d] H:[%d,%d]\n",
- 		__func__, fse.index, fse.code, fse.min_width, fse.max_width,
-@@ -1331,13 +1328,11 @@ static int cal_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	cal_wr_dma_addr(ctx, addr);
- 	csi2_ppi_enable(ctx);
- 
--	if (ctx->sensor) {
--		if (v4l2_subdev_call(ctx->sensor, video, s_stream, 1)) {
--			ctx_err(ctx, "stream on failed in subdev\n");
--			cal_runtime_put(ctx->dev);
--			ret = -EINVAL;
--			goto err;
--		}
-+	ret = v4l2_subdev_call(ctx->sensor, video, s_stream, 1);
-+	if (ret) {
-+		ctx_err(ctx, "stream on failed in subdev\n");
-+		cal_runtime_put(ctx->dev);
-+		goto err;
- 	}
- 
- 	if (debug >= 4)
-@@ -1360,10 +1355,8 @@ static void cal_stop_streaming(struct vb2_queue *vq)
- 	struct cal_buffer *buf, *tmp;
- 	unsigned long flags;
- 
--	if (ctx->sensor) {
--		if (v4l2_subdev_call(ctx->sensor, video, s_stream, 0))
--			ctx_err(ctx, "stream off failed in subdev\n");
--	}
-+	if (v4l2_subdev_call(ctx->sensor, video, s_stream, 0))
-+		ctx_err(ctx, "stream off failed in subdev\n");
- 
- 	csi2_ppi_disable(ctx);
- 	disable_irqs(ctx);
 -- 
-2.7.1.287.g4943984
+2.1.4
 
