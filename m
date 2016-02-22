@@ -1,89 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39150 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751978AbcB2ICw (ORCPT
+Received: from yotta.elopez.com.ar ([185.83.216.59]:56750 "EHLO
+	yotta.elopez.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752304AbcBVBtX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 03:02:52 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for 4.5] media.h: use hex values for the range offsets, move
- connectors base up.
-Message-ID: <56D3FB27.7000202@xs4all.nl>
-Date: Mon, 29 Feb 2016 09:02:47 +0100
+	Sun, 21 Feb 2016 20:49:23 -0500
+From: =?UTF-8?q?Emilio=20L=C3=B3pez?= <emilio@elopez.com.ar>
+To: vinod.koul@intel.com, maxime.ripard@free-electrons.com,
+	wens@csie.org, mchehab@osg.samsung.com, balbi@kernel.org,
+	hdegoede@redhat.com
+Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	=?UTF-8?q?Emilio=20L=C3=B3pez?= <emilio.lopez@collabora.co.uk>
+Subject: [PATCH 1/3] [media] rc: sunxi-cir: support module autoloading
+Date: Sun, 21 Feb 2016 22:26:34 -0300
+Message-Id: <1456104396-13282-1-git-send-email-emilio@elopez.com.ar>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make the base offset hexadecimal to simplify debugging since the base
-addresses are hex too.
+From: Emilio López <emilio.lopez@collabora.co.uk>
 
-The offsets for connectors is also changed to start after the 'reserved'
-range 0x10000-0x2ffff.
+MODULE_DEVICE_TABLE() is missing, so the module isn't auto-loading on
+systems supporting infrared. This commit adds the missing line so it
+works out of the box when built as a module and running on a sunxi
+system with an infrared receiver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Emilio López <emilio.lopez@collabora.co.uk>
+---
+ drivers/media/rc/sunxi-cir.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 95e126e..79960ae 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -66,17 +66,17 @@ struct media_device_info {
- /*
-  * DVB entities
-  */
--#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 1)
--#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 2)
--#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 3)
--#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 4)
-+#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 0x00001)
-+#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 0x00002)
-+#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 0x00003)
-+#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 0x00004)
+diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+index 40f7768..eaadc08 100644
+--- a/drivers/media/rc/sunxi-cir.c
++++ b/drivers/media/rc/sunxi-cir.c
+@@ -326,6 +326,7 @@ static const struct of_device_id sunxi_ir_match[] = {
+ 	{ .compatible = "allwinner,sun5i-a13-ir", },
+ 	{},
+ };
++MODULE_DEVICE_TABLE(of, sunxi_ir_match);
+ 
+ static struct platform_driver sunxi_ir_driver = {
+ 	.probe          = sunxi_ir_probe,
+-- 
+2.7.1
 
- /*
-  * I/O entities
-  */
--#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 1001)
--#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 1002)
--#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 1003)
-+#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 0x01001)
-+#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 0x01002)
-+#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 0x01003)
-
- /*
-  * Analog TV IF-PLL decoders
-@@ -84,23 +84,23 @@ struct media_device_info {
-  * It is a responsibility of the master/bridge drivers to create links
-  * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
-  */
--#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 2001)
--#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 2002)
-+#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 0x02001)
-+#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 0x02002)
-
- /*
-  * Audio Entity Functions
-  */
--#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 3000)
--#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 3001)
--#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 3002)
-+#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03000)
-+#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03001)
-+#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03002)
-
- /*
-  * Connectors
-  */
- /* It is a responsibility of the entity drivers to add connectors and links */
--#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
--#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
--#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-+#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
-+#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
-+#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
-
- /*
-  * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
