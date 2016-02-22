@@ -1,72 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:43114 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933893AbcBDEEP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:15 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v2 09/22] media: au8522 change to create MC pad for ALSA Audio Out
-Date: Wed,  3 Feb 2016 21:03:41 -0700
-Message-Id: <ddcfbd7fbb8a2f30474a7fcbbe14cbbf6b4c945c.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+Received: from mout.gmx.net ([212.227.15.15]:59276 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754217AbcBVNjb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2016 08:39:31 -0500
+Date: Mon, 22 Feb 2016 14:39:08 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <rainyfeeling@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [RFC] Move some soc-camera drivers to staging in preparation
+ for removal
+In-Reply-To: <1685709.3nM7dPdDel@avalon>
+Message-ID: <Pine.LNX.4.64.1602221427510.10936@axis700.grange>
+References: <56C71778.2030706@xs4all.nl> <Pine.LNX.4.64.1602220758040.10936@axis700.grange>
+ <Pine.LNX.4.64.1602220805210.10936@axis700.grange> <1685709.3nM7dPdDel@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new pad for ALSA Audio Out to au8522_media_pads.
+Hi Laurent,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/dvb-frontends/au8522.h         | 1 +
- drivers/media/dvb-frontends/au8522_decoder.c | 1 +
- 2 files changed, 2 insertions(+)
+On Mon, 22 Feb 2016, Laurent Pinchart wrote:
 
-diff --git a/drivers/media/dvb-frontends/au8522.h b/drivers/media/dvb-frontends/au8522.h
-index 3c72f40..d7a997f 100644
---- a/drivers/media/dvb-frontends/au8522.h
-+++ b/drivers/media/dvb-frontends/au8522.h
-@@ -94,6 +94,7 @@ enum au8522_media_pads {
- 	AU8522_PAD_INPUT,
- 	AU8522_PAD_VID_OUT,
- 	AU8522_PAD_VBI_OUT,
-+	AU8522_PAD_AUDIO_OUT,
- 
- 	AU8522_NUM_PADS
- };
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 73612c5..0ab9f1e 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -766,6 +766,7 @@ static int au8522_probe(struct i2c_client *client,
- 	state->pads[AU8522_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
- 	state->pads[AU8522_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 	state->pads[AU8522_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	state->pads[AU8522_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
- 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
- 
- 	ret = media_entity_pads_init(&sd->entity, ARRAY_SIZE(state->pads),
--- 
-2.5.0
+[snip]
 
+> As far as I know Renesas (or at least the kernel upstream team) doesn't care. 
+> The driver is only used on five SH boards, I'd also say it can be removed.
+
+[snip]
+
+> > >> - atmel-isi: ATMEL Image Sensor Interface (ISI)
+> > >> 
+> > >>   I believe this is still actively maintained. Would someone be willing
+> > >>   to convert this? It doesn't look like a complex driver.
+> 
+> That would be nice, I would like to avoid dropping this one.
+
+Thanks for clarifying the state of the CEU driver. I did say, that I am 
+fine with dropping soc-camera gradually, and I stay with that. But I see 
+now, that at least two drivers want to stay active: Atmel ISI and PXA270. 
+One possibility is of course to make them independent drivers. If people 
+are prepared to invest work into that - sure, would be great! If we 
+however decide to keep soc-camera, I could propose the following: IIUC, 
+the largest problem is sensor drivers, that cannot be reused for other 
+non-soc-camera bridge drivers. The thing is, out of all the sensor drivers 
+currently under drivers/media/i2c/soc_camera only a couple are in use on 
+those active PXA270 and Atmel boards. I could propose the following:
+
+1. Remove all bridge drivers, that noone cares about.
+2. If anyone ever needs to use any of soc-camera-associated sensor 
+   drivers, take them out of soc-camera and _remove_ any soc-camera 
+   dependencies
+3. If any soc-camera boards will need that specific driver, which in 
+   itself is already unlikely, we'll have to fix that by teaching 
+   soc-camera to work with generic sensor drivers!
+
+Thanks
+Guennadi
