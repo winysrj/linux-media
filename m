@@ -1,90 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:38210 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161552AbcBQPtN (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35770 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754900AbcBVOQc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 10:49:13 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH/RFC 4/9] media: rcar_vin: Use correct pad number in try_fmt
-Date: Wed, 17 Feb 2016 16:48:40 +0100
-Message-Id: <1455724125-13004-5-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Mon, 22 Feb 2016 09:16:32 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Patrick Boettcher <patrick.boettcher@posteo.de>
+Subject: [PATCH 5/5] [media] dib0090: do the right thing if rf_ramp is NULL
+Date: Mon, 22 Feb 2016 11:16:23 -0300
+Message-Id: <b1721c47e0e53a765606a6f46ce8bf080d1bb7a3.1456150537.git.mchehab@osg.samsung.com>
+In-Reply-To: <72ef5fcae1ee23265c796b0cacd64ee41b9b9301.1456150537.git.mchehab@osg.samsung.com>
+References: <72ef5fcae1ee23265c796b0cacd64ee41b9b9301.1456150537.git.mchehab@osg.samsung.com>
+In-Reply-To: <72ef5fcae1ee23265c796b0cacd64ee41b9b9301.1456150537.git.mchehab@osg.samsung.com>
+References: <72ef5fcae1ee23265c796b0cacd64ee41b9b9301.1456150537.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix rcar_vin_try_fmt's use of an inappropriate pad number when calling
-the subdev set_fmt function - for the ADV7612, IDs should be non-zero.
+As warned by smatch:
+	drivers/media/dvb-frontends/dib0090.c:1118 dib0090_pwm_gain_reset() error: we previously assumed 'state->rf_ramp' could be null (see line 1086)
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Reviewed-by: Rob Taylor <rob.taylor@codethink.co.uk>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-[uli: adapted to rcar-vin rewrite]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/media/dvb-frontends/dib0090.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index c667ce5..70dc928 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -294,7 +294,7 @@ static int __rvin_dma_try_format_sensor(struct rvin_dev *vin,
- 		struct rvin_sensor *sensor)
- {
- 	struct v4l2_subdev *sd;
--	struct v4l2_subdev_pad_config pad_cfg;
-+	struct v4l2_subdev_pad_config *pad_cfg;
- 	struct v4l2_subdev_format format = {
- 		.which = which,
- 	};
-@@ -303,15 +303,20 @@ static int __rvin_dma_try_format_sensor(struct rvin_dev *vin,
+diff --git a/drivers/media/dvb-frontends/dib0090.c b/drivers/media/dvb-frontends/dib0090.c
+index 976ee034a430..7ee784f1b771 100644
+--- a/drivers/media/dvb-frontends/dib0090.c
++++ b/drivers/media/dvb-frontends/dib0090.c
+@@ -1115,9 +1115,15 @@ void dib0090_pwm_gain_reset(struct dvb_frontend *fe)
+ 		dib0090_set_bbramp_pwm(state, bb_ramp);
  
- 	sd = vin_to_sd(vin);
+ 		/* activate the ramp generator using PWM control */
+-		dprintk("ramp RF gain = %d BAND = %s version = %d", state->rf_ramp[0], (state->current_band == BAND_CBAND) ? "CBAND" : "NOT CBAND", state->identity.version & 0x1f);
++		if (rf_ramp)
++			dprintk("ramp RF gain = %d BAND = %s version = %d",
++				state->rf_ramp[0],
++				(state->current_band == BAND_CBAND) ? "CBAND" : "NOT CBAND",
++				state->identity.version & 0x1f);
  
-+	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
-+	if (pad_cfg == NULL)
-+		return -ENOMEM;
-+
- 	/* Requested */
- 	rwidth = pix->width;
- 	rheight = pix->height;
- 
- 	v4l2_fill_mbus_format(&format.format, pix, info->code);
-+	format.pad = vin->src_pad_idx;
- 	ret = v4l2_device_call_until_err(sd->v4l2_dev, 0, pad, set_fmt,
--			&pad_cfg, &format);
-+			pad_cfg, &format);
- 	if (ret < 0)
--		return ret;
-+		goto cleanup;
- 	v4l2_fill_pix_format(pix, &format.format);
- 
- 	/* Sensor */
-@@ -325,7 +330,7 @@ static int __rvin_dma_try_format_sensor(struct rvin_dev *vin,
- 		vin_dbg(vin, "sensor format mismatch, see if we can scale\n");
- 		ret = rvin_scale_try(vin, pix, rwidth, rheight);
- 		if (ret)
--			return ret;
-+			goto cleanup;
- 	}
- 
- 	/* Store sensor output format */
-@@ -334,6 +339,8 @@ static int __rvin_dma_try_format_sensor(struct rvin_dev *vin,
- 		sensor->height = sheight;
- 	}
- 
-+cleanup:
-+	v4l2_subdev_free_pad_config(pad_cfg);
- 	return 0;
- }
- 
+-		if ((state->rf_ramp[0] == 0) || (state->current_band == BAND_CBAND && (state->identity.version & 0x1f) <= P1D_E_F)) {
++		if (rf_ramp && ((state->rf_ramp[0] == 0) ||
++		    (state->current_band == BAND_CBAND &&
++		    (state->identity.version & 0x1f) <= P1D_E_F))) {
+ 			dprintk("DE-Engage mux for direct gain reg control");
+ 			en_pwm_rf_mux = 0;
+ 		} else
 -- 
-2.6.4
+2.5.0
 
