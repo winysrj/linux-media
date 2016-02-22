@@ -1,50 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48483 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753733AbcBEP2S (ORCPT
+Received: from mail-io0-f180.google.com ([209.85.223.180]:34087 "EHLO
+	mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754742AbcBVUsT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2016 10:28:18 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv11 03/17] dts: exynos4412-odroid*: enable the HDMI CEC device
-Date: Fri,  5 Feb 2016 16:27:46 +0100
-Message-Id: <1454686080-39018-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
-References: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 22 Feb 2016 15:48:19 -0500
+Received: by mail-io0-f180.google.com with SMTP id 9so192710234iom.1
+        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2016 12:48:18 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <e151c4d64bba4c070ee4e5e444b6683592b628c2.1456167652.git.mchehab@osg.samsung.com>
+References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
+	<e151c4d64bba4c070ee4e5e444b6683592b628c2.1456167652.git.mchehab@osg.samsung.com>
+Date: Mon, 22 Feb 2016 15:48:18 -0500
+Message-ID: <CAOcJUbzPOHj0BOBbBNvrSRaLH8btBDsZ534z9CR6unRFEaYpAQ@mail.gmail.com>
+Subject: Re: [PATCH 5/9] [media] dib9000: read16/write16 could return an error code
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Patrick Boettcher <patrick.boettcher@posteo.de>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+On Mon, Feb 22, 2016 at 2:09 PM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Both dib9000_read16_attr and dib9000_write16_attr can return an
+> error code. However, they currently return an u16. This produces the
+> following warnings on smatch:
+>
+>         drivers/media/dvb-frontends/dib9000.c:262 dib9000_read16_attr() warn: signedness bug returning '(-121)'
+>         drivers/media/dvb-frontends/dib9000.c:321 dib9000_write16_attr() warn: signedness bug returning '(-22)'
+>         drivers/media/dvb-frontends/dib9000.c:353 dib9000_write16_attr() warn: signedness bug returning '(-121)'
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/dvb-frontends/dib9000.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 
-Add a dts node entry and enable the HDMI CEC device present in the Exynos4
-family of SoCs.
+While reviewing this, I was originally concerned with
+"dib9000_read16_attr" but after tracing through the functions, I see
+that the change looks OK.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- arch/arm/boot/dts/exynos4210-universal_c210.dts | 4 ++++
- 1 file changed, 4 insertions(+)
+For the function, "dib9000_write16_attr",  we will only ever return
+-EINVAL, 0, or possibly the return value of i2c_transfer.  It is OK to
+convert the function to return 'int' here instead of 'u16'.
 
-diff --git a/arch/arm/boot/dts/exynos4210-universal_c210.dts b/arch/arm/boot/dts/exynos4210-universal_c210.dts
-index 4f5d379..331ab9f 100644
---- a/arch/arm/boot/dts/exynos4210-universal_c210.dts
-+++ b/arch/arm/boot/dts/exynos4210-universal_c210.dts
-@@ -223,6 +223,10 @@
- 		enable-active-high;
- 	};
- 
-+	cec@100B0000 {
-+		status = "okay";
-+	};
-+
- 	hdmi_ddc: i2c-ddc {
- 		compatible = "i2c-gpio";
- 		gpios = <&gpe4 2 GPIO_ACTIVE_HIGH &gpe4 3 GPIO_ACTIVE_HIGH>;
--- 
-2.7.0
+This change looks reasonable as well.
 
+Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
