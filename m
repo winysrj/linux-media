@@ -1,71 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:35669 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279AbcBKXlt (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:37549 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751945AbcBVTJc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 18:41:49 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v3 03/22] [media] Docbook: media-types.xml: Add Audio Function Entities
-Date: Thu, 11 Feb 2016 16:41:19 -0700
-Message-Id: <f591af59b7b1c77b5a17603a1a677a32b8e19132.1455233153.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+	Mon, 22 Feb 2016 14:09:32 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 7/9] [media] av7110: remove a bogus smatch warning
+Date: Mon, 22 Feb 2016 16:09:21 -0300
+Message-Id: <511a46afa33c8dfaf755fb4e4c03ae6f31215034.1456167652.git.mchehab@osg.samsung.com>
+In-Reply-To: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
+References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
+In-Reply-To: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
+References: <4340d9c3cc750cc30918b5de6bf16de2722f7d1b.1456167652.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Audio Function Entities
+Remove this bogus smatch warning:
+	drivers/media/pci/ttpci/av7110.c:2211 frontend_init() warn: missing break? reassigning 'av7110->fe'
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- Documentation/DocBook/media/v4l/media-types.xml | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/media/pci/ttpci/av7110.c | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
-index 3730967..924a604 100644
---- a/Documentation/DocBook/media/v4l/media-types.xml
-+++ b/Documentation/DocBook/media/v4l/media-types.xml
-@@ -113,6 +113,18 @@
- 		   decoder.
- 	    </entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_F_AUDIO_CAPTURE</constant></entry>
-+	    <entry>Audio Capture Function Entity.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_F_AUDIO_PLAYBACK</constant></entry>
-+	    <entry>Audio Playback Function Entity.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_ENT_F_AUDIO_MIXER</constant></entry>
-+	    <entry>Audio Mixer Function Entity.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
+diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
+index 18d229fa65cf..382caf200ba1 100644
+--- a/drivers/media/pci/ttpci/av7110.c
++++ b/drivers/media/pci/ttpci/av7110.c
+@@ -2198,13 +2198,18 @@ static int frontend_init(struct av7110 *av7110)
+ 			break;
+ 
+ 		case 0x0001: // Hauppauge/TT Nexus-T premium rev1.X
++		{
++			struct dvb_frontend *fe;
++
+ 			// try ALPS TDLB7 first, then Grundig 29504-401
+-			av7110->fe = dvb_attach(sp8870_attach, &alps_tdlb7_config, &av7110->i2c_adap);
+-			if (av7110->fe) {
+-				av7110->fe->ops.tuner_ops.set_params = alps_tdlb7_tuner_set_params;
++			fe = dvb_attach(sp8870_attach, &alps_tdlb7_config, &av7110->i2c_adap);
++			if (fe) {
++				fe->ops.tuner_ops.set_params = alps_tdlb7_tuner_set_params;
++				av7110->fe = fe;
+ 				break;
+ 			}
+-			/* fall-thru */
++		}
++		/* fall-thru */
+ 
+ 		case 0x0008: // Hauppauge/TT DVB-T
+ 			// Grundig 29504-401
 -- 
 2.5.0
 
