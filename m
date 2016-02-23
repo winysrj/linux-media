@@ -1,81 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:36799 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161057AbcBDTtL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 14:49:11 -0500
+Received: from smtp2.macqel.be ([109.135.2.61]:58982 "EHLO smtp2.macqel.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750737AbcBWLzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2016 06:55:03 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.macqel.be (Postfix) with ESMTP id 22C9F130D8B
+	for <linux-media@vger.kernel.org>; Tue, 23 Feb 2016 12:49:45 +0100 (CET)
+Received: from smtp2.macqel.be ([127.0.0.1])
+	by localhost (mail.macqel.be [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id uuhV+Jli68c9 for <linux-media@vger.kernel.org>;
+	Tue, 23 Feb 2016 12:49:43 +0100 (CET)
+Received: from frolo.macqel.be (frolo.macqel [10.1.40.73])
+	by smtp2.macqel.be (Postfix) with ESMTP id 6297C130D43
+	for <linux-media@vger.kernel.org>; Tue, 23 Feb 2016 12:49:43 +0100 (CET)
+Date: Tue, 23 Feb 2016 12:49:43 +0100
+From: Philippe De Muyter <phdm@macq.eu>
+To: linux-media@vger.kernel.org
+Subject: i.mx6 camera interface (CSI) and mainline kernel
+Message-ID: <20160223114943.GA10944@frolo.macqel>
 MIME-Version: 1.0
-Reply-To: mtk.manpages@gmail.com
-In-Reply-To: <56B361C5.8000101@osg.samsung.com>
-References: <CALCETrUNxPhcKiT+aswO5rr+ZpPPCkT30+Exd0iWwQnMN921Qg@mail.gmail.com>
- <CAKgNAkg+cjJS2G5TKvYAYizXWaPewVNtdBQN1x0otbPM7huy5g@mail.gmail.com> <56B361C5.8000101@osg.samsung.com>
-From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Date: Thu, 4 Feb 2016 20:48:50 +0100
-Message-ID: <CAKgNAkj-veqrgChhTwkOPOXTsA=wytha26aokMixVrZmAxNz6Q@mail.gmail.com>
-Subject: Re: linux-api scope (Re: [PATCH v2 11/22] media: dvb-frontend invoke
- enable/disable_source handlers)
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Andy Lutomirski <luto@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org, Linux API <linux-api@vger.kernel.org>,
-	ALSA development <alsa-devel@alsa-project.org>,
-	Josh Triplett <josh@joshtriplett.org>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Andrew Morton <akpm@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+Hello,
 
-On 4 February 2016 at 15:35, Shuah Khan <shuahkh@osg.samsung.com> wrote:
-> On 02/04/2016 07:04 AM, Michael Kerrisk (man-pages) wrote:
->> [expanding the CC a little]
->>
->> Hi Andy, (and Shuah)
->>
->> On 4 February 2016 at 05:51, Andy Lutomirski <luto@kernel.org> wrote:
->>> [cc list heavily trimmed]
->>>
->>> On Wed, Feb 3, 2016 at 8:03 PM, Shuah Khan <shuahkh@osg.samsung.com> wrote:
->>>> Change dvb frontend to check if tuner is free when
->>>> device opened in RW mode. Call to enable_source
->>>> handler either returns with an active pipeline to
->>>> tuner or error if tuner is busy. Tuner is released
->>>> when frontend is released calling the disable_source
->>>> handler.
->>>
->>> As an actual subscriber to linux-api, I prefer for the linux-api list
->>> to be lowish-volume and mostly limited to API-related things.  Is this
->>> API related?  Do people think that these series should be sent to
->>> linux-api?
->>
->> I think not, and I'd like to stem the flood of mail to the list.
->> There's two things that we could do:
->
-> I simply followed the getmaintainers generate3d list.
-> A bit surprised to see linux-api, but didn't want to
-> leave it out.
+We use a custom imx6 based board with a canera sensor on it.
+I have written the driver for the camera sensor, based on
+the freescale so-called "3.10" and even "3.14" linux versions.
 
-Yep -- you and many others. That's the problem with automated solutions ;-).
+The camera works perfectly, but we would like to switch to
+a mainline kernel for all the usual reasons (including being
+able to contribute our fixes).
 
->> 1. Shuah, I know we talked about this in the past, and it made some
->> sense to me at the time for kselftest to use linux-api@, but maybe
->> it's time to create a dedicated list, and move the traffic there? It'd
->> help focus the traffic of linux-api more on its original purpose.
->
-> Yes that is a good plan - I will request a new mailing list and
-> send in a patch to Kselftest MAINTIANER's entry.
+>From an old mail thread (*), I have found two git repositories
+that used to contain not-yet-approved versions of mainline
+imx6 ipu-v3 drivers :
 
-Thanks, and sorry for the inconvenience. I guess a prominent mail onto
-linux-api@ advertising the new list, once it has been created, would
-not go amiss.
+git://git.pengutronix.de/git/pza/linux.git test/nitrogen6x-ipu-media
+https://github.com:slongerbeam/mediatree.git, mx6-camera-staging
 
-Cheers,
+I have tried to compile them with the imx_v6_v7_defconfig, but both
+fail directly at compile time. because of later changes in the
+v4l2_subdev infrastructure, not ported to the those branches.
+Can someone point me to compilable versions (either not rebased
+versions of those branches, or updated versions of those branches,
+or yet another place to look at). ?
 
-Michael
+Thanks in advance
+
+Philippe
+
+(*) http://linux-media.vger.kernel.narkive.com/cZQ8NrZ2/i-mx6-status-for-ipu-vpu-gpu
 
 -- 
-Michael Kerrisk
-Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
-Linux/UNIX System Programming Training: http://man7.org/training/
+Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
