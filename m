@@ -1,147 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38363 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751855AbcBVHSU (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53003 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932642AbcBWH0w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 02:18:20 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B9817180648
-	for <linux-media@vger.kernel.org>; Mon, 22 Feb 2016 08:18:15 +0100 (CET)
-Subject: Re: cron job: media_tree daily build: ERRORS
-To: linux-media@vger.kernel.org
-References: <20160222032911.37A3918008B@tschai.lan>
+	Tue, 23 Feb 2016 02:26:52 -0500
+Subject: Re: [RFC] Move some soc-camera drivers to staging in preparation for
+ removal
+To: "Wu, Songjun" <songjun.wu@atmel.com>,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <56C71778.2030706@xs4all.nl> <1685709.3nM7dPdDel@avalon>
+ <Pine.LNX.4.64.1602221427510.10936@axis700.grange>
+ <1864387.TRmC7Phqsl@avalon> <20160222160857.GB2607@odux.rfo.atmel.com>
+ <56CC04DA.3030002@atmel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Wu <rainyfeeling@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Nicolas Ferre <nicolas.ferre@atmel.com>,
+	=?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56CAB637.9070101@xs4all.nl>
-Date: Mon, 22 Feb 2016 08:18:15 +0100
+Message-ID: <56CC09B5.70502@xs4all.nl>
+Date: Tue, 23 Feb 2016 08:26:45 +0100
 MIME-Version: 1.0
-In-Reply-To: <20160222032911.37A3918008B@tschai.lan>
+In-Reply-To: <56CC04DA.3030002@atmel.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/2016 04:29 AM, Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds media_tree for
-> the kernels and architectures in the list below.
+On 02/23/2016 08:06 AM, Wu, Songjun wrote:
+> 
+> 
+> On 2/23/2016 00:08, Ludovic Desroches wrote:
+>> On Mon, Feb 22, 2016 at 04:23:54PM +0200, Laurent Pinchart wrote:
+>>> Hi Guennadi,
+>>>
+>>> (CC'ing Ludovic Desroches)
+>>>
+>>> On Monday 22 February 2016 14:39:08 Guennadi Liakhovetski wrote:
+>>>> Hi Laurent,
+>>>>
+>>>> On Mon, 22 Feb 2016, Laurent Pinchart wrote:
+>>>>
+>>>> [snip]
+>>>>
+>>>>> As far as I know Renesas (or at least the kernel upstream team) doesn't
+>>>>> care. The driver is only used on five SH boards, I'd also say it can be
+>>>>> removed.
+>>>> [snip]
+>>>>
+>>>>>>>> - atmel-isi: ATMEL Image Sensor Interface (ISI)
+>>>>>>>>
+>>>>>>>>    I believe this is still actively maintained. Would someone be
+>>>>>>>>    willing to convert this? It doesn't look like a complex driver.
+>>>>>
+>>>>> That would be nice, I would like to avoid dropping this one.
+>>>>
+>>>> Thanks for clarifying the state of the CEU driver. I did say, that I am
+>>>> fine with dropping soc-camera gradually, and I stay with that. But I see
+>>>> now, that at least two drivers want to stay active: Atmel ISI and PXA270.
+>>>> One possibility is of course to make them independent drivers. If people
+>>>> are prepared to invest work into that - sure, would be great! If we
+>>>> however decide to keep soc-camera, I could propose the following: IIUC,
+>>>> the largest problem is sensor drivers, that cannot be reused for other
+>>>> non-soc-camera bridge drivers. The thing is, out of all the sensor drivers
+>>>> currently under drivers/media/i2c/soc_camera only a couple are in use on
+>>>> those active PXA270 and Atmel boards. I could propose the following:
+>>>>
+>>>> 1. Remove all bridge drivers, that noone cares about.
+>>>> 2. If anyone ever needs to use any of soc-camera-associated sensor
+>>>>     drivers, take them out of soc-camera and _remove_ any soc-camera
+>>>>     dependencies
+>>>> 3. If any soc-camera boards will need that specific driver, which in
+>>>>     itself is already unlikely, we'll have to fix that by teaching
+>>>>     soc-camera to work with generic sensor drivers!
+>>>
+>>> That sounds like a good plan.
+>>>
+>>> Ludovic, any chance someone at Atmel could convert the ISI driver ?
+>>
+>> I add Songjun to the cc list. I think he has in mind to do this
+>> conversion.
+>>
+>> Songjun, can you confirm?
+>>
+>> Full thread here:
+>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/99290
+>>
+> Laurent, I will take the ISI driver, convert it from soc_camera to V4L2.
 
-There is something weird going on when this job is started from cron. I'm getting
-strange errors like this:
+Great!
 
-/bin/sh: fork: retry: No child processes
-make[5]: fork: Resource temporarily unavailable
+I'm happily surprised to see so much interest in replacing these soc-camera
+drivers. It seems the time is right to do this.
 
-which I don't get when I build manually. It happened after a recent apt-get dist-upgrade
-and I haven't yet found the cause.
+Songjun, Robert, I think the upcoming r-car v2 patch series from Niklas is
+likely to be a good starting point for the isi and pxa drivers to work from.
+Besides, his work gave me the inspiration to start this discussion, so he's
+to blame :-)
+
+Guennadi, I'll prepare patches to move the omap1 and sh drivers to staging
+in preparation of those being removed.
+
+Does anyone know what the status is of the mx2 and mx3 drivers?
 
 Regards,
 
 	Hans
-
-> 
-> Results of the daily build of media_tree:
-> 
-> date:		Mon Feb 22 04:00:13 CET 2016
-> git branch:	test
-> git hash:	f7b5dff0b59b20469b2a4889e6170c0069d37c8d
-> gcc version:	i686-linux-gcc (GCC) 5.1.0
-> sparse version:	v0.5.0-51-ga53cea2
-> smatch version:	v0.5.0-3228-g5cf65ab
-> host hardware:	x86_64
-> host os:	4.4.0-164
-> 
-> linux-git-arm-at91: OK
-> linux-git-arm-davinci: ERRORS
-> linux-git-arm-exynos: ERRORS
-> linux-git-arm-mx: ERRORS
-> linux-git-arm-omap: ERRORS
-> linux-git-arm-omap1: ERRORS
-> linux-git-arm-pxa: OK
-> linux-git-blackfin-bf561: ERRORS
-> linux-git-i686: ERRORS
-> linux-git-m32r: ERRORS
-> linux-git-mips: ERRORS
-> linux-git-powerpc64: OK
-> linux-git-sh: ERRORS
-> linux-git-x86_64: ERRORS
-> linux-2.6.36.4-i686: OK
-> linux-2.6.37.6-i686: OK
-> linux-2.6.38.8-i686: ERRORS
-> linux-2.6.39.4-i686: ERRORS
-> linux-3.0.60-i686: ERRORS
-> linux-3.1.10-i686: ERRORS
-> linux-3.2.37-i686: ERRORS
-> linux-3.3.8-i686: ERRORS
-> linux-3.4.27-i686: ERRORS
-> linux-3.5.7-i686: ERRORS
-> linux-3.6.11-i686: ERRORS
-> linux-3.7.4-i686: ERRORS
-> linux-3.8-i686: OK
-> linux-3.9.2-i686: ERRORS
-> linux-3.10.1-i686: ERRORS
-> linux-3.11.1-i686: OK
-> linux-3.12.23-i686: OK
-> linux-3.13.11-i686: ERRORS
-> linux-3.14.9-i686: ERRORS
-> linux-3.15.2-i686: ERRORS
-> linux-3.16.7-i686: ERRORS
-> linux-3.17.8-i686: ERRORS
-> linux-3.18.7-i686: ERRORS
-> linux-3.19-i686: ERRORS
-> linux-4.0-i686: ERRORS
-> linux-4.1.1-i686: ERRORS
-> linux-4.2-i686: ERRORS
-> linux-4.3-i686: ERRORS
-> linux-4.4-i686: ERRORS
-> linux-4.5-rc1-i686: ERRORS
-> linux-2.6.36.4-x86_64: OK
-> linux-2.6.37.6-x86_64: OK
-> linux-2.6.38.8-x86_64: OK
-> linux-2.6.39.4-x86_64: ERRORS
-> linux-3.0.60-x86_64: ERRORS
-> linux-3.1.10-x86_64: ERRORS
-> linux-3.2.37-x86_64: OK
-> linux-3.3.8-x86_64: OK
-> linux-3.4.27-x86_64: ERRORS
-> linux-3.5.7-x86_64: ERRORS
-> linux-3.6.11-x86_64: ERRORS
-> linux-3.7.4-x86_64: ERRORS
-> linux-3.8-x86_64: ERRORS
-> linux-3.9.2-x86_64: ERRORS
-> linux-3.10.1-x86_64: ERRORS
-> linux-3.11.1-x86_64: ERRORS
-> linux-3.12.23-x86_64: OK
-> linux-3.13.11-x86_64: OK
-> linux-3.14.9-x86_64: ERRORS
-> linux-3.15.2-x86_64: ERRORS
-> linux-3.16.7-x86_64: OK
-> linux-3.17.8-x86_64: OK
-> linux-3.18.7-x86_64: ERRORS
-> linux-3.19-x86_64: ERRORS
-> linux-4.0-x86_64: ERRORS
-> linux-4.1.1-x86_64: ERRORS
-> linux-4.2-x86_64: ERRORS
-> linux-4.3-x86_64: ERRORS
-> linux-4.4-x86_64: ERRORS
-> linux-4.5-rc1-x86_64: ERRORS
-> apps: OK
-> spec-git: OK
-> sparse: ERRORS
-> smatch: ERRORS
-> 
-> Detailed results are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Monday.log
-> 
-> Full logs are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-> 
-> The Media Infrastructure API from this daily build is here:
-> 
-> http://www.xs4all.nl/~hverkuil/spec/media.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
