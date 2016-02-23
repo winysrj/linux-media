@@ -1,170 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34607 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37056 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752383AbcBVBwl (ORCPT
+	with ESMTP id S1753051AbcBWUah (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 20:52:41 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH] media: Add type field to struct media_entity
-Date: Mon, 22 Feb 2016 03:53:16 +0200
-Message-Id: <1456105996-20845-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 23 Feb 2016 15:30:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
+Date: Tue, 23 Feb 2016 22:30:35 +0200
+Message-ID: <5560544.fDzogjZUfJ@avalon>
+In-Reply-To: <20160223202400.GA11084@valkosipuli.retiisi.org.uk>
+References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com> <3174978.uNIbAnUxCz@avalon> <20160223202400.GA11084@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Code that processes media entities can require knowledge of the
-structure type that embeds a particular media entity instance in order
-to use the API provided by that structure. This needs is shown by the
-presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
-functions.
+Hi Sakari,
 
-The implementation of those two functions relies on the entity function
-field, which is both a wrong and an inefficient design, without even
-mentioning the maintenance issue involved in updating the functions
-every time a new entity function is added. Fix this by adding add a type
-field to the media entity structure to carry the information.
+On Tuesday 23 February 2016 22:24:00 Sakari Ailus wrote:
+> On Tue, Feb 23, 2016 at 10:15:46PM +0200, Laurent Pinchart wrote:
+> > On Tuesday 23 February 2016 17:15:15 Hans Verkuil wrote:
+> >> On 02/23/2016 05:11 PM, Sakari Ailus wrote:
+> >>> On Tue, Feb 23, 2016 at 01:18:53PM +0100, Hans Verkuil wrote:
+> >>>> On 02/21/16 22:29, Sakari Ailus wrote:
+> >>>>> Add a new topic option for -h to allow listing supported media bus
+> >>>>> codes in conversion functions. This is useful in figuring out which
+> >>>>> media bus codes are actually supported by the library. The numeric
+> >>>>> values of the codes are listed as well.
+> >>>>> 
+> >>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >>>>> ---
+> >>>>> 
+> >>>>>  utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++----
+> >>>>>  1 file changed, 38 insertions(+), 4 deletions(-)
+> >>>>> 
+> >>>>> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+> >>>>> index 0afc9c2..55cdd29 100644
+> >>>>> --- a/utils/media-ctl/options.c
+> >>>>> +++ b/utils/media-ctl/options.c
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-dev.c    |  1 +
- drivers/media/v4l2-core/v4l2-subdev.c |  1 +
- include/media/media-entity.h          | 65 +++++++++++++++--------------------
- 3 files changed, 30 insertions(+), 37 deletions(-)
+[snip]
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index d8e5994cccf1..7e766a92e3d9 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -735,6 +735,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
- 	if (!vdev->v4l2_dev->mdev)
- 		return 0;
- 
-+	vdev->entity.type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- 	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
- 
- 	switch (type) {
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index d63083803144..bb6e79f14bb8 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -584,6 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
- 	sd->host_priv = NULL;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	sd->entity.name = sd->name;
-+	sd->entity.type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
- 	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
- #endif
- }
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index fe485d367985..2be38483f3a4 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -187,10 +187,27 @@ struct media_entity_operations {
- };
- 
- /**
-+ * enum MEDIA_ENTITY_TYPE_NONE - Media entity type
-+ *
-+ * @MEDIA_ENTITY_TYPE_NONE:
-+ *	The entity isn't embedded in a standard structure.
-+ * @MEDIA_ENTITY_TYPE_VIDEO_DEVICE:
-+ *	The media entity is embedded in a struct video_device.
-+ * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
-+ *	The media entity is embedded in a struct v4l2_subdev.
-+ */
-+enum media_entity_type {
-+	MEDIA_ENTITY_TYPE_NONE,
-+	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
-+	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
-+};
-+
-+/**
-  * struct media_entity - A media entity graph object.
-  *
-  * @graph_obj:	Embedded structure containing the media object common data.
-  * @name:	Entity name.
-+ * @type:	Type of the object that embeds the media_entity instance.
-  * @function:	Entity main function, as defined in uapi/media.h
-  *		(MEDIA_ENT_F_*)
-  * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
-@@ -219,6 +236,7 @@ struct media_entity_operations {
- struct media_entity {
- 	struct media_gobj graph_obj;	/* must be first field in struct */
- 	const char *name;
-+	enum media_entity_type type;
- 	u32 function;
- 	unsigned long flags;
- 
-@@ -328,56 +346,29 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
- }
- 
- /**
-- * is_media_entity_v4l2_io() - identify if the entity main function
-- *			       is a V4L2 I/O
-- *
-+ * is_media_entity_v4l2_io() - Check if the entity implements the video_device
-+ *			       API
-  * @entity:	pointer to entity
-  *
-- * Return: true if the entity main function is one of the V4L2 I/O types
-- *	(video, VBI or SDR radio); false otherwise.
-+ * Return: true if the entity implement the video_device API (is directly
-+ * embedded in a struct video_device instance) or false otherwise.
-  */
- static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
- {
--	if (!entity)
--		return false;
--
--	switch (entity->function) {
--	case MEDIA_ENT_F_IO_V4L:
--	case MEDIA_ENT_F_IO_VBI:
--	case MEDIA_ENT_F_IO_SWRADIO:
--		return true;
--	default:
--		return false;
--	}
-+	return entity && entity->type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- }
- 
- /**
-- * is_media_entity_v4l2_subdev - return true if the entity main function is
-- *				 associated with the V4L2 API subdev usage
-- *
-+ * is_media_entity_v4l2_subdev() - Check if the entity implements the
-+ *				   v4l2_subdev API
-  * @entity:	pointer to entity
-  *
-- * This is an ancillary function used by subdev-based V4L2 drivers.
-- * It checks if the entity function is one of functions used by a V4L2 subdev,
-- * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
-+ * Return: true if the entity implement the v4l2_subdev API (is directly
-+ * embedded in a struct v4l2_subdev instance) or false otherwise.
-  */
- static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
- {
--	if (!entity)
--		return false;
--
--	switch (entity->function) {
--	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
--	case MEDIA_ENT_F_CAM_SENSOR:
--	case MEDIA_ENT_F_FLASH:
--	case MEDIA_ENT_F_LENS:
--	case MEDIA_ENT_F_ATV_DECODER:
--	case MEDIA_ENT_F_TUNER:
--		return true;
--
--	default:
--		return false;
--	}
-+	return entity && entity->type == MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
- }
- 
- /**
+> >>>>> @@ -45,7 +47,8 @@ static void usage(const char *argv0)
+> >>>>> 
+> >>>>>  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to
+> >>>>>  	setup\n");
+> >>>>>  	printf("    --get-v4l2 pad	Print the active format on a given
+> >>>>> pad\n");
+> >>>>>  	printf("    --set-dv pad	Configure DV timings on a given pad\n");
+> >>>>> 
+> >>>>> -	printf("-h, --help		Show verbose help and exit\n");
+> >>>>> +	printf("-h, --help[=topic]	Show verbose help and exit\n");
+> >>>>> +	printf("			topics:	mbus-fmt: List supported media bus pixel
+> >>>>> codes\n");
+> >>>>
+> >>>> OK, this is ugly. It has nothing to do with usage help.
+> >>>> 
+> >>>> Just make a new option --list-mbus-fmts to list supported media bus
+> >>>> pixel codes.
+> >>>> 
+> >>>> That would make much more sense.
+> >>> 
+> >>> I added it as a --help option argument in order to imply it's a part
+> >>> of the program's usage instructions, which is what it indeed is. It's
+> >>> not a list of media bus formats supported by a device.
+> >>> 
+> >>> A separate option is fine, but it should be clear that it's about just
+> >>> listing supported formats. E.g. --list-supported-mbus-fmts. But that's
+> >>> a long one. Long options are loooong.
+> >> 
+> >> --list-known-mbus-fmts will do the trick.
+> > 
+> > That doesn't feel right. Isn't it a help option, really, given that it
+> > lists the formats you can use as command line arguments ?
+> > 
+> > Another option would actually be to always print the formats when the -h
+> > switch is given. We could print them in a comma-separated list with
+> > multiple formats per line, possibly dropping the numerical value, it
+> > should hopefully not be horrible.
+> 
+> I'd prefer to keep the numerical value as well; the link validation code in
+> drivers may print the media bus code at each end in case they do not match.
+> To debug that, it's easy to grep that from the list media-ctl prints.
+
+Grepping media-bus-formats.h shouldn't be difficult ;-)
+
+To shorten the output, how about printing the numerical values as 0x%04x or 
+%04x ?
+
 -- 
 Regards,
 
