@@ -1,97 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:45836 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757976AbcBXIbU (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47022 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755270AbcBWUYE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2016 03:31:20 -0500
-Subject: Re: [PATCHv12 05/17] HID: add HDMI CEC specific keycodes
-To: linux-media@vger.kernel.org,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
- <1455108711-29850-6-git-send-email-hverkuil@xs4all.nl>
- <56BDA577.5060302@xs4all.nl>
-Cc: linux-input@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56CD6A53.4090606@xs4all.nl>
-Date: Wed, 24 Feb 2016 09:31:15 +0100
+	Tue, 23 Feb 2016 15:24:04 -0500
+Date: Tue, 23 Feb 2016 22:24:00 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
+Message-ID: <20160223202400.GA11084@valkosipuli.retiisi.org.uk>
+References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20160223161150.GA32612@valkosipuli.retiisi.org.uk>
+ <56CC8593.6090005@xs4all.nl>
+ <3174978.uNIbAnUxCz@avalon>
 MIME-Version: 1.0
-In-Reply-To: <56BDA577.5060302@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3174978.uNIbAnUxCz@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry,
+Hi Laurent,
 
-Ping!
+On Tue, Feb 23, 2016 at 10:15:46PM +0200, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Tuesday 23 February 2016 17:15:15 Hans Verkuil wrote:
+> > On 02/23/2016 05:11 PM, Sakari Ailus wrote:
+> > > On Tue, Feb 23, 2016 at 01:18:53PM +0100, Hans Verkuil wrote:
+> > >> On 02/21/16 22:29, Sakari Ailus wrote:
+> > >>> Add a new topic option for -h to allow listing supported media bus codes
+> > >>> in conversion functions. This is useful in figuring out which media bus
+> > >>> codes are actually supported by the library. The numeric values of the
+> > >>> codes are listed as well.
+> > >>> 
+> > >>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >>> ---
+> > >>> 
+> > >>>  utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++++++----
+> > >>>  1 file changed, 38 insertions(+), 4 deletions(-)
+> > >>> 
+> > >>> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+> > >>> index 0afc9c2..55cdd29 100644
+> > >>> --- a/utils/media-ctl/options.c
+> > >>> +++ b/utils/media-ctl/options.c
+> > >>> @@ -22,7 +22,9 @@
+> > >>>  #include <getopt.h>
+> > >>>  #include <stdio.h>
+> > >>>  #include <stdlib.h>
+> > >>> +#include <string.h>
+> > >>>  #include <unistd.h>
+> > >>> +#include <v4l2subdev.h>
+> > >>> 
+> > >>>  #include <linux/videodev2.h>
+> > >>> 
+> > >>> @@ -45,7 +47,8 @@ static void usage(const char *argv0)
+> > >>>  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to
+> > >>>  	setup\n");
+> > >>>  	printf("    --get-v4l2 pad	Print the active format on a given 
+> pad\n");
+> > >>>  	printf("    --set-dv pad	Configure DV timings on a given pad\n");
+> > >>> -	printf("-h, --help		Show verbose help and exit\n");
+> > >>> +	printf("-h, --help[=topic]	Show verbose help and exit\n");
+> > >>> +	printf("			topics:	mbus-fmt: List supported media bus pixel 
+> codes\n");
+> > >> 
+> > >> OK, this is ugly. It has nothing to do with usage help.
+> > >> 
+> > >> Just make a new option --list-mbus-fmts to list supported media bus pixel
+> > >> codes.
+> > >> 
+> > >> That would make much more sense.
+> > > 
+> > > I added it as a --help option argument in order to imply it's a part of
+> > > the program's usage instructions, which is what it indeed is. It's not a
+> > > list of media bus formats supported by a device.
+> > > 
+> > > A separate option is fine, but it should be clear that it's about just
+> > > listing supported formats. E.g. --list-supported-mbus-fmts. But that's a
+> > > long one. Long options are loooong.
+> > 
+> > --list-known-mbus-fmts will do the trick.
+> 
+> That doesn't feel right. Isn't it a help option, really, given that it lists 
+> the formats you can use as command line arguments ?
+> 
+> Another option would actually be to always print the formats when the -h 
+> switch is given. We could print them in a comma-separated list with multiple 
+> formats per line, possibly dropping the numerical value, it should hopefully 
+> not be horrible.
 
+I'd prefer to keep the numerical value as well; the link validation code in
+drivers may print the media bus code at each end in case they do not match.
+To debug that, it's easy to grep that from the list media-ctl prints.
+
+-- 
 Regards,
 
-	Hans
-
-On 02/12/16 10:27, Hans Verkuil wrote:
-> Dmitry,
-> 
-> Can you provide an Ack for this patch?
-> 
-> Thanks!
-> 
-> 	Hans
-> 
-> On 02/10/2016 01:51 PM, Hans Verkuil wrote:
->> From: Kamil Debski <kamil@wypas.org>
->>
->> Add HDMI CEC specific keycodes to the keycodes definition.
->>
->> Signed-off-by: Kamil Debski <kamil@wypas.org>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  include/uapi/linux/input-event-codes.h | 28 ++++++++++++++++++++++++++++
->>  1 file changed, 28 insertions(+)
->>
->> diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
->> index 87cf351..2662500 100644
->> --- a/include/uapi/linux/input-event-codes.h
->> +++ b/include/uapi/linux/input-event-codes.h
->> @@ -611,6 +611,34 @@
->>  #define KEY_KBDINPUTASSIST_ACCEPT		0x264
->>  #define KEY_KBDINPUTASSIST_CANCEL		0x265
->>  
->> +#define KEY_RIGHT_UP			0x266
->> +#define KEY_RIGHT_DOWN			0x267
->> +#define KEY_LEFT_UP			0x268
->> +#define KEY_LEFT_DOWN			0x269
->> +#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
->> +#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
->> +#define KEY_NUMERIC_11			0x26c
->> +#define KEY_NUMERIC_12			0x26d
->> +/*
->> + * Toggle Audio Description: refers to an audio service that helps blind and
->> + * visually impaired consumers understand the action in a program. Note: in
->> + * some countries this is referred to as "Video Description".
->> + */
->> +#define KEY_AUDIO_DESC			0x26e
->> +#define KEY_3D_MODE			0x26f
->> +#define KEY_NEXT_FAVORITE		0x270
->> +#define KEY_STOP_RECORD			0x271
->> +#define KEY_PAUSE_RECORD		0x272
->> +#define KEY_VOD				0x273 /* Video on Demand */
->> +#define KEY_UNMUTE			0x274
->> +#define KEY_FASTREVERSE			0x275
->> +#define KEY_SLOWREVERSE			0x276
->> +/*
->> + * Control a data application associated with the currently viewed channel,
->> + * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
->> + */
->> +#define KEY_DATA			0x275
->> +
->>  #define BTN_TRIGGER_HAPPY		0x2c0
->>  #define BTN_TRIGGER_HAPPY1		0x2c0
->>  #define BTN_TRIGGER_HAPPY2		0x2c1
->>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
