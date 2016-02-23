@@ -1,97 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42929 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751784AbcB2CVe (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:52675 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753786AbcBWQPV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Feb 2016 21:21:34 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH for v4.5] media.h: increase the spacing between function ranges
-Date: Mon, 29 Feb 2016 04:21:39 +0200
-Message-ID: <11122122.4xDoxEiLJr@avalon>
-In-Reply-To: <56BC9AA7.3040102@xs4all.nl>
-References: <56BC9AA7.3040102@xs4all.nl>
+	Tue, 23 Feb 2016 11:15:21 -0500
+Subject: Re: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1456090187-1191-5-git-send-email-sakari.ailus@linux.intel.com>
+ <56CC4E2D.7010702@xs4all.nl>
+ <20160223161150.GA32612@valkosipuli.retiisi.org.uk>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56CC8593.6090005@xs4all.nl>
+Date: Tue, 23 Feb 2016 17:15:15 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20160223161150.GA32612@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thank you for the patch.
-
-On Thursday 11 February 2016 15:28:55 Hans Verkuil wrote:
-> Each function range is quite narrow and especially for connectors this
-> will pose a problem. Increase the function ranges while we still can and
-> move the connector range to the end so that range is practically limitless.
+On 02/23/2016 05:11 PM, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> On Tue, Feb 23, 2016 at 01:18:53PM +0100, Hans Verkuil wrote:
+>> On 02/21/16 22:29, Sakari Ailus wrote:
+>>> Add a new topic option for -h to allow listing supported media bus codes
+>>> in conversion functions. This is useful in figuring out which media bus
+>>> codes are actually supported by the library. The numeric values of the
+>>> codes are listed as well.
+>>>
+>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>> ---
+>>>  utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++++++++----
+>>>  1 file changed, 38 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+>>> index 0afc9c2..55cdd29 100644
+>>> --- a/utils/media-ctl/options.c
+>>> +++ b/utils/media-ctl/options.c
+>>> @@ -22,7 +22,9 @@
+>>>  #include <getopt.h>
+>>>  #include <stdio.h>
+>>>  #include <stdlib.h>
+>>> +#include <string.h>
+>>>  #include <unistd.h>
+>>> +#include <v4l2subdev.h>
+>>>  
+>>>  #include <linux/videodev2.h>
+>>>  
+>>> @@ -45,7 +47,8 @@ static void usage(const char *argv0)
+>>>  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
+>>>  	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
+>>>  	printf("    --set-dv pad	Configure DV timings on a given pad\n");
+>>> -	printf("-h, --help		Show verbose help and exit\n");
+>>> +	printf("-h, --help[=topic]	Show verbose help and exit\n");
+>>> +	printf("			topics:	mbus-fmt: List supported media bus pixel codes\n");
+>>
+>> OK, this is ugly. It has nothing to do with usage help.
+>>
+>> Just make a new option --list-mbus-fmts to list supported media bus pixel
+>> codes.
+>>
+>> That would make much more sense.
+> 
+> I added it as a --help option argument in order to imply it's a part of the
+> program's usage instructions, which is what it indeed is. It's not a list of
+> media bus formats supported by a device.
+> 
+> A separate option is fine, but it should be clear that it's about just
+> listing supported formats. E.g. --list-supported-mbus-fmts. But that's a
+> long one. Long options are loooong.
 
-It looks like this got applied without taking Sakari's comments into account. 
-Furthermore, I believe the IDs you use below will be confusing, as the base is 
-a hex value and the offset a decimal value. It would making debugging much 
-easier if both used hex values.
+--list-known-mbus-fmts will do the trick.
 
-> ---
->  include/uapi/linux/media.h | 30 +++++++++++++++---------------
->  1 file changed, 15 insertions(+), 15 deletions(-)
-> 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index c9eb42a..a300a33 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -72,21 +72,11 @@ struct media_device_info {
->  #define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 4)
-> 
->  /*
-> - * Connectors
-> - */
-> -/* It is a responsibility of the entity drivers to add connectors and links
-> */ -#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 21)
-> -#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 22)
-> -#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 23)
-> -/* For internal test signal generators and other debug connectors */
-> -#define MEDIA_ENT_F_CONN_TEST		(MEDIA_ENT_F_BASE + 24)
-> -
-> -/*
->   * I/O entities
->   */
-> -#define MEDIA_ENT_F_IO_DTV  		(MEDIA_ENT_F_BASE + 31)
-> -#define MEDIA_ENT_F_IO_VBI  		(MEDIA_ENT_F_BASE + 32)
-> -#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 33)
-> +#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 1001)
-> +#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 1002)
-> +#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 1003)
-> 
->  /*
->   * Analog TV IF-PLL decoders
-> @@ -94,8 +84,18 @@ struct media_device_info {
->   * It is a responsibility of the master/bridge drivers to create links
->   * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
->   */
-> -#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 41)
-> -#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 42)
-> +#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 2001)
-> +#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 2002)
-> +
-> +/*
-> + * Connectors
-> + */
-> +/* It is a responsibility of the entity drivers to add connectors and links
-> */ +#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
-> +#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
-> +#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-> +/* For internal test signal generators and other debug connectors */
-> +#define MEDIA_ENT_F_CONN_TEST		(MEDIA_ENT_F_BASE + 10004)
-> 
->  /*
->   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
-
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
