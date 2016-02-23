@@ -1,135 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50864 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750752AbcBLDeV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 22:34:21 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id B579B180EB0
-	for <linux-media@vger.kernel.org>; Fri, 12 Feb 2016 04:34:15 +0100 (CET)
-Date: Fri, 12 Feb 2016 04:34:15 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160212033415.B579B180EB0@tschai.lan>
+Received: from mout.gmx.net ([212.227.15.18]:55421 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752692AbcBWReB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2016 12:34:01 -0500
+Date: Tue, 23 Feb 2016 18:33:56 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] soc_camera/mx2_camera.c: move to staging in
+ preparation,for removal
+In-Reply-To: <56CC8B13.2010104@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1602231833390.17650@axis700.grange>
+References: <56CC8B13.2010104@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, 23 Feb 2016, Hans Verkuil wrote:
 
-Results of the daily build of media_tree:
+> This driver is deprecated: it should become a stand-alone driver
+> instead of using the soc-camera framework.
+> 
+> Unless someone is willing to take this on (unlikely with such
+> ancient hardware) it is going to be removed from the kernel
+> soon.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-date:		Fri Feb 12 04:00:18 CET 2016
-git branch:	test
-git hash:	f7b4b54e63643b740c598e044874c4bffa0f04f2
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.3.0-164
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: ERRORS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin-bf561
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
-smatch: ERRORS
+Thanks
+Guennadi
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> ---
+>  drivers/media/platform/soc_camera/Kconfig                    |  9 ---------
+>  drivers/media/platform/soc_camera/Makefile                   |  1 -
+>  drivers/staging/media/Kconfig                                |  2 ++
+>  drivers/staging/media/Makefile                               |  1 +
+>  drivers/staging/media/mx2/Kconfig                            | 12 ++++++++++++
+>  drivers/staging/media/mx2/Makefile                           |  3 +++
+>  .../platform/soc_camera => staging/media/mx2}/mx2_camera.c   |  0
+>  7 files changed, 18 insertions(+), 10 deletions(-)
+>  create mode 100644 drivers/staging/media/mx2/Kconfig
+>  create mode 100644 drivers/staging/media/mx2/Makefile
+>  rename drivers/{media/platform/soc_camera => staging/media/mx2}/mx2_camera.c (100%)
+> 
+> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+> index 954dd36..449ab78 100644
+> --- a/drivers/media/platform/soc_camera/Kconfig
+> +++ b/drivers/media/platform/soc_camera/Kconfig
+> @@ -60,15 +60,6 @@ config VIDEO_SH_MOBILE_CEU
+>  	---help---
+>  	  This is a v4l2 driver for the SuperH Mobile CEU Interface
+> 
+> -config VIDEO_MX2
+> -	tristate "i.MX27 Camera Sensor Interface driver"
+> -	depends on VIDEO_DEV && SOC_CAMERA
+> -	depends on SOC_IMX27 || COMPILE_TEST
+> -	depends on HAS_DMA
+> -	select VIDEOBUF2_DMA_CONTIG
+> -	---help---
+> -	  This is a v4l2 driver for the i.MX27 Camera Sensor Interface
+> -
+>  config VIDEO_ATMEL_ISI
+>  	tristate "ATMEL Image Sensor Interface (ISI) support"
+>  	depends on VIDEO_DEV && SOC_CAMERA
+> diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
+> index bdd7fc9..dad56b9 100644
+> --- a/drivers/media/platform/soc_camera/Makefile
+> +++ b/drivers/media/platform/soc_camera/Makefile
+> @@ -7,7 +7,6 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
+> 
+>  # soc-camera host drivers have to be linked after camera drivers
+>  obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+> -obj-$(CONFIG_VIDEO_MX2)			+= mx2_camera.o
+>  obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
+>  obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
+>  obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+> index 382d868..11d62b2 100644
+> --- a/drivers/staging/media/Kconfig
+> +++ b/drivers/staging/media/Kconfig
+> @@ -29,6 +29,8 @@ source "drivers/staging/media/mn88472/Kconfig"
+> 
+>  source "drivers/staging/media/mn88473/Kconfig"
+> 
+> +source "drivers/staging/media/mx2/Kconfig"
+> +
+>  source "drivers/staging/media/omap1/Kconfig"
+> 
+>  source "drivers/staging/media/omap4iss/Kconfig"
+> diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+> index 89d038c..d3ff2d0 100644
+> --- a/drivers/staging/media/Makefile
+> +++ b/drivers/staging/media/Makefile
+> @@ -2,6 +2,7 @@ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
+>  obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
+>  obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+>  obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+> +obj-$(CONFIG_VIDEO_MX2)		+= mx2/
+>  obj-$(CONFIG_VIDEO_OMAP1)	+= omap1/
+>  obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
+>  obj-$(CONFIG_DVB_MN88472)       += mn88472/
+> diff --git a/drivers/staging/media/mx2/Kconfig b/drivers/staging/media/mx2/Kconfig
+> new file mode 100644
+> index 0000000..e080ab9
+> --- /dev/null
+> +++ b/drivers/staging/media/mx2/Kconfig
+> @@ -0,0 +1,12 @@
+> +config VIDEO_MX2
+> +	tristate "i.MX27 Camera Sensor Interface driver"
+> +	depends on VIDEO_DEV && SOC_CAMERA
+> +	depends on SOC_IMX27 || COMPILE_TEST
+> +	depends on HAS_DMA
+> +	select VIDEOBUF2_DMA_CONTIG
+> +	---help---
+> +	  This is a v4l2 driver for the i.MX27 Camera Sensor Interface
+> +
+> +	  This driver is deprecated and will be removed soon unless someone
+> +	  will start the work to convert this driver to the vb2 framework
+> +	  and remove the soc-camera dependency.
+> diff --git a/drivers/staging/media/mx2/Makefile b/drivers/staging/media/mx2/Makefile
+> new file mode 100644
+> index 0000000..fc5b282
+> --- /dev/null
+> +++ b/drivers/staging/media/mx2/Makefile
+> @@ -0,0 +1,3 @@
+> +# Makefile for i.MX27 Camera Sensor driver
+> +
+> +obj-$(CONFIG_VIDEO_MX2) += mx2_camera.o
+> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/staging/media/mx2/mx2_camera.c
+> similarity index 100%
+> rename from drivers/media/platform/soc_camera/mx2_camera.c
+> rename to drivers/staging/media/mx2/mx2_camera.c
+> -- 
+> 2.7.0
+> 
