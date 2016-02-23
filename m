@@ -1,116 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:42837 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933609AbcBDEEC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:02 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v2 01/22] uapi/media.h: Declare interface types for ALSA
-Date: Wed,  3 Feb 2016 21:03:33 -0700
-Message-Id: <6d8fe067fa0ec07e9f667dbd2e163b6b63b4a614.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36909 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751799AbcBWSBd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2016 13:01:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] tvp5150: remove signal generator as input from the DT binding
+Date: Tue, 23 Feb 2016 20:02:14 +0200
+Message-ID: <63317542.65NzPYJCcU@avalon>
+In-Reply-To: <56CC8887.803@osg.samsung.com>
+References: <1456243798-12453-1-git-send-email-javier@osg.samsung.com> <3469550.VVKtG3tqH6@avalon> <56CC8887.803@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Declare the interface types to be used on alsa for
-the new G_TOPOLOGY ioctl.
+Hi Javier,
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/media-entity.c | 16 ++++++++++++++++
- include/uapi/linux/media.h   | 22 ++++++++++++++++++++++
- 2 files changed, 38 insertions(+)
+On Tuesday 23 February 2016 13:27:51 Javier Martinez Canillas wrote:
+> On 02/23/2016 01:16 PM, Laurent Pinchart wrote:
+> > On Tuesday 23 February 2016 13:09:58 Javier Martinez Canillas wrote:
+> >> The chip internal signal generator was modelled as an input connector
+> >> and represented as a media entity but isn't really a connector so the
+> >> driver was changed to use the V4L2_CID_TEST_PATTERN control instead.
+> >> 
+> >> Remove the signal generator input from the list of connectors in the
+> >> tvp5150 DT binding document as well since isn't a connector anymore.
+> >> 
+> >> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> >> 
+> >> ---
+> >> Hello,
+> >> 
+> >> I think is OK to change this DT binding because is only in the media tree
+> >> for now and not in mainline yet and also is expected to change more since
+> >> there are still discussions about how input connectors will be supported
+> >> by the Media Controller framework in the media subsystem.
+> > 
+> > I think that's fine, yes
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Thanks.
+> 
+> > I haven't noticed the patch that introduced this early enough I'm afraid,
+> > and I think we still have issues with those bindings.
+> 
+> Yes, I posted those patches and got merged before we had the discussion
+> about input connectors over IRC so I didn't know what was the correct way
+> to do it.
+>
+> > The tvp5150 node should *not* contain connector subnodes, the connectors
+> > nodes should use the bindings defined in
+> > Documentation/devicetree/bindings/display/connector/ and be linked to the
+> > tvp5150 node using the OF graph bindings (ports and endpoints).
+> 
+> Agreed.
+> 
+> > Do you think you could fix that ?
+> 
+> Yes I will, I'm waiting for the input connectors discussions to settle so I
+> can post a final version of the DT bindings following what is agreed by all.
+> 
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index f2e4360..6179543 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -65,6 +65,22 @@ static inline const char *intf_type(struct media_interface *intf)
- 		return "v4l2-subdev";
- 	case MEDIA_INTF_T_V4L_SWRADIO:
- 		return "swradio";
-+	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
-+		return "pcm-capture";
-+	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
-+		return "pcm-playback";
-+	case MEDIA_INTF_T_ALSA_CONTROL:
-+		return "alsa-control";
-+	case MEDIA_INTF_T_ALSA_COMPRESS:
-+		return "compress";
-+	case MEDIA_INTF_T_ALSA_RAWMIDI:
-+		return "rawmidi";
-+	case MEDIA_INTF_T_ALSA_HWDEP:
-+		return "hwdep";
-+	case MEDIA_INTF_T_ALSA_SEQUENCER:
-+		return "sequencer";
-+	case MEDIA_INTF_T_ALSA_TIMER:
-+		return "timer";
- 	default:
- 		return "unknown-intf";
- 	}
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index c9eb42a..ee020e8 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -265,6 +265,7 @@ struct media_links_enum {
- 
- #define MEDIA_INTF_T_DVB_BASE	0x00000100
- #define MEDIA_INTF_T_V4L_BASE	0x00000200
-+#define MEDIA_INTF_T_ALSA_BASE	0x00000300
- 
- /* Interface types */
- 
-@@ -280,6 +281,27 @@ struct media_links_enum {
- #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
- #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
- 
-+/**
-+ * DOC: Media Controller Next Generation ALSA Interface Types
-+ *
-+ * MEDIA_INTF_T_ALSA_PCM_CAPTURE - PCM Capture Interface (pcm-capture)
-+ * MEDIA_INTF_T_ALSA_PCM_PLAYBACK -  PCM Playback Interface (pcm-playback)
-+ * MEDIA_INTF_T_ALSA_CONTROL -  ALSA Control Interface (alsa-control)
-+ * MEDIA_INTF_T_ALSA_COMPRESS - ALSA Compression Interface (compress)
-+ * MEDIA_INTF_T_ALSA_RAWMIDI - ALSA Raw MIDI Interface (rawmidi)
-+ * MEDIA_INTF_T_ALSA_HWDEP - ALSA Hardware Dependent Interface (hwdep)
-+ * MEDIA_INTF_T_ALSA_SEQUENCER - ALSA Sequencer (sequencer)
-+ * MEDIA_INTF_T_ALSA_TIMER - ALSA Timer (timer)
-+ */
-+#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
-+#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
-+#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
-+#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
-+#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
-+#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
-+#define MEDIA_INTF_T_ALSA_SEQUENCER     (MEDIA_INTF_T_ALSA_BASE + 6)
-+#define MEDIA_INTF_T_ALSA_TIMER         (MEDIA_INTF_T_ALSA_BASE + 7)
-+
- /*
-  * MC next gen API definitions
-  *
+Shouldn't we revert the patch that introduced connectors support in the DT 
+bindings in the meantime then, to avoid known to be broken bindings from 
+hitting mainline in case we can't fix them in time for v4.6 ?
+
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
 
