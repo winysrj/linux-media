@@ -1,103 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36887 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:39449 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752237AbcBVJw5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 04:52:57 -0500
-Date: Mon, 22 Feb 2016 06:52:51 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC 4/4] media: Drop media_get_uptr() macro
-Message-ID: <20160222065251.4c9be90d@recife.lan>
-In-Reply-To: <1456090575-28354-5-git-send-email-sakari.ailus@linux.intel.com>
-References: <1456090575-28354-1-git-send-email-sakari.ailus@linux.intel.com>
-	<1456090575-28354-5-git-send-email-sakari.ailus@linux.intel.com>
+	id S1753808AbcBWSXy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2016 13:23:54 -0500
+Subject: Re: [PATCH] [media] tvp5150: remove signal generator as input from
+ the DT binding
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1456243798-12453-1-git-send-email-javier@osg.samsung.com>
+ <3469550.VVKtG3tqH6@avalon> <56CC8887.803@osg.samsung.com>
+ <63317542.65NzPYJCcU@avalon>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	devicetree@vger.kernel.org, linux-media@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <56CCA3B4.7060700@osg.samsung.com>
+Date: Tue, 23 Feb 2016 15:23:48 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <63317542.65NzPYJCcU@avalon>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 21 Feb 2016 23:36:15 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Hi Laurent,
 
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> There's no real need for such a macro, especially not in the user space
-> header.
+On 02/23/2016 03:02 PM, Laurent Pinchart wrote:
+> Hi Javier,
+>
+> On Tuesday 23 February 2016 13:27:51 Javier Martinez Canillas wrote:
+>> On 02/23/2016 01:16 PM, Laurent Pinchart wrote:
+>>> On Tuesday 23 February 2016 13:09:58 Javier Martinez Canillas wrote:
+>>>> The chip internal signal generator was modelled as an input connector
+>>>> and represented as a media entity but isn't really a connector so the
+>>>> driver was changed to use the V4L2_CID_TEST_PATTERN control instead.
+>>>>
+>>>> Remove the signal generator input from the list of connectors in the
+>>>> tvp5150 DT binding document as well since isn't a connector anymore.
+>>>>
+>>>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>>>
+>>>> ---
+>>>> Hello,
+>>>>
+>>>> I think is OK to change this DT binding because is only in the media tree
+>>>> for now and not in mainline yet and also is expected to change more since
+>>>> there are still discussions about how input connectors will be supported
+>>>> by the Media Controller framework in the media subsystem.
+>>>
+>>> I think that's fine, yes
+>>>
+>>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>
+>> Thanks.
+>>
+>>> I haven't noticed the patch that introduced this early enough I'm afraid,
+>>> and I think we still have issues with those bindings.
+>>
+>> Yes, I posted those patches and got merged before we had the discussion
+>> about input connectors over IRC so I didn't know what was the correct way
+>> to do it.
+>>
+>>> The tvp5150 node should *not* contain connector subnodes, the connectors
+>>> nodes should use the bindings defined in
+>>> Documentation/devicetree/bindings/display/connector/ and be linked to the
+>>> tvp5150 node using the OF graph bindings (ports and endpoints).
+>>
+>> Agreed.
+>>
+>>> Do you think you could fix that ?
+>>
+>> Yes I will, I'm waiting for the input connectors discussions to settle so I
+>> can post a final version of the DT bindings following what is agreed by all.
+>>
+>
+> Shouldn't we revert the patch that introduced connectors support in the DT
+> bindings in the meantime then, to avoid known to be broken bindings from
+> hitting mainline in case we can't fix them in time for v4.6 ?
+>
 
-Ok, good point, but I would, instead, move the macro to
-drivers/media/media-device.c. That double-casting is something unusual,
-and we don't want to start receiving patch from newbie janitors wanting
-to strip the casts.
+Yes, that would be a good idea. I've seen recently though a DT binding doc that
+was marked as unstable / work in progress and I wonder if that's a new accepted
+convention for DT binding docs or is just something that slipped through review.
 
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-device.c | 8 ++++----
->  include/uapi/linux/media.h   | 5 -----
->  2 files changed, 4 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index f001c27..8a20383 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -256,7 +256,7 @@ static long __media_device_get_topology(struct media_device *mdev,
->  
->  	/* Get entities and number of entities */
->  	i = 0;
-> -	uentity = media_get_uptr(topo->ptr_entities);
-> +	uentity = (void __user *)(uintptr_t)topo->ptr_entities;
->  	media_device_for_each_entity(entity, mdev) {
->  		i++;
->  		if (ret || !uentity)
-> @@ -282,7 +282,7 @@ static long __media_device_get_topology(struct media_device *mdev,
->  
->  	/* Get interfaces and number of interfaces */
->  	i = 0;
-> -	uintf = media_get_uptr(topo->ptr_interfaces);
-> +	uintf = (void __user *)(uintptr_t)topo->ptr_interfaces;
->  	media_device_for_each_intf(intf, mdev) {
->  		i++;
->  		if (ret || !uintf)
-> @@ -317,7 +317,7 @@ static long __media_device_get_topology(struct media_device *mdev,
->  
->  	/* Get pads and number of pads */
->  	i = 0;
-> -	upad = media_get_uptr(topo->ptr_pads);
-> +	upad = (void __user *)(uintptr_t)topo->ptr_pads;
->  	media_device_for_each_pad(pad, mdev) {
->  		i++;
->  		if (ret || !upad)
-> @@ -343,7 +343,7 @@ static long __media_device_get_topology(struct media_device *mdev,
->  
->  	/* Get links and number of links */
->  	i = 0;
-> -	ulink = media_get_uptr(topo->ptr_links);
-> +	ulink = (void __user *)(uintptr_t)topo->ptr_links;
->  	media_device_for_each_link(link, mdev) {
->  		if (link->is_backlink)
->  			continue;
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 77a95db..f4f7897 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -353,11 +353,6 @@ struct media_v2_topology {
->  	__u32 reserved[18];
->  };
->  
-> -static inline void __user *media_get_uptr(__u64 arg)
-> -{
-> -	return (void __user *)(uintptr_t)arg;
-> -}
-> -
->  /* ioctls */
->  
->  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+The commit I'm talking about is f07b4e49d27e ("Documentation: bindings: berlin:
+consider our dt bindings as unstable") but I don't see anything documented in
+Documentation/devicetree/bindings/ABI.txt.
 
+In any case, I'm fine with either marking the DT binding doc as unstable or to
+revert the patch that added the connectors portion to the tvp5150 DT binding.
 
+Best regards,
 -- 
-Thanks,
-Mauro
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
