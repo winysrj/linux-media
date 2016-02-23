@@ -1,66 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:36136 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751187AbcBKXmZ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42164 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751655AbcBWP6h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 18:42:25 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v3 16/22] media: au0828 create tuner to decoder link in disabled state
-Date: Thu, 11 Feb 2016 16:41:32 -0700
-Message-Id: <4b08f5a814bb63bb8e7bcf0b4a386d0c936f3388.1455233155.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1455233150.git.shuahkh@osg.samsung.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+	Tue, 23 Feb 2016 10:58:37 -0500
+Date: Tue, 23 Feb 2016 17:58:03 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [v4l-utils PATCH 3/4] libv4l2subdev: Add a function to list
+ library supported pixel codes
+Message-ID: <20160223155803.GZ32612@valkosipuli.retiisi.org.uk>
+References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1456090187-1191-4-git-send-email-sakari.ailus@linux.intel.com>
+ <56CC529C.8010908@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56CC529C.8010908@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create tuner to demod pad link in disabled state to
-avoid disable step when tuner resource is requested
-by dvb.
+On Tue, Feb 23, 2016 at 01:37:48PM +0100, Hans Verkuil wrote:
+> On 02/21/16 22:29, Sakari Ailus wrote:
+> > Also mark which format definitions are compat definitions for the
+> > pre-existing codes. This way we don't end up listing the same formats
+> > twice.
+> 
+> This new compat field doesn't seem to be used...
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Good catch... that was an addition made in an earlier version of the patch;
+the information is no longer needed once the table containing the formats is
+available. I'll remove it.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 99f8022..66b44c9 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -279,9 +279,9 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
- 		return -EINVAL;
- 
- 	if (tuner) {
-+		/* create tuner to decoder link in deactivated state */
- 		ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
--					    decoder, 0,
--					    MEDIA_LNK_FL_ENABLED);
-+					    decoder, 0, 0);
- 		if (ret)
- 			return ret;
- 	}
 -- 
-2.5.0
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
