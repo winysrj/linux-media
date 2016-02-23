@@ -1,87 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:36803 "EHLO
-	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161621AbcBQPtP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2016 10:49:15 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	Rob Taylor <rob.taylor@codethink.co.uk>
-Subject: [PATCH/RFC 5/9] media: rcar-vin: pad-aware driver initialisation
-Date: Wed, 17 Feb 2016 16:48:41 +0100
-Message-Id: <1455724125-13004-6-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1455724125-13004-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:39518 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754958AbcBWSsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2016 13:48:25 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	devicetree@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH] Revert "[media] tvp5150: document input connectors DT bindings"
+Date: Tue, 23 Feb 2016 15:48:08 -0300
+Message-Id: <1456253288-397-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add detection of source pad number for drivers aware of the media controller
-API, so that rcar-vin can create device nodes to support modern drivers such
-as adv7604.c (for HDMI on Lager) and the converted adv7180.c (for composite)
-underneath.
+This reverts commit 82c2ffeb217a ("[media] tvp5150: document input
+connectors DT bindings") since the DT binding is too device driver
+specific and should instead be more generic and use the bindings
+in Documentation/devicetree/bindings/display/connector/ and linked
+to the tvp5150 using the OF graph port and endpoints.
 
-Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
-line with requirements for building the drivers associated with it.
+There are still ongoing discussions about how the input connectors
+will be supported by the Media Controller framework so until that
+is settled, it is better to revert the connectors portion of the
+bindings to avoid known to be broken bindings docs to hit mainline.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-[uli: adapted to rcar-vin rewrite]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 15 +++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h |  1 +
- 2 files changed, 16 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 70dc928..6b23c968 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -891,6 +891,9 @@ int rvin_dma_on(struct rvin_dev *vin)
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	int pad_idx;
-+#endif
- 	int ret;
+ .../devicetree/bindings/media/i2c/tvp5150.txt      | 43 ----------------------
+ 1 file changed, 43 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+index daa20e43a8e3..8c0fc1a26bf0 100644
+--- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
++++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+@@ -12,32 +12,6 @@ Optional Properties:
+ - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
+ - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
  
- 	sd = vin_to_sd(vin);
-@@ -924,6 +927,18 @@ int rvin_dma_on(struct rvin_dev *vin)
+-Optional nodes:
+-- connectors: The input connectors of tvp5150 have to be defined under
+-  a subnode name "connectors" using the following format:
+-
+-	input-connector-name {
+-		input connector properties
+-	};
+-
+-Each input connector must contain the following properties:
+-
+-	- label: a name for the connector.
+-	- input: the input connector.
+-
+-The possible values for the "input" property are:
+-	0: Composite0
+-	1: Composite1
+-	2: S-Video
+-
+-and on a tvp5150am1 and tvp5151 there is another:
+-	4: Signal generator
+-
+-The list of valid input connectors are defined in dt-bindings/media/tvp5150.h
+-header file and can be included by device tree source files.
+-
+-Each input connector can be defined only once.
+-
+ The device node must contain one 'port' child node for its digital output
+ video port, in accordance with the video interface bindings defined in
+ Documentation/devicetree/bindings/media/video-interfaces.txt.
+@@ -62,23 +36,6 @@ Example:
+ 		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
+ 		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
  
- 	/* TODO: ret = rvin_sensor_setup(vin, pix, ...); */
- 
-+	vin->src_pad_idx = 0;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+		if (sd->entity.pads[pad_idx].flags
-+				== MEDIA_PAD_FL_SOURCE)
-+			break;
-+	if (pad_idx >= sd->entity.num_pads)
-+		goto remove_device;
-+
-+	vin->src_pad_idx = pad_idx;
-+#endif
-+
- 	vin->format.field = V4L2_FIELD_ANY;
- 
- 	video_set_drvdata(&vin->vdev, vin);
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 99141d7..f127f5d 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -106,6 +106,7 @@ struct rvin_dev {
- 	enum chip_id chip;
- 
- 	struct v4l2_device v4l2_dev;
-+	int src_pad_idx;	/* For media-controller drivers */
- 	struct v4l2_ctrl_handler ctrl_handler;
- 
- 	struct video_device vdev;
+-		connectors {
+-			composite0 {
+-				label = "Composite0";
+-				input = <TVP5150_COMPOSITE0>;
+-			};
+-
+-			composite1 {
+-				label = "Composite1";
+-				input = <TVP5150_COMPOSITE1>;
+-			};
+-
+-			s-video {
+-				label = "S-Video";
+-				input = <TVP5150_SVIDEO>;
+-			};
+-		};
+-
+ 		port {
+ 			tvp5150_1: endpoint {
+ 				remote-endpoint = <&ccdc_ep>;
 -- 
-2.6.4
+2.5.0
 
