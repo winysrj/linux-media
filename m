@@ -1,82 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56937 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1425770AbcBRKwJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 05:52:09 -0500
-Subject: Re: V4L docs and docbook
-To: Jani Nikula <jani.nikula@intel.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <20160217145254.3085b333@lwn.net> <56C56A56.8010107@xs4all.nl>
- <87vb5me2wy.fsf@intel.com>
-Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-doc@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Keith Packard <keithp@keithp.com>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56C5A248.8080902@xs4all.nl>
-Date: Thu, 18 Feb 2016 11:51:52 +0100
+Received: from smtp2.macqel.be ([109.135.2.61]:55500 "EHLO smtp2.macqel.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752139AbcBWOND (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2016 09:13:03 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.macqel.be (Postfix) with ESMTP id 59679168B57
+	for <linux-media@vger.kernel.org>; Tue, 23 Feb 2016 15:13:00 +0100 (CET)
+Received: from smtp2.macqel.be ([127.0.0.1])
+	by localhost (mail.macqel.be [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id MagpIeveuQtL for <linux-media@vger.kernel.org>;
+	Tue, 23 Feb 2016 15:12:58 +0100 (CET)
+Received: from frolo.macqel.be (frolo.macqel [10.1.40.73])
+	by smtp2.macqel.be (Postfix) with ESMTP id 884B3168B4B
+	for <linux-media@vger.kernel.org>; Tue, 23 Feb 2016 15:12:58 +0100 (CET)
+Date: Tue, 23 Feb 2016 15:12:58 +0100
+From: Philippe De Muyter <phdm@macq.eu>
+To: linux-media@vger.kernel.org
+Subject: Re: i.mx6 camera interface (CSI) and mainline kernel
+Message-ID: <20160223141258.GA5097@frolo.macqel>
+References: <20160223114943.GA10944@frolo.macqel>
 MIME-Version: 1.0
-In-Reply-To: <87vb5me2wy.fsf@intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160223114943.GA10944@frolo.macqel>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/18/16 11:19, Jani Nikula wrote:
-> On Thu, 18 Feb 2016, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> I looked at ReStructuredText and it looks like it will be a pain to convert
->> the media DocBook code to that, and the main reason is the poor table support.
->> The syntax for that looks very painful and the media DocBook is full of tables.
-> 
-> The table support seems to be one point in favor of asciidoc over
-> reStructuredText [citation needed].
-> 
->> BTW, my daily build scripts also rebuilds the media spec and it is available
->> here: https://hverkuil.home.xs4all.nl/spec/media.html
->>
->> Also missing in ReStructuredText seems to be support for formulas (see for
->> example the Colorspaces section in the spec), although to be fair standard
->> DocBook doesn't do a great job at that either.
-> 
-> This may be true for vanilla rst as supported by Python docutils, but
-> the Sphinx tool we're considering does support a lot of things through
-> extensions. The builtin extensions include support for rendering math
-> via PNG or javascript [1]. There's also support for embedded graphviz
-> [2] which may be of interest.
-> 
->> Now, I hate DocBook so going to something easier would certainly be nice,
->> but I think it is going to be a difficult task.
->>
->> Someone would have to prove that going to another formatting tool will
->> produce good results for our documentation. We can certainly give a few
->> representative sections of our doc to someone to convert, and if that
->> looks OK, then the full conversion can be done.
-> 
-> It would be great to have you actively on board doing this yourself,
-> seeking the solutions, as you're the ones doing your documentation in
-> the end.
-> 
-> Speaking only for myself, I'd rather prove we can produce beautiful
-> documentation from lightweight markup for ourselves, and let others make
-> their own conclusions about switching over or sticking with DocBook.
-> 
->> We have (and still are) put a lot of effort into our documentation and
->> we would like to keep the same level of quality.
-> 
-> We are doing this because we (at least in the graphics community) also
-> put a lot of effort into documentation, and we would like to make it
-> *better*!
-> 
-> I believe switching to some lightweight markup will be helpful in
-> attracting more contributions to documentation.
+Update.
 
-Just to be clear: I really don't like DocBook at all, so something better and
-easier would be very much appreciated.
+On Tue, Feb 23, 2016 at 12:49:43PM +0100, Philippe De Muyter wrote:
+> Hello,
+> 
+> We use a custom imx6 based board with a canera sensor on it.
+> I have written the driver for the camera sensor, based on
+> the freescale so-called "3.10" and even "3.14" linux versions.
+> 
+> The camera works perfectly, but we would like to switch to
+> a mainline kernel for all the usual reasons (including being
+> able to contribute our fixes).
+> 
+> >From an old mail thread (*), I have found two git repositories
+> that used to contain not-yet-approved versions of mainline
+> imx6 ipu-v3 drivers :
+> 
+> git://git.pengutronix.de/git/pza/linux.git test/nitrogen6x-ipu-media
+> https://github.com:slongerbeam/mediatree.git, mx6-camera-staging
+> 
+> I have tried to compile them with the imx_v6_v7_defconfig, but both
+> fail directly at compile time. because of later changes in the
+> v4l2_subdev infrastructure, not ported to the those branches.
 
-But good table handling is a prerequisite for us since we rely heavily on that.
+What I wrote is true for Steve Longerbeam's branch, but for Philipp Zabel's
+branch the problem (so far) was only that CONFIG_MEDIA_CONTROLLER
+is not defined in imx_v6_v7_defconfig, but is required for a succesfull
+compilation of Philipp's tree.
 
-Regards,
-
-	Hans
+> Can someone point me to compilable versions (either not rebased
+> versions of those branches, or updated versions of those branches,
+> or yet another place to look at). ?
+> 
+> Thanks in advance
+> 
+> Philippe
+> 
+> (*) http://linux-media.vger.kernel.narkive.com/cZQ8NrZ2/i-mx6-status-for-ipu-vpu-gpu
+> 
+> -- 
+> Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
