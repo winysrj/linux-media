@@ -1,183 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35410 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753490AbcB2Lp6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 06:45:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH 4/5] media: Add type field to struct media_entity
-Date: Mon, 29 Feb 2016 12:45:44 +0100
-Message-Id: <1456746345-1431-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl>
-References: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.20]:54169 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753739AbcBWPF3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2016 10:05:29 -0500
+Date: Tue, 23 Feb 2016 16:05:16 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] soc_camera/omap1: move to staging in preparation for
+ removal
+In-Reply-To: <56CC73B7.6070804@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1602231604460.17650@axis700.grange>
+References: <56CC4CD0.7050308@xs4all.nl> <Pine.LNX.4.64.1602231554230.17650@axis700.grange>
+ <56CC73B7.6070804@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+On Tue, 23 Feb 2016, Hans Verkuil wrote:
 
-Code that processes media entities can require knowledge of the
-structure type that embeds a particular media entity instance in order
-to cast the entity to the proper object type. This needs is shown by the
-presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
-functions.
+> On 02/23/16 15:55, Guennadi Liakhovetski wrote:
+> > Hi Hans,
+> > 
+> > On Tue, 23 Feb 2016, Hans Verkuil wrote:
+> > 
+> >> This driver is deprecated: it needs to be converted to vb2 and
+> >> it should become a stand-alone driver instead of using the
+> >> soc-camera framework.
+> >>
+> >> Unless someone is willing to take this on (unlikely with such
+> >> ancient hardware) it is going to be removed from the kernel
+> >> soon.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > I guess I won't be pulling this through my tree, right?
+> 
+> Right.
+> 
+> > 
+> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> Thanks!
+> 
+> This one was easy.
 
-The implementation of those two functions relies on the entity function
-field, which is both a wrong and an inefficient design, without even
-mentioning the maintenance issue involved in updating the functions
-every time a new entity function is added. Fix this by adding add a type
-field to the media entity structure to carry the information.
+mx2, mx3 should be easy too?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-dev.c    |  1 +
- drivers/media/v4l2-core/v4l2-subdev.c |  1 +
- include/media/media-entity.h          | 75 ++++++++++++++++++-----------------
- 3 files changed, 40 insertions(+), 37 deletions(-)
+Guennadi
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index d8e5994..7e766a9 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -735,6 +735,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
- 	if (!vdev->v4l2_dev->mdev)
- 		return 0;
- 
-+	vdev->entity.type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- 	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
- 
- 	switch (type) {
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index d630838..bb6e79f 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -584,6 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
- 	sd->host_priv = NULL;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	sd->entity.name = sd->name;
-+	sd->entity.type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
- 	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
- #endif
- }
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index d58e29d..cbd3753 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -187,10 +187,37 @@ struct media_entity_operations {
- };
- 
- /**
-+ * enum media_entity_type - Media entity type
-+ *
-+ * @MEDIA_ENTITY_TYPE_MEDIA_ENTITY:
-+ *	The entity is a struct media_entity instance.
-+ * @MEDIA_ENTITY_TYPE_VIDEO_DEVICE:
-+ *	The entity is a struct video_device instance.
-+ * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
-+ *	The entity is a struct v4l2_subdev instance.
-+ *
-+ * The entity type identifies the type of the object instance that implements
-+ * the struct media_entity instance. This allows runtime type identification of
-+ * media entities and safe casting to the project object type. For instance, a
-+ * media entity structure instance embedded in a v4l2_subdev structure instance
-+ * will have the type MEDIA_ENTITY_TYPE_V4L2_SUBDEV and can safely be cast to a
-+ * v4l2_subdev structure using the container_of() macro.
-+ *
-+ * Media entities can be instantiated without creating any derived object type,
-+ * in which case their type will be MEDIA_ENTITY_TYPE_MEDIA_ENTITY.
-+ */
-+enum media_entity_type {
-+	MEDIA_ENTITY_TYPE_MEDIA_ENTITY,
-+	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
-+	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
-+};
-+
-+/**
-  * struct media_entity - A media entity graph object.
-  *
-  * @graph_obj:	Embedded structure containing the media object common data.
-  * @name:	Entity name.
-+ * @type:	Type of the object that implements the media_entity.
-  * @function:	Entity main function, as defined in uapi/media.h
-  *		(MEDIA_ENT_F_*)
-  * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
-@@ -219,6 +246,7 @@ struct media_entity_operations {
- struct media_entity {
- 	struct media_gobj graph_obj;	/* must be first field in struct */
- 	const char *name;
-+	enum media_entity_type type;
- 	u32 function;
- 	unsigned long flags;
- 
-@@ -328,56 +356,29 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
- }
- 
- /**
-- * is_media_entity_v4l2_io() - identify if the entity main function
-- *			       is a V4L2 I/O
-- *
-+ * is_media_entity_v4l2_io() - Check if the entity is a video_device
-  * @entity:	pointer to entity
-  *
-- * Return: true if the entity main function is one of the V4L2 I/O types
-- *	(video, VBI or SDR radio); false otherwise.
-+ * Return: true if the entity is an instance of a video_device object and can
-+ * safely be cast to a struct video_device using the container_of() macro, or
-+ * false otherwise.
-  */
- static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
- {
--	if (!entity)
--		return false;
--
--	switch (entity->function) {
--	case MEDIA_ENT_F_IO_V4L:
--	case MEDIA_ENT_F_IO_VBI:
--	case MEDIA_ENT_F_IO_SWRADIO:
--		return true;
--	default:
--		return false;
--	}
-+	return entity && entity->type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- }
- 
- /**
-- * is_media_entity_v4l2_subdev - return true if the entity main function is
-- *				 associated with the V4L2 API subdev usage
-- *
-+ * is_media_entity_v4l2_subdev() - Check if the entity is a v4l2_subdev
-  * @entity:	pointer to entity
-  *
-- * This is an ancillary function used by subdev-based V4L2 drivers.
-- * It checks if the entity function is one of functions used by a V4L2 subdev,
-- * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
-+ * Return: true if the entity is an instance of a v4l2_subdev object and can
-+ * safely be cast to a struct v4l2_subdev using the container_of() macro, or
-+ * false otherwise.
-  */
- static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
- {
--	if (!entity)
--		return false;
--
--	switch (entity->function) {
--	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
--	case MEDIA_ENT_F_CAM_SENSOR:
--	case MEDIA_ENT_F_FLASH:
--	case MEDIA_ENT_F_LENS:
--	case MEDIA_ENT_F_ATV_DECODER:
--	case MEDIA_ENT_F_TUNER:
--		return true;
--
--	default:
--		return false;
--	}
-+	return entity && entity->type == MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
- }
- 
- /**
--- 
-2.7.0
-
+> For the sh renesas drivers I will take one final look during the weekend.
+> See what works and what doesn't. I actually have hardware for it, after
+> all.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> >> ---
+> >>  drivers/media/platform/soc_camera/Kconfig                   | 10 ----------
+> >>  drivers/media/platform/soc_camera/Makefile                  |  1 -
+> >>  drivers/staging/media/Kconfig                               |  2 ++
+> >>  drivers/staging/media/Makefile                              |  1 +
+> >>  drivers/staging/media/omap1/Kconfig                         | 13 +++++++++++++
+> >>  drivers/staging/media/omap1/Makefile                        |  3 +++
+> >>  .../soc_camera => staging/media/omap1}/omap1_camera.c       |  0
+> >>  7 files changed, 19 insertions(+), 11 deletions(-)
+> >>  create mode 100644 drivers/staging/media/omap1/Kconfig
+> >>  create mode 100644 drivers/staging/media/omap1/Makefile
+> >>  rename drivers/{media/platform/soc_camera => staging/media/omap1}/omap1_camera.c (100%)
+> >>
+> >> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+> >> index f2776cd..954dd36 100644
+> >> --- a/drivers/media/platform/soc_camera/Kconfig
+> >> +++ b/drivers/media/platform/soc_camera/Kconfig
+> >> @@ -60,16 +60,6 @@ config VIDEO_SH_MOBILE_CEU
+> >>  	---help---
+> >>  	  This is a v4l2 driver for the SuperH Mobile CEU Interface
+> >>
+> >> -config VIDEO_OMAP1
+> >> -	tristate "OMAP1 Camera Interface driver"
+> >> -	depends on VIDEO_DEV && SOC_CAMERA
+> >> -	depends on ARCH_OMAP1
+> >> -	depends on HAS_DMA
+> >> -	select VIDEOBUF_DMA_CONTIG
+> >> -	select VIDEOBUF_DMA_SG
+> >> -	---help---
+> >> -	  This is a v4l2 driver for the TI OMAP1 camera interface
+> >> -
+> >>  config VIDEO_MX2
+> >>  	tristate "i.MX27 Camera Sensor Interface driver"
+> >>  	depends on VIDEO_DEV && SOC_CAMERA
+> >> diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
+> >> index 2826382..bdd7fc9 100644
+> >> --- a/drivers/media/platform/soc_camera/Makefile
+> >> +++ b/drivers/media/platform/soc_camera/Makefile
+> >> @@ -9,7 +9,6 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
+> >>  obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+> >>  obj-$(CONFIG_VIDEO_MX2)			+= mx2_camera.o
+> >>  obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
+> >> -obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
+> >>  obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
+> >>  obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+> >>  obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
+> >> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+> >> index d48a5c2..382d868 100644
+> >> --- a/drivers/staging/media/Kconfig
+> >> +++ b/drivers/staging/media/Kconfig
+> >> @@ -29,6 +29,8 @@ source "drivers/staging/media/mn88472/Kconfig"
+> >>
+> >>  source "drivers/staging/media/mn88473/Kconfig"
+> >>
+> >> +source "drivers/staging/media/omap1/Kconfig"
+> >> +
+> >>  source "drivers/staging/media/omap4iss/Kconfig"
+> >>
+> >>  source "drivers/staging/media/timb/Kconfig"
+> >> diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+> >> index fb94f04..89d038c 100644
+> >> --- a/drivers/staging/media/Makefile
+> >> +++ b/drivers/staging/media/Makefile
+> >> @@ -2,6 +2,7 @@ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
+> >>  obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
+> >>  obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+> >>  obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+> >> +obj-$(CONFIG_VIDEO_OMAP1)	+= omap1/
+> >>  obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
+> >>  obj-$(CONFIG_DVB_MN88472)       += mn88472/
+> >>  obj-$(CONFIG_DVB_MN88473)       += mn88473/
+> >> diff --git a/drivers/staging/media/omap1/Kconfig b/drivers/staging/media/omap1/Kconfig
+> >> new file mode 100644
+> >> index 0000000..6cfab3a
+> >> --- /dev/null
+> >> +++ b/drivers/staging/media/omap1/Kconfig
+> >> @@ -0,0 +1,13 @@
+> >> +config VIDEO_OMAP1
+> >> +	tristate "OMAP1 Camera Interface driver"
+> >> +	depends on VIDEO_DEV && SOC_CAMERA
+> >> +	depends on ARCH_OMAP1
+> >> +	depends on HAS_DMA
+> >> +	select VIDEOBUF_DMA_CONTIG
+> >> +	select VIDEOBUF_DMA_SG
+> >> +	---help---
+> >> +	  This is a v4l2 driver for the TI OMAP1 camera interface
+> >> +
+> >> +	  This driver is deprecated and will be removed soon unless someone
+> >> +	  will start the work to convert this driver to the vb2 framework
+> >> +	  and remove the soc-camera dependency.
+> >> diff --git a/drivers/staging/media/omap1/Makefile b/drivers/staging/media/omap1/Makefile
+> >> new file mode 100644
+> >> index 0000000..2885622
+> >> --- /dev/null
+> >> +++ b/drivers/staging/media/omap1/Makefile
+> >> @@ -0,0 +1,3 @@
+> >> +# Makefile for OMAP1 driver
+> >> +
+> >> +obj-$(CONFIG_VIDEO_OMAP1) += omap1_camera.o
+> >> diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/staging/media/omap1/omap1_camera.c
+> >> similarity index 100%
+> >> rename from drivers/media/platform/soc_camera/omap1_camera.c
+> >> rename to drivers/staging/media/omap1/omap1_camera.c
+> >> -- 
+> >> 2.7.0
+> >>
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
