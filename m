@@ -1,66 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58832 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756453AbcB0Kv3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2016 05:51:29 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 7/7] [media] lirc_dev: avoid double mutex unlock
-Date: Sat, 27 Feb 2016 07:51:13 -0300
-Message-Id: <b7194339caf580006f4b90171f519c1459921f62.1456570258.git.mchehab@osg.samsung.com>
-In-Reply-To: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-References: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-In-Reply-To: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-References: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from jusst.de ([188.40.114.84]:45168 "EHLO web01.jusst.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753668AbcBWUMI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2016 15:12:08 -0500
+Subject: Re: [PATCH] media: adv7180: Add of compatible strings for full family
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1456228699-22575-1-git-send-email-julian@jusst.de>
+ <1941393.Upgl0HgCbF@avalon>
+Cc: linux-media@vger.kernel.org, lars@metafoo.de, hverkuil@xs4all.nl
+From: Julian Scheel <julian@jusst.de>
+Message-ID: <56CCBD1D.6070900@jusst.de>
+Date: Tue, 23 Feb 2016 21:12:13 +0100
+MIME-Version: 1.0
+In-Reply-To: <1941393.Upgl0HgCbF@avalon>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We can only unlock if mutex_lock() succeeds.
+Hi Laurent,
 
-Fixes the following warning:
-	drivers/media/rc/lirc_dev.c:535 lirc_dev_fop_close() error: double unlock 'mutex:&lirc_dev_lock'
+thanks for the fast review :)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/rc/lirc_dev.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+On 23.02.16 21:06, Laurent Pinchart wrote:
+> On Tuesday 23 February 2016 12:58:19 Julian Scheel wrote:
+>> Add entries for all supported chip variants into the of_match list, so that
+>> the matching driver_info can be selected when using dt.
+>
+> How about starting by adding a DT bindings document ?
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 4de0e85af805..92ae1903c010 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -506,6 +506,7 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
- {
- 	struct irctl *ir = irctls[iminor(inode)];
- 	struct cdev *cdev;
-+	int ret;
- 
- 	if (!ir) {
- 		printk(KERN_ERR "%s: called with invalid irctl\n", __func__);
-@@ -516,7 +517,8 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
- 
- 	dev_dbg(ir->d.dev, LOGHEAD "close called\n", ir->d.name, ir->d.minor);
- 
--	WARN_ON(mutex_lock_killable(&lirc_dev_lock));
-+	ret = mutex_lock_killable(&lirc_dev_lock);
-+	WARN_ON(ret);
- 
- 	rc_close(ir->d.rdev);
- 
-@@ -532,7 +534,8 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
- 		kfree(ir);
- 	}
- 
--	mutex_unlock(&lirc_dev_lock);
-+	if (!ret)
-+		mutex_unlock(&lirc_dev_lock);
- 
- 	return 0;
- }
--- 
-2.5.0
+Probably a good thing to do. Didn't think about it as the of_match table 
+was already there. Are you ok with the document being added within this 
+commit or shall I better split it?
 
+>> Change-Id: I6ff849726c8f475c81e848423b27c35f2ccb0509
+>
+> I sympathize with you for the pain gerrit is inflicting on you, but don't
+> share it with all upstream developers please, you can remove this :-)
+
+Hah, so true. Will drop it in v2 :)
+
+>> Signed-off-by: Julian Scheel <julian@jusst.de>
+>> ---
+>>   drivers/media/i2c/adv7180.c | 8 ++++++++
+>>   1 file changed, 8 insertions(+)
+>>
+>> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+>> index ff57c1d..5515f3d 100644
+>> --- a/drivers/media/i2c/adv7180.c
+>> +++ b/drivers/media/i2c/adv7180.c
+>> @@ -1328,6 +1328,14 @@ static SIMPLE_DEV_PM_OPS(adv7180_pm_ops,
+>> adv7180_suspend, adv7180_resume); #ifdef CONFIG_OF
+>>   static const struct of_device_id adv7180_of_id[] = {
+>>   	{ .compatible = "adi,adv7180", },
+>> +	{ .compatible = "adi,adv7182", },
+>> +	{ .compatible = "adi,adv7280", },
+>> +	{ .compatible = "adi,adv7280-m", },
+>> +	{ .compatible = "adi,adv7281", },
+>> +	{ .compatible = "adi,adv7281-m", },
+>> +	{ .compatible = "adi,adv7281-ma", },
+>> +	{ .compatible = "adi,adv7282", },
+>> +	{ .compatible = "adi,adv7282-m", },
+>>   	{ },
+>>   };
+>
