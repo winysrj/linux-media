@@ -1,158 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:35689 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946607AbcBRPGe (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:42619 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755873AbcBXEVD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 10:06:34 -0500
-Received: by mail-wm0-f44.google.com with SMTP id c200so32127724wme.0
-        for <linux-media@vger.kernel.org>; Thu, 18 Feb 2016 07:06:33 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	linux-security-module@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, zoltan.kuscsik@linaro.org,
-	sumit.semwal@linaro.org, cc.ma@mediatek.com
-Cc: "benjamin.gaignard@linaro.org" <benjamin.gaignard@linaro.org>
-Subject: [PATCH v6 3/3] SMAF: add fake secure module
-Date: Thu, 18 Feb 2016 16:05:17 +0100
-Message-Id: <1455807917-19901-4-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1455807917-19901-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1455807917-19901-1-git-send-email-benjamin.gaignard@linaro.org>
+	Tue, 23 Feb 2016 23:21:03 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1891D180741
+	for <linux-media@vger.kernel.org>; Wed, 24 Feb 2016 05:20:58 +0100 (CET)
+Date: Wed, 24 Feb 2016 05:20:58 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160224042058.1891D180741@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "benjamin.gaignard@linaro.org" <benjamin.gaignard@linaro.org>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This module is allow testing secure calls of SMAF.
+Results of the daily build of media_tree:
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- drivers/smaf/Kconfig           |  6 +++
- drivers/smaf/Makefile          |  1 +
- drivers/smaf/smaf-fakesecure.c | 92 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 99 insertions(+)
- create mode 100644 drivers/smaf/smaf-fakesecure.c
+date:		Wed Feb 24 04:00:16 CET 2016
+git branch:	test
+git hash:	3915d367932609f9c0bdc79c525b5dd5a806ab18
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
 
-diff --git a/drivers/smaf/Kconfig b/drivers/smaf/Kconfig
-index 058ec4c..fd17005 100644
---- a/drivers/smaf/Kconfig
-+++ b/drivers/smaf/Kconfig
-@@ -9,3 +9,9 @@ config SMAF_CMA
- 	depends on SMAF && HAVE_DMA_ATTRS
- 	help
- 	  Choose this option to enable CMA allocation within SMAF
-+
-+config SMAF_FAKE_SECURE
-+	tristate "SMAF fake secure module"
-+	depends on SMAF
-+	help
-+	  Choose this option to enable fake secure module for test purpose
-diff --git a/drivers/smaf/Makefile b/drivers/smaf/Makefile
-index 05bab01b..00d5cd4 100644
---- a/drivers/smaf/Makefile
-+++ b/drivers/smaf/Makefile
-@@ -1,2 +1,3 @@
- obj-$(CONFIG_SMAF) += smaf-core.o
- obj-$(CONFIG_SMAF_CMA) += smaf-cma.o
-+obj-$(CONFIG_SMAF_FAKE_SECURE) += smaf-fakesecure.o
-diff --git a/drivers/smaf/smaf-fakesecure.c b/drivers/smaf/smaf-fakesecure.c
-new file mode 100644
-index 0000000..75e12dd
---- /dev/null
-+++ b/drivers/smaf/smaf-fakesecure.c
-@@ -0,0 +1,92 @@
-+/*
-+ * smaf-fakesecure.c
-+ *
-+ * Copyright (C) Linaro SA 2015
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/smaf-secure.h>
-+
-+#define MAGIC 0xDEADBEEF
-+
-+struct fake_private {
-+	int magic;
-+};
-+
-+static void *smaf_fakesecure_create(void)
-+{
-+	struct fake_private *priv;
-+
-+	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-+	priv->magic = MAGIC;
-+
-+	return priv;
-+}
-+
-+static int smaf_fakesecure_destroy(void *ctx)
-+{
-+	struct fake_private *priv = (struct fake_private *)ctx;
-+
-+	WARN_ON(!priv || (priv->magic != MAGIC));
-+	kfree(priv);
-+
-+	return 0;
-+}
-+
-+static bool smaf_fakesecure_grant_access(void *ctx,
-+					 struct device *dev,
-+					 size_t addr, size_t size,
-+					 enum dma_data_direction direction)
-+{
-+	struct fake_private *priv = (struct fake_private *)ctx;
-+
-+	WARN_ON(!priv || (priv->magic != MAGIC));
-+
-+	return priv->magic == MAGIC;
-+}
-+
-+static void smaf_fakesecure_revoke_access(void *ctx,
-+					  struct device *dev,
-+					  size_t addr, size_t size,
-+					  enum dma_data_direction direction)
-+{
-+	struct fake_private *priv = (struct fake_private *)ctx;
-+
-+	WARN_ON(!priv || (priv->magic != MAGIC));
-+}
-+
-+static bool smaf_fakesecure_allow_cpu_access(void *ctx,
-+					     enum dma_data_direction direction)
-+{
-+	struct fake_private *priv = (struct fake_private *)ctx;
-+
-+	WARN_ON(!priv || (priv->magic != MAGIC));
-+
-+	return priv->magic == MAGIC;
-+}
-+
-+static struct smaf_secure fake = {
-+	.create_ctx = smaf_fakesecure_create,
-+	.destroy_ctx = smaf_fakesecure_destroy,
-+	.grant_access = smaf_fakesecure_grant_access,
-+	.revoke_access = smaf_fakesecure_revoke_access,
-+	.allow_cpu_access = smaf_fakesecure_allow_cpu_access,
-+};
-+
-+static int __init smaf_fakesecure_init(void)
-+{
-+	return smaf_register_secure(&fake);
-+}
-+module_init(smaf_fakesecure_init);
-+
-+static void __exit smaf_fakesecure_deinit(void)
-+{
-+	smaf_unregister_secure(&fake);
-+}
-+module_exit(smaf_fakesecure_deinit);
-+
-+MODULE_DESCRIPTION("SMAF fake secure module for test purpose");
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
--- 
-1.9.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
