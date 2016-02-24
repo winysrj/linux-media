@@ -1,101 +1,469 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:57989 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755189AbcBPMw7 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:43319 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751679AbcBXCIV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2016 07:52:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 02/12] v4l2-pci-skeleton: set q->dev instead of allocating a context
-Date: Tue, 16 Feb 2016 13:42:57 +0100
-Message-Id: <1455626587-8051-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
-References: <1455626587-8051-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 23 Feb 2016 21:08:21 -0500
+From: Simon Horman <horms+renesas@verge.net.au>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH] v4l2: remove MIPI CSI-2 driver for SH-Mobile platforms
+Date: Wed, 24 Feb 2016 11:07:59 +0900
+Message-Id: <1456279679-11342-1-git-send-email-horms+renesas@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This driver does not appear to have ever been used by any SoC's defconfig
+and does not appear to support DT. In sort it seems unused an unlikely
+to be used.
 
-Stop using alloc_ctx as that is now no longer needed.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
 ---
- Documentation/video4linux/v4l2-pci-skeleton.c | 15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ drivers/media/platform/soc_camera/Kconfig          |   7 -
+ drivers/media/platform/soc_camera/Makefile         |   1 -
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c | 400 ---------------------
+ 3 files changed, 408 deletions(-)
+ delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_csi2.c
 
-diff --git a/Documentation/video4linux/v4l2-pci-skeleton.c b/Documentation/video4linux/v4l2-pci-skeleton.c
-index 79af0c0..62b6aed 100644
---- a/Documentation/video4linux/v4l2-pci-skeleton.c
-+++ b/Documentation/video4linux/v4l2-pci-skeleton.c
-@@ -56,7 +56,6 @@ MODULE_LICENSE("GPL v2");
-  * @format: current pix format
-  * @input: current video input (0 = SDTV, 1 = HDTV)
-  * @queue: vb2 video capture queue
-- * @alloc_ctx: vb2 contiguous DMA context
-  * @qlock: spinlock controlling access to buf_list and sequence
-  * @buf_list: list of buffers queued for DMA
-  * @sequence: frame sequence counter
-@@ -73,7 +72,6 @@ struct skeleton {
- 	unsigned input;
+ Based on the master branch of media_tree
+
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index f2776cd415ca..4aed9ab03aa8 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -43,13 +43,6 @@ config VIDEO_RCAR_VIN
+ 	---help---
+ 	  This is a v4l2 driver for the R-Car VIN Interface
  
- 	struct vb2_queue queue;
--	struct vb2_alloc_ctx *alloc_ctx;
- 
- 	spinlock_t qlock;
- 	struct list_head buf_list;
-@@ -182,7 +180,6 @@ static int queue_setup(struct vb2_queue *vq,
- 
- 	if (vq->num_buffers + *nbuffers < 3)
- 		*nbuffers = 3 - vq->num_buffers;
--	alloc_ctxs[0] = skel->alloc_ctx;
- 
- 	if (*nplanes)
- 		return sizes[0] < skel->format.sizeimage ? -EINVAL : 0;
-@@ -823,6 +820,7 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	q = &skel->queue;
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
-+	q->dev = &pdev->dev;
- 	q->drv_priv = skel;
- 	q->buf_struct_size = sizeof(struct skel_buffer);
- 	q->ops = &skel_qops;
-@@ -853,12 +851,6 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 	if (ret)
- 		goto free_hdl;
- 
--	skel->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(skel->alloc_ctx)) {
--		dev_err(&pdev->dev, "Can't allocate buffer context");
--		ret = PTR_ERR(skel->alloc_ctx);
--		goto free_hdl;
+-config VIDEO_SH_MOBILE_CSI2
+-	tristate "SuperH Mobile MIPI CSI-2 Interface driver"
+-	depends on VIDEO_DEV && SOC_CAMERA && HAVE_CLK
+-	depends on ARCH_SHMOBILE || SUPERH || COMPILE_TEST
+-	---help---
+-	  This is a v4l2 driver for the SuperH MIPI CSI-2 Interface
+-
+ config VIDEO_SH_MOBILE_CEU
+ 	tristate "SuperH Mobile CEU Interface driver"
+ 	depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA && HAVE_CLK
+diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
+index 2826382dc9f8..e811182fb962 100644
+--- a/drivers/media/platform/soc_camera/Makefile
++++ b/drivers/media/platform/soc_camera/Makefile
+@@ -12,5 +12,4 @@ obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
+ obj-$(CONFIG_VIDEO_OMAP1)		+= omap1_camera.o
+ obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
+ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+-obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
+ obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar_vin.o
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_csi2.c b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+deleted file mode 100644
+index 09b18365a4b1..000000000000
+--- a/drivers/media/platform/soc_camera/sh_mobile_csi2.c
++++ /dev/null
+@@ -1,400 +0,0 @@
+-/*
+- * Driver for the SH-Mobile MIPI CSI-2 unit
+- *
+- * Copyright (C) 2010, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/delay.h>
+-#include <linux/err.h>
+-#include <linux/i2c.h>
+-#include <linux/io.h>
+-#include <linux/platform_device.h>
+-#include <linux/pm_runtime.h>
+-#include <linux/slab.h>
+-#include <linux/videodev2.h>
+-#include <linux/module.h>
+-
+-#include <media/drv-intf/sh_mobile_ceu.h>
+-#include <media/drv-intf/sh_mobile_csi2.h>
+-#include <media/soc_camera.h>
+-#include <media/drv-intf/soc_mediabus.h>
+-#include <media/v4l2-common.h>
+-#include <media/v4l2-dev.h>
+-#include <media/v4l2-device.h>
+-#include <media/v4l2-mediabus.h>
+-#include <media/v4l2-subdev.h>
+-
+-#define SH_CSI2_TREF	0x00
+-#define SH_CSI2_SRST	0x04
+-#define SH_CSI2_PHYCNT	0x08
+-#define SH_CSI2_CHKSUM	0x0C
+-#define SH_CSI2_VCDT	0x10
+-
+-struct sh_csi2 {
+-	struct v4l2_subdev		subdev;
+-	unsigned int			irq;
+-	unsigned long			mipi_flags;
+-	void __iomem			*base;
+-	struct platform_device		*pdev;
+-	struct sh_csi2_client_config	*client;
+-};
+-
+-static void sh_csi2_hwinit(struct sh_csi2 *priv);
+-
+-static int sh_csi2_set_fmt(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_format *format)
+-{
+-	struct sh_csi2 *priv = container_of(sd, struct sh_csi2, subdev);
+-	struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
+-	struct v4l2_mbus_framefmt *mf = &format->format;
+-	u32 tmp = (priv->client->channel & 3) << 8;
+-
+-	if (format->pad)
+-		return -EINVAL;
+-
+-	if (mf->width > 8188)
+-		mf->width = 8188;
+-	else if (mf->width & 1)
+-		mf->width &= ~1;
+-
+-	switch (pdata->type) {
+-	case SH_CSI2C:
+-		switch (mf->code) {
+-		case MEDIA_BUS_FMT_UYVY8_2X8:		/* YUV422 */
+-		case MEDIA_BUS_FMT_YUYV8_1_5X8:		/* YUV420 */
+-		case MEDIA_BUS_FMT_Y8_1X8:		/* RAW8 */
+-		case MEDIA_BUS_FMT_SBGGR8_1X8:
+-		case MEDIA_BUS_FMT_SGRBG8_1X8:
+-			break;
+-		default:
+-			/* All MIPI CSI-2 devices must support one of primary formats */
+-			mf->code = MEDIA_BUS_FMT_YUYV8_2X8;
+-		}
+-		break;
+-	case SH_CSI2I:
+-		switch (mf->code) {
+-		case MEDIA_BUS_FMT_Y8_1X8:		/* RAW8 */
+-		case MEDIA_BUS_FMT_SBGGR8_1X8:
+-		case MEDIA_BUS_FMT_SGRBG8_1X8:
+-		case MEDIA_BUS_FMT_SBGGR10_1X10:	/* RAW10 */
+-		case MEDIA_BUS_FMT_SBGGR12_1X12:	/* RAW12 */
+-			break;
+-		default:
+-			/* All MIPI CSI-2 devices must support one of primary formats */
+-			mf->code = MEDIA_BUS_FMT_SBGGR8_1X8;
+-		}
+-		break;
 -	}
- 	INIT_LIST_HEAD(&skel->buf_list);
- 	spin_lock_init(&skel->qlock);
- 
-@@ -886,13 +878,11 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
- 
- 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret)
--		goto free_ctx;
-+		goto free_hdl;
- 
- 	dev_info(&pdev->dev, "V4L2 PCI Skeleton Driver loaded\n");
- 	return 0;
- 
--free_ctx:
--	vb2_dma_contig_cleanup_ctx(skel->alloc_ctx);
- free_hdl:
- 	v4l2_ctrl_handler_free(&skel->ctrl_handler);
- 	v4l2_device_unregister(&skel->v4l2_dev);
-@@ -908,7 +898,6 @@ static void skeleton_remove(struct pci_dev *pdev)
- 
- 	video_unregister_device(&skel->vdev);
- 	v4l2_ctrl_handler_free(&skel->ctrl_handler);
--	vb2_dma_contig_cleanup_ctx(skel->alloc_ctx);
- 	v4l2_device_unregister(&skel->v4l2_dev);
- 	pci_disable_device(skel->pdev);
- }
+-
+-	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+-		cfg->try_fmt = *mf;
+-		return 0;
+-	}
+-
+-	if (mf->width > 8188 || mf->width & 1)
+-		return -EINVAL;
+-
+-	switch (mf->code) {
+-	case MEDIA_BUS_FMT_UYVY8_2X8:
+-		tmp |= 0x1e;	/* YUV422 8 bit */
+-		break;
+-	case MEDIA_BUS_FMT_YUYV8_1_5X8:
+-		tmp |= 0x18;	/* YUV420 8 bit */
+-		break;
+-	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE:
+-		tmp |= 0x21;	/* RGB555 */
+-		break;
+-	case MEDIA_BUS_FMT_RGB565_2X8_BE:
+-		tmp |= 0x22;	/* RGB565 */
+-		break;
+-	case MEDIA_BUS_FMT_Y8_1X8:
+-	case MEDIA_BUS_FMT_SBGGR8_1X8:
+-	case MEDIA_BUS_FMT_SGRBG8_1X8:
+-		tmp |= 0x2a;	/* RAW8 */
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	iowrite32(tmp, priv->base + SH_CSI2_VCDT);
+-
+-	return 0;
+-}
+-
+-static int sh_csi2_g_mbus_config(struct v4l2_subdev *sd,
+-				 struct v4l2_mbus_config *cfg)
+-{
+-	struct sh_csi2 *priv = container_of(sd, struct sh_csi2, subdev);
+-
+-	if (!priv->mipi_flags) {
+-		struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
+-		struct v4l2_subdev *client_sd = soc_camera_to_subdev(icd);
+-		struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
+-		unsigned long common_flags, csi2_flags;
+-		struct v4l2_mbus_config client_cfg = {.type = V4L2_MBUS_CSI2,};
+-		int ret;
+-
+-		/* Check if we can support this camera */
+-		csi2_flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK |
+-			V4L2_MBUS_CSI2_1_LANE;
+-
+-		switch (pdata->type) {
+-		case SH_CSI2C:
+-			if (priv->client->lanes != 1)
+-				csi2_flags |= V4L2_MBUS_CSI2_2_LANE;
+-			break;
+-		case SH_CSI2I:
+-			switch (priv->client->lanes) {
+-			default:
+-				csi2_flags |= V4L2_MBUS_CSI2_4_LANE;
+-			case 3:
+-				csi2_flags |= V4L2_MBUS_CSI2_3_LANE;
+-			case 2:
+-				csi2_flags |= V4L2_MBUS_CSI2_2_LANE;
+-			}
+-		}
+-
+-		ret = v4l2_subdev_call(client_sd, video, g_mbus_config, &client_cfg);
+-		if (ret == -ENOIOCTLCMD)
+-			common_flags = csi2_flags;
+-		else if (!ret)
+-			common_flags = soc_mbus_config_compatible(&client_cfg,
+-								  csi2_flags);
+-		else
+-			common_flags = 0;
+-
+-		if (!common_flags)
+-			return -EINVAL;
+-
+-		/* All good: camera MIPI configuration supported */
+-		priv->mipi_flags = common_flags;
+-	}
+-
+-	if (cfg) {
+-		cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING |
+-			V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
+-			V4L2_MBUS_MASTER | V4L2_MBUS_DATA_ACTIVE_HIGH;
+-		cfg->type = V4L2_MBUS_PARALLEL;
+-	}
+-
+-	return 0;
+-}
+-
+-static int sh_csi2_s_mbus_config(struct v4l2_subdev *sd,
+-				 const struct v4l2_mbus_config *cfg)
+-{
+-	struct sh_csi2 *priv = container_of(sd, struct sh_csi2, subdev);
+-	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
+-	struct v4l2_subdev *client_sd = soc_camera_to_subdev(icd);
+-	struct v4l2_mbus_config client_cfg = {.type = V4L2_MBUS_CSI2,};
+-	int ret = sh_csi2_g_mbus_config(sd, NULL);
+-
+-	if (ret < 0)
+-		return ret;
+-
+-	pm_runtime_get_sync(&priv->pdev->dev);
+-
+-	sh_csi2_hwinit(priv);
+-
+-	client_cfg.flags = priv->mipi_flags;
+-
+-	return v4l2_subdev_call(client_sd, video, s_mbus_config, &client_cfg);
+-}
+-
+-static struct v4l2_subdev_video_ops sh_csi2_subdev_video_ops = {
+-	.g_mbus_config	= sh_csi2_g_mbus_config,
+-	.s_mbus_config	= sh_csi2_s_mbus_config,
+-};
+-
+-static struct v4l2_subdev_pad_ops sh_csi2_subdev_pad_ops = {
+-	.set_fmt	= sh_csi2_set_fmt,
+-};
+-
+-static void sh_csi2_hwinit(struct sh_csi2 *priv)
+-{
+-	struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
+-	__u32 tmp = 0x10; /* Enable MIPI CSI clock lane */
+-
+-	/* Reflect registers immediately */
+-	iowrite32(0x00000001, priv->base + SH_CSI2_TREF);
+-	/* reset CSI2 harware */
+-	iowrite32(0x00000001, priv->base + SH_CSI2_SRST);
+-	udelay(5);
+-	iowrite32(0x00000000, priv->base + SH_CSI2_SRST);
+-
+-	switch (pdata->type) {
+-	case SH_CSI2C:
+-		if (priv->client->lanes == 1)
+-			tmp |= 1;
+-		else
+-			/* Default - both lanes */
+-			tmp |= 3;
+-		break;
+-	case SH_CSI2I:
+-		if (!priv->client->lanes || priv->client->lanes > 4)
+-			/* Default - all 4 lanes */
+-			tmp |= 0xf;
+-		else
+-			tmp |= (1 << priv->client->lanes) - 1;
+-	}
+-
+-	if (priv->client->phy == SH_CSI2_PHY_MAIN)
+-		tmp |= 0x8000;
+-
+-	iowrite32(tmp, priv->base + SH_CSI2_PHYCNT);
+-
+-	tmp = 0;
+-	if (pdata->flags & SH_CSI2_ECC)
+-		tmp |= 2;
+-	if (pdata->flags & SH_CSI2_CRC)
+-		tmp |= 1;
+-	iowrite32(tmp, priv->base + SH_CSI2_CHKSUM);
+-}
+-
+-static int sh_csi2_client_connect(struct sh_csi2 *priv)
+-{
+-	struct device *dev = v4l2_get_subdevdata(&priv->subdev);
+-	struct sh_csi2_pdata *pdata = dev->platform_data;
+-	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(&priv->subdev);
+-	int i;
+-
+-	if (priv->client)
+-		return -EBUSY;
+-
+-	for (i = 0; i < pdata->num_clients; i++)
+-		if ((pdata->clients[i].pdev &&
+-		     &pdata->clients[i].pdev->dev == icd->pdev) ||
+-		    (icd->control &&
+-		     strcmp(pdata->clients[i].name, dev_name(icd->control))))
+-			break;
+-
+-	dev_dbg(dev, "%s(%p): found #%d\n", __func__, dev, i);
+-
+-	if (i == pdata->num_clients)
+-		return -ENODEV;
+-
+-	priv->client = pdata->clients + i;
+-
+-	return 0;
+-}
+-
+-static void sh_csi2_client_disconnect(struct sh_csi2 *priv)
+-{
+-	if (!priv->client)
+-		return;
+-
+-	priv->client = NULL;
+-
+-	pm_runtime_put(v4l2_get_subdevdata(&priv->subdev));
+-}
+-
+-static int sh_csi2_s_power(struct v4l2_subdev *sd, int on)
+-{
+-	struct sh_csi2 *priv = container_of(sd, struct sh_csi2, subdev);
+-
+-	if (on)
+-		return sh_csi2_client_connect(priv);
+-
+-	sh_csi2_client_disconnect(priv);
+-	return 0;
+-}
+-
+-static struct v4l2_subdev_core_ops sh_csi2_subdev_core_ops = {
+-	.s_power	= sh_csi2_s_power,
+-};
+-
+-static struct v4l2_subdev_ops sh_csi2_subdev_ops = {
+-	.core	= &sh_csi2_subdev_core_ops,
+-	.video	= &sh_csi2_subdev_video_ops,
+-	.pad	= &sh_csi2_subdev_pad_ops,
+-};
+-
+-static int sh_csi2_probe(struct platform_device *pdev)
+-{
+-	struct resource *res;
+-	unsigned int irq;
+-	int ret;
+-	struct sh_csi2 *priv;
+-	/* Platform data specify the PHY, lanes, ECC, CRC */
+-	struct sh_csi2_pdata *pdata = pdev->dev.platform_data;
+-
+-	if (!pdata)
+-		return -EINVAL;
+-
+-	priv = devm_kzalloc(&pdev->dev, sizeof(struct sh_csi2), GFP_KERNEL);
+-	if (!priv)
+-		return -ENOMEM;
+-
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	/* Interrupt unused so far */
+-	irq = platform_get_irq(pdev, 0);
+-
+-	if (!res || (int)irq <= 0) {
+-		dev_err(&pdev->dev, "Not enough CSI2 platform resources.\n");
+-		return -ENODEV;
+-	}
+-
+-	/* TODO: Add support for CSI2I. Careful: different register layout! */
+-	if (pdata->type != SH_CSI2C) {
+-		dev_err(&pdev->dev, "Only CSI2C supported ATM.\n");
+-		return -EINVAL;
+-	}
+-
+-	priv->irq = irq;
+-
+-	priv->base = devm_ioremap_resource(&pdev->dev, res);
+-	if (IS_ERR(priv->base))
+-		return PTR_ERR(priv->base);
+-
+-	priv->pdev = pdev;
+-	priv->subdev.owner = THIS_MODULE;
+-	priv->subdev.dev = &pdev->dev;
+-	platform_set_drvdata(pdev, &priv->subdev);
+-
+-	v4l2_subdev_init(&priv->subdev, &sh_csi2_subdev_ops);
+-	v4l2_set_subdevdata(&priv->subdev, &pdev->dev);
+-
+-	snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s.mipi-csi",
+-		 dev_name(&pdev->dev));
+-
+-	ret = v4l2_async_register_subdev(&priv->subdev);
+-	if (ret < 0)
+-		return ret;
+-
+-	pm_runtime_enable(&pdev->dev);
+-
+-	dev_dbg(&pdev->dev, "CSI2 probed.\n");
+-
+-	return 0;
+-}
+-
+-static int sh_csi2_remove(struct platform_device *pdev)
+-{
+-	struct v4l2_subdev *subdev = platform_get_drvdata(pdev);
+-	struct sh_csi2 *priv = container_of(subdev, struct sh_csi2, subdev);
+-
+-	v4l2_async_unregister_subdev(&priv->subdev);
+-	pm_runtime_disable(&pdev->dev);
+-
+-	return 0;
+-}
+-
+-static struct platform_driver __refdata sh_csi2_pdrv = {
+-	.remove	= sh_csi2_remove,
+-	.probe	= sh_csi2_probe,
+-	.driver	= {
+-		.name	= "sh-mobile-csi2",
+-	},
+-};
+-
+-module_platform_driver(sh_csi2_pdrv);
+-
+-MODULE_DESCRIPTION("SH-Mobile MIPI CSI-2 driver");
+-MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
+-MODULE_LICENSE("GPL v2");
+-MODULE_ALIAS("platform:sh-mobile-csi2");
 -- 
-2.7.0
+2.1.4
 
