@@ -1,60 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53626 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750724AbcBKPt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 10:49:58 -0500
-Subject: Re: [PATCH] Add support for Avermedia AverTV Volar HD 2 (TD110)
-To: Philippe Valembois <lephilousophe@users.sourceforge.net>
-References: <1455005281-25407-1-git-send-email-lephilousophe@users.sourceforge.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <56BCADA4.4040407@iki.fi>
-Date: Thu, 11 Feb 2016 17:49:56 +0200
-MIME-Version: 1.0
-In-Reply-To: <1455005281-25407-1-git-send-email-lephilousophe@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38426 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754285AbcBXVMR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2016 16:12:17 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 1/2] v4l: vsp1: Fix vsp1_du_atomic_(begin|flush) declarations
+Date: Wed, 24 Feb 2016 23:12:09 +0200
+Message-Id: <1456348330-28928-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1456348330-28928-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1456348330-28928-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looks good!
+The functions are void, make the declaration match the definition.
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ include/media/vsp1.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-
-On 02/09/2016 10:08 AM, Philippe Valembois wrote:
-> Signed-off-by: Philippe Valembois <lephilousophe@users.sourceforge.net>
-> ---
->   drivers/media/dvb-core/dvb-usb-ids.h  | 1 +
->   drivers/media/usb/dvb-usb-v2/af9035.c | 2 ++
->   2 files changed, 3 insertions(+)
->
-> diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-> index dbdbb84..0afad39 100644
-> --- a/drivers/media/dvb-core/dvb-usb-ids.h
-> +++ b/drivers/media/dvb-core/dvb-usb-ids.h
-> @@ -242,6 +242,7 @@
->   #define USB_PID_AVERMEDIA_1867				0x1867
->   #define USB_PID_AVERMEDIA_A867				0xa867
->   #define USB_PID_AVERMEDIA_H335				0x0335
-> +#define USB_PID_AVERMEDIA_TD110				0xa110
->   #define USB_PID_AVERMEDIA_TWINSTAR			0x0825
->   #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
->   #define USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM	0x3009
-> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-> index b3c09fe..2638e32 100644
-> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
-> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-> @@ -2053,6 +2053,8 @@ static const struct usb_device_id af9035_id_table[] = {
->   		&af9035_props, "Avermedia A835B(3835)", RC_MAP_IT913X_V2) },
->   	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
->   		&af9035_props, "Avermedia A835B(4835)",	RC_MAP_IT913X_V2) },
-> +	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_TD110,
-> +		&af9035_props, "Avermedia AverTV Volar HD 2 (TD110)", RC_MAP_AVERMEDIA_RM_KS) },
->   	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_H335,
->   		&af9035_props, "Avermedia H335", RC_MAP_IT913X_V2) },
->   	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_UB499_2T_T09,
->
-
+diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+index cc541753896f..d01f7cb8f691 100644
+--- a/include/media/vsp1.h
++++ b/include/media/vsp1.h
+@@ -23,11 +23,11 @@ int vsp1_du_init(struct device *dev);
+ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
+ 		      unsigned int height);
+ 
+-int vsp1_du_atomic_begin(struct device *dev);
++void vsp1_du_atomic_begin(struct device *dev);
+ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf, u32 pixelformat,
+ 			  unsigned int pitch, dma_addr_t mem[2],
+ 			  const struct v4l2_rect *src,
+ 			  const struct v4l2_rect *dst);
+-int vsp1_du_atomic_flush(struct device *dev);
++void vsp1_du_atomic_flush(struct device *dev);
+ 
+ #endif /* __MEDIA_VSP1_H__ */
 -- 
-http://palosaari.fi/
+2.4.10
+
