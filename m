@@ -1,84 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34973 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932122AbcBAUvI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 15:51:08 -0500
-Received: by mail-wm0-f66.google.com with SMTP id l66so10824508wml.2
-        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2016 12:51:07 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 3/3] media: rc: nuvoton: fix locking issue when calling
- nvt_disable_cir
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56AFC52F.2030301@gmail.com>
-Date: Mon, 1 Feb 2016 21:50:55 +0100
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59102 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751405AbcBXIgB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2016 03:36:01 -0500
+Date: Wed, 24 Feb 2016 10:35:27 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
+Message-ID: <20160224083527.GB11084@valkosipuli.retiisi.org.uk>
+References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
+ <3174978.uNIbAnUxCz@avalon>
+ <20160223202400.GA11084@valkosipuli.retiisi.org.uk>
+ <5560544.fDzogjZUfJ@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5560544.fDzogjZUfJ@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-nvt_disable_cir calls nvt_disable_logical_dev (that may sleep) and is
-called from contexts holding a spinlock.
-Fix this and remove the unneeded clearing of CIR_IREN as this is done
-in nvt_cir_disable already.
+Hi Laurent,
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+On Tue, Feb 23, 2016 at 10:30:35PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Tuesday 23 February 2016 22:24:00 Sakari Ailus wrote:
+> > On Tue, Feb 23, 2016 at 10:15:46PM +0200, Laurent Pinchart wrote:
+> > > On Tuesday 23 February 2016 17:15:15 Hans Verkuil wrote:
+> > >> On 02/23/2016 05:11 PM, Sakari Ailus wrote:
+> > >>> On Tue, Feb 23, 2016 at 01:18:53PM +0100, Hans Verkuil wrote:
+> > >>>> On 02/21/16 22:29, Sakari Ailus wrote:
+> > >>>>> Add a new topic option for -h to allow listing supported media bus
+> > >>>>> codes in conversion functions. This is useful in figuring out which
+> > >>>>> media bus codes are actually supported by the library. The numeric
+> > >>>>> values of the codes are listed as well.
+> > >>>>> 
+> > >>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >>>>> ---
+> > >>>>> 
+> > >>>>>  utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++----
+> > >>>>>  1 file changed, 38 insertions(+), 4 deletions(-)
+> > >>>>> 
+> > >>>>> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+> > >>>>> index 0afc9c2..55cdd29 100644
+> > >>>>> --- a/utils/media-ctl/options.c
+> > >>>>> +++ b/utils/media-ctl/options.c
+> 
+> [snip]
+> 
+> > >>>>> @@ -45,7 +47,8 @@ static void usage(const char *argv0)
+> > >>>>> 
+> > >>>>>  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to
+> > >>>>>  	setup\n");
+> > >>>>>  	printf("    --get-v4l2 pad	Print the active format on a given
+> > >>>>> pad\n");
+> > >>>>>  	printf("    --set-dv pad	Configure DV timings on a given pad\n");
+> > >>>>> 
+> > >>>>> -	printf("-h, --help		Show verbose help and exit\n");
+> > >>>>> +	printf("-h, --help[=topic]	Show verbose help and exit\n");
+> > >>>>> +	printf("			topics:	mbus-fmt: List supported media bus pixel
+> > >>>>> codes\n");
+> > >>>>
+> > >>>> OK, this is ugly. It has nothing to do with usage help.
+> > >>>> 
+> > >>>> Just make a new option --list-mbus-fmts to list supported media bus
+> > >>>> pixel codes.
+> > >>>> 
+> > >>>> That would make much more sense.
+> > >>> 
+> > >>> I added it as a --help option argument in order to imply it's a part
+> > >>> of the program's usage instructions, which is what it indeed is. It's
+> > >>> not a list of media bus formats supported by a device.
+> > >>> 
+> > >>> A separate option is fine, but it should be clear that it's about just
+> > >>> listing supported formats. E.g. --list-supported-mbus-fmts. But that's
+> > >>> a long one. Long options are loooong.
+> > >> 
+> > >> --list-known-mbus-fmts will do the trick.
+> > > 
+> > > That doesn't feel right. Isn't it a help option, really, given that it
+> > > lists the formats you can use as command line arguments ?
+> > > 
+> > > Another option would actually be to always print the formats when the -h
+> > > switch is given. We could print them in a comma-separated list with
+> > > multiple formats per line, possibly dropping the numerical value, it
+> > > should hopefully not be horrible.
+> > 
+> > I'd prefer to keep the numerical value as well; the link validation code in
+> > drivers may print the media bus code at each end in case they do not match.
+> > To debug that, it's easy to grep that from the list media-ctl prints.
+> 
+> Grepping media-bus-formats.h shouldn't be difficult ;-)
+> 
+> To shorten the output, how about printing the numerical values as 0x%04x or 
+> %04x ?
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index a6ea75d..34dc1c3 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -950,6 +950,10 @@ static irqreturn_t nvt_cir_wake_isr(int irq, void *data)
- 
- static void nvt_disable_cir(struct nvt_dev *nvt)
- {
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&nvt->nvt_lock, flags);
-+
- 	/* disable CIR interrupts */
- 	nvt_cir_reg_write(nvt, 0, CIR_IREN);
- 
-@@ -963,6 +967,8 @@ static void nvt_disable_cir(struct nvt_dev *nvt)
- 	nvt_clear_cir_fifo(nvt);
- 	nvt_clear_tx_fifo(nvt);
- 
-+	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-+
- 	/* disable the CIR logical device */
- 	nvt_disable_logical_dev(nvt, LOGICAL_DEV_CIR);
- }
-@@ -996,11 +1002,8 @@ static int nvt_open(struct rc_dev *dev)
- static void nvt_close(struct rc_dev *dev)
- {
- 	struct nvt_dev *nvt = dev->priv;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&nvt->nvt_lock, flags);
- 	nvt_disable_cir(nvt);
--	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
- }
- 
- /* Allocate memory, probe hardware, and initialize everything */
-@@ -1151,13 +1154,8 @@ exit_free_dev_rdev:
- static void nvt_remove(struct pnp_dev *pdev)
- {
- 	struct nvt_dev *nvt = pnp_get_drvdata(pdev);
--	unsigned long flags;
- 
--	spin_lock_irqsave(&nvt->nvt_lock, flags);
--	/* disable CIR */
--	nvt_cir_reg_write(nvt, 0, CIR_IREN);
- 	nvt_disable_cir(nvt);
--	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
- 
- 	/* enable CIR Wake (for IR power-on) */
- 	nvt_enable_wake(nvt);
+Well, yes, you can do that. But you have to have the headers available; with
+the numerical values printed by media-ctl you don't need any source code. I
+presume user space developers would appreciate that.
+
+We're not using more than 16 bits currently, I can sure change to print just
+four digits.
+
 -- 
-2.7.0
+Kind regards,
 
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
