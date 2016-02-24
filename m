@@ -1,61 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:34242 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750857AbcBLWkV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 17:40:21 -0500
-Date: Fri, 12 Feb 2016 14:40:19 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: tvp5150 regression after commit 9f924169c035
-Message-ID: <20160212224018.GZ3500@atomide.com>
-References: <56B204CB.60602@osg.samsung.com>
- <20160208105417.GD2220@tetsubishi>
- <56BE57FC.3020407@osg.samsung.com>
- <20160212221352.GY3500@atomide.com>
- <56BE5C97.9070607@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37510 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753424AbcBXGBQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2016 01:01:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Simon Horman <horms+renesas@verge.net.au>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] media: platform: rcar_jpu, sh_vou, vsp1: Use ARCH_RENESAS
+Date: Wed, 24 Feb 2016 08:01:14 +0200
+Message-ID: <3147644.epaEbgJTgL@avalon>
+In-Reply-To: <1456280542-13113-1-git-send-email-horms+renesas@verge.net.au>
+References: <1456280542-13113-1-git-send-email-horms+renesas@verge.net.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <56BE5C97.9070607@osg.samsung.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Javier Martinez Canillas <javier@osg.samsung.com> [160212 14:29]:
-> On 02/12/2016 07:13 PM, Tony Lindgren wrote:
-> >Hmm yeah I wonder if this canned solution helps here too:
-> >
-> >1. Check if the driver(s) are using pm_runtime_use_autosuspend()
-> >
+Hi Simon,
+
+Thank you for the patch.
+
+On Wednesday 24 February 2016 11:22:22 Simon Horman wrote:
+> Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
 > 
-> By driver do you mean the OMAP GPIO driver or the tvp5150 I2C driver?
-> The latter does not have runtime PM support.
-
-Sounds like OMAP GPIO then.
-
-> >2. If so, you must use pm_runtime_dont_use_autosuspend() before
-> >    pm_runtime_put_sync() to make sure that pm_runtime_put_sync()
-> >    works.
-> >
-> >3. Or you can use pm_runtime_put_sync_suspend() instead of
-> >    pm_runtime_put_sync() for sections of code where the clocks
-> >    need to be stopped.
-> >
+> This is part of an ongoing process to migrate from ARCH_SHMOBILE to
+> ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
+> appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
 > 
-> I can check if the OMAP GPIO is following these and give a try but
-> don't have access to the board right now so I'll do it on Monday.
+> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
 
-It does not seem to be using pm_runtime_autosuspend(). Did you
-try reverting commit de85b9d57ab ("PM / runtime: Re-init runtime
-PM states at probe error and driver unbind") and see if that
-helps?
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-If it does, then sounds like we may have some other regression
-as well.
+> ---
+>  drivers/media/platform/Kconfig | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+>  Based on media_tree/master
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 201f5c296a95..662c029400de 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -37,7 +37,7 @@ config VIDEO_SH_VOU
+>  	tristate "SuperH VOU video output driver"
+>  	depends on MEDIA_CAMERA_SUPPORT
+>  	depends on VIDEO_DEV && I2C && HAS_DMA
+> -	depends on ARCH_SHMOBILE || COMPILE_TEST
+> +	depends on ARCH_RENESAS || COMPILE_TEST
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	help
+>  	  Support for the Video Output Unit (VOU) on SuperH SoCs.
+> @@ -238,7 +238,7 @@ config VIDEO_SH_VEU
+>  config VIDEO_RENESAS_JPU
+>  	tristate "Renesas JPEG Processing Unit"
+>  	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+> -	depends on ARCH_SHMOBILE || COMPILE_TEST
+> +	depends on ARCH_RENESAS || COMPILE_TEST
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	select V4L2_MEM2MEM_DEV
+>  	---help---
+> @@ -250,7 +250,7 @@ config VIDEO_RENESAS_JPU
+>  config VIDEO_RENESAS_VSP1
+>  	tristate "Renesas VSP1 Video Processing Engine"
+>  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
+> -	depends on (ARCH_SHMOBILE && OF) || COMPILE_TEST
+> +	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	---help---
+>  	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
 
+-- 
 Regards,
 
-Tony
+Laurent Pinchart
+
