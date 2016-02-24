@@ -1,86 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33095 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932159AbcBAUvF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2016 15:51:05 -0500
-Received: by mail-wm0-f67.google.com with SMTP id r129so10835557wmr.0
-        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2016 12:51:05 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 1/3] media: rc: nuvoton: fix locking issue with nvt_enable_cir
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56AFC4DC.9080004@gmail.com>
-Date: Mon, 1 Feb 2016 21:49:32 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38425 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754220AbcBXVMR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2016 16:12:17 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 0/2] Renesas VSP1: Fix DRM API header
+Date: Wed, 24 Feb 2016 23:12:08 +0200
+Message-Id: <1456348330-28928-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-nvt_enable_cir calls nvt_enable_logical_dev (that may sleep)
-while holding a spinlock.
-This patch fixes this and moves the content of nvt_enable_cir
-to nvt_open as this is the only caller.
+Hello,
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 33 +++++++++++++++------------------
- 1 file changed, 15 insertions(+), 18 deletions(-)
+This series fixes the problem that commit 18922936dc28 ("[media] vsp1_drm.h:
+add missing prototypes") tried to address. The functions has prototypes in a
+different header file, to proper fix is to include that header instead of
+duplicating prototypes.
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index b6acc84..971858a 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -942,23 +942,6 @@ static irqreturn_t nvt_cir_wake_isr(int irq, void *data)
- 	return IRQ_HANDLED;
- }
- 
--static void nvt_enable_cir(struct nvt_dev *nvt)
--{
--	/* set function enable flags */
--	nvt_cir_reg_write(nvt, CIR_IRCON_TXEN | CIR_IRCON_RXEN |
--			  CIR_IRCON_RXINV | CIR_IRCON_SAMPLE_PERIOD_SEL,
--			  CIR_IRCON);
--
--	/* enable the CIR logical device */
--	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR);
--
--	/* clear all pending interrupts */
--	nvt_cir_reg_write(nvt, 0xff, CIR_IRSTS);
--
--	/* enable interrupts */
--	nvt_set_cir_iren(nvt);
--}
--
- static void nvt_disable_cir(struct nvt_dev *nvt)
- {
- 	/* disable CIR interrupts */
-@@ -984,9 +967,23 @@ static int nvt_open(struct rc_dev *dev)
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&nvt->nvt_lock, flags);
--	nvt_enable_cir(nvt);
-+
-+	/* set function enable flags */
-+	nvt_cir_reg_write(nvt, CIR_IRCON_TXEN | CIR_IRCON_RXEN |
-+			  CIR_IRCON_RXINV | CIR_IRCON_SAMPLE_PERIOD_SEL,
-+			  CIR_IRCON);
-+
-+	/* clear all pending interrupts */
-+	nvt_cir_reg_write(nvt, 0xff, CIR_IRSTS);
-+
-+	/* enable interrupts */
-+	nvt_set_cir_iren(nvt);
-+
- 	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
- 
-+	/* enable the CIR logical device */
-+	nvt_enable_logical_dev(nvt, LOGICAL_DEV_CIR);
-+
- 	return 0;
- }
- 
+Mauro, this series applies on top of the vsp1 branch, but doesn't have to be
+merged into it as it's not a dependency for the DRM pull request I've sent.
+I'll thus send you a normal pull request for this once the patches will be
+reviewed.
+
+Laurent Pinchart (2):
+  v4l: vsp1: Fix vsp1_du_atomic_(begin|flush) declarations
+  v4l: vsp1: drm: Include correct header file
+
+ drivers/media/platform/vsp1/vsp1_drm.c |  2 +-
+ drivers/media/platform/vsp1/vsp1_drm.h | 11 -----------
+ include/media/vsp1.h                   |  4 ++--
+ 3 files changed, 3 insertions(+), 14 deletions(-)
+
 -- 
-2.7.0
+Regards,
 
+Laurent Pinchart
 
