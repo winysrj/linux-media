@@ -1,50 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:33915 "EHLO
-	mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754160AbcB2S4v convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 13:56:51 -0500
-Received: by mail-io0-f194.google.com with SMTP id l127so14573177iof.1
-        for <linux-media@vger.kernel.org>; Mon, 29 Feb 2016 10:56:51 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1456104396-13282-2-git-send-email-emilio@elopez.com.ar>
-References: <1456104396-13282-1-git-send-email-emilio@elopez.com.ar>
-	<1456104396-13282-2-git-send-email-emilio@elopez.com.ar>
-Date: Mon, 29 Feb 2016 15:56:50 -0300
-Message-ID: <CABxcv=n_119K-9ntCXeUOm86GSz42sn1QmoGHedBa0f7X1vk2Q@mail.gmail.com>
-Subject: Re: [PATCH 2/3] dmaengine: sun4i: support module autoloading
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: =?UTF-8?Q?Emilio_L=C3=B3pez?= <emilio@elopez.com.ar>
-Cc: Vinod Koul <vinod.koul@intel.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Chen-Yu Tsai <wens@csie.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	balbi@kernel.org, Hans de Goede <hdegoede@redhat.com>,
-	dmaengine@vger.kernel.org,
-	=?UTF-8?Q?Emilio_L=C3=B3pez?= <emilio.lopez@collabora.co.uk>,
-	USB list <linux-usb@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mga04.intel.com ([192.55.52.120]:15091 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756439AbcBXRF5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2016 12:05:57 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [PATCH v5 2/4] libv4l2subdev: Use generated format definitions in libv4l2subdev
+Date: Wed, 24 Feb 2016 18:25:26 +0200
+Message-Id: <1456331128-7036-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1456331128-7036-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1456331128-7036-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Emilio,
+Instead of manually adding each and every new media bus pixel code to
+libv4l2subdev, generate the list automatically. The pre-existing formats
+that do not match the list are not modified so that existing users are
+unaffected by this change, with the exception of converting codes to
+strings, which will use the new definitions.
 
-On Sun, Feb 21, 2016 at 10:26 PM, Emilio López <emilio@elopez.com.ar> wrote:
-> From: Emilio López <emilio.lopez@collabora.co.uk>
->
-> MODULE_DEVICE_TABLE() is missing, so the module isn't auto-loading on
-> supported systems. This commit adds the missing line so it loads
-> automatically when building it as a module and running on a system
-> with the early sunxi DMA engine.
->
-> Signed-off-by: Emilio López <emilio.lopez@collabora.co.uk>
-> ---
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ utils/media-ctl/.gitignore      | 1 +
+ utils/media-ctl/Makefile.am     | 8 ++++++++
+ utils/media-ctl/libv4l2subdev.c | 1 +
+ 3 files changed, 10 insertions(+)
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+diff --git a/utils/media-ctl/.gitignore b/utils/media-ctl/.gitignore
+index 95b6a57..799ab33 100644
+--- a/utils/media-ctl/.gitignore
++++ b/utils/media-ctl/.gitignore
+@@ -1 +1,2 @@
+ media-ctl
++media-bus-format-names.h
+diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+index a3931fb..23ad90b 100644
+--- a/utils/media-ctl/Makefile.am
++++ b/utils/media-ctl/Makefile.am
+@@ -4,6 +4,14 @@ libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
+ libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
+ libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
+ 
++media-bus-format-names.h: ../../include/linux/media-bus-format.h
++	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*FMT_//; /FIXED/ d; s/\t.*//; s/.*/{ \"&\", MEDIA_BUS_FMT_& },/;' \
++	< $< > $@
++
++BUILT_SOURCES = media-bus-format-names.h
++CLEANFILES = $(BUILT_SOURCES)
++
++nodist_libv4l2subdev_la_SOURCES = $(BUILT_SOURCES)
+ libv4l2subdev_la_SOURCES = libv4l2subdev.c
+ libv4l2subdev_la_LIBADD = libmediactl.la
+ libv4l2subdev_la_CFLAGS = -static
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index e45834f..f3c0a9a 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -719,6 +719,7 @@ static const struct {
+ 	const char *name;
+ 	enum v4l2_mbus_pixelcode code;
+ } mbus_formats[] = {
++#include "media-bus-format-names.h"
+ 	{ "Y8", MEDIA_BUS_FMT_Y8_1X8},
+ 	{ "Y10", MEDIA_BUS_FMT_Y10_1X10 },
+ 	{ "Y12", MEDIA_BUS_FMT_Y12_1X12 },
+-- 
+2.1.0.231.g7484e3b
 
-Best regards,
-Javier
