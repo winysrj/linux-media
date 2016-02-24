@@ -1,49 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yotta.elopez.com.ar ([185.83.216.59]:56750 "EHLO
-	yotta.elopez.com.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752304AbcBVBtX (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:46826 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750883AbcBXGR1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 20:49:23 -0500
-From: =?UTF-8?q?Emilio=20L=C3=B3pez?= <emilio@elopez.com.ar>
-To: vinod.koul@intel.com, maxime.ripard@free-electrons.com,
-	wens@csie.org, mchehab@osg.samsung.com, balbi@kernel.org,
-	hdegoede@redhat.com
-Cc: dmaengine@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	=?UTF-8?q?Emilio=20L=C3=B3pez?= <emilio.lopez@collabora.co.uk>
-Subject: [PATCH 1/3] [media] rc: sunxi-cir: support module autoloading
-Date: Sun, 21 Feb 2016 22:26:34 -0300
-Message-Id: <1456104396-13282-1-git-send-email-emilio@elopez.com.ar>
+	Wed, 24 Feb 2016 01:17:27 -0500
+Date: Wed, 24 Feb 2016 15:17:24 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] v4l2: remove MIPI CSI-2 driver for SH-Mobile platforms
+Message-ID: <20160224061721.GK5435@verge.net.au>
+References: <1456279679-11342-1-git-send-email-horms+renesas@verge.net.au>
+ <2212155.BHpL65I02t@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2212155.BHpL65I02t@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Emilio López <emilio.lopez@collabora.co.uk>
+On Wed, Feb 24, 2016 at 07:59:57AM +0200, Laurent Pinchart wrote:
+> Hi Simon,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 24 February 2016 11:07:59 Simon Horman wrote:
+> > This driver does not appear to have ever been used by any SoC's defconfig
+> > and does not appear to support DT. In sort it seems unused an unlikely
+> > to be used.
+> > 
+> > Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> > ---
+> >  drivers/media/platform/soc_camera/Kconfig          |   7 -
+> >  drivers/media/platform/soc_camera/Makefile         |   1 -
+> >  drivers/media/platform/soc_camera/sh_mobile_csi2.c | 400 ------------------
+> 
+> Shouldn't you also remove include/media/drv-intf/sh_mobile_csi2.h ? You would 
+> then need to update drivers/media/platform/soc_camera/sh_mobile_ceu.c 
+> accordingly, or remove it altogether.
 
-MODULE_DEVICE_TABLE() is missing, so the module isn't auto-loading on
-systems supporting infrared. This commit adds the missing line so it
-works out of the box when built as a module and running on a sunxi
-system with an infrared receiver.
+Thanks.
 
-Signed-off-by: Emilio López <emilio.lopez@collabora.co.uk>
----
- drivers/media/rc/sunxi-cir.c | 1 +
- 1 file changed, 1 insertion(+)
+sh_mobile_ceu appears to be used by several SH boards so I'd rather
+not remove it, at least not for this reason.
 
-diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
-index 40f7768..eaadc08 100644
---- a/drivers/media/rc/sunxi-cir.c
-+++ b/drivers/media/rc/sunxi-cir.c
-@@ -326,6 +326,7 @@ static const struct of_device_id sunxi_ir_match[] = {
- 	{ .compatible = "allwinner,sun5i-a13-ir", },
- 	{},
- };
-+MODULE_DEVICE_TABLE(of, sunxi_ir_match);
- 
- static struct platform_driver sunxi_ir_driver = {
- 	.probe          = sunxi_ir_probe,
--- 
-2.7.1
+So I'd prefer to look into updating sh_mobile_ceu.c and removing
+sh_mobile_csi2.h.
 
+> >  3 files changed, 408 deletions(-)
+> >  delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_csi2.c
+> > 
+> >  Based on the master branch of media_tree
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
