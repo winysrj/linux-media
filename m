@@ -1,55 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51660 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750749AbcBGSIs (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:56342 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751166AbcBXPjE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Feb 2016 13:08:48 -0500
-Date: Sun, 7 Feb 2016 20:08:46 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Anton Protopopov <a.s.protopopov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: i2c/adp1653: probe: fix erroneous return value
-Message-ID: <20160207180845.GE32612@valkosipuli.retiisi.org.uk>
-References: <1454819252-6773-1-git-send-email-a.s.protopopov@gmail.com>
+	Wed, 24 Feb 2016 10:39:04 -0500
+Subject: Re: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
+ <3174978.uNIbAnUxCz@avalon>
+ <20160223202400.GA11084@valkosipuli.retiisi.org.uk>
+ <5560544.fDzogjZUfJ@avalon>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56CDCE92.1060200@xs4all.nl>
+Date: Wed, 24 Feb 2016 16:38:58 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1454819252-6773-1-git-send-email-a.s.protopopov@gmail.com>
+In-Reply-To: <5560544.fDzogjZUfJ@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Anton,
-
-On Sat, Feb 06, 2016 at 11:27:32PM -0500, Anton Protopopov wrote:
-> The adp1653_probe() function may return positive value EINVAL
-> which is obviously wrong.
+On 02/23/16 21:30, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> Signed-off-by: Anton Protopopov <a.s.protopopov@gmail.com>
-> ---
->  drivers/media/i2c/adp1653.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> On Tuesday 23 February 2016 22:24:00 Sakari Ailus wrote:
+>> On Tue, Feb 23, 2016 at 10:15:46PM +0200, Laurent Pinchart wrote:
+>>> On Tuesday 23 February 2016 17:15:15 Hans Verkuil wrote:
+>>>> On 02/23/2016 05:11 PM, Sakari Ailus wrote:
+>>>>> On Tue, Feb 23, 2016 at 01:18:53PM +0100, Hans Verkuil wrote:
+>>>>>> On 02/21/16 22:29, Sakari Ailus wrote:
+>>>>>>> Add a new topic option for -h to allow listing supported media bus
+>>>>>>> codes in conversion functions. This is useful in figuring out which
+>>>>>>> media bus codes are actually supported by the library. The numeric
+>>>>>>> values of the codes are listed as well.
+>>>>>>>
+>>>>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>>>>>> ---
+>>>>>>>
+>>>>>>>  utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++----
+>>>>>>>  1 file changed, 38 insertions(+), 4 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+>>>>>>> index 0afc9c2..55cdd29 100644
+>>>>>>> --- a/utils/media-ctl/options.c
+>>>>>>> +++ b/utils/media-ctl/options.c
 > 
-> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
-> index 7e9cbf7..fb7ed73 100644
-> --- a/drivers/media/i2c/adp1653.c
-> +++ b/drivers/media/i2c/adp1653.c
-> @@ -497,7 +497,7 @@ static int adp1653_probe(struct i2c_client *client,
->  		if (!client->dev.platform_data) {
->  			dev_err(&client->dev,
->  				"Neither DT not platform data provided\n");
-> -			return EINVAL;
-> +			return -EINVAL;
->  		}
->  		flash->platform_data = client->dev.platform_data;
->  	}
+> [snip]
+> 
+>>>>>>> @@ -45,7 +47,8 @@ static void usage(const char *argv0)
+>>>>>>>
+>>>>>>>  	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to
+>>>>>>>  	setup\n");
+>>>>>>>  	printf("    --get-v4l2 pad	Print the active format on a given
+>>>>>>> pad\n");
+>>>>>>>  	printf("    --set-dv pad	Configure DV timings on a given pad\n");
+>>>>>>>
+>>>>>>> -	printf("-h, --help		Show verbose help and exit\n");
+>>>>>>> +	printf("-h, --help[=topic]	Show verbose help and exit\n");
+>>>>>>> +	printf("			topics:	mbus-fmt: List supported media bus pixel
+>>>>>>> codes\n");
+>>>>>>
+>>>>>> OK, this is ugly. It has nothing to do with usage help.
+>>>>>>
+>>>>>> Just make a new option --list-mbus-fmts to list supported media bus
+>>>>>> pixel codes.
+>>>>>>
+>>>>>> That would make much more sense.
+>>>>>
+>>>>> I added it as a --help option argument in order to imply it's a part
+>>>>> of the program's usage instructions, which is what it indeed is. It's
+>>>>> not a list of media bus formats supported by a device.
+>>>>>
+>>>>> A separate option is fine, but it should be clear that it's about just
+>>>>> listing supported formats. E.g. --list-supported-mbus-fmts. But that's
+>>>>> a long one. Long options are loooong.
+>>>>
+>>>> --list-known-mbus-fmts will do the trick.
+>>>
+>>> That doesn't feel right. Isn't it a help option, really, given that it
+>>> lists the formats you can use as command line arguments ?
 
-Thanks!
+The help arguments don't have 'options'. You could provide a --help-list-mbus-fmts,
+though.
 
-Applied to my tree.
+>>> Another option would actually be to always print the formats when the -h
+>>> switch is given. We could print them in a comma-separated list with
+>>> multiple formats per line, possibly dropping the numerical value, it
+>>> should hopefully not be horrible.
 
--- 
-Kind regards,
+Just always printing the list when -h is given works for me too.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+
+	Hans
+
+>>
+>> I'd prefer to keep the numerical value as well; the link validation code in
+>> drivers may print the media bus code at each end in case they do not match.
+>> To debug that, it's easy to grep that from the list media-ctl prints.
+> 
+> Grepping media-bus-formats.h shouldn't be difficult ;-)
+> 
+> To shorten the output, how about printing the numerical values as 0x%04x or 
+> %04x ?
+> 
