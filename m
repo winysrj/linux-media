@@ -1,72 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55973 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753723AbcBEP2R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2016 10:28:17 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([192.55.52.115]:11054 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755843AbcBXQ1j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2016 11:27:39 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv11 01/17] dts: exynos4*: add HDMI CEC pin definition to pinctrl
-Date: Fri,  5 Feb 2016 16:27:44 +0100
-Message-Id: <1454686080-39018-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
-References: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [PATCH v5 3/4] libv4l2subdev: Add a function to list library supported pixel codes
+Date: Wed, 24 Feb 2016 18:25:27 +0200
+Message-Id: <1456331128-7036-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1456331128-7036-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1456331128-7036-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+Also mark which format definitions are compat definitions for the
+pre-existing codes. This way we don't end up listing the same formats
+twice.
 
-Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
-Exynos4x12 SoCs. These are required by the HDMI CEC device.
-
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- arch/arm/boot/dts/exynos4210-pinctrl.dtsi | 7 +++++++
- arch/arm/boot/dts/exynos4x12-pinctrl.dtsi | 7 +++++++
- 2 files changed, 14 insertions(+)
+ utils/media-ctl/.gitignore      |  1 +
+ utils/media-ctl/Makefile.am     |  6 +++++-
+ utils/media-ctl/libv4l2subdev.c | 11 +++++++++++
+ utils/media-ctl/v4l2subdev.h    | 11 +++++++++++
+ 4 files changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-index a7c2128..9331c62 100644
---- a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-@@ -820,6 +820,13 @@
- 			samsung,pin-pud = <1>;
- 			samsung,pin-drv = <0>;
- 		};
-+
-+		hdmi_cec: hdmi-cec {
-+			samsung,pins = "gpx3-6";
-+			samsung,pin-function = <3>;
-+			samsung,pin-pud = <0>;
-+			samsung,pin-drv = <0>;
-+		};
- 	};
+diff --git a/utils/media-ctl/.gitignore b/utils/media-ctl/.gitignore
+index 799ab33..5354fec 100644
+--- a/utils/media-ctl/.gitignore
++++ b/utils/media-ctl/.gitignore
+@@ -1,2 +1,3 @@
+ media-ctl
+ media-bus-format-names.h
++media-bus-format-codes.h
+diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+index 23ad90b..ee7dcc9 100644
+--- a/utils/media-ctl/Makefile.am
++++ b/utils/media-ctl/Makefile.am
+@@ -8,7 +8,11 @@ media-bus-format-names.h: ../../include/linux/media-bus-format.h
+ 	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*FMT_//; /FIXED/ d; s/\t.*//; s/.*/{ \"&\", MEDIA_BUS_FMT_& },/;' \
+ 	< $< > $@
  
- 	pinctrl@03860000 {
-diff --git a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-index bac25c6..856b292 100644
---- a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-@@ -885,6 +885,13 @@
- 			samsung,pin-pud = <0>;
- 			samsung,pin-drv = <0>;
- 		};
+-BUILT_SOURCES = media-bus-format-names.h
++media-bus-format-codes.h: ../../include/linux/media-bus-format.h
++	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*#define //; /FIXED/ d; s/\t.*//; s/.*/ &,/;' \
++	< $< > $@
 +
-+		hdmi_cec: hdmi-cec {
-+			samsung,pins = "gpx3-6";
-+			samsung,pin-function = <3>;
-+			samsung,pin-pud = <0>;
-+			samsung,pin-drv = <0>;
-+		};
- 	};
++BUILT_SOURCES = media-bus-format-names.h media-bus-format-codes.h
+ CLEANFILES = $(BUILT_SOURCES)
  
- 	pinctrl_2: pinctrl@03860000 {
+ nodist_libv4l2subdev_la_SOURCES = $(BUILT_SOURCES)
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index f3c0a9a..8d39898 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -821,3 +821,14 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string,
+ 
+ 	return fields[i].field;
+ }
++
++static const enum v4l2_mbus_pixelcode mbus_codes[] = {
++#include "media-bus-format-codes.h"
++};
++
++const enum v4l2_mbus_pixelcode *v4l2_subdev_pixelcode_list(unsigned int *length)
++{
++	*length = ARRAY_SIZE(mbus_codes);
++
++	return mbus_codes;
++}
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index 104e420..97f46a8 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -279,4 +279,15 @@ const char *v4l2_subdev_field_to_string(enum v4l2_field field);
+ enum v4l2_field v4l2_subdev_string_to_field(const char *string,
+ 					    unsigned int length);
+ 
++/**
++ * @brief Enumerate library supported media bus pixel codes.
++ * @param length - the number of the supported pixel codes
++ *
++ * Obtain pixel codes supported by libv4l2subdev.
++ *
++ * @return A pointer to the pixel code array
++ */
++const enum v4l2_mbus_pixelcode *v4l2_subdev_pixelcode_list(
++	unsigned int *length);
++
+ #endif
 -- 
-2.7.0
+2.1.0.231.g7484e3b
 
