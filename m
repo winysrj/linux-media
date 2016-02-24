@@ -1,85 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45160 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751502AbcBNCcL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2016 21:32:11 -0500
-Received: from dyn3-82-128-190-33.psoas.suomi.net ([82.128.190.33] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
-	(Exim 4.80)
-	(envelope-from <crope@iki.fi>)
-	id 1aUmTp-0008Io-Tb
-	for linux-media@vger.kernel.org; Sun, 14 Feb 2016 04:32:09 +0200
-To: LMML <linux-media@vger.kernel.org>
-From: Antti Palosaari <crope@iki.fi>
-Subject: mn88473: move out of staging
-Message-ID: <56BFE729.2000608@iki.fi>
-Date: Sun, 14 Feb 2016 04:32:09 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37508 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750996AbcBXGAC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2016 01:00:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Simon Horman <horms+renesas@verge.net.au>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] v4l2: remove MIPI CSI-2 driver for SH-Mobile platforms
+Date: Wed, 24 Feb 2016 07:59:57 +0200
+Message-ID: <2212155.BHpL65I02t@avalon>
+In-Reply-To: <1456279679-11342-1-git-send-email-horms+renesas@verge.net.au>
+References: <1456279679-11342-1-git-send-email-horms+renesas@verge.net.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 210bd104c6acd31c3c6b8b075b3f12d4a9f6b60d:
+Hi Simon,
 
-   [media] xc2028: unlock on error in xc2028_set_config() (2016-02-04 
-09:30:31 -0200)
+Thank you for the patch.
 
-are available in the git repository at:
+On Wednesday 24 February 2016 11:07:59 Simon Horman wrote:
+> This driver does not appear to have ever been used by any SoC's defconfig
+> and does not appear to support DT. In sort it seems unused an unlikely
+> to be used.
+> 
+> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> ---
+>  drivers/media/platform/soc_camera/Kconfig          |   7 -
+>  drivers/media/platform/soc_camera/Makefile         |   1 -
+>  drivers/media/platform/soc_camera/sh_mobile_csi2.c | 400 ------------------
 
-   git://linuxtv.org/anttip/media_tree.git mn88473_pull
+Shouldn't you also remove include/media/drv-intf/sh_mobile_csi2.h ? You would 
+then need to update drivers/media/platform/soc_camera/sh_mobile_ceu.c 
+accordingly, or remove it altogether.
 
-for you to fetch changes up to 05886118dd140b4d96cf4de5c76b4fb6155316f5:
-
-   rtl2832: move stats polling to read status (2016-02-14 04:29:33 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (4):
-       mn88473: move out of staging
-       mn88473: finalize driver
-       rtl2832: improve slave TS control
-       rtl2832: move stats polling to read status
-
-  MAINTAINERS 
-|   4 +-
-  drivers/media/dvb-frontends/Kconfig 
-|   8 +++
-  drivers/media/dvb-frontends/Makefile 
-|   1 +
-  drivers/{staging/media/mn88473 => media/dvb-frontends}/mn88473.c 
-| 388 
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------------------------------
-  drivers/media/dvb-frontends/mn88473.h 
-|  14 ++---
-  drivers/{staging/media/mn88473 => media/dvb-frontends}/mn88473_priv.h 
-|   7 +--
-  drivers/media/dvb-frontends/rtl2832.c 
-| 151 +++++++++++++++++++++-----------------------
-  drivers/media/dvb-frontends/rtl2832.h 
-|   4 +-
-  drivers/media/dvb-frontends/rtl2832_priv.h 
-|   1 -
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c 
-|  24 +++----
-  drivers/staging/media/Kconfig 
-|   2 -
-  drivers/staging/media/Makefile 
-|   1 -
-  drivers/staging/media/mn88473/Kconfig 
-|   7 ---
-  drivers/staging/media/mn88473/Makefile 
-|   5 --
-  drivers/staging/media/mn88473/TODO 
-|  21 -------
-  15 files changed, 340 insertions(+), 298 deletions(-)
-  rename drivers/{staging/media/mn88473 => 
-media/dvb-frontends}/mn88473.c (61%)
-  rename drivers/{staging/media/mn88473 => 
-media/dvb-frontends}/mn88473_priv.h (89%)
-  delete mode 100644 drivers/staging/media/mn88473/Kconfig
-  delete mode 100644 drivers/staging/media/mn88473/Makefile
-  delete mode 100644 drivers/staging/media/mn88473/TODO
-
+>  3 files changed, 408 deletions(-)
+>  delete mode 100644 drivers/media/platform/soc_camera/sh_mobile_csi2.c
+> 
+>  Based on the master branch of media_tree
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
