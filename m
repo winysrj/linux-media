@@ -1,130 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:49163 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1425034AbcBRGgx (ORCPT
+Received: from mail-io0-f182.google.com ([209.85.223.182]:33695 "EHLO
+	mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754753AbcBYH5Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2016 01:36:53 -0500
-Subject: Re: [RFC/PATCH] [media] rcar-vin: add Renesas R-Car VIN IP core
-To: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	linux-renesas-soc@vger.kernel.org,
-	Ulrich Hecht <ulrich.hecht@gmail.com>
-References: <1455468932-8573-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
- <56C19A2B.2080502@xs4all.nl> <20160218001342.GA12338@bigcity.dyn.berto.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56C5667F.2000809@xs4all.nl>
-Date: Thu, 18 Feb 2016 07:36:47 +0100
+	Thu, 25 Feb 2016 02:57:16 -0500
 MIME-Version: 1.0
-In-Reply-To: <20160218001342.GA12338@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20160225003243.GA12961@verge.net.au>
+References: <1456280542-13113-1-git-send-email-horms+renesas@verge.net.au>
+	<CAMuHMdUwvgaLtLLSk7jdg1N7mafpGz0VsikhbcFsuGQDHAunVw@mail.gmail.com>
+	<20160224235619.GA5936@verge.net.au>
+	<20160225003243.GA12961@verge.net.au>
+Date: Thu, 25 Feb 2016 08:57:15 +0100
+Message-ID: <CAMuHMdUZTkJqTrskW=3_m1UufxjDaf8EF=gz_+NT07DDvkw2Vg@mail.gmail.com>
+Subject: Re: [PATCH] media: platform: rcar_jpu, sh_vou, vsp1: Use ARCH_RENESAS
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Simon Horman <horms@verge.net.au>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/18/2016 01:13 AM, Niklas Söderlund wrote:
-> Hi Hans,
-> 
-> Thanks for your comments.
-> 
-> On 2016-02-15 10:28:11 +0100, Hans Verkuil wrote:
->> On 02/14/2016 05:55 PM, Niklas Söderlund wrote:
->>> A V4L2 driver for Renesas R-Car VIN IP cores that do not depend on
->>> soc_camera. The driver is heavily based on its predecessor and aims to
->>> replace the soc_camera driver.
->>
->> Fantastic! I've been hoping that this would be done at some point. It
->> was very unfortunate that Renesas went with soc-camera initially.
->>
->>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->>> ---
->>>
->>> The driver is tested on Koelsch and can grab frames using yavta.  It
->>> also passes a v4l2-compliance (1.10.0) run without failures.
->>
->> Did you compile v4l2-compliance from the master branch of the v4l-utils.git
->> repo? I always recommend that.
->>
->> Can you post the output of 'v4l2-compliance -s' and ideally also 'v4l2-compliance -f'?
->>
->> I always like to see that for new drivers.
-> 
-> No I used the latest .tar.bz2 snapshot. Will build from master branch
-> and include for v2.
-> 
->>
->>> There is
->>> however a issues sometimes if one first run v4l2-compliance and then
->>> yavta the grabbed frames are a bit fuzzy. I'm working on it. Also I
->>> could only get frames if the video signal on the composite IN was NTSC,
->>> but this also applied to the soc_camera driver, it might be my test
->>> setup.
->>>
->>> As stated in commit message the driver is based on its soc_camera
->>> version but some features have been drooped (for now?).
->>>  - The driver no longer try to use the subdev for cropping (using
->>>    cropcrop/s_crop).
->>>  - Do not interrogate the subdev using g_mbus_config.
->>>
->>> The goal is to replace the soc_camera driver completely to prepare for
->>> Gen3 enablement.  Is it a good idea to aim for inheriting
->>> CONFIG_VIDEO_RCAR_VIN in such case?  I'm thinking down the road if this
->>> driver is good enough to simply rename the old CONFIG_VIDEO_RCAR_VIN to
->>> something like CONFIG_VIDEO_SOC_CAMERA_RCAR_VIN mark is at deprecated
->>> and use this one as a drop in replacement.
->>
->> We probably want to have both for some time with the soc-camera version
->> marked as 'DEPRECATED'. Especially as long as they aren't at feature parity.
-> 
-> I agree. I will drop my idea of inheriting CONFIG_VIDEO_RCAR_VIN and use
-> CONFIG_VIDEO_RCAR_VIN_NEW until we can figure out something more
-> suitable. I plan to include the changes required for building in v2 to
-> ease testing.
+Hi Simon,
 
-Actually, I'd rename the old driver to CONFIG_VIDEO_RCAR_VIN_OLD and keep
-CONFIG_VIDEO_RCAR_VIN for this driver.
-
-And perhaps you can also move the old driver to staging/media, but that
-should be done in a final separate patch since I am not sure yet we want
-to do that at the same time as introducing the new driver.
-
-> 
+On Thu, Feb 25, 2016 at 1:32 AM, Simon Horman <horms@verge.net.au> wrote:
+> On Thu, Feb 25, 2016 at 08:56:22AM +0900, Simon Horman wrote:
+>> On Wed, Feb 24, 2016 at 08:46:31AM +0100, Geert Uytterhoeven wrote:
+>> > On Wed, Feb 24, 2016 at 3:22 AM, Simon Horman
+>> > <horms+renesas@verge.net.au> wrote:
+>> > > Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
+>> > >
+>> > > This is part of an ongoing process to migrate from ARCH_SHMOBILE to
+>> > > ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
+>> > > appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
+>> > >
+>> > > Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+>> > > ---
+>> > >  drivers/media/platform/Kconfig | 6 +++---
+>> > >  1 file changed, 3 insertions(+), 3 deletions(-)
+>> > >
+>> > >  Based on media_tree/master
+>> > >
+>> > > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+>> > > index 201f5c296a95..662c029400de 100644
+>> > > --- a/drivers/media/platform/Kconfig
+>> > > +++ b/drivers/media/platform/Kconfig
+>> > > @@ -37,7 +37,7 @@ config VIDEO_SH_VOU
+>> > >         tristate "SuperH VOU video output driver"
+>> > >         depends on MEDIA_CAMERA_SUPPORT
+>> > >         depends on VIDEO_DEV && I2C && HAS_DMA
+>> > > -       depends on ARCH_SHMOBILE || COMPILE_TEST
+>> > > +       depends on ARCH_RENESAS || COMPILE_TEST
+>> >
+>> > This driver is used on sh7722/sh7723/sh7724 only.
+>> > While these are Renesas parts, ARCH_RENESAS isn't set for SuperH SoCs,
+>> > making this driver unavailable where needed.
 >>
->>> The main feature missing at this point is vidioc_[gs]_selection. The
->>> driver can crop/scale but it's not exposed to the user. However this
->>> will be different on Gen3 HW where not all channels have scalers.
+>> Thanks for pointing that out, I had missed that detail.
 >>
->> Do you plan to add this in the next version?
-> 
-> Yes.
-> 
-> [snip]
-> 
->>> +
->>> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
->>> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
->>> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
->>> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
->>> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
->>> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
->>> +
->>> +	.vidioc_streamon		= rvin_streamon,
->>> +	.vidioc_streamoff		= rvin_streamoff,
->>> +
->>> +	.vidioc_log_status		= v4l2_ctrl_log_status,
->>> +	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
->>> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
->>> +};
+>> Ideally I would like to stop setting ARCH_SHMOBILE for ARM Based
+>> SoCs. So perhaps the following would be best?
 >>
->> General question: I'm missing HDMI support in this driver. Will that be added later?
->>
->> Adding that is quite simple in this driver (as opposed to adding it to soc-camera).
-> 
-> Ulrich Hecht already beat me to it with whit '[PATCH/RFC 0/9] Lager
-> board HDMI input support', thanks Ulrich.
+>>       depends on ARCH_SHMOBILE || ARCH_RENESAS || COMPILE_TEST
+>
+> Sorry, I think I misread your comment. If the driver is not
+> used by any ARM Based SoCs then perhaps this patch should be simply
+> withdrawn.
 
-I saw that. I have a Koelsch that's still in the box, but now it is really time to
-start setting it up. I'll start working on that tomorrow.
+Just the first chunk. If you drop that one, you can have my
 
-Regards,
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-	Hans
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
