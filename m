@@ -1,313 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39589 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754046AbcBIKwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Feb 2016 05:52:21 -0500
-Date: Tue, 9 Feb 2016 08:51:57 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
-	j.anaszewski@samsung.com, geliangtang@163.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH v2 20/22] media: au0828 add enable, disable source
- handlers
-Message-ID: <20160209085157.06836b58@recife.lan>
-In-Reply-To: <56B919C7.80801@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
-	<1ebb3d41fa42581f8741e493f3109357ad1a0b3c.1454557589.git.shuahkh@osg.samsung.com>
-	<20160204082649.0ad08a16@recife.lan>
-	<56B919C7.80801@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39791 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750717AbcBYVoA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Feb 2016 16:44:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [v4l-utils PATCH 1/1] v4l: libv4l2subdev: Drop length argument from string conversion functions
+Date: Thu, 25 Feb 2016 23:44:01 +0200
+Message-ID: <9220133.1Kl6SBjeVB@avalon>
+In-Reply-To: <1453759113-18014-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1453759113-18014-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 08 Feb 2016 15:42:15 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi Sakari,
 
-> On 02/04/2016 03:26 AM, Mauro Carvalho Chehab wrote:
-> > Em Wed, 03 Feb 2016 21:03:52 -0700
-> > Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> >   
-> >> Add enable_source and disable_source handlers.
-> >> The enable source handler is called from
-> >> v4l2-core, dvb-core, and ALSA drivers to check
-> >> if the shared media source is free. The disable
-> >> source handler is called to release the shared
-> >> media source.
-> >>
-> >> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> >> ---
-> >>  drivers/media/usb/au0828/au0828-core.c | 149 +++++++++++++++++++++++++++++++++
-> >>  drivers/media/usb/au0828/au0828.h      |   3 +
-> >>  2 files changed, 152 insertions(+)
-> >>
-> >> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> >> index 4c90f28..fd2265c 100644
-> >> --- a/drivers/media/usb/au0828/au0828-core.c
-> >> +++ b/drivers/media/usb/au0828/au0828-core.c
-> >> @@ -282,6 +282,7 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
-> >>  		return -EINVAL;
-> >>  
-> >>  	if (tuner) {
-> >> +		dev->tuner = tuner;
-> >>  		/* create tuner to decoder link in deactivated state */
-> >>  		ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
-> >>  					    decoder, 0, 0);
-> >> @@ -373,6 +374,150 @@ void au0828_media_graph_notify(struct media_entity *new, void *notify_data)
-> >>  #endif
-> >>  }
-> >>  
-> >> +static int au0828_enable_source(struct media_entity *entity,
-> >> +				struct media_pipeline *pipe)
-> >> +{
-> >> +#ifdef CONFIG_MEDIA_CONTROLLER
-> >> +	struct media_entity  *source;
-> >> +	struct media_entity *sink;
-> >> +	struct media_link *link, *found_link = NULL;
-> >> +	int ret = 0;
-> >> +	struct media_device *mdev = entity->graph_obj.mdev;
-> >> +	struct au0828_dev *dev;
-> >> +
-> >> +	if (!mdev)
-> >> +		return -ENODEV;
-> >> +
-> >> +	/* for Audio and Video entities, source is the decoder */
-> >> +	mutex_lock(&mdev->graph_mutex);
-> >> +
-> >> +	dev = mdev->source_priv;
-> >> +	if (!dev->tuner || !dev->decoder) {
-> >> +		ret = -ENODEV;
-> >> +		goto end;
-> >> +	}  
-> > 
-> > This is wrong. There are devices without tuner (capture devices) and
-> > without analog decoder (pure DVB devices).  
-> 
-> Removed linux-api from the list.
-> 
-> Yes this logic is making an assumption that both
-> decoder and tuner are present. Based on your comment
-> here, is the following check for decoder in 
-> au0828_create_media_graph() incorrect? When decoder
-> is null, au0828_usb_probe() bails out. Please see
-> au0828_create_media_graph() return handling in
-> au0828_usb_probe()?
+Thank you for the patch.
 
-It seems so. at its current state, au0828 always register a V4L2
-node, except if !CONFIG_VIDEO_AU0828_V4L2. So, it is missing a
+On Monday 25 January 2016 23:58:33 Sakari Ailus wrote:
+> v4l2_subdev_string_to_pixelcode() and v4l2_subdev_string_to_field() take a
+> string and the length of that string as an argument. This has been
+> motivated by existing usage in the same library. While this works for the
+> library quite well, it's not a great API.
+> 
+> Instead, drop the length argument and pass a nul terminated string to the
+> string conversion functions.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-#ifdef CONFIG_VIDEO_AU0828_V4L2
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-inside it. I'll write such fixup.
+> ---
+> This goes on top of the media bus code patchset.
+> 
+>  utils/media-ctl/libv4l2subdev.c | 36 ++++++++++++++++++++++--------------
+>  utils/media-ctl/v4l2subdev.h    | 12 ++++--------
+>  2 files changed, 26 insertions(+), 22 deletions(-)
+> 
+> diff --git a/utils/media-ctl/libv4l2subdev.c
+> b/utils/media-ctl/libv4l2subdev.c index 408f1cf..70e1e39 100644
+> --- a/utils/media-ctl/libv4l2subdev.c
+> +++ b/utils/media-ctl/libv4l2subdev.c
+> @@ -308,6 +308,7 @@ static int v4l2_subdev_parse_format(struct media_device
+> *media, {
+>  	enum v4l2_mbus_pixelcode code;
+>  	unsigned int width, height;
+> +	char *fmt;
+>  	char *end;
+> 
+>  	/*
+> @@ -318,7 +319,12 @@ static int v4l2_subdev_parse_format(struct media_device
+> *media, for (end = (char *)p;
+>  	     *end != '/' && *end != ' ' && *end != '\0'; ++end);
+> 
+> -	code = v4l2_subdev_string_to_pixelcode(p, end - p);
+> +	fmt = strndup(p, end - p);
+> +	if (!fmt)
+> +		return -ENOMEM;
+> +
+> +	code = v4l2_subdev_string_to_pixelcode(fmt);
+> +	free(fmt);
+>  	if (code == (enum v4l2_mbus_pixelcode)-1) {
+>  		media_dbg(media, "Invalid pixel code '%.*s'\n", end - p, p);
+>  		return -EINVAL;
+> @@ -475,11 +481,19 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
+> 
+>  		if (strhazit("field:", &p)) {
+>  			enum v4l2_field field;
+> +			char *strfield;
+> 
+>  			for (end = (char *)p; isalpha(*end) || *end == '-';
+>  			     ++end);
+> 
+> -			field = v4l2_subdev_string_to_field(p, end - p);
+> +			strfield = strndup(p, end - p);
+> +			if (!strfield) {
+> +				*endp = (char *)p;
+> +				return NULL;
+> +			}
+> +
+> +			field = v4l2_subdev_string_to_field(strfield);
+> +			free(strfield);
+>  			if (field == (enum v4l2_field)-1) {
+>  				media_dbg(media, "Invalid field value '%*s'\n",
+>  					  end - p, p);
+> @@ -770,14 +784,12 @@ const char *v4l2_subdev_pixelcode_to_string(enum
+> v4l2_mbus_pixelcode code) return "unknown";
+>  }
+> 
+> -enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char
+> *string, -							 unsigned int length)
+> +enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char
+> *string) {
+>  	unsigned int i;
+> 
+>  	for (i = 0; i < ARRAY_SIZE(mbus_formats); ++i) {
+> -		if (strncmp(mbus_formats[i].name, string, length) == 0
+> -		    && mbus_formats[i].name[length] == '\0')
+> +		if (strcmp(mbus_formats[i].name, string) == 0)
+>  			return mbus_formats[i].code;
+>  	}
+> 
+> @@ -812,20 +824,16 @@ const char *v4l2_subdev_field_to_string(enum
+> v4l2_field field) return "unknown";
+>  }
+> 
+> -enum v4l2_field v4l2_subdev_string_to_field(const char *string,
+> -					    unsigned int length)
+> +enum v4l2_field v4l2_subdev_string_to_field(const char *string)
+>  {
+>  	unsigned int i;
+> 
+>  	for (i = 0; i < ARRAY_SIZE(fields); ++i) {
+> -		if (strncasecmp(fields[i].name, string, length) == 0)
+> -			break;
+> +		if (strcasecmp(fields[i].name, string) == 0)
+> +			return fields[i].field;
+>  	}
+> 
+> -	if (i == ARRAY_SIZE(fields))
+> -		return (enum v4l2_field)-1;
+> -
+> -	return fields[i].field;
+> +	return (enum v4l2_field)-1;
+>  }
+> 
+>  const enum v4l2_mbus_pixelcode *v4l2_subdev_pixelcode_list(void)
+> diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+> index 33327d6..dcdb35c 100644
+> --- a/utils/media-ctl/v4l2subdev.h
+> +++ b/utils/media-ctl/v4l2subdev.h
+> @@ -247,15 +247,13 @@ const char *v4l2_subdev_pixelcode_to_string(enum
+> v4l2_mbus_pixelcode code);
+> 
+>  /**
+>   * @brief Parse string to media bus pixel code.
+> - * @param string - input string
+> - * @param length - length of the string
+> + * @param string - nul terminalted string, textual media bus pixel code
+>   *
+>   * Parse human readable string @a string to an media bus pixel code.
+>   *
+>   * @return media bus pixelcode on success, -1 on failure.
+>   */
+> -enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char
+> *string, -							 unsigned int length);
+> +enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char
+> *string);
+> 
+>  /**
+>   * @brief Convert a field order to string.
+> @@ -269,15 +267,13 @@ const char *v4l2_subdev_field_to_string(enum
+> v4l2_field field);
+> 
+>  /**
+>   * @brief Parse string to field order.
+> - * @param string - input string
+> - * @param length - length of the string
+> + * @param string - nul terminated string, textual media bus pixel code
+>   *
+>   * Parse human readable string @a string to field order.
+>   *
+>   * @return field order on success, -1 on failure.
+>   */
+> -enum v4l2_field v4l2_subdev_string_to_field(const char *string,
+> -					    unsigned int length);
+> +enum v4l2_field v4l2_subdev_string_to_field(const char *string);
+> 
+>  /**
+>   * @brief Enumerate library supported media bus pixel codes.
 
+-- 
+Regards,
 
-> 
-> 
->        /* Something bad happened! */
->         if (!decoder)
->                 return -EINVAL;
-> 
-> > 
-> > In the case of pure DVB devices (e. g. no dev->decoder), it should
-> > just enable the DVB path.
-> > 
-> > In the case of devices without tuner, it should use the same logic
-> > needed to handle the S-Video/Composite connector inputs.
-> > 
-> > Btw, I'm not seeing how this logic would do the right thing if the user
-> > selects either S-Video or Composite connectors.
-> >   
-> >> +
-> >> +	/*
-> >> +	 * For Audio and V4L2 entity, find the link to which decoder
-> >> +	 * is the sink. Look for an active link between decoder and
-> >> +	 * tuner, if one exists, nothing to do. If not, look for any
-> >> +	 * active links between tuner and any other entity. If one
-> >> +	 * exists, tuner is busy. If tuner is free, setup link and
-> >> +	 * start pipeline from source (tuner).
-> >> +	 * For DVB FE entity, the source for the link is the tuner.
-> >> +	 * Check if tuner is available and setup link and start
-> >> +	 * pipeline.
-> >> +	*/
-> >> +	if (entity->function != MEDIA_ENT_F_DTV_DEMOD)
-> >> +		sink = dev->decoder;
-> >> +	else
-> >> +		sink = entity;
-> >> +
-> >> +	/* Is an active link between sink and tuner */
-> >> +	if (dev->active_link) {
-> >> +		if (dev->active_link->sink->entity == sink &&
-> >> +		    dev->active_link->source->entity == dev->tuner) {
-> >> +			ret = 0;
-> >> +			goto end;
-> >> +		} else {
-> >> +			ret = -EBUSY;
-> >> +			goto end;
-> >> +		}
-> >> +	}
-> >> +
-> >> +	list_for_each_entry(link, &sink->links, list) {
-> >> +		/* Check sink, and source */
-> >> +		if (link->sink->entity == sink &&
-> >> +		    link->source->entity == dev->tuner) {
-> >> +			found_link = link;
-> >> +			break;
-> >> +		}
-> >> +	}
-> >> +
-> >> +	if (!found_link) {
-> >> +		ret = -ENODEV;
-> >> +		goto end;
-> >> +	}
-> >> +
-> >> +	/* activate link between source and sink and start pipeline */
-> >> +	source = found_link->source->entity;
-> >> +	ret = __media_entity_setup_link(found_link, MEDIA_LNK_FL_ENABLED);
-> >> +	if (ret) {
-> >> +		pr_err(
-> >> +			"Activate tuner link %s->%s. Error %d\n",
-> >> +			source->name, sink->name, ret);
-> >> +		goto end;
-> >> +	}
-> >> +
-> >> +	ret = __media_entity_pipeline_start(entity, pipe);
-> >> +	if (ret) {
-> >> +		pr_err("Start Pipeline: %s->%s Error %d\n",
-> >> +			source->name, entity->name, ret);
-> >> +		ret = __media_entity_setup_link(found_link, 0);
-> >> +		pr_err("Deactive link Error %d\n", ret);
-> >> +		goto end;
-> >> +	}  
-> > 
-> > Hmm... isn't it to early to activate the pipeline here? My original
-> > guess is that, on the analog side, this should happen only at the stream
-> > on code. Wouldn't this break apps like mythTV?
-> >   
-> >> +	/*
-> >> +	 * save active link and active link owner to avoid audio
-> >> +	 * deactivating video owned link from disable_source and
-> >> +	 * vice versa
-> >> +	*/
-> >> +	dev->active_link = found_link;
-> >> +	dev->active_link_owner = entity;
-> >> +end:
-> >> +	mutex_unlock(&mdev->graph_mutex);
-> >> +	pr_debug("au0828_enable_source() end %s %d %d\n",
-> >> +		entity->name, entity->function, ret);
-> >> +	return ret;
-> >> +#endif
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static void au0828_disable_source(struct media_entity *entity)
-> >> +{
-> >> +#ifdef CONFIG_MEDIA_CONTROLLER
-> >> +	struct media_entity *sink;
-> >> +	int ret = 0;
-> >> +	struct media_device *mdev = entity->graph_obj.mdev;
-> >> +	struct au0828_dev *dev;
-> >> +
-> >> +	if (!mdev)
-> >> +		return;
-> >> +
-> >> +	mutex_lock(&mdev->graph_mutex);
-> >> +	dev = mdev->source_priv;
-> >> +	if (!dev->tuner || !dev->decoder || !dev->active_link) {
-> >> +		ret = -ENODEV;
-> >> +		goto end;
-> >> +	}  
-> > 
-> > Same note as before.  
-> 
-> Same comment as before here about au0828_create_media_graph()
-> and au0828_usb_probe() handling.
-> 
-> >   
-> >> +
-> >> +	if (entity->function != MEDIA_ENT_F_DTV_DEMOD)
-> >> +		sink = dev->decoder;
-> >> +	else
-> >> +		sink = entity;
-> >> +
-> >> +	/* link is active - stop pipeline from source (tuner) */
-> >> +	if (dev->active_link && dev->active_link->sink->entity == sink &&
-> >> +	    dev->active_link->source->entity == dev->tuner) {
-> >> +		/*
-> >> +		 * prevent video from deactivating link when audio
-> >> +		 * has active pipeline
-> >> +		*/
-> >> +		if (dev->active_link_owner != entity)
-> >> +			goto end;
-> >> +		__media_entity_pipeline_stop(entity);
-> >> +		ret = __media_entity_setup_link(dev->active_link, 0);
-> >> +		if (ret)
-> >> +			pr_err("Deactive link Error %d\n", ret);
-> >> +		dev->active_link = NULL;
-> >> +		dev->active_link_owner = NULL;
-> >> +	}  
-> > 
-> > Most code here looks like the one at au0828_enable_source(). Wouldn't
-> > be simpler to merge those code and add a "bool enable" to the function
-> > parameters?  
-> 
-> I would rather keep these separate. A very short
-> section is common really.
-> 
-> thanks,
-> -- Shuah
-> 
-> >   
-> >> +
-> >> +end:
-> >> +	mutex_unlock(&mdev->graph_mutex);
-> >> +#endif
-> >> +}
-> >> +
-> >>  static int au0828_media_device_register(struct au0828_dev *dev,
-> >>  					struct usb_device *udev)
-> >>  {
-> >> @@ -403,6 +548,10 @@ static int au0828_media_device_register(struct au0828_dev *dev,
-> >>  			ret);
-> >>  		return ret;
-> >>  	}
-> >> +	/* set enable_source */
-> >> +	dev->media_dev->source_priv = (void *) dev;
-> >> +	dev->media_dev->enable_source = au0828_enable_source;
-> >> +	dev->media_dev->disable_source = au0828_disable_source;
-> >>  #endif
-> >>  	return 0;
-> >>  }
-> >> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-> >> index 54379ec..a7c88a1 100644
-> >> --- a/drivers/media/usb/au0828/au0828.h
-> >> +++ b/drivers/media/usb/au0828/au0828.h
-> >> @@ -284,6 +284,9 @@ struct au0828_dev {
-> >>  	struct media_entity input_ent[AU0828_MAX_INPUT];
-> >>  	struct media_pad input_pad[AU0828_MAX_INPUT];
-> >>  	struct media_entity_notify entity_notify;
-> >> +	struct media_entity *tuner;
-> >> +	struct media_link *active_link;
-> >> +	struct media_entity *active_link_owner;
-> >>  #endif
-> >>  };
-> >>    
-> 
-> 
+Laurent Pinchart
+
