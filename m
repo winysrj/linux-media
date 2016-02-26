@@ -1,66 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:43508 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751629AbcBXCWm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 21:22:42 -0500
-From: Simon Horman <horms+renesas@verge.net.au>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Simon Horman <horms+renesas@verge.net.au>
-Subject: [PATCH] media: platform: rcar_jpu, sh_vou, vsp1: Use ARCH_RENESAS
-Date: Wed, 24 Feb 2016 11:22:22 +0900
-Message-Id: <1456280542-13113-1-git-send-email-horms+renesas@verge.net.au>
+Received: from lists.s-osg.org ([54.187.51.154]:45012 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754760AbcBZT3I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2016 14:29:08 -0500
+Subject: Re: [PATCH v3 01/22] [media] Docbook: media-types.xml: Add ALSA Media
+ Controller Intf types
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>, tiwai@suse.com
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+ <363a459c08a1fcaf04052d7f2af05f1dd43de58e.1455233152.git.shuahkh@osg.samsung.com>
+ <20160217101941.0b37ca98@recife.lan>
+Cc: clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56D0A778.5060302@osg.samsung.com>
+Date: Fri, 26 Feb 2016 12:28:56 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160217101941.0b37ca98@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
+On 02/17/2016 05:19 AM, Mauro Carvalho Chehab wrote:
+> Em Thu, 11 Feb 2016 16:41:17 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> Add ALSA Media Controller Intf types
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  Documentation/DocBook/media/v4l/media-types.xml | 40 +++++++++++++++++++++++++
+>>  1 file changed, 40 insertions(+)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
+>> index 751c3d0..3730967 100644
+>> --- a/Documentation/DocBook/media/v4l/media-types.xml
+>> +++ b/Documentation/DocBook/media/v4l/media-types.xml
+>> @@ -193,6 +193,46 @@
+>>  	    <entry>Device node interface for Software Defined Radio (V4L)</entry>
+>>  	    <entry>typically, /dev/swradio?</entry>
+>>  	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_PCM_CAPTURE</constant></entry>
+>> +	    <entry>Device node interface for ASLA PCM Capture</entry>
+>> +	    <entry>typically, /dev/snd/pcmC?D?c</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_PCM_PLAYBACK</constant></entry>
+>> +	    <entry>Device node interface for ASLA PCM Playback</entry>
+>> +	    <entry>typically, /dev/snd/pcmC?D?p</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_CONTROL</constant></entry>
+>> +	    <entry>Device node interface for ASLA Control</entry>
+>> +	    <entry>typically, /dev/snd/controlC?</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_COMPRESS</constant></entry>
+>> +	    <entry>Device node interface for ASLA Compress</entry>
+>> +	    <entry>typically, /dev/snd/compr?</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_RAWMIDI</constant></entry>
+>> +	    <entry>Device node interface for ASLA Raw MIDI</entry>
+>> +	    <entry>typically, /dev/snd/midi?</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_HWDEP</constant></entry>
+>> +	    <entry>Device node interface for ASLA Hardware Dependent</entry>
+>> +	    <entry>typically, /dev/snd/hwC?D?</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_SEQUENCER</constant></entry>
+>> +	    <entry>Device node interface for ASLA Sequencer</entry>
+>> +	    <entry>typically, /dev/snd/seq</entry>
+>> +	  </row>
+>> +	  <row>
+>> +	    <entry><constant>MEDIA_INTF_T_ALSA_TIMER</constant></entry>
+>> +	    <entry>Device node interface for ASLA Timer</entry>
+>> +	    <entry>typically, /dev/snd/timer</entry>
+> 
+> On all the above:
+> 	s,ASLA,ALSA,
+> 
+> Except for that, patch looks OK for me.
+> 
+> Takashi,
+> 
+> If this is OK for you too, could you please ack?
+> 
 
-This is part of an ongoing process to migrate from ARCH_SHMOBILE to
-ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
-appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
+Hi Takashi/Mauro,
 
-Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
----
- drivers/media/platform/Kconfig | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I send Patch v4 for just this patch to fix the above.
 
- Based on media_tree/master
+Takashi,
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 201f5c296a95..662c029400de 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -37,7 +37,7 @@ config VIDEO_SH_VOU
- 	tristate "SuperH VOU video output driver"
- 	depends on MEDIA_CAMERA_SUPPORT
- 	depends on VIDEO_DEV && I2C && HAS_DMA
--	depends on ARCH_SHMOBILE || COMPILE_TEST
-+	depends on ARCH_RENESAS || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	help
- 	  Support for the Video Output Unit (VOU) on SuperH SoCs.
-@@ -238,7 +238,7 @@ config VIDEO_SH_VEU
- config VIDEO_RENESAS_JPU
- 	tristate "Renesas JPEG Processing Unit"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
--	depends on ARCH_SHMOBILE || COMPILE_TEST
-+	depends on ARCH_RENESAS || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	---help---
-@@ -250,7 +250,7 @@ config VIDEO_RENESAS_JPU
- config VIDEO_RENESAS_VSP1
- 	tristate "Renesas VSP1 Video Processing Engine"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
--	depends on (ARCH_SHMOBILE && OF) || COMPILE_TEST
-+	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
+Could you please Ack if you are okay with this.
+
+thanks,
+-- Shuah
+
+
+
+
 -- 
-2.1.4
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
