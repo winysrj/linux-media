@@ -1,79 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:56085 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752346AbcBLMQ0 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:34089 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751488AbcBZNJ6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 07:16:26 -0500
-Subject: Re: [PATCH 2/2] [media] cx231xx: get rid of CX231XX_VMUX_DEBUG
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	no To-header on input <""@pop.xs4all.nl>
-References: <b39a8de587466a0052e696d8ebc3987066784384.1455276050.git.mchehab@osg.samsung.com>
- <74a125ed2542ac0306e8582bc86dd0fc9a2bdc02.1455276050.git.mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Fri, 26 Feb 2016 08:09:58 -0500
+Subject: Re: [PATCH v5 0/8] Add MT8173 Video Encoder Driver and VPU Driver
+To: Stanimir Varbanov <svarbanov@mm-sol.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Olli Salonen <olli.salonen@iki.fi>
+	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+References: <1456215081-16858-1-git-send-email-tiffany.lin@mediatek.com>
+ <56CC1CAB.1060409@xs4all.nl> <56D03DE2.1090400@mm-sol.com>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56BDCD13.9070606@xs4all.nl>
-Date: Fri, 12 Feb 2016 13:16:19 +0100
+Message-ID: <56D04E98.8040209@xs4all.nl>
+Date: Fri, 26 Feb 2016 14:09:44 +0100
 MIME-Version: 1.0
-In-Reply-To: <74a125ed2542ac0306e8582bc86dd0fc9a2bdc02.1455276050.git.mchehab@osg.samsung.com>
+In-Reply-To: <56D03DE2.1090400@mm-sol.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/12/2016 12:21 PM, Mauro Carvalho Chehab wrote:
-> This macro is not used inside the driver. get rid of it.
+On 02/26/2016 12:58 PM, Stanimir Varbanov wrote:
+> Hi Hans,
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-> ---
->  drivers/media/usb/cx231xx/cx231xx-video.c | 3 +--
->  drivers/media/usb/cx231xx/cx231xx.h       | 1 -
->  2 files changed, 1 insertion(+), 3 deletions(-)
+> <snip>
 > 
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-> index 7222b1c27d40..6414188ffdfa 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-video.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-> @@ -1103,7 +1103,6 @@ static const char *iname[] = {
->  	[CX231XX_VMUX_TELEVISION] = "Television",
->  	[CX231XX_VMUX_CABLE]      = "Cable TV",
->  	[CX231XX_VMUX_DVB]        = "DVB",
-> -	[CX231XX_VMUX_DEBUG]      = "for debug only",
->  };
->  
->  void cx231xx_v4l2_create_entities(struct cx231xx *dev)
-> @@ -1136,7 +1135,7 @@ void cx231xx_v4l2_create_entities(struct cx231xx *dev)
->  			if (dev->tuner_type == TUNER_ABSENT)
->  				continue;
->  			/* fall though */
-> -		default: /* CX231XX_VMUX_DEBUG */
-> +		default: /* just to shut up a gcc warning */
->  			ent->function = MEDIA_ENT_F_CONN_RF;
->  			break;
->  		}
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index 60e14776a6cd..69f6d20870f5 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -281,7 +281,6 @@ enum cx231xx_itype {
->  	CX231XX_VMUX_CABLE,
->  	CX231XX_RADIO,
->  	CX231XX_VMUX_DVB,
-> -	CX231XX_VMUX_DEBUG
->  };
->  
->  enum cx231xx_v_input {
+>> Nice!
+>>
+>> Can you try 'v4l2-compliance -s'? Note that this may not work since I know
+>> that v4l2-compliance doesn't work all that well with codecs, but I am
+>> curious what the output is when you try streaming.
+> 
+> Sorry for the off topic question.
+> 
+> Does every new v4l2 encoder/decoder driver must use v4l2 mem2mem device
+> framework, with other words is that mandatory?
 > 
 
+No, that's not mandatory. In most cases it will simplify your code, but
+sometimes it only makes it harder and then you are better off doing it
+yourself.
+
+Regards,
+
+	Hans
