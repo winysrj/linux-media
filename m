@@ -1,118 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28660 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751766AbcBUVcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 16:32:07 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH 4/4] media-ctl: List supported media bus formats
-Date: Sun, 21 Feb 2016 23:29:47 +0200
-Message-Id: <1456090187-1191-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40696 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751376AbcBZNXq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2016 08:23:46 -0500
+Subject: Re: [RFC] Representing hardware connections via MC
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+References: <20160226091317.5a07c374@recife.lan>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D051DC.5070900@xs4all.nl>
+Date: Fri, 26 Feb 2016 14:23:40 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160226091317.5a07c374@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new topic option for -h to allow listing supported media bus codes
-in conversion functions. This is useful in figuring out which media bus
-codes are actually supported by the library. The numeric values of the
-codes are listed as well.
+On 02/26/2016 01:13 PM, Mauro Carvalho Chehab wrote:
+> We had some discussions on Feb, 12 about how to represent connectors via
+> the Media Controller:
+> 	https://linuxtv.org/irc/irclogger_log/v4l?date=2016-02-12,Fri&sel=31#l27
+> 
+> We tried to finish those discussions on the last two weeks, but people
+> doesn't seem to be available at the same time for the discussions. So,
+> let's proceed with the discussions via e-mail.
+> 
+> So, I'd like to do such discussions via e-mail, as we need to close
+> this question next week.
+> 
+> QUESTION:
+> ========
+> 
+> How to represent the hardware connection for inputs (and outputs) like:
+> 	- Composite TV video;
+> 	- stereo analog audio;
+> 	- S-Video;
+> 	- HDMI
+> 
+> Problem description:
+> ===================
+> 
+> During the MC summit last year, we decided to add an entity called
+> "connector" for such things. So, we added, so far, 3 types of
+> connectors:
+> 
+> #define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
+> #define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
+> #define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
+> 
+> However, while implementing it, we saw that the mapping on hardware
+> is actually more complex, as one physical connector may have multiple
+> signals with can eventually used on a different way.
+> 
+> One simple example of this is the S-Video connector. It has internally
+> two video streams, one for chrominance and another one for luminance.
+> 
+> It is very common for vendors to ship devices with a S-Video input
+> and a "S-Video to RCA" cable.
+> 
+> At the driver's level, drivers need to know if such cable is
+> plugged, as they need to configure a different input setting to
+> enable either S-Video or composite decoding.
+> 
+> So, the V4L2 API usually maps "S-Video" on a different input
+> than "Composite over S-Video". This can be seen, for example, at the
+> saa7134 driver, who gained recently support for MC.
+> 
+> Additionally, it is interesting to describe the physical aspects
+> of the connector (color, position, label, etc).
+> 
+> Proposal:
+> ========
+> 
+> It seems that there was an agreement that the physical aspects of
+> the connector should be mapped via the upcoming properties API,
+> with the properties present only when it is possible to find them
+> in the hardware. So, it seems that all such properties should be
+> optional.
+> 
+> However, we didn't finish the meeting, as we ran out of time. Yet,
+> I guess the last proposal there fulfills the requirements. So,
+> let's focus our discussions on it. So, let me formulate it as a
+> proposal
+> 
+> We should represent the entities based on the inputs. So, for the
+> already implemented entities, we'll have, instead:
+> 
+> #define MEDIA_ENT_F_INPUT_RF		(MEDIA_ENT_F_BASE + 10001)
+> #define MEDIA_ENT_F_INPUT_SVIDEO	(MEDIA_ENT_F_BASE + 10002)
+> #define MEDIA_ENT_F_INPUT_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
+> 
+> The MEDIA_ENT_F_INPUT_RF and MEDIA_ENT_F_INPUT_COMPOSITE will have
+> just one sink PAD each, as they carry just one signal. As we're
+> describing the logical input, it doesn't matter the physical
+> connector type. So, except for re-naming the define, nothing
+> changes for them.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- utils/media-ctl/options.c | 42 ++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 38 insertions(+), 4 deletions(-)
+What if my device has an SVIDEO output (e.g. ivtv)? 'INPUT' denotes
+the direction, and I don't think that's something you want in the
+define for the connector entity.
 
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index 0afc9c2..55cdd29 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -22,7 +22,9 @@
- #include <getopt.h>
- #include <stdio.h>
- #include <stdlib.h>
-+#include <string.h>
- #include <unistd.h>
-+#include <v4l2subdev.h>
- 
- #include <linux/videodev2.h>
- 
-@@ -45,7 +47,8 @@ static void usage(const char *argv0)
- 	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
- 	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
- 	printf("    --set-dv pad	Configure DV timings on a given pad\n");
--	printf("-h, --help		Show verbose help and exit\n");
-+	printf("-h, --help[=topic]	Show verbose help and exit\n");
-+	printf("			topics:	mbus-fmt: List supported media bus pixel codes\n");
- 	printf("-i, --interactive	Modify links interactively\n");
- 	printf("-l, --links links	Comma-separated list of link descriptors to setup\n");
- 	printf("-p, --print-topology	Print the device topology\n");
-@@ -100,7 +103,7 @@ static struct option opts[] = {
- 	{"get-format", 1, 0, OPT_GET_FORMAT},
- 	{"get-v4l2", 1, 0, OPT_GET_FORMAT},
- 	{"set-dv", 1, 0, OPT_SET_DV},
--	{"help", 0, 0, 'h'},
-+	{"help", 2, 0, 'h'},
- 	{"interactive", 0, 0, 'i'},
- 	{"links", 1, 0, 'l'},
- 	{"print-dot", 0, 0, OPT_PRINT_DOT},
-@@ -110,6 +113,27 @@ static struct option opts[] = {
- 	{ },
- };
- 
-+void list_mbus_formats(void)
-+{
-+	unsigned int ncodes;
-+	const unsigned int *code = v4l2_subdev_pixelcode_list(&ncodes);
-+
-+	printf("Supported media bus pixel codes\n");
-+
-+	for (ncodes++; ncodes; ncodes--, code++) {
-+		const char *str = v4l2_subdev_pixelcode_to_string(*code);
-+		int spaces = 30 - (int)strlen(str);
-+
-+		if (*code == 0)
-+			break;
-+
-+		if (spaces < 0)
-+			spaces = 0;
-+
-+		printf("\t%s %*c (0x%8.8x)\n", str, spaces, ' ', *code);
-+	}
-+}
-+
- int parse_cmdline(int argc, char **argv)
- {
- 	int opt;
-@@ -120,7 +144,8 @@ int parse_cmdline(int argc, char **argv)
- 	}
- 
- 	/* parse options */
--	while ((opt = getopt_long(argc, argv, "d:e:f:hil:prvV:", opts, NULL)) != -1) {
-+	while ((opt = getopt_long(argc, argv, "d:e:f:h::il:prvV:",
-+				  opts, NULL)) != -1) {
- 		switch (opt) {
- 		case 'd':
- 			media_opts.devname = optarg;
-@@ -142,7 +167,16 @@ int parse_cmdline(int argc, char **argv)
- 			break;
- 
- 		case 'h':
--			usage(argv[0]);
-+			if (optarg) {
-+				if (!strcmp(optarg, "mbus-fmt"))
-+					list_mbus_formats();
-+				else
-+					fprintf(stderr,
-+						"Unknown topic \"%s\"\n",
-+						optarg);
-+			} else {
-+				usage(argv[0]);
-+			}
- 			exit(0);
- 
- 		case 'i':
--- 
-2.1.0.231.g7484e3b
+As was discussed on irc we are really talking about signals received
+or transmitted by/from a connector. I still prefer F_SIG_ or F_SIGNAL_
+or F_CONN_SIG_ or something along those lines.
 
+I'm not sure where F_INPUT came from, certainly not from the irc
+discussion.
+
+> Devices with S-Video input will have one MEDIA_ENT_F_INPUT_SVIDEO
+> per each different S-Video input. Each one will have two sink pads,
+> one for the Y signal and another for the C signal.
+> 
+> So, a device like Terratec AV350, that has one Composite and one
+> S-Video input[1] would be represented as:
+> 	https://mchehab.fedorapeople.org/terratec_av350-modified.png
+> 
+> 
+> [1] Physically, it has a SCART connector that could be enabled
+> via a physical switch, but logically, the device will still switch
+> from S-Video over SCART or composite over SCART.
+> 
+> More complex devices would be represented like:
+> 	https://hverkuil.home.xs4all.nl/adv7604.png
+> 	https://hverkuil.home.xs4all.nl/adv7842.png
+> 
+> NOTE:
+> 
+> The labels at the PADs currently can't be represented, but the
+> idea is adding it as a property via the upcoming properties API.
+
+I think this is a separate discussion. It's not needed for now.
+When working on the adv7604/7842 examples I realized that pad names help
+understand the topology a lot better, but they are not needed for the actual
+functionality.
+
+> 
+> Anyone disagree?
+
+I agree except for the naming.
+
+Regards,
+
+	Hans
