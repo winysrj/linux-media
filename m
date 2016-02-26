@@ -1,59 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37237 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755327AbcBVOV6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 09:21:58 -0500
-Subject: Re: [PATCH 3/5] [media] tvp5150: don't go past decoder->input_ent
- array
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <72ef5fcae1ee23265c796b0cacd64ee41b9b9301.1456150537.git.mchehab@osg.samsung.com>
- <9d4dc6dc7e74437be0ad48495879bf0da458f713.1456150537.git.mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <56CB197D.5040904@osg.samsung.com>
-Date: Mon, 22 Feb 2016 11:21:49 -0300
-MIME-Version: 1.0
-In-Reply-To: <9d4dc6dc7e74437be0ad48495879bf0da458f713.1456150537.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:50849 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751338AbcBZD57 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Feb 2016 22:57:59 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2E2A0180951
+	for <linux-media@vger.kernel.org>; Fri, 26 Feb 2016 04:57:53 +0100 (CET)
+Date: Fri, 26 Feb 2016 04:57:53 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160226035753.2E2A0180951@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 02/22/2016 11:16 AM, Mauro Carvalho Chehab wrote:
-> drivers/media/i2c/tvp5150.c:1394 tvp5150_parse_dt() warn: buffer overflow 'decoder->input_ent' 3 <= 3
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->   drivers/media/i2c/tvp5150.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index ef393f5daf2a..ff18444e19e4 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -1386,7 +1386,7 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
->   			goto err_connector;
->   		}
->
-> -		if (input_type > TVP5150_INPUT_NUM) {
-> +		if (input_type >= TVP5150_INPUT_NUM) {
->   			ret = -EINVAL;
->   			goto err_connector;
->   		}
->
+Results of the daily build of media_tree:
 
-Thanks for the fix.
+date:		Fri Feb 26 04:00:20 CET 2016
+git branch:	test
+git hash:	3915d367932609f9c0bdc79c525b5dd5a806ab18
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
