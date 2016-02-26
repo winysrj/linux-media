@@ -1,72 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:32544 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750727AbcBDOXH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 09:23:07 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0O2100L431AG0590@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 04 Feb 2016 14:23:04 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'ayaka' <ayaka@soulik.info>, linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, jtp.park@samsung.com,
-	mchehab@osg.samsung.com, linux-arm-kernel@lists.infradead.org
-References: <1454180017-29071-1-git-send-email-ayaka@soulik.info>
- <1454180017-29071-4-git-send-email-ayaka@soulik.info>
-In-reply-to: <1454180017-29071-4-git-send-email-ayaka@soulik.info>
-Subject: RE: [PATCH 3/4] [media] s5p-mfc: don't close instance after free
- OUTPUT buffers
-Date: Thu, 04 Feb 2016 15:23:02 +0100
-Message-id: <003501d15f57$8f1904b0$ad4b0e10$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-ig0-f180.google.com ([209.85.213.180]:36796 "EHLO
+	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751376AbcBZNUf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2016 08:20:35 -0500
+MIME-Version: 1.0
+In-Reply-To: <7803268.ksEo9HOBee@avalon>
+References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<1455242450-24493-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<CAMuHMdW1bWPPL-4hRM=dx-216V4Aew1dg=i=ApkLww4RFXQgmg@mail.gmail.com>
+	<7803268.ksEo9HOBee@avalon>
+Date: Fri, 26 Feb 2016 14:20:34 +0100
+Message-ID: <CAMuHMdU9qgjKo0w3WpC1cP3hFPio+8jp2kiH1baWdnjRtE2_Zw@mail.gmail.com>
+Subject: Re: [PATCH/RFC 3/9] v4l: Add Renesas R-Car FCP driver
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Laurent,
 
-> From: ayaka [mailto:ayaka@soulik.info]
-> Sent: Saturday, January 30, 2016 7:54 PM
+On Mon, Feb 15, 2016 at 1:35 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+>> > --- /dev/null
+>> > +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+>> > @@ -0,0 +1,24 @@
+>> > +Renesas R-Car Frame Compression Processor (FCP)
+>> > +-----------------------------------------------
+>> > +
+>> > +The FCP is a companion module of video processing modules in the Renesas
+>> > R-Car
+>> > +Gen3 SoCs. It provides data compression and decompression, data caching,
+>> > and
+>> > +converting of AXI transaction in order to reduce the memory bandwidth.
+>>
+>> "conversion"?
+>>
+>> > +
+>> > +There are three types of FCP whose configuration and behaviour highly
+>> > depend +on the module they are paired with.
+>> > +
+>> > + - compatible: Must be one of the following
+>> > +   - "renesas,fcpv" for the 'FCP for VSP' device
+>>
+>> Any chance this module can turn up in another SoC later? I guess yes.
 >
-> Free buffers in OUTPUT is quite normal to detect the driver's buffer
-capacity,
-> it doesn't mean the application want to close that mfc instance.
-> 
-> Signed-off-by: ayaka <ayaka@soulik.info>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index aebe4fd..609b17b 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -474,7 +474,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev,
-> struct s5p_mfc_ctx *ctx,
->  		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
->  		if (ret)
->  			goto out;
-> -		s5p_mfc_close_mfc_inst(dev, ctx);
->  		ctx->src_bufs_cnt = 0;
->  		ctx->output_state = QUEUE_FREE;
->  	} else if (ctx->output_state == QUEUE_FREE) {
+> It's not just that it can, it will.
+>
+>> What about future-proofing using "renesas,r8a7795-fcpv" and "renesas,rcar-
+>> gen3-fcpv"?
+>
+> Given that the device currently has registers and clock only, I wanted to keep
+> the DT bindings simple. My plan is to introduce new compat strings later as
+> needed, if needed, when incompatible FCP instances will be introduced. Feel
+> free to challenge that :-)
 
-What exactly do you mean by "detecting buffer capacity"  ? Is it the max
-number of buffer
-that can be allocated?
+I'm afraid that will be too late.
+How are you gonna distinguish the new and incompatible variants from the
+r8a7795 variant? Ah, by using "renesas,PartOfTheMonth-fcpv"?
+So why not use "renesas,r8a7795-fcpv" now?
 
-Anyway, if the instance is not closed, then in a consecutive call to reqbufs
-(with cound != 0)
-the instance will be opened for a second time. So either the instance has to
-be closed, or
-it should be opened in another place.
+Gr{oetje,eeting}s,
 
-Best wishes,
--- 
-Kamil Debski
-Samsung R&D Institute Poland
+                        Geert
 
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
