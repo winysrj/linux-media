@@ -1,101 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44966 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751268AbcBSNYN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2016 08:24:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC] Move some soc-camera drivers to staging in preparation for
- removal
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Josh Wu <josh.wu@atmel.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Message-ID: <56C71778.2030706@xs4all.nl>
-Date: Fri, 19 Feb 2016 14:24:08 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:45061 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933304AbcBZTaH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2016 14:30:07 -0500
+Subject: Re: [PATCH v3 02/22] uapi/media.h: Declare interface types for ALSA
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>, tiwai@suse.com
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+ <a1b468c2933dc2b4f2b6cc6d1ac30baee2a89f77.1455233152.git.shuahkh@osg.samsung.com>
+ <20160217102103.1ae1d1fd@recife.lan>
+Cc: clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56D0A7BB.2010109@osg.samsung.com>
+Date: Fri, 26 Feb 2016 12:30:03 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20160217102103.1ae1d1fd@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On 02/17/2016 05:21 AM, Mauro Carvalho Chehab wrote:
+> Em Thu, 11 Feb 2016 16:41:18 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> Declare the interface types to be used on alsa for
+>> the new G_TOPOLOGY ioctl.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/media-entity.c | 16 ++++++++++++++++
+>>  include/uapi/linux/media.h   | 10 ++++++++++
+>>  2 files changed, 26 insertions(+)
+>>
+>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>> index f2e4360..6179543 100644
+>> --- a/drivers/media/media-entity.c
+>> +++ b/drivers/media/media-entity.c
+>> @@ -65,6 +65,22 @@ static inline const char *intf_type(struct media_interface *intf)
+>>  		return "v4l2-subdev";
+>>  	case MEDIA_INTF_T_V4L_SWRADIO:
+>>  		return "swradio";
+>> +	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+>> +		return "pcm-capture";
+>> +	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+>> +		return "pcm-playback";
+>> +	case MEDIA_INTF_T_ALSA_CONTROL:
+>> +		return "alsa-control";
+>> +	case MEDIA_INTF_T_ALSA_COMPRESS:
+>> +		return "compress";
+>> +	case MEDIA_INTF_T_ALSA_RAWMIDI:
+>> +		return "rawmidi";
+>> +	case MEDIA_INTF_T_ALSA_HWDEP:
+>> +		return "hwdep";
+>> +	case MEDIA_INTF_T_ALSA_SEQUENCER:
+>> +		return "sequencer";
+>> +	case MEDIA_INTF_T_ALSA_TIMER:
+>> +		return "timer";
+>>  	default:
+>>  		return "unknown-intf";
+>>  	}
+>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>> index c9eb42a..3cc0366 100644
+>> --- a/include/uapi/linux/media.h
+>> +++ b/include/uapi/linux/media.h
+>> @@ -265,6 +265,7 @@ struct media_links_enum {
+>>  
+>>  #define MEDIA_INTF_T_DVB_BASE	0x00000100
+>>  #define MEDIA_INTF_T_V4L_BASE	0x00000200
+>> +#define MEDIA_INTF_T_ALSA_BASE	0x00000300
+>>  
+>>  /* Interface types */
+>>  
+>> @@ -280,6 +281,15 @@ struct media_links_enum {
+>>  #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+>>  #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+>>  
+>> +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
+>> +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
+>> +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
+>> +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
+>> +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+>> +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+>> +#define MEDIA_INTF_T_ALSA_SEQUENCER     (MEDIA_INTF_T_ALSA_BASE + 6)
+>> +#define MEDIA_INTF_T_ALSA_TIMER         (MEDIA_INTF_T_ALSA_BASE + 7)
+>> +
+>>  /*
+>>   * MC next gen API definitions
+>>   *
+> 
+> Looks OK to me.
+> 
+> Takashi,
+> 
+> If this is OK for you too, would you mind acking it?
+> 
 
-The soc-camera framework is a problem for reusability of sub-device drivers since
-those need access to the soc-camera framework. Which defeats the purpose of the
-sub-device framework. It is the reason why we still have a media/i2c/soc-camera
-directory for subdevs that can only work with soc-camera.
+Hi Takashi,
 
-Ideally I would like to drop soc-camera completely, but it is still in use.
+Are you okay with this patch? Could you please
+Ack it.
 
-One of the largest users is Renesas with their r-car SoC, but Niklas Söderlund
-made a replacement driver that should make it possible to remove the soc-camera
-r-car driver, hopefully this year.
-
-What I would like to do is to move soc-camera drivers that we consider obsolete
-to staging, and remove them in 1-2 kernel cycles if nobody steps up.
-
-See also this past thread from Guennadi:
-
-http://www.spinics.net/lists/linux-media/msg89253.html
-
-And yes, I said in that thread that I was OK with keeping soc-camera as-is. But
-it still happens that companies pick this framework for new devices (the driver
-for the Tegra K1 for example). It is another reason besides the reusability issue
-for remove this framework more aggressively then I intended originally.
+thanks,
+-- Shuah
 
 
-We have the following drivers:
-
-- pxa_camera for the PXA27x Quick Capture Interface
-
-  Apparently this architecture still gets attention (see the link to the thread
-  above). But it does use vb1 which we really want to phase out soon. Does anyone
-  know if this driver still works with the latest kernel? Because it is using vb1
-  it is a strong candidate for removing it (or replacing it with something better
-  if someone steps up).
-
-- mx2_camera: i.MX27 Camera Sensor Interface
-
-  Have not seen any development since April 2013 (mx2-camera: move interface
-  activation and deactivation to clock callbacks by Guennadi). No idea if it still
-  works or if it is still in use. Does anyone know?
-
-- mx3_camera: i.MX3x Camera Sensor Interface
-
-  Have not seen any development since July 2013 (add support for asynchronous
-  subdevice registration by Guennadi). Same as for mx2_camera: does it still work?
-  Is it still in use?
-
-- omap1_camera: OMAP1 Camera Interface
-
-  It uses vb1, so that's one very good reason for removing it. And as far as I
-  know it is unused and likely won't work.
-
-- sh_mobile_ceu_camera: SuperH Mobile CEU Interface
-
-  I worked on this, but I know it does function anymore. I'd say that this can
-  be removed.
-
-- sh_mobile_csi2: SuperH Mobile MIPI CSI-2 Interface
-
-  I don't have hardware to test, but I'd be surprised if it still works. Can
-  someone test? If it is broken, then it can be moved to staging.
-
-- rcar_vin: R-Car Video Input (VIN)
-  Will be replaced with a regular driver as mentioned above.
-
-- atmel-isi: ATMEL Image Sensor Interface (ISI)
-
-  I believe this is still actively maintained. Would someone be willing to
-  convert this? It doesn't look like a complex driver.
-
-Now I am not planning to remove soc-camera (yet), but at least we should get
-rid of unmaintained drivers, especially if they don't work anymore or if they
-use the old vb1 mess.
-
-And we can then take a good look at what remains.
-
-Regards,
-
-	Hans
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
