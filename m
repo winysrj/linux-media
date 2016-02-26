@@ -1,132 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:43210 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965563AbcBDEEU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:20 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+Received: from lists.s-osg.org ([54.187.51.154]:45174 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750893AbcBZUIs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2016 15:08:48 -0500
+Subject: Re: [PATCH v3 22/22] sound/usb: Use Media Controller API to share
+ media resources
+To: Takashi Iwai <tiwai@suse.de>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+ <0822f80e0acc5119e6f6deccf002ccadeb3b145b.1455233156.git.shuahkh@osg.samsung.com>
+ <s5hpovjjlg4.wl-tiwai@suse.de>
+Cc: hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	clemens@ladisch.de, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, mchehab@osg.samsung.com,
+	geliangtang@163.com, alsa-devel@alsa-project.org, arnd@arndb.de,
+	ricard.wanderlof@axis.com, labbott@fedoraproject.org,
+	chehabrafael@gmail.com, klock.android@gmail.com,
+	misterpib@gmail.com, prabhakar.csengg@gmail.com,
+	ricardo.ribalda@gmail.com, ruchandani.tina@gmail.com,
+	takamichiho@gmail.com, tvboxspy@gmail.com, dominic.sacre@gmx.de,
+	albert@huitsing.nl, crope@iki.fi, julian@jusst.de,
+	pierre-louis.bossart@linux.intel.com, corbet@lwn.net,
+	joe@oampo.co.uk, johan@oljud.se, dan.carpenter@oracle.com,
+	pawel@osciak.com, p.zabel@pengutronix.de, perex@perex.cz,
 	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v2 12/22] media: au0828 video remove au0828_enable_analog_tuner()
-Date: Wed,  3 Feb 2016 21:03:44 -0700
-Message-Id: <8d43a2cfe4dcdf843d2e587e35a4bd4681eebe36.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+	j.anaszewski@samsung.com, jh1009.sung@samsung.com,
+	k.kozlowski@samsung.com, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, nenggun.kim@samsung.com,
+	sw0312.kim@samsung.com, elfring@users.sourceforge.net,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linuxbugs@vittgam.net, gtmkramer@xs4all.nl, normalperson@yhbt.net,
+	daniel@zonque.org
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56D0B0CB.8060709@osg.samsung.com>
+Date: Fri, 26 Feb 2016 13:08:43 -0700
+MIME-Version: 1.0
+In-Reply-To: <s5hpovjjlg4.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove au0828_enable_analog_tuner() as it is
-no longer needed because v4l2-core implements
-common interfaces to check for media source
-availability.
+On 02/26/2016 12:55 PM, Takashi Iwai wrote:
+> On Fri, 12 Feb 2016 00:41:38 +0100,
+> Shuah Khan wrote:
+>>
+>> Change ALSA driver to use Media Controller API to
+>> share media resources with DVB and V4L2 drivers
+>> on a AU0828 media device. Media Controller specific
+>> initialization is done after sound card is registered.
+>> ALSA creates Media interface and entity function graph
+>> nodes for Control, Mixer, PCM Playback, and PCM Capture
+>> devices.
+>>
+>> snd_usb_hw_params() will call Media Controller enable
+>> source handler interface to request the media resource.
+>> If resource request is granted, it will release it from
+>> snd_usb_hw_free(). If resource is busy, -EBUSY is returned.
+>>
+>> Media specific cleanup is done in usb_audio_disconnect().
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  sound/usb/Kconfig        |   4 +
+>>  sound/usb/Makefile       |   2 +
+>>  sound/usb/card.c         |  14 +++
+>>  sound/usb/card.h         |   3 +
+>>  sound/usb/media.c        | 318 +++++++++++++++++++++++++++++++++++++++++++++++
+>>  sound/usb/media.h        |  72 +++++++++++
+>>  sound/usb/mixer.h        |   3 +
+>>  sound/usb/pcm.c          |  28 ++++-
+>>  sound/usb/quirks-table.h |   1 +
+>>  sound/usb/stream.c       |   2 +
+>>  sound/usb/usbaudio.h     |   6 +
+>>  11 files changed, 448 insertions(+), 5 deletions(-)
+>>  create mode 100644 sound/usb/media.c
+>>  create mode 100644 sound/usb/media.h
+>>
+>> diff --git a/sound/usb/Kconfig b/sound/usb/Kconfig
+>> index a452ad7..ba117f5 100644
+>> --- a/sound/usb/Kconfig
+>> +++ b/sound/usb/Kconfig
+>> @@ -15,6 +15,7 @@ config SND_USB_AUDIO
+>>  	select SND_RAWMIDI
+>>  	select SND_PCM
+>>  	select BITREVERSE
+>> +	select SND_USB_AUDIO_USE_MEDIA_CONTROLLER if MEDIA_CONTROLLER && MEDIA_SUPPORT
+> 
+> Looking at the media Kconfig again, this would be broken if
+> MEDIA_SUPPORT=m and SND_USB_AUDIO=y.  The ugly workaround is something
+> like:
+> 	select SND_USB_AUDIO_USE_MEDIA_CONTROLLER \
+> 		if MEDIA_CONTROLLER && (MEDIA_SUPPORT=y || MEDIA_SUPPORT=SND)
 
-In addition, queue_setup() no longer needs the
-tuner availability check since v4l2-core does it.
+My current config is MEDIA_SUPPORT=m and SND_USB_AUDIO=y
+It is working and I didn't see any issues so far. Maybe
+the current change is good. I am hoping kbuild-bot can
+find issues (if any) once it gets merged.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-video.c | 61 ---------------------------------
- 1 file changed, 61 deletions(-)
+> 
+> Other than that, it looks more or less OK to me.
+> The way how media_stream_init() gets called is a bit worrisome, but it
+> should work practically.  Another concern is about the disconnection.
+> Can all function calls in media_device_delete() be safe even if it's
+> called while the application still opens the MC device?
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 8c54fd2..81952c8 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -638,64 +638,6 @@ static inline int au0828_isoc_copy(struct au0828_dev *dev, struct urb *urb)
- 	return rc;
- }
- 
--static int au0828_enable_analog_tuner(struct au0828_dev *dev)
--{
--#ifdef CONFIG_MEDIA_CONTROLLER
--	struct media_device *mdev = dev->media_dev;
--	struct media_entity *source;
--	struct media_link *link, *found_link = NULL;
--	int ret, active_links = 0;
--
--	if (!mdev || !dev->decoder)
--		return 0;
--
--	/*
--	 * This will find the tuner that is connected into the decoder.
--	 * Technically, this is not 100% correct, as the device may be
--	 * using an analog input instead of the tuner. However, as we can't
--	 * do DVB streaming while the DMA engine is being used for V4L2,
--	 * this should be enough for the actual needs.
--	 */
--	list_for_each_entry(link, &dev->decoder->links, list) {
--		if (link->sink->entity == dev->decoder) {
--			found_link = link;
--			if (link->flags & MEDIA_LNK_FL_ENABLED)
--				active_links++;
--			break;
--		}
--	}
--
--	if (active_links == 1 || !found_link)
--		return 0;
--
--	source = found_link->source->entity;
--	list_for_each_entry(link, &source->links, list) {
--		struct media_entity *sink;
--		int flags = 0;
--
--		sink = link->sink->entity;
--
--		if (sink == dev->decoder)
--			flags = MEDIA_LNK_FL_ENABLED;
--
--		ret = media_entity_setup_link(link, flags);
--		if (ret) {
--			pr_err(
--				"Couldn't change link %s->%s to %s. Error %d\n",
--				source->name, sink->name,
--				flags ? "enabled" : "disabled",
--				ret);
--			return ret;
--		} else
--			au0828_isocdbg(
--				"link %s->%s was %s\n",
--				source->name, sink->name,
--				flags ? "ENABLED" : "disabled");
--	}
--#endif
--	return 0;
--}
--
- static int queue_setup(struct vb2_queue *vq,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
- 		       unsigned int sizes[], void *alloc_ctxs[])
-@@ -707,9 +649,6 @@ static int queue_setup(struct vb2_queue *vq,
- 		return sizes[0] < size ? -EINVAL : 0;
- 	*nplanes = 1;
- 	sizes[0] = size;
--
--	au0828_enable_analog_tuner(dev);
--
- 	return 0;
- }
- 
+Right. I have been looking into device removal path when
+ioctls are active and I can resolve any issues that might
+surface while an audio app is active when device is removed.
+
+> 
+> In anyway, such a thing can be improved later once after we get this
+> merged, too.  So, feel fee to take my ack.
+> 
+>  Acked-by: Takashi Iwai <tiwai@suse.de>
+
+thanks for the Ack
+-- Shuah
+
+> 
+> 
+> thanks,
+> 
+> Takashi
+> 
+
+
 -- 
-2.5.0
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
