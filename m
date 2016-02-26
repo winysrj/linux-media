@@ -1,150 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39242 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756195AbcBDP6r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2016 10:58:47 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tina Ruchandani <ruchandani.tina@gmail.com>
-Subject: [PATCH 1/7] [media] dvb_frontend: add props argument to dtv_get_frontend()
-Date: Thu,  4 Feb 2016 13:57:26 -0200
-Message-Id: <2ea9a08d59b99fbb257bcd8c47e2cbc8be136f8c.1454600641.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454600641.git.mchehab@osg.samsung.com>
-References: <cover.1454600641.git.mchehab@osg.samsung.com>
-In-Reply-To: <cover.1454600641.git.mchehab@osg.samsung.com>
-References: <cover.1454600641.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46626 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751678AbcBZOAN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2016 09:00:13 -0500
+Subject: Re: [PATCH] media: Add type field to struct media_entity
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1456105996-20845-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <20160222064601.6fc22c30@recife.lan>
+ <20160222212058.GX32612@valkosipuli.retiisi.org.uk>
+ <18438705.DF1fHKHHvm@avalon> <20160226102141.01afcda6@recife.lan>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D05A66.2010207@xs4all.nl>
+Date: Fri, 26 Feb 2016 15:00:06 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160226102141.01afcda6@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of implicitly using the DTV cache properties at
-dtv_get_frontend(), pass it as an additional argument.
+On 02/26/2016 02:21 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 26 Feb 2016 13:18:30 +0200
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+> 
+>> Hello,
+>>
+>> On Monday 22 February 2016 23:20:58 Sakari Ailus wrote:
+>>> On Mon, Feb 22, 2016 at 06:46:01AM -0300, Mauro Carvalho Chehab wrote:  
+>>>> Em Mon, 22 Feb 2016 03:53:16 +0200 Laurent Pinchart escreveu:  
+>>>>> Code that processes media entities can require knowledge of the
+>>>>> structure type that embeds a particular media entity instance in order
+>>>>> to use the API provided by that structure. This needs is shown by the
+>>>>> presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
+>>>>> functions.
+>>>>>
+>>>>> The implementation of those two functions relies on the entity function
+>>>>> field, which is both a wrong and an inefficient design, without even  
+>>>
+>>> I wouldn't necessarily say "wrong", but it is risky. A device's function not
+>>> only defines the interface it offers but also which struct is considered to
+>>> contain the media entity. Having a wrong value in the function field may
+>>> thus lead memory corruption and / or system crash.
+>>>   
+>>>>> mentioning the maintenance issue involved in updating the functions
+>>>>> every time a new entity function is added. Fix this by adding add a type
+>>>>> field to the media entity structure to carry the information.
+>>>>>
+>>>>> Signed-off-by: Laurent Pinchart
+>>>>> <laurent.pinchart+renesas@ideasonboard.com>
+>>>>> ---
+>>>>>
+>>>>>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
+>>>>>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
+>>>>>  include/media/media-entity.h          | 65 +++++++++++------------------
+>>>>>  3 files changed, 30 insertions(+), 37 deletions(-)  
+>>
+>> [snip]
+>>
+>>>>> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+>>>>> index fe485d367985..2be38483f3a4 100644
+>>>>> --- a/include/media/media-entity.h
+>>>>> +++ b/include/media/media-entity.h
+>>>>> @@ -187,10 +187,27 @@ struct media_entity_operations {
+>>>>>  };
+>>>>>  
+>>>>>  /**
+>>>>> + * enum MEDIA_ENTITY_TYPE_NONE - Media entity type
+>>>>> + *  
+>>>>
+>>>> s/MEDIA_ENTITY_TYPE_NONE/media_entity_type/
+>>>>
+>>>> (it seems you didn't test producing the docbook, otherwise you would
+>>>> have seen this error - Please always generate the docbook when the
+>>>> patch contains kernel-doc markups)  
+>>
+>> Oops, sorry. I'll fix that.
+>>
+>>>> I don't like the idea of calling it as "type", as this is confusing,
+>>>> specially since we used to call entity.type for what we now call function.  
+>>>
+>>> What that field essentially defines is which struct embeds the media entity.
+>>> (Well, there's some cleanups to be done there, as we have extra entity for
+>>> V4L2 subdevices, but that's another story.)
+>>>
+>>> The old type field had that information, plus the "function" of the entity.
+>>>
+>>> I think "type" isn't a bad name for this field, as what we would really need
+>>> is inheritance. It refers to the object type. What would you think of
+>>> "class"?  
+>>
+>> I'd prefer type as class has other meanings in the kernel, but I can live with 
+>> it. Mauro, I agree with Sakari here, what the field contains is really the 
+>> object type in an object-oriented programming context.
+> 
+> Well, as we could have entities not embedded on some other object, this
+> is actually not an object type, even on OO programming. What we're actually
+> representing here is a graph object class.
+> 
+> The problem is that "type" is a very generic term, and, as we used it before
+> with some other meaning, so I prefer to call it as something else.
+> 
+> I'm ok with any other name, although I agree that Kernel uses "class" for
+> other things. Maybe gr_class or obj_class?
 
-This patch prepares to use a separate cache for G_PROPERTY,
-in order to avoid it to mangle with the DVB thread
-zigzag logic.
+I had to think about this a bit, but IMHO it is an entity classification that
+a subsystem sets when creating the entity.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+So v4l2 has the classifications V4L2_SUBDEV and V4L2_IO. And while all entities of the
+V4L2_SUBDEV classification are indeed embedded in a struct v4l2_subdev, that is not
+true for V4L2_IO (radio interface entities are embedded in struct video_device, but
+are not of the V4L2_IO class).
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index b1255b7c0b0e..ca6d60f9d492 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -140,9 +140,12 @@ struct dvb_frontend_private {
- 
- static void dvb_frontend_wakeup(struct dvb_frontend *fe);
- static int dtv_get_frontend(struct dvb_frontend *fe,
-+			    struct dtv_frontend_properties *c,
- 			    struct dvb_frontend_parameters *p_out);
--static int dtv_property_legacy_params_sync(struct dvb_frontend *fe,
--					   struct dvb_frontend_parameters *p);
-+static int
-+dtv_property_legacy_params_sync(struct dvb_frontend *fe,
-+				const struct dtv_frontend_properties *c,
-+				struct dvb_frontend_parameters *p);
- 
- static bool has_get_frontend(struct dvb_frontend *fe)
- {
-@@ -202,6 +205,7 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe,
- 				   enum fe_status status)
- {
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_fe_events *events = &fepriv->events;
- 	struct dvb_frontend_event *e;
- 	int wp;
-@@ -209,7 +213,7 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe,
- 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
- 
- 	if ((status & FE_HAS_LOCK) && has_get_frontend(fe))
--		dtv_get_frontend(fe, &fepriv->parameters_out);
-+		dtv_get_frontend(fe, c, &fepriv->parameters_out);
- 
- 	mutex_lock(&events->mtx);
- 
-@@ -687,6 +691,7 @@ static int dvb_enable_media_tuner(struct dvb_frontend *fe)
- static int dvb_frontend_thread(void *data)
- {
- 	struct dvb_frontend *fe = data;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	enum fe_status s;
- 	enum dvbfe_algo algo;
-@@ -807,7 +812,7 @@ restart:
- 					fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
- 					fepriv->delay = HZ / 2;
- 				}
--				dtv_property_legacy_params_sync(fe, &fepriv->parameters_out);
-+				dtv_property_legacy_params_sync(fe, c, &fepriv->parameters_out);
- 				fe->ops.read_status(fe, &s);
- 				if (s != fepriv->status) {
- 					dvb_frontend_add_event(fe, s); /* update event list */
-@@ -1274,11 +1279,11 @@ static int dtv_property_cache_sync(struct dvb_frontend *fe,
- /* Ensure the cached values are set correctly in the frontend
-  * legacy tuning structures, for the advanced tuning API.
-  */
--static int dtv_property_legacy_params_sync(struct dvb_frontend *fe,
--					    struct dvb_frontend_parameters *p)
-+static int
-+dtv_property_legacy_params_sync(struct dvb_frontend *fe,
-+				const struct dtv_frontend_properties *c,
-+				struct dvb_frontend_parameters *p)
- {
--	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--
- 	p->frequency = c->frequency;
- 	p->inversion = c->inversion;
- 
-@@ -1350,6 +1355,7 @@ static int dtv_property_legacy_params_sync(struct dvb_frontend *fe,
-  * If p_out is not null, it will update the DVBv3 params pointed by it.
-  */
- static int dtv_get_frontend(struct dvb_frontend *fe,
-+			    struct dtv_frontend_properties *c,
- 			    struct dvb_frontend_parameters *p_out)
- {
- 	int r;
-@@ -1359,7 +1365,7 @@ static int dtv_get_frontend(struct dvb_frontend *fe,
- 		if (unlikely(r < 0))
- 			return r;
- 		if (p_out)
--			dtv_property_legacy_params_sync(fe, p_out);
-+			dtv_property_legacy_params_sync(fe, c, p_out);
- 		return 0;
- 	}
- 
-@@ -2107,7 +2113,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
- 		 * is not idle. Otherwise, returns the cached content
- 		 */
- 		if (fepriv->state != FESTATE_IDLE) {
--			err = dtv_get_frontend(fe, NULL);
-+			err = dtv_get_frontend(fe, c, NULL);
- 			if (err < 0)
- 				goto out;
- 		}
-@@ -2147,7 +2153,7 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
- 	 * the user. FE_SET_FRONTEND triggers an initial frontend event
- 	 * with status = 0, which copies output parameters to userspace.
- 	 */
--	dtv_property_legacy_params_sync(fe, &fepriv->parameters_out);
-+	dtv_property_legacy_params_sync(fe, c, &fepriv->parameters_out);
- 
- 	/*
- 	 * Be sure that the bandwidth will be filled for all
-@@ -2518,7 +2524,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		break;
- 
- 	case FE_GET_FRONTEND:
--		err = dtv_get_frontend(fe, parg);
-+		err = dtv_get_frontend(fe, c, parg);
- 		break;
- 
- 	case FE_SET_FRONTEND_TUNE_MODE:
--- 
-2.5.0
+Other subsystems may need other classifications.
 
+So what about this:
 
+enum media_entity_class {
+	MEDIA_ENTITY_CLASS_UNDEFINED, // Actually, CLASS_NONE would work here too
+	MEDIA_ENTITY_CLASS_V4L2_IO,
+	MEDIA_ENTITY_CLASS_V4L2_SUBDEV,
+};
+
+and the field enum media_entity_class class; in struct media_entity with documentation:
+
+@class:	Classification of the media_entity, subsystems can set this to quickly classify
+	what sort of media_entity this is.
+
+Regards,
+
+	Hans
