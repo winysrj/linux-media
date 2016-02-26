@@ -1,55 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f176.google.com ([209.85.192.176]:35826 "EHLO
-	mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbcBLKxi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2016 05:53:38 -0500
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, kernel-testers@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Benoit Parrot <bparrot@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] [media] media: ti-vpe: add dependency of HAS_DMA
-Date: Fri, 12 Feb 2016 16:23:28 +0530
-Message-Id: <1455274408-23978-1-git-send-email-sudipm.mukherjee@gmail.com>
+Received: from ns.mm-sol.com ([37.157.136.199]:55962 "EHLO extserv.mm-sol.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750883AbcBZL6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2016 06:58:31 -0500
+Subject: Re: [PATCH v5 0/8] Add MT8173 Video Encoder Driver and VPU Driver
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+References: <1456215081-16858-1-git-send-email-tiffany.lin@mediatek.com>
+ <56CC1CAB.1060409@xs4all.nl>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
+Message-ID: <56D03DE2.1090400@mm-sol.com>
+Date: Fri, 26 Feb 2016 13:58:26 +0200
+MIME-Version: 1.0
+In-Reply-To: <56CC1CAB.1060409@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The build of m32r allmodconfig fails with the error:
- drivers/media/v4l2-core/videobuf2-dma-contig.c:492:28: error: implicit
-	declaration of function 'dma_get_cache_alignment'
+Hi Hans,
 
-The build of videobuf2-dma-contig.c depends on HAS_DMA and it is
-correctly mentioned in the Kconfig but the symbol VIDEO_TI_CAL also
-selects VIDEOBUF2_DMA_CONTIG, so it is trying to compile
-videobuf2-dma-contig.c even though HAS_DMA is not defined.
+<snip>
 
-Fixes: 343e89a792a5 ("[media] media: ti-vpe: Add CAL v4l2 camera capture driver")
-Cc: Benoit Parrot <bparrot@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
----
+> Nice!
+> 
+> Can you try 'v4l2-compliance -s'? Note that this may not work since I know
+> that v4l2-compliance doesn't work all that well with codecs, but I am
+> curious what the output is when you try streaming.
 
-build log of next-20160212 is at:
-https://travis-ci.org/sudipm-mukherjee/parport/jobs/108716158
+Sorry for the off topic question.
 
- drivers/media/platform/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+Does every new v4l2 encoder/decoder driver must use v4l2 mem2mem device
+framework, with other words is that mandatory?
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index fd4fcd5..16dbe3d 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -124,6 +124,7 @@ config VIDEO_TI_CAL
- 	tristate "TI CAL (Camera Adaptation Layer) driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	depends on SOC_DRA7XX || COMPILE_TEST
-+	depends on HAS_DMA
- 	select VIDEOBUF2_DMA_CONTIG
- 	default n
- 	---help---
 -- 
-1.9.1
-
+regards,
+Stan
