@@ -1,95 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:11054 "EHLO mga14.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:44558 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755843AbcBXQ1j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2016 11:27:39 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [PATCH v5 3/4] libv4l2subdev: Add a function to list library supported pixel codes
-Date: Wed, 24 Feb 2016 18:25:27 +0200
-Message-Id: <1456331128-7036-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1456331128-7036-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1456331128-7036-1-git-send-email-sakari.ailus@linux.intel.com>
+	id S932738AbcBZO13 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2016 09:27:29 -0500
+Date: Fri, 26 Feb 2016 11:27:23 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Representing hardware connections via MC
+Message-ID: <20160226112723.6298c464@recife.lan>
+In-Reply-To: <56D05C25.60605@xs4all.nl>
+References: <20160226091317.5a07c374@recife.lan>
+	<56D051DC.5070900@xs4all.nl>
+	<20160226110055.2acf936f@recife.lan>
+	<56D05C25.60605@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also mark which format definitions are compat definitions for the
-pre-existing codes. This way we don't end up listing the same formats
-twice.
+Em Fri, 26 Feb 2016 15:07:33 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- utils/media-ctl/.gitignore      |  1 +
- utils/media-ctl/Makefile.am     |  6 +++++-
- utils/media-ctl/libv4l2subdev.c | 11 +++++++++++
- utils/media-ctl/v4l2subdev.h    | 11 +++++++++++
- 4 files changed, 28 insertions(+), 1 deletion(-)
+> On 02/26/2016 03:00 PM, Mauro Carvalho Chehab wrote:
+> > Em Fri, 26 Feb 2016 14:23:40 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> On 02/26/2016 01:13 PM, Mauro Carvalho Chehab wrote:  
 
-diff --git a/utils/media-ctl/.gitignore b/utils/media-ctl/.gitignore
-index 799ab33..5354fec 100644
---- a/utils/media-ctl/.gitignore
-+++ b/utils/media-ctl/.gitignore
-@@ -1,2 +1,3 @@
- media-ctl
- media-bus-format-names.h
-+media-bus-format-codes.h
-diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
-index 23ad90b..ee7dcc9 100644
---- a/utils/media-ctl/Makefile.am
-+++ b/utils/media-ctl/Makefile.am
-@@ -8,7 +8,11 @@ media-bus-format-names.h: ../../include/linux/media-bus-format.h
- 	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*FMT_//; /FIXED/ d; s/\t.*//; s/.*/{ \"&\", MEDIA_BUS_FMT_& },/;' \
- 	< $< > $@
- 
--BUILT_SOURCES = media-bus-format-names.h
-+media-bus-format-codes.h: ../../include/linux/media-bus-format.h
-+	sed -e '/#define MEDIA_BUS_FMT/ ! d; s/.*#define //; /FIXED/ d; s/\t.*//; s/.*/ &,/;' \
-+	< $< > $@
-+
-+BUILT_SOURCES = media-bus-format-names.h media-bus-format-codes.h
- CLEANFILES = $(BUILT_SOURCES)
- 
- nodist_libv4l2subdev_la_SOURCES = $(BUILT_SOURCES)
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index f3c0a9a..8d39898 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -821,3 +821,14 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string,
- 
- 	return fields[i].field;
- }
-+
-+static const enum v4l2_mbus_pixelcode mbus_codes[] = {
-+#include "media-bus-format-codes.h"
-+};
-+
-+const enum v4l2_mbus_pixelcode *v4l2_subdev_pixelcode_list(unsigned int *length)
-+{
-+	*length = ARRAY_SIZE(mbus_codes);
-+
-+	return mbus_codes;
-+}
-diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-index 104e420..97f46a8 100644
---- a/utils/media-ctl/v4l2subdev.h
-+++ b/utils/media-ctl/v4l2subdev.h
-@@ -279,4 +279,15 @@ const char *v4l2_subdev_field_to_string(enum v4l2_field field);
- enum v4l2_field v4l2_subdev_string_to_field(const char *string,
- 					    unsigned int length);
- 
-+/**
-+ * @brief Enumerate library supported media bus pixel codes.
-+ * @param length - the number of the supported pixel codes
-+ *
-+ * Obtain pixel codes supported by libv4l2subdev.
-+ *
-+ * @return A pointer to the pixel code array
-+ */
-+const enum v4l2_mbus_pixelcode *v4l2_subdev_pixelcode_list(
-+	unsigned int *length);
-+
- #endif
--- 
-2.1.0.231.g7484e3b
+...
 
+> >>> We should represent the entities based on the inputs. So, for the
+> >>> already implemented entities, we'll have, instead:
+> >>>
+> >>> #define MEDIA_ENT_F_INPUT_RF		(MEDIA_ENT_F_BASE + 10001)
+> >>> #define MEDIA_ENT_F_INPUT_SVIDEO	(MEDIA_ENT_F_BASE + 10002)
+> >>> #define MEDIA_ENT_F_INPUT_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
+> >>>
+> >>> The MEDIA_ENT_F_INPUT_RF and MEDIA_ENT_F_INPUT_COMPOSITE will have
+> >>> just one sink PAD each, as they carry just one signal. As we're
+> >>> describing the logical input, it doesn't matter the physical
+> >>> connector type. So, except for re-naming the define, nothing
+> >>> changes for them.    
+> >>
+> >> What if my device has an SVIDEO output (e.g. ivtv)? 'INPUT' denotes
+> >> the direction, and I don't think that's something you want in the
+> >> define for the connector entity.
+> >>
+> >> As was discussed on irc we are really talking about signals received
+> >> or transmitted by/from a connector. I still prefer F_SIG_ or F_SIGNAL_
+> >> or F_CONN_SIG_ or something along those lines.
+> >>
+> >> I'm not sure where F_INPUT came from, certainly not from the irc
+> >> discussion.  
+> > 
+> > Well, the idea of "F_CONN_SIG" came when we were talking about
+> > representing each signal, and not the hole thing.
+> > 
+> > I think using it would be a little bit misleading, but I'm OK
+> > with that, provided that we make clear that a MEDIA_ENT_F_CONN_SIG_SVIDEO
+> > should contain two pads, one for each signal.  
+> 
+> I hate naming discussions :-)
+
+Me too :) 
+
+> It's certainly not F_INPUT since, well, there are outputs too :-)
+> 
+> And you are right that the signal idea was abandoned later in the discussion.
+> I'd forgotten about that. Basically the different signals are now represented
+> as pads (TMDS and CEC for example).
+> 
+> I think F_CONN_ isn't such a bad name after all.
+
+I guess we can stick with F_CONN, just making sure that it is
+properly documented.
+
+Regards,Mauro
