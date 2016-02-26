@@ -1,129 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33380 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754797AbcBGUOY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2016 15:14:24 -0500
-Received: by mail-wm0-f66.google.com with SMTP id r129so12481421wmr.0
-        for <linux-media@vger.kernel.org>; Sun, 07 Feb 2016 12:14:23 -0800 (PST)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH 2/3] media: rc: expose most recent raw packet via sysfs
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56B7A592.9060700@gmail.com>
-Date: Sun, 7 Feb 2016 21:14:10 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:44426 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752947AbcBZNN4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2016 08:13:56 -0500
+Subject: Re: [RFC] Representing hardware connections via MC
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+References: <20160226091317.5a07c374@recife.lan>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Message-ID: <56D04F8C.5070400@osg.samsung.com>
+Date: Fri, 26 Feb 2016 10:13:48 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20160226091317.5a07c374@recife.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces a binary read-only sysfs attribute last_raw_packet
-to expose the most recent raw packet to userspace.
+Hello Mauro,
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/rc-main.c | 53 ++++++++++++++++++++++++++++++++++++++++++++++
- include/media/rc-core.h    |  2 +-
- 2 files changed, 54 insertions(+), 1 deletion(-)
+On 02/26/2016 09:13 AM, Mauro Carvalho Chehab wrote:
+> We had some discussions on Feb, 12 about how to represent connectors via
+> the Media Controller:
+> 	https://linuxtv.org/irc/irclogger_log/v4l?date=2016-02-12,Fri&sel=31#l27
+>
+> We tried to finish those discussions on the last two weeks, but people
+> doesn't seem to be available at the same time for the discussions. So,
+> let's proceed with the discussions via e-mail.
+>
+> So, I'd like to do such discussions via e-mail, as we need to close
+> this question next week.
+>
+> QUESTION:
+> ========
+>
+> How to represent the hardware connection for inputs (and outputs) like:
+> 	- Composite TV video;
+> 	- stereo analog audio;
+> 	- S-Video;
+> 	- HDMI
+>
+> Problem description:
+> ===================
+>
+> During the MC summit last year, we decided to add an entity called
+> "connector" for such things. So, we added, so far, 3 types of
+> connectors:
+>
+> #define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
+> #define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
+> #define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
+>
+> However, while implementing it, we saw that the mapping on hardware
+> is actually more complex, as one physical connector may have multiple
+> signals with can eventually used on a different way.
+>
+> One simple example of this is the S-Video connector. It has internally
+> two video streams, one for chrominance and another one for luminance.
+>
+> It is very common for vendors to ship devices with a S-Video input
+> and a "S-Video to RCA" cable.
+>
+> At the driver's level, drivers need to know if such cable is
+> plugged, as they need to configure a different input setting to
+> enable either S-Video or composite decoding.
+>
+> So, the V4L2 API usually maps "S-Video" on a different input
+> than "Composite over S-Video". This can be seen, for example, at the
+> saa7134 driver, who gained recently support for MC.
+>
+> Additionally, it is interesting to describe the physical aspects
+> of the connector (color, position, label, etc).
+>
+> Proposal:
+> ========
+>
+> It seems that there was an agreement that the physical aspects of
+> the connector should be mapped via the upcoming properties API,
+> with the properties present only when it is possible to find them
+> in the hardware. So, it seems that all such properties should be
+> optional.
+>
+> However, we didn't finish the meeting, as we ran out of time. Yet,
+> I guess the last proposal there fulfills the requirements. So,
+> let's focus our discussions on it. So, let me formulate it as a
+> proposal
+>
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 1042fa3..1b1ae6d 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1246,6 +1246,47 @@ unlock:
- 	return (ret < 0) ? ret : len;
- }
- 
-+/**
-+ * last_raw_packet_read() - shows the most recent packet of raw bytes
-+ * This is a binary attribute.
-+ *
-+ * This routine is a callback routine to read the most recent packet of
-+ * raw bytes received.
-+ * It is triggered by reading /sys/class/rc/rc?/last_raw_packet.
-+ * Most recent means up to BUF_SYSFS_LRP_SZ bytes after the last break
-+ * of at least RESTART_SYSFS_LRP_MS milliseconds.
-+ *
-+ * Primary use is assembling a wakeup sequence for chips supporting this
-+ * feature (e.g. nuvoton-cir). Apart from that it can be used for
-+ * debugging purposes.
-+ */
-+static ssize_t last_raw_packet_read(struct file *fp, struct kobject *kobj,
-+				    struct bin_attribute *attr, char *buf,
-+				    loff_t off, size_t count)
-+{
-+	struct device *dev = kobj_to_dev(kobj);
-+	struct rc_dev *rc_dev = to_rc_dev(dev);
-+	unsigned long flags;
-+	size_t cnt;
-+
-+	if (!rc_dev->raw)
-+		return 0;
-+
-+	spin_lock_irqsave(&rc_dev->raw->lock, flags);
-+
-+	if (off >= rc_dev->raw->buf_sysfs_lrp_cnt) {
-+		spin_unlock_irqrestore(&rc_dev->raw->lock, flags);
-+		return 0;
-+	}
-+
-+	cnt = min_t(size_t, count, rc_dev->raw->buf_sysfs_lrp_cnt - off);
-+	memcpy(buf, rc_dev->raw->buf_sysfs_lrp + off, cnt);
-+
-+	spin_unlock_irqrestore(&rc_dev->raw->lock, flags);
-+
-+	return cnt;
-+}
-+
- static void rc_dev_release(struct device *device)
- {
- }
-@@ -1284,6 +1325,7 @@ static RC_FILTER_ATTR(wakeup_filter, S_IRUGO|S_IWUSR,
- 		      show_filter, store_filter, RC_FILTER_WAKEUP, false);
- static RC_FILTER_ATTR(wakeup_filter_mask, S_IRUGO|S_IWUSR,
- 		      show_filter, store_filter, RC_FILTER_WAKEUP, true);
-+static BIN_ATTR_RO(last_raw_packet, BUF_SYSFS_LRP_SZ);
- 
- static struct attribute *rc_dev_protocol_attrs[] = {
- 	&dev_attr_protocols.attr.attr,
-@@ -1323,6 +1365,15 @@ static struct attribute_group rc_dev_wakeup_filter_attr_grp = {
- 	.attrs	= rc_dev_wakeup_filter_attrs,
- };
- 
-+static struct bin_attribute *rc_dev_raw_lrp_attrs[] = {
-+	&bin_attr_last_raw_packet,
-+	NULL,
-+};
-+
-+static struct attribute_group rc_dev_raw_lrp_attr_grp = {
-+	.bin_attrs = rc_dev_raw_lrp_attrs,
-+};
-+
- static struct device_type rc_dev_type = {
- 	.release	= rc_dev_release,
- 	.uevent		= rc_dev_uevent,
-@@ -1417,6 +1468,8 @@ int rc_register_device(struct rc_dev *dev)
- 		dev->sysfs_groups[attr++] = &rc_dev_wakeup_filter_attr_grp;
- 	if (dev->change_wakeup_protocol)
- 		dev->sysfs_groups[attr++] = &rc_dev_wakeup_protocol_attr_grp;
-+	if (dev->enable_sysfs_lrp)
-+		dev->sysfs_groups[attr++] = &rc_dev_raw_lrp_attr_grp;
- 	dev->sysfs_groups[attr++] = NULL;
- 
- 	/*
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 9542891..e2d89ea 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -122,7 +122,7 @@ enum rc_filter_type {
-  */
- struct rc_dev {
- 	struct device			dev;
--	const struct attribute_group	*sysfs_groups[5];
-+	const struct attribute_group	*sysfs_groups[6];
- 	const char			*input_name;
- 	const char			*input_phys;
- 	struct input_id			input_id;
+Thanks for writing down as a proposal what was discussed over IRC.
+  
+> We should represent the entities based on the inputs. So, for the
+> already implemented entities, we'll have, instead:
+>
+> #define MEDIA_ENT_F_INPUT_RF		(MEDIA_ENT_F_BASE + 10001)
+> #define MEDIA_ENT_F_INPUT_SVIDEO	(MEDIA_ENT_F_BASE + 10002)
+> #define MEDIA_ENT_F_INPUT_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
+>
+> The MEDIA_ENT_F_INPUT_RF and MEDIA_ENT_F_INPUT_COMPOSITE will have
+> just one sink PAD each, as they carry just one signal. As we're
+> describing the logical input, it doesn't matter the physical
+> connector type. So, except for re-naming the define, nothing
+> changes for them.
+>
+> Devices with S-Video input will have one MEDIA_ENT_F_INPUT_SVIDEO
+> per each different S-Video input. Each one will have two sink pads,
+> one for the Y signal and another for the C signal.
+>
+> So, a device like Terratec AV350, that has one Composite and one
+> S-Video input[1] would be represented as:
+> 	https://mchehab.fedorapeople.org/terratec_av350-modified.png
+>
+>
+> [1] Physically, it has a SCART connector that could be enabled
+> via a physical switch, but logically, the device will still switch
+> from S-Video over SCART or composite over SCART.
+>
+> More complex devices would be represented like:
+> 	https://hverkuil.home.xs4all.nl/adv7604.png
+> 	https://hverkuil.home.xs4all.nl/adv7842.png
+>
+> NOTE:
+>
+> The labels at the PADs currently can't be represented, but the
+> idea is adding it as a property via the upcoming properties API.
+>
+> Anyone disagree?
+>
+
+What you described is what I understood that was the last proposal
+and I believe everyone agreed that it was the way to move forward.
+
+I've just one question, why the PAD's labels / symbolic names will
+be added as a property instead of just having a name or label field
+in struct media_pad?
+
+For example, in the Terratec AV350 chip you mentioned, the AIP1{A,B}
+source pads are real pins in the tvp5150 package and are documented
+in the datasheet and a S-Video connector will always have a Y and C
+sinks pads for the 2 signals and a Composite connector a single pad.
+
+So why can't the driver just set those when creating the connectors
+entities? Or maybe I'm misunderstanding how the properties API work.
+
+> Regards,
+> Mauro
+>
+
+Best regards,
 -- 
-2.7.0
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
