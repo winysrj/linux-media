@@ -1,84 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:42956 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932604AbcBDEEH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2016 23:04:07 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, pawel@osciak.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	perex@perex.cz, arnd@arndb.de, dan.carpenter@oracle.com,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-api@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Subject: [PATCH v2 04/22] media: Media Controller enable/disable source handler API
-Date: Wed,  3 Feb 2016 21:03:36 -0700
-Message-Id: <ea4c54aba28ea5ec8e31fbea6f09ca527bb7984f.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1454557589.git.shuahkh@osg.samsung.com>
-References: <cover.1454557589.git.shuahkh@osg.samsung.com>
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] coda: fix error path in case of missing pdata on non-DT platform
+Date: Fri, 26 Feb 2016 12:21:35 +0100
+Message-Id: <1456485695-15412-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new fields to struct media_device to add enable_source, and
-disable_source handlers, and source_priv to stash driver private
-data that is used to run these handlers. The enable_source handler
-finds source entity for the passed in entity and checks if it is
-available. When link is found, it activates it. Disable source
-handler deactivates the link.
+If we bail out this early, v4l2_device_register() has not been called
+yet, so no need to call v4l2_device_unregister().
 
-Bridge driver is expected to implement and set these handlers.
-
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Fixes: b7bd660a51f0 ("[media] coda: Call v4l2_device_unregister() from a single location")
+Reported-by: Michael Olbrich <m.olbrich@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- include/media/media-device.h | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ drivers/media/platform/coda/coda-common.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index bad8242a..9415f1b 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -333,6 +333,25 @@ struct media_device {
- 	/* Serializes graph operations. */
- 	struct mutex graph_mutex;
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 2d782ce..7ae89c6 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -2118,14 +2118,12 @@ static int coda_probe(struct platform_device *pdev)
  
-+	/* Handlers to find source entity for the sink entity and
-+	 * check if it is available, and activate the link using
-+	 * media_entity_setup_link() interface and start pipeline
-+	 * from the source to the entity.
-+	 * Bridge driver is expected to implement and set the
-+	 * handler when media_device is registered or when
-+	 * bridge driver finds the media_device during probe.
-+	 * Bridge driver sets source_priv with information
-+	 * necessary to run enable/disable source handlers.
-+	 *
-+	 * Use-case: find tuner entity connected to the decoder
-+	 * entity and check if it is available, and activate the
-+	 * using media_entity_setup_link() if it is available.
-+	*/
-+	void *source_priv;
-+	int (*enable_source)(struct media_entity *entity,
-+			     struct media_pipeline *pipe);
-+	void (*disable_source)(struct media_entity *entity);
-+
- 	int (*link_notify)(struct media_link *link, u32 flags,
- 			   unsigned int notification);
- };
+ 	pdev_id = of_id ? of_id->data : platform_get_device_id(pdev);
+ 
+-	if (of_id) {
++	if (of_id)
+ 		dev->devtype = of_id->data;
+-	} else if (pdev_id) {
++	else if (pdev_id)
+ 		dev->devtype = &coda_devdata[pdev_id->driver_data];
+-	} else {
+-		ret = -EINVAL;
+-		goto err_v4l2_register;
+-	}
++	else
++		return -EINVAL;
+ 
+ 	spin_lock_init(&dev->irqlock);
+ 	INIT_LIST_HEAD(&dev->instances);
 -- 
-2.5.0
+2.7.0
 
