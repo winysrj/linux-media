@@ -1,46 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58840 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756456AbcB0Kva (ORCPT
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:37263 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756363AbcB0QK5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2016 05:51:30 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>
-Subject: [PATCH 3/7] [media] dib0090: Do the right check for state->rf_ramp
-Date: Sat, 27 Feb 2016 07:51:09 -0300
-Message-Id: <a3c1c835c0ff8c287adee3325b1ea833328ac4fe.1456570258.git.mchehab@osg.samsung.com>
-In-Reply-To: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-References: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-In-Reply-To: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-References: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Sat, 27 Feb 2016 11:10:57 -0500
+Received: by mail-wm0-f54.google.com with SMTP id g62so104833044wme.0
+        for <linux-media@vger.kernel.org>; Sat, 27 Feb 2016 08:10:57 -0800 (PST)
+Subject: Re: Problem since commit c73bbaa4ec3e [rc-core: don't lock device at
+ rc_register_device()]
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <56D19314.3050409@gmail.com>
+Cc: linux-media@vger.kernel.org
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Message-ID: <56D1CA81.10802@gmail.com>
+Date: Sat, 27 Feb 2016 17:10:41 +0100
+MIME-Version: 1.0
+In-Reply-To: <56D19314.3050409@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Smatch with -pkernel --no-data keeps complaining about rf_ramp:
-	drivers/media/dvb-frontends/dib0090.c:1119 dib0090_pwm_gain_reset() error: we previously assumed 'state->rf_ramp' could be null (see line 1086)
+Am 27.02.2016 um 13:14 schrieb Heiner Kallweit:
+> Since this commit I see the following error when the Nuvoton RC driver is loaded:
+> 
+> input: failed to attach handler kbd to device input3, error: -22
+> 
+> Error 22 (EINVAL) comes from the new check in rc_open().
+> 
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/dvb-frontends/dib0090.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Complete call chain seems to be:
+  rc_register_device
+  input_register_device
+  input_attach_handler
+  kbd_connect
+  input_open_device
+  ir_open
+  rc_open
 
-diff --git a/drivers/media/dvb-frontends/dib0090.c b/drivers/media/dvb-frontends/dib0090.c
-index 7ee784f1b771..dc2d41e144fd 100644
---- a/drivers/media/dvb-frontends/dib0090.c
-+++ b/drivers/media/dvb-frontends/dib0090.c
-@@ -1115,7 +1115,7 @@ void dib0090_pwm_gain_reset(struct dvb_frontend *fe)
- 		dib0090_set_bbramp_pwm(state, bb_ramp);
- 
- 		/* activate the ramp generator using PWM control */
--		if (rf_ramp)
-+		if (state->rf_ramp)
- 			dprintk("ramp RF gain = %d BAND = %s version = %d",
- 				state->rf_ramp[0],
- 				(state->current_band == BAND_CBAND) ? "CBAND" : "NOT CBAND",
--- 
-2.5.0
+rc_register_device calls input_register_device before dev->initialized = true,
+therefore the new check in rc_open fails. At a first glance I'd say that we have
+to remove this check from rc_open.
+
+Regards, Heiner
 
