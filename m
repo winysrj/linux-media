@@ -1,259 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50758 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755499AbcBVVVB (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:44130 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756340AbcB0LcW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 16:21:01 -0500
-Date: Mon, 22 Feb 2016 23:20:58 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] media: Add type field to struct media_entity
-Message-ID: <20160222212058.GX32612@valkosipuli.retiisi.org.uk>
-References: <1456105996-20845-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <20160222064601.6fc22c30@recife.lan>
+	Sat, 27 Feb 2016 06:32:22 -0500
+Subject: Re: [PATCHv2] [media] rcar-vin: add Renesas R-Car VIN driver
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ulrich.hecht@gmail.com
+References: <1456282709-13861-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D1893E.9070007@xs4all.nl>
+Date: Sat, 27 Feb 2016 12:32:14 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160222064601.6fc22c30@recife.lan>
+In-Reply-To: <1456282709-13861-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro and Laurent,
+On 02/24/2016 03:58 AM, Niklas Söderlund wrote:
+> A V4L2 driver for Renesas R-Car VIN driver that do not depend on
+> soc_camera. The driver is heavily based on its predecessor and aims to
+> replace it.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+> 
+> The driver is tested on Koelsch and can do streaming using qv4l2 and
+> grab frames using yavta. It passes a v4l2-compliance (git master) run
+> without failures, see bellow for output. Some issues I know about but
+> will have to wait for future work in other patches.
+>  - The soc_camera driver provides some pixel formats that do not display
+>    properly for me in qv4l2 or yavta. I have ported these formats as is
+>    (not working correctly?) to the new driver.
+>  - One can not bind/unbind the subdevice and continue using the driver.
+> 
+> As stated in commit message the driver is based on its soc_camera
+> version but some features have been drooped (for now?).
+>  - The driver no longer try to use the subdev for cropping (using
+>    cropcrop/s_crop).
+>  - Do not interrogate the subdev using g_mbus_config.
 
-On Mon, Feb 22, 2016 at 06:46:01AM -0300, Mauro Carvalho Chehab wrote:
-> Em Mon, 22 Feb 2016 03:53:16 +0200
-> Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
-> 
-> > Code that processes media entities can require knowledge of the
-> > structure type that embeds a particular media entity instance in order
-> > to use the API provided by that structure. This needs is shown by the
-> > presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
-> > functions.
-> > 
-> > The implementation of those two functions relies on the entity function
-> > field, which is both a wrong and an inefficient design, without even
+A quick question: was this tested with the adv7180 only? Or do you also
+have access to a sensor to test with?
 
-I wouldn't necessarily say "wrong", but it is risky. A device's function not
-only defines the interface it offers but also which struct is considered to
-contain the media entity. Having a wrong value in the function field may
-thus lead memory corruption and / or system crash.
+Regards,
 
-> > mentioning the maintenance issue involved in updating the functions
-> > every time a new entity function is added. Fix this by adding add a type
-> > field to the media entity structure to carry the information.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
-> >  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
-> >  include/media/media-entity.h          | 65 +++++++++++++++--------------------
-> >  3 files changed, 30 insertions(+), 37 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> > index d8e5994cccf1..7e766a92e3d9 100644
-> > --- a/drivers/media/v4l2-core/v4l2-dev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> > @@ -735,6 +735,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
-> >  	if (!vdev->v4l2_dev->mdev)
-> >  		return 0;
-> >  
-> > +	vdev->entity.type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
-> >  	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
-> >  
-> >  	switch (type) {
-> > diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> > index d63083803144..bb6e79f14bb8 100644
-> > --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> > @@ -584,6 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-> >  	sd->host_priv = NULL;
-> >  #if defined(CONFIG_MEDIA_CONTROLLER)
-> >  	sd->entity.name = sd->name;
-> > +	sd->entity.type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
-> >  	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
-> >  #endif
-> >  }
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index fe485d367985..2be38483f3a4 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -187,10 +187,27 @@ struct media_entity_operations {
-> >  };
-> >  
-> >  /**
-> > + * enum MEDIA_ENTITY_TYPE_NONE - Media entity type
-> > + *
-> 
-> s/MEDIA_ENTITY_TYPE_NONE/media_entity_type/
-> 
-> (it seems you didn't test producing the docbook, otherwise you would
-> have seen this error - Please always generate the docbook when the
-> patch contains kernel-doc markups)
-> 
-> I don't like the idea of calling it as "type", as this is confusing,
-> specially since we used to call entity.type for what we now call function.
-
-What that field essentially defines is which struct embeds the media entity.
-(Well, there's some cleanups to be done there, as we have extra entity for
-V4L2 subdevices, but that's another story.)
-
-The old type field had that information, plus the "function" of the entity.
-
-I think "type" isn't a bad name for this field, as what we would really need
-is inheritance. It refers to the object type. What would you think of
-"class"?
-
-> 
-> What we're actually wanting to represent is the Linux kABI group where
-> the entity belongs. So, maybe we could call it as
-> media_entity_kabi_type, instead.
-> 
-> > + * @MEDIA_ENTITY_TYPE_NONE:
-> > + *	The entity isn't embedded in a standard structure.
-> 
-> I also don't like having a NONE here. All objects belong to some
-> kABI type, but not all subsystems need to use this field
-> (so far, DVB doesn't need nor ALSA).
-> 
-> So, I would either call it as DEFAULT or UNDEFINED.
-
-I prefer UNDEFINED from the two. There really is no interface in that case,
-and we don't have a "default" interface either.
-
-> 
-> > + * @MEDIA_ENTITY_TYPE_VIDEO_DEVICE:
-> > + *	The media entity is embedded in a struct video_device.
-> > + * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
-> > + *	The media entity is embedded in a struct v4l2_subdev.
-> > + */
-> > +enum media_entity_type {
-> > +	MEDIA_ENTITY_TYPE_NONE,
-> > +	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
-> > +	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
-> > +};
-> 
-> > +
-> > +/**
-> >   * struct media_entity - A media entity graph object.
-> >   *
-> >   * @graph_obj:	Embedded structure containing the media object common data.
-> >   * @name:	Entity name.
-> > + * @type:	Type of the object that embeds the media_entity instance.
-> >   * @function:	Entity main function, as defined in uapi/media.h
-> >   *		(MEDIA_ENT_F_*)
-> >   * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
-> > @@ -219,6 +236,7 @@ struct media_entity_operations {
-> >  struct media_entity {
-> >  	struct media_gobj graph_obj;	/* must be first field in struct */
-> >  	const char *name;
-> > +	enum media_entity_type type;
-> 
-> Same as before: I would call it as kabi_type.
-> 
-> >  	u32 function;
-> >  	unsigned long flags;
-> >  
-> > @@ -328,56 +346,29 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
-> >  }
-> >  
-> >  /**
-> > - * is_media_entity_v4l2_io() - identify if the entity main function
-> > - *			       is a V4L2 I/O
-> > - *
-> > + * is_media_entity_v4l2_io() - Check if the entity implements the video_device
-> > + *			       API
-> >   * @entity:	pointer to entity
-> >   *
-> > - * Return: true if the entity main function is one of the V4L2 I/O types
-> > - *	(video, VBI or SDR radio); false otherwise.
-> > + * Return: true if the entity implement the video_device API (is directly
-> > + * embedded in a struct video_device instance) or false otherwise.
-> 
-> s/implement/implements/
-> 
-> Yet, I don't think the above comment is ok. First of all, video_device is
-> a kABI. We're nowadays calling the kernel APIs as kABI, and the userspace
-> ones as uAPI.
-
-Are the exact definitions of the two available somewhere? ABI doesn't matter
-much in the kernel itself but towards user space both ABI and API are
-important...
-
-> 
-> Also, it doesn't make clear that it would be used also for radio, and 
-> it is repeating the same thing twice.
-> 
-> So, I would either keep the original comment or change it to:
-> 
-> "Return: true if the entity implements the video_device kABI for video,
->  VBI or SDR radio (e. g. if the entity is embeddded at a struct
->  video_device instance) or false otherwise."
-> 
-> 
-> >   */
-> >  static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
-> >  {
-> > -	if (!entity)
-> > -		return false;
-> > -
-> > -	switch (entity->function) {
-> > -	case MEDIA_ENT_F_IO_V4L:
-> > -	case MEDIA_ENT_F_IO_VBI:
-> > -	case MEDIA_ENT_F_IO_SWRADIO:
-> > -		return true;
-> > -	default:
-> > -		return false;
-> > -	}
-> > +	return entity && entity->type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
-> >  }
-> >  
-> >  /**
-> > - * is_media_entity_v4l2_subdev - return true if the entity main function is
-> > - *				 associated with the V4L2 API subdev usage
-> > - *
-> > + * is_media_entity_v4l2_subdev() - Check if the entity implements the
-> > + *				   v4l2_subdev API
-> >   * @entity:	pointer to entity
-> >   *
-> > - * This is an ancillary function used by subdev-based V4L2 drivers.
-> > - * It checks if the entity function is one of functions used by a V4L2 subdev,
-> > - * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
-> > + * Return: true if the entity implement the v4l2_subdev API (is directly
-> > + * embedded in a struct v4l2_subdev instance) or false otherwise.
-> >   */
-> 
-> s/API/kABI/
-> 
-> >  static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
-> >  {
-> > -	if (!entity)
-> > -		return false;
-> > -
-> > -	switch (entity->function) {
-> > -	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
-> > -	case MEDIA_ENT_F_CAM_SENSOR:
-> > -	case MEDIA_ENT_F_FLASH:
-> > -	case MEDIA_ENT_F_LENS:
-> > -	case MEDIA_ENT_F_ATV_DECODER:
-> > -	case MEDIA_ENT_F_TUNER:
-> > -		return true;
-> > -
-> > -	default:
-> > -		return false;
-> > -	}
-> > +	return entity && entity->type == MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
-> >  }
-> >  
-> >  /**
-> 
-> 
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
