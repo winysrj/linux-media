@@ -1,87 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f182.google.com ([209.85.223.182]:33695 "EHLO
-	mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754753AbcBYH5Q (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:37549 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756590AbcB0Sjc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2016 02:57:16 -0500
+	Sat, 27 Feb 2016 13:39:32 -0500
+Received: by mail-wm0-f47.google.com with SMTP id g62so107445207wme.0
+        for <linux-media@vger.kernel.org>; Sat, 27 Feb 2016 10:39:31 -0800 (PST)
+Subject: Re: Problem since commit c73bbaa4ec3e [rc-core: don't lock device at
+ rc_register_device()]
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <56D19314.3050409@gmail.com> <56D1CA81.10802@gmail.com>
+ <20160227150524.7d8d6fbb@recife.lan>
+Cc: linux-media@vger.kernel.org
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Message-ID: <56D1ED54.9080503@gmail.com>
+Date: Sat, 27 Feb 2016 19:39:16 +0100
 MIME-Version: 1.0
-In-Reply-To: <20160225003243.GA12961@verge.net.au>
-References: <1456280542-13113-1-git-send-email-horms+renesas@verge.net.au>
-	<CAMuHMdUwvgaLtLLSk7jdg1N7mafpGz0VsikhbcFsuGQDHAunVw@mail.gmail.com>
-	<20160224235619.GA5936@verge.net.au>
-	<20160225003243.GA12961@verge.net.au>
-Date: Thu, 25 Feb 2016 08:57:15 +0100
-Message-ID: <CAMuHMdUZTkJqTrskW=3_m1UufxjDaf8EF=gz_+NT07DDvkw2Vg@mail.gmail.com>
-Subject: Re: [PATCH] media: platform: rcar_jpu, sh_vou, vsp1: Use ARCH_RENESAS
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Simon Horman <horms@verge.net.au>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20160227150524.7d8d6fbb@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Simon,
-
-On Thu, Feb 25, 2016 at 1:32 AM, Simon Horman <horms@verge.net.au> wrote:
-> On Thu, Feb 25, 2016 at 08:56:22AM +0900, Simon Horman wrote:
->> On Wed, Feb 24, 2016 at 08:46:31AM +0100, Geert Uytterhoeven wrote:
->> > On Wed, Feb 24, 2016 at 3:22 AM, Simon Horman
->> > <horms+renesas@verge.net.au> wrote:
->> > > Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
->> > >
->> > > This is part of an ongoing process to migrate from ARCH_SHMOBILE to
->> > > ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
->> > > appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
->> > >
->> > > Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
->> > > ---
->> > >  drivers/media/platform/Kconfig | 6 +++---
->> > >  1 file changed, 3 insertions(+), 3 deletions(-)
->> > >
->> > >  Based on media_tree/master
->> > >
->> > > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
->> > > index 201f5c296a95..662c029400de 100644
->> > > --- a/drivers/media/platform/Kconfig
->> > > +++ b/drivers/media/platform/Kconfig
->> > > @@ -37,7 +37,7 @@ config VIDEO_SH_VOU
->> > >         tristate "SuperH VOU video output driver"
->> > >         depends on MEDIA_CAMERA_SUPPORT
->> > >         depends on VIDEO_DEV && I2C && HAS_DMA
->> > > -       depends on ARCH_SHMOBILE || COMPILE_TEST
->> > > +       depends on ARCH_RENESAS || COMPILE_TEST
->> >
->> > This driver is used on sh7722/sh7723/sh7724 only.
->> > While these are Renesas parts, ARCH_RENESAS isn't set for SuperH SoCs,
->> > making this driver unavailable where needed.
+Am 27.02.2016 um 19:05 schrieb Mauro Carvalho Chehab:
+> Em Sat, 27 Feb 2016 17:10:41 +0100
+> Heiner Kallweit <hkallweit1@gmail.com> escreveu:
+> 
+>> Am 27.02.2016 um 13:14 schrieb Heiner Kallweit:
+>>> Since this commit I see the following error when the Nuvoton RC driver is loaded:
+>>>
+>>> input: failed to attach handler kbd to device input3, error: -22
+>>>
+>>> Error 22 (EINVAL) comes from the new check in rc_open().
+>>>   
 >>
->> Thanks for pointing that out, I had missed that detail.
+>> Complete call chain seems to be:
+>>   rc_register_device
+>>   input_register_device
+>>   input_attach_handler
+>>   kbd_connect
+>>   input_open_device
+>>   ir_open
+>>   rc_open
 >>
->> Ideally I would like to stop setting ARCH_SHMOBILE for ARM Based
->> SoCs. So perhaps the following would be best?
+>> rc_register_device calls input_register_device before dev->initialized = true,
+>> therefore the new check in rc_open fails. At a first glance I'd say that we have
+>> to remove this check from rc_open.
+> 
+> Hmm... maybe we could, instead, do:
+> 
+> 	if (!rdev->initialized) {
+> 		rval = -ERESTARTSYS;
+> 		goto unlock;
+> 	}
+> 
+Looking at the source code of the functions in the call chain I see no special
+handling of ERESTARTSYS. It's treated like any other error, therefore I don't
+think this helps.
+
+> 
+> 
 >>
->>       depends on ARCH_SHMOBILE || ARCH_RENESAS || COMPILE_TEST
->
-> Sorry, I think I misread your comment. If the driver is not
-> used by any ARM Based SoCs then perhaps this patch should be simply
-> withdrawn.
+>> Regards, Heiner
+>>
+> 
+> 
 
-Just the first chunk. If you drop that one, you can have my
-
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
