@@ -1,57 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:40054 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753186AbcBEP2R (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:17231 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756185AbcB0KvZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2016 10:28:17 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv11 02/17] dts: exynos4: add node for the HDMI CEC device
-Date: Fri,  5 Feb 2016 16:27:45 +0100
-Message-Id: <1454686080-39018-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
-References: <1454686080-39018-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 27 Feb 2016 05:51:25 -0500
+Date: Sat, 27 Feb 2016 13:51:09 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch 1/2] [media] tvp5150: off by one
+Message-ID: <20160227105109.GD14086@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+The ->input_ent[] array has TVP5150_INPUT_NUM elements so the > here
+should be >=.
 
-This patch adds HDMI CEC node specific to the Exynos4210/4x12 SoC series.
+Fixes: f7b4b54e6364 ('[media] tvp5150: add HW input connectors support')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- arch/arm/boot/dts/exynos4.dtsi | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
-
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 045785c..8913408 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -751,6 +751,18 @@
- 		status = "disabled";
- 	};
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index ef393f5..ff18444 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1386,7 +1386,7 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
+ 			goto err_connector;
+ 		}
  
-+	hdmicec: cec@100B0000 {
-+		compatible = "samsung,s5p-cec";
-+		reg = <0x100B0000 0x200>;
-+		interrupts = <0 114 0>;
-+		clocks = <&clock CLK_HDMI_CEC>;
-+		clock-names = "hdmicec";
-+		samsung,syscon-phandle = <&pmu_system_controller>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&hdmi_cec>;
-+		status = "disabled";
-+	};
-+
- 	mixer: mixer@12C10000 {
- 		compatible = "samsung,exynos4210-mixer";
- 		interrupts = <0 91 0>;
--- 
-2.7.0
-
+-		if (input_type > TVP5150_INPUT_NUM) {
++		if (input_type >= TVP5150_INPUT_NUM) {
+ 			ret = -EINVAL;
+ 			goto err_connector;
+ 		}
