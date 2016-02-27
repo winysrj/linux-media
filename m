@@ -1,192 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59823 "EHLO mail.kapsi.fi"
+Received: from lists.s-osg.org ([54.187.51.154]:46447 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751516AbcBNRKz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2016 12:10:55 -0500
-Subject: Re: PCTV 292e weirdness
-To: Russel Winder <russel@winder.org.uk>,
-	DVB_Linux_Media <linux-media@vger.kernel.org>
-References: <1454523447.1970.15.camel@itzinteractive.com>
- <1455361477.1704.11.camel@winder.org.uk>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <56C0B51C.6070009@iki.fi>
-Date: Sun, 14 Feb 2016 19:10:52 +0200
+	id S1756183AbcB0Ml2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Feb 2016 07:41:28 -0500
+Date: Sat, 27 Feb 2016 09:41:13 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, clemens@ladisch.de,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com,
+	geliangtang@163.com, alsa-devel@alsa-project.org, arnd@arndb.de,
+	ricard.wanderlof@axis.com, labbott@fedoraproject.org,
+	chehabrafael@gmail.com, klock.android@gmail.com,
+	misterpib@gmail.com, prabhakar.csengg@gmail.com,
+	ricardo.ribalda@gmail.com, ruchandani.tina@gmail.com,
+	takamichiho@gmail.com, tvboxspy@gmail.com, dominic.sacre@gmx.de,
+	albert@huitsing.nl, crope@iki.fi, julian@jusst.de,
+	pierre-louis.bossart@linux.intel.com, corbet@lwn.net,
+	joe@oampo.co.uk, johan@oljud.se, dan.carpenter@oracle.com,
+	pawel@osciak.com, p.zabel@pengutronix.de, perex@perex.cz,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	j.anaszewski@samsung.com, jh1009.sung@samsung.com,
+	k.kozlowski@samsung.com, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, nenggun.kim@samsung.com,
+	sw0312.kim@samsung.com, elfring@users.sourceforge.net,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linuxbugs@vittgam.net, gtmkramer@xs4all.nl, normalperson@yhbt.net,
+	daniel@zonque.org
+Subject: Re: [PATCH v3 22/22] sound/usb: Use Media Controller API to share
+ media resources
+Message-ID: <20160227094113.5ae5e728@recife.lan>
+In-Reply-To: <s5hegbyk30q.wl-tiwai@suse.de>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+	<0822f80e0acc5119e6f6deccf002ccadeb3b145b.1455233156.git.shuahkh@osg.samsung.com>
+	<s5hpovjjlg4.wl-tiwai@suse.de>
+	<56D0B0CB.8060709@osg.samsung.com>
+	<s5hio1bjiws.wl-tiwai@suse.de>
+	<56D1102B.8060501@osg.samsung.com>
+	<s5hegbyk30q.wl-tiwai@suse.de>
 MIME-Version: 1.0
-In-Reply-To: <1455361477.1704.11.camel@winder.org.uk>
-Content-Type: multipart/mixed;
- boundary="------------040409020504030501000102"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040409020504030501000102
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Em Sat, 27 Feb 2016 08:48:05 +0100
+Takashi Iwai <tiwai@suse.de> escreveu:
 
-I did some testing and I suspect changed firmware behavior after 4.0.11 
-so that it goes totally power off when put into sleep and on that case 
-firmware update is also lost.
-
-One solution is to use firmware version to make decision if it needs to 
-be uploaded everytime after the sleep(). Even better solution is to 
-detect somehow if firmware upload is need by run-time, but that chip 
-seems not to answer almost any command when it is put into deep sleep.
-
-I have following firmwares:
-4.0.2 (default firmware burned to chip rom)
-4.0.4
-4.0.11
-4.0.19
-4.0.25
-
-It could be interesting to get missing ones... I attached script I used 
-to extract firmwares from binary.
-
-Antti
-
-On 02/13/2016 01:04 PM, Russel Winder wrote:
->  From what I can see, this problem has gone away – hopefully
-> permanently.
->
-> As far as I can tell the only change is that there has been a firmware
-> file update at git@github.com:OpenELEC/dvb-firmware.git that reverts
-> 4.0.19 to 4.0.11
->
-> On Wed, 2016-02-03 at 18:17 +0000, Russel Winder wrote:
->> I am fairly sure I didn't see this before, but then I am not sure I
->> have a new kernel, libdvbv5 or dvbtools. Also people are bad
->> witnesses.
->> However, if I plug the device in I can either scan with it or tune
->> it,
->> but only once thereafter it goes into "won't do anything so there"
->> mode. For example:
->>
->>
->>>> dvbv5-zap -c save_channels.conf "BBC NEWS"
->> using demux '/dev/dvb/adapter0/demux0'
->> reading channels from file 'save_channels.conf'
->> service has pid type 05:  7270
->> tuning to 490000000 Hz
->> video pid 501
->>    dvb_set_pesfilter 501
->> audio pid 502
->>    dvb_set_pesfilter 502
->>         (0x00)
->> Lock   (0x1f) Signal= -51.00dBm C/N= 23.50dB
->> 582 anglides:~/Repositories/Git/Git/Me-TV (git:master)
->>>> dvbv5-zap -c save_channels.conf "BBC NEWS"
->> using demux '/dev/dvb/adapter0/demux0'
->> reading channels from file 'save_channels.conf'
->> service has pid type 05:  7270
->> tuning to 490000000 Hz
->> video pid 501
->>    dvb_set_pesfilter 501
->> audio pid 502
->>    dvb_set_pesfilter 502
->>         (0x00) C/N= 23.50dB
->>         (0x00) Signal= -67.00dBm C/N= 23.50dB
->>         (0x00) Signal= -67.00dBm C/N= 23.50dB
->>         (0x00) Signal= -109.00dBm C/N= 23.50dB
->>         (0x00) Signal= -109.00dBm C/N= 23.50dB
->>         (0x00) Signal= -109.00dBm C/N= 23.50dB
->>         (0x00) Signal= -109.00dBm C/N= 23.50dB
->>         (0x00) Signal= -109.00dBm C/N= 23.50dB
->>         (0x00) Signal= -109.00dBm C/N= 23.50dB
->>         (0x00) Signal= -109.00dBm C/N= 23.50dB
->>         (0x00) Signal= -109.00dBm C/N= 23.50dB
->>
->>
->> If I use a PCTV 282e this does not happen. As far as I can tell there
->> has been no change of firmware either, and yet…
->>
->>
-
--- 
-http://palosaari.fi/
-
---------------040409020504030501000102
-Content-Type: text/x-python;
- name="si2168_extract_firmware.py"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="si2168_extract_firmware.py"
-
-#!/usr/bin/env python
-# Silicon Labs Si2168 firmware extractor.
-# Copyright (C) 2015 Antti Palosaari <crope@iki.fi>
-# Usage: si2168_extract_firmware.py binary_driver_name.sys
-
-import sys
-import struct
-import md5
-
-fread = file(sys.argv[1], 'rb')
-binary = fread.read()
-offset = 0
-
-# Known firmware md5 and its version
-fw_ver_tab = {
-    'b2670d8ae5e3369fc71edbb98cdd8f6e' : '4.0.11',
-    '8dfc2483d90282bbb05817fbbc282376' : '4.0.19',
-    'c8e089c351e9834060e962356f8697b8' : '4.0.25',
-}
-
-while True:
-    # Match 17-byte firmware header
-    # 04 01 00 00 00 00 9a 41 05 1b af 33 02 1b 3e 7d 2a | A20 (not supported)
-    # 08 05 00 xx xx xx xx xx xx 00 00 00 00 00 00 00 00 | B40
-    offset = binary.find('\x08\x05\x00', offset)
-    if offset == -1:
-        print "Done"
-        break
-
-    if (binary[offset + 9:offset + 17] != '\x00\x00\x00\x00\x00\x00\x00\x00'):
-        offset = offset + 1
-        continue
-
-    print "17-byte firmware found at 0x%x" % (offset)
-
-    fw_filename = 'dvb-demod-si2168-b40-01.fw_' + str(offset)
-    fw_write = open(fw_filename, 'wb')
-    fw_md5 = md5.new()
-
-    while True:
-        fields = struct.unpack("B", binary[offset])
-        fw_data_len = fields[0]
-        # Firmware chunk first byte tells bytes to upload - 16 is max
-        if fw_data_len > 16:
-            print "Firmware upload len too large %d" % (fw_data_len)
-            break
-
-        # Check remaining (unused) bytes on firmware 17-byte chunk are all zero
-        data_valid = True
-        for x in range(offset + fw_data_len + 1, offset + 17):
-            if (binary[x] != '\x00'):
-                data_valid = False
-                break
-
-        if data_valid == False:
-            break
-
-        # Firmware chunk validated, write it to file
-        fw_write.write(binary[offset + 0:offset + 17])
-        fw_md5.update(binary[offset + 0:offset + 17])
-        offset = offset + 17
-
-    fw_write.close()
-
-    if fw_md5.hexdigest() in fw_ver_tab:
-        fw_ver = fw_ver_tab[fw_md5.hexdigest()]
-    else:
-        fw_ver = '<unknown>'
-
-    print "Firmware md5 '%s'" % (fw_md5.hexdigest())
-    print "Firmware version '%s'" % (fw_ver)
-    print "Firmware stored to file '%s'" % (fw_filename)
-
-    offset = offset + 1
-
-fread.close()
+> On Sat, 27 Feb 2016 03:55:39 +0100,
+> Shuah Khan wrote:
+> > 
+> > On 02/26/2016 01:50 PM, Takashi Iwai wrote:  
+> > > On Fri, 26 Feb 2016 21:08:43 +0100,
+> > > Shuah Khan wrote:  
+> > >>
+> > >> On 02/26/2016 12:55 PM, Takashi Iwai wrote:  
+> > >>> On Fri, 12 Feb 2016 00:41:38 +0100,
+> > >>> Shuah Khan wrote:  
+> > >>>>
+> > >>>> Change ALSA driver to use Media Controller API to
+> > >>>> share media resources with DVB and V4L2 drivers
+> > >>>> on a AU0828 media device. Media Controller specific
+> > >>>> initialization is done after sound card is registered.
+> > >>>> ALSA creates Media interface and entity function graph
+> > >>>> nodes for Control, Mixer, PCM Playback, and PCM Capture
+> > >>>> devices.
+> > >>>>
+> > >>>> snd_usb_hw_params() will call Media Controller enable
+> > >>>> source handler interface to request the media resource.
+> > >>>> If resource request is granted, it will release it from
+> > >>>> snd_usb_hw_free(). If resource is busy, -EBUSY is returned.
+> > >>>>
+> > >>>> Media specific cleanup is done in usb_audio_disconnect().
+> > >>>>
+> > >>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> > >>>> ---
+> > >>>>  sound/usb/Kconfig        |   4 +
+> > >>>>  sound/usb/Makefile       |   2 +
+> > >>>>  sound/usb/card.c         |  14 +++
+> > >>>>  sound/usb/card.h         |   3 +
+> > >>>>  sound/usb/media.c        | 318 +++++++++++++++++++++++++++++++++++++++++++++++
+> > >>>>  sound/usb/media.h        |  72 +++++++++++
+> > >>>>  sound/usb/mixer.h        |   3 +
+> > >>>>  sound/usb/pcm.c          |  28 ++++-
+> > >>>>  sound/usb/quirks-table.h |   1 +
+> > >>>>  sound/usb/stream.c       |   2 +
+> > >>>>  sound/usb/usbaudio.h     |   6 +
+> > >>>>  11 files changed, 448 insertions(+), 5 deletions(-)
+> > >>>>  create mode 100644 sound/usb/media.c
+> > >>>>  create mode 100644 sound/usb/media.h
+> > >>>>
+> > >>>> diff --git a/sound/usb/Kconfig b/sound/usb/Kconfig
+> > >>>> index a452ad7..ba117f5 100644
+> > >>>> --- a/sound/usb/Kconfig
+> > >>>> +++ b/sound/usb/Kconfig
+> > >>>> @@ -15,6 +15,7 @@ config SND_USB_AUDIO
+> > >>>>  	select SND_RAWMIDI
+> > >>>>  	select SND_PCM
+> > >>>>  	select BITREVERSE
+> > >>>> +	select SND_USB_AUDIO_USE_MEDIA_CONTROLLER if MEDIA_CONTROLLER && MEDIA_SUPPORT  
+> > >>>
+> > >>> Looking at the media Kconfig again, this would be broken if
+> > >>> MEDIA_SUPPORT=m and SND_USB_AUDIO=y.  The ugly workaround is something
+> > >>> like:
+> > >>> 	select SND_USB_AUDIO_USE_MEDIA_CONTROLLER \
+> > >>> 		if MEDIA_CONTROLLER && (MEDIA_SUPPORT=y || MEDIA_SUPPORT=SND)  
+> > >>
+> > >> My current config is MEDIA_SUPPORT=m and SND_USB_AUDIO=y
+> > >> It is working and I didn't see any issues so far.  
+> > > 
+> > > Hmm, how does it be?  In drivers/media/Makefile:
+> > > 
+> > > ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+> > >   obj-$(CONFIG_MEDIA_SUPPORT) += media.o
+> > > endif
+> > > 
+> > > So it's a module.  Meanwhile you have reference from usb-audio driver
+> > > that is built-in kernel.  How is the symbol resolved?  
+> > 
+> > Sorry my mistake. I misspoke. My config had:
+> > CONFIG_MEDIA_SUPPORT=m
+> > CONFIG_MEDIA_CONTROLLER=y
+> > CONFIG_SND_USB_AUDIO=m
+> > 
+> > The following doesn't work as you pointed out.
+> > 
+> > CONFIG_MEDIA_SUPPORT=m
+> > CONFIG_MEDIA_CONTROLLER=y
+> > CONFIG_SND_USB_AUDIO=y
+> > 
+> > okay here is what will work for all of the possible
+> > combinations of CONFIG_MEDIA_SUPPORT and CONFIG_SND_USB_AUDIO
+> > 
+> > select SND_USB_AUDIO_USE_MEDIA_CONTROLLER \
+> >        if MEDIA_CONTROLLER && ((MEDIA_SUPPORT=y) || (MEDIA_SUPPORT=m && SND_USB_AUDIO=m))
+> > 
+> > The above will cover the cases when
+> > 
+> > 1. CONFIG_MEDIA_SUPPORT and CONFIG_SND_USB_AUDIO are
+> >    both modules
+> >    CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER is selected
+> > 
+> > 2. CONFIG_MEDIA_SUPPORT=y and CONFIG_SND_USB_AUDIO=m
+> >    CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER is selected
+> > 
+> > 3. CONFIG_MEDIA_SUPPORT=y and CONFIG_SND_USB_AUDIO=y
+> >    CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER is selected
+> > 
+> > 4. CONFIG_MEDIA_SUPPORT=m and CONFIG_SND_USB_AUDIO=y
+> >    This is when we don't want
+> >    CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER selected
+> > 
+> > I verified all of the above combinations to make sure
+> > the logic works.
+> > 
+> > If you think of a better way to do this please let me
+> > know. I will go ahead and send patch v4 with the above
+> > change and you can decide if that is acceptable.  
+> 
+> I'm not 100% sure whether CONFIG_SND_USB_AUDIO=m can be put there as
+> conditional inside CONFIG_SND_USB_AUDIO definition.  Maybe a safer
+> form would be like:
+> 
+> config SND_USB_AUDIO_USE_MEDIA_CONTROLLER
+> 	bool
+> 	default y
+> 	depends on SND_USB_AUDIO
+> 	depends on MEDIA_CONTROLLER
+> 	depends on (MEDIA_SUPPORT=y || MEDIA_SUPPORT=SND_USB_AUDIO)
+> 
+> and drop select from SND_USB_AUDIO.
+> 
+> 
+> > >>> Other than that, it looks more or less OK to me.
+> > >>> The way how media_stream_init() gets called is a bit worrisome, but it
+> > >>> should work practically.  Another concern is about the disconnection.
+> > >>> Can all function calls in media_device_delete() be safe even if it's
+> > >>> called while the application still opens the MC device?  
+> > >>
+> > >> Right. I have been looking into device removal path when
+> > >> ioctls are active and I can resolve any issues that might
+> > >> surface while an audio app is active when device is removed.  
+> > > 
+> > > So, it's 100% safe to call all these media_*() functions while the
+> > > device is being accessed before closing?
+> > >   
+> > 
+> > There is a known problem with device removal when
+> > media device file is open and ioctl is in progress.
+> > This isn't specific to this patch series, a general
+> > problem that is related to media device removal in
+> > general.
+> > 
+> > I am working on a fix for this problem. As you said,
+> > earlier, I can work on fixing issues after the merge.  
+> 
+> OK, understood.
+> 
+> 
+> Takashi
 
 
---------------040409020504030501000102--
+As there are still some issues here, I decided to apply all but
+this one, in order to avoid having compilation issues with random
+configs.
+
+Shuah,
+
+As there were several conflicts when I applied the initial 21 patches
+from this series, please apply this one on the top of the latest
+tree. 
+
+As this patch touches only at sound, it is independent, so
+you won't need to rebase it. However, I might have solved some
+conflicts badly, a final test wouldn't hurt ;)
+
+Regards,
+Mauro
