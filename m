@@ -1,117 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36969 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753108AbcBWTLh (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37967 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756340AbcB0RRo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 14:11:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Revert "[media] tvp5150: document input connectors DT bindings"
-Date: Tue, 23 Feb 2016 21:11:33 +0200
-Message-ID: <4415195.KUYSOd2PzY@avalon>
-In-Reply-To: <1456253288-397-1-git-send-email-javier@osg.samsung.com>
-References: <1456253288-397-1-git-send-email-javier@osg.samsung.com>
+	Sat, 27 Feb 2016 12:17:44 -0500
+Subject: Re: [PATCH] v4l2: remove MIPI CSI-2 driver for SH-Mobile platforms
+To: Simon Horman <horms@verge.net.au>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1456279679-11342-1-git-send-email-horms+renesas@verge.net.au>
+ <2212155.BHpL65I02t@avalon> <20160224061721.GK5435@verge.net.au>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D1DA30.3040207@xs4all.nl>
+Date: Sat, 27 Feb 2016 18:17:36 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20160224061721.GK5435@verge.net.au>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Hi Simon,
 
-Thank you for the patch.
+On 02/24/2016 07:17 AM, Simon Horman wrote:
+> On Wed, Feb 24, 2016 at 07:59:57AM +0200, Laurent Pinchart wrote:
+>> Hi Simon,
+>>
+>> Thank you for the patch.
+>>
+>> On Wednesday 24 February 2016 11:07:59 Simon Horman wrote:
+>>> This driver does not appear to have ever been used by any SoC's defconfig
+>>> and does not appear to support DT. In sort it seems unused an unlikely
+>>> to be used.
+>>>
+>>> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+>>> ---
+>>>  drivers/media/platform/soc_camera/Kconfig          |   7 -
+>>>  drivers/media/platform/soc_camera/Makefile         |   1 -
+>>>  drivers/media/platform/soc_camera/sh_mobile_csi2.c | 400 ------------------
+>>
+>> Shouldn't you also remove include/media/drv-intf/sh_mobile_csi2.h ? You would 
+>> then need to update drivers/media/platform/soc_camera/sh_mobile_ceu.c 
+>> accordingly, or remove it altogether.
+> 
+> Thanks.
+> 
+> sh_mobile_ceu appears to be used by several SH boards so I'd rather
+> not remove it, at least not for this reason.
+> 
+> So I'd prefer to look into updating sh_mobile_ceu.c and removing
+> sh_mobile_csi2.h.
 
-On Tuesday 23 February 2016 15:48:08 Javier Martinez Canillas wrote:
-> This reverts commit 82c2ffeb217a ("[media] tvp5150: document input
-> connectors DT bindings") since the DT binding is too device driver
-> specific and should instead be more generic and use the bindings
-> in Documentation/devicetree/bindings/display/connector/ and linked
-> to the tvp5150 using the OF graph port and endpoints.
-> 
-> There are still ongoing discussions about how the input connectors
-> will be supported by the Media Controller framework so until that
-> is settled, it is better to revert the connectors portion of the
-> bindings to avoid known to be broken bindings docs to hit mainline.
-> 
-> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+I did some testing which was rather painful due to this bug that I hit:
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> ---
-> 
->  .../devicetree/bindings/media/i2c/tvp5150.txt      | 43 ------------------
->  1 file changed, 43 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt index
-> daa20e43a8e3..8c0fc1a26bf0 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
-> @@ -12,32 +12,6 @@ Optional Properties:
->  - pdn-gpios: phandle for the GPIO connected to the PDN pin, if any.
->  - reset-gpios: phandle for the GPIO connected to the RESETB pin, if any.
-> 
-> -Optional nodes:
-> -- connectors: The input connectors of tvp5150 have to be defined under
-> -  a subnode name "connectors" using the following format:
-> -
-> -	input-connector-name {
-> -		input connector properties
-> -	};
-> -
-> -Each input connector must contain the following properties:
-> -
-> -	- label: a name for the connector.
-> -	- input: the input connector.
-> -
-> -The possible values for the "input" property are:
-> -	0: Composite0
-> -	1: Composite1
-> -	2: S-Video
-> -
-> -and on a tvp5150am1 and tvp5151 there is another:
-> -	4: Signal generator
-> -
-> -The list of valid input connectors are defined in
-> dt-bindings/media/tvp5150.h -header file and can be included by device tree
-> source files.
-> -
-> -Each input connector can be defined only once.
-> -
->  The device node must contain one 'port' child node for its digital output
->  video port, in accordance with the video interface bindings defined in
->  Documentation/devicetree/bindings/media/video-interfaces.txt.
-> @@ -62,23 +36,6 @@ Example:
->  		pdn-gpios = <&gpio4 30 GPIO_ACTIVE_LOW>;
->  		reset-gpios = <&gpio6 7 GPIO_ACTIVE_LOW>;
-> 
-> -		connectors {
-> -			composite0 {
-> -				label = "Composite0";
-> -				input = <TVP5150_COMPOSITE0>;
-> -			};
-> -
-> -			composite1 {
-> -				label = "Composite1";
-> -				input = <TVP5150_COMPOSITE1>;
-> -			};
-> -
-> -			s-video {
-> -				label = "S-Video";
-> -				input = <TVP5150_SVIDEO>;
-> -			};
-> -		};
-> -
->  		port {
->  			tvp5150_1: endpoint {
->  				remote-endpoint = <&ccdc_ep>;
+https://bugzilla.kernel.org/show_bug.cgi?id=113321
 
--- 
+Unrelated to this driver but a sign that nobody used kernels >= 4.2 with
+this hardware, since that's how long support for this board (and probably
+sh4 in general) has been broken.
+
+The ceu driver itself seems to work with the composite input. I can't test
+with a sensor board since the sensor is no longer recognized on the i2c bus.
+I suspect that the cable between the sh4 board and the camera board has a
+fault. So unless someone has a replacement cable for me (or knows where to
+get one) I won't be able to test it.
+
+I will see if I can do a simple conversion tomorrow or Monday, for now without
+cropping support. Just a simple capture driver.
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
