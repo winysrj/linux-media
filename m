@@ -1,173 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55871 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752938AbcBOMfJ (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:38603 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756566AbcB0Res (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 07:35:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
+	Sat, 27 Feb 2016 12:34:48 -0500
+Subject: Re: [PATCH] v4l2: remove MIPI CSI-2 driver for SH-Mobile platforms
+To: Simon Horman <horms+renesas@verge.net.au>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1456279679-11342-1-git-send-email-horms+renesas@verge.net.au>
+ <56CD5A19.4000906@xs4all.nl>
 Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH/RFC 3/9] v4l: Add Renesas R-Car FCP driver
-Date: Mon, 15 Feb 2016 14:35:37 +0200
-Message-ID: <7803268.ksEo9HOBee@avalon>
-In-Reply-To: <CAMuHMdW1bWPPL-4hRM=dx-216V4Aew1dg=i=ApkLww4RFXQgmg@mail.gmail.com>
-References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1455242450-24493-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdW1bWPPL-4hRM=dx-216V4Aew1dg=i=ApkLww4RFXQgmg@mail.gmail.com>
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D1DE32.1030604@xs4all.nl>
+Date: Sat, 27 Feb 2016 18:34:42 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <56CD5A19.4000906@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
-
-Thank you for the review.
-
-On Monday 15 February 2016 10:32:35 Geert Uytterhoeven wrote:
-> On Fri, Feb 12, 2016 at 3:00 AM, Laurent Pinchart wrote:
-> > The FCP is a companion module of video processing modules in the
-> > Renesas R-Car Gen3 SoCs. It provides data compression and decompression,
-> > data caching, and converting of AXI transaction in order to reduce the
+On 02/24/2016 08:22 AM, Hans Verkuil wrote:
+> On 02/24/2016 03:07 AM, Simon Horman wrote:
+>> This driver does not appear to have ever been used by any SoC's defconfig
+>> and does not appear to support DT. In sort it seems unused an unlikely
+>> to be used.
 > 
-> "conversion"?
+> I prefer to move it to staging/media first for 1-2 kernel cycles. Just in case
+> someone does need this.
 
-Of course. Can you submit a similar patch to the Gen3 datasheet ? ;-)
+Now that I looked more closely how it is used I think plain removal is best.
 
-> > memory bandwidth.
-> > 
-> > The driver is not meant to be used standalone but provides an API to the
-> > video processing modules to control the FCP.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> Thanks for your patch!
-> 
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
-> > @@ -0,0 +1,24 @@
-> > +Renesas R-Car Frame Compression Processor (FCP)
-> > +-----------------------------------------------
-> > +
-> > +The FCP is a companion module of video processing modules in the Renesas
-> > R-Car
-> > +Gen3 SoCs. It provides data compression and decompression, data caching,
-> > and
-> > +converting of AXI transaction in order to reduce the memory bandwidth.
->
-> "conversion"?
-> 
-> > +
-> > +There are three types of FCP whose configuration and behaviour highly
-> > depend +on the module they are paired with.
-> > +
-> > + - compatible: Must be one of the following
-> > +   - "renesas,fcpv" for the 'FCP for VSP' device
-> 
-> Any chance this module can turn up in another SoC later? I guess yes.
+There are two options:
 
-It's not just that it can, it will.
+1) If I can manage to make a replacement ceu driver (although without cropping
+support), then the old ceu and csi drivers can both go to staging and removed
+later.
 
-> What about future-proofing using "renesas,r8a7795-fcpv" and "renesas,rcar-
-> gen3-fcpv"?
+2) If the ceu driver has to stay longer, then the csi part has to be stripped.
+Moving just the csi part to staging is not feasible given how ceu and csi work
+together. It would make sense that I do this job since I can test on this board,
+at least with the composite input.
 
-Given that the device currently has registers and clock only, I wanted to keep 
-the DT bindings simple. My plan is to introduce new compat strings later as 
-needed, if needed, when incompatible FCP instances will be introduced. Feel 
-free to challenge that :-)
-
-> > diff --git a/drivers/media/platform/Kconfig
-> > b/drivers/media/platform/Kconfig index fd4fcd5a7184..cbb4e5735bf8 100644
-> > --- a/drivers/media/platform/Kconfig
-> > +++ b/drivers/media/platform/Kconfig
-> > @@ -255,6 +255,19 @@ config VIDEO_RENESAS_JPU
-> >           To compile this driver as a module, choose M here: the module
-> >           will be called rcar_jpu.
-> > 
-> > +config VIDEO_RENESAS_FCP
-> > +       tristate "Renesas Frame Compression Processor"
-> > +       depends on ARCH_SHMOBILE || COMPILE_TEST
-> 
-> ARCH_RENESAS
-
-Ah, that's finally merged, great.
-
-> > diff --git a/drivers/media/platform/rcar-fcp.c
-> > b/drivers/media/platform/rcar-fcp.c new file mode 100644
-> > index 000000000000..cf8cb629ae4f
-> > --- /dev/null
-> > +++ b/drivers/media/platform/rcar-fcp.c
-> > 
-> > +struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
-> > +{
-> > +       struct rcar_fcp_device *fcp;
-> > +
-> > +       mutex_lock(&fcp_lock);
-> > +
-> > +       list_for_each_entry(fcp, &fcp_devices, list) {
-> > +               if (fcp->dev->of_node != np)
-> > +                       continue;
-> > +
-> > +               /*
-> > +                * Make sure the module won't be unloaded behind our back.
-> > This
-> > +                * is a poor's man safety net, the module should really
-> > not be
->
-> poor man's
-> 
-> > diff --git a/include/media/rcar-fcp.h b/include/media/rcar-fcp.h
-> > new file mode 100644
-> > index 000000000000..4260cf48d3b1
-> > --- /dev/null
-> > +++ b/include/media/rcar-fcp.h
-> > @@ -0,0 +1,34 @@
-> > +/*
-> > + * rcar-fcp.h  --  R-Car Frame Compression Processor Driver
-> > + *
-> > + * Copyright (C) 2016 Renesas Electronics Corporation
-> > + *
-> > + * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License as published by
-> > + * the Free Software Foundation; either version 2 of the License, or
-> > + * (at your option) any later version.
-> > + */
-> > +#ifndef __MEDIA_RCAR_FCP_H__
-> > +#define __MEDIA_RCAR_FCP_H__
-> > +
-> > +struct device_node;
-> > +struct rcar_fcp_device;
-> > +
-> > +#if IS_ENABLED(CONFIG_VIDEO_RENESAS_FCP)
-> > +struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np);
-> > +void rcar_fcp_put(struct rcar_fcp_device *fcp);
-> > +void rcar_fcp_enable(struct rcar_fcp_device *fcp);
-> > +void rcar_fcp_disable(struct rcar_fcp_device *fcp);
-> > +#else
-> > +static inline struct rcar_fcp_device *rcar_fcp_get(const struct
-> > device_node *np)
-> > +{
-> > +       return ERR_PTR(-ENOENT);
-> > +}
-> > +static inline void rcar_fcp_put(struct rcar_fcp_device *fcp) { }
-> > +static inline void rcar_fcp_enable(struct rcar_fcp_device *fcp) { }
-> > +static inline void rcar_fcp_disable(struct rcar_fcp_device *fcp) { }
-> 
-> Given the dummies, the vsp driver can also work when FCP support is not
-> enabled?
-> Or is this meant purely to avoid #ifdefs in the vsp driver when compiling
-> for R-Car Gen2?
-> 
-> In case of the latter, you may want to enforce this in Kconfig.
-
-It's the latter, I'll enforce it in Kconfig in the patch that adds FCP support 
-in the VSP driver (and keep the stubs here for Gen2).
-
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
