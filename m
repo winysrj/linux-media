@@ -1,223 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16300 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752954AbcBOMpq (ORCPT
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:37056 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755826AbcB0Vmj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2016 07:45:46 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0O2L006EEA48XA10@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Feb 2016 12:45:44 +0000 (GMT)
-Message-id: <56C1C876.7060803@samsung.com>
-Date: Mon, 15 Feb 2016 13:45:42 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 05/15] mediactl: Add media device graph helpers
-References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
- <1453133860-21571-6-git-send-email-j.anaszewski@samsung.com>
- <56C1BE3A.2090603@linux.intel.com>
-In-reply-to: <56C1BE3A.2090603@linux.intel.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+	Sat, 27 Feb 2016 16:42:39 -0500
+Received: by mail-wm0-f43.google.com with SMTP id p65so1380648wmp.0
+        for <linux-media@vger.kernel.org>; Sat, 27 Feb 2016 13:42:39 -0800 (PST)
+Subject: Re: Problem since commit c73bbaa4ec3e [rc-core: don't lock device at
+ rc_register_device()]
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <56D19314.3050409@gmail.com> <56D1CA81.10802@gmail.com>
+ <20160227150524.7d8d6fbb@recife.lan> <56D1ED54.9080503@gmail.com>
+ <20160227165014.11b66f37@recife.lan>
+Cc: linux-media@vger.kernel.org
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Message-ID: <56D21840.6080000@gmail.com>
+Date: Sat, 27 Feb 2016 22:42:24 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160227165014.11b66f37@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Am 27.02.2016 um 20:50 schrieb Mauro Carvalho Chehab:
+> Em Sat, 27 Feb 2016 19:39:16 +0100
+> Heiner Kallweit <hkallweit1@gmail.com> escreveu:
+> 
+>> Am 27.02.2016 um 19:05 schrieb Mauro Carvalho Chehab:
+>>> Em Sat, 27 Feb 2016 17:10:41 +0100
+>>> Heiner Kallweit <hkallweit1@gmail.com> escreveu:
+>>>   
+>>>> Am 27.02.2016 um 13:14 schrieb Heiner Kallweit:  
+>>>>> Since this commit I see the following error when the Nuvoton RC driver is loaded:
+>>>>>
+>>>>> input: failed to attach handler kbd to device input3, error: -22
+>>>>>
+>>>>> Error 22 (EINVAL) comes from the new check in rc_open().
+>>>>>     
+>>>>
+>>>> Complete call chain seems to be:
+>>>>   rc_register_device
+>>>>   input_register_device
+>>>>   input_attach_handler
+>>>>   kbd_connect
+>>>>   input_open_device
+>>>>   ir_open
+>>>>   rc_open
+>>>>
+>>>> rc_register_device calls input_register_device before dev->initialized = true,
+>>>> therefore the new check in rc_open fails. At a first glance I'd say that we have
+>>>> to remove this check from rc_open.  
+>>>
+>>> Hmm... maybe we could, instead, do:
+>>>
+>>> 	if (!rdev->initialized) {
+>>> 		rval = -ERESTARTSYS;
+>>> 		goto unlock;
+>>> 	}
+>>>   
+>> Looking at the source code of the functions in the call chain I see no special
+>> handling of ERESTARTSYS. It's treated like any other error, therefore I don't
+>> think this helps.
+> 
+> The expected behavior is that the Kernel syscall code to handle ERESTARTSYS
+> internally, and either return EAGAIN to userspace, or try again until
+> it succeeds, depending on the open mode.
+> 
+I tested it and returning ERESTARTSYS instead of EINVAL doesn't help.
+The behavior is the same.
+As far as I can see no syscall code is involved in this call chain.
 
-Thanks for the review.
+> So, it seems a worth trial.
+> 
+> Thanks,
+> Mauro
+> 
 
-On 02/15/2016 01:02 PM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> Jacek Anaszewski wrote:
->> Add new graph helpers useful for video pipeline discovering.
->>
->> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->>   utils/media-ctl/libmediactl.c |   48 +++++++++++++++++++++++++++++++++++++++++
->>   utils/media-ctl/mediactl.h    |   36 +++++++++++++++++++++++++++++++
->>   2 files changed, 84 insertions(+)
->>
->> diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
->> index 61b5f50..0be1845 100644
->> --- a/utils/media-ctl/libmediactl.c
->> +++ b/utils/media-ctl/libmediactl.c
->> @@ -35,6 +35,7 @@
->>   #include <unistd.h>
->>
->>   #include <linux/media.h>
->> +#include <linux/kdev_t.h>
->>   #include <linux/videodev2.h>
->>
->>   #include "mediactl.h"
->> @@ -87,6 +88,29 @@ struct media_entity *media_get_entity_by_name(struct media_device *media,
->>   	return NULL;
->>   }
->>
->> +struct media_entity *media_get_entity_by_devname(struct media_device *media,
->> +						 const char *devname,
->> +						 size_t length)
->> +{
->> +	unsigned int i;
->> +
->> +	/* A match is impossible if the entity devname is longer than the
->> +	 * maximum size we can get from the kernel.
->> +	 */
->> +	if (length >= FIELD_SIZEOF(struct media_entity, devname))
->> +		return NULL;
->> +
->> +	for (i = 0; i < media->entities_count; ++i) {
->> +		struct media_entity *entity = &media->entities[i];
->> +
->> +		if (strncmp(entity->devname, devname, length) == 0 &&
->> +		    entity->devname[length] == '\0')
->> +			return entity;
->> +	}
->> +
->> +	return NULL;
->> +}
->
-> Just out of curiosity: where do you need this? I.e. why do you need to
-> translate a device name to an entity?
-
-It is needed in media_device_new_by_entity_devname() and directly in
-libv4l-exynos4-camera.c, plugin_init(). Please especially refer to
-the plugin_init(). You were asking about this in the review of v4
-(over one year ago :) ), and I provided an explanation in the
-following message [1].
-
->> +
->>   struct media_entity *media_get_entity_by_id(struct media_device *media,
->>   					    __u32 id)
->>   {
->> @@ -145,6 +169,11 @@ const char *media_entity_get_devname(struct media_entity *entity)
->>   	return entity->devname[0] ? entity->devname : NULL;
->>   }
->>
->> +const char *media_entity_get_name(struct media_entity *entity)
->> +{
->> +	return entity->info.name;
->> +}
->
-> You should instead use media_get_info()->name . If you have an entity,
-> the return value will be valid.
-
-OK.
-
->> +
->>   struct media_entity *media_get_default_entity(struct media_device *media,
->>   					      unsigned int type)
->>   {
->> @@ -177,6 +206,25 @@ const struct media_entity_desc *media_entity_get_info(struct media_entity *entit
->>   	return &entity->info;
->>   }
->>
->> +int media_get_backlinks_by_entity(struct media_entity *entity,
->
-> How about calling this media_entity_get_backlinks()?
->
->> +				struct media_link **backlinks,
->> +				int *num_backlinks)
->
-> unsigned int.
-
-OK.
-
->> +{
->> +	int num_bklinks = 0, i;
->
-> Same here.
-
-OK.
-
->> +
->> +	if (entity == NULL || backlinks == NULL || num_backlinks == NULL)
->> +		return -EINVAL;
->> +
->> +	for (i = 0; i < entity->num_links; ++i)
->> +		if ((entity->links[i].flags & MEDIA_LNK_FL_ENABLED) &&
->> +		    (entity->links[i].sink->entity == entity))
->> +			backlinks[num_bklinks++] = &entity->links[i];
->> +
->> +	*num_backlinks = num_bklinks;
->> +
->> +	return 0;
->> +}
->> +
->>   /* -----------------------------------------------------------------------------
->>    * Open/close
->>    */
->> diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
->> index 3faee71..9db40a8 100644
->> --- a/utils/media-ctl/mediactl.h
->> +++ b/utils/media-ctl/mediactl.h
->> @@ -231,6 +231,15 @@ const struct media_link *media_entity_get_link(struct media_entity *entity,
->>   const char *media_entity_get_devname(struct media_entity *entity);
->>
->>   /**
->> + * @brief Get the name for an entity
->> + * @param entity - media entity.
->> + *
->> + * This function returns the name of the entity.
->> + *
->> + * @return A pointer to the string with entity name
->> + */
->> +const char *media_entity_get_name(struct media_entity *entity);
->> +
->>    * @brief Get the type of an entity.
->>    * @param entity - the entity.
->>    *
->> @@ -255,6 +264,19 @@ struct media_entity *media_get_entity_by_name(struct media_device *media,
->>   	const char *name, size_t length);
->>
->>   /**
->> + * @brief Find an entity by the corresponding device node name.
->> + * @param media - media device.
->> + * @param devname - device node name.
->> + * @param length - size of @a devname.
->> + *
->> + * Search for an entity with a device node name equal to @a devname.
->> + *
->> + * @return A pointer to the entity if found, or NULL otherwise.
->> + */
->> +struct media_entity *media_get_entity_by_devname(struct media_device *media,
->> +	const char *devname, size_t length);
->> +
->> +/**
->>    * @brief Find an entity by its ID.
->>    * @param media - media device.
->>    * @param id - entity ID.
->> @@ -434,4 +456,18 @@ int media_parse_setup_link(struct media_device *media,
->>    */
->>   int media_parse_setup_links(struct media_device *media, const char *p);
->>
->> +/**
->> + * @brief Get entity's enabled backlinks
->> + * @param entity - media entity.
->> + * @param backlinks - array of pointers to matching backlinks.
->> + * @param num_backlinks - number of matching backlinks.
->> + *
->> + * Get links that are connected to the entity sink pads.
->> + *
->> + * @return 0 on success, or a negative error code on failure.
->> + */
->> +int media_get_backlinks_by_entity(struct media_entity *entity,
->> +				struct media_link **backlinks,
->> +				int *num_backlinks);
->> +
->>   #endif
->>
->
->
-
-[1] 
-http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/88446
-
--- 
-Best regards,
-Jacek Anaszewski
