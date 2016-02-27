@@ -1,54 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52568 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750976AbcBLCAd (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:58842 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756466AbcB0Kva (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2016 21:00:33 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH/RFC 1/9] clk: shmobile: r8a7795: Add FCP clocks
-Date: Fri, 12 Feb 2016 04:00:42 +0200
-Message-Id: <1455242450-24493-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Sat, 27 Feb 2016 05:51:30 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH 5/7] [media] pt3: fix device identification
+Date: Sat, 27 Feb 2016 07:51:11 -0300
+Message-Id: <191e1434e72b442507d8e4dbae55644ce38b5be1.1456570258.git.mchehab@osg.samsung.com>
+In-Reply-To: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
+References: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
+In-Reply-To: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
+References: <d7bc635a625d7ab19ed5a81135044e086d330d1b.1456570258.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The parent clock isn't documented in the datasheet, use S2D1 as a best
-guess for now.
+As warned by smatch:
+	drivers/media/pci/pt3/pt3.c:398 pt3_attach_fe() error: strncmp() '"tc90522sat"' too small (11 vs 20)
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/clk/shmobile/r8a7795-cpg-mssr.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ drivers/media/pci/pt3/pt3.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/clk/shmobile/r8a7795-cpg-mssr.c b/drivers/clk/shmobile/r8a7795-cpg-mssr.c
-index 13e994772dfd..ae5004ee7bdd 100644
---- a/drivers/clk/shmobile/r8a7795-cpg-mssr.c
-+++ b/drivers/clk/shmobile/r8a7795-cpg-mssr.c
-@@ -130,6 +130,21 @@ static const struct mssr_mod_clk r8a7795_mod_clks[] __initconst = {
- 	DEF_MOD("hscif2",		 518,	R8A7795_CLK_S3D1),
- 	DEF_MOD("hscif1",		 519,	R8A7795_CLK_S3D1),
- 	DEF_MOD("hscif0",		 520,	R8A7795_CLK_S3D1),
-+	DEF_MOD("fcpvd3",		 600,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpvd2",		 601,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpvd1",		 602,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpvd0",		 603,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpvb1",		 606,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpvb0",		 607,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpvi2",		 609,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpvi1",		 610,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpvi0",		 611,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpf2",		 613,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpf1",		 614,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpf0",		 615,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpci1",		 616,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpci0",		 617,	R8A7795_CLK_S2D1),
-+	DEF_MOD("fcpcs",		 619,	R8A7795_CLK_S2D1),
- 	DEF_MOD("vspd3",		 620,	R8A7795_CLK_S2D1),
- 	DEF_MOD("vspd2",		 621,	R8A7795_CLK_S2D1),
- 	DEF_MOD("vspd1",		 622,	R8A7795_CLK_S2D1),
+diff --git a/drivers/media/pci/pt3/pt3.c b/drivers/media/pci/pt3/pt3.c
+index 0d2e2b217121..eff5e9f51ace 100644
+--- a/drivers/media/pci/pt3/pt3.c
++++ b/drivers/media/pci/pt3/pt3.c
+@@ -395,7 +395,8 @@ static int pt3_attach_fe(struct pt3_board *pt3, int i)
+ 	if (!try_module_get(cl->dev.driver->owner))
+ 		goto err_demod_i2c_unregister_device;
+ 
+-	if (!strncmp(cl->name, TC90522_I2C_DEV_SAT, sizeof(cl->name))) {
++	if (!strncmp(cl->name, TC90522_I2C_DEV_SAT,
++		     strlen(TC90522_I2C_DEV_SAT))) {
+ 		struct qm1d1c0042_config tcfg;
+ 
+ 		tcfg = adap_conf[i].tuner_cfg.qm1d1c0042;
 -- 
-2.4.10
+2.5.0
 
