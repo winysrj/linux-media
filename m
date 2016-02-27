@@ -1,190 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32772 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751263AbcBMSsJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2016 13:48:09 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (Postfix) with ESMTPS id 66F3A8E371
-	for <linux-media@vger.kernel.org>; Sat, 13 Feb 2016 18:48:09 +0000 (UTC)
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH tvtime 13/17] Remove the defunct (empty) audiomode menu
-Date: Sat, 13 Feb 2016 19:47:34 +0100
-Message-Id: <1455389258-13470-13-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
-References: <1455389258-13470-1-git-send-email-hdegoede@redhat.com>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:39463 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756340AbcB0RYR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Feb 2016 12:24:17 -0500
+Subject: Re: [PATCHv2] [media] rcar-vin: add Renesas R-Car VIN driver
+To: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	ulrich.hecht@gmail.com, linux-renesas-soc@vger.kernel.org
+References: <1456282709-13861-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+ <56D1893E.9070007@xs4all.nl> <20160227172152.GC27233@bigcity.dyn.berto.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D1DBBA.8040108@xs4all.nl>
+Date: Sat, 27 Feb 2016 18:24:10 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160227172152.GC27233@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the defunct (empty) audiomode menu and related helper functions.
+On 02/27/2016 06:21 PM, Niklas Söderlund wrote:
+> Hi Hans,
+> 
+> On 2016-02-27 12:32:14 +0100, Hans Verkuil wrote:
+>> On 02/24/2016 03:58 AM, Niklas Söderlund wrote:
+>>> A V4L2 driver for Renesas R-Car VIN driver that do not depend on
+>>> soc_camera. The driver is heavily based on its predecessor and aims to
+>>> replace it.
+>>>
+>>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>> ---
+>>>
+>>> The driver is tested on Koelsch and can do streaming using qv4l2 and
+>>> grab frames using yavta. It passes a v4l2-compliance (git master) run
+>>> without failures, see bellow for output. Some issues I know about but
+>>> will have to wait for future work in other patches.
+>>>  - The soc_camera driver provides some pixel formats that do not display
+>>>    properly for me in qv4l2 or yavta. I have ported these formats as is
+>>>    (not working correctly?) to the new driver.
+>>>  - One can not bind/unbind the subdevice and continue using the driver.
+>>>
+>>> As stated in commit message the driver is based on its soc_camera
+>>> version but some features have been drooped (for now?).
+>>>  - The driver no longer try to use the subdev for cropping (using
+>>>    cropcrop/s_crop).
+>>>  - Do not interrogate the subdev using g_mbus_config.
+>>
+>> A quick question: was this tested with the adv7180 only? Or do you also
+>> have access to a sensor to test with?
+> 
+> I'm not sure I understand your question. I have only tested on Koelsch 
+> with a adv7180 connected to the VIN. But I have had both a NTSC camera 
+> and a PAL Super Nintendo connected to the Koelsch (adv7180).
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- src/commands.c   | 41 ++++++++++++-----------------------------
- src/tvtime.c     |  1 -
- src/tvtimeconf.c | 13 -------------
- src/tvtimeconf.h |  1 -
- 4 files changed, 12 insertions(+), 44 deletions(-)
+OK, that's what I was looking for. I believe it is possible to connect an
+external camera sensor as well to the board, so I was just wondering if you
+had perhaps done that. But that's clearly not the case.
 
-diff --git a/src/commands.c b/src/commands.c
-index 9ed6b44..0fc6adb 100644
---- a/src/commands.c
-+++ b/src/commands.c
-@@ -610,12 +610,6 @@ static void reset_pal_input_menu( menu_t *menu, videoinput_t *vidin, station_mgr
-     char string[ 128 ];
-     int cur = 2;
- 
--    snprintf( string, sizeof( string ), TVTIME_ICON_STATIONMANAGEMENT "  %s",
--              _("Preferred audio mode") );
--    menu_set_text( menu, cur, string );
--    menu_set_enter_command( menu, cur, TVTIME_SHOW_MENU, "audiomode" );
--    cur++;
--
-     if( videoinput_is_v4l2( vidin ) ) {
-         const char *curnorm = "PAL-BG";
-         int defnorm = station_get_default_audio_norm( stationmgr );
-@@ -1272,39 +1266,34 @@ commands_t *commands_new( config_t *cfg, videoinput_t *vidin,
-     menu_set_enter_command( menu, 1, TVTIME_TOGGLE_INPUT, "" );
- 
-     snprintf( string, sizeof( string ), TVTIME_ICON_STATIONMANAGEMENT "  %s",
--              _("Preferred audio mode") );
--    menu_set_text( menu, 2, string );
--    menu_set_enter_command( menu, 2, TVTIME_SHOW_MENU, "audiomode" );
--
--    snprintf( string, sizeof( string ), TVTIME_ICON_STATIONMANAGEMENT "  %s",
-               _("Audio volume boost") );
--    menu_set_text( menu, 3, string );
--    menu_set_enter_command( menu, 3, TVTIME_SHOW_MENU, "audioboost" );
-+    menu_set_text( menu, 2, string );
-+    menu_set_enter_command( menu, 2, TVTIME_SHOW_MENU, "audioboost" );
- 
-     snprintf( string, sizeof( string ), TVTIME_ICON_TELEVISIONSTANDARD "  %s",
-               _("Television standard") );
--    menu_set_text( menu, 4, string );
--    menu_set_enter_command( menu, 4, TVTIME_SHOW_MENU, "norm" );
-+    menu_set_text( menu, 3, string );
-+    menu_set_enter_command( menu, 3, TVTIME_SHOW_MENU, "norm" );
- 
-     snprintf( string, sizeof( string ), TVTIME_ICON_INPUTWIDTH "  %s",
-               _("Horizontal resolution") );
--    menu_set_text( menu, 5, string );
--    menu_set_enter_command( menu, 5, TVTIME_SHOW_MENU, "hres" );
-+    menu_set_text( menu, 4, string );
-+    menu_set_enter_command( menu, 4, TVTIME_SHOW_MENU, "hres" );
- 
-     snprintf( string, sizeof( string ), TVTIME_ICON_CLOSEDCAPTIONICON "  %s",
-               _("Toggle closed captions") );
--    menu_set_text( menu, 6, string );
--    menu_set_enter_command( menu, 6, TVTIME_TOGGLE_CC, "" );
-+    menu_set_text( menu, 5, string );
-+    menu_set_enter_command( menu, 5, TVTIME_TOGGLE_CC, "" );
- 
-     snprintf( string, sizeof( string ), TVTIME_ICON_TVPGICON "  %s",
-               _("Toggle XDS decoding") );
--    menu_set_text( menu, 7, string );
--    menu_set_enter_command( menu, 7, TVTIME_TOGGLE_XDS, "" );
-+    menu_set_text( menu, 6, string );
-+    menu_set_enter_command( menu, 6, TVTIME_TOGGLE_XDS, "" );
- 
-     snprintf( string, sizeof( string ), TVTIME_ICON_PLAINLEFTARROW "  %s",
-               _("Back") );
--    menu_set_text( menu, 8, string );
--    menu_set_enter_command( menu, 8, TVTIME_SHOW_MENU, "root" );
-+    menu_set_text( menu, 7, string );
-+    menu_set_enter_command( menu, 7, TVTIME_SHOW_MENU, "root" );
- 
-     commands_add_menu( cmd, menu );
- 
-@@ -1337,12 +1326,6 @@ commands_t *commands_new( config_t *cfg, videoinput_t *vidin,
-     reset_inputwidth_menu( commands_get_menu( cmd, "hres" ),
-                            config_get_inputwidth( cfg ), maxwidth);
- 
--    menu = menu_new( "audiomode" );
--    snprintf( string, sizeof( string ), "%s - %s - %s",
--              _("Setup"), _("Input configuration"), _("Preferred audio mode") );
--    menu_set_text( menu, 0, string );
--    commands_add_menu( cmd, menu );
--
-     menu = menu_new( "audioboost" );
-     snprintf( string, sizeof( string ), "%s - %s - %s",
-               _("Setup"), _("Input configuration"), _("Audio volume boost") );
-diff --git a/src/tvtime.c b/src/tvtime.c
-index 1cc1681..e564963 100644
---- a/src/tvtime.c
-+++ b/src/tvtime.c
-@@ -1338,7 +1338,6 @@ int tvtime_main( rtctimer_t *rtctimer, int read_stdin, int realtime,
-         videoinput_delete( vidin );
-         vidin = 0;
-      } else {
--        const char *audiomode = config_get_audio_mode( ct );
-         videoinput_set_input_num( vidin, config_get_inputnum( ct ) );
- 
-         width = videoinput_get_width( vidin );
-diff --git a/src/tvtimeconf.c b/src/tvtimeconf.c
-index 7f8fed5..773a8f2 100644
---- a/src/tvtimeconf.c
-+++ b/src/tvtimeconf.c
-@@ -104,7 +104,6 @@ struct config_s
-     char *freq;
-     char *ssdir;
-     char *timeformat;
--    char *audiomode;
-     char *xmltvfile;
-     char *xmltvlanguage;
-     unsigned int channel_text_rgb;
-@@ -270,11 +269,6 @@ static void parse_option( config_t *ct, xmlNodePtr node )
-             ct->send_fields = atoi( curval );
-         }
- 
--        if( !xmlStrcasecmp( name, BAD_CAST "AudioMode" ) ) {
--            if( ct->audiomode ) free( ct->audiomode );
--            ct->audiomode = strdup( curval );
--        }
--
-         if( !xmlStrcasecmp( name, BAD_CAST "XMLTVFile" ) ) {
-             if( ct->xmltvfile ) free( ct->xmltvfile );
-             ct->xmltvfile = expand_user_path( curval );
-@@ -802,7 +796,6 @@ config_t *config_new( void )
-     } else {
-         ct->ssdir = 0;
-     }
--    ct->audiomode = strdup( "stereo" );
-     ct->xmltvfile = strdup( "none" );
-     ct->xmltvlanguage = strdup( "none" );
-     ct->timeformat = strdup( "%X" );
-@@ -1355,7 +1348,6 @@ void config_free_data( config_t *ct )
-     if( ct->norm ) free( ct->norm );
-     if( ct->freq ) free( ct->freq );
-     if( ct->ssdir ) free( ct->ssdir );
--    if( ct->audiomode ) free( ct->audiomode );
-     if( ct->xmltvfile ) free( ct->xmltvfile );
-     if( ct->xmltvlanguage ) free( ct->xmltvlanguage );
-     if( ct->timeformat ) free( ct->timeformat );
-@@ -1705,11 +1697,6 @@ int config_get_global_hue( config_t *ct )
-     return ct->hue;
- }
- 
--const char *config_get_audio_mode( config_t *ct )
--{
--    return ct->audiomode;
--}
--
- const char *config_get_xmltv_file( config_t *ct )
- {
-     return ct->xmltvfile;
-diff --git a/src/tvtimeconf.h b/src/tvtimeconf.h
-index 92dc211..ba81311 100644
---- a/src/tvtimeconf.h
-+++ b/src/tvtimeconf.h
-@@ -177,7 +177,6 @@ int config_get_global_brightness( config_t *ct );
- int config_get_global_contrast( config_t *ct );
- int config_get_global_saturation( config_t *ct );
- int config_get_global_hue( config_t *ct );
--const char *config_get_audio_mode( config_t *ct );
- const char *config_get_xmltv_file( config_t *ct );
- const char *config_get_xmltv_language( config_t *ct );
- double config_get_overscan( config_t *ct );
--- 
-2.5.0
+No problem, I was just curious.
 
+Regards,
+
+	Hans
