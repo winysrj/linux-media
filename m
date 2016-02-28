@@ -1,99 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36928 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbcBWS1e (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55567 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S2992685AbcB1ESE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2016 13:27:34 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	devicetree@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] tvp5150: remove signal generator as input from the DT binding
-Date: Tue, 23 Feb 2016 20:28:14 +0200
-Message-ID: <4247934.WAaViM8cSf@avalon>
-In-Reply-To: <56CCA3B4.7060700@osg.samsung.com>
-References: <1456243798-12453-1-git-send-email-javier@osg.samsung.com> <63317542.65NzPYJCcU@avalon> <56CCA3B4.7060700@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 27 Feb 2016 23:18:04 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 3F276180060
+	for <linux-media@vger.kernel.org>; Sun, 28 Feb 2016 05:17:58 +0100 (CET)
+Date: Sun, 28 Feb 2016 05:17:58 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160228041758.3F276180060@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Tuesday 23 February 2016 15:23:48 Javier Martinez Canillas wrote:
-> On 02/23/2016 03:02 PM, Laurent Pinchart wrote:
-> > On Tuesday 23 February 2016 13:27:51 Javier Martinez Canillas wrote:
-> >> On 02/23/2016 01:16 PM, Laurent Pinchart wrote:
-> >>> On Tuesday 23 February 2016 13:09:58 Javier Martinez Canillas wrote:
-> >>>> The chip internal signal generator was modelled as an input connector
-> >>>> and represented as a media entity but isn't really a connector so the
-> >>>> driver was changed to use the V4L2_CID_TEST_PATTERN control instead.
-> >>>> 
-> >>>> Remove the signal generator input from the list of connectors in the
-> >>>> tvp5150 DT binding document as well since isn't a connector anymore.
-> >>>> 
-> >>>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> >>>> 
-> >>>> ---
-> >>>> Hello,
-> >>>> 
-> >>>> I think is OK to change this DT binding because is only in the media
-> >>>> tree for now and not in mainline yet and also is expected to change
-> >>>> more since there are still discussions about how input connectors will
-> >>>> be supported by the Media Controller framework in the media subsystem.
-> >>> 
-> >>> I think that's fine, yes
-> >>> 
-> >>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> 
-> >> Thanks.
-> >> 
-> >>> I haven't noticed the patch that introduced this early enough I'm
-> >>> afraid, and I think we still have issues with those bindings.
-> >> 
-> >> Yes, I posted those patches and got merged before we had the discussion
-> >> about input connectors over IRC so I didn't know what was the correct way
-> >> to do it.
-> >> 
-> >>> The tvp5150 node should *not* contain connector subnodes, the connectors
-> >>> nodes should use the bindings defined in
-> >>> Documentation/devicetree/bindings/display/connector/ and be linked to
-> >>> the tvp5150 node using the OF graph bindings (ports and endpoints).
-> >> 
-> >> Agreed.
-> >> 
-> >>> Do you think you could fix that ?
-> >> 
-> >> Yes I will, I'm waiting for the input connectors discussions to settle so
-> >> I can post a final version of the DT bindings following what is agreed by
-> >> all.
-> >
-> > Shouldn't we revert the patch that introduced connectors support in the DT
-> > bindings in the meantime then, to avoid known to be broken bindings from
-> > hitting mainline in case we can't fix them in time for v4.6 ?
-> 
-> Yes, that would be a good idea. I've seen recently though a DT binding doc
-> that was marked as unstable / work in progress and I wonder if that's a new
-> accepted convention for DT binding docs or is just something that slipped
-> through review.
+Results of the daily build of media_tree:
 
-I'm not sure if it's an established practice but I certainly like it. However, 
-in this specific case, we know that the bindings are broken, so I think a 
-revert would be better.
+date:		Sun Feb 28 04:00:19 CET 2016
+git branch:	test
+git hash:	b19581a94fb1c49afc0339a65f1ebd0e4ff80dcd
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
 
-> The commit I'm talking about is f07b4e49d27e ("Documentation: bindings:
-> berlin: consider our dt bindings as unstable") but I don't see anything
-> documented in Documentation/devicetree/bindings/ABI.txt.
-> 
-> In any case, I'm fine with either marking the DT binding doc as unstable or
-> to revert the patch that added the connectors portion to the tvp5150 DT
-> binding.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
 
--- 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Laurent Pinchart
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
