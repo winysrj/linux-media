@@ -1,41 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:28660 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751373AbcBUVcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2016 16:32:07 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: [v4l-utils PATCH 1/4] v4l: libv4lsubdev: Make mbus_formats array const
-Date: Sun, 21 Feb 2016 23:29:44 +0200
-Message-Id: <1456090187-1191-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1456090187-1191-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-io0-f194.google.com ([209.85.223.194]:35963 "EHLO
+	mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753981AbcB2Szl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Feb 2016 13:55:41 -0500
+Received: by mail-io0-f194.google.com with SMTP id b188so14593913iof.3
+        for <linux-media@vger.kernel.org>; Mon, 29 Feb 2016 10:55:39 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1456104396-13282-1-git-send-email-emilio@elopez.com.ar>
+References: <1456104396-13282-1-git-send-email-emilio@elopez.com.ar>
+Date: Mon, 29 Feb 2016 15:55:38 -0300
+Message-ID: <CABxcv=kQ=5P6-4aNi7uNu=EmHSp0=cE+8u+98bEmRV9VqH-u7w@mail.gmail.com>
+Subject: Re: [PATCH 1/3] [media] rc: sunxi-cir: support module autoloading
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: =?UTF-8?Q?Emilio_L=C3=B3pez?= <emilio@elopez.com.ar>
+Cc: Vinod Koul <vinod.koul@intel.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Chen-Yu Tsai <wens@csie.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	balbi@kernel.org, Hans de Goede <hdegoede@redhat.com>,
+	dmaengine@vger.kernel.org,
+	=?UTF-8?Q?Emilio_L=C3=B3pez?= <emilio.lopez@collabora.co.uk>,
+	USB list <linux-usb@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The array is already static and may not be modified at runtime. Make it
-const.
+Hello Emilio,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- utils/media-ctl/libv4l2subdev.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Sun, Feb 21, 2016 at 10:26 PM, Emilio López <emilio@elopez.com.ar> wrote:
+> From: Emilio López <emilio.lopez@collabora.co.uk>
+>
+> MODULE_DEVICE_TABLE() is missing, so the module isn't auto-loading on
+> systems supporting infrared. This commit adds the missing line so it
+> works out of the box when built as a module and running on a sunxi
+> system with an infrared receiver.
+>
+> Signed-off-by: Emilio López <emilio.lopez@collabora.co.uk>
 
-diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-index dc2cd87..e45834f 100644
---- a/utils/media-ctl/libv4l2subdev.c
-+++ b/utils/media-ctl/libv4l2subdev.c
-@@ -715,7 +715,7 @@ int v4l2_subdev_parse_setup_formats(struct media_device *media, const char *p)
- 	return *end ? -EINVAL : 0;
- }
- 
--static struct {
-+static const struct {
- 	const char *name;
- 	enum v4l2_mbus_pixelcode code;
- } mbus_formats[] = {
--- 
-2.1.0.231.g7484e3b
+Looks good to me.
 
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Best regards,
+Javier
