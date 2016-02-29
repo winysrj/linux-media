@@ -1,103 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52511 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752471AbcBHKtk (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58748 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753774AbcB2LqA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2016 05:49:40 -0500
-Subject: Re: [PATCH 0/12] TW686x driver
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-References: <m337tif6om.fsf@t19.piap.pl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+	Mon, 29 Feb 2016 06:46:00 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56B872C0.1050200@xs4all.nl>
-Date: Mon, 8 Feb 2016 11:49:36 +0100
-MIME-Version: 1.0
-In-Reply-To: <m337tif6om.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/5] media-entity.h: rename _io to _video_device and add real _io
+Date: Mon, 29 Feb 2016 12:45:45 +0100
+Message-Id: <1456746345-1431-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl>
+References: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/28/2016 09:29 AM, Krzysztof Hałasa wrote:
-> Hi,
-> 
-> I'm posting a driver for TW686[4589]-based PCIe cards. The first patch
-> has been posted and reviewed by Ezequiel back in July 2015, the
-> subsequent patches are changes made in response to the review and/or are
-> required by the more recent kernel versions.
-> 
-> This driver lacks CMA-based frame mode DMA operation, I'll add it a bit
-> later. Also:
-> - I haven't converted the kthread to a workqueue - the driver is
->   modeled after other code and it can be done later, if needed
-> - I have skipped suggested PCI ID changes and the 704 vs 720 pixels/line
->   question - this may need further consideration.
-> 
-> Please merge.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Please repost as a single patch. Also make sure it is based on the latest
-media_tree master branch.
+The is_media_entity_v4l2_io() function should be renamed to
+is_media_entity_v4l2_video_device.
 
-Your current patch series breaks bisectability (basically, after patch 1 it
-won't compile since it's not using vb2_v4l2_buffer yet).
+Add a is_media_entity_v4l2_io to v4l2-common.h (since this is V4L2 specific)
+that checks if the entity is a video_device AND if it does I/O.
 
-Also, for new drivers we generally don't care about the history, we prefer a
-single patch. That makes it easier to review as well.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/media/media-entity.h |  4 ++--
+ include/media/v4l2-common.h  | 28 ++++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+), 2 deletions(-)
 
-I'll take a good look at the code once I have a v2.
-
-Now, I am not planning to merge that, but I will compare it to what Ezequiel has
-and use that comparison as a starting point for further discussions.
-
-As I mentioned before, my preference is to merge a driver that supports both
-frame and field modes (or whatever they are called).
-
-Regards,
-
-	Hans
-
-> 
-> The following changes since Linux 4.4 are available in the git
-> repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/chris/linux.git techwell-4.4
-> 
-> for you to fetch changes up to 8e495778acd4602c472cefa460a1afb41c4b8f25:
-> 
->   [MEDIA] TW686x: return VB2_BUF_STATE_ERROR frames on timeout/errors (2016-01-27 14:47:41 +0100)
-> 
-> ----------------------------------------------------------------
-> Krzysztof Hałasa (12):
->       [MEDIA] Add support for TW686[4589]-based frame grabbers
->       [MEDIA] TW686x: Trivial changes suggested by Ezequiel Garcia
->       [MEDIA] TW686x: Switch to devm_*()
->       [MEDIA] TW686x: Fix s_std() / g_std() / g_parm() pointer to self
->       [MEDIA] TW686x: Fix handling of TV standard values
->       [MEDIA] TW686x: Fix try_fmt() color space
->       [MEDIA] TW686x: Add enum_input() / g_input() / s_input()
->       [MEDIA] TW686x: do not use pci_dma_supported()
->       [MEDIA] TW686x: switch to vb2_v4l2_buffer
->       [MEDIA] TW686x: handle non-NULL format in queue_setup()
->       [MEDIA] TW686x: Track frame sequence numbers
->       [MEDIA] TW686x: return VB2_BUF_STATE_ERROR frames on timeout/errors
-> 
->  drivers/media/pci/Kconfig               |   1 +
->  drivers/media/pci/Makefile              |   1 +
->  drivers/media/pci/tw686x/Kconfig        |  16 ++
->  drivers/media/pci/tw686x/Makefile       |   3 +
->  drivers/media/pci/tw686x/tw686x-core.c  | 140 +++++++++++++
->  drivers/media/pci/tw686x/tw686x-regs.h  | 103 +++++++++
->  drivers/media/pci/tw686x/tw686x-video.c | 815 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/pci/tw686x/tw686x.h       | 118 +++++++++++
->  8 files changed, 1197 insertions(+)
->  create mode 100644 drivers/media/pci/tw686x/Kconfig
->  create mode 100644 drivers/media/pci/tw686x/Makefile
->  create mode 100644 drivers/media/pci/tw686x/tw686x-core.c
->  create mode 100644 drivers/media/pci/tw686x/tw686x-regs.h
->  create mode 100644 drivers/media/pci/tw686x/tw686x-video.c
->  create mode 100644 drivers/media/pci/tw686x/tw686x.h
-> 
-> Thanks.
-> 
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index cbd3753..e5108f0 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -356,14 +356,14 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
+ }
+ 
+ /**
+- * is_media_entity_v4l2_io() - Check if the entity is a video_device
++ * is_media_entity_v4l2_video_device() - Check if the entity is a video_device
+  * @entity:	pointer to entity
+  *
+  * Return: true if the entity is an instance of a video_device object and can
+  * safely be cast to a struct video_device using the container_of() macro, or
+  * false otherwise.
+  */
+-static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
++static inline bool is_media_entity_v4l2_video_device(struct media_entity *entity)
+ {
+ 	return entity && entity->type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
+ }
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 1cc0c5b..858b165 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -189,4 +189,32 @@ const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
+ 
+ void v4l2_get_timestamp(struct timeval *tv);
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++/**
++ * is_media_entity_v4l2_io() - Check if the entity is a video_device and can do I/O
++ * @entity:	pointer to entity
++ *
++ * Return: true if the entity is an instance of a video_device object and can
++ * safely be cast to a struct video_device using the container_of() macro and
++ * can do I/O, or false otherwise.
++ */
++static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
++{
++	struct video_device *vdev;
++
++	if (!is_media_entity_v4l2_video_device(entity))
++		return false;
++	vdev = container_of(entity, struct video_device, entity);
++	/*
++	 * For now assume that is device_caps == 0, then I/O is available
++	 * unless it is a radio device.
++	 * Eventually all drivers should set vdev->device_caps and then
++	 * this assumption should be removed.
++	 */
++	if (vdev->device_caps == 0)
++		return vdev->vfl_type != VFL_TYPE_RADIO;
++	return vdev->device_caps & (V4L2_CAP_READWRITE | V4L2_CAP_STREAMING);
++}
++#endif
++
+ #endif /* V4L2_COMMON_H_ */
+-- 
+2.7.0
 
