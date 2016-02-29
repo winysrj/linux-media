@@ -1,93 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:54782 "EHLO
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:38093 "EHLO
 	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752507AbcB2KQv (ORCPT
+	by vger.kernel.org with ESMTP id S1753952AbcB2EAF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 05:16:51 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 28 Feb 2016 23:00:05 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id BE87718063B
+	for <linux-media@vger.kernel.org>; Mon, 29 Feb 2016 04:59:58 +0100 (CET)
+Date: Mon, 29 Feb 2016 04:59:58 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: niklas.soderlund+renesas@ragnatech.se,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] v4l2-ioctl: improve cropcap handling
-Date: Mon, 29 Feb 2016 11:16:40 +0100
-Message-Id: <1456741000-39069-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1456741000-39069-1-git-send-email-hverkuil@xs4all.nl>
-References: <1456741000-39069-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160229035958.BE87718063B@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-If cropcap is implemented, then call it first to fill in the pixel
-aspect ratio. Don't return if cropcap returns ENOTTY or ENOIOCTLCMD,
-in that case just assume a 1:1 pixel aspect ratio.
+Results of the daily build of media_tree:
 
-After cropcap was called, then overwrite bounds and defrect with the
-g_selection result because the g_selection() result always has priority
-over anything that vidioc_cropcap returns.
+date:		Mon Feb 29 04:00:16 CET 2016
+git branch:	test
+git hash:	b19581a94fb1c49afc0339a65f1ebd0e4ff80dcd
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 35 +++++++++++++++++++++++++++--------
- 1 file changed, 27 insertions(+), 8 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 67dbb03..a3db569 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2158,11 +2158,37 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
- {
- 	struct v4l2_cropcap *p = arg;
- 	struct v4l2_selection s = { .type = p->type };
--	int ret;
-+	int ret = -ENOTTY;
- 
- 	if (ops->vidioc_g_selection == NULL)
- 		return ops->vidioc_cropcap(file, fh, p);
- 
-+	/*
-+	 * Let cropcap fill in the pixelaspect if cropcap is available.
-+	 * There is still no other way of obtaining this information.
-+	 */
-+	if (ops->vidioc_cropcap) {
-+		ret = ops->vidioc_cropcap(file, fh, p);
-+
-+		/*
-+		 * If cropcap reports that it isn't implemented,
-+		 * then just keep going.
-+		 */
-+		if (ret && ret != -ENOTTY && ret != -ENOIOCTLCMD)
-+			return ret;
-+	}
-+
-+	if (ret) {
-+		/*
-+		 * cropcap wasn't implemented, so assume a 1:1 pixel
-+		 * aspect ratio, otherwise keep what cropcap gave us.
-+		 */
-+		p->pixelaspect.numerator = 1;
-+		p->pixelaspect.denominator = 1;
-+	}
-+
-+	/* Use g_selection() to fill in the bounds and defrect rectangles */
-+
- 	/* obtaining bounds */
- 	if (V4L2_TYPE_IS_OUTPUT(p->type))
- 		s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
-@@ -2185,13 +2211,6 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
- 		return ret;
- 	p->defrect = s.r;
- 
--	/* setting trivial pixelaspect */
--	p->pixelaspect.numerator = 1;
--	p->pixelaspect.denominator = 1;
--
--	if (ops->vidioc_cropcap)
--		return ops->vidioc_cropcap(file, fh, p);
--
- 	return 0;
- }
- 
--- 
-2.7.0
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
