@@ -1,45 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:43069 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753138AbcBVVWT (ORCPT
+Received: from mail-io0-f194.google.com ([209.85.223.194]:33915 "EHLO
+	mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754160AbcB2S4v convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2016 16:22:19 -0500
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jiri Kosina <trivial@kernel.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 1/4] media: pxa_camera: fix the buffer free path
-References: <1441539733-19201-1-git-send-email-robert.jarzmik@free.fr>
-	<87io5wwahg.fsf@belgarion.home>
-	<Pine.LNX.4.64.1510272306300.21185@axis700.grange>
-	<87twpcj6vj.fsf@belgarion.home>
-	<Pine.LNX.4.64.1510291656580.694@axis700.grange>
-	<87d1s72bls.fsf@belgarion.home>
-	<Pine.LNX.4.64.1602211400050.5959@axis700.grange>
-	<874md2xgg9.fsf@belgarion.home>
-	<Pine.LNX.4.64.1602211749460.5959@axis700.grange>
-Date: Mon, 22 Feb 2016 22:22:14 +0100
-In-Reply-To: <Pine.LNX.4.64.1602211749460.5959@axis700.grange> (Guennadi
-	Liakhovetski's message of "Sun, 21 Feb 2016 17:50:15 +0100 (CET)")
-Message-ID: <87fuwkwid5.fsf@belgarion.home>
+	Mon, 29 Feb 2016 13:56:51 -0500
+Received: by mail-io0-f194.google.com with SMTP id l127so14573177iof.1
+        for <linux-media@vger.kernel.org>; Mon, 29 Feb 2016 10:56:51 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1456104396-13282-2-git-send-email-emilio@elopez.com.ar>
+References: <1456104396-13282-1-git-send-email-emilio@elopez.com.ar>
+	<1456104396-13282-2-git-send-email-emilio@elopez.com.ar>
+Date: Mon, 29 Feb 2016 15:56:50 -0300
+Message-ID: <CABxcv=n_119K-9ntCXeUOm86GSz42sn1QmoGHedBa0f7X1vk2Q@mail.gmail.com>
+Subject: Re: [PATCH 2/3] dmaengine: sun4i: support module autoloading
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: =?UTF-8?Q?Emilio_L=C3=B3pez?= <emilio@elopez.com.ar>
+Cc: Vinod Koul <vinod.koul@intel.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Chen-Yu Tsai <wens@csie.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	balbi@kernel.org, Hans de Goede <hdegoede@redhat.com>,
+	dmaengine@vger.kernel.org,
+	=?UTF-8?Q?Emilio_L=C3=B3pez?= <emilio.lopez@collabora.co.uk>,
+	USB list <linux-usb@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+Hello Emilio,
 
-> On Sun, 21 Feb 2016, Robert Jarzmik wrote:
-> Please, have a look at 
-> http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/log/?h=for-4.6-2
-> If all is good there, no need for a v6
+On Sun, Feb 21, 2016 at 10:26 PM, Emilio López <emilio@elopez.com.ar> wrote:
+> From: Emilio López <emilio.lopez@collabora.co.uk>
+>
+> MODULE_DEVICE_TABLE() is missing, so the module isn't auto-loading on
+> supported systems. This commit adds the missing line so it loads
+> automatically when building it as a module and running on a system
+> with the early sunxi DMA engine.
+>
+> Signed-off-by: Emilio López <emilio.lopez@collabora.co.uk>
+> ---
 
-Thanks for fixing the *_dma_irq() mess, and sorry for that.
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-And I just tested your branch, and it's working perfectly fine.
-
-Cheers.
-
--- 
-Robert
+Best regards,
+Javier
