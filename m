@@ -1,95 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp03.smtpout.orange.fr ([80.12.242.125]:33721 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754012AbcBIIJj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2016 03:09:39 -0500
-From: Philippe Valembois <lephilousophe@users.sourceforge.net>
-Cc: Philippe Valembois <lephilousophe@users.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] Fix AverMedia RM-KS remote keymap
-Date: Tue,  9 Feb 2016 09:09:32 +0100
-Message-Id: <1455005372-25546-1-git-send-email-lephilousophe@users.sourceforge.net>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43323 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585AbcB2KfS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Feb 2016 05:35:18 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH for 4.5] media.h: use hex values for the range offsets, move connectors base up.
+Date: Mon, 29 Feb 2016 12:35:24 +0200
+Message-ID: <7005747.SQRvpaCij5@avalon>
+In-Reply-To: <56D3FB27.7000202@xs4all.nl>
+References: <56D3FB27.7000202@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix AverMedia RM-KS keymap using user guide to meet LinuxTV wiki rules.
-The remote command didn't seem to change in itself since its creation: it's
-just to make keys more standard and remove the FIXME.
+Hi Hans,
 
-Signed-off-by: Philippe Valembois <lephilousophe@users.sourceforge.net>
----
- drivers/media/rc/keymaps/rc-avermedia-rm-ks.c | 56 +++++++++++++--------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c b/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c
-index 8344bcc..2583400 100644
---- a/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c
-+++ b/drivers/media/rc/keymaps/rc-avermedia-rm-ks.c
-@@ -23,35 +23,35 @@
- 
- /* Initial keytable is from Jose Alberto Reguero <jareguero@telefonica.net>
-    and Felipe Morales Moreno <felipe.morales.moreno@gmail.com> */
--/* FIXME: mappings are not 100% correct? */
-+/* Keytable fixed by Philippe Valembois <lephilousophe@users.sourceforge.net> */
- static struct rc_map_table avermedia_rm_ks[] = {
--	{ 0x0501, KEY_POWER2 },
--	{ 0x0502, KEY_CHANNELUP },
--	{ 0x0503, KEY_CHANNELDOWN },
--	{ 0x0504, KEY_VOLUMEUP },
--	{ 0x0505, KEY_VOLUMEDOWN },
--	{ 0x0506, KEY_MUTE },
--	{ 0x0507, KEY_RIGHT },
--	{ 0x0508, KEY_RED },
--	{ 0x0509, KEY_1 },
--	{ 0x050a, KEY_2 },
--	{ 0x050b, KEY_3 },
--	{ 0x050c, KEY_4 },
--	{ 0x050d, KEY_5 },
--	{ 0x050e, KEY_6 },
--	{ 0x050f, KEY_7 },
--	{ 0x0510, KEY_8 },
--	{ 0x0511, KEY_9 },
--	{ 0x0512, KEY_0 },
--	{ 0x0513, KEY_AUDIO },
--	{ 0x0515, KEY_EPG },
--	{ 0x0516, KEY_PLAY },
--	{ 0x0517, KEY_RECORD },
--	{ 0x0518, KEY_STOP },
--	{ 0x051c, KEY_BACK },
--	{ 0x051d, KEY_FORWARD },
--	{ 0x054d, KEY_LEFT },
--	{ 0x0556, KEY_ZOOM },
-+	{ 0x0501, KEY_POWER2 }, /* Power (RED POWER BUTTON) */
-+	{ 0x0502, KEY_CHANNELUP }, /* Channel+ */
-+	{ 0x0503, KEY_CHANNELDOWN }, /* Channel- */
-+	{ 0x0504, KEY_VOLUMEUP }, /* Volume+ */
-+	{ 0x0505, KEY_VOLUMEDOWN }, /* Volume- */
-+	{ 0x0506, KEY_MUTE }, /* Mute */
-+	{ 0x0507, KEY_AGAIN }, /* Recall */
-+	{ 0x0508, KEY_VIDEO }, /* Source */
-+	{ 0x0509, KEY_1 }, /* 1 */
-+	{ 0x050a, KEY_2 }, /* 2 */
-+	{ 0x050b, KEY_3 }, /* 3 */
-+	{ 0x050c, KEY_4 }, /* 4 */
-+	{ 0x050d, KEY_5 }, /* 5 */
-+	{ 0x050e, KEY_6 }, /* 6 */
-+	{ 0x050f, KEY_7 }, /* 7 */
-+	{ 0x0510, KEY_8 }, /* 8 */
-+	{ 0x0511, KEY_9 }, /* 9 */
-+	{ 0x0512, KEY_0 }, /* 0 */
-+	{ 0x0513, KEY_AUDIO }, /* Audio */
-+	{ 0x0515, KEY_EPG }, /* EPG */
-+	{ 0x0516, KEY_PLAYPAUSE }, /* Play/Pause */
-+	{ 0x0517, KEY_RECORD }, /* Record */
-+	{ 0x0518, KEY_STOP }, /* Stop */
-+	{ 0x051c, KEY_BACK }, /* << */
-+	{ 0x051d, KEY_FORWARD }, /* >> */
-+	{ 0x054d, KEY_INFO }, /* Display information */
-+	{ 0x0556, KEY_ZOOM }, /* Fullscreen */
- };
- 
- static struct rc_map_list avermedia_rm_ks_map = {
+On Monday 29 February 2016 09:02:47 Hans Verkuil wrote:
+> Make the base offset hexadecimal to simplify debugging since the base
+> addresses are hex too.
+
+This is much better, it will help debugging.
+
+Before applying the patch, though, I wonder whether 4096 functions by 
+categories isn't a bit overkill. Have you given that any thought, or did you 
+select 1000/0x1000 just for convenience ?
+
+> The offsets for connectors is also changed to start after the 'reserved'
+> range 0x10000-0x2ffff.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 95e126e..79960ae 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -66,17 +66,17 @@ struct media_device_info {
+>  /*
+>   * DVB entities
+>   */
+> -#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 1)
+> -#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 2)
+> -#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 3)
+> -#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 4)
+> +#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 0x00001)
+> +#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 0x00002)
+> +#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 0x00003)
+> +#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 0x00004)
+> 
+>  /*
+>   * I/O entities
+>   */
+> -#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 1001)
+> -#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 1002)
+> -#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 1003)
+> +#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 0x01001)
+> +#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 0x01002)
+> +#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 0x01003)
+> 
+>  /*
+>   * Analog TV IF-PLL decoders
+> @@ -84,23 +84,23 @@ struct media_device_info {
+>   * It is a responsibility of the master/bridge drivers to create links
+>   * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
+>   */
+> -#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 2001)
+> -#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 2002)
+> +#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 0x02001)
+> +#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 0x02002)
+> 
+>  /*
+>   * Audio Entity Functions
+>   */
+> -#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 3000)
+> -#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 3001)
+> -#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 3002)
+> +#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03000)
+> +#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03001)
+> +#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03002)
+> 
+>  /*
+>   * Connectors
+>   */
+>  /* It is a responsibility of the entity drivers to add connectors and links
+> */ -#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
+> -#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
+> -#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
+> +#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
+> +#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
+> +#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
+> 
+>  /*
+>   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
+
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
 
