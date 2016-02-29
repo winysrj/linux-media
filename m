@@ -1,64 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:34856 "EHLO
-	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197AbcBIOnp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2016 09:43:45 -0500
-From: Guenter Roeck <linux@roeck-us.net>
-To: Ludovic Desroches <ludovic.desroches@atmel.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-testers@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH] [media] atmel-isi: Fix bad usage of IS_ERR_VALUE
-Date: Tue,  9 Feb 2016 06:43:42 -0800
-Message-Id: <1455029022-8234-1-git-send-email-linux@roeck-us.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:54782 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752507AbcB2KQv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Feb 2016 05:16:51 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund+renesas@ragnatech.se,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/2] v4l2-ioctl: improve cropcap handling
+Date: Mon, 29 Feb 2016 11:16:40 +0100
+Message-Id: <1456741000-39069-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1456741000-39069-1-git-send-email-hverkuil@xs4all.nl>
+References: <1456741000-39069-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IS_ERR_VALUE() assumes that its parameter is an unsigned long.
-It can not be used to check if an unsigned int reflects an error.
-Doing so can result in the following build warning.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-drivers/media/platform/soc_camera/atmel-isi.c:
-	In function ‘atmel_isi_probe’:
-	include/linux/err.h:21:38: warning:
-		comparison is always false due to limited range of data type
-drivers/media/platform/soc_camera/atmel-isi.c:1089:6: note:
-	in expansion of macro ‘IS_ERR_VALUE’
+If cropcap is implemented, then call it first to fill in the pixel
+aspect ratio. Don't return if cropcap returns ENOTTY or ENOIOCTLCMD,
+in that case just assume a 1:1 pixel aspect ratio.
 
-If that warning is seen, the return value from platform_get_irq() is not
-checked for errors.
+After cropcap was called, then overwrite bounds and defrect with the
+g_selection result because the g_selection() result always has priority
+over anything that vidioc_cropcap returns.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/soc_camera/atmel-isi.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c | 35 +++++++++++++++++++++++++++--------
+ 1 file changed, 27 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 1af779ee3c74..ab2d9b9b1f5d 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -1026,7 +1026,7 @@ static int atmel_isi_parse_dt(struct atmel_isi *isi,
- 
- static int atmel_isi_probe(struct platform_device *pdev)
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 67dbb03..a3db569 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2158,11 +2158,37 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
  {
--	unsigned int irq;
-+	int irq;
- 	struct atmel_isi *isi;
- 	struct resource *regs;
- 	int ret, i;
-@@ -1086,7 +1086,7 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 		isi->width_flags |= 1 << 9;
+ 	struct v4l2_cropcap *p = arg;
+ 	struct v4l2_selection s = { .type = p->type };
+-	int ret;
++	int ret = -ENOTTY;
  
- 	irq = platform_get_irq(pdev, 0);
--	if (IS_ERR_VALUE(irq)) {
-+	if (irq < 0) {
- 		ret = irq;
- 		goto err_req_irq;
- 	}
+ 	if (ops->vidioc_g_selection == NULL)
+ 		return ops->vidioc_cropcap(file, fh, p);
+ 
++	/*
++	 * Let cropcap fill in the pixelaspect if cropcap is available.
++	 * There is still no other way of obtaining this information.
++	 */
++	if (ops->vidioc_cropcap) {
++		ret = ops->vidioc_cropcap(file, fh, p);
++
++		/*
++		 * If cropcap reports that it isn't implemented,
++		 * then just keep going.
++		 */
++		if (ret && ret != -ENOTTY && ret != -ENOIOCTLCMD)
++			return ret;
++	}
++
++	if (ret) {
++		/*
++		 * cropcap wasn't implemented, so assume a 1:1 pixel
++		 * aspect ratio, otherwise keep what cropcap gave us.
++		 */
++		p->pixelaspect.numerator = 1;
++		p->pixelaspect.denominator = 1;
++	}
++
++	/* Use g_selection() to fill in the bounds and defrect rectangles */
++
+ 	/* obtaining bounds */
+ 	if (V4L2_TYPE_IS_OUTPUT(p->type))
+ 		s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
+@@ -2185,13 +2211,6 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+ 		return ret;
+ 	p->defrect = s.r;
+ 
+-	/* setting trivial pixelaspect */
+-	p->pixelaspect.numerator = 1;
+-	p->pixelaspect.denominator = 1;
+-
+-	if (ops->vidioc_cropcap)
+-		return ops->vidioc_cropcap(file, fh, p);
+-
+ 	return 0;
+ }
+ 
 -- 
-2.5.0
+2.7.0
 
