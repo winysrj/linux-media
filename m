@@ -1,66 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:33728 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757874AbcCCONH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 09:13:07 -0500
-Date: Thu, 3 Mar 2016 07:13:05 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Keith Packard <keithp@keithp.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160303071305.247e30b1@lwn.net>
-In-Reply-To: <87y49zr74t.fsf@intel.com>
-References: <20160213145317.247c63c7@lwn.net>
-	<87y49zr74t.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44849 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754141AbcCAO5Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 09:57:25 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 7/8] vivid: set device_caps in video_device.
+Date: Tue,  1 Mar 2016 16:57:25 +0200
+Message-Id: <1456844246-18778-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 03 Mar 2016 16:03:14 +0200
-Jani Nikula <jani.nikula@intel.com> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> This stalled a bit, but the waters are still muddy...
+This simplifies the querycap function.
 
-I've been dealing with real-world obnoxiousness, something which won't
-come to an immediate end, unfortunately.  But I have been taking some time
-to mess with things, and hope to have some more POC patches to send out
-soon.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vivid/vivid-core.c | 22 +++++++---------------
+ 1 file changed, 7 insertions(+), 15 deletions(-)
 
-> Is the Sphinx/reStructuredText table support adequate for media/v4l
-> documentation?
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index ec125becb7af..c14da84af09b 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -200,27 +200,12 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 					struct v4l2_capability *cap)
+ {
+ 	struct vivid_dev *dev = video_drvdata(file);
+-	struct video_device *vdev = video_devdata(file);
+ 
+ 	strcpy(cap->driver, "vivid");
+ 	strcpy(cap->card, "vivid");
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info),
+ 			"platform:%s", dev->v4l2_dev.name);
+ 
+-	if (vdev->vfl_type == VFL_TYPE_GRABBER && vdev->vfl_dir == VFL_DIR_RX)
+-		cap->device_caps = dev->vid_cap_caps;
+-	if (vdev->vfl_type == VFL_TYPE_GRABBER && vdev->vfl_dir == VFL_DIR_TX)
+-		cap->device_caps = dev->vid_out_caps;
+-	else if (vdev->vfl_type == VFL_TYPE_VBI && vdev->vfl_dir == VFL_DIR_RX)
+-		cap->device_caps = dev->vbi_cap_caps;
+-	else if (vdev->vfl_type == VFL_TYPE_VBI && vdev->vfl_dir == VFL_DIR_TX)
+-		cap->device_caps = dev->vbi_out_caps;
+-	else if (vdev->vfl_type == VFL_TYPE_SDR)
+-		cap->device_caps = dev->sdr_cap_caps;
+-	else if (vdev->vfl_type == VFL_TYPE_RADIO && vdev->vfl_dir == VFL_DIR_RX)
+-		cap->device_caps = dev->radio_rx_caps;
+-	else if (vdev->vfl_type == VFL_TYPE_RADIO && vdev->vfl_dir == VFL_DIR_TX)
+-		cap->device_caps = dev->radio_tx_caps;
+ 	cap->capabilities = dev->vid_cap_caps | dev->vid_out_caps |
+ 		dev->vbi_cap_caps | dev->vbi_out_caps |
+ 		dev->radio_rx_caps | dev->radio_tx_caps |
+@@ -1135,6 +1120,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		strlcpy(vfd->name, "vivid-vid-cap", sizeof(vfd->name));
+ 		vfd->fops = &vivid_fops;
+ 		vfd->ioctl_ops = &vivid_ioctl_ops;
++		vfd->device_caps = dev->vid_cap_caps;
+ 		vfd->release = video_device_release_empty;
+ 		vfd->v4l2_dev = &dev->v4l2_dev;
+ 		vfd->queue = &dev->vb_vid_cap_q;
+@@ -1160,6 +1146,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->vfl_dir = VFL_DIR_TX;
+ 		vfd->fops = &vivid_fops;
+ 		vfd->ioctl_ops = &vivid_ioctl_ops;
++		vfd->device_caps = dev->vid_out_caps;
+ 		vfd->release = video_device_release_empty;
+ 		vfd->v4l2_dev = &dev->v4l2_dev;
+ 		vfd->queue = &dev->vb_vid_out_q;
+@@ -1184,6 +1171,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		strlcpy(vfd->name, "vivid-vbi-cap", sizeof(vfd->name));
+ 		vfd->fops = &vivid_fops;
+ 		vfd->ioctl_ops = &vivid_ioctl_ops;
++		vfd->device_caps = dev->vbi_cap_caps;
+ 		vfd->release = video_device_release_empty;
+ 		vfd->v4l2_dev = &dev->v4l2_dev;
+ 		vfd->queue = &dev->vb_vbi_cap_q;
+@@ -1207,6 +1195,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->vfl_dir = VFL_DIR_TX;
+ 		vfd->fops = &vivid_fops;
+ 		vfd->ioctl_ops = &vivid_ioctl_ops;
++		vfd->device_caps = dev->vbi_out_caps;
+ 		vfd->release = video_device_release_empty;
+ 		vfd->v4l2_dev = &dev->v4l2_dev;
+ 		vfd->queue = &dev->vb_vbi_out_q;
+@@ -1229,6 +1218,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		strlcpy(vfd->name, "vivid-sdr-cap", sizeof(vfd->name));
+ 		vfd->fops = &vivid_fops;
+ 		vfd->ioctl_ops = &vivid_ioctl_ops;
++		vfd->device_caps = dev->sdr_cap_caps;
+ 		vfd->release = video_device_release_empty;
+ 		vfd->v4l2_dev = &dev->v4l2_dev;
+ 		vfd->queue = &dev->vb_sdr_cap_q;
+@@ -1247,6 +1237,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		strlcpy(vfd->name, "vivid-rad-rx", sizeof(vfd->name));
+ 		vfd->fops = &vivid_radio_fops;
+ 		vfd->ioctl_ops = &vivid_ioctl_ops;
++		vfd->device_caps = dev->radio_rx_caps;
+ 		vfd->release = video_device_release_empty;
+ 		vfd->v4l2_dev = &dev->v4l2_dev;
+ 		vfd->lock = &dev->mutex;
+@@ -1265,6 +1256,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		vfd->vfl_dir = VFL_DIR_TX;
+ 		vfd->fops = &vivid_radio_fops;
+ 		vfd->ioctl_ops = &vivid_ioctl_ops;
++		vfd->device_caps = dev->radio_tx_caps;
+ 		vfd->release = video_device_release_empty;
+ 		vfd->v4l2_dev = &dev->v4l2_dev;
+ 		vfd->lock = &dev->mutex;
+-- 
+2.4.10
 
-That's perhaps the biggest question.  My sense is "yes", but this needs a
-bit more assurance than that.
-
-> Are the Sphinx output formats adequate in general? Specifically, is the
-> lack of DocBook support, and the flexibility it provides, a blocker?
-
-DocBook is a means to an end; nobody really wants DocBook itself as far
-as I can tell. I've been messing with rst2pdf a bit; it's not hard to get
-reasonable output, and, with some effort, we could probably get really
-nice output. HTML and EPUB are easily covered, still haven't really played
-around with man pages yet.  And there's LaTeX if we really need it.  I
-kind of think we're covered there, unless I've missed something?
-
-> Otherwise, I think Sphinx is promising.
-> 
-> Jon, I think we need a roll of dice, err, a well-thought-out decision
-> from the maintainer to go with one or the other, so we can make some
-> real progress.
-
-My inclination at the moment is very much in the Sphinx direction.  I had
-some vague thoughts of pushing a throwaway experimental directory with a
-couple of docs for 4.6 that would just let people play with it easily;
-then we'd see how many screams we get.  We'll see if the world lets me get
-there.
-
-Thanks,
-
-jon
