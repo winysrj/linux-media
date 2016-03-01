@@ -1,57 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0218.hostedemail.com ([216.40.44.218]:58553 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751806AbcCZMu1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Mar 2016 08:50:27 -0400
-Message-ID: <1458996622.23450.4.camel@perches.com>
-Subject: Re: [RFC PATCH 1/4] media: Add Media Device Allocator API
-From: Joe Perches <joe@perches.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>,
-	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	perex@perex.cz, tiwai@suse.com, hans.verkuil@cisco.com,
-	chehabrafael@gmail.com, javier@osg.samsung.com,
-	jh1009.sung@samsung.com
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org
-Date: Sat, 26 Mar 2016 05:50:22 -0700
-In-Reply-To: <41d017ef76e3206780c018399ec60b63d865f65c.1458966594.git.shuahkh@osg.samsung.com>
-References: <cover.1458966594.git.shuahkh@osg.samsung.com>
-	 <41d017ef76e3206780c018399ec60b63d865f65c.1458966594.git.shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44837 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753523AbcCAO5V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 09:57:21 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 1/8] v4l: vsp1: Check if an entity is a subdev with the right function
+Date: Tue,  1 Mar 2016 16:57:19 +0200
+Message-Id: <1456844246-18778-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2016-03-25 at 22:38 -0600, Shuah Khan wrote:
-> Add Media Device Allocator API to manage Media Device life time problems.
-> There are known problems with media device life time management. When media
-> device is released while an media ioctl is in progress, ioctls fail with
-> use-after-free errors and kernel hangs in some cases.
+Use is_media_entity_v4l2_subdev() instead of is_media_entity_v4l2_io()
+to check whether the entity is a subdev.
 
-Seems reasonable, thanks.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-trivial:
-
-> diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
-[]
-> +static struct media_device *__media_device_get(struct device *dev,
-> +					       bool alloc, bool kref)
-> +{
-[]
-> +	pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
-
-All of the pr_info uses here seem like debugging
-and should likely be pr_debug instead.
-> +struct media_device *media_device_find(struct device *dev)
-> +{
-> +	pr_info("%s\n", __func__);
-
-These seem like function tracing and maybe could/should
-use ftrace instead.
-+/* don't allocate - increment kref if one is found */
-> +struct media_device *media_device_get_ref(struct device *dev)
-> +{
-> +	pr_info("%s\n", __func__);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 61ee0f92c1e5..72cc7d3729f8 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -289,7 +289,7 @@ static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
+ 		struct vsp1_rwpf *rwpf;
+ 		struct vsp1_entity *e;
+ 
+-		if (is_media_entity_v4l2_io(entity))
++		if (!is_media_entity_v4l2_subdev(entity))
+ 			continue;
+ 
+ 		subdev = media_entity_to_v4l2_subdev(entity);
+-- 
+2.4.10
 
