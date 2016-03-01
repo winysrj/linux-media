@@ -1,87 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:36408 "EHLO
-	mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090AbcCDH2I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 02:28:08 -0500
-Received: by mail-qk0-f174.google.com with SMTP id s68so17944915qkh.3
-        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2016 23:28:07 -0800 (PST)
-Received: from mail-qk0-f181.google.com (mail-qk0-f181.google.com. [209.85.220.181])
-        by smtp.gmail.com with ESMTPSA id r189sm1103050qhr.4.2016.03.03.23.28.06
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 03 Mar 2016 23:28:07 -0800 (PST)
-Received: by mail-qk0-f181.google.com with SMTP id s68so17944828qkh.3
-        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2016 23:28:06 -0800 (PST)
+Received: from lists.s-osg.org ([54.187.51.154]:52647 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751984AbcCALQV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2016 06:16:21 -0500
+Date: Tue, 1 Mar 2016 08:16:15 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 1/4] media: Sanitise the reserved fields of the
+ G_TOPOLOGY IOCTL arguments
+Message-ID: <20160301081615.68b1ef2c@recife.lan>
+In-Reply-To: <1456174024-11389-2-git-send-email-sakari.ailus@linux.intel.com>
+References: <1456174024-11389-1-git-send-email-sakari.ailus@linux.intel.com>
+	<1456174024-11389-2-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHFNz9+P=e+fPouiOHi3DEmVb3eRreVJyQM9E-KeV9uw+KHPnA@mail.gmail.com>
-References: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
-	<CAHFNz9L_wxNwju6nXuhv+H4ObhBPJnrauYqv0Gmp4soQG7fgrg@mail.gmail.com>
-	<CAGGr8Nsc4NPcG6WK0ZJoa3-ev7Bo3+tSH-no-xxLigs6ALXj3Q@mail.gmail.com>
-	<CAHFNz9+R-Twg+LALn9VUbNMmPr4-L1bUF7dtzFsoyaNg8Y_Ekg@mail.gmail.com>
-	<56655DE1.7000109@gmail.com>
-	<CAHFNz9+P=e+fPouiOHi3DEmVb3eRreVJyQM9E-KeV9uw+KHPnA@mail.gmail.com>
-Date: Fri, 4 Mar 2016 09:28:06 +0200
-Message-ID: <CAAZRmGw9-jUDwOC1qpeyT+Ng0sS2nJ4=GnBsP95JNELBsDsyVQ@mail.gmail.com>
-Subject: Re: AverMedia HD Duet (White Box) A188WB drivers
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Jemma Denson <jdenson@gmail.com>,
-	David Nelson <nelson.dt@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manu,
+Em Mon, 22 Feb 2016 22:47:01 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-How's it going with the SAA7160? I'd be really happy to see the driver
-being mainlined, but do not really understand if there is some major
-showstoppers still that keep this from happening.
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> The argument structs are used in arrays for G_TOPOLOGY IOCTL. The
+> arguments themselves do not need to be aligned to a power of two, but
+> aligning them up to the largest basic type alignment (u64) on common ABIs
+> is a good thing to do.
+> 
+> The patch changes the size of the reserved fields to 8 or 9 u32's and
+> aligns the size of the struct to 8 bytes so we do no longer depend on the
+> compiler to perform the alignment.
 
-Luis has his personal media_tree here
-https://github.com/ljalves/linux_media/wiki that contains Manu's
-SAA7160 driver and as far as I understand many people are using that
-tree with good success. If that could integrated into the tree, I'm
-sure the community can help to iron out any possible issues existing
-there still.
+I ran some tests with both x86_64 and arch64 running both 32 and 64 bits
+userspace versions of mc_nextgen_test.
 
-Cheers,
--olli
+Everything is working fine with the current structures. No need for any
+extra alignment or compat32 bits.
 
-On 7 December 2015 at 14:06, Manu Abraham <abraham.manu@gmail.com> wrote:
-> Hi Jemma,
->
-> I am having a downtime, the development machine in a recovery
-> process. If things go well, expecting the system next week.
->
-> Regards,
->
-> Manu
->
->
-> On Mon, Dec 7, 2015 at 3:52 PM, Jemma Denson <jdenson@gmail.com> wrote:
->> Hi Manu,
->>
->> On 08/10/15 17:28, Manu Abraham wrote:
->>>
->>> Hi,
->>>
->>> I just got back at work again. Will set things up this weekend/next week.
->>
->>
->> Have you had a chance to make any more progress on this?
->>
->> As you're probably aware there are quite a few drivers waiting for saa716x
->> to be integrated into the tree; if you need some help here is the work
->> remaining to be done something that can be picked up by other people?
->>
->> Regards,
->>
->> Jemma.
->>
->>
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So, this patch is not needed. Yet, I agree that it could be useful to
+do 64 bits alignment, but I guess we're reserving too much space.
+
+So, except for media_v2_interface, I would be reserving 5 or 6 u32 space,
+as it is likely mor than enough for future usage.
+
+See below.
+
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  include/uapi/linux/media.h | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 6aac2f0..1468651 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -302,7 +302,7 @@ struct media_v2_entity {
+>  	__u32 id;
+>  	char name[64];		/* FIXME: move to a property? (RFC says so) */
+>  	__u32 function;		/* Main function of the entity */
+> -	__u16 reserved[12];
+> +	__u32 reserved[8];
+
+You extended the size here. Any reason? If not
+I would use, instead:
+	__u32 reserved[6];
+
+>  };
+>  
+>  /* Should match the specific fields at media_intf_devnode */
+> @@ -327,7 +327,7 @@ struct media_v2_pad {
+>  	__u32 id;
+>  	__u32 entity_id;
+>  	__u32 flags;
+> -	__u16 reserved[9];
+> +	__u32 reserved[9];
+
+Again, you're doubling the reserved space here. Any reason? If not,
+I would use, instead:
+	__u32 reserved[5];
+
+>  };
+>  
+>  struct media_v2_link {
+> @@ -335,7 +335,7 @@ struct media_v2_link {
+>  	__u32 source_id;
+>  	__u32 sink_id;
+>  	__u32 flags;
+> -	__u32 reserved[5];
+> +	__u32 reserved[8];
+
+Again, you're doubling the reserved space here. Any reason? If not,
+I would use, instead:
+
+	__u32 reserved[6];
+
+>  };
+>  
+>  struct media_v2_topology {
+
+
+-- 
+Thanks,
+Mauro
