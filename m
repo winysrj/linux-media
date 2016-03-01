@@ -1,39 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0049.hostedemail.com ([216.40.44.49]:57284 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932760AbcCNCHI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Mar 2016 22:07:08 -0400
-Message-ID: <1457921220.11972.58.camel@perches.com>
-Subject: Re: [PATCH] Add tw5864 driver
-From: Joe Perches <joe@perches.com>
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>, Jiri Slaby <jslaby@suse.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
-	kernel-mentors@selenic.com
-Date: Sun, 13 Mar 2016 19:07:00 -0700
-In-Reply-To: <1457920751-21101-1-git-send-email-andrey.utkin@corp.bluecherry.net>
-References: <1457920713-21009-1-git-send-email-andrey.utkin@corp.bluecherry.net>
-	 <1457920751-21101-1-git-send-email-andrey.utkin@corp.bluecherry.net>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44848 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754051AbcCAO5Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 09:57:25 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 6/8] v4l2-pci-skeleton.c: fill in device_caps in video_device
+Date: Tue,  1 Mar 2016 16:57:24 +0200
+Message-Id: <1456844246-18778-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2016-03-14 at 03:59 +0200, Andrey Utkin wrote:
-> Support for boards based on Techwell TW5864 chip which provides
-> multichannel video & audio grabbing and encoding (H.264, MJPEG,
-> ADPCM G.726).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-trivia:
+With the new core support for the caps the driver no longer needs
+to set device_caps and capabilities in the querycap call.
 
-Perhaps all the __used arrays could be const
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-pci-skeleton.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/video4linux/v4l2-pci-skeleton.c b/Documentation/video4linux/v4l2-pci-skeleton.c
+index 79af0c041056..a55cf94ac907 100644
+--- a/Documentation/video4linux/v4l2-pci-skeleton.c
++++ b/Documentation/video4linux/v4l2-pci-skeleton.c
+@@ -308,9 +308,6 @@ static int skeleton_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->card, "V4L2 PCI Skeleton", sizeof(cap->card));
+ 	snprintf(cap->bus_info, sizeof(cap->bus_info), "PCI:%s",
+ 		 pci_name(skel->pdev));
+-	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+-			   V4L2_CAP_STREAMING;
+-	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+ 
+@@ -872,6 +869,8 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	vdev->release = video_device_release_empty;
+ 	vdev->fops = &skel_fops,
+ 	vdev->ioctl_ops = &skel_ioctl_ops,
++	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
++			    V4L2_CAP_STREAMING;
+ 	/*
+ 	 * The main serialization lock. All ioctls are serialized by this
+ 	 * lock. Exception: if q->lock is set, then the streaming ioctls
+-- 
+2.4.10
 
