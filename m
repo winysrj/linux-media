@@ -1,71 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37583 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750987AbcCKVEV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 16:04:21 -0500
-Subject: Re: [PATCHv2] [media] rcar-vin: add Renesas R-Car VIN driver
-To: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ulrich.hecht@gmail.com, linux-renesas-soc@vger.kernel.org
-References: <1456282709-13861-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
- <56D414D9.4090303@xs4all.nl> <56E28148.1030508@xs4all.nl>
- <20160311110318.GD1111@bigcity.dyn.berto.se> <56E2A90E.6080806@xs4all.nl>
- <20160311205523.GG1111@bigcity.dyn.berto.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56E332D1.8000404@xs4all.nl>
-Date: Fri, 11 Mar 2016 22:04:17 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:52697 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752683AbcCALmv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2016 06:42:51 -0500
+Date: Tue, 1 Mar 2016 08:42:45 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 2/4] media: Rearrange the fields in the G_TOPOLOGY
+ IOCTL argument
+Message-ID: <20160301084245.0b4493b3@recife.lan>
+In-Reply-To: <1456174024-11389-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1456174024-11389-1-git-send-email-sakari.ailus@linux.intel.com>
+	<1456174024-11389-3-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20160311205523.GG1111@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/2016 09:55 PM, Niklas Söderlund wrote:
-> On 2016-03-11 12:16:30 +0100, Hans Verkuil wrote:
->> On 03/11/2016 12:03 PM, Niklas Söderlund wrote:
->>> Hi Hans,
->>>
->>> On 2016-03-11 09:26:48 +0100, Hans Verkuil wrote:
->>>> Hi Niklas,
->>>>
->>>> On 02/29/2016 10:52 AM, Hans Verkuil wrote:
->>>>> Hi Niklas,
->>>>>
->>>>> Thanks for your patch! Much appreciated.
->>>>>
->>>>> I have more comments for the v2, but nothing really big :-)
->>>>>
->>>>
->>>> Just checking, you are working on a v3, right? I'd really like to get this in
->>>> for kernel 4.7.
->>>
->>> Yes I had to switch focus for a bit but now I'm back working on this 
->>> again today.
->>>
->>> I have some trouble getting NV16 to work. I can't get it to work using 
->>> soc_camera driver either, or more accurate I get the same output broken 
->>> rendering in qv4l2. What would you say is better drop NV16 support form 
->>> the driver or keep it as is since it is compatible with the soc_camera 
->>> drivers implementation? I would like to keep it in the driver for now 
->>> since it at least works as good as in soc_camera.
->>
->> I would have the NV16 support as a separate patch so we can decide on this
->> later.
->>
->> I don't really like having to support a broken format.
->>
->> Do you know in what way the format is broken?
+Em Mon, 22 Feb 2016 22:47:02 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+
+> From: Sakari Ailus <sakari.ailus@iki.fi>
 > 
-> Turns out it was my fault all along for assuming qv4l2 could render NV16 
-> out-of-the-box. If one decodes the format correctly it works fine both 
-> with this driver and the one in soc_camera.
+> This avoids having multiple reserved fields in the struct. Reserved fields
+> are added in order to align the struct size to a power of two as well.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  include/uapi/linux/media.h | 15 +++++----------
+>  1 file changed, 5 insertions(+), 10 deletions(-)
+> 
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 1468651..65991df 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -341,21 +341,16 @@ struct media_v2_link {
+>  struct media_v2_topology {
+>  	__u64 topology_version;
+>  
+> -	__u32 num_entities;
+> -	__u32 reserved1;
+>  	__u64 ptr_entities;
+> -
+> -	__u32 num_interfaces;
+> -	__u32 reserved2;
+>  	__u64 ptr_interfaces;
+> -
+> -	__u32 num_pads;
+> -	__u32 reserved3;
+>  	__u64 ptr_pads;
+> +	__u64 ptr_links;
+>  
+> +	__u32 num_entities;
+> +	__u32 num_interfaces;
+> +	__u32 num_pads;
+>  	__u32 num_links;
+> -	__u32 reserved4;
+> -	__u64 ptr_links;
+> +	__u32 reserved[18];
+>  };
 
-Is your qv4l2 compiled with openGL support? (See Help:About) The NV16 format
-is supported with openGL rendering, but not with software rendering. That's
-probably the reason why it wasn't reproduced correctly.
+First of all, there's no need to add reserved fields here. As we've
+discussed last year. If we need to grow the number of fields, we
+can use the same model as the drivers/input/evdev.c does.
+Something like:
 
-Regards,
+#define MASK_SIZE(nr)	((nr) & ~(_IOC_SIZEMASK << _IOC_SIZESHIFT))
 
-	Hans
+	size = _IOC_SIZE(cmd);
+	switch (MASK_SIZE(cmd)) {
+	case MASK_SIZE(MEDIA_IOC_G_TOPOLOGY):
+		media_device_get_topology(dev,
+					  (struct media_v2_topology __user *)arg,
+					  size);
+
+This warrants binary compatibility if newer versions of the Kernel comes
+with a bigger structure.
+
+The problem on using:
+
+struct media_v2_topology {
+  	__u64 topology_version;
+  	__u64 ptr_entities;
+  	__u64 ptr_interfaces;
+  	__u64 ptr_pads;
+ 	__u64 ptr_links;
+  
+ 	__u32 num_entities;
+ 	__u32 num_interfaces;
+ 	__u32 num_pads;
+  	__u32 num_links;
+};
+
+Is that, if we add a new type (for example "foo"), we would have:
+
+struct media_v2_topology {
+  	__u64 topology_version;
+  	__u64 ptr_entities;
+  	__u64 ptr_interfaces;
+  	__u64 ptr_pads;
+ 	__u64 ptr_links;
+  
+ 	__u32 num_entities;
+ 	__u32 num_interfaces;
+ 	__u32 num_pads;
+  	__u32 num_links;
+
+	__u64 ptr_foo;
+	__u32 num_foo;
+};
+
+Then, on a next addition for "bar", we would have:
+
+struct media_v2_topology {
+  	__u64 topology_version;
+  	__u64 ptr_entities;
+  	__u64 ptr_interfaces;
+  	__u64 ptr_pads;
+ 	__u64 ptr_links;
+  
+ 	__u32 num_entities;
+ 	__u32 num_interfaces;
+ 	__u32 num_pads;
+  	__u32 num_links;
+
+	__u64 ptr_foo;
+	__u32 num_foo;
+	__u32 num_bar;
+	__u64 ptr_bar;
+};
+
+So, it becomes messy at the addition of new fields.
+
+On the other hand, the way it currently is:
+
+struct media_v2_topology {
+	__u64 topology_version;
+
+	__u32 num_entities;
+	__u32 reserved1;
+	__u64 ptr_entities;
+
+	__u32 num_interfaces;
+	__u32 reserved2;
+	__u64 ptr_interfaces;
+
+	__u32 num_pads;
+	__u32 reserved3;
+	__u64 ptr_pads;
+
+	__u32 num_links;
+	__u32 reserved4;
+	__u64 ptr_links;
+};
+
+Adding "foo":
+
+struct media_v2_topology {
+	__u64 topology_version;
+
+	__u32 num_entities;
+	__u32 reserved1;
+	__u64 ptr_entities;
+
+	__u32 num_interfaces;
+	__u32 reserved2;
+	__u64 ptr_interfaces;
+
+	__u32 num_pads;
+	__u32 reserved3;
+	__u64 ptr_pads;
+
+	__u32 num_links;
+	__u32 reserved4;
+	__u64 ptr_links;
+
+	__u32 num_foo;
+	__u32 reserved5;
+	__u64 ptr_foo;
+};
+
+Adding bar:
+
+struct media_v2_topology {
+	__u64 topology_version;
+
+	__u32 num_entities;
+	__u32 reserved1;
+	__u64 ptr_entities;
+
+	__u32 num_interfaces;
+	__u32 reserved2;
+	__u64 ptr_interfaces;
+
+	__u32 num_pads;
+	__u32 reserved3;
+	__u64 ptr_pads;
+
+	__u32 num_links;
+	__u32 reserved4;
+	__u64 ptr_links;
+
+	__u32 num_foo;
+	__u32 reserved5;
+	__u64 ptr_foo;
+
+	__u32 num_bar;
+	__u32 reserved6;
+	__u64 ptr_bar;
+};
+
+If all your concern is with regards to "reserved[1..n]", then maybe
+we could, instead, call them as "align_foo" or "reserved_foo", like:
+
+struct media_v2_topology {
+	__u64 topology_version;
+
+	__u32 num_entities;
+	__u32 align_entities;	/* not used, should be filled with 0 by userspace */
+	__u64 ptr_entities;
+
+	__u32 num_interfaces;
+	__u32 align_interfaces;	/* not used, should be filled with 0 by userspace */
+	__u64 ptr_interfaces;
+
+	__u32 num_pads;
+	__u32 align_pads;	/* not used, should be filled with 0 by userspace */
+	__u64 ptr_pads;
+
+	__u32 num_links;
+	__u32 align_links;	/* not used, should be filled with 0 by userspace */
+	__u64 ptr_links;
+};
+
+-- 
+Thanks,
+Mauro
