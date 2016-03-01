@@ -1,161 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48711 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758341AbcCDUeO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 15:34:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] media-device: map new functions into old types for legacy API
-Date: Fri, 04 Mar 2016 22:34:04 +0200
-Message-ID: <1527901.3Rzc7c6Yxe@avalon>
-In-Reply-To: <07c81fda0c8b187be238a8428fd370d156082f8c.1457088214.git.mchehab@osg.samsung.com>
-References: <07c81fda0c8b187be238a8428fd370d156082f8c.1457088214.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from sg-smtp01.263.net ([54.255.195.220]:34211 "EHLO
+	sg-smtp01.263.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750764AbcCACaE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Feb 2016 21:30:04 -0500
+From: Jung Zhao <jung.zhao@rock-chips.com>
+To: tfiga@chromium.org, posciak@chromium.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Pawel Osciak <posciak@google.com>,
+	eddie.cai@rock-chips.com, alpha.lin@rock-chips.com,
+	jeffy.chen@rock-chips.com, herman.chen@rock-chips.com
+Subject: [PATCH v3 2/3] [NOT FOR REVIEW] v4l: Add VP8 low-level decoder API controls.
+Date: Tue,  1 Mar 2016 10:23:37 +0800
+Message-Id: <1456799017-8612-1-git-send-email-jung.zhao@rock-chips.com>
+In-Reply-To: <1456798977-8514-1-git-send-email-jung.zhao@rock-chips.com>
+References: <1456798977-8514-1-git-send-email-jung.zhao@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Pawel Osciak <posciak@chromium.org>
 
-Thank you for the patch.
+These controls are to be used with the new low-level decoder API for VP8
+to provide additional parameters for the hardware that cannot parse the
+input stream.
 
-On Friday 04 March 2016 07:43:37 Mauro Carvalho Chehab wrote:
-> The media-ctl tool, on versions <= 1.10 relies on detecting the
-> media_type to identify V4L2 sub-devices and MEDIA_ENT_T_DEVNODE.
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+Signed-off-by: Jung Zhao <jung.zhao@rock-chips.com>
+---
+Changes in v3: None
+Changes in v2: None
 
-1.10 is the latest version, and the problem is still present in the master 
-branch of v4l-utils. Furthermore this issue isn't limited to media-ctl, there 
-are other applications relying on this (I wrote one of them).
+ drivers/media/v4l2-core/v4l2-ctrls.c |  9 ++++
+ drivers/media/v4l2-core/v4l2-ioctl.c |  1 +
+ include/media/v4l2-ctrls.h           |  2 +
+ include/uapi/linux/v4l2-controls.h   | 94 ++++++++++++++++++++++++++++++++++++
+ include/uapi/linux/videodev2.h       |  3 ++
+ 5 files changed, 109 insertions(+)
 
-> If the device doesn't match the MEDIA_ENT_T_V4L2_SUBDEV range, it
-> ignores the major/minor and won't be getting the device name on
-> udev or sysfs. It will also ignore the entity when printing the
-> graphviz diagram.
-> 
-> As we're now adding devices outside the old range, the legacy ioctl
-> needs to map the new entity functions into a type at the old range,
-> or otherwise we'll have a regression.
-
-How about phrasing it as
-
-"The legacy media controller userspace API exposes entity types that carry 
-both type and function information. The new API replaces the type with a 
-function. It preserves backward compatibility by defining legacy functions for 
-the existing types and using them in drivers.
-
-This works fine as long as drivers are not modified to use proper functions. 
-When this happens the legacy API will all of a sudden report new functions 
-instead of legacy types, breaking userspace applications.
-
-Fix this by deriving the type from the function to emulate the legacy API if 
-the function isn't in the legacy functions range."
-
-> Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/media-device.c | 23 +++++++++++++++++++++++
->  include/uapi/linux/media.h   |  6 +++++-
->  2 files changed, 28 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 17cd349e485f..1e82c59abb94 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -20,6 +20,9 @@
->   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 
-> USA */
-> 
-> +/* We need to access legacy defines from linux/media.h */
-> +#define __MEDIA_DEVICE_C__
-
-glibc defines macros named __need_* for the same purpose. How about 
-__need_media_legacy_api instead ?
-
-> +
->  #include <linux/compat.h>
->  #include <linux/export.h>
->  #include <linux/idr.h>
-> @@ -121,6 +124,26 @@ static long media_device_enum_entities(struct
-> media_device *mdev, u_ent.group_id = 0;		/* Unused */
->  	u_ent.pads = ent->num_pads;
->  	u_ent.links = ent->num_links - ent->num_backlinks;
-> +
-> +	/*
-> +	 * Workaround for a bug at media-ctl <= v1.10 that makes it to
-
-I wouldn't call it a bug, as the MC API guarantees that subdevices will have a 
-type within the subdev types range, and media-ctl simply relies on that.
-
-> +	 * do the wrong thing if the entity function doesn't belong to
-> +	 * either MEDIA_ENT_F_OLD_BASE or MEDIA_ENT_F_OLD_SUBDEV_BASE
-> +	 * Ranges.
-> +	 *
-> +	 * Non-subdevices are expected to be at the MEDIA_ENT_F_OLD_BASE,
-> +	 * or, otherwise, will be silently ignored by media-ctl when
-> +	 * printing the graphviz diagram. So, map them into the devnode
-> +	 * old range.
-
-To match the commit message, how about just
-
-"Emulate legacy types for userspace if the entity uses a non-legacy function."
-
-> +	 */
-> +	if (ent->function < MEDIA_ENT_F_OLD_BASE ||
-> +	    ent->function > MEDIA_ENT_T_DEVNODE_UNKNOWN) {
-> +		if (is_media_entity_v4l2_subdev(ent))
-> +			u_ent.type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
-> +		else if (ent->function != MEDIA_ENT_F_IO_V4L)
-
-This can't happen as MEDIA_ENT_F_IO_V4L is in the 
-MEDIA_ENT_F_OLD_BASE..MEDIA_ENT_T_DEVNODE_UNKNOWN range. We can just leave 
-this out for now, or you can use is_media_entity_v4l2_video_device() if you 
-want to rebase on top of the pull request I've just sent.
-
-> +			u_ent.type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
-> +	}
-> +
->  	memcpy(&u_ent.raw, &ent->info, sizeof(ent->info));
->  	if (copy_to_user(uent, &u_ent, sizeof(u_ent)))
->  		return -EFAULT;
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 95e126edb1c3..bc27e34ce3a1 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -132,7 +132,7 @@ struct media_device_info {
-> 
->  #define MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN	MEDIA_ENT_F_OLD_SUBDEV_BASE
-> 
-> -#ifndef __KERNEL__
-> +#if !defined(__KERNEL__) || defined(__MEDIA_DEVICE_C__)
-> 
->  /*
->   * Legacy symbols used to avoid userspace compilation breakages
-> @@ -145,6 +145,10 @@ struct media_device_info {
->  #define MEDIA_ENT_TYPE_MASK		0x00ff0000
->  #define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
-> 
-> +/* End of the old subdev reserved numberspace */
-> +#define MEDIA_ENT_T_DEVNODE_UNKNOWN	(MEDIA_ENT_T_DEVNODE | \
-> +					 MEDIA_ENT_SUBTYPE_MASK)
-
-Shouldn't we hide it from userpace ? How about moving it to media-device.c as 
-that's the only user ? I don't expect other source files to need this (and 
-certainly hope it won't be the case).
-
-I also propose calling the macro MEDIA_ENT_T_DEVNODE_MAX (or possibly 
-MEDIA_ENT_T_DEVNODE_END, up to you). In practice MEDIA_ENT_T_DEVNODE is what 
-currently represents a device node of unknown type, I find 
-MEDIA_ENT_T_DEVNODE_UNKNOWN confusing.
-
->  #define MEDIA_ENT_T_DEVNODE		MEDIA_ENT_F_OLD_BASE
->  #define MEDIA_ENT_T_DEVNODE_V4L		MEDIA_ENT_F_IO_V4L
->  #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 527d65c..ffc513e 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -762,6 +762,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+ 
++	case V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR:			return "VP8 Frame Header";
++
+ 	/* CAMERA controls */
+ 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+@@ -1126,6 +1128,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RDS_TX_ALT_FREQS:
+ 		*type = V4L2_CTRL_TYPE_U32;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR:
++		*type = V4L2_CTRL_TYPE_VP8_FRAME_HDR;
++		break;
+ 	default:
+ 		*type = V4L2_CTRL_TYPE_INTEGER;
+ 		break;
+@@ -1529,6 +1534,7 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 	case V4L2_CTRL_TYPE_PRIVATE:
+ 		return 0;
+ 
++	case V4L2_CTRL_TYPE_VP8_FRAME_HDR:
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -2078,6 +2084,9 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	case V4L2_CTRL_TYPE_U32:
+ 		elem_size = sizeof(u32);
+ 		break;
++	case V4L2_CTRL_TYPE_VP8_FRAME_HDR:
++		elem_size = sizeof(struct v4l2_ctrl_vp8_frame_hdr);
++		break;
+ 	default:
+ 		if (type < V4L2_CTRL_COMPOUND_TYPES)
+ 			elem_size = sizeof(s32);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 7d028d1..915dc2c 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1259,6 +1259,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		case V4L2_PIX_FMT_VC1_ANNEX_G:	descr = "VC-1 (SMPTE 412M Annex G)"; break;
+ 		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
+ 		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
++		case V4L2_PIX_FMT_VP8_FRAME:	descr = "VP8 FRAME"; break;
+ 		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
+ 		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
+ 		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 5f9526f..0424cdc 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -46,6 +46,7 @@ struct poll_table_struct;
+  * @p_u16:	Pointer to a 16-bit unsigned value.
+  * @p_u32:	Pointer to a 32-bit unsigned value.
+  * @p_char:	Pointer to a string.
++ * @p_vp8_frame_hdr:	Pointer to a struct v4l2_ctrl_vp8_frame_hdr.
+  * @p:		Pointer to a compound value.
+  */
+ union v4l2_ctrl_ptr {
+@@ -55,6 +56,7 @@ union v4l2_ctrl_ptr {
+ 	u16 *p_u16;
+ 	u32 *p_u32;
+ 	char *p_char;
++	struct v4l2_ctrl_vp8_frame_hdr *p_vp8_frame_hdr;
+ 	void *p;
+ };
+ 
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 2d225bc..894de37 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -578,6 +578,8 @@ enum v4l2_vp8_golden_frame_sel {
+ #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
+ #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
+ 
++#define V4L2_CID_MPEG_VIDEO_VP8_FRAME_HDR		(V4L2_CID_MPEG_BASE+512)
++
+ /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+ #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+ #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
+@@ -963,4 +965,96 @@ enum v4l2_detect_md_mode {
+ #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+ #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
+ 
++#define V4L2_VP8_SEGMNT_HDR_FLAG_ENABLED              0x01
++#define V4L2_VP8_SEGMNT_HDR_FLAG_UPDATE_MAP           0x02
++#define V4L2_VP8_SEGMNT_HDR_FLAG_UPDATE_FEATURE_DATA  0x04
++struct v4l2_vp8_sgmnt_hdr {
++	__u8 segment_feature_mode;
++
++	__s8 quant_update[4];
++	__s8 lf_update[4];
++	__u8 segment_probs[3];
++
++	__u8 flags;
++};
++
++#define V4L2_VP8_LF_HDR_ADJ_ENABLE	0x01
++#define V4L2_VP8_LF_HDR_DELTA_UPDATE	0x02
++struct v4l2_vp8_loopfilter_hdr {
++	__u8 type;
++	__u8 level;
++	__u8 sharpness_level;
++	__s8 ref_frm_delta_magnitude[4];
++	__s8 mb_mode_delta_magnitude[4];
++
++	__u8 flags;
++};
++
++struct v4l2_vp8_quantization_hdr {
++	__u8 y_ac_qi;
++	__s8 y_dc_delta;
++	__s8 y2_dc_delta;
++	__s8 y2_ac_delta;
++	__s8 uv_dc_delta;
++	__s8 uv_ac_delta;
++	__u16 dequant_factors[4][3][2];
++};
++
++struct v4l2_vp8_entropy_hdr {
++	__u8 coeff_probs[4][8][3][11];
++	__u8 y_mode_probs[4];
++	__u8 uv_mode_probs[3];
++	__u8 mv_probs[2][19];
++};
++
++#define V4L2_VP8_FRAME_HDR_FLAG_EXPERIMENTAL		0x01
++#define V4L2_VP8_FRAME_HDR_FLAG_SHOW_FRAME		0x02
++#define V4L2_VP8_FRAME_HDR_FLAG_MB_NO_SKIP_COEFF	0x04
++struct v4l2_ctrl_vp8_frame_hdr {
++	/* 0: keyframe, 1: not a keyframe */
++	__u8 key_frame;
++	__u8 version;
++
++	/* Populated also if not a key frame */
++	__u16 width;
++	__u8 horizontal_scale;
++	__u16 height;
++	__u8 vertical_scale;
++
++	struct v4l2_vp8_sgmnt_hdr sgmnt_hdr;
++	struct v4l2_vp8_loopfilter_hdr lf_hdr;
++	struct v4l2_vp8_quantization_hdr quant_hdr;
++	struct v4l2_vp8_entropy_hdr entropy_hdr;
++
++	__u8 sign_bias_golden;
++	__u8 sign_bias_alternate;
++
++	__u8 prob_skip_false;
++	__u8 prob_intra;
++	__u8 prob_last;
++	__u8 prob_gf;
++
++	__u32 first_part_size;
++	__u32 first_part_offset;
++	/*
++	 * Offset in bits of MB data in first partition,
++	 * i.e. bit offset starting from first_part_offset.
++	 */
++	__u32 macroblock_bit_offset;
++
++	__u8 num_dct_parts;
++	__u32 dct_part_sizes[8];
++
++	__u8 bool_dec_range;
++	__u8 bool_dec_value;
++	__u8 bool_dec_count;
++
++	/* v4l2_buffer indices of reference frames */
++	__u32 last_frame;
++	__u32 golden_frame;
++	__u32 alt_frame;
++
++	__u8 flags;
++};
++
+ #endif
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 53ac896..1493ec4 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -593,6 +593,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
+ #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+ #define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
++#define V4L2_PIX_FMT_VP8_FRAME v4l2_fourcc('V', 'P', '8', 'F') /* VP8 parsed frames */
+ 
+ /*  Vendor-specific formats   */
+ #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+@@ -1473,6 +1474,7 @@ struct v4l2_ext_control {
+ 		__u8 __user *p_u8;
+ 		__u16 __user *p_u16;
+ 		__u32 __user *p_u32;
++		struct v4l2_ctrl_vp8_frame_hdr __user *p_vp8_frame_hdr;
+ 		void __user *ptr;
+ 	};
+ } __attribute__ ((packed));
+@@ -1517,6 +1519,7 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_U8	     = 0x0100,
+ 	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ 	V4L2_CTRL_TYPE_U32	     = 0x0102,
++	V4L2_CTRL_TYPE_VP8_FRAME_HDR	= 0x108,
+ 
+ 	V4L2_CTRL_TYPE_PRIVATE       = 0xffff,
+ };
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
