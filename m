@@ -1,36 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nautilus.laiva.org ([62.142.120.74]:55160 "EHLO
-	nautilus.laiva.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751616AbcCBLNN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 06:13:13 -0500
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 1/2] dw2102: ts2020 included twice
-Date: Wed,  2 Mar 2016 13:06:05 +0200
-Message-Id: <1456916766-28165-1-git-send-email-olli.salonen@iki.fi>
+Received: from srv-mta.gcmillenium.com.br ([177.125.218.132]:50348 "EHLO
+	srv-mta.gcmillenium.com.br" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753758AbcCAXr4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Mar 2016 18:47:56 -0500
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: CISCO AND AVAYA IP Phones
+To: Recipients <7sales@laiisoncomputech.com>
+From: Laison Computech Inc <7sales@laiisoncomputech.com>
+Date: Wed, 02 Mar 2016 03:18:24 +0700
+Reply-To: sales@laiisoncomputech.com
+Message-Id: <20160301211732.6F00558DCC2@srv-mta.gcmillenium.com.br>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ts2020.h was already included a few lines earlier. Remove the unnecessary entry.
+Hi,
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/usb/dvb-usb/dw2102.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Clean tested working pulls CPUs and QTYs in stock.
 
-diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-index dd46d6c..8fd1aae 100644
---- a/drivers/media/usb/dvb-usb/dw2102.c
-+++ b/drivers/media/usb/dvb-usb/dw2102.c
-@@ -33,7 +33,6 @@
- #include "tda18271.h"
- #include "cxd2820r.h"
- #include "m88ds3103.h"
--#include "ts2020.h"
- 
- /* Max transfer size done by I2C transfer functions */
- #define MAX_XFER_SIZE  64
--- 
-1.7.0.4
+115 X X5650
+65 X E5410
+75 X X5660
+145 X E5530
+100 X E5645
+40 X X5680
+75 X X5690
 
+Brand new sealed IP phones and QTYs in stock.
+
+55 x CP-7937G
+77 x CP-7942G
+54 x CP-7945G
+75 x CP-7962G
+......
+45 x Avaya 9630
+65 x Avaya 9641
+55 x Avaya 9640 
+
+USED IT HARDWARE FROM:
+
+FUJITSU       IBM         SUN        HP
+QUANTUM   DELL       HDS        STK
+NETAPP      SGI         Oracle      EMC²
+
+3Com, ADVA, Alcatel, Brocade, Cisco,
+Cabletron, Enterasys, Extreme Networks,
+Huawei, Marconi, Nortel, Qlogic, Avaya
+
+Let me know if you're interested. We are very open to offers and willing to work with you to make sure that we have a deal.
+
+Sincerely
+Barbara Johnson
+Laison Computech Inc
+Tel: +1-657-205-7860
+Fax: +1-347-214-0478
+Email: sales@laiisoncomputech.com
+Web: www.laisoncomputech.com
