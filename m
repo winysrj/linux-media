@@ -1,53 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:33627 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010AbcCBNRP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 08:17:15 -0500
-Received: by mail-lb0-f172.google.com with SMTP id k15so6930220lbg.0
-        for <linux-media@vger.kernel.org>; Wed, 02 Mar 2016 05:17:14 -0800 (PST)
-Subject: Re: [PATCH v2] media: platform: rcar_jpu, sh_vou, vsp1: Use
- ARCH_RENESAS
-To: Simon Horman <horms+renesas@verge.net.au>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1456881291-1167-1-git-send-email-horms+renesas@verge.net.au>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <56D6E7D6.1010806@cogentembedded.com>
-Date: Wed, 2 Mar 2016 16:17:10 +0300
-MIME-Version: 1.0
-In-Reply-To: <1456881291-1167-1-git-send-email-horms+renesas@verge.net.au>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:36162 "EHLO
+	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752100AbcCAT3H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 14:29:07 -0500
+Received: by mail-lf0-f52.google.com with SMTP id l83so73078685lfd.3
+        for <linux-media@vger.kernel.org>; Tue, 01 Mar 2016 11:29:06 -0800 (PST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: torbjorn.jansson@mbox200.swipnet.se, mchehab@osg.samsung.com,
+	Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH] dvb-core: fix return code checking for devices with CA
+Date: Tue,  1 Mar 2016 21:28:54 +0200
+Message-Id: <1456860534-1386-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+The test for the return code was mistakenly inverted. This caused DVB
+devices with CA module to fail on modprobe.
 
-On 3/2/2016 4:14 AM, Simon Horman wrote:
+Tested with TechnoTrend CT2-4650 CI USB tuner.
 
-> Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
->
-> This is part of an ongoing process to migrate from ARCH_SHMOBILE to
-> ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
-> appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
->
-> Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-> ---
-> Based on media-tree/master
->
-> v2
-> * Do not update VIDEO_SH_VOU to use ARCH_RENESAS as this is
->    used by some SH-based platforms and is not used by any ARM-based platforms
->    so a dependency on ARCH_SHMOBILE is correct for that driver
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/dvb-core/dvbdev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-    You forgot to remove it from the subject though.
-
-> * Added Geert Uytterhoeven's Ack
-[...]
-
-MBR, Sergei
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 1b9732e..e1684c5 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -681,7 +681,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
+ 	if (demux && ca) {
+ 		ret = media_create_pad_link(demux, 1, ca,
+ 					    0, MEDIA_LNK_FL_ENABLED);
+-		if (!ret)
++		if (ret)
+ 			return -ENOMEM;
+ 	}
+ 
+-- 
+1.9.1
 
