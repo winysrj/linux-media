@@ -1,181 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44849 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754051AbcCAO5X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 09:57:23 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 3/8] media: Add type field to struct media_entity
-Date: Tue,  1 Mar 2016 16:57:21 +0200
-Message-Id: <1456844246-18778-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from sg-smtp01.263.net ([54.255.195.220]:34209 "EHLO
+	sg-smtp01.263.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751028AbcCACaG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Feb 2016 21:30:06 -0500
+From: Jung Zhao <jung.zhao@rock-chips.com>
+To: tfiga@chromium.org, posciak@chromium.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Pawel Osciak <posciak@google.com>,
+	eddie.cai@rock-chips.com, alpha.lin@rock-chips.com,
+	jeffy.chen@rock-chips.com, herman.chen@rock-chips.com
+Subject: [PATCH v3 1/3] [NOT FOR REVIEW] v4l: Add private compound control type.
+Date: Tue,  1 Mar 2016 10:23:23 +0800
+Message-Id: <1456799003-8565-1-git-send-email-jung.zhao@rock-chips.com>
+In-Reply-To: <1456798977-8514-1-git-send-email-jung.zhao@rock-chips.com>
+References: <1456798977-8514-1-git-send-email-jung.zhao@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Code that processes media entities can require knowledge of the
-structure type that embeds a particular media entity instance in order
-to cast the entity to the proper object type. This needs is shown by the
-presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
-functions.
+From: Pawel Osciak <posciak@chromium.org>
 
-The implementation of those two functions relies on the entity function
-field, which is both a wrong and an inefficient design, without even
-mentioning the maintenance issue involved in updating the functions
-every time a new entity function is added. Fix this by adding add a type
-field to the media entity structure to carry the information.
+V4L2_CTRL_TYPE_PRIVATE is to be used for private driver compound
+controls that use the "ptr" member of struct v4l2_ext_control.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Pawel Osciak <posciak@chromium.org>
+Signed-off-by: Jung Zhao <jung.zhao@rock-chips.com>
 ---
- drivers/media/v4l2-core/v4l2-dev.c    |  1 +
- drivers/media/v4l2-core/v4l2-subdev.c |  1 +
- include/media/media-entity.h          | 75 ++++++++++++++++++-----------------
- 3 files changed, 40 insertions(+), 37 deletions(-)
+Changes in v3: None
+Changes in v2:
+- add [NOT FOR REVIEW] tag for patches from Chromium OS Tree suggested by Tomasz
+- update copyright message
+- list all the related signed-off names
+- add more description suggested by Enric
+- fix format error of commit message suggested by Tomasz
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index d8e5994cccf1..7e766a92e3d9 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -735,6 +735,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
- 	if (!vdev->v4l2_dev->mdev)
+ drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
+ include/uapi/linux/videodev2.h       | 2 ++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 890520d..527d65c 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1525,6 +1525,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
+ 			return -ERANGE;
  		return 0;
  
-+	vdev->entity.type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- 	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
- 
- 	switch (type) {
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index d63083803144..bb6e79f14bb8 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -584,6 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
- 	sd->host_priv = NULL;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	sd->entity.name = sd->name;
-+	sd->entity.type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
- 	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
- #endif
- }
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index d58e29d3f239..cbd37530f6b8 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -187,10 +187,37 @@ struct media_entity_operations {
++	/* FIXME:just return 0 for now */
++	case V4L2_CTRL_TYPE_PRIVATE:
++		return 0;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 29a6b78..53ac896 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1517,6 +1517,8 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_U8	     = 0x0100,
+ 	V4L2_CTRL_TYPE_U16	     = 0x0101,
+ 	V4L2_CTRL_TYPE_U32	     = 0x0102,
++
++	V4L2_CTRL_TYPE_PRIVATE       = 0xffff,
  };
  
- /**
-+ * enum media_entity_type - Media entity type
-+ *
-+ * @MEDIA_ENTITY_TYPE_MEDIA_ENTITY:
-+ *	The entity is a struct media_entity instance.
-+ * @MEDIA_ENTITY_TYPE_VIDEO_DEVICE:
-+ *	The entity is a struct video_device instance.
-+ * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
-+ *	The entity is a struct v4l2_subdev instance.
-+ *
-+ * The entity type identifies the type of the object instance that implements
-+ * the struct media_entity instance. This allows runtime type identification of
-+ * media entities and safe casting to the project object type. For instance, a
-+ * media entity structure instance embedded in a v4l2_subdev structure instance
-+ * will have the type MEDIA_ENTITY_TYPE_V4L2_SUBDEV and can safely be cast to a
-+ * v4l2_subdev structure using the container_of() macro.
-+ *
-+ * Media entities can be instantiated without creating any derived object type,
-+ * in which case their type will be MEDIA_ENTITY_TYPE_MEDIA_ENTITY.
-+ */
-+enum media_entity_type {
-+	MEDIA_ENTITY_TYPE_MEDIA_ENTITY,
-+	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
-+	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
-+};
-+
-+/**
-  * struct media_entity - A media entity graph object.
-  *
-  * @graph_obj:	Embedded structure containing the media object common data.
-  * @name:	Entity name.
-+ * @type:	Type of the object that implements the media_entity.
-  * @function:	Entity main function, as defined in uapi/media.h
-  *		(MEDIA_ENT_F_*)
-  * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
-@@ -219,6 +246,7 @@ struct media_entity_operations {
- struct media_entity {
- 	struct media_gobj graph_obj;	/* must be first field in struct */
- 	const char *name;
-+	enum media_entity_type type;
- 	u32 function;
- 	unsigned long flags;
- 
-@@ -328,56 +356,29 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
- }
- 
- /**
-- * is_media_entity_v4l2_io() - identify if the entity main function
-- *			       is a V4L2 I/O
-- *
-+ * is_media_entity_v4l2_io() - Check if the entity is a video_device
-  * @entity:	pointer to entity
-  *
-- * Return: true if the entity main function is one of the V4L2 I/O types
-- *	(video, VBI or SDR radio); false otherwise.
-+ * Return: true if the entity is an instance of a video_device object and can
-+ * safely be cast to a struct video_device using the container_of() macro, or
-+ * false otherwise.
-  */
- static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
- {
--	if (!entity)
--		return false;
--
--	switch (entity->function) {
--	case MEDIA_ENT_F_IO_V4L:
--	case MEDIA_ENT_F_IO_VBI:
--	case MEDIA_ENT_F_IO_SWRADIO:
--		return true;
--	default:
--		return false;
--	}
-+	return entity && entity->type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- }
- 
- /**
-- * is_media_entity_v4l2_subdev - return true if the entity main function is
-- *				 associated with the V4L2 API subdev usage
-- *
-+ * is_media_entity_v4l2_subdev() - Check if the entity is a v4l2_subdev
-  * @entity:	pointer to entity
-  *
-- * This is an ancillary function used by subdev-based V4L2 drivers.
-- * It checks if the entity function is one of functions used by a V4L2 subdev,
-- * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
-+ * Return: true if the entity is an instance of a v4l2_subdev object and can
-+ * safely be cast to a struct v4l2_subdev using the container_of() macro, or
-+ * false otherwise.
-  */
- static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
- {
--	if (!entity)
--		return false;
--
--	switch (entity->function) {
--	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
--	case MEDIA_ENT_F_CAM_SENSOR:
--	case MEDIA_ENT_F_FLASH:
--	case MEDIA_ENT_F_LENS:
--	case MEDIA_ENT_F_ATV_DECODER:
--	case MEDIA_ENT_F_TUNER:
--		return true;
--
--	default:
--		return false;
--	}
-+	return entity && entity->type == MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
- }
- 
- /**
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
 -- 
-2.4.10
+1.9.1
 
