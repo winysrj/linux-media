@@ -1,95 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:56796 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750883AbcCXAny (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 20:43:54 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber@suse.de>,
-	linux-media@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [RFT PATCH v2] [media] exynos4-is: Fix fimc_is_parse_sensor_config() nodes handling
-Date: Wed, 23 Mar 2016 21:41:40 -0300
-Message-Id: <1458780100-8865-1-git-send-email-javier@osg.samsung.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:41332 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752184AbcCBUoV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 15:44:21 -0500
+Date: Wed, 2 Mar 2016 23:41:31 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com,
+	pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH v5 22/22] sound/usb: Use Media Controller API to share
+ media resources
+Message-ID: <20160302204131.GV5273@mwanda>
+References: <1456937431-3794-1-git-send-email-shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1456937431-3794-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The same struct device_node * is used for looking up the I2C sensor, OF
-graph endpoint and port. So the reference count is incremented but not
-decremented for the endpoint and port nodes.
+On Wed, Mar 02, 2016 at 09:50:31AM -0700, Shuah Khan wrote:
+> +	mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
+> +	if (!mctl)
+> +		return -ENOMEM;
+> +
+> +	mctl->media_dev = mdev;
+> +	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
+> +		intf_type = MEDIA_INTF_T_ALSA_PCM_PLAYBACK;
+> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_PLAYBACK;
+> +		mctl->media_pad.flags = MEDIA_PAD_FL_SOURCE;
+> +		mixer_pad = 1;
+> +	} else {
+> +		intf_type = MEDIA_INTF_T_ALSA_PCM_CAPTURE;
+> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_CAPTURE;
+> +		mctl->media_pad.flags = MEDIA_PAD_FL_SINK;
+> +		mixer_pad = 2;
+> +	}
+> +	mctl->media_entity.name = pcm->name;
+> +	media_entity_pads_init(&mctl->media_entity, 1, &mctl->media_pad);
+> +	ret =  media_device_register_entity(mctl->media_dev,
+> +					    &mctl->media_entity);
+> +	if (ret)
+> +		goto err1;
 
-Fix this by having separate pointers for each node looked up.
+Could we give this label a meaningful name instead of a number?
+goto free_mctl;
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> +
+> +	mctl->intf_devnode = media_devnode_create(mdev, intf_type, 0,
+> +						  MAJOR(pcm_dev->devt),
+> +						  MINOR(pcm_dev->devt));
+> +	if (!mctl->intf_devnode) {
+> +		ret = -ENOMEM;
+> +		goto err2;
 
----
-Hello,
+goto unregister_device;
 
-This patch was only build tested because I don't have an Exynos4
-board to test. So testing on real HW will be highly appreciated.
+> +	}
+> +	mctl->intf_link = media_create_intf_link(&mctl->media_entity,
+> +						 &mctl->intf_devnode->intf,
+> +						 MEDIA_LNK_FL_ENABLED);
+> +	if (!mctl->intf_link) {
+> +		ret = -ENOMEM;
+> +		goto err3;
 
-Best regards,
-Javier
+goto delete_devnode;
 
-Changes in v2:
-- Use the correct node var in the error print out. Suggested by Andreas Färber.
+> +	}
+> +
+> +	/* create link between mixer and audio */
+> +	media_device_for_each_entity(entity, mdev) {
+> +		switch (entity->function) {
+> +		case MEDIA_ENT_F_AUDIO_MIXER:
+> +			ret = media_create_pad_link(entity, mixer_pad,
+> +						    &mctl->media_entity, 0,
+> +						    MEDIA_LNK_FL_ENABLED);
+> +			if (ret)
+> +				goto err4;
 
- drivers/media/platform/exynos4-is/fimc-is.c | 16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+This is a bit weird because we're inside a loop.  Shouldn't we call
+media_entity_remove_links() or something if this is the second time
+through the loop?
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
-index 979c388ebf60..a97edd078327 100644
---- a/drivers/media/platform/exynos4-is/fimc-is.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is.c
-@@ -165,6 +165,7 @@ static int fimc_is_parse_sensor_config(struct fimc_is *is, unsigned int index,
- 						struct device_node *node)
- {
- 	struct fimc_is_sensor *sensor = &is->sensor[index];
-+	struct device_node *ep, *port;
- 	u32 tmp = 0;
- 	int ret;
- 
-@@ -175,22 +176,25 @@ static int fimc_is_parse_sensor_config(struct fimc_is *is, unsigned int index,
- 		return -EINVAL;
- 	}
- 
--	node = of_graph_get_next_endpoint(node, NULL);
--	if (!node)
-+	ep = of_graph_get_next_endpoint(node, NULL);
-+	if (!ep)
- 		return -ENXIO;
- 
--	node = of_graph_get_remote_port(node);
--	if (!node)
-+	port = of_graph_get_remote_port(ep);
-+	of_node_put(ep);
-+	if (!port)
- 		return -ENXIO;
- 
- 	/* Use MIPI-CSIS channel id to determine the ISP I2C bus index. */
--	ret = of_property_read_u32(node, "reg", &tmp);
-+	ret = of_property_read_u32(port, "reg", &tmp);
- 	if (ret < 0) {
- 		dev_err(&is->pdev->dev, "reg property not found at: %s\n",
--							 node->full_name);
-+							 port->full_name);
-+		of_node_put(port);
- 		return ret;
- 	}
- 
-+	of_node_put(port);
- 	sensor->i2c_bus = tmp - FIMC_INPUT_MIPI_CSI2_0;
- 	return 0;
- }
--- 
-2.5.0
+I don't understand this.  The kernel has the media_entity_cleanup() stub
+function which is supposed to do this but it hasn't been implemented
+yet?
+
+regards,
+dan carpenter
 
