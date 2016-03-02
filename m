@@ -1,76 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:12195 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753964AbcC3TNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2016 15:13:53 -0400
-Subject: Re: [PATCH v3 2/2] [media] DocBook: update error code in
- videoc-streamon
-To: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, hverkuil@xs4all.nl, mchehab@osg.samsung.com,
-	hans.verkuil@cisco.com, s.nawrocki@samsung.com
-References: <cover.1459363790.git.helen.koike@collabora.co.uk>
- <77998a67791470bc947beb421bec9a5c28fb5fd5.1459363790.git.helen.koike@collabora.co.uk>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <56FC256C.4030809@linux.intel.com>
-Date: Wed, 30 Mar 2016 22:13:48 +0300
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51368 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755167AbcCBL2J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Mar 2016 06:28:09 -0500
+Subject: Re: [RFC] Representing hardware connections via MC
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <20160226091317.5a07c374@recife.lan> <1753279.MBUKgSvGQl@avalon>
+ <20160302081323.36eddba5@recife.lan> <1736605.4kGg8lYGrV@avalon>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D6CE4A.1000208@xs4all.nl>
+Date: Wed, 2 Mar 2016 12:28:10 +0100
 MIME-Version: 1.0
-In-Reply-To: <77998a67791470bc947beb421bec9a5c28fb5fd5.1459363790.git.helen.koike@collabora.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+In-Reply-To: <1736605.4kGg8lYGrV@avalon>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+On 03/02/16 12:16, Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> On Wednesday 02 March 2016 08:13:23 Mauro Carvalho Chehab wrote:
+>> Em Wed, 02 Mar 2016 12:34:42 +0200 Laurent Pinchart escreveu:
+>>> On Friday 26 February 2016 09:13:17 Mauro Carvalho Chehab wrote:
+> 
+> [snip]
+> 
+>>>> NOTE:
+>>>>
+>>>> The labels at the PADs currently can't be represented, but the
+>>>> idea is adding it as a property via the upcoming properties API.
+>>>
+>>> Whether to add labels to pads, and more generically how to differentiate
+>>> them from userspace, is an interesting question. I'd like to decouple it
+>>> from the connectors entities discussion if possible, in such a way that
+>>> using labels wouldn't be required to leave the discussion open on that
+>>> topic. If we foresee a dependency on labels for pads then we should open
+>>> that discussion now.
+>>
+>> We can postpone such discussion. PAD labels are not needed for
+>> what we have so far (RF, Composite, S-Video). Still, I think that
+>> we'll need it by the time we add connector support for more complex
+>> connector types, like HDMI.
+> 
+> If we don't add pad labels now then they should be optional for future 
+> connectors too, including HDMI. If you think that HDMI connectors will require 
+> them then we should discuss them now.
+> 
 
-Helen Mae Koike Fornazier wrote:
-> Add description of ENOLINK error
->
-> Signed-off-by: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>
-> ---
->
-> The patch set is based on 'media/master' branch and available at
->          https://github.com/helen-fornazier/opw-staging media/devel
->
-> Changes since v2:
-> 	* this is a new commit in the set
->
->   Documentation/DocBook/media/v4l/vidioc-streamon.xml | 8 ++++++++
->   1 file changed, 8 insertions(+)
->
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-streamon.xml b/Documentation/DocBook/media/v4l/vidioc-streamon.xml
-> index df2c63d..c4b88b0 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-streamon.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-streamon.xml
-> @@ -123,6 +123,14 @@ synchronize with other events.</para>
->   	  </para>
->   	</listitem>
->         </varlistentry>
-> +      <varlistentry>
-> +	<term><errorcode>ENOLINK</errorcode></term>
-> +	<listitem>
-> +	  <para>The driver implements Media Controller interface and
-> +	  the pipeline configuration is invalid.
+Pad labels are IMHO only useful for producing human readable output. For complex
+designs that helps a lot to understand what is going on.
 
-...pipeline link configuration...
+But for kernel/applications all you need are #defines with the pad numbers (e.g.
+HDMI_PAD_TMDS, HDMI_PAD_CEC, HDMI_PAD_ARC) to use for connectors.
 
-Then it's apparent this is really about links (and not e.g. about formats).
+Regards,
 
-With that,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> +	  </para>
-> +	</listitem>
-> +      </varlistentry>
->       </variablelist>
->     </refsect1>
->   </refentry>
->
-
-
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+	Hans
