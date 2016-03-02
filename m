@@ -1,138 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58928 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:57641 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756573AbcC2JRk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2016 05:17:40 -0400
-Date: Tue, 29 Mar 2016 06:17:34 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	id S1754339AbcCBRcQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Mar 2016 12:32:16 -0500
+Subject: Re: [RFC] Representing hardware connections via MC
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+References: <20160226091317.5a07c374@recife.lan>
+ <20160302141643.GH11084@valkosipuli.retiisi.org.uk>
+ <20160302124029.0e6cee85@recife.lan> <20160302130409.60df670f@recife.lan>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: [PATCH 2/2] [media] avoid double locks with graph_mutex
-Message-ID: <20160329061734.1a1a5291@recife.lan>
-In-Reply-To: <20160328220642.GD32125@valkosipuli.retiisi.org.uk>
-References: <91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
-	<3cabc4b828abac3c6dea240ae22d4754a438ad1b.1459188623.git.mchehab@osg.samsung.com>
-	<20160328220642.GD32125@valkosipuli.retiisi.org.uk>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56D7239E.6000904@osg.samsung.com>
+Date: Wed, 2 Mar 2016 10:32:14 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20160302130409.60df670f@recife.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 29 Mar 2016 01:06:42 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+On 03/02/2016 09:04 AM, Mauro Carvalho Chehab wrote:
+> Em Wed, 2 Mar 2016 12:40:29 -0300
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+> 
+>> After all the discussions, I guess "CONN" for connection is the best way
+>> to represent it.
+> 
+> Better to put it on a patch.
+> 
+> Please review.
+> 
+> Regards,
+> Mauro
+> 
+> [media] Better define MEDIA_ENT_F_CONN_* entities
+> 
+> Putting concepts in a paper is hard, specially since different people
+> may interpret it in a different way.
+> 
+> Make clear about the meaning of the MEDIA_ENT_F_CONN_* entities
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
+> index 5e3f20fdcf17..b036e6103949 100644
+> --- a/Documentation/DocBook/media/v4l/media-types.xml
+> +++ b/Documentation/DocBook/media/v4l/media-types.xml
+> @@ -46,15 +46,26 @@
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_F_CONN_RF</constant></entry>
+> -	    <entry>Connector for a Radio Frequency (RF) signal.</entry>
+> +	    <entry>Entity representing the logical connection associated with a
+> +		    single Radio Frequency (RF) signal connector. It
+> +		    corresponds to the logical input or output associated
+> +		    with the RF signal.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_F_CONN_SVIDEO</constant></entry>
+> -	    <entry>Connector for a S-Video signal.</entry>
+> +	    <entry>Entity representing the logical connection assowiated
+> +		    with a sigle S-Video connector. Such entity should have
+> +		    two pads, one for the luminance signal(Y) and one
+> +		    for the chrominance signal (C). It corresponds to the
+> +		    logical input or output associated with S-Video Y and C
+> +		    signals.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_F_CONN_COMPOSITE</constant></entry>
+> -	    <entry>Connector for a RGB composite signal.</entry>
+> +	    <entry>Entity representing the logical connection for a composite
+> +		    signal. It corresponds to the logical input or output
+> +		    associated with the a single signal that carries both
+> +		    chrominance and luminance information (Y+C).</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>MEDIA_ENT_F_CAM_SENSOR</constant></entry>
 
-> Hi Mauro,
-> 
-> Please see my comments below.
-> 
-> On Mon, Mar 28, 2016 at 03:11:04PM -0300, Mauro Carvalho Chehab wrote:
-> > Add a note at the headers telling that the link setup
-> > callbacks are called with the mutex hold. Also, removes a
-> > double lock at the PM suspend callbacks.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > ---
-> >  drivers/media/media-device.c      | 1 -
-> >  drivers/media/v4l2-core/v4l2-mc.c | 4 ----
-> >  include/media/media-device.h      | 3 ++-
-> >  include/media/media-entity.h      | 3 +++
-> >  4 files changed, 5 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index 6cfa890af7b4..6af5e6932271 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -93,7 +93,6 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
-> >  	media_device_for_each_entity(entity, mdev) {
-> >  		if (((media_entity_id(entity) == id) && !next) ||
-> >  		    ((media_entity_id(entity) > id) && next)) {
-> > -			mutex_unlock(&mdev->graph_mutex);  
-> 
-> Unrelated to this patch.
+Finally caught up with RFC discussion. Looks good to me.
+Thanks for the summary and the patch.
 
-Yes. This belongs to patch 1.
+Acked-by: Shuah Khan <shuahkh@osg.samsung.com>
 
-> 
-> Please do also consider compat IOCTL handling code.
-> 
-> >  			return entity;
-> >  		}
-> >  	}
-> > diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-> > index 2228cd3a846e..d44ff2ec314f 100644
-> > --- a/drivers/media/v4l2-core/v4l2-mc.c
-> > +++ b/drivers/media/v4l2-core/v4l2-mc.c
-> > @@ -348,8 +348,6 @@ int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
-> >  	int change = use ? 1 : -1;
-> >  	int ret;
-> >  
-> > -	mutex_lock(&mdev->graph_mutex);  
-> 
-> What's the motivation for this change and the one below?
-> 
-> As far as I can see, they remove access serialisation of graph state during
-> graph walk, which certainly is not the right thing to do.
+In general I agree with the direction to go with property
+API as it offers flexibility for future enhancements and
+allows drivers to care about only the properties they
+need to support.
 
-You're right. This is not correct. I was thinking that v4l2_pipeline_pm_use()
-was called by v4l2_pipeline_link_notify(), but this is not the case. The 
-function called there is pipeline_pm_use_count(), with doesn't hold the mutex.
-
-> > -
-> >  	/* Apply use count to node. */
-> >  	entity->use_count += change;
-> >  	WARN_ON(entity->use_count < 0);
-> > @@ -359,8 +357,6 @@ int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
-> >  	if (ret < 0)
-> >  		entity->use_count -= change;
-> >  
-> > -	mutex_unlock(&mdev->graph_mutex);
-> > -
-> >  	return ret;
-> >  }
-> >  EXPORT_SYMBOL_GPL(v4l2_pipeline_pm_use);
-> > diff --git a/include/media/media-device.h b/include/media/media-device.h
-> > index b04cfa907350..e6ad30c323fc 100644
-> > --- a/include/media/media-device.h
-> > +++ b/include/media/media-device.h
-> > @@ -312,7 +312,8 @@ struct media_entity_notify {
-> >   * @enable_source: Enable Source Handler function pointer
-> >   * @disable_source: Disable Source Handler function pointer
-> >   *
-> > - * @link_notify: Link state change notification callback
-> > + * @link_notify: Link state change notification callback. This callback is
-> > + * Called with the graph_mutex hold.  
-> 
-> I don't mind adding documentation such as this, but I'd put it into a
-> separate patch.
-
-Ok. Patch 2 will be just a documentation patch. I'll resend the series in
-a few.
-
-
-> 
-> >   *
-> >   * This structure represents an abstract high-level media device. It allows easy
-> >   * access to entities and provides basic media device-level support. The
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > index 6dc9e4e8cbd4..0b16ebe36db7 100644
-> > --- a/include/media/media-entity.h
-> > +++ b/include/media/media-entity.h
-> > @@ -179,6 +179,9 @@ struct media_pad {
-> >   * @link_validate:	Return whether a link is valid from the entity point of
-> >   *			view. The media_entity_pipeline_start() function
-> >   *			validates all links by calling this operation. Optional.
-> > + *
-> > + * Note: Those ioctls should not touch the struct media_device.@graph_mutex
-> > + * field, as they're called with it already hold.
-> >   */
-> >  struct media_entity_operations {
-> >  	int (*link_setup)(struct media_entity *entity,  
-> 
+-- Shuah
 
 
 -- 
-Thanks,
-Mauro
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
