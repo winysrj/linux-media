@@ -1,202 +1,424 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38558 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754078AbcCWIqF (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40969 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751167AbcCBIRj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 04:46:05 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
-Date: Wed, 23 Mar 2016 10:45:55 +0200
-Message-Id: <1458722756-7269-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 2 Mar 2016 03:17:39 -0500
+Subject: Re: tw68 fails with motion package running more than 4 cameras on 8
+ channel card
+To: Tony IBM-MAIN <v1i9v6a6@gmail.com>, linux-media@vger.kernel.org
+References: <56D4BB54.2000909@gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D6A19D.7010100@xs4all.nl>
+Date: Wed, 2 Mar 2016 09:17:33 +0100
+MIME-Version: 1.0
+In-Reply-To: <56D4BB54.2000909@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Code that processes media entities can require knowledge of the
-structure type that embeds a particular media entity instance in order
-to cast the entity to the proper object type. This needs is shown by the
-presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
-functions.
+On 02/29/2016 10:42 PM, Tony IBM-MAIN wrote:
+> Hi,
+> 
+> This is an updated version of a posting made a couple of weeks ago after 
+> some more testing.
+> 
+> I am running a Motion 3.2.12 CCTV system on Lubuntu 14.04 and 15.10 with 
+> an 8 channel tw68 card. I have 6 camera attached. When I activate more 
+> that 4 threads in motion CCTV application one or more threads 
+> continually timeout. With any 4 cameras of the 6 cameras active it seems 
+> stable.
+> 
+> I have been running this system with 6 camera on Lubuntu 12.10 for over 
+> 3 years without a problem.
+> 
+> 
+> On Lubuntu 14.04 LTS
+> 
+> ******************* apt-cache showpkg motion *******************
+> a
+> Package: motion
+> Versions:
+> 3.2.12-4 
+> (/var/lib/apt/lists/gb.archive.ubuntu.com_ubuntu_dists_trusty_universe_binary-amd64_Packages) 
+> (/var/lib/dpkg/status)
+>   Description Language:
+>                   File: 
+> /var/lib/apt/lists/gb.archive.ubuntu.com_ubuntu_dists_trusty_universe_binary-amd64_Packages
+>                    MD5: 95691a2891ad329d51433cc29defc924
+>   Description Language: en
+>                   File: 
+> /var/lib/apt/lists/gb.archive.ubuntu.com_ubuntu_dists_trusty_universe_i18n_Translation-en
+>                    MD5: 95691a2891ad329d51433cc29defc924
+> 
+> 
+> Reverse Depends:
+>    motion:i386,motion
+> Dependencies:
+> 3.2.12-4 - libavcodec54 (18 6:9.1-1) libavcodec-extra-54 (2 6:9.11) 
+> libavformat54 (2 6:9.1-1) libavutil52 (2 6:9.1-1) libc6 (2 2.15) 
+> libjpeg8 (2 8c) libmysqlclient18 (2 5.5.24+dfsg-1) libpq5 (0 (null)) 
+> debconf (18 0.5) debconf-2.0 (0 (null)) adduser (0 (null)) debconf (0 
+> (null)) mysql-client (0 (null)) postgresql-client (0 (null)) ffmpeg (0 
+> (null)) motion:i386 (0 (null))
+> Provides:
+> 3.2.12-4 -
+> Reverse Provides:
+> 
+> ******************* sudo modinfo tw68 *******************
+> 
+> filename: 
+> /lib/modules/3.19.0-49-generic/kernel/drivers/media/pci/tw68/tw68.ko
+> license:        GPL
+> author:         Hans Verkuil <hverkuil@xs4all.nl>
+> author:         William M. Brack
+> description:    v4l2 driver module for tw6800 based video capture cards
+> srcversion:     FB3C913977198E340B58A2E
+> depends: videobuf2-core,videodev,videobuf2-dma-sg,v4l2-common
+> intree:         Y
+> vermagic:       3.19.0-49-generic SMP mod_unload modversions
+> signer:         Magrathea: Glacier signing key
+> sig_key: A9:32:DC:23:78:95:A4:4D:39:59:BF:91:A3:56:6A:20:EE:21:1F:37
+> sig_hashalgo:   sha512
+> parm:           latency:pci latency timer (int)
+> parm:           video_nr:video device number (array of int)
+> parm:           card:card type (array of int)
+> 
+> 
+> 
+> Here are the syslog messages for motion after shutting it down with 4 
+> threads and restarting with 5 threads
+> 
+> Feb 14 17:18:03 AJS2 motion: [0] httpd Closing
+> Feb 14 17:18:03 AJS2 motion: [0] httpd thread exit
+> Feb 14 17:18:04 AJS2 motion: [4] Calling vid_close() from motion_cleanup
+> Feb 14 17:18:04 AJS2 motion: [4] Closing video device /dev/video5
+> Feb 14 17:18:04 AJS2 motion: [2] Calling vid_close() from motion_cleanup
+> Feb 14 17:18:04 AJS2 motion: [2] Closing video device /dev/video3
+> Feb 14 17:18:04 AJS2 motion: [1] Calling vid_close() from motion_cleanup
+> Feb 14 17:18:04 AJS2 motion: [1] Closing video device /dev/video1
+> Feb 14 17:18:04 AJS2 motion: [3] Calling vid_close() from motion_cleanup
+> Feb 14 17:18:04 AJS2 motion: [3] Closing video device /dev/video4
+> Feb 14 17:18:05 AJS2 motion: [0] Motion terminating
+> Feb 14 17:18:05 AJS2 motion: [0] Removed process id file (pid file).
+> Feb 14 17:18:07 AJS2 motion: [0] Processing thread 0 - config file 
+> /etc/motion/motion.conf
+> Feb 14 17:18:07 AJS2 motion: [0] Unknown config option "destination"
+> Feb 14 17:18:07 AJS2 motion: [0] Processing config file 
+> /etc/motion/thread0.conf
+> Feb 14 17:18:07 AJS2 motion: [0] Processing config file 
+> /etc/motion/thread1.conf
+> Feb 14 17:18:07 AJS2 motion: [0] Processing config file 
+> /etc/motion/thread3.conf
+> Feb 14 17:18:07 AJS2 motion: [0] Processing config file 
+> /etc/motion/thread4.conf
+> Feb 14 17:18:07 AJS2 motion: [0] Processing config file 
+> /etc/motion/thread5.conf
+> Feb 14 17:18:07 AJS2 motion: [0] Motion 3.2.12 Started
+> Feb 14 17:18:07 AJS2 motion: [0] Created process id file 
+> /var/run/motion/motion.pid. Process ID is 30807
+> Feb 14 17:18:07 AJS2 motion: [0] Motion running as daemon process
+> Feb 14 17:18:07 AJS2 motion: [0] ffmpeg LIBAVCODEC_BUILD 3547904 
+> LIBAVFORMAT_BUILD 3544067
+> Feb 14 17:18:07 AJS2 motion: [0] Thread 1 is from /etc/motion/thread0.conf
+> Feb 14 17:18:07 AJS2 motion: [0] Thread 2 is from /etc/motion/thread1.conf
+> Feb 14 17:18:07 AJS2 motion: [0] Thread 3 is from /etc/motion/thread3.conf
+> Feb 14 17:18:07 AJS2 motion: [0] Thread 4 is from /etc/motion/thread4.conf
+> Feb 14 17:18:07 AJS2 motion: [0] Thread 5 is from /etc/motion/thread5.conf
+> Feb 14 17:18:07 AJS2 motion: [1] Thread 1 started
+> Feb 14 17:18:07 AJS2 motion: [1] cap.driver: "tw68"
+> Feb 14 17:18:07 AJS2 motion: [1] cap.card: "Techwell Capture Card"
+> Feb 14 17:18:07 AJS2 motion: [1] cap.bus_info: "PCI:0000:02:04.0"
+> Feb 14 17:18:07 AJS2 motion: [1] cap.capabilities=0x85200001
+> Feb 14 17:18:07 AJS2 motion: [1] - VIDEO_CAPTURE
+> Feb 14 17:18:07 AJS2 motion: [1] - READWRITE
+> Feb 14 17:18:07 AJS2 motion: [1] - STREAMING
+> Feb 14 17:18:07 AJS2 motion: [1] Test palette UYVY (720x576)
+> Feb 14 17:18:07 AJS2 motion: [1] Using palette UYVY (720x576) 
+> bytesperlines 1440 sizeimage 829440 colorspace 00000001
+> Feb 14 17:18:07 AJS2 motion: [1] found control 0x00980900, "Brightness", 
+> range -128,127
+> Feb 14 17:18:07 AJS2 motion: [1] #011"Brightness", default 20, current 20
+> Feb 14 17:18:07 AJS2 motion: [1] found control 0x00980901, "Contrast", 
+> range 0,255
+> Feb 14 17:18:07 AJS2 motion: [1] #011"Contrast", default 100, current 100
+> Feb 14 17:18:07 AJS2 motion: [1] found control 0x00980902, "Saturation", 
+> range 0,255
+> Feb 14 17:18:07 AJS2 motion: [1] #011"Saturation", default 128, current 128
+> Feb 14 17:18:07 AJS2 motion: [1] found control 0x00980903, "Hue", range 
+> -128,127
+> Feb 14 17:18:07 AJS2 motion: [1] #011"Hue", default 0, current 0
+> Feb 14 17:18:07 AJS2 motion: [4] Thread 4 started
+> Feb 14 17:18:07 AJS2 motion: [5] Thread 5 started
+> Feb 14 17:18:07 AJS2 motion: [0] motion-httpd/3.2.12 running, accepting 
+> connections
+> Feb 14 17:18:07 AJS2 motion: [0] motion-httpd: waiting for data on port 
+> TCP 8888
+> Feb 14 17:18:07 AJS2 motion: [3] Thread 3 started
+> Feb 14 17:18:07 AJS2 motion: [2] Thread 2 started
+> Feb 14 17:18:07 AJS2 motion: [1] mmap information:
+> Feb 14 17:18:07 AJS2 motion: [1] frames=4
+> Feb 14 17:18:07 AJS2 motion: [1] 0 length=829440
+> Feb 14 17:18:07 AJS2 motion: [1] 1 length=829440
+> Feb 14 17:18:07 AJS2 motion: [1] 2 length=829440
+> Feb 14 17:18:07 AJS2 motion: [1] 3 length=829440
+> Feb 14 17:18:07 AJS2 motion: [1] Resizing pre_capture buffer to 1 items
+> Feb 14 17:18:07 AJS2 motion: [4] cap.driver: "tw68"
+> Feb 14 17:18:07 AJS2 motion: [4] cap.card: "Techwell Capture Card"
+> Feb 14 17:18:07 AJS2 motion: [4] cap.bus_info: "PCI:0000:02:05.0"
+> Feb 14 17:18:07 AJS2 motion: [4] cap.capabilities=0x85200001
+> Feb 14 17:18:07 AJS2 motion: [4] - VIDEO_CAPTURE
+> Feb 14 17:18:07 AJS2 motion: [4] - READWRITE
+> Feb 14 17:18:07 AJS2 motion: [4] - STREAMING
+> Feb 14 17:18:07 AJS2 motion: [4] Test palette UYVY (720x576)
+> Feb 14 17:18:07 AJS2 motion: [4] Using palette UYVY (720x576) 
+> bytesperlines 1440 sizeimage 829440 colorspace 00000001
+> Feb 14 17:18:07 AJS2 motion: [4] found control 0x00980900, "Brightness", 
+> range -128,127
+> Feb 14 17:18:07 AJS2 motion: [4] #011"Brightness", default 20, current 20
+> Feb 14 17:18:07 AJS2 motion: [4] found control 0x00980901, "Contrast", 
+> range 0,255
+> Feb 14 17:18:07 AJS2 motion: [4] #011"Contrast", default 100, current 100
+> Feb 14 17:18:07 AJS2 motion: [4] found control 0x00980902, "Saturation", 
+> range 0,255
+> Feb 14 17:18:07 AJS2 motion: [4] #011"Saturation", default 128, current 128
+> Feb 14 17:18:07 AJS2 motion: [4] found control 0x00980903, "Hue", range 
+> -128,127
+> Feb 14 17:18:07 AJS2 motion: [4] #011"Hue", default 0, current 0
+> Feb 14 17:18:07 AJS2 motion: [4] mmap information:
+> Feb 14 17:18:07 AJS2 motion: [4] frames=4
+> Feb 14 17:18:07 AJS2 motion: [4] 0 length=829440
+> Feb 14 17:18:07 AJS2 motion: [4] 1 length=829440
+> Feb 14 17:18:07 AJS2 motion: [4] 2 length=829440
+> Feb 14 17:18:07 AJS2 motion: [4] 3 length=829440
+> Feb 14 17:18:07 AJS2 motion: [4] Resizing pre_capture buffer to 1 items
+> Feb 14 17:18:07 AJS2 motion: [5] cap.driver: "tw68"
+> Feb 14 17:18:07 AJS2 motion: [5] cap.card: "Techwell Capture Card"
+> Feb 14 17:18:07 AJS2 motion: [5] cap.bus_info: "PCI:0000:02:05.1"
+> Feb 14 17:18:07 AJS2 motion: [5] cap.capabilities=0x85200001
+> Feb 14 17:18:07 AJS2 motion: [5] - VIDEO_CAPTURE
+> Feb 14 17:18:07 AJS2 motion: [5] - READWRITE
+> Feb 14 17:18:07 AJS2 motion: [5] - STREAMING
+> Feb 14 17:18:07 AJS2 motion: [5] Test palette UYVY (720x576)
+> Feb 14 17:18:07 AJS2 motion: [5] Using palette UYVY (720x576) 
+> bytesperlines 1440 sizeimage 829440 colorspace 00000001
+> Feb 14 17:18:07 AJS2 motion: [5] found control 0x00980900, "Brightness", 
+> range -128,127
+> Feb 14 17:18:07 AJS2 motion: [5] #011"Brightness", default 20, current 20
+> Feb 14 17:18:07 AJS2 motion: [5] found control 0x00980901, "Contrast", 
+> range 0,255
+> Feb 14 17:18:07 AJS2 motion: [5] #011"Contrast", default 100, current 100
+> Feb 14 17:18:07 AJS2 motion: [5] found control 0x00980902, "Saturation", 
+> range 0,255
+> Feb 14 17:18:07 AJS2 motion: [5] #011"Saturation", default 128, current 128
+> Feb 14 17:18:07 AJS2 motion: [5] found control 0x00980903, "Hue", range 
+> -128,127
+> Feb 14 17:18:07 AJS2 motion: [5] #011"Hue", default 0, current 0
+> Feb 14 17:18:07 AJS2 motion: [5] mmap information:
+> Feb 14 17:18:07 AJS2 motion: [5] frames=4
+> Feb 14 17:18:07 AJS2 motion: [5] 0 length=829440
+> Feb 14 17:18:07 AJS2 motion: [5] 1 length=829440
+> Feb 14 17:18:07 AJS2 motion: [5] 2 length=829440
+> Feb 14 17:18:07 AJS2 motion: [5] 3 length=829440
+> Feb 14 17:18:07 AJS2 motion: [5] Resizing pre_capture buffer to 1 items
+> Feb 14 17:18:07 AJS2 motion: [3] cap.driver: "tw68"
+> Feb 14 17:18:07 AJS2 motion: [3] cap.card: "Techwell Capture Card"
+> Feb 14 17:18:07 AJS2 motion: [3] cap.bus_info: "PCI:0000:02:04.3"
+> Feb 14 17:18:07 AJS2 motion: [3] cap.capabilities=0x85200001
+> Feb 14 17:18:07 AJS2 motion: [3] - VIDEO_CAPTURE
+> Feb 14 17:18:07 AJS2 motion: [3] - READWRITE
+> Feb 14 17:18:07 AJS2 motion: [3] - STREAMING
+> Feb 14 17:18:07 AJS2 motion: [3] Test palette UYVY (720x576)
+> Feb 14 17:18:07 AJS2 motion: [3] Using palette UYVY (720x576) 
+> bytesperlines 1440 sizeimage 829440 colorspace 00000001
+> Feb 14 17:18:07 AJS2 motion: [3] found control 0x00980900, "Brightness", 
+> range -128,127
+> Feb 14 17:18:07 AJS2 motion: [3] #011"Brightness", default 20, current 20
+> Feb 14 17:18:07 AJS2 motion: [3] found control 0x00980901, "Contrast", 
+> range 0,255
+> Feb 14 17:18:07 AJS2 motion: [3] #011"Contrast", default 100, current 100
+> Feb 14 17:18:07 AJS2 motion: [3] found control 0x00980902, "Saturation", 
+> range 0,255
+> Feb 14 17:18:07 AJS2 motion: [3] #011"Saturation", default 128, current 128
+> Feb 14 17:18:07 AJS2 motion: [3] found control 0x00980903, "Hue", range 
+> -128,127
+> Feb 14 17:18:07 AJS2 motion: [3] #011"Hue", default 0, current 0
+> Feb 14 17:18:07 AJS2 motion: [3] mmap information:
+> Feb 14 17:18:07 AJS2 motion: [3] frames=4
+> Feb 14 17:18:07 AJS2 motion: [3] 0 length=829440
+> Feb 14 17:18:07 AJS2 motion: [3] 1 length=829440
+> Feb 14 17:18:07 AJS2 motion: [3] 2 length=829440
+> Feb 14 17:18:07 AJS2 motion: [3] 3 length=829440
+> Feb 14 17:18:07 AJS2 motion: [3] Resizing pre_capture buffer to 1 items
+> Feb 14 17:18:07 AJS2 motion: [2] cap.driver: "tw68"
+> Feb 14 17:18:07 AJS2 motion: [2] cap.card: "Techwell Capture Card"
+> Feb 14 17:18:07 AJS2 motion: [2] cap.bus_info: "PCI:0000:02:04.1"
+> Feb 14 17:18:07 AJS2 motion: [2] cap.capabilities=0x85200001
+> Feb 14 17:18:07 AJS2 motion: [2] - VIDEO_CAPTURE
+> Feb 14 17:18:07 AJS2 motion: [2] - READWRITE
+> Feb 14 17:18:07 AJS2 motion: [2] - STREAMING
+> Feb 14 17:18:07 AJS2 motion: [2] Test palette UYVY (720x576)
+> Feb 14 17:18:07 AJS2 motion: [2] Using palette UYVY (720x576) 
+> bytesperlines 1440 sizeimage 829440 colorspace 00000001
+> Feb 14 17:18:07 AJS2 motion: [2] found control 0x00980900, "Brightness", 
+> range -128,127
+> Feb 14 17:18:07 AJS2 motion: [2] #011"Brightness", default 20, current 20
+> Feb 14 17:18:07 AJS2 motion: [2] found control 0x00980901, "Contrast", 
+> range 0,255
+> Feb 14 17:18:07 AJS2 motion: [2] #011"Contrast", default 100, current 100
+> Feb 14 17:18:07 AJS2 motion: [2] found control 0x00980902, "Saturation", 
+> range 0,255
+> Feb 14 17:18:07 AJS2 motion: [2] #011"Saturation", default 128, current 128
+> Feb 14 17:18:07 AJS2 motion: [2] found control 0x00980903, "Hue", range 
+> -128,127
+> Feb 14 17:18:07 AJS2 motion: [2] #011"Hue", default 0, current 0
+> Feb 14 17:18:07 AJS2 motion: [2] mmap information:
+> Feb 14 17:18:07 AJS2 motion: [2] frames=4
+> Feb 14 17:18:07 AJS2 motion: [2] 0 length=829440
+> Feb 14 17:18:07 AJS2 motion: [2] 1 length=829440
+> Feb 14 17:18:07 AJS2 motion: [2] 2 length=829440
+> Feb 14 17:18:07 AJS2 motion: [2] 3 length=829440
+> Feb 14 17:18:07 AJS2 motion: [2] Resizing pre_capture buffer to 1 items
+> Feb 14 17:18:07 AJS2 motion: [4] Started stream webcam server in port 8094
+> Feb 14 17:18:07 AJS2 motion: [4] Resizing pre_capture buffer to 21 items
+> Feb 14 17:18:07 AJS2 motion: [1] Started stream webcam server in port 8090
+> Feb 14 17:18:07 AJS2 motion: [3] Started stream webcam server in port 8093
+> Feb 14 17:18:07 AJS2 motion: [3] Resizing pre_capture buffer to 21 items
+> Feb 14 17:18:07 AJS2 motion: [1] Resizing pre_capture buffer to 21 items
+> Feb 14 17:18:07 AJS2 motion: [2] Started stream webcam server in port 8091
+> Feb 14 17:18:07 AJS2 motion: [2] Resizing pre_capture buffer to 21 items
+> Feb 14 17:18:07 AJS2 motion: [5] Started stream webcam server in port 8095
+> Feb 14 17:18:07 AJS2 motion: [5] Resizing pre_capture buffer to 21 items
+> Feb 14 17:18:54 AJS2 motion: [0] Thread 1 - Watchdog timeout, trying to 
+> do a graceful restart
+> 
+> 
+> On Lubuntu 15.10
+> 
+> I installed Lubuntu 15.10 on a new partition (not an upgrade) but the 
+> problem remains exactly the same.
+> 
+> Motion was updated to a later git version.
+> 
+> ******************* apt-cache showpkg motion *******************
+> 
+> Package: motion
+> Versions:
+> 3.2.12+git20140228-7 
+> (/var/lib/apt/lists/gb.archive.ubuntu.com_ubuntu_dists_wily_universe_binary-amd64_Packages) 
+> (/var/lib/dpkg/status)
+>   Description Language:
+>                   File: 
+> /var/lib/apt/lists/gb.archive.ubuntu.com_ubuntu_dists_wily_universe_binary-amd64_Packages
+>                    MD5: 2699ebee3b63a553c62f7f823c1643ca
+>   Description Language: en
+>                   File: 
+> /var/lib/apt/lists/gb.archive.ubuntu.com_ubuntu_dists_wily_universe_i18n_Translation-en
+>                    MD5: 2699ebee3b63a553c62f7f823c1643ca
+> 
+> 
+> ******************* sudo modinfo tw68 *******************
+> 
+> filename: 
+> /lib/modules/4.2.0-16-generic/kernel/drivers/media/pci/tw68/tw68.ko
+> license:        GPL
+> author:         Hans Verkuil <hverkuil@xs4all.nl>
+> author:         William M. Brack
+> description:    v4l2 driver module for tw6800 based video capture cards
+> srcversion:     1C0BD6DEE4DE378750B9124
+> depends:        videobuf2-core,videodev,videobuf2-dma-sg,v4l2-common
+> intree:         Y
+> vermagic:       4.2.0-16-generic SMP mod_unload modversions
+> signer:         Build time autogenerated kernel key
+> sig_key: 6A:1C:9C:21:F0:4A:B8:6F:D1:D7:CE:D6:CA:11:35:40:FC:8E:35:B6
+> sig_hashalgo:   sha512
+> parm:           latency:pci latency timer (int)
+> parm:           video_nr:video device number (array of int)
+> parm:           card:card type (array of int)
+> 
+> The 15.10 system ran with 4 cameras working fine for 24 hours. I then 
+> added the 5th and it causes one camera to fail.
+> 
+> Here is an extract from the motion.log when recycled
+> 
+> [1] [NTC] [VID] [Feb 29 19:31:37] vid_v4lx_start: Using V4L2
+> [1] [NTC] [ALL] [Feb 29 19:31:37] image_ring_resize: Resizing 
+> pre_capture buffer to 1 items
+> [4] [NTC] [STR] [Feb 29 19:31:37] http_bindsock: motion-stream testing : 
+> IPV4 addr: 0.0.0.0 port: 8094
+> [4] [NTC] [STR] [Feb 29 19:31:37] http_bindsock: motion-stream Bound : 
+> IPV4 addr: 0.0.0.0 port: 8094
+> [4] [NTC] [ALL] [Feb 29 19:31:37] motion_init: Started motion-stream 
+> server in port 8094 auth Disabled
+> [4] [NTC] [ALL] [Feb 29 19:31:37] image_ring_resize: Resizing 
+> pre_capture buffer to 21 items
+> [2] [NTC] [STR] [Feb 29 19:31:37] http_bindsock: motion-stream testing : 
+> IPV4 addr: 0.0.0.0 port: 8092
+> [2] [NTC] [STR] [Feb 29 19:31:37] http_bindsock: motion-stream Bound : 
+> IPV4 addr: 0.0.0.0 port: 8092
+> [2] [NTC] [ALL] [Feb 29 19:31:37] motion_init: Started motion-stream 
+> server in port 8092 auth Disabled
+> [2] [NTC] [ALL] [Feb 29 19:31:37] image_ring_resize: Resizing 
+> pre_capture buffer to 3 items
+> [3] [NTC] [STR] [Feb 29 19:31:37] http_bindsock: motion-stream testing : 
+> IPV4 addr: 0.0.0.0 port: 8093
+> [3] [NTC] [STR] [Feb 29 19:31:37] http_bindsock: motion-stream Bound : 
+> IPV4 addr: 0.0.0.0 port: 8093
+> [3] [NTC] [ALL] [Feb 29 19:31:37] motion_init: Started motion-stream 
+> server in port 8093 auth Disabled
+> [3] [NTC] [ALL] [Feb 29 19:31:37] image_ring_resize: Resizing 
+> pre_capture buffer to 21 items
+> [1] [NTC] [STR] [Feb 29 19:31:37] http_bindsock: motion-stream testing : 
+> IPV4 addr: 0.0.0.0 port: 8090
+> [1] [NTC] [STR] [Feb 29 19:31:37] http_bindsock: motion-stream Bound : 
+> IPV4 addr: 0.0.0.0 port: 8090
+> [1] [NTC] [ALL] [Feb 29 19:31:37] motion_init: Started motion-stream 
+> server in port 8090 auth Disabled
+> [1] [NTC] [ALL] [Feb 29 19:31:37] image_ring_resize: Resizing 
+> pre_capture buffer to 21 items
+> [5] [NTC] [STR] [Feb 29 19:31:37] http_bindsock: motion-stream testing : 
+> IPV4 addr: 0.0.0.0 port: 8095
+> [5] [NTC] [STR] [Feb 29 19:31:37] http_bindsock: motion-stream Bound : 
+> IPV4 addr: 0.0.0.0 port: 8095
+> [5] [NTC] [ALL] [Feb 29 19:31:37] motion_init: Started motion-stream 
+> server in port 8095 auth Disabled
+> [5] [NTC] [ALL] [Feb 29 19:31:37] image_ring_resize: Resizing 
+> pre_capture buffer to 21 items
+> [0] [ERR] [ALL] [Feb 29 19:32:09] main: Thread 1 - Watchdog timeout, 
+> trying to do a graceful restart                  <---- failure
+> [2] [NTC] [EVT] [Feb 29 19:32:09] event_new_video FPS 2
+> [2] [NTC] [EVT] [Feb 29 19:32:09] event_newfile: File of type 8 saved 
+> to: /AJS2/AJS2_Data10/CCTV/201602/29/19/MD-2-0229-193209.avi
+> [2] [NTC] [ALL] [Feb 29 19:32:09] motion_detected: Motion detected - 
+> starting event 1
+> [0] [ERR] [ALL] [Feb 29 19:33:09] main: Thread 1 - Watchdog timeout, did 
+> NOT restart graceful,killing it!
+> [0] [NTC] [STR] [Feb 29 19:33:09] stream_stop: Closing motion-stream 
+> listen socket & active motion-stream sockets
+> [0] [NTC] [STR] [Feb 29 19:33:09] stream_stop: Closed motion-stream 
+> listen socket & active motion-stream sockets
+> [0] [NTC] [VID] [Feb 29 19:33:09] vid_close: Closing video device 
+> /dev/video0
+> [1] [ERR] [VID] [Feb 29 19:33:09] v4l2_next: VIDIOC_DQBUF: Invalid argument
+> [0] [NTC] [ALL] [Feb 29 19:33:10] main: Motion thread 1 restart
+> [1] [NTC] [ALL] [Feb 29 19:33:10] motion_init: Thread 1 started , motion 
+> detection Enabled
+> [1] [NTC] [VID] [Feb 29 19:33:10] vid_v4lx_start: Using videodevice 
+> /dev/video0 and input -1
+> [1] [NTC] [VID] [Feb 29 19:33:10] v4l2_get_capability:
+> ------------------------
+> 
+> Does anyone have any suggestions?
 
-The implementation of those two functions relies on the entity function
-field, which is both a wrong and an inefficient design, without even
-mentioning the maintenance issue involved in updating the functions
-every time a new entity function is added. Fix this by adding add an
-obj_type field to the media entity structure to carry the information.
+Nothing has changed in the driver code for ages, so I think it is unlikely
+that that is the reason.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c          |  2 +
- drivers/media/v4l2-core/v4l2-dev.c    |  1 +
- drivers/media/v4l2-core/v4l2-subdev.c |  1 +
- include/media/media-entity.h          | 79 +++++++++++++++++++----------------
- 4 files changed, 46 insertions(+), 37 deletions(-)
+Try to capture using qv4l2, one qv4l2 instance for each channel. If that works
+fine, then it is definitely not a driver/kernel issue. If that fails, then let me
+know and I can take a look.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 4a97d92a7e7d..88d8de3b7a4f 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -580,6 +580,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
- 			 "Entity type for entity %s was not initialized!\n",
- 			 entity->name);
- 
-+	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
-+
- 	/* Warn if we apparently re-register an entity */
- 	WARN_ON(entity->graph_obj.mdev != NULL);
- 	entity->graph_obj.mdev = mdev;
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index d8e5994cccf1..70b559d7ca80 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -735,6 +735,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
- 	if (!vdev->v4l2_dev->mdev)
- 		return 0;
- 
-+	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- 	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
- 
- 	switch (type) {
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index d63083803144..0fa60801a428 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -584,6 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
- 	sd->host_priv = NULL;
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	sd->entity.name = sd->name;
-+	sd->entity.obj_type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
- 	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
- #endif
- }
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 6dc9e4e8cbd4..5cea57955a3a 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -188,10 +188,41 @@ struct media_entity_operations {
- };
- 
- /**
-+ * enum media_entity_type - Media entity type
-+ *
-+ * @MEDIA_ENTITY_TYPE_INVALID:
-+ *	Invalid type, used to catch uninitialized fields.
-+ * @MEDIA_ENTITY_TYPE_VIDEO_DEVICE:
-+ *	The entity is embedded in a struct video_device instance.
-+ * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
-+ *	The entity is embedded in a struct v4l2_subdev instance.
-+ *
-+ * Media entity objects are not instantiated directly, but the media entity
-+ * structure is inherited by (through embedding) other subsystem-specific
-+ * structures. The media entity type identifies the type of the subclass
-+ * structure that implements a media entity instance.
-+ *
-+ * This allows runtime type identification of media entities and safe casting to
-+ * the correct object type. For instance, a media entity structure instance
-+ * embedded in a v4l2_subdev structure instance will have the type
-+ * MEDIA_ENTITY_TYPE_V4L2_SUBDEV and can safely be cast to a v4l2_subdev
-+ * structure using the container_of() macro.
-+ *
-+ * The MEDIA_ENTITY_TYPE_INVALID type should never be set as an entity type, it
-+ * only serves to catch uninitialized fields when registering entities.
-+ */
-+enum media_entity_type {
-+	MEDIA_ENTITY_TYPE_INVALID,
-+	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
-+	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
-+};
-+
-+/**
-  * struct media_entity - A media entity graph object.
-  *
-  * @graph_obj:	Embedded structure containing the media object common data.
-  * @name:	Entity name.
-+ * @obj_type:	Type of the object that implements the media_entity.
-  * @function:	Entity main function, as defined in uapi/media.h
-  *		(MEDIA_ENT_F_*)
-  * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
-@@ -220,6 +251,7 @@ struct media_entity_operations {
- struct media_entity {
- 	struct media_gobj graph_obj;	/* must be first field in struct */
- 	const char *name;
-+	enum media_entity_type obj_type;
- 	u32 function;
- 	unsigned long flags;
- 
-@@ -329,56 +361,29 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
- }
- 
- /**
-- * is_media_entity_v4l2_io() - identify if the entity main function
-- *			       is a V4L2 I/O
-- *
-+ * is_media_entity_v4l2_io() - Check if the entity is a video_device
-  * @entity:	pointer to entity
-  *
-- * Return: true if the entity main function is one of the V4L2 I/O types
-- *	(video, VBI or SDR radio); false otherwise.
-+ * Return: true if the entity is an instance of a video_device object and can
-+ * safely be cast to a struct video_device using the container_of() macro, or
-+ * false otherwise.
-  */
- static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
- {
--	if (!entity)
--		return false;
--
--	switch (entity->function) {
--	case MEDIA_ENT_F_IO_V4L:
--	case MEDIA_ENT_F_IO_VBI:
--	case MEDIA_ENT_F_IO_SWRADIO:
--		return true;
--	default:
--		return false;
--	}
-+	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- }
- 
- /**
-- * is_media_entity_v4l2_subdev - return true if the entity main function is
-- *				 associated with the V4L2 API subdev usage
-- *
-+ * is_media_entity_v4l2_subdev() - Check if the entity is a v4l2_subdev
-  * @entity:	pointer to entity
-  *
-- * This is an ancillary function used by subdev-based V4L2 drivers.
-- * It checks if the entity function is one of functions used by a V4L2 subdev,
-- * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
-+ * Return: true if the entity is an instance of a v4l2_subdev object and can
-+ * safely be cast to a struct v4l2_subdev using the container_of() macro, or
-+ * false otherwise.
-  */
- static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
- {
--	if (!entity)
--		return false;
--
--	switch (entity->function) {
--	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
--	case MEDIA_ENT_F_CAM_SENSOR:
--	case MEDIA_ENT_F_FLASH:
--	case MEDIA_ENT_F_LENS:
--	case MEDIA_ENT_F_ATV_DECODER:
--	case MEDIA_ENT_F_TUNER:
--		return true;
--
--	default:
--		return false;
--	}
-+	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
- }
- 
- /**
--- 
-2.7.3
+Regards,
+
+	Hans
 
