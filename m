@@ -1,304 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:49971 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbcCZEiu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Mar 2016 00:38:50 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	perex@perex.cz, tiwai@suse.com, hans.verkuil@cisco.com,
-	chehabrafael@gmail.com, javier@osg.samsung.com,
-	jh1009.sung@samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [RFC PATCH 1/4] media: Add Media Device Allocator API
-Date: Fri, 25 Mar 2016 22:38:42 -0600
-Message-Id: <41d017ef76e3206780c018399ec60b63d865f65c.1458966594.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1458966594.git.shuahkh@osg.samsung.com>
-References: <cover.1458966594.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1458966594.git.shuahkh@osg.samsung.com>
-References: <cover.1458966594.git.shuahkh@osg.samsung.com>
+Received: from axentia.se ([87.96.186.132]:16790 "EHLO EMAIL.axentia.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751112AbcCBXCj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 18:02:39 -0500
+From: Peter Rosin <peda@axentia.se>
+To: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@lysator.liu.se>
+CC: Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	"Srinivas Pandruvada" <srinivas.pandruvada@linux.intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Nicholas Mc Guire <hofrat@osadl.org>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	"linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: RE: [PATCH v3 0/8] i2c mux cleanup and locking update
+Date: Wed, 2 Mar 2016 22:55:10 +0000
+Message-ID: <d0164db34a634171afa631a3167269b8@EMAIL.axentia.se>
+References: <1452265496-22475-1-git-send-email-peda@lysator.liu.se>
+ <20160302172904.GC5439@katana>
+In-Reply-To: <20160302172904.GC5439@katana>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Media Device Allocator API to manage Media Device life time problems.
-There are known problems with media device life time management. When media
-device is released while an media ioctl is in progress, ioctls fail with
-use-after-free errors and kernel hangs in some cases.
+Wolfram Sang wrote:
+> On Fri, Jan 08, 2016 at 04:04:48PM +0100, Peter Rosin wrote:
+> > 
+> > Hi!
+> > 
+> > [doing a v3 even if there is no "big picture" feedback yet, but
+> >  previous versions has bugs that make them harder to test than
+> >  needed, and testing is very much desired]
+> > 
+> > I have a pair of boards with this i2c topology:
+> > 
+> >                        GPIO ---|  ------ BAT1
+> >                         |      v /
+> >    I2C  -----+------B---+---- MUX
+> >              |                   \
+> >            EEPROM                 ------ BAT2
+> > 
+> > 	(B denotes the boundary between the boards)
+> > 
+> > The problem with this is that the GPIO controller sits on the same i2c bus
+> > that it MUXes. For pca954x devices this is worked around by using unlocked
+> > transfers when updating the MUX. I have no such luck as the GPIO is a general
+> > purpose IO expander and the MUX is just a random bidirectional MUX, unaware
+> > of the fact that it is muxing an i2c bus, and extending unlocked transfers
+> > into the GPIO subsystem is too ugly to even think about. But the general hw
+> > approach is sane in my opinion, with the number of connections between the
+> > two boards minimized. To put is plainly, I need support for it.
+> > 
+> > So, I observe that while it is needed to have the i2c bus locked during the
+> > actual MUX update in order to avoid random garbage on the slave side, it
+> > is not strictly a must to have it locked over the whole sequence of a full
+> > select-transfer-deselect operation. The MUX itself needs to be locked, so
+> > transfers to clients behind the mux are serialized, and the MUX needs to be
+> > stable during all i2c traffic (otherwise individual mux slave segments
+> > might see garbage).
+> > 
+> > This series accomplishes this by adding code to i2c-mux-gpio and
+> > i2c-mux-pinctrl that determines if all involved devices used to update the
+> > mux are controlled by the same root i2c adapter that is muxed. When this
+> > is the case, the select-transfer-deselect operations should be locked
+> > individually to avoid the deadlock. The i2c bus *is* still locked
+> > during muxing, since the muxing happens as part of i2c transfers. This
+> > is true even if the MUX is updated with several transfers to the GPIO (at
+> > least as long as *all* MUX changes are using the i2s master bus). A lock
+> > is added to the mux so that transfers through the mux are serialized.
+> > 
+> > Concerns:
+> > - The locking is perhaps too complex?
+> > - I worry about the priority inheritance aspect of the adapter lock. When
+> >   the transfers behind the mux are divided into select-transfer-deselect all
+> >   locked individually, low priority transfers get more chances to interfere
+> >   with high priority transfers.
+> > - When doing an i2c_transfer() in_atomic() context or with irqs_disabled(),
+> >   there is a higher possibility that the mux is not returned to its idle
+> >   state after a failed (-EAGAIN) transfer due to trylock.
+> > - Is the detection of i2c-controlled gpios and pinctrls sane (i.e. the
+> >   usage of the new i2c_root_adapter() function in 8/8)?
+> > 
+> > To summarize the series, there's some i2c-mux infrastructure cleanup work
+> > first (I think that part stands by itself as desireable regardless), the
+> > locking changes are in the last three patches of the series, with the real
+> > meat in 8/8.
+> > 
+> > PS. needs a bunch of testing, I do not have access to all the involved hw
+> 
+> I want to let you know that I am currently thinking about this series.
 
-Media Allocator API provides interfaces to allocate a refcounted media
-device from system wide global list and maintains the state until the
-last user of the media device releases it.
+Glad to hear it!
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/Makefile              |   3 +-
- drivers/media/media-dev-allocator.c | 153 ++++++++++++++++++++++++++++++++++++
- include/media/media-dev-allocator.h |  81 +++++++++++++++++++
- 3 files changed, 236 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/media-dev-allocator.c
- create mode 100644 include/media/media-dev-allocator.h
+> There seems to be a second occasion where it could have helped AFAICT.
+> http://patchwork.ozlabs.org/patch/584776/ (check my comments there from
+> yesterday and today)
 
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index e608bbc..b08f091 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -2,7 +2,8 @@
- # Makefile for the kernel multimedia device drivers.
- #
- 
--media-objs	:= media-device.o media-devnode.o media-entity.o
-+media-objs	:= media-device.o media-devnode.o media-entity.o \
-+		   media-dev-allocator.o
- 
- #
- # I2C drivers should come before other drivers, otherwise they'll fail
-diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
-new file mode 100644
-index 0000000..51edc49
---- /dev/null
-+++ b/drivers/media/media-dev-allocator.c
-@@ -0,0 +1,153 @@
-+/*
-+ * media-devkref.c - Media Controller Device Allocator API
-+ *
-+ * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-+ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-+ *
-+ * This file is released under the GPLv2.
-+ * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ */
-+
-+/*
-+ * This file adds Media Controller Device Instance with
-+ * Kref support. A system wide global media device list
-+ * is managed and each  media device is refcounted. The
-+ * last put on the media device releases the media device
-+ * instance.
-+*/
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+
-+#include <linux/slab.h>
-+#include <linux/kref.h>
-+#include <media/media-device.h>
-+
-+static LIST_HEAD(media_device_list);
-+static LIST_HEAD(media_device_to_delete_list);
-+static DEFINE_MUTEX(media_device_lock);
-+
-+struct media_device_instance {
-+	struct media_device mdev;
-+	struct list_head list;
-+	struct list_head to_delete_list;
-+	struct device *dev;
-+	struct kref refcount;
-+	bool to_delete; /* should be set when devnode is deleted */
-+};
-+
-+static struct media_device *__media_device_get(struct device *dev,
-+					       bool alloc, bool kref)
-+{
-+	struct media_device_instance *mdi;
-+
-+	mutex_lock(&media_device_lock);
-+
-+	list_for_each_entry(mdi, &media_device_list, list) {
-+		if (mdi->dev == dev) {
-+			if (kref) {
-+				kref_get(&mdi->refcount);
-+				pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
-+			}
-+			goto done;
-+		}
-+	}
-+
-+	if (!alloc) {
-+		mdi = NULL;
-+		goto done;
-+	}
-+
-+	mdi = kzalloc(sizeof(*mdi), GFP_KERNEL);
-+	if (!mdi)
-+		goto done;
-+
-+	mdi->dev = dev;
-+	kref_init(&mdi->refcount);
-+	list_add_tail(&mdi->list, &media_device_list);
-+	pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
-+
-+done:
-+	mutex_unlock(&media_device_lock);
-+
-+	return mdi ? &mdi->mdev : NULL;
-+}
-+
-+struct media_device *media_device_get(struct device *dev)
-+{
-+	pr_info("%s\n", __func__);
-+	return __media_device_get(dev, true, true);
-+}
-+EXPORT_SYMBOL_GPL(media_device_get);
-+
-+/* Don't increment kref - this is a search and find */
-+struct media_device *media_device_find(struct device *dev)
-+{
-+	pr_info("%s\n", __func__);
-+	return __media_device_get(dev, false, false);
-+}
-+EXPORT_SYMBOL_GPL(media_device_find);
-+
-+/* don't allocate - increment kref if one is found */
-+struct media_device *media_device_get_ref(struct device *dev)
-+{
-+	pr_info("%s\n", __func__);
-+	return __media_device_get(dev, false, true);
-+}
-+EXPORT_SYMBOL_GPL(media_device_get_ref);
-+
-+static void media_device_instance_release(struct kref *kref)
-+{
-+	struct media_device_instance *mdi =
-+		container_of(kref, struct media_device_instance, refcount);
-+
-+	pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
-+
-+	list_del(&mdi->list);
-+	kfree(mdi);
-+}
-+
-+void media_device_put(struct device *dev)
-+{
-+	struct media_device_instance *mdi;
-+
-+	mutex_lock(&media_device_lock);
-+	/* search first in the media_device_list */
-+	list_for_each_entry(mdi, &media_device_list, list) {
-+		if (mdi->dev == dev) {
-+			pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
-+			kref_put(&mdi->refcount, media_device_instance_release);
-+			goto done;
-+		}
-+	}
-+	/* search in the media_device_to_delete_list */
-+	list_for_each_entry(mdi, &media_device_to_delete_list, to_delete_list) {
-+		if (mdi->dev == dev) {
-+			pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
-+			kref_put(&mdi->refcount, media_device_instance_release);
-+			goto done;
-+		}
-+	}
-+done:
-+	mutex_unlock(&media_device_lock);
-+}
-+EXPORT_SYMBOL_GPL(media_device_put);
-+
-+void media_device_set_to_delete_state(struct device *dev)
-+{
-+	struct media_device_instance *mdi;
-+
-+	mutex_lock(&media_device_lock);
-+	list_for_each_entry(mdi, &media_device_list, list) {
-+		if (mdi->dev == dev) {
-+			pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
-+			mdi->to_delete = true;
-+			list_move(&mdi->list, &media_device_to_delete_list);
-+			goto done;
-+		}
-+	}
-+done:
-+	mutex_unlock(&media_device_lock);
-+}
-+EXPORT_SYMBOL_GPL(media_device_set_to_delete_state);
-+
-+#endif /* CONFIG_MEDIA_CONTROLLER */
-diff --git a/include/media/media-dev-allocator.h b/include/media/media-dev-allocator.h
-new file mode 100644
-index 0000000..2932c90
---- /dev/null
-+++ b/include/media/media-dev-allocator.h
-@@ -0,0 +1,81 @@
-+/*
-+ * media-devkref.c - Media Controller Device Allocator API
-+ *
-+ * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-+ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-+ *
-+ * This file is released under the GPLv2.
-+ * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ */
-+
-+/*
-+ * This file adds Media Controller Device Instance with Kref support.
-+ * A system wide global media device list is managed and each media
-+ * device is refcounted. The last put on the media device releases
-+ * the media device instance.
-+*/
-+
-+#ifndef _MEDIA_DEV_ALLOCTOR_H
-+#define _MEDIA_DEV_ALLOCTOR_H
-+
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+/**
-+ * media_device_get() - Allocate and return global media device
-+ *
-+ * @mdev
-+ *
-+ * This interface should be called to allocate media device. A new media
-+ * device instance is created and added to the system wide media device
-+ * instance list. If media device instance exists, media_device_get()
-+ * increments the reference count and returns the media device. When
-+ * more than one driver control the media device, the first driver to
-+ * probe will allocate and the second driver when it calls media_device_get()
-+ * it will get a reference.
-+ *
-+ */
-+struct media_device *media_device_get(struct device *dev);
-+/**
-+ * media_device_get_ref() - Get reference to an allocated and registered
-+ *			    media device.
-+ *
-+ * @mdev
-+ *
-+ * This interface should be called to get a reference to an allocated media
-+ * device. media_open() ioctl should call this to hold a reference to ensure
-+ * the media device will not be released until the media_release() does a put
-+ * on it.
-+ */
-+struct media_device *media_device_get_ref(struct device *dev);
-+/**
-+ * media_device_find() - Find an allocated and registered media device.
-+ *
-+ * @mdev
-+ *
-+ * This interface should be called to find a media device. This will not
-+ * incremnet the reference count.
-+ */
-+struct media_device *media_device_find(struct device *dev);
-+/**
-+ * media_device_put() - Release refcounted media device. Calls kref_put()
-+ *
-+ * @mdev
-+ *
-+ * This interface should be called to decrement refcount.
-+ */
-+void media_device_put(struct device *dev);
-+/**
-+ * media_device_set_to_delete_state() - Set the state to be deleted.
-+ *
-+ * @mdev
-+ *
-+ * This interface is used to not release the media device under from
-+ * an active ioctl if unregister happens.
-+ */
-+void media_device_set_to_delete_state(struct device *dev);
-+#else
-+struct media_device *media_device_get(struct device *dev) { return NULL; }
-+struct media_device *media_device_find(struct device *dev) { return NULL; }
-+void media_device_put(struct media_device *mdev) { }
-+void media_device_set_to_delete_state(struct device *dev) { }
-+#endif /* CONFIG_MEDIA_CONTROLLER */
-+#endif
--- 
-2.5.0
+The mpu6050 driver has to set muxc->i2c_controlled before adding
+any child adapters for anything to behave differently, and it also
+has to make sure that all accesses in select/deselect are normal
+i2c accesses (i.e. not unlocked accesses). When doing so,
+unreleated i2c traffic might interleave with the muxing. So, if
+the chip is auto-deselecting on the first i2c transfer after select
+it will never work properly.
 
+> First of all, really thank you that you tried to find the proper
+> solution and went all the way for it. It is easy to do a fire&forget
+> hack here, but you didn't.
+
+Fire&forget often turns out to be just the fire. If you do it properly
+there is a better chance that you really can forget it...
+
+> I hope you understand, though, that I need to make a balance between
+> features and complexity in my subsystem to have maintainable and stable
+> code.
+> 
+> As I wrote in the mentioned thread already: "However, I am still
+> undecided if that series should go upstream because it makes the mux
+> code another magnitude more complex. And while this seems to be the
+> second issue which could be fixed by that series, both issues seem to
+> be corner cases, so I am not sure it is worth the complexity."
+> 
+> And for the cleanup series using struct mux_core. It is quite an
+> intrusive change and, frankly, the savings look surprisingly low. I
+> would have expected more, but you never find out until you do it. So, I
+> am unsure here as well.
+
+Yes, that part of the series went ballistic when the half-dozen mux
+users outside of drivers/i2c was added to the mix (I was originally
+not aware of them). The savings looked better when only the i2c-internal
+muxes was considered, mainly because the external muxes are often not
+real muxes and only have one child adapter. Creating the mux-core for
+that one adapter then swallows the savings.
+
+Funnily enough, I was just the other day looking at the series again and
+decided to redo those 5 patches so that I first add the new mux core
+and implement the old interface in terms of the new interface, then
+convert all the mux users one patch at a time, then remove the glue.
+That means 15 patches instead of 5, but each patch only touches one
+subsystem, which should ease the transition. The end result is
+equivalent, I only had to change a few names to make it possible to
+have both the old and the new interfaces active at the same time.
+
+In doing so, I realized that what might be good for the non-generic
+one-child-only "muxes" is perhaps an interface that creates a mux core
+and registers one child adapter with one call?
+
+One other thing that could help the +- statistics is to maybe add more
+parameters to i2c_mux_alloc, such as parent adapter and select/deselect
+ops. But that is fairly cosmetic...
+
+> I am not decided and open for discussion. This is just where we are
+> currently. All interested parties, I am looking forward to more
+> thoughts.
+
+Cheers,
+Peter
