@@ -1,90 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58761 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753065AbcC1VOi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2016 17:14:38 -0400
-Subject: Re: [RFC PATCH 2/4] media: Add Media Device Allocator API
- documentation
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <cover.1458966594.git.shuahkh@osg.samsung.com>
- <33083175297b174a68b937e9bf2d867add363e23.1458966594.git.shuahkh@osg.samsung.com>
- <20160328152821.18142532@recife.lan>
-Cc: laurent.pinchart@ideasonboard.com, perex@perex.cz, tiwai@suse.com,
-	hans.verkuil@cisco.com, chehabrafael@gmail.com,
-	javier@osg.samsung.com, jh1009.sung@samsung.com,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56F99EBB.3070007@osg.samsung.com>
-Date: Mon, 28 Mar 2016 15:14:35 -0600
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:48974 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752321AbcCBLcg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Mar 2016 06:32:36 -0500
+Subject: Re: [PATCH v2] media: platform: rcar_jpu, sh_vou, vsp1: Use
+ ARCH_RENESAS
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+References: <1456881291-1167-1-git-send-email-horms+renesas@verge.net.au>
+ <1491869.T1zOZ4xfVB@avalon>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D6CF57.2030507@xs4all.nl>
+Date: Wed, 2 Mar 2016 12:32:39 +0100
 MIME-Version: 1.0
-In-Reply-To: <20160328152821.18142532@recife.lan>
+In-Reply-To: <1491869.T1zOZ4xfVB@avalon>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/28/2016 12:28 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 25 Mar 2016 22:38:43 -0600
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> 
->> Add Media Device Allocator API documentation.
-> 
-> Please merge this with the previous patch.
+Hi Simon,
 
-Yes. I will merge them.
+Note that the patch subject still mentions sh_vou.
 
--- Shuah
+Otherwise:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+On 03/02/16 12:00, Laurent Pinchart wrote:
+> Hi Simon,
 > 
+> Thank you for the patch.
+> 
+> On Wednesday 02 March 2016 10:14:51 Simon Horman wrote:
+>> Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
 >>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> This is part of an ongoing process to migrate from ARCH_SHMOBILE to
+>> ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
+>> appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
+>>
+>> Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+>> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
 >> ---
->>  include/media/media-dev-allocator.h | 32 ++++++++++++++++++++++++++++++++
->>  1 file changed, 32 insertions(+)
+>> Based on media-tree/master
 >>
->> diff --git a/include/media/media-dev-allocator.h b/include/media/media-dev-allocator.h
->> index 2932c90..174840c 100644
->> --- a/include/media/media-dev-allocator.h
->> +++ b/include/media/media-dev-allocator.h
->> @@ -20,6 +20,38 @@
->>  
->>  #ifdef CONFIG_MEDIA_CONTROLLER
->>  /**
->> + * DOC: Media Controller Device Allocator API
->> + * There are known problems with media device life time management. When media
->> + * device is released while an media ioctl is in progress, ioctls fail with
->> + * use-after-free errors and kernel hangs in some cases.
->> + * 
->> + * Media Device can be in any the following states:
->> + * 
->> + * - Allocated
->> + * - Registered (could be tied to more than one driver)
->> + * - Unregistered, not in use (media device file is not open)
->> + * - Unregistered, in use (media device file is not open)
->> + * - Released
->> + * 
->> + * When media device belongs to  more than one driver, registrations should be
->> + * refcounted to avoid unregistering when one of the drivers does unregister.
->> + * A refcount field in the struct media_device covers this case. Unregister on
->> + * a Media Allocator media device is a kref_put() call. The media device should
->> + * be unregistered only when the last unregister occurs.
->> + * 
->> + * When a media device is in use when it is unregistered, it should not be
->> + * released until the application exits when it detects the unregistered
->> + * status. Media device that is in use when it is unregistered is moved to
->> + * to_delete_list. When the last unregister occurs, media device is unregistered
->> + * and becomes an unregistered, still allocated device. Unregister marks the
->> + * device to be deleted.
->> + * 
->> + * When media device belongs to more than one driver, as both drivers could be
->> + * unbound/bound, driver should not end up getting stale media device that is
->> + * on its way out. Moving the unregistered media device to to_delete_list helps
->> + * this case as well.
->> + */
->> +/**
->>   * media_device_get() - Allocate and return global media device
->>   *
->>   * @mdev
+>> v2
+>> * Do not update VIDEO_SH_VOU to use ARCH_RENESAS as this is
+>>   used by some SH-based platforms and is not used by any ARM-based platforms
+>> so a dependency on ARCH_SHMOBILE is correct for that driver
+>> * Added Geert Uytterhoeven's Ack
+>> ---
+>>  drivers/media/platform/Kconfig | 4 ++--
+>>  1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+>> index 201f5c296a95..84e041c0a70e 100644
+>> --- a/drivers/media/platform/Kconfig
+>> +++ b/drivers/media/platform/Kconfig
+>> @@ -238,7 +238,7 @@ config VIDEO_SH_VEU
+>>  config VIDEO_RENESAS_JPU
+>>  	tristate "Renesas JPEG Processing Unit"
+>>  	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+>> -	depends on ARCH_SHMOBILE || COMPILE_TEST
+>> +	depends on ARCH_RENESAS || COMPILE_TEST
+>>  	select VIDEOBUF2_DMA_CONTIG
+>>  	select V4L2_MEM2MEM_DEV
+>>  	---help---
+>> @@ -250,7 +250,7 @@ config VIDEO_RENESAS_JPU
+>>  config VIDEO_RENESAS_VSP1
+>>  	tristate "Renesas VSP1 Video Processing Engine"
+>>  	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
+>> -	depends on (ARCH_SHMOBILE && OF) || COMPILE_TEST
+>> +	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
+>>  	select VIDEOBUF2_DMA_CONTIG
+>>  	---help---
+>>  	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
 > 
-> 
-
