@@ -1,211 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580AbcCYKoy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 06:44:54 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 29/54] v4l: vsp1: Implement and use the subdev pad::init_cfg configuration
-Date: Fri, 25 Mar 2016 12:44:03 +0200
-Message-Id: <1458902668-1141-30-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:49664 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751787AbcCBLPw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 06:15:52 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	Heiner Kallweit <hkallweit1@gmail.com>,
+	=?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+	James Hogan <james@albanarts.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: [PATCH] [media] rc-core: allow calling rc_open with device not initialized
+Date: Wed,  2 Mar 2016 08:15:28 -0300
+Message-Id: <f7275a1d6b799860c479cd616af0933b40d70136.1456917323.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Turn the custom formats initialization function into a standard
-pad::init_cfg handler and use it in subdevs instead of initializing
-formats in the subdev open handler.
+The device initialization completes only after calling
+input_register_device(). However, rc_open() can be called while
+the device is being registered by the input/evdev core. So, we
+can't expect that rc_dev->initialized to be true.
 
-This makes the subdev open handler empty, so remove it.
+Change the logic to don't require initialized == true at rc_open
+and change the type of initialized to be atomic.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+this way, we can check for it earlier where it is really needed,
+without needing to lock the mutex just for testing it.
+
+Reported-by: Heiner Kallweit <hkallweit1@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_bru.c    |  1 +
- drivers/media/platform/vsp1/vsp1_entity.c | 24 ++++++------------------
- drivers/media/platform/vsp1/vsp1_entity.h |  2 ++
- drivers/media/platform/vsp1/vsp1_hsit.c   |  1 +
- drivers/media/platform/vsp1/vsp1_lif.c    |  1 +
- drivers/media/platform/vsp1/vsp1_lut.c    |  1 +
- drivers/media/platform/vsp1/vsp1_rpf.c    |  1 +
- drivers/media/platform/vsp1/vsp1_sru.c    |  1 +
- drivers/media/platform/vsp1/vsp1_uds.c    |  1 +
- drivers/media/platform/vsp1/vsp1_wpf.c    |  1 +
- 10 files changed, 16 insertions(+), 18 deletions(-)
+ drivers/media/rc/rc-main.c | 47 +++++++++++++++++++++-------------------------
+ include/media/rc-core.h    |  4 ++--
+ 2 files changed, 23 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 94679fec3864..7dcd07027bcc 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -387,6 +387,7 @@ static struct v4l2_subdev_video_ops bru_video_ops = {
- };
- 
- static struct v4l2_subdev_pad_ops bru_pad_ops = {
-+	.init_cfg = vsp1_entity_init_cfg,
- 	.enum_mbus_code = bru_enum_mbus_code,
- 	.enum_frame_size = bru_enum_frame_size,
- 	.get_fmt = bru_get_format,
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index f09a54b396ec..3bd55d5ca739 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -62,16 +62,15 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
- }
- 
- /*
-- * vsp1_entity_init_formats - Initialize formats on all pads
-+ * vsp1_entity_init_cfg - Initialize formats on all pads
-  * @subdev: V4L2 subdevice
-  * @cfg: V4L2 subdev pad configuration
-  *
-- * Initialize all pad formats with default values. If cfg is not NULL, try
-- * formats are initialized on the file handle. Otherwise active formats are
-- * initialized on the device.
-+ * Initialize all pad formats with default values in the given pad config. This
-+ * function can be used as a handler for the subdev pad::init_cfg operation.
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index dcf20d9cbe09..4e9bbe735ae9 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -13,6 +13,7 @@
   */
--static void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
--				     struct v4l2_subdev_pad_config *cfg)
-+int vsp1_entity_init_cfg(struct v4l2_subdev *subdev,
-+			 struct v4l2_subdev_pad_config *cfg)
- {
- 	struct v4l2_subdev_format format;
- 	unsigned int pad;
-@@ -85,20 +84,10 @@ static void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
  
- 		v4l2_subdev_call(subdev, pad, set_fmt, cfg, &format);
+ #include <media/rc-core.h>
++#include <linux/atomic.h>
+ #include <linux/spinlock.h>
+ #include <linux/delay.h>
+ #include <linux/input.h>
+@@ -723,10 +724,6 @@ int rc_open(struct rc_dev *rdev)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&rdev->lock);
+-	if (!rdev->initialized) {
+-		rval = -EINVAL;
+-		goto unlock;
+-	}
+ 
+ 	if (!rdev->users++ && rdev->open != NULL)
+ 		rval = rdev->open(rdev);
+@@ -734,7 +731,6 @@ int rc_open(struct rc_dev *rdev)
+ 	if (rval)
+ 		rdev->users--;
+ 
+-unlock:
+ 	mutex_unlock(&rdev->lock);
+ 
+ 	return rval;
+@@ -879,11 +875,10 @@ static ssize_t show_protocols(struct device *device,
+ 	if (!dev)
+ 		return -EINVAL;
+ 
++	if (!atomic_read(&dev->initialized))
++		return -ERESTARTSYS;
++
+ 	mutex_lock(&dev->lock);
+-	if (!dev->initialized) {
+-		mutex_unlock(&dev->lock);
+-		return -EINVAL;
+-	}
+ 
+ 	if (fattr->type == RC_FILTER_NORMAL) {
+ 		enabled = dev->enabled_protocols;
+@@ -1064,6 +1059,9 @@ static ssize_t store_protocols(struct device *device,
+ 	if (!dev)
+ 		return -EINVAL;
+ 
++	if (!atomic_read(&dev->initialized))
++		return -ERESTARTSYS;
++
+ 	if (fattr->type == RC_FILTER_NORMAL) {
+ 		IR_dprintk(1, "Normal protocol change requested\n");
+ 		current_protocols = &dev->enabled_protocols;
+@@ -1084,10 +1082,6 @@ static ssize_t store_protocols(struct device *device,
  	}
--}
--
--static int vsp1_entity_open(struct v4l2_subdev *subdev,
--			    struct v4l2_subdev_fh *fh)
--{
--	vsp1_entity_init_formats(subdev, fh->pad);
  
- 	return 0;
- }
+ 	mutex_lock(&dev->lock);
+-	if (!dev->initialized) {
+-		rc = -EINVAL;
+-		goto out;
+-	}
  
--const struct v4l2_subdev_internal_ops vsp1_subdev_internal_ops = {
--	.open = vsp1_entity_open,
--};
+ 	old_protocols = *current_protocols;
+ 	new_protocols = old_protocols;
+@@ -1168,11 +1162,10 @@ static ssize_t show_filter(struct device *device,
+ 	if (!dev)
+ 		return -EINVAL;
+ 
++	if (!atomic_read(&dev->initialized))
++		return -ERESTARTSYS;
++
+ 	mutex_lock(&dev->lock);
+-	if (!dev->initialized) {
+-		mutex_unlock(&dev->lock);
+-		return -EINVAL;
+-	}
+ 
+ 	if (fattr->type == RC_FILTER_NORMAL)
+ 		filter = &dev->scancode_filter;
+@@ -1223,6 +1216,9 @@ static ssize_t store_filter(struct device *device,
+ 	if (!dev)
+ 		return -EINVAL;
+ 
++	if (!atomic_read(&dev->initialized))
++		return -ERESTARTSYS;
++
+ 	ret = kstrtoul(buf, 0, &val);
+ 	if (ret < 0)
+ 		return ret;
+@@ -1241,10 +1237,6 @@ static ssize_t store_filter(struct device *device,
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&dev->lock);
+-	if (!dev->initialized) {
+-		ret = -EINVAL;
+-		goto unlock;
+-	}
+ 
+ 	new_filter = *filter;
+ 	if (fattr->mask)
+@@ -1431,6 +1423,7 @@ int rc_register_device(struct rc_dev *dev)
+ 	dev->minor = minor;
+ 	dev_set_name(&dev->dev, "rc%u", dev->minor);
+ 	dev_set_drvdata(&dev->dev, dev);
++	atomic_set(&dev->initialized, 0);
+ 
+ 	dev->dev.groups = dev->sysfs_groups;
+ 	dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
+@@ -1455,10 +1448,6 @@ int rc_register_device(struct rc_dev *dev)
+ 	dev->input_dev->phys = dev->input_phys;
+ 	dev->input_dev->name = dev->input_name;
+ 
+-	rc = input_register_device(dev->input_dev);
+-	if (rc)
+-		goto out_table;
 -
- /* -----------------------------------------------------------------------------
-  * Media Operations
+ 	/*
+ 	 * Default delay of 250ms is too short for some protocols, especially
+ 	 * since the timeout is currently set to 250ms. Increase it to 500ms,
+@@ -1474,6 +1463,11 @@ int rc_register_device(struct rc_dev *dev)
+ 	 */
+ 	dev->input_dev->rep[REP_PERIOD] = 125;
+ 
++	/* rc_open will be called here */
++	rc = input_register_device(dev->input_dev);
++	if (rc)
++		goto out_table;
++
+ 	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
+ 	dev_info(&dev->dev, "%s as %s\n",
+ 		dev->input_name ?: "Unspecified device", path ?: "N/A");
+@@ -1497,8 +1491,9 @@ int rc_register_device(struct rc_dev *dev)
+ 		dev->enabled_protocols = rc_type;
+ 	}
+ 
++	/* Allow the RC sysfs nodes to be accessible */
+ 	mutex_lock(&dev->lock);
+-	dev->initialized = true;
++	atomic_set(&dev->initialized, 1);
+ 	mutex_unlock(&dev->lock);
+ 
+ 	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index c41dd7018fa8..0f77b3dffb37 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -60,7 +60,7 @@ enum rc_filter_type {
+ /**
+  * struct rc_dev - represents a remote control device
+  * @dev: driver model's view of this device
+- * @initialized: true if the device init has completed
++ * @initialized: 1 if the device init has completed, 0 otherwise
+  * @sysfs_groups: sysfs attribute groups
+  * @input_name: name of the input child device
+  * @input_phys: physical path to the input child device
+@@ -122,7 +122,7 @@ enum rc_filter_type {
   */
-@@ -210,13 +199,12 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- 
- 	subdev->entity.function = function;
- 	subdev->entity.ops = &vsp1->media_ops;
--	subdev->internal_ops = &vsp1_subdev_internal_ops;
- 	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
- 	snprintf(subdev->name, sizeof(subdev->name), "%s %s",
- 		 dev_name(vsp1->dev), name);
- 
--	vsp1_entity_init_formats(subdev, NULL);
-+	vsp1_entity_init_cfg(subdev, NULL);
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index f46ba20c30b1..b608eef9700c 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -107,6 +107,8 @@ struct v4l2_mbus_framefmt *
- vsp1_entity_get_pad_format(struct vsp1_entity *entity,
- 			   struct v4l2_subdev_pad_config *cfg,
- 			   unsigned int pad, u32 which);
-+int vsp1_entity_init_cfg(struct v4l2_subdev *subdev,
-+			 struct v4l2_subdev_pad_config *cfg);
- 
- void vsp1_entity_route_setup(struct vsp1_entity *source);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
-index 457716cbb7ab..f20293d6587b 100644
---- a/drivers/media/platform/vsp1/vsp1_hsit.c
-+++ b/drivers/media/platform/vsp1/vsp1_hsit.c
-@@ -163,6 +163,7 @@ static struct v4l2_subdev_video_ops hsit_video_ops = {
- };
- 
- static struct v4l2_subdev_pad_ops hsit_pad_ops = {
-+	.init_cfg = vsp1_entity_init_cfg,
- 	.enum_mbus_code = hsit_enum_mbus_code,
- 	.enum_frame_size = hsit_enum_frame_size,
- 	.get_fmt = hsit_get_format,
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index 0cb58c3576ed..f7e51ddb8321 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -190,6 +190,7 @@ static struct v4l2_subdev_video_ops lif_video_ops = {
- };
- 
- static struct v4l2_subdev_pad_ops lif_pad_ops = {
-+	.init_cfg = vsp1_entity_init_cfg,
- 	.enum_mbus_code = lif_enum_mbus_code,
- 	.enum_frame_size = lif_enum_frame_size,
- 	.get_fmt = lif_get_format,
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 491275fe6953..9448c4c376aa 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -203,6 +203,7 @@ static struct v4l2_subdev_video_ops lut_video_ops = {
- };
- 
- static struct v4l2_subdev_pad_ops lut_pad_ops = {
-+	.init_cfg = vsp1_entity_init_cfg,
- 	.enum_mbus_code = lut_enum_mbus_code,
- 	.enum_frame_size = lut_enum_frame_size,
- 	.get_fmt = lut_get_format,
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 5c84a92c975c..51542bccd450 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -127,6 +127,7 @@ static struct v4l2_subdev_video_ops rpf_video_ops = {
- };
- 
- static struct v4l2_subdev_pad_ops rpf_pad_ops = {
-+	.init_cfg = vsp1_entity_init_cfg,
- 	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
- 	.enum_frame_size = vsp1_rwpf_enum_frame_size,
- 	.get_fmt = vsp1_rwpf_get_format,
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index ce6a97cb0ec1..6eae5a493bc3 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -307,6 +307,7 @@ static struct v4l2_subdev_video_ops sru_video_ops = {
- };
- 
- static struct v4l2_subdev_pad_ops sru_pad_ops = {
-+	.init_cfg = vsp1_entity_init_cfg,
- 	.enum_mbus_code = sru_enum_mbus_code,
- 	.enum_frame_size = sru_enum_frame_size,
- 	.get_fmt = sru_get_format,
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index 4266c079ada0..6b6d92c5c629 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -305,6 +305,7 @@ static struct v4l2_subdev_video_ops uds_video_ops = {
- };
- 
- static struct v4l2_subdev_pad_ops uds_pad_ops = {
-+	.init_cfg = vsp1_entity_init_cfg,
- 	.enum_mbus_code = uds_enum_mbus_code,
- 	.enum_frame_size = uds_enum_frame_size,
- 	.get_fmt = uds_get_format,
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 8cc19ef49f45..7f6a7cb00706 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -138,6 +138,7 @@ static struct v4l2_subdev_video_ops wpf_video_ops = {
- };
- 
- static struct v4l2_subdev_pad_ops wpf_pad_ops = {
-+	.init_cfg = vsp1_entity_init_cfg,
- 	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
- 	.enum_frame_size = vsp1_rwpf_enum_frame_size,
- 	.get_fmt = vsp1_rwpf_get_format,
+ struct rc_dev {
+ 	struct device			dev;
+-	bool				initialized;
++	atomic_t			initialized;
+ 	const struct attribute_group	*sysfs_groups[5];
+ 	const char			*input_name;
+ 	const char			*input_phys;
 -- 
-2.7.3
+2.5.0
 
