@@ -1,149 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751884AbcCXX2I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:28:08 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 17/51] v4l: vsp1: Don't setup control handler when starting streaming
-Date: Fri, 25 Mar 2016 01:27:13 +0200
-Message-Id: <1458862067-19525-18-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33306 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753879AbcCBRRH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 12:17:07 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v2 6/9] media: rcar-vin: add DV timings support
+Date: Wed,  2 Mar 2016 18:16:34 +0100
+Message-Id: <1456938997-29971-7-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1456938997-29971-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1456938997-29971-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The control handler set operations don't program the hardware anymore,
-there's thus no need to call them when starting the stream.
+Adds ioctls DV_TIMINGS_CAP, ENUM_DV_TIMINGS, G_DV_TIMINGS, S_DV_TIMINGS,
+and QUERY_DV_TIMINGS.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
- drivers/media/platform/vsp1/vsp1_bru.c    |  5 +----
- drivers/media/platform/vsp1/vsp1_entity.c | 18 +-----------------
- drivers/media/platform/vsp1/vsp1_entity.h |  2 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    |  5 +----
- drivers/media/platform/vsp1/vsp1_sru.c    |  5 +----
- drivers/media/platform/vsp1/vsp1_wpf.c    |  5 +----
- 6 files changed, 6 insertions(+), 34 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c | 69 ++++++++++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 16345ec66870..5feec203e6fb 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -66,11 +66,8 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct v4l2_mbus_framefmt *format;
- 	unsigned int flags;
- 	unsigned int i;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&bru->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&bru->entity, enable);
- 
- 	if (!enable)
- 		return 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index a94f544dcc77..6b425ae9aba3 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -45,29 +45,13 @@ bool vsp1_entity_is_streaming(struct vsp1_entity *entity)
- 	return streaming;
- }
- 
--int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
-+void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 3d957dc..4596eda 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -644,12 +644,17 @@ static int rvin_enum_input(struct file *file, void *priv,
+ 			   struct v4l2_input *i)
  {
- 	unsigned long flags;
--	int ret;
+ 	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
  
- 	spin_lock_irqsave(&entity->lock, flags);
- 	entity->streaming = streaming;
- 	spin_unlock_irqrestore(&entity->lock, flags);
--
--	if (!streaming)
--		return 0;
--
--	if (!entity->vsp1->info->uapi || !entity->subdev.ctrl_handler)
--		return 0;
--
--	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
--	if (ret < 0) {
--		spin_lock_irqsave(&entity->lock, flags);
--		entity->streaming = false;
--		spin_unlock_irqrestore(&entity->lock, flags);
--	}
--
--	return ret;
+ 	if (i->index != 0)
+ 		return -EINVAL;
+ 
+ 	i->type = V4L2_INPUT_TYPE_CAMERA;
+ 	i->std = vin->vdev.tvnorms;
++
++	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap))
++		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
++
+ 	strlcpy(i->name, "Camera", sizeof(i->name));
+ 
+ 	return 0;
+@@ -692,6 +697,64 @@ static int rvin_g_std(struct file *file, void *priv, v4l2_std_id *a)
+ 	return v4l2_subdev_call(sd, video, g_std, a);
  }
  
- void vsp1_entity_route_setup(struct vsp1_entity *source)
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 259880e524fe..c0d6db82ebfb 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -101,7 +101,7 @@ void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_pad_config *cfg);
++static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
++				    struct v4l2_enum_dv_timings *timings)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
++
++	timings->pad = 0;
++	return v4l2_subdev_call(sd,
++			pad, enum_dv_timings, timings);
++}
++
++static int rvin_s_dv_timings(struct file *file, void *priv_fh,
++				    struct v4l2_dv_timings *timings)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
++	int err;
++
++	err = v4l2_subdev_call(sd,
++			video, s_dv_timings, timings);
++	if (!err) {
++		vin->sensor.width = timings->bt.width;
++		vin->sensor.height = timings->bt.height;
++	}
++	return err;
++}
++
++static int rvin_g_dv_timings(struct file *file, void *priv_fh,
++				    struct v4l2_dv_timings *timings)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
++
++	return v4l2_subdev_call(sd,
++			video, g_dv_timings, timings);
++}
++
++static int rvin_query_dv_timings(struct file *file, void *priv_fh,
++				    struct v4l2_dv_timings *timings)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
++
++	return v4l2_subdev_call(sd,
++			video, query_dv_timings, timings);
++}
++
++static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
++				    struct v4l2_dv_timings_cap *cap)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
++
++	cap->pad = 0;
++	return v4l2_subdev_call(sd,
++			pad, dv_timings_cap, cap);
++}
++
+ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_querycap		= rvin_querycap,
+ 	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
+@@ -706,6 +769,12 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_g_input			= rvin_g_input,
+ 	.vidioc_s_input			= rvin_s_input,
  
- bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
--int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
-+void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
- 
- void vsp1_entity_route_setup(struct vsp1_entity *source);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 8721c82801ca..8c7c385ec046 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -45,11 +45,8 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	const struct v4l2_rect *crop = &rpf->crop;
- 	u32 pstride;
- 	u32 infmt;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&rpf->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&rpf->entity, enable);
- 
- 	if (!enable)
- 		return 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index d2c705563cd7..a97541492af8 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -113,11 +113,8 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct v4l2_mbus_framefmt *input;
- 	struct v4l2_mbus_framefmt *output;
- 	u32 ctrl0;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&sru->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&sru->entity, enable);
- 
- 	if (!enable)
- 		return 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 1ca08f4d67c2..a7101f700d9e 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -46,11 +46,8 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	unsigned int i;
- 	u32 srcrpf = 0;
- 	u32 outfmt = 0;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&wpf->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&wpf->entity, enable);
- 
- 	if (!enable) {
- 		vsp1_write(vsp1, VI6_WPF_IRQ_ENB(wpf->entity.index), 0);
++	.vidioc_dv_timings_cap		= rvin_dv_timings_cap,
++	.vidioc_enum_dv_timings		= rvin_enum_dv_timings,
++	.vidioc_g_dv_timings		= rvin_g_dv_timings,
++	.vidioc_s_dv_timings		= rvin_s_dv_timings,
++	.vidioc_query_dv_timings	= rvin_query_dv_timings,
++
+ 	.vidioc_querystd		= rvin_querystd,
+ 	.vidioc_g_std			= rvin_g_std,
+ 	.vidioc_s_std			= rvin_s_std,
 -- 
-2.7.3
+2.6.4
 
