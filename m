@@ -1,80 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54563 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932244AbcCROMn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 10:12:43 -0400
-Subject: Re: [PATCH] [media] media: rename media unregister function
-To: Shuah Khan <shuahkh@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <2ffc02c944068b2c8655727238d1542f8328385d.1458306276.git.mchehab@osg.samsung.com>
- <56EC0A55.3010803@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
+Received: from bombadil.infradead.org ([198.137.202.9]:60881 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752869AbcCBOQS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 09:16:18 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
 	Arnd Bergmann <arnd@arndb.de>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>, Tommi Rantala <tt.rantala@gmail.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>,
-	Luis de Bethencourt <luis@debethencourt.com>,
-	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	alsa-devel@alsa-project.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <56EC0CC4.1070309@osg.samsung.com>
-Date: Fri, 18 Mar 2016 11:12:20 -0300
-MIME-Version: 1.0
-In-Reply-To: <56EC0A55.3010803@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Geunyoung Kim <nenggun.kim@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 1/2] [media] au0828: use standard demod pads struct
+Date: Wed,  2 Mar 2016 11:16:08 -0300
+Message-Id: <b8604bfcb3878cd1b1f1d0f0ad6ddc6374703946.1456928097.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1456928097.git.mchehab@osg.samsung.com>
+References: <cover.1456928097.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1456928097.git.mchehab@osg.samsung.com>
+References: <cover.1456928097.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Shuah,
+As we want au0828 to use the core function to create the MC
+graphs, use enum demod_pad_index instead of
+enum au8522_media_pads.
 
-On 03/18/2016 11:01 AM, Shuah Khan wrote:
-> On 03/18/2016 07:05 AM, Mauro Carvalho Chehab wrote:
->> Now that media_device_unregister() also does a cleanup, rename it
->> to media_device_unregister_cleanup().
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> I think adding cleanup is redundant. media_device_unregister()
-> would imply that there has to be some cleanup releasing resources.
-> I wouldn't make this change.
->
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-frontends/au8522.h         | 9 ---------
+ drivers/media/dvb-frontends/au8522_decoder.c | 8 ++++----
+ drivers/media/dvb-frontends/au8522_priv.h    | 3 ++-
+ drivers/media/usb/au0828/au0828-core.c       | 2 +-
+ drivers/media/usb/au0828/au0828-video.c      | 8 ++++----
+ include/media/v4l2-mc.h                      | 1 +
+ 6 files changed, 12 insertions(+), 19 deletions(-)
 
-Problem is that there is a media_device_init() and media_device_register(),
-so having both unregister and cleanup in this function will make very clear
-that a single function is the counter part of the previous two operations.
+diff --git a/drivers/media/dvb-frontends/au8522.h b/drivers/media/dvb-frontends/au8522.h
+index d7a997fada7f..78bf3f73e58d 100644
+--- a/drivers/media/dvb-frontends/au8522.h
++++ b/drivers/media/dvb-frontends/au8522.h
+@@ -89,13 +89,4 @@ enum au8522_audio_input {
+ 	AU8522_AUDIO_NONE,
+ 	AU8522_AUDIO_SIF,
+ };
+-
+-enum au8522_media_pads {
+-	AU8522_PAD_INPUT,
+-	AU8522_PAD_VID_OUT,
+-	AU8522_PAD_VBI_OUT,
+-	AU8522_PAD_AUDIO_OUT,
+-
+-	AU8522_NUM_PADS
+-};
+ #endif /* __AU8522_H__ */
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 0ab9f1eb8a29..add246382806 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -763,10 +763,10 @@ static int au8522_probe(struct i2c_client *client,
+ 	v4l2_i2c_subdev_init(sd, client, &au8522_ops);
+ #if defined(CONFIG_MEDIA_CONTROLLER)
  
-> thanks,
-> -- Shuah
-> 
-
-Best regards,
+-	state->pads[AU8522_PAD_INPUT].flags = MEDIA_PAD_FL_SINK;
+-	state->pads[AU8522_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	state->pads[AU8522_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	state->pads[AU8522_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	state->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
++	state->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	state->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	state->pads[DEMOD_PAD_AUDIO_OUT].flags = MEDIA_PAD_FL_SOURCE;
+ 	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+ 
+ 	ret = media_entity_pads_init(&sd->entity, ARRAY_SIZE(state->pads),
+diff --git a/drivers/media/dvb-frontends/au8522_priv.h b/drivers/media/dvb-frontends/au8522_priv.h
+index 505215a21ddd..f5a9438f6ce5 100644
+--- a/drivers/media/dvb-frontends/au8522_priv.h
++++ b/drivers/media/dvb-frontends/au8522_priv.h
+@@ -30,6 +30,7 @@
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-mc.h>
+ #include <linux/i2c.h>
+ #include "dvb_frontend.h"
+ #include "au8522.h"
+@@ -70,7 +71,7 @@ struct au8522_state {
+ 	struct v4l2_ctrl_handler hdl;
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+-	struct media_pad pads[AU8522_NUM_PADS];
++	struct media_pad pads[DEMOD_NUM_PADS];
+ #endif
+ };
+ 
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index ca1e5ebf3b6b..6da4e5749f3a 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -218,7 +218,7 @@ static void au0828_media_graph_notify(struct media_entity *new,
+ 	switch (new->function) {
+ 	case MEDIA_ENT_F_AUDIO_MIXER:
+ 		ret = media_create_pad_link(dev->decoder,
+-					    AU8522_PAD_AUDIO_OUT,
++					    DEMOD_PAD_AUDIO_OUT,
+ 					    new, 0,
+ 					    MEDIA_LNK_FL_ENABLED);
+ 		if (ret)
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 1958de192608..b82deda02643 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -686,16 +686,16 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 	if (tuner) {
+ 		dev->tuner = tuner;
+ 		ret = media_create_pad_link(tuner, TUNER_PAD_OUTPUT,
+-					    decoder, AU8522_PAD_INPUT, 0);
++					    decoder, DEMOD_PAD_IF_INPUT, 0);
+ 		if (ret)
+ 			return ret;
+ 	}
+-	ret = media_create_pad_link(decoder, AU8522_PAD_VID_OUT,
++	ret = media_create_pad_link(decoder, DEMOD_PAD_VID_OUT,
+ 				    &dev->vdev.entity, 0,
+ 				    MEDIA_LNK_FL_ENABLED);
+ 	if (ret)
+ 		return ret;
+-	ret = media_create_pad_link(decoder, AU8522_PAD_VBI_OUT,
++	ret = media_create_pad_link(decoder, DEMOD_PAD_VBI_OUT,
+ 				    &dev->vbi_dev.entity, 0,
+ 				    MEDIA_LNK_FL_ENABLED);
+ 	if (ret)
+@@ -723,7 +723,7 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 		case AU0828_VMUX_SVIDEO:
+ 			/* FIXME: fix the decoder PAD */
+ 			ret = media_create_pad_link(ent, 0, decoder,
+-						    AU8522_PAD_INPUT, 0);
++						    DEMOD_PAD_IF_INPUT, 0);
+ 			if (ret)
+ 				return ret;
+ 			break;
+diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+index 5cbc20923faf..2d880e035490 100644
+--- a/include/media/v4l2-mc.h
++++ b/include/media/v4l2-mc.h
+@@ -93,6 +93,7 @@ enum demod_pad_index {
+ 	DEMOD_PAD_IF_INPUT,
+ 	DEMOD_PAD_VID_OUT,
+ 	DEMOD_PAD_VBI_OUT,
++	DEMOD_PAD_AUDIO_OUT,
+ 	DEMOD_NUM_PADS
+ };
+ 
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.5.0
+
+
