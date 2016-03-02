@@ -1,107 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:61414 "EHLO mga02.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:57946 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754662AbcCUNRK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 09:17:10 -0400
-Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
-To: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	DRI Development <dri-devel@lists.freedesktop.org>
-References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
- <1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-	=?UTF-8?Q?St=c3=a9phane_Marchesin?= <marcheu@chromium.org>,
-	David Herrmann <dh.herrmann@gmail.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Daniel Vetter <daniel.vetter@intel.com>,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	intel-gfx@lists.freedesktop.org, devel@driverdev.osuosl.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-From: Tiago Vignatti <tiago.vignatti@intel.com>
-Message-ID: <56EFF426.80907@intel.com>
-Date: Mon, 21 Mar 2016 10:16:22 -0300
+	id S1752178AbcCBTb7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Mar 2016 14:31:59 -0500
+Date: Wed, 2 Mar 2016 16:31:54 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [RFC] Representing hardware connections via MC
+Message-ID: <20160302163154.1239551a@recife.lan>
+In-Reply-To: <56D731F6.8010008@xs4all.nl>
+References: <20160226091317.5a07c374@recife.lan>
+	<1753279.MBUKgSvGQl@avalon>
+	<20160302081323.36eddba5@recife.lan>
+	<1736605.4kGg8lYGrV@avalon>
+	<56D6CE4A.1000208@xs4all.nl>
+	<20160302090857.49ff68e4@recife.lan>
+	<56D731F6.8010008@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/21/2016 04:51 AM, Daniel Vetter wrote:
-> Just a bit of wording polish plus mentioning that it can fail and must
-> be restarted.
->
-> Requested by Sumit.
->
-> v2: Fix them typos (Hans).
->
-> Cc: Chris Wilson <chris@chris-wilson.co.uk>
-> Cc: Tiago Vignatti <tiago.vignatti@intel.com>
-> Cc: Stéphane Marchesin <marcheu@chromium.org>
-> Cc: David Herrmann <dh.herrmann@gmail.com>
-> Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: Daniel Vetter <daniel.vetter@intel.com>
-> CC: linux-media@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linaro-mm-sig@lists.linaro.org
-> Cc: intel-gfx@lists.freedesktop.org
-> Cc: devel@driverdev.osuosl.org
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
-> Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Em Wed, 02 Mar 2016 19:33:26 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Reviewed-by: Tiago Vignatti <tiago.vignatti@intel.com>
+> On 03/02/2016 01:08 PM, Mauro Carvalho Chehab wrote:
+> > Em Wed, 02 Mar 2016 12:28:10 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> On 03/02/16 12:16, Laurent Pinchart wrote:  
+> >>> Hi Mauro,
+> >>>
+> >>> On Wednesday 02 March 2016 08:13:23 Mauro Carvalho Chehab wrote:    
+> >>>> Em Wed, 02 Mar 2016 12:34:42 +0200 Laurent Pinchart escreveu:    
+> >>>>> On Friday 26 February 2016 09:13:17 Mauro Carvalho Chehab wrote:    
+> >>>
+> >>> [snip]
+> >>>     
+> >>>>>> NOTE:
+> >>>>>>
+> >>>>>> The labels at the PADs currently can't be represented, but the
+> >>>>>> idea is adding it as a property via the upcoming properties API.    
+> >>>>>
+> >>>>> Whether to add labels to pads, and more generically how to differentiate
+> >>>>> them from userspace, is an interesting question. I'd like to decouple it
+> >>>>> from the connectors entities discussion if possible, in such a way that
+> >>>>> using labels wouldn't be required to leave the discussion open on that
+> >>>>> topic. If we foresee a dependency on labels for pads then we should open
+> >>>>> that discussion now.    
+> >>>>
+> >>>> We can postpone such discussion. PAD labels are not needed for
+> >>>> what we have so far (RF, Composite, S-Video). Still, I think that
+> >>>> we'll need it by the time we add connector support for more complex
+> >>>> connector types, like HDMI.    
+> >>>
+> >>> If we don't add pad labels now then they should be optional for future 
+> >>> connectors too, including HDMI. If you think that HDMI connectors will require 
+> >>> them then we should discuss them now.
+> >>>     
+> >>
+> >> Pad labels are IMHO only useful for producing human readable output. For complex
+> >> designs that helps a lot to understand what is going on.
+> >>
+> >> But for kernel/applications all you need are #defines with the pad numbers (e.g.
+> >> HDMI_PAD_TMDS, HDMI_PAD_CEC, HDMI_PAD_ARC) to use for connectors.  
+> > 
+> > As we add complexity to MC graph, just hardcoding PAD numbers don't work
+> > fine even at the Kernel level. 
+> > 
+> > Basically, what we currently call as "PAD number", is actually a PAD
+> > number+type, as different PADs have different types/functions on most
+> > cases.
+> > 
+> > Any code that needs to connect PADs need to know which type corresponds
+> > to a pad number on a given entity.
+> > 
+> > See for example the code at : it only
+> > works because we've created a generic enum demod_pad_index that
+> > is been used by the analog TV demods currently supported by the
+> > drivers that enable the MC API.
+> > 
+> > There, we had to standardize the PAD numbers for the analog TV
+> > demod, as we need to be able to link the connectors for v4l2-interface
+> > centric devices, in order to have a generic function to build the
+> > links:
+> > 
+> > enum demod_pad_index {
+> > 	DEMOD_PAD_IF_INPUT,
+> > 	DEMOD_PAD_VID_OUT,
+> > 	DEMOD_PAD_VBI_OUT,
+> > 	DEMOD_NUM_PADS
+> > };
+> > 
+> > (I'll ommit DEMOD_NUM_PADS on the discussions below, just to make
+> > the enums clearer)
+> > 
+> > Due to S-Video, we'll need to add an extra input PAD there
+> > (and one extra PAD for audio output - currently only supported
+> > by au0828 driver):
+> > 
+> > enum demod_pad_index {
+> > 	/* Input PADs */
+> > 	DEMOD_PAD_IF_INPUT,	/* Composite or Y input */
+> > 	DEMOD_PAD_C_INPUT,
+> > 
+> > 	/* Output PADs*/
+> > 	DEMOD_PAD_VID_OUT,
+> > 	DEMOD_PAD_VBI_OUT,
+> > 	DEMOD_PAD_AUDIO_OUT,
+> > };
+> > 
+> > But, an HDMI-only demod would need, instead:
+> > 
+> > enum hdmi_demod_pad_index {
+> > 	/* HDMI-specific input PADs*/
+> > 	DEMOD_HDMI_PAD_TMDS,
+> > 	DEMOD_HDMI_PAD_CEC,
+> > 	DEMOD_HDMI_PAD_ARC,
+> > 
+> > 	/* Output PADs */
+> > 	DEMOD_HDMI_PAD_VID_OUT,
+> > 	DEMOD_HDMI_PAD_VBI_OUT,
+> > 	DEMOD_HDMI_PAD_AUDIO_OUT,
+> > };
+> > 
+> > If we do that, an extra logic to handle the "HDMI" special case
+> > would need at v4l2_mc_create_media_graph(), and we'll need to
+> > use a different function for such entity, for it to work.
+> > 
+> > A demod capable of handling both HDMI and analog TV would need a mix
+> > of the above enums:
+> > 
+> > enum hdmi_and_composite_demod_pad_index {
+> > 	/* HDMI-specific input PADs*/
+> > 	DEMOD2_PAD_HDMI_TMDS,
+> > 	DEMOD2_PAD_HDMI_CEC,
+> > 	DEMOD2_PAD_HDMI_ARC,
+> > 
+> > 	/* non-HDMI Input PADs */
+> > 	DEMOD2_PAD_IF_INPUT,	/* Composite or Y input */
+> > 	DEMOD2_PAD_C_INPUT,
+> > 
+> > 	/* Output PADs */
+> > 	DEMOD2_PAD_VID_OUT,
+> > 	DEMOD2_PAD_VBI_OUT,
+> > };
+> > 
+> > Again, we'll need an extra logic v4l2_mc_create_media_graph(), and
+> > a different function for the entity.
+> > 
+> > We could, instead, just add those new PADs at the existing 
+> > enum demod_pad_index, but, if add pad numbers to existing enums, 
+> > we will be breaking binary compatibility on every new release,
+> > and entities will be exporting PADs that the hardware don't support.
+> > 
+> > The same trouble will happen also at userspace side, as a generic
+> > application written to work with subdev-centric devices would need to
+> > know the PAD numbers for each PAD type and for each entity type.
+> > 
+> > Also, a given entity type would need to have a fixed number of PADs,
+> > and such pad numbers are actually part of the uAPI/ABI.
+> > 
+> > So, IMHO, the proper fix is to create, inside the Kernel, a PAD type
+> > field, with will be used by the Kernel generic functions and allow each
+> > driver to create as many PADs it needs, without needing to add
+> > PADs for non-supported types. So, a demod like saa7115 will never have
+> > DEMOD_HDMI_PAD_*. It will be driver's responsibility to fill the PAD
+> > type for each PAD.
+> > 
+> > The core will then use the PAD type to create the pads via
+> > v4l2_mc_create_media_graph().
+> > 
+> > For a generic mc-centric application, the PAD type (or PAD label?)
+> > will need to be exported to userspace, for the userspace logic
+> > that would be equivalent to what's done at v4l2_mc_create_media_graph().  
+> 
+> I would have to think about this much more carefully. Perhaps this could be
+> a topic if we're having a media mini/micro summit.
 
-Best regards,
+Yes, I guess it would be worth to have a topic about that, and about
+the properties we want to export via the properties API.
 
-Tiago
+> 
+> I don't see the HDMI ever hooked up to a demod. It's all digital after all,
+> I don't think there is anything to demod. I have certainly never seen anything
+> like that in the various HDMI receivers/transmitters that I am familiar with.
 
+"demod" name is a misleading name for devices that handle pure digital
+video, but a device like adv7604 with has 12-channel analog input mux
+and is also an HDMI receiver is a demod (for the analog input entries).
 
-> ---
->   Documentation/dma-buf-sharing.txt | 11 ++++++-----
->   drivers/dma-buf/dma-buf.c         |  2 +-
->   2 files changed, 7 insertions(+), 6 deletions(-)
->
-> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-> index 32ac32e773e1..ca44c5820585 100644
-> --- a/Documentation/dma-buf-sharing.txt
-> +++ b/Documentation/dma-buf-sharing.txt
-> @@ -352,7 +352,8 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
->
->      No special interfaces, userspace simply calls mmap on the dma-buf fd, making
->      sure that the cache synchronization ioctl (DMA_BUF_IOCTL_SYNC) is *always*
-> -   used when the access happens. This is discussed next paragraphs.
-> +   used when the access happens. Note that DMA_BUF_IOCTL_SYNC can fail with
-> +   -EAGAIN or -EINTR, in which case it must be restarted.
->
->      Some systems might need some sort of cache coherency management e.g. when
->      CPU and GPU domains are being accessed through dma-buf at the same time. To
-> @@ -366,10 +367,10 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
->          want (with the new data being consumed by the GPU or say scanout device)
->        - munmap once you don't need the buffer any more
->
-> -    Therefore, for correctness and optimal performance, systems with the memory
-> -    cache shared by the GPU and CPU i.e. the "coherent" and also the
-> -    "incoherent" are always required to use SYNC_START and SYNC_END before and
-> -    after, respectively, when accessing the mapped address.
-> +    For correctness and optimal performance, it is always required to use
-> +    SYNC_START and SYNC_END before and after, respectively, when accessing the
-> +    mapped address. Userspace cannot rely on coherent access, even when there
-> +    are systems where it just works without calling these ioctls.
->
->   2. Supporting existing mmap interfaces in importers
->
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index 774a60f4309a..4a2c07ee6677 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -612,7 +612,7 @@ EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
->    * @dmabuf:	[in]	buffer to complete cpu access for.
->    * @direction:	[in]	length of range for cpu access.
->    *
-> - * This call must always succeed.
-> + * Can return negative error values, returns 0 on success.
->    */
->   int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
->   			   enum dma_data_direction direction)
->
+We might export it as two separate entities, one for the analog demod
+and another one for the HDMI receiver, but this doesn't seem right.
 
+So, at the end of the day, we'll need to support one entity that
+will have both analog TV demod and HDMI receiver on it, and we'll
+need the core or the userspace to know that such entity will have
+more PADs than a normal demod, and what types are associated with
+each pad number.
+
+Regards,
+Mauro
