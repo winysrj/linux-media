@@ -1,44 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34099 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753504AbcCBRRB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 12:17:01 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v2 3/9] adv7604: fix SPA register location for ADV7612
-Date: Wed,  2 Mar 2016 18:16:31 +0100
-Message-Id: <1456938997-29971-4-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1456938997-29971-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1456938997-29971-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45731 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751085AbcCBKep (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 05:34:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [RFC] Representing hardware connections via MC
+Date: Wed, 02 Mar 2016 12:34:42 +0200
+Message-ID: <1753279.MBUKgSvGQl@avalon>
+In-Reply-To: <20160226091317.5a07c374@recife.lan>
+References: <20160226091317.5a07c374@recife.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SPA location LSB register is at 0x70.
+Hi Mauro,
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/i2c/adv7604.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Thank you for the summary.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 2097c48..1680c0e 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2110,7 +2110,8 @@ static int adv76xx_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *edid)
- 		rep_write(sd, 0x76, spa_loc & 0xff);
- 		rep_write_clr_set(sd, 0x77, 0x40, (spa_loc & 0x100) >> 2);
- 	} else {
--		/* FIXME: Where is the SPA location LSB register ? */
-+		/* ADV7612 Software Manual Rev. A, p. 15 */
-+		rep_write(sd, 0x70, spa_loc & 0xff);
- 		rep_write_clr_set(sd, 0x71, 0x01, (spa_loc & 0x100) >> 8);
- 	}
- 
+On Friday 26 February 2016 09:13:17 Mauro Carvalho Chehab wrote:
+> We had some discussions on Feb, 12 about how to represent connectors via
+> the Media Controller:
+> 	https://linuxtv.org/irc/irclogger_log/v4l?date=2016-02-12,Fri&sel=31#l27
+> 
+> We tried to finish those discussions on the last two weeks, but people
+> doesn't seem to be available at the same time for the discussions. So,
+> let's proceed with the discussions via e-mail.
+> 
+> So, I'd like to do such discussions via e-mail, as we need to close
+> this question next week.
+> 
+> QUESTION:
+> ========
+> 
+> How to represent the hardware connection for inputs (and outputs) like:
+> 	- Composite TV video;
+> 	- stereo analog audio;
+> 	- S-Video;
+> 	- HDMI
+> 
+> Problem description:
+> ===================
+> 
+> During the MC summit last year, we decided to add an entity called
+> "connector" for such things. So, we added, so far, 3 types of
+> connectors:
+> 
+> #define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
+> #define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
+> #define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
+> 
+> However, while implementing it, we saw that the mapping on hardware
+> is actually more complex, as one physical connector may have multiple
+> signals with can eventually used on a different way.
+> 
+> One simple example of this is the S-Video connector. It has internally
+> two video streams, one for chrominance and another one for luminance.
+> 
+> It is very common for vendors to ship devices with a S-Video input
+> and a "S-Video to RCA" cable.
+> 
+> At the driver's level, drivers need to know if such cable is
+> plugged, as they need to configure a different input setting to
+> enable either S-Video or composite decoding.
+> 
+> So, the V4L2 API usually maps "S-Video" on a different input
+> than "Composite over S-Video". This can be seen, for example, at the
+> saa7134 driver, who gained recently support for MC.
+> 
+> Additionally, it is interesting to describe the physical aspects
+> of the connector (color, position, label, etc).
+> 
+> Proposal:
+> ========
+> 
+> It seems that there was an agreement that the physical aspects of
+> the connector should be mapped via the upcoming properties API,
+> with the properties present only when it is possible to find them
+> in the hardware.
+
+Agreed for most of them, I'm still unsure about the connector type, but that's 
+probably a detail.
+
+> So, it seems that all such properties should be optional.
+> 
+> However, we didn't finish the meeting, as we ran out of time. Yet,
+> I guess the last proposal there fulfills the requirements. So,
+> let's focus our discussions on it. So, let me formulate it as a
+> proposal
+> 
+> We should represent the entities based on the inputs. So, for the
+> already implemented entities, we'll have, instead:
+> 
+> #define MEDIA_ENT_F_INPUT_RF		(MEDIA_ENT_F_BASE + 10001)
+> #define MEDIA_ENT_F_INPUT_SVIDEO	(MEDIA_ENT_F_BASE + 10002)
+> #define MEDIA_ENT_F_INPUT_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
+> 
+> The MEDIA_ENT_F_INPUT_RF and MEDIA_ENT_F_INPUT_COMPOSITE will have
+> just one sink PAD each, as they carry just one signal. As we're
+> describing the logical input, it doesn't matter the physical
+> connector type. So, except for re-naming the define, nothing
+> changes for them.
+> 
+> Devices with S-Video input will have one MEDIA_ENT_F_INPUT_SVIDEO
+> per each different S-Video input. Each one will have two sink pads,
+> one for the Y signal and another for the C signal.
+> 
+> So, a device like Terratec AV350, that has one Composite and one
+> S-Video input[1] would be represented as:
+> 	https://mchehab.fedorapeople.org/terratec_av350-modified.png
+> 
+> 
+> [1] Physically, it has a SCART connector that could be enabled
+> via a physical switch, but logically, the device will still switch
+> from S-Video over SCART or composite over SCART.
+> 
+> More complex devices would be represented like:
+> 	https://hverkuil.home.xs4all.nl/adv7604.png
+> 	https://hverkuil.home.xs4all.nl/adv7842.png
+> 
+> NOTE:
+> 
+> The labels at the PADs currently can't be represented, but the
+> idea is adding it as a property via the upcoming properties API.
+
+Whether to add labels to pads, and more generically how to differentiate them 
+from userspace, is an interesting question. I'd like to decouple it from the 
+connectors entities discussion if possible, in such a way that using labels 
+wouldn't be required to leave the discussion open on that topic. If we foresee 
+a dependency on labels for pads then we should open that discussion now.
+
+> Anyone disagree?
+
+I'll reply one of the later mails in this thread in a minute about this to 
+capture Javier and Hans' inputs.
+
 -- 
-2.6.4
+Regards,
+
+Laurent Pinchart
 
