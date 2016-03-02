@@ -1,57 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:26547 "EHLO
-	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752592AbcCROQl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 10:16:41 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv13 02/17] dts: exynos4: add node for the HDMI CEC device
-Date: Fri, 18 Mar 2016 15:07:01 +0100
-Message-Id: <1458310036-19252-3-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
-References: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
+Received: from mout.kundenserver.de ([217.72.192.74]:57736 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754316AbcCBQBG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 11:01:06 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org,
+	Arnd Bergmann <arnd@arndb.de>, herbert@gondor.apana.org.au,
+	k.kozlowski@samsung.com, dan.j.williams@intel.com,
+	vinod.koul@intel.com, baohua@kernel.org, dmitry.torokhov@gmail.com,
+	tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com,
+	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	lee.jones@linaro.org, kvalo@codeaurora.org,
+	ludovic.desroches@atmel.com, linus.walleij@linaro.org,
+	sre@kernel.org, dbaryshkov@gmail.com, JBottomley@odin.com,
+	martin.petersen@oracle.com, broonie@kernel.org,
+	linux-crypto@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
+	linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-rockchip@lists.infradead.org
+Subject: [PATCH 00/14] drivers: use __maybe_unused to hide pm functions
+Date: Wed,  2 Mar 2016 16:58:52 +0100
+Message-Id: <1456934350-1389172-1-git-send-email-arnd@arndb.de>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+I found many variations of the bug in these device drivers (and some
+USB drivers I already send patches for in a separate series).
 
-This patch adds HDMI CEC node specific to the Exynos4210/4x12 SoC series.
+In each case, the power management operations structure conditionally
+references suspend/resume functions, but the functions are hidden
+in an incorrect #ifdef or not hidden at all.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- arch/arm/boot/dts/exynos4.dtsi | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+We could try to correct the #ifdefs, but it seems easier to just
+mark those functions as __maybe_unused, which has the same effect
+but provides better compile-time test coverage and (subjectively)
+looks a bit nicer.
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 045785c..8913408 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -751,6 +751,18 @@
- 		status = "disabled";
- 	};
- 
-+	hdmicec: cec@100B0000 {
-+		compatible = "samsung,s5p-cec";
-+		reg = <0x100B0000 0x200>;
-+		interrupts = <0 114 0>;
-+		clocks = <&clock CLK_HDMI_CEC>;
-+		clock-names = "hdmicec";
-+		samsung,syscon-phandle = <&pmu_system_controller>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&hdmi_cec>;
-+		status = "disabled";
-+	};
-+
- 	mixer: mixer@12C10000 {
- 		compatible = "samsung,exynos4210-mixer";
- 		interrupts = <0 91 0>;
+I have a patch series that avoids all warnings in ARM randconfig
+builds, and I have verified that all these patches fix a warning that
+is still present in today's linux-next, and that they do not
+introduce new warnings in any configuration I found.
+
+Note that all these drivers are ARM specific, so I assume that
+all portable drivers got fixed already when someone rand into
+the problem on x86.
+
+There are no dependencies between the patches, so I'd appreciate
+subsystem maintainers to put them directly into their git trees.
+
+	Arnd
+
+Arnd Bergmann (14):
+  pinctrl: at91: use __maybe_unused to hide pm functions
+  irqchip: st: use __maybe_unused to hide st_irq_syscfg_resume
+  power: ipaq-micro-battery: use __maybe_unused to hide pm functions
+  power: pm2301-charger: use __maybe_unused to hide pm functions
+  mfd: ipaq-micro: use __maybe_unused to hide pm functions
+  dma: sirf: use __maybe_unused to hide pm functions
+  hw_random: exynos: use __maybe_unused to hide pm functions
+  scsi: mvumi: use __maybe_unused to hide pm functions
+  amd-xgbe: use __maybe_unused to hide pm functions
+  wireless: cw1200: use __maybe_unused to hide pm functions_
+  input: spear-keyboard: use __maybe_unused to hide pm functions
+  keyboard: snvs-pwrkey: use __maybe_unused to hide pm functions
+  [media] omap3isp: use IS_ENABLED() to hide pm functions
+  ASoC: rockchip: use __maybe_unused to hide st_irq_syscfg_resume
+
+ drivers/char/hw_random/exynos-rng.c         | 10 ++++------
+ drivers/dma/sirf-dma.c                      | 10 ++++------
+ drivers/input/keyboard/snvs_pwrkey.c        |  4 ++--
+ drivers/input/keyboard/spear-keyboard.c     |  6 ++----
+ drivers/irqchip/irq-st.c                    |  2 +-
+ drivers/media/platform/omap3isp/isp.c       | 13 +------------
+ drivers/mfd/ipaq-micro.c                    |  2 +-
+ drivers/net/ethernet/amd/xgbe/xgbe-main.c   |  6 ++----
+ drivers/net/wireless/st/cw1200/cw1200_spi.c |  9 ++-------
+ drivers/net/wireless/st/cw1200/pm.h         |  9 +++++++--
+ drivers/pinctrl/pinctrl-at91-pio4.c         |  4 ++--
+ drivers/power/ipaq_micro_battery.c          |  4 ++--
+ drivers/power/pm2301_charger.c              | 22 ++++++----------------
+ drivers/scsi/mvumi.c                        |  4 ++--
+ sound/soc/rockchip/rockchip_spdif.c         |  4 ++--
+ 15 files changed, 40 insertions(+), 69 deletions(-)
+
 -- 
 2.7.0
-
+Cc: herbert@gondor.apana.org.au
+Cc: k.kozlowski@samsung.com
+Cc: dan.j.williams@intel.com
+Cc: vinod.koul@intel.com
+Cc: baohua@kernel.org
+Cc: dmitry.torokhov@gmail.com
+Cc: tglx@linutronix.de
+Cc: jason@lakedaemon.net
+Cc: marc.zyngier@arm.com
+Cc: laurent.pinchart@ideasonboard.com
+Cc: mchehab@osg.samsung.com
+Cc: lee.jones@linaro.org
+Cc: kvalo@codeaurora.org
+Cc: ludovic.desroches@atmel.com
+Cc: linus.walleij@linaro.org
+Cc: sre@kernel.org
+Cc: dbaryshkov@gmail.com
+Cc: JBottomley@odin.com
+Cc: martin.petersen@oracle.com
+Cc: broonie@kernel.org
+Cc: linux-crypto@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-samsung-soc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: dmaengine@vger.kernel.org
+Cc: linux-input@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: linux-wireless@vger.kernel.org
+Cc: linux-gpio@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
+Cc: linux-scsi@vger.kernel.org
+Cc: alsa-devel@alsa-project.org
+Cc: linux-rockchip@lists.infradead.org
