@@ -1,125 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57701 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750777AbcCDMHN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 07:07:13 -0500
-Message-ID: <1457093229.2782.9.camel@xs4all.nl>
-Subject: Re: DVBSky T980C CI issues (kernel 4.0.x)
-From: Jurgen Kramer <gtmkramer@xs4all.nl>
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Fri, 04 Mar 2016 13:07:09 +0100
-In-Reply-To: <CAAZRmGzCY+foBG2rnDYj6fHewCpj3m-ucDF_5McaUpmuEDyCVQ@mail.gmail.com>
-References: <1436697509.2446.14.camel@xs4all.nl>
-	 <1440352250.13381.3.camel@xs4all.nl> <55F332FE.7040201@mbox200.swipnet.se>
-	 <1442041326.2442.2.camel@xs4all.nl>
-	 <CAAZRmGxvrXjanCTcd0Ybk-qzHhqO5e6JhrpSWxNXSa+zzPsdUg@mail.gmail.com>
-	 <1454007436.13371.4.camel@xs4all.nl>
-	 <CAAZRmGwuinufZpCpTs8t+BRyTcfio-4z34PCKH7Ha3J+dxXNqw@mail.gmail.com>
-	 <56ADCBE4.6050609@mbox200.swipnet.se>
-	 <CAAZRmGy21S+qkrC9d0hz02J98woUc9p+LtnhK8Det=yWmb_myg@mail.gmail.com>
-	 <56C88CEB.3080907@mbox200.swipnet.se> <1455988859.21645.6.camel@xs4all.nl>
-	 <CAAZRmGwME6Mb+HAtd5nwPxc9RJi-XdTbS_Cfn1P1LOi0Y2UYZg@mail.gmail.com>
-	 <1457079352.2782.3.camel@xs4all.nl>
-	 <CAAZRmGzCY+foBG2rnDYj6fHewCpj3m-ucDF_5McaUpmuEDyCVQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34189 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753504AbcCBRRJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 12:17:09 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
+	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
+	lars@metafoo.de, william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v2 7/9] media: rcar-vin: initialize EDID data
+Date: Wed,  2 Mar 2016 18:16:35 +0100
+Message-Id: <1456938997-29971-8-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1456938997-29971-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1456938997-29971-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Olli,
+Initializes the decoder subdevice with a fixed EDID blob.
 
-On Fri, 2016-03-04 at 10:28 +0200, Olli Salonen wrote:
-> Hi Jurgen,
-> 
-> Ah, that's interesting. My T980C (and based on printout from Torbjörn
-> his as well) have Si2168-A20 chips.
-> 
-> Some things I'd like to understand:
-> - is there a difference if the CI slot is populated or not?
-Not sure, will test
-> - is there any difference between the different firmwares?
-I'll check the second newer one.
-> - does it work with the DVBSky provided driver?
-Will test this as well (dvbv5-scan)
-> - when you say it doesn't work, is the issue that the demodulator
-> does
-> not lock on the DVB-T2 muxes?
-I am using DVB-C, I do not have issues with tuning. Only dvbv5-scan
-does not work.
-> 
-> Two different firmwares for A30 chip:
-> https://github.com/OpenELEC/dvb-firmware/blob/18b12de1f57b3c70a681983
-> 638989f94590b19f1/firmware/dvb-demod-si2168-a30-01.fw?raw=true
-> https://github.com/OpenELEC/dvb-firmware/raw/dc7cf270e328de144e75a30d
-> 970b6e147e8bcb6e/firmware/dvb-demod-si2168-a30-01.fw
-> 
-> I think the second one is newer, but don't have the means to verify
-> right now...
-I am currently using the first one.
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 46 ++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-What about the si2158?
-[  121.771582] si2157 10-0060: found a 'Silicon Labs Si2158-A20'
-[  121.794158] si2157 10-0060: downloading firmware from file 'dvb-
-tuner-si2158-a20-01.fw'
-[  122.594826] si2157 10-0060: firmware version: 2.1.6
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 4596eda..f5d93bc 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -1070,6 +1070,41 @@ error:
+ 	return ret;
+ }
+ 
++static u8 edid[256] = {
++	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
++	0x48, 0xAE, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
++	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
++	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
++	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
++	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
++	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
++	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
++	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
++	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
++	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
++	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
++	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
++	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
++	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
++	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
++	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
++	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
++	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
++	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
++};
++
+ int rvin_dma_on(struct rvin_dev *vin)
+ {
+ 	struct v4l2_subdev *sd;
+@@ -1159,6 +1194,17 @@ int rvin_dma_on(struct rvin_dev *vin)
+ 	v4l2_info(&vin->v4l2_dev, "Device registered as /dev/video%d\n",
+ 		  vin->vdev.num);
+ 
++	{
++		struct v4l2_subdev_edid rvin_edid = {
++			.pad = 0,
++			.start_block = 0,
++			.blocks = 2,
++			.edid = edid,
++		};
++		v4l2_subdev_call(sd, pad, set_edid,
++				&rvin_edid);
++	}
++
+ remove_device:
+ 	rvin_remove_device(vin);
+ 
+-- 
+2.6.4
 
-Bye,
-Jurgen
-
-> 
-> Cheers,
-> -olli
-> 
-> On 4 March 2016 at 10:15, Jurgen Kramer <gtmkramer@xs4all.nl> wrote:
-> > 
-> > Hi Olli,
-> > 
-> > On Thu, 2016-03-03 at 13:02 +0200, Olli Salonen wrote:
-> > > 
-> > > Hi Jurgen, Torbjörn,
-> > > 
-> > > I've noticed that there is currently a small confusion about the
-> > > firmware versions for the Si2168-A20 demodulator. This is used in
-> > > the
-> > > older versions of DVBSky T680C (TechnoTrend CT2-4650 CI) and
-> > > DVBSky
-> > > T980C (TechnoTrend CT2-4500 CI).
-> > > 
-> > > The version 2.0.5 does not support PLP handling and seems to work
-> > > very
-> > > badly with the Linux driver - at least for me. Version 2.0.35 on
-> > > the
-> > > other hand seems to find all DVB-T/T2 channels for me just fine
-> > > with
-> > > both dvbv5-scan and w_scan (devices used for this test:
-> > > TechnoTrend
-> > > CT2-4650 CI and TechnoTrend CT2-4500 CI new version).
-> > > 
-> > > Versions used:
-> > > dvbv5-scan version 1.7.0
-> > > w_scan version 20150111 (compiled for DVB API 5.10)
-> > > 
-> > > So if you are running these Si2168-A20 based devices, make sure
-> > > you've
-> > > got the firmware 2.0.35 that can be downloaded for example here:
-> > > http://palosaari.fi/linux/v4l-dvb/firmware/Si2168/Si2168-A20/32e0
-> > > 6713
-> > > b33915f674bfb2c209beaea5/
-> > It seems my TC980Cs have Si2168-A30's on board
-> > 
-> > [  118.526665] si2168 8-0064: found a 'Silicon Labs Si2168-A30'
-> > [  118.640642] si2168 8-0064: downloading firmware from file 'dvb-
-> > demod-si2168-a30-01.fw'
-> > [  121.762983] si2168 8-0064: firmware version: 3.0.16
-> > 
-> > dvbv5_scan does not work me.
-> > sha1sum for this firmware is:
-> > 59a0b90703d65229fb2589b52834ca68d1e96ad9  dvb-demod-si2168-a30-
-> > 01.fw
-> > 
-> > Jurgen
-> > 
