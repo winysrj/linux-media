@@ -1,41 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:45301 "EHLO ni.piap.pl"
+Received: from lists.s-osg.org ([54.187.51.154]:57505 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753354AbcCJHQw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2016 02:16:52 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: tw686x driver
-References: <56D6A50F.4060404@xs4all.nl> <m3povcnjfo.fsf@t19.piap.pl>
-	<56D7E87B.1080505@xs4all.nl> <m3lh5zohsf.fsf@t19.piap.pl>
-	<56D83E16.1010907@xs4all.nl> <m3h9gnod3t.fsf@t19.piap.pl>
-	<56D84CA7.4050800@xs4all.nl> <m3d1raojqq.fsf@t19.piap.pl>
-	<56D96D77.4060707@xs4all.nl> <m34mcmo1vj.fsf@t19.piap.pl>
-	<56D99058.2030302@xs4all.nl>
-Date: Thu, 10 Mar 2016 08:16:47 +0100
-In-Reply-To: <56D99058.2030302@xs4all.nl> (Hans Verkuil's message of "Fri, 4
-	Mar 2016 14:40:40 +0100")
-Message-ID: <m3shzyls4g.fsf@t19.piap.pl>
+	id S1752358AbcCBQYp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Mar 2016 11:24:45 -0500
+Subject: Re: [RFC] Representing hardware connections via MC
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+References: <20160226091317.5a07c374@recife.lan>
+ <20160302141643.GH11084@valkosipuli.retiisi.org.uk>
+ <20160302124029.0e6cee85@recife.lan> <20160302130409.60df670f@recife.lan>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Message-ID: <56D713C6.2040707@osg.samsung.com>
+Date: Wed, 2 Mar 2016 13:24:38 -0300
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20160302130409.60df670f@recife.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+Hello Mauro,
 
-> Heck, if you prefer your driver can be added to staging first, then Ezequiel's
-> driver commit can directly refer to the staging driver as being derived from it.
+On 03/02/2016 01:04 PM, Mauro Carvalho Chehab wrote:
+> Em Wed, 2 Mar 2016 12:40:29 -0300
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+>
+>> After all the discussions, I guess "CONN" for connection is the best way
+>> to represent it.
+>
 
-Ok, I guess it's fair enough for me. Would you like me to send a patch
-with paths changed to staging/?
+I agree, after all in the latest proposal, the entity is really a connection
+(or set of connections as for example in a S-Video with separate Y and C)
+and the pads are the ones modeling the carrying signals.
 
+Just some small typos mentioned below.
 
-However I'm not sure if Greg will like it - staging was meant for code
-not otherwise ready for mainline. Not a place for alternate drivers.
+> Better to put it on a patch.
+>
+> Please review.
+>
+> Regards,
+> Mauro
+>
+> [media] Better define MEDIA_ENT_F_CONN_* entities
+>
+> Putting concepts in a paper is hard, specially since different people
+> may interpret it in a different way.
+>
+> Make clear about the meaning of the MEDIA_ENT_F_CONN_* entities
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>
+> diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
+> index 5e3f20fdcf17..b036e6103949 100644
+> --- a/Documentation/DocBook/media/v4l/media-types.xml
+> +++ b/Documentation/DocBook/media/v4l/media-types.xml
+> @@ -46,15 +46,26 @@
+>   	  </row>
+>   	  <row>
+>   	    <entry><constant>MEDIA_ENT_F_CONN_RF</constant></entry>
+> -	    <entry>Connector for a Radio Frequency (RF) signal.</entry>
+> +	    <entry>Entity representing the logical connection associated with a
+> +		    single Radio Frequency (RF) signal connector. It
+> +		    corresponds to the logical input or output associated
+> +		    with the RF signal.</entry>
+>   	  </row>
+>   	  <row>
+>   	    <entry><constant>MEDIA_ENT_F_CONN_SVIDEO</constant></entry>
+> -	    <entry>Connector for a S-Video signal.</entry>
+> +	    <entry>Entity representing the logical connection assowiated
+
+s/assowiated/associated
+
+> +		    with a sigle S-Video connector. Such entity should have
+> +		    two pads, one for the luminance signal(Y) and one
+> +		    for the chrominance signal (C). It corresponds to the
+
+s/luminance signal(Y)/luminance signal (Y)
+
+> +		    logical input or output associated with S-Video Y and C
+> +		    signals.</entry>
+>   	  </row>
+>   	  <row>
+>   	    <entry><constant>MEDIA_ENT_F_CONN_COMPOSITE</constant></entry>
+> -	    <entry>Connector for a RGB composite signal.</entry>
+> +	    <entry>Entity representing the logical connection for a composite
+> +		    signal. It corresponds to the logical input or output
+> +		    associated with the a single signal that carries both
+
+s/a/
+
+> +		    chrominance and luminance information (Y+C).</entry>
+>   	  </row>
+>   	  <row>
+>   	    <entry><constant>MEDIA_ENT_F_CAM_SENSOR</constant></entry>
+>
+
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Best regards,
 -- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
