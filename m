@@ -1,82 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44767 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753480AbcCAOQw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 09:16:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/5] v4l2: add device_caps to struct video_device
-Date: Tue, 01 Mar 2016 16:16:59 +0200
-Message-ID: <1944635.GBfyVlzrOX@avalon>
-In-Reply-To: <1456746345-1431-2-git-send-email-hverkuil@xs4all.nl>
-References: <1456746345-1431-1-git-send-email-hverkuil@xs4all.nl> <1456746345-1431-2-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:57108 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752873AbcCBMcc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Mar 2016 07:32:32 -0500
+Date: Wed, 2 Mar 2016 09:32:26 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [RFC] Representing hardware connections via MC
+Message-ID: <20160302093226.260bfe00@recife.lan>
+In-Reply-To: <1736605.4kGg8lYGrV@avalon>
+References: <20160226091317.5a07c374@recife.lan>
+	<1753279.MBUKgSvGQl@avalon>
+	<20160302081323.36eddba5@recife.lan>
+	<1736605.4kGg8lYGrV@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Wed, 02 Mar 2016 13:16:47 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Thank you for the patch.
+> Hi Mauro,
+> 
+> On Wednesday 02 March 2016 08:13:23 Mauro Carvalho Chehab wrote:
+> > Em Wed, 02 Mar 2016 12:34:42 +0200 Laurent Pinchart escreveu:  
+> > > On Friday 26 February 2016 09:13:17 Mauro Carvalho Chehab wrote:  
+> 
+> [snip]
+> 
+> > >> NOTE:
+> > >> 
+> > >> The labels at the PADs currently can't be represented, but the
+> > >> idea is adding it as a property via the upcoming properties API.  
+> > > 
+> > > Whether to add labels to pads, and more generically how to differentiate
+> > > them from userspace, is an interesting question. I'd like to decouple it
+> > > from the connectors entities discussion if possible, in such a way that
+> > > using labels wouldn't be required to leave the discussion open on that
+> > > topic. If we foresee a dependency on labels for pads then we should open
+> > > that discussion now.  
+> >
+> > We can postpone such discussion. PAD labels are not needed for
+> > what we have so far (RF, Composite, S-Video). Still, I think that
+> > we'll need it by the time we add connector support for more complex
+> > connector types, like HDMI.  
+> 
+> If we don't add pad labels now then they should be optional for future 
+> connectors too, including HDMI.
 
-On Monday 29 February 2016 12:45:41 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Instead of letting drivers fill in device_caps at querycap time,
-> let them fill it in when the video device is registered.
-> 
-> This has the advantage that in the future the v4l2 core can access
-> the video device's capabilities and take decisions based on that.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Why? Future features will require future discussions. We can't
+foresee all future needs without having someone actually working
+to implement the code that would support such feature.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Also, we can't add now anything using the media properties API without
+having the patches for it.
 
-I've acked the first three patches, could you get them merged through your 
-tree ? I'll incorporate patch 4 in my media entity type series and post patch 
-5 rebased on top of it.
+Sakari,
 
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
->  include/media/v4l2-dev.h             | 3 +++
->  2 files changed, 6 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> b/drivers/media/v4l2-core/v4l2-ioctl.c index 86c4c19..706bb42 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1020,9 +1020,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops
-> *ops, struct file *file, void *fh, void *arg)
->  {
->  	struct v4l2_capability *cap = (struct v4l2_capability *)arg;
-> +	struct video_device *vfd = video_devdata(file);
->  	int ret;
-> 
->  	cap->version = LINUX_VERSION_CODE;
-> +	cap->device_caps = vfd->device_caps;
-> +	cap->capabilities = vfd->device_caps | V4L2_CAP_DEVICE_CAPS;
-> 
->  	ret = ops->vidioc_querycap(file, fh, cap);
-> 
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index 76056ab..25a3190 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -92,6 +92,9 @@ struct video_device
->  	/* device ops */
->  	const struct v4l2_file_operations *fops;
-> 
-> +	/* device capabilities as used in v4l2_capabilities */
-> +	u32 device_caps;
-> +
->  	/* sysfs */
->  	struct device dev;		/* v4l device */
->  	struct cdev *cdev;		/* character device */
+When you'll have the media property API patches ready for us to test?
 
--- 
+> If you think that HDMI connectors will require 
+> them then we should discuss them now.
+> 
+
+I'm ok if you want to start discussing the future needs earlier. 
+I already answered why I think this will be needed on a previous
+e-mail.
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
