@@ -1,41 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp09.smtpout.orange.fr ([80.12.242.131]:33680 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932479AbcCHLF7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 06:05:59 -0500
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: videobuf2-dma-sg and multiple planes semantics
-References: <87y49uuu21.fsf@belgarion.home> <87twkiupnf.fsf@belgarion.home>
-	<56DE9DBD.8010203@xs4all.nl>
-Date: Tue, 08 Mar 2016 12:05:53 +0100
-In-Reply-To: <56DE9DBD.8010203@xs4all.nl> (Hans Verkuil's message of "Tue, 8
-	Mar 2016 10:39:09 +0100")
-Message-ID: <877fhdgrfy.fsf@belgarion.home>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from nautilus.laiva.org ([62.142.120.74]:55161 "EHLO
+	nautilus.laiva.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362AbcCBLNN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 06:13:13 -0500
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 2/2] dw2102: add support for TeVii S662
+Date: Wed,  2 Mar 2016 13:06:06 +0200
+Message-Id: <1456916766-28165-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1456916766-28165-1-git-send-email-olli.salonen@iki.fi>
+References: <1456916766-28165-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+TeVii S662 is a USB 2.0 DVB-S2 tuner that's identical to TechnoTrend
+S2-4600 tuner. Add the USB ID to dw2102 driver.
 
-> Hi Robert,
->
-> In the case of PIX_FMT_YUV422P there is only *one* buffer and the planes are laid out in
-> that single buffer. So from the point of view of v4l2/vb2 this is a single planar
-> format and you have a single sglist.h
-That's the piece of information I was missing, thanks.
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/usb/dvb-usb/dw2102.c |   23 +++++++++++++++++------
+ 1 files changed, 17 insertions(+), 6 deletions(-)
 
-> You'll have to use sg_split() to split up that single large sglist into three, one for
-> each channel.
-Yeah, being the author of it, I should be able to use it again :)
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 8fd1aae..aa9a203 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -1,9 +1,10 @@
+ /* DVB USB framework compliant Linux driver for the
+  *	DVBWorld DVB-S 2101, 2102, DVB-S2 2104, DVB-C 3101,
+- *	TeVii S600, S630, S650, S660, S480, S421, S632
++ *	TeVii S421, S480, S482, S600, S630, S632, S650, S660, S662,
+  *	Prof 1100, 7500,
+  *	Geniatech SU3000, T220,
+- *	TechnoTrend S2-4600 Cards
++ *	TechnoTrend S2-4600,
++ *	Terratec Cinergy S2 cards
+  * Copyright (C) 2008-2012 Igor M. Liplianin (liplianin@me.by)
+  *
+  *	This program is free software; you can redistribute it and/or modify it
+@@ -65,6 +66,10 @@
+ #define USB_PID_TEVII_S660 0xd660
+ #endif
+ 
++#ifndef USB_PID_TEVII_S662
++#define USB_PID_TEVII_S662 0xd662
++#endif
++
+ #ifndef USB_PID_TEVII_S480_1
+ #define USB_PID_TEVII_S480_1 0xd481
+ #endif
+@@ -1688,6 +1693,7 @@ enum dw2102_table_entry {
+ 	TEVII_S482_1,
+ 	TEVII_S482_2,
+ 	TERRATEC_CINERGY_S2_BOX,
++	TEVII_S662
+ };
+ 
+ static struct usb_device_id dw2102_table[] = {
+@@ -1716,6 +1722,7 @@ static struct usb_device_id dw2102_table[] = {
+ 	[TEVII_S482_1] = {USB_DEVICE(0x9022, 0xd483)},
+ 	[TEVII_S482_2] = {USB_DEVICE(0x9022, 0xd484)},
+ 	[TERRATEC_CINERGY_S2_BOX] = {USB_DEVICE(USB_VID_TERRATEC, 0x0105)},
++	[TEVII_S662] = {USB_DEVICE(0x9022, USB_PID_TEVII_S662)},
+ 	{ }
+ };
+ 
+@@ -2233,7 +2240,7 @@ static struct dvb_usb_device_properties tt_s2_4600_properties = {
+ 		} },
+ 		}
+ 	},
+-	.num_device_descs = 4,
++	.num_device_descs = 5,
+ 	.devices = {
+ 		{ "TechnoTrend TT-connect S2-4600",
+ 			{ &dw2102_table[TECHNOTREND_S2_4600], NULL },
+@@ -2251,6 +2258,10 @@ static struct dvb_usb_device_properties tt_s2_4600_properties = {
+ 			{ &dw2102_table[TERRATEC_CINERGY_S2_BOX], NULL },
+ 			{ NULL },
+ 		},
++		{ "TeVii S662",
++			{ &dw2102_table[TEVII_S662], NULL },
++			{ NULL },
++		},
+ 	}
+ };
+ 
+@@ -2364,10 +2375,10 @@ module_usb_driver(dw2102_driver);
+ MODULE_AUTHOR("Igor M. Liplianin (c) liplianin@me.by");
+ MODULE_DESCRIPTION("Driver for DVBWorld DVB-S 2101, 2102, DVB-S2 2104,"
+ 			" DVB-C 3101 USB2.0,"
+-			" TeVii S600, S630, S650, S660, S480, S421, S632"
+-			" Prof 1100, 7500 USB2.0,"
++			" TeVii S421, S480, S482, S600, S630, S632, S650,"
++			" TeVii S660, S662, Prof 1100, 7500 USB2.0,"
+ 			" Geniatech SU3000, T220,"
+-			" TechnoTrend S2-4600 devices");
++			" TechnoTrend S2-4600, Terratec Cinergy S2 devices");
+ MODULE_VERSION("0.1");
+ MODULE_LICENSE("GPL");
+ MODULE_FIRMWARE(DW2101_FIRMWARE);
+-- 
+1.7.0.4
 
-Cheers.
-
---
-Robert
