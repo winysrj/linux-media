@@ -1,44 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:56962 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751090AbcCDHqz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 02:46:55 -0500
-From: Jani Nikula <jani.nikula@intel.com>
-To: Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-In-Reply-To: <1457076530.13171.13.camel@winder.org.uk>
-References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com> <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan> <86egbrm9hw.fsf@hiro.keithp.com> <1457076530.13171.13.camel@winder.org.uk>
-Date: Fri, 04 Mar 2016 09:46:48 +0200
-Message-ID: <87vb52r8gn.fsf@intel.com>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:34637 "EHLO
+	mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751334AbcCCMfS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 07:35:18 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20160303123343.GB5687@earth>
+References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+	<1456992221-26712-12-git-send-email-k.kozlowski@samsung.com>
+	<5230562.E0gg2SNP0m@wuerfel>
+	<20160303123343.GB5687@earth>
+Date: Thu, 3 Mar 2016 21:35:17 +0900
+Message-ID: <CAJKOXPdp=n43=foh2y-zNUnuVOmk0qK8AxjriO5Hnq-ANgpM8w@mail.gmail.com>
+Subject: Re: [rtc-linux] Re: [RFC 11/15] power: reset: keystone: Add missing
+ MFD_SYSCON dependency on HAS_IOMEM
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: rtc-linux@googlegroups.com
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Alessandro Zummo <a.zummo@towertech.it>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	David Brown <david.brown@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-samsun@comu.ring0.de,
+	g-soc@vger.kernel.org, netdev@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
+	linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
+	Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 04 Mar 2016, Russel Winder <russel@winder.org.uk> wrote:
-> On Thu, 2016-03-03 at 15:23 -0800, Keith Packard wrote:
->>   1) the python version (asciidoc) appears to have been abandoned in
->>      favor of the ruby version. 
+2016-03-03 21:33 GMT+09:00 Sebastian Reichel <sre@kernel.org>:
+> Hi,
 >
-> This is I think true, however the Java-based tool chain Asciidoctor is
-> I believe the standard bearer for ASCIIdoc these days, albeit called
-> ASCIIdoctor.
+> On Thu, Mar 03, 2016 at 12:00:14PM +0100, Arnd Bergmann wrote:
+>> On Thursday 03 March 2016 17:03:37 Krzysztof Kozlowski wrote:
+>> > diff --git a/drivers/power/reset/Kconfig b/drivers/power/reset/Kconfig
+>> > index 0a6408a39c66..0f34846ae80d 100644
+>> > --- a/drivers/power/reset/Kconfig
+>> > +++ b/drivers/power/reset/Kconfig
+>> > @@ -141,6 +141,7 @@ config POWER_RESET_XGENE
+>> >  config POWER_RESET_KEYSTONE
+>> >         bool "Keystone reset driver"
+>> >         depends on ARCH_KEYSTONE
+>> > +       depends on HAS_IOMEM    # For MFD_SYSCON
+>> >         select MFD_SYSCON
+>> >         help
+>> >           Reboot support for the KEYSTONE SoCs.
+>> >
+>>
+>> This is platform specific, but we should probably add || COMPILE_TEST
+>> along with the HAS_IOMEM dependency.
+>
+> Sounds sensible. Will you guys send an updated patch?
+>
 
-If we're talking about the same asciidoctor (http://asciidoctor.org/)
-it's written in ruby but you can apparently run it in JVM using
-JRuby. Calling it Java-based is misleading.
+Sure, I'll make some compile tests and send a v2.
 
-BR,
-Jani.
-
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+Best regards,
+Krzysztof
