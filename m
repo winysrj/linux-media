@@ -1,214 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34290 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751633AbcCCSwF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 13:52:05 -0500
-Date: Thu, 3 Mar 2016 15:52:00 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Heiner Kallweit <hkallweit1@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [git:media_tree/master] [media] media: rc: nuvoton: support
- reading / writing wakeup sequence via sysfs
-Message-ID: <20160303155200.43d4c5e7@recife.lan>
-In-Reply-To: <56D87FE9.4000408@gmail.com>
-References: <E1abRXi-00035h-0E@www.linuxtv.org>
-	<56D87FE9.4000408@gmail.com>
+Received: from relay1.mentorg.com ([192.94.38.131]:62289 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754801AbcCCCDA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 21:03:00 -0500
+Subject: Re: i.mx6 camera interface (CSI) and mainline kernel
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Philippe De Muyter <phdm@macq.eu>
+References: <20160223114943.GA10944@frolo.macqel>
+ <20160223141258.GA5097@frolo.macqel> <4956050.OLrYA1VK2G@avalon>
+CC: <linux-media@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <56D79B49.50009@mentor.com>
+Date: Wed, 2 Mar 2016 18:02:49 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <4956050.OLrYA1VK2G@avalon>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 03 Mar 2016 19:18:17 +0100
-Heiner Kallweit <hkallweit1@gmail.com> escreveu:
+On 02/25/2016 02:05 PM, Laurent Pinchart wrote:
+> Hello Philippe,
+>
+> CC'ing Philipp and Steve.
+>
+> Philipp, Steve, are you still interested in getting a driver for the i.MX6 
+> camera interface upstreamed ?
 
-> Am 03.03.2016 um 12:28 schrieb Mauro Carvalho Chehab:
-> > This is an automatic generated email to let you know that the following patch were queued at the 
-> > http://git.linuxtv.org/cgit.cgi/media_tree.git tree:
-> > 
-> > Subject: [media] media: rc: nuvoton: support reading / writing wakeup sequence via sysfs
-> > Author:  Heiner Kallweit <hkallweit1@gmail.com>
-> > Date:    Mon Feb 8 17:25:59 2016 -0200
-> > 
-> > This patch adds a binary attribute /sys/class/rc/rc?/wakeup_data which
-> > allows to read / write the wakeup sequence.
-> >   
-> When working on another module I was reminded not to forget updating Documentation/ABI.
-> I think the same applies here. This patch introduces a new sysfs attribute that should
-> be documented. I'll submit a patch for adding Documentation/ABI/testing/sysfs-class-rc-nuvoton
+Hi Laurent, Philippe(s),
 
-Good point.
+I spent a few days updating my mx6-media-staging branch at
+git@github.com:slongerbeam/linux-meibp-314.git, moved forward
+to latest master at 4.5-rc3.
 
-Another thing: wouldn't be better to use a text format? This would make
-esier to import from LIRC's irrecord format:
+So far I have retested video capture with the SabreAuto/ADV7180 and
+the SabreSD/OV5640-mipi-csi2, and video capture is working fine on
+those platforms.
 
-      begin raw_codes
+There is also a mem2mem that should work fine, but haven't tested yet.
 
-          name power
-              850     900    1750    1800     850     900
-              850     900    1750     900     850    1800
-              850     900     850     900     850     900
-             1750    1800     800
+I removed camera preview support. At Mentor Graphics we have made
+quite a few changes to ipu-v3 driver to allow camera preview to initialize
+and control an overlay display plane independently of imx-drm, by adding
+a subsystem independent ipu-plane sub-unit. Note we also have a video
+output overlay driver that also makes use of ipu-plane. But those changes are
+extensive and touch imx-drm as well as ipu-v3, so I am leaving camera preview
+and the output overlay driver out (in fact, camera preview is not of much
+utility so I probably won't bring it back in upstream version).
 
-      end raw_codes
+The video capture driver is not quite ready for upstream review yet. It still:
 
-Regards,
-Mauro
+- uses the old cropping APIs but should move forward to selection APIs.
 
-> 
-> Rgds, Heiner
-> 
-> > In combination with the core extension for exposing the most recent raw
-> > packet this allows to easily define and set a wakeup sequence.
-> > 
-> > At least on my Zotac CI321 the BIOS resets the wakeup sequence at each boot
-> > to a factory default. Therefore I use a udev rule
-> > SUBSYSTEM=="rc", DRIVERS=="nuvoton-cir", ACTION=="add", RUN+="<script>"
-> > with the script basically doing
-> > cat <stored wakeup sequence> >/sys${DEVPATH}/wakeup_data
-> > 
-> > Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> >  drivers/media/rc/nuvoton-cir.c | 85 ++++++++++++++++++++++++++++++++++++++++++
-> >  drivers/media/rc/nuvoton-cir.h |  3 ++
-> >  2 files changed, 88 insertions(+)
-> > 
-> > ---
-> > 
-> > http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?id=449c1fcd86f5077d5076a955e65c07a7c4cbbf9d
-> > diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-> > index c96da3aaf00b..c2ee5bdc6c7d 100644
-> > --- a/drivers/media/rc/nuvoton-cir.c
-> > +++ b/drivers/media/rc/nuvoton-cir.c
-> > @@ -39,6 +39,8 @@
-> >  
-> >  #include "nuvoton-cir.h"
-> >  
-> > +static void nvt_clear_cir_wake_fifo(struct nvt_dev *nvt);
-> > +
-> >  static const struct nvt_chip nvt_chips[] = {
-> >  	{ "w83667hg", NVT_W83667HG },
-> >  	{ "NCT6775F", NVT_6775F },
-> > @@ -177,6 +179,83 @@ static void nvt_set_ioaddr(struct nvt_dev *nvt, unsigned long *ioaddr)
-> >  	}
-> >  }
-> >  
-> > +static ssize_t wakeup_data_read(struct file *fp, struct kobject *kobj,
-> > +				struct bin_attribute *bin_attr,
-> > +				char *buf, loff_t off, size_t count)
-> > +{
-> > +	struct device *dev = kobj_to_dev(kobj);
-> > +	struct rc_dev *rc_dev = to_rc_dev(dev);
-> > +	struct nvt_dev *nvt = rc_dev->priv;
-> > +	int fifo_len, len;
-> > +	unsigned long flags;
-> > +	int i;
-> > +
-> > +	spin_lock_irqsave(&nvt->nvt_lock, flags);
-> > +
-> > +	fifo_len = nvt_cir_wake_reg_read(nvt, CIR_WAKE_FIFO_COUNT);
-> > +	len = min(fifo_len, WAKEUP_MAX_SIZE);
-> > +
-> > +	if (off >= len) {
-> > +		spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-> > +		return 0;
-> > +	}
-> > +
-> > +	if (len > count)
-> > +		len = count;
-> > +
-> > +	/* go to first element to be read */
-> > +	while (nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY_IDX) != off)
-> > +		nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
-> > +
-> > +	for (i = 0; i < len; i++)
-> > +		buf[i] = nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
-> > +
-> > +	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-> > +
-> > +	return len;
-> > +}
-> > +
-> > +static ssize_t wakeup_data_write(struct file *fp, struct kobject *kobj,
-> > +				struct bin_attribute *bin_attr,
-> > +				char *buf, loff_t off, size_t count)
-> > +{
-> > +	struct device *dev = kobj_to_dev(kobj);
-> > +	struct rc_dev *rc_dev = to_rc_dev(dev);
-> > +	struct nvt_dev *nvt = rc_dev->priv;
-> > +	unsigned long flags;
-> > +	u8 tolerance, config;
-> > +	int i;
-> > +
-> > +	if (off > 0)
-> > +		return -EINVAL;
-> > +
-> > +	/* hardcode the tolerance to 10% */
-> > +	tolerance = DIV_ROUND_UP(count, 10);
-> > +
-> > +	spin_lock_irqsave(&nvt->nvt_lock, flags);
-> > +
-> > +	nvt_clear_cir_wake_fifo(nvt);
-> > +	nvt_cir_wake_reg_write(nvt, count, CIR_WAKE_FIFO_CMP_DEEP);
-> > +	nvt_cir_wake_reg_write(nvt, tolerance, CIR_WAKE_FIFO_CMP_TOL);
-> > +
-> > +	config = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
-> > +
-> > +	/* enable writes to wake fifo */
-> > +	nvt_cir_wake_reg_write(nvt, config | CIR_WAKE_IRCON_MODE1,
-> > +			       CIR_WAKE_IRCON);
-> > +
-> > +	for (i = 0; i < count; i++)
-> > +		nvt_cir_wake_reg_write(nvt, buf[i], CIR_WAKE_WR_FIFO_DATA);
-> > +
-> > +	nvt_cir_wake_reg_write(nvt, config, CIR_WAKE_IRCON);
-> > +
-> > +	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
-> > +
-> > +	return count;
-> > +}
-> > +
-> > +static BIN_ATTR_RW(wakeup_data, WAKEUP_MAX_SIZE);
-> > +
-> >  /* dump current cir register contents */
-> >  static void cir_dump_regs(struct nvt_dev *nvt)
-> >  {
-> > @@ -1133,6 +1212,10 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
-> >  			     NVT_DRIVER_NAME "-wake", (void *)nvt))
-> >  		goto exit_unregister_device;
-> >  
-> > +	ret = device_create_bin_file(&rdev->dev, &bin_attr_wakeup_data);
-> > +	if (ret)
-> > +		goto exit_unregister_device;
-> > +
-> >  	device_init_wakeup(&pdev->dev, true);
-> >  
-> >  	dev_notice(&pdev->dev, "driver has been successfully loaded\n");
-> > @@ -1156,6 +1239,8 @@ static void nvt_remove(struct pnp_dev *pdev)
-> >  {
-> >  	struct nvt_dev *nvt = pnp_get_drvdata(pdev);
-> >  
-> > +	device_remove_bin_file(&nvt->rdev->dev, &bin_attr_wakeup_data);
-> > +
-> >  	nvt_disable_cir(nvt);
-> >  
-> >  	/* enable CIR Wake (for IR power-on) */
-> > diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
-> > index 4a5650dffa29..c9c98ebb19ee 100644
-> > --- a/drivers/media/rc/nuvoton-cir.h
-> > +++ b/drivers/media/rc/nuvoton-cir.h
-> > @@ -417,3 +417,6 @@ struct nvt_dev {
-> >  /* as VISTA MCE definition, valid carrier value */
-> >  #define MAX_CARRIER 60000
-> >  #define MIN_CARRIER 30000
-> > +
-> > +/* max wakeup sequence length */
-> > +#define WAKEUP_MAX_SIZE 65
-> >   
-> 
+- uses custom sensor subdev drivers for ADV7180 and OV564x. Still
+  need to switch to upstream subdevs.
+
+- still does not implement the media device framework.
 
 
--- 
-Thanks,
-Mauro
+Steve
+
+>
+> On Tuesday 23 February 2016 15:12:58 Philippe De Muyter wrote:
+>> Update.
+>>
+>> On Tue, Feb 23, 2016 at 12:49:43PM +0100, Philippe De Muyter wrote:
+>>> Hello,
+>>>
+>>> We use a custom imx6 based board with a canera sensor on it.
+>>> I have written the driver for the camera sensor, based on
+>>> the freescale so-called "3.10" and even "3.14" linux versions.
+>>>
+>>> The camera works perfectly, but we would like to switch to
+>>> a mainline kernel for all the usual reasons (including being
+>>> able to contribute our fixes).
+>>>
+>>> >From an old mail thread (*), I have found two git repositories
+>>>
+>>> that used to contain not-yet-approved versions of mainline
+>>> imx6 ipu-v3 drivers :
+>>>
+>>> git://git.pengutronix.de/git/pza/linux.git test/nitrogen6x-ipu-media
+>>> https://github.com:slongerbeam/mediatree.git, mx6-camera-staging
+>>>
+>>> I have tried to compile them with the imx_v6_v7_defconfig, but both
+>>> fail directly at compile time. because of later changes in the
+>>> v4l2_subdev infrastructure, not ported to the those branches.
+>> What I wrote is true for Steve Longerbeam's branch, but for Philipp Zabel's
+>> branch the problem (so far) was only that CONFIG_MEDIA_CONTROLLER
+>> is not defined in imx_v6_v7_defconfig, but is required for a succesfull
+>> compilation of Philipp's tree.
+>>
+>>> Can someone point me to compilable versions (either not rebased
+>>> versions of those branches, or updated versions of those branches,
+>>> or yet another place to look at). ?
+>>>
+>>> Thanks in advance
+>>>
+>>> Philippe
+>>>
+>>> (*)
+>>> http://linux-media.vger.kernel.narkive.com/cZQ8NrZ2/i-mx6-status-for-ipu-> > vpu-gpu
+
+
