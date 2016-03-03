@@ -1,102 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:38401 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752638AbcCUHvB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 03:51:01 -0400
-Received: by mail-wm0-f47.google.com with SMTP id l68so110862632wml.1
-        for <linux-media@vger.kernel.org>; Mon, 21 Mar 2016 00:51:00 -0700 (PDT)
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: DRI Development <dri-devel@lists.freedesktop.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Chris Wilson <chris@chris-wilson.co.uk>,
-	Tiago Vignatti <tiago.vignatti@intel.com>,
-	=?UTF-8?q?St=C3=A9phane=20Marchesin?= <marcheu@chromium.org>,
-	David Herrmann <dh.herrmann@gmail.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Daniel Vetter <daniel.vetter@intel.com>,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	intel-gfx@lists.freedesktop.org, devel@driverdev.osuosl.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] dma-buf: Update docs for SYNC ioctl
-Date: Mon, 21 Mar 2016 08:51:45 +0100
-Message-Id: <1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
-In-Reply-To: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
-References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:34334 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753549AbcCCTGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 14:06:48 -0500
+Subject: Re: [PATCH v5 22/22] sound/usb: Use Media Controller API to share
+ media resources
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1456937431-3794-1-git-send-email-shuahkh@osg.samsung.com>
+ <20160302204131.GV5273@mwanda> <56D76FBF.9050209@osg.samsung.com>
+ <20160303152152.303c85ea@recife.lan>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, tiwai@suse.com,
+	clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56D88B43.8090803@osg.samsung.com>
+Date: Thu, 3 Mar 2016 12:06:43 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20160303152152.303c85ea@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just a bit of wording polish plus mentioning that it can fail and must
-be restarted.
+On 03/03/2016 11:21 AM, Mauro Carvalho Chehab wrote:
+> Em Wed, 2 Mar 2016 15:57:03 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> On 03/02/2016 01:41 PM, Dan Carpenter wrote:
+>>> On Wed, Mar 02, 2016 at 09:50:31AM -0700, Shuah Khan wrote:
+>>>> +	mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
+>>>> +	if (!mctl)
+>>>> +		return -ENOMEM;
+>>>> +
+>>>> +	mctl->media_dev = mdev;
+>>>> +	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
+>>>> +		intf_type = MEDIA_INTF_T_ALSA_PCM_PLAYBACK;
+>>>> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_PLAYBACK;
+>>>> +		mctl->media_pad.flags = MEDIA_PAD_FL_SOURCE;
+>>>> +		mixer_pad = 1;
+>>>> +	} else {
+>>>> +		intf_type = MEDIA_INTF_T_ALSA_PCM_CAPTURE;
+>>>> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_CAPTURE;
+>>>> +		mctl->media_pad.flags = MEDIA_PAD_FL_SINK;
+>>>> +		mixer_pad = 2;
+>>>> +	}
+>>>> +	mctl->media_entity.name = pcm->name;
+>>>> +	media_entity_pads_init(&mctl->media_entity, 1, &mctl->media_pad);
+>>>> +	ret =  media_device_register_entity(mctl->media_dev,
+>>>> +					    &mctl->media_entity);
+>>>> +	if (ret)
+>>>> +		goto err1;
+>>>
+>>> Could we give this label a meaningful name instead of a number?
+>>> goto free_mctl;
+>>
+>> I do see other places where numbered labels are used.
+>> Names might help with code readability.
+>>
+>> register_entity_fail probably makes more sense as a
+>> label than free_mctl. In any case, I can address the
+>> labels in a follow-on patch.
+>>
+>>>
+>>>> +
+>>>> +	mctl->intf_devnode = media_devnode_create(mdev, intf_type, 0,
+>>>> +						  MAJOR(pcm_dev->devt),
+>>>> +						  MINOR(pcm_dev->devt));
+>>>> +	if (!mctl->intf_devnode) {
+>>>> +		ret = -ENOMEM;
+>>>> +		goto err2;
+>>>
+>>> goto unregister_device;
+>>>
+>>>> +	}
+>>>> +	mctl->intf_link = media_create_intf_link(&mctl->media_entity,
+>>>> +						 &mctl->intf_devnode->intf,
+>>>> +						 MEDIA_LNK_FL_ENABLED);
+>>>> +	if (!mctl->intf_link) {
+>>>> +		ret = -ENOMEM;
+>>>> +		goto err3;
+>>>
+>>> goto delete_devnode;
+>>>
+>>>> +	}
+>>>> +
+>>>> +	/* create link between mixer and audio */
+>>>> +	media_device_for_each_entity(entity, mdev) {
+>>>> +		switch (entity->function) {
+>>>> +		case MEDIA_ENT_F_AUDIO_MIXER:
+>>>> +			ret = media_create_pad_link(entity, mixer_pad,
+>>>> +						    &mctl->media_entity, 0,
+>>>> +						    MEDIA_LNK_FL_ENABLED);
+>>>> +			if (ret)
+>>>> +				goto err4;
+>>>
+>>> This is a bit weird because we're inside a loop.  Shouldn't we call
+>>> media_entity_remove_links() or something if this is the second time
+>>> through the loop?
+>>
+>> Links are removed from media_device_unregister_entity()
+>> which is called in the error path.
+>>
+>>>
+>>> I don't understand this.  The kernel has the media_entity_cleanup() stub
+>>> function which is supposed to do this but it hasn't been implemented
+>>> yet?
+>>>
+>>
+>> Please see above. Links are removed when entity is
+>> unregistered. media_entity_cleanup() is a stub. It
+>> isn't intended for removing links.
+> 
+> Shuah,
+> 
+> Please address the issue that Dan is pointing on a separate
+> patch.
+> 
 
-Requested by Sumit.
+Mauro,
 
-v2: Fix them typos (Hans).
+Sent it a couple of hours ago. 
 
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Tiago Vignatti <tiago.vignatti@intel.com>
-Cc: Stéphane Marchesin <marcheu@chromium.org>
-Cc: David Herrmann <dh.herrmann@gmail.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Daniel Vetter <daniel.vetter@intel.com>
-CC: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linaro-mm-sig@lists.linaro.org
-Cc: intel-gfx@lists.freedesktop.org
-Cc: devel@driverdev.osuosl.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
-Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
----
- Documentation/dma-buf-sharing.txt | 11 ++++++-----
- drivers/dma-buf/dma-buf.c         |  2 +-
- 2 files changed, 7 insertions(+), 6 deletions(-)
+https://lkml.org/lkml/2016/3/3/601
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg95141.html
 
-diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-index 32ac32e773e1..ca44c5820585 100644
---- a/Documentation/dma-buf-sharing.txt
-+++ b/Documentation/dma-buf-sharing.txt
-@@ -352,7 +352,8 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
- 
-    No special interfaces, userspace simply calls mmap on the dma-buf fd, making
-    sure that the cache synchronization ioctl (DMA_BUF_IOCTL_SYNC) is *always*
--   used when the access happens. This is discussed next paragraphs.
-+   used when the access happens. Note that DMA_BUF_IOCTL_SYNC can fail with
-+   -EAGAIN or -EINTR, in which case it must be restarted.
- 
-    Some systems might need some sort of cache coherency management e.g. when
-    CPU and GPU domains are being accessed through dma-buf at the same time. To
-@@ -366,10 +367,10 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
-        want (with the new data being consumed by the GPU or say scanout device)
-      - munmap once you don't need the buffer any more
- 
--    Therefore, for correctness and optimal performance, systems with the memory
--    cache shared by the GPU and CPU i.e. the "coherent" and also the
--    "incoherent" are always required to use SYNC_START and SYNC_END before and
--    after, respectively, when accessing the mapped address.
-+    For correctness and optimal performance, it is always required to use
-+    SYNC_START and SYNC_END before and after, respectively, when accessing the
-+    mapped address. Userspace cannot rely on coherent access, even when there
-+    are systems where it just works without calling these ioctls.
- 
- 2. Supporting existing mmap interfaces in importers
- 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index 774a60f4309a..4a2c07ee6677 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -612,7 +612,7 @@ EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
-  * @dmabuf:	[in]	buffer to complete cpu access for.
-  * @direction:	[in]	length of range for cpu access.
-  *
-- * This call must always succeed.
-+ * Can return negative error values, returns 0 on success.
-  */
- int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
- 			   enum dma_data_direction direction)
+thanks,
+-- Shuah
+
+
 -- 
-2.8.0.rc3
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
