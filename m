@@ -1,66 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:37853 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752425AbcCIIyP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2016 03:54:15 -0500
-Received: by mail-wm0-f43.google.com with SMTP id p65so61000095wmp.0
-        for <linux-media@vger.kernel.org>; Wed, 09 Mar 2016 00:54:14 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	sumit.semwal@linaro.org, john.stultz@linaro.org
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH] dmabuf: allow exporter to define customs ioctls
-Date: Wed,  9 Mar 2016 09:54:02 +0100
-Message-Id: <1457513642-10859-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:57876 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932104AbcCCIEZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 03:04:25 -0500
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Alessandro Zummo <a.zummo@towertech.it>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	David Brown <david.brown@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
+	rtc-linux@googlegroups.com, linux-arm-msm@vger.kernel.org,
+	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-usb@vger.kernel.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [RFC 02/15] dmaengine: nxp: Add missing MFD_SYSCON dependency on
+ HAS_IOMEM
+Date: Thu, 03 Mar 2016 17:03:28 +0900
+Message-id: <1456992221-26712-3-git-send-email-k.kozlowski@samsung.com>
+In-reply-to: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In addition of the already existing operations allow exporter
-to use it own custom ioctls.
+The MFD_SYSCON depends on HAS_IOMEM so when selecting it avoid unmet
+direct dependencies.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 ---
- drivers/dma-buf/dma-buf.c | 3 +++
- include/linux/dma-buf.h   | 5 +++++
- 2 files changed, 8 insertions(+)
+ drivers/dma/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-index 9810d1d..6abd129 100644
---- a/drivers/dma-buf/dma-buf.c
-+++ b/drivers/dma-buf/dma-buf.c
-@@ -291,6 +291,9 @@ static long dma_buf_ioctl(struct file *file,
- 
- 		return 0;
- 	default:
-+		if (dmabuf->ops->ioctl)
-+			return dmabuf->ops->ioctl(dmabuf, cmd, arg);
-+
- 		return -ENOTTY;
- 	}
- }
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 532108e..b6f9837 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -70,6 +70,9 @@ struct dma_buf_attachment;
-  * @vmap: [optional] creates a virtual mapping for the buffer into kernel
-  *	  address space. Same restrictions as for vmap and friends apply.
-  * @vunmap: [optional] unmaps a vmap from the buffer
-+ * @ioctl: [optional] ioctls supported by the exporter.
-+ *	   It is up to the exporter to do the proper copy_{from/to}_user
-+ *	   calls. Should return -EINVAL in case of error.
-  */
- struct dma_buf_ops {
- 	int (*attach)(struct dma_buf *, struct device *,
-@@ -104,6 +107,8 @@ struct dma_buf_ops {
- 
- 	void *(*vmap)(struct dma_buf *);
- 	void (*vunmap)(struct dma_buf *, void *vaddr);
-+
-+	int (*ioctl)(struct dma_buf *, unsigned int cmd, unsigned long arg);
- };
- 
- /**
+diff --git a/drivers/dma/Kconfig b/drivers/dma/Kconfig
+index c77f214c9466..7fbf96bff280 100644
+--- a/drivers/dma/Kconfig
++++ b/drivers/dma/Kconfig
+@@ -290,6 +290,7 @@ config LPC18XX_DMAMUX
+ 	bool "NXP LPC18xx/43xx DMA MUX for PL080"
+ 	depends on ARCH_LPC18XX || COMPILE_TEST
+ 	depends on OF && AMBA_PL08X
++	depends on HAS_IOMEM	# For MFD_SYSCON
+ 	select MFD_SYSCON
+ 	help
+ 	  Enable support for DMA on NXP LPC18xx/43xx platforms
 -- 
-1.9.1
+2.5.0
 
