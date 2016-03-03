@@ -1,62 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f169.google.com ([209.85.223.169]:36160 "EHLO
-	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752961AbcCKOjJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 09:39:09 -0500
-Received: by mail-io0-f169.google.com with SMTP id z76so147735645iof.3
-        for <linux-media@vger.kernel.org>; Fri, 11 Mar 2016 06:39:09 -0800 (PST)
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:33184 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751677AbcCCTWv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 14:22:51 -0500
+Received: by mail-wm0-f54.google.com with SMTP id l68so49230527wml.0
+        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2016 11:22:50 -0800 (PST)
+Subject: Re: [git:media_tree/master] [media] media: rc: nuvoton: support
+ reading / writing wakeup sequence via sysfs
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <E1abRXi-00035h-0E@www.linuxtv.org> <56D87FE9.4000408@gmail.com>
+ <20160303155200.43d4c5e7@recife.lan>
+Cc: linux-media@vger.kernel.org
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Message-ID: <56D88EFB.1090105@gmail.com>
+Date: Thu, 3 Mar 2016 20:22:35 +0100
 MIME-Version: 1.0
-In-Reply-To: <56E2C36C.6030709@samsung.com>
-References: <1457122813-12791-1-git-send-email-javier@osg.samsung.com>
-	<CAJKOXPfOpqU2fGsNNaB6n_iuq2r-8z3TCSsqkncPbvkK2344Tg@mail.gmail.com>
-	<56DD48C1.8010004@samsung.com>
-	<56DD9086.7070903@osg.samsung.com>
-	<56E2C36C.6030709@samsung.com>
-Date: Fri, 11 Mar 2016 11:39:08 -0300
-Message-ID: <CABxcv==Y=G8R3kgHj_eidyzYRBq16LNc0ACGSPBHwB5SgMJARg@mail.gmail.com>
-Subject: Re: [PATCH 0/2] [media] exynos4-is: Trivial fixes for DT
- port/endpoint parse logic
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	Kukjin Kim <kgene@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20160303155200.43d4c5e7@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sylwester,
-
-On Fri, Mar 11, 2016 at 10:09 AM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> On 03/07/2016 03:30 PM, Javier Martinez Canillas wrote:
->> Thanks, I just noticed another similar issue in the driver now and is
->> that fimc_is_parse_sensor_config() uses the same struct device_node *
->> for looking up the I2C sensor, port and endpoint and thus not doing a
->> of_node_put() for all the nodes on the error path.
->>
->> I think the right fix is to have a separate struct device_node * for
->> each so their reference counter can be incremented and decremented.
->
-> Yes, the node reference count is indeed not handled very well there,
-> feel free to submit a patch to fix that bug.
->
-
-Ok, I'll post a patch to fix that once all the in-flight patches land
-to avoid merge conflicts.
-
-> --
+Am 03.03.2016 um 19:52 schrieb Mauro Carvalho Chehab:
+> Em Thu, 03 Mar 2016 19:18:17 +0100
+> Heiner Kallweit <hkallweit1@gmail.com> escreveu:
+> 
+>> Am 03.03.2016 um 12:28 schrieb Mauro Carvalho Chehab:
+>>> This is an automatic generated email to let you know that the following patch were queued at the 
+>>> http://git.linuxtv.org/cgit.cgi/media_tree.git tree:
+>>>
+>>> Subject: [media] media: rc: nuvoton: support reading / writing wakeup sequence via sysfs
+>>> Author:  Heiner Kallweit <hkallweit1@gmail.com>
+>>> Date:    Mon Feb 8 17:25:59 2016 -0200
+>>>
+>>> This patch adds a binary attribute /sys/class/rc/rc?/wakeup_data which
+>>> allows to read / write the wakeup sequence.
+>>>   
+>> When working on another module I was reminded not to forget updating Documentation/ABI.
+>> I think the same applies here. This patch introduces a new sysfs attribute that should
+>> be documented. I'll submit a patch for adding Documentation/ABI/testing/sysfs-class-rc-nuvoton
+> 
+> Good point.
+> 
+> Another thing: wouldn't be better to use a text format? This would make
+> esier to import from LIRC's irrecord format:
+> 
+>       begin raw_codes
+> 
+>           name power
+>               850     900    1750    1800     850     900
+>               850     900    1750     900     850    1800
+>               850     900     850     900     850     900
+>              1750    1800     800
+> 
+>       end raw_codes
+> 
 > Regards,
-> Sylwester
+> Mauro
+> 
+Most likely this is possible, but it would mean that we need a parser / generator
+for this text format in the driver / kernel code. And I have my doubts that parsing
+an application-specific file format (that could change anytime) in kernel code is
+a good thing. Converting this format to raw binary data is better off in userspace
+I think. What's your opinion?
 
-Best regards,
-Javier
+>>
+>> Rgds, Heiner
+>>
+>>> In combination with the core extension for exposing the most recent raw
+>>> packet this allows to easily define and set a wakeup sequence.
+>>>
+>>> At least on my Zotac CI321 the BIOS resets the wakeup sequence at each boot
+>>> to a factory default. Therefore I use a udev rule
+>>> SUBSYSTEM=="rc", DRIVERS=="nuvoton-cir", ACTION=="add", RUN+="<script>"
+>>> with the script basically doing
+>>> cat <stored wakeup sequence> >/sys${DEVPATH}/wakeup_data
+>>>
+>>> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>
+>>>  drivers/media/rc/nuvoton-cir.c | 85 ++++++++++++++++++++++++++++++++++++++++++
+>>>  drivers/media/rc/nuvoton-cir.h |  3 ++
+>>>  2 files changed, 88 insertions(+)
+>>>
+>>> ---
+>>>
+>>> [...]
+
