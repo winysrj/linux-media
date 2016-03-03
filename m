@@ -1,121 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:33362 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932612AbcCKEBX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2016 23:01:23 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id ED851180092
-	for <linux-media@vger.kernel.org>; Fri, 11 Mar 2016 05:01:17 +0100 (CET)
-Date: Fri, 11 Mar 2016 05:01:17 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160311040117.ED851180092@tschai.lan>
+Received: from mail.lysator.liu.se ([130.236.254.3]:59833 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758550AbcCCW3h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:29:37 -0500
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Viorel Suman <viorel.suman@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v4 11/18] [media] rtl2832: convert to use an explicit i2c mux core
+Date: Thu,  3 Mar 2016 23:27:23 +0100
+Message-Id: <1457044050-15230-12-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Peter Rosin <peda@axentia.se>
 
-Results of the daily build of media_tree:
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
-date:		Fri Mar 11 04:00:32 CET 2016
-git branch:	test
-git hash:	840f5b0572ea9ddaca2bf5540a171013e92c97bd
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.4.0-164
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/dvb-frontends/rtl2832.c      | 22 +++++++++++-----------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  2 +-
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-mx: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-arm-omap1: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-blackfin-bf561: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-sh: WARNINGS
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.23-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0-i686: WARNINGS
-linux-4.1.1-i686: WARNINGS
-linux-4.2-i686: WARNINGS
-linux-4.3-i686: WARNINGS
-linux-4.4-i686: WARNINGS
-linux-4.5-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.23-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0-x86_64: WARNINGS
-linux-4.1.1-x86_64: WARNINGS
-linux-4.2-x86_64: WARNINGS
-linux-4.3-x86_64: WARNINGS
-linux-4.4-x86_64: WARNINGS
-linux-4.5-rc1-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 10f2119935da..775444898599 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -866,9 +866,9 @@ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ }
+ 
+-static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
++static int rtl2832_select(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct rtl2832_dev *dev = mux_priv;
++	struct rtl2832_dev *dev = i2c_mux_priv(muxc);
+ 	struct i2c_client *client = dev->client;
+ 	int ret;
+ 
+@@ -889,10 +889,9 @@ err:
+ 	return ret;
+ }
+ 
+-static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv,
+-			    u32 chan_id)
++static int rtl2832_deselect(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct rtl2832_dev *dev = mux_priv;
++	struct rtl2832_dev *dev = i2c_mux_priv(muxc);
+ 
+ 	schedule_delayed_work(&dev->i2c_gate_work, usecs_to_jiffies(100));
+ 	return 0;
+@@ -1078,7 +1077,7 @@ static struct i2c_adapter *rtl2832_get_i2c_adapter(struct i2c_client *client)
+ 	struct rtl2832_dev *dev = i2c_get_clientdata(client);
+ 
+ 	dev_dbg(&client->dev, "\n");
+-	return dev->i2c_adapter_tuner;
++	return dev->muxc->adapter[0];
+ }
+ 
+ static int rtl2832_enable_slave_ts(struct i2c_client *client)
+@@ -1253,12 +1252,13 @@ static int rtl2832_probe(struct i2c_client *client,
+ 		goto err_regmap_exit;
+ 
+ 	/* create muxed i2c adapter for demod tuner bus */
+-	dev->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, dev,
+-			0, 0, 0, rtl2832_select, rtl2832_deselect);
+-	if (dev->i2c_adapter_tuner == NULL) {
+-		ret = -ENODEV;
++	dev->muxc = i2c_mux_one_adapter(i2c, &i2c->dev, 0, 0, 0, 0, 0,
++					rtl2832_select, rtl2832_deselect);
++	if (IS_ERR(dev->muxc)) {
++		ret = PTR_ERR(dev->muxc);
+ 		goto err_regmap_exit;
+ 	}
++	dev->muxc->priv = dev;
+ 
+ 	/* create dvb_frontend */
+ 	memcpy(&dev->fe.ops, &rtl2832_ops, sizeof(struct dvb_frontend_ops));
+@@ -1293,7 +1293,7 @@ static int rtl2832_remove(struct i2c_client *client)
+ 
+ 	cancel_delayed_work_sync(&dev->i2c_gate_work);
+ 
+-	i2c_del_mux_adapter(dev->i2c_adapter_tuner);
++	i2c_mux_del_adapters(dev->muxc);
+ 
+ 	regmap_exit(dev->regmap);
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index 5dcd3a41d23f..6b3cd23a2c26 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -36,7 +36,7 @@ struct rtl2832_dev {
+ 	struct mutex regmap_mutex;
+ 	struct regmap_config regmap_config;
+ 	struct regmap *regmap;
+-	struct i2c_adapter *i2c_adapter_tuner;
++	struct i2c_mux_core *muxc;
+ 	struct dvb_frontend fe;
+ 	struct delayed_work stat_work;
+ 	enum fe_status fe_status;
+-- 
+2.1.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
