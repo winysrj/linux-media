@@ -1,56 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53308 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:33560 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751141AbcCKTOM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 14:14:12 -0500
-Date: Fri, 11 Mar 2016 16:13:50 -0300
+	id S1757529AbcCCLtr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 06:49:47 -0500
+Date: Thu, 3 Mar 2016 08:49:40 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.4-rc8 or v4.5] media fixes
-Message-ID: <20160311161350.02739e09@recife.lan>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: laurent.pinchart@ideasonboard.com, linux-kernel@vger.kernel.org,
+	linux-api@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] selftests: add a new test for Media Controller API
+Message-ID: <20160303084940.6897009e@recife.lan>
+In-Reply-To: <1455327594-8498-1-git-send-email-shuahkh@osg.samsung.com>
+References: <1455327594-8498-1-git-send-email-shuahkh@osg.samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linus,
+Em Fri, 12 Feb 2016 18:39:54 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.5-5
+> This test opens user specified Media Device and calls
+> MEDIA_IOC_DEVICE_INFO ioctl in a loop once every 10
+> seconds. This test is for detecting errors in device
+> removal path.
+> 
+> Usage:
+>     sudo ./media_devkref_test -d /dev/mediaX
+> 
+> While test is running, remove the device and
+> ensure there are no use after free errors and
+> other Oops in the dmesg. Enable KaSan kernel
+> config option for use-after-free error detection.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 
-For one last time fix: It adds a code that prevents some media tools
-like media-ctl to hide some entities that have their IDs out of the range
-expected by those apps.
+Looks good to me.
 
-Thanks!
+Reviewed-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+> ---
+>  tools/testing/selftests/media_tests/.gitignore     |  1 +
+>  tools/testing/selftests/media_tests/Makefile       |  7 ++
+>  .../selftests/media_tests/media_device_test.c      | 94 ++++++++++++++++++++++
+>  3 files changed, 102 insertions(+)
+>  create mode 100644 tools/testing/selftests/media_tests/.gitignore
+>  create mode 100644 tools/testing/selftests/media_tests/Makefile
+>  create mode 100644 tools/testing/selftests/media_tests/media_device_test.c
+> 
+> diff --git a/tools/testing/selftests/media_tests/.gitignore b/tools/testing/selftests/media_tests/.gitignore
+> new file mode 100644
+> index 0000000..1c07117
+> --- /dev/null
+> +++ b/tools/testing/selftests/media_tests/.gitignore
+> @@ -0,0 +1 @@
+> +media_device_test
+> diff --git a/tools/testing/selftests/media_tests/Makefile b/tools/testing/selftests/media_tests/Makefile
+> new file mode 100644
+> index 0000000..7071bcc
+> --- /dev/null
+> +++ b/tools/testing/selftests/media_tests/Makefile
+> @@ -0,0 +1,7 @@
+> +TEST_PROGS := media_device_test
+> +all: $(TEST_PROGS)
+> +
+> +include ../lib.mk
+> +
+> +clean:
+> +	rm -fr media_device_test
+> diff --git a/tools/testing/selftests/media_tests/media_device_test.c b/tools/testing/selftests/media_tests/media_device_test.c
+> new file mode 100644
+> index 0000000..a47880b
+> --- /dev/null
+> +++ b/tools/testing/selftests/media_tests/media_device_test.c
+> @@ -0,0 +1,94 @@
+> +/*
+> + * media_devkref_test.c - Media Controller Device Kref API Test
+> + *
+> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
+> + *
+> + * This file is released under the GPLv2.
+> + */
+> +
+> +/*
+> + * This file adds a test for Media Controller API.
+> + * This test should be run as root and should not be
+> + * included in the Kselftest run. This test should be
+> + * run when hardware and driver that makes use Media
+> + * Controller API are present in the system.
+> + *
+> + * This test opens user specified Media Device and calls
+> + * MEDIA_IOC_DEVICE_INFO ioctl in a loop once every 10
+> + * seconds.
+> + *
+> + * Usage:
+> + *	sudo ./media_devkref_test -d /dev/mediaX
+> + *
+> + *	While test is running, remove the device and
+> + *	ensure there are no use after free errors and
+> + *	other Oops in the dmesg. Enable KaSan kernel
+> + *	config option for use-after-free error detection.
+> +*/
+> +
+> +#include <stdio.h>
+> +#include <unistd.h>
+> +#include <stdlib.h>
+> +#include <errno.h>
+> +#include <string.h>
+> +#include <fcntl.h>
+> +#include <sys/ioctl.h>
+> +#include <sys/stat.h>
+> +#include <linux/media.h>
+> +
+> +int main(int argc, char **argv)
+> +{
+> +	int opt;
+> +	char media_device[256];
+> +	int count = 0;
+> +	struct media_device_info mdi;
+> +	int ret;
+> +	int fd;
+> +
+> +	if (argc < 2) {
+> +		printf("Usage: %s [-d </dev/mediaX>]\n", argv[0]);
+> +		exit(-1);
+> +	}
+> +
+> +	/* Process arguments */
+> +	while ((opt = getopt(argc, argv, "d:")) != -1) {
+> +		switch (opt) {
+> +		case 'd':
+> +			strncpy(media_device, optarg, sizeof(media_device) - 1);
+> +			media_device[sizeof(media_device)-1] = '\0';
+> +			break;
+> +		default:
+> +			printf("Usage: %s [-d </dev/mediaX>]\n", argv[0]);
+> +			exit(-1);
+> +		}
+> +	}
+> +
+> +	if (getuid() != 0) {
+> +		printf("Please run the test as root - Exiting.\n");
+> +		exit(-1);
+> +	}
+> +
+> +	/* Open Media device and keep it open */
+> +	fd = open(media_device, O_RDWR);
+> +	if (fd == -1) {
+> +		printf("Media Device open errno %s\n", strerror(errno));
+> +		exit(-1);
+> +	}
+> +
+> +	printf("\nNote:\n"
+> +	       "While test is running, remove the device and\n"
+> +	       "ensure there are no use after free errors and\n"
+> +	       "other Oops in the dmesg. Enable KaSan kernel\n"
+> +	       "config option for use-after-free error detection.\n\n");
+> +
+> +	while (count < 100) {
+> +		ret = ioctl(fd, MEDIA_IOC_DEVICE_INFO, &mdi);
+> +		if (ret < 0)
+> +			printf("Media Device Info errno %s\n", strerror(errno));
+> +		printf("Media device model %s driver %s\n",
+> +			mdi.model, mdi.driver);
+> +		sleep(10);
+> +		count++;
+> +	}
+> +}
+
+
+-- 
+Thanks,
 Mauro
-
----
-
-The following changes since commit fbe093ac9f0201939279cdfe8b0fce20ce5ef7a9:
-
-  [media] media: Sanitise the reserved fields of the G_TOPOLOGY IOCTL arguments (2016-03-03 18:10:53 -0300)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.5-5
-
-for you to fetch changes up to b2cd27448b33de9069d580d8f229efef434b64e6:
-
-  [media] media-device: map new functions into old types for legacy API (2016-03-10 15:10:59 -0300)
-
-----------------------------------------------------------------
-media fixes for v4.5-rc8
-
-----------------------------------------------------------------
-Mauro Carvalho Chehab (1):
-      [media] media-device: map new functions into old types for legacy API
-
- drivers/media/media-device.c | 23 +++++++++++++++++++++++
- include/uapi/linux/media.h   |  6 +++++-
- 2 files changed, 28 insertions(+), 1 deletion(-)
-
