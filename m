@@ -1,39 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:35962 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753901AbcCHHRt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 02:17:49 -0500
-From: Manuel Rodriguez <manuel2982@gmail.com>
-To: mchehab@osg.samsung.com, gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	Manuel Rodriguez <manuel2982@gmail.com>
-Subject: [PATCH] Staging: media: davinci_vpfe: Fix spelling error on a comment
-Date: Tue,  8 Mar 2016 01:16:06 -0600
-Message-Id: <1457421366-4146-1-git-send-email-manuel2982@gmail.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:58066 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757074AbcCCIGK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 03:06:10 -0500
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Alessandro Zummo <a.zummo@towertech.it>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	David Brown <david.brown@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
+	rtc-linux@googlegroups.com, linux-arm-msm@vger.kernel.org,
+	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-usb@vger.kernel.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [RFC 14/15] usb: xhci: mtk: Add missing MFD_SYSCON dependency on
+ HAS_IOMEM
+Date: Thu, 03 Mar 2016 17:03:40 +0900
+Message-id: <1456992221-26712-15-git-send-email-k.kozlowski@samsung.com>
+In-reply-to: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix spelling error on a comment, change 'wether' to 'whether'
+The MFD_SYSCON depends on HAS_IOMEM so when selecting it avoid unmet
+direct dependencies.
 
-Signed-off-by: Manuel Rodriguez <manuel2982@gmail.com>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 ---
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/host/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 0a65405..e4b953a 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -195,7 +195,7 @@ static int vpfe_update_pipe_state(struct vpfe_video_device *video)
- 	return 0;
- }
+diff --git a/drivers/usb/host/Kconfig b/drivers/usb/host/Kconfig
+index 8c20ebbc049c..f759a778d606 100644
+--- a/drivers/usb/host/Kconfig
++++ b/drivers/usb/host/Kconfig
+@@ -45,6 +45,7 @@ config USB_XHCI_PLATFORM
  
--/* checks wether pipeline is ready for enabling */
-+/* checks whether pipeline is ready for enabling */
- int vpfe_video_is_pipe_ready(struct vpfe_pipeline *pipe)
- {
- 	int i;
+ config USB_XHCI_MTK
+ 	tristate "xHCI support for Mediatek MT65xx"
++	depends on HAS_IOMEM	# For MFD_SYSCON
+ 	select MFD_SYSCON
+ 	depends on ARCH_MEDIATEK || COMPILE_TEST
+ 	---help---
 -- 
-1.9.1
+2.5.0
 
