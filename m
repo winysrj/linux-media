@@ -1,44 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay004-omc3s7.hotmail.com ([65.54.190.145]:63081 "EHLO
-	BAY004-OMC3S7.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753231AbcCHDIW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2016 22:08:22 -0500
-From: =?utf-8?B?QWxleGFuZHJlLVhhdmllciBMYWJvbnTDqS1MYW1vdXJldXg=?=
-	<alexandrexavier@live.ca>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: How to see the content of my device's EEPROM?
-Date: Tue, 8 Mar 2016 03:03:16 +0000
-Message-ID: <BY2PR20MB016874EF65B0FEEFB2CCDA6FBDB20@BY2PR20MB0168.namprd20.prod.outlook.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <3354CE0AF9CEB24897BDC3B0DF081F61@namprd20.prod.outlook.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from bombadil.infradead.org ([198.137.202.9]:36489 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383AbcCCNbJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 08:31:09 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Takashi Iwai <tiwai@suse.de>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH] [media] Better define MEDIA_ENT_F_CONN_* entities
+Date: Thu,  3 Mar 2016 10:31:02 -0300
+Message-Id: <32c88fe4e8378ec6a2d74f65f88b004cdd815d82.1457011857.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGVsbG8gZXZlcnlvbmUsDQoNCk9uIHRoZSBrZXJuZWwgdmVyc2lvbiA0LjMuMywgd2hlbiBJIGRv
-IGRtZXNnIHRvIHNlZSB0aGUgY29udGVudCBvZiB0aGUNCkVFUFJPTSBvZiB0aGUgZGV2aWNlIHRo
-YXQgSSBqdXN0IGNvbm5lY3RlZCwgSSBkb24ndCBzZWUgaXQuDQoNCkkgb25seSBzZWUgdGhpczog
-aHR0cHM6Ly9qdXN0cGFzdGUuaXQvcWNoZA0KDQpPbiBvbGRlciBrZXJuZWwgdmVyc2lvbnMgbGlr
-ZSAzLjEwLCBJIGhhZCB3aGF0IEkgd2FudGVkOg0KaHR0cHM6Ly9qdXN0cGFzdGUuaXQvcWNoaA0K
-DQppMmMgZWVwcm9tIDAwOiAxYSBlYiA2NyA5NSAxYSBlYiA1MSA1MCA1MCAwMCAyMCAwMyA4MiAz
-NCA2YSAwNA0KaTJjIGVlcHJvbSAxMDogNmUgMTQgMjcgNTcgMDYgMDIgMDAgMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAgMDANCmkyYyBlZXByb20gMjA6IDAyIDAwIDAxIDAwIGYwIDEwIDAxIDAwIGI4
-IDAwIDAwIDAwIDViIDAwIDAwIDAwDQppMmMgZWVwcm9tIDMwOiAwMCAwMCAyMCA0MCAyMCA4MCAw
-MiAyMCAwMSAwMSAwMCAwMCAwMCAwMCAwMCAwMA0KaTJjIGVlcHJvbSA0MDogMDAgMDAgMDAgMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgYzQgMDAgMDANCmkyYyBlZXByb20gNTA6IDAwIGEy
-IDAwIDg3IDgxIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQppMmMgZWVwcm9tIDYw
-OiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwNCAwMyAzMCAwMCAxNCAwMw0KaTJjIGVl
-cHJvbSA3MDogNDkgMDAgNGYgMDAgNGUgMDAgMjAgMDAgNDEgMDAgNzUgMDAgNjQgMDAgNjkgMDAN
-CmkyYyBlZXByb20gODA6IDZmIDAwIDM0IDAzIDQ5IDAwIDRmIDAwIDRlIDAwIDIwIDAwIDQxIDAw
-IDc1IDAwDQppMmMgZWVwcm9tIDkwOiA2NCAwMCA2OSAwMCA2ZiAwMCAyMCAwMCA1NSAwMCA1MyAw
-MCA0MiAwMCAyMCAwMA0KaTJjIGVlcHJvbSBhMDogMzIgMDAgMzggMDAgMzYgMDAgMzEgMDAgMjAg
-MDAgNDQgMDAgNjUgMDAgNzYgMDANCmkyYyBlZXByb20gYjA6IDY5IDAwIDYzIDAwIDY1IDAwIDAw
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQppMmMgZWVwcm9tIGMwOiAwMCAwMCAwMCAwMCAw
-MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMA0KaTJjIGVlcHJvbSBkMDogMDAgMDAg
-MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCmkyYyBlZXByb20gZjA6
-IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQoNCldoeSBk
-byBuZXdlciBrZXJuZWxzIHByaW50IGxlc3MgaW5mb3JtYXRpb24gdG8gZG1lc2c/IEhvdyBkbyBJ
-IGRvIGlmIEkgd2FudA0KdG8gc2VlIHRoZSBjb250ZW50IG9mIG15IEVFUFJPTSBvbiBrZXJuZWwg
-djQuMy4zID8NCg0KVGhhbmtzIGluIGFkdmFuY2UsDQpBbGV4YW5kcmUtWGF2aWVyDQo=
+Putting concepts in a paper is hard, specially since different people
+may interpret it in a different way.
+
+Make clear about the meaning of the MEDIA_ENT_F_CONN_* entities
+
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Acked-by: Shuah Khan <shuahkh@osg.samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ Documentation/DocBook/media/v4l/media-types.xml | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
+index 5e3f20fdcf17..a88f39ab4fd8 100644
+--- a/Documentation/DocBook/media/v4l/media-types.xml
++++ b/Documentation/DocBook/media/v4l/media-types.xml
+@@ -46,15 +46,26 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_F_CONN_RF</constant></entry>
+-	    <entry>Connector for a Radio Frequency (RF) signal.</entry>
++	    <entry>Entity representing the logical connection associated with a
++		    single Radio Frequency (RF) signal connector. It
++		    corresponds to the logical input or output associated
++		    with the RF signal.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_F_CONN_SVIDEO</constant></entry>
+-	    <entry>Connector for a S-Video signal.</entry>
++	    <entry>Entity representing the logical connection associated
++		    with a sigle S-Video connector. Such entity should have
++		    two pads, one for the luminance signal (Y) and one
++		    for the chrominance signal (C). It corresponds to the
++		    logical input or output associated with S-Video Y and C
++		    signals.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_F_CONN_COMPOSITE</constant></entry>
+-	    <entry>Connector for a RGB composite signal.</entry>
++	    <entry>Entity representing the logical connection for a composite
++		    signal. It corresponds to the logical input or output
++		    associated with the single signal that carries both
++		    chrominance and luminance information (Y+C).</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>MEDIA_ENT_F_CAM_SENSOR</constant></entry>
+-- 
+2.5.0
+
