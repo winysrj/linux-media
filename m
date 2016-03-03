@@ -1,55 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:39809 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755541AbcC2AZe (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53503 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757336AbcCCNr2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2016 20:25:34 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	nenggun.kim@samsung.com, jh1009.sung@samsung.com,
-	chehabrafael@gmail.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: au0828 fix au0828_v4l2_device_register() to not unlock and free
-Date: Mon, 28 Mar 2016 18:25:29 -0600
-Message-Id: <1459211129-7968-1-git-send-email-shuahkh@osg.samsung.com>
+	Thu, 3 Mar 2016 08:47:28 -0500
+Received: from [64.103.36.133] (proxy-ams-1.cisco.com [64.103.36.133])
+	by tschai.lan (Postfix) with ESMTPSA id 8E7261809C5
+	for <linux-media@vger.kernel.org>; Thu,  3 Mar 2016 14:47:22 +0100 (CET)
+To: linux-media <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] media.h: always start with 1 for the audio entities
+Message-ID: <56D84075.5080608@xs4all.nl>
+Date: Thu, 3 Mar 2016 14:47:33 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-au0828_v4l2_device_register() unlocks au0828_dev->lock and frees au0828
-dev in error legs before return. au0828_usb_probe() does the same when
-au0828_v4l2_device_register() returns error.
+Start the audio defines with BASE + 0x03001 instead of 0x03000. This is consistent
+with the other defines, and I think it is good practice not to start with 0, just in
+case we want to do something like (id & 0xfff) in the future and treat the value 0
+as a special case.
 
-Fix au0828_v4l2_device_register() to not to unlock and free in its error
-legs.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Suggested-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-video.c | 4 ----
- 1 file changed, 4 deletions(-)
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 79960ae..b133c5d 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -90,9 +90,9 @@ struct media_device_info {
+ /*
+  * Audio Entity Functions
+  */
+-#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03000)
+-#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03001)
+-#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03002)
++#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03001)
++#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03002)
++#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03003)
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 32d7db9..7d0ec4c 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -679,8 +679,6 @@ int au0828_v4l2_device_register(struct usb_interface *interface,
- 	if (retval) {
- 		pr_err("%s() v4l2_device_register failed\n",
- 		       __func__);
--		mutex_unlock(&dev->lock);
--		kfree(dev);
- 		return retval;
- 	}
- 
-@@ -691,8 +689,6 @@ int au0828_v4l2_device_register(struct usb_interface *interface,
- 	if (retval) {
- 		pr_err("%s() v4l2_ctrl_handler_init failed\n",
- 		       __func__);
--		mutex_unlock(&dev->lock);
--		kfree(dev);
- 		return retval;
- 	}
- 	dev->v4l2_dev.ctrl_handler = &dev->v4l2_ctrl_hdl;
--- 
-2.5.0
-
+ /*
+  * Connectors
