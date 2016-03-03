@@ -1,45 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53503 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757336AbcCCNr2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 08:47:28 -0500
-Received: from [64.103.36.133] (proxy-ams-1.cisco.com [64.103.36.133])
-	by tschai.lan (Postfix) with ESMTPSA id 8E7261809C5
-	for <linux-media@vger.kernel.org>; Thu,  3 Mar 2016 14:47:22 +0100 (CET)
-To: linux-media <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media.h: always start with 1 for the audio entities
-Message-ID: <56D84075.5080608@xs4all.nl>
-Date: Thu, 3 Mar 2016 14:47:33 +0100
+Received: from mout.kundenserver.de ([212.227.126.133]:60205 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757423AbcCCKzw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 05:55:52 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Alessandro Zummo <a.zummo@towertech.it>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	David Brown <david.brown@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	netdev@vger.kernel.org, linux-gpio@vger.kernel.org,
+	linux-pm@vger.kernel.org, rtc-linux@googlegroups.com,
+	linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Subject: Re: [RFC 05/15] phy: hi6220: Add missing MFD_SYSCON dependency on HAS_IOMEM
+Date: Thu, 03 Mar 2016 11:54:17 +0100
+Message-ID: <1777963.D97F7d0Oik@wuerfel>
+In-Reply-To: <1456992221-26712-6-git-send-email-k.kozlowski@samsung.com>
+References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com> <1456992221-26712-6-git-send-email-k.kozlowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Start the audio defines with BASE + 0x03001 instead of 0x03000. This is consistent
-with the other defines, and I think it is good practice not to start with 0, just in
-case we want to do something like (id & 0xfff) in the future and treat the value 0
-as a special case.
+On Thursday 03 March 2016 17:03:31 Krzysztof Kozlowski wrote:
+> --- a/drivers/phy/Kconfig
+> +++ b/drivers/phy/Kconfig
+> @@ -225,6 +225,7 @@ config PHY_MT65XX_USB3
+>  config PHY_HI6220_USB
+>         tristate "hi6220 USB PHY support"
+>         depends on (ARCH_HISI && ARM64) || COMPILE_TEST
+> +       depends on HAS_IOMEM    # For MFD_SYSCON
+>         select GENERIC_PHY
+>         select MFD_SYSCON
+>         help
+> -- 
+> 2.5.0
+> 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Suggested-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+This is indeed required, and seems to be what caused the problem
+you saw in the first place.
 
-diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-index 79960ae..b133c5d 100644
---- a/include/uapi/linux/media.h
-+++ b/include/uapi/linux/media.h
-@@ -90,9 +90,9 @@ struct media_device_info {
- /*
-  * Audio Entity Functions
-  */
--#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03000)
--#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03001)
--#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03002)
-+#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03001)
-+#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03002)
-+#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03003)
-
- /*
-  * Connectors
+	Arnd
