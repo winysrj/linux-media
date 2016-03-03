@@ -1,85 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:46352 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752452AbcC3TG6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2016 15:06:58 -0400
-From: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>
-To: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, hverkuil@xs4all.nl,
-	sakari.ailus@linux.intel.com, mchehab@osg.samsung.com,
-	hans.verkuil@cisco.com, s.nawrocki@samsung.com
-Cc: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>
-Subject: [PATCH v3 1/2] [media] media: change pipeline validation return error
-Date: Wed, 30 Mar 2016 16:06:41 -0300
-Message-Id: <92afd970760d201d599825a678ddfb35ea77d8f2.1459363790.git.helen.koike@collabora.co.uk>
-In-Reply-To: <cover.1459363790.git.helen.koike@collabora.co.uk>
-References: <cover.1459363790.git.helen.koike@collabora.co.uk>
-In-Reply-To: <cover.1459363790.git.helen.koike@collabora.co.uk>
-References: <cover.1459363790.git.helen.koike@collabora.co.uk>
+Received: from mail.lysator.liu.se ([130.236.254.3]:57403 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757223AbcCCW2n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:28:43 -0500
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Viorel Suman <viorel.suman@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v4 04/18] i2c: i2c-arb-gpio-challenge: convert to use an explicit i2c mux core
+Date: Thu,  3 Mar 2016 23:27:16 +0100
+Message-Id: <1457044050-15230-5-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to the V4L2 API, the VIDIOC_STREAMON ioctl should return EPIPE
-if there is a format mismatch in the pipeline configuration.
+From: Peter Rosin <peda@axentia.se>
 
-As the .vidioc_streamon in the v4l2_ioctl_ops usually forwards the error
-caused by the v4l2_subdev_link_validate_default (if it is in use), it
-should return -EPIPE when it detect the mismatch.
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
-When an entity is connected to a non enabled link,
-media_entity_pipeline_start should return -ENOLINK, as the link does not
-exist.
-
-Signed-off-by: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
+ drivers/i2c/muxes/i2c-arb-gpio-challenge.c | 47 +++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 27 deletions(-)
 
-The patch is based on 'media/master' branch and available at
-        https://github.com/helen-fornazier/opw-staging media/devel
-
-Changes since v2:
-	* Added Ack by Sakari
-
- drivers/media/media-entity.c          | 2 +-
- drivers/media/v4l2-core/v4l2-subdev.c | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index c53c1d5..d8a2299 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -445,7 +445,7 @@ __must_check int __media_entity_pipeline_start(struct media_entity *entity,
- 		bitmap_or(active, active, has_no_links, entity->num_pads);
+diff --git a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
+index 402e3a6c671a..a42827b3c672 100644
+--- a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
++++ b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
+@@ -28,8 +28,6 @@
+ /**
+  * struct i2c_arbitrator_data - Driver data for I2C arbitrator
+  *
+- * @parent: Parent adapter
+- * @child: Child bus
+  * @our_gpio: GPIO we'll use to claim.
+  * @our_gpio_release: 0 if active high; 1 if active low; AKA if the GPIO ==
+  *   this then consider it released.
+@@ -42,8 +40,6 @@
+  */
  
- 		if (!bitmap_full(active, entity->num_pads)) {
--			ret = -EPIPE;
-+			ret = -ENOLINK;
- 			dev_dbg(entity->graph_obj.mdev->dev,
- 				"\"%s\":%u must be connected by an enabled link\n",
- 				entity->name,
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index d630838..918e79d 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -508,7 +508,7 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
- 	if (source_fmt->format.width != sink_fmt->format.width
- 	    || source_fmt->format.height != sink_fmt->format.height
- 	    || source_fmt->format.code != sink_fmt->format.code)
--		return -EINVAL;
-+		return -EPIPE;
+ struct i2c_arbitrator_data {
+-	struct i2c_adapter *parent;
+-	struct i2c_adapter *child;
+ 	int our_gpio;
+ 	int our_gpio_release;
+ 	int their_gpio;
+@@ -59,9 +55,9 @@ struct i2c_arbitrator_data {
+  *
+  * Use the GPIO-based signalling protocol; return -EBUSY if we fail.
+  */
+-static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
++static int i2c_arbitrator_select(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	const struct i2c_arbitrator_data *arb = data;
++	const struct i2c_arbitrator_data *arb = i2c_mux_priv(muxc);
+ 	unsigned long stop_retry, stop_time;
  
- 	/* The field order must match, or the sink field order must be NONE
- 	 * to support interlaced hardware connected to bridges that support
-@@ -516,7 +516,7 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
- 	 */
- 	if (source_fmt->format.field != sink_fmt->format.field &&
- 	    sink_fmt->format.field != V4L2_FIELD_NONE)
--		return -EINVAL;
-+		return -EPIPE;
+ 	/* Start a round of trying to claim the bus */
+@@ -93,7 +89,7 @@ static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
+ 	/* Give up, release our claim */
+ 	gpio_set_value(arb->our_gpio, arb->our_gpio_release);
+ 	udelay(arb->slew_delay_us);
+-	dev_err(&adap->dev, "Could not claim bus, timeout\n");
++	dev_err(muxc->dev, "Could not claim bus, timeout\n");
+ 	return -EBUSY;
+ }
  
+@@ -102,10 +98,9 @@ static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
+  *
+  * Release the I2C bus using the GPIO-based signalling protocol.
+  */
+-static int i2c_arbitrator_deselect(struct i2c_adapter *adap, void *data,
+-				   u32 chan)
++static int i2c_arbitrator_deselect(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	const struct i2c_arbitrator_data *arb = data;
++	const struct i2c_arbitrator_data *arb = i2c_mux_priv(muxc);
+ 
+ 	/* Release the bus and wait for the other master to notice */
+ 	gpio_set_value(arb->our_gpio, arb->our_gpio_release);
+@@ -119,6 +114,7 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *np = dev->of_node;
+ 	struct device_node *parent_np;
++	struct i2c_mux_core *muxc;
+ 	struct i2c_arbitrator_data *arb;
+ 	enum of_gpio_flags gpio_flags;
+ 	unsigned long out_init;
+@@ -134,12 +130,13 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
+-	arb = devm_kzalloc(dev, sizeof(*arb), GFP_KERNEL);
+-	if (!arb) {
+-		dev_err(dev, "Cannot allocate i2c_arbitrator_data\n");
++	muxc = i2c_mux_alloc(NULL, dev, sizeof(*arb), 0,
++			     i2c_arbitrator_select, i2c_arbitrator_deselect);
++	if (!muxc)
+ 		return -ENOMEM;
+-	}
+-	platform_set_drvdata(pdev, arb);
++	arb = i2c_mux_priv(muxc);
++
++	platform_set_drvdata(pdev, muxc);
+ 
+ 	/* Request GPIOs */
+ 	ret = of_get_named_gpio_flags(np, "our-claim-gpio", 0, &gpio_flags);
+@@ -196,21 +193,18 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+ 		dev_err(dev, "Cannot parse i2c-parent\n");
+ 		return -EINVAL;
+ 	}
+-	arb->parent = of_get_i2c_adapter_by_node(parent_np);
++	muxc->parent = of_get_i2c_adapter_by_node(parent_np);
+ 	of_node_put(parent_np);
+-	if (!arb->parent) {
++	if (!muxc->parent) {
+ 		dev_err(dev, "Cannot find parent bus\n");
+ 		return -EPROBE_DEFER;
+ 	}
+ 
+ 	/* Actually add the mux adapter */
+-	arb->child = i2c_add_mux_adapter(arb->parent, dev, arb, 0, 0, 0,
+-					 i2c_arbitrator_select,
+-					 i2c_arbitrator_deselect);
+-	if (!arb->child) {
++	ret = i2c_mux_add_adapter(muxc, 0, 0, 0);
++	if (ret) {
+ 		dev_err(dev, "Failed to add adapter\n");
+-		ret = -ENODEV;
+-		i2c_put_adapter(arb->parent);
++		i2c_put_adapter(muxc->parent);
+ 	}
+ 
+ 	return ret;
+@@ -218,11 +212,10 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+ 
+ static int i2c_arbitrator_remove(struct platform_device *pdev)
+ {
+-	struct i2c_arbitrator_data *arb = platform_get_drvdata(pdev);
+-
+-	i2c_del_mux_adapter(arb->child);
+-	i2c_put_adapter(arb->parent);
++	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
+ 
++	i2c_mux_del_adapters(muxc);
++	i2c_put_adapter(muxc->parent);
  	return 0;
  }
+ 
 -- 
-1.9.1
+2.1.4
 
