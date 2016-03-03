@@ -1,137 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36652 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752058AbcCGMPp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Mar 2016 07:15:45 -0500
-Date: Mon, 7 Mar 2016 09:15:37 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Johannes Stezenbach <js@linuxtv.org>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	Keith Packard <keithp@keithp.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160307091537.28548511@recife.lan>
-In-Reply-To: <20160307084826.GA6381@linuxtv.org>
-References: <87y49zr74t.fsf@intel.com>
-	<20160303071305.247e30b1@lwn.net>
-	<20160303155037.705f33dd@recife.lan>
-	<86egbrm9hw.fsf@hiro.keithp.com>
-	<20160303221930.32558496@recife.lan>
-	<87si06r6i3.fsf@intel.com>
-	<20160304095950.3358a2cb@recife.lan>
-	<20160304140909.GA15636@linuxtv.org>
-	<20160305232937.74678dd0@recife.lan>
-	<20160306232908.GA3732@linuxtv.org>
-	<20160307084826.GA6381@linuxtv.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.lysator.liu.se ([130.236.254.3]:48460 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932292AbcCCWaB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:30:01 -0500
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Viorel Suman <viorel.suman@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v4 14/18] of/unittest: convert to use an explicit i2c mux core
+Date: Thu,  3 Mar 2016 23:27:26 +0100
+Message-Id: <1457044050-15230-15-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 7 Mar 2016 09:48:26 +0100
-Johannes Stezenbach <js@linuxtv.org> escreveu:
+From: Peter Rosin <peda@axentia.se>
 
-> On Mon, Mar 07, 2016 at 12:29:08AM +0100, Johannes Stezenbach wrote:
-> > On Sat, Mar 05, 2016 at 11:29:37PM -0300, Mauro Carvalho Chehab wrote:  
-> > > 
-> > > I converted one of the big tables to CSV. At least now it recognized
-> > > it as a table. Yet, the table was very badly formated:
-> > > 	https://mchehab.fedorapeople.org/media-kabi-docs-test/rst_tests/packed-rgb.html
-> > > 
-> > > This is how this table should look like:
-> > > 	https://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html
-> > > 
-> > > Also, as this table has merged cells at the legend. I've no idea how
-> > > to tell sphinx to do that on csv format.
-> > > 
-> > > The RST files are on this git tree:
-> > > 	https://git.linuxtv.org/mchehab/v4l2-docs-poc.git/  
-> > 
-> > Yeah, seems it can't do merged cells in csv.  Attached patch converts it
-> > back to grid table format and fixes the table definition.
-> > The html output looks usable, but clearly it is no fun to
-> > work with tables in Sphinx.
-> > 
-> > Sphinx' latex writer can't handle nested tables, though.
-> > Python's docutils rst2latex can, but that doesn't help here.
-> > rst2pdf also supports it.  But I have doubts such a large
-> > table would render OK in pdf without using landscape orientation.
-> > I have not tried because I used python3-sphinx but rst2pdf
-> > is only availble for Python2 in Debian so it does not integrate
-> > with Sphinx.  
-> 
-> Just a quick idea:
-> Perhaps one alternative would be to use Graphviz to render
-> the problematic tables, it supports a HTML-like syntax
-> and can be embedded in Spinx documents:
-> 
-> http://www.sphinx-doc.org/en/stable/ext/graphviz.html
-> http://www.graphviz.org/content/node-shapes#html
-> http://stackoverflow.com/questions/13890568/graphviz-html-nested-tables
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select op to be in terms of the i2c mux core instead
+of the child adapter.
 
-That could work, but it is scary... Graphviz is great to generate
-diagrams, but it really sucks when one wants to put a graph element
-on a specific place, as it loves to reorder elements putting them on
-unexpected places.
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/of/unittest.c | 40 +++++++++++++++-------------------------
+ 1 file changed, 15 insertions(+), 25 deletions(-)
 
-Btw, 
+diff --git a/drivers/of/unittest.c b/drivers/of/unittest.c
+index 979b6e415cea..a6dc4b18047e 100644
+--- a/drivers/of/unittest.c
++++ b/drivers/of/unittest.c
+@@ -1687,13 +1687,7 @@ static struct i2c_driver unittest_i2c_dev_driver = {
+ 
+ #if IS_BUILTIN(CONFIG_I2C_MUX)
+ 
+-struct unittest_i2c_mux_data {
+-	int nchans;
+-	struct i2c_adapter *adap[];
+-};
+-
+-static int unittest_i2c_mux_select_chan(struct i2c_adapter *adap,
+-			       void *client, u32 chan)
++static int unittest_i2c_mux_select_chan(struct i2c_mux_core *muxc, u32 chan)
+ {
+ 	return 0;
+ }
+@@ -1701,11 +1695,11 @@ static int unittest_i2c_mux_select_chan(struct i2c_adapter *adap,
+ static int unittest_i2c_mux_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *id)
+ {
+-	int ret, i, nchans, size;
++	int ret, i, nchans;
+ 	struct device *dev = &client->dev;
+ 	struct i2c_adapter *adap = to_i2c_adapter(dev->parent);
+ 	struct device_node *np = client->dev.of_node, *child;
+-	struct unittest_i2c_mux_data *stm;
++	struct i2c_mux_core *muxc;
+ 	u32 reg, max_reg;
+ 
+ 	dev_dbg(dev, "%s for node @%s\n", __func__, np->full_name);
+@@ -1729,25 +1723,23 @@ static int unittest_i2c_mux_probe(struct i2c_client *client,
+ 		return -EINVAL;
+ 	}
+ 
+-	size = offsetof(struct unittest_i2c_mux_data, adap[nchans]);
+-	stm = devm_kzalloc(dev, size, GFP_KERNEL);
+-	if (!stm) {
+-		dev_err(dev, "Out of memory\n");
++	muxc = i2c_mux_alloc(adap, dev, 0, 0,
++			     unittest_i2c_mux_select_chan, NULL);
++	if (!muxc)
+ 		return -ENOMEM;
+-	}
+-	stm->nchans = nchans;
++	ret = i2c_mux_reserve_adapters(muxc, nchans);
++	if (ret)
++		return ret;
+ 	for (i = 0; i < nchans; i++) {
+-		stm->adap[i] = i2c_add_mux_adapter(adap, dev, client,
+-				0, i, 0, unittest_i2c_mux_select_chan, NULL);
+-		if (!stm->adap[i]) {
++		ret = i2c_mux_add_adapter(muxc, 0, i, 0);
++		if (ret) {
+ 			dev_err(dev, "Failed to register mux #%d\n", i);
+-			for (i--; i >= 0; i--)
+-				i2c_del_mux_adapter(stm->adap[i]);
++			i2c_mux_del_adapters(muxc);
+ 			return -ENODEV;
+ 		}
+ 	}
+ 
+-	i2c_set_clientdata(client, stm);
++	i2c_set_clientdata(client, muxc);
+ 
+ 	return 0;
+ };
+@@ -1756,12 +1748,10 @@ static int unittest_i2c_mux_remove(struct i2c_client *client)
+ {
+ 	struct device *dev = &client->dev;
+ 	struct device_node *np = client->dev.of_node;
+-	struct unittest_i2c_mux_data *stm = i2c_get_clientdata(client);
+-	int i;
++	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
+ 
+ 	dev_dbg(dev, "%s for node @%s\n", __func__, np->full_name);
+-	for (i = stm->nchans - 1; i >= 0; i--)
+-		i2c_del_mux_adapter(stm->adap[i]);
++	i2c_mux_del_adapters(muxc);
+ 	return 0;
+ }
+ 
+-- 
+2.1.4
 
-I converted all docs from our uAPI docbook to rst using pandoc.
-It was a brainless conversion, except for a few fixes.
-
-The output is at:
-	https://mchehab.fedorapeople.org/media-kabi-docs-test/rst_tests/
-
-I added it on the top of my PoC tree at:
-	https://git.linuxtv.org/mchehab/v4l2-docs-poc.git/  
-
-Besides tables, I noticed some other bad things that needs to be
-corrected somehow:
-
-1) Document divisions are not numbered. We need that. It should be
-broken into:
-	- Document divisions - one per documented API:
-		- V4L2
-		- Remote Controllers
-		- DVB
-		- Media Controller
-
-	- Chapters
-	- Sessions
-
-Everything should be numbered, as, when discussing API improvements,
-it is usual the need of pinpoint to an specific chapter and section.
-
-Tables and images should also be numbered, and we need a way to
-use references for table/image numbers.
-
-2) Images
-
-Most images didn't popup. We have images on different file formats:
-	- SVG
-	- GIF
-	- PDF
-	- PNG
-
-3) References
-
-It could be a conversion issue, but there are lots of missing 
-references at the documentation.
-
-4) We need to have some way to tell sphinx to not put some things
-at the lateral ToC bar. For example, at the V4L2 "Changes" section,
-we don't want to have one entry per version at the ToC bar.
-
-Giving that, I suspect that we'll have huge headaches to address
-if we use sphinx, as it seems too limited to handle complex
-documents. We should try to use some other tool that would give
-us better results.
-
-
-Regards,
-Mauro
