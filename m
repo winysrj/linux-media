@@ -1,106 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:57362 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751356AbcCEIFG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Mar 2016 03:05:06 -0500
-Subject: Re: [PATCH v2] media: add prefixes to interface types
-To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
-	hans.verkuil@cisco.com
-References: <1457126045-8108-1-git-send-email-shuahkh@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56DA9329.1010400@xs4all.nl>
-Date: Sat, 5 Mar 2016 09:04:57 +0100
-MIME-Version: 1.0
-In-Reply-To: <1457126045-8108-1-git-send-email-shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail.lysator.liu.se ([130.236.254.3]:35360 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758577AbcCCW27 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:28:59 -0500
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Viorel Suman <viorel.suman@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v4 06/18] i2c: i2c-mux-pca954x: convert to use an explicit i2c mux core
+Date: Thu,  3 Mar 2016 23:27:18 +0100
+Message-Id: <1457044050-15230-7-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Peter Rosin <peda@axentia.se>
 
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
-On 03/04/2016 10:14 PM, Shuah Khan wrote:
-> Add missing prefixes for DVB, V4L, and ALSA interface types.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Add a mask to handle the case where not all child adapters should
+cause a mux deselect to happen, now that there is a common deselect op
+for all child adapters.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/i2c/muxes/i2c-mux-pca954x.c | 64 +++++++++++++++++++------------------
+ 1 file changed, 33 insertions(+), 31 deletions(-)
 
-Thanks!
+diff --git a/drivers/i2c/muxes/i2c-mux-pca954x.c b/drivers/i2c/muxes/i2c-mux-pca954x.c
+index acfcef3d4068..1693d29c11a4 100644
+--- a/drivers/i2c/muxes/i2c-mux-pca954x.c
++++ b/drivers/i2c/muxes/i2c-mux-pca954x.c
+@@ -60,9 +60,10 @@ enum pca_type {
+ 
+ struct pca954x {
+ 	enum pca_type type;
+-	struct i2c_adapter *virt_adaps[PCA954X_MAX_NCHANS];
+ 
+ 	u8 last_chan;		/* last register value */
++	u8 deselect;
++	struct i2c_client *client;
+ };
+ 
+ struct chip_desc {
+@@ -146,10 +147,10 @@ static int pca954x_reg_write(struct i2c_adapter *adap,
+ 	return ret;
+ }
+ 
+-static int pca954x_select_chan(struct i2c_adapter *adap,
+-			       void *client, u32 chan)
++static int pca954x_select_chan(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct pca954x *data = i2c_get_clientdata(client);
++	struct pca954x *data = i2c_mux_priv(muxc);
++	struct i2c_client *client = data->client;
+ 	const struct chip_desc *chip = &chips[data->type];
+ 	u8 regval;
+ 	int ret = 0;
+@@ -162,21 +163,24 @@ static int pca954x_select_chan(struct i2c_adapter *adap,
+ 
+ 	/* Only select the channel if its different from the last channel */
+ 	if (data->last_chan != regval) {
+-		ret = pca954x_reg_write(adap, client, regval);
++		ret = pca954x_reg_write(muxc->parent, client, regval);
+ 		data->last_chan = regval;
+ 	}
+ 
+ 	return ret;
+ }
+ 
+-static int pca954x_deselect_mux(struct i2c_adapter *adap,
+-				void *client, u32 chan)
++static int pca954x_deselect_mux(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct pca954x *data = i2c_get_clientdata(client);
++	struct pca954x *data = i2c_mux_priv(muxc);
++	struct i2c_client *client = data->client;
++
++	if (!(data->deselect & (1 << chan)))
++		return 0;
+ 
+ 	/* Deselect active channel */
+ 	data->last_chan = 0;
+-	return pca954x_reg_write(adap, client, data->last_chan);
++	return pca954x_reg_write(muxc->parent, client, data->last_chan);
+ }
+ 
+ /*
+@@ -191,17 +195,21 @@ static int pca954x_probe(struct i2c_client *client,
+ 	bool idle_disconnect_dt;
+ 	struct gpio_desc *gpio;
+ 	int num, force, class;
++	struct i2c_mux_core *muxc;
+ 	struct pca954x *data;
+ 	int ret;
+ 
+ 	if (!i2c_check_functionality(adap, I2C_FUNC_SMBUS_BYTE))
+ 		return -ENODEV;
+ 
+-	data = devm_kzalloc(&client->dev, sizeof(struct pca954x), GFP_KERNEL);
+-	if (!data)
++	muxc = i2c_mux_alloc(adap, &client->dev, sizeof(*data), 0,
++			     pca954x_select_chan, pca954x_deselect_mux);
++	if (!muxc)
+ 		return -ENOMEM;
++	data = i2c_mux_priv(muxc);
+ 
+-	i2c_set_clientdata(client, data);
++	i2c_set_clientdata(client, muxc);
++	data->client = client;
+ 
+ 	/* Get the mux out of reset if a reset GPIO is specified. */
+ 	gpio = devm_gpiod_get_optional(&client->dev, "reset", GPIOD_OUT_LOW);
+@@ -220,6 +228,10 @@ static int pca954x_probe(struct i2c_client *client,
+ 	data->type = id->driver_data;
+ 	data->last_chan = 0;		   /* force the first selection */
+ 
++	ret = i2c_mux_reserve_adapters(muxc, chips[data->type].nchans);
++	if (ret)
++		return ret;
++
+ 	idle_disconnect_dt = of_node &&
+ 		of_property_read_bool(of_node, "i2c-mux-idle-disconnect");
+ 
+@@ -238,16 +250,13 @@ static int pca954x_probe(struct i2c_client *client,
+ 				/* discard unconfigured channels */
+ 				break;
+ 			idle_disconnect_pd = pdata->modes[num].deselect_on_exit;
++			data->deselect |= (idle_disconnect_pd
++					   || idle_disconnect_dt) << num;
+ 		}
+ 
+-		data->virt_adaps[num] =
+-			i2c_add_mux_adapter(adap, &client->dev, client,
+-				force, num, class, pca954x_select_chan,
+-				(idle_disconnect_pd || idle_disconnect_dt)
+-					? pca954x_deselect_mux : NULL);
++		ret = i2c_mux_add_adapter(muxc, force, num, class);
+ 
+-		if (data->virt_adaps[num] == NULL) {
+-			ret = -ENODEV;
++		if (ret) {
+ 			dev_err(&client->dev,
+ 				"failed to register multiplexed adapter"
+ 				" %d as bus %d\n", num, force);
+@@ -263,23 +272,15 @@ static int pca954x_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ virt_reg_failed:
+-	for (num--; num >= 0; num--)
+-		i2c_del_mux_adapter(data->virt_adaps[num]);
++	i2c_mux_del_adapters(muxc);
+ 	return ret;
+ }
+ 
+ static int pca954x_remove(struct i2c_client *client)
+ {
+-	struct pca954x *data = i2c_get_clientdata(client);
+-	const struct chip_desc *chip = &chips[data->type];
+-	int i;
+-
+-	for (i = 0; i < chip->nchans; ++i)
+-		if (data->virt_adaps[i]) {
+-			i2c_del_mux_adapter(data->virt_adaps[i]);
+-			data->virt_adaps[i] = NULL;
+-		}
++	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
+ 
++	i2c_mux_del_adapters(muxc);
+ 	return 0;
+ }
+ 
+@@ -287,7 +288,8 @@ static int pca954x_remove(struct i2c_client *client)
+ static int pca954x_resume(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+-	struct pca954x *data = i2c_get_clientdata(client);
++	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
++	struct pca954x *data = i2c_mux_priv(muxc);
+ 
+ 	data->last_chan = 0;
+ 	return i2c_smbus_write_byte(client, 0);
+-- 
+2.1.4
 
-	Hans
-
-> ---
-> 
-> Changes since v1:
-> Addresses Hans's comments on v1
-> 
->  drivers/media/media-entity.c | 34 +++++++++++++++++-----------------
->  1 file changed, 17 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index bcd7464..e95070b 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -46,41 +46,41 @@ static inline const char *intf_type(struct media_interface *intf)
->  {
->  	switch (intf->type) {
->  	case MEDIA_INTF_T_DVB_FE:
-> -		return "frontend";
-> +		return "dvb-frontend";
->  	case MEDIA_INTF_T_DVB_DEMUX:
-> -		return "demux";
-> +		return "dvb-demux";
->  	case MEDIA_INTF_T_DVB_DVR:
-> -		return "DVR";
-> +		return "dvb-dvr";
->  	case MEDIA_INTF_T_DVB_CA:
-> -		return  "CA";
-> +		return  "dvb-ca";
->  	case MEDIA_INTF_T_DVB_NET:
-> -		return "dvbnet";
-> +		return "dvb-net";
->  	case MEDIA_INTF_T_V4L_VIDEO:
-> -		return "video";
-> +		return "v4l-video";
->  	case MEDIA_INTF_T_V4L_VBI:
-> -		return "vbi";
-> +		return "v4l-vbi";
->  	case MEDIA_INTF_T_V4L_RADIO:
-> -		return "radio";
-> +		return "v4l-radio";
->  	case MEDIA_INTF_T_V4L_SUBDEV:
-> -		return "v4l2-subdev";
-> +		return "v4l-subdev";
->  	case MEDIA_INTF_T_V4L_SWRADIO:
-> -		return "swradio";
-> +		return "v4l-swradio";
->  	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
-> -		return "pcm-capture";
-> +		return "alsa-pcm-capture";
->  	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
-> -		return "pcm-playback";
-> +		return "alsa-pcm-playback";
->  	case MEDIA_INTF_T_ALSA_CONTROL:
->  		return "alsa-control";
->  	case MEDIA_INTF_T_ALSA_COMPRESS:
-> -		return "compress";
-> +		return "alsa-compress";
->  	case MEDIA_INTF_T_ALSA_RAWMIDI:
-> -		return "rawmidi";
-> +		return "alsa-rawmidi";
->  	case MEDIA_INTF_T_ALSA_HWDEP:
-> -		return "hwdep";
-> +		return "alsa-hwdep";
->  	case MEDIA_INTF_T_ALSA_SEQUENCER:
-> -		return "sequencer";
-> +		return "alsa-sequencer";
->  	case MEDIA_INTF_T_ALSA_TIMER:
-> -		return "timer";
-> +		return "alsa-timer";
->  	default:
->  		return "unknown-intf";
->  	}
-> 
