@@ -1,132 +1,464 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752041AbcCXX2c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:28:32 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 47/51] v4l: vsp1: dl: Fix race conditions
-Date: Fri, 25 Mar 2016 01:27:43 +0200
-Message-Id: <1458862067-19525-48-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail.lysator.liu.se ([130.236.254.3]:42236 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757565AbcCCW16 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:27:58 -0500
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Viorel Suman <viorel.suman@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v4 01/18] i2c-mux: add common data for every i2c-mux instance
+Date: Thu,  3 Mar 2016 23:27:13 +0100
+Message-Id: <1457044050-15230-2-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsp1_dl_list_put() function expects to be called with the display
-list manager lock held. This assumption is correct for calls from within
-the vsp1_dl.c file, but not for the external calls. Fix it by taking the
-lock inside the function and providing an unlocked version for the
-internal callers.
+From: Peter Rosin <peda@axentia.se>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+All i2c-muxes have a parent adapter and one or many child
+adapters. A mux also has some means of selection. Previously,
+this was stored per child adapter, but it is only needed
+to keep track of this per mux.
+
+Add an i2c mux core, that keeps track of this consistently.
+
+Also add some glue for users of the old interface, which will
+create one implicit mux core per child adapter.
+
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/platform/vsp1/vsp1_dl.c | 41 +++++++++++++++++++++++++----------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+ drivers/i2c/i2c-mux.c   | 236 ++++++++++++++++++++++++++++++++++++++----------
+ include/linux/i2c-mux.h |  47 ++++++++++
+ 2 files changed, 236 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 8efa5447c1b3..4f2c3c95bfa4 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -164,25 +164,36 @@ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm)
- 	return dl;
+diff --git a/drivers/i2c/i2c-mux.c b/drivers/i2c/i2c-mux.c
+index 00fc5b1c7b66..7df323a01661 100644
+--- a/drivers/i2c/i2c-mux.c
++++ b/drivers/i2c/i2c-mux.c
+@@ -28,33 +28,34 @@
+ #include <linux/acpi.h>
+ 
+ /* multiplexer per channel data */
++struct i2c_mux_priv_old {
++	void *mux_priv;
++	int (*select)(struct i2c_adapter *, void *mux_priv, u32 chan_id);
++	int (*deselect)(struct i2c_adapter *, void *mux_priv, u32 chan_id);
++};
++
+ struct i2c_mux_priv {
+ 	struct i2c_adapter adap;
+ 	struct i2c_algorithm algo;
+-
+-	struct i2c_adapter *parent;
+-	struct device *mux_dev;
+-	void *mux_priv;
++	struct i2c_mux_core *muxc;
+ 	u32 chan_id;
+-
+-	int (*select)(struct i2c_adapter *, void *mux_priv, u32 chan_id);
+-	int (*deselect)(struct i2c_adapter *, void *mux_priv, u32 chan_id);
+ };
+ 
+ static int i2c_mux_master_xfer(struct i2c_adapter *adap,
+ 			       struct i2c_msg msgs[], int num)
+ {
+ 	struct i2c_mux_priv *priv = adap->algo_data;
+-	struct i2c_adapter *parent = priv->parent;
++	struct i2c_mux_core *muxc = priv->muxc;
++	struct i2c_adapter *parent = muxc->parent;
+ 	int ret;
+ 
+ 	/* Switch to the right mux port and perform the transfer. */
+ 
+-	ret = priv->select(parent, priv->mux_priv, priv->chan_id);
++	ret = muxc->select(muxc, priv->chan_id);
+ 	if (ret >= 0)
+ 		ret = __i2c_transfer(parent, msgs, num);
+-	if (priv->deselect)
+-		priv->deselect(parent, priv->mux_priv, priv->chan_id);
++	if (muxc->deselect)
++		muxc->deselect(muxc, priv->chan_id);
+ 
+ 	return ret;
+ }
+@@ -65,17 +66,18 @@ static int i2c_mux_smbus_xfer(struct i2c_adapter *adap,
+ 			      int size, union i2c_smbus_data *data)
+ {
+ 	struct i2c_mux_priv *priv = adap->algo_data;
+-	struct i2c_adapter *parent = priv->parent;
++	struct i2c_mux_core *muxc = priv->muxc;
++	struct i2c_adapter *parent = muxc->parent;
+ 	int ret;
+ 
+ 	/* Select the right mux port and perform the transfer. */
+ 
+-	ret = priv->select(parent, priv->mux_priv, priv->chan_id);
++	ret = muxc->select(muxc, priv->chan_id);
+ 	if (ret >= 0)
+ 		ret = parent->algo->smbus_xfer(parent, addr, flags,
+ 					read_write, command, size, data);
+-	if (priv->deselect)
+-		priv->deselect(parent, priv->mux_priv, priv->chan_id);
++	if (muxc->deselect)
++		muxc->deselect(muxc, priv->chan_id);
+ 
+ 	return ret;
+ }
+@@ -84,7 +86,7 @@ static int i2c_mux_smbus_xfer(struct i2c_adapter *adap,
+ static u32 i2c_mux_functionality(struct i2c_adapter *adap)
+ {
+ 	struct i2c_mux_priv *priv = adap->algo_data;
+-	struct i2c_adapter *parent = priv->parent;
++	struct i2c_adapter *parent = priv->muxc->parent;
+ 
+ 	return parent->algo->functionality(parent);
+ }
+@@ -102,30 +104,80 @@ static unsigned int i2c_mux_parent_classes(struct i2c_adapter *parent)
+ 	return class;
  }
  
-+/* This function must be called with the display list manager lock held.*/
-+static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
+-struct i2c_adapter *i2c_add_mux_adapter(struct i2c_adapter *parent,
+-				struct device *mux_dev,
+-				void *mux_priv, u32 force_nr, u32 chan_id,
+-				unsigned int class,
+-				int (*select) (struct i2c_adapter *,
+-					       void *, u32),
+-				int (*deselect) (struct i2c_adapter *,
+-						 void *, u32))
++int i2c_mux_reserve_adapters(struct i2c_mux_core *muxc, int adapters)
 +{
-+	if (!dl)
-+		return;
++	struct i2c_adapter **adapter;
 +
-+	dl->reg_count = 0;
++	if (adapters <= muxc->max_adapters)
++		return 0;
 +
-+	list_add_tail(&dl->list, &dl->dlm->free);
++	adapter = devm_kmalloc_array(muxc->dev,
++				     adapters, sizeof(*adapter),
++				     GFP_KERNEL);
++	if (!adapter)
++		return -ENOMEM;
++
++	if (muxc->adapter) {
++		memcpy(adapter, muxc->adapter,
++		       muxc->max_adapters * sizeof(*adapter));
++		devm_kfree(muxc->dev, muxc->adapter);
++	}
++
++	muxc->adapter = adapter;
++	muxc->max_adapters = adapters;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(i2c_mux_reserve_adapters);
++
++struct i2c_mux_core *i2c_mux_alloc(struct i2c_adapter *parent,
++				   struct device *dev, int sizeof_priv,
++				   u32 flags,
++				   int (*select)(struct i2c_mux_core *, u32),
++				   int (*deselect)(struct i2c_mux_core *, u32))
+ {
++	struct i2c_mux_core *muxc;
++
++	muxc = devm_kzalloc(dev, sizeof(*muxc) + sizeof_priv, GFP_KERNEL);
++	if (!muxc)
++		return NULL;
++	if (sizeof_priv)
++		muxc->priv = muxc + 1;
++
++	muxc->parent = parent;
++	muxc->dev = dev;
++	muxc->select = select;
++	muxc->deselect = deselect;
++
++	return muxc;
++}
++EXPORT_SYMBOL_GPL(i2c_mux_alloc);
++
++int i2c_mux_add_adapter(struct i2c_mux_core *muxc,
++			u32 force_nr, u32 chan_id,
++			unsigned int class)
++{
++	struct i2c_adapter *parent = muxc->parent;
+ 	struct i2c_mux_priv *priv;
+ 	char symlink_name[20];
+ 	int ret;
+ 
++	if (muxc->adapters >= muxc->max_adapters) {
++		int new_max = 2 * muxc->max_adapters;
++
++		if (!new_max)
++			new_max = 1;
++		ret = i2c_mux_reserve_adapters(muxc, new_max);
++		if (ret)
++			return ret;
++	}
++
+ 	priv = kzalloc(sizeof(struct i2c_mux_priv), GFP_KERNEL);
+ 	if (!priv)
+-		return NULL;
++		return -ENOMEM;
+ 
+ 	/* Set up private adapter data */
+-	priv->parent = parent;
+-	priv->mux_dev = mux_dev;
+-	priv->mux_priv = mux_priv;
++	priv->muxc = muxc;
+ 	priv->chan_id = chan_id;
+-	priv->select = select;
+-	priv->deselect = deselect;
+ 
+ 	/* Need to do algo dynamically because we don't know ahead
+ 	 * of time what sort of physical adapter we'll be dealing with.
+@@ -159,11 +211,11 @@ struct i2c_adapter *i2c_add_mux_adapter(struct i2c_adapter *parent,
+ 	 * Try to populate the mux adapter's of_node, expands to
+ 	 * nothing if !CONFIG_OF.
+ 	 */
+-	if (mux_dev->of_node) {
++	if (muxc->dev->of_node) {
+ 		struct device_node *child;
+ 		u32 reg;
+ 
+-		for_each_child_of_node(mux_dev->of_node, child) {
++		for_each_child_of_node(muxc->dev->of_node, child) {
+ 			ret = of_property_read_u32(child, "reg", &reg);
+ 			if (ret)
+ 				continue;
+@@ -177,8 +229,9 @@ struct i2c_adapter *i2c_add_mux_adapter(struct i2c_adapter *parent,
+ 	/*
+ 	 * Associate the mux channel with an ACPI node.
+ 	 */
+-	if (has_acpi_companion(mux_dev))
+-		acpi_preset_companion(&priv->adap.dev, ACPI_COMPANION(mux_dev),
++	if (has_acpi_companion(muxc->dev))
++		acpi_preset_companion(&priv->adap.dev,
++				      ACPI_COMPANION(muxc->dev),
+ 				      chan_id);
+ 
+ 	if (force_nr) {
+@@ -192,33 +245,122 @@ struct i2c_adapter *i2c_add_mux_adapter(struct i2c_adapter *parent,
+ 			"failed to add mux-adapter (error=%d)\n",
+ 			ret);
+ 		kfree(priv);
+-		return NULL;
++		return ret;
+ 	}
+ 
+-	WARN(sysfs_create_link(&priv->adap.dev.kobj, &mux_dev->kobj, "mux_device"),
+-			       "can't create symlink to mux device\n");
++	WARN(sysfs_create_link(&priv->adap.dev.kobj, &muxc->dev->kobj,
++			       "mux_device"),
++	     "can't create symlink to mux device\n");
+ 
+ 	snprintf(symlink_name, sizeof(symlink_name), "channel-%u", chan_id);
+-	WARN(sysfs_create_link(&mux_dev->kobj, &priv->adap.dev.kobj, symlink_name),
+-			       "can't create symlink for channel %u\n", chan_id);
++	WARN(sysfs_create_link(&muxc->dev->kobj, &priv->adap.dev.kobj,
++			       symlink_name),
++	     "can't create symlink for channel %u\n", chan_id);
+ 	dev_info(&parent->dev, "Added multiplexed i2c bus %d\n",
+ 		 i2c_adapter_id(&priv->adap));
+ 
+-	return &priv->adap;
++	muxc->adapter[muxc->adapters++] = &priv->adap;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(i2c_mux_add_adapter);
++
++struct i2c_mux_core *i2c_mux_one_adapter(struct i2c_adapter *parent,
++					 struct device *dev, int sizeof_priv,
++					 u32 flags, u32 force_nr,
++					 u32 chan_id, unsigned int class,
++					 int (*select)(struct i2c_mux_core *,
++						       u32),
++					 int (*deselect)(struct i2c_mux_core *,
++							 u32))
++{
++	struct i2c_mux_core *muxc;
++	int ret;
++
++	muxc = i2c_mux_alloc(parent, dev, sizeof_priv, flags, select, deselect);
++	if (!muxc)
++		return ERR_PTR(-ENOMEM);
++
++	ret = i2c_mux_add_adapter(muxc, force_nr, chan_id, class);
++	if (ret) {
++		devm_kfree(dev, muxc);
++		return ERR_PTR(ret);
++	}
++
++	return muxc;
++}
++EXPORT_SYMBOL_GPL(i2c_mux_one_adapter);
++
++static int i2c_mux_select(struct i2c_mux_core *muxc, u32 chan)
++{
++	struct i2c_mux_priv_old *priv = i2c_mux_priv(muxc);
++
++	return priv->select(muxc->parent, priv->mux_priv, chan);
 +}
 +
- /**
-  * vsp1_dl_list_put - Release a display list
-  * @dl: The display list
-  *
-  * Release the display list and return it to the pool of free lists.
-  *
-- * This function must be called with the display list manager lock held.
-- *
-  * Passing a NULL pointer to this function is safe, in that case no operation
-  * will be performed.
-  */
- void vsp1_dl_list_put(struct vsp1_dl_list *dl)
- {
-+	unsigned long flags;
++static int i2c_mux_deselect(struct i2c_mux_core *muxc, u32 chan)
++{
++	struct i2c_mux_priv_old *priv = i2c_mux_priv(muxc);
 +
- 	if (!dl)
- 		return;
- 
--	dl->reg_count = 0;
--
--	list_add_tail(&dl->list, &dl->dlm->free);
-+	spin_lock_irqsave(&dl->dlm->lock, flags);
-+	__vsp1_dl_list_put(dl);
-+	spin_unlock_irqrestore(&dl->dlm->lock, flags);
++	return priv->deselect(muxc->parent, priv->mux_priv, chan);
++}
++
++struct i2c_adapter *i2c_add_mux_adapter(struct i2c_adapter *parent,
++					struct device *mux_dev, void *mux_priv,
++					u32 force_nr, u32 chan_id,
++					unsigned int class,
++					int (*select)(struct i2c_adapter *,
++						      void *, u32),
++					int (*deselect)(struct i2c_adapter *,
++							void *, u32))
++{
++	struct i2c_mux_core *muxc;
++	struct i2c_mux_priv_old *priv;
++
++	muxc = i2c_mux_one_adapter(parent, mux_dev, sizeof(*priv), 0,
++				   force_nr, chan_id, class,
++				   i2c_mux_select,
++				   deselect ? i2c_mux_deselect : NULL);
++	if (IS_ERR(muxc))
++		return NULL;
++
++	priv = i2c_mux_priv(muxc);
++	priv->select = select;
++	priv->deselect = deselect;
++	priv->mux_priv = mux_priv;
++
++	return muxc->adapter[0];
  }
+ EXPORT_SYMBOL_GPL(i2c_add_mux_adapter);
  
- void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
-@@ -220,7 +231,7 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
- 	 */
- 	update = !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD);
- 	if (update) {
--		vsp1_dl_list_put(dlm->pending);
-+		__vsp1_dl_list_put(dlm->pending);
- 		dlm->pending = dl;
- 		goto done;
- 	}
-@@ -233,7 +244,7 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
- 	vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
- 		   (dl->reg_count * 8));
- 
--	vsp1_dl_list_put(dlm->queued);
-+	__vsp1_dl_list_put(dlm->queued);
- 	dlm->queued = dl;
- 
- done:
-@@ -253,7 +264,7 @@ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm)
- 	 * processing by the device. The active display list, if any, won't be
- 	 * accessed anymore and can be reused.
- 	 */
--	vsp1_dl_list_put(dlm->active);
-+	__vsp1_dl_list_put(dlm->active);
- 	dlm->active = NULL;
- 
- 	spin_unlock(&dlm->lock);
-@@ -265,7 +276,7 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
- 
- 	spin_lock(&dlm->lock);
- 
--	vsp1_dl_list_put(dlm->active);
-+	__vsp1_dl_list_put(dlm->active);
- 	dlm->active = NULL;
- 
- 	/* Header mode is used for mem-to-mem pipelines only. We don't need to
-@@ -328,9 +339,15 @@ void vsp1_dlm_setup(struct vsp1_device *vsp1)
- 
- void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
+-void i2c_del_mux_adapter(struct i2c_adapter *adap)
++void i2c_mux_del_adapters(struct i2c_mux_core *muxc)
  {
--	vsp1_dl_list_put(dlm->active);
--	vsp1_dl_list_put(dlm->queued);
--	vsp1_dl_list_put(dlm->pending);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&dlm->lock, flags);
-+
-+	__vsp1_dl_list_put(dlm->active);
-+	__vsp1_dl_list_put(dlm->queued);
-+	__vsp1_dl_list_put(dlm->pending);
-+
-+	spin_unlock_irqrestore(&dlm->lock, flags);
+-	struct i2c_mux_priv *priv = adap->algo_data;
+ 	char symlink_name[20];
  
- 	dlm->active = NULL;
- 	dlm->queued = NULL;
+-	snprintf(symlink_name, sizeof(symlink_name), "channel-%u", priv->chan_id);
+-	sysfs_remove_link(&priv->mux_dev->kobj, symlink_name);
++	while (muxc->adapters) {
++		struct i2c_adapter *adap = muxc->adapter[--muxc->adapters];
++		struct i2c_mux_priv *priv = adap->algo_data;
++
++		muxc->adapter[muxc->adapters] = NULL;
++
++		snprintf(symlink_name, sizeof(symlink_name),
++			 "channel-%u", priv->chan_id);
++		sysfs_remove_link(&muxc->dev->kobj, symlink_name);
++
++		sysfs_remove_link(&priv->adap.dev.kobj, "mux_device");
++		i2c_del_adapter(adap);
++		kfree(priv);
++	}
++}
++EXPORT_SYMBOL_GPL(i2c_mux_del_adapters);
++
++void i2c_del_mux_adapter(struct i2c_adapter *adap)
++{
++	struct i2c_mux_priv *priv = adap->algo_data;
++	struct i2c_mux_core *muxc = priv->muxc;
+ 
+-	sysfs_remove_link(&priv->adap.dev.kobj, "mux_device");
+-	i2c_del_adapter(adap);
+-	kfree(priv);
++	i2c_mux_del_adapters(muxc);
++	devm_kfree(muxc->dev, muxc->adapter);
++	devm_kfree(muxc->dev, muxc);
+ }
+ EXPORT_SYMBOL_GPL(i2c_del_mux_adapter);
+ 
+diff --git a/include/linux/i2c-mux.h b/include/linux/i2c-mux.h
+index b5f9a007a3ab..0d97d7a3f03c 100644
+--- a/include/linux/i2c-mux.h
++++ b/include/linux/i2c-mux.h
+@@ -27,6 +27,32 @@
+ 
+ #ifdef __KERNEL__
+ 
++struct i2c_mux_core {
++	struct i2c_adapter *parent;
++	struct i2c_adapter **adapter;
++	int adapters;
++	int max_adapters;
++	struct device *dev;
++
++	void *priv;
++
++	int (*select)(struct i2c_mux_core *, u32 chan_id);
++	int (*deselect)(struct i2c_mux_core *, u32 chan_id);
++};
++
++struct i2c_mux_core *i2c_mux_alloc(struct i2c_adapter *parent,
++				   struct device *dev, int sizeof_priv,
++				   u32 flags,
++				   int (*select)(struct i2c_mux_core *, u32),
++				   int (*deselect)(struct i2c_mux_core *, u32));
++
++static inline void *i2c_mux_priv(struct i2c_mux_core *muxc)
++{
++	return muxc->priv;
++}
++
++int i2c_mux_reserve_adapters(struct i2c_mux_core *muxc, int adapters);
++
+ /*
+  * Called to create a i2c bus on a multiplexed bus segment.
+  * The mux_dev and chan_id parameters are passed to the select
+@@ -41,8 +67,29 @@ struct i2c_adapter *i2c_add_mux_adapter(struct i2c_adapter *parent,
+ 					       void *mux_dev, u32 chan_id),
+ 				int (*deselect) (struct i2c_adapter *,
+ 						 void *mux_dev, u32 chan_id));
++/*
++ * Called to create a i2c bus on a multiplexed bus segment.
++ * The chan_id parameter is passed to the select and deselect
++ * callback functions to perform hardware-specific mux control.
++ */
++int i2c_mux_add_adapter(struct i2c_mux_core *muxc,
++			u32 force_nr, u32 chan_id,
++			unsigned int class);
++
++/*
++ * Allocate an i2c_mux_core and add one adapter with one call.
++ */
++struct i2c_mux_core *i2c_mux_one_adapter(struct i2c_adapter *parent,
++					 struct device *dev, int sizeof_priv,
++					 u32 flags, u32 force_nr,
++					 u32 chan_id, unsigned int class,
++					 int (*select)(struct i2c_mux_core *,
++						       u32),
++					 int (*deselect)(struct i2c_mux_core *,
++							 u32));
+ 
+ void i2c_del_mux_adapter(struct i2c_adapter *adap);
++void i2c_mux_del_adapters(struct i2c_mux_core *muxc);
+ 
+ #endif /* __KERNEL__ */
+ 
 -- 
-2.7.3
+2.1.4
 
