@@ -1,67 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:56092 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:33653 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750782AbcCVUTv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2016 16:19:51 -0400
-Subject: Re: [PATCH 2/2] [media] exynos4-is: FIMC port parse should fail if
- there's no endpoint
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-References: <1457122813-12791-1-git-send-email-javier@osg.samsung.com>
- <1457122813-12791-3-git-send-email-javier@osg.samsung.com>
- <56E2C206.6020103@samsung.com>
-Cc: linux-kernel@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <56F1A8D9.2000909@osg.samsung.com>
-Date: Tue, 22 Mar 2016 17:19:37 -0300
+	id S1751243AbcCCMsY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 07:48:24 -0500
+Date: Thu, 3 Mar 2016 09:48:18 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: Re: [RFC] Representing hardware connections via MC
+Message-ID: <20160303094818.2d81aad2@recife.lan>
+In-Reply-To: <1778959.zqGoLXbLC1@avalon>
+References: <20160226091317.5a07c374@recife.lan>
+	<20160302141643.GH11084@valkosipuli.retiisi.org.uk>
+	<20160302124029.0e6cee85@recife.lan>
+	<1778959.zqGoLXbLC1@avalon>
 MIME-Version: 1.0
-In-Reply-To: <56E2C206.6020103@samsung.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sylwester,
+Em Thu, 03 Mar 2016 00:58:31 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-On 03/11/2016 10:03 AM, Sylwester Nawrocki wrote:
-> On 03/04/2016 09:20 PM, Javier Martinez Canillas wrote:
->> The fimc_md_parse_port_node() function return 0 if an endpoint node is
->> not found but according to Documentation/devicetree/bindings/graph.txt,
->> a port must always have at least one enpoint.
->>
->> So return an -EINVAL errno code to the caller instead, so it knows that
->> the port node parse failed due an invalid Device Tree description.
-> 
-> I don't think it is forbidden to have a port node in device tree
-> containing no endpoint nodes. Empty port node means only that,
-> for example, a subsystem has a port/bus for connecting external
-> devices but nothing is actually connected to it.
-> 
-> In case of Exynos CSIS it might not be so useful to have an empty
-> port node specified in some top level *.dtsi file and only
-> the endpoints specified in a board specific dts file. Nevertheless,
-> I wouldn't be saying in general a port node must always have some
-> endpoint node defined.
-> 
 
-You are right, I asked Laurent and he confirms what you said that
-it's possible to have ports with no endpoints. I still think the
-DT binding docs could be more clear but that's a separate issue.
+> (Disclaimer: There are lots of thoughts in this e-mail, sometimes in a bit of 
+> a random order. I would thus recommend reading through it completely before 
+> starting to write a reply.)
 
-> I could apply this patch as it doesn't do any harm considering
-> existing dts files in the kernel tree (arch/arm/boot/dts/
-> exynos4412-trats2.dts), but the commit description would need to
-> be changed.
+I did read the entire e-mail. There are interesting things there, but we're
+diverging from what it is needed. I intend to discuss about that later, but
+let's focus on the problem. See below.
+
+> > For S-Video, we may not need to represent two pads.  
 > 
+> Unless I'm mistaken, that's one of the fundamental questions we've been trying 
+> to answer through our discussions on this topic. And I really think we should 
+> answer it, it's the core of the problem we're trying to solve.
 
-No worries, the current code is correct if endpoints are optional
-and this patch is wrong so it should not be applied.
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+No, the core problem we're trying to solve are a way simpler than that.
+
+1) how we'll call the entities that represent the connection with
+external hardware;
+
+2) how we document it?
+
+3) how we map the cases where the S-Video adapter is used for composite.
+
+For the first question, it seems that the current namespace is OK,
+e. g. keep naming them as:
+
+#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
+#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
+#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
+
+For the second question, it was addressed on this patch:
+	https://patchwork.linuxtv.org/patch/33287/
+
+For the third question, I can see only two possibilities:
+
+a) create just one entity for S-Video, with 2 pads.
+
+if S-Video is connected to it, both pads will be active;
+if Composite is connected to it, just one pad will be active.
+
+b) create a separate entity for "Composite over S-Video".
+
+Questions (1) and (2) should be answered for Kernel 4.5.
+
+Question (3) was rised by saa7134 driver. We don't need to provide
+a solution for 4.5 (although it would be really great if we could
+do it), as, right now, the "composite over S-Video" inputs are
+not mapped via MC API: the driver just ignores them when
+creating the connector entities.
+
+Thanks,
+Mauro
