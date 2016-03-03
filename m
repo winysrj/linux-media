@@ -1,80 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f196.google.com ([209.85.213.196]:35714 "EHLO
-	mail-ig0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752921AbcCCM2g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 07:28:36 -0500
-MIME-Version: 1.0
-In-Reply-To: <2181866.k24LVvUjTs@wuerfel>
-References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
-	<1456992221-26712-10-git-send-email-k.kozlowski@samsung.com>
-	<2181866.k24LVvUjTs@wuerfel>
-Date: Thu, 3 Mar 2016 13:28:35 +0100
-Message-ID: <CAMuHMdX7UC627aN9wo23EDJ7Y+-ryKhVMKH6cvXhnHj9VoG=MA@mail.gmail.com>
-Subject: Re: [RFC 09/15] media: platform: Add missing MFD_SYSCON dependency on HAS_IOMEM
-From: Geert Uytterhoeven <geert@linux-m68k.org>
+Received: from lists.s-osg.org ([54.187.51.154]:34127 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752052AbcCCR36 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 12:29:58 -0500
+Date: Thu, 3 Mar 2016 14:29:53 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	David Brown <david.brown@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	dmaengine@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
-	Linux PM list <linux-pm@vger.kernel.org>,
-	RTCLINUX <rtc-linux@googlegroups.com>,
-	"linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
-	linux-soc@vger.kernel.org,
-	driverdevel <devel@driverdev.osuosl.org>,
-	USB list <linux-usb@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Cc: linux-arm-kernel@lists.infradead.org,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] v4l2/dvb: allow v4l2_mc functions to be used by
+ dvb
+Message-ID: <20160303142953.2f8943bd@recife.lan>
+In-Reply-To: <1456692724-751344-1-git-send-email-arnd@arndb.de>
+References: <1456692724-751344-1-git-send-email-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 3, 2016 at 11:57 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->> --- a/drivers/media/platform/exynos4-is/Kconfig
->> +++ b/drivers/media/platform/exynos4-is/Kconfig
->> @@ -17,6 +17,7 @@ config VIDEO_S5P_FIMC
->>         tristate "S5P/EXYNOS4 FIMC/CAMIF camera interface driver"
->>         depends on I2C
->>         depends on HAS_DMA
->> +       depends on HAS_IOMEM    # For MFD_SYSCON
->>         select VIDEOBUF2_DMA_CONTIG
->>         select V4L2_MEM2MEM_DEV
->
-> This  is guarded by HAS_DMA, which implies HAS_IOMEM afaik.
+Em Sun, 28 Feb 2016 21:51:48 +0100
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-No systems around with HV-based DMA?
+> In a configuration that supports all DVB drivers but that disables
+> V4L2 or builds it as a loadable module, we get link errors because
+> of the recent change to use __v4l2_mc_usb_media_device_init:
+> 
+> drivers/media/built-in.o: In function `dvb_usb_adapter_dvb_init':
+> :(.text+0xe7966): undefined reference to `__v4l2_mc_usb_media_device_init'
+> drivers/media/built-in.o: In function `dvb_usbv2_init':
+> :(.text+0xff1cc): undefined reference to `__v4l2_mc_usb_media_device_init'
+> drivers/media/built-in.o: In function `smsusb_init_device':
+> :(.text+0x113be4): undefined reference to `__v4l2_mc_usb_media_device_init'
+> drivers/media/built-in.o: In function `au0828_usb_probe':
+> :(.text+0x114d08): undefined reference to `__v4l2_mc_usb_media_device_init'
+> 
+> This patch is one way out, by simply building the v4l2-mc.c file
+> whenever at least one of VIDEO_V4L2 or DVB_CORE are enabled, including
+> the case that one of them is a module and the other is built-in, which
+> leads the MC code to become built-in as well.
 
-Gr{oetje,eeting}s,
+Thanks for the patch, but I actually solved this issue the other way
+around: I moved those functions to the media core, where both V4L and DVB
+uses it. This also allows using the function outside (like on ALSA).
 
-                        Geert
+I should be pushing it later today to Linux next.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+Regards,
+Mauro
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/Makefile           | 2 +-
+>  drivers/media/v4l2-core/Makefile | 8 +++++++-
+>  2 files changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> index e608bbce0c35..16d471a56c0f 100644
+> --- a/drivers/media/Makefile
+> +++ b/drivers/media/Makefile
+> @@ -19,7 +19,7 @@ ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+>  endif
+>  
+>  obj-$(CONFIG_VIDEO_DEV) += v4l2-core/
+> -obj-$(CONFIG_DVB_CORE)  += dvb-core/
+> +obj-$(CONFIG_DVB_CORE)  += dvb-core/ v4l2-core/
+>  
+>  # There are both core and drivers at RC subtree - merge before drivers
+>  obj-y += rc/
+> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+> index 795a5352761d..c26472f9950e 100644
+> --- a/drivers/media/v4l2-core/Makefile
+> +++ b/drivers/media/v4l2-core/Makefile
+> @@ -16,7 +16,11 @@ endif
+>  ifeq ($(CONFIG_TRACEPOINTS),y)
+>    videodev-objs += vb2-trace.o v4l2-trace.o
+>  endif
+> -videodev-$(CONFIG_MEDIA_CONTROLLER) += v4l2-mc.o
+> +
+> +ifdef CONFIG_MEDIA_CONTROLLER
+> +obj-$(CONFIG_VIDEO_V4L2) += v4l2-mc.o
+> +obj-$(CONFIG_DVB_CORE) += v4l2-mc.o
+> +endif
+>  
+>  obj-$(CONFIG_VIDEO_V4L2) += videodev.o
+>  obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
+> @@ -28,6 +32,7 @@ obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
+>  
+>  obj-$(CONFIG_V4L2_FLASH_LED_CLASS) += v4l2-flash-led-class.o
+>  
+> +ifdef CONFIG_VIDEO_V4L2
+>  obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
+>  obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
+>  obj-$(CONFIG_VIDEOBUF_DMA_CONTIG) += videobuf-dma-contig.o
+> @@ -40,6 +45,7 @@ obj-$(CONFIG_VIDEOBUF2_VMALLOC) += videobuf2-vmalloc.o
+>  obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) += videobuf2-dma-contig.o
+>  obj-$(CONFIG_VIDEOBUF2_DMA_SG) += videobuf2-dma-sg.o
+>  obj-$(CONFIG_VIDEOBUF2_DVB) += videobuf2-dvb.o
+> +endif
+>  
+>  ccflags-y += -I$(srctree)/drivers/media/dvb-core
+>  ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+
+
+-- 
+Thanks,
+Mauro
