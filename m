@@ -1,99 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35487 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751407AbcCFNve (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2016 08:51:34 -0500
-Received: by mail-wm0-f67.google.com with SMTP id 1so6411700wmg.2
-        for <linux-media@vger.kernel.org>; Sun, 06 Mar 2016 05:51:34 -0800 (PST)
-Date: Sun, 6 Mar 2016 15:51:24 +0200
-From: Ulrik de Muelenaere <ulrikdem@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>, Antonio Ospite <ao2@ao2.it>
-Subject: [PATCH 2/2] [media] gspca_kinect: enable both video and depth streams
-Message-ID: <378b4808198c9c64627a565c0a743d01880f5494.1457262292.git.ulrikdem@gmail.com>
-References: <cover.1457262292.git.ulrikdem@gmail.com>
+Received: from mout.kundenserver.de ([212.227.126.130]:53301 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383AbcCCNAW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 08:00:22 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	David Brown <david.brown@linaro.org>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	driverdevel <devel@driverdev.osuosl.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jason Cooper <jason@lakedaemon.net>,
+	RTCLINUX <rtc-linux@googlegroups.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	"linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
+	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	linux-soc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Linux PM list <linux-pm@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	dmaengine@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
+Subject: Re: [RFC 08/15] rtc: at91sam9: Add missing MFD_SYSCON dependency on HAS_IOMEM
+Date: Thu, 03 Mar 2016 13:58:33 +0100
+Message-ID: <4070388.ZbRf8kMntA@wuerfel>
+In-Reply-To: <CAMuHMdXUdz0=n2+Aa74f1LtwiwfV9=gkPBiJKC_DMyr1_jBe7Q@mail.gmail.com>
+References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com> <2233190.1BxevBAvDE@wuerfel> <CAMuHMdXUdz0=n2+Aa74f1LtwiwfV9=gkPBiJKC_DMyr1_jBe7Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1457262292.git.ulrikdem@gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Kinect produces both a video stream and a depth stream. Call
-gspca_dev_probe() twice to create a video device node for each.
+On Thursday 03 March 2016 13:27:59 Geert Uytterhoeven wrote:
+> On Thu, Mar 3, 2016 at 11:55 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Thursday 03 March 2016 17:03:34 Krzysztof Kozlowski wrote:
+> >> index 0da40e2e4280..5c530b6b125d 100644
+> >> --- a/drivers/rtc/Kconfig
+> >> +++ b/drivers/rtc/Kconfig
+> >> @@ -1302,6 +1302,7 @@ config RTC_DRV_AT91RM9200
+> >>  config RTC_DRV_AT91SAM9
+> >>         tristate "AT91SAM9 RTT as RTC"
+> >>         depends on ARCH_AT91 || COMPILE_TEST
+> >> +       depends on HAS_IOMEM    # For MFD_SYSCON
+> >>         select MFD_SYSCON
+> >>         help
+> >>           Some AT91SAM9 SoCs provide an RTT (Real Time Timer) block which
+> >>
+> >
+> > This is technically correct, but the entire RTC menu is hidden
+> > inside of 'depends on !UML && !S390', so we won't ever get there
+> > on any configuration that does not use HAS_IOMEM.
+> >
+> > If we did, all other RTC drivers would also fail.
+> 
+> So UML has no RTC. Should/can it use RTC_DRV_GENERIC?
 
-Remove the depth_mode parameter which had to be set at probe time in
-order to select either the video or depth stream.
+I think nothing should use that, even if it could ;-)
 
-Signed-off-by: Ulrik de Muelenaere <ulrikdem@gmail.com>
----
- drivers/media/usb/gspca/kinect.c | 28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+Funny enough, RTC_DRV_GENERIC would probably actually work if you
+run UML as root and set iopl() to allow port access, but we don't
+really want it to mess with the host RTC.
 
-diff --git a/drivers/media/usb/gspca/kinect.c b/drivers/media/usb/gspca/kinect.c
-index 3cb30a3..4bc5b7d 100644
---- a/drivers/media/usb/gspca/kinect.c
-+++ b/drivers/media/usb/gspca/kinect.c
-@@ -36,8 +36,6 @@ MODULE_AUTHOR("Antonio Ospite <ospite@studenti.unina.it>");
- MODULE_DESCRIPTION("GSPCA/Kinect Sensor Device USB Camera Driver");
- MODULE_LICENSE("GPL");
- 
--static bool depth_mode;
--
- struct pkt_hdr {
- 	uint8_t magic[2];
- 	uint8_t pad;
-@@ -424,7 +422,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev, u8 *__data, int len)
- 
- /* sub-driver description */
- static const struct sd_desc sd_desc_video = {
--	.name      = MODULE_NAME,
-+	.name      = MODULE_NAME "_video",
- 	.config    = sd_config_video,
- 	.init      = sd_init,
- 	.start     = sd_start_video,
-@@ -436,7 +434,7 @@ static const struct sd_desc sd_desc_video = {
- 	*/
- };
- static const struct sd_desc sd_desc_depth = {
--	.name      = MODULE_NAME,
-+	.name      = MODULE_NAME "_depth",
- 	.config    = sd_config_depth,
- 	.init      = sd_init,
- 	.start     = sd_start_depth,
-@@ -460,12 +458,19 @@ MODULE_DEVICE_TABLE(usb, device_table);
- /* -- device connect -- */
- static int sd_probe(struct usb_interface *intf, const struct usb_device_id *id)
- {
--	if (depth_mode)
--		return gspca_dev_probe(intf, id, &sd_desc_depth,
--				       sizeof(struct sd), THIS_MODULE);
--	else
--		return gspca_dev_probe(intf, id, &sd_desc_video,
--				       sizeof(struct sd), THIS_MODULE);
-+	int res;
-+
-+	res = gspca_dev_probe(intf, id, &sd_desc_video, sizeof(struct sd),
-+			      THIS_MODULE);
-+	if (res < 0)
-+		return res;
-+
-+	res = gspca_dev_probe(intf, id, &sd_desc_depth, sizeof(struct sd),
-+			      THIS_MODULE);
-+	if (res < 0)
-+		gspca_disconnect(intf);
-+
-+	return res;
- }
- 
- static struct usb_driver sd_driver = {
-@@ -481,6 +486,3 @@ static struct usb_driver sd_driver = {
- };
- 
- module_usb_driver(sd_driver);
--
--module_param(depth_mode, bool, 0644);
--MODULE_PARM_DESC(depth_mode, "0=video 1=depth");
--- 
-2.7.0
+I don't know where UML gets it real time, but it doesn't actually
+need much other than calling clock_gettime(CLOCK_REALTIME, ...)
+to get the host time. Presumably it uses some variation of that.
 
+	Arnd
