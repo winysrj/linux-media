@@ -1,80 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:38728 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbcCKRve (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 12:51:34 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0O3V00ANOYXVPS60@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 Mar 2016 17:51:31 +0000 (GMT)
-Received: from [106.116.147.32] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTPA id <0O3V00AL4YXUPD30@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 Mar 2016 17:51:31 +0000 (GMT)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL] Exynos/S5P SoC driver updates
-To: LMML <linux-media@vger.kernel.org>
-Message-id: <56E3059E.2010903@samsung.com>
-Date: Fri, 11 Mar 2016 18:51:26 +0100
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:55416 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316AbcCCIEI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 03:04:08 -0500
 MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7bit
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Alessandro Zummo <a.zummo@towertech.it>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	David Brown <david.brown@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
+	rtc-linux@googlegroups.com, linux-arm-msm@vger.kernel.org,
+	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-usb@vger.kernel.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: [RFC 00/15] tree-wide: mfd: syscon: Fix unmet ioremap dependency
+Date: Thu, 03 Mar 2016 17:03:26 +0900
+Message-id: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-This includes a few minor fixes and some long awaiting clean up
-patches for exynos/s5p drivers.
+Building allyesconfig on ARCH=um fails with:
+   drivers/mfd/syscon.c: In function ‘of_syscon_register’:
+   drivers/mfd/syscon.c:67:9: error: implicit declaration of function ‘ioremap’ [-Werror=implicit-function-declaration]
+      base = ioremap(res.start, resource_size(&res));
 
-The following changes since commit de08b5a8be0df1eb7c796b0fe6b30cf1d03d14a6:
+Since commit c89c0114955a ("mfd: syscon: Set regmap max_register in
+of_syscon_register") the syscon depends on HAS_IOMEM because
+it uses the ioremap().
 
-  [media] v4l: exynos4-is: Drop unneeded check when setting up fimc-lite links (2016-03-05 09:10:01 -0300)
+However syscon is often directly selected... so first the dependency on
+HAS_IOMEM has to be added to all selecting symbols.
 
-are available in the git repository at:
+Comments are welcomed whether this is appropriate approach.
 
-  git://linuxtv.org/snawrocki/samsung.git for-v4.6/media/next
 
-for you to fetch changes up to 95a3dcc2ae09a0b24f48662850ee886f1e1f7ab9:
+The last patch "mfd: syscon: Fix build of missing ioremap on UM" should
+enter all other to avoid kbuild complains like:
 
-  s5p-tv: constify mxr_layer_ops structures (2016-03-11 18:06:32 +0100)
+warning: (ST_IRQCHIP && HIP04_ETH && STMMAC_PLATFORM && DWMAC_IPQ806X &&
+DWMAC_LPC18XX && DWMAC_ROCKCHIP && DWMAC_SOCFPGA && DWMAC_STI && TI_CPSW
+&& PINCTRL_ROCKCHIP && PINCTRL_DOVE && POWER_RESET_KEYSTONE &&
+S3C2410_WATCHDOG && VIDEO_OMAP3 && VIDEO_S5P_FIMC && USB_XHCI_MTK &&
+RTC_DRV_AT91SAM9 && LPC18XX_DMAMUX && VIDEO_OMAP4 && HWSPINLOCK_QCOM && ATMEL_ST
+&& QCOM_GSBI && PHY_HI6220_USB)
+selects MFD_SYSCON which has unmet direct dependencies (HAS_IOMEM)
 
-----------------------------------------------------------------
-Andrzej Pietrasiewicz (1):
-      s5p-jpeg: Adjust buffer size for Exynos 4412
 
-Javier Martinez Canillas (1):
-      exynos4-is: Put node before s5pcsis_parse_dt() return error
+Best regards,
+Krzysztof
 
-Julia Lawall (1):
-      s5p-tv: constify mxr_layer_ops structures
 
-Krzysztof Kozlowski (1):
-      exynos4-is: Add missing port parent of_node_put on error paths
+Krzysztof Kozlowski (15):
+  clocksource: atmel: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  dmaengine: nxp: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  hwspinlock: qcom: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  irqchip: st: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  phy: hi6220: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  pinctrl: rockchip: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  pinctrl: mvebu: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  rtc: at91sam9: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  media: platform: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  net: ethernet: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  power: reset: keystone: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  soc: qcom: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  staging: media: omap4iss: Add missing MFD_SYSCON dependency on
+    HAS_IOMEM
+  usb: xhci: mtk: Add missing MFD_SYSCON dependency on HAS_IOMEM
+  mfd: syscon: Fix build of missing ioremap on UM
 
-Marek Szyprowski (4):
-      exynos-gsc: remove non-device-tree init code
-      s5p-g2d: remove non-device-tree init code
-      s5p-mfc: remove non-device-tree init code
-      exynos4-is: remove non-device-tree init code
-
- drivers/media/platform/exynos-gsc/gsc-core.c    | 33 +++------------
- drivers/media/platform/exynos-gsc/gsc-core.h    |  1 -
- drivers/media/platform/exynos4-is/fimc-core.c   | 50 -----------------------
- drivers/media/platform/exynos4-is/media-dev.c   |  4 +-
- drivers/media/platform/exynos4-is/mipi-csis.c   |  6 ++-
- drivers/media/platform/s5p-g2d/g2d.c            | 27 +++---------
- drivers/media/platform/s5p-g2d/g2d.h            |  5 ---
- drivers/media/platform/s5p-jpeg/jpeg-core.c     |  7 +++-
- drivers/media/platform/s5p-mfc/s5p_mfc.c        | 37 +++--------------
- drivers/media/platform/s5p-tv/mixer.h           |  2 +-
- drivers/media/platform/s5p-tv/mixer_grp_layer.c |  2 +-
- drivers/media/platform/s5p-tv/mixer_video.c     |  2 +-
- drivers/media/platform/s5p-tv/mixer_vp_layer.c  |  2 +-
- 13 files changed, 33 insertions(+), 145 deletions(-)
+ drivers/clocksource/Kconfig                 | 1 +
+ drivers/dma/Kconfig                         | 1 +
+ drivers/hwspinlock/Kconfig                  | 1 +
+ drivers/irqchip/Kconfig                     | 1 +
+ drivers/media/platform/Kconfig              | 1 +
+ drivers/media/platform/exynos4-is/Kconfig   | 1 +
+ drivers/mfd/Kconfig                         | 1 +
+ drivers/net/ethernet/hisilicon/Kconfig      | 1 +
+ drivers/net/ethernet/stmicro/stmmac/Kconfig | 6 ++++++
+ drivers/net/ethernet/ti/Kconfig             | 1 +
+ drivers/phy/Kconfig                         | 1 +
+ drivers/pinctrl/Kconfig                     | 1 +
+ drivers/pinctrl/mvebu/Kconfig               | 1 +
+ drivers/power/reset/Kconfig                 | 1 +
+ drivers/rtc/Kconfig                         | 1 +
+ drivers/soc/qcom/Kconfig                    | 1 +
+ drivers/staging/media/omap4iss/Kconfig      | 1 +
+ drivers/usb/host/Kconfig                    | 1 +
+ 18 files changed, 23 insertions(+)
 
 -- 
-Thanks,
-Sylwester
+2.5.0
+
