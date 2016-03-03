@@ -1,148 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:48908 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755060AbcCCKS0 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37968 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755097AbcCCRUU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 05:18:26 -0500
-Subject: Re: [PATCH for 4.5] media.h: use hex values for the range offsets,
- move connectors base up.
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <56D3FB27.7000202@xs4all.nl> <3268993.kua0PM2kZ4@avalon>
- <56D80BD6.8020003@xs4all.nl> <8424145.Mo5klZhWrz@avalon>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Thu, 3 Mar 2016 12:20:20 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, hverkuil@xs4all.nl,
+	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com,
 	Sakari Ailus <sakari.ailus@iki.fi>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D80F76.4050009@xs4all.nl>
-Date: Thu, 3 Mar 2016 11:18:30 +0100
-MIME-Version: 1.0
-In-Reply-To: <8424145.Mo5klZhWrz@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v2.1 1/4] media: Sanitise the reserved fields of the G_TOPOLOGY IOCTL arguments
+Date: Thu,  3 Mar 2016 19:20:14 +0200
+Message-Id: <1457025614-16037-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <20160301081615.68b1ef2c@recife.lan>
+References: <20160301081615.68b1ef2c@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/16 11:12, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Thursday 03 March 2016 11:03:02 Hans Verkuil wrote:
->> On 03/03/16 10:52, Laurent Pinchart wrote:
->>> On Monday 29 February 2016 09:02:47 Hans Verkuil wrote:
->>>> Make the base offset hexadecimal to simplify debugging since the base
->>>> addresses are hex too.
->>>>
->>>> The offsets for connectors is also changed to start after the 'reserved'
->>>> range 0x10000-0x2ffff.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
->>>> index 95e126e..79960ae 100644
->>>> --- a/include/uapi/linux/media.h
->>>> +++ b/include/uapi/linux/media.h
->>>> @@ -66,17 +66,17 @@ struct media_device_info {
->>>>
->>>>  /*
->>>>  
->>>>   * DVB entities
->>>>   */
->>>>
->>>> -#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 1)
->>>> -#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 2)
->>>> -#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 3)
->>>> -#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 4)
->>>> +#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 0x00001)
->>>> +#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 0x00002)
->>>> +#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 0x00003)
->>>> +#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 0x00004)
->>>>
->>>>  /*
->>>>  
->>>>   * I/O entities
->>>>   */
->>>>
->>>> -#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 1001)
->>>> -#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 1002)
->>>> -#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 1003)
->>>> +#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 0x01001)
->>>> +#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 0x01002)
->>>> +#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 0x01003)
->>>>
->>>>  /*
->>>>  
->>>>   * Analog TV IF-PLL decoders
->>>>
->>>> @@ -84,23 +84,23 @@ struct media_device_info {
->>>>
->>>>   * It is a responsibility of the master/bridge drivers to create links
->>>>   * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
->>>>   */
->>>>
->>>> -#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 2001)
->>>> -#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 2002)
->>>> +#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 0x02001)
->>>> +#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 0x02002)
->>>>
->>>>  /*
->>>>  
->>>>   * Audio Entity Functions
->>>>   */
->>>>
->>>> -#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 3000)
->>>> -#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 3001)
->>>> -#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 3002)
->>>> +#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03000)
->>>
->>> Why does this one start at 0x*000 while the others start at 0x*0001 ? I
->>> know that the problem predates your patch.
->>
->> I hadn't noticed. It is my personal preference not to start with 0.
->> But it is not needed in this case, at least not today.
->>
->> I think starting with 1 will help if we ever want to do AND operations
->> on the ID. Then it is nice that the lower 16 bits can't be 0 for valid
->> IDs.
-> 
-> I'm fine starting at 1, would you like to resubmit this patch to change that ?
-> 
->>>> +#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03001)
->>>> +#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03002)
->>>>
->>>>  /*
->>>>  
->>>>   * Connectors
->>>>   */
->>>>  
->>>>  /* It is a responsibility of the entity drivers to add connectors and
->>>>  links
->>>>
->>>> */ -#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
->>>> -#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
->>>> -#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
->>>> +#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
->>>
->>> Anything wrong with 0x4xxx ?
->>
->> Possibly overkill, but Sakari preferred to make more generous use of the
->> 32 bit space. And since there may potentially be a lot of connector types
->> I thought I gave it plenty of space. Of course, if we ever need that many,
->> then something is seriously wrong...
-> 
-> And you'd need space *after* the existing connector IDs, not before. Using 
-> 0x30000 instead of 0x4000 has the effect of reserving plenty of space for 
-> audio functions, not for connectors. I think 0x4000 should be fine.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Huh? Connectors start at 0x30000, audio entities are 0x03000. I think you
-got confused by that. Connectors can now go from 0x30000-0xffffffff :-)
-Definitely more space than 0x4000-0xffff.
+The argument structs are used in arrays for G_TOPOLOGY IOCTL. The
+arguments themselves do not need to be aligned to a power of two, but
+aligning them up to the largest basic type alignment (u64) on common ABIs
+is a good thing to do.
 
-Regards,
+The patch changes the size of the reserved fields to 5 or 6 u32's and
+aligns the size of the struct to 8 bytes so we do no longer depend on the
+compiler to perform the alignment.
 
-	Hans
+While at it, add __attribute__ ((packed)) to these structs as well.
 
-> 
->>>> +#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
->>>> +#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
->>>>
->>>>  /*
->>>>   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
-> 
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+since v2:
+
+- Use 5 or 6 __u32's for alignment instead of 8 or 9, except for struct
+  media_v2_interface.
+
+- Add __attribute__ ((packed)).
+
+ include/uapi/linux/media.h | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 95e126e..860932f 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -319,14 +319,14 @@ struct media_v2_entity {
+ 	__u32 id;
+ 	char name[64];		/* FIXME: move to a property? (RFC says so) */
+ 	__u32 function;		/* Main function of the entity */
+-	__u16 reserved[12];
+-};
++	__u32 reserved[6];
++} __attribute__ ((packed));
+ 
+ /* Should match the specific fields at media_intf_devnode */
+ struct media_v2_intf_devnode {
+ 	__u32 major;
+ 	__u32 minor;
+-};
++} __attribute__ ((packed));
+ 
+ struct media_v2_interface {
+ 	__u32 id;
+@@ -338,22 +338,22 @@ struct media_v2_interface {
+ 		struct media_v2_intf_devnode devnode;
+ 		__u32 raw[16];
+ 	};
+-};
++} __attribute__ ((packed));
+ 
+ struct media_v2_pad {
+ 	__u32 id;
+ 	__u32 entity_id;
+ 	__u32 flags;
+-	__u16 reserved[9];
+-};
++	__u32 reserved[5];
++} __attribute__ ((packed));
+ 
+ struct media_v2_link {
+ 	__u32 id;
+ 	__u32 source_id;
+ 	__u32 sink_id;
+ 	__u32 flags;
+-	__u32 reserved[5];
+-};
++	__u32 reserved[6];
++} __attribute__ ((packed));
+ 
+ struct media_v2_topology {
+ 	__u64 topology_version;
+@@ -373,7 +373,7 @@ struct media_v2_topology {
+ 	__u32 num_links;
+ 	__u32 reserved4;
+ 	__u64 ptr_links;
+-};
++} __attribute__ ((packed));
+ 
+ static inline void __user *media_get_uptr(__u64 arg)
+ {
+-- 
+2.1.4
+
