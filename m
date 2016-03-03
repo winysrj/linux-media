@@ -1,66 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54271 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756325AbcC2J2c (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:57738 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754943AbcCCO7v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2016 05:28:32 -0400
-Date: Tue, 29 Mar 2016 06:28:27 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: [PATCH 2/2] [media] avoid double locks with graph_mutex
-Message-ID: <20160329062827.581a67d1@recife.lan>
-In-Reply-To: <20160329061734.1a1a5291@recife.lan>
-References: <91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
-	<3cabc4b828abac3c6dea240ae22d4754a438ad1b.1459188623.git.mchehab@osg.samsung.com>
-	<20160328220642.GD32125@valkosipuli.retiisi.org.uk>
-	<20160329061734.1a1a5291@recife.lan>
+	Thu, 3 Mar 2016 09:59:51 -0500
+Subject: Re: [PATCH v3 02/22] uapi/media.h: Declare interface types for ALSA
+To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
+	tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+ <a1b468c2933dc2b4f2b6cc6d1ac30baee2a89f77.1455233152.git.shuahkh@osg.samsung.com>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D85161.5070103@xs4all.nl>
+Date: Thu, 3 Mar 2016 15:59:45 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <a1b468c2933dc2b4f2b6cc6d1ac30baee2a89f77.1455233152.git.shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 29 Mar 2016 06:17:34 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
-
-> > > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > > index 6cfa890af7b4..6af5e6932271 100644
-> > > --- a/drivers/media/media-device.c
-> > > +++ b/drivers/media/media-device.c
-> > > @@ -93,7 +93,6 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
-> > >  	media_device_for_each_entity(entity, mdev) {
-> > >  		if (((media_entity_id(entity) == id) && !next) ||
-> > >  		    ((media_entity_id(entity) > id) && next)) {
-> > > -			mutex_unlock(&mdev->graph_mutex);    
-> > 
-> > Unrelated to this patch.  
+On 02/12/16 00:41, Shuah Khan wrote:
+> Declare the interface types to be used on alsa for
+> the new G_TOPOLOGY ioctl.
 > 
-> Yes. This belongs to patch 1.
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/media-entity.c | 16 ++++++++++++++++
+>  include/uapi/linux/media.h   | 10 ++++++++++
+>  2 files changed, 26 insertions(+)
 > 
-> > 
-> > Please do also consider compat IOCTL handling code.
-> >   
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index f2e4360..6179543 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -65,6 +65,22 @@ static inline const char *intf_type(struct media_interface *intf)
+>  		return "v4l2-subdev";
+>  	case MEDIA_INTF_T_V4L_SWRADIO:
+>  		return "swradio";
+> +	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+> +		return "pcm-capture";
+> +	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+> +		return "pcm-playback";
+> +	case MEDIA_INTF_T_ALSA_CONTROL:
+> +		return "alsa-control";
+> +	case MEDIA_INTF_T_ALSA_COMPRESS:
+> +		return "compress";
+> +	case MEDIA_INTF_T_ALSA_RAWMIDI:
+> +		return "rawmidi";
+> +	case MEDIA_INTF_T_ALSA_HWDEP:
+> +		return "hwdep";
+> +	case MEDIA_INTF_T_ALSA_SEQUENCER:
+> +		return "sequencer";
+> +	case MEDIA_INTF_T_ALSA_TIMER:
+> +		return "timer";
 
-Sorry, I forgot to mention this one on my previous email.
+Wouldn't it be better to add an 'alsa' prefix for all of these?
 
-Compat32 handling is just:
+And 'dvb-' or 'v4l2-' (or v4l-) for the others as well.
 
-        switch (cmd) {
-       	case MEDIA_IOC_ENUM_LINKS32:
-               	mutex_lock(&dev->graph_mutex);
-                ret = media_device_enum_links32(dev,
-                                (struct media_links_enum32 __user *)arg);
-               	mutex_unlock(&dev->graph_mutex);
-                break;
+Names like 'timer' are very generic. I think it would be a good idea to
+make the naming more regular and have it include the subsystem name just
+as the define does.
 
-        default:
-                return media_device_ioctl(filp, cmd, arg);
-        }
+Regards,
 
-and media_device_enum_links32() doesn't call an function with a
-mutex. So, it is safe.
+	Hans
 
-Thanks,
-Mauro
+>  	default:
+>  		return "unknown-intf";
+>  	}
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index c9eb42a..3cc0366 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -265,6 +265,7 @@ struct media_links_enum {
+>  
+>  #define MEDIA_INTF_T_DVB_BASE	0x00000100
+>  #define MEDIA_INTF_T_V4L_BASE	0x00000200
+> +#define MEDIA_INTF_T_ALSA_BASE	0x00000300
+>  
+>  /* Interface types */
+>  
+> @@ -280,6 +281,15 @@ struct media_links_enum {
+>  #define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+>  #define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+>  
+> +#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
+> +#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
+> +#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
+> +#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
+> +#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+> +#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+> +#define MEDIA_INTF_T_ALSA_SEQUENCER     (MEDIA_INTF_T_ALSA_BASE + 6)
+> +#define MEDIA_INTF_T_ALSA_TIMER         (MEDIA_INTF_T_ALSA_BASE + 7)
+> +
+>  /*
+>   * MC next gen API definitions
+>   *
+> 
