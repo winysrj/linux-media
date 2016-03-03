@@ -1,60 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:33374 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751454AbcCFNjv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2016 08:39:51 -0500
+Received: from lists.s-osg.org ([54.187.51.154]:33520 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755553AbcCCLRt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 06:17:49 -0500
+Date: Thu, 3 Mar 2016 08:17:43 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
-	Maxime Coquelin <maxime.coquelin@st.com>,
-	Patrice Chotard <patrice.chotard@st.com>,
-	linux-arm-kernel@lists.infradead.org, kernel@stlinux.com
-Subject: [PATCH 4/6] [media] st-rc: prevent a endless loop
-Date: Sun,  6 Mar 2016 10:39:20 -0300
-Message-Id: <087329695244e466f0c2d9a3a58e10ad399cd674.1457271549.git.mchehab@osg.samsung.com>
-In-Reply-To: <076989c7736719982a1bc9557d7db072910d8efe.1457271549.git.mchehab@osg.samsung.com>
-References: <076989c7736719982a1bc9557d7db072910d8efe.1457271549.git.mchehab@osg.samsung.com>
-In-Reply-To: <076989c7736719982a1bc9557d7db072910d8efe.1457271549.git.mchehab@osg.samsung.com>
-References: <076989c7736719982a1bc9557d7db072910d8efe.1457271549.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] media: rc: add core functionality to store the most
+ recent raw data
+Message-ID: <20160303081743.77b3c17b@recife.lan>
+In-Reply-To: <56B7A57C.1070506@gmail.com>
+References: <56B7A57C.1070506@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned by smatch:
-	drivers/media/rc/st_rc.c:110 st_rc_rx_interrupt() warn: this loop depends on readl() succeeding
+Em Sun, 7 Feb 2016 21:13:48 +0100
+Heiner Kallweit <hkallweit1@gmail.com> escreveu:
 
-as readl() might fail, with likely means some unrecovered error,
-let's loop only if it succeeds.
+> Add functionality to the core to store the most recent raw packet.
+> It's used to expose this data via sysfs.
+> 
+> To use this functionality a driver has to set enable_sysfs_lrp
+> in struct rc_dev and add a call to ir_raw_store_sysfs_lrp
+> for storing a raw byte into the buffer.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/rc/st_rc.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The lirc package provide tools to record the raw packet. If needed,
+we could also add the same at ir-keytable userspace tool.
 
-diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
-index 1fa0c9d1c508..151bfe2aea55 100644
---- a/drivers/media/rc/st_rc.c
-+++ b/drivers/media/rc/st_rc.c
-@@ -99,7 +99,7 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
- 	unsigned int symbol, mark = 0;
- 	struct st_rc_device *dev = data;
- 	int last_symbol = 0;
--	u32 status;
-+	int status;
- 	DEFINE_IR_RAW_EVENT(ev);
- 
- 	if (dev->irq_wake)
-@@ -107,7 +107,7 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
- 
- 	status  = readl(dev->rx_base + IRB_RX_STATUS);
- 
--	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
-+	while (status > 0 && (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW))) {
- 		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
- 		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
- 			/* discard the entire collection in case of errors!  */
+So, I don't see any reason to add such feature.
+
+Also, this sounds more like something to be exported via debugfs.
+
+> 
+> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+> ---
+>  drivers/media/rc/rc-core-priv.h |  6 ++++++
+>  drivers/media/rc/rc-ir-raw.c    | 34 ++++++++++++++++++++++++++++++++++
+>  include/media/rc-core.h         |  3 +++
+>  3 files changed, 43 insertions(+)
+> 
+> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+> index 585d5e5..6193883 100644
+> --- a/drivers/media/rc/rc-core-priv.h
+> +++ b/drivers/media/rc/rc-core-priv.h
+> @@ -19,6 +19,8 @@
+>  /* Define the max number of pulse/space transitions to buffer */
+>  #define	MAX_IR_EVENT_SIZE	512
+>  
+> +#define	BUF_SYSFS_LRP_SZ	128
+> +
+>  #include <linux/slab.h>
+>  #include <linux/spinlock.h>
+>  #include <media/rc-core.h>
+> @@ -43,6 +45,10 @@ struct ir_raw_event_ctrl {
+>  	ktime_t				last_event;	/* when last event occurred */
+>  	enum raw_event_type		last_type;	/* last event type */
+>  	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
+> +	/* used for exposing the last raw packets via sysfs */
+> +	u8				buf_sysfs_lrp[BUF_SYSFS_LRP_SZ];
+> +	unsigned			buf_sysfs_lrp_cnt;
+> +	ktime_t				buf_sysfs_lrp_last;
+>  
+>  	/* raw decoder state follows */
+>  	struct ir_raw_event prev_ev;
+> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+> index 144304c..6bf2b56 100644
+> --- a/drivers/media/rc/rc-ir-raw.c
+> +++ b/drivers/media/rc/rc-ir-raw.c
+> @@ -20,6 +20,8 @@
+>  #include <linux/freezer.h>
+>  #include "rc-core-priv.h"
+>  
+> +#define	RESTART_SYSFS_LRP_MS	1000
+> +
+>  /* Used to keep track of IR raw clients, protected by ir_raw_handler_lock */
+>  static LIST_HEAD(ir_raw_client_list);
+>  
+> @@ -66,6 +68,38 @@ static int ir_raw_event_thread(void *data)
+>  }
+>  
+>  /**
+> + * ir_raw_store_sysfs_lrp() - pass a raw byte to sysfs buffer
+> + * @dev:	the struct rc_dev device descriptor
+> + * @val:	the raw value to store
+> + *
+> + * This routine (which may be called from interrupt context) stores a
+> + * raw byte in the sysfs buffer. It only needs to be called if the most
+> + * recent series of raw bytes should be available via sysfs.
+> + */
+> +void ir_raw_store_sysfs_lrp(struct rc_dev *dev, u8 val)
+> +{
+> +	ktime_t now;
+> +	struct ir_raw_event_ctrl *raw = dev->raw;
+> +
+> +	if (!raw || !dev->enable_sysfs_lrp)
+> +		return;
+> +
+> +	now = ktime_get();
+> +	spin_lock(&raw->lock);
+> +
+> +	if (ktime_ms_delta(now, raw->buf_sysfs_lrp_last) >
+> +	    RESTART_SYSFS_LRP_MS)
+> +		raw->buf_sysfs_lrp_cnt = 0;
+> +	raw->buf_sysfs_lrp_last = now;
+> +
+> +	if (raw->buf_sysfs_lrp_cnt < BUF_SYSFS_LRP_SZ)
+> +		raw->buf_sysfs_lrp[raw->buf_sysfs_lrp_cnt++] = val;
+> +
+> +	spin_unlock(&raw->lock);
+> +}
+> +EXPORT_SYMBOL_GPL(ir_raw_store_sysfs_lrp);
+> +
+> +/**
+>   * ir_raw_event_store() - pass a pulse/space duration to the raw ir decoders
+>   * @dev:	the struct rc_dev device descriptor
+>   * @ev:		the struct ir_raw_event descriptor of the pulse/space
+> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+> index f649470..9542891 100644
+> --- a/include/media/rc-core.h
+> +++ b/include/media/rc-core.h
+> @@ -71,6 +71,7 @@ enum rc_filter_type {
+>   *	anyone can call show_protocols or store_protocols
+>   * @minor: unique minor remote control device number
+>   * @raw: additional data for raw pulse/space devices
+> + * @enable_sysfs_lrp: expose last raw packets via sysfs
+>   * @input_dev: the input child device used to communicate events to userspace
+>   * @driver_type: specifies if protocol decoding is done in hardware or software
+>   * @idle: used to keep track of RX state
+> @@ -131,6 +132,7 @@ struct rc_dev {
+>  	struct mutex			lock;
+>  	unsigned int			minor;
+>  	struct ir_raw_event_ctrl	*raw;
+> +	bool				enable_sysfs_lrp;
+>  	struct input_dev		*input_dev;
+>  	enum rc_driver_type		driver_type;
+>  	bool				idle;
+> @@ -246,6 +248,7 @@ static inline void init_ir_raw_event(struct ir_raw_event *ev)
+>  #define MS_TO_NS(msec)		((msec) * 1000 * 1000)
+>  
+>  void ir_raw_event_handle(struct rc_dev *dev);
+> +void ir_raw_store_sysfs_lrp(struct rc_dev *dev, u8 val);
+>  int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev);
+>  int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type);
+>  int ir_raw_event_store_with_filter(struct rc_dev *dev,
+
+
 -- 
-2.5.0
-
+Thanks,
+Mauro
