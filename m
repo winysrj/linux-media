@@ -1,62 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40552 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752008AbcCYHxS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 03:53:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 03/51] v4l: subdev: Call pad init_cfg operation when opening subdevs
-Date: Fri, 25 Mar 2016 09:53:19 +0200
-Message-ID: <2303498.O6f8W55eDb@avalon>
-In-Reply-To: <1458862067-19525-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1458862067-19525-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:34595 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754943AbcCCTM4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 14:12:56 -0500
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: albert@newtec.dk, Jan Kara <jack@suse.cz>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 1/2] [media] vb2-memops: Fix over allocation of frame vectors
+Date: Thu,  3 Mar 2016 20:12:48 +0100
+Message-Id: <1457032369-10503-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 25 Mar 2016 01:26:59 Laurent Pinchart wrote:
-> The subdev core code currently rely on the subdev open handler to
-> initialize the file handle's pad configuration, even though subdevs now
-> have a pad operation dedicated for that purpose.
-> 
-> As a first step towards migration to init_cfg, call the operation
-> operation in the subdev core open implementation. Subdevs that are
+On page unaligned frames, create_framevec forces get_vaddr_frames to
+allocate an extra page at the end of the buffer. Under some
+circumstances, this leads to -EINVAL on VIDIOC_QBUF.
 
-I'll s/ are// in the next version.
+E.g:
+We have vm_a that vm_area that goes from 0x1000 to 0x3000. And a
+frame that goes from 0x1800 to 0x2800, i.e. 2 pages.
 
-> haven't been moved to init_cfg yet will just continue implementing pad
-> config initialization in their open handler.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/v4l2-core/v4l2-subdev.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
-> b/drivers/media/v4l2-core/v4l2-subdev.c index d4007f8f58d1..1fa6b713ee19
-> 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -83,6 +83,12 @@ static int subdev_open(struct file *file)
->  	}
->  #endif
-> 
-> +#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-> +	ret = v4l2_subdev_call(sd, pad, init_cfg, subdev_fh->pad);
-> +	if (ret < 0 && ret != -ENOIOCTLCMD)
-> +		goto err;
-> +#endif
-> +
->  	if (sd->internal_ops && sd->internal_ops->open) {
->  		ret = sd->internal_ops->open(sd, subdev_fh);
->  		if (ret < 0)
+frame_vector_create will be called with the following params:
 
+get_vaddr_frames(0x1800 , 2, write, 1, vec);
+
+get_vaddr will allocate the first page after checking that the memory
+0x1800-0x27ff is valid, but it will not allocate the second page because
+the range 0x2800-0x37ff is out of the vm_a range. This results in
+create_framevec returning -EFAULT
+
+Error Trace:
+[ 9083.793015] video0: VIDIOC_QBUF: 00:00:00.00000000 index=1,
+type=vid-cap, flags=0x00002002, field=any, sequence=0,
+memory=userptr, bytesused=0, offset/userptr=0x7ff2b023ca80, length=5765760
+[ 9083.793028] timecode=00:00:00 type=0, flags=0x00000000,
+frames=0, userbits=0x00000000
+[ 9083.793117] video0: VIDIOC_QBUF: error -22: 00:00:00.00000000
+index=2, type=vid-cap, flags=0x00000000, field=any, sequence=0,
+memory=userptr, bytesused=0, offset/userptr=0x7ff2b07bc500, length=5765760
+
+Fixes: 21fb0cb7ec65 ("[media] vb2: Provide helpers for mapping virtual addresses")
+Reported-by: Albert Antony <albert@newtec.dk>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+
+Maybe we should cc stable.
+
+This error has not pop-out yet because userptr is usually called with memory
+on the heap and malloc usually overallocate. This error has been a pain to trace :).
+
+Regards!
+
+
+
+ drivers/media/v4l2-core/videobuf2-memops.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
+index dbec5923fcf0..e4e4976c6849 100644
+--- a/drivers/media/v4l2-core/videobuf2-memops.c
++++ b/drivers/media/v4l2-core/videobuf2-memops.c
+@@ -49,7 +49,7 @@ struct frame_vector *vb2_create_framevec(unsigned long start,
+ 	vec = frame_vector_create(nr);
+ 	if (!vec)
+ 		return ERR_PTR(-ENOMEM);
+-	ret = get_vaddr_frames(start, nr, write, 1, vec);
++	ret = get_vaddr_frames(start & PAGE_MASK, nr, write, 1, vec);
+ 	if (ret < 0)
+ 		goto out_destroy;
+ 	/* We accept only complete set of PFNs */
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.0
 
