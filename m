@@ -1,20 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:34617 "EHLO
+Received: from mail.lysator.liu.se ([130.236.254.3]:51827 "EHLO
 	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757149AbcCXLGN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 07:06:13 -0400
-Message-ID: <56F3CA0E.60906@lysator.liu.se>
-Date: Thu, 24 Mar 2016 12:05:50 +0100
+	with ESMTP id S1758577AbcCCW3W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:29:22 -0500
 From: Peter Rosin <peda@lysator.liu.se>
-MIME-Version: 1.0
-To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-CC: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@axentia.se>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
 	Peter Korsgaard <peter.korsgaard@barco.com>,
 	Guenter Roeck <linux@roeck-us.net>,
 	Jonathan Cameron <jic23@kernel.org>,
@@ -23,70 +14,105 @@ CC: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@axentia.se>,
 	Peter Meerwald <pmeerw@pmeerw.net>,
 	Antti Palosaari <crope@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
 	Frank Rowand <frowand.list@gmail.com>,
 	Grant Likely <grant.likely@linaro.org>,
 	Adriana Reus <adriana.reus@intel.com>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Viorel Suman <viorel.suman@intel.com>,
 	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicholas Mc Guire <hofrat@osadl.org>,
-	Olli Salonen <olli.salonen@iki.fi>, linux-i2c@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/8] i2c-mux: add common core data for every mux instance
-References: <1452009438-27347-1-git-send-email-peda@lysator.liu.se> <1452009438-27347-2-git-send-email-peda@lysator.liu.se> <56F3B86E.4050002@mentor.com>
-In-Reply-To: <56F3B86E.4050002@mentor.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v4 09/18] [media] m88ds3103: convert to use an explicit i2c mux core
+Date: Thu,  3 Mar 2016 23:27:21 +0100
+Message-Id: <1457044050-15230-10-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vladimir,
+From: Peter Rosin <peda@axentia.se>
 
-On 2016-03-24 10:50, Vladimir Zapolskiy wrote:
-> Hi Peter,
-> 
-> On 05.01.2016 17:57, Peter Rosin wrote:
->> From: Peter Rosin <peda@axentia.se>
->>
->> The initial core mux structure starts off small with only the parent
->> adapter pointer, which all muxes have, and a priv pointer for mux
->> driver private data.
->>
->> Add i2c_mux_alloc function to unify the creation of a mux.
->>
->> Where appropriate, pass around the mux core structure instead of the
->> parent adapter or the driver private data.
->>
->> Remove the parent adapter pointer from the driver private data for all
->> mux drivers.
->>
->> Signed-off-by: Peter Rosin <peda@axentia.se>
-> 
-> is it still under review? If yes, please find one question from me below :)
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select op to be in terms of the i2c mux core instead
+of the child adapter.
 
-Yes, the series is still under review/testing, with an update planned in a
-week or so.
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/dvb-frontends/m88ds3103.c      | 18 +++++++++---------
+ drivers/media/dvb-frontends/m88ds3103_priv.h |  2 +-
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-> [snip]
-> 
->> @@ -196,21 +195,21 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
->>  		dev_err(dev, "Cannot parse i2c-parent\n");
->>  		return -EINVAL;
->>  	}
->> -	arb->parent = of_get_i2c_adapter_by_node(parent_np);
->> +	muxc->parent = of_find_i2c_adapter_by_node(parent_np);
-> 
-> why do you prefer here to use "unlocked" version of API?
-> 
-> Foe example would it be safe/possible to unload an I2C bus device driver
-> module or unbind I2C device itself in runtime?
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index ce73a5ec6036..845d206eb70f 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -1251,9 +1251,9 @@ static void m88ds3103_release(struct dvb_frontend *fe)
+ 	i2c_unregister_device(client);
+ }
+ 
+-static int m88ds3103_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
++static int m88ds3103_select(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct m88ds3103_dev *dev = mux_priv;
++	struct m88ds3103_dev *dev = i2c_mux_priv(muxc);
+ 	struct i2c_client *client = dev->client;
+ 	int ret;
+ 	struct i2c_msg msg = {
+@@ -1374,7 +1374,7 @@ static struct i2c_adapter *m88ds3103_get_i2c_adapter(struct i2c_client *client)
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+-	return dev->i2c_adapter;
++	return dev->muxc->adapter[0];
+ }
+ 
+ static int m88ds3103_probe(struct i2c_client *client,
+@@ -1467,13 +1467,13 @@ static int m88ds3103_probe(struct i2c_client *client,
+ 		goto err_kfree;
+ 
+ 	/* create mux i2c adapter for tuner */
+-	dev->i2c_adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
+-					       dev, 0, 0, 0, m88ds3103_select,
+-					       NULL);
+-	if (dev->i2c_adapter == NULL) {
+-		ret = -ENOMEM;
++	dev->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0, 0,
++					0, 0, 0, m88ds3103_select, NULL);
++	if (IS_ERR(dev->muxc)) {
++		ret = PTR_ERR(dev->muxc);
+ 		goto err_kfree;
+ 	}
++	dev->muxc->priv = dev;
+ 
+ 	/* create dvb_frontend */
+ 	memcpy(&dev->fe.ops, &m88ds3103_ops, sizeof(struct dvb_frontend_ops));
+@@ -1502,7 +1502,7 @@ static int m88ds3103_remove(struct i2c_client *client)
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+-	i2c_del_mux_adapter(dev->i2c_adapter);
++	i2c_mux_del_adapters(dev->muxc);
+ 
+ 	kfree(dev);
+ 	return 0;
+diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
+index eee8c22c51ec..c5b4e177c6ea 100644
+--- a/drivers/media/dvb-frontends/m88ds3103_priv.h
++++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
+@@ -42,7 +42,7 @@ struct m88ds3103_dev {
+ 	enum fe_status fe_status;
+ 	u32 dvbv3_ber; /* for old DVBv3 API read_ber */
+ 	bool warm; /* FW running */
+-	struct i2c_adapter *i2c_adapter;
++	struct i2c_mux_core *muxc;
+ 	/* auto detect chip id to do different config */
+ 	u8 chip_id;
+ 	/* main mclk is calculated for M88RS6000 dynamically */
+-- 
+2.1.4
 
-I think you ask why I change from of_get_i2c_... to of_find_i2c_..., and that
-change was not intentional. It was the result of a bad merge during an early
-rebase.
-
-Does that cover it?
-
-Cheers,
-Peter
