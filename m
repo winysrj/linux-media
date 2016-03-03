@@ -1,52 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:1602 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933140AbcCIQDe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Mar 2016 11:03:34 -0500
-From: Antonio Ospite <ao2@ao2.it>
-To: Linux Media <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Antonio Ospite <ao2@ao2.it>
-Subject: [PATCH 7/7] [media] gspca: fix a v4l2-compliance failure during read()
-Date: Wed,  9 Mar 2016 17:03:21 +0100
-Message-Id: <1457539401-11515-8-git-send-email-ao2@ao2.it>
-In-Reply-To: <1457539401-11515-1-git-send-email-ao2@ao2.it>
-References: <1457539401-11515-1-git-send-email-ao2@ao2.it>
+Received: from mail-ig0-f196.google.com ([209.85.213.196]:35714 "EHLO
+	mail-ig0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752921AbcCCM2g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 07:28:36 -0500
+MIME-Version: 1.0
+In-Reply-To: <2181866.k24LVvUjTs@wuerfel>
+References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+	<1456992221-26712-10-git-send-email-k.kozlowski@samsung.com>
+	<2181866.k24LVvUjTs@wuerfel>
+Date: Thu, 3 Mar 2016 13:28:35 +0100
+Message-ID: <CAMuHMdX7UC627aN9wo23EDJ7Y+-ryKhVMKH6cvXhnHj9VoG=MA@mail.gmail.com>
+Subject: Re: [RFC 09/15] media: platform: Add missing MFD_SYSCON dependency on HAS_IOMEM
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Alessandro Zummo <a.zummo@towertech.it>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	David Brown <david.brown@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	dmaengine@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
+	Linux PM list <linux-pm@vger.kernel.org>,
+	RTCLINUX <rtc-linux@googlegroups.com>,
+	"linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
+	linux-soc@vger.kernel.org,
+	driverdevel <devel@driverdev.osuosl.org>,
+	USB list <linux-usb@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2-compliance fails with this message:
+On Thu, Mar 3, 2016 at 11:57 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> --- a/drivers/media/platform/exynos4-is/Kconfig
+>> +++ b/drivers/media/platform/exynos4-is/Kconfig
+>> @@ -17,6 +17,7 @@ config VIDEO_S5P_FIMC
+>>         tristate "S5P/EXYNOS4 FIMC/CAMIF camera interface driver"
+>>         depends on I2C
+>>         depends on HAS_DMA
+>> +       depends on HAS_IOMEM    # For MFD_SYSCON
+>>         select VIDEOBUF2_DMA_CONTIG
+>>         select V4L2_MEM2MEM_DEV
+>
+> This  is guarded by HAS_DMA, which implies HAS_IOMEM afaik.
 
-  fail: v4l2-test-buffers.cpp(512): Expected EBUSY, got 22
-  test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
+No systems around with HV-based DMA?
 
-Looking at the v4l2-compliance code reveals that this failure is about
-the read() callback.
+Gr{oetje,eeting}s,
 
-In gspca, dev_read() is calling vidioc_dqbuf() which calls
-frame_ready_nolock() but the latter returns -EINVAL in a case when
-v4l2-compliance expects -EBUSY.
+                        Geert
 
-Fix the failure by changing the return value in frame_ready_nolock().
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Signed-off-by: Antonio Ospite <ao2@ao2.it>
----
- drivers/media/usb/gspca/gspca.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-index 915b6c7..de7e300 100644
---- a/drivers/media/usb/gspca/gspca.c
-+++ b/drivers/media/usb/gspca/gspca.c
-@@ -1664,7 +1664,7 @@ static int frame_ready_nolock(struct gspca_dev *gspca_dev, struct file *file,
- 		return -ENODEV;
- 	if (gspca_dev->capt_file != file || gspca_dev->memory != memory ||
- 			!gspca_dev->streaming)
--		return -EINVAL;
-+		return -EBUSY;
- 
- 	/* check if a frame is ready */
- 	return gspca_dev->fr_o != atomic_read(&gspca_dev->fr_i);
--- 
-2.7.0
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
