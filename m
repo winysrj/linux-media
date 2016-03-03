@@ -1,75 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:5802 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S965061AbcCNMWr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 08:22:47 -0400
-Message-ID: <1457958162.8737.3.camel@mtksdaap41>
-Subject: Re: [PATCH] media: v4l2-compat-ioctl32: fix missing reserved field
- copy in put_v4l2_create32
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Date: Mon, 14 Mar 2016 20:22:42 +0800
-In-Reply-To: <20160314082859.31340fb6@recife.lan>
-References: <1457952106-38215-1-git-send-email-tiffany.lin@mediatek.com>
-	 <20160314082859.31340fb6@recife.lan>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:36801 "EHLO
+	mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751247AbcCCMnL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 07:43:11 -0500
 MIME-Version: 1.0
+In-Reply-To: <1456992221-26712-13-git-send-email-k.kozlowski@samsung.com>
+References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+	<1456992221-26712-13-git-send-email-k.kozlowski@samsung.com>
+Date: Thu, 3 Mar 2016 21:43:09 +0900
+Message-ID: <CAJKOXPesNS16Zg=QCTZXA+i8ETqWiQYhMu6LBXDzbNVc0aAQRA@mail.gmail.com>
+Subject: Re: [rtc-linux] [RFC 12/15] soc: qcom: Add missing MFD_SYSCON
+ dependency on HAS_IOMEM
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: rtc-linux@googlegroups.com
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Alessandro Zummo <a.zummo@towertech.it>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	David Brown <david.brown@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
+	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
+	linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
+	Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2016-03-14 at 08:28 -0300, Mauro Carvalho Chehab wrote:
-> Em Mon, 14 Mar 2016 18:41:46 +0800
-> Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
-> 
-> > Change-Id: Idac449fae5059a3ce255340e6da491f8bd83af7a
-> 
-> We don't need change-id at the Kernel, but we do need a proper patch
-> description.
-> 
-Hi Mauro,
+2016-03-03 17:03 GMT+09:00 Krzysztof Kozlowski <k.kozlowski@samsung.com>:
+> The MFD_SYSCON depends on HAS_IOMEM so when selecting it avoid unmet
+> direct dependencies.
+>
+> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> ---
+>  drivers/soc/qcom/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/soc/qcom/Kconfig b/drivers/soc/qcom/Kconfig
+> index 461b387d03cc..24de48134c15 100644
+> --- a/drivers/soc/qcom/Kconfig
+> +++ b/drivers/soc/qcom/Kconfig
+> @@ -4,6 +4,7 @@
+>  config QCOM_GSBI
+>          tristate "QCOM General Serial Bus Interface"
+>          depends on ARCH_QCOM
+> +        depends on HAS_IOMEM   # For MFD_SYSCON
+>          select MFD_SYSCON
 
-Sorry, I accidentally add change-id in this patch.
-I had remove change-id and add patch description in 
-[PATCH v2] media: v4l2-compat-ioctl32: fix missing reserved field copy
-in put_v4l2_create32
+False alarm, no need for the patch (this depends on ARCH_QCOM).
 
-best regards,
-Tiffany
-
-
-> Regards,
-> Mauro
-> 
-> > ---
-> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > index f38c076..109f687 100644
-> > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > @@ -280,7 +280,8 @@ static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
-> >  static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
-> >  {
-> >  	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
-> > -	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format)))
-> > +	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format)) ||
-> > +	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
-> >  		return -EFAULT;
-> >  	return __put_v4l2_format32(&kp->format, &up->format);
-> >  }
-
-
+Best regards,
+Krzysztof
