@@ -1,110 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:33506 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752512AbcCNMmr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 08:42:47 -0400
-Received: by mail-lb0-f178.google.com with SMTP id oe12so15009lbc.0
-        for <linux-media@vger.kernel.org>; Mon, 14 Mar 2016 05:42:46 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Mon, 14 Mar 2016 13:42:43 +0100
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/2] v4l2-ioctl: simplify code
-Message-ID: <20160314124243.GA24409@bigcity.dyn.berto.se>
-References: <1456741000-39069-1-git-send-email-hverkuil@xs4all.nl>
- <1456741000-39069-2-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1456741000-39069-2-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.lysator.liu.se ([130.236.254.3]:53134 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932709AbcCCW3t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:29:49 -0500
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Viorel Suman <viorel.suman@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v4 13/18] [media] cx231xx: convert to use an explicit i2c mux core
+Date: Thu,  3 Mar 2016 23:27:25 +0100
+Message-Id: <1457044050-15230-14-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Peter Rosin <peda@axentia.se>
 
-On 2016-02-29 11:16:39 +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Instead of a big if at the beginning, just check if g_selection == NULL
-> and call the cropcap op immediately and return the result.
-> 
-> No functional changes in this patch.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 44 ++++++++++++++++++------------------
->  1 file changed, 22 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 86c4c19..67dbb03 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -2157,33 +2157,33 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
->  				struct file *file, void *fh, void *arg)
->  {
->  	struct v4l2_cropcap *p = arg;
-> +	struct v4l2_selection s = { .type = p->type };
-> +	int ret;
->  
-> -	if (ops->vidioc_g_selection) {
-> -		struct v4l2_selection s = { .type = p->type };
-> -		int ret;
-> +	if (ops->vidioc_g_selection == NULL)
-> +		return ops->vidioc_cropcap(file, fh, p);
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select op to be in terms of the i2c mux core instead
+of the child adapter.
 
-I might be missing something but is there a guarantee 
-ops->vidioc_cropcap is not NULL here?
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/usb/cx231xx/cx231xx-core.c |  6 ++--
+ drivers/media/usb/cx231xx/cx231xx-i2c.c  | 47 ++++++++++++++++----------------
+ drivers/media/usb/cx231xx/cx231xx.h      |  4 ++-
+ 3 files changed, 31 insertions(+), 26 deletions(-)
 
->  
-> -		/* obtaining bounds */
-> -		if (V4L2_TYPE_IS_OUTPUT(p->type))
-> -			s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
-> -		else
-> -			s.target = V4L2_SEL_TGT_CROP_BOUNDS;
-> +	/* obtaining bounds */
-> +	if (V4L2_TYPE_IS_OUTPUT(p->type))
-> +		s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
-> +	else
-> +		s.target = V4L2_SEL_TGT_CROP_BOUNDS;
->  
-> -		ret = ops->vidioc_g_selection(file, fh, &s);
-> -		if (ret)
-> -			return ret;
-> -		p->bounds = s.r;
-> +	ret = ops->vidioc_g_selection(file, fh, &s);
-> +	if (ret)
-> +		return ret;
-> +	p->bounds = s.r;
->  
-> -		/* obtaining defrect */
-> -		if (V4L2_TYPE_IS_OUTPUT(p->type))
-> -			s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
-> -		else
-> -			s.target = V4L2_SEL_TGT_CROP_DEFAULT;
-> +	/* obtaining defrect */
-> +	if (V4L2_TYPE_IS_OUTPUT(p->type))
-> +		s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
-> +	else
-> +		s.target = V4L2_SEL_TGT_CROP_DEFAULT;
->  
-> -		ret = ops->vidioc_g_selection(file, fh, &s);
-> -		if (ret)
-> -			return ret;
-> -		p->defrect = s.r;
-> -	}
-> +	ret = ops->vidioc_g_selection(file, fh, &s);
-> +	if (ret)
-> +		return ret;
-> +	p->defrect = s.r;
->  
->  	/* setting trivial pixelaspect */
->  	p->pixelaspect.numerator = 1;
-> -- 
-> 2.7.0
-> 
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index f497888d94bf..f7aac2abd783 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -1304,6 +1304,9 @@ int cx231xx_dev_init(struct cx231xx *dev)
+ 	cx231xx_i2c_register(&dev->i2c_bus[1]);
+ 	cx231xx_i2c_register(&dev->i2c_bus[2]);
+ 
++	errCode = cx231xx_i2c_mux_create(dev);
++	if (errCode < 0)
++		return errCode;
+ 	cx231xx_i2c_mux_register(dev, 0);
+ 	cx231xx_i2c_mux_register(dev, 1);
+ 
+@@ -1426,8 +1429,7 @@ EXPORT_SYMBOL_GPL(cx231xx_dev_init);
+ void cx231xx_dev_uninit(struct cx231xx *dev)
+ {
+ 	/* Un Initialize I2C bus */
+-	cx231xx_i2c_mux_unregister(dev, 1);
+-	cx231xx_i2c_mux_unregister(dev, 0);
++	cx231xx_i2c_mux_unregister(dev);
+ 	cx231xx_i2c_unregister(&dev->i2c_bus[2]);
+ 	cx231xx_i2c_unregister(&dev->i2c_bus[1]);
+ 	cx231xx_i2c_unregister(&dev->i2c_bus[0]);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index a29c345b027d..eb22e05d4add 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -557,40 +557,41 @@ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
+  * cx231xx_i2c_mux_select()
+  * switch i2c master number 1 between port1 and port3
+  */
+-static int cx231xx_i2c_mux_select(struct i2c_adapter *adap,
+-			void *mux_priv, u32 chan_id)
++static int cx231xx_i2c_mux_select(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct cx231xx *dev = mux_priv;
++	struct cx231xx *dev = i2c_mux_priv(muxc);
+ 
+ 	return cx231xx_enable_i2c_port_3(dev, chan_id);
+ }
+ 
++int cx231xx_i2c_mux_create(struct cx231xx *dev)
++{
++	dev->muxc = i2c_mux_alloc(&dev->i2c_bus[1].i2c_adap, dev->dev, 0, 0,
++				  cx231xx_i2c_mux_select, NULL);
++	if (!dev->muxc)
++		return -ENOMEM;
++	dev->muxc->priv = dev;
++	return 0;
++}
++
+ int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
+ {
+-	struct i2c_adapter *i2c_parent = &dev->i2c_bus[1].i2c_adap;
+-	/* what is the correct mux_dev? */
+-	struct device *mux_dev = dev->dev;
+-
+-	dev->i2c_mux_adap[mux_no] = i2c_add_mux_adapter(i2c_parent,
+-				mux_dev,
+-				dev /* mux_priv */,
+-				0,
+-				mux_no /* chan_id */,
+-				0 /* class */,
+-				&cx231xx_i2c_mux_select,
+-				NULL);
+-
+-	if (!dev->i2c_mux_adap[mux_no])
++	int rc;
++
++	rc = i2c_mux_add_adapter(dev->muxc,
++				 0,
++				 mux_no /* chan_id */,
++				 0 /* class */);
++	if (rc)
+ 		dev_warn(dev->dev,
+ 			 "i2c mux %d register FAILED\n", mux_no);
+ 
+-	return 0;
++	return rc;
+ }
+ 
+-void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no)
++void cx231xx_i2c_mux_unregister(struct cx231xx *dev)
+ {
+-	i2c_del_mux_adapter(dev->i2c_mux_adap[mux_no]);
+-	dev->i2c_mux_adap[mux_no] = NULL;
++	i2c_mux_del_adapters(dev->muxc);
+ }
+ 
+ struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
+@@ -603,9 +604,9 @@ struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
+ 	case I2C_2:
+ 		return &dev->i2c_bus[2].i2c_adap;
+ 	case I2C_1_MUX_1:
+-		return dev->i2c_mux_adap[0];
++		return dev->muxc->adapter[0];
+ 	case I2C_1_MUX_3:
+-		return dev->i2c_mux_adap[1];
++		return dev->muxc->adapter[1];
+ 	default:
+ 		return NULL;
+ 	}
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index ec6d3f5bc36d..fab222059e51 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -625,6 +625,7 @@ struct cx231xx {
+ 
+ 	/* I2C adapters: Master 1 & 2 (External) & Master 3 (Internal only) */
+ 	struct cx231xx_i2c i2c_bus[3];
++	struct i2c_mux_core *muxc;
+ 	struct i2c_adapter *i2c_mux_adap[2];
+ 
+ 	unsigned int xc_fw_load_done:1;
+@@ -759,8 +760,9 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
+ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
+ int cx231xx_i2c_register(struct cx231xx_i2c *bus);
+ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
++int cx231xx_i2c_mux_create(struct cx231xx *dev);
+ int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no);
+-void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no);
++void cx231xx_i2c_mux_unregister(struct cx231xx *dev);
+ struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port);
+ 
+ /* Internal block control functions */
 -- 
-Regards,
-Niklas Söderlund
+2.1.4
+
