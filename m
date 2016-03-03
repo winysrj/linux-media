@@ -1,91 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:55534 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760533AbcCEAHD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 19:07:03 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] hide unused functions for !MEDIA_CONTROLLER
-Date: Sat,  5 Mar 2016 01:06:43 +0100
-Message-Id: <1457136410-2234001-1-git-send-email-arnd@arndb.de>
+Received: from bombadil.infradead.org ([198.137.202.9]:34502 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756454AbcCCRyw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 12:54:52 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-api@vger.kernel.org
+Subject: [PATCH] [media] media.h: postpone connectors entities
+Date: Thu,  3 Mar 2016 14:54:30 -0300
+Message-Id: <93125094c07d8c9ec25dff5869f191b33eb9dd6e.1457027668.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some functions in the au0828 driver are only used when CONFIG_MEDIA_CONTROLLER
-is enabled, and otherwise defined as empty functions:
+The representation of external connections got some heated
+discussions recently. As we're too close to the merge window,
+let's not set those entities into a stone.
 
-media/usb/au0828/au0828-core.c:208:13: error: 'au0828_media_graph_notify' defined but not used [-Werror=unused-function]
-media/usb/au0828/au0828-core.c:262:12: error: 'au0828_enable_source' defined but not used [-Werror=unused-function]
-media/usb/au0828/au0828-core.c:412:13: error: 'au0828_disable_source' defined but not used [-Werror=unused-function]
-
-This moves the #ifdef so the entire definitions are hidden in this case.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/usb/au0828/au0828-core.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ include/uapi/linux/media.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 4ffaa3b2e905..d312098720a8 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -205,10 +205,10 @@ static int au0828_media_device_init(struct au0828_dev *dev,
- 	return 0;
- }
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 13e19a18f97f..323f1af35062 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -82,10 +82,18 @@ struct media_device_info {
+  * Connectors
+  */
+ /* It is a responsibility of the entity drivers to add connectors and links */
++#ifdef __KERNEL__
++	/*
++	 * For now, it should not be used in userspace, as some
++	 * definitions may change
++	 */
++
+ #define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
+ #define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
+ #define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
  
-+#ifdef CONFIG_MEDIA_CONTROLLER
- static void au0828_media_graph_notify(struct media_entity *new,
- 				      void *notify_data)
- {
--#ifdef CONFIG_MEDIA_CONTROLLER
- 	struct au0828_dev *dev = (struct au0828_dev *) notify_data;
- 	int ret;
- 	struct media_entity *entity, *mixer = NULL, *decoder = NULL;
-@@ -256,13 +256,11 @@ create_link:
- 			dev_err(&dev->usbdev->dev,
- 				"Mixer Pad Link Create Error: %d\n", ret);
- 	}
--#endif
- }
- 
- static int au0828_enable_source(struct media_entity *entity,
- 				struct media_pipeline *pipe)
- {
--#ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_entity  *source, *find_source;
- 	struct media_entity *sink;
- 	struct media_link *link, *found_link = NULL;
-@@ -405,13 +403,11 @@ end:
- 	pr_debug("au0828_enable_source() end %s %d %d\n",
- 		 entity->name, entity->function, ret);
- 	return ret;
--#endif
- 	return 0;
- }
- 
- static void au0828_disable_source(struct media_entity *entity)
- {
--#ifdef CONFIG_MEDIA_CONTROLLER
- 	int ret = 0;
- 	struct media_device *mdev = entity->graph_obj.mdev;
- 	struct au0828_dev *dev;
-@@ -453,8 +449,8 @@ static void au0828_disable_source(struct media_entity *entity)
- 
- end:
- 	mutex_unlock(&mdev->graph_mutex);
--#endif
- }
 +#endif
- 
- static int au0828_media_device_register(struct au0828_dev *dev,
- 					struct usb_device *udev)
++
+ /*
+  * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
+  * MEDIA_ENT_F_OLD_SUBDEV_BASE are kept to keep backward compatibility
 -- 
-2.7.0
+2.5.0
 
