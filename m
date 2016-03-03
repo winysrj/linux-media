@@ -1,87 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:29433 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757238AbcCROUj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 10:20:39 -0400
-Subject: Re: [PATCH] [media] media: rename media unregister function
-To: Shuah Khan <shuahkh@osg.samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>, Tommi Rantala <tt.rantala@gmail.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>,
-	Luis de Bethencourt <luis@debethencourt.com>,
-	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	alsa-devel@alsa-project.org
-References: <2ffc02c944068b2c8655727238d1542f8328385d.1458306276.git.mchehab@osg.samsung.com>
- <56EC0A55.3010803@osg.samsung.com> <56EC0CC4.1070309@osg.samsung.com>
- <56EC0DF9.4050601@osg.samsung.com>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <56EC0EA3.6010108@linux.intel.com>
-Date: Fri, 18 Mar 2016 16:20:19 +0200
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:35968 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758100AbcCCVjQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 16:39:16 -0500
+Received: by mail-wm0-f43.google.com with SMTP id n186so8918691wmn.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2016 13:39:15 -0800 (PST)
+Subject: Re: [git:media_tree/master] [media] media: rc: nuvoton: support
+ reading / writing wakeup sequence via sysfs
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <E1abRXi-00035h-0E@www.linuxtv.org> <56D87FE9.4000408@gmail.com>
+ <20160303155200.43d4c5e7@recife.lan> <56D88EFB.1090105@gmail.com>
+ <20160303175650.33edd31c@recife.lan>
+Cc: linux-media@vger.kernel.org
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Message-ID: <56D8AEF4.2060708@gmail.com>
+Date: Thu, 3 Mar 2016 22:39:00 +0100
 MIME-Version: 1.0
-In-Reply-To: <56EC0DF9.4050601@osg.samsung.com>
+In-Reply-To: <20160303175650.33edd31c@recife.lan>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Shuah Khan wrote:
-> On 03/18/2016 08:12 AM, Javier Martinez Canillas wrote:
->> Hello Shuah,
->>
->> On 03/18/2016 11:01 AM, Shuah Khan wrote:
->>> On 03/18/2016 07:05 AM, Mauro Carvalho Chehab wrote:
->>>> Now that media_device_unregister() also does a cleanup, rename it
->>>> to media_device_unregister_cleanup().
->>>>
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>
->>> I think adding cleanup is redundant. media_device_unregister()
->>> would imply that there has to be some cleanup releasing resources.
->>> I wouldn't make this change.
->>>
->>
->> Problem is that there is a media_device_init() and media_device_register(),
->> so having both unregister and cleanup in this function will make very clear
->> that a single function is the counter part of the previous two operations.
->>  
+Am 03.03.2016 um 21:56 schrieb Mauro Carvalho Chehab:
+> Em Thu, 03 Mar 2016 20:22:35 +0100
+> Heiner Kallweit <hkallweit1@gmail.com> escreveu:
 > 
-> Yes. I realized that this change is motivated by the fact that there is
-> the media_device_init() and we had the counterpart media_device_cleanup()
-> as an exported function. I still think there is no need to make the change
-> to add _cleanup() at the end of media_device_unregister(). It can be handled
-> in API documentation that it does both.
+>> Am 03.03.2016 um 19:52 schrieb Mauro Carvalho Chehab:
+>>> Em Thu, 03 Mar 2016 19:18:17 +0100
+>>> Heiner Kallweit <hkallweit1@gmail.com> escreveu:
+>>>   
+>>>> Am 03.03.2016 um 12:28 schrieb Mauro Carvalho Chehab:  
+>>>>> This is an automatic generated email to let you know that the following patch were queued at the 
+>>>>> http://git.linuxtv.org/cgit.cgi/media_tree.git tree:
+>>>>>
+>>>>> Subject: [media] media: rc: nuvoton: support reading / writing wakeup sequence via sysfs
+>>>>> Author:  Heiner Kallweit <hkallweit1@gmail.com>
+>>>>> Date:    Mon Feb 8 17:25:59 2016 -0200
+>>>>>
+>>>>> This patch adds a binary attribute /sys/class/rc/rc?/wakeup_data which
+>>>>> allows to read / write the wakeup sequence.
+>>>>>     
+>>>> When working on another module I was reminded not to forget updating Documentation/ABI.
+>>>> I think the same applies here. This patch introduces a new sysfs attribute that should
+>>>> be documented. I'll submit a patch for adding Documentation/ABI/testing/sysfs-class-rc-nuvoton  
+>>>
+>>> Good point.
+>>>
+>>> Another thing: wouldn't be better to use a text format? This would make
+>>> esier to import from LIRC's irrecord format:
+>>>
+>>>       begin raw_codes
+>>>
+>>>           name power
+>>>               850     900    1750    1800     850     900
+>>>               850     900    1750     900     850    1800
+>>>               850     900     850     900     850     900
+>>>              1750    1800     800
+>>>
+>>>       end raw_codes
+>>>
+>>> Regards,
+>>> Mauro
+>>>   
+>> Most likely this is possible, but it would mean that we need a parser / generator
+>> for this text format in the driver / kernel code. And I have my doubts that parsing
+>> an application-specific file format (that could change anytime) in kernel code is
+>> a good thing. Converting this format to raw binary data is better off in userspace
+>> I think. What's your opinion?
+> 
+> I'm not telling that it should parse irrecord format, but, instead, to
+> accept an ascii sequence of timings. The problem with raw binary data
+> is that the format varies on big endian and long endian architectures,
+> with doesn't seem to be nice to an API, as a data sequence recorded
+> on one machine may not work on some other one.
+> 
+The Nuvoton wakeup sequence is a number of bytes (bit 7 = pulse/space indicator,
+bit 6..0 = length / 50us). It doesn't include any multi-byte numbers.
+Therefore endianness doesn't affect us.
+However I also like the idea of having a text format with pulses / spaces in us.
+(as that's what utilities like mode2 display) It's easier for the user to deal with.
+I'll prepare an alternative patch using such a text format.
 
-I think that's a bad idea. People will only read the documentation when
-something doesn't work. In this case it's easy to miss that.
+>>
+>>>>
+>>>> Rgds, Heiner
+>>>>  
+>>>>> In combination with the core extension for exposing the most recent raw
+>>>>> packet this allows to easily define and set a wakeup sequence.
+>>>>>
+>>>>> At least on my Zotac CI321 the BIOS resets the wakeup sequence at each boot
+>>>>> to a factory default. Therefore I use a udev rule
+>>>>> SUBSYSTEM=="rc", DRIVERS=="nuvoton-cir", ACTION=="add", RUN+="<script>"
+>>>>> with the script basically doing
+>>>>> cat <stored wakeup sequence> >/sys${DEVPATH}/wakeup_data
+>>>>>
+>>>>> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>>>
+>>>>>  drivers/media/rc/nuvoton-cir.c | 85 ++++++++++++++++++++++++++++++++++++++++++
+>>>>>  drivers/media/rc/nuvoton-cir.h |  3 ++
+>>>>>  2 files changed, 88 insertions(+)
+>>>>>
+>>>>> ---
+>>>>>
+>>>>> [...]  
+>>
+> 
+> 
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
