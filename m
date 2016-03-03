@@ -1,221 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53786 "EHLO lists.s-osg.org"
+Received: from smtp2.macqel.be ([109.135.2.61]:52967 "EHLO smtp2.macqel.be"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753895AbcCNSQp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 14:16:45 -0400
-Date: Mon, 14 Mar 2016 15:16:38 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Any reason why media_entity_pads_init() isn't void?
-Message-ID: <20160314151638.71a85e9b@recife.lan>
-In-Reply-To: <20160314100501.552db582@recife.lan>
-References: <56E6758F.7020205@xs4all.nl>
-	<20160314103643.GP11084@valkosipuli.retiisi.org.uk>
-	<20160314082738.3b84ed0a@recife.lan>
-	<20160314114332.GR11084@valkosipuli.retiisi.org.uk>
-	<20160314085251.19698ae8@recife.lan>
-	<20160314100501.552db582@recife.lan>
+	id S1756797AbcCCIgs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 03:36:48 -0500
+Date: Thu, 3 Mar 2016 09:36:43 +0100
+From: Philippe De Muyter <phdm@macq.eu>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: Re: i.mx6 camera interface (CSI) and mainline kernel
+Message-ID: <20160303083643.GA4303@frolo.macqel>
+References: <20160223114943.GA10944@frolo.macqel> <20160223141258.GA5097@frolo.macqel> <4956050.OLrYA1VK2G@avalon> <56D79B49.50009@mentor.com> <56D7E59B.6050605@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56D7E59B.6050605@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 14 Mar 2016 10:05:01 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+Hi Steve,
 
-> Em Mon, 14 Mar 2016 08:52:51 -0300
-> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+On Thu, Mar 03, 2016 at 08:19:55AM +0100, Hans Verkuil wrote:
+> On 03/03/2016 03:02 AM, Steve Longerbeam wrote:
+> > On 02/25/2016 02:05 PM, Laurent Pinchart wrote:
+> >> Hello Philippe,
+> >>
+> >> CC'ing Philipp and Steve.
+> >>
+> >> Philipp, Steve, are you still interested in getting a driver for the i.MX6 
+> >> camera interface upstreamed ?
+> > 
+> > Hi Laurent, Philippe(s),
+> > 
+> > I spent a few days updating my mx6-media-staging branch at
+
+First of all, thank you very much, Steve.
+
+> > git@github.com:slongerbeam/linux-meibp-314.git, moved forward
+> > to latest master at 4.5-rc3.
+
+Just to be sure : do you mean  https://github.com/slongerbeam/mediatree.git
+or something else ?
+
+> > 
+> > So far I have retested video capture with the SabreAuto/ADV7180 and
+> > the SabreSD/OV5640-mipi-csi2, and video capture is working fine on
+> > those platforms.
+> > 
+> > There is also a mem2mem that should work fine, but haven't tested yet.
+> > 
+> > I removed camera preview support. At Mentor Graphics we have made
+> > quite a few changes to ipu-v3 driver to allow camera preview to initialize
+> > and control an overlay display plane independently of imx-drm, by adding
+> > a subsystem independent ipu-plane sub-unit. Note we also have a video
+> > output overlay driver that also makes use of ipu-plane. But those changes are
+> > extensive and touch imx-drm as well as ipu-v3, so I am leaving camera preview
+> > and the output overlay driver out (in fact, camera preview is not of much
+> > utility so I probably won't bring it back in upstream version).
+> > 
+> > The video capture driver is not quite ready for upstream review yet. It still:
+> > 
+> > - uses the old cropping APIs but should move forward to selection APIs.
+> > 
+> > - uses custom sensor subdev drivers for ADV7180 and OV564x. Still
+> >   need to switch to upstream subdevs.
+
+Is it only a problem of those sensor drivers (which exact files ?) or
+is it a problem of the capture driver itself ?
+
+I must update a sensor driver I wrote for the intdev interface found
+in the freescale kernel, and I'd like to start from a working subdev
+example.  Which driver should I choose as an example ?
+
+> > 
+> > - still does not implement the media device framework.
 > 
-> > Em Mon, 14 Mar 2016 13:43:33 +0200
-> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> >   
-> > > Hi Mauro,
-> > > 
-> > > On Mon, Mar 14, 2016 at 08:27:38AM -0300, Mauro Carvalho Chehab wrote:    
-> > > > Em Mon, 14 Mar 2016 12:36:44 +0200
-> > > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> > > >       
-> > > > > Hi Hans,
-> > > > > 
-> > > > > On Mon, Mar 14, 2016 at 09:25:51AM +0100, Hans Verkuil wrote:      
-> > > > > > I was fixing a sparse warning in media_entity_pads_init() and I noticed
-> > > > > > that that function always returns 0. Any reason why this can't be changed
-> > > > > > to a void function?        
-> > > > > 
-> > > > > I was thinking of the same function but I had a different question: why
-> > > > > would one call this *after* entity->graph_obj.mdev is set? It is set by
-> > > > > media_device_register_entity(), but once mdev it's set, you're not expected
-> > > > > to call pads_init anymore...      
-> > > > 
-> > > > Ideally, drivers should *first* create mdev, and then create the
-> > > > graph objects, as all objects should be registered at the mdev, in
-> > > > order to get their object ID and to be registered at the mdev's object
-> > > > lists.      
-> > > 
-> > > Right. I think it wouldn't hurt to have some comment hints in what's there
-> > > for legacy use cases... I can submit patches for some of these.    
-> > 
-> > Yeah, feel free to submit a patch for it. It could be good to add a
-> > warn_once() that would hit for the legacy case too.
-> >   
-> > > 
-> > > Currently what works is that you can register graph objects until the media
-> > > device node is exposed to the user.    
-> > 
-> > Yes.
-> >   
-> > > We don't have proper serialisation in
-> > > place to do that, do we? At least the framework functions leave it up to the
-> > > caller.
-> > > 
-> > > I think it wouldn't be a bad idea either to think about the serialisation
-> > > model a bit. It's been unchanged from the day one basically.    
-> > 
-> > Actually, the async logic does some sort of serialization, although it
-> > doesn't enforce it.
-> > 
-> > Javier touched on some cases where the logic was not right, but he
-> > didn't change everything. 
-> > 
-> > I agree with you here: it would be great to have this fixed in a better
-> > way.
-> > 
-> > That's said, this affects only non-PCI/USB devices. On PCI/USB, the
-> > main/bridge driver is always called first, and the subdev init only
-> > happens after it registers the I2C bus.
-> >   
+> After fixing the first two items on that list, would that be a good time to
+> add this driver to staging?
 > 
-> Maybe we could do something like the patch below, to replace the I2C
-> probe routines, and then create some logic at the async ops that would
-> create the mdev and then call the SD-specific core.mc_probe() methods.
+> i.MX6 is quite popular, so having support for this device upstream would be
+> very nice indeed.
 > 
-> (patch doesn't compile yet, and it is not complete, but just to give
-> an idea on how we could do it).
+> I'd really like to see some upstream support for this SoC soon.
 
-Still not tested, but, IMHO, in a better shape. See enclosed.
+There are a bunch of people expecting that (and trying to help) :)
 
-The idea behind it is to split the PAD init on all subdevs and let the
-core call it.
+Best regards
 
-For now, the core is calling it early, when v4l2_i2c_subdev_init() is
-called, but, after making all subdevs use the new pad_init() callback,
-we can call them later. I guess the best place for the code would be
-to be called only at v4l2_device_register_subdev(), but we need to
-double check if this would work on all cases.
+Philippe
 
--
-
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index ff18444e19e4..14004fd7d0fb 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -1208,6 +1208,28 @@ static int tvp5150_registered_async(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
-+static int __maybe_unused tvp5150_pad_init(struct v4l2_subdev *sd)
-+{
-+	struct tvp5150 *core = to_tvp5150(sd);
-+	int res;
-+
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
-+	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
-+
-+	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
-+	if (res < 0)
-+		return res;
-+
-+	sd->entity.ops = &tvp5150_sd_media_ops;
-+#endif
-+	return 0;
-+}
-+
-+
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
-@@ -1246,6 +1268,9 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
- };
- 
- static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	.pad_init = tvp5150_pad_init,
-+#endif
- 	.enum_mbus_code = tvp5150_enum_mbus_code,
- 	.enum_frame_size = tvp5150_enum_frame_size,
- 	.set_fmt = tvp5150_fill_fmt,
-@@ -1475,20 +1500,6 @@ static int tvp5150_probe(struct i2c_client *c,
- 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
--#if defined(CONFIG_MEDIA_CONTROLLER)
--	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
--	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
--	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
--
--	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
--
--	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
--	if (res < 0)
--		return res;
--
--	sd->entity.ops = &tvp5150_sd_media_ops;
--#endif
--
- 	res = tvp5150_detect_version(core);
- 	if (res < 0)
- 		return res;
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 5b808500e7e7..6bcdf557e027 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -112,6 +112,14 @@ EXPORT_SYMBOL(v4l2_ctrl_query_fill);
- void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- 		const struct v4l2_subdev_ops *ops)
- {
-+	/*
-+	 * Initialize the MC pads - for now, this will be called
-+	 * unconditionally, since the current implementation will defer
-+	 * the pads initialization until the media_dev is created.
-+	 */
-+	if (v4l2_subdev_has_op(sd, pad, pad_init))
-+		sd->ops->pad->pad_init(sd);
-+
- 	v4l2_subdev_init(sd, ops);
- 	sd->flags |= V4L2_SUBDEV_FL_IS_I2C;
- 	/* the owner is the same as the i2c_client's driver owner */
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 11e2dfec0198..c9bb221029e4 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -572,6 +572,9 @@ struct v4l2_subdev_pad_config {
- /**
-  * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
-  *
-+ * @pad_init: callback that initializes the media-controller specific part
-+ *	      of the subdev driver, creating its pads
-+ *
-  * @enum_mbus_code: callback for VIDIOC_SUBDEV_ENUM_MBUS_CODE ioctl handler
-  *		    code.
-  * @enum_frame_size: callback for VIDIOC_SUBDEV_ENUM_FRAME_SIZE ioctl handler
-@@ -607,6 +610,7 @@ struct v4l2_subdev_pad_config {
-  *                  may be adjusted by the subdev driver to device capabilities.
-  */
- struct v4l2_subdev_pad_ops {
-+	int (*pad_init)(struct v4l2_subdev *sd);
- 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_mbus_code_enum *code);
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > 
+> > Steve
+> > 
+> >>
+> >> On Tuesday 23 February 2016 15:12:58 Philippe De Muyter wrote:
+> >>> Update.
+> >>>
+> >>> On Tue, Feb 23, 2016 at 12:49:43PM +0100, Philippe De Muyter wrote:
+> >>>> Hello,
+> >>>>
+> >>>> We use a custom imx6 based board with a canera sensor on it.
+> >>>> I have written the driver for the camera sensor, based on
+> >>>> the freescale so-called "3.10" and even "3.14" linux versions.
+> >>>>
+> >>>> The camera works perfectly, but we would like to switch to
+> >>>> a mainline kernel for all the usual reasons (including being
+> >>>> able to contribute our fixes).
+> >>>>
+> >>>> >From an old mail thread (*), I have found two git repositories
+> >>>>
+> >>>> that used to contain not-yet-approved versions of mainline
+> >>>> imx6 ipu-v3 drivers :
+> >>>>
+> >>>> git://git.pengutronix.de/git/pza/linux.git test/nitrogen6x-ipu-media
+> >>>> https://github.com:slongerbeam/mediatree.git, mx6-camera-staging
+> >>>>
+> >>>> I have tried to compile them with the imx_v6_v7_defconfig, but both
+> >>>> fail directly at compile time. because of later changes in the
+> >>>> v4l2_subdev infrastructure, not ported to the those branches.
+> >>> What I wrote is true for Steve Longerbeam's branch, but for Philipp Zabel's
+> >>> branch the problem (so far) was only that CONFIG_MEDIA_CONTROLLER
+> >>> is not defined in imx_v6_v7_defconfig, but is required for a succesfull
+> >>> compilation of Philipp's tree.
+> >>>
+> >>>> Can someone point me to compilable versions (either not rebased
+> >>>> versions of those branches, or updated versions of those branches,
+> >>>> or yet another place to look at). ?
+> >>>>
+> >>>> Thanks in advance
+> >>>>
+> >>>> Philippe
+> >>>>
+> >>>> (*)
+> >>>> http://linux-media.vger.kernel.narkive.com/cZQ8NrZ2/i-mx6-status-for-ipu-> > vpu-gpu
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
 
 -- 
-Thanks,
-Mauro
+Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
