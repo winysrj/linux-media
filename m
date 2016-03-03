@@ -1,100 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59830 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755320AbcCCHcR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 02:32:17 -0500
-Subject: Re: tw686x driver
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-References: <56D6A50F.4060404@xs4all.nl> <m3povcnjfo.fsf@t19.piap.pl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D7E87B.1080505@xs4all.nl>
-Date: Thu, 3 Mar 2016 08:32:11 +0100
+Received: from mail-ig0-f193.google.com ([209.85.213.193]:33712 "EHLO
+	mail-ig0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750976AbcCCM2A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 07:28:00 -0500
 MIME-Version: 1.0
-In-Reply-To: <m3povcnjfo.fsf@t19.piap.pl>
+In-Reply-To: <2233190.1BxevBAvDE@wuerfel>
+References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+	<1456992221-26712-9-git-send-email-k.kozlowski@samsung.com>
+	<2233190.1BxevBAvDE@wuerfel>
+Date: Thu, 3 Mar 2016 13:27:59 +0100
+Message-ID: <CAMuHMdXUdz0=n2+Aa74f1LtwiwfV9=gkPBiJKC_DMyr1_jBe7Q@mail.gmail.com>
+Subject: Re: [RFC 08/15] rtc: at91sam9: Add missing MFD_SYSCON dependency on HAS_IOMEM
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	David Brown <david.brown@linaro.org>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	driverdevel <devel@driverdev.osuosl.org>,
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jason Cooper <jason@lakedaemon.net>,
+	RTCLINUX <rtc-linux@googlegroups.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	"linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>,
+	"linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	linux-soc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Linux PM list <linux-pm@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	dmaengine@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2016 07:51 AM, Krzysztof Hałasa wrote:
-> Hi Hans,
-> 
-> Hans Verkuil <hverkuil@xs4all.nl> writes:
-> 
->> So lessons learned:
+On Thu, Mar 3, 2016 at 11:55 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Thursday 03 March 2016 17:03:34 Krzysztof Kozlowski wrote:
+>> index 0da40e2e4280..5c530b6b125d 100644
+>> --- a/drivers/rtc/Kconfig
+>> +++ b/drivers/rtc/Kconfig
+>> @@ -1302,6 +1302,7 @@ config RTC_DRV_AT91RM9200
+>>  config RTC_DRV_AT91SAM9
+>>         tristate "AT91SAM9 RTT as RTC"
+>>         depends on ARCH_AT91 || COMPILE_TEST
+>> +       depends on HAS_IOMEM    # For MFD_SYSCON
+>>         select MFD_SYSCON
+>>         help
+>>           Some AT91SAM9 SoCs provide an RTT (Real Time Timer) block which
 >>
->> Krzysztof, next time don't wait many months before posting a new version fixing
->> requested changes.
-> 
-> Actually, this is not how it happened.
-> 
-> On July 3, 2015 I posted the original driver:
-> http://www.spinics.net/lists/linux-media/msg91474.html
-> 
-> Ezequiel reviewed the code on 6 Jul 2015:
-> http://www.spinics.net/lists/linux-media/msg91516.html
-> 
-> On 27 Jul 2015, as you can easily find in your own mail archive, he
-> informed me that he's working on the driver and that he's going to post
-> updated patches himself. This was holidays time for me and I stated
-> that I have to suspend my work till the end of August.
-> 
-> I asked him to add his changes on top of my code several times (and this
-> is really easy with git). This never happened, and on 14 Aug 2015 he
-> posted:
-> 
->> Problem is I've re-written the driver, taking yours as a starting point
->> and reference.
-> 
->> In other words, I don't have a proper git branch with a history, starting
->> from the patch you submitted. Instead, I would be submitting a new
->> patch for Hans and Mauro to review.
-> 
-> Maybe I got the meaning of this wrong, and he wasn't writing about
-> rewriting the driver "from scratch". Yes, after receiving this mail
-> I stopped my development, waiting for his driver to show up. That's
-> where the "many months" are. Yes, Ezequiel waited for "many months" with
-> his version - not me.
-> 
-> Only after he has posted "his" driver, I could find out what the
-> "rewriting" meant.
+>
+> This is technically correct, but the entire RTC menu is hidden
+> inside of 'depends on !UML && !S390', so we won't ever get there
+> on any configuration that does not use HAS_IOMEM.
+>
+> If we did, all other RTC drivers would also fail.
 
-Thank you for the clarification.
+So UML has no RTC. Should/can it use RTC_DRV_GENERIC?
 
-> Don't get me wrong, I was never opposed to him improving my driver.
-> I only requested that his contributions are clearly shown, in a form
-> of a patch or a patch set (or a git tree etc.), and so are my own.
-> I really can't understand why his code can't be transparently applied
-> over my original patch (or the updated one, which compiles and works
-> fine with recent media tree).
-> 
-> Is it too much to ask?
+Gr{oetje,eeting}s,
 
-When a driver is merged for the first time in the kernel it is always as
-a single change, i.e. you don't include the development history as that
-would pollute the kernel's history. Those earlier versions have never
-been tested/reviewed to the same extent as the final version and adding
-them could break git bisect. So as a general rule this isn't done.
+                        Geert
 
-> The lesson I learned is thus this instead:
-> - don't publish code because it can be hijacked, twisted and you'll
-> have to fight for even getting your authorship back. Forget about proper
-> attribution and history.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Your code is attributed in the source code and your patches are all archived
-in patchwork and on mailinglist archives.
-
-And should you decide to make patches for the merged driver adding back the
-lost functionality, then feel free to yell loudly at Ezequiel in the commit
-log (within reason, of course :-) ). Heck, I might add some lines of my own
-to that.
-
-It is a quite unusual situation and the only way I could make it worse would
-by not merging anything.
-
-Regards,
-
-	Hans
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
