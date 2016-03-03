@@ -1,75 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44848 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753523AbcCAO5W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 09:57:22 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-yw0-f175.google.com ([209.85.161.175]:36128 "EHLO
+	mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754426AbcCCRUB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 12:20:01 -0500
+Received: by mail-yw0-f175.google.com with SMTP id i131so10030556ywc.3
+        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2016 09:20:01 -0800 (PST)
+MIME-Version: 1.0
+Date: Thu, 3 Mar 2016 12:20:00 -0500
+Message-ID: <CAN5YuFYiRPDMUFqiiJrLXCH-tZnO9SJ-_TZfLD6_uq-L63OKyQ@mail.gmail.com>
+Subject: STK1160 - no video
+From: Kevin Fitch <kfitch42@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/8] v4l: exynos4-is: Drop unneeded check when setting up fimc-lite links
-Date: Tue,  1 Mar 2016 16:57:20 +0200
-Message-Id: <1456844246-18778-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver verifies that the type of the remote entity matches its
-expectations when setting up fimc-lite links and returns an error if it
-doesn't. Those checks can never fail as the links are created by the
-driver in a way that always match its expectations (the SINK and
-SOURCE_ISP pads are connected to subdevs only and the SOURCE_DMA pad is
-connected to a video node only). Remove them.
+I recently purchased a STK1160 based USB video capture device (Sabrent
+USB-AVCPT). I have tested it on a windows computer and it works fine,
+but not on any linux box I have tried.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/exynos4-is/fimc-lite.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+lsusb reports:
+Bus 002 Device 003: ID 05e1:0408 Syntek Semiconductor Co., Ltd STK1160
+Video Capture Device
 
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+I am running Linux Mint with a 4.2.0 based kernel on AMD64:
+$ uname -a
+Linux home 4.2.0-30-generic #36~14.04.1-Ubuntu SMP Fri Feb 26 18:49:23
+UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index e85649147dc8..dc1b929f7a33 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -992,10 +992,6 @@ static int fimc_lite_link_setup(struct media_entity *entity,
- 
- 	switch (local->index) {
- 	case FLITE_SD_PAD_SINK:
--		if (!is_media_entity_v4l2_subdev(remote->entity)) {
--			ret = -EINVAL;
--			break;
--		}
- 		if (flags & MEDIA_LNK_FL_ENABLED) {
- 			if (fimc->source_subdev_grp_id == 0)
- 				fimc->source_subdev_grp_id = sd->grp_id;
-@@ -1010,19 +1006,15 @@ static int fimc_lite_link_setup(struct media_entity *entity,
- 	case FLITE_SD_PAD_SOURCE_DMA:
- 		if (!(flags & MEDIA_LNK_FL_ENABLED))
- 			atomic_set(&fimc->out_path, FIMC_IO_NONE);
--		else if (is_media_entity_v4l2_io(remote->entity))
--			atomic_set(&fimc->out_path, FIMC_IO_DMA);
- 		else
--			ret = -EINVAL;
-+			atomic_set(&fimc->out_path, FIMC_IO_DMA);
- 		break;
- 
- 	case FLITE_SD_PAD_SOURCE_ISP:
- 		if (!(flags & MEDIA_LNK_FL_ENABLED))
- 			atomic_set(&fimc->out_path, FIMC_IO_NONE);
--		else if (is_media_entity_v4l2_subdev(remote->entity))
--			atomic_set(&fimc->out_path, FIMC_IO_ISP);
- 		else
--			ret = -EINVAL;
-+			atomic_set(&fimc->out_path, FIMC_IO_ISP);
- 		break;
- 
- 	default:
--- 
-2.4.10
+The exact results vary in different capture programs, but i always
+seems to be something like a timeout waiting for the first frame.
 
+I grabbed the driver source and added a few printk's to see what is
+going on. The first time streaming is started it gets a single 8 byte
+isochronous packet similar to:
+80 0D 00 00 3D 61 0B 00
+This is followed by a series of 4 byte packets (which the source code
+refers to as "empty packets." These packets continue until streaming
+is stopped.
+
+00 01 00 00
+00 02 00 00
+...
+00 3E 00 00
+00 3F 00 00
+00 00 00 00
+00 01 00 00
+...
+
+The second time (and all subsequent times) streaming is started I seem
+to get a single 8 byte packet similar to:
+A0 0E 00 00 3D 61 0B 00
+
+Each time streaming is started the second number appears to be incremented.
+
+The is again followed by the same sequence of 4 byte packets as
+mentioned before (all zeros, except the second byte increments
+wrapping around after 3F).
+
+I am at a bit of a loss as to where to continue debugging this. Any
+suggestions will be appreciated.
