@@ -1,150 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:60348 "EHLO mout.web.de"
+Received: from lists.s-osg.org ([54.187.51.154]:34519 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966012AbcCPNmr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 09:42:47 -0400
-Subject: [PATCH RESEND] media: dvb_ringbuffer: Add memory barriers
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1451248920-4935-1-git-send-email-smoch@web.de>
-Cc: Soeren Moch <smoch@web.de>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-From: Soeren Moch <smoch@web.de>
-Message-ID: <56E962C2.4060001@web.de>
-Date: Wed, 16 Mar 2016 14:42:26 +0100
+	id S1756345AbcCCU44 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 15:56:56 -0500
+Date: Thu, 3 Mar 2016 17:56:50 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [git:media_tree/master] [media] media: rc: nuvoton: support
+ reading / writing wakeup sequence via sysfs
+Message-ID: <20160303175650.33edd31c@recife.lan>
+In-Reply-To: <56D88EFB.1090105@gmail.com>
+References: <E1abRXi-00035h-0E@www.linuxtv.org>
+	<56D87FE9.4000408@gmail.com>
+	<20160303155200.43d4c5e7@recife.lan>
+	<56D88EFB.1090105@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1451248920-4935-1-git-send-email-smoch@web.de>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement memory barriers according to Documentation/circular-buffers.txt:
-- use smp_store_release() to update ringbuffer read/write pointers
-- use smp_load_acquire() to load write pointer on reader side
-- use ACCESS_ONCE() to load read pointer on writer side
+Em Thu, 03 Mar 2016 20:22:35 +0100
+Heiner Kallweit <hkallweit1@gmail.com> escreveu:
 
-This fixes data stream corruptions observed e.g. on an ARM Cortex-A9
-quad core system with different types (PCI, USB) of DVB tuners.
+> Am 03.03.2016 um 19:52 schrieb Mauro Carvalho Chehab:
+> > Em Thu, 03 Mar 2016 19:18:17 +0100
+> > Heiner Kallweit <hkallweit1@gmail.com> escreveu:
+> >   
+> >> Am 03.03.2016 um 12:28 schrieb Mauro Carvalho Chehab:  
+> >>> This is an automatic generated email to let you know that the following patch were queued at the 
+> >>> http://git.linuxtv.org/cgit.cgi/media_tree.git tree:
+> >>>
+> >>> Subject: [media] media: rc: nuvoton: support reading / writing wakeup sequence via sysfs
+> >>> Author:  Heiner Kallweit <hkallweit1@gmail.com>
+> >>> Date:    Mon Feb 8 17:25:59 2016 -0200
+> >>>
+> >>> This patch adds a binary attribute /sys/class/rc/rc?/wakeup_data which
+> >>> allows to read / write the wakeup sequence.
+> >>>     
+> >> When working on another module I was reminded not to forget updating Documentation/ABI.
+> >> I think the same applies here. This patch introduces a new sysfs attribute that should
+> >> be documented. I'll submit a patch for adding Documentation/ABI/testing/sysfs-class-rc-nuvoton  
+> > 
+> > Good point.
+> > 
+> > Another thing: wouldn't be better to use a text format? This would make
+> > esier to import from LIRC's irrecord format:
+> > 
+> >       begin raw_codes
+> > 
+> >           name power
+> >               850     900    1750    1800     850     900
+> >               850     900    1750     900     850    1800
+> >               850     900     850     900     850     900
+> >              1750    1800     800
+> > 
+> >       end raw_codes
+> > 
+> > Regards,
+> > Mauro
+> >   
+> Most likely this is possible, but it would mean that we need a parser / generator
+> for this text format in the driver / kernel code. And I have my doubts that parsing
+> an application-specific file format (that could change anytime) in kernel code is
+> a good thing. Converting this format to raw binary data is better off in userspace
+> I think. What's your opinion?
 
-Signed-off-by: Soeren Moch <smoch@web.de>
-Cc: stable@vger.kernel.org # 3.14+
----
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+I'm not telling that it should parse irrecord format, but, instead, to
+accept an ascii sequence of timings. The problem with raw binary data
+is that the format varies on big endian and long endian architectures,
+with doesn't seem to be nice to an API, as a data sequence recorded
+on one machine may not work on some other one.
 
-Since smp_store_release() and smp_load_acquire() were introduced in linux-3.14,
-a 3.14+ stable tag was added. Is it desired to apply a similar patch to older
-stable kernels?
----
- drivers/media/dvb-core/dvb_ringbuffer.c | 27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+> 
+> >>
+> >> Rgds, Heiner
+> >>  
+> >>> In combination with the core extension for exposing the most recent raw
+> >>> packet this allows to easily define and set a wakeup sequence.
+> >>>
+> >>> At least on my Zotac CI321 the BIOS resets the wakeup sequence at each boot
+> >>> to a factory default. Therefore I use a udev rule
+> >>> SUBSYSTEM=="rc", DRIVERS=="nuvoton-cir", ACTION=="add", RUN+="<script>"
+> >>> with the script basically doing
+> >>> cat <stored wakeup sequence> >/sys${DEVPATH}/wakeup_data
+> >>>
+> >>> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+> >>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>>
+> >>>  drivers/media/rc/nuvoton-cir.c | 85 ++++++++++++++++++++++++++++++++++++++++++
+> >>>  drivers/media/rc/nuvoton-cir.h |  3 ++
+> >>>  2 files changed, 88 insertions(+)
+> >>>
+> >>> ---
+> >>>
+> >>> [...]  
+> 
 
-diff --git a/drivers/media/dvb-core/dvb_ringbuffer.c b/drivers/media/dvb-core/dvb_ringbuffer.c
-index 1100e98..58b5968 100644
---- a/drivers/media/dvb-core/dvb_ringbuffer.c
-+++ b/drivers/media/dvb-core/dvb_ringbuffer.c
-@@ -55,7 +55,7 @@ void dvb_ringbuffer_init(struct dvb_ringbuffer *rbuf, void *data, size_t len)
- 
- int dvb_ringbuffer_empty(struct dvb_ringbuffer *rbuf)
- {
--	return (rbuf->pread==rbuf->pwrite);
-+	return (rbuf->pread == smp_load_acquire(&rbuf->pwrite));
- }
- 
- 
-@@ -64,7 +64,7 @@ ssize_t dvb_ringbuffer_free(struct dvb_ringbuffer *rbuf)
- {
- 	ssize_t free;
- 
--	free = rbuf->pread - rbuf->pwrite;
-+	free = ACCESS_ONCE(rbuf->pread) - rbuf->pwrite;
- 	if (free <= 0)
- 		free += rbuf->size;
- 	return free-1;
-@@ -76,7 +76,7 @@ ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf)
- {
- 	ssize_t avail;
- 
--	avail = rbuf->pwrite - rbuf->pread;
-+	avail = smp_load_acquire(&rbuf->pwrite) - rbuf->pread;
- 	if (avail < 0)
- 		avail += rbuf->size;
- 	return avail;
-@@ -86,14 +86,15 @@ ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf)
- 
- void dvb_ringbuffer_flush(struct dvb_ringbuffer *rbuf)
- {
--	rbuf->pread = rbuf->pwrite;
-+	smp_store_release(&rbuf->pread, smp_load_acquire(&rbuf->pwrite));
- 	rbuf->error = 0;
- }
- EXPORT_SYMBOL(dvb_ringbuffer_flush);
- 
- void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf)
- {
--	rbuf->pread = rbuf->pwrite = 0;
-+	smp_store_release(&rbuf->pread, 0);
-+	smp_store_release(&rbuf->pwrite, 0);
- 	rbuf->error = 0;
- }
- 
-@@ -119,12 +120,12 @@ ssize_t dvb_ringbuffer_read_user(struct dvb_ringbuffer *rbuf, u8 __user *buf, si
- 			return -EFAULT;
- 		buf += split;
- 		todo -= split;
--		rbuf->pread = 0;
-+		smp_store_release(&rbuf->pread, 0);
- 	}
- 	if (copy_to_user(buf, rbuf->data+rbuf->pread, todo))
- 		return -EFAULT;
- 
--	rbuf->pread = (rbuf->pread + todo) % rbuf->size;
-+	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
- 
- 	return len;
- }
-@@ -139,11 +140,11 @@ void dvb_ringbuffer_read(struct dvb_ringbuffer *rbuf, u8 *buf, size_t len)
- 		memcpy(buf, rbuf->data+rbuf->pread, split);
- 		buf += split;
- 		todo -= split;
--		rbuf->pread = 0;
-+		smp_store_release(&rbuf->pread, 0);
- 	}
- 	memcpy(buf, rbuf->data+rbuf->pread, todo);
- 
--	rbuf->pread = (rbuf->pread + todo) % rbuf->size;
-+	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
- }
- 
- 
-@@ -158,10 +159,10 @@ ssize_t dvb_ringbuffer_write(struct dvb_ringbuffer *rbuf, const u8 *buf, size_t
- 		memcpy(rbuf->data+rbuf->pwrite, buf, split);
- 		buf += split;
- 		todo -= split;
--		rbuf->pwrite = 0;
-+		smp_store_release(&rbuf->pwrite, 0);
- 	}
- 	memcpy(rbuf->data+rbuf->pwrite, buf, todo);
--	rbuf->pwrite = (rbuf->pwrite + todo) % rbuf->size;
-+	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
- 
- 	return len;
- }
-@@ -181,12 +182,12 @@ ssize_t dvb_ringbuffer_write_user(struct dvb_ringbuffer *rbuf,
- 			return len - todo;
- 		buf += split;
- 		todo -= split;
--		rbuf->pwrite = 0;
-+		smp_store_release(&rbuf->pwrite, 0);
- 	}
- 	status = copy_from_user(rbuf->data+rbuf->pwrite, buf, todo);
- 	if (status)
- 		return len - todo;
--	rbuf->pwrite = (rbuf->pwrite + todo) % rbuf->size;
-+	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
- 
- 	return len;
- }
--- 1.9.1
 
+-- 
+Thanks,
+Mauro
