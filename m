@@ -1,81 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:58109 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759203AbcCDJdY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 04:33:24 -0500
-Message-ID: <56D9565A.4020201@lysator.liu.se>
-Date: Fri, 04 Mar 2016 10:33:14 +0100
-From: Peter Rosin <peda@lysator.liu.se>
+Received: from lists.s-osg.org ([54.187.51.154]:34121 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752052AbcCCR02 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 12:26:28 -0500
+Date: Thu, 3 Mar 2016 14:26:21 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Matthieu Rogez <matthieu.rogez@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/3] [media] em28xx: fix Terratec Grabby AC97 codec
+ detection
+Message-ID: <20160303142621.62325571@recife.lan>
+In-Reply-To: <1456658783-32345-4-git-send-email-matthieu.rogez@gmail.com>
+References: <1456658783-32345-1-git-send-email-matthieu.rogez@gmail.com>
+	<1456658783-32345-4-git-send-email-matthieu.rogez@gmail.com>
 MIME-Version: 1.0
-To: linux-kernel@vger.kernel.org
-CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Viorel Suman <viorel.suman@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 16/18] i2c: allow adapter drivers to override the adapter
- locking
-References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se> <1457044050-15230-17-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1457044050-15230-17-git-send-email-peda@lysator.liu.se>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Em Sun, 28 Feb 2016 12:26:23 +0100
+Matthieu Rogez <matthieu.rogez@gmail.com> escreveu:
 
-Here's a fixup for a problem found by the test robot. Sorry for the
-inconvenience.
+> EMP202 chip inside Terratec Grabby (hw rev 2) seems to require some time before
+> accessing reliably its registers. Otherwise it returns some values previously
+> put on the I2C bus.
+> 
+> To account for that period, we delay card setup until we have a proof that
+> accessing AC97 registers is reliable. We get this proof by polling AC97_RESET
+> until the expected value is read.
+> 
+> Signed-off-by: Matthieu Rogez <matthieu.rogez@gmail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-cards.c | 26 ++++++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+> 
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index 5e127e4..2e04902 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -37,6 +37,7 @@
+>  #include <media/i2c-addr.h>
+>  #include <media/tveeprom.h>
+>  #include <media/v4l2-common.h>
+> +#include <sound/ac97_codec.h>
+>  
+>  #include "em28xx.h"
+>  
+> @@ -2563,6 +2564,24 @@ static inline void em28xx_set_model(struct em28xx *dev)
+>  	dev->def_i2c_bus = dev->board.def_i2c_bus;
+>  }
+>  
+> +/* Wait until AC97_RESET reports the expected value (or reading error)
+> + * before proceeding.
+> + * This can help ensuring AC97 register accesses are reliable.
+> + */
+> +static int em28xx_wait_until_ac97_features_equals(struct em28xx *dev,
+> +						  int expected_feat)
+> +{
+> +	int feat;
+> +
+> +	do {
+> +		feat = em28xx_read_ac97(dev, AC97_RESET);
+> +		if (feat < 0)
+> +			return feat;
+> +	} while (feat != expected_feat);
 
-Cheers,
-Peter
+Please add some sort of timeout here... We don't want the Kernel to
+be in a dead lock here...
 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 6be266c3d39b..5ecc6fc52ce0 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -961,6 +961,8 @@ static int i2c_check_addr_busy(struct i2c_adapter *adapter, int addr)
- /**
-  * i2c_adapter_lock_bus - Get exclusive access to an I2C bus segment
-  * @adapter: Target I2C bus segment
-+ * @flags: I2C_LOCK_ADAPTER locks the root i2c adapter, I2C_LOCK_SEGMENT
-+ *	locks only this branch in the adapter tree
-  */
- static void i2c_adapter_lock_bus(struct i2c_adapter *adapter, int flags)
- {
-@@ -970,6 +972,8 @@ static void i2c_adapter_lock_bus(struct i2c_adapter *adapter, int flags)
- /**
-  * i2c_adapter_trylock_bus - Try to get exclusive access to an I2C bus segment
-  * @adapter: Target I2C bus segment
-+ * @flags: I2C_LOCK_ADAPTER trylocks the root i2c adapter, I2C_LOCK_SEGMENT
-+ * 	trylocks only this branch in the adapter tree
-  */
- static int i2c_adapter_trylock_bus(struct i2c_adapter *adapter, int flags)
- {
-@@ -979,6 +983,8 @@ static int i2c_adapter_trylock_bus(struct i2c_adapter *adapter, int flags)
- /**
-  * i2c_adapter_unlock_bus - Release exclusive access to an I2C bus segment
-  * @adapter: Target I2C bus segment
-+ * @flags: I2C_LOCK_ADAPTER unlocks the root i2c adapter, I2C_LOCK_SEGMENT
-+ * 	unlocks only this branch in the adapter tree
-  */
- static void i2c_adapter_unlock_bus(struct i2c_adapter *adapter, int flags)
- {
+> +
+> +	return 0;
+> +}
+> +
+>  /* Since em28xx_pre_card_setup() requires a proper dev->model,
+>   * this won't work for boards with generic PCI IDs
+>   */
+> @@ -2668,6 +2687,13 @@ static void em28xx_pre_card_setup(struct em28xx *dev)
+>  		em28xx_write_reg(dev, EM2820_R08_GPIO_CTRL, 0xfd);
+>  		msleep(70);
+>  		break;
+> +
+> +	case EM2860_BOARD_TERRATEC_GRABBY:
+> +		/* HACK?: Ensure AC97 register reading is reliable before
+> +		 * proceeding. In practice, this will wait about 1.6 seconds.
+> +		 */
+> +		em28xx_wait_until_ac97_features_equals(dev, 0x6a90);
+> +		break;
+>  	}
+>  
+>  	em28xx_gpio_set(dev, dev->board.tuner_gpio);
+
+
 -- 
-2.1.4
-
+Thanks,
+Mauro
