@@ -1,313 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40244 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750772AbcCXWWq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 18:22:46 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 1/2] Revert "[media] media-device: use kref for media_device instance"
-Date: Fri, 25 Mar 2016 00:22:43 +0200
-Message-Id: <1458858164-1066-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458858164-1066-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458858164-1066-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:33803 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757791AbcCCOZt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 09:25:49 -0500
+Subject: Re: [PATCH v5 22/22] sound/usb: Use Media Controller API to share
+ media resources
+To: Dan Carpenter <dan.carpenter@oracle.com>
+References: <1456937431-3794-1-git-send-email-shuahkh@osg.samsung.com>
+ <20160302204131.GV5273@mwanda> <56D76FBF.9050209@osg.samsung.com>
+ <20160303103637.GW5273@mwanda>
+Cc: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com,
+	pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
+	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
+	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
+	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
+	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
+	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
+	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
+	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
+	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
+	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
+	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
+	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
+	geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56D84961.9050902@osg.samsung.com>
+Date: Thu, 3 Mar 2016 07:25:37 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160303103637.GW5273@mwanda>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit 44ff16d0b7ccb4c872de7a53196b2d3f83089607.
+On 03/03/2016 03:36 AM, Dan Carpenter wrote:
+> On Wed, Mar 02, 2016 at 03:57:03PM -0700, Shuah Khan wrote:
+>> On 03/02/2016 01:41 PM, Dan Carpenter wrote:
+>>> On Wed, Mar 02, 2016 at 09:50:31AM -0700, Shuah Khan wrote:
+>>>> +	mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
+>>>> +	if (!mctl)
+>>>> +		return -ENOMEM;
+>>>> +
+>>>> +	mctl->media_dev = mdev;
+>>>> +	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
+>>>> +		intf_type = MEDIA_INTF_T_ALSA_PCM_PLAYBACK;
+>>>> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_PLAYBACK;
+>>>> +		mctl->media_pad.flags = MEDIA_PAD_FL_SOURCE;
+>>>> +		mixer_pad = 1;
+>>>> +	} else {
+>>>> +		intf_type = MEDIA_INTF_T_ALSA_PCM_CAPTURE;
+>>>> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_CAPTURE;
+>>>> +		mctl->media_pad.flags = MEDIA_PAD_FL_SINK;
+>>>> +		mixer_pad = 2;
+>>>> +	}
+>>>> +	mctl->media_entity.name = pcm->name;
+>>>> +	media_entity_pads_init(&mctl->media_entity, 1, &mctl->media_pad);
+>>>> +	ret =  media_device_register_entity(mctl->media_dev,
+>>>> +					    &mctl->media_entity);
+>>>> +	if (ret)
+>>>> +		goto err1;
+>>>
+>>> Could we give this label a meaningful name instead of a number?
+>>> goto free_mctl;
+>>
+>> I do see other places where numbered labels are used.
+> 
+> Yeah.  But it's the wrong idea.  If you remove a label then you have to
+> renumber everything.  Plus it doesn't say what the goto does.
+> 
+>> Names might help with code readability.
+>>
+>> register_entity_fail probably makes more sense as a
+>> label than free_mctl.
+> 
+> A lot of people do that but the you wind up with code like:
+> 
+> 	foo = whatever_register();
+> 	if (!foo)
+> 		goto whatever_failed;
+> 
+> 	if (something_else)
+> 		goto whatever_failed;
+> 
+> So it doesn't make sense.  Also it doesn't tell you what the goto does.
+> (You can already see that whatever_failed from looking at the if
+> statement on the line before.)  This function is larger than a page so
+> you have to flip down to the other page to see what the goto does, then
+> you have to flip back and find your place again.  But if the label says
+> what the goto does then you can just say, "Have we allocated anything
+> since mctl?  No, then freeing mctl is the right thing."  You don't need
+> to flip to the othe page.
+> 
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/media-device.c           | 117 ++++++++-------------------------
- drivers/media/usb/au0828/au0828-core.c |   3 +-
- include/media/media-device.h           |  28 --------
- sound/usb/media.c                      |   3 +-
- 4 files changed, 33 insertions(+), 118 deletions(-)
+Yeah. You are right about large routines and needing
+to check labels. I will fix it in a followup patch.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 4a97d92a7e7d..c32fa15cc76e 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -707,16 +707,11 @@ void media_device_init(struct media_device *mdev)
- }
- EXPORT_SYMBOL_GPL(media_device_init);
- 
--static void __media_device_cleanup(struct media_device *mdev)
-+void media_device_cleanup(struct media_device *mdev)
- {
- 	ida_destroy(&mdev->entity_internal_idx);
- 	mdev->entity_internal_idx_max = 0;
- 	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
--}
--
--void media_device_cleanup(struct media_device *mdev)
--{
--	__media_device_cleanup(mdev);
- 	mutex_destroy(&mdev->graph_mutex);
- }
- EXPORT_SYMBOL_GPL(media_device_cleanup);
-@@ -726,9 +721,6 @@ int __must_check __media_device_register(struct media_device *mdev,
- {
- 	int ret;
- 
--	/* Check if mdev was ever registered at all */
--	mutex_lock(&mdev->graph_mutex);
--
- 	/* Register the device node. */
- 	mdev->devnode.fops = &media_device_fops;
- 	mdev->devnode.parent = mdev->dev;
-@@ -739,19 +731,17 @@ int __must_check __media_device_register(struct media_device *mdev,
- 
- 	ret = media_devnode_register(&mdev->devnode, owner);
- 	if (ret < 0)
--		goto err;
-+		return ret;
- 
- 	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
- 	if (ret < 0) {
- 		media_devnode_unregister(&mdev->devnode);
--		goto err;
-+		return ret;
- 	}
- 
- 	dev_dbg(mdev->dev, "Media device registered\n");
- 
--err:
--	mutex_unlock(&mdev->graph_mutex);
--	return ret;
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(__media_device_register);
- 
-@@ -783,13 +773,24 @@ void media_device_unregister_entity_notify(struct media_device *mdev,
- }
- EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
- 
--static void __media_device_unregister(struct media_device *mdev)
-+void media_device_unregister(struct media_device *mdev)
- {
- 	struct media_entity *entity;
- 	struct media_entity *next;
- 	struct media_interface *intf, *tmp_intf;
- 	struct media_entity_notify *notify, *nextp;
- 
-+	if (mdev == NULL)
-+		return;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+
-+	/* Check if mdev was ever registered at all */
-+	if (!media_devnode_is_registered(&mdev->devnode)) {
-+		mutex_unlock(&mdev->graph_mutex);
-+		return;
-+	}
-+
- 	/* Remove all entities from the media device */
- 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
- 		__media_device_unregister_entity(entity);
-@@ -806,23 +807,12 @@ static void __media_device_unregister(struct media_device *mdev)
- 		kfree(intf);
- 	}
- 
--	/* Check if mdev devnode was registered */
--	if (media_devnode_is_registered(&mdev->devnode)) {
--		device_remove_file(&mdev->devnode.dev, &dev_attr_model);
--		media_devnode_unregister(&mdev->devnode);
--	}
-+	mutex_unlock(&mdev->graph_mutex);
- 
--	dev_dbg(mdev->dev, "Media device unregistered\n");
--}
-+	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-+	media_devnode_unregister(&mdev->devnode);
- 
--void media_device_unregister(struct media_device *mdev)
--{
--	if (mdev == NULL)
--		return;
--
--	mutex_lock(&mdev->graph_mutex);
--	__media_device_unregister(mdev);
--	mutex_unlock(&mdev->graph_mutex);
-+	dev_dbg(mdev->dev, "Media device unregistered\n");
- }
- EXPORT_SYMBOL_GPL(media_device_unregister);
- 
-@@ -830,74 +820,25 @@ static void media_device_release_devres(struct device *dev, void *res)
- {
- }
- 
--static void do_media_device_unregister_devres(struct kref *kref)
--{
--	struct media_device_devres *mdev_devres;
--	struct media_device *mdev;
--	int ret;
--
--	mdev_devres = container_of(kref, struct media_device_devres, kref);
--
--	if (!mdev_devres)
--		return;
--
--	mdev = &mdev_devres->mdev;
--
--	mutex_lock(&mdev->graph_mutex);
--	__media_device_unregister(mdev);
--	__media_device_cleanup(mdev);
--	mutex_unlock(&mdev->graph_mutex);
--	mutex_destroy(&mdev->graph_mutex);
--
--	ret = devres_destroy(mdev->dev, media_device_release_devres,
--			     NULL, NULL);
--	pr_debug("%s: devres_destroy() returned %d\n", __func__, ret);
--}
--
--void media_device_unregister_devres(struct media_device *mdev)
--{
--	struct media_device_devres *mdev_devres;
--
--	mdev_devres = container_of(mdev, struct media_device_devres, mdev);
--	kref_put(&mdev_devres->kref, do_media_device_unregister_devres);
--}
--EXPORT_SYMBOL_GPL(media_device_unregister_devres);
--
- struct media_device *media_device_get_devres(struct device *dev)
- {
--	struct media_device_devres *mdev_devres, *ptr;
-+	struct media_device *mdev;
- 
--	mdev_devres = devres_find(dev, media_device_release_devres, NULL, NULL);
--	if (mdev_devres) {
--		kref_get(&mdev_devres->kref);
--		return &mdev_devres->mdev;
--	}
-+	mdev = devres_find(dev, media_device_release_devres, NULL, NULL);
-+	if (mdev)
-+		return mdev;
- 
--	mdev_devres = devres_alloc(media_device_release_devres,
--				   sizeof(struct media_device_devres),
--				   GFP_KERNEL);
--	if (!mdev_devres)
-+	mdev = devres_alloc(media_device_release_devres,
-+				sizeof(struct media_device), GFP_KERNEL);
-+	if (!mdev)
- 		return NULL;
--
--	ptr = devres_get(dev, mdev_devres, NULL, NULL);
--	if (ptr)
--		kref_init(&ptr->kref);
--	else
--		devres_free(mdev_devres);
--
--	return &ptr->mdev;
-+	return devres_get(dev, mdev, NULL, NULL);
- }
- EXPORT_SYMBOL_GPL(media_device_get_devres);
- 
- struct media_device *media_device_find_devres(struct device *dev)
- {
--	struct media_device_devres *mdev_devres;
--
--	mdev_devres = devres_find(dev, media_device_release_devres, NULL, NULL);
--	if (!mdev_devres)
--		return NULL;
--
--	return &mdev_devres->mdev;
-+	return devres_find(dev, media_device_release_devres, NULL, NULL);
- }
- EXPORT_SYMBOL_GPL(media_device_find_devres);
- 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 85c13ca5178f..e2fb3c836b88 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -157,7 +157,8 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
- 	dev->media_dev->enable_source = NULL;
- 	dev->media_dev->disable_source = NULL;
- 
--	media_device_unregister_devres(dev->media_dev);
-+	media_device_unregister(dev->media_dev);
-+	media_device_cleanup(dev->media_dev);
- 	dev->media_dev = NULL;
- #endif
- }
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index e59772ed8494..b21ef244ad3e 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -23,7 +23,6 @@
- #ifndef _MEDIA_DEVICE_H
- #define _MEDIA_DEVICE_H
- 
--#include <linux/kref.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- 
-@@ -383,16 +382,6 @@ struct media_device {
- 			   unsigned int notification);
- };
- 
--/**
-- * struct media_device_devres - Media device device resource
-- * @mdev:	pointer to struct media_device
-- * @kref:	Object refcount
-- */
--struct media_device_devres {
--	struct media_device mdev;
--	struct kref kref;
--};
--
- /* We don't need to include pci.h or usb.h here */
- struct pci_dev;
- struct usb_device;
-@@ -615,19 +604,6 @@ struct media_device *media_device_get_devres(struct device *dev);
-  */
- struct media_device *media_device_find_devres(struct device *dev);
- 
--/**
-- * media_device_unregister_devres) - Unregister media device allocated as
-- *				     as device resource
-- *
-- * @dev: pointer to struct &device.
-- *
-- * Devices allocated via media_device_get_devres should be de-alocalted
-- * and freed via this function. Callers should not call
-- * media_device_unregister() nor media_device_cleanup() on devices
-- * allocated via media_device_get_devres().
-- */
--void media_device_unregister_devres(struct media_device *mdev);
--
- /* Iterate over all entities. */
- #define media_device_for_each_entity(entity, mdev)			\
- 	list_for_each_entry(entity, &(mdev)->entities, graph_obj.list)
-@@ -712,10 +688,6 @@ static inline struct media_device *media_device_find_devres(struct device *dev)
- 	return NULL;
- }
- 
--static inline void media_device_unregister_devres(struct media_device *mdev)
--{
--}
--
- static inline void media_device_pci_init(struct media_device *mdev,
- 					 struct pci_dev *pci_dev,
- 					 char *name)
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-index d5584e907a86..0d03773b4c67 100644
---- a/sound/usb/media.c
-+++ b/sound/usb/media.c
-@@ -303,7 +303,8 @@ void media_snd_device_delete(struct snd_usb_audio *chip)
- 	media_snd_mixer_delete(chip);
- 
- 	if (mdev) {
--		media_device_unregister_devres(mdev);
-+		if (media_devnode_is_registered(&mdev->devnode))
-+			media_device_unregister(mdev);
- 		chip->media_dev = NULL;
- 	}
- }
+thanks,
+-- Shuah
+
 -- 
-2.7.3
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
