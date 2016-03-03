@@ -1,77 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36468 "EHLO lists.s-osg.org"
+Received: from ni.piap.pl ([195.187.100.4]:54514 "EHLO ni.piap.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751394AbcCENxN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Mar 2016 08:53:13 -0500
-Date: Sat, 5 Mar 2016 10:53:06 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v4.5] media fixes
-Message-ID: <20160305105306.216edf92@recife.lan>
+	id S932070AbcCCOWd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 09:22:33 -0500
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: tw686x driver
+References: <56D6A50F.4060404@xs4all.nl> <m3povcnjfo.fsf@t19.piap.pl>
+	<56D7E87B.1080505@xs4all.nl> <m3lh5zohsf.fsf@t19.piap.pl>
+	<56D83E16.1010907@xs4all.nl>
+Date: Thu, 03 Mar 2016 15:22:30 +0100
+In-Reply-To: <56D83E16.1010907@xs4all.nl> (Hans Verkuil's message of "Thu, 3
+	Mar 2016 14:37:26 +0100")
+Message-ID: <m3h9gnod3t.fsf@t19.piap.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.5-4
+> There is no point whatsoever in committing a driver and then replacing it
+> with another which has a different feature set. I'm not going to do
+> that.
 
-For:
-  - some last time changes before we stablize the new entity function
-    integer numbers at uAPI;
-  - probe: fix erroneous return value on i2c/adp1653 driver.
-  - fix tx 5v detect regression on adv7604 driver.
-  - fix missing unlock on error in vpfe_prepare_pipeline() on davinci_vpfe
-    driver.
+Sure, that's why I haven't asked you to do it.
+Now there is no another driver, as Ezequiel stated - there is just one
+driver.
 
-Thanks!
-Mauro
+The point is clear, showing who exactly wrote what.
 
-The following changes since commit ac75fe5d8fe4a0bf063be18fb29684405279e79e:
+> One option that might be much more interesting is to add your driver to
+> staging with a TODO stating that the field support should be added to
+> the mainline driver.
 
-  [media] saa7134-alsa: Only frees registered sound cards (2016-02-04 16:26:10 -0200)
+Field mode is one thing. What's a bit more important is that Ezequiel's
+changes take away the SG DMA, and basically all DMA. The chip has to use
+DMA, but his driver then simply memcpy() all the data to userspace
+buffers. This doesn't work on low-power machines.
 
-are available in the git repository at:
+Staging is meant for completely different situation - for immature,
+incomplete code. It has nothing to do with the case.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.5-4
+> I'm not sure if Mauro would go for it, but I think this is a fair option.
 
-for you to fetch changes up to fbe093ac9f0201939279cdfe8b0fce20ce5ef7a9:
+I don't expect the situation to be fair to me, anymore.
 
-  [media] media: Sanitise the reserved fields of the G_TOPOLOGY IOCTL arguments (2016-03-03 18:10:53 -0300)
+I also don't want to pursue the legal stuff, copyright laws etc.,
+but a quick glance at the COPYING file at the root of the kernel sources
+may be helpful:
 
-----------------------------------------------------------------
-media fixes for v4.5-rc7
+> 2. You may modify your copy or copies of the Program or any portion
+> of it, thus forming a work based on the Program, and copy and
+> distribute such modifications or work under the terms of Section 1
+> above, provided that you also meet all of these conditions:
+>
+>     a) You must cause the modified files to carry prominent notices
+>     stating that you changed the files and the date of any change.
 
-----------------------------------------------------------------
-Anton Protopopov (1):
-      [media] media: i2c/adp1653: probe: fix erroneous return value
+I don't even ask for that much - I only ask that the single set of
+changes from Ezequiel has this very information. This is BTW one of the
+reasons we switched to git.
+-- 
+Krzysztof Halasa
 
-Hans Verkuil (3):
-      [media] [for,v4.5] media.h: increase the spacing between function ranges
-      [media] adv7604: fix tx 5v detect regression
-      [media] media.h: use hex values for range offsets,  move connectors base up.
-
-Mauro Carvalho Chehab (2):
-      [media] media.h: get rid of MEDIA_ENT_F_CONN_TEST
-      [media] media.h: postpone connectors entities
-
-Sakari Ailus (1):
-      [media] media: Sanitise the reserved fields of the G_TOPOLOGY IOCTL arguments
-
-Wei Yongjun (1):
-      [media] media: davinci_vpfe: fix missing unlock on error in vpfe_prepare_pipeline()
-
- Documentation/DocBook/media/v4l/media-types.xml |  4 --
- drivers/media/i2c/adp1653.c                     |  2 +-
- drivers/media/i2c/adv7604.c                     |  3 +-
- drivers/media/usb/au0828/au0828-video.c         |  3 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c |  2 +-
- include/uapi/linux/media.h                      | 54 ++++++++++++++-----------
- 6 files changed, 34 insertions(+), 34 deletions(-)
-
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
