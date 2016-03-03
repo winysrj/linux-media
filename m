@@ -1,78 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 6.mo69.mail-out.ovh.net ([46.105.50.107]:41690 "EHLO
-	6.mo69.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758816AbcCVNNU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2016 09:13:20 -0400
-Received: from mail401.ha.ovh.net (gw6.ovh.net [213.251.189.206])
-	by mo69.mail-out.ovh.net (Postfix) with SMTP id 0364CFFAA2A
-	for <linux-media@vger.kernel.org>; Tue, 22 Mar 2016 14:06:19 +0100 (CET)
-Subject: Re: [PATCH] [media] xilinx-vipp: remove unnecessary of_node_put
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1458643438-3486-1-git-send-email-franck.jullien@odyssee-systemes.fr>
- <21142136.KJJkg38sI8@avalon>
-Cc: linux-media@vger.kernel.org, hyun.kwon@xilinx.com,
-	mchehab@osg.samsung.com
-From: Franck Jullien <franck.jullien@odyssee-systemes.fr>
-Message-ID: <56F1434A.4030606@odyssee-systemes.fr>
-Date: Tue, 22 Mar 2016 14:06:18 +0100
+Received: from mout.kundenserver.de ([212.227.126.131]:50433 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754943AbcCCK6w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 05:58:52 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Alessandro Zummo <a.zummo@towertech.it>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	David Brown <david.brown@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	netdev@vger.kernel.org, linux-gpio@vger.kernel.org,
+	linux-pm@vger.kernel.org, rtc-linux@googlegroups.com,
+	linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
+Subject: Re: [RFC 09/15] media: platform: Add missing MFD_SYSCON dependency on HAS_IOMEM
+Date: Thu, 03 Mar 2016 11:57:10 +0100
+Message-ID: <2181866.k24LVvUjTs@wuerfel>
+In-Reply-To: <1456992221-26712-10-git-send-email-k.kozlowski@samsung.com>
+References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com> <1456992221-26712-10-git-send-email-k.kozlowski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <21142136.KJJkg38sI8@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thursday 03 March 2016 17:03:35 Krzysztof Kozlowski wrote:
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 201f5c296a95..e5931e434fa2 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -79,6 +79,7 @@ config VIDEO_OMAP3
+>         depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
+>         depends on HAS_DMA && OF
+>         depends on OMAP_IOMMU
+> +       depends on HAS_IOMEM    # For MFD_SYSCON
+>         select ARM_DMA_USE_IOMMU
+>         select VIDEOBUF2_DMA_CONTIG
 
+This is only built for OMAP3, so we won't get here without HAS_IOMEM
 
-Le 22/03/2016 13:12, Laurent Pinchart a écrit :
-> Hi Frank,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday 22 Mar 2016 11:43:58 Franck Jullien wrote:
->> of_graph_get_next_endpoint(node, ep) decrements refcount on
->> ep. When next==NULL we break and refcount on ep is decremented
->> again.
->>
->> Signed-off-by: Franck Jullien <franck.jullien@odyssee-systemes.fr>
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> I don't have patches queued for Xilinx drivers, would you like to push this 
-> one to Mauro directly, or would you prefer me to take it in my tree ?
-> 
+>         select MFD_SYSCON
+> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+> index 57d42c6172c5..c4317b99d257 100644
+> --- a/drivers/media/platform/exynos4-is/Kconfig
+> +++ b/drivers/media/platform/exynos4-is/Kconfig
+> @@ -17,6 +17,7 @@ config VIDEO_S5P_FIMC
+>         tristate "S5P/EXYNOS4 FIMC/CAMIF camera interface driver"
+>         depends on I2C
+>         depends on HAS_DMA
+> +       depends on HAS_IOMEM    # For MFD_SYSCON
+>         select VIDEOBUF2_DMA_CONTIG
+>         select V4L2_MEM2MEM_DEV
 
-I don't have a strong opinion about this. Mauro can you take it ?
+This  is guarded by HAS_DMA, which implies HAS_IOMEM afaik.
 
->> ---
->>  drivers/media/platform/xilinx/xilinx-vipp.c |    8 ++------
->>  1 files changed, 2 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c
->> b/drivers/media/platform/xilinx/xilinx-vipp.c index e795a45..feb3b2f 100644
->> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
->> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
->> @@ -351,19 +351,15 @@ static int xvip_graph_parse_one(struct
->> xvip_composite_device *xdev, struct xvip_graph_entity *entity;
->>  	struct device_node *remote;
->>  	struct device_node *ep = NULL;
->> -	struct device_node *next;
->>  	int ret = 0;
->>
->>  	dev_dbg(xdev->dev, "parsing node %s\n", node->full_name);
->>
->>  	while (1) {
->> -		next = of_graph_get_next_endpoint(node, ep);
->> -		if (next == NULL)
->> +		ep = of_graph_get_next_endpoint(node, ep);
->> +		if (ep == NULL)
->>  			break;
->>
->> -		of_node_put(ep);
->> -		ep = next;
->> -
->>  		dev_dbg(xdev->dev, "handling endpoint %s\n", ep->full_name);
->>
->>  		remote = of_graph_get_remote_port_parent(ep);
-> 
+	Arnd
