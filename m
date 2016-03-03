@@ -1,74 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dimen.winder.org.uk ([87.127.116.10]:38902 "EHLO
-	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750871AbcCZGNN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Mar 2016 02:13:13 -0400
-Message-ID: <1458972788.3344.8.camel@winder.org.uk>
-Subject: libdvbv5 licencing
-From: Russel Winder <russel@winder.org.uk>
-To: DVB_Linux_Media <linux-media@vger.kernel.org>
-Date: Sat, 26 Mar 2016 06:13:08 +0000
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-aEKa47tdtL+pACBMcA4B"
-Mime-Version: 1.0
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46823 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658AbcCCKt4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 05:49:56 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: Re: [PATCH/RFC 1/9] clk: shmobile: r8a7795: Add FCP clocks
+Date: Thu, 03 Mar 2016 12:49:55 +0200
+Message-ID: <3162705.iiHBb2SECU@avalon>
+In-Reply-To: <8737s8armo.wl%kuninori.morimoto.gx@renesas.com>
+References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1535853.p3kynkDehl@avalon> <8737s8armo.wl%kuninori.morimoto.gx@renesas.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Morimoto-san,
 
---=-aEKa47tdtL+pACBMcA4B
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+On Thursday 03 March 2016 08:37:02 Kuninori Morimoto wrote:
+> Hi Laurent
+> 
+> >>>>  - s2d2 (for 200MHz)
+> >>>>  - s2d1 (for 400MHz)
+> >>>
+> >>> Thank you for the information. Do you mean that different FCP instances
+> >>> use different clocks ? If so, could you tell us which clock is used by
+> >>> each instance in th H3 ES1 ?
+> >> 
+> >> Sorry for my confusable mail.
+> >> All FCP on H3 ES1 is using above,
+> >> but, M3 or E3 will use different clock.
+> >> 
+> >> Is this more clear ?
+> > 
+> > Does it mean that every FCP instance uses both the S2D2 and the S2D1
+> > clocks as functional clocks on H3 ES1 ?
+> 
+>  - s2d2 (200MHz) is for APB-IF,
+>  - s2d1 (400MHz) is for AXI-IF, and internal
+> 
+> Is this clear answer ?
 
-I hadn't noticed previously, but it has been brought to my attention
-that libdvbv5 is licenced as GPLv2. This makes it impossible
-(effectively) for any non-GPL code to make use of libdvbv5. This seems
-to undermine the whole point of libdvbv5.=C2=A0
+It is, thank you very much for putting up with my slow mind ;-)
 
-In particular, I wanted to rip out all the Linux API based code from
-the GStreamer DVB plugins and replace it with use of libdvbv5. However
-because of the licencing (GStreamer is LGPL and must only use LGPL or
-more liberal licenced code), this is going to be impossible.
+Geert, deciding what clock to use as a parent for the MSTP clock becomes 
+interesting, As S2D2 clocks the control interface I propose picking it. This 
+shows the limits of the MSTP clock model though, MSTP is really a module stop 
+bit, not a clock.
 
-Instead of ripping out the current code (which is DVBv3) and using
-libdvbv5, it looks like I will be forced to recreate libdvbv5 but as
-LGPL code.
+-- 
+Regards,
 
-Is there any chance of relicencing libdvbv5 as LGPL code so that others
-may use it?
-
---=20
-Russel.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
-et
-41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
-London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
---=-aEKa47tdtL+pACBMcA4B
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCgAGBQJW9ih2AAoJENS91dLOzae4iEsQALGYwQLdtadvPfpVJtYjlsiE
-kMGCB9H+klqf5yaqJ0qa5OMwCQbqO+N39zdIy3Gzfe+ku/4Apu4hU/1RxFb4A6y5
-mdfq40WzKRyiadBaG2yuAZ9JKyAVh5V9l+wlK6+tgGidR0Tnlt/5YYC085m3ikFS
-JXzdrmFfN6nL1n9V3TZ33CDvuxjuD2/D7s5775CZ7qqFMnQ3KNlilWURsYIs1eqW
-xEGbXAuXx57Ic1JgYjxZJAO5W2AsL8Rw8NUKFWSxpnq1hYatssoQaBNvw2gRkYKn
-H3n+52y3YzX96Vy8uPAC51oFem7xFW0bXc8UoIqikOziOv8soKSlckmGrwzOuYm6
-Cwjhb/VRPd2sUBt3vuqm77EWVAai41SePPpyOC07jb6TVy+0oTSSbMqldkvVeMx8
-dQ3oRFnAw0ECoNLK+AJBAG0tpINQQ0MwgKF2EY3Bkxcg4i3hX+tXb8+B+TKDKTdJ
-i/m92jHZJiUNVNcUMPrKFBH+sZEWX5/A81ZeCA+QhLvfPluGo3wQIaV6iAi/iej+
-/weIe97/p2jViAbnm5AgdhK5PBxwXPziH1xa52ANvAXkRwrmzhMjq35oGE8HT6mo
-AfqsmKgLWlGfKFK/OVlZL+F8J1P85K9Hn5D3Q6ov7vpJa/8Vl99gEJD7z6n8vlJJ
-wppwH7G3zJATRQuazE+/
-=ybz2
------END PGP SIGNATURE-----
-
---=-aEKa47tdtL+pACBMcA4B--
+Laurent Pinchart
 
