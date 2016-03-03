@@ -1,113 +1,168 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
- by www.linuxtv.org with esmtp (Exim 4.84)
- (envelope-from <rodrigo.sepulveda@lox.cl>) id 1aVKpA-0005Hc-Ly
- for linux-dvb@linuxtv.org; Mon, 15 Feb 2016 15:12:29 +0000
-Received: from mail-io0-f175.google.com ([209.85.223.175])
- by mail.tu-berlin.de (exim-4.76/mailfrontend-5) with esmtps
- [UNKNOWN:AES128-GCM-SHA256:128] for <linux-dvb@linuxtv.org>
- id 1aVKp9-0005jh-6h; Mon, 15 Feb 2016 16:12:28 +0100
-Received: by mail-io0-f175.google.com with SMTP id l127so160693389iof.3
- for <linux-dvb@linuxtv.org>; Mon, 15 Feb 2016 07:12:26 -0800 (PST)
-MIME-Version: 1.0
-Date: Mon, 15 Feb 2016 12:12:25 -0300
-Message-ID: <CAPAw7H7Vd0oNfuAYWfq2hV6b_Q5cFNkfF9PrDToh7nxSRz7Rhw@mail.gmail.com>
-From: =?UTF-8?Q?Rodrigo_Sep=C3=BAlveda_Heerwagen?= <rodrigo.sepulveda@lox.cl>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Geniatech Hybrid SBTD-T USB doesn't work
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
- <mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb/>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
- <mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Reply-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Sender: "linux-dvb" <linux-dvb-bounces@linuxtv.org>
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.lysator.liu.se ([130.236.254.3]:52446 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932220AbcCCWaI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:30:08 -0500
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Viorel Suman <viorel.suman@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+	Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v4 15/18] i2c-mux: drop old unused i2c-mux api
+Date: Thu,  3 Mar 2016 23:27:27 +0100
+Message-Id: <1457044050-15230-16-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-SGksCkknZCBsaWtlIHRvIGluc3RhbGwgYSBHZW5pYXRlY2ggSHlicmlkIFNCVEQtVCBVU0Igb24g
-VWJ1bnR1IDE0LjA0LAp4ODZfNjQsIHdpdGgga2VybmVsIDMuMTMuMC03Ni1nZW5lcmljLCBidXQg
-SSBjYW4ndCBtYWtlIGl0IHdvcmsuCgpIZXJlIHlvdSdsbCBzZWUgc29tZSBvdXRwdXRzOgoKJCBs
-c3VzYgpCdXMgMDAxIERldmljZSAwMDk6IElEIDFmNGQ6NjY1MCBHLVRlayBFbGVjdHJvbmljcyBH
-cm91cAoKJCBkbWVzZwpbIDYwOTYuNDU4MDIyXSB1c2IgMS0zOiBuZXcgaGlnaC1zcGVlZCBVU0Ig
-ZGV2aWNlIG51bWJlciA5IHVzaW5nIGVoY2ktcGNpClsgNjA5Ni41OTczOTFdIHVzYiAxLTM6IE5l
-dyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0xZjRkLCBpZFByb2R1Y3Q9NjY1MApbIDYwOTYu
-NTk3NDA4XSB1c2IgMS0zOiBOZXcgVVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MTYsIFByb2R1Y3Q9
-MzIsClNlcmlhbE51bWJlcj02NApbIDYwOTYuNTk3NDE3XSB1c2IgMS0zOiBQcm9kdWN0OiBIeWJy
-aWQgU0JURC1UIFVTQgpbIDYwOTYuNTk3NDI1XSB1c2IgMS0zOiBNYW51ZmFjdHVyZXI6IEdlbmlh
-dGVjaApbIDYwOTYuNTk3NDMzXSB1c2IgMS0zOiBTZXJpYWxOdW1iZXI6IDIwMDQwOTA4MjAwNDA5
-MDgKCkkgcmFuIHRoZXNlIGNvbW1hbmRzIHRvIG1ha2UgaXQgd29yazoKCiQgc3VkbyBhcHQtZ2V0
-IGluc3RhbGwgbGludXgtaGVhZGVycy1gdW5hbWUgLXJgIGxpbnV4LWltYWdlLWB1bmFtZSAtcmAK
-YnVpbGQtZXNzZW50aWFsIGR2Yi1hcHBzIGdpdAokIGdpdCBjbG9uZSBnaXQ6Ly9saW51eHR2Lm9y
-Zy9tZWRpYV9idWlsZC5naXQKJCBjZCBtZWRpYV9idWlsZAokIC4vYnVpbGQKJCBzdWRvIG1ha2Ug
-aW5zdGFsbAokIG1vZHByb2JlIGR2Yi11c2ItZGliMDcwMAoKQW5kIHdoZW4gSSB0cmllZCB0byBz
-Y2FuIGEgY2hhbm5lbCBsaXN0LCBub3RoaW5nIGhhcHBlbnM6CgokIHNjYW4gY2hhbm5lbHMuY29u
-ZiA+IGRpZ2l0YWxjaGFubmVscy5jb25mCnNjYW5uaW5nIGNoYW5uZWxzLmNvbmYKdXNpbmcgJy9k
-ZXYvZHZiL2FkYXB0ZXIwL2Zyb250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAn
-Cm1haW46Mjc0NTogRkFUQUw6IGZhaWxlZCB0byBvcGVuICcvZGV2L2R2Yi9hZGFwdGVyMC9mcm9u
-dGVuZDAnOiAyIE5vCnN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKCkNvbnRlbnQgb2YgY2hhbm5lbHMu
-Y29uZi4uLgotLQpUIDQ3MzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAxNApUIDQ3OTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAxNQpUIDQ4NTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAxNgpUIDQ5MTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAxNwpUIDQ5NzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAxOApUIDUwMzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAxOQpUIDUwOTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAyMApUIDUxNTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAyMQpUIDUyMTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAyMgpUIDUyNzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAyMwpUIDUzMzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAyNApUIDUzOTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAyNQpUIDU0NTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAyNgpUIDU1MTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAyNwpUIDU1NzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAyOApUIDU2MzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAyOQpUIDU2OTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAzMApUIDU3NTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAzMQpUIDU4MTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAzMgpUIDU4NzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAzMwpUIDU5MzE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAzNApUIDU5OTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAzNQpUIDYwNTE0Mjg1NyA2TUh6IDMvNCBBVVRPIEFVVE8gQVVUTyBBVVRPIE5PTkUg
-IyBjYW5hbCAzNgojIGNhbmFsIDM3IG5vIHNlIHVzYQpUIDYxNzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCAzOApUIDYyMzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCAzOQpUIDYyOTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0MApUIDYzNTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0MQpUIDY0MTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0MgpUIDY0NzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0MwpUIDY1MzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0NApUIDY1OTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0NQpUIDY2NTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0NgpUIDY3MTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0NwpUIDY3NzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0OApUIDY4MzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA0OQpUIDY4OTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1MApUIDY5NTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1MQpUIDcwMTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1MgpUIDcwNzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1MwpUIDcxMzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1NApUIDcxOTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1NQpUIDcyNTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1NgpUIDczMTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1NwpUIDczNzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1OApUIDc0MzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA1OQpUIDc0OTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2MApUIDc1NTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2MQpUIDc2MTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2MgpUIDc2NzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2MwpUIDc3MzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2NApUIDc3OTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2NQpUIDc4NTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2NgpUIDc5MTE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2NwpUIDc5NzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2OApUIDgwMzE0Mjg1NyA2TUh6IDMvNCBBVVRP
-IEFVVE8gQVVUTyBBVVRPIE5PTkUgIyBjYW5hbCA2OQotLQoKUGxlYXNlIGhlbHAgbWUgd2l0aCB0
-aGlzLiBUaGFua3MgaW4gYWR2YW5jZS4KClJlZ2FyZHMsClJvZHJpZ28gUy4KCl9fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiB1c2VycyBtYWls
-aW5nIGxpc3QKRm9yIFY0TC9EVkIgZGV2ZWxvcG1lbnQsIHBsZWFzZSB1c2UgaW5zdGVhZCBsaW51
-eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cu
-bGludXh0di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+From: Peter Rosin <peda@axentia.se>
+
+All i2c mux users are using an explicit i2c mux core, drop support
+for implicit i2c mux cores.
+
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/i2c/i2c-mux.c   | 59 -------------------------------------------------
+ include/linux/i2c-mux.h | 15 -------------
+ 2 files changed, 74 deletions(-)
+
+diff --git a/drivers/i2c/i2c-mux.c b/drivers/i2c/i2c-mux.c
+index 7df323a01661..e7ac7a4a7a83 100644
+--- a/drivers/i2c/i2c-mux.c
++++ b/drivers/i2c/i2c-mux.c
+@@ -28,12 +28,6 @@
+ #include <linux/acpi.h>
+ 
+ /* multiplexer per channel data */
+-struct i2c_mux_priv_old {
+-	void *mux_priv;
+-	int (*select)(struct i2c_adapter *, void *mux_priv, u32 chan_id);
+-	int (*deselect)(struct i2c_adapter *, void *mux_priv, u32 chan_id);
+-};
+-
+ struct i2c_mux_priv {
+ 	struct i2c_adapter adap;
+ 	struct i2c_algorithm algo;
+@@ -290,48 +284,6 @@ struct i2c_mux_core *i2c_mux_one_adapter(struct i2c_adapter *parent,
+ }
+ EXPORT_SYMBOL_GPL(i2c_mux_one_adapter);
+ 
+-static int i2c_mux_select(struct i2c_mux_core *muxc, u32 chan)
+-{
+-	struct i2c_mux_priv_old *priv = i2c_mux_priv(muxc);
+-
+-	return priv->select(muxc->parent, priv->mux_priv, chan);
+-}
+-
+-static int i2c_mux_deselect(struct i2c_mux_core *muxc, u32 chan)
+-{
+-	struct i2c_mux_priv_old *priv = i2c_mux_priv(muxc);
+-
+-	return priv->deselect(muxc->parent, priv->mux_priv, chan);
+-}
+-
+-struct i2c_adapter *i2c_add_mux_adapter(struct i2c_adapter *parent,
+-					struct device *mux_dev, void *mux_priv,
+-					u32 force_nr, u32 chan_id,
+-					unsigned int class,
+-					int (*select)(struct i2c_adapter *,
+-						      void *, u32),
+-					int (*deselect)(struct i2c_adapter *,
+-							void *, u32))
+-{
+-	struct i2c_mux_core *muxc;
+-	struct i2c_mux_priv_old *priv;
+-
+-	muxc = i2c_mux_one_adapter(parent, mux_dev, sizeof(*priv), 0,
+-				   force_nr, chan_id, class,
+-				   i2c_mux_select,
+-				   deselect ? i2c_mux_deselect : NULL);
+-	if (IS_ERR(muxc))
+-		return NULL;
+-
+-	priv = i2c_mux_priv(muxc);
+-	priv->select = select;
+-	priv->deselect = deselect;
+-	priv->mux_priv = mux_priv;
+-
+-	return muxc->adapter[0];
+-}
+-EXPORT_SYMBOL_GPL(i2c_add_mux_adapter);
+-
+ void i2c_mux_del_adapters(struct i2c_mux_core *muxc)
+ {
+ 	char symlink_name[20];
+@@ -353,17 +305,6 @@ void i2c_mux_del_adapters(struct i2c_mux_core *muxc)
+ }
+ EXPORT_SYMBOL_GPL(i2c_mux_del_adapters);
+ 
+-void i2c_del_mux_adapter(struct i2c_adapter *adap)
+-{
+-	struct i2c_mux_priv *priv = adap->algo_data;
+-	struct i2c_mux_core *muxc = priv->muxc;
+-
+-	i2c_mux_del_adapters(muxc);
+-	devm_kfree(muxc->dev, muxc->adapter);
+-	devm_kfree(muxc->dev, muxc);
+-}
+-EXPORT_SYMBOL_GPL(i2c_del_mux_adapter);
+-
+ MODULE_AUTHOR("Rodolfo Giometti <giometti@linux.it>");
+ MODULE_DESCRIPTION("I2C driver for multiplexed I2C busses");
+ MODULE_LICENSE("GPL v2");
+diff --git a/include/linux/i2c-mux.h b/include/linux/i2c-mux.h
+index 0d97d7a3f03c..25c88ccf9c38 100644
+--- a/include/linux/i2c-mux.h
++++ b/include/linux/i2c-mux.h
+@@ -55,20 +55,6 @@ int i2c_mux_reserve_adapters(struct i2c_mux_core *muxc, int adapters);
+ 
+ /*
+  * Called to create a i2c bus on a multiplexed bus segment.
+- * The mux_dev and chan_id parameters are passed to the select
+- * and deselect callback functions to perform hardware-specific
+- * mux control.
+- */
+-struct i2c_adapter *i2c_add_mux_adapter(struct i2c_adapter *parent,
+-				struct device *mux_dev,
+-				void *mux_priv, u32 force_nr, u32 chan_id,
+-				unsigned int class,
+-				int (*select) (struct i2c_adapter *,
+-					       void *mux_dev, u32 chan_id),
+-				int (*deselect) (struct i2c_adapter *,
+-						 void *mux_dev, u32 chan_id));
+-/*
+- * Called to create a i2c bus on a multiplexed bus segment.
+  * The chan_id parameter is passed to the select and deselect
+  * callback functions to perform hardware-specific mux control.
+  */
+@@ -88,7 +74,6 @@ struct i2c_mux_core *i2c_mux_one_adapter(struct i2c_adapter *parent,
+ 					 int (*deselect)(struct i2c_mux_core *,
+ 							 u32));
+ 
+-void i2c_del_mux_adapter(struct i2c_adapter *adap);
+ void i2c_mux_del_adapters(struct i2c_mux_core *muxc);
+ 
+ #endif /* __KERNEL__ */
+-- 
+2.1.4
+
