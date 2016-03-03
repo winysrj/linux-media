@@ -1,84 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:55598 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932538AbcCCIGT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 03:06:19 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	David Brown <david.brown@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
-	rtc-linux@googlegroups.com, linux-arm-msm@vger.kernel.org,
-	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-usb@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [RFC 15/15] mfd: syscon: Fix build of missing ioremap on UM
-Date: Thu, 03 Mar 2016 17:03:41 +0900
-Message-id: <1456992221-26712-16-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
-References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39509 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754647AbcCCOja (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 09:39:30 -0500
+Subject: Re: tw686x driver
+To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
+References: <56D6A50F.4060404@xs4all.nl> <m3povcnjfo.fsf@t19.piap.pl>
+ <56D7E87B.1080505@xs4all.nl> <m3lh5zohsf.fsf@t19.piap.pl>
+ <56D83E16.1010907@xs4all.nl> <m3h9gnod3t.fsf@t19.piap.pl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D84CA7.4050800@xs4all.nl>
+Date: Thu, 3 Mar 2016 15:39:35 +0100
+MIME-Version: 1.0
+In-Reply-To: <m3h9gnod3t.fsf@t19.piap.pl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit c89c0114955a ("mfd: syscon: Set regmap max_register in
-of_syscon_register") the syscon uses ioremap so it fails on COMPILE_TEST
-without HAS_IOMEM:
+On 03/03/16 15:22, Krzysztof Hałasa wrote:
+> Hans Verkuil <hverkuil@xs4all.nl> writes:
+> 
+>> There is no point whatsoever in committing a driver and then replacing it
+>> with another which has a different feature set. I'm not going to do
+>> that.
+> 
+> Sure, that's why I haven't asked you to do it.
+> Now there is no another driver, as Ezequiel stated - there is just one
+> driver.
+> 
+> The point is clear, showing who exactly wrote what.
+> 
+>> One option that might be much more interesting is to add your driver to
+>> staging with a TODO stating that the field support should be added to
+>> the mainline driver.
+> 
+> Field mode is one thing. What's a bit more important is that Ezequiel's
+> changes take away the SG DMA, and basically all DMA. The chip has to use
+> DMA, but his driver then simply memcpy() all the data to userspace
+> buffers. This doesn't work on low-power machines.
+> 
+> Staging is meant for completely different situation - for immature,
+> incomplete code. It has nothing to do with the case.
 
-drivers/mfd/syscon.c: In function ‘of_syscon_register’:
-drivers/mfd/syscon.c:67:9: error: implicit declaration of function ‘ioremap’ [-Werror=implicit-function-declaration]
-  base = ioremap(res.start, resource_size(&res));
-         ^
-drivers/mfd/syscon.c:67:7: warning: assignment makes pointer from integer without a cast [-Wint-conversion]
-  base = ioremap(res.start, resource_size(&res));
-       ^
-drivers/mfd/syscon.c:109:2: error: implicit declaration of function ‘iounmap’ [-Werror=implicit-function-declaration]
-  iounmap(base);
+It can be for anything that prevents it from being mainlined. It was (still is?)
+used for mature android drivers, for example.
 
-When selecting MFD_SYSCON, depend on HAS_IOMEM to avoid unmet direct
-dependencies.
+> 
+>> I'm not sure if Mauro would go for it, but I think this is a fair option.
+> 
+> I don't expect the situation to be fair to me, anymore.
+> 
+> I also don't want to pursue the legal stuff, copyright laws etc.,
+> but a quick glance at the COPYING file at the root of the kernel sources
+> may be helpful:
+> 
+>> 2. You may modify your copy or copies of the Program or any portion
+>> of it, thus forming a work based on the Program, and copy and
+>> distribute such modifications or work under the terms of Section 1
+>> above, provided that you also meet all of these conditions:
+>>
+>>     a) You must cause the modified files to carry prominent notices
+>>     stating that you changed the files and the date of any change.
+> 
+> I don't even ask for that much - I only ask that the single set of
+> changes from Ezequiel has this very information. This is BTW one of the
+> reasons we switched to git.
 
-Reported-by: kbuild test robot <lkp@intel.com>
-Fixes: c89c0114955a ("mfd: syscon: Set regmap max_register in of_syscon_register")
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- drivers/mfd/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+Ezequiel, can you make a v4 and add a link to the original patch posted by
+Krzysztof that you based your code on?
 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index aa21dc55eb15..2e5b1e525a1d 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -1034,6 +1034,7 @@ config MFD_SUN6I_PRCM
- 
- config MFD_SYSCON
- 	bool "System Controller Register R/W Based on Regmap"
-+	depends on HAS_IOMEM
- 	select REGMAP_MMIO
- 	help
- 	  Select this option to enable accessing system control registers
--- 
-2.5.0
+I think that takes care of the provenance.
 
+Regards,
+
+	Hans
