@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.goneo.de ([85.220.129.37]:40374 "EHLO smtp3.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752960AbcCJR6M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2016 12:58:12 -0500
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: DVBv5 Tools: VDR support seems to be broken (recommended patch)
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <CAA7C2qhER5Yzm3R5ReeAOc7u2JydN4FhankzspYqZ-P1wgUV6g@mail.gmail.com>
-Date: Thu, 10 Mar 2016 18:57:58 +0100
-Cc: "mailing list: linux-media" <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 7bit
-Message-Id: <D0060DD9-D5CD-43BC-81B4-C38399BE1068@darmarit.de>
-References: <19129703-C076-47F7-BEFF-8A57D172132D@darmarit.de> <EFEC860B-B1FC-499D-911C-61DC3C0A9517@darmarit.de> <CAA7C2qhER5Yzm3R5ReeAOc7u2JydN4FhankzspYqZ-P1wgUV6g@mail.gmail.com>
-To: VDR User <user.vdr@gmail.com>
+Received: from kirsty.vergenet.net ([202.4.237.240]:44298 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753797AbcCCBwb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 20:52:31 -0500
+From: Simon Horman <horms+renesas@verge.net.au>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH] media: sh_mobile_ceu_camera, rcar_vin: Use ARCH_RENESAS
+Date: Thu,  3 Mar 2016 10:52:15 +0900
+Message-Id: <1456969935-31879-1-git-send-email-horms+renesas@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, but can't find the point in deep (in dvbdevice.c),
-may you can point more precise.
+Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
 
-I only found a part in a other file which confirms me to "A".
-The question is: are there are any application which use
-the orbital position in degrees? which is a pedantic question
-as long, as orbital positions not covered by dvbv5.
+This is part of an ongoing process to migrate from ARCH_SHMOBILE to
+ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
+appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
 
---M--
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+---
+ drivers/media/platform/soc_camera/Kconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Am 10.03.2016 um 16:38 schrieb VDR User <user.vdr@gmail.com>:
+ Based on media-tree/master
 
->> There is only one point I have a doubt: I have no ATSC
->> experience (I'am in Europe/germ), so I simply added
->> an "A" at the field "satellite pos.". This is what
->> the w_scan tool does and this tool works fine with
->> the vdr (please correct me if I'am wrong).
-> 
-> Instead of guessing about ATSC, why not look at the VDR source code
-> and get a definitive answer? I believe you'll find what you're looking
-> for in: dvbdevice.c
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index f2776cd415ca..20ad48458cff 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -36,7 +36,7 @@ config VIDEO_PXA27x
+ config VIDEO_RCAR_VIN
+ 	tristate "R-Car Video Input (VIN) support"
+ 	depends on VIDEO_DEV && SOC_CAMERA
+-	depends on ARCH_SHMOBILE || COMPILE_TEST
++	depends on ARCH_RENESAS || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select SOC_CAMERA_SCALE_CROP
+@@ -53,7 +53,7 @@ config VIDEO_SH_MOBILE_CSI2
+ config VIDEO_SH_MOBILE_CEU
+ 	tristate "SuperH Mobile CEU Interface driver"
+ 	depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA && HAVE_CLK
+-	depends on ARCH_SHMOBILE || SUPERH || COMPILE_TEST
++	depends on ARCH_RENESAS || SUPERH || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select SOC_CAMERA_SCALE_CROP
+-- 
+2.1.4
 
