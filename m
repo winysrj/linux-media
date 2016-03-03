@@ -1,88 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50975 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752707AbcCYNKz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 09:10:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hansverk@cisco.com>,
-	Kamil Debski <kamil@wypas.org>
-Subject: [PATCHv14 11/18] v4l2-subdev: add HDMI CEC ops
-Date: Fri, 25 Mar 2016 14:10:09 +0100
-Message-Id: <1458911416-47981-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
-References: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:34290 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751633AbcCCSwF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 13:52:05 -0500
+Date: Thu, 3 Mar 2016 15:52:00 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [git:media_tree/master] [media] media: rc: nuvoton: support
+ reading / writing wakeup sequence via sysfs
+Message-ID: <20160303155200.43d4c5e7@recife.lan>
+In-Reply-To: <56D87FE9.4000408@gmail.com>
+References: <E1abRXi-00035h-0E@www.linuxtv.org>
+	<56D87FE9.4000408@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Thu, 03 Mar 2016 19:18:17 +0100
+Heiner Kallweit <hkallweit1@gmail.com> escreveu:
 
-Add CEC callbacks to the new v4l2_subdev_cec_ops struct. These are the
-low-level CEC ops that subdevs that support CEC have to implement.
+> Am 03.03.2016 um 12:28 schrieb Mauro Carvalho Chehab:
+> > This is an automatic generated email to let you know that the following patch were queued at the 
+> > http://git.linuxtv.org/cgit.cgi/media_tree.git tree:
+> > 
+> > Subject: [media] media: rc: nuvoton: support reading / writing wakeup sequence via sysfs
+> > Author:  Heiner Kallweit <hkallweit1@gmail.com>
+> > Date:    Mon Feb 8 17:25:59 2016 -0200
+> > 
+> > This patch adds a binary attribute /sys/class/rc/rc?/wakeup_data which
+> > allows to read / write the wakeup sequence.
+> >   
+> When working on another module I was reminded not to forget updating Documentation/ABI.
+> I think the same applies here. This patch introduces a new sysfs attribute that should
+> be documented. I'll submit a patch for adding Documentation/ABI/testing/sysfs-class-rc-nuvoton
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
-Signed-off-by: Kamil Debski <kamil@wypas.org>
----
- include/media/v4l2-subdev.h | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+Good point.
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 11e2dfe..8fa660e 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -42,6 +42,17 @@
- 
- #define	V4L2_DEVICE_NOTIFY_EVENT		_IOW('v', 2, struct v4l2_event)
- 
-+struct v4l2_subdev_cec_tx_done {
-+	u8 status;
-+	u8 arb_lost_cnt;
-+	u8 nack_cnt;
-+	u8 low_drive_cnt;
-+	u8 error_cnt;
-+};
-+
-+#define V4L2_SUBDEV_CEC_TX_DONE			_IOW('v', 3, struct v4l2_subdev_cec_tx_done)
-+#define V4L2_SUBDEV_CEC_RX_MSG			_IOW('v', 4, struct cec_msg)
-+
- struct v4l2_device;
- struct v4l2_ctrl_handler;
- struct v4l2_event;
-@@ -51,6 +62,7 @@ struct v4l2_subdev;
- struct v4l2_subdev_fh;
- struct tuner_setup;
- struct v4l2_mbus_frame_desc;
-+struct cec_msg;
- 
- /* decode_vbi_line */
- struct v4l2_decode_vbi_line {
-@@ -645,6 +657,14 @@ struct v4l2_subdev_pad_ops {
- 			      struct v4l2_mbus_frame_desc *fd);
- };
- 
-+struct v4l2_subdev_cec_ops {
-+	unsigned (*adap_available_log_addrs)(struct v4l2_subdev *sd);
-+	int (*adap_enable)(struct v4l2_subdev *sd, bool enable);
-+	int (*adap_log_addr)(struct v4l2_subdev *sd, u8 logical_addr);
-+	int (*adap_transmit)(struct v4l2_subdev *sd, u8 attempts,
-+			     u32 signal_free_time, struct cec_msg *msg);
-+};
-+
- struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_core_ops	*core;
- 	const struct v4l2_subdev_tuner_ops	*tuner;
-@@ -654,6 +674,7 @@ struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_ir_ops		*ir;
- 	const struct v4l2_subdev_sensor_ops	*sensor;
- 	const struct v4l2_subdev_pad_ops	*pad;
-+	const struct v4l2_subdev_cec_ops	*cec;
- };
- 
- /*
+Another thing: wouldn't be better to use a text format? This would make
+esier to import from LIRC's irrecord format:
+
+      begin raw_codes
+
+          name power
+              850     900    1750    1800     850     900
+              850     900    1750     900     850    1800
+              850     900     850     900     850     900
+             1750    1800     800
+
+      end raw_codes
+
+Regards,
+Mauro
+
+> 
+> Rgds, Heiner
+> 
+> > In combination with the core extension for exposing the most recent raw
+> > packet this allows to easily define and set a wakeup sequence.
+> > 
+> > At least on my Zotac CI321 the BIOS resets the wakeup sequence at each boot
+> > to a factory default. Therefore I use a udev rule
+> > SUBSYSTEM=="rc", DRIVERS=="nuvoton-cir", ACTION=="add", RUN+="<script>"
+> > with the script basically doing
+> > cat <stored wakeup sequence> >/sys${DEVPATH}/wakeup_data
+> > 
+> > Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> >  drivers/media/rc/nuvoton-cir.c | 85 ++++++++++++++++++++++++++++++++++++++++++
+> >  drivers/media/rc/nuvoton-cir.h |  3 ++
+> >  2 files changed, 88 insertions(+)
+> > 
+> > ---
+> > 
+> > http://git.linuxtv.org/cgit.cgi/media_tree.git/commit/?id=449c1fcd86f5077d5076a955e65c07a7c4cbbf9d
+> > diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+> > index c96da3aaf00b..c2ee5bdc6c7d 100644
+> > --- a/drivers/media/rc/nuvoton-cir.c
+> > +++ b/drivers/media/rc/nuvoton-cir.c
+> > @@ -39,6 +39,8 @@
+> >  
+> >  #include "nuvoton-cir.h"
+> >  
+> > +static void nvt_clear_cir_wake_fifo(struct nvt_dev *nvt);
+> > +
+> >  static const struct nvt_chip nvt_chips[] = {
+> >  	{ "w83667hg", NVT_W83667HG },
+> >  	{ "NCT6775F", NVT_6775F },
+> > @@ -177,6 +179,83 @@ static void nvt_set_ioaddr(struct nvt_dev *nvt, unsigned long *ioaddr)
+> >  	}
+> >  }
+> >  
+> > +static ssize_t wakeup_data_read(struct file *fp, struct kobject *kobj,
+> > +				struct bin_attribute *bin_attr,
+> > +				char *buf, loff_t off, size_t count)
+> > +{
+> > +	struct device *dev = kobj_to_dev(kobj);
+> > +	struct rc_dev *rc_dev = to_rc_dev(dev);
+> > +	struct nvt_dev *nvt = rc_dev->priv;
+> > +	int fifo_len, len;
+> > +	unsigned long flags;
+> > +	int i;
+> > +
+> > +	spin_lock_irqsave(&nvt->nvt_lock, flags);
+> > +
+> > +	fifo_len = nvt_cir_wake_reg_read(nvt, CIR_WAKE_FIFO_COUNT);
+> > +	len = min(fifo_len, WAKEUP_MAX_SIZE);
+> > +
+> > +	if (off >= len) {
+> > +		spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+> > +		return 0;
+> > +	}
+> > +
+> > +	if (len > count)
+> > +		len = count;
+> > +
+> > +	/* go to first element to be read */
+> > +	while (nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY_IDX) != off)
+> > +		nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
+> > +
+> > +	for (i = 0; i < len; i++)
+> > +		buf[i] = nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
+> > +
+> > +	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+> > +
+> > +	return len;
+> > +}
+> > +
+> > +static ssize_t wakeup_data_write(struct file *fp, struct kobject *kobj,
+> > +				struct bin_attribute *bin_attr,
+> > +				char *buf, loff_t off, size_t count)
+> > +{
+> > +	struct device *dev = kobj_to_dev(kobj);
+> > +	struct rc_dev *rc_dev = to_rc_dev(dev);
+> > +	struct nvt_dev *nvt = rc_dev->priv;
+> > +	unsigned long flags;
+> > +	u8 tolerance, config;
+> > +	int i;
+> > +
+> > +	if (off > 0)
+> > +		return -EINVAL;
+> > +
+> > +	/* hardcode the tolerance to 10% */
+> > +	tolerance = DIV_ROUND_UP(count, 10);
+> > +
+> > +	spin_lock_irqsave(&nvt->nvt_lock, flags);
+> > +
+> > +	nvt_clear_cir_wake_fifo(nvt);
+> > +	nvt_cir_wake_reg_write(nvt, count, CIR_WAKE_FIFO_CMP_DEEP);
+> > +	nvt_cir_wake_reg_write(nvt, tolerance, CIR_WAKE_FIFO_CMP_TOL);
+> > +
+> > +	config = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
+> > +
+> > +	/* enable writes to wake fifo */
+> > +	nvt_cir_wake_reg_write(nvt, config | CIR_WAKE_IRCON_MODE1,
+> > +			       CIR_WAKE_IRCON);
+> > +
+> > +	for (i = 0; i < count; i++)
+> > +		nvt_cir_wake_reg_write(nvt, buf[i], CIR_WAKE_WR_FIFO_DATA);
+> > +
+> > +	nvt_cir_wake_reg_write(nvt, config, CIR_WAKE_IRCON);
+> > +
+> > +	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+> > +
+> > +	return count;
+> > +}
+> > +
+> > +static BIN_ATTR_RW(wakeup_data, WAKEUP_MAX_SIZE);
+> > +
+> >  /* dump current cir register contents */
+> >  static void cir_dump_regs(struct nvt_dev *nvt)
+> >  {
+> > @@ -1133,6 +1212,10 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+> >  			     NVT_DRIVER_NAME "-wake", (void *)nvt))
+> >  		goto exit_unregister_device;
+> >  
+> > +	ret = device_create_bin_file(&rdev->dev, &bin_attr_wakeup_data);
+> > +	if (ret)
+> > +		goto exit_unregister_device;
+> > +
+> >  	device_init_wakeup(&pdev->dev, true);
+> >  
+> >  	dev_notice(&pdev->dev, "driver has been successfully loaded\n");
+> > @@ -1156,6 +1239,8 @@ static void nvt_remove(struct pnp_dev *pdev)
+> >  {
+> >  	struct nvt_dev *nvt = pnp_get_drvdata(pdev);
+> >  
+> > +	device_remove_bin_file(&nvt->rdev->dev, &bin_attr_wakeup_data);
+> > +
+> >  	nvt_disable_cir(nvt);
+> >  
+> >  	/* enable CIR Wake (for IR power-on) */
+> > diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+> > index 4a5650dffa29..c9c98ebb19ee 100644
+> > --- a/drivers/media/rc/nuvoton-cir.h
+> > +++ b/drivers/media/rc/nuvoton-cir.h
+> > @@ -417,3 +417,6 @@ struct nvt_dev {
+> >  /* as VISTA MCE definition, valid carrier value */
+> >  #define MAX_CARRIER 60000
+> >  #define MIN_CARRIER 30000
+> > +
+> > +/* max wakeup sequence length */
+> > +#define WAKEUP_MAX_SIZE 65
+> >   
+> 
+
+
 -- 
-2.7.0
-
+Thanks,
+Mauro
