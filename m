@@ -1,155 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39482 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756522AbcCUQBv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 12:01:51 -0400
-Subject: Re: [RFC PATCH 1/3] [media] v4l2-mc.h: Add a S-Video C input PAD to
- demod enum
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
- <1457550566-5465-2-git-send-email-javier@osg.samsung.com>
- <56EC2294.603@xs4all.nl> <56EC3BF3.5040100@xs4all.nl>
- <20160321114045.00f200a0@recife.lan> <56F00DAA.8000701@xs4all.nl>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56F01AE7.6070508@xs4all.nl>
-Date: Mon, 21 Mar 2016 17:01:43 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:33959 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754373AbcCCP5J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 10:57:09 -0500
+Subject: Re: [PATCH v3 02/22] uapi/media.h: Declare interface types for ALSA
+To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@osg.samsung.com,
+	tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
+	javier@osg.samsung.com
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+ <a1b468c2933dc2b4f2b6cc6d1ac30baee2a89f77.1455233152.git.shuahkh@osg.samsung.com>
+ <56D85161.5070103@xs4all.nl>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56D85ECF.40807@osg.samsung.com>
+Date: Thu, 3 Mar 2016 08:57:03 -0700
 MIME-Version: 1.0
-In-Reply-To: <56F00DAA.8000701@xs4all.nl>
+In-Reply-To: <56D85161.5070103@xs4all.nl>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/21/2016 04:05 PM, Hans Verkuil wrote:
-> On 03/21/2016 03:40 PM, Mauro Carvalho Chehab wrote:
->> Em Fri, 18 Mar 2016 18:33:39 +0100
->> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 03/03/2016 07:59 AM, Hans Verkuil wrote:
+> On 02/12/16 00:41, Shuah Khan wrote:
+>> Declare the interface types to be used on alsa for
+>> the new G_TOPOLOGY ioctl.
 >>
->>> On 03/18/2016 04:45 PM, Hans Verkuil wrote:
->>>> On 03/09/2016 08:09 PM, Javier Martinez Canillas wrote:  
->>>>> The enum demod_pad_index list the PADs that an analog TV demod has but
->>>>> in some decoders the S-Video Y (luminance) and C (chrominance) signals
->>>>> are carried by different connectors. So a single DEMOD_PAD_IF_INPUT is
->>>>> not enough and an additional PAD is needed in the case of S-Video for
->>>>> the additional C signal.
->>>>>
->>>>> Add a DEMOD_PAD_C_INPUT that can be used for this case and the existing
->>>>> DEMOD_PAD_IF_INPUT can be used for either Composite or the Y signal.
->>>>>
->>>>> Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>>>>
->>>>> ---
->>>>> Hello,
->>>>>
->>>>> This change was suggested by Mauro in [0] although is still not clear
->>>>> if this is the way forward since changing PAD indexes can break the
->>>>> uAPI depending on how the PADs are looked up. Another alternative is
->>>>> to have a PAD type as Mauro mentioned on the same email but since the
->>>>> series are RFC, I'm making this change as an example and hopping that
->>>>> the patches can help with the discussion.
->>>>>
->>>>> [0]: http://www.spinics.net/lists/linux-media/msg98042.html
->>>>>
->>>>> Best regards,
->>>>> Javier
->>>>>
->>>>>  include/media/v4l2-mc.h | 3 ++-
->>>>>  1 file changed, 2 insertions(+), 1 deletion(-)
->>>>>
->>>>> diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
->>>>> index 98a938aabdfb..47c00c288a06 100644
->>>>> --- a/include/media/v4l2-mc.h
->>>>> +++ b/include/media/v4l2-mc.h
->>>>> @@ -94,7 +94,8 @@ enum if_aud_dec_pad_index {
->>>>>   * @DEMOD_NUM_PADS:	Maximum number of output pads.
->>>>>   */
->>>>>  enum demod_pad_index {
->>>>> -	DEMOD_PAD_IF_INPUT,
->>>>> +	DEMOD_PAD_IF_INPUT, /* S-Video Y input or Composite */
->>>>> +	DEMOD_PAD_C_INPUT,  /* S-Video C input or Composite */
->>>>>  	DEMOD_PAD_VID_OUT,
->>>>>  	DEMOD_PAD_VBI_OUT,
->>>>>  	DEMOD_PAD_AUDIO_OUT,
->>>>>  
->>>>
->>>> These pad index enums are butt ugly and won't scale in the long run. An entity
->>>> should have just as many pads as it needs and no more.
->>>>
->>>> If you want to have an heuristic so you can find which pad carries e.g.
->>>> composite video, then it is better to ask the subdev for that.
->>>>
->>>> E.g.: err = v4l2_subdev_call(sd, pad, g_signal_pad, V4L2_PAD_Y_SIG_INPUT, &pad)
->>>>
->>>> The subdev driver knows which pad has which signal, so this does not rely on
->>>> hardcoding all combinations of possible pad types and you can still heuristically
->>>> build a media graph for legacy drivers.
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/media-entity.c | 16 ++++++++++++++++
+>>  include/uapi/linux/media.h   | 10 ++++++++++
+>>  2 files changed, 26 insertions(+)
 >>
->> Yes, accessing PADs via a hardcoded index is butt ugly.
->>
->> For sure, we need a better strategy than that. This is one of the things
->> we need to discuss at the media summit.
->>
->>>> What we do now is reminiscent of the bad old days when the input numbers (as
->>>> returned by ENUMINPUT) where mapped to the i2c routing (basically pads). I worked
->>>> hard to get rid of that hardcoded relationship and I don't like to see it coming
->>>> back.
->>
->> No, this is completely unrelated with ENUMINPUT. 
->>
->> With VIDIOC_*INPUT ioctls, a hardcoded list of inputs can happen only at
->> the Kernel side, as, userspace should not rely on the input index, but,
->> instead, should call VIDIOC_ENUMINPUT.
->>
->> However, the media controller currently lacks an "ENUMPADS" ioctl that
->> would tell userspace what kind of data each PAD contains. Due to that,
->> on entities with more than one sink pad and/or more than one source
->> pad, the application should rely on the PAD index.
->>
->> That also reflects on the Kernel side, that forces drivers to do
->> things like:
->>
->> 	struct tvp5150 *core = to_tvp5150(sd);
->> 	int res;
->>
->> 	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
->> 	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
->> 	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
->>
->> 	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
->>
->> hardcoding the PAD indexes.
->>
->> The enums that are right now at v4l2-mc.h just prevents the mess to
->> spread all over the drivers, while we don't have a better solution, as
->> at least it will prevent two different devices with the very same type
->> to have a completely different set of PADs, with would cause lots of
->> pain on drivers that work with a multiple set of entities of the same
->> type.
+>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>> index f2e4360..6179543 100644
+>> --- a/drivers/media/media-entity.c
+>> +++ b/drivers/media/media-entity.c
+>> @@ -65,6 +65,22 @@ static inline const char *intf_type(struct media_interface *intf)
+>>  		return "v4l2-subdev";
+>>  	case MEDIA_INTF_T_V4L_SWRADIO:
+>>  		return "swradio";
+>> +	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+>> +		return "pcm-capture";
+>> +	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+>> +		return "pcm-playback";
+>> +	case MEDIA_INTF_T_ALSA_CONTROL:
+>> +		return "alsa-control";
+>> +	case MEDIA_INTF_T_ALSA_COMPRESS:
+>> +		return "compress";
+>> +	case MEDIA_INTF_T_ALSA_RAWMIDI:
+>> +		return "rawmidi";
+>> +	case MEDIA_INTF_T_ALSA_HWDEP:
+>> +		return "hwdep";
+>> +	case MEDIA_INTF_T_ALSA_SEQUENCER:
+>> +		return "sequencer";
+>> +	case MEDIA_INTF_T_ALSA_TIMER:
+>> +		return "timer";
 > 
-> This is already device specific. The video and audio s_routing ops are there
-> precisely because the routing between devices is board specific. It links
-> entities with each other the way we had to before we had the media controller.
+> Wouldn't it be better to add an 'alsa' prefix for all of these?
 > 
-> Subdev entities should *not* use these fake pads. It's going to be a nightmare.
+> And 'dvb-' or 'v4l2-' (or v4l-) for the others as well.
 > 
-> A reasonable solution to simplify converting legacy drivers without creating
-> these global ugly pad indices is to add a new video (and probably audio) op
-> 'g_pad_of_type(type)' where you ask the subdev entity to return which pad carries
-> signals of a certain type.
+> Names like 'timer' are very generic. I think it would be a good idea to
+> make the naming more regular and have it include the subsystem name just
+> as the define does.
+> 
+> Regards,
+> 
+> 	Hans
+> 
 
-This basically puts a layer between the low-level pads as defined by the entity
-and the 'meta-pads' that a generic MC link creator would need to handle legacy
-drivers. The nice thing is that this is wholly inside the kernel so we can
-modify it at will later without impacting userspace.
+Yes adding more information 'dvb-' or 'v4l2-' (or v4l-), alsa
+to strings would help. I can fix all of them in a separate
+patch if that is okay with you.
 
-Regards,
+thanks,
+-- Shuah
 
-	Hans
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
