@@ -1,251 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:56458 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751611AbcCWKf6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 06:35:58 -0400
-Date: Wed, 23 Mar 2016 07:35:52 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:33331 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754693AbcCCRuv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 12:50:51 -0500
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
-Message-ID: <20160323073552.18db3b7e@recife.lan>
-In-Reply-To: <1458722756-7269-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<1458722756-7269-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Erik Andresen <erik@vontaene.de>,
+	=?UTF-8?q?Torbj=C3=B6rn=20Jansson?=
+	<torbjorn.jansson@mbox200.swipnet.se>,
+	Nicolas Sugino <nsugino@3way.com.ar>,
+	Patrick Boettcher <patrick.boettcher@posteo.de>,
+	Christian Dale <kernel@techmunk.com>,
+	Benjamin Larsson <benjamin@southpole.se>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH] [media] dw2102: move USB IDs to dvb-usb-ids.h
+Date: Thu,  3 Mar 2016 14:50:17 -0300
+Message-Id: <9e6013a0f085737a084053c6269ebf57c06c8497.1457027402.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 23 Mar 2016 10:45:55 +0200
-Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
+Right now, dw2102 assumes that the USB IDs will be either at
+an external header or defined internally. That doesn't sound
+right.
 
-> Code that processes media entities can require knowledge of the
-> structure type that embeds a particular media entity instance in order
-> to cast the entity to the proper object type. This needs is shown by the
-> presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
-> functions.
-> 
-> The implementation of those two functions relies on the entity function
-> field, which is both a wrong and an inefficient design, without even
-> mentioning the maintenance issue involved in updating the functions
-> every time a new entity function is added. Fix this by adding add an
-> obj_type field to the media entity structure to carry the information.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-device.c          |  2 +
->  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
->  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
->  include/media/media-entity.h          | 79 +++++++++++++++++++----------------
->  4 files changed, 46 insertions(+), 37 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 4a97d92a7e7d..88d8de3b7a4f 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -580,6 +580,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
->  			 "Entity type for entity %s was not initialized!\n",
->  			 entity->name);
->  
-> +	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
-> +
+So, let's move the definitions to just one place.
 
-This is not ok. There are valid cases where the entity is not embedded
-on some other struct. That's the case of connectors/connections, for
-example: a connector/connection entity doesn't need anything else but
-struct media device.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/dvb-core/dvb-usb-ids.h | 13 ++++++++
+ drivers/media/usb/dvb-usb/dw2102.c   | 60 ++----------------------------------
+ 2 files changed, 16 insertions(+), 57 deletions(-)
 
-Also, this is V4L2 specific. Neither ALSA nor DVB need to use container_of().
-Actually, this won't even work there, as the entity is stored as a pointer,
-and not as an embedded data.
-
-So, if we're willing to do this, then it should, instead, create
-something like:
-
-struct embedded_media_entity {
-	struct media_entity entity;
-	enum media_entity_type obj_type;
-};
-
-And then replace the occurrences of embedded media_entity by
-embedded_media_entity at the V4L2 subsystem only, in the places where
-the struct is embeded on another one.
-
->  	/* Warn if we apparently re-register an entity */
->  	WARN_ON(entity->graph_obj.mdev != NULL);
->  	entity->graph_obj.mdev = mdev;
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index d8e5994cccf1..70b559d7ca80 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -735,6 +735,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
->  	if (!vdev->v4l2_dev->mdev)
->  		return 0;
->  
-> +	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
->  	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
->  
->  	switch (type) {
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index d63083803144..0fa60801a428 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -584,6 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
->  	sd->host_priv = NULL;
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	sd->entity.name = sd->name;
-> +	sd->entity.obj_type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
->  	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
->  #endif
->  }
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 6dc9e4e8cbd4..5cea57955a3a 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -188,10 +188,41 @@ struct media_entity_operations {
->  };
->  
->  /**
-> + * enum media_entity_type - Media entity type
-> + *
-> + * @MEDIA_ENTITY_TYPE_INVALID:
-> + *	Invalid type, used to catch uninitialized fields.
-> + * @MEDIA_ENTITY_TYPE_VIDEO_DEVICE:
-> + *	The entity is embedded in a struct video_device instance.
-> + * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
-> + *	The entity is embedded in a struct v4l2_subdev instance.
-> + *
-> + * Media entity objects are not instantiated directly, 
-
-As I said before, this is not true (nor even at V4L2 subsystem, due to
-the connectors/connections).
-
-As before, you should call this as:
-	enum embedded_media_entity_type
-
-And then change the test to:
-
-	"Media entity objects declared via struct embedded_media_device are not
-	 instantiated directly,"
-
-and fix the text below accordingly.
-
-> but the media entity
-> + * structure is inherited by (through embedding) other subsystem-specific
-> + * structures. The media entity type identifies the type of the subclass
-> + * structure that implements a media entity instance.
-> + *
-> + * This allows runtime type identification of media entities and safe casting to
-> + * the correct object type. For instance, a media entity structure instance
-> + * embedded in a v4l2_subdev structure instance will have the type
-> + * MEDIA_ENTITY_TYPE_V4L2_SUBDEV and can safely be cast to a v4l2_subdev
-> + * structure using the container_of() macro.
-> + *
-> + * The MEDIA_ENTITY_TYPE_INVALID type should never be set as an entity type, it
-> + * only serves to catch uninitialized fields when registering entities.
-> + */
-> +enum media_entity_type {
-> +	MEDIA_ENTITY_TYPE_INVALID,
-> +	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
-> +	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
-> +};
-> +
-> +/**
->   * struct media_entity - A media entity graph object.
->   *
->   * @graph_obj:	Embedded structure containing the media object common data.
->   * @name:	Entity name.
-> + * @obj_type:	Type of the object that implements the media_entity.
->   * @function:	Entity main function, as defined in uapi/media.h
->   *		(MEDIA_ENT_F_*)
->   * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
-> @@ -220,6 +251,7 @@ struct media_entity_operations {
->  struct media_entity {
->  	struct media_gobj graph_obj;	/* must be first field in struct */
->  	const char *name;
-> +	enum media_entity_type obj_type;
-
-See above. This doesn't below to the generic media entity struct,
-but to an special type that is meant to be embedded on some places.
-
->  	u32 function;
->  	unsigned long flags;
->  
-> @@ -329,56 +361,29 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
->  }
->  
->  /**
-> - * is_media_entity_v4l2_io() - identify if the entity main function
-> - *			       is a V4L2 I/O
-> - *
-> + * is_media_entity_v4l2_io() - Check if the entity is a video_device
->   * @entity:	pointer to entity
->   *
-> - * Return: true if the entity main function is one of the V4L2 I/O types
-> - *	(video, VBI or SDR radio); false otherwise.
-> + * Return: true if the entity is an instance of a video_device object and can
-> + * safely be cast to a struct video_device using the container_of() macro, or
-> + * false otherwise.
->   */
->  static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
->  {
-> -	if (!entity)
-> -		return false;
-> -
-> -	switch (entity->function) {
-> -	case MEDIA_ENT_F_IO_V4L:
-> -	case MEDIA_ENT_F_IO_VBI:
-> -	case MEDIA_ENT_F_IO_SWRADIO:
-> -		return true;
-> -	default:
-> -		return false;
-> -	}
-> +	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
->  }
->  
->  /**
-> - * is_media_entity_v4l2_subdev - return true if the entity main function is
-> - *				 associated with the V4L2 API subdev usage
-> - *
-> + * is_media_entity_v4l2_subdev() - Check if the entity is a v4l2_subdev
->   * @entity:	pointer to entity
->   *
-> - * This is an ancillary function used by subdev-based V4L2 drivers.
-> - * It checks if the entity function is one of functions used by a V4L2 subdev,
-> - * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
-> + * Return: true if the entity is an instance of a v4l2_subdev object and can
-> + * safely be cast to a struct v4l2_subdev using the container_of() macro, or
-> + * false otherwise.
->   */
->  static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
->  {
-> -	if (!entity)
-> -		return false;
-> -
-> -	switch (entity->function) {
-> -	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
-> -	case MEDIA_ENT_F_CAM_SENSOR:
-> -	case MEDIA_ENT_F_FLASH:
-> -	case MEDIA_ENT_F_LENS:
-> -	case MEDIA_ENT_F_ATV_DECODER:
-> -	case MEDIA_ENT_F_TUNER:
-> -		return true;
-> -
-> -	default:
-> -		return false;
-> -	}
-> +	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
->  }
->  
->  /**
-
-
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index 0afad395ef97..fc90a39ab9b7 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -58,6 +58,14 @@
+ #define USB_VID_TELESTAR			0x10b9
+ #define USB_VID_VISIONPLUS			0x13d3
+ #define USB_VID_SONY				0x1415
++#define USB_PID_TEVII_S421			0xd421
++#define USB_PID_TEVII_S480_1			0xd481
++#define USB_PID_TEVII_S480_2			0xd482
++#define USB_PID_TEVII_S630			0xd630
++#define USB_PID_TEVII_S632			0xd632
++#define USB_PID_TEVII_S650			0xd650
++#define USB_PID_TEVII_S660			0xd660
++#define USB_PID_TEVII_S662			0xd662
+ #define USB_VID_TWINHAN				0x1822
+ #define USB_VID_ULTIMA_ELECTRONIC		0x05d8
+ #define USB_VID_UNIWILL				0x1584
+@@ -141,6 +149,7 @@
+ #define USB_PID_GENIUS_TVGO_DVB_T03			0x4012
+ #define USB_PID_GRANDTEC_DVBT_USB_COLD			0x0fa0
+ #define USB_PID_GRANDTEC_DVBT_USB_WARM			0x0fa1
++#define USB_PID_GOTVIEW_SAT_HD				0x5456
+ #define USB_PID_INTEL_CE9500				0x9500
+ #define USB_PID_ITETECH_IT9135				0x9135
+ #define USB_PID_ITETECH_IT9135_9005			0x9005
+@@ -159,6 +168,8 @@
+ #define USB_PID_KWORLD_UB499_2T_T09			0xe409
+ #define USB_PID_KWORLD_VSTREAM_COLD			0x17de
+ #define USB_PID_KWORLD_VSTREAM_WARM			0x17df
++#define USB_PID_PROF_1100				0xb012
++#define USB_PID_TERRATEC_CINERGY_S			0x0064
+ #define USB_PID_TERRATEC_CINERGY_T_USB_XE		0x0055
+ #define USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2		0x0069
+ #define USB_PID_TERRATEC_CINERGY_T_STICK		0x0093
+@@ -361,6 +372,8 @@
+ #define USB_PID_YUAN_STK7700D				0x1efc
+ #define USB_PID_YUAN_STK7700D_2				0x1e8c
+ #define USB_PID_DW2102					0x2102
++#define USB_PID_DW2104					0x2104
++#define USB_PID_DW3101					0x3101
+ #define USB_PID_XTENSIONS_XD_380			0x0381
+ #define USB_PID_TELESTAR_STARSTICK_2			0x8000
+ #define USB_PID_MSI_DIGI_VOX_MINI_III                   0x8807
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 6d0dd859d684..084a6c93d015 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -13,6 +13,7 @@
+  *
+  * see Documentation/dvb/README.dvb-usb for more information
+  */
++#include "dvb-usb-ids.h"
+ #include "dw2102.h"
+ #include "si21xx.h"
+ #include "stv0299.h"
+@@ -38,61 +39,6 @@
+ /* Max transfer size done by I2C transfer functions */
+ #define MAX_XFER_SIZE  64
+ 
+-#ifndef USB_PID_DW2102
+-#define USB_PID_DW2102 0x2102
+-#endif
+-
+-#ifndef USB_PID_DW2104
+-#define USB_PID_DW2104 0x2104
+-#endif
+-
+-#ifndef USB_PID_DW3101
+-#define USB_PID_DW3101 0x3101
+-#endif
+-
+-#ifndef USB_PID_CINERGY_S
+-#define USB_PID_CINERGY_S 0x0064
+-#endif
+-
+-#ifndef USB_PID_TEVII_S630
+-#define USB_PID_TEVII_S630 0xd630
+-#endif
+-
+-#ifndef USB_PID_TEVII_S650
+-#define USB_PID_TEVII_S650 0xd650
+-#endif
+-
+-#ifndef USB_PID_TEVII_S660
+-#define USB_PID_TEVII_S660 0xd660
+-#endif
+-
+-#ifndef USB_PID_TEVII_S662
+-#define USB_PID_TEVII_S662 0xd662
+-#endif
+-
+-#ifndef USB_PID_TEVII_S480_1
+-#define USB_PID_TEVII_S480_1 0xd481
+-#endif
+-
+-#ifndef USB_PID_TEVII_S480_2
+-#define USB_PID_TEVII_S480_2 0xd482
+-#endif
+-
+-#ifndef USB_PID_PROF_1100
+-#define USB_PID_PROF_1100 0xb012
+-#endif
+-
+-#ifndef USB_PID_TEVII_S421
+-#define USB_PID_TEVII_S421 0xd421
+-#endif
+-
+-#ifndef USB_PID_TEVII_S632
+-#define USB_PID_TEVII_S632 0xd632
+-#endif
+-
+-#ifndef USB_PID_GOTVIEW_SAT_HD
+-#define USB_PID_GOTVIEW_SAT_HD 0x5456
+-#endif
+ 
+ #define DW210X_READ_MSG 0
+ #define DW210X_WRITE_MSG 1
+@@ -1709,7 +1655,7 @@ static struct usb_device_id dw2102_table[] = {
+ 	[CYPRESS_DW2101] = {USB_DEVICE(USB_VID_CYPRESS, 0x2101)},
+ 	[CYPRESS_DW2104] = {USB_DEVICE(USB_VID_CYPRESS, USB_PID_DW2104)},
+ 	[TEVII_S650] = {USB_DEVICE(0x9022, USB_PID_TEVII_S650)},
+-	[TERRATEC_CINERGY_S] = {USB_DEVICE(USB_VID_TERRATEC, USB_PID_CINERGY_S)},
++	[TERRATEC_CINERGY_S] = {USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_S)},
+ 	[CYPRESS_DW3101] = {USB_DEVICE(USB_VID_CYPRESS, USB_PID_DW3101)},
+ 	[TEVII_S630] = {USB_DEVICE(0x9022, USB_PID_TEVII_S630)},
+ 	[PROF_1100] = {USB_DEVICE(0x3011, USB_PID_PROF_1100)},
+@@ -1801,7 +1747,7 @@ static int dw2102_load_firmware(struct usb_device *dev,
+ 			dw210x_op_rw(dev, 0xbf, 0x0040, 0, &reset, 0,
+ 					DW210X_WRITE_MSG);
+ 			break;
+-		case USB_PID_CINERGY_S:
++		case USB_PID_TERRATEC_CINERGY_S:
+ 		case USB_PID_DW2102:
+ 			dw210x_op_rw(dev, 0xbf, 0x0040, 0, &reset, 0,
+ 					DW210X_WRITE_MSG);
 -- 
-Thanks,
-Mauro
+2.5.0
+
