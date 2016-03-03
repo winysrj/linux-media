@@ -1,109 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:52647 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751984AbcCALQV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2016 06:16:21 -0500
-Date: Tue, 1 Mar 2016 08:16:15 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 1/4] media: Sanitise the reserved fields of the
- G_TOPOLOGY IOCTL arguments
-Message-ID: <20160301081615.68b1ef2c@recife.lan>
-In-Reply-To: <1456174024-11389-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1456174024-11389-1-git-send-email-sakari.ailus@linux.intel.com>
-	<1456174024-11389-2-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:34001 "EHLO
+	mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754349AbcCCMA6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 07:00:58 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <2506651.J2Z42d81nD@wuerfel>
+References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+	<1456992221-26712-5-git-send-email-k.kozlowski@samsung.com>
+	<2506651.J2Z42d81nD@wuerfel>
+Date: Thu, 3 Mar 2016 21:00:57 +0900
+Message-ID: <CAJKOXPcZuyicNAaH6CpOe+bTrLtM1k0tVisS_xJXGDrxyZ_i5A@mail.gmail.com>
+Subject: Re: [rtc-linux] Re: [RFC 04/15] irqchip: st: Add missing MFD_SYSCON
+ dependency on HAS_IOMEM
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: rtc-linux@googlegroups.com
+Cc: linux-arm-kernel@lists.infradead.org,
+	Daniel Lezcano <daniel.lezcano@linaro.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Jason Cooper <jason@lakedaemon.net>,
+	Marc Zyngier <marc.zyngier@arm.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Lee Jones <lee.jones@linaro.org>,
+	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Sebastian Reichel <sre@kernel.org>,
+	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Alessandro Zummo <a.zummo@towertech.it>,
+	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+	Andy Gross <andy.gross@linaro.org>,
+	David Brown <david.brown@linaro.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	netdev@vger.kernel.org, linux-gpio@vger.kernel.org,
+	linux-pm@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-usb@vger.kernel.org,
+	Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 22 Feb 2016 22:47:01 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+2016-03-03 19:53 GMT+09:00 Arnd Bergmann <arnd@arndb.de>:
+> On Thursday 03 March 2016 17:03:30 Krzysztof Kozlowski wrote:
+>>  config ST_IRQCHIP
+>>         bool
+>>         select REGMAP
+>> +       depends on HAS_IOMEM    # For MFD_SYSCON
+>>         select MFD_SYSCON
+>>         help
+>>           Enables SysCfg Controlled IRQs on STi based platforms.
+>>
+>
+> Not user visible.
 
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> The argument structs are used in arrays for G_TOPOLOGY IOCTL. The
-> arguments themselves do not need to be aligned to a power of two, but
-> aligning them up to the largest basic type alignment (u64) on common ABIs
-> is a good thing to do.
-> 
-> The patch changes the size of the reserved fields to 8 or 9 u32's and
-> aligns the size of the struct to 8 bytes so we do no longer depend on the
-> compiler to perform the alignment.
+Hmmm... you are right (here and in other patches) but why am I getting
+all these errors:
+warning: (ST_IRQCHIP && HIP04_ETH && STMMAC_PLATFORM && DWMAC_IPQ806X
+&& DWMAC_LPC18XX && DWMAC_ROCKCHIP && DWMAC_SOCFPGA && DWMAC_STI &&
+TI_CPSW && PINCTRL_ROCKCHIP && PINCTRL_DOVE && POWER_RESET_KEYSTONE &&
+S3C2410_WATCHDOG && VIDEO_OMAP3 && VIDEO_S5P_FIMC && USB_XHCI_MTK &&
+RTC_DRV_AT91SAM9 && LPC18XX_DMAMUX && VIDEO_OMAP4 && HWSPINLOCK_QCOM
+&& ATMEL_ST && QCOM_GSBI && PHY_HI6220_USB) selects MFD_SYSCON which
+has unmet direct dependencies (HAS_IOMEM)
+?
+(ARCH=um, allyesconfig)
+Adding depends here (and in other places) really helps... but it
+should not have any impact...
 
-I ran some tests with both x86_64 and arch64 running both 32 and 64 bits
-userspace versions of mc_nextgen_test.
-
-Everything is working fine with the current structures. No need for any
-extra alignment or compat32 bits.
-
-So, this patch is not needed. Yet, I agree that it could be useful to
-do 64 bits alignment, but I guess we're reserving too much space.
-
-So, except for media_v2_interface, I would be reserving 5 or 6 u32 space,
-as it is likely mor than enough for future usage.
-
-See below.
-
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  include/uapi/linux/media.h | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 6aac2f0..1468651 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -302,7 +302,7 @@ struct media_v2_entity {
->  	__u32 id;
->  	char name[64];		/* FIXME: move to a property? (RFC says so) */
->  	__u32 function;		/* Main function of the entity */
-> -	__u16 reserved[12];
-> +	__u32 reserved[8];
-
-You extended the size here. Any reason? If not
-I would use, instead:
-	__u32 reserved[6];
-
->  };
->  
->  /* Should match the specific fields at media_intf_devnode */
-> @@ -327,7 +327,7 @@ struct media_v2_pad {
->  	__u32 id;
->  	__u32 entity_id;
->  	__u32 flags;
-> -	__u16 reserved[9];
-> +	__u32 reserved[9];
-
-Again, you're doubling the reserved space here. Any reason? If not,
-I would use, instead:
-	__u32 reserved[5];
-
->  };
->  
->  struct media_v2_link {
-> @@ -335,7 +335,7 @@ struct media_v2_link {
->  	__u32 source_id;
->  	__u32 sink_id;
->  	__u32 flags;
-> -	__u32 reserved[5];
-> +	__u32 reserved[8];
-
-Again, you're doubling the reserved space here. Any reason? If not,
-I would use, instead:
-
-	__u32 reserved[6];
-
->  };
->  
->  struct media_v2_topology {
-
-
--- 
-Thanks,
-Mauro
+Thanks for comments,
+Krzysztof
