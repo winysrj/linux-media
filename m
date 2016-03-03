@@ -1,97 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.161.176]:33760 "EHLO
-	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758280AbcCDIFP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 03:05:15 -0500
-Received: by mail-yw0-f176.google.com with SMTP id b72so36147685ywe.0
-        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2016 00:05:14 -0800 (PST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46781 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbcCCKMh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 05:12:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH for 4.5] media.h: use hex values for the range offsets, move connectors base up.
+Date: Thu, 03 Mar 2016 12:12:37 +0200
+Message-ID: <8424145.Mo5klZhWrz@avalon>
+In-Reply-To: <56D80BD6.8020003@xs4all.nl>
+References: <56D3FB27.7000202@xs4all.nl> <3268993.kua0PM2kZ4@avalon> <56D80BD6.8020003@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAAZRmGw9-jUDwOC1qpeyT+Ng0sS2nJ4=GnBsP95JNELBsDsyVQ@mail.gmail.com>
-References: <CAGGr8Nt3pWTOsDJZQ9_hQo1j1Aow47W6xrTsPgXsH_+0S1sksA@mail.gmail.com>
-	<CAHFNz9L_wxNwju6nXuhv+H4ObhBPJnrauYqv0Gmp4soQG7fgrg@mail.gmail.com>
-	<CAGGr8Nsc4NPcG6WK0ZJoa3-ev7Bo3+tSH-no-xxLigs6ALXj3Q@mail.gmail.com>
-	<CAHFNz9+R-Twg+LALn9VUbNMmPr4-L1bUF7dtzFsoyaNg8Y_Ekg@mail.gmail.com>
-	<56655DE1.7000109@gmail.com>
-	<CAHFNz9+P=e+fPouiOHi3DEmVb3eRreVJyQM9E-KeV9uw+KHPnA@mail.gmail.com>
-	<CAAZRmGw9-jUDwOC1qpeyT+Ng0sS2nJ4=GnBsP95JNELBsDsyVQ@mail.gmail.com>
-Date: Fri, 4 Mar 2016 13:35:14 +0530
-Message-ID: <CAHFNz9Ja0vsYKROODyXUGYzKven6FFdo5oLyN4HrWRc5jwvPbg@mail.gmail.com>
-Subject: Re: AverMedia HD Duet (White Box) A188WB drivers
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: Jemma Denson <jdenson@gmail.com>,
-	David Nelson <nelson.dt@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Olli,
+Hi Hans,
 
-Most of the work which went into the saa716x (saa7160xx and sa7162x)
-I had pushed out to
-http://git.linuxtv.org//manu/saa716x_new.git/
-so that people were able to use it while it was being developed.
-There were some issues over here (things went through a data recovery
-process), which got sorted out. There are other changes that also needed
-to be pushed out. It is just a matter of time, to get those changes out.
+On Thursday 03 March 2016 11:03:02 Hans Verkuil wrote:
+> On 03/03/16 10:52, Laurent Pinchart wrote:
+> > On Monday 29 February 2016 09:02:47 Hans Verkuil wrote:
+> >> Make the base offset hexadecimal to simplify debugging since the base
+> >> addresses are hex too.
+> >> 
+> >> The offsets for connectors is also changed to start after the 'reserved'
+> >> range 0x10000-0x2ffff.
+> >> 
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> 
+> >> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> >> index 95e126e..79960ae 100644
+> >> --- a/include/uapi/linux/media.h
+> >> +++ b/include/uapi/linux/media.h
+> >> @@ -66,17 +66,17 @@ struct media_device_info {
+> >> 
+> >>  /*
+> >>  
+> >>   * DVB entities
+> >>   */
+> >> 
+> >> -#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 1)
+> >> -#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 2)
+> >> -#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 3)
+> >> -#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 4)
+> >> +#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 0x00001)
+> >> +#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 0x00002)
+> >> +#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 0x00003)
+> >> +#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 0x00004)
+> >> 
+> >>  /*
+> >>  
+> >>   * I/O entities
+> >>   */
+> >> 
+> >> -#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 1001)
+> >> -#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 1002)
+> >> -#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 1003)
+> >> +#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 0x01001)
+> >> +#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 0x01002)
+> >> +#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 0x01003)
+> >> 
+> >>  /*
+> >>  
+> >>   * Analog TV IF-PLL decoders
+> >> 
+> >> @@ -84,23 +84,23 @@ struct media_device_info {
+> >> 
+> >>   * It is a responsibility of the master/bridge drivers to create links
+> >>   * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
+> >>   */
+> >> 
+> >> -#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 2001)
+> >> -#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 2002)
+> >> +#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 0x02001)
+> >> +#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 0x02002)
+> >> 
+> >>  /*
+> >>  
+> >>   * Audio Entity Functions
+> >>   */
+> >> 
+> >> -#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 3000)
+> >> -#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 3001)
+> >> -#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 3002)
+> >> +#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03000)
+> > 
+> > Why does this one start at 0x*000 while the others start at 0x*0001 ? I
+> > know that the problem predates your patch.
+> 
+> I hadn't noticed. It is my personal preference not to start with 0.
+> But it is not needed in this case, at least not today.
+> 
+> I think starting with 1 will help if we ever want to do AND operations
+> on the ID. Then it is nice that the lower 16 bits can't be 0 for valid
+> IDs.
 
+I'm fine starting at 1, would you like to resubmit this patch to change that ?
+
+> >> +#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03001)
+> >> +#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03002)
+> >> 
+> >>  /*
+> >>  
+> >>   * Connectors
+> >>   */
+> >>  
+> >>  /* It is a responsibility of the entity drivers to add connectors and
+> >>  links
+> >> 
+> >> */ -#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
+> >> -#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
+> >> -#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
+> >> +#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
+> > 
+> > Anything wrong with 0x4xxx ?
+> 
+> Possibly overkill, but Sakari preferred to make more generous use of the
+> 32 bit space. And since there may potentially be a lot of connector types
+> I thought I gave it plenty of space. Of course, if we ever need that many,
+> then something is seriously wrong...
+
+And you'd need space *after* the existing connector IDs, not before. Using 
+0x30000 instead of 0x4000 has the effect of reserving plenty of space for 
+audio functions, not for connectors. I think 0x4000 should be fine.
+
+> >> +#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
+> >> +#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
+> >> 
+> >>  /*
+> >>   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
+
+-- 
 Regards,
-Manu
 
+Laurent Pinchart
 
-
-On Fri, Mar 4, 2016 at 12:58 PM, Olli Salonen <olli.salonen@iki.fi> wrote:
-> Hi Manu,
->
-> How's it going with the SAA7160? I'd be really happy to see the driver
-> being mainlined, but do not really understand if there is some major
-> showstoppers still that keep this from happening.
->
-> Luis has his personal media_tree here
-> https://github.com/ljalves/linux_media/wiki that contains Manu's
-> SAA7160 driver and as far as I understand many people are using that
-> tree with good success. If that could integrated into the tree, I'm
-> sure the community can help to iron out any possible issues existing
-> there still.
->
-> Cheers,
-> -olli
->
-> On 7 December 2015 at 14:06, Manu Abraham <abraham.manu@gmail.com> wrote:
->> Hi Jemma,
->>
->> I am having a downtime, the development machine in a recovery
->> process. If things go well, expecting the system next week.
->>
->> Regards,
->>
->> Manu
->>
->>
->> On Mon, Dec 7, 2015 at 3:52 PM, Jemma Denson <jdenson@gmail.com> wrote:
->>> Hi Manu,
->>>
->>> On 08/10/15 17:28, Manu Abraham wrote:
->>>>
->>>> Hi,
->>>>
->>>> I just got back at work again. Will set things up this weekend/next week.
->>>
->>>
->>> Have you had a chance to make any more progress on this?
->>>
->>> As you're probably aware there are quite a few drivers waiting for saa716x
->>> to be integrated into the tree; if you need some help here is the work
->>> remaining to be done something that can be picked up by other people?
->>>
->>> Regards,
->>>
->>> Jemma.
->>>
->>>
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
