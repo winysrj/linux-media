@@ -1,71 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dimen.winder.org.uk ([87.127.116.10]:55856 "EHLO
-	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966339AbcCPKWB (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:60301 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757051AbcCCKDX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 06:22:01 -0400
-Message-ID: <1458123719.2372.12.camel@winder.org.uk>
-Subject: Re: Support for WinTV-soloHD
-From: Russel Winder <russel@winder.org.uk>
-To: DVB_Linux_Media <linux-media@vger.kernel.org>
-Date: Wed, 16 Mar 2016 10:21:59 +0000
-In-Reply-To: <1457808708.4030.64.camel@winder.org.uk>
-References: <1457808708.4030.64.camel@winder.org.uk>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-wxNdxm10rAm2cag803at"
-Mime-Version: 1.0
+	Thu, 3 Mar 2016 05:03:23 -0500
+Subject: Re: [PATCH for 4.5] media.h: use hex values for the range offsets,
+ move connectors base up.
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <56D3FB27.7000202@xs4all.nl> <3268993.kua0PM2kZ4@avalon>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D80BD6.8020003@xs4all.nl>
+Date: Thu, 3 Mar 2016 11:03:02 +0100
+MIME-Version: 1.0
+In-Reply-To: <3268993.kua0PM2kZ4@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 03/03/16 10:52, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On Monday 29 February 2016 09:02:47 Hans Verkuil wrote:
+>> Make the base offset hexadecimal to simplify debugging since the base
+>> addresses are hex too.
+>>
+>> The offsets for connectors is also changed to start after the 'reserved'
+>> range 0x10000-0x2ffff.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>> index 95e126e..79960ae 100644
+>> --- a/include/uapi/linux/media.h
+>> +++ b/include/uapi/linux/media.h
+>> @@ -66,17 +66,17 @@ struct media_device_info {
+>>  /*
+>>   * DVB entities
+>>   */
+>> -#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 1)
+>> -#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 2)
+>> -#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 3)
+>> -#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 4)
+>> +#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 0x00001)
+>> +#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 0x00002)
+>> +#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 0x00003)
+>> +#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 0x00004)
+>>
+>>  /*
+>>   * I/O entities
+>>   */
+>> -#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 1001)
+>> -#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 1002)
+>> -#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 1003)
+>> +#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 0x01001)
+>> +#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 0x01002)
+>> +#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 0x01003)
+>>
+>>  /*
+>>   * Analog TV IF-PLL decoders
+>> @@ -84,23 +84,23 @@ struct media_device_info {
+>>   * It is a responsibility of the master/bridge drivers to create links
+>>   * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
+>>   */
+>> -#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 2001)
+>> -#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 2002)
+>> +#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 0x02001)
+>> +#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 0x02002)
+>>
+>>  /*
+>>   * Audio Entity Functions
+>>   */
+>> -#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 3000)
+>> -#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 3001)
+>> -#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 3002)
+>> +#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03000)
+> 
+> Why does this one start at 0x*000 while the others start at 0x*0001 ? I know 
+> that the problem predates your patch.
 
---=-wxNdxm10rAm2cag803at
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I hadn't noticed. It is my personal preference not to start with 0.
+But it is not needed in this case, at least not today.
 
-Question answered: the device works as wanted in the newly released 4.5
-kernel on Fedora Rawhide.
+I think starting with 1 will help if we ever want to do AND operations
+on the ID. Then it is nice that the lower 16 bits can't be 0 for valid
+IDs.
 
-On Sat, 2016-03-12 at 18:51 +0000, Russel Winder wrote:
-> I plugged a WinTV-soloHD device into my Debian Sid system running:
->=20
-> Linux anglides 4.4.0-1-amd64 #1 SMP Debian 4.4.4-2 (2016-03-09)
-> x86_64
-> GNU/Linux
->=20
-> but the device, whilst appearing in the lsusb listing, didn't cause a
-> /dev/dvb hierarchy to appear. I am guessing then that the change:
->=20
-> http://git.linuxtv.org/media_tree.git/commit/?id=3D1efc21701d94ed0c5b91
-> 46
-> 7b042bed8b8becd5cc
->=20
-> hasn't actually appeared in the 4.4 kernel. Is it in the 4.5 kernel?
->=20
->=20
---=20
-Russel.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
-et
-41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
-London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
+> 
+>> +#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03001)
+>> +#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03002)
+>>
+>>  /*
+>>   * Connectors
+>>   */
+>>  /* It is a responsibility of the entity drivers to add connectors and links
+>> */ -#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
+>> -#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
+>> -#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
+>> +#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
+> 
+> Anything wrong with 0x4xxx ?
 
+Possibly overkill, but Sakari preferred to make more generous use of the
+32 bit space. And since there may potentially be a lot of connector types
+I thought I gave it plenty of space. Of course, if we ever need that many,
+then something is seriously wrong...
 
---=-wxNdxm10rAm2cag803at
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+	Hans
 
-iEYEABECAAYFAlbpM8cACgkQ+ooS3F10Be8dXgCdHC3BXqJuTlGixRRZDlLbLIu1
-/EAAoJNx0ntkTlzuPwzX4+5lseAJ9xhq
-=TOqU
------END PGP SIGNATURE-----
-
---=-wxNdxm10rAm2cag803at--
-
+> 
+>> +#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
+>> +#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
+>>
+>>  /*
+>>   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
