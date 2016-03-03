@@ -1,105 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:40235 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799AbcCICGm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 21:06:42 -0500
-Subject: Re: i.mx6 camera interface (CSI) and mainline kernel
-To: Tim Harvey <tharvey@gateworks.com>
-References: <20160223114943.GA10944@frolo.macqel>
- <20160223141258.GA5097@frolo.macqel> <4956050.OLrYA1VK2G@avalon>
- <56D79B49.50009@mentor.com> <56D7E59B.6050605@xs4all.nl>
- <20160303083643.GA4303@frolo.macqel> <56D87824.8000707@mentor.com>
- <CAJ+vNU2kPgESnjTZokU3qNR6QAbU3G8HGwc7ahg4jDpeS_xjHg@mail.gmail.com>
-CC: Philippe De Muyter <phdm@macq.eu>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Message-ID: <56DF852A.30702@mentor.com>
-Date: Tue, 8 Mar 2016 18:06:34 -0800
-MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU2kPgESnjTZokU3qNR6QAbU3G8HGwc7ahg4jDpeS_xjHg@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from kirsty.vergenet.net ([202.4.237.240]:43306 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752210AbcCCAXz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 19:23:55 -0500
+From: Simon Horman <horms+renesas@verge.net.au>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH v3] media: platform: rcar_jpu, vsp1: Use ARCH_RENESAS
+Date: Thu,  3 Mar 2016 09:23:39 +0900
+Message-Id: <1456964619-10734-1-git-send-email-horms+renesas@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/07/2016 08:19 AM, Tim Harvey wrote:
-> On Thu, Mar 3, 2016 at 9:45 AM, Steve Longerbeam
-> <steve_longerbeam@mentor.com> wrote:
->> Hi Philippe,
->>
->> On 03/03/2016 12:36 AM, Philippe De Muyter wrote:
->>> Just to be sure : do you mean  https://github.com/slongerbeam/mediatree.git
->>> or something else ?
->> Sorry, yes I meant https://github.com/slongerbeam/mediatree.git.
->>
->>>>> So far I have retested video capture with the SabreAuto/ADV7180 and
->>>>> the SabreSD/OV5640-mipi-csi2, and video capture is working fine on
->>>>> those platforms.
->>>>>
->>>>> There is also a mem2mem that should work fine, but haven't tested yet.
->>>>>
->>>>> I removed camera preview support. At Mentor Graphics we have made
->>>>> quite a few changes to ipu-v3 driver to allow camera preview to initialize
->>>>> and control an overlay display plane independently of imx-drm, by adding
->>>>> a subsystem independent ipu-plane sub-unit. Note we also have a video
->>>>> output overlay driver that also makes use of ipu-plane. But those changes are
->>>>> extensive and touch imx-drm as well as ipu-v3, so I am leaving camera preview
->>>>> and the output overlay driver out (in fact, camera preview is not of much
->>>>> utility so I probably won't bring it back in upstream version).
->>>>>
->>>>> The video capture driver is not quite ready for upstream review yet. It still:
->>>>>
->>>>> - uses the old cropping APIs but should move forward to selection APIs.
->>>>>
->>>>> - uses custom sensor subdev drivers for ADV7180 and OV564x. Still
->>>>>   need to switch to upstream subdevs.
->>> Is it only a problem of those sensor drivers (which exact files ?) or
->>> is it a problem of the capture driver itself ?
->> The camera interface driver (drivers/staging/media/imx6/capture/mx6-camif.c)
->> is binding to these subdevs:
->>
->> drivers/staging/media/imx6/capture/adv7180.c
->> drivers/staging/media/imx6/capture/ov5642.c
->> drivers/staging/media/imx6/capture/ov5640-mipi.c
->>
->> But instead should use the subdevs under drivers/media/i2c, specifically:
->>
->> drivers/media/i2c/adv7180.c (and adding whatever standard subdev features
->> the imx6 interface driver requires).
->>
->> There is a drivers/media/i2c/soc_camera/ov5642.c, but there is no mipi-csi2
->> capable subdev for the ov5640 with the mipi-csi2 interface, so that would have
->> to be created.
->>
-> Steve,
->
-> I've built your mx6-media-staging branch and added device-tree config
-> for the Gateworks Ventana boards which have an on-board ADV7180 and it
-> works great. I've tested it capturing frames via v4l2-ctl as well as
-> gstreamer.
->
-> Please let me know what kind of testing you need. I would love to see
-> this get mainlined!
->
+Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
 
+This is part of an ongoing process to migrate from ARCH_SHMOBILE to
+ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
+appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
 
-Hi Tim, good to hear it works for you on the Ventana boards.
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
 
-I've just pushed some more commits to the mx6-media-staging branch that
-get the drivers/media/i2c/adv7180.c subdev working with the imx6 capture
-backend. Images look perfect when switching to UYVY8_2X8 mbus code instead
-of YUYV8_2X8. But I'm holding off on that change because this subdev is used
-by Renesas targets and would likely corrupt captured images for those
-targets. But I believe UYVY is the correct transmit order according to the
-BT.656 standard.
+---
+Based on media-tree/master
 
-Another thing that should also be changed in drivers/media/i2c/adv7180.c
-is the field type. It should be V4L2_FIELD_SEQ_TB for NTSC and V4L2_FIELD_SEQ_BT
-for PAL.
+v3
+* Update subject to not refer to sh_vou
+* Added acks from Laurent Pinchart and Hans Verkuil
 
-Steve
+v2
+* Do not update VIDEO_SH_VOU to use ARCH_RENESAS as this is
+  used by some SH-based platforms and is not used by any ARM-based platforms
+  so a dependency on ARCH_SHMOBILE is correct for that driver
+* Added Geert Uytterhoeven's Ack
+---
+ drivers/media/platform/Kconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 201f5c296a95..84e041c0a70e 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -238,7 +238,7 @@ config VIDEO_SH_VEU
+ config VIDEO_RENESAS_JPU
+ 	tristate "Renesas JPEG Processing Unit"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+-	depends on ARCH_SHMOBILE || COMPILE_TEST
++	depends on ARCH_RENESAS || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+ 	---help---
+@@ -250,7 +250,7 @@ config VIDEO_RENESAS_JPU
+ config VIDEO_RENESAS_VSP1
+ 	tristate "Renesas VSP1 Video Processing Engine"
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
+-	depends on (ARCH_SHMOBILE && OF) || COMPILE_TEST
++	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	---help---
+ 	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
+-- 
+2.1.4
 
