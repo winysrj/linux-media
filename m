@@ -1,86 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58650 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750860AbcC1S21 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2016 14:28:27 -0400
-Date: Mon, 28 Mar 2016 15:28:21 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: <laurent.pinchart@ideasonboard.com>, <perex@perex.cz>,
-	<tiwai@suse.com>, <hans.verkuil@cisco.com>,
-	<chehabrafael@gmail.com>, <javier@osg.samsung.com>,
-	<jh1009.sung@samsung.com>, <linux-kernel@vger.kernel.org>,
-	<linux-media@vger.kernel.org>, <alsa-devel@alsa-project.org>
-Subject: Re: [RFC PATCH 2/4] media: Add Media Device Allocator API
- documentation
-Message-ID: <20160328152821.18142532@recife.lan>
-In-Reply-To: <33083175297b174a68b937e9bf2d867add363e23.1458966594.git.shuahkh@osg.samsung.com>
-References: <cover.1458966594.git.shuahkh@osg.samsung.com>
- <33083175297b174a68b937e9bf2d867add363e23.1458966594.git.shuahkh@osg.samsung.com>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:49450 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757788AbcCCOeu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 09:34:50 -0500
+Date: Thu, 3 Mar 2016 14:34:25 +0000
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Keith Packard <keithp@keithp.com>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160303143425.2361dea2@lxorguk.ukuu.org.uk>
+In-Reply-To: <20160303071305.247e30b1@lwn.net>
+References: <20160213145317.247c63c7@lwn.net>
+	<87y49zr74t.fsf@intel.com>
+	<20160303071305.247e30b1@lwn.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 25 Mar 2016 22:38:43 -0600
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> DocBook is a means to an end; nobody really wants DocBook itself as far
+> as I can tell. 
 
-> Add Media Device Allocator API documentation.
+We only have docbook because it was the tool of choice rather a lot of
+years ago to then get useful output formats. It was just inherited when
+borrowed the original scripts from Gnome/Gtk. It's still the most
+effective way IMHO of building big structured documents out of the kernel.
 
-Please merge this with the previous patch.
+The Gtk people long ago rewrote the original document script into a real
+tool so they have some different and maintained tools that are close to
+equivalent and already have some markdown support. Before we go off and
+re-invent the wheel it might be worth just borrowing their wheel and
+tweaking it as needed ? In particular they can generate help indexes so
+that the entire output becomes nicely browsable with an HTML based help
+browser.
 
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  include/media/media-dev-allocator.h | 32 ++++++++++++++++++++++++++++++++
->  1 file changed, 32 insertions(+)
-> 
-> diff --git a/include/media/media-dev-allocator.h b/include/media/media-dev-allocator.h
-> index 2932c90..174840c 100644
-> --- a/include/media/media-dev-allocator.h
-> +++ b/include/media/media-dev-allocator.h
-> @@ -20,6 +20,38 @@
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  /**
-> + * DOC: Media Controller Device Allocator API
-> + * There are known problems with media device life time management. When media
-> + * device is released while an media ioctl is in progress, ioctls fail with
-> + * use-after-free errors and kernel hangs in some cases.
-> + * 
-> + * Media Device can be in any the following states:
-> + * 
-> + * - Allocated
-> + * - Registered (could be tied to more than one driver)
-> + * - Unregistered, not in use (media device file is not open)
-> + * - Unregistered, in use (media device file is not open)
-> + * - Released
-> + * 
-> + * When media device belongs to  more than one driver, registrations should be
-> + * refcounted to avoid unregistering when one of the drivers does unregister.
-> + * A refcount field in the struct media_device covers this case. Unregister on
-> + * a Media Allocator media device is a kref_put() call. The media device should
-> + * be unregistered only when the last unregister occurs.
-> + * 
-> + * When a media device is in use when it is unregistered, it should not be
-> + * released until the application exits when it detects the unregistered
-> + * status. Media device that is in use when it is unregistered is moved to
-> + * to_delete_list. When the last unregister occurs, media device is unregistered
-> + * and becomes an unregistered, still allocated device. Unregister marks the
-> + * device to be deleted.
-> + * 
-> + * When media device belongs to more than one driver, as both drivers could be
-> + * unbound/bound, driver should not end up getting stale media device that is
-> + * on its way out. Moving the unregistered media device to to_delete_list helps
-> + * this case as well.
-> + */
-> +/**
->   * media_device_get() - Allocate and return global media device
->   *
->   * @mdev
-
-
--- 
-Thanks,
-Mauro
+Alan
