@@ -1,48 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:35424 "EHLO
-	mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477AbcCUHut (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35441 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755837AbcCCHhT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 03:50:49 -0400
-Received: by mail-oi0-f42.google.com with SMTP id w20so77670015oia.2
-        for <linux-media@vger.kernel.org>; Mon, 21 Mar 2016 00:50:49 -0700 (PDT)
+	Thu, 3 Mar 2016 02:37:19 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l2-mc.h: fix compiler warnings
+Message-ID: <56D7E9AA.90304@xs4all.nl>
+Date: Thu, 3 Mar 2016 08:37:14 +0100
 MIME-Version: 1.0
-In-Reply-To: <56EFA571.1010104@xs4all.nl>
-References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
-	<1458545443-3302-1-git-send-email-daniel.vetter@ffwll.ch>
-	<56EFA571.1010104@xs4all.nl>
-Date: Mon, 21 Mar 2016 08:50:48 +0100
-Message-ID: <CAKMK7uEV7sWtNotcp0oKW6QjFmEjMQrpkGiDx4=hsMqdueZQnw@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: DRI Development <dri-devel@lists.freedesktop.org>,
-	Chris Wilson <chris@chris-wilson.co.uk>,
-	Tiago Vignatti <tiago.vignatti@intel.com>,
-	=?UTF-8?Q?St=C3=A9phane_Marchesin?= <marcheu@chromium.org>,
-	David Herrmann <dh.herrmann@gmail.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Daniel Vetter <daniel.vetter@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	intel-gfx <intel-gfx@lists.freedesktop.org>,
-	devel@driverdev.osuosl.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 21, 2016 at 8:40 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> +    For correctness and optimal performance, it is always required to use
->> +    SYNC_START and SYNC_END before and after, respectively, when accessing the
->> +    mapped address. Userspace cannot on coherent access, even when there are
->
-> "Userspace cannot on coherent access"? Do you mean "cannot do"? Sorry, the
-> meaning isn't clear to me.
+Fix these warnings when CONFIG_MEDIA_CONTROLLER is not defined:
 
-"cannot rely on". I'll send out v2 asap (and let's hope the coffee
-works this time around).
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+In file included from /home/hans/work/build/media-git/drivers/media/v4l2-core/v4l2-fh.c:32:0:
+/home/hans/work/build/media-git/include/media/v4l2-mc.h:173:12: warning: 'v4l_enable_media_source' defined but not used [-Wunused-function]
+ static int v4l_enable_media_source(struct video_device *vdev)
+            ^
+/home/hans/work/build/media-git/include/media/v4l2-mc.h:183:12: warning: 'v4l_vb2q_enable_media_source' defined but not used [-Wunused-function]
+ static int v4l_vb2q_enable_media_source(struct vb2_queue *q)
+            ^
+In file included from /home/hans/work/build/media-git/include/media/tuner.h:23:0,
+                 from /home/hans/work/build/media-git/drivers/media/tuners/tuner-types.c:9:
+/home/hans/work/build/media-git/include/media/v4l2-mc.h:173:12: warning: 'v4l_enable_media_source' defined but not used [-Wunused-function]
+ static int v4l_enable_media_source(struct video_device *vdev)
+            ^
+/home/hans/work/build/media-git/include/media/v4l2-mc.h:178:13: warning: 'v4l_disable_media_source' defined but not used [-Wunused-function]
+ static void v4l_disable_media_source(struct video_device *vdev)
+             ^
+
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+
+Please test without CONFIG_MEDIA_CONTROLLER or at least check the daily build results!
+This is the second time I have to clean up a mistake in this header.
+
+Regards,
+
+	Hans
+
+---
+diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+index 5cbc209..311885e 100644
+--- a/include/media/v4l2-mc.h
++++ b/include/media/v4l2-mc.h
+@@ -170,17 +170,17 @@ static inline int v4l2_mc_create_media_graph(struct media_device *mdev)
+ 	return 0;
+ }
+
+-static int v4l_enable_media_source(struct video_device *vdev)
++static inline int v4l_enable_media_source(struct video_device *vdev)
+ {
+ 	return 0;
+ }
+
+-static void v4l_disable_media_source(struct video_device *vdev)
++static inline void v4l_disable_media_source(struct video_device *vdev)
+ {
+ 	return;
+ }
+
+-static int v4l_vb2q_enable_media_source(struct vb2_queue *q)
++static inline int v4l_vb2q_enable_media_source(struct vb2_queue *q)
+ {
+ 	return 0;
+ }
