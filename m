@@ -1,72 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:56441 "EHLO
-	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933221AbcCROQk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 10:16:40 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv13 01/17] dts: exynos4*: add HDMI CEC pin definition to pinctrl
-Date: Fri, 18 Mar 2016 15:07:00 +0100
-Message-Id: <1458310036-19252-2-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
-References: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
+Received: from mailout.easymail.ca ([64.68.201.169]:46158 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752980AbcCCDiX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 22:38:23 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: au0828 audio mixer isn't connected to decoder
+Date: Wed,  2 Mar 2016 20:38:19 -0700
+Message-Id: <1456976299-7525-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+When snd_usb_audio gets probed first, audio mixer
+doesn't get linked to the decoder.
 
-Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
-Exynos4x12 SoCs. These are required by the HDMI CEC device.
+Change au0828_media_graph_notify() to handle the
+mixer entity getting registered before the decoder.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Change au0828_media_device_register() to invoke
+au0828_media_graph_notify() to connect entites
+that were created prior to registering the notify
+handler.
+
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Reported-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- arch/arm/boot/dts/exynos4210-pinctrl.dtsi | 7 +++++++
- arch/arm/boot/dts/exynos4x12-pinctrl.dtsi | 7 +++++++
- 2 files changed, 14 insertions(+)
 
-diff --git a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-index a7c2128..9331c62 100644
---- a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
-@@ -820,6 +820,13 @@
- 			samsung,pin-pud = <1>;
- 			samsung,pin-drv = <0>;
- 		};
-+
-+		hdmi_cec: hdmi-cec {
-+			samsung,pins = "gpx3-6";
-+			samsung,pin-function = <3>;
-+			samsung,pin-pud = <0>;
-+			samsung,pin-drv = <0>;
-+		};
- 	};
+Tested by black listing au0828 to force
+snd_usb_audio to load first and then modprobe
+au0828. Generated graphs to verify audio graph
+is connected to the au0828 graph.
  
- 	pinctrl@03860000 {
-diff --git a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-index bac25c6..856b292 100644
---- a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
-@@ -885,6 +885,13 @@
- 			samsung,pin-pud = <0>;
- 			samsung,pin-drv = <0>;
- 		};
-+
-+		hdmi_cec: hdmi-cec {
-+			samsung,pins = "gpx3-6";
-+			samsung,pin-function = <3>;
-+			samsung,pin-pud = <0>;
-+			samsung,pin-drv = <0>;
-+		};
- 	};
+ drivers/media/usb/au0828/au0828-core.c | 54 ++++++++++++++++++++++++++++------
+ 1 file changed, 45 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index ca1e5eb..5821de4 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -211,23 +211,50 @@ static void au0828_media_graph_notify(struct media_entity *new,
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct au0828_dev *dev = (struct au0828_dev *) notify_data;
+ 	int ret;
++	struct media_entity *entity, *mixer = NULL, *decoder = NULL;
  
- 	pinctrl_2: pinctrl@03860000 {
+-	if (!dev->decoder)
+-		return;
++	if (!new) {
++		/*
++		 * Called during au0828 probe time to connect
++		 * entites that were created prior to registering
++		 * the notify handler. Find mixer and decoder.
++		*/
++		media_device_for_each_entity(entity, dev->media_dev) {
++			if (entity->function == MEDIA_ENT_F_AUDIO_MIXER)
++				mixer = entity;
++			else if (entity->function == MEDIA_ENT_F_ATV_DECODER)
++				decoder = entity;
++		}
++		goto create_link;
++	}
+ 
+ 	switch (new->function) {
+ 	case MEDIA_ENT_F_AUDIO_MIXER:
+-		ret = media_create_pad_link(dev->decoder,
++		mixer = new;
++		if (dev->decoder)
++			decoder = dev->decoder;
++		break;
++	case MEDIA_ENT_F_ATV_DECODER:
++		/* In case, Mixer is added first, find mixer and create link */
++		media_device_for_each_entity(entity, dev->media_dev) {
++			if (entity->function == MEDIA_ENT_F_AUDIO_MIXER)
++				mixer = entity;
++		}
++		decoder = new;
++		break;
++	default:
++		break;
++	}
++
++create_link:
++	if (decoder && mixer) {
++		ret = media_create_pad_link(decoder,
+ 					    AU8522_PAD_AUDIO_OUT,
+-					    new, 0,
++					    mixer, 0,
+ 					    MEDIA_LNK_FL_ENABLED);
+ 		if (ret)
+ 			dev_err(&dev->usbdev->dev,
+-				"Mixer Pad Link Create Error: %d\n",
+-				ret);
+-		break;
+-	default:
+-		break;
++				"Mixer Pad Link Create Error: %d\n", ret);
+ 	}
+ #endif
+ }
+@@ -447,6 +474,15 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 				"Media Device Register Error: %d\n", ret);
+ 			return ret;
+ 		}
++	} else {
++		/*
++		 * Call au0828_media_graph_notify() to connect
++		 * audio graph to our graph. In this case, audio
++		 * driver registered the device and there is no
++		 * entity_notify to be called when new entities
++		 * are added. Invoke it now.
++		*/
++		au0828_media_graph_notify(NULL, (void *) dev);
+ 	}
+ 	/* register entity_notify callback */
+ 	dev->entity_notify.notify_data = (void *) dev;
 -- 
-2.7.0
+2.5.0
 
