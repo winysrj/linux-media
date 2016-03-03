@@ -1,99 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:47169 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932579AbcCKPzX (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:56130 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752046AbcCCNcO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 10:55:23 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 1/2] [media] au0828: disable tuner links and cache tuner/decoder
-Date: Fri, 11 Mar 2016 12:55:15 -0300
-Message-Id: <d14f3141901856eaed358ab049f4a3aac8fe4863.1457711514.git.mchehab@osg.samsung.com>
+	Thu, 3 Mar 2016 08:32:14 -0500
+Subject: Re: [PATCH 3/8] media: Add type field to struct media_entity
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org
+References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1456844246-18778-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D83CE0.70407@xs4all.nl>
+Date: Thu, 3 Mar 2016 14:32:16 +0100
+MIME-Version: 1.0
+In-Reply-To: <1456844246-18778-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For au0828_enable_source() to work, the tuner links should be
-disabled and the tuner/decoder should be cached at au0828 struct.
+On 03/01/16 15:57, Laurent Pinchart wrote:
+> Code that processes media entities can require knowledge of the
+> structure type that embeds a particular media entity instance in order
+> to cast the entity to the proper object type. This needs is shown by the
+> presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
+> functions.
+> 
+> The implementation of those two functions relies on the entity function
+> field, which is both a wrong and an inefficient design, without even
+> mentioning the maintenance issue involved in updating the functions
+> every time a new entity function is added. Fix this by adding add a type
+> field to the media entity structure to carry the information.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Fixes: 9822f4173f84 ('[media] au0828: use v4l2_mc_create_media_graph()')
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/usb/au0828/au0828-core.c | 42 ++++++++++++++++++++++------------
- 1 file changed, 27 insertions(+), 15 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 5dc82e8c8670..ecfa18939663 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -456,7 +456,8 @@ static int au0828_media_device_register(struct au0828_dev *dev,
- {
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	int ret;
--	struct media_entity *entity, *demod = NULL, *tuner = NULL;
-+	struct media_entity *entity, *demod = NULL;
-+	struct media_link *link;
- 
- 	if (!dev->media_dev)
- 		return 0;
-@@ -482,26 +483,37 @@ static int au0828_media_device_register(struct au0828_dev *dev,
- 	}
- 
- 	/*
--	 * Find tuner and demod to disable the link between
--	 * the two to avoid disable step when tuner is requested
--	 * by video or audio. Note that this step can't be done
--	 * until dvb graph is created during dvb register.
-+	 * Find tuner, decoder and demod.
-+	 *
-+	 * The tuner and decoder should be cached, as they'll be used by
-+	 *	au0828_enable_source.
-+	 *
-+	 * It also needs to disable the link between tuner and
-+	 * decoder/demod, to avoid disable step when tuner is requested
-+	 * by video or audio. Note that this step can't be done until dvb
-+	 * graph is created during dvb register.
- 	*/
- 	media_device_for_each_entity(entity, dev->media_dev) {
--		if (entity->function == MEDIA_ENT_F_DTV_DEMOD)
-+		switch (entity->function) {
-+		case MEDIA_ENT_F_TUNER:
-+			dev->tuner = entity;
-+			break;
-+		case MEDIA_ENT_F_ATV_DECODER:
-+			dev->decoder = entity;
-+			break;
-+		case MEDIA_ENT_F_DTV_DEMOD:
- 			demod = entity;
--		else if (entity->function == MEDIA_ENT_F_TUNER)
--			tuner = entity;
-+			break;
-+		}
- 	}
--	/* Disable link between tuner and demod */
--	if (tuner && demod) {
--		struct media_link *link;
- 
--		list_for_each_entry(link, &demod->links, list) {
--			if (link->sink->entity == demod &&
--			    link->source->entity == tuner) {
-+	/* Disable link between tuner->demod and/or tuner->decoder */
-+	if (dev->tuner) {
-+		list_for_each_entry(link, &dev->tuner->links, list) {
-+			if (demod && link->sink->entity == demod)
-+				media_entity_setup_link(link, 0);
-+			if (dev->decoder && link->sink->entity == dev->decoder)
- 				media_entity_setup_link(link, 0);
--			}
- 		}
- 	}
- 
--- 
-2.5.0
+Thanks!
 
+	Hans
+
+> ---
+>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
+>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
+>  include/media/media-entity.h          | 75 ++++++++++++++++++-----------------
+>  3 files changed, 40 insertions(+), 37 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index d8e5994cccf1..7e766a92e3d9 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -735,6 +735,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+>  	if (!vdev->v4l2_dev->mdev)
+>  		return 0;
+>  
+> +	vdev->entity.type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
+>  	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
+>  
+>  	switch (type) {
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> index d63083803144..bb6e79f14bb8 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -584,6 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+>  	sd->host_priv = NULL;
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	sd->entity.name = sd->name;
+> +	sd->entity.type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
+>  	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
+>  #endif
+>  }
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index d58e29d3f239..cbd37530f6b8 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -187,10 +187,37 @@ struct media_entity_operations {
+>  };
+>  
+>  /**
+> + * enum media_entity_type - Media entity type
+> + *
+> + * @MEDIA_ENTITY_TYPE_MEDIA_ENTITY:
+> + *	The entity is a struct media_entity instance.
+> + * @MEDIA_ENTITY_TYPE_VIDEO_DEVICE:
+> + *	The entity is a struct video_device instance.
+> + * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
+> + *	The entity is a struct v4l2_subdev instance.
+> + *
+> + * The entity type identifies the type of the object instance that implements
+> + * the struct media_entity instance. This allows runtime type identification of
+> + * media entities and safe casting to the project object type. For instance, a
+> + * media entity structure instance embedded in a v4l2_subdev structure instance
+> + * will have the type MEDIA_ENTITY_TYPE_V4L2_SUBDEV and can safely be cast to a
+> + * v4l2_subdev structure using the container_of() macro.
+> + *
+> + * Media entities can be instantiated without creating any derived object type,
+> + * in which case their type will be MEDIA_ENTITY_TYPE_MEDIA_ENTITY.
+> + */
+> +enum media_entity_type {
+> +	MEDIA_ENTITY_TYPE_MEDIA_ENTITY,
+> +	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
+> +	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
+> +};
+> +
+> +/**
+>   * struct media_entity - A media entity graph object.
+>   *
+>   * @graph_obj:	Embedded structure containing the media object common data.
+>   * @name:	Entity name.
+> + * @type:	Type of the object that implements the media_entity.
+>   * @function:	Entity main function, as defined in uapi/media.h
+>   *		(MEDIA_ENT_F_*)
+>   * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
+> @@ -219,6 +246,7 @@ struct media_entity_operations {
+>  struct media_entity {
+>  	struct media_gobj graph_obj;	/* must be first field in struct */
+>  	const char *name;
+> +	enum media_entity_type type;
+>  	u32 function;
+>  	unsigned long flags;
+>  
+> @@ -328,56 +356,29 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
+>  }
+>  
+>  /**
+> - * is_media_entity_v4l2_io() - identify if the entity main function
+> - *			       is a V4L2 I/O
+> - *
+> + * is_media_entity_v4l2_io() - Check if the entity is a video_device
+>   * @entity:	pointer to entity
+>   *
+> - * Return: true if the entity main function is one of the V4L2 I/O types
+> - *	(video, VBI or SDR radio); false otherwise.
+> + * Return: true if the entity is an instance of a video_device object and can
+> + * safely be cast to a struct video_device using the container_of() macro, or
+> + * false otherwise.
+>   */
+>  static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
+>  {
+> -	if (!entity)
+> -		return false;
+> -
+> -	switch (entity->function) {
+> -	case MEDIA_ENT_F_IO_V4L:
+> -	case MEDIA_ENT_F_IO_VBI:
+> -	case MEDIA_ENT_F_IO_SWRADIO:
+> -		return true;
+> -	default:
+> -		return false;
+> -	}
+> +	return entity && entity->type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
+>  }
+>  
+>  /**
+> - * is_media_entity_v4l2_subdev - return true if the entity main function is
+> - *				 associated with the V4L2 API subdev usage
+> - *
+> + * is_media_entity_v4l2_subdev() - Check if the entity is a v4l2_subdev
+>   * @entity:	pointer to entity
+>   *
+> - * This is an ancillary function used by subdev-based V4L2 drivers.
+> - * It checks if the entity function is one of functions used by a V4L2 subdev,
+> - * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
+> + * Return: true if the entity is an instance of a v4l2_subdev object and can
+> + * safely be cast to a struct v4l2_subdev using the container_of() macro, or
+> + * false otherwise.
+>   */
+>  static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
+>  {
+> -	if (!entity)
+> -		return false;
+> -
+> -	switch (entity->function) {
+> -	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
+> -	case MEDIA_ENT_F_CAM_SENSOR:
+> -	case MEDIA_ENT_F_FLASH:
+> -	case MEDIA_ENT_F_LENS:
+> -	case MEDIA_ENT_F_ATV_DECODER:
+> -	case MEDIA_ENT_F_TUNER:
+> -		return true;
+> -
+> -	default:
+> -		return false;
+> -	}
+> +	return entity && entity->type == MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
+>  }
+>  
+>  /**
+> 
