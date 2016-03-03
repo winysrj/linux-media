@@ -1,75 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54259 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751335AbcCQDBP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 23:01:15 -0400
-Subject: Re: [PATCH] sound/usb: Fix memory leak in media_snd_stream_delete()
- during unbind
-To: mchehab@osg.samsung.com, perex@perex.cz,
-	Takashi Iwai <tiwai@suse.com>
-References: <1458183486-8113-1-git-send-email-shuahkh@osg.samsung.com>
-Cc: alsa-devel@alsa-project.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56EA1DF8.9060500@osg.samsung.com>
-Date: Wed, 16 Mar 2016 21:01:12 -0600
+Received: from kirsty.vergenet.net ([202.4.237.240]:43345 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752672AbcCCAZY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 19:25:24 -0500
+Date: Thu, 3 Mar 2016 09:25:13 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2] media: platform: rcar_jpu, sh_vou, vsp1: Use
+ ARCH_RENESAS
+Message-ID: <20160303002513.GG23040@verge.net.au>
 MIME-Version: 1.0
-In-Reply-To: <1458183486-8113-1-git-send-email-shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56D6E7D6.1010806@cogentembedded.com>
+ <56D6CF57.2030507@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding Takashi Iwai
+On Wed, Mar 02, 2016 at 12:32:39PM +0100, Hans Verkuil wrote:
+> Hi Simon,
+> 
+> Note that the patch subject still mentions sh_vou.
+> 
+> Otherwise:
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 03/16/2016 08:58 PM, Shuah Khan wrote:
-> media_snd_stream_delete() fails to release resources during unbind. This
-> leads to use-after-free in media_gobj_create() on a subsequent bind.
+[snip]
+
+On Wed, Mar 02, 2016 at 04:17:10PM +0300, Sergei Shtylyov wrote:
+
+[snip]
+
+> >v2
+> >* Do not update VIDEO_SH_VOU to use ARCH_RENESAS as this is
+> >   used by some SH-based platforms and is not used by any ARM-based platforms
+> >   so a dependency on ARCH_SHMOBILE is correct for that driver
 > 
-> [ 1445.086410] BUG: KASAN: use-after-free in media_gobj_create+0x3a1/0x470 [media] at addr ffff8801ead49998
-> 
-> [ 1445.086771] Call Trace:
-> [ 1445.086779]  [<ffffffff81ade373>] dump_stack+0x67/0x94
-> [ 1445.086785]  [<ffffffff81523c29>] print_trailer+0xf9/0x150
-> [ 1445.086790]  [<ffffffff81529644>] object_err+0x34/0x40
-> [ 1445.086796]  [<ffffffff8152b9e1>] kasan_report_error+0x221/0x530
-> [ 1445.086803]  [<ffffffff8152bfb3>] __asan_report_store8_noabort+0x43/0x50
-> [ 1445.086813]  [<ffffffffa0a79341>] ? media_gobj_create+0x3a1/0x470 [media]
-> [ 1445.086822]  [<ffffffffa0a79341>] media_gobj_create+0x3a1/0x470 [media]
-> [ 1445.086831]  [<ffffffffa0a705a9>] media_device_register_entity+0x259/0x6f0 [media]
-> [ 1445.086841]  [<ffffffffa0a70350>] ? media_device_unregister_entity_notify+0x100/0x100 [media]
-> [ 1445.086846]  [<ffffffff81526232>] ? ___slab_alloc+0x172/0x500
-> [ 1445.086854]  [<ffffffff81203548>] ? mark_held_locks+0xc8/0x120
-> [ 1445.086859]  [<ffffffff81526610>] ? __slab_alloc+0x50/0x70
-> [ 1445.086878]  [<ffffffffa0fe711c>] ? media_snd_mixer_init+0x16c/0x500 [snd_usb_audio]
-> [ 1445.086884]  [<ffffffff8152b086>] ? kasan_unpoison_shadow+0x36/0x50
-> [ 1445.086890]  [<ffffffff8152b086>] ? kasan_unpoison_shadow+0x36/0x50
-> [ 1445.086895]  [<ffffffff8152b0fe>] ? kasan_kmalloc+0x5e/0x70
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  sound/usb/media.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/sound/usb/media.c b/sound/usb/media.c
-> index 44a5de9..0d03773 100644
-> --- a/sound/usb/media.c
-> +++ b/sound/usb/media.c
-> @@ -135,7 +135,7 @@ void media_snd_stream_delete(struct snd_usb_substream *subs)
->  	if (mctl && mctl->media_dev) {
->  		struct media_device *mdev;
->  
-> -		mdev = subs->stream->chip->media_dev;
-> +		mdev = mctl->media_dev;
->  		if (mdev && media_devnode_is_registered(&mdev->devnode)) {
->  			media_devnode_remove(mctl->intf_devnode);
->  			media_device_unregister_entity(&mctl->media_entity);
-> 
+>    You forgot to remove it from the subject though.
+
+[snip]
 
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Thanks, I have posted v3 with sh_vou removed from the subject line.
+
