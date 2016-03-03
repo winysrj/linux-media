@@ -1,58 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47059 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750777AbcCDLL5 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:45387 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756665AbcCCD5Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 06:11:57 -0500
-Subject: Re: tw686x driver
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-References: <56D6A50F.4060404@xs4all.nl> <m3povcnjfo.fsf@t19.piap.pl>
- <56D7E87B.1080505@xs4all.nl> <m3lh5zohsf.fsf@t19.piap.pl>
- <56D83E16.1010907@xs4all.nl> <m3h9gnod3t.fsf@t19.piap.pl>
- <56D84CA7.4050800@xs4all.nl> <m3d1raojqq.fsf@t19.piap.pl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D96D77.4060707@xs4all.nl>
-Date: Fri, 4 Mar 2016 12:11:51 +0100
-MIME-Version: 1.0
-In-Reply-To: <m3d1raojqq.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Wed, 2 Mar 2016 22:57:25 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 99679180828
+	for <linux-media@vger.kernel.org>; Thu,  3 Mar 2016 04:57:19 +0100 (CET)
+Date: Thu, 03 Mar 2016 04:57:19 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160303035719.99679180828@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/04/2016 07:11 AM, Krzysztof Hałasa wrote:
-> Hans Verkuil <hverkuil@xs4all.nl> writes:
-> 
->>> Staging is meant for completely different situation - for immature,
->>> incomplete code. It has nothing to do with the case.
->>
->> It can be for anything that prevents it from being mainlined. It was (still is?)
->> used for mature android drivers, for example.
-> 
-> What is preventing my driver from being mainlined?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I have two drivers with different feature sets. Only one can be active
-at a time. I have to make a choice which one I'll take and Ezequiel's
-version has functionality (audio, interlaced support) which matches best
-with existing v4l applications and the typical use cases. I'm not going
-to have two drivers for the same hw in the media subsystem since only
-one can be active anyway. My decision, although Mauro can of course decide
-otherwise.
+Results of the daily build of media_tree:
 
-I am OK with adding your driver to staging in the hope that someone will
-merged the functionalities of the two to make a new and better driver.
+date:		Thu Mar  3 04:00:23 CET 2016
+git branch:	test
+git hash:	697fe725f37aaa5fb15f581bc6e5b588f5fc8f7b
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
 
-Whether that means that Ezequiel's code is merged into yours or vice versa,
-I really don't care.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-My goal is to provide the end-user with the best experience, and this is
-IMHO the best option given the hand I've been dealt.
+Detailed results are available here:
 
-I ordered a tw6869-based PCIe card so I can do testing myself once it has
-arrived.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Regards,
+Full logs are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
