@@ -1,103 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:34784 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751739AbcCWLao convert rfc822-to-8bit (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:57701 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750777AbcCDMHN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 07:30:44 -0400
-Received: by mail-wm0-f41.google.com with SMTP id p65so229369320wmp.1
-        for <linux-media@vger.kernel.org>; Wed, 23 Mar 2016 04:30:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20160321171405.GP28483@phenom.ffwll.local>
-References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
-	<1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
-	<CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
-	<20160321171405.GP28483@phenom.ffwll.local>
-Date: Wed, 23 Mar 2016 12:30:42 +0100
-Message-ID: <CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
-From: David Herrmann <dh.herrmann@gmail.com>
-To: Daniel Vetter <daniel@ffwll.ch>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	Chris Wilson <chris@chris-wilson.co.uk>,
-	Tiago Vignatti <tiago.vignatti@intel.com>,
-	=?UTF-8?Q?St=C3=A9phane_Marchesin?= <marcheu@chromium.org>,
-	Daniel Vetter <daniel.vetter@intel.com>,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 4 Mar 2016 07:07:13 -0500
+Message-ID: <1457093229.2782.9.camel@xs4all.nl>
+Subject: Re: DVBSky T980C CI issues (kernel 4.0.x)
+From: Jurgen Kramer <gtmkramer@xs4all.nl>
+To: Olli Salonen <olli.salonen@iki.fi>
+Cc: Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Fri, 04 Mar 2016 13:07:09 +0100
+In-Reply-To: <CAAZRmGzCY+foBG2rnDYj6fHewCpj3m-ucDF_5McaUpmuEDyCVQ@mail.gmail.com>
+References: <1436697509.2446.14.camel@xs4all.nl>
+	 <1440352250.13381.3.camel@xs4all.nl> <55F332FE.7040201@mbox200.swipnet.se>
+	 <1442041326.2442.2.camel@xs4all.nl>
+	 <CAAZRmGxvrXjanCTcd0Ybk-qzHhqO5e6JhrpSWxNXSa+zzPsdUg@mail.gmail.com>
+	 <1454007436.13371.4.camel@xs4all.nl>
+	 <CAAZRmGwuinufZpCpTs8t+BRyTcfio-4z34PCKH7Ha3J+dxXNqw@mail.gmail.com>
+	 <56ADCBE4.6050609@mbox200.swipnet.se>
+	 <CAAZRmGy21S+qkrC9d0hz02J98woUc9p+LtnhK8Det=yWmb_myg@mail.gmail.com>
+	 <56C88CEB.3080907@mbox200.swipnet.se> <1455988859.21645.6.camel@xs4all.nl>
+	 <CAAZRmGwME6Mb+HAtd5nwPxc9RJi-XdTbS_Cfn1P1LOi0Y2UYZg@mail.gmail.com>
+	 <1457079352.2782.3.camel@xs4all.nl>
+	 <CAAZRmGzCY+foBG2rnDYj6fHewCpj3m-ucDF_5McaUpmuEDyCVQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey
+Hi Olli,
 
-On Mon, Mar 21, 2016 at 6:14 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Mon, Mar 21, 2016 at 01:26:58PM +0100, David Herrmann wrote:
->> Hi
->>
->> On Mon, Mar 21, 2016 at 8:51 AM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
->> > Just a bit of wording polish plus mentioning that it can fail and must
->> > be restarted.
->> >
->> > Requested by Sumit.
->> >
->> > v2: Fix them typos (Hans).
->> >
->> > Cc: Chris Wilson <chris@chris-wilson.co.uk>
->> > Cc: Tiago Vignatti <tiago.vignatti@intel.com>
->> > Cc: Stéphane Marchesin <marcheu@chromium.org>
->> > Cc: David Herrmann <dh.herrmann@gmail.com>
->> > Cc: Sumit Semwal <sumit.semwal@linaro.org>
->> > Cc: Daniel Vetter <daniel.vetter@intel.com>
->> > CC: linux-media@vger.kernel.org
->> > Cc: dri-devel@lists.freedesktop.org
->> > Cc: linaro-mm-sig@lists.linaro.org
->> > Cc: intel-gfx@lists.freedesktop.org
->> > Cc: devel@driverdev.osuosl.org
->> > Cc: Hans Verkuil <hverkuil@xs4all.nl>
->> > Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
->> > Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
->> > ---
->> >  Documentation/dma-buf-sharing.txt | 11 ++++++-----
->> >  drivers/dma-buf/dma-buf.c         |  2 +-
->> >  2 files changed, 7 insertions(+), 6 deletions(-)
->> >
->> > diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
->> > index 32ac32e773e1..ca44c5820585 100644
->> > --- a/Documentation/dma-buf-sharing.txt
->> > +++ b/Documentation/dma-buf-sharing.txt
->> > @@ -352,7 +352,8 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
->> >
->> >     No special interfaces, userspace simply calls mmap on the dma-buf fd, making
->> >     sure that the cache synchronization ioctl (DMA_BUF_IOCTL_SYNC) is *always*
->> > -   used when the access happens. This is discussed next paragraphs.
->> > +   used when the access happens. Note that DMA_BUF_IOCTL_SYNC can fail with
->> > +   -EAGAIN or -EINTR, in which case it must be restarted.
->>
->> What is "restart on EAGAIN" supposed to mean? Or more generally, what
->> does EAGAIN tell the caller?
->
-> Do what drmIoctl does essentially.
->
-> while (ret == -1 && (errno == EAGAIN || errno == EINTR)
->         ret = ioctl();
->
-> Typed from memery, too lazy to look it up in the source ;-) I'm trying to
-> sell the idea of a real dma-buf manpage to Sumit, we should clarify this
-> in detail there.
+On Fri, 2016-03-04 at 10:28 +0200, Olli Salonen wrote:
+> Hi Jurgen,
+> 
+> Ah, that's interesting. My T980C (and based on printout from Torbjörn
+> his as well) have Si2168-A20 chips.
+> 
+> Some things I'd like to understand:
+> - is there a difference if the CI slot is populated or not?
+Not sure, will test
+> - is there any difference between the different firmwares?
+I'll check the second newer one.
+> - does it work with the DVBSky provided driver?
+Will test this as well (dvbv5-scan)
+> - when you say it doesn't work, is the issue that the demodulator
+> does
+> not lock on the DVB-T2 muxes?
+I am using DVB-C, I do not have issues with tuning. Only dvbv5-scan
+does not work.
+> 
+> Two different firmwares for A30 chip:
+> https://github.com/OpenELEC/dvb-firmware/blob/18b12de1f57b3c70a681983
+> 638989f94590b19f1/firmware/dvb-demod-si2168-a30-01.fw?raw=true
+> https://github.com/OpenELEC/dvb-firmware/raw/dc7cf270e328de144e75a30d
+> 970b6e147e8bcb6e/firmware/dvb-demod-si2168-a30-01.fw
+> 
+> I think the second one is newer, but don't have the means to verify
+> right now...
+I am currently using the first one.
 
-My question was rather about why we do this? Semantics for EINTR are
-well defined, and with SA_RESTART (default on linux) user-space can
-ignore it. However, looping on EAGAIN is very uncommon, and it is not
-at all clear why it is needed?
+What about the si2158?
+[  121.771582] si2157 10-0060: found a 'Silicon Labs Si2158-A20'
+[  121.794158] si2157 10-0060: downloading firmware from file 'dvb-
+tuner-si2158-a20-01.fw'
+[  122.594826] si2157 10-0060: firmware version: 2.1.6
 
-Returning an error to user-space makes sense if user-space has a
-reason to react to it. I fail to see how EAGAIN on a cache-flush/sync
-operation helps user-space at all? As someone without insight into the
-driver implementation, it is hard to tell why.. Any hints?
+Bye,
+Jurgen
 
-Thanks
-David
+> 
+> Cheers,
+> -olli
+> 
+> On 4 March 2016 at 10:15, Jurgen Kramer <gtmkramer@xs4all.nl> wrote:
+> > 
+> > Hi Olli,
+> > 
+> > On Thu, 2016-03-03 at 13:02 +0200, Olli Salonen wrote:
+> > > 
+> > > Hi Jurgen, Torbjörn,
+> > > 
+> > > I've noticed that there is currently a small confusion about the
+> > > firmware versions for the Si2168-A20 demodulator. This is used in
+> > > the
+> > > older versions of DVBSky T680C (TechnoTrend CT2-4650 CI) and
+> > > DVBSky
+> > > T980C (TechnoTrend CT2-4500 CI).
+> > > 
+> > > The version 2.0.5 does not support PLP handling and seems to work
+> > > very
+> > > badly with the Linux driver - at least for me. Version 2.0.35 on
+> > > the
+> > > other hand seems to find all DVB-T/T2 channels for me just fine
+> > > with
+> > > both dvbv5-scan and w_scan (devices used for this test:
+> > > TechnoTrend
+> > > CT2-4650 CI and TechnoTrend CT2-4500 CI new version).
+> > > 
+> > > Versions used:
+> > > dvbv5-scan version 1.7.0
+> > > w_scan version 20150111 (compiled for DVB API 5.10)
+> > > 
+> > > So if you are running these Si2168-A20 based devices, make sure
+> > > you've
+> > > got the firmware 2.0.35 that can be downloaded for example here:
+> > > http://palosaari.fi/linux/v4l-dvb/firmware/Si2168/Si2168-A20/32e0
+> > > 6713
+> > > b33915f674bfb2c209beaea5/
+> > It seems my TC980Cs have Si2168-A30's on board
+> > 
+> > [  118.526665] si2168 8-0064: found a 'Silicon Labs Si2168-A30'
+> > [  118.640642] si2168 8-0064: downloading firmware from file 'dvb-
+> > demod-si2168-a30-01.fw'
+> > [  121.762983] si2168 8-0064: firmware version: 3.0.16
+> > 
+> > dvbv5_scan does not work me.
+> > sha1sum for this firmware is:
+> > 59a0b90703d65229fb2589b52834ca68d1e96ad9  dvb-demod-si2168-a30-
+> > 01.fw
+> > 
+> > Jurgen
+> > 
