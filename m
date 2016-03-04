@@ -1,52 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35310 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758524AbcC3HsD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2016 03:48:03 -0400
-Date: Wed, 30 Mar 2016 10:47:26 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, sakari.ailus@linux.intel.com,
-	mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	s.nawrocki@samsung.com
-Subject: Re: [PATCH v2] [media] media: change pipeline validation return error
-Message-ID: <20160330074725.GJ32125@valkosipuli.retiisi.org.uk>
-References: <1459295387-12090-1-git-send-email-helen.koike@collabora.co.uk>
+Received: from mail.lysator.liu.se ([130.236.254.3]:49051 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757773AbcCDHK5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 02:10:57 -0500
+Message-ID: <56D934F7.4060909@lysator.liu.se>
+Date: Fri, 04 Mar 2016 08:10:47 +0100
+From: Peter Rosin <peda@lysator.liu.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1459295387-12090-1-git-send-email-helen.koike@collabora.co.uk>
+To: linux-kernel@vger.kernel.org
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Viorel Suman <viorel.suman@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 18/18] i2c-mux: relax locking of the top i2c adapter
+ during i2c controlled muxing
+References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se> <1457044050-15230-19-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1457044050-15230-19-git-send-email-peda@lysator.liu.se>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+Hi!
 
-On Tue, Mar 29, 2016 at 08:49:47PM -0300, Helen Mae Koike Fornazier wrote:
-> According to the V4L2 API, the VIDIOC_STREAMON ioctl should return EPIPE
-> if there is a format mismatch in the pipeline configuration.
-> 
-> As the .vidioc_streamon in the v4l2_ioctl_ops usually forwards the error
-> caused by the v4l2_subdev_link_validate_default (if it is in use), it
-> should return -EPIPE when it detect the mismatch.
-> 
-> When an entity is connected to a non enabled link,
-> media_entity_pipeline_start should return -ENOLINK, as the link does not
-> exist.
-> 
-> Signed-off-by: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>
+Here's a fixup for a problem found by the test robot. Sorry for the
+inconvenience.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cheers,
+Peter
 
-While at it, could you change the documentation of VIDIOC_STREAMON as well?
-It documents EPIPE but no ENOLINK. I think it could be e.g.
-
-"The driver implements Media controller interface and the pipeline link
-configuration is invalid."
-
+diff --git a/drivers/i2c/i2c-mux.c b/drivers/i2c/i2c-mux.c
+index 40a4e0397826..b73c42eddca3 100644
+--- a/drivers/i2c/i2c-mux.c
++++ b/drivers/i2c/i2c-mux.c
+@@ -226,6 +226,7 @@ struct i2c_adapter *i2c_root_adapter(struct device *dev)
+ 
+ 	return i2c_root;
+ }
++EXPORT_SYMBOL_GPL(i2c_root_adapter);
+ 
+ int i2c_mux_reserve_adapters(struct i2c_mux_core *muxc, int adapters)
+ {
 -- 
-Kind regards,
+2.1.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
