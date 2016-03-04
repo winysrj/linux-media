@@ -1,241 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from axentia.se ([87.96.186.132]:9426 "EHLO EMAIL.axentia.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750919AbcCOThl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2016 15:37:41 -0400
-From: Peter Rosin <peda@axentia.se>
-To: Antti Palosaari <crope@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] si2168: add lock to cmd execute
-Date: Tue, 15 Mar 2016 19:35:28 +0000
-Message-ID: <ed61fdb0633a4e14a3d48291ae7ae87f@EMAIL.axentia.se>
-References: <1458060859-3517-1-git-send-email-crope@iki.fi>
-In-Reply-To: <1458060859-3517-1-git-send-email-crope@iki.fi>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from bombadil.infradead.org ([198.137.202.9]:59152 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751416AbcCDKno (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 05:43:44 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [media] media-device: map new functions into old types for legacy API
+Date: Fri,  4 Mar 2016 07:43:37 -0300
+Message-Id: <07c81fda0c8b187be238a8428fd370d156082f8c.1457088214.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti!
+The media-ctl tool, on versions <= 1.10 relies on detecting the
+media_type to identify V4L2 sub-devices and MEDIA_ENT_T_DEVNODE.
 
-Antti Palosaari wrote:
-> Mauro do not apply that patch, it is fix for Peter I2C-mux serie!
+If the device doesn't match the MEDIA_ENT_T_V4L2_SUBDEV range, it
+ignores the major/minor and won't be getting the device name on
+udev or sysfs. It will also ignore the entity when printing the
+graphviz diagram.
 
-Still true with the below patch  :-)
+As we're now adding devices outside the old range, the legacy ioctl
+needs to map the new entity functions into a type at the old range,
+or otherwise we'll have a regression.
 
-> Peter, please meld that fix to main patch:
-> [media] si2168: declare that the i2c gate is self-locked
-> 
-> We need lock to make sure only single caller could execute firmware
-> command at the time. Earlier there was manual I2C locking which did
-> the same job.
-
-Right, the squashed thing I have in the mux series after this is the below
-patch. I simply put you as author of the whole thing and added your sign-off,
-since my contribution added up to a trivial one-liner rename or something
-like that, and the commit message. Holler if this is not what you intended.
-
-Thanks,
-Peter
-
-From: Antti Palosaari <crope@iki.fi>
-Date: Tue, 15 Mar 2016 20:20:11 +0100
-Subject: [PATCH] [media] si2168: declare that the i2c gate is self-locked
-
-When the i2c adapter lock is no longer held by the i2c mux during
-accesses behind the i2c gate, such accesses need to take that lock
-just like any other ordinary i2c accesses do.
-
-So, declare the i2c gate self-locked, and zap the code that makes the
-i2c accesses unlocked. But add a mutex so that firmware commands are
-still serialized.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Peter Rosin <peda@axentia.se>
+Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/dvb-frontends/si2168.c      | 85 ++++++++-----------------------
- drivers/media/dvb-frontends/si2168_priv.h |  1 +
- 2 files changed, 22 insertions(+), 64 deletions(-)
+ drivers/media/media-device.c | 23 +++++++++++++++++++++++
+ include/uapi/linux/media.h   |  6 +++++-
+ 2 files changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index ca455d01c71d..786808f923e5 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -18,53 +18,23 @@
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 17cd349e485f..1e82c59abb94 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -20,6 +20,9 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
  
- static const struct dvb_frontend_ops si2168_ops;
- 
--/* Own I2C adapter locking is needed because of I2C gate logic. */
--static int si2168_i2c_master_send_unlocked(const struct i2c_client *client,
--					   const char *buf, int count)
--{
--	int ret;
--	struct i2c_msg msg = {
--		.addr = client->addr,
--		.flags = 0,
--		.len = count,
--		.buf = (char *)buf,
--	};
--
--	ret = __i2c_transfer(client->adapter, &msg, 1);
--	return (ret == 1) ? count : ret;
--}
--
--static int si2168_i2c_master_recv_unlocked(const struct i2c_client *client,
--					   char *buf, int count)
--{
--	int ret;
--	struct i2c_msg msg = {
--		.addr = client->addr,
--		.flags = I2C_M_RD,
--		.len = count,
--		.buf = buf,
--	};
--
--	ret = __i2c_transfer(client->adapter, &msg, 1);
--	return (ret == 1) ? count : ret;
--}
--
- /* execute firmware command */
--static int si2168_cmd_execute_unlocked(struct i2c_client *client,
--				       struct si2168_cmd *cmd)
-+static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
- {
-+	struct si2168_dev *dev = i2c_get_clientdata(client);
- 	int ret;
- 	unsigned long timeout;
- 
-+	mutex_lock(&dev->i2c_mutex);
++/* We need to access legacy defines from linux/media.h */
++#define __MEDIA_DEVICE_C__
 +
- 	if (cmd->wlen) {
- 		/* write cmd and args for firmware */
--		ret = si2168_i2c_master_send_unlocked(client, cmd->args,
--						      cmd->wlen);
-+		ret = i2c_master_send(client, cmd->args, cmd->wlen);
- 		if (ret < 0) {
--			goto err;
-+			goto err_mutex_unlock;
- 		} else if (ret != cmd->wlen) {
- 			ret = -EREMOTEIO;
--			goto err;
-+			goto err_mutex_unlock;
- 		}
- 	}
- 
-@@ -73,13 +43,12 @@ static int si2168_cmd_execute_unlocked(struct i2c_client *client,
- 		#define TIMEOUT 70
- 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
- 		while (!time_after(jiffies, timeout)) {
--			ret = si2168_i2c_master_recv_unlocked(client, cmd->args,
--							      cmd->rlen);
-+			ret = i2c_master_recv(client, cmd->args, cmd->rlen);
- 			if (ret < 0) {
--				goto err;
-+				goto err_mutex_unlock;
- 			} else if (ret != cmd->rlen) {
- 				ret = -EREMOTEIO;
--				goto err;
-+				goto err_mutex_unlock;
- 			}
- 
- 			/* firmware ready? */
-@@ -94,32 +63,23 @@ static int si2168_cmd_execute_unlocked(struct i2c_client *client,
- 		/* error bit set? */
- 		if ((cmd->args[0] >> 6) & 0x01) {
- 			ret = -EREMOTEIO;
--			goto err;
-+			goto err_mutex_unlock;
- 		}
- 
- 		if (!((cmd->args[0] >> 7) & 0x01)) {
- 			ret = -ETIMEDOUT;
--			goto err;
-+			goto err_mutex_unlock;
- 		}
- 	}
- 
-+	mutex_unlock(&dev->i2c_mutex);
- 	return 0;
--err:
-+err_mutex_unlock:
-+	mutex_unlock(&dev->i2c_mutex);
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
- 	return ret;
- }
- 
--static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
--{
--	int ret;
--
--	i2c_lock_adapter(client->adapter);
--	ret = si2168_cmd_execute_unlocked(client, cmd);
--	i2c_unlock_adapter(client->adapter);
--
--	return ret;
--}
--
- static int si2168_read_status(struct dvb_frontend *fe, enum fe_status *status)
- {
- 	struct i2c_client *client = fe->demodulator_priv;
-@@ -610,11 +570,6 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
- 	return 0;
- }
- 
--/*
-- * I2C gate logic
-- * We must use unlocked I2C I/O because I2C adapter lock is already taken
-- * by the caller (usually tuner driver).
-- */
- static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
- {
- 	struct i2c_client *client = i2c_mux_priv(muxc);
-@@ -625,7 +580,7 @@ static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
- 	memcpy(cmd.args, "\xc0\x0d\x01", 3);
- 	cmd.wlen = 3;
- 	cmd.rlen = 0;
--	ret = si2168_cmd_execute_unlocked(client, &cmd);
-+	ret = si2168_cmd_execute(client, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -645,7 +600,7 @@ static int si2168_deselect(struct i2c_mux_core *muxc, u32 chan)
- 	memcpy(cmd.args, "\xc0\x0d\x00", 3);
- 	cmd.wlen = 3;
- 	cmd.rlen = 0;
--	ret = si2168_cmd_execute_unlocked(client, &cmd);
-+	ret = si2168_cmd_execute(client, &cmd);
- 	if (ret)
- 		goto err;
- 
-@@ -708,9 +663,11 @@ static int si2168_probe(struct i2c_client *client,
- 		goto err;
- 	}
- 
-+	mutex_init(&dev->i2c_mutex);
+ #include <linux/compat.h>
+ #include <linux/export.h>
+ #include <linux/idr.h>
+@@ -121,6 +124,26 @@ static long media_device_enum_entities(struct media_device *mdev,
+ 	u_ent.group_id = 0;		/* Unused */
+ 	u_ent.pads = ent->num_pads;
+ 	u_ent.links = ent->num_links - ent->num_backlinks;
 +
- 	/* create mux i2c adapter for tuner */
--	dev->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0, 0,
--					0, 0, 0,
-+	dev->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0,
-+					I2C_MUX_SELF_LOCKED, 0, 0, 0,
- 					si2168_select, si2168_deselect);
- 	if (IS_ERR(dev->muxc)) {
- 		ret = PTR_ERR(dev->muxc);
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 165bf1412063..8a1f36d2014d 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -29,6 +29,7 @@
++	/*
++	 * Workaround for a bug at media-ctl <= v1.10 that makes it to
++	 * do the wrong thing if the entity function doesn't belong to
++	 * either MEDIA_ENT_F_OLD_BASE or MEDIA_ENT_F_OLD_SUBDEV_BASE
++	 * Ranges.
++	 *
++	 * Non-subdevices are expected to be at the MEDIA_ENT_F_OLD_BASE,
++	 * or, otherwise, will be silently ignored by media-ctl when
++	 * printing the graphviz diagram. So, map them into the devnode
++	 * old range.
++	 */
++	if (ent->function < MEDIA_ENT_F_OLD_BASE ||
++	    ent->function > MEDIA_ENT_T_DEVNODE_UNKNOWN) {
++		if (is_media_entity_v4l2_subdev(ent))
++			u_ent.type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
++		else if (ent->function != MEDIA_ENT_F_IO_V4L)
++			u_ent.type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
++	}
++
+ 	memcpy(&u_ent.raw, &ent->info, sizeof(ent->info));
+ 	if (copy_to_user(uent, &u_ent, sizeof(u_ent)))
+ 		return -EFAULT;
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 95e126edb1c3..bc27e34ce3a1 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -132,7 +132,7 @@ struct media_device_info {
  
- /* state struct */
- struct si2168_dev {
-+	struct mutex i2c_mutex;
- 	struct i2c_mux_core *muxc;
- 	struct dvb_frontend fe;
- 	enum fe_delivery_system delivery_system;
+ #define MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN	MEDIA_ENT_F_OLD_SUBDEV_BASE
+ 
+-#ifndef __KERNEL__
++#if !defined(__KERNEL__) || defined(__MEDIA_DEVICE_C__)
+ 
+ /*
+  * Legacy symbols used to avoid userspace compilation breakages
+@@ -145,6 +145,10 @@ struct media_device_info {
+ #define MEDIA_ENT_TYPE_MASK		0x00ff0000
+ #define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
+ 
++/* End of the old subdev reserved numberspace */
++#define MEDIA_ENT_T_DEVNODE_UNKNOWN	(MEDIA_ENT_T_DEVNODE | \
++					 MEDIA_ENT_SUBTYPE_MASK)
++
+ #define MEDIA_ENT_T_DEVNODE		MEDIA_ENT_F_OLD_BASE
+ #define MEDIA_ENT_T_DEVNODE_V4L		MEDIA_ENT_F_IO_V4L
+ #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
 -- 
-2.1.4
+2.5.0
 
