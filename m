@@ -1,43 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:35247 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753138AbcCRXLo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 19:11:44 -0400
-Received: by mail-wm0-f46.google.com with SMTP id l68so47137354wml.0
-        for <linux-media@vger.kernel.org>; Fri, 18 Mar 2016 16:11:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAN5YuFa0kXxym9bq38CCxSXp5HqUbKLYjvRfG5EUGEcoZDZK3w@mail.gmail.com>
-References: <CAN5YuFYiRPDMUFqiiJrLXCH-tZnO9SJ-_TZfLD6_uq-L63OKyQ@mail.gmail.com>
-	<CAAEAJfAg=QovDOHgTnh+0Gy5BbSXinc+rPGvTa61r5nyuou2tQ@mail.gmail.com>
-	<CAN5YuFYbg0RwhhO3ck1m86PPk+PQrqrM9qNfRsoah==4_VS-SA@mail.gmail.com>
-	<CAAEAJfANkWbYRHXb2kcCeFaffQ8UBqofX569So4r0A-NzwazOg@mail.gmail.com>
-	<CAN5YuFa0kXxym9bq38CCxSXp5HqUbKLYjvRfG5EUGEcoZDZK3w@mail.gmail.com>
-Date: Fri, 18 Mar 2016 20:11:42 -0300
-Message-ID: <CAAEAJfAuZm1AOV7qBq2DEJtCbxmxqk=Bm2hWoOz8DNCTY3sdZA@mail.gmail.com>
-Subject: Re: STK1160 - no video
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: Kevin Fitch <kfitch42@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Philippe Desrochers <desrochers.philippe@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from lists.s-osg.org ([54.187.51.154]:36319 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759679AbcCDUUt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Mar 2016 15:20:49 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH 2/2] [media] exynos4-is: FIMC port parse should fail if there's no endpoint
+Date: Fri,  4 Mar 2016 17:20:13 -0300
+Message-Id: <1457122813-12791-3-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1457122813-12791-1-git-send-email-javier@osg.samsung.com>
+References: <1457122813-12791-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Kevin,
+The fimc_md_parse_port_node() function return 0 if an endpoint node is
+not found but according to Documentation/devicetree/bindings/graph.txt,
+a port must always have at least one enpoint.
 
-On 4 March 2016 at 00:11, Kevin Fitch <kfitch42@gmail.com> wrote:
-> Here is a quick patch that gives me actual video. That being said I
-> see some curious stuff being logged while video is streaming:
->
+So return an -EINVAL errno code to the caller instead, so it knows that
+the port node parse failed due an invalid Device Tree description.
 
-Patch looks more or less good, but that kernel log is not good.
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-It indicates that the USB packet is not entirely sane, and so the incoming
-data is not what the driver is expecting.
+---
 
-Have you been able to make any progress with it?
+ drivers/media/platform/exynos4-is/media-dev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index feb521f28e14..06f3d75c9a0e 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -394,7 +394,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+ 	/* Assume here a port node can have only one endpoint node. */
+ 	ep = of_get_next_child(port, NULL);
+ 	if (!ep)
+-		return 0;
++		return -EINVAL;
+ 
+ 	ret = v4l2_of_parse_endpoint(ep, &endpoint);
+ 	if (ret) {
 -- 
-Ezequiel García, VanguardiaSur
-www.vanguardiasur.com.ar
+2.5.0
+
