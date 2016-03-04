@@ -1,43 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928AbcCXX2L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:28:11 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 21/51] v4l: vsp1: Document calling context of vsp1_pipeline_propagate_alpha()
-Date: Fri, 25 Mar 2016 01:27:17 +0200
-Message-Id: <1458862067-19525-22-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:36306 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758765AbcCDUUa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Mar 2016 15:20:30 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH 0/2] [media] exynos4-is: Trivial fixes for DT port/endpoint parse logic
+Date: Fri,  4 Mar 2016 17:20:11 -0300
+Message-Id: <1457122813-12791-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function can only be called from a s_stream handler as it requires a
-valid display list context (due to calling vsp1_uds_set_alpha() which
-writes to module registers). Document the requirement.
+Hello,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.c | 3 +++
- 1 file changed, 3 insertions(+)
+This series have two trivial fixes for issues that I noticed while
+reading as a reference the driver's functions that parse the graph
+port and endpoints nodes.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index cb67b8f80635..a9a754e17e8d 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -318,6 +318,9 @@ done:
-  * to be scaled, we disable alpha scaling when the UDS input has a fixed alpha
-  * value. The UDS then outputs a fixed alpha value which needs to be programmed
-  * from the input RPF alpha.
-+ *
-+ * This function can only be called from a subdev s_stream handler as it
-+ * requires a valid display list context.
-  */
- void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
- 				   struct vsp1_entity *input,
+It was only compile tested because I don't have access to a Exynos4
+hardware to test the DT parsing, but the patches are very simple.
+
+Best regards,
+Javier
+
+
+Javier Martinez Canillas (2):
+  [media] exynos4-is: Put node before s5pcsis_parse_dt() return error
+  [media] exynos4-is: FIMC port parse should fail if there's no endpoint
+
+ drivers/media/platform/exynos4-is/media-dev.c | 2 +-
+ drivers/media/platform/exynos4-is/mipi-csis.c | 6 ++++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
 -- 
-2.7.3
+2.5.0
 
