@@ -1,72 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54483 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754589AbcCRNsh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 09:48:37 -0400
-Subject: Re: [PATCH] [media] media: rename media unregister function
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <2ffc02c944068b2c8655727238d1542f8328385d.1458306276.git.mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>, Tommi Rantala <tt.rantala@gmail.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>,
-	Luis de Bethencourt <luis@debethencourt.com>,
-	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	alsa-devel@alsa-project.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <56EC071D.5060400@osg.samsung.com>
-Date: Fri, 18 Mar 2016 10:48:13 -0300
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59617 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752401AbcCDIZ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Mar 2016 03:25:57 -0500
+Subject: Re: [PATCH] media: add prefixes to interface types
+To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
+	hans.verkuil@cisco.com
+References: <1457050112-6831-1-git-send-email-shuahkh@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D9468C.3090205@xs4all.nl>
+Date: Fri, 4 Mar 2016 09:25:48 +0100
 MIME-Version: 1.0
-In-Reply-To: <2ffc02c944068b2c8655727238d1542f8328385d.1458306276.git.mchehab@osg.samsung.com>
+In-Reply-To: <1457050112-6831-1-git-send-email-shuahkh@osg.samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
 
-On 03/18/2016 10:05 AM, Mauro Carvalho Chehab wrote:
-> Now that media_device_unregister() also does a cleanup, rename it
-> to media_device_unregister_cleanup().
->
 
-I believe there should be a Suggested-by Sakari Ailus tag here.
- 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On 03/04/2016 01:08 AM, Shuah Khan wrote:
+> Add missing prefixes for DVB, V4L, and ALSA interface types.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/media-entity.c | 32 ++++++++++++++++----------------
+>  1 file changed, 16 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index bcd7464..561c939 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -46,41 +46,41 @@ static inline const char *intf_type(struct media_interface *intf)
+>  {
+>  	switch (intf->type) {
+>  	case MEDIA_INTF_T_DVB_FE:
+> -		return "frontend";
+> +		return "dvb-frontend";
+>  	case MEDIA_INTF_T_DVB_DEMUX:
+> -		return "demux";
+> +		return "dvb-demux";
+>  	case MEDIA_INTF_T_DVB_DVR:
+> -		return "DVR";
+> +		return "dvb-DVR";
 
-The patch looks good and I agree that makes things more clear.
+'dvb-dvr', everything else is lower case as well.
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>  	case MEDIA_INTF_T_DVB_CA:
+> -		return  "CA";
+> +		return  "dvb-conditional-access";
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+I'd keep this 'dvb-ca', unless Mauro likes this better.
+
+>  	case MEDIA_INTF_T_DVB_NET:
+> -		return "dvbnet";
+> +		return "dvb-net";
+>  	case MEDIA_INTF_T_V4L_VIDEO:
+> -		return "video";
+> +		return "v4l-video";
+>  	case MEDIA_INTF_T_V4L_VBI:
+> -		return "vbi";
+> +		return "v4l-vbi";
+>  	case MEDIA_INTF_T_V4L_RADIO:
+> -		return "radio";
+> +		return "v4l-radio";
+>  	case MEDIA_INTF_T_V4L_SUBDEV:
+>  		return "v4l2-subdev";
+
+Change this to 'v4l-subdev'.
+
+>  	case MEDIA_INTF_T_V4L_SWRADIO:
+> -		return "swradio";
+> +		return "v4l-swradio";
+>  	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+> -		return "pcm-capture";
+> +		return "alsa-pcm-capture";
+>  	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+> -		return "pcm-playback";
+> +		return "alsa-pcm-playback";
+>  	case MEDIA_INTF_T_ALSA_CONTROL:
+>  		return "alsa-control";
+>  	case MEDIA_INTF_T_ALSA_COMPRESS:
+> -		return "compress";
+> +		return "alsa-compress";
+>  	case MEDIA_INTF_T_ALSA_RAWMIDI:
+> -		return "rawmidi";
+> +		return "alsa-rawmidi";
+>  	case MEDIA_INTF_T_ALSA_HWDEP:
+> -		return "hwdep";
+> +		return "alsa-hwdep";
+>  	case MEDIA_INTF_T_ALSA_SEQUENCER:
+> -		return "sequencer";
+> +		return "alsa-sequencer";
+>  	case MEDIA_INTF_T_ALSA_TIMER:
+> -		return "timer";
+> +		return "alsa-timer";
+>  	default:
+>  		return "unknown-intf";
+>  	}
+> 
+
+Regards,
+
+	Hans
