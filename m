@@ -1,61 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:34322 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756914AbcCCPps (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 10:45:48 -0500
-Received: by mail-ob0-f182.google.com with SMTP id ts10so23677101obc.1
-        for <linux-media@vger.kernel.org>; Thu, 03 Mar 2016 07:45:46 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20160303081709.5907bcd8@lwn.net>
-References: <20160213145317.247c63c7@lwn.net>
-	<87y49zr74t.fsf@intel.com>
-	<20160303071305.247e30b1@lwn.net>
-	<20160303143425.2361dea2@lxorguk.ukuu.org.uk>
-	<20160303081709.5907bcd8@lwn.net>
-Date: Thu, 3 Mar 2016 16:45:45 +0100
-Message-ID: <CAKMK7uHTav0MF-aqbdoW-nn+1tTi9-ZJyDWahDjTTVAuUUNfSg@mail.gmail.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>,
-	Jani Nikula <jani.nikula@intel.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Keith Packard <keithp@keithp.com>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48657 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758710AbcCDUFa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 15:05:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH 4/8] media: Rename is_media_entity_v4l2_io to is_media_entity_v4l2_video_device
+Date: Fri, 04 Mar 2016 22:05:19 +0200
+Message-ID: <9109129.tbtAE6EurM@avalon>
+In-Reply-To: <56D83D1F.6020309@xs4all.nl>
+References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1456844246-18778-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <56D83D1F.6020309@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 3, 2016 at 4:17 PM, Jonathan Corbet <corbet@lwn.net> wrote:
-> I assume you're referring to gtk-doc?  It's web page
-> (http://www.gtk.org/gtk-doc/) starts by noting that it's "a bit awkward to
-> setup and use"; they recommend looking at Doxygen instead.  So I guess I'm
-> not really sure what it offers that merits throwing another option into
-> the mix now?  What am I missing?
+Hi Hans,
 
-We use gtk-doc for the i915 testcase and tooling repo in userspace
-(intel-gpu-tools). The setup is somewhat arcane (some build-fu that is
-fumbly, and xml files to tie everything together). But it looks pretty
-and works well otherwise. It should be at
-https://01.org/linuxgraphics/gfx-docs/igt/ but our autobuilder seems
-to be screwed up right now.
+On Thursday 03 March 2016 14:33:19 Hans Verkuil wrote:
+> On 03/01/16 15:57, Laurent Pinchart wrote:
+> > All users of is_media_entity_v4l2_io() (the exynos4-is, omap3isp,
+> > davince_vpfe and omap4iss drivers) use the function to check whether
+> > entities are video_device instances, either to ensure they can cast the
+> > entity to a struct video_device, or to count the number of video nodes
+> > users.
+> > 
+> > The purpose of the function is thus to identify whether the media entity
+> > instance is an instance of the video_device object, not to check whether
+> > it can perform I/O. Rename it accordingly, we will introduce a more
+> > specific is_media_entity_v4l2_io() check when needed.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Thanks for the much clearer commit text, that makes it much more
+> understandable what is going on here.
 
-Of course I considered it as an option, but like doxygen it has it's
-own strong opinion about how in-code comments should look like, and
-those differ from kerneldoc syntax. Beyond that I don't really see
-benefits over any of the solutions proposed here already (either
-sphinx or rst or horror! even the hackfest I still carry around in
-drm-intel.git branches).
+You're welcome, my pleasure.
 
-Btw for igt we went with gtkdoc over docygen because a few people on
-our team had "doxygen only over my corpse" level kind of strong
-opinions. Everyone just loves their own color choice for this bikeshed
-;-)
--Daniel
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Regards,
+
+Laurent Pinchart
+
