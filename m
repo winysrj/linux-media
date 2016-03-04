@@ -1,111 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:39537 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751623AbcCUHkk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 03:40:40 -0400
-Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
-To: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	DRI Development <dri-devel@lists.freedesktop.org>
-References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
- <1458545443-3302-1-git-send-email-daniel.vetter@ffwll.ch>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-	Tiago Vignatti <tiago.vignatti@intel.com>,
-	=?UTF-8?Q?St=c3=a9phane_Marchesin?= <marcheu@chromium.org>,
-	David Herrmann <dh.herrmann@gmail.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Daniel Vetter <daniel.vetter@intel.com>,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	intel-gfx@lists.freedesktop.org, devel@driverdev.osuosl.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56EFA571.1010104@xs4all.nl>
-Date: Mon, 21 Mar 2016 08:40:33 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:36328 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759087AbcCDUoh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Mar 2016 15:44:37 -0500
+Subject: Re: [PATCH] media: add prefixes to interface types
+To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@osg.samsung.com,
+	hans.verkuil@cisco.com
+References: <1457050112-6831-1-git-send-email-shuahkh@osg.samsung.com>
+ <56D9468C.3090205@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56D9F3B3.2070601@osg.samsung.com>
+Date: Fri, 4 Mar 2016 13:44:35 -0700
 MIME-Version: 1.0
-In-Reply-To: <1458545443-3302-1-git-send-email-daniel.vetter@ffwll.ch>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <56D9468C.3090205@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+Hi Hans,
 
-Two small comments:
+Thanks for the review.
 
-On 03/21/2016 08:30 AM, Daniel Vetter wrote:
-> Just a bit of wording polish plus mentioning that it can fail and must
-> be restarted.
+Mauro,
+
+Do you prefer dvb-conditional-access or dvb-ca?
+
+thanks,
+-- Shuah
+
+On 03/04/2016 01:25 AM, Hans Verkuil wrote:
 > 
-> Requested by Sumit.
 > 
-> Cc: Chris Wilson <chris@chris-wilson.co.uk>
-> Cc: Tiago Vignatti <tiago.vignatti@intel.com>
-> Cc: Stéphane Marchesin <marcheu@chromium.org>
-> Cc: David Herrmann <dh.herrmann@gmail.com>
-> Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: Daniel Vetter <daniel.vetter@intel.com>
-> CC: linux-media@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linaro-mm-sig@lists.linaro.org
-> Cc: intel-gfx@lists.freedesktop.org
-> Cc: devel@driverdev.osuosl.org
-> Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
-> ---
->  Documentation/dma-buf-sharing.txt | 11 ++++++-----
->  drivers/dma-buf/dma-buf.c         |  2 +-
->  2 files changed, 7 insertions(+), 6 deletions(-)
+> On 03/04/2016 01:08 AM, Shuah Khan wrote:
+>> Add missing prefixes for DVB, V4L, and ALSA interface types.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/media-entity.c | 32 ++++++++++++++++----------------
+>>  1 file changed, 16 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>> index bcd7464..561c939 100644
+>> --- a/drivers/media/media-entity.c
+>> +++ b/drivers/media/media-entity.c
+>> @@ -46,41 +46,41 @@ static inline const char *intf_type(struct media_interface *intf)
+>>  {
+>>  	switch (intf->type) {
+>>  	case MEDIA_INTF_T_DVB_FE:
+>> -		return "frontend";
+>> +		return "dvb-frontend";
+>>  	case MEDIA_INTF_T_DVB_DEMUX:
+>> -		return "demux";
+>> +		return "dvb-demux";
+>>  	case MEDIA_INTF_T_DVB_DVR:
+>> -		return "DVR";
+>> +		return "dvb-DVR";
 > 
-> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-> index 32ac32e773e1..5c4e3e586ec8 100644
-> --- a/Documentation/dma-buf-sharing.txt
-> +++ b/Documentation/dma-buf-sharing.txt
-> @@ -352,7 +352,8 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
->  
->     No special interfaces, userspace simply calls mmap on the dma-buf fd, making
->     sure that the cache synchronization ioctl (DMA_BUF_IOCTL_SYNC) is *always*
-> -   used when the access happens. This is discussed next paragraphs.
-> +   used when the access happens. Note that DMA_BUF_IOCTL_SYNC can fail with
-> +   -EGAIN or -EINTR, in which case it must be restarted.
-
-EGAIN -> EAGAIN
-
->  
->     Some systems might need some sort of cache coherency management e.g. when
->     CPU and GPU domains are being accessed through dma-buf at the same time. To
-> @@ -366,10 +367,10 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
->         want (with the new data being consumed by the GPU or say scanout device)
->       - munmap once you don't need the buffer any more
->  
-> -    Therefore, for correctness and optimal performance, systems with the memory
-> -    cache shared by the GPU and CPU i.e. the "coherent" and also the
-> -    "incoherent" are always required to use SYNC_START and SYNC_END before and
-> -    after, respectively, when accessing the mapped address.
-> +    For correctness and optimal performance, it is always required to use
-> +    SYNC_START and SYNC_END before and after, respectively, when accessing the
-> +    mapped address. Userspace cannot on coherent access, even when there are
-
-"Userspace cannot on coherent access"? Do you mean "cannot do"? Sorry, the
-meaning isn't clear to me.
-
-Regards,
-
-	Hans
-
-> +    systems where it just works without calling these ioctls.
->  
->  2. Supporting existing mmap interfaces in importers
->  
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index 774a60f4309a..4a2c07ee6677 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -612,7 +612,7 @@ EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
->   * @dmabuf:	[in]	buffer to complete cpu access for.
->   * @direction:	[in]	length of range for cpu access.
->   *
-> - * This call must always succeed.
-> + * Can return negative error values, returns 0 on success.
->   */
->  int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
->  			   enum dma_data_direction direction)
+> 'dvb-dvr', everything else is lower case as well.
+> 
+>>  	case MEDIA_INTF_T_DVB_CA:
+>> -		return  "CA";
+>> +		return  "dvb-conditional-access";
+> 
+> I'd keep this 'dvb-ca', unless Mauro likes this better.
+> 
+>>  	case MEDIA_INTF_T_DVB_NET:
+>> -		return "dvbnet";
+>> +		return "dvb-net";
+>>  	case MEDIA_INTF_T_V4L_VIDEO:
+>> -		return "video";
+>> +		return "v4l-video";
+>>  	case MEDIA_INTF_T_V4L_VBI:
+>> -		return "vbi";
+>> +		return "v4l-vbi";
+>>  	case MEDIA_INTF_T_V4L_RADIO:
+>> -		return "radio";
+>> +		return "v4l-radio";
+>>  	case MEDIA_INTF_T_V4L_SUBDEV:
+>>  		return "v4l2-subdev";
+> 
+> Change this to 'v4l-subdev'.
+> 
+>>  	case MEDIA_INTF_T_V4L_SWRADIO:
+>> -		return "swradio";
+>> +		return "v4l-swradio";
+>>  	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+>> -		return "pcm-capture";
+>> +		return "alsa-pcm-capture";
+>>  	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+>> -		return "pcm-playback";
+>> +		return "alsa-pcm-playback";
+>>  	case MEDIA_INTF_T_ALSA_CONTROL:
+>>  		return "alsa-control";
+>>  	case MEDIA_INTF_T_ALSA_COMPRESS:
+>> -		return "compress";
+>> +		return "alsa-compress";
+>>  	case MEDIA_INTF_T_ALSA_RAWMIDI:
+>> -		return "rawmidi";
+>> +		return "alsa-rawmidi";
+>>  	case MEDIA_INTF_T_ALSA_HWDEP:
+>> -		return "hwdep";
+>> +		return "alsa-hwdep";
+>>  	case MEDIA_INTF_T_ALSA_SEQUENCER:
+>> -		return "sequencer";
+>> +		return "alsa-sequencer";
+>>  	case MEDIA_INTF_T_ALSA_TIMER:
+>> -		return "timer";
+>> +		return "alsa-timer";
+>>  	default:
+>>  		return "unknown-intf";
+>>  	}
+>>
+> 
+> Regards,
+> 
+> 	Hans
 > 
 
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
