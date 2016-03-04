@@ -1,76 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sg-smtp01.263.net ([54.255.195.220]:34209 "EHLO
-	sg-smtp01.263.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028AbcCACaG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Feb 2016 21:30:06 -0500
-From: Jung Zhao <jung.zhao@rock-chips.com>
-To: tfiga@chromium.org, posciak@chromium.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Pawel Osciak <posciak@google.com>,
-	eddie.cai@rock-chips.com, alpha.lin@rock-chips.com,
-	jeffy.chen@rock-chips.com, herman.chen@rock-chips.com
-Subject: [PATCH v3 1/3] [NOT FOR REVIEW] v4l: Add private compound control type.
-Date: Tue,  1 Mar 2016 10:23:23 +0800
-Message-Id: <1456799003-8565-1-git-send-email-jung.zhao@rock-chips.com>
-In-Reply-To: <1456798977-8514-1-git-send-email-jung.zhao@rock-chips.com>
-References: <1456798977-8514-1-git-send-email-jung.zhao@rock-chips.com>
+Received: from mailout.easymail.ca ([64.68.201.169]:60117 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753967AbcCDCZD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 21:25:03 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, olli.salonen@iki.fi
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: fix null pointer dereference in v4l_vb2q_enable_media_source()
+Date: Thu,  3 Mar 2016 19:24:58 -0700
+Message-Id: <1457058298-7782-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+Fix the null pointer dereference in v4l_vb2q_enable_media_source().
+DVB only drivers don't have valid struct v4l2_fh pointer.
 
-V4L2_CTRL_TYPE_PRIVATE is to be used for private driver compound
-controls that use the "ptr" member of struct v4l2_ext_control.
+[  548.443272] BUG: unable to handle kernel NULL pointer dereference
+at 0000000000000010
+[  548.452036] IP: [<ffffffffc020ffc9>]
+v4l_vb2q_enable_media_source+0x9/0x50 [videodev]
+[  548.460792] PGD b820e067 PUD bb3df067 PMD 0
+[  548.465582] Oops: 0000 [#1] SMP
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Signed-off-by: Jung Zhao <jung.zhao@rock-chips.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Reported-by: Olli Salonen <olli.salonen@iki.fi>
 ---
-Changes in v3: None
-Changes in v2:
-- add [NOT FOR REVIEW] tag for patches from Chromium OS Tree suggested by Tomasz
-- update copyright message
-- list all the related signed-off names
-- add more description suggested by Enric
-- fix format error of commit message suggested by Tomasz
+ drivers/media/v4l2-core/v4l2-mc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
- drivers/media/v4l2-core/v4l2-ctrls.c | 4 ++++
- include/uapi/linux/videodev2.h       | 2 ++
- 2 files changed, 6 insertions(+)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 890520d..527d65c 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1525,6 +1525,10 @@ static int std_validate(const struct v4l2_ctrl *ctrl, u32 idx,
- 			return -ERANGE;
- 		return 0;
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+index 643686d..a39a3cd 100644
+--- a/drivers/media/v4l2-core/v4l2-mc.c
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -214,6 +214,8 @@ int v4l_vb2q_enable_media_source(struct vb2_queue *q)
+ {
+ 	struct v4l2_fh *fh = q->owner;
  
-+	/* FIXME:just return 0 for now */
-+	case V4L2_CTRL_TYPE_PRIVATE:
-+		return 0;
-+
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 29a6b78..53ac896 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1517,6 +1517,8 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_U8	     = 0x0100,
- 	V4L2_CTRL_TYPE_U16	     = 0x0101,
- 	V4L2_CTRL_TYPE_U32	     = 0x0102,
-+
-+	V4L2_CTRL_TYPE_PRIVATE       = 0xffff,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+-	return v4l_enable_media_source(fh->vdev);
++	if (fh && fh->vdev)
++		return v4l_enable_media_source(fh->vdev);
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
 -- 
-1.9.1
+2.5.0
 
