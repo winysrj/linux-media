@@ -1,104 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:35795 "EHLO
-	mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753586AbcCJB1Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2016 20:27:16 -0500
-Received: by mail-io0-f195.google.com with SMTP id n190so6757511iof.2
-        for <linux-media@vger.kernel.org>; Wed, 09 Mar 2016 17:27:16 -0800 (PST)
-Date: Thu, 10 Mar 2016 09:28:03 +0800
-From: "Nibble Max" <nibble.max@gmail.com>
-To: "linux-media" <linux-media@vger.kernel.org>
-Cc: "Olli Salonen" <olli.salonen@iki.fi>
-Subject: Re: [PATCH 1/2] smipcie: add support for TechnoTrend S2-4200 Twin
-Message-ID: <201603100927595467093@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:45648 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932250AbcCDQDL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Mar 2016 11:03:11 -0500
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] v4l2-ioctl: fix YUV422P pixel format description
+Date: Fri,  4 Mar 2016 17:03:00 +0100
+Message-Id: <1457107380-18694-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The plane order is YUV, not YVU.
 
-Reviewed-by: Max Nibble<nibble.max@gmail.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On 2016-03-10 06:39:26, Olli Salonen <olli.salonen@iki.fi> wrote:
->Add support for TechnoTrend TT-budget S2-4200 Twin DVB-S2 tuner. The
->device seems to be rather similar to DVBSky S952 V3. This is a PCIe
->card with 2 tuners. SMI PCIe bridge is used and the card has two 
->Montage M88RS6000 demod/tuners.
->
->The M88RS6000 demod/tuner package needs firmware. You can download
->one here:
->http://palosaari.fi/linux/v4l-dvb/firmware/M88RS6000/
->
->Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
->---
-> drivers/media/pci/smipcie/smipcie-ir.c   |  5 ++++-
-> drivers/media/pci/smipcie/smipcie-main.c | 10 ++++++++++
-> drivers/media/pci/smipcie/smipcie.h      |  1 +
-> 3 files changed, 15 insertions(+), 1 deletion(-)
->
->diff --git a/drivers/media/pci/smipcie/smipcie-ir.c b/drivers/media/pci/smipcie/smipcie-ir.c
->index d018673..d737b5e 100644
->--- a/drivers/media/pci/smipcie/smipcie-ir.c
->+++ b/drivers/media/pci/smipcie/smipcie-ir.c
->@@ -203,7 +203,10 @@ int smi_ir_init(struct smi_dev *dev)
-> 	rc_dev->dev.parent = &dev->pci_dev->dev;
-> 
-> 	rc_dev->driver_type = RC_DRIVER_SCANCODE;
->-	rc_dev->map_name = RC_MAP_DVBSKY;
->+	if (dev->info->type == SMI_TECHNOTREND_S2_4200)
->+		rc_dev->map_name = RC_MAP_TT_1500;
->+	else
->+		rc_dev->map_name = RC_MAP_DVBSKY;
-> 
-> 	ir->rc_dev = rc_dev;
-> 	ir->dev = dev;
->diff --git a/drivers/media/pci/smipcie/smipcie-main.c b/drivers/media/pci/smipcie/smipcie-main.c
->index b039a22..993a2d1 100644
->--- a/drivers/media/pci/smipcie/smipcie-main.c
->+++ b/drivers/media/pci/smipcie/smipcie-main.c
->@@ -1086,6 +1086,15 @@ static struct smi_cfg_info dvbsky_t9580_cfg = {
-> 	.fe_1 = DVBSKY_FE_M88DS3103,
-> };
-> 
->+static struct smi_cfg_info technotrend_s2_4200_cfg = {
->+	.type = SMI_TECHNOTREND_S2_4200,
->+	.name = "TechnoTrend TT-budget S2-4200 Twin",
->+	.ts_0 = SMI_TS_DMA_BOTH,
->+	.ts_1 = SMI_TS_DMA_BOTH,
->+	.fe_0 = DVBSKY_FE_M88RS6000,
->+	.fe_1 = DVBSKY_FE_M88RS6000,
->+};
->+
-> /* PCI IDs */
-> #define SMI_ID(_subvend, _subdev, _driverdata) {	\
-> 	.vendor      = SMI_VID,    .device    = SMI_PID, \
->@@ -1096,6 +1105,7 @@ static const struct pci_device_id smi_id_table[] = {
-> 	SMI_ID(0x4254, 0x0550, dvbsky_s950_cfg),
-> 	SMI_ID(0x4254, 0x0552, dvbsky_s952_cfg),
-> 	SMI_ID(0x4254, 0x5580, dvbsky_t9580_cfg),
->+	SMI_ID(0x13c2, 0x3016, technotrend_s2_4200_cfg),
-> 	{0}
-> };
-> MODULE_DEVICE_TABLE(pci, smi_id_table);
->diff --git a/drivers/media/pci/smipcie/smipcie.h b/drivers/media/pci/smipcie/smipcie.h
->index 68cdda2..5528e48 100644
->--- a/drivers/media/pci/smipcie/smipcie.h
->+++ b/drivers/media/pci/smipcie/smipcie.h
->@@ -216,6 +216,7 @@ struct smi_cfg_info {
-> #define SMI_DVBSKY_S950         1
-> #define SMI_DVBSKY_T9580        2
-> #define SMI_DVBSKY_T982         3
->+#define SMI_TECHNOTREND_S2_4200 4
-> 	int type;
-> 	char *name;
-> #define SMI_TS_NULL             0
->-- 
->1.9.1
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 8a018c6..52f5ba2 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1165,7 +1165,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_YVYU:		descr = "YVYU 4:2:2"; break;
+ 	case V4L2_PIX_FMT_UYVY:		descr = "UYVY 4:2:2"; break;
+ 	case V4L2_PIX_FMT_VYUY:		descr = "VYUY 4:2:2"; break;
+-	case V4L2_PIX_FMT_YUV422P:	descr = "Planar YVU 4:2:2"; break;
++	case V4L2_PIX_FMT_YUV422P:	descr = "Planar YUV 4:2:2"; break;
+ 	case V4L2_PIX_FMT_YUV411P:	descr = "Planar YUV 4:1:1"; break;
+ 	case V4L2_PIX_FMT_Y41P:		descr = "YUV 4:1:1 (Packed)"; break;
+ 	case V4L2_PIX_FMT_YUV444:	descr = "16-bit A/XYUV 4-4-4-4"; break;
+-- 
+2.7.0
 
