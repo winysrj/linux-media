@@ -1,107 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:56049 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752206AbcCVTzp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2016 15:55:45 -0400
-Subject: Re: [PATCH 3/5] [media] au0828: Unregister notifiers
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
- <cdba12a00adbecabb66a662982991178383917b2.1458129823.git.mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56F1A33E.10403@osg.samsung.com>
-Date: Tue, 22 Mar 2016 13:55:42 -0600
-MIME-Version: 1.0
-In-Reply-To: <cdba12a00adbecabb66a662982991178383917b2.1458129823.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:33921 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756879AbcCDEEY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Mar 2016 23:04:24 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6D423180930
+	for <linux-media@vger.kernel.org>; Fri,  4 Mar 2016 05:04:17 +0100 (CET)
+Date: Fri, 04 Mar 2016 05:04:17 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160304040417.6D423180930@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2016 06:04 AM, Mauro Carvalho Chehab wrote:
-> If au0828 gets removed, we need to remove the notifiers.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Tested bind_unbind au0828 loop 1000 times, followed by bind_unbind
-snd_usb_audio loop 1000 times. Didn't see any lock warnings on a
-KASAN enabled kernel (lock testing enabled). No use-after-free errors
-during these runs.
+Results of the daily build of media_tree:
 
-Ran device removal test and rmmod and modprobe tests on both drivers.
+date:		Fri Mar  4 04:00:21 CET 2016
+git branch:	test
+git hash:	1913722808e79ded46b3bd9ab5de5657faecc8d9
+gcc version:	i686-linux-gcc (GCC) 5.1.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
 
-Generated graph after the runs and the graph looks good.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: ERRORS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Reviewed-by: Shuah Khan <shuahkh@osg.samsung.com>
-Tested-by: Shuah Khan <shuahkh@osg.samsung.com>
+Detailed results are available here:
 
-thanks,
--- Shuah
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-> ---
->  drivers/media/usb/au0828/au0828-core.c | 34 ++++++++++++++++++++++++----------
->  1 file changed, 24 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index 2fcd17d9b1a6..06da73f1ff22 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -131,21 +131,35 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
->  	return status;
->  }
->  
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +static void au0828_media_graph_notify(struct media_entity *new,
-> +				      void *notify_data);
-> +#endif
-> +
->  static void au0828_unregister_media_device(struct au0828_dev *dev)
->  {
-> -
->  #ifdef CONFIG_MEDIA_CONTROLLER
-> -	if (dev->media_dev &&
-> -		media_devnode_is_registered(&dev->media_dev->devnode)) {
-> -		/* clear enable_source, disable_source */
-> -		dev->media_dev->source_priv = NULL;
-> -		dev->media_dev->enable_source = NULL;
-> -		dev->media_dev->disable_source = NULL;
-> +	struct media_device *mdev = dev->media_dev;
-> +	struct media_entity_notify *notify, *nextp;
->  
-> -		media_device_unregister(dev->media_dev);
-> -		media_device_cleanup(dev->media_dev);
-> -		dev->media_dev = NULL;
-> +	if (!mdev || !media_devnode_is_registered(&mdev->devnode))
-> +		return;
-> +
-> +	/* Remove au0828 entity_notify callbacks */
-> +	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list) {
-> +		if (notify->notify != au0828_media_graph_notify)
-> +			continue;
-> +		media_device_unregister_entity_notify(mdev, notify);
->  	}
-> +
-> +	/* clear enable_source, disable_source */
-> +	dev->media_dev->source_priv = NULL;
-> +	dev->media_dev->enable_source = NULL;
-> +	dev->media_dev->disable_source = NULL;
-> +
-> +	media_device_unregister(dev->media_dev);
-> +	media_device_cleanup(dev->media_dev);
-> +	dev->media_dev = NULL;
->  #endif
->  }
->  
-> 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
