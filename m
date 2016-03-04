@@ -1,67 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40608 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752568AbcCYI3s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 04:29:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 00/51] R-Car VSP improvements for v4.6
-Date: Fri, 25 Mar 2016 10:29:45 +0200
-Message-ID: <4370353.kdHmKTOgsC@avalon>
-In-Reply-To: <CAMuHMdUAtZAP+oeKgD_ufvfgR6ieOohMpaP9gT+asuypENbjYg@mail.gmail.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdUAtZAP+oeKgD_ufvfgR6ieOohMpaP9gT+asuypENbjYg@mail.gmail.com>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:36710 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752942AbcCDTL4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 14:11:56 -0500
+Received: by mail-wm0-f43.google.com with SMTP id n186so4214880wmn.1
+        for <linux-media@vger.kernel.org>; Fri, 04 Mar 2016 11:11:56 -0800 (PST)
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH] media: rc: nuvoton: switch attribute wakeup_data to text
+Message-ID: <56D9DDEC.8090204@gmail.com>
+Date: Fri, 4 Mar 2016 20:11:40 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+Switch attribute wakeup_data from binary to a text attribute.
+This makes it easier to handle in userspace and allows to
+use the output of tools like mode2 almost as is to set a
+wakeup sequence.
+Changing to a text format and values in microseconds also
+makes the userspace interface independent of the setting of
+SAMPLE_PERIOD in the driver.
 
-On Friday 25 Mar 2016 09:08:14 Geert Uytterhoeven wrote:
-> On Fri, Mar 25, 2016 at 12:26 AM, Laurent Pinchart wrote:
-> > This patch series contains all the pending vsp1 driver improvements for
-> > v4.6.
->
-> v4.6 or v4.7?
+In addition document the new sysfs attribute in
+Documentation/ABI/testing/sysfs-class-rc-nuvoton.
 
-My bad, it's of course v4.7. That what you get when posting patches late in 
-the night, time blurs and the past, present and future all become one.
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ Documentation/ABI/testing/sysfs-class-rc-nuvoton | 15 +++++
+ drivers/media/rc/nuvoton-cir.c                   | 85 +++++++++++++++---------
+ 2 files changed, 68 insertions(+), 32 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-class-rc-nuvoton
 
-(I'll refrain from quoting Doctor Who here, although the influence of a TARDIS 
-on kernel development would be an interesting subject to study.)
-
-> > In particular, it enables display list usage in non-DRM pipelines (24/51)
-> > and adds support for multi-body display lists (48/51) and the R-Car Gen3
-> > RPF alpha multiplier (50/51) and Z-order control (51/51).
-> > 
-> > The other patches are cleanups, bug fixes and refactoring to support the
-> > four features listed above.
-> > 
-> > The code is based on top of the "[PATCH v6 0/2] media: Add entity types"
-> > patch series. For convenience I've pushed a branch that contains all the
-> > necessary patches on top of the latest Linux media master branch to
-> > 
-> >         git://linuxtv.org/pinchartl/media.git vsp1/next
-> > 
-> > Note that while patch 51/51 enables support for Z-order control in the
-> > vsp1 driver, enabling the feature for userspace requires an additional
-> > patch for the rcar-du-drm driver. I have pushed a branch that includes the
-> > rcar-du-drm changes and platform enablements to
-> > 
-> >         git://linuxtv.org/pinchartl/media.git drm/du/vsp1-kms/boards
-> 
-> I assume this is the branch to be included by renesas-drivers?
-
-That's correct. I'll update the branch with more patches in the very near 
-future, likely today. I'll keep you informed.
-
+diff --git a/Documentation/ABI/testing/sysfs-class-rc-nuvoton b/Documentation/ABI/testing/sysfs-class-rc-nuvoton
+new file mode 100644
+index 0000000..905bcde
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-class-rc-nuvoton
+@@ -0,0 +1,15 @@
++What:		/sys/class/rc/rcN/wakeup_data
++Date:		Mar 2016
++KernelVersion:	4.6
++Contact:	Mauro Carvalho Chehab <m.chehab@samsung.com>
++Description:
++		Reading this file returns the stored CIR wakeup sequence.
++		It starts with a pulse, followed by a space, pulse etc.
++		All values are in microseconds.
++		The same format can be used to store a wakeup sequence
++		in the Nuvoton chip by writing to this file.
++
++		Note: Some systems reset the stored wakeup sequence to a
++		factory default on each boot. On such systems store the
++		wakeup sequence in a file and set it on boot using e.g.
++		a udev rule.
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index c2ee5bd..99b303b 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -179,55 +179,74 @@ static void nvt_set_ioaddr(struct nvt_dev *nvt, unsigned long *ioaddr)
+ 	}
+ }
+ 
+-static ssize_t wakeup_data_read(struct file *fp, struct kobject *kobj,
+-				struct bin_attribute *bin_attr,
+-				char *buf, loff_t off, size_t count)
++static ssize_t wakeup_data_show(struct device *dev,
++				struct device_attribute *attr,
++				char *buf)
+ {
+-	struct device *dev = kobj_to_dev(kobj);
+ 	struct rc_dev *rc_dev = to_rc_dev(dev);
+ 	struct nvt_dev *nvt = rc_dev->priv;
+-	int fifo_len, len;
++	int fifo_len, duration;
+ 	unsigned long flags;
++	ssize_t buf_len = 0;
+ 	int i;
+ 
+ 	spin_lock_irqsave(&nvt->nvt_lock, flags);
+ 
+ 	fifo_len = nvt_cir_wake_reg_read(nvt, CIR_WAKE_FIFO_COUNT);
+-	len = min(fifo_len, WAKEUP_MAX_SIZE);
+-
+-	if (off >= len) {
+-		spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+-		return 0;
+-	}
+-
+-	if (len > count)
+-		len = count;
++	fifo_len = min(fifo_len, WAKEUP_MAX_SIZE);
+ 
+ 	/* go to first element to be read */
+-	while (nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY_IDX) != off)
++	while (nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY_IDX))
+ 		nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
+ 
+-	for (i = 0; i < len; i++)
+-		buf[i] = nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
++	for (i = 0; i < fifo_len; i++) {
++		duration = nvt_cir_wake_reg_read(nvt, CIR_WAKE_RD_FIFO_ONLY);
++		duration = (duration & BUF_LEN_MASK) * SAMPLE_PERIOD;
++		buf_len += snprintf(buf + buf_len, PAGE_SIZE - buf_len,
++				    "%d ", duration);
++	}
++	buf_len += snprintf(buf + buf_len, PAGE_SIZE - buf_len, "\n");
+ 
+ 	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+ 
+-	return len;
++	return buf_len;
+ }
+ 
+-static ssize_t wakeup_data_write(struct file *fp, struct kobject *kobj,
+-				struct bin_attribute *bin_attr,
+-				char *buf, loff_t off, size_t count)
++static ssize_t wakeup_data_store(struct device *dev,
++				 struct device_attribute *attr,
++				 const char *buf, size_t len)
+ {
+-	struct device *dev = kobj_to_dev(kobj);
+ 	struct rc_dev *rc_dev = to_rc_dev(dev);
+ 	struct nvt_dev *nvt = rc_dev->priv;
+ 	unsigned long flags;
+-	u8 tolerance, config;
+-	int i;
++	u8 tolerance, config, wake_buf[WAKEUP_MAX_SIZE];
++	char **argv;
++	int i, count;
++	unsigned int val;
++	ssize_t ret;
++
++	argv = argv_split(GFP_KERNEL, buf, &count);
++	if (!argv)
++		return -ENOMEM;
++	if (!count || count > WAKEUP_MAX_SIZE) {
++		ret = -EINVAL;
++		goto out;
++	}
+ 
+-	if (off > 0)
+-		return -EINVAL;
++	for (i = 0; i < count; i++) {
++		ret = kstrtouint(argv[i], 10, &val);
++		if (ret)
++			goto out;
++		val = DIV_ROUND_CLOSEST(val, SAMPLE_PERIOD);
++		if (!val || val > 0x7f) {
++			ret = -EINVAL;
++			goto out;
++		}
++		wake_buf[i] = val;
++		/* sequence must start with a pulse */
++		if (i % 2 == 0)
++			wake_buf[i] |= BUF_PULSE_BIT;
++	}
+ 
+ 	/* hardcode the tolerance to 10% */
+ 	tolerance = DIV_ROUND_UP(count, 10);
+@@ -245,16 +264,18 @@ static ssize_t wakeup_data_write(struct file *fp, struct kobject *kobj,
+ 			       CIR_WAKE_IRCON);
+ 
+ 	for (i = 0; i < count; i++)
+-		nvt_cir_wake_reg_write(nvt, buf[i], CIR_WAKE_WR_FIFO_DATA);
++		nvt_cir_wake_reg_write(nvt, wake_buf[i], CIR_WAKE_WR_FIFO_DATA);
+ 
+ 	nvt_cir_wake_reg_write(nvt, config, CIR_WAKE_IRCON);
+ 
+ 	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+ 
+-	return count;
++	ret = len;
++out:
++	argv_free(argv);
++	return ret;
+ }
+-
+-static BIN_ATTR_RW(wakeup_data, WAKEUP_MAX_SIZE);
++static DEVICE_ATTR_RW(wakeup_data);
+ 
+ /* dump current cir register contents */
+ static void cir_dump_regs(struct nvt_dev *nvt)
+@@ -1212,7 +1233,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 			     NVT_DRIVER_NAME "-wake", (void *)nvt))
+ 		goto exit_unregister_device;
+ 
+-	ret = device_create_bin_file(&rdev->dev, &bin_attr_wakeup_data);
++	ret = device_create_file(&rdev->dev, &dev_attr_wakeup_data);
+ 	if (ret)
+ 		goto exit_unregister_device;
+ 
+@@ -1239,7 +1260,7 @@ static void nvt_remove(struct pnp_dev *pdev)
+ {
+ 	struct nvt_dev *nvt = pnp_get_drvdata(pdev);
+ 
+-	device_remove_bin_file(&nvt->rdev->dev, &bin_attr_wakeup_data);
++	device_remove_file(&nvt->rdev->dev, &dev_attr_wakeup_data);
+ 
+ 	nvt_disable_cir(nvt);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.1
 
