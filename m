@@ -1,104 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34690 "EHLO lists.s-osg.org"
+Received: from ni.piap.pl ([195.187.100.4]:45374 "EHLO ni.piap.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932234AbcCCWuX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 17:50:23 -0500
-Subject: Re: [PATCH v3 03/22] [media] Docbook: media-types.xml: Add Audio
- Function Entities
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
- <f591af59b7b1c77b5a17603a1a677a32b8e19132.1455233153.git.shuahkh@osg.samsung.com>
- <1886674.Y0SDWvK9bd@avalon>
-Cc: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
-	j.anaszewski@samsung.com, geliangtang@163.com,
-	"al bert"@huitsing.nl, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56D8BFAB.7010509@osg.samsung.com>
-Date: Thu, 3 Mar 2016 15:50:19 -0700
+	id S1752165AbcCDMh2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Mar 2016 07:37:28 -0500
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: tw686x driver
+References: <56D6A50F.4060404@xs4all.nl> <m3povcnjfo.fsf@t19.piap.pl>
+	<56D7E87B.1080505@xs4all.nl> <m3lh5zohsf.fsf@t19.piap.pl>
+	<56D83E16.1010907@xs4all.nl> <m3h9gnod3t.fsf@t19.piap.pl>
+	<56D84CA7.4050800@xs4all.nl> <m3d1raojqq.fsf@t19.piap.pl>
+	<56D96D77.4060707@xs4all.nl>
+Date: Fri, 04 Mar 2016 13:37:20 +0100
+In-Reply-To: <56D96D77.4060707@xs4all.nl> (Hans Verkuil's message of "Fri, 4
+	Mar 2016 12:11:51 +0100")
+Message-ID: <m34mcmo1vj.fsf@t19.piap.pl>
 MIME-Version: 1.0
-In-Reply-To: <1886674.Y0SDWvK9bd@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/28/2016 07:46 PM, Laurent Pinchart wrote:
-> Hi Shuah,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 11 February 2016 16:41:19 Shuah Khan wrote:
->> Add Audio Function Entities
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  Documentation/DocBook/media/v4l/media-types.xml | 12 ++++++++++++
->>  1 file changed, 12 insertions(+)
->>
->> diff --git a/Documentation/DocBook/media/v4l/media-types.xml
->> b/Documentation/DocBook/media/v4l/media-types.xml index 3730967..924a604
->> 100644
->> --- a/Documentation/DocBook/media/v4l/media-types.xml
->> +++ b/Documentation/DocBook/media/v4l/media-types.xml
->> @@ -113,6 +113,18 @@
->>  		   decoder.
->>  	    </entry>
->>  	  </row>
->> +	  <row>
->> +	    <entry><constant>MEDIA_ENT_F_AUDIO_CAPTURE</constant></entry>
->> +	    <entry>Audio Capture Function Entity.</entry>
->> +	  </row>
->> +	  <row>
->> +	    <entry><constant>MEDIA_ENT_F_AUDIO_PLAYBACK</constant></entry>
->> +	    <entry>Audio Playback Function Entity.</entry>
->> +	  </row>
-> 
-> I think this deserves a longer description. From the name and short 
-> description I'm not sure what the capture and playback functions are.
-> 
->> +	  <row>
->> +	    <entry><constant>MEDIA_ENT_F_AUDIO_MIXER</constant></entry>
->> +	    <entry>Audio Mixer Function Entity.</entry>
->> +	  </row>
-> 
-> Entities can implement multiple functions, so function descriptions shouldn't 
-> refer to entity this way. MEDIA_ENT_F_AUDIO_MIXER doesn't mean that the entity 
-> is an audio mixer, it means that the entity implements the audio mixer 
-> function. If you want to keep the description short you could just write 
-> "Audio mixer". A longer description could be "The entity can mix multiple 
-> input audio streams to produce an output audio stream.".
-> 
->>  	</tbody>
->>        </tgroup>
->>      </table>
-> 
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-Thanks for the review. I will send a followup patch
-for this.
+> I have two drivers with different feature sets. Only one can be active
+> at a time. I have to make a choice which one I'll take and Ezequiel's
+> version has functionality (audio, interlaced support) which matches best
+> with existing v4l applications and the typical use cases. I'm not going
+> to have two drivers for the same hw in the media subsystem since only
+> one can be active anyway. My decision, although Mauro can of course decide
+> otherwise.
 
-thanks,
--- Shuah
+(BTW my driver supports interlace)
 
+> I am OK with adding your driver to staging in the hope that someone will
+> merged the functionalities of the two to make a new and better driver.
+
+Then I don't really understand why there can be two drivers for the same
+hw in the tree, but one has to be in "staging".
+Staging isn't meant for this. My driver perfectly qualifies for being
+merged in the non-staging media directory - doesn't it?
+
+You are right, there can be two drivers in the tree for the same hw,
+examples are known. You don't have to make a choice here, though you are
+free to do so.
+
+> My goal is to provide the end-user with the best experience, and this is
+> IMHO the best option given the hand I've been dealt.
+
+Then, if the moral side of the story can't be maintained, at least do it
+legally as required by copyright laws (and the GPL license as well).
+Doing so is not a "pollution" of git history, but your responsibility as
+a maintainer.
+
+
+To be honest, I still can't understand why are you afraid of adding
+Ezequiel's changes on top of my driver properly. While probably far from
+being a pretty changeset, it would make it legal, and this is the thing
+that the author, I suppose, is entitled to.
+Adding some "link" to a mail archive(?) is not a substitute.
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Krzysztof Halasa
+
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
