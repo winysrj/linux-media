@@ -1,104 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:40352 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932261AbcCHLP1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 06:15:27 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Dave Gordon <david.s.gordon@intel.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Brian Norris <computersforpeace@gmail.com>,
-	linux-mtd@lists.infradead.org
-Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH 0/7] mtd: nand: sunxi: add support for DMA operations
-Date: Tue,  8 Mar 2016 12:15:08 +0100
-Message-Id: <1457435715-24740-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from mga03.intel.com ([134.134.136.65]:59069 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758734AbcCDI3M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Mar 2016 03:29:12 -0500
+From: Jani Nikula <jani.nikula@intel.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Keith Packard <keithp@keithp.com>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+In-Reply-To: <20160303221930.32558496@recife.lan>
+References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com> <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan> <86egbrm9hw.fsf@hiro.keithp.com> <20160303221930.32558496@recife.lan>
+Date: Fri, 04 Mar 2016 10:29:08 +0200
+Message-ID: <87si06r6i3.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Fri, 04 Mar 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> Em Thu, 03 Mar 2016 15:23:23 -0800
+> Keith Packard <keithp@keithp.com> escreveu:
+>
+>> Mauro Carvalho Chehab <mchehab@osg.samsung.com> writes:
+>> 
+>> > On my tests, Sphinix seemed too limited to format tables. Asciidoc
+>> > produced an output that worked better.  
+>> 
+>> Yes, asciidoc has much more flexibility in table formatting, including
+>> the ability to control text layout within cells and full control over
+>> borders.
+>> 
+>> However, I think asciidoc has two serious problems:
+>> 
+>>   1) the python version (asciidoc) appears to have been abandoned in
+>>      favor of the ruby version. 
+>> 
+>>   2) It really is just a docbook pre-processor. Native html/latex output
+>>      is poorly supported at best, and exposes only a small subset of the
+>>      full capabilities of the input language.
+>> 
+>> As such, we would have to commit to using the ruby version and either
+>> committing to fixing the native html output backend or continuing to use
+>> the rest of the docbook toolchain.
+>> 
+>> We could insist on using the python version, of course. I spent a bit of
+>> time hacking that up to add 'real' support for a table-of-contents in
+>> the native HTML backend and it looks like getting those changes
+>> upstreamed would be reasonably straightforward. However, we'd end up
+>> 'owning' the code, and I'm not sure we want to.
+>
+> I'm a way more concerned about using a tool that fulfill our needs
+> than to look for something that won't use the docbook toolchain or
+> require to install ruby.
 
-This patch series aims at adding support for DMA assisted operations to
-the sunxi_nand driver.
+I think you meant that to be the other way round, or I fail at parsing
+you. ;)
 
-The first 3 patches are just reworks in the existing driver preparing
-things for DMA ->read/write_page() operations. Those ones are mainly
-re-arranging existing functions, and moving some code into dedicated
-functions so we can reuse them when adding the read/write_page()
-implementation.
+> In the case of Docbook, we know it works and we know already its
+> issues. Please correct me if I'm wrong, but the big problem we
+> have is not due to the DocBook toolchain, but due to the lack of
+> features at the kernel-doc script. Also, xmlto is already installed
+> by the ones that build the kernel docs. So, keeping use it won't
+> require to install a weird toolchain by hand.
 
-Patch 4 is an attempt to generalize some logic that are duplicated in a
-lot of places. It provides a generic solution to create an SG table
-from a buffer (passed by virtual address) and its length.
-This generic implementation tries to take all possible constraints into
-account, like:
-- vmallocated buffers
-- alignement requirement/preference
-- maximum DMA transfer length
+I think kernel-doc is just a small part of the puzzle. It's a problem,
+but a small one at that, and we've already made it output asciidoc, rst
+and docbook as part of this exercise. For real, as in code, not as in
+talk.
 
-I may have missed other things (is there a need for a minimum DMA
-transfer constraint?), so don't hesitate to point problems or missing
-elements in this implementation.
-Note that other subsystems doing the same kind of thing (like SPI of V4L)
-could use this implementation. This is why I've put the SPI and V4L
-maintainers in Cc.
+The reasons I'm involved in this is that I want to make writing
+documentation and rich kernel-doc comments easier (using lightweight
+markup) and I want to make building the documentation easier (using a
+straightforward toolchain with not too many dependencies). I'm hoping
+the former makes writing documentation more attractive and the latter
+keeps the documentation and the toolchain in a better shape through
+having more people actually build the documentation.
 
-Patch 5 is providing functions to map/unmap buffers for DMA operations
-at the MTD level. This will hopefully limit the number of open-coded
-implementations we're currently seeing in a lot of NAND drivers.
-Of course, it's making use of sg_alloc_table_from_buf(), introduced in
-patch 4.
+IMHO docbook is problematic because the toolchain gets too long and
+fragile. You need plenty of tools installed to build the documentation,
+it's fussy to get working, and people just won't. Like code,
+documentation bitrots too when it's not used. The documentation build is
+broken too often. Debugging formatting issues through the entire
+pipeline gets hard; I already faced some of this when playing with the
+kernel-doc->asciidoc->docbook->html chain.
 
-Patch 6 and 7 are patching the sunxi NAND driver and its DT binding doc
-to add DMA support.
+In short, I don't think the docbook toolchain fills all of our needs
+either.
 
-I'm particularly interested in getting feedbacks on patch 4 and 5.
-Is there a reason nobody ever tried to create such generic functions
-(at the scatterlist and MTD levels), and if there are, could you detail
-them?
+> So, to be frank, it doesn't scary me to use either pyhton or
+> ruby script + docbook.
+>
+> Of course, having to own the code has a cost that should be evaluated.
+>
+> If, on the other hand, we decide to use RST, we'll very likely need to
+> patch it to fulfill our needs in order to add proper table support.
+> I've no idea how easy/difficult would be to do that, nor if Sphinx
+> upstream would accept such changes.
+>
+> So, at the end of the day, we may end by having to carry on our own
+> version of Sphinx inside our tree, with doesn't sound good, specially
+> since it is not just a script, but a package with hundreds of
+> files.
 
-Thanks,
+If we end up having to modify Sphinx, it has a powerful extension
+mechanism for this. We wouldn't have to worry about getting it merged to
+Sphinx upstream, and we wouldn't have to carry a local version of all of
+Sphinx. (In fact, the extension mechanism provides a future path for
+doing kernel-doc within Sphinx instead of as a preprocessing step.)
 
-Boris
+I know none of this alleviates your concerns with table supports right
+now. I'll try to have a look at that a bit more.
 
-Side note: patches touching the sunxi NAND driver are depending on
-a series posted yesterday [1].
 
-[1]https://lkml.org/lkml/2016/3/7/444
+BR,
+Jani.
 
-Boris Brezillon (7):
-  mtd: nand: sunxi: move some ECC related operations to their own
-    functions
-  mtd: nand: sunxi: make OOB retrieval optional
-  mtd: nand: sunxi: make cur_off parameter optional in extra oob helpers
-  scatterlist: add sg_alloc_table_from_buf() helper
-  mtd: provide helper to prepare buffers for DMA operations
-  mtd: nand: sunxi: add support for DMA assisted operations
-  mtd: nand: sunxi: update DT bindings
-
- .../devicetree/bindings/mtd/sunxi-nand.txt         |   4 +
- drivers/mtd/mtdcore.c                              |  66 +++
- drivers/mtd/nand/sunxi_nand.c                      | 483 ++++++++++++++++++---
- include/linux/mtd/mtd.h                            |  25 ++
- include/linux/scatterlist.h                        |  24 +
- lib/scatterlist.c                                  | 142 ++++++
- 6 files changed, 679 insertions(+), 65 deletions(-)
 
 -- 
-2.1.4
-
+Jani Nikula, Intel Open Source Technology Center
