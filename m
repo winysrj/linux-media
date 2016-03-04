@@ -1,56 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36314 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759659AbcCDUUm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 15:20:42 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH 1/2] [media] exynos4-is: Put node before s5pcsis_parse_dt() return error
-Date: Fri,  4 Mar 2016 17:20:12 -0300
-Message-Id: <1457122813-12791-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1457122813-12791-1-git-send-email-javier@osg.samsung.com>
-References: <1457122813-12791-1-git-send-email-javier@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48673 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758982AbcCDUTP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 15:19:15 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH v4 0/4] media: Add entity types
+Date: Fri,  4 Mar 2016 22:18:47 +0200
+Message-Id: <1457122731-22558-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MIPI CSIS DT parse function return an -ENXIO errno if the port #
-is outside of the supported values. But it doesn't call of_node_put()
-to decrement the node's reference counter, that's incremented inside
-the of_graph_get_next_endpoint() function that was called before.
+Hello,
 
-Instead of just returning, go to the error path that already does it.
+This patch series adds a type field to the media entity structure. It is a
+resend of v3 rebased on top of the latest media master branch, with acks
+collected and spelling mistakes fixed. I have dropped patches 5 to 7 as they
+don't depend on 1-4 and Hans would like to get them merged through his tree,
+and patch 8 as is adds a function that currently has no user.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
+Let's start with a few words about what types are and are not. The purpose of
+the entity type is to identify the object type that implements the entity, in
+order to safely cast the entity to that object (using container_of()). Three
+types are currently defined, for media entities that are instantiated as such
+(MEDIA_ENTITY_TYPE_MEDIA_ENTITY), embedded in a struct video_device
+(MEDIA_ENTITY_TYPE_VIDEO_DEVICE) or embedded in a struct v4l2_subdev
+(MEDIA_ENTITY_TYPE_V4L2_SUBDEV). The naming is pretty straightforward and
+self-explicit.
 
- drivers/media/platform/exynos4-is/mipi-csis.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Types do not convey any additional information. They don't tell anything about
+the features of the entity or the object that implements it. In particular
+they don't report capabilities of video_device instances, which is why the
+is_media_entity_v4l2_io() function performs additional checks on the video
+device capabilities field, after verifying with the type that it can safely be
+cast to a video_device instance.
 
-diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-index bd5c46c3d4b7..bf954424e7be 100644
---- a/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -757,8 +757,10 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- 		goto err;
- 
- 	state->index = endpoint.base.port - FIMC_INPUT_MIPI_CSI2_0;
--	if (state->index >= CSIS_MAX_ENTITIES)
--		return -ENXIO;
-+	if (state->index >= CSIS_MAX_ENTITIES) {
-+		ret = -ENXIO;
-+		goto err;
-+	}
- 
- 	/* Get MIPI CSI-2 bus configration from the endpoint node. */
- 	of_property_read_u32(node, "samsung,csis-hs-settle",
+The series start by two cleanup patches (1/8 and 2/8) that fix incorrect or
+unneeded usage of the is_media_entity_v4l2_*() functions in the vsp1 and
+exynos4-is drivers. Patch 3/8 then adds the type field to the media_entity
+structure and updates the is_media_entity_v4l2_*() functions implementations.
+Patch 4/8 renames is_media_entity_v4l2_io() to
+is_media_entity_v4l2_video_device() to clarify its purpose.
+
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+
+Laurent Pinchart (4):
+  v4l: vsp1: Check if an entity is a subdev with the right function
+  v4l: exynos4-is: Drop unneeded check when setting up fimc-lite links
+  media: Add type field to struct media_entity
+  media: Rename is_media_entity_v4l2_io to
+    is_media_entity_v4l2_video_device
+
+ drivers/media/platform/exynos4-is/fimc-lite.c   | 12 +---
+ drivers/media/platform/exynos4-is/media-dev.c   |  4 +-
+ drivers/media/platform/omap3isp/ispvideo.c      |  2 +-
+ drivers/media/platform/vsp1/vsp1_video.c        |  2 +-
+ drivers/media/v4l2-core/v4l2-dev.c              |  1 +
+ drivers/media/v4l2-core/v4l2-mc.c               |  2 +-
+ drivers/media/v4l2-core/v4l2-subdev.c           |  1 +
+ drivers/staging/media/davinci_vpfe/vpfe_video.c |  2 +-
+ drivers/staging/media/omap4iss/iss_video.c      |  2 +-
+ include/media/media-entity.h                    | 77 +++++++++++++------------
+ 10 files changed, 50 insertions(+), 55 deletions(-)
+
 -- 
-2.5.0
+Regards,
+
+Laurent Pinchart
 
