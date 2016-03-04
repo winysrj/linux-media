@@ -1,88 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43604 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756644AbcC2KX6 (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:53831 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756538AbcCDK7w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2016 06:23:58 -0400
-Date: Tue, 29 Mar 2016 13:23:53 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2 2/2] [media] media: Improve documentation for
- link_setup/link_modify
-Message-ID: <20160329102353.GH32125@valkosipuli.retiisi.org.uk>
-References: <fef855a4cd482eb02cff982b01511c893ea6e75d.1459243882.git.mchehab@osg.samsung.com>
- <0a562f0766e40f47092716e0f7744368bd6d963d.1459243882.git.mchehab@osg.samsung.com>
+	Fri, 4 Mar 2016 05:59:52 -0500
+Received: from [192.168.1.137] (marune.xs4all.nl [80.101.105.217])
+	by tschai.lan (Postfix) with ESMTPSA id E40401809C5
+	for <linux-media@vger.kernel.org>; Fri,  4 Mar 2016 11:59:46 +0100 (CET)
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.5] v4l2 core fixes/enhancements
+Message-ID: <56D96AA2.4010107@xs4all.nl>
+Date: Fri, 4 Mar 2016 11:59:46 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0a562f0766e40f47092716e0f7744368bd6d963d.1459243882.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The first two patches fix a bug in the core cropcap handling. I found this
+while reviewing the upcoming r-car vin driver.
 
-On Tue, Mar 29, 2016 at 06:31:28AM -0300, Mauro Carvalho Chehab wrote:
-> Those callbacks are called with the media_device.graph_mutex hold.
-> 
-> Add a note about that, as the code called by those notifiers should
-> not be touching in the mutex.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  include/media/media-device.h | 3 ++-
->  include/media/media-entity.h | 3 +++
->  2 files changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index b04cfa907350..e6ad30c323fc 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -312,7 +312,8 @@ struct media_entity_notify {
->   * @enable_source: Enable Source Handler function pointer
->   * @disable_source: Disable Source Handler function pointer
->   *
-> - * @link_notify: Link state change notification callback
-> + * @link_notify: Link state change notification callback. This callback is
-> + * Called with the graph_mutex hold.
+The last three patches add core support for the device_caps. Having this in
+place gives the core a lot more knowledge about the capabilities of v4l2
+device nodes. I plan to eventually convert all drivers to use this. But the
+first step is to get the core support in place.
 
-s/Called/called/
-s/hold/held/
+One other reason for doing this is that it makes it possible to test if a
+v4l2 entity has I/O support. See patch https://patchwork.linuxtv.org/patch/33275/
+for that (not included in this pull request since nobody needs it yet).
 
->   *
->   * This structure represents an abstract high-level media device. It allows easy
->   * access to entities and provides basic media device-level support. The
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 6dc9e4e8cbd4..0b16ebe36db7 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -179,6 +179,9 @@ struct media_pad {
->   * @link_validate:	Return whether a link is valid from the entity point of
->   *			view. The media_entity_pipeline_start() function
->   *			validates all links by calling this operation. Optional.
-> + *
-> + * Note: Those ioctls should not touch the struct media_device.@graph_mutex
-> + * field, as they're called with it already hold.
+Regards,
 
-These aren't really IOCTLs. They are operation callbacks.
+	Hans
 
-How about:
+The following changes since commit 1913722808e79ded46b3bd9ab5de5657faecc8d9:
 
-Note: the callbacks are called struct media_device.@graph_mutex held.
+  [media] staging/media: add missing TODO files (2016-03-03 18:29:14 -0300)
 
-Feel free to replace "callbacks" with "ops" or "operations" or such.
+are available in the git repository at:
 
-With these changes,
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.6g
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+for you to fetch changes up to 2383d1694e0fe1400bcdf4ec37f5a0a48fe4c372:
 
->   */
->  struct media_entity_operations {
->  	int (*link_setup)(struct media_entity *entity,
+  vivid: set device_caps in video_device. (2016-03-04 11:49:28 +0100)
 
--- 
-Kind regards,
+----------------------------------------------------------------
+Hans Verkuil (5):
+      v4l2-ioctl: simplify code
+      v4l2-ioctl: improve cropcap handling
+      v4l2: add device_caps to struct video_device
+      v4l2-pci-skeleton.c: fill in device_caps in video_device
+      vivid: set device_caps in video_device.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+ Documentation/video4linux/v4l2-pci-skeleton.c |  5 ++---
+ drivers/media/platform/vivid/vivid-core.c     | 22 +++++++---------------
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 74 ++++++++++++++++++++++++++++++++++++++++++++++++--------------------------
+ include/media/v4l2-dev.h                      |  3 +++
+ 4 files changed, 60 insertions(+), 44 deletions(-)
