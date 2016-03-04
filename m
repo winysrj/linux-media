@@ -1,175 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [198.137.202.9] ([198.137.202.9]:39058 "EHLO
-	bombadil.infradead.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S965207AbcCPMFB (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47059 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750777AbcCDLL5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 08:05:01 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: [PATCH 4/5] [media] media-device: use kref for media_device instance
-Date: Wed, 16 Mar 2016 09:04:05 -0300
-Message-Id: <82ef082c4de7c0a1c546da1d9e462bc86ab423bf.1458129823.git.mchehab@osg.samsung.com>
-In-Reply-To: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
-References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
-In-Reply-To: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
-References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
+	Fri, 4 Mar 2016 06:11:57 -0500
+Subject: Re: tw686x driver
+To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
+References: <56D6A50F.4060404@xs4all.nl> <m3povcnjfo.fsf@t19.piap.pl>
+ <56D7E87B.1080505@xs4all.nl> <m3lh5zohsf.fsf@t19.piap.pl>
+ <56D83E16.1010907@xs4all.nl> <m3h9gnod3t.fsf@t19.piap.pl>
+ <56D84CA7.4050800@xs4all.nl> <m3d1raojqq.fsf@t19.piap.pl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56D96D77.4060707@xs4all.nl>
+Date: Fri, 4 Mar 2016 12:11:51 +0100
+MIME-Version: 1.0
+In-Reply-To: <m3d1raojqq.fsf@t19.piap.pl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the media_device can be used by multiple drivers,
-via devres, we need to be sure that it will be dropped only
-when all drivers stop using it.
+On 03/04/2016 07:11 AM, Krzysztof Hałasa wrote:
+> Hans Verkuil <hverkuil@xs4all.nl> writes:
+> 
+>>> Staging is meant for completely different situation - for immature,
+>>> incomplete code. It has nothing to do with the case.
+>>
+>> It can be for anything that prevents it from being mainlined. It was (still is?)
+>> used for mature android drivers, for example.
+> 
+> What is preventing my driver from being mainlined?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/media-device.c | 48 +++++++++++++++++++++++++++++++-------------
- include/media/media-device.h |  3 +++
- 2 files changed, 37 insertions(+), 14 deletions(-)
+I have two drivers with different feature sets. Only one can be active
+at a time. I have to make a choice which one I'll take and Ezequiel's
+version has functionality (audio, interlaced support) which matches best
+with existing v4l applications and the typical use cases. I'm not going
+to have two drivers for the same hw in the media subsystem since only
+one can be active anyway. My decision, although Mauro can of course decide
+otherwise.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index c32fa15cc76e..38e6c319fe6e 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -721,6 +721,15 @@ int __must_check __media_device_register(struct media_device *mdev,
- {
- 	int ret;
- 
-+	/* Check if mdev was ever registered at all */
-+	mutex_lock(&mdev->graph_mutex);
-+	if (media_devnode_is_registered(&mdev->devnode)) {
-+		kref_get(&mdev->kref);
-+		mutex_unlock(&mdev->graph_mutex);
-+		return 0;
-+	}
-+	kref_init(&mdev->kref);
-+
- 	/* Register the device node. */
- 	mdev->devnode.fops = &media_device_fops;
- 	mdev->devnode.parent = mdev->dev;
-@@ -730,8 +739,10 @@ int __must_check __media_device_register(struct media_device *mdev,
- 	mdev->topology_version = 0;
- 
- 	ret = media_devnode_register(&mdev->devnode, owner);
--	if (ret < 0)
-+	if (ret < 0) {
-+		media_devnode_unregister(&mdev->devnode);
- 		return ret;
-+	}
- 
- 	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
- 	if (ret < 0) {
-@@ -739,6 +750,7 @@ int __must_check __media_device_register(struct media_device *mdev,
- 		return ret;
- 	}
- 
-+	mutex_unlock(&mdev->graph_mutex);
- 	dev_dbg(mdev->dev, "Media device registered\n");
- 
- 	return 0;
-@@ -773,23 +785,15 @@ void media_device_unregister_entity_notify(struct media_device *mdev,
- }
- EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
- 
--void media_device_unregister(struct media_device *mdev)
-+static void do_media_device_unregister(struct kref *kref)
- {
-+	struct media_device *mdev;
- 	struct media_entity *entity;
- 	struct media_entity *next;
- 	struct media_interface *intf, *tmp_intf;
- 	struct media_entity_notify *notify, *nextp;
- 
--	if (mdev == NULL)
--		return;
--
--	mutex_lock(&mdev->graph_mutex);
--
--	/* Check if mdev was ever registered at all */
--	if (!media_devnode_is_registered(&mdev->devnode)) {
--		mutex_unlock(&mdev->graph_mutex);
--		return;
--	}
-+	mdev = container_of(kref, struct media_device, kref);
- 
- 	/* Remove all entities from the media device */
- 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
-@@ -807,13 +811,26 @@ void media_device_unregister(struct media_device *mdev)
- 		kfree(intf);
- 	}
- 
--	mutex_unlock(&mdev->graph_mutex);
-+	/* Check if mdev devnode was registered */
-+	if (!media_devnode_is_registered(&mdev->devnode))
-+		return;
- 
- 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
- 	media_devnode_unregister(&mdev->devnode);
- 
- 	dev_dbg(mdev->dev, "Media device unregistered\n");
- }
-+
-+void media_device_unregister(struct media_device *mdev)
-+{
-+	if (mdev == NULL)
-+		return;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+	kref_put(&mdev->kref, do_media_device_unregister);
-+	mutex_unlock(&mdev->graph_mutex);
-+
-+}
- EXPORT_SYMBOL_GPL(media_device_unregister);
- 
- static void media_device_release_devres(struct device *dev, void *res)
-@@ -825,13 +842,16 @@ struct media_device *media_device_get_devres(struct device *dev)
- 	struct media_device *mdev;
- 
- 	mdev = devres_find(dev, media_device_release_devres, NULL, NULL);
--	if (mdev)
-+	if (mdev) {
-+		kref_get(&mdev->kref);
- 		return mdev;
-+	}
- 
- 	mdev = devres_alloc(media_device_release_devres,
- 				sizeof(struct media_device), GFP_KERNEL);
- 	if (!mdev)
- 		return NULL;
-+
- 	return devres_get(dev, mdev, NULL, NULL);
- }
- EXPORT_SYMBOL_GPL(media_device_get_devres);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index ca3871b853ba..73c16e6e6b6b 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -23,6 +23,7 @@
- #ifndef _MEDIA_DEVICE_H
- #define _MEDIA_DEVICE_H
- 
-+#include <linux/kref.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- 
-@@ -283,6 +284,7 @@ struct media_entity_notify {
-  * struct media_device - Media device
-  * @dev:	Parent device
-  * @devnode:	Media device node
-+ * @kref:	Object refcount
-  * @driver_name: Optional device driver name. If not set, calls to
-  *		%MEDIA_IOC_DEVICE_INFO will return dev->driver->name.
-  *		This is needed for USB drivers for example, as otherwise
-@@ -347,6 +349,7 @@ struct media_device {
- 	/* dev->driver_data points to this struct. */
- 	struct device *dev;
- 	struct media_devnode devnode;
-+	struct kref kref;
- 
- 	char model[32];
- 	char driver_name[32];
--- 
-2.5.0
+I am OK with adding your driver to staging in the hope that someone will
+merged the functionalities of the two to make a new and better driver.
 
+Whether that means that Ezequiel's code is merged into yours or vice versa,
+I really don't care.
+
+My goal is to provide the end-user with the best experience, and this is
+IMHO the best option given the hand I've been dealt.
+
+I ordered a tw6869-based PCIe card so I can do testing myself once it has
+arrived.
+
+Regards,
+
+	Hans
