@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:45267 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754649AbcCOAko (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 20:40:44 -0400
-From: Simon Horman <horms+renesas@verge.net.au>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Simon Horman <horms+renesas@verge.net.au>
-Subject: [PATCH v4 2/2] media: soc_camera: rcar_vin: add device tree support for r8a7792
-Date: Tue, 15 Mar 2016 09:40:27 +0900
-Message-Id: <1458002427-3063-3-git-send-email-horms+renesas@verge.net.au>
-In-Reply-To: <1458002427-3063-1-git-send-email-horms+renesas@verge.net.au>
-References: <1458002427-3063-1-git-send-email-horms+renesas@verge.net.au>
+Received: from lists.s-osg.org ([54.187.51.154]:36506 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750724AbcCERkq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Mar 2016 12:40:46 -0500
+Date: Sat, 5 Mar 2016 14:40:40 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Michael Ira Krufky <mkrufky@linuxtv.org>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: Linux Media Summit in April, 7 - San Diego - CA - USA
+Message-ID: <20160305144040.4e8d0265@recife.lan>
+In-Reply-To: <CAOcJUbxF=et60pAiSmTQhvu5xqL=oU8as1CdPtFOHR-ev=paPw@mail.gmail.com>
+References: <20160305120814.116ae4c0@recife.lan>
+	<CAOcJUbxF=et60pAiSmTQhvu5xqL=oU8as1CdPtFOHR-ev=paPw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simply document new compatibility string.
-As a previous patch adds a generic R-Car Gen2 compatibility string
-there appears to be no need for a driver updates.
+Em Sat, 05 Mar 2016 10:54:58 -0500
+Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
 
-By documenting this compat string it may be used in DTSs shipped, for
-example as part of ROMs. It must be used in conjunction with the Gen2
-fallback compat string. At this time there are no known differences between
-the r8a7792 IP block and that implemented by the driver for the Gen2
-fallback compat string. Thus there is no need to update the driver as the
-use of the Gen2 fallback compat string will activate the correct code in
-the current driver while leaving the option for r8a7792-specific driver
-code to be activated in an updated driver should the need arise.
+> On Sat, Mar 5, 2016 at 10:08 AM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> > As discussed on our IRC #v4l channel at Freenode, we'll be running a 1-day
+> > Linux Media Summit in San Diego on Aug, 7, just after the Embedded
+> > Linux Conference.
+> >
+> > Feel free to submit relevant topics related to the Linux Kernel support
+> > for media, in order to help us to build the workshop's agenda and take
+> > other needs into account when working on it.
+> >
+> > As usual, we'll be using the media-workshop@linuxtv.org ML for the
+> > specific discussions about that, so the ones interested on participate
+> > on such discussions and/or be present there are requested to subscribe
+> > it, and to submit themes of interest via the mailing lists.
+> >
+> > Please also send an e-mail if you're intending to join us there, to
+> > allow us to be sure that we'll have enough seats for the participants.
+> >
+> > Hope to see you there!
+> >
+> > Regards,
+> > Mauro  
+> 
+> Just to clarify, this will be on APRIL 7th, not Aug 7, is that correct?
 
-Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
----
-v4
-* s/sting/string/ in changelog
-* Added Ack from Geert Uytterhoeven
+Oh! Yes, April, 7th.
 
-v3
-* New patch
----
- Documentation/devicetree/bindings/media/rcar_vin.txt | 1 +
- 1 file changed, 1 insertion(+)
+Thanks for seeing that!
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index 4266123888ed..6a4e61cbe011 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -9,6 +9,7 @@ channel which can be either RGB, YUYV or BT656.
-    - "renesas,vin-r8a7795" for the R8A7795 device
-    - "renesas,vin-r8a7794" for the R8A7794 device
-    - "renesas,vin-r8a7793" for the R8A7793 device
-+   - "renesas,vin-r8a7792" for the R8A7792 device
-    - "renesas,vin-r8a7791" for the R8A7791 device
-    - "renesas,vin-r8a7790" for the R8A7790 device
-    - "renesas,vin-r8a7779" for the R8A7779 device
+Regards,
+Mauro
+
+
+
 -- 
-2.1.4
-
+Thanks,
+Mauro
