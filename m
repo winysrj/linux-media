@@ -1,125 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:36077 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750731AbcCSEQN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Mar 2016 00:16:13 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0FBB6182E7D
-	for <linux-media@vger.kernel.org>; Sat, 19 Mar 2016 05:16:07 +0100 (CET)
-Date: Sat, 19 Mar 2016 05:16:06 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160319041607.0FBB6182E7D@tschai.lan>
+Received: from bombadil.infradead.org ([198.137.202.9]:36172 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756259AbcCEKNt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Mar 2016 05:13:49 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2] [media] media-device: map new functions into old types for legacy API
+Date: Sat,  5 Mar 2016 07:13:39 -0300
+Message-Id: <d2caef627f843e45165566135f63eafef9f4fc84.1457172768.git.mchehab@osg.samsung.com>
+In-Reply-To: <07c81fda0c8b187be238a8428fd370d156082f8c.1457088214.git.mchehab@osg.samsung.com>
+References: <07c81fda0c8b187be238a8428fd370d156082f8c.1457088214.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The legacy media controller userspace API exposes entity types that
+carry both type and function information. The new API replaces the type
+with a function. It preserves backward compatibility by defining legacy
+functions for the existing types and using them in drivers.
 
-Results of the daily build of media_tree:
+This works fine, as long as newer entity functions won't be added.
 
-date:		Sat Mar 19 04:00:36 CET 2016
-git branch:	test
-git hash:	c2f555fe3ce4515a8bf1393af5b9a48ce60ebbfe
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.4.0-164
+Unfortunately, some tools, like media-ctl with --print-dot argument
+rely on the now legacy MEDIA_ENT_T_V4L2_SUBDEV and MEDIA_ENT_T_DEVNODE
+numeric ranges to identify what entities will be shown.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: ERRORS
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for powerpc64
-ABI WARNING: change for x86_64
-smatch: ERRORS
+Also, if the entity doesn't match those ranges, it will ignore the
+major/minor information on devnodes, and won't be getting the devnode
+name via udev or sysfs.
 
-Detailed results are available here:
+As we're now adding devices outside the old range, the legacy ioctl
+needs to map the new entity functions into a type at the old range,
+or otherwise we'll have a regression.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Detected on all released media-ctl versions (e. g. versions <= 1.10).
 
-Full logs are available here:
+Fix this by deriving the type from the function to emulate the legacy
+API if the function isn't in the legacy functions range.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+Reported-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/media-device.c | 23 +++++++++++++++++++++++
+ include/uapi/linux/media.h   |  6 +++++-
+ 2 files changed, 28 insertions(+), 1 deletion(-)
 
-The Media Infrastructure API from this daily build is here:
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 17cd349e485f..afe64ddeeaec 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -20,6 +20,9 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
+ 
++/* We need to access legacy defines from linux/media.h */
++#define __NEED_MEDIA_LEGACY_API
++
+ #include <linux/compat.h>
+ #include <linux/export.h>
+ #include <linux/idr.h>
+@@ -121,6 +124,26 @@ static long media_device_enum_entities(struct media_device *mdev,
+ 	u_ent.group_id = 0;		/* Unused */
+ 	u_ent.pads = ent->num_pads;
+ 	u_ent.links = ent->num_links - ent->num_backlinks;
++
++	/*
++	 * Workaround for a bug at media-ctl <= v1.10 that makes it to
++	 * do the wrong thing if the entity function doesn't belong to
++	 * either MEDIA_ENT_F_OLD_BASE or MEDIA_ENT_F_OLD_SUBDEV_BASE
++	 * Ranges.
++	 *
++	 * Non-subdevices are expected to be at the MEDIA_ENT_F_OLD_BASE,
++	 * or, otherwise, will be silently ignored by media-ctl when
++	 * printing the graphviz diagram. So, map them into the devnode
++	 * old range.
++	 */
++	if (ent->function < MEDIA_ENT_F_OLD_BASE ||
++	    ent->function > MEDIA_ENT_T_DEVNODE_UNKNOWN) {
++		if (is_media_entity_v4l2_subdev(ent))
++			u_ent.type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
++		else if (ent->function != MEDIA_ENT_F_IO_V4L)
++			u_ent.type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
++	}
++
+ 	memcpy(&u_ent.raw, &ent->info, sizeof(ent->info));
+ 	if (copy_to_user(uent, &u_ent, sizeof(u_ent)))
+ 		return -EFAULT;
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index 95e126edb1c3..ef046b4ccb0d 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -132,7 +132,7 @@ struct media_device_info {
+ 
+ #define MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN	MEDIA_ENT_F_OLD_SUBDEV_BASE
+ 
+-#ifndef __KERNEL__
++#if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
+ 
+ /*
+  * Legacy symbols used to avoid userspace compilation breakages
+@@ -145,6 +145,10 @@ struct media_device_info {
+ #define MEDIA_ENT_TYPE_MASK		0x00ff0000
+ #define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
+ 
++/* End of the old subdev reserved numberspace */
++#define MEDIA_ENT_T_DEVNODE_UNKNOWN	(MEDIA_ENT_T_DEVNODE | \
++					 MEDIA_ENT_SUBTYPE_MASK)
++
+ #define MEDIA_ENT_T_DEVNODE		MEDIA_ENT_F_OLD_BASE
+ #define MEDIA_ENT_T_DEVNODE_V4L		MEDIA_ENT_F_IO_V4L
+ #define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+-- 
+2.5.0
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
