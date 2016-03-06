@@ -1,99 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41163 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751013AbcCBSaO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2016 13:30:14 -0500
-Subject: Re: [RFC] Representing hardware connections via MC
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-References: <20160226091317.5a07c374@recife.lan>
- <20160302141643.GH11084@valkosipuli.retiisi.org.uk>
- <20160302124029.0e6cee85@recife.lan> <20160302130409.60df670f@recife.lan>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D7312F.60503@xs4all.nl>
-Date: Wed, 2 Mar 2016 19:30:07 +0100
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35487 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407AbcCFNve (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2016 08:51:34 -0500
+Received: by mail-wm0-f67.google.com with SMTP id 1so6411700wmg.2
+        for <linux-media@vger.kernel.org>; Sun, 06 Mar 2016 05:51:34 -0800 (PST)
+Date: Sun, 6 Mar 2016 15:51:24 +0200
+From: Ulrik de Muelenaere <ulrikdem@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>, Antonio Ospite <ao2@ao2.it>
+Subject: [PATCH 2/2] [media] gspca_kinect: enable both video and depth streams
+Message-ID: <378b4808198c9c64627a565c0a743d01880f5494.1457262292.git.ulrikdem@gmail.com>
+References: <cover.1457262292.git.ulrikdem@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20160302130409.60df670f@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1457262292.git.ulrikdem@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/02/2016 05:04 PM, Mauro Carvalho Chehab wrote:
-> Em Wed, 2 Mar 2016 12:40:29 -0300
-> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
-> 
->> After all the discussions, I guess "CONN" for connection is the best way
->> to represent it.
-> 
-> Better to put it on a patch.
-> 
-> Please review.
-> 
-> Regards,
-> Mauro
-> 
-> [media] Better define MEDIA_ENT_F_CONN_* entities
-> 
-> Putting concepts in a paper is hard, specially since different people
-> may interpret it in a different way.
-> 
-> Make clear about the meaning of the MEDIA_ENT_F_CONN_* entities
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
-> index 5e3f20fdcf17..b036e6103949 100644
-> --- a/Documentation/DocBook/media/v4l/media-types.xml
-> +++ b/Documentation/DocBook/media/v4l/media-types.xml
-> @@ -46,15 +46,26 @@
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_F_CONN_RF</constant></entry>
-> -	    <entry>Connector for a Radio Frequency (RF) signal.</entry>
-> +	    <entry>Entity representing the logical connection associated with a
-> +		    single Radio Frequency (RF) signal connector. It
-> +		    corresponds to the logical input or output associated
-> +		    with the RF signal.</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_F_CONN_SVIDEO</constant></entry>
-> -	    <entry>Connector for a S-Video signal.</entry>
-> +	    <entry>Entity representing the logical connection assowiated
-> +		    with a sigle S-Video connector. Such entity should have
-> +		    two pads, one for the luminance signal(Y) and one
+The Kinect produces both a video stream and a depth stream. Call
+gspca_dev_probe() twice to create a video device node for each.
 
-Add space after 'signal'.
+Remove the depth_mode parameter which had to be set at probe time in
+order to select either the video or depth stream.
 
-Other than that:
+Signed-off-by: Ulrik de Muelenaere <ulrikdem@gmail.com>
+---
+ drivers/media/usb/gspca/kinect.c | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-> +		    for the chrominance signal (C). It corresponds to the
-> +		    logical input or output associated with S-Video Y and C
-> +		    signals.</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_F_CONN_COMPOSITE</constant></entry>
-> -	    <entry>Connector for a RGB composite signal.</entry>
-> +	    <entry>Entity representing the logical connection for a composite
-> +		    signal. It corresponds to the logical input or output
-> +		    associated with the a single signal that carries both
-> +		    chrominance and luminance information (Y+C).</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_F_CAM_SENSOR</constant></entry>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/usb/gspca/kinect.c b/drivers/media/usb/gspca/kinect.c
+index 3cb30a3..4bc5b7d 100644
+--- a/drivers/media/usb/gspca/kinect.c
++++ b/drivers/media/usb/gspca/kinect.c
+@@ -36,8 +36,6 @@ MODULE_AUTHOR("Antonio Ospite <ospite@studenti.unina.it>");
+ MODULE_DESCRIPTION("GSPCA/Kinect Sensor Device USB Camera Driver");
+ MODULE_LICENSE("GPL");
+ 
+-static bool depth_mode;
+-
+ struct pkt_hdr {
+ 	uint8_t magic[2];
+ 	uint8_t pad;
+@@ -424,7 +422,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev, u8 *__data, int len)
+ 
+ /* sub-driver description */
+ static const struct sd_desc sd_desc_video = {
+-	.name      = MODULE_NAME,
++	.name      = MODULE_NAME "_video",
+ 	.config    = sd_config_video,
+ 	.init      = sd_init,
+ 	.start     = sd_start_video,
+@@ -436,7 +434,7 @@ static const struct sd_desc sd_desc_video = {
+ 	*/
+ };
+ static const struct sd_desc sd_desc_depth = {
+-	.name      = MODULE_NAME,
++	.name      = MODULE_NAME "_depth",
+ 	.config    = sd_config_depth,
+ 	.init      = sd_init,
+ 	.start     = sd_start_depth,
+@@ -460,12 +458,19 @@ MODULE_DEVICE_TABLE(usb, device_table);
+ /* -- device connect -- */
+ static int sd_probe(struct usb_interface *intf, const struct usb_device_id *id)
+ {
+-	if (depth_mode)
+-		return gspca_dev_probe(intf, id, &sd_desc_depth,
+-				       sizeof(struct sd), THIS_MODULE);
+-	else
+-		return gspca_dev_probe(intf, id, &sd_desc_video,
+-				       sizeof(struct sd), THIS_MODULE);
++	int res;
++
++	res = gspca_dev_probe(intf, id, &sd_desc_video, sizeof(struct sd),
++			      THIS_MODULE);
++	if (res < 0)
++		return res;
++
++	res = gspca_dev_probe(intf, id, &sd_desc_depth, sizeof(struct sd),
++			      THIS_MODULE);
++	if (res < 0)
++		gspca_disconnect(intf);
++
++	return res;
+ }
+ 
+ static struct usb_driver sd_driver = {
+@@ -481,6 +486,3 @@ static struct usb_driver sd_driver = {
+ };
+ 
+ module_usb_driver(sd_driver);
+-
+-module_param(depth_mode, bool, 0644);
+-MODULE_PARM_DESC(depth_mode, "0=video 1=depth");
+-- 
+2.7.0
 
