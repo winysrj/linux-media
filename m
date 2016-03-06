@@ -1,140 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39608 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756945AbcCXIuR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 04:50:17 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH v6 2/2] media: Rename is_media_entity_v4l2_io to is_media_entity_v4l2_video_device
-Date: Thu, 24 Mar 2016 10:50:08 +0200
-Message-Id: <1458809408-32611-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458809408-32611-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458809408-32611-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:33367 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751431AbcCFNjs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2016 08:39:48 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	=?UTF-8?q?Jan=20Kl=C3=B6tzke?= <jan@kloetzke.net>
+Subject: [PATCH 1/6] [media] mantis: check for errors on readl inside loop
+Date: Sun,  6 Mar 2016 10:39:17 -0300
+Message-Id: <076989c7736719982a1bc9557d7db072910d8efe.1457271549.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All users of is_media_entity_v4l2_io() (the exynos4-is, omap3isp,
-davince_vpfe and omap4iss drivers and the v4l2-mc power management code)
-use the function to check whether entities are video_device instances,
-either to ensure they can cast the entity to a struct video_device, or
-to count the number of video nodes users.
+As warned by smatch:
+	drivers/media/pci/mantis/mantis_uart.c:105 mantis_uart_work() warn: this loop depends on readl() succeeding
 
-The purpose of the function is thus to identify whether the media entity
-instance is an instance of the video_device object, not to check whether
-it can perform I/O. Rename it accordingly, we will introduce a more
-specific is_media_entity_v4l2_io() check when needed.
+If readl() fails, this could lead into an endless loop. Avoid that.
+We might instead add some timeout logic, but it readl() is
+failing, then something really wrong is happening.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+While here, remove two defines that are only used once.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/exynos4-is/media-dev.c   | 4 ++--
- drivers/media/platform/omap3isp/ispvideo.c      | 2 +-
- drivers/media/v4l2-core/v4l2-mc.c               | 2 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
- drivers/staging/media/omap4iss/iss_video.c      | 2 +-
- include/media/media-entity.h                    | 4 ++--
- 6 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/pci/mantis/mantis_common.h | 7 ++-----
+ drivers/media/pci/mantis/mantis_uart.c   | 4 ++--
+ 2 files changed, 4 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index feb521f28e14..9a377d9dd58a 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1130,7 +1130,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
- 	media_entity_graph_walk_start(graph, entity);
+diff --git a/drivers/media/pci/mantis/mantis_common.h b/drivers/media/pci/mantis/mantis_common.h
+index d48778a366a9..8348c5de3d18 100644
+--- a/drivers/media/pci/mantis/mantis_common.h
++++ b/drivers/media/pci/mantis/mantis_common.h
+@@ -54,11 +54,8 @@
+ 	}												\
+ } while(0)
  
- 	while ((entity = media_entity_graph_walk_next(graph))) {
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
+-#define mwrite(dat, addr)	writel((dat), addr)
+-#define mread(addr)		readl(addr)
+-
+-#define mmwrite(dat, addr)	mwrite((dat), (mantis->mmio + (addr)))
+-#define mmread(addr)		mread(mantis->mmio + (addr))
++#define mmwrite(dat, addr)	writel((dat), (mantis->mmio + (addr)))
++#define mmread(addr)		readl(mantis->mmio + (addr))
  
- 		ret  = __fimc_md_modify_pipeline(entity, enable);
-@@ -1145,7 +1145,7 @@ err:
- 	media_entity_graph_walk_start(graph, entity_err);
- 
- 	while ((entity_err = media_entity_graph_walk_next(graph))) {
--		if (!is_media_entity_v4l2_io(entity_err))
-+		if (!is_media_entity_v4l2_video_device(entity_err))
- 			continue;
- 
- 		__fimc_md_modify_pipeline(entity_err, !enable);
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index ac76d2901501..1b1a95d546f6 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -251,7 +251,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
- 		if (entity == &video->video.entity)
- 			continue;
- 
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 
- 		__video = to_isp_video(media_entity_to_video_device(entity));
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 2228cd3a846e..ca94bded3386 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -263,7 +263,7 @@ static int pipeline_pm_use_count(struct media_entity *entity,
- 	media_entity_graph_walk_start(graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(graph))) {
--		if (is_media_entity_v4l2_io(entity))
-+		if (is_media_entity_v4l2_video_device(entity))
- 			use += entity->use_count;
- 	}
- 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index db49af90217e..7d8fa34f31f3 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -154,7 +154,7 @@ static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		if (entity == &video->video_dev.entity)
- 			continue;
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 		far_end = to_vpfe_video(media_entity_to_video_device(entity));
- 		if (far_end->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index f54349bce4de..cf8da23558bb 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -223,7 +223,7 @@ iss_video_far_end(struct iss_video *video)
- 		if (entity == &video->video.entity)
- 			continue;
- 
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 
- 		far_end = to_iss_video(media_entity_to_video_device(entity));
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 1986340a8cf2..e0295eefd702 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -358,14 +358,14 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
- }
- 
- /**
-- * is_media_entity_v4l2_io() - Check if the entity is a video_device
-+ * is_media_entity_v4l2_video_device() - Check if the entity is a video_device
-  * @entity:	pointer to entity
-  *
-  * Return: true if the entity is an instance of a video_device object and can
-  * safely be cast to a struct video_device using the container_of() macro, or
-  * false otherwise.
-  */
--static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
-+static inline bool is_media_entity_v4l2_video_device(struct media_entity *entity)
+ #define MANTIS_TS_188		0
+ #define MANTIS_TS_204		1
+diff --git a/drivers/media/pci/mantis/mantis_uart.c b/drivers/media/pci/mantis/mantis_uart.c
+index f1c96aec8c7b..95ccc34be9fd 100644
+--- a/drivers/media/pci/mantis/mantis_uart.c
++++ b/drivers/media/pci/mantis/mantis_uart.c
+@@ -91,7 +91,7 @@ static void mantis_uart_read(struct mantis_pci *mantis)
+ static void mantis_uart_work(struct work_struct *work)
  {
- 	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- }
+ 	struct mantis_pci *mantis = container_of(work, struct mantis_pci, uart_work);
+-	u32 stat;
++	int stat;
+ 
+ 	stat = mmread(MANTIS_UART_STAT);
+ 
+@@ -102,7 +102,7 @@ static void mantis_uart_work(struct work_struct *work)
+ 	 * MANTIS_UART_RXFIFO_DATA is only set if at least
+ 	 * config->bytes + 1 bytes are in the FIFO.
+ 	 */
+-	while (stat & MANTIS_UART_RXFIFO_DATA) {
++	while ((stat >= 0) && (stat & MANTIS_UART_RXFIFO_DATA)) {
+ 		mantis_uart_read(mantis);
+ 		stat = mmread(MANTIS_UART_STAT);
+ 	}
 -- 
-2.7.3
+2.5.0
 
