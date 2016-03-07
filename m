@@ -1,101 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:36280 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752026AbcCGIjG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2016 03:39:06 -0500
-Message-ID: <56DD3E1E.5040003@lysator.liu.se>
-Date: Mon, 07 Mar 2016 09:38:54 +0100
-From: Peter Rosin <peda@lysator.liu.se>
+Received: from lists.s-osg.org ([54.187.51.154]:36663 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750836AbcCGMTR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Mar 2016 07:19:17 -0500
+Date: Mon, 7 Mar 2016 09:19:10 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	Keith Packard <keithp@keithp.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160307091910.09c90f31@recife.lan>
+In-Reply-To: <20160306232908.GA3732@linuxtv.org>
+References: <20160213145317.247c63c7@lwn.net>
+	<87y49zr74t.fsf@intel.com>
+	<20160303071305.247e30b1@lwn.net>
+	<20160303155037.705f33dd@recife.lan>
+	<86egbrm9hw.fsf@hiro.keithp.com>
+	<20160303221930.32558496@recife.lan>
+	<87si06r6i3.fsf@intel.com>
+	<20160304095950.3358a2cb@recife.lan>
+	<20160304140909.GA15636@linuxtv.org>
+	<20160305232937.74678dd0@recife.lan>
+	<20160306232908.GA3732@linuxtv.org>
 MIME-Version: 1.0
-To: Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Cameron <jic23@kernel.org>
-CC: Peter Rosin <peda@axentia.se>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicholas Mc Guire <hofrat@osadl.org>,
-	Olli Salonen <olli.salonen@iki.fi>, linux-i2c@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 0/8] i2c mux cleanup and locking update
-References: <1452265496-22475-1-git-send-email-peda@lysator.liu.se> <20160302172904.GC5439@katana> <56DB1C07.4040008@kernel.org> <20160305182934.GA1394@katana>
-In-Reply-To: <20160305182934.GA1394@katana>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-03-05 19:29, Wolfram Sang wrote:
-> 
->> Perhaps it's one to let sit into at least the next cycle (and get some testing
->> on those media devices if we can) but, whilst it is fiddly the gains seen in
->> individual drivers (like the example Peter put in response to the V4 series)
->> make it look worthwhile to me.  Also, whilst the invensense part is plain odd
->> in many ways, the case Peter had looks rather more normal.
->>
->> At the end of the day, sometimes fiddly problems need fiddly code. 
->> (says a guy who doesn't have to maintain it!)
->>
->> It certainly helps that Peter has done a thorough job, broken the patches
->> up cleanly and provided clean descriptions of what he is doing.
-> 
-> Yes, Peter has done a great job so far and the latest results were very
-> convincing (fixing the invensense issue and the savings for rtl2832).
-> 
-> And yes, I am reluctant to maintain this code alone, so my question
-> would be:
-> 
-> Peter, are you interested in becoming the i2c-mux maintainer and look
-> after the code even after it was merged? (From "you reviewing patches and
-> me picking them up" to "you have your own branch which I pull", we can
-> discuss the best workflow.)
+Em Mon, 7 Mar 2016 00:29:08 +0100
+Johannes Stezenbach <js@linuxtv.org> escreveu:
 
-My code wouldn't be worth much if I didn't offer to look after it myself. On
-the other hand, I am also reluctant to be the go-to person for all things
-i2c-mux, as I don't have a clear picture of how much work it's going to be.
-My offer is going to be this, I'll look after any unforeseen future problems
-caused by this rework, and I can be the i2c-mux maintainer. But if being
-the i2c-mux maintainer turns out to be a huge time-sink, there is no way I
-can stay on in the long run. But I guess that is the same for any maintainer
-(whose job description does not explicitly include being maintainer).
-
-> If that would be the case, I have the same idea like Jonathan: Give it
-> another cycle for more review & test and aim for the 4.7 merge window.
-
-Yes, sounds good. One of the reasons for doing things right (or at least
-trying to) is to have more people look at the work. *I* think it's good,
-but more eyes can't hurt.
-
-> I have to admit that I still haven't done a more thorough review, so I
-> can't say if I see a show-stopper in this series. Yet, even if so I am
-> positive it can be sorted out. Oh, and we should call for people with
-> special experience in locking.
+> On Sat, Mar 05, 2016 at 11:29:37PM -0300, Mauro Carvalho Chehab wrote:
+> > 
+> > I converted one of the big tables to CSV. At least now it recognized
+> > it as a table. Yet, the table was very badly formated:
+> > 	https://mchehab.fedorapeople.org/media-kabi-docs-test/rst_tests/packed-rgb.html
+> > 
+> > This is how this table should look like:
+> > 	https://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html
+> > 
+> > Also, as this table has merged cells at the legend. I've no idea how
+> > to tell sphinx to do that on csv format.
+> > 
+> > The RST files are on this git tree:
+> > 	https://git.linuxtv.org/mchehab/v4l2-docs-poc.git/  
 > 
-> What do people think?
-> 
-> Regards,
-> 
->    Wolfram
-> 
-> PS: Peter, have you seen my demuxer driver in my for-next branch? I hope
-> it won't spoil your design?
+> Yeah, seems it can't do merged cells in csv.  Attached patch converts it
+> back to grid table format and fixes the table definition.
+> The html output looks usable, but clearly it is no fun to
+> work with tables in Sphinx.
 
-I had a brief look, and I can't see anything in the demux that's affected by
-the mux update. The main commonality of the demux and the preexisting muxes
-seems to be that the name includes "mux" and that it is all about i2c. Agreed?
+Yes, the output is OK, but, as you said, working with tables in
+Sphinx is hard, and using asciiart for the kind of tables we have
+is not nice.
 
-In short, I see no problems.
+> 
+> Sphinx' latex writer can't handle nested tables, though.
 
-Cheers,
-Peter
+Yeah, this is a big trouble that need to be solved if you're
+willing to use Sphinx.
+
+Btw, it crashes when trying to generate man pages:
+
+	Exception occurred:
+	  File "/usr/lib/python2.7/site-packages/docutils/writers/manpage.py", line 627, in depart_entry
+	    self._active_table.append_cell(self.body[start:])
+	AttributeError: 'NoneType' object has no attribute 'append_cell'
+	The full traceback has been saved in /tmp/sphinx-err-04qRMz.log, if you want to report the issue to the developers.
+
+So, if we're willing to use sphinx, someone should either fix
+it to produce latex nexted table and fix it to generate manpages,
+or we'll need to stick with just html output.
+
+> Python's docutils rst2latex can, but that doesn't help here.
+> rst2pdf also supports it.
+
+At least here, rst2* scripts were unable to identify that the
+index.rst had links to other rst documents. 
+
+In the specific case of rst2latex, I got several errors like:
+
+	index.rst:21: (ERROR/3) Unknown interpreted text role "ref".
+
+
+> But I have doubts such a large
+> table would render OK in pdf without using landscape orientation.
+
+Yeah, in the past, when we had pdf enabled for DocBook (e. g. when
+media development was using a separate mercurial tree), I guess
+we had tags changing the text orientation on a few tables that
+would otherwise won't diplay fine, but I can't remember the dirty
+details anymore.
+
+> I have not tried because I used python3-sphinx but rst2pdf
+> is only availble for Python2 in Debian so it does not integrate
+> with Sphinx.
+> 
+> 
+> Johannes
+
+
+-- 
+Thanks,
+Mauro
