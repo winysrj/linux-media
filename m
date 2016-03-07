@@ -1,81 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:33503 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753156AbcCNB6z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Mar 2016 21:58:55 -0400
-Received: by mail-lb0-f175.google.com with SMTP id k15so221811771lbg.0
-        for <linux-media@vger.kernel.org>; Sun, 13 Mar 2016 18:58:54 -0700 (PDT)
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:34437 "EHLO
+	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752058AbcCGKWd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2016 05:22:33 -0500
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
-	kernel-mentors@selenic.com,
-	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Subject: [PATCH] Add tw5864 driver - cover letter
-Date: Mon, 14 Mar 2016 03:58:33 +0200
-Message-Id: <1457920713-21009-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: [PATCH] [media] cx231xx: fix memory leak
+Date: Mon,  7 Mar 2016 15:52:23 +0530
+Message-Id: <1457346143-9527-1-git-send-email-sudipm.mukherjee@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a driver for multimedia devices based on Techwell/Intersil TW5864 chip.
+When we returned on error we missed freeing p_current_fw and p_buffer.
 
-It is basically written from scratch. There was an awful reference driver for
-2.6 kernel, which is nearly million lines of code and requires half a dozen
-special userspace libraries, and still doesn't quite work. So currently
-submitted driver is a product of reverse-engineering and heuristics. tw68
-driver was used as code skeleton.
+Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+---
+ drivers/media/usb/cx231xx/cx231xx-417.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-The device advertises many capabilities, but this version of driver only
-supports H.264 encoding of captured video channels.
-
-There is one known issue, which reproduces on two of five setups of which I
-know: P-frames are distorted, but I-frames are fine. Changing quality and
-framerate settings does not affect this. Currently such workaround is used:
-
-v4l2-ctl -d /dev/video$n -c video_gop_size=1
-
-GOP size is set to 1, so that every output frame is I-frame. 
-We are regularly contacting manufacturer regarding such issues, but
-unfortunately they can do little to help us.
-
-
-Andrey Utkin (1):
-  Add tw5864 driver
-
- MAINTAINERS                                  |    7 +
- drivers/staging/media/Kconfig                |    2 +
- drivers/staging/media/Makefile               |    1 +
- drivers/staging/media/tw5864/Kconfig         |   11 +
- drivers/staging/media/tw5864/Makefile        |    3 +
- drivers/staging/media/tw5864/tw5864-bs.h     |  154 ++
- drivers/staging/media/tw5864/tw5864-config.c |  359 +++++
- drivers/staging/media/tw5864/tw5864-core.c   |  453 ++++++
- drivers/staging/media/tw5864/tw5864-h264.c   |  183 +++
- drivers/staging/media/tw5864/tw5864-reg.h    | 2200 ++++++++++++++++++++++++++
- drivers/staging/media/tw5864/tw5864-tables.h |  237 +++
- drivers/staging/media/tw5864/tw5864-video.c  | 1364 ++++++++++++++++
- drivers/staging/media/tw5864/tw5864.h        |  280 ++++
- include/linux/pci_ids.h                      |    1 +
- 14 files changed, 5255 insertions(+)
- create mode 100644 drivers/staging/media/tw5864/Kconfig
- create mode 100644 drivers/staging/media/tw5864/Makefile
- create mode 100644 drivers/staging/media/tw5864/tw5864-bs.h
- create mode 100644 drivers/staging/media/tw5864/tw5864-config.c
- create mode 100644 drivers/staging/media/tw5864/tw5864-core.c
- create mode 100644 drivers/staging/media/tw5864/tw5864-h264.c
- create mode 100644 drivers/staging/media/tw5864/tw5864-reg.h
- create mode 100644 drivers/staging/media/tw5864/tw5864-tables.h
- create mode 100644 drivers/staging/media/tw5864/tw5864-video.c
- create mode 100644 drivers/staging/media/tw5864/tw5864.h
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index c9320d6..3636d8d 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -966,6 +966,7 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 	p_buffer = vmalloc(4096);
+ 	if (p_buffer == NULL) {
+ 		dprintk(2, "FAIL!!!\n");
++		vfree(p_current_fw);
+ 		return -1;
+ 	}
+ 
+@@ -989,6 +990,8 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 	if (retval != 0) {
+ 		dev_err(dev->dev,
+ 			"%s: Error with mc417_register_write\n", __func__);
++		vfree(p_current_fw);
++		vfree(p_buffer);
+ 		return -1;
+ 	}
+ 
+@@ -1001,6 +1004,8 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 			CX231xx_FIRM_IMAGE_NAME);
+ 		dev_err(dev->dev,
+ 			"Please fix your hotplug setup, the board will not work without firmware loaded!\n");
++		vfree(p_current_fw);
++		vfree(p_buffer);
+ 		return -1;
+ 	}
+ 
+@@ -1009,6 +1014,8 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 			"ERROR: Firmware size mismatch (have %zd, expected %d)\n",
+ 			firmware->size, CX231xx_FIRM_IMAGE_SIZE);
+ 		release_firmware(firmware);
++		vfree(p_current_fw);
++		vfree(p_buffer);
+ 		return -1;
+ 	}
+ 
+@@ -1016,6 +1023,8 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 		dev_err(dev->dev,
+ 			"ERROR: Firmware magic mismatch, wrong file?\n");
+ 		release_firmware(firmware);
++		vfree(p_current_fw);
++		vfree(p_buffer);
+ 		return -1;
+ 	}
+ 
 -- 
-2.7.1.380.g0fea050.dirty
+1.9.1
 
