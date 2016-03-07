@@ -1,53 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40282 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078AbcCXX2X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:28:23 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 34/51] v4l: vsp1: Use __vsp1_video_try_format to initialize format at init time
-Date: Fri, 25 Mar 2016 01:27:30 +0200
-Message-Id: <1458862067-19525-35-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mleia.com ([178.79.152.223]:44729 "EHLO mail.mleia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752427AbcCGSji (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Mar 2016 13:39:38 -0500
+From: Vladimir Zapolskiy <vz@mleia.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] media: i2c/adp1653: fix check of devm_gpiod_get() error code
+Date: Mon,  7 Mar 2016 20:39:32 +0200
+Message-Id: <1457375972-9923-1-git-send-email-vz@mleia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reuse the runtime logic to initialize the default format instead of
-open-coding it. This ensures coherency between intialization and
-runtime.
+The devm_gpiod_get() function returns either a valid pointer to
+struct gpio_desc or ERR_PTR() error value, check for NULL is bogus.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ drivers/media/i2c/adp1653.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index a3f1145c8a79..4dcc892977df 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -958,17 +958,10 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
- 		return ERR_PTR(ret);
+diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+index fb7ed73..9e1731c 100644
+--- a/drivers/media/i2c/adp1653.c
++++ b/drivers/media/i2c/adp1653.c
+@@ -466,9 +466,9 @@ static int adp1653_of_init(struct i2c_client *client,
+ 	of_node_put(child);
  
- 	/* ... and the format ... */
--	rwpf->fmtinfo = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
--	rwpf->format.pixelformat = rwpf->fmtinfo->fourcc;
--	rwpf->format.colorspace = V4L2_COLORSPACE_SRGB;
--	rwpf->format.field = V4L2_FIELD_NONE;
-+	rwpf->format.pixelformat = VSP1_VIDEO_DEF_FORMAT;
- 	rwpf->format.width = VSP1_VIDEO_DEF_WIDTH;
- 	rwpf->format.height = VSP1_VIDEO_DEF_HEIGHT;
--	rwpf->format.num_planes = 1;
--	rwpf->format.plane_fmt[0].bytesperline =
--		rwpf->format.width * rwpf->fmtinfo->bpp[0] / 8;
--	rwpf->format.plane_fmt[0].sizeimage =
--		rwpf->format.plane_fmt[0].bytesperline * rwpf->format.height;
-+	__vsp1_video_try_format(video, &rwpf->format, &rwpf->fmtinfo);
+ 	pd->enable_gpio = devm_gpiod_get(&client->dev, "enable", GPIOD_OUT_LOW);
+-	if (!pd->enable_gpio) {
++	if (IS_ERR(pd->enable_gpio)) {
+ 		dev_err(&client->dev, "Error getting GPIO\n");
+-		return -EINVAL;
++		return PTR_ERR(pd->enable_gpio);
+ 	}
  
- 	/* ... and the video node... */
- 	video->video.v4l2_dev = &video->vsp1->v4l2_dev;
+ 	return 0;
 -- 
-2.7.3
+2.1.4
 
