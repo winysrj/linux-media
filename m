@@ -1,57 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:54732 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754170AbcCSCuk (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:45451 "EHLO
+	mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752205AbcCGIRZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 22:50:40 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, tiwai@suse.com, perex@perex.cz
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] sound/usb: fix to release stream resources from media_snd_device_delete()
-Date: Fri, 18 Mar 2016 20:50:31 -0600
-Message-Id: <1458355831-9467-1-git-send-email-shuahkh@osg.samsung.com>
+	Mon, 7 Mar 2016 03:17:25 -0500
+Subject: Re: [PATCH 4/6] [media] st-rc: prevent a endless loop
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <076989c7736719982a1bc9557d7db072910d8efe.1457271549.git.mchehab@osg.samsung.com>
+ <087329695244e466f0c2d9a3a58e10ad399cd674.1457271549.git.mchehab@osg.samsung.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Srinivas Kandagatla <srinivas.kandagatla@gmail.com>,
+	Maxime Coquelin <maxime.coquelin@st.com>,
+	<linux-arm-kernel@lists.infradead.org>, <kernel@stlinux.com>
+From: Patrice Chotard <patrice.chotard@st.com>
+Message-ID: <56DD38D9.20002@st.com>
+Date: Mon, 7 Mar 2016 09:16:25 +0100
+MIME-Version: 1.0
+In-Reply-To: <087329695244e466f0c2d9a3a58e10ad399cd674.1457271549.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix to release stream resources from media_snd_device_delete() before
-media device is unregistered. Without this change, stream resource free
-is attempted after the media device is unregistered which would result
-in use-after-free errors.
+Hi Mauro
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
+On 03/06/2016 02:39 PM, Mauro Carvalho Chehab wrote:
+> As warned by smatch:
+> 	drivers/media/rc/st_rc.c:110 st_rc_rx_interrupt() warn: this loop depends on readl() succeeding
+>
+> as readl() might fail, with likely means some unrecovered error,
+> let's loop only if it succeeds.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>   drivers/media/rc/st_rc.c | 4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+> index 1fa0c9d1c508..151bfe2aea55 100644
+> --- a/drivers/media/rc/st_rc.c
+> +++ b/drivers/media/rc/st_rc.c
+> @@ -99,7 +99,7 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
+>   	unsigned int symbol, mark = 0;
+>   	struct st_rc_device *dev = data;
+>   	int last_symbol = 0;
+> -	u32 status;
+> +	int status;
+>   	DEFINE_IR_RAW_EVENT(ev);
+>   
+>   	if (dev->irq_wake)
+> @@ -107,7 +107,7 @@ static irqreturn_t st_rc_rx_interrupt(int irq, void *data)
+>   
+>   	status  = readl(dev->rx_base + IRB_RX_STATUS);
+>   
+> -	while (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW)) {
+> +	while (status > 0 && (status & (IRB_FIFO_NOT_EMPTY | IRB_OVERFLOW))) {
+>   		u32 int_status = readl(dev->rx_base + IRB_RX_INT_STATUS);
+>   		if (unlikely(int_status & IRB_RX_OVERRUN_INT)) {
+>   			/* discard the entire collection in case of errors!  */
 
-- Ran bind/unbind loop (1000 iteration) test on snd-usb-audio
-  while running mc_nextgen_test loop (1000 iterations) in parallel.
-- Ran bind/unbind and rmmod/modprobe tests on both drivers. Also
-  generated graphs when after bind/unbind, rmmod/modprobe. Graphs
-  look good.
-- Note: Please apply the following patch to fix memory leak:
-  sound/usb: Fix memory leak in media_snd_stream_delete() during unbind
-  https://lkml.org/lkml/2016/3/16/1050
+Acked-by: Patrice Chotard <patrice.chotard@st.com>
 
- sound/usb/media.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-index de4a815..e35af88 100644
---- a/sound/usb/media.c
-+++ b/sound/usb/media.c
-@@ -301,6 +301,13 @@ int media_snd_device_create(struct snd_usb_audio *chip,
- void media_snd_device_delete(struct snd_usb_audio *chip)
- {
- 	struct media_device *mdev = chip->media_dev;
-+	struct snd_usb_stream *stream;
-+
-+	/* release resources */
-+	list_for_each_entry(stream, &chip->pcm_list, list) {
-+		media_snd_stream_delete(&stream->substream[0]);
-+		media_snd_stream_delete(&stream->substream[1]);
-+	}
- 
- 	media_snd_mixer_delete(chip);
- 
--- 
-2.5.0
 
