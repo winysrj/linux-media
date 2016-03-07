@@ -1,231 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:58671 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754635AbcCUW0a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 18:26:30 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC 0/2] pxa_camera transition to v4l2 standalone device
-References: <1458421288-22094-1-git-send-email-robert.jarzmik@free.fr>
-	<56EFAD47.8010403@xs4all.nl>
-Date: Mon, 21 Mar 2016 23:26:19 +0100
-Message-ID: <87lh5bmpro.fsf@belgarion.home>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:32924 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753191AbcCGQT5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2016 11:19:57 -0500
+Received: by mail-ob0-f179.google.com with SMTP id fz5so109942213obc.0
+        for <linux-media@vger.kernel.org>; Mon, 07 Mar 2016 08:19:56 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <56D87824.8000707@mentor.com>
+References: <20160223114943.GA10944@frolo.macqel>
+	<20160223141258.GA5097@frolo.macqel>
+	<4956050.OLrYA1VK2G@avalon>
+	<56D79B49.50009@mentor.com>
+	<56D7E59B.6050605@xs4all.nl>
+	<20160303083643.GA4303@frolo.macqel>
+	<56D87824.8000707@mentor.com>
+Date: Mon, 7 Mar 2016 08:19:55 -0800
+Message-ID: <CAJ+vNU2kPgESnjTZokU3qNR6QAbU3G8HGwc7ahg4jDpeS_xjHg@mail.gmail.com>
+Subject: Re: i.mx6 camera interface (CSI) and mainline kernel
+From: Tim Harvey <tharvey@gateworks.com>
+To: Steve Longerbeam <steve_longerbeam@mentor.com>
+Cc: Philippe De Muyter <phdm@macq.eu>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
-
-> On 03/19/2016 10:01 PM, Robert Jarzmik wrote:
->> Hi Hans and Guennadi,
->> 
->> As Hans is converting sh_mobile_ceu_camera.c,
+On Thu, Mar 3, 2016 at 9:45 AM, Steve Longerbeam
+<steve_longerbeam@mentor.com> wrote:
+> Hi Philippe,
 >
-> That's not going as fast as I hoped. This driver is quite complex and extracting
-> it from soc-camera isn't easy. I also can't spend as much time as I'd like on this.
+> On 03/03/2016 12:36 AM, Philippe De Muyter wrote:
+>>
+>> Just to be sure : do you mean  https://github.com/slongerbeam/mediatree.git
+>> or something else ?
 >
->> let's see how close our ports are
->> to see if there are things we could either reuse of change.
->> 
->> The port is assuming :
->>  - the formation translation is transferred into soc_mediabus, so that it can be
->>    reused across all v4l2 devices
+> Sorry, yes I meant https://github.com/slongerbeam/mediatree.git.
 >
-> At best this will be a temporary helper source. I never liked soc_mediabus, I don't
-> believe it is the right approach.
-As long as you provide a better approach, especially for the dynamic formats
-translation, it should be fine.
-
-> But I have no problem if it is used for now to simplify the soc-camera
-> dependency removal.
-Ok.
-
->>  - pxa_camera is ported
->> 
->> This sets a ground of discussion for soc_camera adherence removal from
->> pxa_camera. I'd like to have a comment from Hans if this is what he has in mind,
->> and Guennadi if he agrees to transfer the soc xlate stuff to soc_mediabus.
+>>
+>>>> So far I have retested video capture with the SabreAuto/ADV7180 and
+>>>> the SabreSD/OV5640-mipi-csi2, and video capture is working fine on
+>>>> those platforms.
+>>>>
+>>>> There is also a mem2mem that should work fine, but haven't tested yet.
+>>>>
+>>>> I removed camera preview support. At Mentor Graphics we have made
+>>>> quite a few changes to ipu-v3 driver to allow camera preview to initialize
+>>>> and control an overlay display plane independently of imx-drm, by adding
+>>>> a subsystem independent ipu-plane sub-unit. Note we also have a video
+>>>> output overlay driver that also makes use of ipu-plane. But those changes are
+>>>> extensive and touch imx-drm as well as ipu-v3, so I am leaving camera preview
+>>>> and the output overlay driver out (in fact, camera preview is not of much
+>>>> utility so I probably won't bring it back in upstream version).
+>>>>
+>>>> The video capture driver is not quite ready for upstream review yet. It still:
+>>>>
+>>>> - uses the old cropping APIs but should move forward to selection APIs.
+>>>>
+>>>> - uses custom sensor subdev drivers for ADV7180 and OV564x. Still
+>>>>   need to switch to upstream subdevs.
+>> Is it only a problem of those sensor drivers (which exact files ?) or
+>> is it a problem of the capture driver itself ?
 >
-> Can you provide the output of 'v4l2-compliance -s' with your new pxa driver?
-> I would be curious to see the result of that.
-Of course, with [1] added (initial format init and querycap strings), I have
-the following results. I have no idea where VIDIOC_EXPBUF failure comes from,
-while the colorspace issues are a consequence from the MT9M111 sensor which
-provides the couple ("VYUY", V4L2_COLORSPACE_JPEG) format (which I also don't
-understand why it is a failure) :
+> The camera interface driver (drivers/staging/media/imx6/capture/mx6-camif.c)
+> is binding to these subdevs:
+>
+> drivers/staging/media/imx6/capture/adv7180.c
+> drivers/staging/media/imx6/capture/ov5642.c
+> drivers/staging/media/imx6/capture/ov5640-mipi.c
+>
+> But instead should use the subdevs under drivers/media/i2c, specifically:
+>
+> drivers/media/i2c/adv7180.c (and adding whatever standard subdev features
+> the imx6 interface driver requires).
+>
+> There is a drivers/media/i2c/soc_camera/ov5642.c, but there is no mipi-csi2
+> capable subdev for the ov5640 with the mipi-csi2 interface, so that would have
+> to be created.
+>
 
-Driver Info:
-	Driver name   : pxa27x-camera
-	Card type     : PXA_Camera
-	Bus info      : platform:pxa-camera
-	Driver version: 4.5.0
-	Capabilities  : 0x84200001
-		Video Capture
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04200001
-		Video Capture
-		Streaming
-		Extended Pix Format
+Steve,
 
-Compliance test for device /dev/video0 (not using libv4l2):
+I've built your mx6-media-staging branch and added device-tree config
+for the Gateworks Ventana boards which have an on-board ADV7180 and it
+works great. I've tested it capturing frames via v4l2-ctl as well as
+gstreamer.
 
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
+Please let me know what kind of testing you need. I would love to see
+this get mainlined!
 
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
+Regards,
 
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
+Tim
 
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-		fail: v4l2-test-input-output.cpp(418): G_INPUT not supported for a capture device
-	test VIDIOC_G/S/ENUMINPUT: FAIL
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-		test VIDIOC_QUERYCTRL: OK (Not Supported)
-		test VIDIOC_G/S_CTRL: OK (Not Supported)
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 0 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		fail: v4l2-test-formats.cpp(329): pixelformat != V4L2_PIX_FMT_JPEG && colorspace == V4L2_COLORSPACE_JPEG
-		fail: v4l2-test-formats.cpp(432): testColorspace(pix.pixelformat, pix.colorspace, pix.ycbcr_enc, pix.quantization)
-		test VIDIOC_G_FMT: FAIL
-		test VIDIOC_TRY_FMT: OK (Not Supported)
-		test VIDIOC_S_FMT: OK (Not Supported)
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		fail: v4l2-test-buffers.cpp(571): q.has_expbuf(node)
-		test VIDIOC_EXPBUF: FAIL
-
-Test input 0:
-
-Streaming ioctls:
-	test read/write: OK (Not Supported)
-	test MMAP: OK (Not Supported)
-	test USERPTR: OK (Not Supported)
-	test DMABUF: OK (Not Supported)
-
-
-Total: 46, Succeeded: 43, Failed: 3, Warnings: 0
-
--- 
-Robert
-
-[1] Patch on pxa_camera
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index cebab16897ce..f371260b5b7f 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -52,6 +52,9 @@
- #define PXA_CAM_VERSION "0.0.6"
- #define PXA_CAM_DRV_NAME "pxa27x-camera"
- 
-+#define DEFAULT_WIDTH	640
-+#define DEFAULT_HEIGHT	480
-+
- /* Camera Interface */
- #define CICR0		0x0000
- #define CICR1		0x0004
-@@ -792,7 +795,7 @@ static int pxa_camera_init_videobuf2(struct pxa_camera_dev *pcdev)
- 
- 	memset(vq, 0, sizeof(*vq));
- 	vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+	vq->io_modes = VB2_MMAP | VB2_DMABUF;
- 	vq->drv_priv = pcdev;
- 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	vq->buf_struct_size = sizeof(struct pxa_buffer);
-@@ -1429,6 +1432,8 @@ static int pxa_camera_querycap(struct file *file, void *priv,
- 			       struct v4l2_capability *cap)
- {
- 	/* cap->name is set by the firendly caller:-> */
-+	strlcpy(cap->bus_info, "platform:pxa-camera", sizeof(cap->bus_info));
-+	strlcpy(cap->driver, PXA_CAM_DRV_NAME, sizeof(cap->driver));
- 	strlcpy(cap->card, pxa_cam_driver_description, sizeof(cap->card));
- 	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
- 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-@@ -1630,6 +1635,11 @@ static int pxa_camera_sensor_bound(struct v4l2_async_notifier *notifier,
- 	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
- 	struct pxa_camera_dev *pcdev = v4l2_dev_to_pcdev(v4l2_dev);
- 	struct video_device *vdev = &pcdev->vdev;
-+	struct v4l2_pix_format *pix = &pcdev->current_pix;
-+	struct v4l2_subdev_format format = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	struct v4l2_mbus_framefmt *mf = &format.format;
- 
- 	dev_info(pcdev_to_dev(pcdev), "%s(): trying to bind a device\n",
- 		 __func__);
-@@ -1653,6 +1663,24 @@ static int pxa_camera_sensor_bound(struct v4l2_async_notifier *notifier,
- 		goto out;
- 	}
- 
-+	pcdev->current_fmt = pcdev->user_formats;
-+	pix->field = V4L2_FIELD_NONE;
-+	pix->width = DEFAULT_WIDTH;
-+	pix->height = DEFAULT_HEIGHT;
-+	pix->bytesperline =
-+		soc_mbus_bytes_per_line(pix->width,
-+					pcdev->current_fmt->host_fmt);
-+	pix->sizeimage =
-+		soc_mbus_image_size(pcdev->current_fmt->host_fmt,
-+				    pix->bytesperline, pix->height);
-+	pix->pixelformat = pcdev->current_fmt->host_fmt->fourcc;
-+	v4l2_fill_mbus_format(&format.format, pix, pcdev->current_fmt->code);
-+	err = sensor_call(pcdev, pad, set_fmt, NULL, &format);
-+	if (err)
-+		goto out;
-+
-+	v4l2_fill_pix_format(pix, mf);
-+
- 	err = pxa_camera_init_videobuf2(pcdev);
- 	if (err)
- 		goto out;
+Tim Harvey - Principal Software Engineer
+Gateworks Corporation - http://www.gateworks.com/
+3026 S. Higuera St. San Luis Obispo CA 93401
+805-781-2000
