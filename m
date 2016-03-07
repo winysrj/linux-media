@@ -1,132 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752762AbcCYKpK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 06:45:10 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 47/54] v4l: vsp1: dl: Fix race conditions
-Date: Fri, 25 Mar 2016 12:44:21 +0200
-Message-Id: <1458902668-1141-48-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:36652 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752058AbcCGMPp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Mar 2016 07:15:45 -0500
+Date: Mon, 7 Mar 2016 09:15:37 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	Keith Packard <keithp@keithp.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160307091537.28548511@recife.lan>
+In-Reply-To: <20160307084826.GA6381@linuxtv.org>
+References: <87y49zr74t.fsf@intel.com>
+	<20160303071305.247e30b1@lwn.net>
+	<20160303155037.705f33dd@recife.lan>
+	<86egbrm9hw.fsf@hiro.keithp.com>
+	<20160303221930.32558496@recife.lan>
+	<87si06r6i3.fsf@intel.com>
+	<20160304095950.3358a2cb@recife.lan>
+	<20160304140909.GA15636@linuxtv.org>
+	<20160305232937.74678dd0@recife.lan>
+	<20160306232908.GA3732@linuxtv.org>
+	<20160307084826.GA6381@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsp1_dl_list_put() function expects to be called with the display
-list manager lock held. This assumption is correct for calls from within
-the vsp1_dl.c file, but not for the external calls. Fix it by taking the
-lock inside the function and providing an unlocked version for the
-internal callers.
+Em Mon, 7 Mar 2016 09:48:26 +0100
+Johannes Stezenbach <js@linuxtv.org> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_dl.c | 41 +++++++++++++++++++++++++----------
- 1 file changed, 29 insertions(+), 12 deletions(-)
+> On Mon, Mar 07, 2016 at 12:29:08AM +0100, Johannes Stezenbach wrote:
+> > On Sat, Mar 05, 2016 at 11:29:37PM -0300, Mauro Carvalho Chehab wrote:  
+> > > 
+> > > I converted one of the big tables to CSV. At least now it recognized
+> > > it as a table. Yet, the table was very badly formated:
+> > > 	https://mchehab.fedorapeople.org/media-kabi-docs-test/rst_tests/packed-rgb.html
+> > > 
+> > > This is how this table should look like:
+> > > 	https://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html
+> > > 
+> > > Also, as this table has merged cells at the legend. I've no idea how
+> > > to tell sphinx to do that on csv format.
+> > > 
+> > > The RST files are on this git tree:
+> > > 	https://git.linuxtv.org/mchehab/v4l2-docs-poc.git/  
+> > 
+> > Yeah, seems it can't do merged cells in csv.  Attached patch converts it
+> > back to grid table format and fixes the table definition.
+> > The html output looks usable, but clearly it is no fun to
+> > work with tables in Sphinx.
+> > 
+> > Sphinx' latex writer can't handle nested tables, though.
+> > Python's docutils rst2latex can, but that doesn't help here.
+> > rst2pdf also supports it.  But I have doubts such a large
+> > table would render OK in pdf without using landscape orientation.
+> > I have not tried because I used python3-sphinx but rst2pdf
+> > is only availble for Python2 in Debian so it does not integrate
+> > with Sphinx.  
+> 
+> Just a quick idea:
+> Perhaps one alternative would be to use Graphviz to render
+> the problematic tables, it supports a HTML-like syntax
+> and can be embedded in Spinx documents:
+> 
+> http://www.sphinx-doc.org/en/stable/ext/graphviz.html
+> http://www.graphviz.org/content/node-shapes#html
+> http://stackoverflow.com/questions/13890568/graphviz-html-nested-tables
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 8efa5447c1b3..4f2c3c95bfa4 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -164,25 +164,36 @@ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm)
- 	return dl;
- }
- 
-+/* This function must be called with the display list manager lock held.*/
-+static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
-+{
-+	if (!dl)
-+		return;
-+
-+	dl->reg_count = 0;
-+
-+	list_add_tail(&dl->list, &dl->dlm->free);
-+}
-+
- /**
-  * vsp1_dl_list_put - Release a display list
-  * @dl: The display list
-  *
-  * Release the display list and return it to the pool of free lists.
-  *
-- * This function must be called with the display list manager lock held.
-- *
-  * Passing a NULL pointer to this function is safe, in that case no operation
-  * will be performed.
-  */
- void vsp1_dl_list_put(struct vsp1_dl_list *dl)
- {
-+	unsigned long flags;
-+
- 	if (!dl)
- 		return;
- 
--	dl->reg_count = 0;
--
--	list_add_tail(&dl->list, &dl->dlm->free);
-+	spin_lock_irqsave(&dl->dlm->lock, flags);
-+	__vsp1_dl_list_put(dl);
-+	spin_unlock_irqrestore(&dl->dlm->lock, flags);
- }
- 
- void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
-@@ -220,7 +231,7 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
- 	 */
- 	update = !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD);
- 	if (update) {
--		vsp1_dl_list_put(dlm->pending);
-+		__vsp1_dl_list_put(dlm->pending);
- 		dlm->pending = dl;
- 		goto done;
- 	}
-@@ -233,7 +244,7 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
- 	vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
- 		   (dl->reg_count * 8));
- 
--	vsp1_dl_list_put(dlm->queued);
-+	__vsp1_dl_list_put(dlm->queued);
- 	dlm->queued = dl;
- 
- done:
-@@ -253,7 +264,7 @@ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm)
- 	 * processing by the device. The active display list, if any, won't be
- 	 * accessed anymore and can be reused.
- 	 */
--	vsp1_dl_list_put(dlm->active);
-+	__vsp1_dl_list_put(dlm->active);
- 	dlm->active = NULL;
- 
- 	spin_unlock(&dlm->lock);
-@@ -265,7 +276,7 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
- 
- 	spin_lock(&dlm->lock);
- 
--	vsp1_dl_list_put(dlm->active);
-+	__vsp1_dl_list_put(dlm->active);
- 	dlm->active = NULL;
- 
- 	/* Header mode is used for mem-to-mem pipelines only. We don't need to
-@@ -328,9 +339,15 @@ void vsp1_dlm_setup(struct vsp1_device *vsp1)
- 
- void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
- {
--	vsp1_dl_list_put(dlm->active);
--	vsp1_dl_list_put(dlm->queued);
--	vsp1_dl_list_put(dlm->pending);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&dlm->lock, flags);
-+
-+	__vsp1_dl_list_put(dlm->active);
-+	__vsp1_dl_list_put(dlm->queued);
-+	__vsp1_dl_list_put(dlm->pending);
-+
-+	spin_unlock_irqrestore(&dlm->lock, flags);
- 
- 	dlm->active = NULL;
- 	dlm->queued = NULL;
--- 
-2.7.3
+That could work, but it is scary... Graphviz is great to generate
+diagrams, but it really sucks when one wants to put a graph element
+on a specific place, as it loves to reorder elements putting them on
+unexpected places.
 
+Btw, 
+
+I converted all docs from our uAPI docbook to rst using pandoc.
+It was a brainless conversion, except for a few fixes.
+
+The output is at:
+	https://mchehab.fedorapeople.org/media-kabi-docs-test/rst_tests/
+
+I added it on the top of my PoC tree at:
+	https://git.linuxtv.org/mchehab/v4l2-docs-poc.git/  
+
+Besides tables, I noticed some other bad things that needs to be
+corrected somehow:
+
+1) Document divisions are not numbered. We need that. It should be
+broken into:
+	- Document divisions - one per documented API:
+		- V4L2
+		- Remote Controllers
+		- DVB
+		- Media Controller
+
+	- Chapters
+	- Sessions
+
+Everything should be numbered, as, when discussing API improvements,
+it is usual the need of pinpoint to an specific chapter and section.
+
+Tables and images should also be numbered, and we need a way to
+use references for table/image numbers.
+
+2) Images
+
+Most images didn't popup. We have images on different file formats:
+	- SVG
+	- GIF
+	- PDF
+	- PNG
+
+3) References
+
+It could be a conversion issue, but there are lots of missing 
+references at the documentation.
+
+4) We need to have some way to tell sphinx to not put some things
+at the lateral ToC bar. For example, at the V4L2 "Changes" section,
+we don't want to have one entry per version at the ToC bar.
+
+Giving that, I suspect that we'll have huge headaches to address
+if we use sphinx, as it seems too limited to handle complex
+documents. We should try to use some other tool that would give
+us better results.
+
+
+Regards,
+Mauro
