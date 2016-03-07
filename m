@@ -1,36 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36444 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760102AbcCEKCo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Mar 2016 05:02:44 -0500
-Date: Sat, 5 Mar 2016 07:02:37 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Joe Perches <joe@perches.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Benoit Parrot <bparrot@ti.com>,
-	Ross Zwisler <ross.zwisler@linux.intel.com>,
-	Jiri Kosina <trivial@kernel.org>,
-	Matt Porter <mporter@kernel.crashing.org>,
-	Alexandre Bounine <alexandre.bounine@idt.com>,
-	linux-arm-kernel@lists.infradead.org, dmaengine@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-nvdimm@lists.01.org
+Received: from eusmtp01.atmel.com ([212.144.249.243]:38841 "EHLO
+	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752196AbcCGJwr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2016 04:52:47 -0500
 Subject: Re: [TRIVIAL PATCH] treewide: Remove unnecessary 0x prefixes before
  %pa extension uses
-Message-ID: <20160305070237.235b32c5@recife.lan>
-In-Reply-To: <dcdebc08a17023fac93595312281cb8e91185668.1457162650.git.joe@perches.com>
+To: Joe Perches <joe@perches.com>, Vinod Koul <vinod.koul@intel.com>,
+	"Dan Williams" <dan.j.williams@intel.com>,
+	Benoit Parrot <bparrot@ti.com>,
+	"Ross Zwisler" <ross.zwisler@linux.intel.com>,
+	Jiri Kosina <trivial@kernel.org>
 References: <dcdebc08a17023fac93595312281cb8e91185668.1457162650.git.joe@perches.com>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matt Porter <mporter@kernel.crashing.org>,
+	Alexandre Bounine <alexandre.bounine@idt.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<dmaengine@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-media@vger.kernel.org>, <linux-nvdimm@lists.01.org>
+From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Message-ID: <56DD4F78.5000101@atmel.com>
+Date: Mon, 7 Mar 2016 10:52:56 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <dcdebc08a17023fac93595312281cb8e91185668.1457162650.git.joe@perches.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri,  4 Mar 2016 23:46:32 -0800
-Joe Perches <joe@perches.com> escreveu:
-
+Le 05/03/2016 08:46, Joe Perches a écrit :
 > Since commit 3cab1e711297 ("lib/vsprintf: refactor duplicate code
 > to special_hex_number()") %pa uses have been ouput with a 0x prefix.
 > 
@@ -39,11 +36,7 @@ Joe Perches <joe@perches.com> escreveu:
 > Signed-off-by: Joe Perches <joe@perches.com>
 > ---
 >  drivers/dma/at_hdmac_regs.h              | 2 +-
-
 >  drivers/media/platform/ti-vpe/cal.c      | 2 +-
-
-Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
 >  drivers/nvdimm/pmem.c                    | 2 +-
 >  drivers/rapidio/devices/rio_mport_cdev.c | 4 ++--
 >  drivers/rapidio/devices/tsi721.c         | 8 ++++----
@@ -59,6 +52,11 @@ Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 >  	dev_crit(chan2dev(&atchan->chan_common),
 > -		 "  desc: s%pad d%pad ctrl0x%x:0x%x l0x%pad\n",
 > +		 "  desc: s%pad d%pad ctrl0x%x:0x%x l%pad\n",
+
+For this part:
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+
+
 >  		 &lli->saddr, &lli->daddr,
 >  		 lli->ctrla, lli->ctrlb, &lli->dscr);
 >  }
@@ -150,8 +148,8 @@ Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 >  
 >  	/* Search for matching active inbound translation window */
 >  	for (i = 0; i < TSI721_IBWIN_NUM; i++) {
+> 
 
 
 -- 
-Thanks,
-Mauro
+Nicolas Ferre
