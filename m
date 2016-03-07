@@ -1,94 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55863 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757009AbcCVRhY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2016 13:37:24 -0400
-Date: Tue, 22 Mar 2016 14:37:16 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: <tiwai@suse.com>, <perex@perex.cz>, <linux-media@vger.kernel.org>,
-	<alsa-devel@alsa-project.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] sound/usb: fix to release stream resources from
- media_snd_device_delete()
-Message-ID: <20160322143716.4164f763@recife.lan>
-In-Reply-To: <56F180FE.6020104@osg.samsung.com>
-References: <1458355831-9467-1-git-send-email-shuahkh@osg.samsung.com>
-	<20160319091026.3f2cbaf2@recife.lan>
-	<56ED54C0.7030802@osg.samsung.com>
-	<56F0C39B.6090802@osg.samsung.com>
-	<56F142AE.8060704@osg.samsung.com>
-	<56F180FE.6020104@osg.samsung.com>
+Received: from mail-io0-f173.google.com ([209.85.223.173]:34828 "EHLO
+	mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752035AbcCGHx5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2016 02:53:57 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160307012755.GA22756@verge.net.au>
+References: <1456969935-31879-1-git-send-email-horms+renesas@verge.net.au>
+	<CAMuHMdXePj4R6pw+58xKQfAqhdCBZ=8qc-fXeVsDe8APmjunGA@mail.gmail.com>
+	<20160307012755.GA22756@verge.net.au>
+Date: Mon, 7 Mar 2016 08:53:56 +0100
+Message-ID: <CAMuHMdVr+T73VknnJqhfSv6-OZAJzZ9J4qONuFr4GnXQ1LRJ8g@mail.gmail.com>
+Subject: Re: [PATCH] media: sh_mobile_ceu_camera, rcar_vin: Use ARCH_RENESAS
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Simon Horman <horms@verge.net.au>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 22 Mar 2016 11:29:34 -0600
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Hi Simon,
 
-> On 03/22/2016 07:03 AM, Shuah Khan wrote:
-> > On 03/21/2016 10:01 PM, Shuah Khan wrote:  
-> >> On 03/19/2016 07:31 AM, Shuah Khan wrote:  
-> >>> On 03/19/2016 06:10 AM, Mauro Carvalho Chehab wrote:  
-> >>>> Em Fri, 18 Mar 2016 20:50:31 -0600
-> >>>> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> >>>>  
-> >>>>> Fix to release stream resources from media_snd_device_delete() before
-> >>>>> media device is unregistered. Without this change, stream resource free
-> >>>>> is attempted after the media device is unregistered which would result
-> >>>>> in use-after-free errors.
-> >>>>>
-> >>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> >>>>> ---
-> >>>>>
-> >>>>> - Ran bind/unbind loop (1000 iteration) test on snd-usb-audio
-> >>>>>   while running mc_nextgen_test loop (1000 iterations) in parallel.
-> >>>>> - Ran bind/unbind and rmmod/modprobe tests on both drivers. Also
-> >>>>>   generated graphs when after bind/unbind, rmmod/modprobe. Graphs
-> >>>>>   look good.
-> >>>>> - Note: Please apply the following patch to fix memory leak:
-> >>>>>   sound/usb: Fix memory leak in media_snd_stream_delete() during unbind
-> >>>>>   https://lkml.org/lkml/2016/3/16/1050  
-> >>>>
-> >>>> Yeah, a way better!
-> >>>>
-> >>>> For normal bind/unbind, it seems to be working fine. Also
-> >>>> for driver's rmmod, so:
-> >>>>
-> >>>> Tested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>  
-> 
-> Takashi,
-> 
-> Could please ack this patch - please see below that the problem
-> Mauro and I both saw ended up to a latent bug in au0828 that is
-> in Linux 4.5 as well. It is now fixed.
+Oops, seems I dropped all CCs in my earlier reply. Fixing up...
 
-FYI, the patches we're intending to send to fix the issues with
-au0828 and snd-usb-audio are at my experimental tree:
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=au0828-unbind-fixes
+On Mon, Mar 7, 2016 at 2:28 AM, Simon Horman <horms@verge.net.au> wrote:
+> On Thu, Mar 03, 2016 at 09:40:07AM +0100, Geert Uytterhoeven wrote:
+>> On Thu, Mar 3, 2016 at 2:52 AM, Simon Horman <horms+renesas@verge.net.au> wrote:
+>> > Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
+>> >
+>> > This is part of an ongoing process to migrate from ARCH_SHMOBILE to
+>> > ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
+>> > appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
+>> >
+>> > Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+>>
+>> > --- a/drivers/media/platform/soc_camera/Kconfig
+>> > +++ b/drivers/media/platform/soc_camera/Kconfig
+>> > @@ -36,7 +36,7 @@ config VIDEO_PXA27x
+>> >  config VIDEO_RCAR_VIN
+>> >         tristate "R-Car Video Input (VIN) support"
+>> >         depends on VIDEO_DEV && SOC_CAMERA
+>> > -       depends on ARCH_SHMOBILE || COMPILE_TEST
+>> > +       depends on ARCH_RENESAS || COMPILE_TEST
+>>
+>> OK
+>>
+>> >>  config VIDEO_SH_MOBILE_CEU
+>> >         tristate "SuperH Mobile CEU Interface driver"
+>> >         depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA && HAVE_CLK
+>> > -       depends on ARCH_SHMOBILE || SUPERH || COMPILE_TEST
+>> > +       depends on ARCH_RENESAS || SUPERH || COMPILE_TEST
+>>
+>> I think dropping the SUPERH dependency is the right approach here, as all
+>> SuperH platforms using this driver select ARCH_SHMOBILE.
+>>
+>> "sh_mobile_ceu" is used on SH_AP325RXA, SH_ECOVEC, SH_KFR2R09, SH_MIGOR,
+>> and SH_7724_SOLUTION_ENGINE, which depend on either CPU_SUBTYPE_SH7722,
+>>  CPU_SUBTYPE_SH7723, or
+>> CPU_SUBTYPE_SH7724, and all three select ARCH_SHMOBILE.
+>
+> Dropping SUPERH seems fine to me. But in that case I think the following
+> would be best as I would like to stop selecting ARCH_SHMOBILE for
+> the ARM SoCs.
+>
+>         depends on ARCH_RENESAS || ARCH_SHMOBILE || COMPILE_TEST
 
-The patches are:
+Do we need this driver with ARCH_RENESAS? It does not support DT.
 
-f9dca0c46f12 [media] au0828: Fix dev_state handling
-d9898e2e7bb3 [media] au0828: fix au0828_v4l2_close() dev_state race condition
-52a6e1f97587 [media] media-devnode: add missing mutex lock in error handler
-db268d4f59c5 [media] media-device: Simplify compat32 logic
-105817f85b02 sound/usb: fix to release stream resources from media_snd_device_delete()
-70fafd948468 sound/usb: Fix memory leak in media_snd_stream_delete() during unbind
-a78a4b10ecd3 sound/usb/media: use core routine to initialize media_device
-9d8830150475 [media] media-device: use kref for media_device instance
-544439bf084a [media] media-device: make topology_version u64
-4e18ca9ce0c2 [media] media-device: Fix a comment
-c38077d39c7e [media] media-device: get rid of the spinlock
-a50d06389fdf sound/usb: fix NULL dereference in usb_audio_probe()
-b39950960d2b [media] media: au0828 fix to clear enable/disable/change source handlers
-d9f03ad36a9d [media] v4l2-mc: cleanup a warning
-6a4f10cff976 [media] au0828: disable tuner links and cache tuner/decoder
+R8a7740 has the sh_mobile_ceu hardware, but support for it was dropped with
+r8a7740/armadillo legacy removal.
 
-We're running some stress tests today, so we may need to send a few
-other patches later on, but I guess they'll be either at au0828 or
-at the media core.
+Gr{oetje,eeting}s,
 
-Regards,
-Mauro
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
