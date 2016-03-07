@@ -1,85 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54123 "EHLO lists.s-osg.org"
+Received: from mail.sig21.net ([80.244.240.74]:60443 "EHLO mail.sig21.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933966AbcCPNK1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 09:10:27 -0400
-Date: Wed, 16 Mar 2016 10:10:21 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Javier Martinez Canillas <javier@dowhile0.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/5] [media] media-device: get rid of the spinlock
-Message-ID: <20160316101021.60274478@recife.lan>
-In-Reply-To: <CABxcv=k+MQE7Q+d_g=NgKqgwVqyg9J4LhXhjVyF9kartMt_PJw@mail.gmail.com>
-References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
-	<CABxcv=k+MQE7Q+d_g=NgKqgwVqyg9J4LhXhjVyF9kartMt_PJw@mail.gmail.com>
+	id S1752389AbcCGIst (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Mar 2016 03:48:49 -0500
+Date: Mon, 7 Mar 2016 09:48:26 +0100
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	Keith Packard <keithp@keithp.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160307084826.GA6381@linuxtv.org>
+References: <87y49zr74t.fsf@intel.com>
+ <20160303071305.247e30b1@lwn.net>
+ <20160303155037.705f33dd@recife.lan>
+ <86egbrm9hw.fsf@hiro.keithp.com>
+ <20160303221930.32558496@recife.lan>
+ <87si06r6i3.fsf@intel.com>
+ <20160304095950.3358a2cb@recife.lan>
+ <20160304140909.GA15636@linuxtv.org>
+ <20160305232937.74678dd0@recife.lan>
+ <20160306232908.GA3732@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160306232908.GA3732@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 16 Mar 2016 09:53:12 -0300
-Javier Martinez Canillas <javier@dowhile0.org> escreveu:
-
-> Hello Mauro,
+On Mon, Mar 07, 2016 at 12:29:08AM +0100, Johannes Stezenbach wrote:
+> On Sat, Mar 05, 2016 at 11:29:37PM -0300, Mauro Carvalho Chehab wrote:
+> > 
+> > I converted one of the big tables to CSV. At least now it recognized
+> > it as a table. Yet, the table was very badly formated:
+> > 	https://mchehab.fedorapeople.org/media-kabi-docs-test/rst_tests/packed-rgb.html
+> > 
+> > This is how this table should look like:
+> > 	https://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html
+> > 
+> > Also, as this table has merged cells at the legend. I've no idea how
+> > to tell sphinx to do that on csv format.
+> > 
+> > The RST files are on this git tree:
+> > 	https://git.linuxtv.org/mchehab/v4l2-docs-poc.git/
 > 
-> On Wed, Mar 16, 2016 at 9:04 AM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > Right now, the lock schema for media_device struct is messy,
-> > since sometimes, it is protected via a spin lock, while, for
-> > media graph traversal, it is protected by a mutex.
-> >
-> > Solve this conflict by always using a mutex.
-> >
-> > As a side effect, this prevents a bug where the media notifiers
-> > were called at atomic context.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-Btw, I'm running a stress test here, doing bind/unbind on au0828,
-while calling mc_nextgen_test:
-
-Running one instance of this loop:
-	$ i=0; while :; do i=$((i+1)); echo "loop $i"; sudo su -c "echo 1-3.1.2:1.0 > /sys/bus/usb/drivers/au0828/bind"; sudo su -c "echo 1-3.1.2:1.0 > /sys/bus/usb/drivers/au0828/unbind"; done
-
-
-and 3 instances of this loop:
-	$ while :; do clear; mc_nextgen_test; done
-
-My test machine has 4 CPUs, so this should be enough to check
-if the mutexes at ioctl and at the register/unregister functions
-are ok.
-
-Right now, the loop ran 160 times. Not a single trouble.
-
-Ok, it is not doing any graph traversal ops, but the code seems to be
-pretty much reliable with mutexes.
-
-I'll keep it running for more time to be sure, but it seems that
-the current media core works fine for dynamic
-entity/interface/link addition/removal.
-
-Regards,
-Mauro
-
-
-> > ---  
+> Yeah, seems it can't do merged cells in csv.  Attached patch converts it
+> back to grid table format and fixes the table definition.
+> The html output looks usable, but clearly it is no fun to
+> work with tables in Sphinx.
 > 
-> I agree with the patch.
-> 
-> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> Best regards,
-> Javier
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Sphinx' latex writer can't handle nested tables, though.
+> Python's docutils rst2latex can, but that doesn't help here.
+> rst2pdf also supports it.  But I have doubts such a large
+> table would render OK in pdf without using landscape orientation.
+> I have not tried because I used python3-sphinx but rst2pdf
+> is only availble for Python2 in Debian so it does not integrate
+> with Sphinx.
+
+Just a quick idea:
+Perhaps one alternative would be to use Graphviz to render
+the problematic tables, it supports a HTML-like syntax
+and can be embedded in Spinx documents:
+
+http://www.sphinx-doc.org/en/stable/ext/graphviz.html
+http://www.graphviz.org/content/node-shapes#html
+http://stackoverflow.com/questions/13890568/graphviz-html-nested-tables
 
 
--- 
-Thanks,
-Mauro
+Johannes
