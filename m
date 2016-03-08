@@ -1,51 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39597 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756823AbcCXIuP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 04:50:15 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from mga02.intel.com ([134.134.136.20]:52708 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752940AbcCHN6M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Mar 2016 08:58:12 -0500
+From: Jani Nikula <jani.nikula@intel.com>
+To: Dan Allen <dan@opendevise.io>
+Cc: Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: [PATCH v6 0/2] media: Add entity types
-Date: Thu, 24 Mar 2016 10:50:06 +0200
-Message-Id: <1458809408-32611-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Jonathan Corbet <corbet@lwn.net>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+In-Reply-To: <CAKeHnO7_7k8Qc5Jmu_x2OzAVT4YXxW8PSe_m6QUP-8V7XxbTVw@mail.gmail.com>
+References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com> <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan> <86egbrm9hw.fsf@hiro.keithp.com> <1457076530.13171.13.camel@winder.org.uk> <CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com> <87a8m9qoy8.fsf@intel.com> <CAKeHnO7_7k8Qc5Jmu_x2OzAVT4YXxW8PSe_m6QUP-8V7XxbTVw@mail.gmail.com>
+Date: Tue, 08 Mar 2016 15:58:08 +0200
+Message-ID: <8737s1qdfz.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Tue, 08 Mar 2016, Dan Allen <dan@opendevise.io> wrote:
+> That's not entirely true. First, you can pre-split at the source level
+> using includes and generate output for each of the masters. That's what I
+> tend to do and it works really well since these are logical split points.
 
-This patch series adds an obj_type field to the media entity structure. It
-is a resend of v5 with the MEDIA_ENTITY_TYPE_INVALID type replaced by
-MEDIA_ENTITY_TYPE_BASE to identify media entity instances not embedded in
-another structure.
+I need to look into this again. Is there a specific option or directive
+to produce split output for includes? When I tried this, the result was
+just one big output file. (And indeed we'd need both. Some includes we
+want embedded, some includes should produce separate outputs.)
 
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+>> That actually makes choosing asciidoc harder, because
+>> requiring another language environment complicates, not simplifies, the
+>> toolchain. I'd really like to lower the bar for building the
+>> documentation, for everyone, so much so that it becomes part of the
+>> normal checks for patch inclusion.
+>
+> Pardon my bluntness here, but I don't buy that argument. This is Linux.
+> Installing software couldn't be simpler, and we're talking about an
+> extremely well supported language (Ruby).
 
-Laurent Pinchart (2):
-  media: Add obj_type field to struct media_entity
-  media: Rename is_media_entity_v4l2_io to
-    is_media_entity_v4l2_video_device
+Granted, that part works for me. I'm not so sensitive to the
+dependencies; others may disagree.
 
- drivers/media/platform/exynos4-is/media-dev.c   |  4 +-
- drivers/media/platform/omap3isp/ispvideo.c      |  2 +-
- drivers/media/v4l2-core/v4l2-dev.c              |  1 +
- drivers/media/v4l2-core/v4l2-mc.c               |  2 +-
- drivers/media/v4l2-core/v4l2-subdev.c           |  1 +
- drivers/staging/media/davinci_vpfe/vpfe_video.c |  2 +-
- drivers/staging/media/omap4iss/iss_video.c      |  2 +-
- include/media/media-entity.h                    | 78 +++++++++++++------------
- 8 files changed, 48 insertions(+), 44 deletions(-)
+> I think it's a huge exaggeration to say that Asciidoctor is any harder to
+> install than AsciiDoc Python. It's also a heck of a lot smaller in size
+> since AsciiDoc Python pulls in hundreds of MB of LaTeX packages.
+
+For me, the comparison is really between Sphinx and Asciidoctor, not so
+much doc vs. doctor. The native output format and extension support in
+Sphinx is appealing; I am not yet convinced we could manage with
+Asciidoctor but without DocBook. The extension offering seems better in
+Sphinx.
+
+> Whatever you decide, I wish you all the best with your documentation
+> efforts!
+
+Thanks!
+
+BR,
+Jani.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Jani Nikula, Intel Open Source Technology Center
