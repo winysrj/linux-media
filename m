@@ -1,112 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f175.google.com ([209.85.161.175]:35627 "EHLO
-	mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455AbcCJPu2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2016 10:50:28 -0500
-MIME-Version: 1.0
-In-Reply-To: <20160302214501.GE7079@bigcity.dyn.berto.se>
-References: <1456751563-21246-1-git-send-email-ykaneko0929@gmail.com>
-	<56D4475A.1070203@xs4all.nl>
-	<CAH1o70KLcLAK4GCN-PYmrggHoXFB-9bRiCF73M-0YL5griaweg@mail.gmail.com>
-	<20160302214501.GE7079@bigcity.dyn.berto.se>
-Date: Fri, 11 Mar 2016 00:50:26 +0900
-Message-ID: <CAH1o70LWOX1wd9EaaMLeEy21G1MW0E8aSze9PmL=zNTJD-KYiA@mail.gmail.com>
-Subject: Re: [PATCH/RFC 0/4] media: soc_camera: rcar_vin: Add UDS and NV16
- scaling support
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+Received: from kirsty.vergenet.net ([202.4.237.240]:39469 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753132AbcCHBEE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2016 20:04:04 -0500
+From: Simon Horman <horms+renesas@verge.net.au>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
 	Magnus Damm <magnus.damm@gmail.com>,
-	Simon Horman <horms@verge.net.au>,
-	linux-renesas-soc@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH v2] media: sh_mobile_ceu_camera: Remove dependency on SUPERH
+Date: Tue,  8 Mar 2016 10:03:58 +0900
+Message-Id: <1457399038-14573-1-git-send-email-horms+renesas@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas-san,
+A dependency on ARCH_SHMOBILE seems to be the best option for
+sh_mobile_ceu_camera:
 
-I'm very sorry for the long delay in my reply.
+* For Super H based SoCs: sh_mobile_ceu is used on SH_AP325RXA, SH_ECOVEC,
+  SH_KFR2R09, SH_MIGOR, and SH_7724_SOLUTION_ENGINE which depend on
+  CPU_SUBTYPE_SH7722, CPU_SUBTYPE_SH7723, or CPU_SUBTYPE_SH7724 which all
+  select ARCH_SHMOBILE.
 
-2016-03-03 6:45 GMT+09:00 Niklas Söderlund <niklas.soderlund@ragnatech.se>:
-> Hi Kaneko-san,
->
-> On 2016-03-03 02:26:41 +0900, Yoshihiro Kaneko wrote:
->> Hi Hans,
->>
->> 2016-02-29 22:27 GMT+09:00 Hans Verkuil <hverkuil@xs4all.nl>:
->> > Huh, you must have missed Niklas's work the rcar-vin driver:
->> >
->> > http://www.spinics.net/lists/linux-media/msg97816.html
->> >
->> > I expect that the old soc-camera driver will be retired soon in favor of
->> > the new driver, so I don't want to accept patches for that one.
->> >
->> > I recommend that you check the new driver and see what (if anything) is needed
->> > to get this functionality in there and work with Niklas on this.
->> >
->> > This is all quite recent work, so it is not surprising that you missed it.
->>
->> Thank you for informing me!
->> I will check it.
->
-> My plan is to look at VIN for Gen3 once Gen2 support is done. I have
-> somewhat tried to keep the new driver prepared for Gen3. I have
-> separating the Gen2 scaler och clipper out in its own corner since this
-> will be different on Gen3.
->
-> My understanding is however that Gen3 don't provide UDS blocks
-> (scaler+clipper) to all VIN instances. And the VIN instances that have
-> access to a UDS block have to share it with one other VIN instance (only
-> one user at a time). How to describe this in DT in a good way I do not
-> yet know. If you have any ideas here or know more I would be glad to
-> hear it, I have not yet started any work for Gen3.
->
-> My initial plan for Gen3 enablement is to ignore the UDS blocks all
-> together. I feel there is enough to adapt VIN driver and get both the
-> CSI2 and sensor driver to work to be able to test the whole chain
-> without worrying about UDS too.
+* For ARM Based SoCs: Since the removal of legacy (non-multiplatform)
+  support this driver has not been used by any Renesas ARM based SoCs.
+  The Renesas ARM based SoCs currently select ARCH_SHMOBILE, however,
+  it is planned that this will no longer be the case.
 
-Thanks for your detailed explanation.
-I don't have any idea. Sorry that I can't help you.
-I stop posting any patch for the current (old) VIN driver.
+This is part of an ongoing process to migrate from ARCH_SHMOBILE to
+ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
+appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
 
-Thanks,
-kaneko
+Thanks to Geert Uytterhoeven for analysis and portions of the
+change log text.
 
->
->>
->> >
->> > Regards,
->> >
->> >         Hans
->>
->> Regards,
->> kaneko
->>
->> >
->> > On 02/29/2016 02:12 PM, Yoshihiro Kaneko wrote:
->> >> This series adds UDS support, NV16 scaling support and callback functions
->> >> to be required by a clipping process.
->> >>
->> >> This series is against the master branch of linuxtv.org/media_tree.git.
->> >>
->> >> Koji Matsuoka (3):
->> >>   media: soc_camera: rcar_vin: Add get_selection callback function
->> >>   media: soc_camera: rcar_vin: Add cropcap callback function
->> >>   media: soc_camera: rcar_vin: Add NV16 scaling support
->> >>
->> >> Yoshihiko Mori (1):
->> >>   media: soc_camera: rcar_vin: Add UDS support
->> >>
->> >>  drivers/media/platform/soc_camera/rcar_vin.c | 220 ++++++++++++++++++++++-----
->> >>  1 file changed, 184 insertions(+), 36 deletions(-)
->> >>
->> >
->
-> --
-> Regards,
-> Niklas Söderlund
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+
+--
+Based on media-tree/next
+
+v2
+* Break out of a (slightly) larger patch
+* Re-work to drop SUPERH dependency rather than replacing
+  ARCH_SHMOBILE with ARCH_RENESAS.
+---
+ drivers/media/platform/soc_camera/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index 08db3b040bbe..83029a4854ae 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -45,7 +45,7 @@ config VIDEO_SH_MOBILE_CSI2
+ config VIDEO_SH_MOBILE_CEU
+ 	tristate "SuperH Mobile CEU Interface driver"
+ 	depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA && HAVE_CLK
+-	depends on ARCH_SHMOBILE || SUPERH || COMPILE_TEST
++	depends on ARCH_SHMOBILE || COMPILE_TEST
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select SOC_CAMERA_SCALE_CROP
+-- 
+2.1.4
+
