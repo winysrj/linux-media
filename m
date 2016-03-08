@@ -1,312 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752044AbcCXX21 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:28:27 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 39/51] v4l: vsp1: video: Reorder functions
-Date: Fri, 25 Mar 2016 01:27:35 +0200
-Message-Id: <1458862067-19525-40-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mout.gmx.net ([212.227.15.18]:62795 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754202AbcCHQW3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Mar 2016 11:22:29 -0500
+Received: from minime.bse ([77.20.40.102]) by mail.gmx.com (mrgmx001) with
+ ESMTPSA (Nemesis) id 0MHXXo-1aa11C49fQ-003Kh9 for
+ <linux-media@vger.kernel.org>; Tue, 08 Mar 2016 17:22:27 +0100
+Date: Tue, 8 Mar 2016 17:23:09 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Dennis Wassenberg <dennis.wassenberg@secunet.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Question regarding internal webcams of tablet devices
+Message-ID: <20160308162308.GA30031@minime.bse>
+References: <56DEEDDD.3030401@secunet.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56DEEDDD.3030401@secunet.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the pipeline initialization and cleanup functions to prepare for
-the next commit. No functional code change is performed here.
+Hi,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_video.c | 266 +++++++++++++++----------------
- 1 file changed, 133 insertions(+), 133 deletions(-)
+On Tue, Mar 08, 2016 at 04:21:01PM +0100, Dennis Wassenberg wrote:
+> However, at first there is the need to get a driver for the camera IO
+> host controller PCI device. Is there anybody how knows a driver for that
+> pci device or known if there will be a driver for that in the future? Is
+> this the right way to support this kind of cameras or is there an other
+> way to get such cameras working with linux?
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 2c642726a259..4396018d1408 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -172,6 +172,139 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
-  * Pipeline Management
-  */
- 
-+/*
-+ * vsp1_video_complete_buffer - Complete the current buffer
-+ * @video: the video node
-+ *
-+ * This function completes the current buffer by filling its sequence number,
-+ * time stamp and payload size, and hands it back to the videobuf core.
-+ *
-+ * When operating in DU output mode (deep pipeline to the DU through the LIF),
-+ * the VSP1 needs to constantly supply frames to the display. In that case, if
-+ * no other buffer is queued, reuse the one that has just been processed instead
-+ * of handing it back to the videobuf core.
-+ *
-+ * Return the next queued buffer or NULL if the queue is empty.
-+ */
-+static struct vsp1_vb2_buffer *
-+vsp1_video_complete_buffer(struct vsp1_video *video)
-+{
-+	struct vsp1_pipeline *pipe = video->rwpf->pipe;
-+	struct vsp1_vb2_buffer *next = NULL;
-+	struct vsp1_vb2_buffer *done;
-+	unsigned long flags;
-+	unsigned int i;
-+
-+	spin_lock_irqsave(&video->irqlock, flags);
-+
-+	if (list_empty(&video->irqqueue)) {
-+		spin_unlock_irqrestore(&video->irqlock, flags);
-+		return NULL;
-+	}
-+
-+	done = list_first_entry(&video->irqqueue,
-+				struct vsp1_vb2_buffer, queue);
-+
-+	/* In DU output mode reuse the buffer if the list is singular. */
-+	if (pipe->lif && list_is_singular(&video->irqqueue)) {
-+		spin_unlock_irqrestore(&video->irqlock, flags);
-+		return done;
-+	}
-+
-+	list_del(&done->queue);
-+
-+	if (!list_empty(&video->irqqueue))
-+		next = list_first_entry(&video->irqqueue,
-+					struct vsp1_vb2_buffer, queue);
-+
-+	spin_unlock_irqrestore(&video->irqlock, flags);
-+
-+	done->buf.sequence = video->sequence++;
-+	done->buf.vb2_buf.timestamp = ktime_get_ns();
-+	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
-+		vb2_set_plane_payload(&done->buf.vb2_buf, i,
-+				      vb2_plane_size(&done->buf.vb2_buf, i));
-+	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
-+
-+	return next;
-+}
-+
-+static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
-+				 struct vsp1_rwpf *rwpf)
-+{
-+	struct vsp1_video *video = rwpf->video;
-+	struct vsp1_vb2_buffer *buf;
-+	unsigned long flags;
-+
-+	buf = vsp1_video_complete_buffer(video);
-+	if (buf == NULL)
-+		return;
-+
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+
-+	video->rwpf->mem = buf->mem;
-+	pipe->buffers_ready |= 1 << video->pipe_index;
-+
-+	spin_unlock_irqrestore(&pipe->irqlock, flags);
-+}
-+
-+static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+	unsigned int i;
-+
-+	if (!pipe->dl)
-+		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-+
-+	for (i = 0; i < vsp1->info->rpf_count; ++i) {
-+		struct vsp1_rwpf *rwpf = pipe->inputs[i];
-+
-+		if (rwpf)
-+			vsp1_rwpf_set_memory(rwpf, pipe->dl);
-+	}
-+
-+	if (!pipe->lif)
-+		vsp1_rwpf_set_memory(pipe->output, pipe->dl);
-+
-+	vsp1_dl_list_commit(pipe->dl);
-+	pipe->dl = NULL;
-+
-+	vsp1_pipeline_run(pipe);
-+}
-+
-+static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+	enum vsp1_pipeline_state state;
-+	unsigned long flags;
-+	unsigned int i;
-+
-+	/* Complete buffers on all video nodes. */
-+	for (i = 0; i < vsp1->info->rpf_count; ++i) {
-+		if (!pipe->inputs[i])
-+			continue;
-+
-+		vsp1_video_frame_end(pipe, pipe->inputs[i]);
-+	}
-+
-+	vsp1_video_frame_end(pipe, pipe->output);
-+
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+
-+	state = pipe->state;
-+	pipe->state = VSP1_PIPELINE_STOPPED;
-+
-+	/* If a stop has been requested, mark the pipeline as stopped and
-+	 * return. Otherwise restart the pipeline if ready.
-+	 */
-+	if (state == VSP1_PIPELINE_STOPPING)
-+		wake_up(&pipe->wq);
-+	else if (vsp1_pipeline_ready(pipe))
-+		vsp1_video_pipeline_run(pipe);
-+
-+	spin_unlock_irqrestore(&pipe->irqlock, flags);
-+}
-+
- static int vsp1_video_pipeline_build_branch(struct vsp1_pipeline *pipe,
- 					    struct vsp1_rwpf *input,
- 					    struct vsp1_rwpf *output)
-@@ -369,139 +502,6 @@ static void vsp1_video_pipeline_cleanup(struct vsp1_pipeline *pipe)
- 	mutex_unlock(&pipe->lock);
- }
- 
--/*
-- * vsp1_video_complete_buffer - Complete the current buffer
-- * @video: the video node
-- *
-- * This function completes the current buffer by filling its sequence number,
-- * time stamp and payload size, and hands it back to the videobuf core.
-- *
-- * When operating in DU output mode (deep pipeline to the DU through the LIF),
-- * the VSP1 needs to constantly supply frames to the display. In that case, if
-- * no other buffer is queued, reuse the one that has just been processed instead
-- * of handing it back to the videobuf core.
-- *
-- * Return the next queued buffer or NULL if the queue is empty.
-- */
--static struct vsp1_vb2_buffer *
--vsp1_video_complete_buffer(struct vsp1_video *video)
--{
--	struct vsp1_pipeline *pipe = video->rwpf->pipe;
--	struct vsp1_vb2_buffer *next = NULL;
--	struct vsp1_vb2_buffer *done;
--	unsigned long flags;
--	unsigned int i;
--
--	spin_lock_irqsave(&video->irqlock, flags);
--
--	if (list_empty(&video->irqqueue)) {
--		spin_unlock_irqrestore(&video->irqlock, flags);
--		return NULL;
--	}
--
--	done = list_first_entry(&video->irqqueue,
--				struct vsp1_vb2_buffer, queue);
--
--	/* In DU output mode reuse the buffer if the list is singular. */
--	if (pipe->lif && list_is_singular(&video->irqqueue)) {
--		spin_unlock_irqrestore(&video->irqlock, flags);
--		return done;
--	}
--
--	list_del(&done->queue);
--
--	if (!list_empty(&video->irqqueue))
--		next = list_first_entry(&video->irqqueue,
--					struct vsp1_vb2_buffer, queue);
--
--	spin_unlock_irqrestore(&video->irqlock, flags);
--
--	done->buf.sequence = video->sequence++;
--	done->buf.vb2_buf.timestamp = ktime_get_ns();
--	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
--		vb2_set_plane_payload(&done->buf.vb2_buf, i,
--				      vb2_plane_size(&done->buf.vb2_buf, i));
--	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
--
--	return next;
--}
--
--static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
--				 struct vsp1_rwpf *rwpf)
--{
--	struct vsp1_video *video = rwpf->video;
--	struct vsp1_vb2_buffer *buf;
--	unsigned long flags;
--
--	buf = vsp1_video_complete_buffer(video);
--	if (buf == NULL)
--		return;
--
--	spin_lock_irqsave(&pipe->irqlock, flags);
--
--	video->rwpf->mem = buf->mem;
--	pipe->buffers_ready |= 1 << video->pipe_index;
--
--	spin_unlock_irqrestore(&pipe->irqlock, flags);
--}
--
--static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
--{
--	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
--	unsigned int i;
--
--	if (!pipe->dl)
--		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
--
--	for (i = 0; i < vsp1->info->rpf_count; ++i) {
--		struct vsp1_rwpf *rwpf = pipe->inputs[i];
--
--		if (rwpf)
--			vsp1_rwpf_set_memory(rwpf, pipe->dl);
--	}
--
--	if (!pipe->lif)
--		vsp1_rwpf_set_memory(pipe->output, pipe->dl);
--
--	vsp1_dl_list_commit(pipe->dl);
--	pipe->dl = NULL;
--
--	vsp1_pipeline_run(pipe);
--}
--
--static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
--{
--	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
--	enum vsp1_pipeline_state state;
--	unsigned long flags;
--	unsigned int i;
--
--	/* Complete buffers on all video nodes. */
--	for (i = 0; i < vsp1->info->rpf_count; ++i) {
--		if (!pipe->inputs[i])
--			continue;
--
--		vsp1_video_frame_end(pipe, pipe->inputs[i]);
--	}
--
--	vsp1_video_frame_end(pipe, pipe->output);
--
--	spin_lock_irqsave(&pipe->irqlock, flags);
--
--	state = pipe->state;
--	pipe->state = VSP1_PIPELINE_STOPPED;
--
--	/* If a stop has been requested, mark the pipeline as stopped and
--	 * return. Otherwise restart the pipeline if ready.
--	 */
--	if (state == VSP1_PIPELINE_STOPPING)
--		wake_up(&pipe->wq);
--	else if (vsp1_pipeline_ready(pipe))
--		vsp1_video_pipeline_run(pipe);
--
--	spin_unlock_irqrestore(&pipe->irqlock, flags);
--}
--
- /* -----------------------------------------------------------------------------
-  * videobuf2 Queue Operations
-  */
--- 
-2.7.3
+I know that Intel wrote a GPLv2 driver for the CSI host controller in
+Merrifield, Baytrail, Anniedale and Cherrytrail. It is part of their
+Android kernel. You might have luck searching for an Android kernel
+for a Skylake tablet. But be careful, the driver I know only supports
+a fixed set of configurations. It seems like Intel expects every
+manufacturer to just copy their reference design down to the GPIO
+numbers used to reset the camera sensors.
 
+Best regards,
+
+  Daniel
