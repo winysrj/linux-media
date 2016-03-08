@@ -1,33 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f169.google.com ([209.85.161.169]:33276 "EHLO
-	mail-yw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750765AbcCHVtf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 16:49:35 -0500
-Received: by mail-yw0-f169.google.com with SMTP id d65so23888498ywb.0
-        for <linux-media@vger.kernel.org>; Tue, 08 Mar 2016 13:49:34 -0800 (PST)
+Received: from bay004-omc3s7.hotmail.com ([65.54.190.145]:63081 "EHLO
+	BAY004-OMC3S7.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753231AbcCHDIW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2016 22:08:22 -0500
+From: =?utf-8?B?QWxleGFuZHJlLVhhdmllciBMYWJvbnTDqS1MYW1vdXJldXg=?=
+	<alexandrexavier@live.ca>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: How to see the content of my device's EEPROM?
+Date: Tue, 8 Mar 2016 03:03:16 +0000
+Message-ID: <BY2PR20MB016874EF65B0FEEFB2CCDA6FBDB20@BY2PR20MB0168.namprd20.prod.outlook.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <3354CE0AF9CEB24897BDC3B0DF081F61@namprd20.prod.outlook.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <CAL0vL9yc=d_2LSUui=vWD2tttB0-oFathrEG8P35EoKtJEkSMQ@mail.gmail.com>
-References: <CAL0vL9yc=d_2LSUui=vWD2tttB0-oFathrEG8P35EoKtJEkSMQ@mail.gmail.com>
-Date: Tue, 8 Mar 2016 16:49:33 -0500
-Message-ID: <CAGoCfizteSfFOSYJQWRBeBzr2ZJ3H_VaF2Akvv3mqEX3gVPVYw@mail.gmail.com>
-Subject: Re: HVR-850 2040:b140 fails to initialize
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Scott Robinson <scott.robinson55@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	User discussion about IVTV <ivtv-users@ivtvdriver.org>
-Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Appreciate some advice.
-
-Return it and get an HVR-950q.  This has been a known issue for more
-than 5 years and nobody's gotten around to fixing it (largely because
-of limitations inside the V4L2 framework).
-
-Devin
-(a.k.a. the guy who added the original support for the HVR-850).
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+SGVsbG8gZXZlcnlvbmUsDQoNCk9uIHRoZSBrZXJuZWwgdmVyc2lvbiA0LjMuMywgd2hlbiBJIGRv
+IGRtZXNnIHRvIHNlZSB0aGUgY29udGVudCBvZiB0aGUNCkVFUFJPTSBvZiB0aGUgZGV2aWNlIHRo
+YXQgSSBqdXN0IGNvbm5lY3RlZCwgSSBkb24ndCBzZWUgaXQuDQoNCkkgb25seSBzZWUgdGhpczog
+aHR0cHM6Ly9qdXN0cGFzdGUuaXQvcWNoZA0KDQpPbiBvbGRlciBrZXJuZWwgdmVyc2lvbnMgbGlr
+ZSAzLjEwLCBJIGhhZCB3aGF0IEkgd2FudGVkOg0KaHR0cHM6Ly9qdXN0cGFzdGUuaXQvcWNoaA0K
+DQppMmMgZWVwcm9tIDAwOiAxYSBlYiA2NyA5NSAxYSBlYiA1MSA1MCA1MCAwMCAyMCAwMyA4MiAz
+NCA2YSAwNA0KaTJjIGVlcHJvbSAxMDogNmUgMTQgMjcgNTcgMDYgMDIgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDANCmkyYyBlZXByb20gMjA6IDAyIDAwIDAxIDAwIGYwIDEwIDAxIDAwIGI4
+IDAwIDAwIDAwIDViIDAwIDAwIDAwDQppMmMgZWVwcm9tIDMwOiAwMCAwMCAyMCA0MCAyMCA4MCAw
+MiAyMCAwMSAwMSAwMCAwMCAwMCAwMCAwMCAwMA0KaTJjIGVlcHJvbSA0MDogMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgYzQgMDAgMDANCmkyYyBlZXByb20gNTA6IDAwIGEy
+IDAwIDg3IDgxIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQppMmMgZWVwcm9tIDYw
+OiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwNCAwMyAzMCAwMCAxNCAwMw0KaTJjIGVl
+cHJvbSA3MDogNDkgMDAgNGYgMDAgNGUgMDAgMjAgMDAgNDEgMDAgNzUgMDAgNjQgMDAgNjkgMDAN
+CmkyYyBlZXByb20gODA6IDZmIDAwIDM0IDAzIDQ5IDAwIDRmIDAwIDRlIDAwIDIwIDAwIDQxIDAw
+IDc1IDAwDQppMmMgZWVwcm9tIDkwOiA2NCAwMCA2OSAwMCA2ZiAwMCAyMCAwMCA1NSAwMCA1MyAw
+MCA0MiAwMCAyMCAwMA0KaTJjIGVlcHJvbSBhMDogMzIgMDAgMzggMDAgMzYgMDAgMzEgMDAgMjAg
+MDAgNDQgMDAgNjUgMDAgNzYgMDANCmkyYyBlZXByb20gYjA6IDY5IDAwIDYzIDAwIDY1IDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQppMmMgZWVwcm9tIGMwOiAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMA0KaTJjIGVlcHJvbSBkMDogMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDANCmkyYyBlZXByb20gZjA6
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwDQoNCldoeSBk
+byBuZXdlciBrZXJuZWxzIHByaW50IGxlc3MgaW5mb3JtYXRpb24gdG8gZG1lc2c/IEhvdyBkbyBJ
+IGRvIGlmIEkgd2FudA0KdG8gc2VlIHRoZSBjb250ZW50IG9mIG15IEVFUFJPTSBvbiBrZXJuZWwg
+djQuMy4zID8NCg0KVGhhbmtzIGluIGFkdmFuY2UsDQpBbGV4YW5kcmUtWGF2aWVyDQo=
