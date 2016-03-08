@@ -1,97 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:43523 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756824AbcC2LcV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2016 07:32:21 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v6 8/8] arm64: dts: mediatek: Add Video Encoder for MT8173
-Date: Tue, 29 Mar 2016 19:32:10 +0800
-Message-ID: <1459251130-53774-9-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1459251130-53774-8-git-send-email-tiffany.lin@mediatek.com>
-References: <1459251130-53774-1-git-send-email-tiffany.lin@mediatek.com>
- <1459251130-53774-2-git-send-email-tiffany.lin@mediatek.com>
- <1459251130-53774-3-git-send-email-tiffany.lin@mediatek.com>
- <1459251130-53774-4-git-send-email-tiffany.lin@mediatek.com>
- <1459251130-53774-5-git-send-email-tiffany.lin@mediatek.com>
- <1459251130-53774-6-git-send-email-tiffany.lin@mediatek.com>
- <1459251130-53774-7-git-send-email-tiffany.lin@mediatek.com>
- <1459251130-53774-8-git-send-email-tiffany.lin@mediatek.com>
+Received: from lists.s-osg.org ([54.187.51.154]:37028 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751366AbcCHNj3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Mar 2016 08:39:29 -0500
+Date: Tue, 8 Mar 2016 10:39:22 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Dan Allen <dan@opendevise.io>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160308103922.48d87d9d@recife.lan>
+In-Reply-To: <CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
+References: <20160213145317.247c63c7@lwn.net>
+	<87y49zr74t.fsf@intel.com>
+	<20160303071305.247e30b1@lwn.net>
+	<20160303155037.705f33dd@recife.lan>
+	<86egbrm9hw.fsf@hiro.keithp.com>
+	<1457076530.13171.13.camel@winder.org.uk>
+	<CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
+	<87a8m9qoy8.fsf@intel.com>
+	<20160308082948.4e2e0f82@recife.lan>
+	<CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add video encoder node for MT8173
+Em Tue, 08 Mar 2016 05:13:13 -0700
+Dan Allen <dan@opendevise.io> escreveu:
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   39 ++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+> On Tue, Mar 8, 2016 at 4:29 AM, Mauro Carvalho Chehab <
+> mchehab@osg.samsung.com> wrote:  
+> 
+> > pandoc did a really crap job on the conversion. To convert this
+> > into something useful, we'll need to spend a lot of time, as it lost
+> > most of the cross-references, as they were defined via DocBook macros.
+> >  
+> 
+> I agree pandoc creates crappy AsciiDoc. We have a much better converter in
+> the works called DocBookRx.
+> 
+> https://github.com/opendevise/docbookrx
+> 
+> It has converted several very serious DocBook documents and we're
+> continuing to improve it. It's also a lot easier to hack than pandoc.
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index 5b0b38a..26aeffe 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -1150,6 +1150,45 @@
- 			clock-names = "apb", "smi";
- 		};
- 
-+		vcodec_enc: vcodec@18002000 {
-+			compatible = "mediatek,mt8173-vcodec-enc";
-+			reg = <0 0x18002000 0 0x1000>,	/* VENC_SYS */
-+			      <0 0x19002000 0 0x1000>;	/* VENC_LT_SYS */
-+			interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
-+				     <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
-+			mediatek,larb = <&larb3>,
-+					<&larb5>;
-+			iommus = <&iommu M4U_PORT_VENC_RCPU>,
-+				 <&iommu M4U_PORT_VENC_REC>,
-+				 <&iommu M4U_PORT_VENC_BSDMA>,
-+				 <&iommu M4U_PORT_VENC_SV_COMV>,
-+				 <&iommu M4U_PORT_VENC_RD_COMV>,
-+				 <&iommu M4U_PORT_VENC_CUR_LUMA>,
-+				 <&iommu M4U_PORT_VENC_CUR_CHROMA>,
-+				 <&iommu M4U_PORT_VENC_REF_LUMA>,
-+				 <&iommu M4U_PORT_VENC_REF_CHROMA>,
-+				 <&iommu M4U_PORT_VENC_NBM_RDMA>,
-+				 <&iommu M4U_PORT_VENC_NBM_WDMA>,
-+				 <&iommu M4U_PORT_VENC_RCPU_SET2>,
-+				 <&iommu M4U_PORT_VENC_REC_FRM_SET2>,
-+				 <&iommu M4U_PORT_VENC_BSDMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_SV_COMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_RD_COMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_CUR_LUMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_CUR_CHROMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_REF_LUMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_REC_CHROMA_SET2>;
-+			mediatek,vpu = <&vpu>;
-+			clocks = <&topckgen CLK_TOP_VENCPLL_D2>,
-+				 <&topckgen CLK_TOP_VENC_SEL>,
-+				 <&topckgen CLK_TOP_UNIVPLL1_D2>,
-+				 <&topckgen CLK_TOP_VENC_LT_SEL>;
-+			clock-names = "venc_sel_src",
-+				      "venc_sel",
-+				      "venc_lt_sel_src",
-+				      "venc_lt_sel";
-+		};
-+
- 		vencltsys: clock-controller@19000000 {
- 			compatible = "mediatek,mt8173-vencltsys", "syscon";
- 			reg = <0 0x19000000 0 0x1000>;
+Didn't work:
+
+$ ./bin/docbookrx ~/devel/docbook_test/v4l2.xml 
+No visitor defined for <part>! Skipping.
+No visitor defined for <part>! Skipping.
+No visitor defined for <part>! Skipping.
+No visitor defined for <part>! Skipping.
+No visitor defined for <appendixinfo>! Skipping.
+
+
+> 
+> -Dan
+> 
+> 
+
+
 -- 
-1.7.9.5
-
+Thanks,
+Mauro
