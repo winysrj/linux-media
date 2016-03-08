@@ -1,115 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:45267 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754525AbcCOAkm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 20:40:42 -0400
-From: Simon Horman <horms+renesas@verge.net.au>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Yoshihiro Kaneko <ykaneko0929@gmail.com>,
-	Simon Horman <horms+renesas@verge.net.au>
-Subject: [PATCH v4 1/2] media: soc_camera: rcar_vin: add R-Car Gen 2 and 3 fallback compatibility strings
-Date: Tue, 15 Mar 2016 09:40:26 +0900
-Message-Id: <1458002427-3063-2-git-send-email-horms+renesas@verge.net.au>
-In-Reply-To: <1458002427-3063-1-git-send-email-horms+renesas@verge.net.au>
-References: <1458002427-3063-1-git-send-email-horms+renesas@verge.net.au>
+Received: from down.free-electrons.com ([37.187.137.238]:40386 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932929AbcCHLP3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 06:15:29 -0500
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Dave Gordon <david.s.gordon@intel.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	linux-mtd@lists.infradead.org
+Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>
+Subject: [PATCH 2/7] mtd: nand: sunxi: make OOB retrieval optional
+Date: Tue,  8 Mar 2016 12:15:10 +0100
+Message-Id: <1457435715-24740-3-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1457435715-24740-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1457435715-24740-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+sunxi_nfc_hw_ecc_read_chunk() always retrieves the ECC and protected free
+bytes, no matter if the user really asked for it or not. This can take a
+non negligible amount of time, especially on NAND chips exposing large OOB
+areas (> 1KB). Make it optional.
 
-Add fallback compatibility string for R-Car Gen 1 and 2.
-
-In the case of Renesas R-Car hardware we know that there are generations of
-SoCs, e.g. Gen 2 and 3. But beyond that its not clear what the relationship
-between IP blocks might be. For example, I believe that r8a7790 is older
-than r8a7791 but that doesn't imply that the latter is a descendant of the
-former or vice versa.
-
-We can, however, by examining the documentation and behaviour of the
-hardware at run-time observe that the current driver implementation appears
-to be compatible with the IP blocks on SoCs within a given generation.
-
-For the above reasons and convenience when enabling new SoCs a
-per-generation fallback compatibility string scheme being adopted for
-drivers for Renesas SoCs.
-
-Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
 ---
-v4 [Simon Horman]
-* Added Ack from Geert Uytterhoeven
+ drivers/mtd/nand/sunxi_nand.c | 27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
-v3 [Simon Horman]
-* Reworked and expanded changelog.
-* Minor documentation enhancements.
-
-v2 [Yoshihiro Kaneko]
-* As suggested by Geert Uytterhoeven
-  drivers/media/platform/soc_camera/rcar_vin.c:
-    - The generic compatibility values are listed at the end of the
-      rcar_vin_of_table[].
-
-v1 [Yoshihiro Kaneko]
----
- Documentation/devicetree/bindings/media/rcar_vin.txt | 11 +++++++++--
- drivers/media/platform/soc_camera/rcar_vin.c         |  2 ++
- 2 files changed, 11 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index 619193ccf7ff..4266123888ed 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -5,7 +5,7 @@ The rcar_vin device provides video input capabilities for the Renesas R-Car
- family of devices. The current blocks are always slaves and suppot one input
- channel which can be either RGB, YUYV or BT656.
+diff --git a/drivers/mtd/nand/sunxi_nand.c b/drivers/mtd/nand/sunxi_nand.c
+index 90c121d..7b3ae72 100644
+--- a/drivers/mtd/nand/sunxi_nand.c
++++ b/drivers/mtd/nand/sunxi_nand.c
+@@ -869,7 +869,7 @@ static int sunxi_nfc_hw_ecc_read_chunk(struct mtd_info *mtd,
+ 				       u8 *oob, int oob_off,
+ 				       int *cur_off,
+ 				       unsigned int *max_bitflips,
+-				       bool bbm, int page)
++				       bool bbm, bool oob_required, int page)
+ {
+ 	struct nand_chip *nand = mtd_to_nand(mtd);
+ 	struct sunxi_nfc *nfc = to_sunxi_nfc(nand->controller);
+@@ -901,7 +901,8 @@ static int sunxi_nfc_hw_ecc_read_chunk(struct mtd_info *mtd,
  
-- - compatible: Must be one of the following
-+ - compatible: Must be one or more of the following
-    - "renesas,vin-r8a7795" for the R8A7795 device
-    - "renesas,vin-r8a7794" for the R8A7794 device
-    - "renesas,vin-r8a7793" for the R8A7793 device
-@@ -13,6 +13,13 @@ channel which can be either RGB, YUYV or BT656.
-    - "renesas,vin-r8a7790" for the R8A7790 device
-    - "renesas,vin-r8a7779" for the R8A7779 device
-    - "renesas,vin-r8a7778" for the R8A7778 device
-+   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
-+   - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
-+
-+   When compatible with the generic version nodes must list the
-+   SoC-specific version corresponding to the platform first
-+   followed by the generic version.
-+
-  - reg: the register base and size for the device registers
-  - interrupts: the interrupt for the device
-  - clocks: Reference to the parent clock
-@@ -37,7 +44,7 @@ Device node example
- 	};
+ 	*cur_off = oob_off + ecc->bytes + 4;
  
-         vin0: vin@0xe6ef0000 {
--                compatible = "renesas,vin-r8a7790";
-+                compatible = "renesas,vin-r8a7790", "renesas,rcar-gen2-vin";
-                 clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
-                 reg = <0 0xe6ef0000 0 0x1000>;
-                 interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 3b8edf458964..3f9c1b8456c3 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -1845,6 +1845,8 @@ static const struct of_device_id rcar_vin_of_table[] = {
- 	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
- 	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
- 	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
-+	{ .compatible = "renesas,rcar-gen3-vin", .data = (void *)RCAR_GEN3 },
-+	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
+-	ret = sunxi_nfc_hw_ecc_correct(mtd, data, oob, 0, &erased);
++	ret = sunxi_nfc_hw_ecc_correct(mtd, data, oob_required ? oob : NULL, 0,
++				       &erased);
+ 	if (erased)
+ 		return 1;
+ 
+@@ -929,12 +930,14 @@ static int sunxi_nfc_hw_ecc_read_chunk(struct mtd_info *mtd,
+ 	} else {
+ 		memcpy_fromio(data, nfc->regs + NFC_RAM0_BASE, ecc->size);
+ 
+-		nand->cmdfunc(mtd, NAND_CMD_RNDOUT, oob_off, -1);
+-		sunxi_nfc_randomizer_read_buf(mtd, oob, ecc->bytes + 4,
+-					      true, page);
++		if (oob_required) {
++			nand->cmdfunc(mtd, NAND_CMD_RNDOUT, oob_off, -1);
++			sunxi_nfc_randomizer_read_buf(mtd, oob, ecc->bytes + 4,
++						      true, page);
+ 
+-		sunxi_nfc_hw_ecc_get_prot_oob_bytes(mtd, oob, 0,
+-						    bbm, page);
++			sunxi_nfc_hw_ecc_get_prot_oob_bytes(mtd, oob, 0,
++							    bbm, page);
++		}
+ 	}
+ 
+ 	sunxi_nfc_hw_ecc_update_stats(mtd, max_bitflips, ret);
+@@ -1048,7 +1051,7 @@ static int sunxi_nfc_hw_ecc_read_page(struct mtd_info *mtd,
+ 		ret = sunxi_nfc_hw_ecc_read_chunk(mtd, data, data_off, oob,
+ 						  oob_off + mtd->writesize,
+ 						  &cur_off, &max_bitflips,
+-						  !i, page);
++						  !i, oob_required, page);
+ 		if (ret < 0)
+ 			return ret;
+ 		else if (ret)
+@@ -1086,8 +1089,8 @@ static int sunxi_nfc_hw_ecc_read_subpage(struct mtd_info *mtd,
+ 		ret = sunxi_nfc_hw_ecc_read_chunk(mtd, data, data_off,
+ 						  oob,
+ 						  oob_off + mtd->writesize,
+-						  &cur_off, &max_bitflips,
+-						  !i, page);
++						  &cur_off, &max_bitflips, !i,
++						  false, page);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+@@ -1149,7 +1152,9 @@ static int sunxi_nfc_hw_syndrome_ecc_read_page(struct mtd_info *mtd,
+ 
+ 		ret = sunxi_nfc_hw_ecc_read_chunk(mtd, data, data_off, oob,
+ 						  oob_off, &cur_off,
+-						  &max_bitflips, !i, page);
++						  &max_bitflips, !i,
++						  oob_required,
++						  page);
+ 		if (ret < 0)
+ 			return ret;
+ 		else if (ret)
 -- 
 2.1.4
 
