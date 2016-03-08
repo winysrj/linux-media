@@ -1,103 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33959 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754373AbcCCP5J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 10:57:09 -0500
-Subject: Re: [PATCH v3 02/22] uapi/media.h: Declare interface types for ALSA
-To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@osg.samsung.com,
-	tiwai@suse.com, clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
- <a1b468c2933dc2b4f2b6cc6d1ac30baee2a89f77.1455233152.git.shuahkh@osg.samsung.com>
- <56D85161.5070103@xs4all.nl>
-Cc: pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
-	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56D85ECF.40807@osg.samsung.com>
-Date: Thu, 3 Mar 2016 08:57:03 -0700
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:33283 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750819AbcCHVpG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 16:45:06 -0500
+Received: by mail-lb0-f180.google.com with SMTP id k15so38295958lbg.0
+        for <linux-media@vger.kernel.org>; Tue, 08 Mar 2016 13:45:05 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <56D85161.5070103@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Date: Tue, 8 Mar 2016 15:45:04 -0600
+Message-ID: <CAL0vL9yc=d_2LSUui=vWD2tttB0-oFathrEG8P35EoKtJEkSMQ@mail.gmail.com>
+Subject: HVR-850 2040:b140 fails to initialize
+From: Scott Robinson <scott.robinson55@gmail.com>
+To: linux-media@vger.kernel.org,
+	User discussion about IVTV <ivtv-users@ivtvdriver.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2016 07:59 AM, Hans Verkuil wrote:
-> On 02/12/16 00:41, Shuah Khan wrote:
->> Declare the interface types to be used on alsa for
->> the new G_TOPOLOGY ioctl.
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/media-entity.c | 16 ++++++++++++++++
->>  include/uapi/linux/media.h   | 10 ++++++++++
->>  2 files changed, 26 insertions(+)
->>
->> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
->> index f2e4360..6179543 100644
->> --- a/drivers/media/media-entity.c
->> +++ b/drivers/media/media-entity.c
->> @@ -65,6 +65,22 @@ static inline const char *intf_type(struct media_interface *intf)
->>  		return "v4l2-subdev";
->>  	case MEDIA_INTF_T_V4L_SWRADIO:
->>  		return "swradio";
->> +	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
->> +		return "pcm-capture";
->> +	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
->> +		return "pcm-playback";
->> +	case MEDIA_INTF_T_ALSA_CONTROL:
->> +		return "alsa-control";
->> +	case MEDIA_INTF_T_ALSA_COMPRESS:
->> +		return "compress";
->> +	case MEDIA_INTF_T_ALSA_RAWMIDI:
->> +		return "rawmidi";
->> +	case MEDIA_INTF_T_ALSA_HWDEP:
->> +		return "hwdep";
->> +	case MEDIA_INTF_T_ALSA_SEQUENCER:
->> +		return "sequencer";
->> +	case MEDIA_INTF_T_ALSA_TIMER:
->> +		return "timer";
-> 
-> Wouldn't it be better to add an 'alsa' prefix for all of these?
-> 
-> And 'dvb-' or 'v4l2-' (or v4l-) for the others as well.
-> 
-> Names like 'timer' are very generic. I think it would be a good idea to
-> make the naming more regular and have it include the subsystem name just
-> as the define does.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+I am trying to above device with kernel 4.1.13-100.fc21.x86_64.
 
-Yes adding more information 'dvb-' or 'v4l2-' (or v4l-), alsa
-to strings would help. I can fix all of them in a separate
-patch if that is okay with you.
+kernel: usb 2-2: New USB device found, idVendor=2040, idProduct=b140
+kernel: usb 2-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+kernel: usb 2-2: Product: Hauppauge Device
+kernel: usb 2-2: Manufacturer: Hauppauge
+kernel: usb 2-2: SerialNumber: 4035391470
+kernel: [5789620.592751] cx231xx 2-2:1.1: New device Hauppauge
+Hauppauge Device @ 480 Mbps (2040:b140) with 7 interfaces
+kernel: [5789620.592959] cx231xx 2-2:1.1: Identified as Hauppauge
+EXETER (card=8)
+kernel: cx231xx 2-2:1.1: New device Hauppauge Hauppauge Device @ 480
+Mbps (2040:b140) with 7 interfaces
+kernel: cx231xx 2-2:1.1: Identified as Hauppauge EXETER (card=8)
+kernel: [5789620.593974] i2c i2c-8: Added multiplexed i2c bus 10
+kernel: [5789620.594031] i2c i2c-8: Added multiplexed i2c bus 11
+kernel: i2c i2c-8: Added multiplexed i2c bus 10
+kernel: i2c i2c-8: Added multiplexed i2c bus 11
+kernel: [5789620.755944] cx25840 7-0044: cx23102 A/V decoder found @
+0x88 (cx231xx #0-0)
+kernel: cx25840 7-0044: cx23102 A/V decoder found @ 0x88 (cx231xx #0-0)
+kernel: [5789622.682697] cx25840 7-0044: loaded
+v4l-cx231xx-avcore-01.fw firmware (16382 bytes)
+kernel: cx25840 7-0044: loaded v4l-cx231xx-avcore-01.fw firmware (16382 bytes)
+kernel: [5789622.719317] Chip ID is not zero. It is not a TEA5767
+kernel: [5789622.719327] tuner 10-0060: Tuner -1 found with type(s) Radio TV.
+kernel: [5789622.719349] tda18271 10-0060: creating new instance
+kernel: Chip ID is not zero. It is not a TEA5767
+kernel: tuner 10-0060: Tuner -1 found with type(s) Radio TV.
+kernel: tda18271 10-0060: creating new instance
+kernel: [5789622.721440] Unknown device (110) detected @ 10-0060,
+device not supported.
+kernel: [5789622.721445] tda18271_attach: [10-0060|M] error -22 on line 1285
+kernel: [5789622.721447] tda18271 10-0060: destroying instance
+kernel: Unknown device (110) detected @ 10-0060, device not supported.
+kernel: tda18271_attach: [10-0060|M] error -22 on line 1285
+kernel: tda18271 10-0060: destroying instance
+kernel: [5789622.726935] tuner 10-0060: Tuner has no way to set tv freq
+kernel: tuner 10-0060: Tuner has no way to set tv freq
+kernel: [5789622.728068] cx231xx 2-2:1.1: v4l2 driver version 0.0.3
+kernel: cx231xx 2-2:1.1: v4l2 driver version 0.0.3
+kernel: [5789622.856428] tuner 10-0060: Tuner has no way to set tv freq
+kernel: [5789622.856582] cx231xx 2-2:1.1: Registered video device video1 [v4l2]
+kernel: [5789622.856695] cx231xx 2-2:1.1: Registered VBI device vbi1
+kernel: [5789622.856964] cx231xx 2-2:1.1: audio EndPoint Addr 0x83,
+Alternate settings: 3
+kernel: tuner 10-0060: Tuner has no way to set tv freq
+kernel: cx231xx 2-2:1.1: Registered video device video1 [v4l2]
+kernel: cx231xx 2-2:1.1: Registered VBI device vbi1
+kernel: cx231xx 2-2:1.1: audio EndPoint Addr 0x83, Alternate settings: 3
+kernel: [5789622.893807] cx231xx 2-2:1.1: dvb_init: looking for tuner
+/ demod on i2c bus: 10
+kernel: cx231xx 2-2:1.1: dvb_init: looking for tuner / demod on i2c bus: 10
+kernel: cx231xx 2-2:1.1: cx231xx_send_usb_command: failed with status --32
+kernel: lgdt3305_read_reg: error (addr 0e reg 0001 error (ret == -32)
+kernel: lgdt3305_attach: error -32 on line 1143
+kernel: lgdt3305_attach: unable to detect LGDT3305 hardware
+kernel: cx231xx 2-2:1.1: Failed to attach LG3305 front end
+kernel: [5789622.894206] cx231xx 2-2:1.1: cx231xx_send_usb_command:
+failed with status --32
+kernel: [5789622.894210] lgdt3305_read_reg: error (addr 0e reg 0001
+error (ret == -32)
+kernel: [5789622.894212] lgdt3305_attach: error -32 on line 1143
+kernel: [5789622.894214] lgdt3305_attach: unable to detect LGDT3305 hardware
+kernel: [5789622.894218] cx231xx 2-2:1.1: Failed to attach LG3305 front end
+kernel: [5789622.894919] cx231xx 2-2:1.1: video EndPoint Addr 0x84,
+Alternate settings: 5
+kernel: [5789622.894925] cx231xx 2-2:1.1: VBI EndPoint Addr 0x85,
+Alternate settings: 2
+kernel: [5789622.894928] cx231xx 2-2:1.1: sliced CC EndPoint Addr
+0x86, Alternate settings: 2
+kernel: [5789622.894931] cx231xx 2-2:1.1: TS EndPoint Addr 0x81,
+Alternate settings: 6
+kernel: cx231xx 2-2:1.1: video EndPoint Addr 0x84, Alternate settings: 5
+kernel: cx231xx 2-2:1.1: VBI EndPoint Addr 0x85, Alternate settings: 2
+kernel: cx231xx 2-2:1.1: sliced CC EndPoint Addr 0x86, Alternate settings: 2
 
-thanks,
--- Shuah
+Appreciate some advice.
 
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Regards,
+Scott
