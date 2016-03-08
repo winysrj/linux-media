@@ -1,83 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37006 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751424AbcCHNaK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2016 08:30:10 -0500
-Date: Tue, 8 Mar 2016 10:30:03 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Dan Allen <dan@opendevise.io>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160308103003.5747c76e@recife.lan>
-In-Reply-To: <CAKeHnO7_7k8Qc5Jmu_x2OzAVT4YXxW8PSe_m6QUP-8V7XxbTVw@mail.gmail.com>
-References: <20160213145317.247c63c7@lwn.net>
-	<87y49zr74t.fsf@intel.com>
-	<20160303071305.247e30b1@lwn.net>
-	<20160303155037.705f33dd@recife.lan>
-	<86egbrm9hw.fsf@hiro.keithp.com>
-	<1457076530.13171.13.camel@winder.org.uk>
-	<CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
-	<87a8m9qoy8.fsf@intel.com>
-	<CAKeHnO7_7k8Qc5Jmu_x2OzAVT4YXxW8PSe_m6QUP-8V7XxbTVw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:54262 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753367AbcCHEAP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Mar 2016 23:00:15 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 9E1B9180D9D
+	for <linux-media@vger.kernel.org>; Tue,  8 Mar 2016 05:00:08 +0100 (CET)
+Date: Tue, 08 Mar 2016 05:00:08 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160308040008.9E1B9180D9D@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 08 Mar 2016 05:09:40 -0700
-Dan Allen <dan@opendevise.io> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Jani wrote:
-> 
-> > there was no support for chunked, or split
-> > to chapters, HTML, and the single page result was simply way too big.
-> >  
-> 
-> That's not entirely true. First, you can pre-split at the source level
-> using includes and generate output for each of the masters. That's what I
-> tend to do and it works really well since these are logical split points.
+Results of the daily build of media_tree:
 
-The problem on pre-splitting the documents and process them in separate
-is that this will break cross-references. At the media uAPI Docbook,
-we use a lot of cross references.
+date:		Tue Mar  8 04:00:26 CET 2016
+git branch:	test
+git hash:	de08b5a8be0df1eb7c796b0fe6b30cf1d03d14a6
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
 
-Btw, we use a lot of includes. Currently, it has 187 separate files.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-We even parse the header files looking for typedefs, structs, enums,
-#defines and functions, in order to produce a document that will
-cross-reference the documentation.
+Detailed results are available here:
 
-> Second, there is a custom converter in the works to split post-generate
-> (which is really what we're talking about when we compare it to the DocBook
-> toolchain).
-> 
-> https://github.com/asciidoctor/asciidoctor-extensions-lab/blob/master/lib/multipage-html5-converter.rb
-> 
-> It's just a prototype, but proves it is possible by design.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-I didn't test it, but I saw some comments at the web that the part
-that would handle cross-references between files is not ready.
+Full logs are available here:
 
-> Personally, I don't like most chunked HTML approaches because they split
-> arbitrarily. We are trying to find the right balance so that the output is
-> actually sensible. There's still work to do, but there are options in the
-> meantime.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-Well, if it is capable of creating one chunk per include file, and do
-cross-references between chunks, this would work for media UAPI book.
+The Media Infrastructure API from this daily build is here:
 
-Yet, it would be good to have the multi-chunk extension packaged
-on major distros, as I don't like the idea of installing it without
-using my distro's package manager.
-
--- 
-Thanks,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
