@@ -1,500 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45639 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751091AbcCYNYp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 09:24:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv14 13/18] cec: adv7842: add cec support
-Date: Fri, 25 Mar 2016 14:10:11 +0100
-Message-Id: <1458911416-47981-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
-References: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
+Received: from down.free-electrons.com ([37.187.137.238]:48983 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932533AbcCHQ5U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 11:57:20 -0500
+Date: Tue, 8 Mar 2016 17:57:15 +0100
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	devicetree@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Dave Gordon <david.s.gordon@intel.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	linux-mtd@lists.infradead.org, Mark Brown <broonie@kernel.org>,
+	linux-spi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>
+Subject: Re: [PATCH 4/7] scatterlist: add sg_alloc_table_from_buf() helper
+Message-ID: <20160308175715.44245676@bbrezillon>
+In-Reply-To: <1932521.ciegjbjXWo@avalon>
+References: <1457435715-24740-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1457435715-24740-5-git-send-email-boris.brezillon@free-electrons.com>
+	<1932521.ciegjbjXWo@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-Add CEC support to the adv7842 driver.
+On Tue, 08 Mar 2016 18:51:49 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/Kconfig   |   2 +-
- drivers/media/i2c/adv7842.c | 323 +++++++++++++++++++++++++++++++++++---------
- 2 files changed, 261 insertions(+), 64 deletions(-)
+> Hi Boris,
+> 
+> Thank you for the patch.
+> 
+> On Tuesday 08 March 2016 12:15:12 Boris Brezillon wrote:
+> > sg_alloc_table_from_buf() provides an easy solution to create an sg_table
+> > from a virtual address pointer. This function takes care of dealing with
+> > vmallocated buffers, buffer alignment, or DMA engine limitations (maximum
+> > DMA transfer size).
+> > 
+> > Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> > ---
+> >  include/linux/scatterlist.h |  24 ++++++++
+> >  lib/scatterlist.c           | 142 +++++++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 166 insertions(+)
+> > 
+> > diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+> > index 556ec1e..4a75362 100644
+> > --- a/include/linux/scatterlist.h
+> > +++ b/include/linux/scatterlist.h
+> > @@ -41,6 +41,27 @@ struct sg_table {
+> >  	unsigned int orig_nents;	/* original size of list */
+> >  };
+> > 
+> > +/**
+> > + * struct sg_constraints - SG constraints structure
+> > + *
+> > + * @max_chunk_len: maximum chunk buffer length. Each SG entry has to be
+> > smaller
+> > + *		   than this value. Zero means no constraint.
+> > + * @required_alignment: minimum alignment. Is used for both size and
+> > pointer
+> > + *			alignment. If this constraint is not met, the function
+> > + *			should return -EINVAL.
+> > + * @preferred_alignment: preferred alignment. Mainly used to optimize
+> > + *			 throughput when the DMA engine performs better when
+> > + *			 doing aligned accesses.
+> > + *
+> > + * This structure is here to help sg_alloc_table_from_buf() create the
+> > optimal
+> > + * SG list based on DMA engine constraints.
+> > + */
+> > +struct sg_constraints {
+> > +	size_t max_chunk_len;
+> > +	size_t required_alignment;
+> > +	size_t preferred_alignment;
+> > +};
+> > +
+> >  /*
+> >   * Notes on SG table design.
+> >   *
+> > @@ -265,6 +286,9 @@ int sg_alloc_table_from_pages(struct sg_table *sgt,
+> >  	struct page **pages, unsigned int n_pages,
+> >  	unsigned long offset, unsigned long size,
+> >  	gfp_t gfp_mask);
+> > +int sg_alloc_table_from_buf(struct sg_table *sgt, const void *buf, size_t
+> > len,
+> > +			    const struct sg_constraints *constraints,
+> > +			    gfp_t gfp_mask);
+> > 
+> >  size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void
+> > *buf, size_t buflen, off_t skip, bool to_buffer);
+> > diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+> > index bafa993..706b583 100644
+> > --- a/lib/scatterlist.c
+> > +++ b/lib/scatterlist.c
+> > @@ -433,6 +433,148 @@ int sg_alloc_table_from_pages(struct sg_table *sgt,
+> >  }
+> >  EXPORT_SYMBOL(sg_alloc_table_from_pages);
+> > 
+> > +static size_t sg_buf_chunk_len(const void *buf, size_t len,
+> > +			       const struct sg_constraints *cons)
+> > +{
+> > +	size_t chunk_len = len;
+> > +
+> > +	if (cons->max_chunk_len)
+> > +		chunk_len = min_t(size_t, chunk_len, cons->max_chunk_len);
+> > +
+> > +	if (is_vmalloc_addr(buf))
+> > +		chunk_len = min_t(size_t, chunk_len,
+> > +				  PAGE_SIZE - offset_in_page(buf));
+> 
+> This will lead to page-sized scatter-gather entries even for pages of the 
+> vmalloc memory that happen to be physically contiguous. That works, but I 
+> wonder whether we'd want to be more efficient.
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 3d01ffc..11ca81c 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -220,7 +220,7 @@ config VIDEO_ADV7604
- 
- config VIDEO_ADV7842
- 	tristate "Analog Devices ADV7842 decoder"
--	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-+	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && MEDIA_CEC
- 	select HDMI
- 	---help---
- 	  Support for the Analog Devices ADV7842 video decoder.
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 7ccb85d..32cfeca 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -39,6 +39,7 @@
- #include <linux/workqueue.h>
- #include <linux/v4l2-dv-timings.h>
- #include <linux/hdmi.h>
-+#include <media/cec.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-ctrls.h>
-@@ -79,6 +80,8 @@ MODULE_LICENSE("GPL");
- 
- #define ADV7842_OP_SWAP_CB_CR				(1 << 0)
- 
-+#define ADV7842_MAX_ADDRS (3)
-+
- /*
- **********************************************************************
- *
-@@ -142,6 +145,10 @@ struct adv7842_state {
- 	struct v4l2_ctrl *free_run_color_ctrl_manual;
- 	struct v4l2_ctrl *free_run_color_ctrl;
- 	struct v4l2_ctrl *rgb_quantization_range_ctrl;
-+
-+	u8   cec_addr[ADV7842_MAX_ADDRS];
-+	u8   cec_valid_addrs;
-+	bool cec_enabled_adap;
- };
- 
- /* Unsupported timings. This device cannot support 720p30. */
-@@ -418,9 +425,9 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state->i2c_cec, reg, val);
- }
- 
--static inline int cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int cec_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return cec_write(sd, reg, (cec_read(sd, reg) & mask) | val);
-+	return cec_write(sd, reg, (cec_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
-@@ -696,6 +703,18 @@ adv7842_get_dv_timings_cap(struct v4l2_subdev *sd)
- 
- /* ----------------------------------------------------------------------- */
- 
-+static u16 adv7842_read_cable_det(struct v4l2_subdev *sd)
-+{
-+	u8 reg = io_read(sd, 0x6f);
-+	u16 val = 0;
-+
-+	if (reg & 0x02)
-+		val |= 1; /* port A */
-+	if (reg & 0x01)
-+		val |= 2; /* port B */
-+	return val;
-+}
-+
- static void adv7842_delayed_work_enable_hotplug(struct work_struct *work)
- {
- 	struct delayed_work *dwork = to_delayed_work(work);
-@@ -762,50 +781,17 @@ static int edid_write_vga_segment(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
--static int edid_spa_location(const u8 *edid)
--{
--	u8 d;
--
--	/*
--	 * TODO, improve and update for other CEA extensions
--	 * currently only for 1 segment (256 bytes),
--	 * i.e. 1 extension block and CEA revision 3.
--	 */
--	if ((edid[0x7e] != 1) ||
--	    (edid[0x80] != 0x02) ||
--	    (edid[0x81] != 0x03)) {
--		return -EINVAL;
--	}
--	/*
--	 * search Vendor Specific Data Block (tag 3)
--	 */
--	d = edid[0x82] & 0x7f;
--	if (d > 4) {
--		int i = 0x84;
--		int end = 0x80 + d;
--		do {
--			u8 tag = edid[i]>>5;
--			u8 len = edid[i] & 0x1f;
--
--			if ((tag == 3) && (len >= 5))
--				return i + 4;
--			i += len + 1;
--		} while (i < end);
--	}
--	return -EINVAL;
--}
--
- static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct adv7842_state *state = to_state(sd);
--	const u8 *val = state->hdmi_edid.edid;
--	int spa_loc = edid_spa_location(val);
-+	const u8 *edid = state->hdmi_edid.edid;
-+	int spa_loc;
- 	int err = 0;
- 	int i;
- 
--	v4l2_dbg(2, debug, sd, "%s: write EDID on port %c (spa at 0x%x)\n",
--			__func__, (port == ADV7842_EDID_PORT_A) ? 'A' : 'B', spa_loc);
-+	v4l2_dbg(2, debug, sd, "%s: write EDID on port %c\n",
-+			__func__, (port == ADV7842_EDID_PORT_A) ? 'A' : 'B');
- 
- 	/* HPA disable on port A and B */
- 	io_write_and_or(sd, 0x20, 0xcf, 0x00);
-@@ -816,24 +802,30 @@ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
- 	if (!state->hdmi_edid.present)
- 		return 0;
- 
-+	cec_get_edid_phys_addr(edid, 256, &spa_loc);
-+
-+	/*
-+	 * Return an error if no location of the source physical address
-+	 * was found.
-+	 */
-+	if (spa_loc == 0)
-+		return -EINVAL;
-+
- 	/* edid segment pointer '0' for HDMI ports */
- 	rep_write_and_or(sd, 0x77, 0xef, 0x00);
- 
- 	for (i = 0; !err && i < 256; i += I2C_SMBUS_BLOCK_MAX)
- 		err = adv_smbus_write_i2c_block_data(state->i2c_edid, i,
--						     I2C_SMBUS_BLOCK_MAX, val + i);
-+						     I2C_SMBUS_BLOCK_MAX, edid + i);
- 	if (err)
- 		return err;
- 
--	if (spa_loc < 0)
--		spa_loc = 0xc0; /* Default value [REF_02, p. 199] */
--
- 	if (port == ADV7842_EDID_PORT_A) {
--		rep_write(sd, 0x72, val[spa_loc]);
--		rep_write(sd, 0x73, val[spa_loc + 1]);
-+		rep_write(sd, 0x72, edid[spa_loc]);
-+		rep_write(sd, 0x73, edid[spa_loc + 1]);
- 	} else {
--		rep_write(sd, 0x74, val[spa_loc]);
--		rep_write(sd, 0x75, val[spa_loc + 1]);
-+		rep_write(sd, 0x74, edid[spa_loc]);
-+		rep_write(sd, 0x75, edid[spa_loc + 1]);
- 	}
- 	rep_write(sd, 0x76, spa_loc & 0xff);
- 	rep_write_and_or(sd, 0x77, 0xbf, (spa_loc >> 2) & 0x40);
-@@ -983,20 +975,11 @@ static int adv7842_s_register(struct v4l2_subdev *sd,
- static int adv7842_s_detect_tx_5v_ctrl(struct v4l2_subdev *sd)
- {
- 	struct adv7842_state *state = to_state(sd);
--	int prev = v4l2_ctrl_g_ctrl(state->detect_tx_5v_ctrl);
--	u8 reg_io_6f = io_read(sd, 0x6f);
--	int val = 0;
--
--	if (reg_io_6f & 0x02)
--		val |= 1; /* port A */
--	if (reg_io_6f & 0x01)
--		val |= 2; /* port B */
-+	u16 cable_det = adv7842_read_cable_det(sd);
- 
--	v4l2_dbg(1, debug, sd, "%s: 0x%x -> 0x%x\n", __func__, prev, val);
-+	v4l2_dbg(1, debug, sd, "%s: 0x%x\n", __func__, cable_det);
- 
--	if (val != prev)
--		return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, val);
--	return 0;
-+	return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, cable_det);
- }
- 
- static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
-@@ -2170,6 +2153,196 @@ static void adv7842_irq_enable(struct v4l2_subdev *sd, bool enable)
- 	}
- }
- 
-+static void adv7842_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
-+{
-+	struct v4l2_subdev_cec_tx_done tx_done = {};
-+
-+	if ((cec_read(sd, 0x11) & 0x01) == 0) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
-+		return;
-+	}
-+
-+	if (tx_raw_status & 0x02) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n",
-+			 __func__);
-+		tx_done.status = CEC_TX_STATUS_ARB_LOST;
-+		tx_done.arb_lost_cnt = 1;
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, &tx_done);
-+		return;
-+	}
-+	if (tx_raw_status & 0x04) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
-+		/*
-+		 * We set this status bit since this hardware performs
-+		 * retransmissions.
-+		 */
-+		tx_done.status = CEC_TX_STATUS_MAX_RETRIES;
-+		tx_done.nack_cnt = cec_read(sd, 0x14) & 0xf;
-+		if (tx_done.nack_cnt)
-+			tx_done.status |= CEC_TX_STATUS_NACK;
-+		tx_done.low_drive_cnt = cec_read(sd, 0x14) >> 4;
-+		if (tx_done.low_drive_cnt)
-+			tx_done.status |= CEC_TX_STATUS_LOW_DRIVE;
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, &tx_done);
-+		return;
-+	}
-+	if (tx_raw_status & 0x01) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
-+		tx_done.status = CEC_TX_STATUS_OK;
-+		v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_TX_DONE, &tx_done);
-+		return;
-+	}
-+}
-+
-+static void adv7842_cec_isr(struct v4l2_subdev *sd, bool *handled)
-+{
-+	u8 cec_irq;
-+
-+	/* cec controller */
-+	cec_irq = io_read(sd, 0x93) & 0x0f;
-+	if (!cec_irq)
-+		return;
-+
-+	v4l2_dbg(1, debug, sd, "%s: cec: irq 0x%x\n", __func__, cec_irq);
-+	adv7842_cec_tx_raw_status(sd, cec_irq);
-+	if (cec_irq & 0x08) {
-+		struct cec_msg msg;
-+
-+		msg.len = cec_read(sd, 0x25) & 0x1f;
-+		if (msg.len > 16)
-+			msg.len = 16;
-+
-+		if (msg.len) {
-+			u8 i;
-+
-+			for (i = 0; i < msg.len; i++)
-+				msg.msg[i] = cec_read(sd, i + 0x15);
-+			cec_write(sd, 0x26, 0x01); /* re-enable rx */
-+			v4l2_subdev_notify(sd, V4L2_SUBDEV_CEC_RX_MSG, &msg);
-+		}
-+	}
-+
-+	io_write(sd, 0x94, cec_irq);
-+
-+	if (handled)
-+		*handled = true;
-+}
-+
-+static unsigned adv7842_cec_adap_available_log_addrs(struct v4l2_subdev *sd)
-+{
-+	return ADV7842_MAX_ADDRS;
-+}
-+
-+static int adv7842_cec_adap_enable(struct v4l2_subdev *sd, bool enable)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+
-+	if (!state->cec_enabled_adap && enable) {
-+		cec_write_clr_set(sd, 0x2a, 0x01, 0x01);	/* power up cec */
-+		cec_write(sd, 0x2c, 0x01);	/* cec soft reset */
-+		cec_write_clr_set(sd, 0x11, 0x01, 0);  /* initially disable tx */
-+		/* enabled irqs: */
-+		/* tx: ready */
-+		/* tx: arbitration lost */
-+		/* tx: retry timeout */
-+		/* rx: ready */
-+		io_write_clr_set(sd, 0x96, 0x0f, 0x0f);
-+		cec_write(sd, 0x26, 0x01);            /* enable rx */
-+	} else if (state->cec_enabled_adap && !enable) {
-+		/* disable cec interrupts */
-+		io_write_clr_set(sd, 0x96, 0x0f, 0x00);
-+		/* disable address mask 1-3 */
-+		cec_write_clr_set(sd, 0x27, 0x70, 0x00);
-+		/* power down cec section */
-+		cec_write_clr_set(sd, 0x2a, 0x01, 0x00);
-+		state->cec_valid_addrs = 0;
-+	}
-+	state->cec_enabled_adap = enable;
-+	return 0;
-+}
-+
-+static int adv7842_cec_adap_log_addr(struct v4l2_subdev *sd, u8 addr)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+	unsigned i, free_idx = ADV7842_MAX_ADDRS;
-+
-+	if (!state->cec_enabled_adap)
-+		return -EIO;
-+
-+	if (addr == CEC_LOG_ADDR_INVALID) {
-+		cec_write_clr_set(sd, 0x27, 0x70, 0);
-+		state->cec_valid_addrs = 0;
-+		return 0;
-+	}
-+
-+	for (i = 0; i < ADV7842_MAX_ADDRS; i++) {
-+		bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+		if (free_idx == ADV7842_MAX_ADDRS && !is_valid)
-+			free_idx = i;
-+		if (is_valid && state->cec_addr[i] == addr)
-+			return 0;
-+	}
-+	if (i == ADV7842_MAX_ADDRS) {
-+		i = free_idx;
-+		if (i == ADV7842_MAX_ADDRS)
-+			return -ENXIO;
-+	}
-+	state->cec_addr[i] = addr;
-+	state->cec_valid_addrs |= 1 << i;
-+
-+	switch (i) {
-+	case 0:
-+		/* enable address mask 0 */
-+		cec_write_clr_set(sd, 0x27, 0x10, 0x10);
-+		/* set address for mask 0 */
-+		cec_write_clr_set(sd, 0x28, 0x0f, addr);
-+		break;
-+	case 1:
-+		/* enable address mask 1 */
-+		cec_write_clr_set(sd, 0x27, 0x20, 0x20);
-+		/* set address for mask 1 */
-+		cec_write_clr_set(sd, 0x28, 0xf0, addr << 4);
-+		break;
-+	case 2:
-+		/* enable address mask 2 */
-+		cec_write_clr_set(sd, 0x27, 0x40, 0x40);
-+		/* set address for mask 1 */
-+		cec_write_clr_set(sd, 0x29, 0x0f, addr);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static int adv7842_cec_adap_transmit(struct v4l2_subdev *sd, u8 attempts,
-+				     u32 signal_free_time, struct cec_msg *msg)
-+{
-+	u8 len = msg->len;
-+	unsigned i;
-+
-+	/*
-+	 * The number of retries is the number of attempts - 1, but retry
-+	 * at least once. It's not clear if a value of 0 is allowed, so
-+	 * let's do at least one retry.
-+	 */
-+	cec_write_clr_set(sd, 0x12, 0x70, max(1, attempts - 1) << 4);
-+
-+	if (len > 16) {
-+		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
-+		return -EINVAL;
-+	}
-+
-+	/* write data */
-+	for (i = 0; i < len; i++)
-+		cec_write(sd, i, msg->msg[i]);
-+
-+	/* set length (data + header) */
-+	cec_write(sd, 0x10, len);
-+	/* start transmit, enable tx */
-+	cec_write(sd, 0x11, 0x01);
-+	return 0;
-+}
-+
- static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- {
- 	struct adv7842_state *state = to_state(sd);
-@@ -2241,6 +2414,9 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 			*handled = true;
- 	}
- 
-+	/* cec */
-+	adv7842_cec_isr(sd, handled);
-+
- 	/* tx 5v detect */
- 	if (irq_status[2] & 0x3) {
- 		v4l2_dbg(1, debug, sd, "%s: irq tx_5v\n", __func__);
-@@ -2321,10 +2497,12 @@ static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *e)
- 	case ADV7842_EDID_PORT_A:
- 	case ADV7842_EDID_PORT_B:
- 		memset(&state->hdmi_edid.edid, 0, 256);
--		if (e->blocks)
-+		if (e->blocks) {
- 			state->hdmi_edid.present |= 0x04 << e->pad;
--		else
-+		} else {
- 			state->hdmi_edid.present &= ~(0x04 << e->pad);
-+			adv7842_s_detect_tx_5v_ctrl(sd);
-+		}
- 		memcpy(&state->hdmi_edid.edid, e->edid, 128 * e->blocks);
- 		err = edid_write_hdmi_segment(sd, e->pad);
- 		break;
-@@ -2509,8 +2687,19 @@ static int adv7842_cp_log_status(struct v4l2_subdev *sd)
- 	v4l2_info(sd, "HPD A %s, B %s\n",
- 		  reg_io_0x21 & 0x02 ? "enabled" : "disabled",
- 		  reg_io_0x21 & 0x01 ? "enabled" : "disabled");
--	v4l2_info(sd, "CEC %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
-+	v4l2_info(sd, "CEC: %s\n", state->cec_enabled_adap ?
- 			"enabled" : "disabled");
-+	if (state->cec_enabled_adap) {
-+		int i;
-+
-+		for (i = 0; i < ADV7842_MAX_ADDRS; i++) {
-+			bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+			if (is_valid)
-+				v4l2_info(sd, "CEC Logical Address: 0x%x\n",
-+					  state->cec_addr[i]);
-+		}
-+	}
- 
- 	v4l2_info(sd, "-----Signal status-----\n");
- 	if (state->hdmi_port_a) {
-@@ -3061,6 +3250,13 @@ static const struct v4l2_subdev_video_ops adv7842_video_ops = {
- 	.query_dv_timings = adv7842_query_dv_timings,
- };
- 
-+static const struct v4l2_subdev_cec_ops adv7842_cec_ops = {
-+	.adap_available_log_addrs = adv7842_cec_adap_available_log_addrs,
-+	.adap_enable = adv7842_cec_adap_enable,
-+	.adap_log_addr = adv7842_cec_adap_log_addr,
-+	.adap_transmit = adv7842_cec_adap_transmit,
-+};
-+
- static const struct v4l2_subdev_pad_ops adv7842_pad_ops = {
- 	.enum_mbus_code = adv7842_enum_mbus_code,
- 	.get_fmt = adv7842_get_format,
-@@ -3075,6 +3271,7 @@ static const struct v4l2_subdev_ops adv7842_ops = {
- 	.core = &adv7842_core_ops,
- 	.video = &adv7842_video_ops,
- 	.pad = &adv7842_pad_ops,
-+	.cec = &adv7842_cec_ops,
- };
- 
- /* -------------------------- custom ctrls ---------------------------------- */
-@@ -3361,7 +3558,7 @@ static int adv7842_remove(struct i2c_client *client)
- 	struct adv7842_state *state = to_state(sd);
- 
- 	adv7842_irq_enable(sd, false);
--
-+	adv7842_cec_adap_enable(sd, false);
- 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
- 	destroy_workqueue(state->work_queues);
- 	v4l2_device_unregister_subdev(sd);
+Hm, I thought dma_map_sg() was taking care of merging pĥysically
+contiguous memory regions, but maybe I'm wrong. Anyway, that's
+definitely something I can add at this level.
+
+> 
+> > +	if (!IS_ALIGNED((unsigned long)buf, cons->preferred_alignment)) {
+> > +		const void *aligned_buf = PTR_ALIGN(buf,
+> > +						    cons->preferred_alignment);
+> > +		size_t unaligned_len = (unsigned long)(aligned_buf - buf);
+> > +
+> > +		chunk_len = min_t(size_t, chunk_len, unaligned_len);
+> > +	} else if (chunk_len > cons->preferred_alignment) {
+> > +		chunk_len &= ~(cons->preferred_alignment - 1);
+> > +	}
+> > +
+> > +	return chunk_len;
+> > +}
+> > +
+> > +#define sg_for_each_chunk_in_buf(buf, len, chunk_len, constraints)	\
+> > +	for (chunk_len = sg_buf_chunk_len(buf, len, constraints);	\
+> > +	     len;							\
+> > +	     len -= chunk_len, buf += chunk_len,			\
+> > +	     chunk_len = sg_buf_chunk_len(buf, len, constraints))
+> > +
+> > +static int sg_check_constraints(struct sg_constraints *cons,
+> > +				const void *buf, size_t len)
+> > +{
+> > +	if (!cons->required_alignment)
+> > +		cons->required_alignment = 1;
+> > +
+> > +	if (!cons->preferred_alignment)
+> > +		cons->preferred_alignment = cons->required_alignment;
+> > +
+> > +	/* Test if buf and len are properly aligned. */
+> > +	if (!IS_ALIGNED((unsigned long)buf, cons->required_alignment) ||
+> > +	    !IS_ALIGNED(len, cons->required_alignment))
+> > +		return -EINVAL;
+> > +
+> > +	/*
+> > +	 * if the buffer has been vmallocated and required_alignment is
+> > +	 * more than PAGE_SIZE we cannot guarantee it.
+> > +	 */
+> > +	if (is_vmalloc_addr(buf) && cons->required_alignment > PAGE_SIZE)
+> > +		return -EINVAL;
+> > +
+> > +	/*
+> > +	 * max_chunk_len has to be aligned to required_alignment to
+> > +	 * guarantee that all buffer chunks are aligned correctly.
+> > +	 */
+> > +	if (!IS_ALIGNED(cons->max_chunk_len, cons->required_alignment))
+> > +		return -EINVAL;
+> > +
+> > +	/*
+> > +	 * preferred_alignment has to be aligned to required_alignment
+> > +	 * to avoid misalignment of buffer chunks.
+> > +	 */
+> > +	if (!IS_ALIGNED(cons->preferred_alignment, cons->required_alignment))
+> > +		return -EINVAL;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +/**
+> > + * sg_alloc_table_from_buf - create an SG table from a buffer
+> > + *
+> > + * @sgt: SG table
+> > + * @buf: buffer you want to create this SG table from
+> > + * @len: length of buf
+> > + * @constraints: optional constraints to take into account when creating
+> > + *		 the SG table. Can be NULL if no specific constraints are
+> > + *		 required.
+> > + * @gfp_mask: type of allocation to use when creating the table
+> > + *
+> > + * This function creates an SG table from a buffer, its length and some
+> > + * SG constraints.
+> > + *
+> > + * Note: This function supports vmallocated buffers.
+> 
+> What other types of memory does it support ? kmalloc() quite obviously, are 
+> there others ? I think you should explicitly list the memory types that the 
+> function intends to support.
+
+Sure, I can explicitly list all memory types. Do you see any other kind
+of memory other than the vmalloced and physically-contiguous ones?
+
+Thanks for your review.
+
+Boris
 -- 
-2.7.0
-
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
