@@ -1,133 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37583 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750987AbcCKVDm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 16:03:42 -0500
-Subject: Re: [v4l-utils PATCH] libv4lconvert: Add support for
- V4L2_PIX_FMT_NV16
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	linux-media@vger.kernel.org
-References: <1457728811-3337-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56E332A8.2080004@xs4all.nl>
-Date: Fri, 11 Mar 2016 22:03:36 +0100
+Received: from smtp09.smtpout.orange.fr ([80.12.242.131]:33680 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932479AbcCHLF7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 06:05:59 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: videobuf2-dma-sg and multiple planes semantics
+References: <87y49uuu21.fsf@belgarion.home> <87twkiupnf.fsf@belgarion.home>
+	<56DE9DBD.8010203@xs4all.nl>
+Date: Tue, 08 Mar 2016 12:05:53 +0100
+In-Reply-To: <56DE9DBD.8010203@xs4all.nl> (Hans Verkuil's message of "Tue, 8
+	Mar 2016 10:39:09 +0100")
+Message-ID: <877fhdgrfy.fsf@belgarion.home>
 MIME-Version: 1.0
-In-Reply-To: <1457728811-3337-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/2016 09:40 PM, Niklas Söderlund wrote:
-> NV16 are two-plane versions of the YUV 4:2:2 format (V4L2_PIX_FMT_YUVU).
-> Support it by merging the two planes into a one YUVU plane and falling
-> through to the V4L2_PIX_FMT_YUVU code path.
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-s/YUVU/YUYV/g
+> Hi Robert,
+>
+> In the case of PIX_FMT_YUV422P there is only *one* buffer and the planes are laid out in
+> that single buffer. So from the point of view of v4l2/vb2 this is a single planar
+> format and you have a single sglist.h
+That's the piece of information I was missing, thanks.
 
-Can you add support for NV61 as well? Should be trivial.
+> You'll have to use sg_split() to split up that single large sglist into three, one for
+> each channel.
+Yeah, being the author of it, I should be able to use it again :)
 
-Regards,
+Cheers.
 
-	Hans
-
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
-> 
-> I'm sorry this is a bit of a hack. The support for NV16 are scarce and
-> this allowed me use it in qv4l2 so I thought it might help someone else.
-> I'm not to sure about the entry in supported_src_pixfmts[] is it correct
-> to set 'needs conversion' for my use case?
-> 
->  lib/libv4lconvert/libv4lconvert-priv.h |  3 +++
->  lib/libv4lconvert/libv4lconvert.c      | 15 +++++++++++++++
->  lib/libv4lconvert/rgbyuv.c             | 17 +++++++++++++++++
->  3 files changed, 35 insertions(+)
-> 
-> diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
-> index b77e3d3..1740efc 100644
-> --- a/lib/libv4lconvert/libv4lconvert-priv.h
-> +++ b/lib/libv4lconvert/libv4lconvert-priv.h
-> @@ -129,6 +129,9 @@ void v4lconvert_yuyv_to_bgr24(const unsigned char *src, unsigned char *dst,
->  void v4lconvert_yuyv_to_yuv420(const unsigned char *src, unsigned char *dst,
->  		int width, int height, int stride, int yvu);
-> 
-> +void v4lconvert_nv16_to_yuyv(const unsigned char *src, unsigned char *dest,
-> +		int width, int height);
-> +
->  void v4lconvert_yvyu_to_rgb24(const unsigned char *src, unsigned char *dst,
->  		int width, int height, int stride);
-> 
-> diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
-> index f62aea1..5426cb2 100644
-> --- a/lib/libv4lconvert/libv4lconvert.c
-> +++ b/lib/libv4lconvert/libv4lconvert.c
-> @@ -98,6 +98,7 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
->  	{ V4L2_PIX_FMT_YUYV,		16,	 5,	 4,	0 },
->  	{ V4L2_PIX_FMT_YVYU,		16,	 5,	 4,	0 },
->  	{ V4L2_PIX_FMT_UYVY,		16,	 5,	 4,	0 },
-> +	{ V4L2_PIX_FMT_NV16,		16,	 5,	 4,	1 },
->  	/* yuv 4:2:0 formats */
->  	{ V4L2_PIX_FMT_SPCA501,		12,      6,	 3,	1 },
->  	{ V4L2_PIX_FMT_SPCA505,		12,	 6,	 3,	1 },
-> @@ -1229,6 +1230,20 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
->  		}
->  		break;
-> 
-> +	case V4L2_PIX_FMT_NV16: {
-> +		unsigned char *tmpbuf;
-> +
-> +		tmpbuf = v4lconvert_alloc_buffer(width * height * 2,
-> +				&data->convert_pixfmt_buf, &data->convert_pixfmt_buf_size);
-> +		if (!tmpbuf)
-> +			return v4lconvert_oom_error(data);
-> +
-> +		v4lconvert_nv16_to_yuyv(src, tmpbuf, width, height);
-> +		src_pix_fmt = V4L2_PIX_FMT_YUYV;
-> +		src = tmpbuf;
-> +		bytesperline = bytesperline * 2;
-> +		/* fall through */
-> +	}
->  	case V4L2_PIX_FMT_YUYV:
->  		if (src_size < (width * height * 2)) {
->  			V4LCONVERT_ERR("short yuyv data frame\n");
-> diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
-> index 695255a..a9d6f5b 100644
-> --- a/lib/libv4lconvert/rgbyuv.c
-> +++ b/lib/libv4lconvert/rgbyuv.c
-> @@ -295,6 +295,23 @@ void v4lconvert_yuyv_to_yuv420(const unsigned char *src, unsigned char *dest,
->  	}
->  }
-> 
-> +void v4lconvert_nv16_to_yuyv(const unsigned char *src, unsigned char *dest,
-> +		int width, int height)
-> +{
-> +	const unsigned char *y, *cbcr;
-> +	int count;
-> +
-> +	y = src;
-> +	cbcr = src + width*height;
-> +	count = 0;
-> +
-> +	while (count++ < width*height) {
-> +		*dest++ = *y++;
-> +		*dest++ = *cbcr++;
-> +	}
-> +
-> +}
-> +
->  void v4lconvert_yvyu_to_bgr24(const unsigned char *src, unsigned char *dest,
->  		int width, int height, int stride)
->  {
-> --
-> 2.7.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+--
+Robert
