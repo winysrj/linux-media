@@ -1,72 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:34021 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987AbcCKUz0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 15:55:26 -0500
-Received: by mail-lb0-f180.google.com with SMTP id xr8so166203357lbb.1
-        for <linux-media@vger.kernel.org>; Fri, 11 Mar 2016 12:55:26 -0800 (PST)
-Date: Fri, 11 Mar 2016 21:55:23 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund@ragnatech.se>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	ulrich.hecht@gmail.com, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCHv2] [media] rcar-vin: add Renesas R-Car VIN driver
-Message-ID: <20160311205523.GG1111@bigcity.dyn.berto.se>
-References: <1456282709-13861-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
- <56D414D9.4090303@xs4all.nl>
- <56E28148.1030508@xs4all.nl>
- <20160311110318.GD1111@bigcity.dyn.berto.se>
- <56E2A90E.6080806@xs4all.nl>
+Received: from pegasos-out.vodafone.de ([80.84.1.38]:44022 "EHLO
+	pegasos-out.vodafone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599AbcCIJ0r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2016 04:26:47 -0500
+Subject: Re: [PATCH] dmabuf: allow exporter to define customs ioctls
+To: Daniel Vetter <daniel@ffwll.ch>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+References: <1457513642-10859-1-git-send-email-benjamin.gaignard@linaro.org>
+ <CAKMK7uEzCdaBcOFqmTsFCxKKaXbfxvmkSqEtaotj2F5Giba1pQ@mail.gmail.com>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
+Message-ID: <56DFEA5F.4000405@vodafone.de>
+Date: Wed, 9 Mar 2016 10:18:23 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <56E2A90E.6080806@xs4all.nl>
+In-Reply-To: <CAKMK7uEzCdaBcOFqmTsFCxKKaXbfxvmkSqEtaotj2F5Giba1pQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-03-11 12:16:30 +0100, Hans Verkuil wrote:
-> On 03/11/2016 12:03 PM, Niklas Söderlund wrote:
-> > Hi Hans,
-> > 
-> > On 2016-03-11 09:26:48 +0100, Hans Verkuil wrote:
-> >> Hi Niklas,
-> >>
-> >> On 02/29/2016 10:52 AM, Hans Verkuil wrote:
-> >>> Hi Niklas,
-> >>>
-> >>> Thanks for your patch! Much appreciated.
-> >>>
-> >>> I have more comments for the v2, but nothing really big :-)
-> >>>
-> >>
-> >> Just checking, you are working on a v3, right? I'd really like to get this in
-> >> for kernel 4.7.
-> > 
-> > Yes I had to switch focus for a bit but now I'm back working on this 
-> > again today.
-> > 
-> > I have some trouble getting NV16 to work. I can't get it to work using 
-> > soc_camera driver either, or more accurate I get the same output broken 
-> > rendering in qv4l2. What would you say is better drop NV16 support form 
-> > the driver or keep it as is since it is compatible with the soc_camera 
-> > drivers implementation? I would like to keep it in the driver for now 
-> > since it at least works as good as in soc_camera.
-> 
-> I would have the NV16 support as a separate patch so we can decide on this
-> later.
-> 
-> I don't really like having to support a broken format.
-> 
-> Do you know in what way the format is broken?
+Am 09.03.2016 um 10:03 schrieb Daniel Vetter:
+> On Wed, Mar 9, 2016 at 9:54 AM, Benjamin Gaignard
+> <benjamin.gaignard@linaro.org> wrote:
+>> In addition of the already existing operations allow exporter
+>> to use it own custom ioctls.
+>>
+>> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> First reaction: No way ever! More seriously, please start by
+> explaining why you need this.
 
-Turns out it was my fault all along for assuming qv4l2 could render NV16 
-out-of-the-box. If one decodes the format correctly it works fine both 
-with this driver and the one in soc_camera.
+I was about to complain as well. Device specific IOCTLs should probably 
+better defined as operation on the device which takes the DMA-Buf file 
+descriptor as a parameter.
 
--- 
+If you really need this (which I doubt) then please define a range of 
+IOCTL numbers for which it should apply.
+
 Regards,
-Niklas Söderlund
+Christian.
+
+> -Daniel
+>
+>> ---
+>>   drivers/dma-buf/dma-buf.c | 3 +++
+>>   include/linux/dma-buf.h   | 5 +++++
+>>   2 files changed, 8 insertions(+)
+>>
+>> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+>> index 9810d1d..6abd129 100644
+>> --- a/drivers/dma-buf/dma-buf.c
+>> +++ b/drivers/dma-buf/dma-buf.c
+>> @@ -291,6 +291,9 @@ static long dma_buf_ioctl(struct file *file,
+>>
+>>                  return 0;
+>>          default:
+>> +               if (dmabuf->ops->ioctl)
+>> +                       return dmabuf->ops->ioctl(dmabuf, cmd, arg);
+>> +
+>>                  return -ENOTTY;
+>>          }
+>>   }
+>> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+>> index 532108e..b6f9837 100644
+>> --- a/include/linux/dma-buf.h
+>> +++ b/include/linux/dma-buf.h
+>> @@ -70,6 +70,9 @@ struct dma_buf_attachment;
+>>    * @vmap: [optional] creates a virtual mapping for the buffer into kernel
+>>    *       address space. Same restrictions as for vmap and friends apply.
+>>    * @vunmap: [optional] unmaps a vmap from the buffer
+>> + * @ioctl: [optional] ioctls supported by the exporter.
+>> + *        It is up to the exporter to do the proper copy_{from/to}_user
+>> + *        calls. Should return -EINVAL in case of error.
+>>    */
+>>   struct dma_buf_ops {
+>>          int (*attach)(struct dma_buf *, struct device *,
+>> @@ -104,6 +107,8 @@ struct dma_buf_ops {
+>>
+>>          void *(*vmap)(struct dma_buf *);
+>>          void (*vunmap)(struct dma_buf *, void *vaddr);
+>> +
+>> +       int (*ioctl)(struct dma_buf *, unsigned int cmd, unsigned long arg);
+>>   };
+>>
+>>   /**
+>> --
+>> 1.9.1
+>>
+>> _______________________________________________
+>> dri-devel mailing list
+>> dri-devel@lists.freedesktop.org
+>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+>
+>
+
