@@ -1,42 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:41341 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754843AbcCOHFf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2016 03:05:35 -0400
-Date: Tue, 15 Mar 2016 10:05:20 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] [media] cx23885: uninitialized variable in
- cx23885_av_work_handler()
-Message-ID: <20160315070520.GB13560@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from smtp205.alice.it ([82.57.200.101]:1578 "EHLO smtp205.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933151AbcCIQDb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Mar 2016 11:03:31 -0500
+From: Antonio Ospite <ao2@ao2.it>
+To: Linux Media <linux-media@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Antonio Ospite <ao2@ao2.it>
+Subject: [PATCH 3/7] [media] gspca: rename wxh_to_mode() to wxh_to_nearest_mode()
+Date: Wed,  9 Mar 2016 17:03:17 +0100
+Message-Id: <1457539401-11515-4-git-send-email-ao2@ao2.it>
+In-Reply-To: <1457539401-11515-1-git-send-email-ao2@ao2.it>
+References: <1457539401-11515-1-git-send-email-ao2@ao2.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The "handled" variable could be uninitialized if the
-interrupt_service_routine() call back hasn't been implimented or if it
-has been implemented but doesn't initialize "handled" to zero at the
-start.  For example, adv76xx_isr() only sets "handled" to true.
+The name wxh_to_nearest_mode() reflects better what the function does.
 
-Fixes: 44b153ca639f ('[media] m5mols: Add ISO sensitivity controls')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Antonio Ospite <ao2@ao2.it>
+---
+ drivers/media/usb/gspca/gspca.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-av.c b/drivers/media/pci/cx23885/cx23885-av.c
-index 877dad8..e7d4406 100644
---- a/drivers/media/pci/cx23885/cx23885-av.c
-+++ b/drivers/media/pci/cx23885/cx23885-av.c
-@@ -24,7 +24,7 @@ void cx23885_av_work_handler(struct work_struct *work)
- {
- 	struct cx23885_dev *dev =
- 			   container_of(work, struct cx23885_dev, cx25840_work);
--	bool handled;
-+	bool handled = false;
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 9c8990f..1bb7901 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -991,7 +991,7 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
+ 	v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
+ }
  
- 	v4l2_subdev_call(dev->sd_cx25840, core, interrupt_service_routine,
- 			 PCI_MSK_AV_CORE, &handled);
+-static int wxh_to_mode(struct gspca_dev *gspca_dev,
++static int wxh_to_nearest_mode(struct gspca_dev *gspca_dev,
+ 			int width, int height)
+ {
+ 	int i;
+@@ -1125,8 +1125,8 @@ static int try_fmt_vid_cap(struct gspca_dev *gspca_dev,
+ 	PDEBUG_MODE(gspca_dev, D_CONF, "try fmt cap",
+ 		    fmt->fmt.pix.pixelformat, w, h);
+ 
+-	/* search the closest mode for width and height */
+-	mode = wxh_to_mode(gspca_dev, w, h);
++	/* search the nearest mode for width and height */
++	mode = wxh_to_nearest_mode(gspca_dev, w, h);
+ 
+ 	/* OK if right palette */
+ 	if (gspca_dev->cam.cam_mode[mode].pixelformat
+@@ -1233,7 +1233,7 @@ static int vidioc_enum_frameintervals(struct file *filp, void *priv,
+ 				      struct v4l2_frmivalenum *fival)
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(filp);
+-	int mode = wxh_to_mode(gspca_dev, fival->width, fival->height);
++	int mode = wxh_to_nearest_mode(gspca_dev, fival->width, fival->height);
+ 	__u32 i;
+ 
+ 	if (gspca_dev->cam.mode_framerates == NULL ||
+-- 
+2.7.0
+
