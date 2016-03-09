@@ -1,123 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:60535 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754559AbcC3PkB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2016 11:40:01 -0400
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: David Woodhouse <dwmw2@infradead.org>,
-	Brian Norris <computersforpeace@gmail.com>,
-	linux-mtd@lists.infradead.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dave Gordon <david.s.gordon@intel.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from relay1.mentorg.com ([192.94.38.131]:40235 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799AbcCICGm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 21:06:42 -0500
+Subject: Re: i.mx6 camera interface (CSI) and mainline kernel
+To: Tim Harvey <tharvey@gateworks.com>
+References: <20160223114943.GA10944@frolo.macqel>
+ <20160223141258.GA5097@frolo.macqel> <4956050.OLrYA1VK2G@avalon>
+ <56D79B49.50009@mentor.com> <56D7E59B.6050605@xs4all.nl>
+ <20160303083643.GA4303@frolo.macqel> <56D87824.8000707@mentor.com>
+ <CAJ+vNU2kPgESnjTZokU3qNR6QAbU3G8HGwc7ahg4jDpeS_xjHg@mail.gmail.com>
+CC: Philippe De Muyter <phdm@macq.eu>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
-	Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Richard Weinberger <richard@nod.at>
-Subject: [PATCH v2 2/7] mtd: nand: sunxi: make OOB retrieval optional
-Date: Wed, 30 Mar 2016 17:39:49 +0200
-Message-Id: <1459352394-22810-3-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1459352394-22810-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1459352394-22810-1-git-send-email-boris.brezillon@free-electrons.com>
+	linux-media <linux-media@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <56DF852A.30702@mentor.com>
+Date: Tue, 8 Mar 2016 18:06:34 -0800
+MIME-Version: 1.0
+In-Reply-To: <CAJ+vNU2kPgESnjTZokU3qNR6QAbU3G8HGwc7ahg4jDpeS_xjHg@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sunxi_nfc_hw_ecc_read_chunk() always retrieves the ECC and protected free
-bytes, no matter if the user really asked for it or not. This can take a
-non negligible amount of time, especially on NAND chips exposing large OOB
-areas (> 1KB). Make it optional.
+On 03/07/2016 08:19 AM, Tim Harvey wrote:
+> On Thu, Mar 3, 2016 at 9:45 AM, Steve Longerbeam
+> <steve_longerbeam@mentor.com> wrote:
+>> Hi Philippe,
+>>
+>> On 03/03/2016 12:36 AM, Philippe De Muyter wrote:
+>>> Just to be sure : do you mean  https://github.com/slongerbeam/mediatree.git
+>>> or something else ?
+>> Sorry, yes I meant https://github.com/slongerbeam/mediatree.git.
+>>
+>>>>> So far I have retested video capture with the SabreAuto/ADV7180 and
+>>>>> the SabreSD/OV5640-mipi-csi2, and video capture is working fine on
+>>>>> those platforms.
+>>>>>
+>>>>> There is also a mem2mem that should work fine, but haven't tested yet.
+>>>>>
+>>>>> I removed camera preview support. At Mentor Graphics we have made
+>>>>> quite a few changes to ipu-v3 driver to allow camera preview to initialize
+>>>>> and control an overlay display plane independently of imx-drm, by adding
+>>>>> a subsystem independent ipu-plane sub-unit. Note we also have a video
+>>>>> output overlay driver that also makes use of ipu-plane. But those changes are
+>>>>> extensive and touch imx-drm as well as ipu-v3, so I am leaving camera preview
+>>>>> and the output overlay driver out (in fact, camera preview is not of much
+>>>>> utility so I probably won't bring it back in upstream version).
+>>>>>
+>>>>> The video capture driver is not quite ready for upstream review yet. It still:
+>>>>>
+>>>>> - uses the old cropping APIs but should move forward to selection APIs.
+>>>>>
+>>>>> - uses custom sensor subdev drivers for ADV7180 and OV564x. Still
+>>>>>   need to switch to upstream subdevs.
+>>> Is it only a problem of those sensor drivers (which exact files ?) or
+>>> is it a problem of the capture driver itself ?
+>> The camera interface driver (drivers/staging/media/imx6/capture/mx6-camif.c)
+>> is binding to these subdevs:
+>>
+>> drivers/staging/media/imx6/capture/adv7180.c
+>> drivers/staging/media/imx6/capture/ov5642.c
+>> drivers/staging/media/imx6/capture/ov5640-mipi.c
+>>
+>> But instead should use the subdevs under drivers/media/i2c, specifically:
+>>
+>> drivers/media/i2c/adv7180.c (and adding whatever standard subdev features
+>> the imx6 interface driver requires).
+>>
+>> There is a drivers/media/i2c/soc_camera/ov5642.c, but there is no mipi-csi2
+>> capable subdev for the ov5640 with the mipi-csi2 interface, so that would have
+>> to be created.
+>>
+> Steve,
+>
+> I've built your mx6-media-staging branch and added device-tree config
+> for the Gateworks Ventana boards which have an on-board ADV7180 and it
+> works great. I've tested it capturing frames via v4l2-ctl as well as
+> gstreamer.
+>
+> Please let me know what kind of testing you need. I would love to see
+> this get mainlined!
+>
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- drivers/mtd/nand/sunxi_nand.c | 26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/mtd/nand/sunxi_nand.c b/drivers/mtd/nand/sunxi_nand.c
-index f6ea0fb..3e7b919 100644
---- a/drivers/mtd/nand/sunxi_nand.c
-+++ b/drivers/mtd/nand/sunxi_nand.c
-@@ -867,7 +867,7 @@ static int sunxi_nfc_hw_ecc_read_chunk(struct mtd_info *mtd,
- 				       u8 *oob, int oob_off,
- 				       int *cur_off,
- 				       unsigned int *max_bitflips,
--				       bool bbm, int page)
-+				       bool bbm, bool oob_required, int page)
- {
- 	struct nand_chip *nand = mtd_to_nand(mtd);
- 	struct sunxi_nfc *nfc = to_sunxi_nfc(nand->controller);
-@@ -899,7 +899,7 @@ static int sunxi_nfc_hw_ecc_read_chunk(struct mtd_info *mtd,
- 
- 	*cur_off = oob_off + ecc->bytes + 4;
- 
--	ret = sunxi_nfc_hw_ecc_correct(mtd, data, oob, 0,
-+	ret = sunxi_nfc_hw_ecc_correct(mtd, data, oob_required ? oob : NULL, 0,
- 				       readl(nfc->regs + NFC_REG_ECC_ST),
- 				       &erased);
- 	if (erased)
-@@ -929,12 +929,14 @@ static int sunxi_nfc_hw_ecc_read_chunk(struct mtd_info *mtd,
- 	} else {
- 		memcpy_fromio(data, nfc->regs + NFC_RAM0_BASE, ecc->size);
- 
--		nand->cmdfunc(mtd, NAND_CMD_RNDOUT, oob_off, -1);
--		sunxi_nfc_randomizer_read_buf(mtd, oob, ecc->bytes + 4,
--					      true, page);
-+		if (oob_required) {
-+			nand->cmdfunc(mtd, NAND_CMD_RNDOUT, oob_off, -1);
-+			sunxi_nfc_randomizer_read_buf(mtd, oob, ecc->bytes + 4,
-+						      true, page);
- 
--		sunxi_nfc_hw_ecc_get_prot_oob_bytes(mtd, oob, 0,
--						    bbm, page);
-+			sunxi_nfc_hw_ecc_get_prot_oob_bytes(mtd, oob, 0,
-+							    bbm, page);
-+		}
- 	}
- 
- 	sunxi_nfc_hw_ecc_update_stats(mtd, max_bitflips, ret);
-@@ -1048,7 +1050,7 @@ static int sunxi_nfc_hw_ecc_read_page(struct mtd_info *mtd,
- 		ret = sunxi_nfc_hw_ecc_read_chunk(mtd, data, data_off, oob,
- 						  oob_off + mtd->writesize,
- 						  &cur_off, &max_bitflips,
--						  !i, page);
-+						  !i, oob_required, page);
- 		if (ret < 0)
- 			return ret;
- 		else if (ret)
-@@ -1086,8 +1088,8 @@ static int sunxi_nfc_hw_ecc_read_subpage(struct mtd_info *mtd,
- 		ret = sunxi_nfc_hw_ecc_read_chunk(mtd, data, data_off,
- 						  oob,
- 						  oob_off + mtd->writesize,
--						  &cur_off, &max_bitflips,
--						  !i, page);
-+						  &cur_off, &max_bitflips, !i,
-+						  false, page);
- 		if (ret < 0)
- 			return ret;
- 	}
-@@ -1149,7 +1151,9 @@ static int sunxi_nfc_hw_syndrome_ecc_read_page(struct mtd_info *mtd,
- 
- 		ret = sunxi_nfc_hw_ecc_read_chunk(mtd, data, data_off, oob,
- 						  oob_off, &cur_off,
--						  &max_bitflips, !i, page);
-+						  &max_bitflips, !i,
-+						  oob_required,
-+						  page);
- 		if (ret < 0)
- 			return ret;
- 		else if (ret)
--- 
-2.5.0
+Hi Tim, good to hear it works for you on the Ventana boards.
+
+I've just pushed some more commits to the mx6-media-staging branch that
+get the drivers/media/i2c/adv7180.c subdev working with the imx6 capture
+backend. Images look perfect when switching to UYVY8_2X8 mbus code instead
+of YUYV8_2X8. But I'm holding off on that change because this subdev is used
+by Renesas targets and would likely corrupt captured images for those
+targets. But I believe UYVY is the correct transmit order according to the
+BT.656 standard.
+
+Another thing that should also be changed in drivers/media/i2c/adv7180.c
+is the field type. It should be V4L2_FIELD_SEQ_TB for NTSC and V4L2_FIELD_SEQ_BT
+for PAL.
+
+Steve
+
 
