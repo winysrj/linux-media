@@ -1,80 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:60040 "EHLO smtp.gentoo.org"
+Received: from mga04.intel.com ([192.55.52.120]:3305 "EHLO mga04.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933687AbcCNVKH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 17:10:07 -0400
-Received: from localhost.localdomain (localhost [127.0.0.1])
-	by smtp.gentoo.org (Postfix) with ESMTP id F1DE1340A5C
-	for <linux-media@vger.kernel.org>; Mon, 14 Mar 2016 21:10:04 +0000 (UTC)
-From: Mike Frysinger <vapier@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] include sys/sysmacros.h for major() & minor()
-Date: Mon, 14 Mar 2016 17:10:03 -0400
-Message-Id: <1457989803-7148-1-git-send-email-vapier@gentoo.org>
+	id S1751919AbcCII5N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Mar 2016 03:57:13 -0500
+From: Jani Nikula <jani.nikula@intel.com>
+To: Dan Allen <dan@opendevise.io>
+Cc: Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+In-Reply-To: <CAKeHnO7e5Escm0Ndm50eFX-qUXf7Lg9n=iXvwUGjz2M4KHLMsQ@mail.gmail.com>
+References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com> <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan> <86egbrm9hw.fsf@hiro.keithp.com> <1457076530.13171.13.camel@winder.org.uk> <CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com> <87a8m9qoy8.fsf@intel.com> <CAKeHnO7_7k8Qc5Jmu_x2OzAVT4YXxW8PSe_m6QUP-8V7XxbTVw@mail.gmail.com> <8737s1qdfz.fsf@intel.com> <CAKeHnO7e5Escm0Ndm50eFX-qUXf7Lg9n=iXvwUGjz2M4KHLMsQ@mail.gmail.com>
+Date: Wed, 09 Mar 2016 10:57:08 +0200
+Message-ID: <87si00owpn.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linux C libraries are looking to disentangle sysmacros.h from the
-sys/types.h header to clean up namespace pollution.  Since these
-macros are provided in glibc/etc... today, switch to pulling in
-this header directly.
+On Wed, 09 Mar 2016, Dan Allen <dan@opendevise.io> wrote:
+> On Tue, Mar 8, 2016 at 6:58 AM, Jani Nikula <jani.nikula@intel.com> wrote:
+>
+>> I need to look into this again. Is there a specific option or directive
+>> to produce split output for includes? When I tried this, the result was
+>> just one big output file. (And indeed we'd need both. Some includes we
+>> want embedded, some includes should produce separate outputs.)
+>>
+>
+> Nope. What I'm saying is that you run Asciidoctor on each sub-master
+> include file (an include that manages a part or chapter). That gives you
+> your individual part/chapter files. Then you need to make an index page,
+> probably by using the Asciidoctor API to itemize all the chapters as a list
+> or something.
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
----
- contrib/test/mc_nextgen_test.c            | 1 +
- lib/libv4lconvert/control/libv4lcontrol.c | 1 +
- utils/libmedia_dev/get_media_devices.c    | 1 +
- utils/media-ctl/libmediactl.c             | 1 +
- 4 files changed, 4 insertions(+)
+Bummer.
 
-diff --git a/contrib/test/mc_nextgen_test.c b/contrib/test/mc_nextgen_test.c
-index a62fd13..4ba37b0 100644
---- a/contrib/test/mc_nextgen_test.c
-+++ b/contrib/test/mc_nextgen_test.c
-@@ -28,6 +28,7 @@
- #include <syslog.h>
- #include <stdio.h>
- #include <sys/types.h>
-+#include <sys/sysmacros.h>
- #include <sys/stat.h>
- #include <sys/ioctl.h>
- #include <fcntl.h>
-diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
-index 3c8335c..59f28b1 100644
---- a/lib/libv4lconvert/control/libv4lcontrol.c
-+++ b/lib/libv4lconvert/control/libv4lcontrol.c
-@@ -20,6 +20,7 @@
-  */
- 
- #include <sys/types.h>
-+#include <sys/sysmacros.h>
- #include <sys/mman.h>
- #include <fcntl.h>
- #include <sys/stat.h>
-diff --git a/utils/libmedia_dev/get_media_devices.c b/utils/libmedia_dev/get_media_devices.c
-index e3a2200..edfeb41 100644
---- a/utils/libmedia_dev/get_media_devices.c
-+++ b/utils/libmedia_dev/get_media_devices.c
-@@ -20,6 +20,7 @@
- #include <stdio.h>
- #include <unistd.h>
- #include <sys/types.h>
-+#include <sys/sysmacros.h>
- #include <sys/stat.h>
- #include <string.h>
- #include <stdlib.h>
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index 4a82d24..16dddbe 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -24,6 +24,7 @@
- #include <sys/ioctl.h>
- #include <sys/stat.h>
- #include <sys/types.h>
-+#include <sys/sysmacros.h>
- 
- #include <ctype.h>
- #include <errno.h>
+Getting the inter-document cross references right may become
+tricky. We'll be generating plenty of snippets of lightweight markup
+from source code documentation comments. At the time of processing, we
+won't know where e.g. a specific function to be cross referenced is
+documented, if at all. We can't require the documentation comment
+writers to figure that out either; it's too burdensome, too ugly in the
+code, and they'll bitrot quickly.
+
+Cross referencing in the asciidoc proofs of concept have worked because
+they've all done the processing as a single single unit, with
+includes. These hacks have also ignored any broken links, and there have
+been
+
+> Yes, it does require some thinking about cross references. There is a lot
+> more we can do out of the box, but all those references can be fixed with a
+> little bit of post-processing in the meantime.
+
+It seems to me Sphinx provides much better support regarding cross
+references, out of the box, within documents and to external documents
+(intersphinx), with target roles and domains, including validation and
+not creating broken links in the output.
+
+Looking at the current hacks we have for post-processing references, I'm
+really not thrilled about the prospect of keeping or redoing that.
+
+See how this works in Jon's Sphinx test [1]. At the time of generating
+the markup from source comments, there is no idea if and where
+gem_init_hw() and intel_guc_ucode_init() are documented. Indeed,
+documentation for the former does not exist, but there's no broken link.
+
+BR,
+Jani.
+
+
+[1] http://static.lwn.net/kerneldoc/gpu.html#c.intel_guc_ucode_load
+
+
 -- 
-2.6.2
-
+Jani Nikula, Intel Open Source Technology Center
