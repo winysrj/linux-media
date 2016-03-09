@@ -1,235 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34328 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751407AbcCFNvO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Mar 2016 08:51:14 -0500
-Received: by mail-wm0-f68.google.com with SMTP id p65so6429003wmp.1
-        for <linux-media@vger.kernel.org>; Sun, 06 Mar 2016 05:51:14 -0800 (PST)
-Date: Sun, 6 Mar 2016 15:51:00 +0200
-From: Ulrik de Muelenaere <ulrikdem@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>, Antonio Ospite <ao2@ao2.it>
-Subject: [PATCH 1/2] [media] gspca: allow multiple probes per USB interface
-Message-ID: <9a06763b2ef47c215c473a6b9a0c8d079b163991.1457262292.git.ulrikdem@gmail.com>
-References: <cover.1457262292.git.ulrikdem@gmail.com>
+Received: from mail-qg0-f54.google.com ([209.85.192.54]:36766 "EHLO
+	mail-qg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932854AbcCIO3a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2016 09:29:30 -0500
+Received: by mail-qg0-f54.google.com with SMTP id u110so42466169qge.3
+        for <linux-media@vger.kernel.org>; Wed, 09 Mar 2016 06:29:30 -0800 (PST)
+Date: Wed, 9 Mar 2016 16:29:24 +0200
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
+	devel@driverdev.osuosl.org,
+	kernel-janitors <kernel-janitors@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Andrey Utkin <andrey_utkin@fastmail.com>
+Subject: Re: [RFC PATCH v0] Add tw5864 driver
+Message-ID: <20160309162924.6e6ebddf@zver>
+In-Reply-To: <56B866D9.5070606@xs4all.nl>
+References: <1451785302-3173-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+	<56938969.30104@xs4all.nl>
+	<CAM_ZknVgTETBNXu+8N6eJa=cf_Mmj=+tA=ocKB9SJL5rkSyijQ@mail.gmail.com>
+	<56B866D9.5070606@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1457262292.git.ulrikdem@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow gspca_dev_probe() to be called multiple times per USB interface,
-resulting in multiple video device nodes.
+Hi Hans!
 
-A pointer to the created gspca_dev is stored as the interface's private
-data. Store other devices linked to the same interface as a linked list,
-allowing all devices to be disconnected, suspended or resumed when given
-the interface.
+Some improvements took place on the driver, including cleaner
+v4l2-compliance tests passing. But there's a single test failure I
+don't understand.
 
-This is useful for subdrivers such as gspca_kinect, where a single USB
-interface produces both video and depth streams.
+In the code of v4l2-compliance, it seems like an API
+call CREATE_BUFS is supposed to fail with EINVAL. But in case of my
+driver, which simply uses vb2_ioctl_create_bufs(), the call returns 0.
 
-Signed-off-by: Ulrik de Muelenaere <ulrikdem@gmail.com>
----
- drivers/media/usb/gspca/gspca.c | 129 +++++++++++++++++++++++-----------------
- drivers/media/usb/gspca/gspca.h |   1 +
- 2 files changed, 76 insertions(+), 54 deletions(-)
+Please review the below report.
 
-diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-index af5cd82..d002b8b 100644
---- a/drivers/media/usb/gspca/gspca.c
-+++ b/drivers/media/usb/gspca/gspca.c
-@@ -2004,8 +2004,9 @@ static const struct video_device gspca_template = {
- /*
-  * probe and create a new gspca device
-  *
-- * This function must be called by the sub-driver when it is
-- * called for probing a new device.
-+ * This function must be called by the sub-driver when it is called for probing
-+ * a new device. It may be called multiple times per USB interface, resulting in
-+ * multiple video device nodes.
-  */
- int gspca_dev_probe2(struct usb_interface *intf,
- 		const struct usb_device_id *id,
-@@ -2037,6 +2038,7 @@ int gspca_dev_probe2(struct usb_interface *intf,
- 	gspca_dev->dev = dev;
- 	gspca_dev->iface = intf->cur_altsetting->desc.bInterfaceNumber;
- 	gspca_dev->xfer_ep = -1;
-+	gspca_dev->next_dev = usb_get_intfdata(intf);
- 
- 	/* check if any audio device */
- 	if (dev->actconfig->desc.bNumInterfaces != 1) {
-@@ -2169,41 +2171,50 @@ EXPORT_SYMBOL(gspca_dev_probe);
-  */
- void gspca_disconnect(struct usb_interface *intf)
- {
--	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
-+	struct gspca_dev *gspca_dev = usb_get_intfdata(intf), *next_dev;
- #if IS_ENABLED(CONFIG_INPUT)
- 	struct input_dev *input_dev;
- #endif
- 
--	PDEBUG(D_PROBE, "%s disconnect",
--		video_device_node_name(&gspca_dev->vdev));
-+	while (gspca_dev) {
-+		PDEBUG(D_PROBE, "%s disconnect",
-+			video_device_node_name(&gspca_dev->vdev));
- 
--	mutex_lock(&gspca_dev->usb_lock);
-+		mutex_lock(&gspca_dev->usb_lock);
- 
--	gspca_dev->present = 0;
--	destroy_urbs(gspca_dev);
-+		gspca_dev->present = 0;
-+		destroy_urbs(gspca_dev);
- 
- #if IS_ENABLED(CONFIG_INPUT)
--	gspca_input_destroy_urb(gspca_dev);
--	input_dev = gspca_dev->input_dev;
--	if (input_dev) {
--		gspca_dev->input_dev = NULL;
--		input_unregister_device(input_dev);
--	}
-+		gspca_input_destroy_urb(gspca_dev);
-+		input_dev = gspca_dev->input_dev;
-+		if (input_dev) {
-+			gspca_dev->input_dev = NULL;
-+			input_unregister_device(input_dev);
-+		}
- #endif
--	/* Free subdriver's streaming resources / stop sd workqueue(s) */
--	if (gspca_dev->sd_desc->stop0 && gspca_dev->streaming)
--		gspca_dev->sd_desc->stop0(gspca_dev);
--	gspca_dev->streaming = 0;
--	gspca_dev->dev = NULL;
--	wake_up_interruptible(&gspca_dev->wq);
-+		/* Free subdriver's streaming resources / stop sd
-+		 * workqueue(s)
-+		 */
-+		if (gspca_dev->sd_desc->stop0 && gspca_dev->streaming)
-+			gspca_dev->sd_desc->stop0(gspca_dev);
-+		gspca_dev->streaming = 0;
-+		gspca_dev->dev = NULL;
-+		wake_up_interruptible(&gspca_dev->wq);
- 
--	v4l2_device_disconnect(&gspca_dev->v4l2_dev);
--	video_unregister_device(&gspca_dev->vdev);
-+		v4l2_device_disconnect(&gspca_dev->v4l2_dev);
-+		video_unregister_device(&gspca_dev->vdev);
- 
--	mutex_unlock(&gspca_dev->usb_lock);
-+		mutex_unlock(&gspca_dev->usb_lock);
- 
--	/* (this will call gspca_release() immediately or on last close) */
--	v4l2_device_put(&gspca_dev->v4l2_dev);
-+		next_dev = gspca_dev->next_dev;
-+		/* (this will call gspca_release() immediately or on last
-+		 * close)
-+		 */
-+		v4l2_device_put(&gspca_dev->v4l2_dev);
-+
-+		gspca_dev = next_dev;
-+	}
- }
- EXPORT_SYMBOL(gspca_disconnect);
- 
-@@ -2212,21 +2223,27 @@ int gspca_suspend(struct usb_interface *intf, pm_message_t message)
- {
- 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
- 
--	gspca_input_destroy_urb(gspca_dev);
-+	while (gspca_dev) {
-+		gspca_input_destroy_urb(gspca_dev);
- 
--	if (!gspca_dev->streaming)
--		return 0;
-+		if (!gspca_dev->streaming) {
-+			gspca_dev = gspca_dev->next_dev;
-+			continue;
-+		}
- 
--	mutex_lock(&gspca_dev->usb_lock);
--	gspca_dev->frozen = 1;		/* avoid urb error messages */
--	gspca_dev->usb_err = 0;
--	if (gspca_dev->sd_desc->stopN)
--		gspca_dev->sd_desc->stopN(gspca_dev);
--	destroy_urbs(gspca_dev);
--	gspca_set_alt0(gspca_dev);
--	if (gspca_dev->sd_desc->stop0)
--		gspca_dev->sd_desc->stop0(gspca_dev);
--	mutex_unlock(&gspca_dev->usb_lock);
-+		mutex_lock(&gspca_dev->usb_lock);
-+		gspca_dev->frozen = 1;		/* avoid urb error messages */
-+		gspca_dev->usb_err = 0;
-+		if (gspca_dev->sd_desc->stopN)
-+			gspca_dev->sd_desc->stopN(gspca_dev);
-+		destroy_urbs(gspca_dev);
-+		gspca_set_alt0(gspca_dev);
-+		if (gspca_dev->sd_desc->stop0)
-+			gspca_dev->sd_desc->stop0(gspca_dev);
-+		mutex_unlock(&gspca_dev->usb_lock);
-+
-+		gspca_dev = gspca_dev->next_dev;
-+	}
- 
- 	return 0;
- }
-@@ -2237,22 +2254,26 @@ int gspca_resume(struct usb_interface *intf)
- 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
- 	int streaming, ret = 0;
- 
--	mutex_lock(&gspca_dev->usb_lock);
--	gspca_dev->frozen = 0;
--	gspca_dev->usb_err = 0;
--	gspca_dev->sd_desc->init(gspca_dev);
--	/*
--	 * Most subdrivers send all ctrl values on sd_start and thus
--	 * only write to the device registers on s_ctrl when streaming ->
--	 * Clear streaming to avoid setting all ctrls twice.
--	 */
--	streaming = gspca_dev->streaming;
--	gspca_dev->streaming = 0;
--	if (streaming)
--		ret = gspca_init_transfer(gspca_dev);
--	else
--		gspca_input_create_urb(gspca_dev);
--	mutex_unlock(&gspca_dev->usb_lock);
-+	while (gspca_dev) {
-+		mutex_lock(&gspca_dev->usb_lock);
-+		gspca_dev->frozen = 0;
-+		gspca_dev->usb_err = 0;
-+		gspca_dev->sd_desc->init(gspca_dev);
-+		/*
-+		 * Most subdrivers send all ctrl values on sd_start and thus
-+		 * only write to the device registers on s_ctrl when streaming -
-+		 * Clear streaming to avoid setting all ctrls twice.
-+		 */
-+		streaming = gspca_dev->streaming;
-+		gspca_dev->streaming = 0;
-+		if (streaming)
-+			ret |= gspca_init_transfer(gspca_dev);
-+		else
-+			gspca_input_create_urb(gspca_dev);
-+		mutex_unlock(&gspca_dev->usb_lock);
-+
-+		gspca_dev = gspca_dev->next_dev;
-+	}
- 
- 	return ret;
- }
-diff --git a/drivers/media/usb/gspca/gspca.h b/drivers/media/usb/gspca/gspca.h
-index d39adf9..dcafc89 100644
---- a/drivers/media/usb/gspca/gspca.h
-+++ b/drivers/media/usb/gspca/gspca.h
-@@ -207,6 +207,7 @@ struct gspca_dev {
- 	__u8 alt;			/* USB alternate setting */
- 	int xfer_ep;			/* USB transfer endpoint address */
- 	u8 audio;			/* presence of audio device */
-+	struct gspca_dev *next_dev;	/* next device sharing USB interface */
- 
- 	/* (*) These variables are proteced by both usb_lock and queue_lock,
- 	   that is any code setting them is holding *both*, which means that
--- 
-2.7.0
+The report is produced by fresh v4l-utils from git:
+v4l-utils-1.10.0-59-g1388c0a
 
+The actual code which was tested is at tag release/tw5864/1.10 of
+https://github.com/bluecherrydvr/linux.git , see
+drivers/staging/media/tw5864 . If we sort this out, I am considering
+resubmit the driver for merging upstream.
+
+There's also another issue with v4l2-compliance. At some moment the
+driver receives S_PARM command with timeperframe 0/0, by which reason I
+added special handling, but I guess there's something out of my
+knowledge which caused this and which should be fixed.
+
+
+ # v4l2-compliance -d /dev/video6 -s
+Driver Info:
+        Driver name   : tw5864
+        Card type     : TW5864 Encoder 2
+        Bus info      : PCI:0000:06:05.0
+        Driver version: 4.5.0
+        Capabilities  : 0x85200001
+                Video Capture
+                Read/Write
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x05200001
+                Video Capture
+                Read/Write
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video6 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 11 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+        test read/write: OK
+                fail: v4l2-test-buffers.cpp(959): ret != EINVAL
+        test MMAP: FAIL
+        test USERPTR: OK (Not Supported)
+        test DMABUF: Cannot test, specify --expbuf-device
+
+
+Total: 45, Succeeded: 44, Failed: 1, Warnings: 0
+[ERR]
+14:14:15root@tw ~
+ # gdb v4l2-compliance 
+GNU gdb (Ubuntu 7.10-1ubuntu3) 7.10
+Copyright (C) 2015 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later
+<http://gnu.org/licenses/gpl.html> This is free software: you are free
+to change and redistribute it. There is NO WARRANTY, to the extent
+permitted by law.  Type "show copying" and "show warranty" for details.
+This GDB was configured as "i686-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+<http://www.gnu.org/software/gdb/documentation/>.
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from v4l2-compliance...done.
+(gdb) break v4l2-test-buffers.cpp:959
+Breakpoint 1 at 0x8071469: file v4l2-test-buffers.cpp, line 959.
+(gdb) run  -d /dev/video6 -s
+Starting program: /usr/local/bin/v4l2-compliance -d /dev/video6 -s
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/i386-linux-gnu/libthread_db.so.1".
+Driver Info:
+        Driver name   : tw5864
+        Card type     : TW5864 Encoder 2
+        Bus info      : PCI:0000:06:05.0
+        Driver version: 4.5.0
+        Capabilities  : 0x85200001
+                Video Capture
+                Read/Write
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x05200001
+                Video Capture
+                Read/Write
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video6 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 11 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+        test read/write: OK
+
+Breakpoint 1, testMmap (node=0xbfffd1e4, frame_count=60) at v4l2-test-buffers.cpp:959
+959                                     fail_on_test(ret != EINVAL);
+(gdb) print ret
+$1 = 0
+(gdb)
