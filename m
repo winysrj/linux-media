@@ -1,77 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:52711 "EHLO lists.s-osg.org"
+Received: from smtp208.alice.it ([82.57.200.104]:11226 "EHLO smtp208.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752356AbcCALoD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2016 06:44:03 -0500
-Date: Tue, 1 Mar 2016 08:43:58 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 4/4] media: Move media_get_uptr() macro out of the
- media.h user space header
-Message-ID: <20160301084358.66cc6164@recife.lan>
-In-Reply-To: <1456174024-11389-5-git-send-email-sakari.ailus@linux.intel.com>
-References: <1456174024-11389-1-git-send-email-sakari.ailus@linux.intel.com>
-	<1456174024-11389-5-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S933140AbcCIQDb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Mar 2016 11:03:31 -0500
+From: Antonio Ospite <ao2@ao2.it>
+To: Linux Media <linux-media@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Antonio Ospite <ao2@ao2.it>
+Subject: [PATCH 5/7] [media] gspca: fix a v4l2-compliance failure about buffer timestamp
+Date: Wed,  9 Mar 2016 17:03:19 +0100
+Message-Id: <1457539401-11515-6-git-send-email-ao2@ao2.it>
+In-Reply-To: <1457539401-11515-1-git-send-email-ao2@ao2.it>
+References: <1457539401-11515-1-git-send-email-ao2@ao2.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 22 Feb 2016 22:47:04 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+v4l2-compliance fails with this message:
 
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> The media_get_uptr() macro is mostly useful only for the IOCTL handling
-> code in media-device.c so move it there.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+  fail: v4l2-test-buffers.cpp(250): \
+      timestamp != V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC && \
+      timestamp != V4L2_BUF_FLAG_TIMESTAMP_COPY
+  ...
+  test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
 
-Looks OK to me.
+When setting the frame time, gspca uses v4l2_get_timestamp() which uses
+ktime_get_ts() which uses ktime_get_ts64() which returns a monotonic
+timestamp, so it's safe to initialize the buffer flags to
+V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC to fix the failure.
 
-> ---
->  drivers/media/media-device.c | 5 +++++
->  include/uapi/linux/media.h   | 5 -----
->  2 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index f001c27..39afba0 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -38,6 +38,11 @@
->   * Userspace API
->   */
->  
-> +static inline void __user *media_get_uptr(__u64 arg)
-> +{
-> +	return (void __user *)(uintptr_t)arg;
-> +}
-> +
->  static int media_device_open(struct file *filp)
->  {
->  	return 0;
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 65991df..b989494 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -353,11 +353,6 @@ struct media_v2_topology {
->  	__u32 reserved[18];
->  };
->  
-> -static inline void __user *media_get_uptr(__u64 arg)
-> -{
-> -	return (void __user *)(uintptr_t)arg;
-> -}
-> -
->  /* ioctls */
->  
->  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+Signed-off-by: Antonio Ospite <ao2@ao2.it>
+---
+ drivers/media/usb/gspca/gspca.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 61cb16d..84b0d6a 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -522,7 +522,7 @@ static int frame_alloc(struct gspca_dev *gspca_dev, struct file *file,
+ 		frame = &gspca_dev->frame[i];
+ 		frame->v4l2_buf.index = i;
+ 		frame->v4l2_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-		frame->v4l2_buf.flags = 0;
++		frame->v4l2_buf.flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		frame->v4l2_buf.field = V4L2_FIELD_NONE;
+ 		frame->v4l2_buf.length = frsz;
+ 		frame->v4l2_buf.memory = memory;
 -- 
-Thanks,
-Mauro
+2.7.0
+
