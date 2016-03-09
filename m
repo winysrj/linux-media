@@ -1,48 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:36551 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756057AbcCCTM6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 14:12:58 -0500
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: albert@newtec.dk, Jan Kara <jack@suse.cz>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 2/2] [media] vb2-memops: Use bool macros instead of 1
-Date: Thu,  3 Mar 2016 20:12:49 +0100
-Message-Id: <1457032369-10503-2-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1457032369-10503-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1457032369-10503-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from smtp207.alice.it ([82.57.200.103]:53521 "EHLO smtp207.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933171AbcCIQDm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Mar 2016 11:03:42 -0500
+From: Antonio Ospite <ao2@ao2.it>
+To: Linux Media <linux-media@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Antonio Ospite <ao2@ao2.it>
+Subject: [PATCH 6/7] [media] gspca: fix a v4l2-compliance failure during VIDIOC_REQBUFS
+Date: Wed,  9 Mar 2016 17:03:20 +0100
+Message-Id: <1457539401-11515-7-git-send-email-ao2@ao2.it>
+In-Reply-To: <1457539401-11515-1-git-send-email-ao2@ao2.it>
+References: <1457539401-11515-1-git-send-email-ao2@ao2.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the prototype of the called function:
+When calling VIDIOC_REQBUFS v4l2-compliance fails with this message:
 
-int get_vaddr_frames(unsigned long start, unsigned int nr_pfns,
-bool write, bool force, struct frame_vector *vec);
+  fail: v4l2-test-buffers.cpp(476): q.reqbufs(node, 1)
+  test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+By looking at the v4l2-compliance code the failure happens when trying
+to request V4L2_MEMORY_USERPTR buffers without freeing explicitly the
+previously allocated V4L2_MEMORY_MMAP buffers.
+
+This would suggest that when changing the memory field in struct
+v4l2_requestbuffers the driver is supposed to free automatically any
+previous allocated buffers, and looking for inspiration at the code in
+drivers/media/v4l2-core/videobuf2-core.c::vb2_core_reqbufs() seems to
+confirm this interpretation; however gspca is just returning -EBUSY in
+this case.
+
+Removing the special handling for the case of a different memory value
+fixes the compliance failure.
+
+Signed-off-by: Antonio Ospite <ao2@ao2.it>
 ---
- drivers/media/v4l2-core/videobuf2-memops.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
-index e4e4976c6849..3c3b517f1d1c 100644
---- a/drivers/media/v4l2-core/videobuf2-memops.c
-+++ b/drivers/media/v4l2-core/videobuf2-memops.c
-@@ -49,7 +49,7 @@ struct frame_vector *vb2_create_framevec(unsigned long start,
- 	vec = frame_vector_create(nr);
- 	if (!vec)
- 		return ERR_PTR(-ENOMEM);
--	ret = get_vaddr_frames(start & PAGE_MASK, nr, write, 1, vec);
-+	ret = get_vaddr_frames(start & PAGE_MASK, nr, write, true, vec);
- 	if (ret < 0)
- 		goto out_destroy;
- 	/* We accept only complete set of PFNs */
+This should be safe, but I'd really like a comment from someone with a more
+global knowledge of v4l2.
+
+If my interpretation about how drivers should behave when the value of the
+memory field changes is correct, I could send also a documentation update for
+Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
+
+Just let me know.
+
+Thanks,
+   Antonio
+
+
+ drivers/media/usb/gspca/gspca.c | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 84b0d6a..915b6c7 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1402,13 +1402,6 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
+ 		return -ERESTARTSYS;
+ 
+-	if (gspca_dev->memory != GSPCA_MEMORY_NO
+-	    && gspca_dev->memory != GSPCA_MEMORY_READ
+-	    && gspca_dev->memory != rb->memory) {
+-		ret = -EBUSY;
+-		goto out;
+-	}
+-
+ 	/* only one file may do the capture */
+ 	if (gspca_dev->capt_file != NULL
+ 	    && gspca_dev->capt_file != file) {
 -- 
 2.7.0
 
