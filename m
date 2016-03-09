@@ -1,122 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:46158 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752980AbcCCDiX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 22:38:23 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
-	chehabrafael@gmail.com, javier@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: au0828 audio mixer isn't connected to decoder
-Date: Wed,  2 Mar 2016 20:38:19 -0700
-Message-Id: <1456976299-7525-1-git-send-email-shuahkh@osg.samsung.com>
+Received: from smtp207.alice.it ([82.57.200.103]:53511 "EHLO smtp207.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933047AbcCIQDb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Mar 2016 11:03:31 -0500
+From: Antonio Ospite <ao2@ao2.it>
+To: Linux Media <linux-media@vger.kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Antonio Ospite <ao2@ao2.it>
+Subject: [PATCH 1/7] [media] gspca: ov534/topro: use a define for the default framerate
+Date: Wed,  9 Mar 2016 17:03:15 +0100
+Message-Id: <1457539401-11515-2-git-send-email-ao2@ao2.it>
+In-Reply-To: <1457539401-11515-1-git-send-email-ao2@ao2.it>
+References: <1457539401-11515-1-git-send-email-ao2@ao2.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When snd_usb_audio gets probed first, audio mixer
-doesn't get linked to the decoder.
+When writing the change in commit dcc7fdbec53a ("[media] gspca:
+ov534/topro: prevent a division by 0") I used magic numbers for the
+default framerate to minimize the code footprint to make it easier to
+backport the patch to the stable trees.
 
-Change au0828_media_graph_notify() to handle the
-mixer entity getting registered before the decoder.
+However it's better if the default framerate has its own define to avoid
+risking using different values in different places, and for readability.
 
-Change au0828_media_device_register() to invoke
-au0828_media_graph_notify() to connect entites
-that were created prior to registering the notify
-handler.
+While at it also remove some trivial comments about the framerates which
+don't add much to the code anymore.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-Reported-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Antonio Ospite <ao2@ao2.it>
 ---
+ drivers/media/usb/gspca/ov534.c | 7 +++----
+ drivers/media/usb/gspca/topro.c | 6 ++++--
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-Tested by black listing au0828 to force
-snd_usb_audio to load first and then modprobe
-au0828. Generated graphs to verify audio graph
-is connected to the au0828 graph.
+diff --git a/drivers/media/usb/gspca/ov534.c b/drivers/media/usb/gspca/ov534.c
+index bfff1d1..9266a5c 100644
+--- a/drivers/media/usb/gspca/ov534.c
++++ b/drivers/media/usb/gspca/ov534.c
+@@ -51,6 +51,7 @@
+ #define OV534_OP_READ_2		0xf9
  
- drivers/media/usb/au0828/au0828-core.c | 54 ++++++++++++++++++++++++++++------
- 1 file changed, 45 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index ca1e5eb..5821de4 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -211,23 +211,50 @@ static void au0828_media_graph_notify(struct media_entity *new,
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct au0828_dev *dev = (struct au0828_dev *) notify_data;
- 	int ret;
-+	struct media_entity *entity, *mixer = NULL, *decoder = NULL;
+ #define CTRL_TIMEOUT 500
++#define DEFAULT_FRAME_RATE 30
  
--	if (!dev->decoder)
--		return;
-+	if (!new) {
-+		/*
-+		 * Called during au0828 probe time to connect
-+		 * entites that were created prior to registering
-+		 * the notify handler. Find mixer and decoder.
-+		*/
-+		media_device_for_each_entity(entity, dev->media_dev) {
-+			if (entity->function == MEDIA_ENT_F_AUDIO_MIXER)
-+				mixer = entity;
-+			else if (entity->function == MEDIA_ENT_F_ATV_DECODER)
-+				decoder = entity;
-+		}
-+		goto create_link;
-+	}
+ MODULE_AUTHOR("Antonio Ospite <ospite@studenti.unina.it>");
+ MODULE_DESCRIPTION("GSPCA/OV534 USB Camera Driver");
+@@ -1061,7 +1062,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 	cam->cam_mode = ov772x_mode;
+ 	cam->nmodes = ARRAY_SIZE(ov772x_mode);
  
- 	switch (new->function) {
- 	case MEDIA_ENT_F_AUDIO_MIXER:
--		ret = media_create_pad_link(dev->decoder,
-+		mixer = new;
-+		if (dev->decoder)
-+			decoder = dev->decoder;
-+		break;
-+	case MEDIA_ENT_F_ATV_DECODER:
-+		/* In case, Mixer is added first, find mixer and create link */
-+		media_device_for_each_entity(entity, dev->media_dev) {
-+			if (entity->function == MEDIA_ENT_F_AUDIO_MIXER)
-+				mixer = entity;
-+		}
-+		decoder = new;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+create_link:
-+	if (decoder && mixer) {
-+		ret = media_create_pad_link(decoder,
- 					    AU8522_PAD_AUDIO_OUT,
--					    new, 0,
-+					    mixer, 0,
- 					    MEDIA_LNK_FL_ENABLED);
- 		if (ret)
- 			dev_err(&dev->usbdev->dev,
--				"Mixer Pad Link Create Error: %d\n",
--				ret);
--		break;
--	default:
--		break;
-+				"Mixer Pad Link Create Error: %d\n", ret);
- 	}
- #endif
+-	sd->frame_rate = 30;
++	sd->frame_rate = DEFAULT_FRAME_RATE;
+ 
+ 	return 0;
  }
-@@ -447,6 +474,15 @@ static int au0828_media_device_register(struct au0828_dev *dev,
- 				"Media Device Register Error: %d\n", ret);
- 			return ret;
- 		}
-+	} else {
-+		/*
-+		 * Call au0828_media_graph_notify() to connect
-+		 * audio graph to our graph. In this case, audio
-+		 * driver registered the device and there is no
-+		 * entity_notify to be called when new entities
-+		 * are added. Invoke it now.
-+		*/
-+		au0828_media_graph_notify(NULL, (void *) dev);
- 	}
- 	/* register entity_notify callback */
- 	dev->entity_notify.notify_data = (void *) dev;
+@@ -1492,10 +1493,8 @@ static void sd_set_streamparm(struct gspca_dev *gspca_dev,
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+ 	if (tpf->numerator == 0 || tpf->denominator == 0)
+-		/* Set default framerate */
+-		sd->frame_rate = 30;
++		sd->frame_rate = DEFAULT_FRAME_RATE;
+ 	else
+-		/* Set requested framerate */
+ 		sd->frame_rate = tpf->denominator / tpf->numerator;
+ 
+ 	if (gspca_dev->streaming)
+diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
+index c028a5c..15eb069 100644
+--- a/drivers/media/usb/gspca/topro.c
++++ b/drivers/media/usb/gspca/topro.c
+@@ -175,6 +175,8 @@ static const u8 jpeg_q[17] = {
+ #error "USB buffer too small"
+ #endif
+ 
++#define DEFAULT_FRAME_RATE 30
++
+ static const u8 rates[] = {30, 20, 15, 10, 7, 5};
+ static const struct framerates framerates[] = {
+ 	{
+@@ -4020,7 +4022,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 	gspca_dev->cam.mode_framerates = sd->bridge == BRIDGE_TP6800 ?
+ 			framerates : framerates_6810;
+ 
+-	sd->framerate = 30;		/* default: 30 fps */
++	sd->framerate = DEFAULT_FRAME_RATE;
+ 	return 0;
+ }
+ 
+@@ -4803,7 +4805,7 @@ static void sd_set_streamparm(struct gspca_dev *gspca_dev,
+ 	int fr, i;
+ 
+ 	if (tpf->numerator == 0 || tpf->denominator == 0)
+-		sd->framerate = 30;
++		sd->framerate = DEFAULT_FRAME_RATE;
+ 	else
+ 		sd->framerate = tpf->denominator / tpf->numerator;
+ 
 -- 
-2.5.0
+2.7.0
 
