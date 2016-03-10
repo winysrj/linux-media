@@ -1,121 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59732 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759694AbcCEEBy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 23:01:54 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 663C3180917
-	for <linux-media@vger.kernel.org>; Sat,  5 Mar 2016 05:01:48 +0100 (CET)
-Date: Sat, 05 Mar 2016 05:01:48 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160305040148.663C3180917@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:44364 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751754AbcCJOaM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2016 09:30:12 -0500
+Subject: Re: [PATCH v3 06/22] media: Media Controller enable/disable source
+ handler API
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+ <2d8b035ec723346dfeed5db859aba67738e049cc.1455233153.git.shuahkh@osg.samsung.com>
+ <20160310073500.GK11084@valkosipuli.retiisi.org.uk>
+Cc: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com,
+	pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56E184E7.80603@osg.samsung.com>
+Date: Thu, 10 Mar 2016 07:29:59 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160310073500.GK11084@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 03/10/2016 12:35 AM, Sakari Ailus wrote:
+> Hi Shuah,
+> 
+> On Thu, Feb 11, 2016 at 04:41:22PM -0700, Shuah Khan wrote:
+>> Add new fields to struct media_device to add enable_source, and
+>> disable_source handlers, and source_priv to stash driver private
+>> data that is used to run these handlers. The enable_source handler
+>> finds source entity for the passed in entity and checks if it is
+>> available. When link is found, it activates it. Disable source
+>> handler deactivates the link.
+>>
+>> Bridge driver is expected to implement and set these handlers.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  include/media/media-device.h | 30 ++++++++++++++++++++++++++++++
+>>  1 file changed, 30 insertions(+)
+>>
+>> diff --git a/include/media/media-device.h b/include/media/media-device.h
+>> index 075a482..1a04644 100644
+>> --- a/include/media/media-device.h
+>> +++ b/include/media/media-device.h
+>> @@ -302,6 +302,11 @@ struct media_entity_notify {
+>>   * @entity_notify: List of registered entity_notify callbacks
+>>   * @lock:	Entities list lock
+>>   * @graph_mutex: Entities graph operation lock
+>> + *
+>> + * @source_priv: Driver Private data for enable/disable source handlers
+>> + * @enable_source: Enable Source Handler function pointer
+>> + * @disable_source: Disable Source Handler function pointer
+>> + *
+>>   * @link_notify: Link state change notification callback
+>>   *
+>>   * This structure represents an abstract high-level media device. It allows easy
+>> @@ -313,6 +318,26 @@ struct media_entity_notify {
+>>   *
+>>   * @model is a descriptive model name exported through sysfs. It doesn't have to
+>>   * be unique.
+>> + *
+>> + * @enable_source is a handler to find source entity for the
+>> + * sink entity  and activate the link between them if source
+>> + * entity is free. Drivers should call this handler before
+>> + * accessing the source.
+>> + *
+>> + * @disable_source is a handler to find source entity for the
+>> + * sink entity  and deactivate the link between them. Drivers
+>> + * should call this handler to release the source.
+>> + *
+> 
+> Is there a particular reason you're not simply (de)activating the link, but
+> instead add a new callback?
 
-Results of the daily build of media_tree:
+These two handlers are separate for a couple of reasons:
 
-date:		Sat Mar  5 04:00:17 CET 2016
-git branch:	test
-git hash:	1e89f58499f3351a3b3c61dae8213fe3cd24a476
-gcc version:	i686-linux-gcc (GCC) 5.1.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.4.0-164
+1. Explicit and symmetric API is easier to use and maintain.
+   Similar what we do in other cases, register/unregister
+   get/put etc.
+2. This is more important. Disable handler makes sure the
+   owner is releasing the resource. Otherwise, when some
+   other application does enable, the owner could loose
+   the resource, if enable and disable are the same.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+   e.g: Video app is holding the resource, DVB app does
+   enable. Disable handler makes sure Video/owner  is the one
+   that is asking to do the release.
 
-Detailed results are available here:
+thanks,
+-- Shuah
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+> 
+>> + * Note: Bridge driver is expected to implement and set the
+>> + * handler when media_device is registered or when
+>> + * bridge driver finds the media_device during probe.
+>> + * Bridge driver sets source_priv with information
+>> + * necessary to run enable/disable source handlers.
+>> + *
+>> + * Use-case: find tuner entity connected to the decoder
+>> + * entity and check if it is available, and activate the
+>> + * the link between them from enable_source and deactivate
+>> + * from disable_source.
+>>   */
+>>  struct media_device {
+>>  	/* dev->driver_data points to this struct. */
+>> @@ -344,6 +369,11 @@ struct media_device {
+>>  	/* Serializes graph operations. */
+>>  	struct mutex graph_mutex;
+>>  
+>> +	void *source_priv;
+>> +	int (*enable_source)(struct media_entity *entity,
+>> +			     struct media_pipeline *pipe);
+>> +	void (*disable_source)(struct media_entity *entity);
+>> +
+>>  	int (*link_notify)(struct media_link *link, u32 flags,
+>>  			   unsigned int notification);
+>>  };
+> 
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
