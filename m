@@ -1,219 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41070 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750823AbcCXUpM (ORCPT
+Received: from smtp1.goneo.de ([85.220.129.30]:50871 "EHLO smtp1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752865AbcCJRww convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 16:45:12 -0400
-Subject: Re: [PATCH] [media] media-devnode: Alloc cdev dynamically
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <3cfd380703d0fb2b756c96729ef417fa2a7a343d.1458849586.git.mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56F451CF.5060604@xs4all.nl>
-Date: Thu, 24 Mar 2016 21:45:03 +0100
-MIME-Version: 1.0
-In-Reply-To: <3cfd380703d0fb2b756c96729ef417fa2a7a343d.1458849586.git.mchehab@osg.samsung.com>
+	Thu, 10 Mar 2016 12:52:52 -0500
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: Driver Technisat Skystar S2 and Compro VideoMate S350
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <56E1A7CF.5050201@gmail.com>
+Date: Thu, 10 Mar 2016 18:52:11 +0100
+Cc: neil@ferme-de-la-motte.com, linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <512DBC45-9FFC-476C-A8EC-2F347DF2CCB0@darmarit.de>
+References: <014e01d17ad4$45f1e070$d1d5a150$@ferme-de-la-motte.com> <56E1A7CF.5050201@gmail.com>
+To: Jemma Denson <jdenson@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/24/2016 08:59 PM, Mauro Carvalho Chehab wrote:
-> Currently, cdev is embedded inside media_devnode. This causes
-> a problem with the fs core, as __fput() will try to release
-> its access by calling cdev_put():
+
+Am 10.03.2016 um 17:58 schrieb Jemma Denson <jdenson@gmail.com>:
+
+> Hi Neil,
 > 
-> [  399.653545] BUG: KASAN: use-after-free in media_release+0xe1/0xf0 [media] at addr ffff88036a9ba4e0
-> [  399.653550] Read of size 8 by task mc_nextgen_test/19761
-> [  399.653554] page:ffffea000daa6e80 count:0 mapcount:0 mapping:          (null) index:0xffff88036a9bad20
-> [  399.653559] flags: 0x2ffff8000000000()
-> [  399.653562] page dumped because: kasan: bad access detected
-> [  399.653567] CPU: 1 PID: 19761 Comm: mc_nextgen_test Tainted: G    B           4.5.0+ #62
-> [  399.653570] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
-> [  399.653574]  ffff88036a9ba4e0 ffff8803c465fd10 ffffffff819447c1 ffff88036a9ba4e0
-> [  399.653582]  ffff8803c465fda8 ffff8803c465fd98 ffffffff8156ef05 0000000800000001
-> [  399.653591]  ffff8803c689fa10 0000000000000292 0000000041b58ab3 ffffffff82813e00
-> [  399.653599] Call Trace:
-> [  399.653604]  [<ffffffff819447c1>] dump_stack+0x85/0xc4
-> [  399.653609]  [<ffffffff8156ef05>] kasan_report_error+0x525/0x550
-> [  399.653615]  [<ffffffff81685d10>] ? __fsnotify_inode_delete+0x20/0x20
-> [  399.653620]  [<ffffffff8124acd0>] ? debug_check_no_locks_freed+0x290/0x290
-> [  399.653626]  [<ffffffff8156f063>] __asan_report_load8_noabort+0x43/0x50
-> [  399.653633]  [<ffffffffa11f53b1>] ? media_release+0xe1/0xf0 [media]
-> [  399.653640]  [<ffffffffa11f53b1>] media_release+0xe1/0xf0 [media]
-> [  399.653646]  [<ffffffff815c2c4f>] __fput+0x20f/0x6d0
-> [  399.653651]  [<ffffffff815c317e>] ____fput+0xe/0x10
-> [  399.653656]  [<ffffffff811acde7>] task_work_run+0x137/0x200
-> [  399.653662]  [<ffffffff81005d54>] exit_to_usermode_loop+0x154/0x180
-> [  399.653667]  [<ffffffff8124a1b6>] ? trace_hardirqs_on_caller+0x16/0x590
-> [  399.653672]  [<ffffffff810073a6>] syscall_return_slowpath+0x186/0x1c0
-> [  399.653678]  [<ffffffff822e7a1c>] entry_SYSCALL_64_fastpath+0xbf/0xc1
+> Sorry, I can't help with the Compro, but maybe with the Technisat :)
 > 
-> There are two alternatives to solve it: we could either use a static
-> var for cdev or to dynamically allocate it. Let's choose the last one,
-> as this is the same solution at v4l2 core, from where this code seems
-> to have originated.
-
-For reference only: when I posted my CEC framework code it was based on what
-v4l2-dev.c did, and I got yelled at by Russell King. I took his advice and
-the new approach seems to work well without having to allocate cdev.
-
-The code is here:
-
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/100380/focus=100378
-
-Search for cec_devnode_register.
-
-Russell's mail is here:
-
-http://www.spinics.net/lists/dri-devel/msg88417.html
-
-However, the struct cec_adapter itself does have to be allocated, otherwise you
-will get nasty lifetime issues. This seems to be a common theme: allocate the
-main struct (cec_adapter, video_device, rc_device), then register the character
-device as a separate step. On advantage of this is that a driver can allocate
-everything first and do the registration of the devices as the last step when
-it knows everything is consistent and initialized properly.
-
-We've been embedding video_device/media_device in top-level structs and that looks
-like it was a bad idea.
-
-Digging into this mess is time consuming, but I thought I should at least share
-this advice from Russell as an example.
-
-Regards,
-
-	Hans
-
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/media-devnode.c | 39 ++++++++++++++++++++++++++-------------
->  include/media/media-devnode.h |  4 ++--
->  2 files changed, 28 insertions(+), 15 deletions(-)
+> On 10/03/16 13:53, Neil Cordwell wrote:
+>> Technisat Skystar S2
+>> 
+>> When I first installed this card I couldn't find the firmware
+>> dvb-fe-cx24120-1.20.58.2.fw. Downloaded this from github and now there are
+>> no errors in dmesg, but I cannot get the card to tune in MythTV. I wondered
+>> if the <access denied> in the output of lspci is anything?
+>> 
+>> 3:05.0 Multimedia controller [0480]: Philips Semiconductors
+>> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+>>         Subsystem: Compro Technology, Inc. VideoMate T750 [185b:c900]
+>>         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+>> Stepping- SERR+ FastB2B- DisINTx-
+>>         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+>> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>>         Latency: 64 (21000ns min, 8000ns max)
+>>         Interrupt: pin A routed to IRQ 20
+>>         Region 0: Memory at febff800 (32-bit, non-prefetchable) [size=2K]
+>>         Capabilities: <access denied>
+>>         Kernel driver in use: saa7134
 > 
-> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-> index db47063d8801..7f9a7e65df20 100644
-> --- a/drivers/media/media-devnode.c
-> +++ b/drivers/media/media-devnode.c
-> @@ -56,6 +56,7 @@ static dev_t media_dev_t;
->   */
->  static DEFINE_MUTEX(media_devnode_lock);
->  static DECLARE_BITMAP(media_devnode_nums, MEDIA_NUM_DEVICES);
-> +static struct media_devnode *media_minors[MEDIA_NUM_DEVICES];
->  
->  /* Called when the last user of the media device exits. */
->  static void media_devnode_release(struct device *cd)
-> @@ -65,7 +66,9 @@ static void media_devnode_release(struct device *cd)
->  	mutex_lock(&media_devnode_lock);
->  
->  	/* Delete the cdev on this minor as well */
-> -	cdev_del(&devnode->cdev);
-> +	cdev_del(devnode->cdev);
-> +	devnode->cdev = NULL;
-> +	media_minors[devnode->minor] = NULL;
->  
->  	/* Mark device node number as free */
->  	clear_bit(devnode->minor, media_devnode_nums);
-> @@ -167,9 +170,7 @@ static int media_open(struct inode *inode, struct file *filp)
->  	 * a crash.
->  	 */
->  	mutex_lock(&media_devnode_lock);
-> -	devnode = container_of(inode->i_cdev, struct media_devnode, cdev);
-> -	/* return ENXIO if the media device has been removed
-> -	   already or if it is not registered anymore. */
-> +	devnode = media_minors[iminor(inode)];
->  	if (!media_devnode_is_registered(devnode)) {
->  		mutex_unlock(&media_devnode_lock);
->  		return -ENXIO;
-> @@ -227,6 +228,7 @@ int __must_check media_devnode_register(struct media_device *mdev,
->  {
->  	int minor;
->  	int ret;
-> +	dev_t devt;
->  
->  	/* Part 1: Find a free minor number */
->  	mutex_lock(&media_devnode_lock);
-> @@ -238,28 +240,35 @@ int __must_check media_devnode_register(struct media_device *mdev,
->  	}
->  
->  	set_bit(minor, media_devnode_nums);
-> +	media_minors[minor] = devnode;
->  	mutex_unlock(&media_devnode_lock);
->  
-> -	devnode->minor = minor;
-> -	devnode->media_dev = mdev;
-> -
->  	/* Part 2: Initialize and register the character device */
-> -	cdev_init(&devnode->cdev, &media_devnode_fops);
-> -	devnode->cdev.owner = owner;
-> +	devnode->cdev = cdev_alloc();
-> +	if (!devnode->cdev) {
-> +		ret = -ENOMEM;
-> +		goto error;
-> +	}
->  
-> -	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
-> +	cdev_init(devnode->cdev, &media_devnode_fops);
-> +	devnode->cdev->owner = owner;
-> +
-> +	devt = MKDEV(MAJOR(media_dev_t), minor);
-> +	ret = cdev_add(devnode->cdev, devt, 1);
->  	if (ret < 0) {
->  		pr_err("%s: cdev_add failed\n", __func__);
->  		goto error;
->  	}
->  
->  	/* Part 3: Register the media device */
-> +	devnode->minor = minor;
-> +	devnode->media_dev = mdev;
->  	devnode->dev.bus = &media_bus_type;
-> -	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
-> +	devnode->dev.devt = devt;
->  	devnode->dev.release = media_devnode_release;
->  	if (devnode->parent)
->  		devnode->dev.parent = devnode->parent;
-> -	dev_set_name(&devnode->dev, "media%d", devnode->minor);
-> +	dev_set_name(&devnode->dev, "media%d", minor);
->  	ret = device_register(&devnode->dev);
->  	if (ret < 0) {
->  		pr_err("%s: device_register failed\n", __func__);
-> @@ -273,8 +282,12 @@ int __must_check media_devnode_register(struct media_device *mdev,
->  
->  error:
->  	mutex_lock(&media_devnode_lock);
-> -	cdev_del(&devnode->cdev);
-> +	if (devnode->cdev) {
-> +		cdev_del(devnode->cdev);
-> +		devnode->cdev = NULL;
-> +	}
->  	clear_bit(devnode->minor, media_devnode_nums);
-> +	media_minors[minor] = NULL;
->  	mutex_unlock(&media_devnode_lock);
->  
->  	return ret;
-> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-> index cc2b3155593c..9fe627ca5ec9 100644
-> --- a/include/media/media-devnode.h
-> +++ b/include/media/media-devnode.h
-> @@ -71,7 +71,7 @@ struct media_file_operations {
->   * struct media_devnode - Media device node
->   * @fops:	pointer to struct &media_file_operations with media device ops
->   * @dev:	struct device pointer for the media controller device
-> - * @cdev:	struct cdev pointer character device
-> + * @cdev:      struct cdev pointer character device
->   * @parent:	parent device
->   * @minor:	device node minor number
->   * @flags:	flags, combination of the MEDIA_FLAG_* constants
-> @@ -90,7 +90,7 @@ struct media_devnode {
->  
->  	/* sysfs */
->  	struct device dev;		/* media device */
-> -	struct cdev cdev;		/* character device */
-> +	struct cdev *cdev;		/* character device */
->  	struct device *parent;		/* device parent */
->  
->  	/* device info */
+> The above is for the Compro and not the Skystar, but <access denied> is likely to just be that it needs root.
 > 
+
+You are in the userspace, root should not be needed: On Debian/Ubuntu you need to add your user to the group "video" ...
+
+$ ls -la /dev/dvb/adapter0/
+insgesamt 0
+drwxr-xr-x  2 root root     120 Mär 10 13:59 .
+drwxr-xr-x  4 root root      80 Mär 10 13:59 ..
+crw-rw----+ 1 root video 212, 1 Mär 10 13:59 demux0
+crw-rw----+ 1 root video 212, 2 Mär 10 13:59 dvr0
+crw-rw----+ 1 root video 212, 0 Mär 10 13:59 frontend0
+crw-rw----+ 1 root video 212, 3 Mär 10 13:59 net0
+
+
+> <snip>
+> 
+>> I tried to use dvbv5-scan with a simple channel file and get an error. Scan
+>> does nothing
+>> 
+>> neil@Sonata-Linux:~/Documents$ dvbv5-scan --input-format=CHANNEL Astra-28.2E
+>> ERROR Doesn't know how to handle delimiter '[CHANNEL]' while parsing line 2
+>> of Astra-28.2E
+>> 
+>> 
+>> [CHANNEL]
+>>                 DELIVERY_SYSTEM = DVBS2
+>>                 FREQUENCY = 11719500
+>>                 POLARIZATION = HORIZONTAL
+>>                 SYMBOL_RATE = 29500000
+>>                 INNER_FEC = 3/4
+>>                 MODULATION = QPSK
+>>                 INVERSION = AUTO
+> 
+> A few problems here - that's dvbv5 format and not channel so best to just skip the input-format, also 11719500 doesn't exist on 28.2E anymore, you probably want to be running this as root, and you should be specifying the lnb type.
+> 
+> This is how I ran it on mine quite recently whilst fixing a bug in the driver (you might need to change the adapter number on -a):
+> # dvbv5-scan -a 0 -l EXTENDED /usr/share/dvbv5/dvb-s/Astra-28.2E
+> 
+> That bug was patched only a few weeks ago so the above will probably fail on some of the transponders. MythTV wasn't affected though so that should scan fine, aslong as all the other things with myth are setup ok - it's quite fiddly!
+
+* Add the user to the group (video)
+
+* logout, login,
+
+* run dvbv5-scan as Jem mentioned (choose the right adapter with -a n)
+
+  the -l EXTENDED is required for Astra-28.E ... more help on LNBf
+
+   $ dvbv5-scan -l help
+
+* does scan work? --> your card is working!
+
+Next step: test streaming 
+
+* with channel file (dvb_channel.conf) run ... (set ADAPTER, FRONTEND and channel to your needs)
+
+$ dvbv5-zap \
+  --adapter $ADAPTER --frontend $FRONTEND \
+  -v \
+  -r \
+  -l EXTENDED \
+  -c dvb_channel.conf \
+  "$channel"
+	
+as output, you should see lines like ...
+
+Lock   (0x1f) Signal= -31,52dBm C/N= 13,62dB postBER= 0
+
+... does this work? ... OK, let it run / don't break it and ..
+
+* open a new terminal session and type ...
+
+$ mpv /dev/dvb/adapter${ADAPTER}/dvr0 --hwdec=auto 
+
+... mpv shows your TV channel, right? --> everything works fine.
+
+this was a complete roundtrip ... I have no MythTV experience, 
+may you ask into a MythTV Forum.
+
+--M--
 
