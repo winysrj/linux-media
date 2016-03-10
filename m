@@ -1,87 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from seymour.toledo.br ([200.148.142.55]:49090 "EHLO
-	seymour.toledo.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753842AbcCXC5i convert rfc822-to-8bit (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:33727 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750806AbcCJFHP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 22:57:38 -0400
-Content-Type: text/plain; charset=US-ASCII
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: CISCO IP PHONES AND CPU's
-To: Recipients <support@ensuretech.com>
-From: Laison@seymour.toledo.br, Computech@seymour.toledo.br,
-	"Inc <support"@ensuretech.com
-Date: Thu, 24 Mar 2016 05:43:22 +0700
-Reply-To: sales@laisoncomputech.com
-Message-Id: <20160324000722.9ACA2C2852@seymour.toledo.br>
+	Thu, 10 Mar 2016 00:07:15 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	sakari.ailus@linux.intel.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 0/4] media add change_source handler support
+Date: Wed,  9 Mar 2016 22:07:06 -0700
+Message-Id: <cover.1457585839.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch series:
+1. Adds change_source function pointer to struct media_device. Using
+   the change_source handler, driver can disable current source and
+   enable new one in one step when user selects a new input.
+2. Add a new common v4l interface to call change_source handler
+3. Add change_source hanlder to au0828-core
+4. Change change vidioc_s_input() to call v4l_change_media_source()
 
-Our Stock list.
+Shuah Khan (4):
+  media: add change_source handler function pointer
+  media: v4l2-mc add v4l_change_media_source() to invoke change_source
+  media: au0828 add media device change_source handler
+  media: au0828 change vidioc_s_input() to call
+    v4l_change_media_source()
 
-Brand NEW
-96 x Cisco 7900 IP Phone
-87 x Unified IP Phone 6900
-12 x Unified IP Phone 8900
-76 x Unified IP Phone 9900
-55 x Unified IP Phone 8800
-67 x Cisco 1921
-67 x Cisco 1941
-56 x Cisco CP-7961G 7961G
-34 x Cisco CP-7971G-GE 7971G
-19 x Cisco Unified IP Conference Station 7937G Model: 7937 CP-7937G
-20 x Cisco CP-7975G 7975G
+ drivers/media/usb/au0828/au0828-core.c  | 64 +++++++++++++++++++++++----------
+ drivers/media/usb/au0828/au0828-video.c |  8 ++---
+ drivers/media/v4l2-core/v4l2-mc.c       | 14 ++++++++
+ include/media/media-device.h            | 18 ++++++++--
+ include/media/v4l2-mc.h                 | 20 ++++++++++-
+ 5 files changed, 97 insertions(+), 27 deletions(-)
 
-Brand New Sealed :
+-- 
+2.5.0
 
-23 x  CISCO1921-SEC/K9
-Conditions: Brand New Sealed
-Description: CISCO 1921 Security Bundle w/SEC license PAK
-
-45 x CISCO1921/K9
-Conditions: Brand New Sealed
-Description: CISCO 1921 Modular Router, 2 GE, 2 EHWIC slots, 512DRAM, IP Base
-
-(1)  WS-C4500X-16SFP+
-Serial number:  JAE183501L3
-US&#36;2600
-
-(1)  WS-C3850-48PW-S
-Serial number:  FCW1823C0EW
-US&#36;2650
-
-(1)  WS-X6908-10G-2T
-Serial number:  SAL1620CKUB
-US&#36;3650
-
-(1)  ASR1000-ESP10
-Serial number:  JAE181306C3
-US&#36;3800
-
-(1)  AIR-CT5508-250-K9   (this is new but box is open!)
-Serial number:  FCW1521L038
-US&#36;4000
-
-CPUs part number below
-
-89 x  X5650
-
-975 x  X5660
-
-150 x  X5680
-
-265 x  X5690
-
-Kindly make your price offers.
-
-Sincerely
-Barbara Johnson
-Laison Computech
-210 N Scoring Ave,
-Rialto California, 92376
-Tel: +1-657-232-7047
-Fax: +1-347-214-0478
-Email: sales@laisoncomputech.com
