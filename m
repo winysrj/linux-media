@@ -1,67 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44849 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754067AbcCAO5Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 09:57:24 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 5/8] v4l2: add device_caps to struct video_device
-Date: Tue,  1 Mar 2016 16:57:23 +0200
-Message-Id: <1456844246-18778-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout.easymail.ca ([64.68.201.169]:33736 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750812AbcCJFHP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2016 00:07:15 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	sakari.ailus@linux.intel.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/4] media: add change_source handler function pointer
+Date: Wed,  9 Mar 2016 22:07:07 -0700
+Message-Id: <779a882295f11b1a7ab1ac4851f467f2d1b3470d.1457585839.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1457585839.git.shuahkh@osg.samsung.com>
+References: <cover.1457585839.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1457585839.git.shuahkh@osg.samsung.com>
+References: <cover.1457585839.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add change_source handler function pointer to struct media_device. Using
+the change_source handler, driver can disable current source and enable
+new one in one step when user selects a new input.
 
-Instead of letting drivers fill in device_caps at querycap time,
-let them fill it in when the video device is registered.
-
-This has the advantage that in the future the v4l2 core can access
-the video device's capabilities and take decisions based on that.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
- include/media/v4l2-dev.h             | 3 +++
- 2 files changed, 6 insertions(+)
+ include/media/media-device.h | 18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 86c4c19b5d7b..706bb4251462 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1020,9 +1020,12 @@ static int v4l_querycap(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
- 	struct v4l2_capability *cap = (struct v4l2_capability *)arg;
-+	struct video_device *vfd = video_devdata(file);
- 	int ret;
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index df74cfa..d9867ed 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -309,9 +309,11 @@ struct media_entity_notify {
+  * @pm_count_walk: Graph walk for power state walk. Access serialised using
+  *		   graph_mutex.
+  *
+- * @source_priv: Driver Private data for enable/disable source handlers
++ * @source_priv: Driver Private data for enable/disable/change source
++ *		 handlers
+  * @enable_source: Enable Source Handler function pointer
+  * @disable_source: Disable Source Handler function pointer
++ * @change_source: Change Source Handler function pointer
+  *
+  * @link_notify: Link state change notification callback
+  *
+@@ -326,14 +328,22 @@ struct media_entity_notify {
+  * be unique.
+  *
+  * @enable_source is a handler to find source entity for the
+- * sink entity  and activate the link between them if source
++ * sink entity and activate the link between them if source
+  * entity is free. Drivers should call this handler before
+  * accessing the source.
+  *
+  * @disable_source is a handler to find source entity for the
+- * sink entity  and deactivate the link between them. Drivers
++ * sink entity and deactivate the link between them. Drivers
+  * should call this handler to release the source.
+  *
++ * @change_source is a handler to find source entity for the
++ * sink entity and deactivate the link between them. Once the
++ * existing link is deactivated, it will find and activate the
++ * source for the sink for the newly selected input. Drivers
++ * should call this handler to change the source when user
++ * changes input. Using change_source helps not loose the hold
++ * on the media resource when a new input is selected.
++ *
+  * Note: Bridge driver is expected to implement and set the
+  * handler when media_device is registered or when
+  * bridge driver finds the media_device during probe.
+@@ -381,6 +391,8 @@ struct media_device {
+ 	int (*enable_source)(struct media_entity *entity,
+ 			     struct media_pipeline *pipe);
+ 	void (*disable_source)(struct media_entity *entity);
++	int (*change_source)(struct media_entity *entity,
++			     struct media_pipeline *pipe);
  
- 	cap->version = LINUX_VERSION_CODE;
-+	cap->device_caps = vfd->device_caps;
-+	cap->capabilities = vfd->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	ret = ops->vidioc_querycap(file, fh, cap);
- 
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 76056ab5c5bd..25a3190308fb 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -92,6 +92,9 @@ struct video_device
- 	/* device ops */
- 	const struct v4l2_file_operations *fops;
- 
-+	/* device capabilities as used in v4l2_capabilities */
-+	u32 device_caps;
-+
- 	/* sysfs */
- 	struct device dev;		/* v4l device */
- 	struct cdev *cdev;		/* character device */
+ 	int (*link_notify)(struct media_link *link, u32 flags,
+ 			   unsigned int notification);
 -- 
-2.4.10
+2.5.0
 
