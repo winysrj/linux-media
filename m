@@ -1,125 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.74]:57736 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754316AbcCBQBG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 11:01:06 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>, herbert@gondor.apana.org.au,
-	k.kozlowski@samsung.com, dan.j.williams@intel.com,
-	vinod.koul@intel.com, baohua@kernel.org, dmitry.torokhov@gmail.com,
-	tglx@linutronix.de, jason@lakedaemon.net, marc.zyngier@arm.com,
-	laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
-	lee.jones@linaro.org, kvalo@codeaurora.org,
-	ludovic.desroches@atmel.com, linus.walleij@linaro.org,
-	sre@kernel.org, dbaryshkov@gmail.com, JBottomley@odin.com,
-	martin.petersen@oracle.com, broonie@kernel.org,
-	linux-crypto@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
-	linux-scsi@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-rockchip@lists.infradead.org
-Subject: [PATCH 00/14] drivers: use __maybe_unused to hide pm functions
-Date: Wed,  2 Mar 2016 16:58:52 +0100
-Message-Id: <1456934350-1389172-1-git-send-email-arnd@arndb.de>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from lists.s-osg.org ([54.187.51.154]:44788 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752455AbcCJSFg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2016 13:05:36 -0500
+Subject: Re: [PATCH] Revert "[media] au0828: use v4l2_mc_create_media_graph()"
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1457493972-4063-1-git-send-email-shuahkh@osg.samsung.com>
+ <56E19DDE.9080307@osg.samsung.com> <20160310145309.30c47210@recife.lan>
+Cc: hans.verkuil@cisco.com, nenggun.kim@samsung.com,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	chehabrafael@gmail.com, sakari.ailus@linux.intel.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56E1B76E.5030205@osg.samsung.com>
+Date: Thu, 10 Mar 2016 11:05:34 -0700
+MIME-Version: 1.0
+In-Reply-To: <20160310145309.30c47210@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I found many variations of the bug in these device drivers (and some
-USB drivers I already send patches for in a separate series).
+On 03/10/2016 10:53 AM, Mauro Carvalho Chehab wrote:
+> Em Thu, 10 Mar 2016 09:16:30 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> On 03/08/2016 08:26 PM, Shuah Khan wrote:
+>>> This reverts commit 9822f4173f84cb7c592edb5e1478b7903f69d018.
+>>> This commit breaks au0828_enable_handler() logic to find the tuner.
+>>> Audio, Video, and Digital applications are broken and fail to start
+>>> streaming with tuner busy error even when tuner is free.
+>>>
+>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>> ---
+>>>  drivers/media/usb/au0828/au0828-video.c | 103 ++++++++++++++++++++++++++++++--
+>>>  drivers/media/v4l2-core/v4l2-mc.c       |  21 +------
+>>>  2 files changed, 99 insertions(+), 25 deletions(-)
+>>>   
+>>
+>> Hi Mauro,
+>>
+>> Please pull this revert in as soon as possible. Without
+>> the revert, auido, video, and digital applications won't
+>> start even. There is a bug in the common routine introduced
+>> in the commit 9822f4173f84cb7c592edb5e1478b7903f69d018 which
+>> causes the link between source and sink to be not found.
+>> I am testing on WIn-TV HVR 950Q
+> 
+> No, this patch didn't seem to have broken anything. The problems
+> you're reporting seem to be related, instead, to this patch:
+> 
+> 	https://patchwork.linuxtv.org/patch/33422/
+> 
+> I rebased it on the top of the master tree (without reverting this
+> patch).
 
-In each case, the power management operations structure conditionally
-references suspend/resume functions, but the functions are hidden
-in an incorrect #ifdef or not hidden at all.
+I don't think so. I sent https://patchwork.linuxtv.org/patch/33422/
+after I did the revert. I tested with linux_media branch with this
+top commit:
 
-We could try to correct the #ifdefs, but it seems easier to just
-mark those functions as __maybe_unused, which has the same effect
-but provides better compile-time test coverage and (subjectively)
-looks a bit nicer.
+commit de08b5a8be0df1eb7c796b0fe6b30cf1d03d14a6
+Author: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Date:   Tue Mar 1 06:31:53 2016 -0300
 
-I have a patch series that avoids all warnings in ARM randconfig
-builds, and I have verified that all these patches fix a warning that
-is still present in today's linux-next, and that they do not
-introduce new warnings in any configuration I found.
+when I found the problem and reverting the commit 
+9822f4173f84cb7c592edb5e1478b7903f69d018 - solved the proble,
 
-Note that all these drivers are ARM specific, so I assume that
-all portable drivers got fixed already when someone rand into
-the problem on x86.
+Could you please test with and without the revert.
 
-There are no dependencies between the patches, so I'd appreciate
-subsystem maintainers to put them directly into their git trees.
+> 
+> Please check if it solved for you.
+> 
+> Yet, I'm seeing several troubles with au0828 after your patch series:
+> 
+> 1) when both snd-usb-audio and au0828 are compiled as module and not
+> blacklisted, I'm getting some errors:
+> 	http://pastebin.com/nMzr3ueM
 
-	Arnd
+Also without the good graph in place, you won't see the problem
+I am talking about with 9822f4173f84cb7c592edb5e1478b7903f69d018
 
-Arnd Bergmann (14):
-  pinctrl: at91: use __maybe_unused to hide pm functions
-  irqchip: st: use __maybe_unused to hide st_irq_syscfg_resume
-  power: ipaq-micro-battery: use __maybe_unused to hide pm functions
-  power: pm2301-charger: use __maybe_unused to hide pm functions
-  mfd: ipaq-micro: use __maybe_unused to hide pm functions
-  dma: sirf: use __maybe_unused to hide pm functions
-  hw_random: exynos: use __maybe_unused to hide pm functions
-  scsi: mvumi: use __maybe_unused to hide pm functions
-  amd-xgbe: use __maybe_unused to hide pm functions
-  wireless: cw1200: use __maybe_unused to hide pm functions_
-  input: spear-keyboard: use __maybe_unused to hide pm functions
-  keyboard: snvs-pwrkey: use __maybe_unused to hide pm functions
-  [media] omap3isp: use IS_ENABLED() to hide pm functions
-  ASoC: rockchip: use __maybe_unused to hide st_irq_syscfg_resume
+> 
+> 2) removing/reprobing au0828 driver ~3 times, the Kernel becomes
+> unstable. Probably, some kobj ref were decremented every time a
+> module insert/removal pair is called from userspace, causing the
+> kref to reach zero, thus causing the trouble;
 
- drivers/char/hw_random/exynos-rng.c         | 10 ++++------
- drivers/dma/sirf-dma.c                      | 10 ++++------
- drivers/input/keyboard/snvs_pwrkey.c        |  4 ++--
- drivers/input/keyboard/spear-keyboard.c     |  6 ++----
- drivers/irqchip/irq-st.c                    |  2 +-
- drivers/media/platform/omap3isp/isp.c       | 13 +------------
- drivers/mfd/ipaq-micro.c                    |  2 +-
- drivers/net/ethernet/amd/xgbe/xgbe-main.c   |  6 ++----
- drivers/net/wireless/st/cw1200/cw1200_spi.c |  9 ++-------
- drivers/net/wireless/st/cw1200/pm.h         |  9 +++++++--
- drivers/pinctrl/pinctrl-at91-pio4.c         |  4 ++--
- drivers/power/ipaq_micro_battery.c          |  4 ++--
- drivers/power/pm2301_charger.c              | 22 ++++++----------------
- drivers/scsi/mvumi.c                        |  4 ++--
- sound/soc/rockchip/rockchip_spdif.c         |  4 ++--
- 15 files changed, 40 insertions(+), 69 deletions(-)
+I answered this in detail on the other thread. Cutting and pasting
+from that thread:
+
+>>I'm also getting some other weird behavior when removing/reinserting
+>>the modules a few times. OK, officially we don't support it, but,
+>>as devices can be bind/unbind all the times, removing modules is
+>>a way to simulate such things. Also, I use it a lot while testing
+>>USB drivers ;)
+
+>>This one is after removing both the media drivers and snd-usb-audio, 
+>>and then modprobing snd-usb-audio:
+
+I did see some issues when I did the following sequence:
+
+- blacklisted au0828 and snd-usb-audio was probed first
+  graph is good just with audio entities as expected
+- modprobed au0828 - graph looks good.
+- rmmod au0828 - no problems seen in dmesg
+- modprobe au0828 - problems kasan reports bad access etc.
+  http://pastebin.com/FFqNzx9G
+
+Here is what's going on after each step:
+
+blacklisted au0828 and snd-usb-audio was probed first
+1. snd-usb-audio creates media device and registers it
+   Creates its graph etc.
+2. modprobed au0828
+   au0828 finds the media device created and registered.
+   Adds its graph
+3. rmmod au0828
+   Even though there are no problems reported, at this
+   time media device is unregistered, and /dev/mediaX is
+   removed. We still have snd_usb-audio and media device.
+   As media device is a device resource on usb device parent,
+   it will still be there, but no way to access the device
+   itself, because it is no longer registered.
+4. modprobe au0828
+   At this point, au0828 finds the media device as it still
+   there, registers it and adds its graph. No audio graph
+   present at this time.
+
+Please note that the media device will not be deleted until
+the last put on the parent usb struct device. So even when
+both snd-usb-audio, and au0828 modules are removed, media
+device is still there without its graph and associated devnode
+(/dev/mediax is removed).
+
+This isn't bad, however, media_device could still have
+stale information.
+
+e.g: enable/disable handlers - when au0828 is removed,
+these are no longer valid. Could be cleaned up in
+media device unregister just like entity_notify() handler
+gets deleted from media device unregister. At the moment,
+either driver can call unregister and same cleanup happens.
+
+I will send a patch to do enable/disable handler cleanup
+in unregister path.
+
+However, the root of the problem is media device is
+still there without its graph and associated devnode
+(/dev/mediax is removed) when any one of the drivers
+is removed. This leaves the remaining drivers in a
+degenerate state.
+
+The problem can be solved with some handshaking at
+unregister time. We could add a callback for each
+if the drivers to handle media device unregister.
+However, that would add delays in device removal path
+when all the drivers exit. I think it will be hard to
+handle all the corner cases without adding run-time overhead.
+
+Any thoughts on whether we want to unofficially support
+being able to remove individual drivers?
+
+> 
+> 3) the media entities that should have been created by
+> media_snd_stream_init() are never created. Maybe this is related
+> with (1).
+> 
+
+thanks,
+-- Shuah
+
 
 -- 
-2.7.0
-Cc: herbert@gondor.apana.org.au
-Cc: k.kozlowski@samsung.com
-Cc: dan.j.williams@intel.com
-Cc: vinod.koul@intel.com
-Cc: baohua@kernel.org
-Cc: dmitry.torokhov@gmail.com
-Cc: tglx@linutronix.de
-Cc: jason@lakedaemon.net
-Cc: marc.zyngier@arm.com
-Cc: laurent.pinchart@ideasonboard.com
-Cc: mchehab@osg.samsung.com
-Cc: lee.jones@linaro.org
-Cc: kvalo@codeaurora.org
-Cc: ludovic.desroches@atmel.com
-Cc: linus.walleij@linaro.org
-Cc: sre@kernel.org
-Cc: dbaryshkov@gmail.com
-Cc: JBottomley@odin.com
-Cc: martin.petersen@oracle.com
-Cc: broonie@kernel.org
-Cc: linux-crypto@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-samsung-soc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: dmaengine@vger.kernel.org
-Cc: linux-input@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Cc: linux-wireless@vger.kernel.org
-Cc: linux-gpio@vger.kernel.org
-Cc: linux-pm@vger.kernel.org
-Cc: linux-scsi@vger.kernel.org
-Cc: alsa-devel@alsa-project.org
-Cc: linux-rockchip@lists.infradead.org
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
