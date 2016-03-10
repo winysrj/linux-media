@@ -1,117 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:55416 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751316AbcCCIEI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 03:04:08 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	David Brown <david.brown@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
-	rtc-linux@googlegroups.com, linux-arm-msm@vger.kernel.org,
-	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-usb@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [RFC 00/15] tree-wide: mfd: syscon: Fix unmet ioremap dependency
-Date: Thu, 03 Mar 2016 17:03:26 +0900
-Message-id: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+Received: from mailout.easymail.ca ([64.68.201.169]:33207 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754346AbcCJCPn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2016 21:15:43 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	inki.dae@samsung.com, sw0312.kim@samsung.com,
+	jh1009.sung@samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: au0828 disable tuner to demod link in au0828_media_device_register()
+Date: Wed,  9 Mar 2016 19:15:38 -0700
+Message-Id: <1457576138-8728-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Disable tuner to demod link in au0828_media_device_register(). This step
+should be done after dvb graph is created.
 
-Building allyesconfig on ARCH=um fails with:
-   drivers/mfd/syscon.c: In function ‘of_syscon_register’:
-   drivers/mfd/syscon.c:67:9: error: implicit declaration of function ‘ioremap’ [-Werror=implicit-function-declaration]
-      base = ioremap(res.start, resource_size(&res));
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c  | 26 ++++++++++++++++++++++++++
+ drivers/media/usb/au0828/au0828-video.c | 20 +-------------------
+ 2 files changed, 27 insertions(+), 19 deletions(-)
 
-Since commit c89c0114955a ("mfd: syscon: Set regmap max_register in
-of_syscon_register") the syscon depends on HAS_IOMEM because
-it uses the ioremap().
-
-However syscon is often directly selected... so first the dependency on
-HAS_IOMEM has to be added to all selecting symbols.
-
-Comments are welcomed whether this is appropriate approach.
-
-
-The last patch "mfd: syscon: Fix build of missing ioremap on UM" should
-enter all other to avoid kbuild complains like:
-
-warning: (ST_IRQCHIP && HIP04_ETH && STMMAC_PLATFORM && DWMAC_IPQ806X &&
-DWMAC_LPC18XX && DWMAC_ROCKCHIP && DWMAC_SOCFPGA && DWMAC_STI && TI_CPSW
-&& PINCTRL_ROCKCHIP && PINCTRL_DOVE && POWER_RESET_KEYSTONE &&
-S3C2410_WATCHDOG && VIDEO_OMAP3 && VIDEO_S5P_FIMC && USB_XHCI_MTK &&
-RTC_DRV_AT91SAM9 && LPC18XX_DMAMUX && VIDEO_OMAP4 && HWSPINLOCK_QCOM && ATMEL_ST
-&& QCOM_GSBI && PHY_HI6220_USB)
-selects MFD_SYSCON which has unmet direct dependencies (HAS_IOMEM)
-
-
-Best regards,
-Krzysztof
-
-
-Krzysztof Kozlowski (15):
-  clocksource: atmel: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  dmaengine: nxp: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  hwspinlock: qcom: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  irqchip: st: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  phy: hi6220: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  pinctrl: rockchip: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  pinctrl: mvebu: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  rtc: at91sam9: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  media: platform: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  net: ethernet: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  power: reset: keystone: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  soc: qcom: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  staging: media: omap4iss: Add missing MFD_SYSCON dependency on
-    HAS_IOMEM
-  usb: xhci: mtk: Add missing MFD_SYSCON dependency on HAS_IOMEM
-  mfd: syscon: Fix build of missing ioremap on UM
-
- drivers/clocksource/Kconfig                 | 1 +
- drivers/dma/Kconfig                         | 1 +
- drivers/hwspinlock/Kconfig                  | 1 +
- drivers/irqchip/Kconfig                     | 1 +
- drivers/media/platform/Kconfig              | 1 +
- drivers/media/platform/exynos4-is/Kconfig   | 1 +
- drivers/mfd/Kconfig                         | 1 +
- drivers/net/ethernet/hisilicon/Kconfig      | 1 +
- drivers/net/ethernet/stmicro/stmmac/Kconfig | 6 ++++++
- drivers/net/ethernet/ti/Kconfig             | 1 +
- drivers/phy/Kconfig                         | 1 +
- drivers/pinctrl/Kconfig                     | 1 +
- drivers/pinctrl/mvebu/Kconfig               | 1 +
- drivers/power/reset/Kconfig                 | 1 +
- drivers/rtc/Kconfig                         | 1 +
- drivers/soc/qcom/Kconfig                    | 1 +
- drivers/staging/media/omap4iss/Kconfig      | 1 +
- drivers/usb/host/Kconfig                    | 1 +
- 18 files changed, 23 insertions(+)
-
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 7fc3dba..5dc82e8 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -456,6 +456,7 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ {
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	int ret;
++	struct media_entity *entity, *demod = NULL, *tuner = NULL;
+ 
+ 	if (!dev->media_dev)
+ 		return 0;
+@@ -479,6 +480,31 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 		*/
+ 		au0828_media_graph_notify(NULL, (void *) dev);
+ 	}
++
++	/*
++	 * Find tuner and demod to disable the link between
++	 * the two to avoid disable step when tuner is requested
++	 * by video or audio. Note that this step can't be done
++	 * until dvb graph is created during dvb register.
++	*/
++	media_device_for_each_entity(entity, dev->media_dev) {
++		if (entity->function == MEDIA_ENT_F_DTV_DEMOD)
++			demod = entity;
++		else if (entity->function == MEDIA_ENT_F_TUNER)
++			tuner = entity;
++	}
++	/* Disable link between tuner and demod */
++	if (tuner && demod) {
++		struct media_link *link;
++
++		list_for_each_entry(link, &demod->links, list) {
++			if (link->sink->entity == demod &&
++			    link->source->entity == tuner) {
++				media_entity_setup_link(link, 0);
++			}
++		}
++	}
++
+ 	/* register entity_notify callback */
+ 	dev->entity_notify.notify_data = (void *) dev;
+ 	dev->entity_notify.notify = (void *) au0828_media_graph_notify;
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 5f7c8be..aeaf27e 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -657,7 +657,7 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_device *mdev = dev->media_dev;
+ 	struct media_entity *entity;
+-	struct media_entity *tuner = NULL, *decoder = NULL, *demod = NULL;
++	struct media_entity *tuner = NULL, *decoder = NULL;
+ 	int i, ret;
+ 
+ 	if (!mdev)
+@@ -671,9 +671,6 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 		case MEDIA_ENT_F_ATV_DECODER:
+ 			decoder = entity;
+ 			break;
+-		case MEDIA_ENT_F_DTV_DEMOD:
+-			demod = entity;
+-			break;
+ 		}
+ 	}
+ 
+@@ -729,21 +726,6 @@ static int au0828_create_media_graph(struct au0828_dev *dev)
+ 			break;
+ 		}
+ 	}
+-
+-	/*
+-	 * Disable tuner to demod link to avoid disable step
+-	 * when tuner is requested by video or audio
+-	*/
+-	if (tuner && demod) {
+-		struct media_link *link;
+-
+-		list_for_each_entry(link, &demod->links, list) {
+-			if (link->sink->entity == demod &&
+-			    link->source->entity == tuner) {
+-				media_entity_setup_link(link, 0);
+-			}
+-		}
+-	}
+ #endif
+ 	return 0;
+ }
 -- 
 2.5.0
 
