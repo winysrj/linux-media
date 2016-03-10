@@ -1,123 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:57156 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753511AbcC1DI0 (ORCPT
+Received: from mail-yw0-f175.google.com ([209.85.161.175]:35627 "EHLO
+	mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752455AbcCJPu2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Mar 2016 23:08:26 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6D0171804F4
-	for <linux-media@vger.kernel.org>; Mon, 28 Mar 2016 05:08:19 +0200 (CEST)
-Date: Mon, 28 Mar 2016 05:08:19 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160328030819.6D0171804F4@tschai.lan>
+	Thu, 10 Mar 2016 10:50:28 -0500
+MIME-Version: 1.0
+In-Reply-To: <20160302214501.GE7079@bigcity.dyn.berto.se>
+References: <1456751563-21246-1-git-send-email-ykaneko0929@gmail.com>
+	<56D4475A.1070203@xs4all.nl>
+	<CAH1o70KLcLAK4GCN-PYmrggHoXFB-9bRiCF73M-0YL5griaweg@mail.gmail.com>
+	<20160302214501.GE7079@bigcity.dyn.berto.se>
+Date: Fri, 11 Mar 2016 00:50:26 +0900
+Message-ID: <CAH1o70LWOX1wd9EaaMLeEy21G1MW0E8aSze9PmL=zNTJD-KYiA@mail.gmail.com>
+Subject: Re: [PATCH/RFC 0/4] media: soc_camera: rcar_vin: Add UDS and NV16
+ scaling support
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+To: =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Simon Horman <horms@verge.net.au>,
+	linux-renesas-soc@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Niklas-san,
 
-Results of the daily build of media_tree:
+I'm very sorry for the long delay in my reply.
 
-date:		Mon Mar 28 04:00:23 CEST 2016
-git branch:	test
-git hash:	2705c1a96f978450377f1019d4bef34190b4ef05
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3353-gcae47da
-host hardware:	x86_64
-host os:	4.4.0-164
+2016-03-03 6:45 GMT+09:00 Niklas Söderlund <niklas.soderlund@ragnatech.se>:
+> Hi Kaneko-san,
+>
+> On 2016-03-03 02:26:41 +0900, Yoshihiro Kaneko wrote:
+>> Hi Hans,
+>>
+>> 2016-02-29 22:27 GMT+09:00 Hans Verkuil <hverkuil@xs4all.nl>:
+>> > Huh, you must have missed Niklas's work the rcar-vin driver:
+>> >
+>> > http://www.spinics.net/lists/linux-media/msg97816.html
+>> >
+>> > I expect that the old soc-camera driver will be retired soon in favor of
+>> > the new driver, so I don't want to accept patches for that one.
+>> >
+>> > I recommend that you check the new driver and see what (if anything) is needed
+>> > to get this functionality in there and work with Niklas on this.
+>> >
+>> > This is all quite recent work, so it is not surprising that you missed it.
+>>
+>> Thank you for informing me!
+>> I will check it.
+>
+> My plan is to look at VIN for Gen3 once Gen2 support is done. I have
+> somewhat tried to keep the new driver prepared for Gen3. I have
+> separating the Gen2 scaler och clipper out in its own corner since this
+> will be different on Gen3.
+>
+> My understanding is however that Gen3 don't provide UDS blocks
+> (scaler+clipper) to all VIN instances. And the VIN instances that have
+> access to a UDS block have to share it with one other VIN instance (only
+> one user at a time). How to describe this in DT in a good way I do not
+> yet know. If you have any ideas here or know more I would be glad to
+> hear it, I have not yet started any work for Gen3.
+>
+> My initial plan for Gen3 enablement is to ignore the UDS blocks all
+> together. I feel there is enough to adapt VIN driver and get both the
+> CSI2 and sensor driver to work to be able to test the whole chain
+> without worrying about UDS too.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Thanks for your detailed explanation.
+I don't have any idea. Sorry that I can't help you.
+I stop posting any patch for the current (old) VIN driver.
 
-Detailed results are available here:
+Thanks,
+kaneko
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+>
+>>
+>> >
+>> > Regards,
+>> >
+>> >         Hans
+>>
+>> Regards,
+>> kaneko
+>>
+>> >
+>> > On 02/29/2016 02:12 PM, Yoshihiro Kaneko wrote:
+>> >> This series adds UDS support, NV16 scaling support and callback functions
+>> >> to be required by a clipping process.
+>> >>
+>> >> This series is against the master branch of linuxtv.org/media_tree.git.
+>> >>
+>> >> Koji Matsuoka (3):
+>> >>   media: soc_camera: rcar_vin: Add get_selection callback function
+>> >>   media: soc_camera: rcar_vin: Add cropcap callback function
+>> >>   media: soc_camera: rcar_vin: Add NV16 scaling support
+>> >>
+>> >> Yoshihiko Mori (1):
+>> >>   media: soc_camera: rcar_vin: Add UDS support
+>> >>
+>> >>  drivers/media/platform/soc_camera/rcar_vin.c | 220 ++++++++++++++++++++++-----
+>> >>  1 file changed, 184 insertions(+), 36 deletions(-)
+>> >>
+>> >
+>
+> --
+> Regards,
+> Niklas Söderlund
