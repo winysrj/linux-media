@@ -1,88 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34619 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932532AbcCQTjc (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45730 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752163AbcCJHfJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Mar 2016 15:39:32 -0400
-Received: by mail-wm0-f68.google.com with SMTP id p65so1594961wmp.1
-        for <linux-media@vger.kernel.org>; Thu, 17 Mar 2016 12:39:31 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH v2] media: rc: reduce size of struct ir_raw_event
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56EB07E1.5030701@gmail.com>
-Date: Thu, 17 Mar 2016 20:39:13 +0100
+	Thu, 10 Mar 2016 02:35:09 -0500
+Date: Thu, 10 Mar 2016 09:35:00 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com,
+	pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH v3 06/22] media: Media Controller enable/disable source
+ handler API
+Message-ID: <20160310073500.GK11084@valkosipuli.retiisi.org.uk>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+ <2d8b035ec723346dfeed5db859aba67738e049cc.1455233153.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2d8b035ec723346dfeed5db859aba67738e049cc.1455233153.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-struct ir_raw_event currently has a size of 12 bytes on most (all?)
-architectures. This can be reduced to 8 bytes whilst maintaining
-full backwards compatibility.
-This saves 2KB in size of struct ir_raw_event_ctrl (as element
-kfifo is reduced by 512 * 4 bytes) and it allows to copy the
-full struct ir_raw_event with a single 64 bit operation.
+Hi Shuah,
 
-Successfully tested with the Nuvoton driver and successfully
-compile-tested with the ene_ir driver (as it uses the carrier /
-duty_cycle elements).
+On Thu, Feb 11, 2016 at 04:41:22PM -0700, Shuah Khan wrote:
+> Add new fields to struct media_device to add enable_source, and
+> disable_source handlers, and source_priv to stash driver private
+> data that is used to run these handlers. The enable_source handler
+> finds source entity for the passed in entity and checks if it is
+> available. When link is found, it activates it. Disable source
+> handler deactivates the link.
+> 
+> Bridge driver is expected to implement and set these handlers.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  include/media/media-device.h | 30 ++++++++++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+> 
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index 075a482..1a04644 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -302,6 +302,11 @@ struct media_entity_notify {
+>   * @entity_notify: List of registered entity_notify callbacks
+>   * @lock:	Entities list lock
+>   * @graph_mutex: Entities graph operation lock
+> + *
+> + * @source_priv: Driver Private data for enable/disable source handlers
+> + * @enable_source: Enable Source Handler function pointer
+> + * @disable_source: Disable Source Handler function pointer
+> + *
+>   * @link_notify: Link state change notification callback
+>   *
+>   * This structure represents an abstract high-level media device. It allows easy
+> @@ -313,6 +318,26 @@ struct media_entity_notify {
+>   *
+>   * @model is a descriptive model name exported through sysfs. It doesn't have to
+>   * be unique.
+> + *
+> + * @enable_source is a handler to find source entity for the
+> + * sink entity  and activate the link between them if source
+> + * entity is free. Drivers should call this handler before
+> + * accessing the source.
+> + *
+> + * @disable_source is a handler to find source entity for the
+> + * sink entity  and deactivate the link between them. Drivers
+> + * should call this handler to release the source.
+> + *
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
-v2:
-- don't change type of bit field members
----
- include/media/rc-core.h | 18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+Is there a particular reason you're not simply (de)activating the link, but
+instead add a new callback?
 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 0f77b3d..f6f55b7 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -215,12 +215,9 @@ enum raw_event_type {
- struct ir_raw_event {
- 	union {
- 		u32             duration;
--
--		struct {
--			u32     carrier;
--			u8      duty_cycle;
--		};
-+		u32             carrier;
- 	};
-+	u8                      duty_cycle;
- 
- 	unsigned                pulse:1;
- 	unsigned                reset:1;
-@@ -228,13 +225,7 @@ struct ir_raw_event {
- 	unsigned                carrier_report:1;
- };
- 
--#define DEFINE_IR_RAW_EVENT(event) \
--	struct ir_raw_event event = { \
--		{ .duration = 0 } , \
--		.pulse = 0, \
--		.reset = 0, \
--		.timeout = 0, \
--		.carrier_report = 0 }
-+#define DEFINE_IR_RAW_EVENT(event) struct ir_raw_event event = {}
- 
- static inline void init_ir_raw_event(struct ir_raw_event *ev)
- {
-@@ -256,8 +247,7 @@ void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
- 
- static inline void ir_raw_event_reset(struct rc_dev *dev)
- {
--	DEFINE_IR_RAW_EVENT(ev);
--	ev.reset = true;
-+	struct ir_raw_event ev = { .reset = true };
- 
- 	ir_raw_event_store(dev, &ev);
- 	ir_raw_event_handle(dev);
+> + * Note: Bridge driver is expected to implement and set the
+> + * handler when media_device is registered or when
+> + * bridge driver finds the media_device during probe.
+> + * Bridge driver sets source_priv with information
+> + * necessary to run enable/disable source handlers.
+> + *
+> + * Use-case: find tuner entity connected to the decoder
+> + * entity and check if it is available, and activate the
+> + * the link between them from enable_source and deactivate
+> + * from disable_source.
+>   */
+>  struct media_device {
+>  	/* dev->driver_data points to this struct. */
+> @@ -344,6 +369,11 @@ struct media_device {
+>  	/* Serializes graph operations. */
+>  	struct mutex graph_mutex;
+>  
+> +	void *source_priv;
+> +	int (*enable_source)(struct media_entity *entity,
+> +			     struct media_pipeline *pipe);
+> +	void (*disable_source)(struct media_entity *entity);
+> +
+>  	int (*link_notify)(struct media_link *link, u32 flags,
+>  			   unsigned int notification);
+>  };
+
 -- 
-2.7.3
+Kind regards,
 
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
