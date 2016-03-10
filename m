@@ -1,99 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:33681 "EHLO lists.s-osg.org"
+Received: from mga14.intel.com ([192.55.52.115]:30567 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751002AbcCCNDD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 08:03:03 -0500
-Date: Thu, 3 Mar 2016 10:02:56 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sean Young <sean@mess.org>
-Cc: Insu Yun <wuninsu@gmail.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, taesoo@gatech.edu,
-	yeongjin.jang@gatech.edu, insu@gatech.edu, changwoo@gatech.edu
-Subject: Re: [PATCH] rc: correctly handling failed allocation
-Message-ID: <20160303100256.48cbdf45@recife.lan>
-In-Reply-To: <20160216105454.GA7378@gofer.mess.org>
-References: <1455589991-7795-1-git-send-email-wuninsu@gmail.com>
-	<20160216105454.GA7378@gofer.mess.org>
+	id S935185AbcCJK0Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2016 05:26:24 -0500
+From: Jani Nikula <jani.nikula@intel.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Dan Allen <dan@opendevise.io>
+Cc: Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+In-Reply-To: <20160309182709.7ab1e5db@recife.lan>
+References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com> <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan> <86egbrm9hw.fsf@hiro.keithp.com> <1457076530.13171.13.camel@winder.org.uk> <CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com> <87a8m9qoy8.fsf@intel.com> <20160308082948.4e2e0f82@recife.lan> <CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com> <20160308103922.48d87d9d@recife.lan> <20160308123921.6f2248ab@recife.lan> <20160309182709.7ab1e5db@recife.lan>
+Date: Thu, 10 Mar 2016 12:25:58 +0200
+Message-ID: <87fuvypr2h.fsf@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 16 Feb 2016 10:54:54 +0000
-Sean Young <sean@mess.org> escreveu:
 
-> On Mon, Feb 15, 2016 at 09:33:11PM -0500, Insu Yun wrote:
-> > Since rc_allocate_device() uses kmalloc,
-> > it can returns NULL, so need to check, 
-> > otherwise, NULL derefenrece can be happened.  
-> 
-> Thanks for catching that.
-> 
-> > Signed-off-by: Insu Yun <wuninsu@gmail.com>
-> > ---
-> >  drivers/media/rc/igorplugusb.c | 3 +++
-> >  1 file changed, 3 insertions(+)
-> > 
-> > diff --git a/drivers/media/rc/igorplugusb.c b/drivers/media/rc/igorplugusb.c
-> > index b36e515..df37cd5 100644
-> > --- a/drivers/media/rc/igorplugusb.c
-> > +++ b/drivers/media/rc/igorplugusb.c
-> > @@ -191,6 +191,8 @@ static int igorplugusb_probe(struct usb_interface *intf,
-> >  	usb_make_path(udev, ir->phys, sizeof(ir->phys));
-> >  
-> >  	rc = rc_allocate_device();
-> > +	if (!rc)
-> > +		goto fail;  
-> 
-> At this point, ret is not initialized but will be used in the error path.
+TL;DR? Skip to the last paragraph.
 
-Also, it should be setting "ret", like like:
+On Wed, 09 Mar 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+> I guess the conversion to asciidoc format is now in good shape,
+> at least to demonstrate that it is possible to use this format for the
+> media docbook. Still, there are lots of broken references.
 
-	if (!rc) {
-		ret = -ENOMEM;
-		goto fail;
-	}
+Getting references right with asciidoc is a big problem in the
+kernel-doc side. As I wrote before, the proofs of concept only worked
+because everything was processed as one big file (via includes). The
+Asciidoctor inter-document references won't help, because we won't know
+the target document name while processing kernel-doc.
+
+Sphinx is massively better at handling cross references for
+kernel-doc. We can use domains (C language) and roles (e.g. functions,
+types, etc.) for the references, which provide kind of
+namespaces. Sphinx warns for referencing non-existing targets, but
+doesn't generate broken links in the result like Asciidoctor does.
+
+For example, in the documentation for a function that has struct foo as
+parameter or return type, a cross reference to struct foo is added
+automagically, but only if documentation for struct foo actually
+exists. In Asciidoctor, we would have to blindly generate the references
+ourselves, and try to resolve broken links ourselves by somehow
+post-processing the result.
+
+> Yet, from my side, if we're willing to get rid of DocBook, then
+> Asciidoctor seems to be the *only* alternative so far to parse the
+> complex media documents.
+
+I think you mean, "get rid of DocBook as source format", not altogether?
+I'm yet to be convinved we could rely on Asciidoctor's native formats.
+
+---
+
+Mauro, I truly appreciate your efforts at evaluating both
+alternatives. I also appreciate Dan's inputs on Asciidoctor.
+
+Despite your evaluation that Asciidoctor is the only alternative for
+media documents, it is my opinion that we should go with Sphinx.
+
+It's an opinion, it's subjective, it's from my perspective, especially
+from the kernel-doc POV, so please don't take it as a slap in the face
+after all the work you've done. With that out of the way, here's why.
+
+For starters, Jon's Sphinx proof-of-concept at
+http://static.lwn.net/kerneldoc/ is pretty amazing. It's beautiful and
+usable. Cross references work, there are no broken links (I hacked a bit
+more on kernel-doc and it gets even better). There's embedded search
+(and if this gets exported to https://readthedocs.org/ the search is
+even better). The API documentation is sensible and the headings aren't
+mixed up with other headings. It's all there. It's what we've been
+looking for.
+
+The toolchain gets faster, easier to debug and simplified a lot with
+DocBook out of the equation completely. Sphinx itself is stable, widely
+available, and well documented. IMO there's sufficient native output
+format support. There are plenty of really nice extensions
+available. There's a possibility of doing kernel-doc as an extension in
+the future (either by calling current kernel-doc from the extension or
+by rewriting it).
+
+Dan keeps bringing up the active community in Asciidoctor, and how
+they're fixing things up as we speak... which is great, but Sphinx is
+here now, packaged and shipping in distros ready to use. It seems that
+of the two, an Asciidoctor based toolchain is currently more in need of
+hacking and extending to meet our needs. Which brings us to the
+implementation language, Python vs. Ruby.
+
+I won't make the mistake of comparing the relative merits of the
+languages, but I'll boldly claim the set of kernel developers who know
+Python is likely larger than the set of kernel developers who know Ruby
+[citation needed]. AFAICT there are no Ruby tools in the kernel tree,
+but there is a bunch of Python. My own very limited and subjective
+experience with other tools around the kernel is that Python is much
+more popular than Ruby. So my claim here is that we're in a better
+position to hack on Sphinx extensions ourselves than Asciidoctor.
+
+My conclusion is that Sphinx covers the vast majority of the needs of
+our documentation producers and consumers, in an amazing way, out of the
+box, better than Asciidoctor.
+
+Which brings us to the minority and the parts where Sphinx falls short,
+media documentation in particular. It's complex documentation, with very
+specific requirements on the output, especially that many things remain
+exactly as they are now. It also feels like the target is more to have
+standalone media documentation, and not so much to be aligned with and
+be part of the rest of the kernel documentation.
+
+I want to question the need to have all kernel documentation use tools
+that meet the strict requirements of the outlier, when there's a better
+alternative for the vast majority of the documentation. Especially when
+Asciidoctor isn't a ready solution for media documentation either.
+
+In summary, my proposal is to go with Sphinx, leave media docs as
+DocBook for now, and see if and how they can be converted to
+Sphinx/reStructuredText later on when we have everything else in
+place. It's not the perfect outcome, but IMHO it's the best overall
+choice.
 
 
-
-> 
-> >  	rc->input_name = DRIVER_DESC;
-> >  	rc->input_phys = ir->phys;
-> >  	usb_to_input_id(udev, &rc->input_id);
-> > @@ -213,6 +215,7 @@ static int igorplugusb_probe(struct usb_interface *intf,
-> >  	ir->rc = rc;
-> >  	ret = rc_register_device(rc);
-> >  	if (ret) {  
-> 
-> I'm not sure how common it is to goto into another nesting level for an
-> error path.
-
-I can't remember a single case where we do that. Putting fail at the
-end is indeed the clearer way of handling it.
-
-> Also I just noticed that the code is leaking the timer in
-> the error path.
-> 
-> It might be better to put the "fail:" at the end after the last return
-> for the successful case, and have a goto to it after both
-> rc_allocate_device() and rc_register_device() in case they fail.
-> 
-> > +fail:
-> >  		dev_err(&intf->dev, "failed to register rc device: %d", ret);
-> >  		rc_free_device(rc);
-> >  		usb_free_urb(ir->urb);
-> > -- 
-> > 1.9.1  
-> 
-> Thanks
-> Sean
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+BR,
+Jani.
 
 
 -- 
-Thanks,
-Mauro
+Jani Nikula, Intel Open Source Technology Center
