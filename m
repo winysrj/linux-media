@@ -1,94 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41590 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932688AbcCOML1 (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:33751 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935061AbcCJFHR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2016 08:11:27 -0400
-Subject: Re: subdev sensor driver and
- V4L2_FRMIVAL_TYPE_CONTINUOUS/V4L2_FRMIVAL_TYPE_STEPWISE
-To: Philippe De Muyter <phdm@macq.eu>
-References: <20160315101417.GA31990@frolo.macqel>
- <20160315110608.GT11084@valkosipuli.retiisi.org.uk>
- <56E7F7EE.10308@xs4all.nl> <20160315115803.GA13448@frolo.macqel>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56E7FC02.50006@xs4all.nl>
-Date: Tue, 15 Mar 2016 13:11:46 +0100
-MIME-Version: 1.0
-In-Reply-To: <20160315115803.GA13448@frolo.macqel>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 10 Mar 2016 00:07:17 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	sakari.ailus@linux.intel.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 3/4] media: au0828 add media device change_source handler
+Date: Wed,  9 Mar 2016 22:07:09 -0700
+Message-Id: <2d5a07078a83766aaf3f28be1616e7a4a3062ea3.1457585839.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1457585839.git.shuahkh@osg.samsung.com>
+References: <cover.1457585839.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1457585839.git.shuahkh@osg.samsung.com>
+References: <cover.1457585839.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/15/16 12:58, Philippe De Muyter wrote:
-> My post is about framerate, not framesize :)  I agree the macro's
-> names are misleading.
+Add media device change_source handler. Using the change_source handler,
+driver can disable current source and enable new one in one step when
+user selects a new input.
 
-Oops. Well, the solution would be similar (i.e. adding max_interval and step_interval
-fields to struct v4l2_subdev_frame_interval_enum. It takes away 4 fields from the
-reserved array, but this should have been done right from the start :-(
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/usb/au0828/au0828-core.c | 64 ++++++++++++++++++++++++----------
+ 1 file changed, 46 insertions(+), 18 deletions(-)
 
-Regards,
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 5dc82e8..01dba5a 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -258,8 +258,8 @@ create_link:
+ 	}
+ }
+ 
+-static int au0828_enable_source(struct media_entity *entity,
+-				struct media_pipeline *pipe)
++static int __au0828_enable_source(struct media_entity *entity,
++				  struct media_pipeline *pipe)
+ {
+ 	struct media_entity  *source, *find_source;
+ 	struct media_entity *sink;
+@@ -268,11 +268,6 @@ static int au0828_enable_source(struct media_entity *entity,
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	struct au0828_dev *dev;
+ 
+-	if (!mdev)
+-		return -ENODEV;
+-
+-	mutex_lock(&mdev->graph_mutex);
+-
+ 	dev = mdev->source_priv;
+ 
+ 	/*
+@@ -399,28 +394,36 @@ static int au0828_enable_source(struct media_entity *entity,
+ 		 dev->active_source->name, dev->active_sink->name,
+ 		 dev->active_link_owner->name, ret);
+ end:
+-	mutex_unlock(&mdev->graph_mutex);
+ 	pr_debug("au0828_enable_source() end %s %d %d\n",
+ 		 entity->name, entity->function, ret);
+ 	return ret;
+ }
+ 
+-static void au0828_disable_source(struct media_entity *entity)
++static int au0828_enable_source(struct media_entity *entity,
++				struct media_pipeline *pipe)
+ {
+-	int ret = 0;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+-	struct au0828_dev *dev;
++	int ret;
+ 
+ 	if (!mdev)
+-		return;
++		return -ENODEV;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
++	ret = __au0828_enable_source(entity, pipe);
++	mutex_unlock(&mdev->graph_mutex);
++	return ret;
++}
++
++static void __au0828_disable_source(struct media_entity *entity)
++{
++	int ret = 0;
++	struct media_device *mdev = entity->graph_obj.mdev;
++	struct au0828_dev *dev;
++
+ 	dev = mdev->source_priv;
+ 
+-	if (!dev->active_link) {
+-		ret = -ENODEV;
+-		goto end;
+-	}
++	if (!dev->active_link)
++		return;
+ 
+ 	/* link is active - stop pipeline from source (tuner) */
+ 	if (dev->active_link->sink->entity == dev->active_sink &&
+@@ -430,7 +433,7 @@ static void au0828_disable_source(struct media_entity *entity)
+ 		 * has active pipeline
+ 		*/
+ 		if (dev->active_link_owner != entity)
+-			goto end;
++			return;
+ 		__media_entity_pipeline_stop(entity);
+ 		ret = __media_entity_setup_link(dev->active_link, 0);
+ 		if (ret)
+@@ -445,10 +448,34 @@ static void au0828_disable_source(struct media_entity *entity)
+ 		dev->active_source = NULL;
+ 		dev->active_sink = NULL;
+ 	}
++}
+ 
+-end:
++static void au0828_disable_source(struct media_entity *entity)
++{
++	struct media_device *mdev = entity->graph_obj.mdev;
++
++	if (!mdev)
++		return;
++
++	mutex_lock(&mdev->graph_mutex);
++	__au0828_disable_source(entity);
+ 	mutex_unlock(&mdev->graph_mutex);
+ }
++static int au0828_change_source(struct media_entity *entity,
++				struct media_pipeline *pipe)
++{
++	struct media_device *mdev = entity->graph_obj.mdev;
++	int ret;
++
++	if (!mdev)
++		return -ENODEV;
++
++	mutex_lock(&mdev->graph_mutex);
++	__au0828_disable_source(entity);
++	ret = __au0828_enable_source(entity, pipe);
++	mutex_unlock(&mdev->graph_mutex);
++	return ret;
++}
+ #endif
+ 
+ static int au0828_media_device_register(struct au0828_dev *dev,
+@@ -520,6 +547,7 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 	dev->media_dev->source_priv = (void *) dev;
+ 	dev->media_dev->enable_source = au0828_enable_source;
+ 	dev->media_dev->disable_source = au0828_disable_source;
++	dev->media_dev->change_source = au0828_change_source;
+ #endif
+ 	return 0;
+ }
+-- 
+2.5.0
 
-	Hans
-
-> 
-> On Tue, Mar 15, 2016 at 12:54:22PM +0100, Hans Verkuil wrote:
->> On 03/15/16 12:06, Sakari Ailus wrote:
->>> Hi Philippe,
->>>
->>> On Tue, Mar 15, 2016 at 11:14:17AM +0100, Philippe De Muyter wrote:
->>>> Hi,
->>>>
->>>> Sorry if you read the following twice, but the subject of my previous post
->>>> was not precise enough :(
->>>>
->>>> I am in the process of converting a sensor driver compatible with the imx6
->>>> freescale linux kernel, to a subdev driver compatible with a current kernel
->>>> and Steve Longerbeam's work.
->>>>
->>>> My sensor can work at any fps (even fractional) up to 60 fps with its default
->>>> frame size or even higher when using crop or "binning'.  That fact is reflected
->>>> in my previous implemetation of VIDIOC_ENUM_FRAMEINTERVALS, which answered
->>>> with a V4L2_FRMIVAL_TYPE_CONTINUOUS-type reply.
->>>>
->>>> This seem not possible anymore because of the lack of the needed fields
->>>> in the 'struct v4l2_subdev_frame_interval_enum' used to delegate the question
->>>> to the subdev driver.  V4L2_FRMIVAL_TYPE_STEPWISE does not seem possible
->>>> anymore either.  Has that been replaced by something else or is that
->>>> functionality not considered relevant anymorea ?
->>>
->>> I think the issue was that the CONTINUOUS and STEPWISE were considered too
->>> clumsy for applications and practically no application was using them, or at
->>> least the need for these was not seen to be there. They were not added to
->>> the V4L2 sub-device implementation of the interface as a result.
->>
->> It never made sense to me why the two APIs weren't kept the same.
-> 
-> I agree completely with that.
-> 
->>
->> My suggestion would be to add step_width and step_height fields to
->> struct v4l2_subdev_frame_size_enum, that way you have the same functionality
->> back.
->>
->> I.e. for discrete formats the min values equal the max values, for continuous
->> formats the step values are both 1 (or 0 for compability's sake) and the
->> remainder maps to a stepwise range.
->>
->> Regards,
->>
->> 	Hans
->>
->>>
->>> Cc Hans.
->>>
->>> The smiapp driver uses horizontal and vertical blanking controls for
->>> changing the frame rate. That's a bit lower level interface than most
->>> drivers use, but then you have to provide enough other information to the
->>> user space as well, including the pixel rate.
->>>
-> 
-> Philippe
-> 
