@@ -1,80 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:39509 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754647AbcCCOja (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:33224 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933386AbcCKDZ5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 09:39:30 -0500
-Subject: Re: tw686x driver
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-References: <56D6A50F.4060404@xs4all.nl> <m3povcnjfo.fsf@t19.piap.pl>
- <56D7E87B.1080505@xs4all.nl> <m3lh5zohsf.fsf@t19.piap.pl>
- <56D83E16.1010907@xs4all.nl> <m3h9gnod3t.fsf@t19.piap.pl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D84CA7.4050800@xs4all.nl>
-Date: Thu, 3 Mar 2016 15:39:35 +0100
-MIME-Version: 1.0
-In-Reply-To: <m3h9gnod3t.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 10 Mar 2016 22:25:57 -0500
+From: Simon Horman <horms+renesas@verge.net.au>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH v3 1/2] media: soc_camera: rcar_vin: add R-Car Gen 2 and 3 fallback compatibility strings
+Date: Fri, 11 Mar 2016 12:25:36 +0900
+Message-Id: <1457666737-10519-2-git-send-email-horms+renesas@verge.net.au>
+In-Reply-To: <1457666737-10519-1-git-send-email-horms+renesas@verge.net.au>
+References: <1457666737-10519-1-git-send-email-horms+renesas@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/16 15:22, Krzysztof Hałasa wrote:
-> Hans Verkuil <hverkuil@xs4all.nl> writes:
-> 
->> There is no point whatsoever in committing a driver and then replacing it
->> with another which has a different feature set. I'm not going to do
->> that.
-> 
-> Sure, that's why I haven't asked you to do it.
-> Now there is no another driver, as Ezequiel stated - there is just one
-> driver.
-> 
-> The point is clear, showing who exactly wrote what.
-> 
->> One option that might be much more interesting is to add your driver to
->> staging with a TODO stating that the field support should be added to
->> the mainline driver.
-> 
-> Field mode is one thing. What's a bit more important is that Ezequiel's
-> changes take away the SG DMA, and basically all DMA. The chip has to use
-> DMA, but his driver then simply memcpy() all the data to userspace
-> buffers. This doesn't work on low-power machines.
-> 
-> Staging is meant for completely different situation - for immature,
-> incomplete code. It has nothing to do with the case.
+From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
 
-It can be for anything that prevents it from being mainlined. It was (still is?)
-used for mature android drivers, for example.
+Add fallback compatibility string for R-Car Gen 1 and 2.
 
-> 
->> I'm not sure if Mauro would go for it, but I think this is a fair option.
-> 
-> I don't expect the situation to be fair to me, anymore.
-> 
-> I also don't want to pursue the legal stuff, copyright laws etc.,
-> but a quick glance at the COPYING file at the root of the kernel sources
-> may be helpful:
-> 
->> 2. You may modify your copy or copies of the Program or any portion
->> of it, thus forming a work based on the Program, and copy and
->> distribute such modifications or work under the terms of Section 1
->> above, provided that you also meet all of these conditions:
->>
->>     a) You must cause the modified files to carry prominent notices
->>     stating that you changed the files and the date of any change.
-> 
-> I don't even ask for that much - I only ask that the single set of
-> changes from Ezequiel has this very information. This is BTW one of the
-> reasons we switched to git.
+In the case of Renesas R-Car hardware we know that there are generations of
+SoCs, e.g. Gen 2 and 3. But beyond that its not clear what the relationship
+between IP blocks might be. For example, I believe that r8a7790 is older
+than r8a7791 but that doesn't imply that the latter is a descendant of the
+former or vice versa.
 
-Ezequiel, can you make a v4 and add a link to the original patch posted by
-Krzysztof that you based your code on?
+We can, however, by examining the documentation and behaviour of the
+hardware at run-time observe that the current driver implementation appears
+to be compatible with the IP blocks on SoCs within a given generation.
 
-I think that takes care of the provenance.
+For the above reasons and convenience when enabling new SoCs a
+per-generation fallback compatibility string scheme being adopted for
+drivers for Renesas SoCs.
 
-Regards,
+Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+---
+v3 [Simon Horman]
+* Reworked and expanded changelog.
+* Minor documentation enhancements.
 
-	Hans
+v2 [Yoshihiro Kaneko]
+* As suggested by Geert Uytterhoeven
+  drivers/media/platform/soc_camera/rcar_vin.c:
+    - The generic compatibility values are listed at the end of the
+      rcar_vin_of_table[].
+
+v1 [Yoshihiro Kaneko]
+---
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 11 +++++++++--
+ drivers/media/platform/soc_camera/rcar_vin.c         |  2 ++
+ 2 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 619193ccf7ff..4266123888ed 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -5,7 +5,7 @@ The rcar_vin device provides video input capabilities for the Renesas R-Car
+ family of devices. The current blocks are always slaves and suppot one input
+ channel which can be either RGB, YUYV or BT656.
+ 
+- - compatible: Must be one of the following
++ - compatible: Must be one or more of the following
+    - "renesas,vin-r8a7795" for the R8A7795 device
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7793" for the R8A7793 device
+@@ -13,6 +13,13 @@ channel which can be either RGB, YUYV or BT656.
+    - "renesas,vin-r8a7790" for the R8A7790 device
+    - "renesas,vin-r8a7779" for the R8A7779 device
+    - "renesas,vin-r8a7778" for the R8A7778 device
++   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
++   - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
++
++   When compatible with the generic version nodes must list the
++   SoC-specific version corresponding to the platform first
++   followed by the generic version.
++
+  - reg: the register base and size for the device registers
+  - interrupts: the interrupt for the device
+  - clocks: Reference to the parent clock
+@@ -37,7 +44,7 @@ Device node example
+ 	};
+ 
+         vin0: vin@0xe6ef0000 {
+-                compatible = "renesas,vin-r8a7790";
++                compatible = "renesas,vin-r8a7790", "renesas,rcar-gen2-vin";
+                 clocks = <&mstp8_clks R8A7790_CLK_VIN0>;
+                 reg = <0 0xe6ef0000 0 0x1000>;
+                 interrupts = <0 188 IRQ_TYPE_LEVEL_HIGH>;
+diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
+index 3b8edf458964..3f9c1b8456c3 100644
+--- a/drivers/media/platform/soc_camera/rcar_vin.c
++++ b/drivers/media/platform/soc_camera/rcar_vin.c
+@@ -1845,6 +1845,8 @@ static const struct of_device_id rcar_vin_of_table[] = {
+ 	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+ 	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+ 	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
++	{ .compatible = "renesas,rcar-gen3-vin", .data = (void *)RCAR_GEN3 },
++	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, rcar_vin_of_table);
+-- 
+2.7.0.rc3.207.g0ac5344
+
