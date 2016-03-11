@@ -1,96 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44838 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753469AbcCAO5V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 09:57:21 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 0/8] media: Add entity types
-Date: Tue,  1 Mar 2016 16:57:18 +0200
-Message-Id: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:53265 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932264AbcCKQ1m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2016 11:27:42 -0500
+Subject: Re: [PATCH 1/2] [media] au0828: disable tuner links and cache
+ tuner/decoder
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <d14f3141901856eaed358ab049f4a3aac8fe4863.1457711514.git.mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56E2F1FC.1080405@osg.samsung.com>
+Date: Fri, 11 Mar 2016 09:27:40 -0700
+MIME-Version: 1.0
+In-Reply-To: <d14f3141901856eaed358ab049f4a3aac8fe4863.1457711514.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 03/11/2016 08:55 AM, Mauro Carvalho Chehab wrote:
+> For au0828_enable_source() to work, the tuner links should be
+> disabled and the tuner/decoder should be cached at au0828 struct.
 
-This patch series adds a type field to the media entity structure.
+hmm. are you sure about needing to cache decoder in au0828 struct.
+It gets cached in au0828_card_analog_fe_setup() which is called
+from au0828_card_setup() - this step happens before
+au0828_media_device_register()
 
-Let's start with a few words about what types are and are not. The purpose of
-the entity type is to identify the object type that implements the entity, in
-order to safely cast the entity to that object (using container_of()). Three
-types are currently defined, for media entities that are instantiated as such
-(MEDIA_ENTITY_TYPE_MEDIA_ENTITY), embedded in a struct video_device
-(MEDIA_ENTITY_TYPE_VIDEO_DEVICE) or embedded in a struct v4l2_subdev
-(MEDIA_ENTITY_TYPE_V4L2_SUBDEV). The naming is pretty straightforward and
-self-explicit.
+#ifdef CONFIG_MEDIA_CONTROLLER
+                if (sd)
+                        dev->decoder = &sd->entity;
+#endif
 
-Types do not convey any additional information. They don't tell anything about
-the features of the entity or the object that implements it. In particular
-they don't report capabilities of video_device instances, which is why the
-is_media_entity_v4l2_io() function performs additional checks on the video
-device capabilities field, after verifying with the type that it can safely be
-cast to a video_device instance.
+thanks,
+-- Shuah
 
-The series start by two cleanup patches (1/8 and 2/8) that fix incorrect or
-unneeded usage of the is_media_entity_v4l2_*() functions in the vsp1 and
-exynos4-is drivers. Patch 3/8 then adds the type field to the media_entity
-structure and updates the is_media_entity_v4l2_*() functions implementations.
-Patch 4/8 renames is_media_entity_v4l2_io() to
-is_media_entity_v4l2_video_device() to clarify its purpose.
+> 
+> Fixes: 9822f4173f84 ('[media] au0828: use v4l2_mc_create_media_graph()')
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/usb/au0828/au0828-core.c | 42 ++++++++++++++++++++++------------
+>  1 file changed, 27 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index 5dc82e8c8670..ecfa18939663 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -456,7 +456,8 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+>  {
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	int ret;
+> -	struct media_entity *entity, *demod = NULL, *tuner = NULL;
+> +	struct media_entity *entity, *demod = NULL;
+> +	struct media_link *link;
+>  
+>  	if (!dev->media_dev)
+>  		return 0;
+> @@ -482,26 +483,37 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+>  	}
+>  
+>  	/*
+> -	 * Find tuner and demod to disable the link between
+> -	 * the two to avoid disable step when tuner is requested
+> -	 * by video or audio. Note that this step can't be done
+> -	 * until dvb graph is created during dvb register.
+> +	 * Find tuner, decoder and demod.
+> +	 *
+> +	 * The tuner and decoder should be cached, as they'll be used by
+> +	 *	au0828_enable_source.
+> +	 *
+> +	 * It also needs to disable the link between tuner and
+> +	 * decoder/demod, to avoid disable step when tuner is requested
+> +	 * by video or audio. Note that this step can't be done until dvb
+> +	 * graph is created during dvb register.
+>  	*/
+>  	media_device_for_each_entity(entity, dev->media_dev) {
+> -		if (entity->function == MEDIA_ENT_F_DTV_DEMOD)
+> +		switch (entity->function) {
+> +		case MEDIA_ENT_F_TUNER:
+> +			dev->tuner = entity;
+> +			break;
+> +		case MEDIA_ENT_F_ATV_DECODER:
+> +			dev->decoder = entity;
+> +			break;
+> +		case MEDIA_ENT_F_DTV_DEMOD:
+>  			demod = entity;
+> -		else if (entity->function == MEDIA_ENT_F_TUNER)
+> -			tuner = entity;
+> +			break;
+> +		}
+>  	}
+> -	/* Disable link between tuner and demod */
+> -	if (tuner && demod) {
+> -		struct media_link *link;
+>  
+> -		list_for_each_entry(link, &demod->links, list) {
+> -			if (link->sink->entity == demod &&
+> -			    link->source->entity == tuner) {
+> +	/* Disable link between tuner->demod and/or tuner->decoder */
+> +	if (dev->tuner) {
+> +		list_for_each_entry(link, &dev->tuner->links, list) {
+> +			if (demod && link->sink->entity == demod)
+> +				media_entity_setup_link(link, 0);
+> +			if (dev->decoder && link->sink->entity == dev->decoder)
+>  				media_entity_setup_link(link, 0);
+> -			}
+>  		}
+>  	}
+>  
+> 
 
-Patch 5/8 to 8/8 then implement a is_media_entity_v4l2_io() function that does
-what its name suggest, check if the entity is a video device that can perform
-I/O. To to so it starts by adding a new device_caps field to the video_device
-structure (5/8), makes use of it in the v4l2-pci-skeleton (6/8) and vivid (7/8)
-drivers, and finally adds the is_media_entity_v4l2_io() function.
-
-Note that the is_media_entity_v4l2_io() function has no user at the moment, se
-we could leave that patch out until drivers need it.
-
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
-
-Hans Verkuil (5):
-  media: Rename is_media_entity_v4l2_io to
-    is_media_entity_v4l2_video_device
-  v4l2: add device_caps to struct video_device
-  v4l2-pci-skeleton.c: fill in device_caps in video_device
-  vivid: set device_caps in video_device.
-  media-entity.h: Add is_media_entity_v4l2_io()
-
-Laurent Pinchart (3):
-  v4l: vsp1: Check if an entity is a subdev with the right function
-  v4l: exynos4-is: Drop unneeded check when setting up fimc-lite links
-  media: Add type field to struct media_entity
-
- Documentation/video4linux/v4l2-pci-skeleton.c   |  5 +-
- drivers/media/platform/exynos4-is/fimc-lite.c   | 12 +---
- drivers/media/platform/exynos4-is/media-dev.c   |  4 +-
- drivers/media/platform/omap3isp/isp.c           |  2 +-
- drivers/media/platform/omap3isp/ispvideo.c      |  2 +-
- drivers/media/platform/vivid/vivid-core.c       | 22 +++----
- drivers/media/platform/vsp1/vsp1_video.c        |  2 +-
- drivers/media/v4l2-core/v4l2-common.c           | 21 +++++++
- drivers/media/v4l2-core/v4l2-dev.c              |  1 +
- drivers/media/v4l2-core/v4l2-ioctl.c            |  3 +
- drivers/media/v4l2-core/v4l2-subdev.c           |  1 +
- drivers/staging/media/davinci_vpfe/vpfe_video.c |  2 +-
- drivers/staging/media/omap4iss/iss.c            |  2 +-
- drivers/staging/media/omap4iss/iss_video.c      |  2 +-
- include/media/media-entity.h                    | 77 +++++++++++++------------
- include/media/v4l2-common.h                     | 12 ++++
- include/media/v4l2-dev.h                        |  3 +
- 17 files changed, 99 insertions(+), 74 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
