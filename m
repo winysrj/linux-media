@@ -1,68 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52708 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752940AbcCHN6M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2016 08:58:12 -0500
-From: Jani Nikula <jani.nikula@intel.com>
-To: Dan Allen <dan@opendevise.io>
-Cc: Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:26460 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157AbcCKNDK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2016 08:03:10 -0500
+Subject: Re: [PATCH 2/2] [media] exynos4-is: FIMC port parse should fail if
+ there's no endpoint
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+References: <1457122813-12791-1-git-send-email-javier@osg.samsung.com>
+ <1457122813-12791-3-git-send-email-javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, Kukjin Kim <kgene@kernel.org>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-In-Reply-To: <CAKeHnO7_7k8Qc5Jmu_x2OzAVT4YXxW8PSe_m6QUP-8V7XxbTVw@mail.gmail.com>
-References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com> <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan> <86egbrm9hw.fsf@hiro.keithp.com> <1457076530.13171.13.camel@winder.org.uk> <CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com> <87a8m9qoy8.fsf@intel.com> <CAKeHnO7_7k8Qc5Jmu_x2OzAVT4YXxW8PSe_m6QUP-8V7XxbTVw@mail.gmail.com>
-Date: Tue, 08 Mar 2016 15:58:08 +0200
-Message-ID: <8737s1qdfz.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	linux-samsung-soc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <56E2C206.6020103@samsung.com>
+Date: Fri, 11 Mar 2016 14:03:02 +0100
+MIME-version: 1.0
+In-reply-to: <1457122813-12791-3-git-send-email-javier@osg.samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 08 Mar 2016, Dan Allen <dan@opendevise.io> wrote:
-> That's not entirely true. First, you can pre-split at the source level
-> using includes and generate output for each of the masters. That's what I
-> tend to do and it works really well since these are logical split points.
+On 03/04/2016 09:20 PM, Javier Martinez Canillas wrote:
+> The fimc_md_parse_port_node() function return 0 if an endpoint node is
+> not found but according to Documentation/devicetree/bindings/graph.txt,
+> a port must always have at least one enpoint.
+> 
+> So return an -EINVAL errno code to the caller instead, so it knows that
+> the port node parse failed due an invalid Device Tree description.
 
-I need to look into this again. Is there a specific option or directive
-to produce split output for includes? When I tried this, the result was
-just one big output file. (And indeed we'd need both. Some includes we
-want embedded, some includes should produce separate outputs.)
+I don't think it is forbidden to have a port node in device tree
+containing no endpoint nodes. Empty port node means only that,
+for example, a subsystem has a port/bus for connecting external
+devices but nothing is actually connected to it.
 
->> That actually makes choosing asciidoc harder, because
->> requiring another language environment complicates, not simplifies, the
->> toolchain. I'd really like to lower the bar for building the
->> documentation, for everyone, so much so that it becomes part of the
->> normal checks for patch inclusion.
->
-> Pardon my bluntness here, but I don't buy that argument. This is Linux.
-> Installing software couldn't be simpler, and we're talking about an
-> extremely well supported language (Ruby).
+In case of Exynos CSIS it might not be so useful to have an empty
+port node specified in some top level *.dtsi file and only
+the endpoints specified in a board specific dts file. Nevertheless,
+I wouldn't be saying in general a port node must always have some
+endpoint node defined.
 
-Granted, that part works for me. I'm not so sensitive to the
-dependencies; others may disagree.
-
-> I think it's a huge exaggeration to say that Asciidoctor is any harder to
-> install than AsciiDoc Python. It's also a heck of a lot smaller in size
-> since AsciiDoc Python pulls in hundreds of MB of LaTeX packages.
-
-For me, the comparison is really between Sphinx and Asciidoctor, not so
-much doc vs. doctor. The native output format and extension support in
-Sphinx is appealing; I am not yet convinced we could manage with
-Asciidoctor but without DocBook. The extension offering seems better in
-Sphinx.
-
-> Whatever you decide, I wish you all the best with your documentation
-> efforts!
-
-Thanks!
-
-BR,
-Jani.
+I could apply this patch as it doesn't do any harm considering
+existing dts files in the kernel tree (arch/arm/boot/dts/
+exynos4412-trats2.dts), but the commit description would need to
+be changed.
 
 -- 
-Jani Nikula, Intel Open Source Technology Center
+Thanks,
+Sylwester
