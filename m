@@ -1,44 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:1578 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933156AbcCIQDd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Mar 2016 11:03:33 -0500
-From: Antonio Ospite <ao2@ao2.it>
-To: Linux Media <linux-media@vger.kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Antonio Ospite <ao2@ao2.it>
-Subject: [PATCH 2/7] [media] gspca: fix setting frame interval type in vidioc_enum_frameintervals()
-Date: Wed,  9 Mar 2016 17:03:16 +0100
-Message-Id: <1457539401-11515-3-git-send-email-ao2@ao2.it>
-In-Reply-To: <1457539401-11515-1-git-send-email-ao2@ao2.it>
-References: <1457539401-11515-1-git-send-email-ao2@ao2.it>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34199 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750705AbcCKJ7K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2016 04:59:10 -0500
+Subject: Re: [RFC PATCH v0] Add tw5864 driver
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+References: <1451785302-3173-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+ <56938969.30104@xs4all.nl>
+ <CAM_ZknVgTETBNXu+8N6eJa=cf_Mmj=+tA=ocKB9SJL5rkSyijQ@mail.gmail.com>
+ <56B866D9.5070606@xs4all.nl> <20160309162924.6e6ebddf@zver>
+ <56E27B12.1000803@xs4all.nl> <20160311104003.1cad89f3@zver>
+Cc: Linux Media <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
+	devel@driverdev.osuosl.org,
+	kernel-janitors <kernel-janitors@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Andrey Utkin <andrey_utkin@fastmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56E296E6.8000709@xs4all.nl>
+Date: Fri, 11 Mar 2016 10:59:02 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160311104003.1cad89f3@zver>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set the frame _interval_ type to V4L2_FRMIVAL_TYPE_DISCRETE instead of
-using V4L2_FRMSIZE_TYPE_DISCRETE which is meant for frame _size_.
+On 03/11/2016 09:40 AM, Andrey Utkin wrote:
+> On Fri, 11 Mar 2016 09:00:18 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> The reason is likely to be the tw5864_queue_setup function which has
+>> not been updated to handle CREATE_BUFS support correctly. It should
+>> look like this:
+>>
+>> static int tw5864_queue_setup(struct vb2_queue *q,
+>> 			      unsigned int *num_buffers,
+>> 			      unsigned int *num_planes, unsigned int
+>> sizes[], void *alloc_ctxs[])
+>> {
+>> 	struct tw5864_input *dev = vb2_get_drv_priv(q);
+>>
+>> 	if (q->num_buffers + *num_buffers < 12)
+>> 		*num_buffers = 12 - q->num_buffers;
+>>
+>> 	alloc_ctxs[0] = dev->alloc_ctx;
+>> 	if (*num_planes)
+>> 		return sizes[0] < H264_VLC_BUF_SIZE ? -EINVAL : 0;
+>>
+>> 	sizes[0] = H264_VLC_BUF_SIZE;
+>> 	*num_planes = 1;
+>>
+>> 	return 0;
+>> }
+> 
+> Thanks for suggestion, but now the failure looks this way:
+> 
+> Streaming ioctls:
+>         test read/write: OK
+>                 fail: v4l2-test-buffers.cpp(297): g_field() == V4L2_FIELD_ANY
 
-The old and new values happen to be the same so there is no functional
-change.
+While userspace may specify FIELD_ANY when setting a format, the driver should
+always map that to a specific field setting and should never return FIELD_ANY
+back to userspace.
 
-Signed-off-by: Antonio Ospite <ao2@ao2.it>
----
- drivers/media/usb/gspca/gspca.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+In this case, the 'field' field of the v4l2_buffer struct has FIELD_ANY which
+means it is not set correctly (or at all) in the driver.
 
-diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-index af5cd82..9c8990f 100644
---- a/drivers/media/usb/gspca/gspca.c
-+++ b/drivers/media/usb/gspca/gspca.c
-@@ -1246,7 +1246,7 @@ static int vidioc_enum_frameintervals(struct file *filp, void *priv,
- 
- 	for (i = 0; i < gspca_dev->cam.mode_framerates[mode].nrates; i++) {
- 		if (fival->index == i) {
--			fival->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+			fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
- 			fival->discrete.numerator = 1;
- 			fival->discrete.denominator =
- 				gspca_dev->cam.mode_framerates[mode].rates[i];
--- 
-2.7.0
+It's a common mistake, which is why v4l2-compliance tests for it :-)
+
+Regards,
+
+	Hans
+
+>                 fail: v4l2-test-buffers.cpp(703): buf.check(q, last_seq)
+>                 fail: v4l2-test-buffers.cpp(976): captureBufs(node, q, m2m_q, frame_count, false)
+>         test MMAP: FAIL
+> 
+> Will check that later. If you have any suggestions, I would be very
+> grateful.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
