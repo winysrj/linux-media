@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41674 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752392AbcCYNKf (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:47167 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932101AbcCKPzW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 09:10:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv14 03/18] dts: exynos4412-odroid*: enable the HDMI CEC device
-Date: Fri, 25 Mar 2016 14:10:01 +0100
-Message-Id: <1458911416-47981-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
-References: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 11 Mar 2016 10:55:22 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 2/2] [media] v4l2-mc: cleanup a warning
+Date: Fri, 11 Mar 2016 12:55:16 -0300
+Message-Id: <0fb1f762dc42275eac6138ee597ae0deb3d06947.1457711514.git.mchehab@osg.samsung.com>
+In-Reply-To: <d14f3141901856eaed358ab049f4a3aac8fe4863.1457711514.git.mchehab@osg.samsung.com>
+References: <d14f3141901856eaed358ab049f4a3aac8fe4863.1457711514.git.mchehab@osg.samsung.com>
+In-Reply-To: <d14f3141901856eaed358ab049f4a3aac8fe4863.1457711514.git.mchehab@osg.samsung.com>
+References: <d14f3141901856eaed358ab049f4a3aac8fe4863.1457711514.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+A previous patch removing dtv_demod needed to be rebased,
+but the hunk removing the data was not merged by mistake.
 
-Add a dts node entry and enable the HDMI CEC device present in the Exynos4
-family of SoCs.
-
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Fixes: 840f5b0572ea ('media: au0828 disable tuner to demod link in au0828_media_device_register()']
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- arch/arm/boot/dts/exynos4412-odroid-common.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/v4l2-core/v4l2-mc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-index 395c3ca..c9b1425 100644
---- a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-+++ b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-@@ -500,3 +500,7 @@
- &watchdog {
- 	status = "okay";
- };
-+
-+&hdmicec {
-+	status = "okay";
-+};
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+index 2a7b79bc90fd..2228cd3a846e 100644
+--- a/drivers/media/v4l2-core/v4l2-mc.c
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -34,7 +34,7 @@ int v4l2_mc_create_media_graph(struct media_device *mdev)
+ {
+ 	struct media_entity *entity;
+ 	struct media_entity *if_vid = NULL, *if_aud = NULL;
+-	struct media_entity *tuner = NULL, *decoder = NULL, *dtv_demod = NULL;
++	struct media_entity *tuner = NULL, *decoder = NULL;
+ 	struct media_entity *io_v4l = NULL, *io_vbi = NULL, *io_swradio = NULL;
+ 	bool is_webcam = false;
+ 	u32 flags;
 -- 
-2.7.0
+2.5.0
 
