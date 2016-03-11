@@ -1,103 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57641 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754339AbcCBRcQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2016 12:32:16 -0500
-Subject: Re: [RFC] Representing hardware connections via MC
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-References: <20160226091317.5a07c374@recife.lan>
- <20160302141643.GH11084@valkosipuli.retiisi.org.uk>
- <20160302124029.0e6cee85@recife.lan> <20160302130409.60df670f@recife.lan>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56D7239E.6000904@osg.samsung.com>
-Date: Wed, 2 Mar 2016 10:32:14 -0700
-MIME-Version: 1.0
-In-Reply-To: <20160302130409.60df670f@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from kirsty.vergenet.net ([202.4.237.240]:33236 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933386AbcCKD0A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Mar 2016 22:26:00 -0500
+From: Simon Horman <horms+renesas@verge.net.au>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Yoshihiro Kaneko <ykaneko0929@gmail.com>,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH v3 2/2] media: soc_camera: rcar_vin: add device tree support for r8a7792
+Date: Fri, 11 Mar 2016 12:25:37 +0900
+Message-Id: <1457666737-10519-3-git-send-email-horms+renesas@verge.net.au>
+In-Reply-To: <1457666737-10519-1-git-send-email-horms+renesas@verge.net.au>
+References: <1457666737-10519-1-git-send-email-horms+renesas@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/02/2016 09:04 AM, Mauro Carvalho Chehab wrote:
-> Em Wed, 2 Mar 2016 12:40:29 -0300
-> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
-> 
->> After all the discussions, I guess "CONN" for connection is the best way
->> to represent it.
-> 
-> Better to put it on a patch.
-> 
-> Please review.
-> 
-> Regards,
-> Mauro
-> 
-> [media] Better define MEDIA_ENT_F_CONN_* entities
-> 
-> Putting concepts in a paper is hard, specially since different people
-> may interpret it in a different way.
-> 
-> Make clear about the meaning of the MEDIA_ENT_F_CONN_* entities
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> 
-> diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
-> index 5e3f20fdcf17..b036e6103949 100644
-> --- a/Documentation/DocBook/media/v4l/media-types.xml
-> +++ b/Documentation/DocBook/media/v4l/media-types.xml
-> @@ -46,15 +46,26 @@
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_F_CONN_RF</constant></entry>
-> -	    <entry>Connector for a Radio Frequency (RF) signal.</entry>
-> +	    <entry>Entity representing the logical connection associated with a
-> +		    single Radio Frequency (RF) signal connector. It
-> +		    corresponds to the logical input or output associated
-> +		    with the RF signal.</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_F_CONN_SVIDEO</constant></entry>
-> -	    <entry>Connector for a S-Video signal.</entry>
-> +	    <entry>Entity representing the logical connection assowiated
-> +		    with a sigle S-Video connector. Such entity should have
-> +		    two pads, one for the luminance signal(Y) and one
-> +		    for the chrominance signal (C). It corresponds to the
-> +		    logical input or output associated with S-Video Y and C
-> +		    signals.</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_F_CONN_COMPOSITE</constant></entry>
-> -	    <entry>Connector for a RGB composite signal.</entry>
-> +	    <entry>Entity representing the logical connection for a composite
-> +		    signal. It corresponds to the logical input or output
-> +		    associated with the a single signal that carries both
-> +		    chrominance and luminance information (Y+C).</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>MEDIA_ENT_F_CAM_SENSOR</constant></entry>
+Simply document new compatibility string.
+As a previous patch adds a generic R-Car Gen2 compatibility string
+there appears to be no need for a driver updates.
 
-Finally caught up with RFC discussion. Looks good to me.
-Thanks for the summary and the patch.
+By documenting this compat sting it may be used in DTSs shipped, for
+example as part of ROMs. It must be used in conjunction with the Gen2
+fallback compat string. At this time there are no known differences between
+the r8a7792 IP block and that implemented by the driver for the Gen2
+fallback compat string. Thus there is no need to update the driver as the
+use of the Gen2 fallback compat string will activate the correct code in
+the current driver while leaving the option for r8a7792-specific driver
+code to be activated in an updated driver should the need arise.
 
-Acked-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+---
+v3
+* New patch
+---
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 1 +
+ 1 file changed, 1 insertion(+)
 
-In general I agree with the direction to go with property
-API as it offers flexibility for future enhancements and
-allows drivers to care about only the properties they
-need to support.
-
--- Shuah
-
-
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 4266123888ed..6a4e61cbe011 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -9,6 +9,7 @@ channel which can be either RGB, YUYV or BT656.
+    - "renesas,vin-r8a7795" for the R8A7795 device
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7793" for the R8A7793 device
++   - "renesas,vin-r8a7792" for the R8A7792 device
+    - "renesas,vin-r8a7791" for the R8A7791 device
+    - "renesas,vin-r8a7790" for the R8A7790 device
+    - "renesas,vin-r8a7779" for the R8A7779 device
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.7.0.rc3.207.g0ac5344
+
