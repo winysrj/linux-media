@@ -1,61 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:33910 "EHLO
-	mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754127AbcC1TiO (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:56988 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934359AbcCKI0y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2016 15:38:14 -0400
-Received: by mail-io0-f193.google.com with SMTP id p21so19266365ioe.1
-        for <linux-media@vger.kernel.org>; Mon, 28 Mar 2016 12:38:14 -0700 (PDT)
+	Fri, 11 Mar 2016 03:26:54 -0500
+Subject: Re: [PATCHv2] [media] rcar-vin: add Renesas R-Car VIN driver
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, ulrich.hecht@gmail.com
+References: <1456282709-13861-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+ <56D414D9.4090303@xs4all.nl>
+Cc: linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56E28148.1030508@xs4all.nl>
+Date: Fri, 11 Mar 2016 09:26:48 +0100
 MIME-Version: 1.0
-In-Reply-To: <3cabc4b828abac3c6dea240ae22d4754a438ad1b.1459188623.git.mchehab@osg.samsung.com>
-References: <20160328150948.3efa93ee@recife.lan>
-	<91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
-	<3cabc4b828abac3c6dea240ae22d4754a438ad1b.1459188623.git.mchehab@osg.samsung.com>
-Date: Mon, 28 Mar 2016 15:38:13 -0400
-Message-ID: <CABxcv==hBbnzkX9N_6cSMwVqTZ18jps8_u_nRMgKGXSK8vXjMg@mail.gmail.com>
-Subject: Re: [PATCH 2/2] [media] avoid double locks with graph_mutex
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <56D414D9.4090303@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Hi Niklas,
 
-On Mon, Mar 28, 2016 at 2:11 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Add a note at the headers telling that the link setup
-> callbacks are called with the mutex hold. Also, removes a
-> double lock at the PM suspend callbacks.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/media-device.c      | 1 -
->  drivers/media/v4l2-core/v4l2-mc.c | 4 ----
->  include/media/media-device.h      | 3 ++-
->  include/media/media-entity.h      | 3 +++
->  4 files changed, 5 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 6cfa890af7b4..6af5e6932271 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -93,7 +93,6 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
->         media_device_for_each_entity(entity, mdev) {
->                 if (((media_entity_id(entity) == id) && !next) ||
->                     ((media_entity_id(entity) > id) && next)) {
-> -                       mutex_unlock(&mdev->graph_mutex);
+On 02/29/2016 10:52 AM, Hans Verkuil wrote:
+> Hi Niklas,
+> 
+> Thanks for your patch! Much appreciated.
+> 
+> I have more comments for the v2, but nothing really big :-)
+> 
 
-This change belongs to patch 1/2.
+Just checking, you are working on a v3, right? I'd really like to get this in
+for kernel 4.7.
 
-After this change, feel free to add to both patches:
+Regards,
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-Best regards,
-Javier
+	Hans
