@@ -1,76 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f195.google.com ([209.85.213.195]:33589 "EHLO
-	mail-ig0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965315AbcCPNXq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 09:23:46 -0400
-Received: by mail-ig0-f195.google.com with SMTP id nt3so4348930igb.0
-        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2016 06:23:46 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <82ef082c4de7c0a1c546da1d9e462bc86ab423bf.1458129823.git.mchehab@osg.samsung.com>
-References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
-	<82ef082c4de7c0a1c546da1d9e462bc86ab423bf.1458129823.git.mchehab@osg.samsung.com>
-Date: Wed, 16 Mar 2016 10:23:45 -0300
-Message-ID: <CABxcv=kCTxQ55+54OP4jDGaFW8Qk8EJ88_zXnzGmoq=65G8Dbw@mail.gmail.com>
-Subject: Re: [PATCH 4/5] [media] media-device: use kref for media_device instance
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+Received: from lists.s-osg.org ([54.187.51.154]:53405 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751198AbcCLXw2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Mar 2016 18:52:28 -0500
+Subject: Re: [PATCH 1/2 v2] [media] au0828: disable tuner links and cache
+ tuner/decoder
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <56E2F7E5.7060503@osg.samsung.com>
+ <9bc59a78a1e89a5486afd5a1e6fa8293fefea3f6.1457722871.git.mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
 	Shuah Khan <shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=UTF-8
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56E4ABB9.10903@osg.samsung.com>
+Date: Sat, 12 Mar 2016 16:52:25 -0700
+MIME-Version: 1.0
+In-Reply-To: <9bc59a78a1e89a5486afd5a1e6fa8293fefea3f6.1457722871.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
-
-Patch looks almost good to me, I just have a question below:
-
-On Wed, Mar 16, 2016 at 9:04 AM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Now that the media_device can be used by multiple drivers,
-> via devres, we need to be sure that it will be dropped only
-> when all drivers stop using it.
->
+On 03/11/2016 12:02 PM, Mauro Carvalho Chehab wrote:
+> For au0828_enable_source() to work, the tuner links should be
+> disabled and the tuner/decoder should be cached at au0828 struct.
+> 
+> While here, put dev->decoder cache together with dev->tuner, as
+> it makes easier to drop both latter if/when we move the enable
+> routines to the V4L2 core.
+> 
+> Fixes: 9822f4173f84 ('[media] au0828: use v4l2_mc_create_media_graph()')
 > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+Thanks for chasing this down. Looking good. I tested it applying
+it to the latest media_tree git with this top commit:
+commit 840f5b0572ea9ddaca2bf5540a171013e92c97bd
+Author: Shuah Khan <shuahkh@osg.samsung.com>
+Date:   Wed Mar 9 19:15:38 2016 -0700
+
+    media: au0828 disable tuner to demod link in au0828_media_device_register()
+
+I ran though my basic and mutual exclusion test cases and graphs
+look correct at every stage.
+
+Reviewed-by: Shuah Khan <shuahkh@osg.samsung.com>
+Tested-by: Shuah Khan <shuahkh@osg.samsung.com>
+
+thanks,
+-- Shuah
+
 > ---
->  drivers/media/media-device.c | 48 +++++++++++++++++++++++++++++++-------------
->  include/media/media-device.h |  3 +++
->  2 files changed, 37 insertions(+), 14 deletions(-)
->
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index c32fa15cc76e..38e6c319fe6e 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -721,6 +721,15 @@ int __must_check __media_device_register(struct media_device *mdev,
+>  drivers/media/usb/au0828/au0828-cards.c |  4 ----
+>  drivers/media/usb/au0828/au0828-core.c  | 42 +++++++++++++++++++++------------
+>  2 files changed, 27 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/media/usb/au0828/au0828-cards.c b/drivers/media/usb/au0828/au0828-cards.c
+> index ca861aea68a5..6b469e8c4c6e 100644
+> --- a/drivers/media/usb/au0828/au0828-cards.c
+> +++ b/drivers/media/usb/au0828/au0828-cards.c
+> @@ -228,10 +228,6 @@ void au0828_card_analog_fe_setup(struct au0828_dev *dev)
+>  				"au8522", 0x8e >> 1, NULL);
+>  		if (sd == NULL)
+>  			pr_err("analog subdev registration failed\n");
+> -#ifdef CONFIG_MEDIA_CONTROLLER
+> -		if (sd)
+> -			dev->decoder = &sd->entity;
+> -#endif
+>  	}
+>  
+>  	/* Setup tuners */
+> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+> index 5dc82e8c8670..ecfa18939663 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -456,7 +456,8 @@ static int au0828_media_device_register(struct au0828_dev *dev,
 >  {
->         int ret;
->
-> +       /* Check if mdev was ever registered at all */
-> +       mutex_lock(&mdev->graph_mutex);
-> +       if (media_devnode_is_registered(&mdev->devnode)) {
-> +               kref_get(&mdev->kref);
-> +               mutex_unlock(&mdev->graph_mutex);
-> +               return 0;
-> +       }
-> +       kref_init(&mdev->kref);
-> +
->         /* Register the device node. */
->         mdev->devnode.fops = &media_device_fops;
->         mdev->devnode.parent = mdev->dev;
-> @@ -730,8 +739,10 @@ int __must_check __media_device_register(struct media_device *mdev,
->         mdev->topology_version = 0;
->
->         ret = media_devnode_register(&mdev->devnode, owner);
-> -       if (ret < 0)
-> +       if (ret < 0) {
-> +               media_devnode_unregister(&mdev->devnode);
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  	int ret;
+> -	struct media_entity *entity, *demod = NULL, *tuner = NULL;
+> +	struct media_entity *entity, *demod = NULL;
+> +	struct media_link *link;
+>  
+>  	if (!dev->media_dev)
+>  		return 0;
+> @@ -482,26 +483,37 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+>  	}
+>  
+>  	/*
+> -	 * Find tuner and demod to disable the link between
+> -	 * the two to avoid disable step when tuner is requested
+> -	 * by video or audio. Note that this step can't be done
+> -	 * until dvb graph is created during dvb register.
+> +	 * Find tuner, decoder and demod.
+> +	 *
+> +	 * The tuner and decoder should be cached, as they'll be used by
+> +	 *	au0828_enable_source.
+> +	 *
+> +	 * It also needs to disable the link between tuner and
+> +	 * decoder/demod, to avoid disable step when tuner is requested
+> +	 * by video or audio. Note that this step can't be done until dvb
+> +	 * graph is created during dvb register.
+>  	*/
+>  	media_device_for_each_entity(entity, dev->media_dev) {
+> -		if (entity->function == MEDIA_ENT_F_DTV_DEMOD)
+> +		switch (entity->function) {
+> +		case MEDIA_ENT_F_TUNER:
+> +			dev->tuner = entity;
+> +			break;
+> +		case MEDIA_ENT_F_ATV_DECODER:
+> +			dev->decoder = entity;
+> +			break;
+> +		case MEDIA_ENT_F_DTV_DEMOD:
+>  			demod = entity;
+> -		else if (entity->function == MEDIA_ENT_F_TUNER)
+> -			tuner = entity;
+> +			break;
+> +		}
+>  	}
+> -	/* Disable link between tuner and demod */
+> -	if (tuner && demod) {
+> -		struct media_link *link;
+>  
+> -		list_for_each_entry(link, &demod->links, list) {
+> -			if (link->sink->entity == demod &&
+> -			    link->source->entity == tuner) {
+> +	/* Disable link between tuner->demod and/or tuner->decoder */
+> +	if (dev->tuner) {
+> +		list_for_each_entry(link, &dev->tuner->links, list) {
+> +			if (demod && link->sink->entity == demod)
+> +				media_entity_setup_link(link, 0);
+> +			if (dev->decoder && link->sink->entity == dev->decoder)
+>  				media_entity_setup_link(link, 0);
+> -			}
+>  		}
+>  	}
+>  
+> 
 
-Why are you adding this? If media_devnode_register() failed then the
-device node won't be registered so is not correct to call
-media_devnode_unregister(). Or maybe I'm missing something.
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-Best regards,
-Javier
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
