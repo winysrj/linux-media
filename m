@@ -1,71 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:35687 "EHLO
-	mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755252AbcCCMn4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 07:43:56 -0500
-MIME-Version: 1.0
-In-Reply-To: <1456992221-26712-8-git-send-email-k.kozlowski@samsung.com>
-References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
-	<1456992221-26712-8-git-send-email-k.kozlowski@samsung.com>
-Date: Thu, 3 Mar 2016 21:43:55 +0900
-Message-ID: <CAJKOXPeVNrzCJ0TTeBG=H0w2+qHzAcXfTck9gBBmZFvVPpPx0A@mail.gmail.com>
-Subject: Re: [rtc-linux] [RFC 07/15] pinctrl: mvebu: Add missing MFD_SYSCON
- dependency on HAS_IOMEM
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: rtc-linux@googlegroups.com
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	David Brown <david.brown@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
-	linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
-	Krzysztof Kozlowski <k.kozlowski.k@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:41183 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751917AbcCLECh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Mar 2016 23:02:37 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id F0F86180DC6
+	for <linux-media@vger.kernel.org>; Sat, 12 Mar 2016 05:02:31 +0100 (CET)
+Date: Sat, 12 Mar 2016 05:02:31 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160312040231.F0F86180DC6@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-03-03 17:03 GMT+09:00 Krzysztof Kozlowski <k.kozlowski@samsung.com>:
-> The MFD_SYSCON depends on HAS_IOMEM so when selecting it avoid unmet
-> direct dependencies.
->
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> ---
->  drivers/pinctrl/mvebu/Kconfig | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/pinctrl/mvebu/Kconfig b/drivers/pinctrl/mvebu/Kconfig
-> index 170602407c0d..13685923729c 100644
-> --- a/drivers/pinctrl/mvebu/Kconfig
-> +++ b/drivers/pinctrl/mvebu/Kconfig
-> @@ -7,6 +7,7 @@ config PINCTRL_MVEBU
->
->  config PINCTRL_DOVE
->         bool
-> +       depends on HAS_IOMEM    # For MFD_SYSCON
->         select PINCTRL_MVEBU
->         select MFD_SYSCON
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-False alarm, no need for the patch (non-selectable symbol)
+Results of the daily build of media_tree:
 
-Best regards,
-Krzysztof
+date:		Sat Mar 12 04:00:17 CET 2016
+git branch:	test
+git hash:	840f5b0572ea9ddaca2bf5540a171013e92c97bd
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
+
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-arm-omap1: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-blackfin-bf561: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-sh: WARNINGS
+linux-git-x86_64: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.23-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0-i686: WARNINGS
+linux-4.1.1-i686: WARNINGS
+linux-4.2-i686: WARNINGS
+linux-4.3-i686: WARNINGS
+linux-4.4-i686: WARNINGS
+linux-4.5-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.23-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0-x86_64: WARNINGS
+linux-4.1.1-x86_64: WARNINGS
+linux-4.2-x86_64: WARNINGS
+linux-4.3-x86_64: WARNINGS
+linux-4.4-x86_64: WARNINGS
+linux-4.5-rc1-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
