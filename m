@@ -1,174 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38885 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbcCWPLb (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:47110 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750980AbcCLAqk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 11:11:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
-Date: Wed, 23 Mar 2016 17:11:30 +0200
-Message-ID: <1938529.9P9zNWsNbc@avalon>
-In-Reply-To: <20160323120059.030a7b61@recife.lan>
-References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <56F2A2B5.80206@xs4all.nl> <20160323120059.030a7b61@recife.lan>
+	Fri, 11 Mar 2016 19:46:40 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [v4l-utils PATCHv2] libv4lconvert: Add support for V4L2_PIX_FMT_{NV16,NV61}
+Date: Sat, 12 Mar 2016 01:45:05 +0100
+Message-Id: <1457743505-7161-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <56E332A8.2080004@xs4all.nl>
+References: <56E332A8.2080004@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+NV16 and NV61 are two-plane versions of the YUV 4:2:2 formats YUYV and
+YVYU. Support both formats by merging the two planes into a one and
+falling through to the V4L2_PIX_FMT_{YUYV,YVYU} code path.
 
-On Wednesday 23 Mar 2016 12:00:59 Mauro Carvalho Chehab wrote:
-> Em Wed, 23 Mar 2016 15:05:41 +0100 Hans Verkuil escreveu:
-> > On 03/23/2016 11:35 AM, Mauro Carvalho Chehab wrote:
-> >> Em Wed, 23 Mar 2016 10:45:55 +0200 Laurent Pinchart escreveu:
-> >>> Code that processes media entities can require knowledge of the
-> >>> structure type that embeds a particular media entity instance in order
-> >>> to cast the entity to the proper object type. This needs is shown by
-> >>> the presence of the is_media_entity_v4l2_io and
-> >>> is_media_entity_v4l2_subdev functions.
-> >>> 
-> >>> The implementation of those two functions relies on the entity function
-> >>> field, which is both a wrong and an inefficient design, without even
-> >>> mentioning the maintenance issue involved in updating the functions
-> >>> every time a new entity function is added. Fix this by adding add an
-> >>> obj_type field to the media entity structure to carry the information.
-> >>> 
-> >>> Signed-off-by: Laurent Pinchart
-> >>> <laurent.pinchart+renesas@ideasonboard.com>
-> >>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>> ---
-> >>> 
-> >>>  drivers/media/media-device.c          |  2 +
-> >>>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
-> >>>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
-> >>>  include/media/media-entity.h          | 79 ++++++++++++++-------------
-> >>>  4 files changed, 46 insertions(+), 37 deletions(-)
-> >>> 
-> >>> diff --git a/drivers/media/media-device.c
-> >>> b/drivers/media/media-device.c
-> >>> index 4a97d92a7e7d..88d8de3b7a4f 100644
-> >>> --- a/drivers/media/media-device.c
-> >>> +++ b/drivers/media/media-device.c
-> >>> @@ -580,6 +580,8 @@ int __must_check
-> >>> media_device_register_entity(struct media_device *mdev,> >> 
-> >>>  			 "Entity type for entity %s was not initialized!\n",
-> >>>  			 entity->name);
-> >>> 
-> >>> +	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
-> >>> +
-> >> 
-> >> This is not ok. There are valid cases where the entity is not embedded
-> >> on some other struct. That's the case of connectors/connections, for
-> >> example: a connector/connection entity doesn't need anything else but
-> >> struct media device.
-> > 
-> > Once connectors are enabled, then we do need a MEDIA_ENTITY_TYPE_CONNECTOR
-> > or MEDIA_ENTITY_TYPE_STANDALONE or something along those lines.
-> > 
-> >> Also, this is V4L2 specific. Neither ALSA nor DVB need to use
-> >> container_of(). Actually, this won't even work there, as the entity is
-> >> stored as a pointer, and not as an embedded data.
-> > 
-> > Any other subsystem that *does* embed this can use obj_type. If it doesn't
-> > embed it in anything, then MEDIA_ENTITY_TYPE_STANDALONE should be used
-> > (or whatever name we give it). I agree that we need a type define for the
-> > case where it is not embedded.
-> > 
-> >> So, if we're willing to do this, then it should, instead, create
-> >> something like:
-> >> 
-> >> struct embedded_media_entity {
-> >> 
-> >> 	struct media_entity entity;
-> >> 	enum media_entity_type obj_type;
-> >> 
-> >> };
-> > 
-> > It's not v4l2 specific. It is just that v4l2 is the only subsystem that
-> > requires this information at the moment. I see no reason at all to create
-> > such an ugly struct.
-> 
-> At the minute we added a BUG_ON() there,
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
 
-Note that it's a WARN_ON(), not a BUG_ON().
+I'm sorry this is a bit of a hack. The support for NV16 are scarce and
+this allowed me use it in qv4l2 so I thought it might help someone else.
+I'm not to sure about the entry in supported_src_pixfmts[] is it correct
+to set 'needs conversion' for my use case?
 
-> it became mandatory that all struct media_entity to be embedded.
+Changes since v1
+- Add NV61 support
+- Fixed s/YUVU/YUYV/g in commit message
 
-No, it becomes mandatory to initialize the field.
 
-> This is not always true, but as the intention is to avoid the risk of
-> embedding it without a type, it makes sense to have the above struct. This
-> way, the obj_type usage will be enforced *only* in the places where it is
-> needed.
-> 
-> We could, instead, remove BUG_ON() and make MEDIA_ENTITY_TYPE_STANDALONE
-> the default type, but that won't enforce its usage where it is needed.
-> 
-> > I very strongly suspect that other subsystems will also embed this in
-> > their own internal structs.
-> 
-> They will if they need.
-> 
-> > I actually wonder why it isn't embedded in struct dvb_device,
-> > but I have to admit that I didn't take a close look at that. The pads are
-> > embedded there, so it is somewhat odd that the entity isn't.
-> 
-> The only advantage of embedding instead of using a pointer is that
-> it would allow to use container_of() to get the struct. On the
-> other hand, there's one drawback: both container and embedded
-> structs will be destroyed at the same time. This can be a problem
-> if the embedded object needs to live longer than the container.
-> 
-> Also, the usage of container_of() doesn't work fine if the
-> container have embedded two objects of the same type.
-> 
-> In the specific case of DVB, let's imagine we would use the above
-> solution and add a MEDIA_ENTITY_TYPE_DVB_DEVICE.
-> 
-> If you look into struct dvb_device, you'll see that there are
-> actually two media_entities on it:
-> 
-> struct dvb_device {
-> ...
->         struct media_entity *entity, *tsout_entity;
-> ...
-> };
-> 
-> If we had embedded them, just knowing that the container is
-> struct dvb_device won't help, as the offsets for "entity"
-> and for "tsout_entity" to get its container would be different.
+ lib/libv4lconvert/libv4lconvert-priv.h |  3 +++
+ lib/libv4lconvert/libv4lconvert.c      | 31 +++++++++++++++++++++++++++++++
+ lib/libv4lconvert/rgbyuv.c             | 15 +++++++++++++++
+ 3 files changed, 49 insertions(+)
 
-That's not the issue. The two entities above do not represent the DVB device, 
-struct dvb_device should certainly not inherit from media_entity. Those two 
-entities should be embedded in the DVB structures that model the objects they 
-represented.
+diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
+index b77e3d3..1740efc 100644
+--- a/lib/libv4lconvert/libv4lconvert-priv.h
++++ b/lib/libv4lconvert/libv4lconvert-priv.h
+@@ -129,6 +129,9 @@ void v4lconvert_yuyv_to_bgr24(const unsigned char *src, unsigned char *dst,
+ void v4lconvert_yuyv_to_yuv420(const unsigned char *src, unsigned char *dst,
+ 		int width, int height, int stride, int yvu);
 
-> OK, we could have added two types there, but all of these
-> would be just adding uneeded complexity and wound't be error
-> prone. Also, there's no need to use container_of(), as a pointer
-> to the dvb_device struct is always there at the DVB code.
-> 
-> The same happens at ALSA code: so far, there's no need to go from a
-> media_entity to its container.
-> 
-> So, as I said before, the usage of container_of() and the need for an
-> object type is currently V4L2 specific, and it is due to the way
-> the v4l2 core and subdev framework was modeled. Don't expect or
-> force that all subsystems would do the same.
++void v4lconvert_nv16_to_yuyv(const unsigned char *src, unsigned char *dest,
++		int width, int height);
++
+ void v4lconvert_yvyu_to_rgb24(const unsigned char *src, unsigned char *dst,
+ 		int width, int height, int stride);
 
-It's not a V4L2-specific concept, it's an OOP concept. The fact that the very 
-few users of media entities outside of V4L2 don't currently embed struct 
-media_entity doesn't change anything here.
+diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+index f62aea1..d3d8936 100644
+--- a/lib/libv4lconvert/libv4lconvert.c
++++ b/lib/libv4lconvert/libv4lconvert.c
+@@ -98,6 +98,8 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+ 	{ V4L2_PIX_FMT_YUYV,		16,	 5,	 4,	0 },
+ 	{ V4L2_PIX_FMT_YVYU,		16,	 5,	 4,	0 },
+ 	{ V4L2_PIX_FMT_UYVY,		16,	 5,	 4,	0 },
++	{ V4L2_PIX_FMT_NV16,		16,	 5,	 4,	1 },
++	{ V4L2_PIX_FMT_NV61,		16,	 5,	 4,	1 },
+ 	/* yuv 4:2:0 formats */
+ 	{ V4L2_PIX_FMT_SPCA501,		12,      6,	 3,	1 },
+ 	{ V4L2_PIX_FMT_SPCA505,		12,	 6,	 3,	1 },
+@@ -1229,6 +1231,20 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 		}
+ 		break;
 
--- 
-Regards,
++	case V4L2_PIX_FMT_NV16: {
++		unsigned char *tmpbuf;
++
++		tmpbuf = v4lconvert_alloc_buffer(width * height * 2,
++				&data->convert_pixfmt_buf, &data->convert_pixfmt_buf_size);
++		if (!tmpbuf)
++			return v4lconvert_oom_error(data);
++
++		v4lconvert_nv16_to_yuyv(src, tmpbuf, width, height);
++		src_pix_fmt = V4L2_PIX_FMT_YUYV;
++		src = tmpbuf;
++		bytesperline = bytesperline * 2;
++		/* fall through */
++	}
+ 	case V4L2_PIX_FMT_YUYV:
+ 		if (src_size < (width * height * 2)) {
+ 			V4LCONVERT_ERR("short yuyv data frame\n");
+@@ -1251,6 +1267,21 @@ static int v4lconvert_convert_pixfmt(struct v4lconvert_data *data,
+ 		}
+ 		break;
 
-Laurent Pinchart
++	case V4L2_PIX_FMT_NV61: {
++		unsigned char *tmpbuf;
++
++		tmpbuf = v4lconvert_alloc_buffer(width * height * 2,
++				&data->convert_pixfmt_buf, &data->convert_pixfmt_buf_size);
++		if (!tmpbuf)
++			return v4lconvert_oom_error(data);
++
++		/* Note NV61 is NV16 with U and V swapped so this becomes yvyu. */
++		v4lconvert_nv16_to_yuyv(src, tmpbuf, width, height);
++		src_pix_fmt = V4L2_PIX_FMT_YVYU;
++		src = tmpbuf;
++		bytesperline = bytesperline * 2;
++		/* fall through */
++	}
+ 	case V4L2_PIX_FMT_YVYU:
+ 		if (src_size < (width * height * 2)) {
+ 			V4LCONVERT_ERR("short yvyu data frame\n");
+diff --git a/lib/libv4lconvert/rgbyuv.c b/lib/libv4lconvert/rgbyuv.c
+index 695255a..a0f8256 100644
+--- a/lib/libv4lconvert/rgbyuv.c
++++ b/lib/libv4lconvert/rgbyuv.c
+@@ -295,6 +295,21 @@ void v4lconvert_yuyv_to_yuv420(const unsigned char *src, unsigned char *dest,
+ 	}
+ }
+
++void v4lconvert_nv16_to_yuyv(const unsigned char *src, unsigned char *dest,
++		int width, int height)
++{
++	const unsigned char *y, *cbcr;
++	int count = 0;
++
++	y = src;
++	cbcr = src + width*height;
++
++	while (count++ < width*height) {
++		*dest++ = *y++;
++		*dest++ = *cbcr++;
++	}
++}
++
+ void v4lconvert_yvyu_to_bgr24(const unsigned char *src, unsigned char *dest,
+ 		int width, int height, int stride)
+ {
+--
+2.7.2
 
