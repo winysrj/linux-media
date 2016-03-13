@@ -1,42 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44837 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753523AbcCAO5V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 09:57:21 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 1/8] v4l: vsp1: Check if an entity is a subdev with the right function
-Date: Tue,  1 Mar 2016 16:57:19 +0200
-Message-Id: <1456844246-18778-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mailout.easymail.ca ([64.68.201.169]:39296 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751549AbcCMD5o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Mar 2016 22:57:44 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: au0828 fix to clear enable/disable/change source handlers
+Date: Sat, 12 Mar 2016 20:57:40 -0700
+Message-Id: <1457841460-6042-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use is_media_entity_v4l2_subdev() instead of is_media_entity_v4l2_io()
-to check whether the entity is a subdev.
+Fix to clear enable/disable/change source handlers in the media device
+when media device is unregistered in au0828_unregister_media_device().
+When au0828 module is removed, snd-usb-audio shouldn't call the handlers.
+Clearing will ensure snd-usb-audio won't call them once au0828 is removed.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/au0828/au0828-core.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 61ee0f92c1e5..72cc7d3729f8 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -289,7 +289,7 @@ static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
- 		struct vsp1_rwpf *rwpf;
- 		struct vsp1_entity *e;
- 
--		if (is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_subdev(entity))
- 			continue;
- 
- 		subdev = media_entity_to_v4l2_subdev(entity);
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index de9ab11..abdb956 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -137,6 +137,12 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	if (dev->media_dev &&
+ 		media_devnode_is_registered(&dev->media_dev->devnode)) {
++		/* clear enable_source, disable_source, change_source */
++		dev->media_dev->source_priv = NULL;
++		dev->media_dev->enable_source = NULL;
++		dev->media_dev->disable_source = NULL;
++		dev->media_dev->change_source = NULL;
++
+ 		media_device_unregister(dev->media_dev);
+ 		media_device_cleanup(dev->media_dev);
+ 		dev->media_dev = NULL;
 -- 
-2.4.10
+2.5.0
 
