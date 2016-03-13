@@ -1,49 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:38416 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752005AbcC2JrL (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:36643 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751892AbcCMH7p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2016 05:47:11 -0400
-Received: by mail-wm0-f43.google.com with SMTP id 20so17904906wmh.1
-        for <linux-media@vger.kernel.org>; Tue, 29 Mar 2016 02:47:10 -0700 (PDT)
+	Sun, 13 Mar 2016 03:59:45 -0400
+To: Shuah Khan <shuahkh@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Can you look at this daily build warning?
+Message-ID: <56E51DEA.7010309@xs4all.nl>
+Date: Sun, 13 Mar 2016 08:59:38 +0100
 MIME-Version: 1.0
-In-Reply-To: <56F98915.1030200@intel.com>
-References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
-	<1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
-	<CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
-	<20160321171405.GP28483@phenom.ffwll.local>
-	<CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
-	<20160323115659.GF21717@nuc-i3427.alporthouse.com>
-	<CANq1E4SFPMoE4G4XARFLyEH40OOZnR2v_PQD4=ps3KBvVXUHpA@mail.gmail.com>
-	<20160323154223.GJ21717@nuc-i3427.alporthouse.com>
-	<56F98915.1030200@intel.com>
-Date: Tue, 29 Mar 2016 11:47:09 +0200
-Message-ID: <CANq1E4Q-aXTx5YGh0yOiU8cRh_opqrUrGin7qn-9N_EszjXfvA@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
-From: David Herrmann <dh.herrmann@gmail.com>
-To: Tiago Vignatti <tiago.vignatti@intel.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	=?UTF-8?Q?St=C3=A9phane_Marchesin?= <marcheu@chromium.org>,
-	Daniel Vetter <daniel.vetter@intel.com>,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi Shuah,
 
-On Mon, Mar 28, 2016 at 9:42 PM, Tiago Vignatti
-<tiago.vignatti@intel.com> wrote:
-> Do we have an agreement here after all? David? I need to know whether this
-> fixup is okay to go cause I'll need to submit to Chrome OS then.
+I am getting this warning since commit 840f5b0572ea9ddaca2bf5540a171013e92c97bd
+(media: au0828 disable tuner to demod link in au0828_media_device_register()).
 
-Sure it is fine. The code is already there, we cannot change it.
+Can you take a look?
 
-Thanks
-David
+I'm not sure whether the dtv_demod should just be removed or if some other action
+has to be taken.
+
+Regards,
+
+	Hans
+
+linux-git-i686: WARNINGS
+
+/home/hans/work/build/media-git/drivers/media/v4l2-core/v4l2-mc.c: In function 'v4l2_mc_create_media_graph':
+/home/hans/work/build/media-git/drivers/media/v4l2-core/v4l2-mc.c:37:69: warning: unused variable 'dtv_demod' [-Wunused-variable]
+  struct media_entity *tuner = NULL, *decoder = NULL, *dtv_demod = NULL;
+                                                                     ^
