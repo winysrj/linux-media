@@ -1,72 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fireflyinternet.com ([87.106.93.118]:52761 "EHLO
-	fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752022AbcCWPmk (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:16293 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754381AbcCMXvK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 11:42:40 -0400
-Date: Wed, 23 Mar 2016 15:42:23 +0000
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: David Herrmann <dh.herrmann@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	Tiago Vignatti <tiago.vignatti@intel.com>,
-	=?iso-8859-1?Q?St=E9phane?= Marchesin <marcheu@chromium.org>,
-	Daniel Vetter <daniel.vetter@intel.com>,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
-Message-ID: <20160323154223.GJ21717@nuc-i3427.alporthouse.com>
-References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
- <1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
- <CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
- <20160321171405.GP28483@phenom.ffwll.local>
- <CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
- <20160323115659.GF21717@nuc-i3427.alporthouse.com>
- <CANq1E4SFPMoE4G4XARFLyEH40OOZnR2v_PQD4=ps3KBvVXUHpA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CANq1E4SFPMoE4G4XARFLyEH40OOZnR2v_PQD4=ps3KBvVXUHpA@mail.gmail.com>
+	Sun, 13 Mar 2016 19:51:10 -0400
+Subject: Re: [RFT 1/2] [media] exynos4-is: Add missing endpoint of_node_put on
+ error paths
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+References: <1453768906-28979-1-git-send-email-k.kozlowski@samsung.com>
+ <56E2BA7D.9050500@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kukjin Kim <kgene@kernel.org>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Message-id: <56E5FCE6.6060508@samsung.com>
+Date: Mon, 14 Mar 2016 08:51:02 +0900
+MIME-version: 1.0
+In-reply-to: <56E2BA7D.9050500@samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 23, 2016 at 04:32:59PM +0100, David Herrmann wrote:
-> Hi
+On 11.03.2016 21:30, Sylwester Nawrocki wrote:
+> On 01/26/2016 01:41 AM, Krzysztof Kozlowski wrote:
+>> In fimc_md_parse_port_node() endpoint node is get with of_get_next_child()
+>> but it is not put on error path.
 > 
-> On Wed, Mar 23, 2016 at 12:56 PM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
-> > On Wed, Mar 23, 2016 at 12:30:42PM +0100, David Herrmann wrote:
-> >> My question was rather about why we do this? Semantics for EINTR are
-> >> well defined, and with SA_RESTART (default on linux) user-space can
-> >> ignore it. However, looping on EAGAIN is very uncommon, and it is not
-> >> at all clear why it is needed?
-> >>
-> >> Returning an error to user-space makes sense if user-space has a
-> >> reason to react to it. I fail to see how EAGAIN on a cache-flush/sync
-> >> operation helps user-space at all? As someone without insight into the
-> >> driver implementation, it is hard to tell why.. Any hints?
-> >
-> > The reason we return EAGAIN is to workaround a deadlock we face when
-> > blocking on the GPU holding the struct_mutex (inside the client's
-> > process), but the GPU is dead. As our locking is very, very coarse we
-> > cannot restart the GPU without acquiring the struct_mutex being held by
-> > the client so we wake the client up and tell them the resource they are
-> > waiting on (the flush of the object from the GPU into the CPU domain) is
-> > temporarily unavailable. If they try to immediately wait upon the ioctl
-> > again, they are blocked waiting for the reset to occur before they may
-> > complete their flush. There are a few other possible deadlocks that are
-> > also avoided with EAGAIN (again, the issue is more or less the lack of
-> > fine grained locking).
+> "is get" doesn't sound right to me, how about rephrasing this to:
 > 
-> ...so you hijacked EAGAIN for all DRM ioctls just for a driver
-> workaround?
+> "In fimc_md_parse_port_node() reference count of the endpoint node
+> "is incremented by of_get_next_child() but it is not decremented
+>  on error path."
+> 
+>> Fixes: 56fa1a6a6a7d ("[media] s5p-fimc: Change the driver directory name to exynos4-is")
+>> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+>> ---
+>> Not tested on hardware, only built+static checkers.
+>> ---
+>>  drivers/media/platform/exynos4-is/media-dev.c | 4 +++-
+>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/platform/exynos4-is/media-dev.c 
+>> b/drivers/media/platform/exynos4-is/media-dev.c
+>> index f3b2dd30ec77..de0977479327 100644
+>> --- a/drivers/media/platform/exynos4-is/media-dev.c
+>> +++ b/drivers/media/platform/exynos4-is/media-dev.c
+>> @@ -339,8 +339,10 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+>>  		return 0;
+>>  
+>>  	v4l2_of_parse_endpoint(ep, &endpoint);
+>> -	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
+>> +	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS) {
+>> +		of_node_put(ep);
+>>  		return -EINVAL;
+>> +	}
+> 
+> Thanks for the patch, it looks correct but it doesn't apply cleanly
+> due to patches already in media master branch [1]. Could you refresh
+> this patch and resend?
+> Also I don't quite like multiple calls to of_node_put(), how about
+> doing something like this instead:
 
-No, we utilized the fact that EAGAIN was already enshrined by libdrm as
-the defacto mechanism for repeating the ioctl in order to repeat the
-ioctl for a driver workaround.
--Chris
+How about sending your patch then with my reported-by?
 
--- 
-Chris Wilson, Intel Open Source Technology Centre
+Best regards,
+Krzysztof
+
