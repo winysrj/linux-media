@@ -1,170 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:42009 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754429AbcCaM3w (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:33506 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752512AbcCNMmr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2016 08:29:52 -0400
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: David Woodhouse <dwmw2@infradead.org>,
-	Brian Norris <computersforpeace@gmail.com>,
-	linux-mtd@lists.infradead.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dave Gordon <david.s.gordon@intel.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Richard Weinberger <richard@nod.at>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-crypto@vger.kernel.org, Vignesh R <vigneshr@ti.com>,
-	linux-mm@kvack.org, Joerg Roedel <joro@8bytes.org>,
-	iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 4/4] mtd: provide helper to prepare buffers for DMA operations
-Date: Thu, 31 Mar 2016 14:29:44 +0200
-Message-Id: <1459427384-21374-5-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1459427384-21374-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1459427384-21374-1-git-send-email-boris.brezillon@free-electrons.com>
+	Mon, 14 Mar 2016 08:42:47 -0400
+Received: by mail-lb0-f178.google.com with SMTP id oe12so15009lbc.0
+        for <linux-media@vger.kernel.org>; Mon, 14 Mar 2016 05:42:46 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Mon, 14 Mar 2016 13:42:43 +0100
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/2] v4l2-ioctl: simplify code
+Message-ID: <20160314124243.GA24409@bigcity.dyn.berto.se>
+References: <1456741000-39069-1-git-send-email-hverkuil@xs4all.nl>
+ <1456741000-39069-2-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1456741000-39069-2-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some NAND controller drivers are making use of DMA to transfer data from
-the controller to the buffer passed by the MTD user.
-Provide a generic mtd_map/unmap_buf() implementation to avoid open coded
-(and sometime erroneous) implementations.
+Hi Hans,
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- drivers/mtd/mtdcore.c   | 66 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/mtd/mtd.h | 25 +++++++++++++++++++
- 2 files changed, 91 insertions(+)
+On 2016-02-29 11:16:39 +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Instead of a big if at the beginning, just check if g_selection == NULL
+> and call the cropcap op immediately and return the result.
+> 
+> No functional changes in this patch.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 44 ++++++++++++++++++------------------
+>  1 file changed, 22 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 86c4c19..67dbb03 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -2157,33 +2157,33 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+>  				struct file *file, void *fh, void *arg)
+>  {
+>  	struct v4l2_cropcap *p = arg;
+> +	struct v4l2_selection s = { .type = p->type };
+> +	int ret;
+>  
+> -	if (ops->vidioc_g_selection) {
+> -		struct v4l2_selection s = { .type = p->type };
+> -		int ret;
+> +	if (ops->vidioc_g_selection == NULL)
+> +		return ops->vidioc_cropcap(file, fh, p);
 
-diff --git a/drivers/mtd/mtdcore.c b/drivers/mtd/mtdcore.c
-index 3096251..4c20f33 100644
---- a/drivers/mtd/mtdcore.c
-+++ b/drivers/mtd/mtdcore.c
-@@ -1253,6 +1253,72 @@ void *mtd_kmalloc_up_to(const struct mtd_info *mtd, size_t *size)
- }
- EXPORT_SYMBOL_GPL(mtd_kmalloc_up_to);
- 
-+#ifdef CONFIG_HAS_DMA
-+/**
-+ * mtd_map_buf - create an SG table and prepare it for DMA operations
-+ *
-+ * @mtd: mtd device description object pointer
-+ * @dev: device handling the DMA operation
-+ * @buf: buf used to create the SG table
-+ * @len: length of buf
-+ * @constraints: optional constraints to take into account when creating
-+ *		 the SG table. Can be NULL if no specific constraints
-+ *		 are required.
-+ * @dir: direction of the DMA operation
-+ *
-+ * This function should be used when an MTD driver wants to do DMA operations
-+ * on a buffer passed by the MTD layer. This functions takes care of
-+ * vmallocated buffer constraints, and return and sg_table that you can safely
-+ * use.
-+ */
-+int mtd_map_buf(struct mtd_info *mtd, struct device *dev,
-+		struct sg_table *sgt, const void *buf, size_t len,
-+		const struct sg_constraints *constraints,
-+		enum dma_data_direction dir)
-+{
-+	int ret;
-+
-+	ret = sg_alloc_table_from_buf(sgt, buf, len, constraints, GFP_KERNEL);
-+	if (ret)
-+		return ret;
-+
-+	ret = dma_map_sg(dev, sgt->sgl, sgt->nents, dir);
-+	if (!ret)
-+		ret = -ENOMEM;
-+
-+	if (ret < 0) {
-+		sg_free_table(sgt);
-+		return ret;
-+	}
-+
-+	sgt->nents = ret;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mtd_map_buf);
-+
-+/**
-+ * mtd_unmap_buf - unmap an SG table and release its resources
-+ *
-+ * @mtd: mtd device description object pointer
-+ * @dev: device handling the DMA operation
-+ * @sgt: SG table
-+ * @dir: direction of the DMA operation
-+ *
-+ * This function unmaps a previously mapped SG table and release SG table
-+ * resources. Should be called when your DMA operation is done.
-+ */
-+void mtd_unmap_buf(struct mtd_info *mtd, struct device *dev,
-+		   struct sg_table *sgt, enum dma_data_direction dir)
-+{
-+	if (sgt->orig_nents) {
-+		dma_unmap_sg(dev, sgt->sgl, sgt->orig_nents, dir);
-+		sg_free_table(sgt);
-+	}
-+}
-+EXPORT_SYMBOL_GPL(mtd_unmap_buf);
-+#endif /* !CONFIG_HAS_DMA */
-+
- #ifdef CONFIG_PROC_FS
- 
- /*====================================================================*/
-diff --git a/include/linux/mtd/mtd.h b/include/linux/mtd/mtd.h
-index 7712721..15cff85 100644
---- a/include/linux/mtd/mtd.h
-+++ b/include/linux/mtd/mtd.h
-@@ -24,6 +24,7 @@
- #include <linux/uio.h>
- #include <linux/notifier.h>
- #include <linux/device.h>
-+#include <linux/dma-mapping.h>
- 
- #include <mtd/mtd-abi.h>
- 
-@@ -410,6 +411,30 @@ extern void register_mtd_user (struct mtd_notifier *new);
- extern int unregister_mtd_user (struct mtd_notifier *old);
- void *mtd_kmalloc_up_to(const struct mtd_info *mtd, size_t *size);
- 
-+#ifdef CONFIG_HAS_DMA
-+int mtd_map_buf(struct mtd_info *mtd, struct device *dev,
-+		struct sg_table *sgt, const void *buf, size_t len,
-+		const struct sg_constraints *constraints,
-+		enum dma_data_direction dir);
-+void mtd_unmap_buf(struct mtd_info *mtd, struct device *dev,
-+		   struct sg_table *sgt, enum dma_data_direction dir);
-+#else
-+static inline int mtd_map_buf(struct mtd_info *mtd, struct device *dev,
-+			      struct sg_table *sgt, const void *buf,
-+			      size_t len,
-+			      const struct sg_constraints *constraints
-+			      enum dma_data_direction dir)
-+{
-+	return -ENOTSUPP;
-+}
-+
-+static void mtd_unmap_buf(struct mtd_info *mtd, struct device *dev,
-+			  struct sg_table *sgt, enum dma_data_direction dir)
-+{
-+	return -ENOTSUPP;
-+}
-+#endif
-+
- void mtd_erase_callback(struct erase_info *instr);
- 
- static inline int mtd_is_bitflip(int err) {
+I might be missing something but is there a guarantee 
+ops->vidioc_cropcap is not NULL here?
+
+>  
+> -		/* obtaining bounds */
+> -		if (V4L2_TYPE_IS_OUTPUT(p->type))
+> -			s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
+> -		else
+> -			s.target = V4L2_SEL_TGT_CROP_BOUNDS;
+> +	/* obtaining bounds */
+> +	if (V4L2_TYPE_IS_OUTPUT(p->type))
+> +		s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
+> +	else
+> +		s.target = V4L2_SEL_TGT_CROP_BOUNDS;
+>  
+> -		ret = ops->vidioc_g_selection(file, fh, &s);
+> -		if (ret)
+> -			return ret;
+> -		p->bounds = s.r;
+> +	ret = ops->vidioc_g_selection(file, fh, &s);
+> +	if (ret)
+> +		return ret;
+> +	p->bounds = s.r;
+>  
+> -		/* obtaining defrect */
+> -		if (V4L2_TYPE_IS_OUTPUT(p->type))
+> -			s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
+> -		else
+> -			s.target = V4L2_SEL_TGT_CROP_DEFAULT;
+> +	/* obtaining defrect */
+> +	if (V4L2_TYPE_IS_OUTPUT(p->type))
+> +		s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
+> +	else
+> +		s.target = V4L2_SEL_TGT_CROP_DEFAULT;
+>  
+> -		ret = ops->vidioc_g_selection(file, fh, &s);
+> -		if (ret)
+> -			return ret;
+> -		p->defrect = s.r;
+> -	}
+> +	ret = ops->vidioc_g_selection(file, fh, &s);
+> +	if (ret)
+> +		return ret;
+> +	p->defrect = s.r;
+>  
+>  	/* setting trivial pixelaspect */
+>  	p->pixelaspect.numerator = 1;
+> -- 
+> 2.7.0
+> 
+
 -- 
-2.5.0
-
+Regards,
+Niklas Söderlund
