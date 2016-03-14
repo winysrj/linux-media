@@ -1,253 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40282 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751067AbcCXX2M (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47515 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752813AbcCNJK4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:28:12 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 22/51] v4l: vsp1: Fix 80 characters per line violations
-Date: Fri, 25 Mar 2016 01:27:18 +0200
-Message-Id: <1458862067-19525-23-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 14 Mar 2016 05:10:56 -0400
+Subject: Re: FW: [PATCH v5 0/8] Add MT8173 Video Encoder Driver and VPU Driver
+To: tiffany lin <tiffany.lin@mediatek.com>
+References: <D706F7FE148A8A429434F78C46336826048E7053@mtkmbs02n1>
+ <1457939579.32502.10.camel@mtksdaap41> <56E66672.9030307@xs4all.nl>
+ <1457946267.16701.6.camel@mtksdaap41>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
+	Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56E68019.4010007@xs4all.nl>
+Date: Mon, 14 Mar 2016 10:10:50 +0100
+MIME-Version: 1.0
+In-Reply-To: <1457946267.16701.6.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit f7234138f14c ("v4l2-subdev: replace v4l2_subdev_fh by
-v4l2_subdev_pad_config") introduced lots of 80 characters per line
-violations. Fix them.
+On 03/14/2016 10:04 AM, tiffany lin wrote:
+> On Mon, 2016-03-14 at 08:21 +0100, Hans Verkuil wrote:
+>> On 03/14/2016 08:12 AM, tiffany lin wrote:
+>>> Hi Hans,
+>>>
+>>> After change to use "v4l-utils.git master branch", "V4l2-compliance
+>>> -d /dev/video1" fail on "fail: v4l2-test-buffers.cpp(555):
+>>> check_0(crbufs.reserved, sizeof(crbufs.reserved))".
+>>>
+>>> Check the source code and found
+>>>
+>>> 	memset(&crbufs, 0xff, sizeof(crbufs));   -> crbufs to 0xff
+>>>         node->g_fmt(crbufs.format, i);
+>>>         crbufs.count = 0;
+>>>         crbufs.memory = m;
+>>>         fail_on_test(doioctl(node, VIDIOC_CREATE_BUFS, &crbufs));   
+>>>         fail_on_test(check_0(crbufs.reserved, sizeof(crbufs.reserved)));
+>>>         fail_on_test(crbufs.index != q.g_buffers());
+>>>
+>>> crbufs is initialized to fill with 0xff and after VIDIOC_CREATE_BUFS,
+>>> crbufs.reserved field should be 0x0. But v4l2_m2m_create_bufs and
+>>> vb2_create_bufs do not process reserved filed.
+>>> Do we really need to check reserved filed filled with 0x0? Or we need to
+>>> change vb2_create_bufs to fix this issue?
+>>
+>> The reserved field is zeroed in v4l_create_bufs() in v4l2-ioctl.c, so even before
+>> vb2_create_bufs et al is called.
+>>
+>> The fact that it is no longer zeroed afterwards suggests that someone is messing
+>> with the reserved field.
+>>
+>> You'll have to do a bit more digging, I'm afraid.
+>>
+> Hi Hans,
+> 
+> Thanks for your information.
+> I found the root cause is in "put_v4l2_create32".
+> It do not copy reserved field from kernel space to user space.
+> After modification,"test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK"
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index f38c076..109f687 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -280,7 +280,8 @@ static int put_v4l2_format32(struct v4l2_format *kp,
+> struct v4l2_format32 __user
+>  static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct
+> v4l2_create_buffers32 __user *up)
+>  {
+>         if (!access_ok(VERIFY_WRITE, up, sizeof(struct
+> v4l2_create_buffers32)) ||
+> -           copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32,
+> format)))
+> +           copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32,
+> format)) ||
+> +           copy_to_user(up->reserved, kp->reserved,
+> sizeof(kp->reserved)))
+>                 return -EFAULT;
+>         return __put_v4l2_format32(&kp->format, &up->format);
+>  }
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_bru.c  | 12 ++++++++----
- drivers/media/platform/vsp1/vsp1_lif.c  |  6 ++++--
- drivers/media/platform/vsp1/vsp1_lut.c  |  6 ++++--
- drivers/media/platform/vsp1/vsp1_rwpf.c | 12 ++++++++----
- drivers/media/platform/vsp1/vsp1_rwpf.h |  6 ++++--
- drivers/media/platform/vsp1/vsp1_sru.c  |  9 ++++++---
- drivers/media/platform/vsp1/vsp1_uds.c  |  9 ++++++---
- 7 files changed, 40 insertions(+), 20 deletions(-)
+Yup, that's the cause. Can you post this as a 'proper' patch to the mailinglist?
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 1814d8dc1cd2..fe6ebfa83311 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -195,7 +195,8 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
- 			return -EINVAL;
- 
- 		format = vsp1_entity_get_pad_format(&bru->entity, cfg,
--						    BRU_PAD_SINK(0), code->which);
-+						    BRU_PAD_SINK(0),
-+						    code->which);
- 		code->code = format->code;
- 	}
- 
-@@ -235,7 +236,8 @@ static struct v4l2_rect *bru_get_compose(struct vsp1_bru *bru,
- 	}
- }
- 
--static int bru_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+static int bru_get_format(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_bru *bru = to_bru(subdev);
-@@ -246,7 +248,8 @@ static int bru_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
- 	return 0;
- }
- 
--static void bru_try_format(struct vsp1_bru *bru, struct v4l2_subdev_pad_config *cfg,
-+static void bru_try_format(struct vsp1_bru *bru,
-+			   struct v4l2_subdev_pad_config *cfg,
- 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt,
- 			   enum v4l2_subdev_format_whence which)
- {
-@@ -274,7 +277,8 @@ static void bru_try_format(struct vsp1_bru *bru, struct v4l2_subdev_pad_config *
- 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
- }
- 
--static int bru_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+static int bru_set_format(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_bru *bru = to_bru(subdev);
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index 56054fddb675..53725769442d 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -128,7 +128,8 @@ static int lif_enum_frame_size(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
--static int lif_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+static int lif_get_format(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_lif *lif = to_lif(subdev);
-@@ -139,7 +140,8 @@ static int lif_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
- 	return 0;
- }
- 
--static int lif_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+static int lif_set_format(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_lif *lif = to_lif(subdev);
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index c24712fe5f2c..1c0eefeee2f3 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -139,7 +139,8 @@ static int lut_enum_frame_size(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
--static int lut_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+static int lut_get_format(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_lut *lut = to_lut(subdev);
-@@ -150,7 +151,8 @@ static int lut_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
- 	return 0;
- }
- 
--static int lut_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+static int lut_set_format(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_lut *lut = to_lut(subdev);
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
-index 54070ccdc2ff..0924079b920c 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-@@ -73,11 +73,13 @@ int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
- }
- 
- static struct v4l2_rect *
--vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf, struct v4l2_subdev_pad_config *cfg, u32 which)
-+vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf, struct v4l2_subdev_pad_config *cfg,
-+		   u32 which)
- {
- 	switch (which) {
- 	case V4L2_SUBDEV_FORMAT_TRY:
--		return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, cfg, RWPF_PAD_SINK);
-+		return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, cfg,
-+						RWPF_PAD_SINK);
- 	case V4L2_SUBDEV_FORMAT_ACTIVE:
- 		return &rwpf->crop;
- 	default:
-@@ -85,7 +87,8 @@ vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf, struct v4l2_subdev_pad_config *cfg, u
- 	}
- }
- 
--int vsp1_rwpf_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
-+			 struct v4l2_subdev_pad_config *cfg,
- 			 struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
-@@ -96,7 +99,8 @@ int vsp1_rwpf_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_conf
- 	return 0;
- }
- 
--int vsp1_rwpf_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
-+			 struct v4l2_subdev_pad_config *cfg,
- 			 struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index bda0416dc7db..57f15d45f8bb 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -86,9 +86,11 @@ int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
- int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_frame_size_enum *fse);
--int vsp1_rwpf_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
-+			 struct v4l2_subdev_pad_config *cfg,
- 			 struct v4l2_subdev_format *fmt);
--int vsp1_rwpf_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
-+			 struct v4l2_subdev_pad_config *cfg,
- 			 struct v4l2_subdev_format *fmt);
- int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
- 			    struct v4l2_subdev_pad_config *cfg,
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index 5a7ffbd18043..d81a5b6300de 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -209,7 +209,8 @@ static int sru_enum_frame_size(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
--static int sru_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+static int sru_get_format(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_sru *sru = to_sru(subdev);
-@@ -220,7 +221,8 @@ static int sru_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
- 	return 0;
- }
- 
--static void sru_try_format(struct vsp1_sru *sru, struct v4l2_subdev_pad_config *cfg,
-+static void sru_try_format(struct vsp1_sru *sru,
-+			   struct v4l2_subdev_pad_config *cfg,
- 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt,
- 			   enum v4l2_subdev_format_whence which)
- {
-@@ -271,7 +273,8 @@ static void sru_try_format(struct vsp1_sru *sru, struct v4l2_subdev_pad_config *
- 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
- }
- 
--static int sru_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+static int sru_set_format(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_sru *sru = to_sru(subdev);
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index 7eaf42a2b036..286d0daea810 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -222,7 +222,8 @@ static int uds_enum_frame_size(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
--static int uds_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+static int uds_get_format(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_uds *uds = to_uds(subdev);
-@@ -233,7 +234,8 @@ static int uds_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
- 	return 0;
- }
- 
--static void uds_try_format(struct vsp1_uds *uds, struct v4l2_subdev_pad_config *cfg,
-+static void uds_try_format(struct vsp1_uds *uds,
-+			   struct v4l2_subdev_pad_config *cfg,
- 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt,
- 			   enum v4l2_subdev_format_whence which)
- {
-@@ -269,7 +271,8 @@ static void uds_try_format(struct vsp1_uds *uds, struct v4l2_subdev_pad_config *
- 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
- }
- 
--static int uds_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
-+static int uds_set_format(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *cfg,
- 			  struct v4l2_subdev_format *fmt)
- {
- 	struct vsp1_uds *uds = to_uds(subdev);
--- 
-2.7.3
+I'll take it for kernel 4.6 (and I'll add a CC to the stable mailinglist to
+get it backported as well).
 
+Thanks!
+
+	Hans
