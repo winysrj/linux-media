@@ -1,137 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45347 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750707AbcCTEBr (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:35874 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932069AbcCNTTf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Mar 2016 00:01:47 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 4F8CB182E7D
-	for <linux-media@vger.kernel.org>; Sun, 20 Mar 2016 05:01:41 +0100 (CET)
-Date: Sun, 20 Mar 2016 05:01:41 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ABI WARNING
-Message-Id: <20160320040141.4F8CB182E7D@tschai.lan>
+	Mon, 14 Mar 2016 15:19:35 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: [PATCH v2] [media] media-device: Don't call notify callbacks holding a spinlock
+Date: Mon, 14 Mar 2016 16:19:16 -0300
+Message-Id: <f57f83d55d7e1bc526370c697db014cec51bd909.1457983075.git.mchehab@osg.samsung.com>
+In-Reply-To: <31ecc9d6d2f29b0bd76c03c516d12aa7d0be2f66.1457982982.git.mchehab@osg.samsung.com>
+References: <31ecc9d6d2f29b0bd76c03c516d12aa7d0be2f66.1457982982.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The notify routines may sleep. So, they can't be called in spinlock
+context. Also, they may want to call other media routines that might
+be spinning the spinlock, like creating a link.
 
-Results of the daily build of media_tree:
+This fixes the following bug:
 
-date:		Sun Mar 20 04:00:26 CET 2016
-git branch:	test
-git hash:	b39950960d2b890c21465c69c7c0e4ff6253c6b5
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	Warning: /share/smatch/smatch_data/ is not accessible.
-Use --no-data or --data to suppress this message.
-v0.5.0-3353-gcae47da
-host hardware:	x86_64
-host os:	4.4.0-164
+[ 1839.510587] BUG: sleeping function called from invalid context at mm/slub.c:1289
+[ 1839.510881] in_atomic(): 1, irqs_disabled(): 0, pid: 3479, name: modprobe
+[ 1839.511157] 4 locks held by modprobe/3479:
+[ 1839.511415]  #0:  (&dev->mutex){......}, at: [<ffffffff81ce8933>] __driver_attach+0xa3/0x160
+[ 1839.512381]  #1:  (&dev->mutex){......}, at: [<ffffffff81ce8941>] __driver_attach+0xb1/0x160
+[ 1839.512388]  #2:  (register_mutex#5){+.+.+.}, at: [<ffffffffa10596c7>] usb_audio_probe+0x257/0x1c90 [snd_usb_audio]
+[ 1839.512401]  #3:  (&(&mdev->lock)->rlock){+.+.+.}, at: [<ffffffffa0e6051b>] media_device_register_entity+0x1cb/0x700 [media]
+[ 1839.512412] CPU: 2 PID: 3479 Comm: modprobe Not tainted 4.5.0-rc3+ #49
+[ 1839.512415] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+[ 1839.512417]  0000000000000000 ffff8803b3f6f288 ffffffff81933901 ffff8803c4bae000
+[ 1839.512422]  ffff8803c4bae5c8 ffff8803b3f6f2b0 ffffffff811c6af5 ffff8803c4bae000
+[ 1839.512427]  ffffffff8285d7f6 0000000000000509 ffff8803b3f6f2f0 ffffffff811c6ce5
+[ 1839.512432] Call Trace:
+[ 1839.512436]  [<ffffffff81933901>] dump_stack+0x85/0xc4
+[ 1839.512440]  [<ffffffff811c6af5>] ___might_sleep+0x245/0x3a0
+[ 1839.512443]  [<ffffffff811c6ce5>] __might_sleep+0x95/0x1a0
+[ 1839.512446]  [<ffffffff8155aade>] kmem_cache_alloc_trace+0x20e/0x300
+[ 1839.512451]  [<ffffffffa0e66e3d>] ? media_add_link+0x4d/0x140 [media]
+[ 1839.512455]  [<ffffffffa0e66e3d>] media_add_link+0x4d/0x140 [media]
+[ 1839.512459]  [<ffffffffa0e69931>] media_create_pad_link+0xa1/0x600 [media]
+[ 1839.512463]  [<ffffffffa0fe11b3>] au0828_media_graph_notify+0x173/0x360 [au0828]
+[ 1839.512467]  [<ffffffffa0e68a6a>] ? media_gobj_create+0x1ba/0x480 [media]
+[ 1839.512471]  [<ffffffffa0e606fb>] media_device_register_entity+0x3ab/0x700 [media]
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-apps: OK
-spec-git: OK
-ABI WARNING: change for arm-at91
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-exynos
-ABI WARNING: change for arm-mx
-ABI WARNING: change for arm-omap
-ABI WARNING: change for arm-omap1
-ABI WARNING: change for arm-pxa
-ABI WARNING: change for blackfin-bf561
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for mips
-ABI WARNING: change for powerpc64
-ABI WARNING: change for sh
-ABI WARNING: change for x86_64
-sparse: WARNINGS
-smatch: ERRORS
+Tested with an HVR-950Q, under the following testcases:
 
-Detailed results are available here:
+1) load au0828 driver first, and then snd-usb-audio;
+2) load snd-usb-audio driver first, and then au0828;
+3) loading both drivers, and then connecting the device.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
 
-Full logs are available here:
+Please disconsider verison 1. It got amended with an experimental patch.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+ drivers/media/media-device.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-The Media Infrastructure API from this daily build is here:
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 6ba6e8f982fc..fc3c199e5500 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -587,14 +587,15 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
+ 			       &entity->pads[i].graph_obj);
+ 
++	spin_unlock(&mdev->lock);
++
+ 	/* invoke entity_notify callbacks */
+ 	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
+ 		(notify)->notify(entity, notify->notify_data);
+ 	}
+ 
+-	spin_unlock(&mdev->lock);
+-
+ 	mutex_lock(&mdev->graph_mutex);
++
+ 	if (mdev->entity_internal_idx_max
+ 	    >= mdev->pm_count_walk.ent_enum.idx_max) {
+ 		struct media_entity_graph new = { .top = 0 };
+-- 
+2.5.0
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+
