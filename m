@@ -1,123 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:33061 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753825AbcCULl1 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:45700 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934546AbcCNPXj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 07:41:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Krzysztof Halasa <khalasa@piap.pl>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 0/4] tw686x drivers
-Date: Mon, 21 Mar 2016 12:41:17 +0100
-Message-Id: <1458560481-16200-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mon, 14 Mar 2016 11:23:39 -0400
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH v3 9/9] [media] tvp5150: disable output while signal not locked
+Date: Mon, 14 Mar 2016 16:23:37 +0100
+Message-Id: <1457969017-4088-9-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
+References: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Even though the two tw686x drivers have been posted before I thought I'd
-post them again before I make a pull request due to the fact that I had
-to make a few changes to the staging driver and because of the unusual
-circumstances.
+To avoid short frames on stream start, keep output pins at high impedance
+while we are not properly locked onto the input signal.
 
-Krzysztof, I renamed the driver (and sources) to tw686x-kh to prevent
-conflicts with the name of Ezequiel's driver.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/media/i2c/tvp5150.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-I also prevent it from being built if VIDEO_TW686X is already selected
-so we don't install two drivers for the same hardware.
-
-I also added two patches: the first adds the GFP_DMA32 flag to ensure
-the DMA buffers are in 32 bit memory (you probably never tested it on
-a 64 bit system). The second mentions adds audio support to the TODO list.
-
-For those who haven't paid attention:
-
-We've ended up with two drivers: one only supports V4L2_FIELD_SEQ_BT,
-FIELD_TOP and FIELD_BOTTOM interlaced modes and no audio, the other only
-supports FIELD_INTERLACED by way of a memcpy and has audio support.
-
-Part of the reason is weird hardware design that has different DMA modes
-depending on the field settings. Krzysztof didn't need FIELD_INTERLACED,
-so he never implemented that, and unfortunately when Ezequiel took his
-code as starting point he only implemented the FIELD_INTERLACED format.
-The memcpy was needed due to unstable DMA when using the DMA mode that
-can do FIELD_INTERLACED. It is not known at this time if that unstable
-behavior is specific to the hardware Ezequiel is using or if it is
-inherent to the tw686x.
-
-In the ideal world both feature sets should be merged into one driver.
-
-But for now I decided to add Ezequiel's driver to the mainline and
-Krzysztof's driver to staging. The reason for moving Ezequiel's driver
-to mainline is that application support for FIELD_INTERLACED is standard,
-whereas FIELD_TOP/BOTTOM/SEQ_BT is pretty rare. In addition, Ezequiel's
-driver has audio support.
-
-My hope is that someone will merge the feature sets and we can get rid
-of one of the two drivers.
-
-I have tested both drivers with this card:
-
-http://www.nanzoom.com/product/nz-2108E.shtml
-
-(available on ebay)
-
-If there are no comments, then I'll make a pull request, probably next
-week.
-
-Regards,
-
-	Hans
-
-Ezequiel Garcia (1):
-  media: Support Intersil/Techwell TW686x-based video capture cards
-
-Hans Verkuil (2):
-  tw686x-kh: specify that the DMA is 32 bits
-  tw686x-kh: add audio support to the TODO list
-
-Krzysztof Hałasa (1):
-  TW686x frame grabber driver
-
- MAINTAINERS                                       |   8 +
- drivers/media/pci/Kconfig                         |   1 +
- drivers/media/pci/Makefile                        |   1 +
- drivers/media/pci/tw686x/Kconfig                  |  18 +
- drivers/media/pci/tw686x/Makefile                 |   3 +
- drivers/media/pci/tw686x/tw686x-audio.c           | 386 +++++++++
- drivers/media/pci/tw686x/tw686x-core.c            | 415 ++++++++++
- drivers/media/pci/tw686x/tw686x-regs.h            | 122 +++
- drivers/media/pci/tw686x/tw686x-video.c           | 927 ++++++++++++++++++++++
- drivers/media/pci/tw686x/tw686x.h                 | 158 ++++
- drivers/staging/media/Kconfig                     |   2 +
- drivers/staging/media/Makefile                    |   1 +
- drivers/staging/media/tw686x-kh/Kconfig           |  17 +
- drivers/staging/media/tw686x-kh/Makefile          |   3 +
- drivers/staging/media/tw686x-kh/TODO              |   6 +
- drivers/staging/media/tw686x-kh/tw686x-kh-core.c  | 140 ++++
- drivers/staging/media/tw686x-kh/tw686x-kh-regs.h  | 103 +++
- drivers/staging/media/tw686x-kh/tw686x-kh-video.c | 821 +++++++++++++++++++
- drivers/staging/media/tw686x-kh/tw686x-kh.h       | 118 +++
- 19 files changed, 3250 insertions(+)
- create mode 100644 drivers/media/pci/tw686x/Kconfig
- create mode 100644 drivers/media/pci/tw686x/Makefile
- create mode 100644 drivers/media/pci/tw686x/tw686x-audio.c
- create mode 100644 drivers/media/pci/tw686x/tw686x-core.c
- create mode 100644 drivers/media/pci/tw686x/tw686x-regs.h
- create mode 100644 drivers/media/pci/tw686x/tw686x-video.c
- create mode 100644 drivers/media/pci/tw686x/tw686x.h
- create mode 100644 drivers/staging/media/tw686x-kh/Kconfig
- create mode 100644 drivers/staging/media/tw686x-kh/Makefile
- create mode 100644 drivers/staging/media/tw686x-kh/TODO
- create mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-core.c
- create mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-regs.h
- create mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-video.c
- create mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh.h
-
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index b5140253b648..13ce826a4093 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -51,6 +51,7 @@ struct tvp5150 {
+ 	v4l2_std_id detected_norm;
+ 	u32 input;
+ 	u32 output;
++	u32 oe;
+ 	int enable;
+ 	bool lock;
+ };
+@@ -809,8 +810,11 @@ static irqreturn_t tvp5150_isr(int irq, void *dev_id)
+ 	if (status) {
+ 		regmap_write(map, TVP5150_INT_STATUS_REG_A, status);
+ 
+-		if (status & TVP5150_INT_A_LOCK)
++		if (status & TVP5150_INT_A_LOCK) {
+ 			decoder->lock = !!(status & TVP5150_INT_A_LOCK_STATUS);
++			regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL,
++					   0xd, decoder->lock ? decoder->oe : 0);
++		}
+ 
+ 		return IRQ_HANDLED;
+ 	}
+@@ -841,6 +845,7 @@ static int tvp5150_enable(struct v4l2_subdev *sd)
+ 				   0x7, 0x7);
+ 		/* disable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
+ 		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x0);
++		decoder->oe = 0x9;
+ 		break;
+ 	case V4L2_MBUS_PARALLEL:
+ 		/* 8-bit YUV 4:2:2 */
+@@ -848,6 +853,7 @@ static int tvp5150_enable(struct v4l2_subdev *sd)
+ 				   0x7, 0x0);
+ 		/* enable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
+ 		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x4);
++		decoder->oe = 0xd;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -994,9 +1000,9 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+ 	struct tvp5150 *decoder = container_of(sd, struct tvp5150, sd);
+ 
+ 	if (enable) {
+-		/* Enable YUV(OUT7:0), clock */
++		/* Enable YUV(OUT7:0), (SYNC), clock signal, if locked */
+ 		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0xd,
+-			(decoder->bus_type == V4L2_MBUS_BT656) ? 0x9 : 0xd);
++				   decoder->lock ? decoder->oe : 0);
+ 		if (decoder->irq) {
+ 			/* Enable lock interrupt */
+ 			regmap_update_bits(decoder->regmap,
 -- 
 2.7.0
 
