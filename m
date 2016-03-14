@@ -1,154 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:50642 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751167AbcCBIWR (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45656 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933964AbcCNMJR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2016 03:22:17 -0500
-Subject: Re: [PATCH v2] media: Support Intersil/Techwell TW686x-based video
- capture cards
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-	linux-media@vger.kernel.org
-References: <1453699436-4309-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-Cc: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D6A2B3.6010307@xs4all.nl>
-Date: Wed, 2 Mar 2016 09:22:11 +0100
+	Mon, 14 Mar 2016 08:09:17 -0400
+Date: Mon, 14 Mar 2016 14:09:09 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+	a.hajda@samsung.com, s.nawrocki@samsung.com, kgene@kernel.org,
+	k.kozlowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	hyun.kwon@xilinx.com, soren.brinkmann@xilinx.com,
+	gregkh@linuxfoundation.org, perex@perex.cz, tiwai@suse.com,
+	hans.verkuil@cisco.com, lixiubo@cmss.chinamobile.com,
+	javier@osg.samsung.com, g.liakhovetski@gmx.de,
+	chehabrafael@gmail.com, crope@iki.fi, tommi.franttila@intel.com,
+	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
+	hamohammed.sa@gmail.com, der.herr@hofr.at, navyasri.tech@gmail.com,
+	Julia.Lawall@lip6.fr, amitoj1606@gmail.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH] media: add GFP flag to media_*() that could get called
+ in atomic context
+Message-ID: <20160314120909.GS11084@valkosipuli.retiisi.org.uk>
+References: <1457833689-4926-1-git-send-email-shuahkh@osg.samsung.com>
+ <20160314072236.GO11084@valkosipuli.retiisi.org.uk>
+ <20160314071358.27c87dab@recife.lan>
+ <20160314105253.GQ11084@valkosipuli.retiisi.org.uk>
+ <20160314084633.521d3e35@recife.lan>
 MIME-Version: 1.0
-In-Reply-To: <1453699436-4309-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160314084633.521d3e35@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+Hi Mauro,
 
-Can you make a few small changes? See the comments below.
+On Mon, Mar 14, 2016 at 08:46:33AM -0300, Mauro Carvalho Chehab wrote:
+> Em Mon, 14 Mar 2016 12:52:54 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > On Mon, Mar 14, 2016 at 07:13:58AM -0300, Mauro Carvalho Chehab wrote:
+> > > Em Mon, 14 Mar 2016 09:22:37 +0200
+> > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> > >   
+> > > > Hi Shuah,
+> > > > 
+> > > > On Sat, Mar 12, 2016 at 06:48:09PM -0700, Shuah Khan wrote:  
+> > > > > Add GFP flags to media_create_pad_link(), media_create_intf_link(),
+> > > > > media_devnode_create(), and media_add_link() that could get called
+> > > > > in atomic context to allow callers to pass in the right flags for
+> > > > > memory allocation.
+> > > > > 
+> > > > > tree-wide driver changes for media_*() GFP flags change:
+> > > > > Change drivers to add gfpflags to interffaces, media_create_pad_link(),
+> > > > > media_create_intf_link() and media_devnode_create().
+> > > > > 
+> > > > > Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> > > > > Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>    
+> > > > 
+> > > > What's the use case for calling the above functions in an atomic context?
+> > > >   
+> > > 
+> > > ALSA code seems to do a lot of stuff at atomic context. That's what
+> > > happens on my test machine when au0828 gets probed before
+> > > snd-usb-audio:
+> > > 	http://pastebin.com/LEX5LD5K
+> > > 
+> > > It seems that ALSA USB probe routine (usb_audio_probe) happens in
+> > > atomic context.  
+> > 
+> > usb_audio_probe() grabs a mutex (register_mutex) on its own. It certainly
+> > cannot be called in atomic context.
+> > 
+> > In the above log, what I did notice, though, was that because *we* grab
+> > mdev->lock spinlock in media_device_register_entity(), we may not sleep
+> > which is what the notify() callback implementation in au0828 driver does
+> > (for memory allocation).
+> 
+> True. After looking into the code, the problem is that the notify
+> callbacks are called with the spinlock hold. I don't see any reason
+> to do that.
 
-On 01/25/2016 06:23 AM, Ezequiel Garcia wrote:
-> This commit introduces the support for the Techwell TW686x video
-> capture IC. This hardware supports a few DMA modes, including
-> scatter-gather and frame (contiguous).
+Notify callbacks, perhaps not, but the list is still protected by the
+spinlock. It perhaps is not likely that another process would change it but
+I don't think we can rely on that.
+
 > 
-> This commit makes little use of the DMA engine and instead has
-> a memcpy based implementation. DMA frame and scatter-gather modes
-> support may be added in the future.
+> > Could we instead replace mdev->lock by a mutex?
 > 
-> Currently supported chips:
-> - TW6864 (4 video channels),
-> - TW6865 (4 video channels, not tested, second generation chip),
-> - TW6868 (8 video channels but only 4 first channels using
->            built-in video decoder are supported, not tested),
-> - TW6869 (8 video channels, second generation chip).
+> We changed the code to use a spinlock for a reason: this fixed some
+> troubles in the past with the code locking (can't remember the problem,
+> but this was documented at the kernel logs and at the ML). Yet, the code
+> under the spinlock never sleeps, so this is fine.
+
+struct media_device.lock was added by this patch:
+
+commit 53e269c102fbaf77e7dc526b1606ad4a48e57200
+Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date:   Wed Dec 9 08:40:00 2009 -0300
+
+    [media] media: Entities, pads and links
+
+    As video hardware pipelines become increasingly complex and
+    configurable, the current hardware description through v4l2 subdevices
+    reaches its limits. In addition to enumerating and configuring
+    subdevices, video camera drivers need a way to discover and modify at
+    runtime how those subdevices are connected. This is done through new
+    elements called entities, pads and links.
+
+...
+
+    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+    Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+    Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+I think it was always a spinlock, for the reason you stated above as well:
+it did not need to sleep. But if there is a need to sleep, I think we should
+consider changing that.
+
 > 
-> Cc: Krzysztof Hałasa <khalasa@piap.pl>
-> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+> Yet, in the future, we'll need to do a review of all the locking schema,
+> in order to better support dynamic graph changes.
+
+Agreed. I think more fine grained locking should be considered. The media
+graph mutex will become a bottleneck at some point, especially if we make
+the media devices system wide at some point.
+
+> 
+> > If there is no pressing need to implement atomic memory allocation I simply
+> > wouldn't do it, especially in device initialisation where an allocation
+> > failure will lead to probe failure as well.
+> 
+> The fix for this issue should be simple. See the enclosed code. Btw.
+> it probably makes sense to add some code here to avoid starving the
+> stack, as a notify callback could try to create an entity, with,
+> in turn, would call the notify callback again.
+> 
+> I'll run some tests here to double check if it fixes the issue.
+> 
 > ---
-
-<snip>
-
-> diff --git a/drivers/media/pci/tw686x/tw686x-core.c b/drivers/media/pci/tw686x/tw686x-core.c
-> new file mode 100644
-> index 000000000000..3532d911eca0
-> --- /dev/null
-> +++ b/drivers/media/pci/tw686x/tw686x-core.c
-> @@ -0,0 +1,404 @@
-> +/*
-> + * Copyright (C) 2015 VanguardiaSur - www.vanguardiasur.com.ar
-> + *
-> + * Based on original driver by Krzysztof Hałasa:
-> + * Copyright (C) 2015 Industrial Research Institute for Automation
-> + * and Measurements PIAP
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of version 2 of the GNU General Public License
-> + * as published by the Free Software Foundation.
-> + *
-> + * Notes
-> + * -----
-> + *
-> + * 1. Under stress-testing, it has been observed that the PCIe link
-> + * goes down, without reason. Therefore, the driver takes special care
-> + * to allow device hot-unplugging.
-> + *
-> + * 2. TW686X devices are capable of setting a few different DMA modes,
-> + * including: scatter-gather, field and frame modes. However,
-> + * under stress testings it has been found that the machine can
-> + * freeze completely if DMA registers are programmed while streaming
-> + * is active.
-> + * This driver tries to access hardware registers as infrequently
-> + * as possible by:
-> + *   i.  allocating fixed DMA buffers and memcpy'ing into
-> + *       vmalloc'ed buffers
-> + *   ii. using a timer to mitigate the rate of DMA reset operations,
-> + *       on DMA channels error.
-> + */
+> 
+> [media] media-device: Don't call notify callbacks holding a spinlock
+> 
+> The notify routines may sleep. So, they can't be called in spinlock
+> context. Also, they may want to call other media routines that might
+> be spinning the spinlock, like creating a link.
+> 
+> This fixes the following bug:
+> 
+> [ 1839.510587] BUG: sleeping function called from invalid context at mm/slub.c:1289
+> [ 1839.510881] in_atomic(): 1, irqs_disabled(): 0, pid: 3479, name: modprobe
+> [ 1839.511157] 4 locks held by modprobe/3479:
+> [ 1839.511415]  #0:  (&dev->mutex){......}, at: [<ffffffff81ce8933>] __driver_attach+0xa3/0x160
+> [ 1839.512381]  #1:  (&dev->mutex){......}, at: [<ffffffff81ce8941>] __driver_attach+0xb1/0x160
+> [ 1839.512388]  #2:  (register_mutex#5){+.+.+.}, at: [<ffffffffa10596c7>] usb_audio_probe+0x257/0x1c90 [snd_usb_audio]
+> [ 1839.512401]  #3:  (&(&mdev->lock)->rlock){+.+.+.}, at: [<ffffffffa0e6051b>] media_device_register_entity+0x1cb/0x700 [media]
+> [ 1839.512412] CPU: 2 PID: 3479 Comm: modprobe Not tainted 4.5.0-rc3+ #49
+> [ 1839.512415] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+> [ 1839.512417]  0000000000000000 ffff8803b3f6f288 ffffffff81933901 ffff8803c4bae000
+> [ 1839.512422]  ffff8803c4bae5c8 ffff8803b3f6f2b0 ffffffff811c6af5 ffff8803c4bae000
+> [ 1839.512427]  ffffffff8285d7f6 0000000000000509 ffff8803b3f6f2f0 ffffffff811c6ce5
+> [ 1839.512432] Call Trace:
+> [ 1839.512436]  [<ffffffff81933901>] dump_stack+0x85/0xc4
+> [ 1839.512440]  [<ffffffff811c6af5>] ___might_sleep+0x245/0x3a0
+> [ 1839.512443]  [<ffffffff811c6ce5>] __might_sleep+0x95/0x1a0
+> [ 1839.512446]  [<ffffffff8155aade>] kmem_cache_alloc_trace+0x20e/0x300
+> [ 1839.512451]  [<ffffffffa0e66e3d>] ? media_add_link+0x4d/0x140 [media]
+> [ 1839.512455]  [<ffffffffa0e66e3d>] media_add_link+0x4d/0x140 [media]
+> [ 1839.512459]  [<ffffffffa0e69931>] media_create_pad_link+0xa1/0x600 [media]
+> [ 1839.512463]  [<ffffffffa0fe11b3>] au0828_media_graph_notify+0x173/0x360 [au0828]
+> [ 1839.512467]  [<ffffffffa0e68a6a>] ? media_gobj_create+0x1ba/0x480 [media]
+> [ 1839.512471]  [<ffffffffa0e606fb>] media_device_register_entity+0x3ab/0x700 [media]
+> 
+> (untested)
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 6ba6e8f982fc..fc3c199e5500 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -587,14 +587,15 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+>  		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
+>  			       &entity->pads[i].graph_obj);
+>  
+> +	spin_unlock(&mdev->lock);
 > +
-> +#include <linux/init.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/delay.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/pci_ids.h>
-> +#include <linux/slab.h>
-> +#include <linux/timer.h>
+>  	/* invoke entity_notify callbacks */
+>  	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
+>  		(notify)->notify(entity, notify->notify_data);
+>  	}
+>  
+> -	spin_unlock(&mdev->lock);
+> -
+>  	mutex_lock(&mdev->graph_mutex);
 > +
-> +#include "tw686x.h"
-> +#include "tw686x-regs.h"
-> +
-> +static u32 dma_interval = 0x00098968;
-> +module_param(dma_interval, int, 0444);
-> +MODULE_PARM_DESC(dma_interval, "Minimum time span for DMA interrupting host");
+>  	if (mdev->entity_internal_idx_max
+>  	    >= mdev->pm_count_walk.ent_enum.idx_max) {
+>  		struct media_entity_graph new = { .top = 0 };
+> 
 
-Please document this in a comment, similar to the explanation you gave on irc. So
-where does the default value come from, mention that the unit is unknown and what
-you use it for.
-
-<snip>
-
-> diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-> new file mode 100644
-> index 000000000000..f972497299ce
-> --- /dev/null
-> +++ b/drivers/media/pci/tw686x/tw686x-video.c
-> @@ -0,0 +1,925 @@
-
-<snip>
-
-> +const struct v4l2_ioctl_ops tw686x_video_ioctl_ops = {
-> +	.vidioc_querycap		= tw686x_querycap,
-> +	.vidioc_g_fmt_vid_cap		= tw686x_g_fmt_vid_cap,
-> +	.vidioc_s_fmt_vid_cap		= tw686x_s_fmt_vid_cap,
-> +	.vidioc_enum_fmt_vid_cap	= tw686x_enum_fmt_vid_cap,
-> +	.vidioc_try_fmt_vid_cap		= tw686x_try_fmt_vid_cap,
-> +
-> +	.vidioc_querystd		= tw686x_querystd,
-> +	.vidioc_g_std			= tw686x_g_std,
-> +	.vidioc_s_std			= tw686x_s_std,
-> +
-> +	.vidioc_enum_input		= tw686x_enum_input,
-> +	.vidioc_g_input			= tw686x_g_input,
-> +	.vidioc_s_input			= tw686x_s_input,
-> +
-> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
-> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
-> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
-> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-> +	.vidioc_streamon		= vb2_ioctl_streamon,
-> +	.vidioc_streamoff		= vb2_ioctl_streamoff,
-
-Please add .vidioc_prepare_buf = vb2_ioctl_prepare_buf
-
-You get it for free anyway...
-
-> +
-> +	.vidioc_log_status		= v4l2_ctrl_log_status,
-> +	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-> +};
-
-<snip>
-
+-- 
 Regards,
 
-	Hans
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
