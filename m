@@ -1,89 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54105 "EHLO
-	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934548AbcCNPXj (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38351 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752966AbcCND7g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 11:23:39 -0400
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
-Subject: [PATCH v3 5/9] [media] tvp5150: split reset/enable routine
-Date: Mon, 14 Mar 2016 16:23:33 +0100
-Message-Id: <1457969017-4088-5-git-send-email-l.stach@pengutronix.de>
-In-Reply-To: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
-References: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
+	Sun, 13 Mar 2016 23:59:36 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DFC50180470
+	for <linux-media@vger.kernel.org>; Mon, 14 Mar 2016 04:59:30 +0100 (CET)
+Date: Mon, 14 Mar 2016 04:59:30 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160314035930.DFC50180470@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-To trigger standard autodetection only the reset part of the routine
-is necessary. Split this out to make it callable on its own.
+Results of the daily build of media_tree:
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
----
- drivers/media/i2c/tvp5150.c | 17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+date:		Mon Mar 14 04:00:21 CET 2016
+git branch:	test
+git hash:	da470473c9cf9c4ebb40d046b306c76427b6df94
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 21d044b564ad..f5e6bfa9dd7f 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -768,9 +768,6 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
- 
- static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- {
--	struct tvp5150 *decoder = to_tvp5150(sd);
--	v4l2_std_id std;
--
- 	/* Initializes TVP5150 to its default values */
- 	tvp5150_write_inittab(sd, tvp5150_init_default);
- 
-@@ -780,6 +777,14 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- 	/* Selects decoder input */
- 	tvp5150_selmux(sd);
- 
-+	return 0;
-+}
-+
-+static int tvp5150_enable(struct v4l2_subdev *sd)
-+{
-+	struct tvp5150 *decoder = to_tvp5150(sd);
-+	v4l2_std_id std;
-+
- 	/* Initializes TVP5150 to stream enabled values */
- 	tvp5150_write_inittab(sd, tvp5150_init_enable);
- 
-@@ -844,6 +849,7 @@ static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 
- 	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+
- 	return 0;
- }
- 
-@@ -1179,8 +1185,10 @@ static int tvp5150_set_format(struct v4l2_subdev *sd,
- 
- 	format->format = *mbus_format;
- 
--	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
- 		tvp5150_reset(sd, 0);
-+		tvp5150_enable(sd);
-+	}
- 
- 	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", mbus_format->width,
- 			mbus_format->height);
-@@ -1454,6 +1462,7 @@ static int tvp5150_probe(struct i2c_client *c,
- 	}
- 	v4l2_ctrl_handler_setup(&core->hdl);
- 
-+	tvp5150_reset(sd, 0);
- 	/* Default is no cropping */
- 	tvp5150_set_default(tvp5150_read_std(sd), &core->rect, &core->format);
- 
--- 
-2.7.0
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
