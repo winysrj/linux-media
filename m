@@ -1,70 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:57498 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752236AbcC3Sfg (ORCPT
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:33858 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964938AbcCNNnu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Mar 2016 14:35:36 -0400
-Date: Wed, 30 Mar 2016 11:34:39 -0700
-From: Mark Brown <broonie@kernel.org>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: David Woodhouse <dwmw2@infradead.org>,
-	Brian Norris <computersforpeace@gmail.com>,
-	linux-mtd@lists.infradead.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dave Gordon <david.s.gordon@intel.com>,
-	linux-spi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
-	Richard Weinberger <richard@nod.at>
-Message-ID: <20160330183439.GS2350@sirena.org.uk>
-References: <1459352394-22810-1-git-send-email-boris.brezillon@free-electrons.com>
- <1459352394-22810-5-git-send-email-boris.brezillon@free-electrons.com>
- <20160330165143.GI2350@sirena.org.uk>
- <20160330201831.38e1d6bd@bbrezillon>
+	Mon, 14 Mar 2016 09:43:50 -0400
+Received: by mail-lb0-f176.google.com with SMTP id k12so6819663lbb.1
+        for <linux-media@vger.kernel.org>; Mon, 14 Mar 2016 06:43:49 -0700 (PDT)
+Date: Mon, 14 Mar 2016 14:43:47 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+	<niklas.soderlund@ragnatech.se>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 1/2] v4l2-ioctl: simplify code
+Message-ID: <20160314134347.GB24409@bigcity.dyn.berto.se>
+References: <1456741000-39069-1-git-send-email-hverkuil@xs4all.nl>
+ <1456741000-39069-2-git-send-email-hverkuil@xs4all.nl>
+ <20160314124243.GA24409@bigcity.dyn.berto.se>
+ <56E6B401.5090504@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="hrnpeiJmytOBrElT"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20160330201831.38e1d6bd@bbrezillon>
-Subject: Re: [PATCH v2 4/7] scatterlist: add sg_alloc_table_from_buf() helper
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <56E6B401.5090504@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 2016-03-14 13:52:17 +0100, Hans Verkuil wrote:
+> On 03/14/2016 01:42 PM, Niklas Söderlund wrote:
+> > Hi Hans,
+> > 
+> > On 2016-02-29 11:16:39 +0100, Hans Verkuil wrote:
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Instead of a big if at the beginning, just check if g_selection == NULL
+> >> and call the cropcap op immediately and return the result.
+> >>
+> >> No functional changes in this patch.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  drivers/media/v4l2-core/v4l2-ioctl.c | 44 ++++++++++++++++++------------------
+> >>  1 file changed, 22 insertions(+), 22 deletions(-)
+> >>
+> >> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> >> index 86c4c19..67dbb03 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> >> @@ -2157,33 +2157,33 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+> >>  				struct file *file, void *fh, void *arg)
+> >>  {
+> >>  	struct v4l2_cropcap *p = arg;
+> >> +	struct v4l2_selection s = { .type = p->type };
+> >> +	int ret;
+> >>  
+> >> -	if (ops->vidioc_g_selection) {
+> >> -		struct v4l2_selection s = { .type = p->type };
+> >> -		int ret;
+> >> +	if (ops->vidioc_g_selection == NULL)
+> >> +		return ops->vidioc_cropcap(file, fh, p);
+> > 
+> > I might be missing something but is there a guarantee 
+> > ops->vidioc_cropcap is not NULL here?
+> 
+> There is, either vidioc_g_selection or vidioc_cropcap will always be
+> non-NULL. Since g_selection == NULL it follows that cropcap != NULL.
+> 
+> But I admit that it isn't exactly obvious since the test that ensures
+> this is in determine_valid_ioctls() in v4l2-dev.c.
 
---hrnpeiJmytOBrElT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Nice, thanks for clarifying.
 
-On Wed, Mar 30, 2016 at 08:18:31PM +0200, Boris Brezillon wrote:
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-> BTW, do you see other things that should be added in sg_constraints?
-
-It looked to do everything SPI does which is everything I know about.
-
---hrnpeiJmytOBrElT
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJW/Bw8AAoJECTWi3JdVIfQl3EH/15ijZIt2W6NXfjF6Bj/TzuD
-wIKY7hkWCM164li50lCiJDa1fvF2dzo+TrwBAK1WOs36W0yiJmSwM25aDJjFJYGw
-/xWLjBsjVl57ng+hDVxFw7xfHUt/Z24k8YWEViZUa8dBwgSat2rKdYrPfJoCg3mq
-ktaqy8xcvOXzfqf6nU9t5tSHzE70OEaG6XG7iS+RCL9bF3B2FAxMJm5wf+6Sg8mL
-t1ulSVczwgTtUJ0YI97H+KPFKxPJIfX8OLC4MGcqamuahFMs12qSVz8NtW1rg8Vr
-vKekQEF+YwB3E070ZepBde9CRaTTxkY6shf51A6lW2kXP/b7c7pgIklyVEWSxyE=
-=uI64
------END PGP SIGNATURE-----
-
---hrnpeiJmytOBrElT--
+-- 
+Regards,
+Niklas Söderlund
