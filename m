@@ -1,108 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:24824 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975AbcCKMbD (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57202 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934545AbcCNPXj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 07:31:03 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFT 1/2] [media] exynos4-is: Add missing endpoint of_node_put on
- error paths
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-References: <1453768906-28979-1-git-send-email-k.kozlowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Message-id: <56E2BA7D.9050500@samsung.com>
-Date: Fri, 11 Mar 2016 13:30:53 +0100
-MIME-version: 1.0
-In-reply-to: <1453768906-28979-1-git-send-email-k.kozlowski@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+	Mon, 14 Mar 2016 11:23:39 -0400
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH v3 4/9] [media] tvp5150: fix standard autodetection
+Date: Mon, 14 Mar 2016 16:23:32 +0100
+Message-Id: <1457969017-4088-4-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
+References: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/26/2016 01:41 AM, Krzysztof Kozlowski wrote:
-> In fimc_md_parse_port_node() endpoint node is get with of_get_next_child()
-> but it is not put on error path.
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-"is get" doesn't sound right to me, how about rephrasing this to:
+Make sure to not overwrite decoder->norm when setting the standard
+in hardware, but only when instructed by V4L2 API calls.
 
-"In fimc_md_parse_port_node() reference count of the endpoint node
-"is incremented by of_get_next_child() but it is not decremented
- on error path."
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/media/i2c/tvp5150.c | 56 +++++++++++++++++++++++++--------------------
+ 1 file changed, 31 insertions(+), 25 deletions(-)
 
-> Fixes: 56fa1a6a6a7d ("[media] s5p-fimc: Change the driver directory name to exynos4-is")
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> ---
-> Not tested on hardware, only built+static checkers.
-> ---
->  drivers/media/platform/exynos4-is/media-dev.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c 
-> b/drivers/media/platform/exynos4-is/media-dev.c
-> index f3b2dd30ec77..de0977479327 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -339,8 +339,10 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->  		return 0;
->  
->  	v4l2_of_parse_endpoint(ep, &endpoint);
-> -	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
-> +	if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS) {
-> +		of_node_put(ep);
->  		return -EINVAL;
-> +	}
-
-Thanks for the patch, it looks correct but it doesn't apply cleanly
-due to patches already in media master branch [1]. Could you refresh
-this patch and resend?
-Also I don't quite like multiple calls to of_node_put(), how about
-doing something like this instead:
-
----------------------------8<----------------------------------
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c
-b/drivers/media/platform/exynos4-is/media-dev.c
-index feb521f..663d32e 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -397,18 +397,19 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
-                return 0;
-
-        ret = v4l2_of_parse_endpoint(ep, &endpoint);
--       if (ret) {
--               of_node_put(ep);
--               return ret;
-+       if (!ret) {
-+               if (WARN_ON(endpoint.base.port == 0) ||
-+                           index >= FIMC_MAX_SENSORS) {
-+                       ret = -EINVAL;
-+               } else {
-+                       pd->mux_id = (endpoint.base.port - 1) & 0x1;
-+                       rem = of_graph_get_remote_port_parent(ep);
-+               }
-        }
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index f6720d1d09ea..21d044b564ad 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -703,8 +703,6 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+ 	int fmt = 0;
+ 
+-	decoder->norm = std;
 -
--       if (WARN_ON(endpoint.base.port == 0) || index >= FIMC_MAX_SENSORS)
--               return -EINVAL;
--
--       pd->mux_id = (endpoint.base.port - 1) & 0x1;
--
--       rem = of_graph_get_remote_port_parent(ep);
-        of_node_put(ep);
-+       if (ret < 0)
-+               return ret;
+ 	/* First tests should be against specific std */
+ 
+ 	if (std == V4L2_STD_NTSC_443) {
+@@ -741,13 +739,37 @@ static int tvp5150_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	else
+ 		decoder->rect.height = TVP5150_V_MAX_OTHERS;
+ 
++	decoder->norm = std;
+ 
+ 	return tvp5150_set_std(sd, std);
+ }
+ 
++static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
++{
++	int val = tvp5150_read(sd, TVP5150_STATUS_REG_5);
 +
-        if (rem == NULL) {
-                v4l2_info(&fmd->v4l2_dev, "Remote device at %s not found\n",
-                                                        ep->full_name);
----------------------------8<----------------------------------
-
++	switch (val & 0x0F) {
++	case 0x01:
++		return V4L2_STD_NTSC;
++	case 0x03:
++		return V4L2_STD_PAL;
++	case 0x05:
++		return V4L2_STD_PAL_M;
++	case 0x07:
++		return V4L2_STD_PAL_N | V4L2_STD_PAL_Nc;
++	case 0x09:
++		return V4L2_STD_NTSC_443;
++	case 0xb:
++		return V4L2_STD_SECAM;
++	default:
++		return V4L2_STD_UNKNOWN;
++	}
++}
++
+ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
++	v4l2_std_id std;
+ 
+ 	/* Initializes TVP5150 to its default values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_default);
+@@ -783,7 +805,13 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 	/* Initialize image preferences */
+ 	v4l2_ctrl_handler_setup(&decoder->hdl);
+ 
+-	tvp5150_set_std(sd, decoder->norm);
++	if (decoder->norm == V4L2_STD_ALL)
++		std = tvp5150_read_std(sd);
++	else
++		std = decoder->norm;
++
++	/* Disable autoswitch mode */
++	tvp5150_set_std(sd, std);
+ 	return 0;
+ };
+ 
+@@ -808,28 +836,6 @@ static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return -EINVAL;
+ }
+ 
+-static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
+-{
+-	int val = tvp5150_read(sd, TVP5150_STATUS_REG_5);
+-
+-	switch (val & 0x0F) {
+-	case 0x01:
+-		return V4L2_STD_NTSC;
+-	case 0x03:
+-		return V4L2_STD_PAL;
+-	case 0x05:
+-		return V4L2_STD_PAL_M;
+-	case 0x07:
+-		return V4L2_STD_PAL_N | V4L2_STD_PAL_Nc;
+-	case 0x09:
+-		return V4L2_STD_NTSC_443;
+-	case 0xb:
+-		return V4L2_STD_SECAM;
+-	default:
+-		return V4L2_STD_UNKNOWN;
+-	}
+-}
+-
+ static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
+ 		struct v4l2_subdev_pad_config *cfg,
+ 		struct v4l2_subdev_mbus_code_enum *code)
 -- 
-Thanks,
-Sylwester
+2.7.0
 
-[1] git://linuxtv.org/media_tree.git
