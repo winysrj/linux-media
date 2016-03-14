@@ -1,308 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752592AbcCYKpH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 06:45:07 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 43/54] v4l: vsp1: Factorize media bus codes enumeration code
-Date: Fri, 25 Mar 2016 12:44:17 +0200
-Message-Id: <1458902668-1141-44-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:53786 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753895AbcCNSQp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2016 14:16:45 -0400
+Date: Mon, 14 Mar 2016 15:16:38 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Any reason why media_entity_pads_init() isn't void?
+Message-ID: <20160314151638.71a85e9b@recife.lan>
+In-Reply-To: <20160314100501.552db582@recife.lan>
+References: <56E6758F.7020205@xs4all.nl>
+	<20160314103643.GP11084@valkosipuli.retiisi.org.uk>
+	<20160314082738.3b84ed0a@recife.lan>
+	<20160314114332.GR11084@valkosipuli.retiisi.org.uk>
+	<20160314085251.19698ae8@recife.lan>
+	<20160314100501.552db582@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most of the entities can't perform format conversion and implement the
-same media bus enumeration function. Factorize the code into a single
-implementation.
+Em Mon, 14 Mar 2016 10:05:01 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_bru.c    | 26 ++---------------
- drivers/media/platform/vsp1/vsp1_entity.c | 46 +++++++++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_entity.h |  4 +++
- drivers/media/platform/vsp1/vsp1_lif.c    | 29 ++-----------------
- drivers/media/platform/vsp1/vsp1_lut.c    | 29 ++-----------------
- drivers/media/platform/vsp1/vsp1_sru.c    | 29 ++-----------------
- drivers/media/platform/vsp1/vsp1_uds.c    | 29 ++-----------------
- 7 files changed, 60 insertions(+), 132 deletions(-)
+> Em Mon, 14 Mar 2016 08:52:51 -0300
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+> 
+> > Em Mon, 14 Mar 2016 13:43:33 +0200
+> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> >   
+> > > Hi Mauro,
+> > > 
+> > > On Mon, Mar 14, 2016 at 08:27:38AM -0300, Mauro Carvalho Chehab wrote:    
+> > > > Em Mon, 14 Mar 2016 12:36:44 +0200
+> > > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> > > >       
+> > > > > Hi Hans,
+> > > > > 
+> > > > > On Mon, Mar 14, 2016 at 09:25:51AM +0100, Hans Verkuil wrote:      
+> > > > > > I was fixing a sparse warning in media_entity_pads_init() and I noticed
+> > > > > > that that function always returns 0. Any reason why this can't be changed
+> > > > > > to a void function?        
+> > > > > 
+> > > > > I was thinking of the same function but I had a different question: why
+> > > > > would one call this *after* entity->graph_obj.mdev is set? It is set by
+> > > > > media_device_register_entity(), but once mdev it's set, you're not expected
+> > > > > to call pads_init anymore...      
+> > > > 
+> > > > Ideally, drivers should *first* create mdev, and then create the
+> > > > graph objects, as all objects should be registered at the mdev, in
+> > > > order to get their object ID and to be registered at the mdev's object
+> > > > lists.      
+> > > 
+> > > Right. I think it wouldn't hurt to have some comment hints in what's there
+> > > for legacy use cases... I can submit patches for some of these.    
+> > 
+> > Yeah, feel free to submit a patch for it. It could be good to add a
+> > warn_once() that would hit for the legacy case too.
+> >   
+> > > 
+> > > Currently what works is that you can register graph objects until the media
+> > > device node is exposed to the user.    
+> > 
+> > Yes.
+> >   
+> > > We don't have proper serialisation in
+> > > place to do that, do we? At least the framework functions leave it up to the
+> > > caller.
+> > > 
+> > > I think it wouldn't be a bad idea either to think about the serialisation
+> > > model a bit. It's been unchanged from the day one basically.    
+> > 
+> > Actually, the async logic does some sort of serialization, although it
+> > doesn't enforce it.
+> > 
+> > Javier touched on some cases where the logic was not right, but he
+> > didn't change everything. 
+> > 
+> > I agree with you here: it would be great to have this fixed in a better
+> > way.
+> > 
+> > That's said, this affects only non-PCI/USB devices. On PCI/USB, the
+> > main/bridge driver is always called first, and the subdev init only
+> > happens after it registers the I2C bus.
+> >   
+> 
+> Maybe we could do something like the patch below, to replace the I2C
+> probe routines, and then create some logic at the async ops that would
+> create the mdev and then call the SD-specific core.mc_probe() methods.
+> 
+> (patch doesn't compile yet, and it is not complete, but just to give
+> an idea on how we could do it).
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index fa293ee2829d..835593dd88b3 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -76,31 +76,9 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
- 		MEDIA_BUS_FMT_ARGB8888_1X32,
- 		MEDIA_BUS_FMT_AYUV8_1X32,
- 	};
--	struct vsp1_bru *bru = to_bru(subdev);
+Still not tested, but, IMHO, in a better shape. See enclosed.
+
+The idea behind it is to split the PAD init on all subdevs and let the
+core call it.
+
+For now, the core is calling it early, when v4l2_i2c_subdev_init() is
+called, but, after making all subdevs use the new pad_init() callback,
+we can call them later. I guess the best place for the code would be
+to be called only at v4l2_device_register_subdev(), but we need to
+double check if this would work on all cases.
+
 -
--	if (code->pad == BRU_PAD_SINK(0)) {
--		if (code->index >= ARRAY_SIZE(codes))
--			return -EINVAL;
--
--		code->code = codes[code->index];
--	} else {
--		struct v4l2_subdev_pad_config *config;
--		struct v4l2_mbus_framefmt *format;
- 
--		if (code->index)
--			return -EINVAL;
--
--		config = vsp1_entity_get_pad_config(&bru->entity, cfg,
--						    code->which);
--		if (!config)
--			return -EINVAL;
--
--		format = vsp1_entity_get_pad_format(&bru->entity, config,
--						    BRU_PAD_SINK(0));
--		code->code = format->code;
--	}
--
--	return 0;
-+	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
-+					  ARRAY_SIZE(codes));
- }
- 
- static int bru_enum_frame_size(struct v4l2_subdev *subdev,
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 5030974f3083..b347442bc662 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -141,6 +141,52 @@ int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
+
+
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index ff18444e19e4..14004fd7d0fb 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1208,6 +1208,28 @@ static int tvp5150_registered_async(struct v4l2_subdev *sd)
  	return 0;
  }
  
-+/*
-+ * vsp1_subdev_enum_mbus_code - Subdev pad enum_mbus_code handler
-+ * @subdev: V4L2 subdevice
-+ * @cfg: V4L2 subdev pad configuration
-+ * @code: Media bus code enumeration
-+ * @codes: Array of supported media bus codes
-+ * @ncodes: Number of supported media bus codes
-+ *
-+ * This function implements the subdev enum_mbus_code pad operation for entities
-+ * that do not support format conversion. It enumerates the given supported
-+ * media bus codes on the sink pad and reports a source pad format identical to
-+ * the sink pad.
-+ */
-+int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_mbus_code_enum *code,
-+			       const unsigned int *codes, unsigned int ncodes)
++static int __maybe_unused tvp5150_pad_init(struct v4l2_subdev *sd)
 +{
-+	struct vsp1_entity *entity = to_vsp1_entity(subdev);
++	struct tvp5150 *core = to_tvp5150(sd);
++	int res;
 +
-+	if (code->pad == 0) {
-+		if (code->index >= ncodes)
-+			return -EINVAL;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
++	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
++	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
 +
-+		code->code = codes[code->index];
-+	} else {
-+		struct v4l2_subdev_pad_config *config;
-+		struct v4l2_mbus_framefmt *format;
++	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
 +
-+		/* The entity can't perform format conversion, the sink format
-+		 * is always identical to the source format.
-+		 */
-+		if (code->index)
-+			return -EINVAL;
++	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
++	if (res < 0)
++		return res;
 +
-+		config = vsp1_entity_get_pad_config(entity, cfg, code->which);
-+		if (!config)
-+			return -EINVAL;
-+
-+		format = vsp1_entity_get_pad_format(entity, config, 0);
-+		code->code = format->code;
-+	}
-+
++	sd->entity.ops = &tvp5150_sd_media_ops;
++#endif
 +	return 0;
 +}
 +
- /* -----------------------------------------------------------------------------
-  * Media Operations
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
+@@ -1246,6 +1268,9 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
+ };
+ 
+ static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
++#ifdef CONFIG_MEDIA_CONTROLLER
++	.pad_init = tvp5150_pad_init,
++#endif
+ 	.enum_mbus_code = tvp5150_enum_mbus_code,
+ 	.enum_frame_size = tvp5150_enum_frame_size,
+ 	.set_fmt = tvp5150_fill_fmt,
+@@ -1475,20 +1500,6 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+-	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+-	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-
+-	sd->entity.function = MEDIA_ENT_F_ATV_DECODER;
+-
+-	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
+-	if (res < 0)
+-		return res;
+-
+-	sd->entity.ops = &tvp5150_sd_media_ops;
+-#endif
+-
+ 	res = tvp5150_detect_version(core);
+ 	if (res < 0)
+ 		return res;
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index 5b808500e7e7..6bcdf557e027 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -112,6 +112,14 @@ EXPORT_SYMBOL(v4l2_ctrl_query_fill);
+ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+ 		const struct v4l2_subdev_ops *ops)
+ {
++	/*
++	 * Initialize the MC pads - for now, this will be called
++	 * unconditionally, since the current implementation will defer
++	 * the pads initialization until the media_dev is created.
++	 */
++	if (v4l2_subdev_has_op(sd, pad, pad_init))
++		sd->ops->pad->pad_init(sd);
++
+ 	v4l2_subdev_init(sd, ops);
+ 	sd->flags |= V4L2_SUBDEV_FL_IS_I2C;
+ 	/* the owner is the same as the i2c_client's driver owner */
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 11e2dfec0198..c9bb221029e4 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -572,6 +572,9 @@ struct v4l2_subdev_pad_config {
+ /**
+  * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
+  *
++ * @pad_init: callback that initializes the media-controller specific part
++ *	      of the subdev driver, creating its pads
++ *
+  * @enum_mbus_code: callback for VIDIOC_SUBDEV_ENUM_MBUS_CODE ioctl handler
+  *		    code.
+  * @enum_frame_size: callback for VIDIOC_SUBDEV_ENUM_FRAME_SIZE ioctl handler
+@@ -607,6 +610,7 @@ struct v4l2_subdev_pad_config {
+  *                  may be adjusted by the subdev driver to device capabilities.
   */
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 7845e931138f..fbde42256522 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -130,5 +130,9 @@ void vsp1_entity_route_setup(struct vsp1_entity *source,
- int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
- 			       struct v4l2_subdev_pad_config *cfg,
- 			       struct v4l2_subdev_format *fmt);
-+int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_mbus_code_enum *code,
-+			       const unsigned int *codes, unsigned int ncodes);
- 
- #endif /* __VSP1_ENTITY_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index db698e7d4884..ded4c5a87d4c 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -45,34 +45,9 @@ static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
- 		MEDIA_BUS_FMT_ARGB8888_1X32,
- 		MEDIA_BUS_FMT_AYUV8_1X32,
- 	};
--	struct vsp1_lif *lif = to_lif(subdev);
--
--	if (code->pad == LIF_PAD_SINK) {
--		if (code->index >= ARRAY_SIZE(codes))
--			return -EINVAL;
--
--		code->code = codes[code->index];
--	} else {
--		struct v4l2_subdev_pad_config *config;
--		struct v4l2_mbus_framefmt *format;
--
--		/* The LIF can't perform format conversion, the sink format is
--		 * always identical to the source format.
--		 */
--		if (code->index)
--			return -EINVAL;
--
--		config = vsp1_entity_get_pad_config(&lif->entity, cfg,
--						    code->which);
--		if (!config)
--			return -EINVAL;
- 
--		format = vsp1_entity_get_pad_format(&lif->entity, config,
--						    LIF_PAD_SINK);
--		code->code = format->code;
--	}
--
--	return 0;
-+	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
-+					  ARRAY_SIZE(codes));
- }
- 
- static int lif_enum_frame_size(struct v4l2_subdev *subdev,
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 6a0f10f71dda..781ea99abccf 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -71,34 +71,9 @@ static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
- 		MEDIA_BUS_FMT_AHSV8888_1X32,
- 		MEDIA_BUS_FMT_AYUV8_1X32,
- 	};
--	struct vsp1_lut *lut = to_lut(subdev);
--
--	if (code->pad == LUT_PAD_SINK) {
--		if (code->index >= ARRAY_SIZE(codes))
--			return -EINVAL;
--
--		code->code = codes[code->index];
--	} else {
--		struct v4l2_subdev_pad_config *config;
--		struct v4l2_mbus_framefmt *format;
--
--		/* The LUT can't perform format conversion, the sink format is
--		 * always identical to the source format.
--		 */
--		if (code->index)
--			return -EINVAL;
--
--		config = vsp1_entity_get_pad_config(&lut->entity, cfg,
--						    code->which);
--		if (!config)
--			return -EINVAL;
- 
--		format = vsp1_entity_get_pad_format(&lut->entity, config,
--						    LUT_PAD_SINK);
--		code->code = format->code;
--	}
--
--	return 0;
-+	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
-+					  ARRAY_SIZE(codes));
- }
- 
- static int lut_enum_frame_size(struct v4l2_subdev *subdev,
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index 38fb4e1e8bae..9dc7c77c74f8 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -116,34 +116,9 @@ static int sru_enum_mbus_code(struct v4l2_subdev *subdev,
- 		MEDIA_BUS_FMT_ARGB8888_1X32,
- 		MEDIA_BUS_FMT_AYUV8_1X32,
- 	};
--	struct vsp1_sru *sru = to_sru(subdev);
--
--	if (code->pad == SRU_PAD_SINK) {
--		if (code->index >= ARRAY_SIZE(codes))
--			return -EINVAL;
--
--		code->code = codes[code->index];
--	} else {
--		struct v4l2_subdev_pad_config *config;
--		struct v4l2_mbus_framefmt *format;
--
--		/* The SRU can't perform format conversion, the sink format is
--		 * always identical to the source format.
--		 */
--		if (code->index)
--			return -EINVAL;
- 
--		config = vsp1_entity_get_pad_config(&sru->entity, cfg,
--						    code->which);
--		if (!config)
--			return -EINVAL;
--
--		format = vsp1_entity_get_pad_format(&sru->entity, config,
--						    SRU_PAD_SINK);
--		code->code = format->code;
--	}
--
--	return 0;
-+	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
-+					  ARRAY_SIZE(codes));
- }
- 
- static int sru_enum_frame_size(struct v4l2_subdev *subdev,
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index 59432c7c29b9..26f7393d278e 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -119,34 +119,9 @@ static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
- 		MEDIA_BUS_FMT_ARGB8888_1X32,
- 		MEDIA_BUS_FMT_AYUV8_1X32,
- 	};
--	struct vsp1_uds *uds = to_uds(subdev);
--
--	if (code->pad == UDS_PAD_SINK) {
--		if (code->index >= ARRAY_SIZE(codes))
--			return -EINVAL;
--
--		code->code = codes[code->index];
--	} else {
--		struct v4l2_subdev_pad_config *config;
--		struct v4l2_mbus_framefmt *format;
--
--		config = vsp1_entity_get_pad_config(&uds->entity, cfg,
--						    code->which);
--		if (!config)
--			return -EINVAL;
--
--		/* The UDS can't perform format conversion, the sink format is
--		 * always identical to the source format.
--		 */
--		if (code->index)
--			return -EINVAL;
- 
--		format = vsp1_entity_get_pad_format(&uds->entity, config,
--						    UDS_PAD_SINK);
--		code->code = format->code;
--	}
--
--	return 0;
-+	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
-+					  ARRAY_SIZE(codes));
- }
- 
- static int uds_enum_frame_size(struct v4l2_subdev *subdev,
--- 
-2.7.3
+ struct v4l2_subdev_pad_ops {
++	int (*pad_init)(struct v4l2_subdev *sd);
+ 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code);
 
+-- 
+Thanks,
+Mauro
