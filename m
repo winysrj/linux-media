@@ -1,66 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:55510 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756957AbcCCIFJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 03:05:09 -0500
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	David Brown <david.brown@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
-	rtc-linux@googlegroups.com, linux-arm-msm@vger.kernel.org,
-	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-usb@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [RFC 07/15] pinctrl: mvebu: Add missing MFD_SYSCON dependency on
- HAS_IOMEM
-Date: Thu, 03 Mar 2016 17:03:33 +0900
-Message-id: <1456992221-26712-8-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
-References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:53660 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752218AbcCNLqq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2016 07:46:46 -0400
+Date: Mon, 14 Mar 2016 08:46:33 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+	a.hajda@samsung.com, s.nawrocki@samsung.com, kgene@kernel.org,
+	k.kozlowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	hyun.kwon@xilinx.com, soren.brinkmann@xilinx.com,
+	gregkh@linuxfoundation.org, perex@perex.cz, tiwai@suse.com,
+	hans.verkuil@cisco.com, lixiubo@cmss.chinamobile.com,
+	javier@osg.samsung.com, g.liakhovetski@gmx.de,
+	chehabrafael@gmail.com, crope@iki.fi, tommi.franttila@intel.com,
+	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
+	hamohammed.sa@gmail.com, der.herr@hofr.at, navyasri.tech@gmail.com,
+	Julia.Lawall@lip6.fr, amitoj1606@gmail.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH] media: add GFP flag to media_*() that could get called
+ in atomic context
+Message-ID: <20160314084633.521d3e35@recife.lan>
+In-Reply-To: <20160314105253.GQ11084@valkosipuli.retiisi.org.uk>
+References: <1457833689-4926-1-git-send-email-shuahkh@osg.samsung.com>
+	<20160314072236.GO11084@valkosipuli.retiisi.org.uk>
+	<20160314071358.27c87dab@recife.lan>
+	<20160314105253.GQ11084@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MFD_SYSCON depends on HAS_IOMEM so when selecting it avoid unmet
-direct dependencies.
+Em Mon, 14 Mar 2016 12:52:54 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> Hi Mauro,
+> 
+> On Mon, Mar 14, 2016 at 07:13:58AM -0300, Mauro Carvalho Chehab wrote:
+> > Em Mon, 14 Mar 2016 09:22:37 +0200
+> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> >   
+> > > Hi Shuah,
+> > > 
+> > > On Sat, Mar 12, 2016 at 06:48:09PM -0700, Shuah Khan wrote:  
+> > > > Add GFP flags to media_create_pad_link(), media_create_intf_link(),
+> > > > media_devnode_create(), and media_add_link() that could get called
+> > > > in atomic context to allow callers to pass in the right flags for
+> > > > memory allocation.
+> > > > 
+> > > > tree-wide driver changes for media_*() GFP flags change:
+> > > > Change drivers to add gfpflags to interffaces, media_create_pad_link(),
+> > > > media_create_intf_link() and media_devnode_create().
+> > > > 
+> > > > Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> > > > Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>    
+> > > 
+> > > What's the use case for calling the above functions in an atomic context?
+> > >   
+> > 
+> > ALSA code seems to do a lot of stuff at atomic context. That's what
+> > happens on my test machine when au0828 gets probed before
+> > snd-usb-audio:
+> > 	http://pastebin.com/LEX5LD5K
+> > 
+> > It seems that ALSA USB probe routine (usb_audio_probe) happens in
+> > atomic context.  
+> 
+> usb_audio_probe() grabs a mutex (register_mutex) on its own. It certainly
+> cannot be called in atomic context.
+> 
+> In the above log, what I did notice, though, was that because *we* grab
+> mdev->lock spinlock in media_device_register_entity(), we may not sleep
+> which is what the notify() callback implementation in au0828 driver does
+> (for memory allocation).
+
+True. After looking into the code, the problem is that the notify
+callbacks are called with the spinlock hold. I don't see any reason
+to do that.
+
+> Could we instead replace mdev->lock by a mutex?
+
+We changed the code to use a spinlock for a reason: this fixed some
+troubles in the past with the code locking (can't remember the problem,
+but this was documented at the kernel logs and at the ML). Yet, the code
+under the spinlock never sleeps, so this is fine.
+
+Yet, in the future, we'll need to do a review of all the locking schema,
+in order to better support dynamic graph changes.
+
+> If there is no pressing need to implement atomic memory allocation I simply
+> wouldn't do it, especially in device initialisation where an allocation
+> failure will lead to probe failure as well.
+
+The fix for this issue should be simple. See the enclosed code. Btw.
+it probably makes sense to add some code here to avoid starving the
+stack, as a notify callback could try to create an entity, with,
+in turn, would call the notify callback again.
+
+I'll run some tests here to double check if it fixes the issue.
+
 ---
- drivers/pinctrl/mvebu/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/pinctrl/mvebu/Kconfig b/drivers/pinctrl/mvebu/Kconfig
-index 170602407c0d..13685923729c 100644
---- a/drivers/pinctrl/mvebu/Kconfig
-+++ b/drivers/pinctrl/mvebu/Kconfig
-@@ -7,6 +7,7 @@ config PINCTRL_MVEBU
+[media] media-device: Don't call notify callbacks holding a spinlock
+
+The notify routines may sleep. So, they can't be called in spinlock
+context. Also, they may want to call other media routines that might
+be spinning the spinlock, like creating a link.
+
+This fixes the following bug:
+
+[ 1839.510587] BUG: sleeping function called from invalid context at mm/slub.c:1289
+[ 1839.510881] in_atomic(): 1, irqs_disabled(): 0, pid: 3479, name: modprobe
+[ 1839.511157] 4 locks held by modprobe/3479:
+[ 1839.511415]  #0:  (&dev->mutex){......}, at: [<ffffffff81ce8933>] __driver_attach+0xa3/0x160
+[ 1839.512381]  #1:  (&dev->mutex){......}, at: [<ffffffff81ce8941>] __driver_attach+0xb1/0x160
+[ 1839.512388]  #2:  (register_mutex#5){+.+.+.}, at: [<ffffffffa10596c7>] usb_audio_probe+0x257/0x1c90 [snd_usb_audio]
+[ 1839.512401]  #3:  (&(&mdev->lock)->rlock){+.+.+.}, at: [<ffffffffa0e6051b>] media_device_register_entity+0x1cb/0x700 [media]
+[ 1839.512412] CPU: 2 PID: 3479 Comm: modprobe Not tainted 4.5.0-rc3+ #49
+[ 1839.512415] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+[ 1839.512417]  0000000000000000 ffff8803b3f6f288 ffffffff81933901 ffff8803c4bae000
+[ 1839.512422]  ffff8803c4bae5c8 ffff8803b3f6f2b0 ffffffff811c6af5 ffff8803c4bae000
+[ 1839.512427]  ffffffff8285d7f6 0000000000000509 ffff8803b3f6f2f0 ffffffff811c6ce5
+[ 1839.512432] Call Trace:
+[ 1839.512436]  [<ffffffff81933901>] dump_stack+0x85/0xc4
+[ 1839.512440]  [<ffffffff811c6af5>] ___might_sleep+0x245/0x3a0
+[ 1839.512443]  [<ffffffff811c6ce5>] __might_sleep+0x95/0x1a0
+[ 1839.512446]  [<ffffffff8155aade>] kmem_cache_alloc_trace+0x20e/0x300
+[ 1839.512451]  [<ffffffffa0e66e3d>] ? media_add_link+0x4d/0x140 [media]
+[ 1839.512455]  [<ffffffffa0e66e3d>] media_add_link+0x4d/0x140 [media]
+[ 1839.512459]  [<ffffffffa0e69931>] media_create_pad_link+0xa1/0x600 [media]
+[ 1839.512463]  [<ffffffffa0fe11b3>] au0828_media_graph_notify+0x173/0x360 [au0828]
+[ 1839.512467]  [<ffffffffa0e68a6a>] ? media_gobj_create+0x1ba/0x480 [media]
+[ 1839.512471]  [<ffffffffa0e606fb>] media_device_register_entity+0x3ab/0x700 [media]
+
+(untested)
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 6ba6e8f982fc..fc3c199e5500 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -587,14 +587,15 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
+ 			       &entity->pads[i].graph_obj);
  
- config PINCTRL_DOVE
- 	bool
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select PINCTRL_MVEBU
- 	select MFD_SYSCON
++	spin_unlock(&mdev->lock);
++
+ 	/* invoke entity_notify callbacks */
+ 	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
+ 		(notify)->notify(entity, notify->notify_data);
+ 	}
  
--- 
-2.5.0
+-	spin_unlock(&mdev->lock);
+-
+ 	mutex_lock(&mdev->graph_mutex);
++
+ 	if (mdev->entity_internal_idx_max
+ 	    >= mdev->pm_count_walk.ent_enum.idx_max) {
+ 		struct media_entity_graph new = { .top = 0 };
 
