@@ -1,81 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:45175 "EHLO ni.piap.pl"
+Received: from lists.s-osg.org ([54.187.51.154]:53675 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751082AbcCCGvM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 01:51:12 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: tw686x driver
-References: <56D6A50F.4060404@xs4all.nl>
-Date: Thu, 03 Mar 2016 07:51:07 +0100
-In-Reply-To: <56D6A50F.4060404@xs4all.nl> (Hans Verkuil's message of "Wed, 2
-	Mar 2016 09:32:15 +0100")
-Message-ID: <m3povcnjfo.fsf@t19.piap.pl>
+	id S1751748AbcCNLw4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2016 07:52:56 -0400
+Date: Mon, 14 Mar 2016 08:52:51 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Any reason why media_entity_pads_init() isn't void?
+Message-ID: <20160314085251.19698ae8@recife.lan>
+In-Reply-To: <20160314114332.GR11084@valkosipuli.retiisi.org.uk>
+References: <56E6758F.7020205@xs4all.nl>
+	<20160314103643.GP11084@valkosipuli.retiisi.org.uk>
+	<20160314082738.3b84ed0a@recife.lan>
+	<20160314114332.GR11084@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Mon, 14 Mar 2016 13:43:33 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+> Hi Mauro,
+> 
+> On Mon, Mar 14, 2016 at 08:27:38AM -0300, Mauro Carvalho Chehab wrote:
+> > Em Mon, 14 Mar 2016 12:36:44 +0200
+> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> >   
+> > > Hi Hans,
+> > > 
+> > > On Mon, Mar 14, 2016 at 09:25:51AM +0100, Hans Verkuil wrote:  
+> > > > I was fixing a sparse warning in media_entity_pads_init() and I noticed
+> > > > that that function always returns 0. Any reason why this can't be changed
+> > > > to a void function?    
+> > > 
+> > > I was thinking of the same function but I had a different question: why
+> > > would one call this *after* entity->graph_obj.mdev is set? It is set by
+> > > media_device_register_entity(), but once mdev it's set, you're not expected
+> > > to call pads_init anymore...  
+> > 
+> > Ideally, drivers should *first* create mdev, and then create the
+> > graph objects, as all objects should be registered at the mdev, in
+> > order to get their object ID and to be registered at the mdev's object
+> > lists.  
+> 
+> Right. I think it wouldn't hurt to have some comment hints in what's there
+> for legacy use cases... I can submit patches for some of these.
 
-> So lessons learned:
->
-> Krzysztof, next time don't wait many months before posting a new version fixing
-> requested changes.
+Yeah, feel free to submit a patch for it. It could be good to add a
+warn_once() that would hit for the legacy case too.
 
-Actually, this is not how it happened.
+> 
+> Currently what works is that you can register graph objects until the media
+> device node is exposed to the user.
 
-On July 3, 2015 I posted the original driver:
-http://www.spinics.net/lists/linux-media/msg91474.html
+Yes.
 
-Ezequiel reviewed the code on 6 Jul 2015:
-http://www.spinics.net/lists/linux-media/msg91516.html
+> We don't have proper serialisation in
+> place to do that, do we? At least the framework functions leave it up to the
+> caller.
+> 
+> I think it wouldn't be a bad idea either to think about the serialisation
+> model a bit. It's been unchanged from the day one basically.
 
-On 27 Jul 2015, as you can easily find in your own mail archive, he
-informed me that he's working on the driver and that he's going to post
-updated patches himself. This was holidays time for me and I stated
-that I have to suspend my work till the end of August.
+Actually, the async logic does some sort of serialization, although it
+doesn't enforce it.
 
-I asked him to add his changes on top of my code several times (and this
-is really easy with git). This never happened, and on 14 Aug 2015 he
-posted:
+Javier touched on some cases where the logic was not right, but he
+didn't change everything. 
 
-> Problem is I've re-written the driver, taking yours as a starting point
-> and reference.
+I agree with you here: it would be great to have this fixed in a better
+way.
 
-> In other words, I don't have a proper git branch with a history, starting
-> from the patch you submitted. Instead, I would be submitting a new
-> patch for Hans and Mauro to review.
+That's said, this affects only non-PCI/USB devices. On PCI/USB, the
+main/bridge driver is always called first, and the subdev init only
+happens after it registers the I2C bus.
 
-Maybe I got the meaning of this wrong, and he wasn't writing about
-rewriting the driver "from scratch". Yes, after receiving this mail
-I stopped my development, waiting for his driver to show up. That's
-where the "many months" are. Yes, Ezequiel waited for "many months" with
-his version - not me.
-
-Only after he has posted "his" driver, I could find out what the
-"rewriting" meant.
-
-Don't get me wrong, I was never opposed to him improving my driver.
-I only requested that his contributions are clearly shown, in a form
-of a patch or a patch set (or a git tree etc.), and so are my own.
-I really can't understand why his code can't be transparently applied
-over my original patch (or the updated one, which compiles and works
-fine with recent media tree).
-
-Is it too much to ask?
-
-
-The lesson I learned is thus this instead:
-- don't publish code because it can be hijacked, twisted and you'll
-have to fight for even getting your authorship back. Forget about proper
-attribution and history.
 -- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+Thanks,
+Mauro
