@@ -1,94 +1,393 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34189 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753504AbcCBRRJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 12:17:09 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v2 7/9] media: rcar-vin: initialize EDID data
-Date: Wed,  2 Mar 2016 18:16:35 +0100
-Message-Id: <1456938997-29971-8-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1456938997-29971-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1456938997-29971-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:33071 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934547AbcCNPXj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2016 11:23:39 -0400
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH v3 2/9] [media] tvp5150: add userspace subdev API
+Date: Mon, 14 Mar 2016 16:23:30 +0100
+Message-Id: <1457969017-4088-2-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
+References: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initializes the decoder subdevice with a fixed EDID blob.
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+This patch adds userspace V4L2 subdevice API support.
+
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 46 ++++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+ drivers/media/i2c/tvp5150.c | 282 +++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 223 insertions(+), 59 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 4596eda..f5d93bc 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1070,6 +1070,41 @@ error:
- 	return ret;
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 6ba93a425640..67312c9d83c1 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -36,7 +36,9 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
+ 
+ struct tvp5150 {
+ 	struct v4l2_subdev sd;
++	struct media_pad pad;
+ 	struct v4l2_ctrl_handler hdl;
++	struct v4l2_mbus_framefmt format;
+ 	struct v4l2_rect rect;
+ 	struct regmap *regmap;
+ 
+@@ -819,38 +821,68 @@ static int tvp5150_enum_mbus_code(struct v4l2_subdev *sd,
+ 	return 0;
  }
  
-+static u8 edid[256] = {
-+	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
-+	0x48, 0xAE, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
-+	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
-+	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
-+	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
-+	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
-+	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
-+	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
-+	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
-+	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
-+	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
-+	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
-+	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-+	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
-+	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
-+	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
-+	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
-+	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
-+	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
-+	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
-+};
-+
- int rvin_dma_on(struct rvin_dev *vin)
+-static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
+-		struct v4l2_subdev_pad_config *cfg,
+-		struct v4l2_subdev_format *format)
++static void tvp5150_try_crop(struct tvp5150 *decoder, struct v4l2_rect *rect,
++			       v4l2_std_id std)
  {
- 	struct v4l2_subdev *sd;
-@@ -1159,6 +1194,17 @@ int rvin_dma_on(struct rvin_dev *vin)
- 	v4l2_info(&vin->v4l2_dev, "Device registered as /dev/video%d\n",
- 		  vin->vdev.num);
+-	struct v4l2_mbus_framefmt *f;
+-	struct tvp5150 *decoder = to_tvp5150(sd);
++	unsigned int hmax;
  
-+	{
-+		struct v4l2_subdev_edid rvin_edid = {
-+			.pad = 0,
-+			.start_block = 0,
-+			.blocks = 2,
-+			.edid = edid,
-+		};
-+		v4l2_subdev_call(sd, pad, set_edid,
-+				&rvin_edid);
+-	if (!format || format->pad)
+-		return -EINVAL;
++	/* Clamp the crop rectangle boundaries to tvp5150 limits */
++	rect->left = clamp(rect->left, 0, TVP5150_MAX_CROP_LEFT);
++	rect->width = clamp(rect->width,
++			    TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect->left,
++			    TVP5150_H_MAX - rect->left);
++	rect->top = clamp(rect->top, 0, TVP5150_MAX_CROP_TOP);
+ 
+-	f = &format->format;
++	/* tvp5150 has some special limits */
++	rect->left = clamp(rect->left, 0, TVP5150_MAX_CROP_LEFT);
++	rect->width = clamp_t(unsigned int, rect->width,
++			      TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect->left,
++			      TVP5150_H_MAX - rect->left);
++	rect->top = clamp(rect->top, 0, TVP5150_MAX_CROP_TOP);
++
++	/* Calculate height based on current standard */
++	if (std & V4L2_STD_525_60)
++		hmax = TVP5150_V_MAX_525_60;
++	else
++		hmax = TVP5150_V_MAX_OTHERS;
+ 
+-	tvp5150_reset(sd, 0);
++	rect->height = clamp(rect->height,
++			     hmax - TVP5150_MAX_CROP_TOP - rect->top,
++			     hmax - rect->top);
++}
+ 
+-	f->width = decoder->rect.width;
+-	f->height = decoder->rect.height;
++static void tvp5150_set_crop(struct tvp5150 *decoder, struct v4l2_rect *rect,
++			       v4l2_std_id std)
++{
++	struct regmap *map = decoder->regmap;
++	unsigned int hmax;
+ 
+-	f->code = MEDIA_BUS_FMT_UYVY8_2X8;
+-	f->field = V4L2_FIELD_SEQ_TB;
+-	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	if (std & V4L2_STD_525_60)
++		hmax = TVP5150_V_MAX_525_60;
++	else
++		hmax = TVP5150_V_MAX_OTHERS;
+ 
+-	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
+-			f->height);
+-	return 0;
++	regmap_write(map, TVP5150_VERT_BLANKING_START, rect->top);
++	regmap_write(map, TVP5150_VERT_BLANKING_STOP,
++		     rect->top + rect->height - hmax);
++	regmap_write(map, TVP5150_ACT_VD_CROP_ST_MSB,
++		     rect->left >> TVP5150_CROP_SHIFT);
++	regmap_write(map, TVP5150_ACT_VD_CROP_ST_LSB,
++		     rect->left | (1 << TVP5150_CROP_SHIFT));
++	regmap_write(map, TVP5150_ACT_VD_CROP_STP_MSB,
++		     (rect->left + rect->width - TVP5150_MAX_CROP_LEFT) >>
++		     TVP5150_CROP_SHIFT);
++	regmap_write(map, TVP5150_ACT_VD_CROP_STP_LSB,
++		     rect->left + rect->width - TVP5150_MAX_CROP_LEFT);
++
++	decoder->rect = *rect;
+ }
+ 
+ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
+ {
+-	struct v4l2_rect rect = a->c;
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
++	struct v4l2_rect rect = a->c;
+ 	v4l2_std_id std;
+-	unsigned int hmax;
+ 
+ 	v4l2_dbg(1, debug, sd, "%s left=%d, top=%d, width=%d, height=%d\n",
+ 		__func__, rect.left, rect.top, rect.width, rect.height);
+@@ -858,42 +890,13 @@ static int tvp5150_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
+ 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+-	/* tvp5150 has some special limits */
+-	rect.left = clamp(rect.left, 0, TVP5150_MAX_CROP_LEFT);
+-	rect.width = clamp_t(unsigned int, rect.width,
+-			     TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT - rect.left,
+-			     TVP5150_H_MAX - rect.left);
+-	rect.top = clamp(rect.top, 0, TVP5150_MAX_CROP_TOP);
+-
+-	/* Calculate height based on current standard */
+ 	if (decoder->norm == V4L2_STD_ALL)
+ 		std = tvp5150_read_std(sd);
+ 	else
+ 		std = decoder->norm;
+ 
+-	if (std & V4L2_STD_525_60)
+-		hmax = TVP5150_V_MAX_525_60;
+-	else
+-		hmax = TVP5150_V_MAX_OTHERS;
+-
+-	rect.height = clamp_t(unsigned int, rect.height,
+-			      hmax - TVP5150_MAX_CROP_TOP - rect.top,
+-			      hmax - rect.top);
+-
+-	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_START, rect.top);
+-	regmap_write(decoder->regmap, TVP5150_VERT_BLANKING_STOP,
+-		      rect.top + rect.height - hmax);
+-	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_MSB,
+-		      rect.left >> TVP5150_CROP_SHIFT);
+-	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_ST_LSB,
+-		      rect.left | (1 << TVP5150_CROP_SHIFT));
+-	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_MSB,
+-		      (rect.left + rect.width - TVP5150_MAX_CROP_LEFT) >>
+-		      TVP5150_CROP_SHIFT);
+-	regmap_write(decoder->regmap, TVP5150_ACT_VD_CROP_STP_LSB,
+-		      rect.left + rect.width - TVP5150_MAX_CROP_LEFT);
+-
+-	decoder->rect = rect;
++	tvp5150_try_crop(decoder, &rect, std);
++	tvp5150_set_crop(decoder, &rect, std);
+ 
+ 	return 0;
+ }
+@@ -1049,6 +1052,153 @@ static int tvp5150_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
++static struct v4l2_mbus_framefmt *
++tvp5150_get_pad_format(struct tvp5150 *decoder, struct v4l2_subdev *sd,
++			 struct v4l2_subdev_pad_config *cfg, unsigned int pad,
++			 enum v4l2_subdev_format_whence which)
++{
++	switch (which) {
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(sd, cfg, pad);
++#endif
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &decoder->format;
++	default:
++		return NULL;
++	}
++}
++
++static struct v4l2_rect *
++tvp5150_get_pad_crop(struct tvp5150 *decoder, struct v4l2_subdev *sd,
++		       struct v4l2_subdev_pad_config *cfg, unsigned int pad,
++		       enum v4l2_subdev_format_whence which)
++{
++	switch (which) {
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_crop(sd, cfg, pad);
++#endif
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &decoder->rect;
++	default:
++		return NULL;
++	}
++}
++
++static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
++				   struct v4l2_subdev_pad_config *cfg,
++				   struct v4l2_subdev_frame_size_enum *fse)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	v4l2_std_id std;
++
++	if (fse->index > 0 || fse->code != MEDIA_BUS_FMT_UYVY8_2X8)
++		return -EINVAL;
++
++	fse->min_width = TVP5150_H_MAX - TVP5150_MAX_CROP_LEFT;
++	fse->max_width = TVP5150_H_MAX;
++
++	/* Calculate height based on current standard */
++	if (decoder->norm == V4L2_STD_ALL)
++		std = tvp5150_read_std(sd);
++	else
++		std = decoder->norm;
++
++	if (std & V4L2_STD_525_60) {
++		fse->min_height = TVP5150_V_MAX_525_60 - TVP5150_MAX_CROP_TOP;
++		fse->max_height = TVP5150_V_MAX_525_60;
++	} else {
++		fse->min_height = TVP5150_V_MAX_OTHERS - TVP5150_MAX_CROP_TOP;
++		fse->max_height = TVP5150_V_MAX_OTHERS;
 +	}
 +
- remove_device:
- 	rvin_remove_device(vin);
++	return 0;
++}
++
++static int tvp5150_get_format(struct v4l2_subdev *sd,
++			      struct v4l2_subdev_pad_config *cfg,
++			      struct v4l2_subdev_format *format)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	struct v4l2_mbus_framefmt *mbus_format;
++
++	mbus_format = tvp5150_get_pad_format(decoder, sd, cfg,
++					     format->pad, format->which);
++	if (!mbus_format)
++		return -ENOTTY;
++
++	format->format = *mbus_format;
++
++	return 0;
++}
++
++static int tvp5150_set_format(struct v4l2_subdev *sd,
++			      struct v4l2_subdev_pad_config *cfg,
++			      struct v4l2_subdev_format *format)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	struct v4l2_mbus_framefmt *mbus_format;
++	struct v4l2_rect *crop;
++
++	crop = tvp5150_get_pad_crop(decoder, sd, cfg, format->pad,
++				    format->which);
++	mbus_format = tvp5150_get_pad_format(decoder, sd, cfg, format->pad,
++					     format->which);
++	if (!crop || !mbus_format)
++		return -ENOTTY;
++
++	mbus_format->width = crop->width;
++	mbus_format->height = crop->height;
++
++	format->format = *mbus_format;
++
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++		tvp5150_reset(sd, 0);
++
++	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", mbus_format->width,
++			mbus_format->height);
++
++	return 0;
++}
++
++static void tvp5150_set_default(v4l2_std_id std, struct v4l2_rect *crop,
++				struct v4l2_mbus_framefmt *format)
++{
++	crop->left = 0;
++	crop->width = TVP5150_H_MAX;
++	crop->top = 0;
++	if (std & V4L2_STD_525_60)
++		crop->height = TVP5150_V_MAX_525_60;
++	else
++		crop->height = TVP5150_V_MAX_OTHERS;
++
++	format->width = crop->width;
++	format->height = crop->height;
++	format->code = MEDIA_BUS_FMT_UYVY8_2X8;
++	format->field = V4L2_FIELD_SEQ_TB;
++	format->colorspace = V4L2_COLORSPACE_SMPTE170M;
++}
++
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++static int tvp5150_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	v4l2_std_id std;
++
++	if (decoder->norm == V4L2_STD_ALL)
++		std = tvp5150_read_std(sd);
++	else
++		std = decoder->norm;
++
++	tvp5150_set_default(std, v4l2_subdev_get_try_crop(fh, 0),
++				 v4l2_subdev_get_try_format(fh, 0));
++	return 0;
++}
++#endif
++
++/* ----------------------------------------------------------------------- */
++
+ static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
+ 	.s_ctrl = tvp5150_s_ctrl,
+ };
+@@ -1083,8 +1233,9 @@ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
  
+ static const struct v4l2_subdev_pad_ops tvp5150_pad_ops = {
+ 	.enum_mbus_code = tvp5150_enum_mbus_code,
+-	.set_fmt = tvp5150_fill_fmt,
+-	.get_fmt = tvp5150_fill_fmt,
++	.enum_frame_size = tvp5150_enum_frame_size,
++	.get_fmt = tvp5150_get_format,
++	.set_fmt = tvp5150_set_format,
+ };
+ 
+ static const struct v4l2_subdev_ops tvp5150_ops = {
+@@ -1095,6 +1246,11 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
+ 	.pad = &tvp5150_pad_ops,
+ };
+ 
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++static const struct v4l2_subdev_internal_ops tvp5150_internal_ops = {
++	.open = tvp5150_open,
++};
++#endif
+ 
+ /****************************************************************************
+ 			I2C Client & Driver
+@@ -1197,6 +1353,19 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	sd = &core->sd;
+ 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
+ 
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++	sd->internal_ops = &tvp5150_internal_ops;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++#endif
++#ifdef CONFIG_MEDIA_CONTROLLER
++	sd->entity.flags |= MEDIA_ENT_F_ATV_DECODER;
++	core->pad.flags = MEDIA_PAD_FL_SOURCE;
++	res = media_entity_pads_init(&sd->entity, 1, &core->pad);
++	if (res < 0)
++		return res;
++#endif
++
+ 	/* 
+ 	 * Read consequent registers - TVP5150_MSB_DEV_ID, TVP5150_LSB_DEV_ID,
+ 	 * TVP5150_ROM_MAJOR_VER, TVP5150_ROM_MINOR_VER 
+@@ -1250,14 +1419,9 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	v4l2_ctrl_handler_setup(&core->hdl);
+ 
+ 	/* Default is no cropping */
+-	core->rect.top = 0;
+-	if (tvp5150_read_std(sd) & V4L2_STD_525_60)
+-		core->rect.height = TVP5150_V_MAX_525_60;
+-	else
+-		core->rect.height = TVP5150_V_MAX_OTHERS;
+-	core->rect.left = 0;
+-	core->rect.width = TVP5150_H_MAX;
++	tvp5150_set_default(tvp5150_read_std(sd), &core->rect, &core->format);
+ 
++	sd->dev = &c->dev;
+ 	res = v4l2_async_register_subdev(sd);
+ 	if (res < 0)
+ 		goto err;
 -- 
-2.6.4
+2.7.0
 
