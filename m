@@ -1,56 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45778 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754032AbcCBLQu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 06:16:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [RFC] Representing hardware connections via MC
-Date: Wed, 02 Mar 2016 13:16:47 +0200
-Message-ID: <1736605.4kGg8lYGrV@avalon>
-In-Reply-To: <20160302081323.36eddba5@recife.lan>
-References: <20160226091317.5a07c374@recife.lan> <1753279.MBUKgSvGQl@avalon> <20160302081323.36eddba5@recife.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtprelay0049.hostedemail.com ([216.40.44.49]:57284 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932760AbcCNCHI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Mar 2016 22:07:08 -0400
+Message-ID: <1457921220.11972.58.camel@perches.com>
+Subject: Re: [PATCH] Add tw5864 driver
+From: Joe Perches <joe@perches.com>
+To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>, Jiri Slaby <jslaby@suse.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
+	kernel-mentors@selenic.com
+Date: Sun, 13 Mar 2016 19:07:00 -0700
+In-Reply-To: <1457920751-21101-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+References: <1457920713-21009-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+	 <1457920751-21101-1-git-send-email-andrey.utkin@corp.bluecherry.net>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, 2016-03-14 at 03:59 +0200, Andrey Utkin wrote:
+> Support for boards based on Techwell TW5864 chip which provides
+> multichannel video & audio grabbing and encoding (H.264, MJPEG,
+> ADPCM G.726).
 
-On Wednesday 02 March 2016 08:13:23 Mauro Carvalho Chehab wrote:
-> Em Wed, 02 Mar 2016 12:34:42 +0200 Laurent Pinchart escreveu:
-> > On Friday 26 February 2016 09:13:17 Mauro Carvalho Chehab wrote:
+trivia:
 
-[snip]
-
-> >> NOTE:
-> >> 
-> >> The labels at the PADs currently can't be represented, but the
-> >> idea is adding it as a property via the upcoming properties API.
-> > 
-> > Whether to add labels to pads, and more generically how to differentiate
-> > them from userspace, is an interesting question. I'd like to decouple it
-> > from the connectors entities discussion if possible, in such a way that
-> > using labels wouldn't be required to leave the discussion open on that
-> > topic. If we foresee a dependency on labels for pads then we should open
-> > that discussion now.
->
-> We can postpone such discussion. PAD labels are not needed for
-> what we have so far (RF, Composite, S-Video). Still, I think that
-> we'll need it by the time we add connector support for more complex
-> connector types, like HDMI.
-
-If we don't add pad labels now then they should be optional for future 
-connectors too, including HDMI. If you think that HDMI connectors will require 
-them then we should discuss them now.
-
--- 
-Regards,
-
-Laurent Pinchart
+Perhaps all the __used arrays could be const
 
