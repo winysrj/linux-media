@@ -1,78 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.74]:56075 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbcCCNHR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 08:07:17 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	rtc-linux@googlegroups.com,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	David Brown <david.brown@linaro.org>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski.k@gmail.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Dan Williams <dan.j.williams@intel.com>,
-	devel@driverdev.osuosl.org, linux-samsung-soc@vger.kernel.org,
-	Vinod Koul <vinod.koul@intel.com>,
-	Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	linux-media@vger.kernel.org, Jason Cooper <jason@lakedaemon.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	linux-arm-msm@vger.kernel.org, linux-gpio@vger.kernel.org,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	linux-soc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-pm@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	netdev@vger.kernel.org, dmaengine@vger.kernel.org,
-	David Woodhouse <dwmw2@infradead.org>
-Subject: Re: [rtc-linux] Re: [RFC 09/15] media: platform: Add missing MFD_SYSCON dependency on HAS_IOMEM
-Date: Thu, 03 Mar 2016 14:05:33 +0100
-Message-ID: <13054519.5feSCc5dgv@wuerfel>
-In-Reply-To: <CAJKOXPe50ira_Qqy7qJ5H_PHa8B_xOinCK6JkncXFYn_eaQFfg@mail.gmail.com>
-References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com> <2181866.k24LVvUjTs@wuerfel> <CAJKOXPe50ira_Qqy7qJ5H_PHa8B_xOinCK6JkncXFYn_eaQFfg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp.gentoo.org ([140.211.166.183]:60040 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933687AbcCNVKH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2016 17:10:07 -0400
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by smtp.gentoo.org (Postfix) with ESMTP id F1DE1340A5C
+	for <linux-media@vger.kernel.org>; Mon, 14 Mar 2016 21:10:04 +0000 (UTC)
+From: Mike Frysinger <vapier@gentoo.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] include sys/sysmacros.h for major() & minor()
+Date: Mon, 14 Mar 2016 17:10:03 -0400
+Message-Id: <1457989803-7148-1-git-send-email-vapier@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 03 March 2016 21:40:23 Krzysztof Kozlowski wrote:
-> >>         select MFD_SYSCON
-> >> diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-> >> index 57d42c6172c5..c4317b99d257 100644
-> >> --- a/drivers/media/platform/exynos4-is/Kconfig
-> >> +++ b/drivers/media/platform/exynos4-is/Kconfig
-> >> @@ -17,6 +17,7 @@ config VIDEO_S5P_FIMC
-> >>         tristate "S5P/EXYNOS4 FIMC/CAMIF camera interface driver"
-> >>         depends on I2C
-> >>         depends on HAS_DMA
-> >> +       depends on HAS_IOMEM    # For MFD_SYSCON
-> >>         select VIDEOBUF2_DMA_CONTIG
-> >>         select V4L2_MEM2MEM_DEV
-> >
-> > This  is guarded by HAS_DMA, which implies HAS_IOMEM afaik.
-> 
-> Looking at Kconfigs - no, it is not implied (or am I missing
-> something)... and sometimes dependency on HAS_IOMEM is next to
-> HAS_DMA.
-> 
-> 
+Linux C libraries are looking to disentangle sysmacros.h from the
+sys/types.h header to clean up namespace pollution.  Since these
+macros are provided in glibc/etc... today, switch to pulling in
+this header directly.
 
-Ah, you are right: UML has no DMA and no IOMEM, but s390 can
-have IOMEM (if PCI is enabled) and always sets HAS_DMA.
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+---
+ contrib/test/mc_nextgen_test.c            | 1 +
+ lib/libv4lconvert/control/libv4lcontrol.c | 1 +
+ utils/libmedia_dev/get_media_devices.c    | 1 +
+ utils/media-ctl/libmediactl.c             | 1 +
+ 4 files changed, 4 insertions(+)
 
-In practice, I think the HAS_DMA symbol is not as well-defined
-as it should be, it basically refers to the presence of the dma-mapping.h
-API, and that only really makes sense when you also have IOMEM,
-so there might be an implied dependency between the two, but it's
-not enforced or actually true.
+diff --git a/contrib/test/mc_nextgen_test.c b/contrib/test/mc_nextgen_test.c
+index a62fd13..4ba37b0 100644
+--- a/contrib/test/mc_nextgen_test.c
++++ b/contrib/test/mc_nextgen_test.c
+@@ -28,6 +28,7 @@
+ #include <syslog.h>
+ #include <stdio.h>
+ #include <sys/types.h>
++#include <sys/sysmacros.h>
+ #include <sys/stat.h>
+ #include <sys/ioctl.h>
+ #include <fcntl.h>
+diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
+index 3c8335c..59f28b1 100644
+--- a/lib/libv4lconvert/control/libv4lcontrol.c
++++ b/lib/libv4lconvert/control/libv4lcontrol.c
+@@ -20,6 +20,7 @@
+  */
+ 
+ #include <sys/types.h>
++#include <sys/sysmacros.h>
+ #include <sys/mman.h>
+ #include <fcntl.h>
+ #include <sys/stat.h>
+diff --git a/utils/libmedia_dev/get_media_devices.c b/utils/libmedia_dev/get_media_devices.c
+index e3a2200..edfeb41 100644
+--- a/utils/libmedia_dev/get_media_devices.c
++++ b/utils/libmedia_dev/get_media_devices.c
+@@ -20,6 +20,7 @@
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <sys/types.h>
++#include <sys/sysmacros.h>
+ #include <sys/stat.h>
+ #include <string.h>
+ #include <stdlib.h>
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 4a82d24..16dddbe 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -24,6 +24,7 @@
+ #include <sys/ioctl.h>
+ #include <sys/stat.h>
+ #include <sys/types.h>
++#include <sys/sysmacros.h>
+ 
+ #include <ctype.h>
+ #include <errno.h>
+-- 
+2.6.2
 
-	Arnd
