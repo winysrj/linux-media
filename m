@@ -1,87 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:37909 "EHLO
-	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752734AbcCJQ67 (ORCPT
+Received: from new2-smtp.messagingengine.com ([66.111.4.224]:45201 "EHLO
+	new2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933003AbcCNCDF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2016 11:58:59 -0500
-Received: by mail-wm0-f49.google.com with SMTP id l68so37031908wml.1
-        for <linux-media@vger.kernel.org>; Thu, 10 Mar 2016 08:58:58 -0800 (PST)
-Subject: Re: Driver Technisat Skystar S2 and Compro VideoMate S350
-To: neil@ferme-de-la-motte.com, linux-media@vger.kernel.org
-References: <014e01d17ad4$45f1e070$d1d5a150$@ferme-de-la-motte.com>
-From: Jemma Denson <jdenson@gmail.com>
-Message-ID: <56E1A7CF.5050201@gmail.com>
-Date: Thu, 10 Mar 2016 16:58:55 +0000
-MIME-Version: 1.0
-In-Reply-To: <014e01d17ad4$45f1e070$d1d5a150$@ferme-de-la-motte.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 13 Mar 2016 22:03:05 -0400
+Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
+	by mailnew.nyi.internal (Postfix) with ESMTP id 09841B28
+	for <linux-media@vger.kernel.org>; Sun, 13 Mar 2016 21:54:48 -0400 (EDT)
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+	Bjorn Helgaas <bhelgaas@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-pci@vger.kernel.org,
+	kernel-mentors@selenic.com,
+	Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Subject: [PATCH] Add tw5864 driver - cover letter
+Date: Mon, 14 Mar 2016 03:54:21 +0200
+Message-Id: <1457920461-20713-1-git-send-email-andrey_utkin@fastmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Neil,
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
 
-Sorry, I can't help with the Compro, but maybe with the Technisat :)
+This is a driver for multimedia devices based on Techwell/Intersil TW5864 chip.
 
+It is basically written from scratch. There was an awful reference driver for
+2.6 kernel, which is nearly million lines of code and requires half a dozen
+special userspace libraries, and still doesn't quite work. So currently
+submitted driver is a product of reverse-engineering and heuristics. tw68
+driver was used as code skeleton.
 
-On 10/03/16 13:53, Neil Cordwell wrote:
-> Technisat Skystar S2
->
-> When I first installed this card I couldn't find the firmware
-> dvb-fe-cx24120-1.20.58.2.fw. Downloaded this from github and now there are
-> no errors in dmesg, but I cannot get the card to tune in MythTV. I wondered
-> if the <access denied> in the output of lspci is anything?
->
-> 3:05.0 Multimedia controller [0480]: Philips Semiconductors
-> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
->          Subsystem: Compro Technology, Inc. VideoMate T750 [185b:c900]
->          Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR+ FastB2B- DisINTx-
->          Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->          Latency: 64 (21000ns min, 8000ns max)
->          Interrupt: pin A routed to IRQ 20
->          Region 0: Memory at febff800 (32-bit, non-prefetchable) [size=2K]
->          Capabilities: <access denied>
->          Kernel driver in use: saa7134
+The device advertises many capabilities, but this version of driver only
+supports H.264 encoding of captured video channels.
 
-The above is for the Compro and not the Skystar, but <access denied> is 
-likely to just be that it needs root.
+There is one known issue, which reproduces on two of five setups of which I
+know: P-frames are distorted, but I-frames are fine. Changing quality and
+framerate settings does not affect this. Currently such workaround is used:
 
-<snip>
+v4l2-ctl -d /dev/video$n -c video_gop_size=1
 
-> I tried to use dvbv5-scan with a simple channel file and get an error. Scan
-> does nothing
->
-> neil@Sonata-Linux:~/Documents$ dvbv5-scan --input-format=CHANNEL Astra-28.2E
-> ERROR Doesn't know how to handle delimiter '[CHANNEL]' while parsing line 2
-> of Astra-28.2E
->
->
-> [CHANNEL]
->                  DELIVERY_SYSTEM = DVBS2
->                  FREQUENCY = 11719500
->                  POLARIZATION = HORIZONTAL
->                  SYMBOL_RATE = 29500000
->                  INNER_FEC = 3/4
->                  MODULATION = QPSK
->                  INVERSION = AUTO
-
-A few problems here - that's dvbv5 format and not channel so best to 
-just skip the input-format, also 11719500 doesn't exist on 28.2E 
-anymore, you probably want to be running this as root, and you should be 
-specifying the lnb type.
-
-This is how I ran it on mine quite recently whilst fixing a bug in the 
-driver (you might need to change the adapter number on -a):
-# dvbv5-scan -a 0 -l EXTENDED /usr/share/dvbv5/dvb-s/Astra-28.2E
-
-That bug was patched only a few weeks ago so the above will probably 
-fail on some of the transponders. MythTV wasn't affected though so that 
-should scan fine, aslong as all the other things with myth are setup ok 
-- it's quite fiddly!
+GOP size is set to 1, so that every output frame is I-frame. 
+We are regularly contacting manufacturer regarding such issues, but
+unfortunately they can do little to help us.
 
 
-Jemma.
+Andrey Utkin (1):
+  Add tw5864 driver
 
+ MAINTAINERS                                  |    7 +
+ drivers/staging/media/Kconfig                |    2 +
+ drivers/staging/media/Makefile               |    1 +
+ drivers/staging/media/tw5864/Kconfig         |   11 +
+ drivers/staging/media/tw5864/Makefile        |    3 +
+ drivers/staging/media/tw5864/tw5864-bs.h     |  154 ++
+ drivers/staging/media/tw5864/tw5864-config.c |  359 +++++
+ drivers/staging/media/tw5864/tw5864-core.c   |  453 ++++++
+ drivers/staging/media/tw5864/tw5864-h264.c   |  183 +++
+ drivers/staging/media/tw5864/tw5864-reg.h    | 2200 ++++++++++++++++++++++++++
+ drivers/staging/media/tw5864/tw5864-tables.h |  237 +++
+ drivers/staging/media/tw5864/tw5864-video.c  | 1364 ++++++++++++++++
+ drivers/staging/media/tw5864/tw5864.h        |  280 ++++
+ include/linux/pci_ids.h                      |    1 +
+ 14 files changed, 5255 insertions(+)
+ create mode 100644 drivers/staging/media/tw5864/Kconfig
+ create mode 100644 drivers/staging/media/tw5864/Makefile
+ create mode 100644 drivers/staging/media/tw5864/tw5864-bs.h
+ create mode 100644 drivers/staging/media/tw5864/tw5864-config.c
+ create mode 100644 drivers/staging/media/tw5864/tw5864-core.c
+ create mode 100644 drivers/staging/media/tw5864/tw5864-h264.c
+ create mode 100644 drivers/staging/media/tw5864/tw5864-reg.h
+ create mode 100644 drivers/staging/media/tw5864/tw5864-tables.h
+ create mode 100644 drivers/staging/media/tw5864/tw5864-video.c
+ create mode 100644 drivers/staging/media/tw5864/tw5864.h
+
+-- 
+2.7.1.380.g0fea050.dirty
 
