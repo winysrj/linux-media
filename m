@@ -1,167 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:59357 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758550AbcCCW3U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:29:20 -0500
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Viorel Suman <viorel.suman@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v4 08/18] iio: imu: inv_mpu6050: convert to use an explicit i2c mux core
-Date: Thu,  3 Mar 2016 23:27:20 +0100
-Message-Id: <1457044050-15230-9-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
-References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+Received: from lists.s-osg.org ([54.187.51.154]:53718 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934507AbcCNPWX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2016 11:22:23 -0400
+Subject: Re: [PATCH v3 06/22] media: Media Controller enable/disable source
+ handler API
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <cover.1455233150.git.shuahkh@osg.samsung.com>
+ <2d8b035ec723346dfeed5db859aba67738e049cc.1455233153.git.shuahkh@osg.samsung.com>
+ <20160310073500.GK11084@valkosipuli.retiisi.org.uk>
+ <56E184E7.80603@osg.samsung.com>
+ <20160313201131.GN11084@valkosipuli.retiisi.org.uk>
+Cc: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
+	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@linux.intel.com, javier@osg.samsung.com,
+	pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
+	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
+	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
+	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
+	inki.dae@samsung.com, jh1009.sung@samsung.com,
+	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
+	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
+	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
+	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
+	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
+	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
+	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
+	j.anaszewski@samsung.com, geliangtang@163.com, albert@huitsing.nl,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56E6D724.6080909@osg.samsung.com>
+Date: Mon, 14 Mar 2016 09:22:12 -0600
+MIME-Version: 1.0
+In-Reply-To: <20160313201131.GN11084@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+On 03/13/2016 02:11 PM, Sakari Ailus wrote:
+> Hi Shuah,
+> 
+> On Thu, Mar 10, 2016 at 07:29:59AM -0700, Shuah Khan wrote:
+>> On 03/10/2016 12:35 AM, Sakari Ailus wrote:
+>>> Hi Shuah,
+>>>
+>>> On Thu, Feb 11, 2016 at 04:41:22PM -0700, Shuah Khan wrote:
+>>>> Add new fields to struct media_device to add enable_source, and
+>>>> disable_source handlers, and source_priv to stash driver private
+>>>> data that is used to run these handlers. The enable_source handler
+>>>> finds source entity for the passed in entity and checks if it is
+>>>> available. When link is found, it activates it. Disable source
+>>>> handler deactivates the link.
+>>>>
+>>>> Bridge driver is expected to implement and set these handlers.
+>>>>
+>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>>> ---
+>>>>  include/media/media-device.h | 30 ++++++++++++++++++++++++++++++
+>>>>  1 file changed, 30 insertions(+)
+>>>>
+>>>> diff --git a/include/media/media-device.h b/include/media/media-device.h
+>>>> index 075a482..1a04644 100644
+>>>> --- a/include/media/media-device.h
+>>>> +++ b/include/media/media-device.h
+>>>> @@ -302,6 +302,11 @@ struct media_entity_notify {
+>>>>   * @entity_notify: List of registered entity_notify callbacks
+>>>>   * @lock:	Entities list lock
+>>>>   * @graph_mutex: Entities graph operation lock
+>>>> + *
+>>>> + * @source_priv: Driver Private data for enable/disable source handlers
+>>>> + * @enable_source: Enable Source Handler function pointer
+>>>> + * @disable_source: Disable Source Handler function pointer
+>>>> + *
+>>>>   * @link_notify: Link state change notification callback
+>>>>   *
+>>>>   * This structure represents an abstract high-level media device. It allows easy
+>>>> @@ -313,6 +318,26 @@ struct media_entity_notify {
+>>>>   *
+>>>>   * @model is a descriptive model name exported through sysfs. It doesn't have to
+>>>>   * be unique.
+>>>> + *
+>>>> + * @enable_source is a handler to find source entity for the
+>>>> + * sink entity  and activate the link between them if source
+>>>> + * entity is free. Drivers should call this handler before
+>>>> + * accessing the source.
+>>>> + *
+>>>> + * @disable_source is a handler to find source entity for the
+>>>> + * sink entity  and deactivate the link between them. Drivers
+>>>> + * should call this handler to release the source.
+>>>> + *
+>>>
+>>> Is there a particular reason you're not simply (de)activating the link, but
+>>> instead add a new callback?
+>>
+>> These two handlers are separate for a couple of reasons:
+>>
+>> 1. Explicit and symmetric API is easier to use and maintain.
+>>    Similar what we do in other cases, register/unregister
+>>    get/put etc.
+> 
+> Link state is set explicitly (enabled or disabled). This is certainly not a
+> reason to create a redundant API for link setup.
+> 
+>> 2. This is more important. Disable handler makes sure the
+>>    owner is releasing the resource. Otherwise, when some
+>>    other application does enable, the owner could loose
+>>    the resource, if enable and disable are the same.
+>>
+>>    e.g: Video app is holding the resource, DVB app does
+>>    enable. Disable handler makes sure Video/owner  is the one
+>>    that is asking to do the release.
+> 
+> Based on the later patches in this set, the enable_source() callback of the 
+> au0828 driver performs three things:
+> 
+> - Find the source entity,
+> - Enable the link from some au0828 entity to the source and
+> - Start the pipeline that begins from the I/O device node. The pipe object
+>   is embedded in struct video_device.
+> 
+> disable_source() undoes this in reverse order.
+> 
+> That's in the au0828 driver and rightly so.
+> 
+> Then it gets murkier. enable_source() and disable_source() callbacks
+> (through a few turns) will get called from v4l2-ioctl.c functions
+> v4l_querycap, v4l_s_fmt, v4l_s_frequency, v4l_s_std and v4l_querystd. This
+> is also performed in VB2 core vb2_core_streamon() function.
+> 
+> I certainly have no objections when it comes to blocking other processes
+> from setting the format when a process holding a file handle to a device has
+> e.g. set the format. The implementation is another matter.
+> 
+> What particularly does concern me in this patchset is:
+> 
+> - struct media_pipe is intended to be allocated by drivers embedded in
+>   another struct holding information the driver needs related to the
+>   pipeline. Moving this struct to struct video_device prevents this, which
+>   translates to v4l_enable_media_source() and v4l_disable_media_source()
+>   functions the patchset adds being specific to the au0828 driver. They
+>   should be part of that driver, and may not be part of the V4L2 core.
+>   struct media_pipe may not be added to struct video_device for the same
+>   reason.
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select/deselect ops to be in terms of the i2c mux core
-instead of the child adapter.
+This media_pipe is associated with struct video_device though. I don't
+understand your concern. I am viewing this media_pipe as part of the
+registered video_device. video_device struct is in the au0828 device
+and gets registered as a whole including the media_pipe 
 
-Signed-off-by: Peter Rosin <peda@axentia.se>
----
- drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c |  2 +-
- drivers/iio/imu/inv_mpu6050/inv_mpu_core.c | 30 +++++++++++++-----------------
- drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h  |  3 ++-
- 3 files changed, 16 insertions(+), 19 deletions(-)
+> 
+> - The IOCTL handlers in v4l2-ioctl.c already call driver-settable callbacks
+>   before this set. It looks like redundant callbacks are added there as
+>   ell. The same appears to be true for the VB2 callback. Could you use the
+>   existing callbacks instead of creating new ones?
 
-diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
-index 1c982a56acd5..d433e7b64011 100644
---- a/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
-+++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
-@@ -182,7 +182,7 @@ int inv_mpu_acpi_create_mux_client(struct inv_mpu6050_state *st)
- 			} else
- 				return 0; /* no secondary addr, which is OK */
- 		}
--		st->mux_client = i2c_new_device(st->mux_adapter, &info);
-+		st->mux_client = i2c_new_device(st->muxc->adapter[0], &info);
- 		if (!st->mux_client)
- 			return -ENODEV;
- 
-diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
-index f0e06093b5e8..642f22013d17 100644
---- a/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
-+++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
-@@ -23,7 +23,6 @@
- #include <linux/kfifo.h>
- #include <linux/spinlock.h>
- #include <linux/iio/iio.h>
--#include <linux/i2c-mux.h>
- #include <linux/acpi.h>
- #include "inv_mpu_iio.h"
- 
-@@ -109,10 +108,9 @@ static int inv_mpu6050_write_reg_unlocked(struct inv_mpu6050_state *st,
- 	return 0;
- }
- 
--static int inv_mpu6050_select_bypass(struct i2c_adapter *adap, void *mux_priv,
--				     u32 chan_id)
-+static int inv_mpu6050_select_bypass(struct i2c_mux_core *muxc, u32 chan_id)
- {
--	struct iio_dev *indio_dev = mux_priv;
-+	struct iio_dev *indio_dev = i2c_mux_priv(muxc);
- 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
- 	int ret = 0;
- 
-@@ -138,10 +136,9 @@ write_error:
- 	return ret;
- }
- 
--static int inv_mpu6050_deselect_bypass(struct i2c_adapter *adap,
--				       void *mux_priv, u32 chan_id)
-+static int inv_mpu6050_deselect_bypass(struct i2c_mux_core *muxc, u32 chan_id)
- {
--	struct iio_dev *indio_dev = mux_priv;
-+	struct iio_dev *indio_dev = i2c_mux_priv(muxc);
- 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
- 
- 	mutex_lock(&indio_dev->mlock);
-@@ -842,16 +839,15 @@ static int inv_mpu_probe(struct i2c_client *client,
- 		goto out_remove_trigger;
- 	}
- 
--	st->mux_adapter = i2c_add_mux_adapter(client->adapter,
--					      &client->dev,
--					      indio_dev,
--					      0, 0, 0,
--					      inv_mpu6050_select_bypass,
--					      inv_mpu6050_deselect_bypass);
--	if (!st->mux_adapter) {
--		result = -ENODEV;
-+	st->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0, 0,
-+				       0, 0, 0,
-+				       inv_mpu6050_select_bypass,
-+				       inv_mpu6050_deselect_bypass);
-+	if (IS_ERR(st->muxc)) {
-+		result = PTR_ERR(st->muxc);
- 		goto out_unreg_device;
- 	}
-+	st->muxc->priv = indio_dev;
- 
- 	result = inv_mpu_acpi_create_mux_client(st);
- 	if (result)
-@@ -860,7 +856,7 @@ static int inv_mpu_probe(struct i2c_client *client,
- 	return 0;
- 
- out_del_mux:
--	i2c_del_mux_adapter(st->mux_adapter);
-+	i2c_mux_del_adapters(st->muxc);
- out_unreg_device:
- 	iio_device_unregister(indio_dev);
- out_remove_trigger:
-@@ -876,7 +872,7 @@ static int inv_mpu_remove(struct i2c_client *client)
- 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
- 
- 	inv_mpu_acpi_delete_mux_client(st);
--	i2c_del_mux_adapter(st->mux_adapter);
-+	i2c_mux_del_adapters(st->muxc);
- 	iio_device_unregister(indio_dev);
- 	inv_mpu6050_remove_trigger(st);
- 	iio_triggered_buffer_cleanup(indio_dev);
-diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h b/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
-index db0a4a2758ab..61a3a04b84b8 100644
---- a/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
-+++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
-@@ -11,6 +11,7 @@
- * GNU General Public License for more details.
- */
- #include <linux/i2c.h>
-+#include <linux/i2c-mux.h>
- #include <linux/kfifo.h>
- #include <linux/spinlock.h>
- #include <linux/iio/iio.h>
-@@ -120,7 +121,7 @@ struct inv_mpu6050_state {
- 	enum   inv_devices chip_type;
- 	spinlock_t time_stamp_lock;
- 	struct i2c_client *client;
--	struct i2c_adapter *mux_adapter;
-+	struct i2c_mux_core *muxc;
- 	struct i2c_client *mux_client;
- 	unsigned int powerup_count;
- 	struct inv_mpu6050_platform_data plat_data;
+If I understand correctly, you are suggesting that the calls to enable
+and disable source should be made from the au0828 hooks. e.g vidioc_s_std()
+
+Calling them from v4l2-core makes it generic and works on all drivers
+without driver changes. That is the rationale for making adding v4l2
+common interfaces v4l_enable_media_source() and v4l_disable_media_source()
+
+> 
+> As a short term solution, I propose moving the code to the au0828 driver.
+> Once it is there, we can see whether it could be made more generic if there
+> is a need for it elsewhere. I believe so. Support atomic pipeline
+> configuration and startup is a generic problem that requires a generic
+> solution: we should have a way to construct a pipeline and prevent other
+> users from messing with it before it's started. But as currently implemented
+> by this patchset, it is very specific to the au0828 driver and as such may
+> not be added to the V4L2 or the MC frameworks.
+> 
+
+The enable and disable handlers themselves are for a good reason. These are
+handlers that get called from dvb-core, v4l2-core via the common interfaces.
+These also get called from sound driver from the media_device. All of this is
+generic. Could you please elaborate on which part is au0828 driver specific
+other than the media_pipe in struct video_device?
+
+thanks,
+-- Shuah
+
 -- 
-2.1.4
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
