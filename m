@@ -1,65 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:58085 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932241AbcCCIEm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 03:04:42 -0500
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	David Brown <david.brown@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
-	rtc-linux@googlegroups.com, linux-arm-msm@vger.kernel.org,
-	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-usb@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [RFC 04/15] irqchip: st: Add missing MFD_SYSCON dependency on HAS_IOMEM
-Date: Thu, 03 Mar 2016 17:03:30 +0900
-Message-id: <1456992221-26712-5-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
-References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45146 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751592AbcCNLnl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2016 07:43:41 -0400
+Date: Mon, 14 Mar 2016 13:43:33 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Any reason why media_entity_pads_init() isn't void?
+Message-ID: <20160314114332.GR11084@valkosipuli.retiisi.org.uk>
+References: <56E6758F.7020205@xs4all.nl>
+ <20160314103643.GP11084@valkosipuli.retiisi.org.uk>
+ <20160314082738.3b84ed0a@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160314082738.3b84ed0a@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MFD_SYSCON depends on HAS_IOMEM so when selecting it avoid unmet
-direct dependencies.
+Hi Mauro,
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- drivers/irqchip/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+On Mon, Mar 14, 2016 at 08:27:38AM -0300, Mauro Carvalho Chehab wrote:
+> Em Mon, 14 Mar 2016 12:36:44 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> 
+> > Hi Hans,
+> > 
+> > On Mon, Mar 14, 2016 at 09:25:51AM +0100, Hans Verkuil wrote:
+> > > I was fixing a sparse warning in media_entity_pads_init() and I noticed
+> > > that that function always returns 0. Any reason why this can't be changed
+> > > to a void function?  
+> > 
+> > I was thinking of the same function but I had a different question: why
+> > would one call this *after* entity->graph_obj.mdev is set? It is set by
+> > media_device_register_entity(), but once mdev it's set, you're not expected
+> > to call pads_init anymore...
+> 
+> Ideally, drivers should *first* create mdev, and then create the
+> graph objects, as all objects should be registered at the mdev, in
+> order to get their object ID and to be registered at the mdev's object
+> lists.
 
-diff --git a/drivers/irqchip/Kconfig b/drivers/irqchip/Kconfig
-index 00bbec6eca0b..10775b099daa 100644
---- a/drivers/irqchip/Kconfig
-+++ b/drivers/irqchip/Kconfig
-@@ -157,6 +157,7 @@ config RENESAS_IRQC
- config ST_IRQCHIP
- 	bool
- 	select REGMAP
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select MFD_SYSCON
- 	help
- 	  Enables SysCfg Controlled IRQs on STi based platforms.
+Right. I think it wouldn't hurt to have some comment hints in what's there
+for legacy use cases... I can submit patches for some of these.
+
+Currently what works is that you can register graph objects until the media
+device node is exposed to the user. We don't have proper serialisation in
+place to do that, do we? At least the framework functions leave it up to the
+caller.
+
+I think it wouldn't be a bad idea either to think about the serialisation
+model a bit. It's been unchanged from the day one basically.
+
+> However, some legacy drivers used to do just the reverse. So, we had
+> to add a code there, and at media_device_register_entity() to support
+> the drivers that postpone the creation of the mdev instance.
+> 
+> Once this gets fixed everywhere, we can remove the code that supports
+> the legacy behavior.
+
 -- 
-2.5.0
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
