@@ -1,182 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36109 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751280AbcCXUCH (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:37389 "EHLO
+	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934507AbcCNPXj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 16:02:07 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] [media] media-devnode: Alloc cdev dynamically
-Date: Thu, 24 Mar 2016 16:59:49 -0300
-Message-Id: <3cfd380703d0fb2b756c96729ef417fa2a7a343d.1458849586.git.mchehab@osg.samsung.com>
+	Mon, 14 Mar 2016 11:23:39 -0400
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
+Subject: [PATCH v3 8/9] [media] tvp5150: Add sync lock interrupt handling
+Date: Mon, 14 Mar 2016 16:23:36 +0100
+Message-Id: <1457969017-4088-8-git-send-email-l.stach@pengutronix.de>
+In-Reply-To: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
+References: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, cdev is embedded inside media_devnode. This causes
-a problem with the fs core, as __fput() will try to release
-its access by calling cdev_put():
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-[  399.653545] BUG: KASAN: use-after-free in media_release+0xe1/0xf0 [media] at addr ffff88036a9ba4e0
-[  399.653550] Read of size 8 by task mc_nextgen_test/19761
-[  399.653554] page:ffffea000daa6e80 count:0 mapcount:0 mapping:          (null) index:0xffff88036a9bad20
-[  399.653559] flags: 0x2ffff8000000000()
-[  399.653562] page dumped because: kasan: bad access detected
-[  399.653567] CPU: 1 PID: 19761 Comm: mc_nextgen_test Tainted: G    B           4.5.0+ #62
-[  399.653570] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
-[  399.653574]  ffff88036a9ba4e0 ffff8803c465fd10 ffffffff819447c1 ffff88036a9ba4e0
-[  399.653582]  ffff8803c465fda8 ffff8803c465fd98 ffffffff8156ef05 0000000800000001
-[  399.653591]  ffff8803c689fa10 0000000000000292 0000000041b58ab3 ffffffff82813e00
-[  399.653599] Call Trace:
-[  399.653604]  [<ffffffff819447c1>] dump_stack+0x85/0xc4
-[  399.653609]  [<ffffffff8156ef05>] kasan_report_error+0x525/0x550
-[  399.653615]  [<ffffffff81685d10>] ? __fsnotify_inode_delete+0x20/0x20
-[  399.653620]  [<ffffffff8124acd0>] ? debug_check_no_locks_freed+0x290/0x290
-[  399.653626]  [<ffffffff8156f063>] __asan_report_load8_noabort+0x43/0x50
-[  399.653633]  [<ffffffffa11f53b1>] ? media_release+0xe1/0xf0 [media]
-[  399.653640]  [<ffffffffa11f53b1>] media_release+0xe1/0xf0 [media]
-[  399.653646]  [<ffffffff815c2c4f>] __fput+0x20f/0x6d0
-[  399.653651]  [<ffffffff815c317e>] ____fput+0xe/0x10
-[  399.653656]  [<ffffffff811acde7>] task_work_run+0x137/0x200
-[  399.653662]  [<ffffffff81005d54>] exit_to_usermode_loop+0x154/0x180
-[  399.653667]  [<ffffffff8124a1b6>] ? trace_hardirqs_on_caller+0x16/0x590
-[  399.653672]  [<ffffffff810073a6>] syscall_return_slowpath+0x186/0x1c0
-[  399.653678]  [<ffffffff822e7a1c>] entry_SYSCALL_64_fastpath+0xbf/0xc1
+This patch adds an optional interrupt handler to handle the sync
+lock interrupt and sync lock status.
 
-There are two alternatives to solve it: we could either use a static
-var for cdev or to dynamically allocate it. Let's choose the last one,
-as this is the same solution at v4l2 core, from where this code seems
-to have originated.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
 ---
- drivers/media/media-devnode.c | 39 ++++++++++++++++++++++++++-------------
- include/media/media-devnode.h |  4 ++--
- 2 files changed, 28 insertions(+), 15 deletions(-)
+ drivers/media/i2c/tvp5150.c     | 103 ++++++++++++++++++++++++++++++++++++++--
+ drivers/media/i2c/tvp5150_reg.h |   2 +
+ 2 files changed, 100 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index db47063d8801..7f9a7e65df20 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -56,6 +56,7 @@ static dev_t media_dev_t;
-  */
- static DEFINE_MUTEX(media_devnode_lock);
- static DECLARE_BITMAP(media_devnode_nums, MEDIA_NUM_DEVICES);
-+static struct media_devnode *media_minors[MEDIA_NUM_DEVICES];
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index e0f5bc219ced..b5140253b648 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -9,6 +9,7 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <linux/delay.h>
++#include <linux/interrupt.h>
+ #include <linux/module.h>
+ #include <linux/regmap.h>
+ #include <linux/of_graph.h>
+@@ -44,12 +45,14 @@ struct tvp5150 {
+ 	struct v4l2_mbus_framefmt format;
+ 	struct v4l2_rect rect;
+ 	struct regmap *regmap;
++	int irq;
  
- /* Called when the last user of the media device exits. */
- static void media_devnode_release(struct device *cd)
-@@ -65,7 +66,9 @@ static void media_devnode_release(struct device *cd)
- 	mutex_lock(&media_devnode_lock);
+ 	v4l2_std_id norm;	/* Current set standard */
+ 	v4l2_std_id detected_norm;
+ 	u32 input;
+ 	u32 output;
+ 	int enable;
++	bool lock;
+ };
  
- 	/* Delete the cdev on this minor as well */
--	cdev_del(&devnode->cdev);
-+	cdev_del(devnode->cdev);
-+	devnode->cdev = NULL;
-+	media_minors[devnode->minor] = NULL;
+ static inline struct tvp5150 *to_tvp5150(struct v4l2_subdev *sd)
+@@ -716,6 +719,15 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	return 0;
+ }
  
- 	/* Mark device node number as free */
- 	clear_bit(devnode->minor, media_devnode_nums);
-@@ -167,9 +170,7 @@ static int media_open(struct inode *inode, struct file *filp)
- 	 * a crash.
- 	 */
- 	mutex_lock(&media_devnode_lock);
--	devnode = container_of(inode->i_cdev, struct media_devnode, cdev);
--	/* return ENXIO if the media device has been removed
--	   already or if it is not registered anymore. */
-+	devnode = media_minors[iminor(inode)];
- 	if (!media_devnode_is_registered(devnode)) {
- 		mutex_unlock(&media_devnode_lock);
- 		return -ENXIO;
-@@ -227,6 +228,7 @@ int __must_check media_devnode_register(struct media_device *mdev,
- {
- 	int minor;
- 	int ret;
-+	dev_t devt;
- 
- 	/* Part 1: Find a free minor number */
- 	mutex_lock(&media_devnode_lock);
-@@ -238,28 +240,35 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	}
- 
- 	set_bit(minor, media_devnode_nums);
-+	media_minors[minor] = devnode;
- 	mutex_unlock(&media_devnode_lock);
- 
--	devnode->minor = minor;
--	devnode->media_dev = mdev;
--
- 	/* Part 2: Initialize and register the character device */
--	cdev_init(&devnode->cdev, &media_devnode_fops);
--	devnode->cdev.owner = owner;
-+	devnode->cdev = cdev_alloc();
-+	if (!devnode->cdev) {
-+		ret = -ENOMEM;
-+		goto error;
-+	}
- 
--	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
-+	cdev_init(devnode->cdev, &media_devnode_fops);
-+	devnode->cdev->owner = owner;
++static int tvp5150_g_std(struct v4l2_subdev *sd, v4l2_std_id *std)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
 +
-+	devt = MKDEV(MAJOR(media_dev_t), minor);
-+	ret = cdev_add(devnode->cdev, devt, 1);
- 	if (ret < 0) {
- 		pr_err("%s: cdev_add failed\n", __func__);
- 		goto error;
- 	}
++	*std = decoder->norm;
++
++	return 0;
++}
++
+ static int tvp5150_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+@@ -758,14 +770,25 @@ static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
  
- 	/* Part 3: Register the media device */
-+	devnode->minor = minor;
-+	devnode->media_dev = mdev;
- 	devnode->dev.bus = &media_bus_type;
--	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
-+	devnode->dev.devt = devt;
- 	devnode->dev.release = media_devnode_release;
- 	if (devnode->parent)
- 		devnode->dev.parent = devnode->parent;
--	dev_set_name(&devnode->dev, "media%d", devnode->minor);
-+	dev_set_name(&devnode->dev, "media%d", minor);
- 	ret = device_register(&devnode->dev);
- 	if (ret < 0) {
- 		pr_err("%s: device_register failed\n", __func__);
-@@ -273,8 +282,12 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ {
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	struct regmap *map = decoder->regmap;
++
+ 	/* Initializes TVP5150 to its default values */
+ 	tvp5150_write_inittab(sd, tvp5150_init_default);
  
- error:
- 	mutex_lock(&media_devnode_lock);
--	cdev_del(&devnode->cdev);
-+	if (devnode->cdev) {
-+		cdev_del(devnode->cdev);
-+		devnode->cdev = NULL;
+-	/* Configure pins: FID, VSYNC, GPCL/VBLK, SCLK */
+-	regmap_write(map, TVP5150_CONF_SHARED_PIN, 0x2);
+-	/* Keep interrupt polarity active low */
+-	regmap_write(map, TVP5150_INT_CONF, TVP5150_VDPOE);
+-	regmap_write(map, TVP5150_INTT_CONFIG_REG_B, 0x0);
++	if (decoder->irq) {
++		/* Configure pins: FID, VSYNC, INTREQ, SCLK */
++		regmap_write(map, TVP5150_CONF_SHARED_PIN, 0x0);
++		/* Set interrupt polarity to active high */
++		regmap_write(map, TVP5150_INT_CONF, TVP5150_VDPOE | 0x1);
++		regmap_write(map, TVP5150_INTT_CONFIG_REG_B, 0x1);
++	} else {
++		/* Configure pins: FID, VSYNC, GPCL/VBLK, SCLK */
++		regmap_write(map, TVP5150_CONF_SHARED_PIN, 0x2);
++		/* Keep interrupt polarity active low */
++		regmap_write(map, TVP5150_INT_CONF, TVP5150_VDPOE);
++		regmap_write(map, TVP5150_INTT_CONFIG_REG_B, 0x0);
 +	}
- 	clear_bit(devnode->minor, media_devnode_nums);
-+	media_minors[minor] = NULL;
- 	mutex_unlock(&media_devnode_lock);
  
- 	return ret;
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-index cc2b3155593c..9fe627ca5ec9 100644
---- a/include/media/media-devnode.h
-+++ b/include/media/media-devnode.h
-@@ -71,7 +71,7 @@ struct media_file_operations {
-  * struct media_devnode - Media device node
-  * @fops:	pointer to struct &media_file_operations with media device ops
-  * @dev:	struct device pointer for the media controller device
-- * @cdev:	struct cdev pointer character device
-+ * @cdev:      struct cdev pointer character device
-  * @parent:	parent device
-  * @minor:	device node minor number
-  * @flags:	flags, combination of the MEDIA_FLAG_* constants
-@@ -90,7 +90,7 @@ struct media_devnode {
+ 	/* Initializes VDP registers */
+ 	tvp5150_vdp_init(sd, vbi_ram_default);
+@@ -776,6 +799,33 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 	return 0;
+ }
  
- 	/* sysfs */
- 	struct device dev;		/* media device */
--	struct cdev cdev;		/* character device */
-+	struct cdev *cdev;		/* character device */
- 	struct device *parent;		/* device parent */
++static irqreturn_t tvp5150_isr(int irq, void *dev_id)
++{
++	struct tvp5150 *decoder = dev_id;
++	struct regmap *map = decoder->regmap;
++	unsigned int active = 0, status = 0;
++
++	regmap_read(map, TVP5150_INT_STATUS_REG_A, &status);
++	if (status) {
++		regmap_write(map, TVP5150_INT_STATUS_REG_A, status);
++
++		if (status & TVP5150_INT_A_LOCK)
++			decoder->lock = !!(status & TVP5150_INT_A_LOCK_STATUS);
++
++		return IRQ_HANDLED;
++	}
++
++	regmap_read(map, TVP5150_INT_ACTIVE_REG_B, &active);
++	if (active) {
++		status = 0;
++		regmap_read(map, TVP5150_INT_STATUS_REG_B, &status);
++		if (status)
++			regmap_write(map, TVP5150_INT_RESET_REG_B, status);
++	}
++
++	return IRQ_HANDLED;
++}
++
+ static int tvp5150_enable(struct v4l2_subdev *sd)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+@@ -939,6 +989,35 @@ static int tvp5150_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+ 	return 0;
+ }
  
- 	/* device info */
++static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct tvp5150 *decoder = container_of(sd, struct tvp5150, sd);
++
++	if (enable) {
++		/* Enable YUV(OUT7:0), clock */
++		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0xd,
++			(decoder->bus_type == V4L2_MBUS_BT656) ? 0x9 : 0xd);
++		if (decoder->irq) {
++			/* Enable lock interrupt */
++			regmap_update_bits(decoder->regmap,
++					   TVP5150_INT_ENABLE_REG_A,
++					   TVP5150_INT_A_LOCK,
++					   TVP5150_INT_A_LOCK);
++		}
++	} else {
++		/* Disable YUV(OUT7:0), SYNC, clock */
++		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0xd, 0x0);
++		if (decoder->irq) {
++			/* Disable lock interrupt */
++			regmap_update_bits(decoder->regmap,
++					   TVP5150_INT_ENABLE_REG_A,
++					   TVP5150_INT_A_LOCK, 0);
++		}
++	}
++
++	return 0;
++}
++
+ static int tvp5150_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+@@ -1254,9 +1333,11 @@ static const struct v4l2_subdev_tuner_ops tvp5150_tuner_ops = {
+ 
+ static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
+ 	.s_std = tvp5150_s_std,
++	.g_std = tvp5150_g_std,
+ 	.s_routing = tvp5150_s_routing,
+ 	.s_crop = tvp5150_s_crop,
+ 	.g_crop = tvp5150_g_crop,
++	.s_stream = tvp5150_s_stream,
+ 	.cropcap = tvp5150_cropcap,
+ };
+ 
+@@ -1465,7 +1546,19 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	}
+ 	v4l2_ctrl_handler_setup(&core->hdl);
+ 
++	core->irq = c->irq;
+ 	tvp5150_reset(sd, 0);
++
++	if (c->irq) {
++		res = devm_request_threaded_irq(&c->dev, c->irq, NULL,
++				tvp5150_isr, IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
++				"tvp5150", core);
++		if (res)
++			return res;
++	} else {
++		core->lock = true;
++	}
++
+ 	/* Default is no cropping */
+ 	tvp5150_set_default(tvp5150_read_std(sd), &core->rect, &core->format);
+ 
+diff --git a/drivers/media/i2c/tvp5150_reg.h b/drivers/media/i2c/tvp5150_reg.h
+index fc3bcb26413a..282a8a852e45 100644
+--- a/drivers/media/i2c/tvp5150_reg.h
++++ b/drivers/media/i2c/tvp5150_reg.h
+@@ -115,6 +115,8 @@
+ #define TVP5150_TELETEXT_FIL_ENA    0xbb /* Teletext filter enable */
+ /* Reserved	BCh-BFh */
+ #define TVP5150_INT_STATUS_REG_A    0xc0 /* Interrupt status register A */
++#define   TVP5150_INT_A_LOCK_STATUS BIT(7)
++#define   TVP5150_INT_A_LOCK        BIT(6)
+ #define TVP5150_INT_ENABLE_REG_A    0xc1 /* Interrupt enable register A */
+ #define TVP5150_INT_CONF            0xc2 /* Interrupt configuration */
+ #define   TVP5150_VDPOE             BIT(2)
 -- 
-2.5.5
+2.7.0
 
