@@ -1,61 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:57870 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S964954AbcCNLQX (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44100 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755074AbcCNKgt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 07:16:23 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v2] media: v4l2-compat-ioctl32: fix missing reserved field copy in put_v4l2_create32
-Date: Mon, 14 Mar 2016 19:16:14 +0800
-Message-ID: <1457954174-38624-1-git-send-email-tiffany.lin@mediatek.com>
+	Mon, 14 Mar 2016 06:36:49 -0400
+Date: Mon, 14 Mar 2016 12:36:44 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: Re: Any reason why media_entity_pads_init() isn't void?
+Message-ID: <20160314103643.GP11084@valkosipuli.retiisi.org.uk>
+References: <56E6758F.7020205@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56E6758F.7020205@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In v4l2-compliance utility, test VIDIOC_CREATE_BUFS will check whether reserved
-filed of v4l2_create_buffers filled with zero
-Reserved field is filled with zero in v4l_create_bufs.
-This patch copy reserved field of v4l2_create_buffer from kernel space to user
-space
+Hi Hans,
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
+On Mon, Mar 14, 2016 at 09:25:51AM +0100, Hans Verkuil wrote:
+> I was fixing a sparse warning in media_entity_pads_init() and I noticed
+> that that function always returns 0. Any reason why this can't be changed
+> to a void function?
 
-Changes since v1
-- Remove Change-Id
-- Add commit message
+I was thinking of the same function but I had a different question: why
+would one call this *after* entity->graph_obj.mdev is set? It is set by
+media_device_register_entity(), but once mdev it's set, you're not expected
+to call pads_init anymore...
 
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+I'm fine making this return void.
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index f38c076..109f687 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -280,7 +280,8 @@ static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user
- static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
- {
- 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
--	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format)))
-+	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format)) ||
-+	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
- 	return __put_v4l2_format32(&kp->format, &up->format);
- }
+> 
+> That return value is checked a zillion times in the media code. By making
+> it void it should simplify code all over.
+> 
+> See e.g. uvc_mc_init_entity in drivers/media/usb/uvc/uvc_entity.c: that
+> whole function can become a void function itself.
+
 -- 
-1.7.9.5
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
