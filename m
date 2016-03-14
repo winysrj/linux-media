@@ -1,86 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40282 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751897AbcCXX2I (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47263 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754951AbcCNHVv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:28:08 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 18/51] v4l: vsp1: Enable display list support for the HS[IT], LUT, SRU and UDS
-Date: Fri, 25 Mar 2016 01:27:14 +0200
-Message-Id: <1458862067-19525-19-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 14 Mar 2016 03:21:51 -0400
+Subject: Re: FW: [PATCH v5 0/8] Add MT8173 Video Encoder Driver and VPU Driver
+To: tiffany lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>
+References: <D706F7FE148A8A429434F78C46336826048E7053@mtkmbs02n1>
+ <1457939579.32502.10.camel@mtksdaap41>
+Cc: Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56E66672.9030307@xs4all.nl>
+Date: Mon, 14 Mar 2016 08:21:22 +0100
+MIME-Version: 1.0
+In-Reply-To: <1457939579.32502.10.camel@mtksdaap41>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those modules were left out of display list integration as they're not
-used by the DRM pipeline. To prepare for display list support in non-DRM
-pipelines use the module write API to set registers.
+On 03/14/2016 08:12 AM, tiffany lin wrote:
+> Hi Hans,
+> 
+> After change to use "v4l-utils.git master branch", "V4l2-compliance
+> -d /dev/video1" fail on "fail: v4l2-test-buffers.cpp(555):
+> check_0(crbufs.reserved, sizeof(crbufs.reserved))".
+> 
+> Check the source code and found
+> 
+> 	memset(&crbufs, 0xff, sizeof(crbufs));   -> crbufs to 0xff
+>         node->g_fmt(crbufs.format, i);
+>         crbufs.count = 0;
+>         crbufs.memory = m;
+>         fail_on_test(doioctl(node, VIDIOC_CREATE_BUFS, &crbufs));   
+>         fail_on_test(check_0(crbufs.reserved, sizeof(crbufs.reserved)));
+>         fail_on_test(crbufs.index != q.g_buffers());
+> 
+> crbufs is initialized to fill with 0xff and after VIDIOC_CREATE_BUFS,
+> crbufs.reserved field should be 0x0. But v4l2_m2m_create_bufs and
+> vb2_create_bufs do not process reserved filed.
+> Do we really need to check reserved filed filled with 0x0? Or we need to
+> change vb2_create_bufs to fix this issue?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_hsit.c | 2 +-
- drivers/media/platform/vsp1/vsp1_lut.c  | 2 +-
- drivers/media/platform/vsp1/vsp1_sru.c  | 2 +-
- drivers/media/platform/vsp1/vsp1_uds.c  | 4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+The reserved field is zeroed in v4l_create_bufs() in v4l2-ioctl.c, so even before
+vb2_create_bufs et al is called.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
-index ce42ce2e4847..e971dfa9714d 100644
---- a/drivers/media/platform/vsp1/vsp1_hsit.c
-+++ b/drivers/media/platform/vsp1/vsp1_hsit.c
-@@ -28,7 +28,7 @@
- 
- static inline void vsp1_hsit_write(struct vsp1_hsit *hsit, u32 reg, u32 data)
- {
--	vsp1_write(hsit->entity.vsp1, reg, data);
-+	vsp1_mod_write(&hsit->entity, reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index f0cd4f79fbff..c24712fe5f2c 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -29,7 +29,7 @@
- 
- static inline void vsp1_lut_write(struct vsp1_lut *lut, u32 reg, u32 data)
- {
--	vsp1_write(lut->entity.vsp1, reg, data);
-+	vsp1_mod_write(&lut->entity, reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index a97541492af8..7de62be37cff 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -28,7 +28,7 @@
- 
- static inline void vsp1_sru_write(struct vsp1_sru *sru, u32 reg, u32 data)
- {
--	vsp1_write(sru->entity.vsp1, reg, data);
-+	vsp1_mod_write(&sru->entity, reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index b1881a0a314f..7eaf42a2b036 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -31,8 +31,8 @@
- 
- static inline void vsp1_uds_write(struct vsp1_uds *uds, u32 reg, u32 data)
- {
--	vsp1_write(uds->entity.vsp1,
--		   reg + uds->entity.index * VI6_UDS_OFFSET, data);
-+	vsp1_mod_write(&uds->entity, reg + uds->entity.index * VI6_UDS_OFFSET,
-+		       data);
- }
- 
- /* -----------------------------------------------------------------------------
--- 
-2.7.3
+The fact that it is no longer zeroed afterwards suggests that someone is messing
+with the reserved field.
 
+You'll have to do a bit more digging, I'm afraid.
+
+Regards,
+
+	Hans
