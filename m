@@ -1,120 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:32874 "EHLO
-	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934470AbcCNPXj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 11:23:39 -0400
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
-Subject: [PATCH v3 3/9] [media] tvp5150: determine BT.656 or YUV 4:2:2 mode from device tree
-Date: Mon, 14 Mar 2016 16:23:31 +0100
-Message-Id: <1457969017-4088-3-git-send-email-l.stach@pengutronix.de>
-In-Reply-To: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
-References: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:58015 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964950AbcCOQyk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2016 12:54:40 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Peter Rosin <peda@axentia.se>
+Subject: [PATCH] si2168: add lock to cmd execute
+Date: Tue, 15 Mar 2016 18:54:19 +0200
+Message-Id: <1458060859-3517-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Mauro do not apply that patch, it is fix for Peter I2C-mux serie!
 
-By looking at the endpoint flags, it can be determined whether the link
-should be of V4L2_MBUS_PARALLEL or V4L2_MBUS_BT656 type. Disable the
-dedicated HSYNC/VSYNC outputs in BT.656 mode.
+Peter, please meld that fix to main patch:
+[media] si2168: declare that the i2c gate is self-locked
 
-For devices that are not instantiated through DT the current behavior
-is preserved.
+We need lock to make sure only single caller could execute firmware
+command at the time. Earlier there was manual I2C locking which did
+the same job.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Cc: Peter Rosin <peda@axentia.se>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/i2c/tvp5150.c | 34 ++++++++++++++++++++++++++++++++--
- 1 file changed, 32 insertions(+), 2 deletions(-)
+ drivers/media/dvb-frontends/si2168.c      | 21 ++++++++++++++-------
+ drivers/media/dvb-frontends/si2168_priv.h |  1 +
+ 2 files changed, 15 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 67312c9d83c1..f6720d1d09ea 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -11,10 +11,12 @@
- #include <linux/delay.h>
- #include <linux/module.h>
- #include <linux/regmap.h>
-+#include <linux/of_graph.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/i2c/tvp5150.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
- 
- #include "tvp5150_reg.h"
- 
-@@ -38,6 +40,7 @@ struct tvp5150 {
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
- 	struct v4l2_ctrl_handler hdl;
-+	enum v4l2_mbus_type bus_type;
- 	struct v4l2_mbus_framefmt format;
- 	struct v4l2_rect rect;
- 	struct regmap *regmap;
-@@ -424,8 +427,6 @@ static const struct i2c_reg_value tvp5150_init_enable[] = {
- 		TVP5150_MISC_CTL, 0x6f
- 	},{	/* Activates video std autodetection for all standards */
- 		TVP5150_AUTOSW_MSK, 0x0
--	},{	/* Default format: 0x47. For 4:2:2: 0x40 */
--		TVP5150_DATA_RATE_SEL, 0x47
- 	},{
- 		TVP5150_CHROMA_PROC_CTL_1, 0x0c
- 	},{
-@@ -760,6 +761,25 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- 	/* Initializes TVP5150 to stream enabled values */
- 	tvp5150_write_inittab(sd, tvp5150_init_enable);
- 
-+	switch (decoder->bus_type) {
-+	case V4L2_MBUS_BT656:
-+		/* 8-bit ITU BT.656 */
-+		regmap_update_bits(decoder->regmap, TVP5150_DATA_RATE_SEL,
-+				   0x7, 0x7);
-+		/* disable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
-+		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x0);
-+		break;
-+	case V4L2_MBUS_PARALLEL:
-+		/* 8-bit YUV 4:2:2 */
-+		regmap_update_bits(decoder->regmap, TVP5150_DATA_RATE_SEL,
-+				   0x7, 0x0);
-+		/* enable HSYNC, VSYNC/PALI, AVID, and FID/GLCO */
-+		regmap_update_bits(decoder->regmap, TVP5150_MISC_CTL, 0x4, 0x4);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
- 	/* Initialize image preferences */
- 	v4l2_ctrl_handler_setup(&decoder->hdl);
- 
-@@ -1332,6 +1352,8 @@ static struct regmap_config tvp5150_config = {
- static int tvp5150_probe(struct i2c_client *c,
- 			 const struct i2c_device_id *id)
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 4a9b73b..786808f 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -21,17 +21,20 @@ static const struct dvb_frontend_ops si2168_ops;
+ /* execute firmware command */
+ static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
  {
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct device_node *endpoint;
- 	struct tvp5150 *core;
- 	struct v4l2_subdev *sd;
- 	struct regmap *map;
-@@ -1398,6 +1420,14 @@ static int tvp5150_probe(struct i2c_client *c,
++	struct si2168_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 	unsigned long timeout;
+ 
++	mutex_lock(&dev->i2c_mutex);
++
+ 	if (cmd->wlen) {
+ 		/* write cmd and args for firmware */
+ 		ret = i2c_master_send(client, cmd->args, cmd->wlen);
+ 		if (ret < 0) {
+-			goto err;
++			goto err_mutex_unlock;
+ 		} else if (ret != cmd->wlen) {
+ 			ret = -EREMOTEIO;
+-			goto err;
++			goto err_mutex_unlock;
  		}
  	}
  
-+	endpoint = of_graph_get_next_endpoint(c->dev.of_node, NULL);
-+	if (endpoint) {
-+		v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+		core->bus_type = bus_cfg.bus_type;
-+	} else {
-+		core->bus_type = V4L2_MBUS_BT656;
-+	}
+@@ -42,10 +45,10 @@ static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
+ 		while (!time_after(jiffies, timeout)) {
+ 			ret = i2c_master_recv(client, cmd->args, cmd->rlen);
+ 			if (ret < 0) {
+-				goto err;
++				goto err_mutex_unlock;
+ 			} else if (ret != cmd->rlen) {
+ 				ret = -EREMOTEIO;
+-				goto err;
++				goto err_mutex_unlock;
+ 			}
+ 
+ 			/* firmware ready? */
+@@ -60,17 +63,19 @@ static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
+ 		/* error bit set? */
+ 		if ((cmd->args[0] >> 6) & 0x01) {
+ 			ret = -EREMOTEIO;
+-			goto err;
++			goto err_mutex_unlock;
+ 		}
+ 
+ 		if (!((cmd->args[0] >> 7) & 0x01)) {
+ 			ret = -ETIMEDOUT;
+-			goto err;
++			goto err_mutex_unlock;
+ 		}
+ 	}
+ 
++	mutex_unlock(&dev->i2c_mutex);
+ 	return 0;
+-err:
++err_mutex_unlock:
++	mutex_unlock(&dev->i2c_mutex);
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+@@ -658,6 +663,8 @@ static int si2168_probe(struct i2c_client *client,
+ 		goto err;
+ 	}
+ 
++	mutex_init(&dev->i2c_mutex);
 +
- 	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
- 	core->input = TVP5150_COMPOSITE1;
- 	core->enable = 1;
+ 	/* create mux i2c adapter for tuner */
+ 	dev->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0,
+ 					I2C_MUX_SELF_LOCKED, 0, 0, 0,
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index 165bf14..8a1f36d 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -29,6 +29,7 @@
+ 
+ /* state struct */
+ struct si2168_dev {
++	struct mutex i2c_mutex;
+ 	struct i2c_mux_core *muxc;
+ 	struct dvb_frontend fe;
+ 	enum fe_delivery_system delivery_system;
 -- 
-2.7.0
+http://palosaari.fi/
 
