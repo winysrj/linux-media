@@ -1,45 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36306 "EHLO lists.s-osg.org"
+Received: from smtp205.alice.it ([82.57.200.101]:34673 "EHLO smtp205.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758765AbcCDUUa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 15:20:30 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH 0/2] [media] exynos4-is: Trivial fixes for DT port/endpoint parse logic
-Date: Fri,  4 Mar 2016 17:20:11 -0300
-Message-Id: <1457122813-12791-1-git-send-email-javier@osg.samsung.com>
+	id S932440AbcCOK2N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2016 06:28:13 -0400
+Date: Tue, 15 Mar 2016 11:28:08 +0100
+From: Antonio Ospite <ao2@ao2.it>
+To: Ran Shalit <ranshalit@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: gstreamer and v4l2
+Message-Id: <20160315112808.8ad0c7dfb8eec41a873ec8e2@ao2.it>
+In-Reply-To: <CAJ2oMhJpGaQwhbTB6x+KmtGBV0cG8ykZWNL6KAotDyH40Krwow@mail.gmail.com>
+References: <CAJ2oMhJpGaQwhbTB6x+KmtGBV0cG8ykZWNL6KAotDyH40Krwow@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Tue, 15 Mar 2016 09:10:59 +0200
+Ran Shalit <ranshalit@gmail.com> wrote:
 
-This series have two trivial fixes for issues that I noticed while
-reading as a reference the driver's functions that parse the graph
-port and endpoints nodes.
+> Hello,
+> 
+> This is a bit offtopic, so I will understand if you rather not discuss that...
+> 
+> I am trying to use gstreamer with v4l2 vivi device,
+> I first check the capabilities with
+> 
+> gst-launch-1.0 --gst-debug=v4l2src:5 v4l2src device="/dev/video0" !
+> fakesink 2>&1
+> 
+> and it gives many capabilities such as the following:
+> 
+> video/x-raw-yuv, format=(string)YUY2, framerate=(fraction)[1/1000,
+> 1000/1], width=(int) 640, height=(int)180, interlaced=(boolean)true
+>
 
-It was only compile tested because I don't have access to a Exynos4
-hardware to test the DT parsing, but the patches are very simple.
+A cleaner way to enumerate capabilities of a video device in GStreamer
+is like that:
 
-Best regards,
-Javier
+  gst-device-monitor-1.0 Video
 
+on Debian distributions gst-device-monitor-1.0 is in the
+gstreamer1.0-plugins-base-apps package.
 
-Javier Martinez Canillas (2):
-  [media] exynos4-is: Put node before s5pcsis_parse_dt() return error
-  [media] exynos4-is: FIMC port parse should fail if there's no endpoint
+> So I tried to run as following:
+> 
+> gst-launch-0.10 v4l2src device="/dev/video0" !
+> video/x-raw,width=640,height=180,framerate=30 ! autovideosink
+> 
+> But it keeps giving me auto negotiation error -4.
+> Trying to give other values did not help neither.
 
- drivers/media/platform/exynos4-is/media-dev.c | 2 +-
- drivers/media/platform/exynos4-is/mipi-csis.c | 6 ++++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+BTW, the need for videoconvert is more likely because of the pixelformat
+rather than the frame dimensions.
+
+Ciao ciao,
+   Antonio
 
 -- 
-2.5.0
+Antonio Ospite
+http://ao2.it
 
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
