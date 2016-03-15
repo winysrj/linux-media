@@ -1,104 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:35492 "EHLO
-	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752042AbcCQGlO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36260 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752925AbcCOMkh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Mar 2016 02:41:14 -0400
-Received: by mail-wm0-f42.google.com with SMTP id l68so213679605wml.0
-        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2016 23:41:13 -0700 (PDT)
-Subject: Re: [PATCH] media: rc: reduce size of struct ir_raw_event
-To: Sean Young <sean@mess.org>
-References: <56E9CDAE.2040200@gmail.com>
- <20160316222826.GA6635@gofer.mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Message-ID: <56EA517B.5030903@gmail.com>
-Date: Thu, 17 Mar 2016 07:40:59 +0100
+	Tue, 15 Mar 2016 08:40:37 -0400
+Date: Tue, 15 Mar 2016 14:40:33 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Philippe De Muyter <phdm@macq.eu>, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: subdev sensor driver and
+ V4L2_FRMIVAL_TYPE_CONTINUOUS/V4L2_FRMIVAL_TYPE_STEPWISE
+Message-ID: <20160315124033.GU11084@valkosipuli.retiisi.org.uk>
+References: <20160315101417.GA31990@frolo.macqel>
+ <20160315110608.GT11084@valkosipuli.retiisi.org.uk>
+ <56E7F7EE.10308@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20160316222826.GA6635@gofer.mess.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56E7F7EE.10308@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 16.03.2016 um 23:28 schrieb Sean Young:
-> On Wed, Mar 16, 2016 at 10:18:38PM +0100, Heiner Kallweit wrote:
->> struct ir_raw_event currently has a size of 12 bytes on most (all?)
->> architectures. This can be reduced to 8 bytes whilst maintaining
->> full backwards compatibility.
->> This saves 2KB in size of struct ir_raw_event_ctrl (as element
->> kfifo is reduced by 512 * 4 bytes) and it allows to copy the
->> full struct ir_raw_event with a single 64 bit operation.
->>
->> Successfully tested with the Nuvoton driver and successfully
->> compile-tested with the ene_ir driver (as it uses the carrier /
->> duty_cycle elements).
->>
->> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
->> ---
->>  include/media/rc-core.h | 26 ++++++++------------------
->>  1 file changed, 8 insertions(+), 18 deletions(-)
->>
->> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
->> index 0f77b3d..b8f27c9 100644
->> --- a/include/media/rc-core.h
->> +++ b/include/media/rc-core.h
->> @@ -214,27 +214,17 @@ enum raw_event_type {
->>  
->>  struct ir_raw_event {
->>  	union {
->> -		u32             duration;
->> -
->> -		struct {
->> -			u32     carrier;
->> -			u8      duty_cycle;
->> -		};
->> +		u32	duration;
->> +		u32	carrier;
->>  	};
->> -
->> -	unsigned                pulse:1;
->> -	unsigned                reset:1;
->> -	unsigned                timeout:1;
->> -	unsigned                carrier_report:1;
->> +	u8		duty_cycle;
-> 
-> Moving duty_cycle does indeed reduce the structure size from 12 to 8.
-> 
->> +	u8		pulse:1;
->> +	u8		reset:1;
->> +	u8		timeout:1;
->> +	u8		carrier_report:1;
-> 
-> Why are you changing the type of the bitfields? 
-> 
-I did this to make sure that the compiler uses one byte for
-the bit field. When testing gcc also used just one byte when
-keeping the original "unsigned" type for the bit field members.
-Therefore it wouldn't be strictly neeeded.
+Hi Hans,
 
-But I'm not sure whether it's guaranteed that the compiler packs a
-bit field to the smallest possible data type and we can rely on it.
-AFAIK C99 is a little more specific about this implementation detail of
-bit fields but C89/C90 is used for kernel compilation.
+On Tue, Mar 15, 2016 at 12:54:22PM +0100, Hans Verkuil wrote:
+> On 03/15/16 12:06, Sakari Ailus wrote:
+> > Hi Philippe,
+> > 
+> > On Tue, Mar 15, 2016 at 11:14:17AM +0100, Philippe De Muyter wrote:
+> >> Hi,
+> >>
+> >> Sorry if you read the following twice, but the subject of my previous post
+> >> was not precise enough :(
+> >>
+> >> I am in the process of converting a sensor driver compatible with the imx6
+> >> freescale linux kernel, to a subdev driver compatible with a current kernel
+> >> and Steve Longerbeam's work.
+> >>
+> >> My sensor can work at any fps (even fractional) up to 60 fps with its default
+> >> frame size or even higher when using crop or "binning'.  That fact is reflected
+> >> in my previous implemetation of VIDIOC_ENUM_FRAMEINTERVALS, which answered
+> >> with a V4L2_FRMIVAL_TYPE_CONTINUOUS-type reply.
+> >>
+> >> This seem not possible anymore because of the lack of the needed fields
+> >> in the 'struct v4l2_subdev_frame_interval_enum' used to delegate the question
+> >> to the subdev driver.  V4L2_FRMIVAL_TYPE_STEPWISE does not seem possible
+> >> anymore either.  Has that been replaced by something else or is that
+> >> functionality not considered relevant anymorea ?
+> > 
+> > I think the issue was that the CONTINUOUS and STEPWISE were considered too
+> > clumsy for applications and practically no application was using them, or at
+> > least the need for these was not seen to be there. They were not added to
+> > the V4L2 sub-device implementation of the interface as a result.
+> 
+> It never made sense to me why the two APIs weren't kept the same.
+> 
+> My suggestion would be to add step_width and step_height fields to
+> struct v4l2_subdev_frame_size_enum, that way you have the same functionality
+> back.
+> 
+> I.e. for discrete formats the min values equal the max values, for continuous
+> formats the step values are both 1 (or 0 for compability's sake) and the
+> remainder maps to a stepwise range.
 
-Heiner
+On frame intervals... I'm not against changing it if there's a need to.
 
->>  };
->>  
->> -#define DEFINE_IR_RAW_EVENT(event) \
->> -	struct ir_raw_event event = { \
->> -		{ .duration = 0 } , \
->> -		.pulse = 0, \
->> -		.reset = 0, \
->> -		.timeout = 0, \
->> -		.carrier_report = 0 }
->> +#define DEFINE_IR_RAW_EVENT(event) struct ir_raw_event event = {}
-> 
-> Seems fine. I've always kinda wondered why this macro is needed.
-> 
-> 
-> Sean
-> 
+Cc'ing Laurent who I believe wrote the original API. I probably acked it.
 
+We just needed to add the type field (snatch one from the reserved array),
+DISCRETE translates to zero so there are on compatibility issues either.
+struct v4l2_frmival_stepwise will consume all remaining reserved entries
+with the exception of one, but there is still room for it.
+
+Documentation is needed as well.
+
+I don't think it'd be very pretty but I guess there's no way around that at
+this point. We should have had the which field before the interval field.
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
