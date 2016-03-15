@@ -1,62 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swift.blarg.de ([78.47.110.205]:54597 "EHLO swift.blarg.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755409AbcCUNal (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 09:30:41 -0400
-Subject: [PATCH 5/6] drivers/media/media-device: add "release" callback
-From: Max Kellermann <max@duempel.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Date: Mon, 21 Mar 2016 14:30:38 +0100
-Message-ID: <145856703865.21117.13877102672522214541.stgit@woodpecker.blarg.de>
-In-Reply-To: <145856701730.21117.7759662061999658129.stgit@woodpecker.blarg.de>
-References: <145856701730.21117.7759662061999658129.stgit@woodpecker.blarg.de>
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:35489 "EHLO
+	mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750815AbcCOUyf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2016 16:54:35 -0400
+Received: by mail-oi0-f54.google.com with SMTP id c203so23274997oia.2
+        for <linux-media@vger.kernel.org>; Tue, 15 Mar 2016 13:54:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <56E0BBE5.4060104@mentor.com>
+References: <20160223114943.GA10944@frolo.macqel>
+	<20160223141258.GA5097@frolo.macqel>
+	<4956050.OLrYA1VK2G@avalon>
+	<56D79B49.50009@mentor.com>
+	<56D7E59B.6050605@xs4all.nl>
+	<20160303083643.GA4303@frolo.macqel>
+	<56D87824.8000707@mentor.com>
+	<CAJ+vNU2kPgESnjTZokU3qNR6QAbU3G8HGwc7ahg4jDpeS_xjHg@mail.gmail.com>
+	<56DF852A.30702@mentor.com>
+	<CAJ+vNU0cWUZNcP=suP0rnhG-EqVov5ODk0fKpd4rqf9Setw7Gw@mail.gmail.com>
+	<56E0BBE5.4060104@mentor.com>
+Date: Tue, 15 Mar 2016 13:54:33 -0700
+Message-ID: <CAJ+vNU3xbOv+cgEMZB-tHy_osM-Tc7HzD0uaiXKJB4KBSofooQ@mail.gmail.com>
+Subject: Re: i.mx6 camera interface (CSI) and mainline kernel
+From: Tim Harvey <tharvey@gateworks.com>
+To: Steve Longerbeam <steve_longerbeam@mentor.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Philippe De Muyter <phdm@macq.eu>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow the client to free its data structures only after all files have
-been closed (fixing use-after-free bugs).
+On Wed, Mar 9, 2016 at 4:12 PM, Steve Longerbeam
+<steve_longerbeam@mentor.com> wrote:
+> On 03/09/2016 02:44 PM, Tim Harvey wrote:
+>> On Tue, Mar 8, 2016 at 6:06 PM, Steve Longerbeam
+>> <steve_longerbeam@mentor.com> wrote:
+>>> On 03/07/2016 08:19 AM, Tim Harvey wrote:
+>> <snip>
+>>>
+>>> Hi Tim, good to hear it works for you on the Ventana boards.
+>>>
+>>> I've just pushed some more commits to the mx6-media-staging branch that
+>>> get the drivers/media/i2c/adv7180.c subdev working with the imx6 capture
+>>> backend. Images look perfect when switching to UYVY8_2X8 mbus code instead
+>>> of YUYV8_2X8. But I'm holding off on that change because this subdev is used
+>>> by Renesas targets and would likely corrupt captured images for those
+>>> targets. But I believe UYVY is the correct transmit order according to the
+>>> BT.656 standard.
+>>>
+>>> Another thing that should also be changed in drivers/media/i2c/adv7180.c
+>>> is the field type. It should be V4L2_FIELD_SEQ_TB for NTSC and V4L2_FIELD_SEQ_BT
+>>> for PAL.
+>>>
+>>> Steve
+>>>
+>>>
+>> Steve,
+>>
+>> with your latest patches, I'm crashing with an null-pointer-deref in
+>> adv7180_set_pad_format. What is your kernel config for
+>> CONFIG_MEDIA_CONTROLLER and CONFIG_VIDEO_V4L2_SUBDEV_API?
+>
+> Right, I thought I fixed that, I was passing a NULL pad_cfg for
+> TRY_FORMAT, but that was fixed. Maybe you fetched a version
+> of mx6-media-staging while I was in the middle of debugging?
+> Try fetching again.
+>
+> I tried with both CONFIG_MEDIA_CONTROLLER and
+> CONFIG_VIDEO_V4L2_SUBDEV_API enabled and both disabled, and
+> I don't get the null deref in adv7180_set_pad_format.
+>
+>
+>>
+>> Your tree contains about 16 or so patches on top of linux-media for
+>> imx6 capture. Are you close to the point where you will be posting a
+>> patch series? If so, please CC me for testing with the adv7180 sensor.
+>
+> I guess I can try posting a series again, but there will likely be push-back from
+> Pengutronix. They have their own video capture driver for imx6. Last I heard (a while ago!)
+> their version did not implement scaling, colorspace conversion, or image rotation via
+> the IC. Instead their driver sends raw camera frames directly to memory, and image
+> conversion is carried out by separate mem2mem device. Our capture driver does
+> image conversion (scaling, CSC, and rotation) natively using the IC pre-processing channel.
+> We also have a mem2mem device that does conversion using IC post-processing,
+> which I have included in mx6-media-staging.
+>
+> Also IIRC they did some pretty slick stuff with a video bus multiplexer subdev, which
+> can multiplex video from different sensors either using the internal mux in the SoC,
+> or can control an external mux via gpio. Our driver only supports the internal mux,
+> and does it with a platform data function.
 
-Signed-off-by: Max Kellermann <max@duempel.org>
----
- drivers/media/media-device.c |    9 +++++++--
- include/media/media-device.h |    2 ++
- 2 files changed, 9 insertions(+), 2 deletions(-)
+Philipp (Zabel) / Sascha - are you able to rebase and re-post your
+patchset for IMX6 capture or will you defer to Steve's patchset?
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 5c4669c..a3901f9 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -551,9 +551,14 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
-  * Registration/unregistration
-  */
- 
--static void media_device_release(struct media_devnode *mdev)
-+static void media_device_release(struct media_devnode *devnode)
- {
--	dev_dbg(mdev->parent, "Media device released\n");
-+	struct media_device *mdev = to_media_device(devnode);
-+
-+	dev_dbg(devnode->parent, "Media device released\n");
-+
-+	if (mdev->release)
-+		mdev->release(mdev);
- }
- 
- /**
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index d385589..d184d0c 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -326,6 +326,8 @@ struct media_device {
- 
- 	int (*link_notify)(struct media_link *link, u32 flags,
- 			   unsigned int notification);
-+
-+	void (*release)(struct media_device *mdev);
- };
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
+We are still missing the media device driver, the video multiplexer,
+and the IPUv3 capture driver.
 
+Regards,
+
+Tim
