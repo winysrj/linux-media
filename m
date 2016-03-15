@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f194.google.com ([209.85.214.194]:36605 "EHLO
-	mail-ob0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbcC2G0e (ORCPT
+Received: from mail-ig0-f180.google.com ([209.85.213.180]:33908 "EHLO
+	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755032AbcCOHLA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2016 02:26:34 -0400
+	Tue, 15 Mar 2016 03:11:00 -0400
+Received: by mail-ig0-f180.google.com with SMTP id av4so80856482igc.1
+        for <linux-media@vger.kernel.org>; Tue, 15 Mar 2016 00:11:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1458911416-47981-2-git-send-email-hverkuil@xs4all.nl>
-References: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
-	<1458911416-47981-2-git-send-email-hverkuil@xs4all.nl>
-Date: Tue, 29 Mar 2016 15:26:33 +0900
-Message-ID: <CAJKOXPd=upXq5m2WitT37_XYi5+rciA9HVYWFoE4u_wPnWaWJQ@mail.gmail.com>
-Subject: Re: [PATCHv14 01/18] dts: exynos4*: add HDMI CEC pin definition to pinctrl
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
-	lars@opdenkamp.eu, linux@arm.linux.org.uk,
-	Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
+Date: Tue, 15 Mar 2016 09:10:59 +0200
+Message-ID: <CAJ2oMhJpGaQwhbTB6x+KmtGBV0cG8ykZWNL6KAotDyH40Krwow@mail.gmail.com>
+Subject: gstreamer and v4l2
+From: Ran Shalit <ranshalit@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 25, 2016 at 10:09 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Kamil Debski <kamil@wypas.org>
->
-> Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
-> Exynos4x12 SoCs. These are required by the HDMI CEC device.
->
-> Signed-off-by: Kamil Debski <kamil@wypas.org>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-> ---
->  arch/arm/boot/dts/exynos4210-pinctrl.dtsi | 7 +++++++
->  arch/arm/boot/dts/exynos4x12-pinctrl.dtsi | 7 +++++++
->  2 files changed, 14 insertions(+)
+Hello,
 
-Applied for v4.7 with a little bit different subject:
-https://git.kernel.org/cgit/linux/kernel/git/krzk/linux.git/log/?h=next/dt
-(but tell me if you need to base on this so I would prepare a tag)
+This is a bit offtopic, so I will understand if you rather not discuss that...
 
-Best regards,
+I am trying to use gstreamer with v4l2 vivi device,
+I first check the capabilities with
+
+gst-launch-1.0 --gst-debug=v4l2src:5 v4l2src device="/dev/video0" !
+fakesink 2>&1
+
+and it gives many capabilities such as the following:
+
+video/x-raw-yuv, format=(string)YUY2, framerate=(fraction)[1/1000,
+1000/1], width=(int) 640, height=(int)180, interlaced=(boolean)true
+
+So I tried to run as following:
+
+gst-launch-0.10 v4l2src device="/dev/video0" !
+video/x-raw,width=640,height=180,framerate=30 ! autovideosink
+
+But it keeps giving me auto negotiation error -4.
+Trying to give other values did not help neither.
+
+It is probaby more a gstreamer issue, but if someone is familiar and
+can shed some light on this will will help.
+
+Linux version is 3.10.0.
+
+Regards,
+Ran
