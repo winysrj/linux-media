@@ -1,75 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:28813 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392AbcCUAWz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Mar 2016 20:22:55 -0400
-Subject: Re: [PATCHv13 01/17] dts: exynos4*: add HDMI CEC pin definition to
- pinctrl
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
- <1458310036-19252-2-git-send-email-hans.verkuil@cisco.com>
- <20160319025040.GA7289@kozik-lap> <56ED0AA3.1000601@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
-	lars@opdenkamp.eu, linux@arm.linux.org.uk,
-	Kamil Debski <kamil@wypas.org>, krzk@kernel.org
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Message-id: <56EF3ED6.3010308@samsung.com>
-Date: Mon, 21 Mar 2016 09:22:46 +0900
-MIME-version: 1.0
-In-reply-to: <56ED0AA3.1000601@xs4all.nl>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:53872 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754366AbcCOAxQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Mar 2016 20:53:16 -0400
+Subject: Re: [PATCH v2] [media] media-device: Don't call notify callbacks
+ holding a spinlock
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <31ecc9d6d2f29b0bd76c03c516d12aa7d0be2f66.1457982982.git.mchehab@osg.samsung.com>
+ <f57f83d55d7e1bc526370c697db014cec51bd909.1457983075.git.mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56E75CFA.4040207@osg.samsung.com>
+Date: Mon, 14 Mar 2016 18:53:14 -0600
+MIME-Version: 1.0
+In-Reply-To: <f57f83d55d7e1bc526370c697db014cec51bd909.1457983075.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19.03.2016 17:15, Hans Verkuil wrote:
-> On 03/19/2016 03:50 AM, Krzysztof Kozlowski wrote:
->> On Fri, Mar 18, 2016 at 03:07:00PM +0100, Hans Verkuil wrote:
->>> From: Kamil Debski <kamil@wypas.org>
->>>
->>> Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
->>> Exynos4x12 SoCs. These are required by the HDMI CEC device.
->>>
->>> Signed-off-by: Kamil Debski <kamil@wypas.org>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
->>> ---
->>>  arch/arm/boot/dts/exynos4210-pinctrl.dtsi | 7 +++++++
->>>  arch/arm/boot/dts/exynos4x12-pinctrl.dtsi | 7 +++++++
->>>  2 files changed, 14 insertions(+)
->>
->> Hi Hans,
->>
->> I see you have been carrying these three patches for a long time.
->> Initially I thought that there are some dependencies... but maybe there
->> are not?
->>
->> Can I take these Exynos DTS patches to samsung-soc?
+On 03/14/2016 01:19 PM, Mauro Carvalho Chehab wrote:
+> The notify routines may sleep. So, they can't be called in spinlock
+> context. Also, they may want to call other media routines that might
+> be spinning the spinlock, like creating a link.
 > 
-> That would be very nice!
-
-I'll apply them after merge window.
-
-
-> BTW, it would be nice if someone from Samsung could try to improve the s5p
-> CEC driver from this patch series.
+> This fixes the following bug:
 > 
-> The problem is that it expects userspace to tell it the physical address,
-> which is read from the EDID. But the HDMI driver in the kernel already knows
-> this, so requiring userspace to handle this is not nice.
+> [ 1839.510587] BUG: sleeping function called from invalid context at mm/slub.c:1289
+> [ 1839.510881] in_atomic(): 1, irqs_disabled(): 0, pid: 3479, name: modprobe
+> [ 1839.511157] 4 locks held by modprobe/3479:
+> [ 1839.511415]  #0:  (&dev->mutex){......}, at: [<ffffffff81ce8933>] __driver_attach+0xa3/0x160
+> [ 1839.512381]  #1:  (&dev->mutex){......}, at: [<ffffffff81ce8941>] __driver_attach+0xb1/0x160
+> [ 1839.512388]  #2:  (register_mutex#5){+.+.+.}, at: [<ffffffffa10596c7>] usb_audio_probe+0x257/0x1c90 [snd_usb_audio]
+> [ 1839.512401]  #3:  (&(&mdev->lock)->rlock){+.+.+.}, at: [<ffffffffa0e6051b>] media_device_register_entity+0x1cb/0x700 [media]
+> [ 1839.512412] CPU: 2 PID: 3479 Comm: modprobe Not tainted 4.5.0-rc3+ #49
+> [ 1839.512415] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+> [ 1839.512417]  0000000000000000 ffff8803b3f6f288 ffffffff81933901 ffff8803c4bae000
+> [ 1839.512422]  ffff8803c4bae5c8 ffff8803b3f6f2b0 ffffffff811c6af5 ffff8803c4bae000
+> [ 1839.512427]  ffffffff8285d7f6 0000000000000509 ffff8803b3f6f2f0 ffffffff811c6ce5
+> [ 1839.512432] Call Trace:
+> [ 1839.512436]  [<ffffffff81933901>] dump_stack+0x85/0xc4
+> [ 1839.512440]  [<ffffffff811c6af5>] ___might_sleep+0x245/0x3a0
+> [ 1839.512443]  [<ffffffff811c6ce5>] __might_sleep+0x95/0x1a0
+> [ 1839.512446]  [<ffffffff8155aade>] kmem_cache_alloc_trace+0x20e/0x300
+> [ 1839.512451]  [<ffffffffa0e66e3d>] ? media_add_link+0x4d/0x140 [media]
+> [ 1839.512455]  [<ffffffffa0e66e3d>] media_add_link+0x4d/0x140 [media]
+> [ 1839.512459]  [<ffffffffa0e69931>] media_create_pad_link+0xa1/0x600 [media]
+> [ 1839.512463]  [<ffffffffa0fe11b3>] au0828_media_graph_notify+0x173/0x360 [au0828]
+> [ 1839.512467]  [<ffffffffa0e68a6a>] ? media_gobj_create+0x1ba/0x480 [media]
+> [ 1839.512471]  [<ffffffffa0e606fb>] media_device_register_entity+0x3ab/0x700 [media]
 > 
-> Basically the CEC driver needs to know when a new EDID has been read and
-> when the hotplug detect goes low (EDID has been lost).
+> Tested with an HVR-950Q, under the following testcases:
 > 
-> If someone who actually knows the HDMI code could provide me with a patch,
-> then I can fix the CEC driver. I have an odroid to test with, so I can check
-> the code.
+> 1) load au0828 driver first, and then snd-usb-audio;
+> 2) load snd-usb-audio driver first, and then au0828;
+> 3) loading both drivers, and then connecting the device.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Not quite my area of knowledge but I'll keep it in mind.
+Looks good. Tested. Inserting device with au0828 blacklisted. Just the audio graph
+gets created and then modprobed au0828. The complete graph looks good. Also tested
+without blacklisting, so both drivers are probed together. Graph looks good.
 
-Best regards,
-Krzysztof
+Tested-by: Shuah Khan <shuahkh@osg.samsung.com>
 
+thanks,
+-- Shuah
+> ---
+> 
+> Please disconsider verison 1. It got amended with an experimental patch.
+> 
+>  drivers/media/media-device.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 6ba6e8f982fc..fc3c199e5500 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -587,14 +587,15 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+>  		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
+>  			       &entity->pads[i].graph_obj);
+>  
+> +	spin_unlock(&mdev->lock);
+> +
+>  	/* invoke entity_notify callbacks */
+>  	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
+>  		(notify)->notify(entity, notify->notify_data);
+>  	}
+>  
+> -	spin_unlock(&mdev->lock);
+> -
+>  	mutex_lock(&mdev->graph_mutex);
+> +
+>  	if (mdev->entity_internal_idx_max
+>  	    >= mdev->pm_count_walk.ent_enum.idx_max) {
+>  		struct media_entity_graph new = { .top = 0 };
+> 
+
+
+-- 
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
