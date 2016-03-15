@@ -1,85 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45562 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932228AbcCRRaQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 13:30:16 -0400
-Subject: Re: [PATCHv13 05/17] HID: add HDMI CEC specific keycodes
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
- <1458310036-19252-6-git-send-email-hans.verkuil@cisco.com>
-Cc: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56EC3B21.7060405@xs4all.nl>
-Date: Fri, 18 Mar 2016 18:30:09 +0100
+Received: from mail.kapsi.fi ([217.30.184.167]:54058 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932591AbcCORIZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2016 13:08:25 -0400
+Subject: Re: [PATCH v4 00/18] i2c mux cleanup and locking update
+To: Peter Rosin <peda@lysator.liu.se>, linux-kernel@vger.kernel.org
+References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+ <56E817AE.2090005@lysator.liu.se>
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Viorel Suman <viorel.suman@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
+	linux-media@vger.kernel.org, devicetree@vger.kernel.org
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <56E84178.2020204@iki.fi>
+Date: Tue, 15 Mar 2016 19:08:08 +0200
 MIME-Version: 1.0
-In-Reply-To: <1458310036-19252-6-git-send-email-hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <56E817AE.2090005@lysator.liu.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dmitry,
+On 03/15/2016 04:09 PM, Peter Rosin wrote:
 
-Can you Ack this? I don't expect this to change anymore. Your comments have been
-incorporated (added the "Diagonal movement keys" comment).
+> The series will be posted again for review. This is just a heads up.
+>
+> v5 compared to v4:
+> - Rebase on top of v4.5-rc7.
+> - A new patch making me maintainer of i2c muxes (also sent separately).
+> - A new file Documentation/i2c/i2c-topology that describes various muxing
+>    issues.
+> - Rename "i2c-controlled" muxes "self-locked" instead, as it is perfectly
+>    reasonable to have i2c-controlled muxes that use the pre-existing locking
+>    scheme. The pre-existing locking scheme for i2c muxes is from here on
+>    called "parent-locked".
+> - Rename i2c-mux.c:i2c_mux_master_xfer to __i2c_mux_master_xfer since it
+>    calls __i2c_transfer, which leaves room for a new i2c_mux_master_xfer
+>    that calls i2c_transfer. Similar rename shuffle for i2c_mux_smbus_xfer.
+> - Use sizeof(*priv) instead of sizeof(struct i2c_mux_priv). One instance.
+> - Some follow-up patches that were posted in response to v2-v4 cleaning up
+>    and simplifying various i2c muxes outside drivers/i2c/, among those is
+>    an unrelated cleanup patch to drivers/media/dvb-frontends/rtl2832.c that
+>    I carry here since it conflicts (trivially) with this series. That
+>    unrelated patch is (currently) the last patch in the series.
+>
+>
+> The series looks like this now:
+>
+> The following changes since commit f6cede5b49e822ebc41a099fe41ab4989f64e2cb:
+>
+>    Linux 4.5-rc7 (2016-03-06 14:48:03 -0800)
+>
+> are available in the git repository at:
+>
+>    https://github.com/peda-r/i2c-mux.git mux-core-and-locking-5
 
-Thanks!
+I reviewed and tested these patches:
 
-	Hans
+c1ef4a2 [media] rtl2832: regmap is aware of lockdep, drop local locking hack
+6636178 [media] rtl2832_sdr: get rid of empty regmap wrappers
+001ad6b [media] rtl2832: declare that the i2c gate is self-locked
+e2e82e4 [media] si2168: declare that the i2c gate is self-locked
+b52f766 [media] si2168: convert to use an explicit i2c mux core
+4ba9115 [media] rtl2832: convert to use an explicit i2c mux core
+3f1778b [media] rtl2830: convert to use an explicit i2c mux core
+5c8bfc8 [media] m88ds3103: convert to use an explicit i2c mux core
 
-On 03/18/2016 03:07 PM, Hans Verkuil wrote:
-> From: Kamil Debski <kamil@wypas.org>
-> 
-> Add HDMI CEC specific keycodes to the keycodes definition.
-> 
-> Signed-off-by: Kamil Debski <kamil@wypas.org>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  include/uapi/linux/input-event-codes.h | 30 ++++++++++++++++++++++++++++++
->  1 file changed, 30 insertions(+)
-> 
-> diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-> index 87cf351..02b7b3a 100644
-> --- a/include/uapi/linux/input-event-codes.h
-> +++ b/include/uapi/linux/input-event-codes.h
-> @@ -611,6 +611,36 @@
->  #define KEY_KBDINPUTASSIST_ACCEPT		0x264
->  #define KEY_KBDINPUTASSIST_CANCEL		0x265
->  
-> +/* Diagonal movement keys */
-> +#define KEY_RIGHT_UP			0x266
-> +#define KEY_RIGHT_DOWN			0x267
-> +#define KEY_LEFT_UP			0x268
-> +#define KEY_LEFT_DOWN			0x269
-> +
-> +#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
-> +#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
-> +#define KEY_NUMERIC_11			0x26c
-> +#define KEY_NUMERIC_12			0x26d
-> +/*
-> + * Toggle Audio Description: refers to an audio service that helps blind and
-> + * visually impaired consumers understand the action in a program. Note: in
-> + * some countries this is referred to as "Video Description".
-> + */
-> +#define KEY_AUDIO_DESC			0x26e
-> +#define KEY_3D_MODE			0x26f
-> +#define KEY_NEXT_FAVORITE		0x270
-> +#define KEY_STOP_RECORD			0x271
-> +#define KEY_PAUSE_RECORD		0x272
-> +#define KEY_VOD				0x273 /* Video on Demand */
-> +#define KEY_UNMUTE			0x274
-> +#define KEY_FASTREVERSE			0x275
-> +#define KEY_SLOWREVERSE			0x276
-> +/*
-> + * Control a data application associated with the currently viewed channel,
-> + * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
-> + */
-> +#define KEY_DATA			0x275
-> +
->  #define BTN_TRIGGER_HAPPY		0x2c0
->  #define BTN_TRIGGER_HAPPY1		0x2c0
->  #define BTN_TRIGGER_HAPPY2		0x2c1
-> 
 
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Tested-by: Antti Palosaari <crope@iki.fi>
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
