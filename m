@@ -1,275 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f54.google.com ([209.85.192.54]:36766 "EHLO
-	mail-qg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932854AbcCIO3a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2016 09:29:30 -0500
-Received: by mail-qg0-f54.google.com with SMTP id u110so42466169qge.3
-        for <linux-media@vger.kernel.org>; Wed, 09 Mar 2016 06:29:30 -0800 (PST)
-Date: Wed, 9 Mar 2016 16:29:24 +0200
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"kernel-mentors@selenic.com" <kernel-mentors@selenic.com>,
-	devel@driverdev.osuosl.org,
-	kernel-janitors <kernel-janitors@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Andrey Utkin <andrey_utkin@fastmail.com>
-Subject: Re: [RFC PATCH v0] Add tw5864 driver
-Message-ID: <20160309162924.6e6ebddf@zver>
-In-Reply-To: <56B866D9.5070606@xs4all.nl>
-References: <1451785302-3173-1-git-send-email-andrey.utkin@corp.bluecherry.net>
-	<56938969.30104@xs4all.nl>
-	<CAM_ZknVgTETBNXu+8N6eJa=cf_Mmj=+tA=ocKB9SJL5rkSyijQ@mail.gmail.com>
-	<56B866D9.5070606@xs4all.nl>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:41590 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932688AbcCOML1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2016 08:11:27 -0400
+Subject: Re: subdev sensor driver and
+ V4L2_FRMIVAL_TYPE_CONTINUOUS/V4L2_FRMIVAL_TYPE_STEPWISE
+To: Philippe De Muyter <phdm@macq.eu>
+References: <20160315101417.GA31990@frolo.macqel>
+ <20160315110608.GT11084@valkosipuli.retiisi.org.uk>
+ <56E7F7EE.10308@xs4all.nl> <20160315115803.GA13448@frolo.macqel>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56E7FC02.50006@xs4all.nl>
+Date: Tue, 15 Mar 2016 13:11:46 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20160315115803.GA13448@frolo.macqel>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans!
+On 03/15/16 12:58, Philippe De Muyter wrote:
+> My post is about framerate, not framesize :)  I agree the macro's
+> names are misleading.
 
-Some improvements took place on the driver, including cleaner
-v4l2-compliance tests passing. But there's a single test failure I
-don't understand.
+Oops. Well, the solution would be similar (i.e. adding max_interval and step_interval
+fields to struct v4l2_subdev_frame_interval_enum. It takes away 4 fields from the
+reserved array, but this should have been done right from the start :-(
 
-In the code of v4l2-compliance, it seems like an API
-call CREATE_BUFS is supposed to fail with EINVAL. But in case of my
-driver, which simply uses vb2_ioctl_create_bufs(), the call returns 0.
+Regards,
 
-Please review the below report.
+	Hans
 
-The report is produced by fresh v4l-utils from git:
-v4l-utils-1.10.0-59-g1388c0a
-
-The actual code which was tested is at tag release/tw5864/1.10 of
-https://github.com/bluecherrydvr/linux.git , see
-drivers/staging/media/tw5864 . If we sort this out, I am considering
-resubmit the driver for merging upstream.
-
-There's also another issue with v4l2-compliance. At some moment the
-driver receives S_PARM command with timeperframe 0/0, by which reason I
-added special handling, but I guess there's something out of my
-knowledge which caused this and which should be fixed.
-
-
- # v4l2-compliance -d /dev/video6 -s
-Driver Info:
-        Driver name   : tw5864
-        Card type     : TW5864 Encoder 2
-        Bus info      : PCI:0000:06:05.0
-        Driver version: 4.5.0
-        Capabilities  : 0x85200001
-                Video Capture
-                Read/Write
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x05200001
-                Video Capture
-                Read/Write
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video6 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 11 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Streaming ioctls:
-        test read/write: OK
-                fail: v4l2-test-buffers.cpp(959): ret != EINVAL
-        test MMAP: FAIL
-        test USERPTR: OK (Not Supported)
-        test DMABUF: Cannot test, specify --expbuf-device
-
-
-Total: 45, Succeeded: 44, Failed: 1, Warnings: 0
-[ERR]
-14:14:15root@tw ~
- # gdb v4l2-compliance 
-GNU gdb (Ubuntu 7.10-1ubuntu3) 7.10
-Copyright (C) 2015 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later
-<http://gnu.org/licenses/gpl.html> This is free software: you are free
-to change and redistribute it. There is NO WARRANTY, to the extent
-permitted by law.  Type "show copying" and "show warranty" for details.
-This GDB was configured as "i686-linux-gnu".
-Type "show configuration" for configuration details.
-For bug reporting instructions, please see:
-<http://www.gnu.org/software/gdb/bugs/>.
-Find the GDB manual and other documentation resources online at:
-<http://www.gnu.org/software/gdb/documentation/>.
-For help, type "help".
-Type "apropos word" to search for commands related to "word"...
-Reading symbols from v4l2-compliance...done.
-(gdb) break v4l2-test-buffers.cpp:959
-Breakpoint 1 at 0x8071469: file v4l2-test-buffers.cpp, line 959.
-(gdb) run  -d /dev/video6 -s
-Starting program: /usr/local/bin/v4l2-compliance -d /dev/video6 -s
-[Thread debugging using libthread_db enabled]
-Using host libthread_db library "/lib/i386-linux-gnu/libthread_db.so.1".
-Driver Info:
-        Driver name   : tw5864
-        Card type     : TW5864 Encoder 2
-        Bus info      : PCI:0000:06:05.0
-        Driver version: 4.5.0
-        Capabilities  : 0x85200001
-                Video Capture
-                Read/Write
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x05200001
-                Video Capture
-                Read/Write
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video6 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 11 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Streaming ioctls:
-        test read/write: OK
-
-Breakpoint 1, testMmap (node=0xbfffd1e4, frame_count=60) at v4l2-test-buffers.cpp:959
-959                                     fail_on_test(ret != EINVAL);
-(gdb) print ret
-$1 = 0
-(gdb)
+> 
+> On Tue, Mar 15, 2016 at 12:54:22PM +0100, Hans Verkuil wrote:
+>> On 03/15/16 12:06, Sakari Ailus wrote:
+>>> Hi Philippe,
+>>>
+>>> On Tue, Mar 15, 2016 at 11:14:17AM +0100, Philippe De Muyter wrote:
+>>>> Hi,
+>>>>
+>>>> Sorry if you read the following twice, but the subject of my previous post
+>>>> was not precise enough :(
+>>>>
+>>>> I am in the process of converting a sensor driver compatible with the imx6
+>>>> freescale linux kernel, to a subdev driver compatible with a current kernel
+>>>> and Steve Longerbeam's work.
+>>>>
+>>>> My sensor can work at any fps (even fractional) up to 60 fps with its default
+>>>> frame size or even higher when using crop or "binning'.  That fact is reflected
+>>>> in my previous implemetation of VIDIOC_ENUM_FRAMEINTERVALS, which answered
+>>>> with a V4L2_FRMIVAL_TYPE_CONTINUOUS-type reply.
+>>>>
+>>>> This seem not possible anymore because of the lack of the needed fields
+>>>> in the 'struct v4l2_subdev_frame_interval_enum' used to delegate the question
+>>>> to the subdev driver.  V4L2_FRMIVAL_TYPE_STEPWISE does not seem possible
+>>>> anymore either.  Has that been replaced by something else or is that
+>>>> functionality not considered relevant anymorea ?
+>>>
+>>> I think the issue was that the CONTINUOUS and STEPWISE were considered too
+>>> clumsy for applications and practically no application was using them, or at
+>>> least the need for these was not seen to be there. They were not added to
+>>> the V4L2 sub-device implementation of the interface as a result.
+>>
+>> It never made sense to me why the two APIs weren't kept the same.
+> 
+> I agree completely with that.
+> 
+>>
+>> My suggestion would be to add step_width and step_height fields to
+>> struct v4l2_subdev_frame_size_enum, that way you have the same functionality
+>> back.
+>>
+>> I.e. for discrete formats the min values equal the max values, for continuous
+>> formats the step values are both 1 (or 0 for compability's sake) and the
+>> remainder maps to a stepwise range.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>> Cc Hans.
+>>>
+>>> The smiapp driver uses horizontal and vertical blanking controls for
+>>> changing the frame rate. That's a bit lower level interface than most
+>>> drivers use, but then you have to provide enough other information to the
+>>> user space as well, including the pixel rate.
+>>>
+> 
+> Philippe
+> 
