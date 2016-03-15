@@ -1,223 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:50209 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753349AbcCVJgJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2016 05:36:09 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0O4F000QTPC6W450@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Mar 2016 09:36:07 +0000 (GMT)
-Message-id: <56F11205.8000903@samsung.com>
-Date: Tue, 22 Mar 2016 10:36:05 +0100
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-MIME-version: 1.0
+Received: from lists.s-osg.org ([54.187.51.154]:53993 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751150AbcCOPzs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Mar 2016 11:55:48 -0400
+Date: Tue, 15 Mar 2016 12:55:35 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 13/15] mediactl: Add media device ioctl API
-References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
- <1453133860-21571-14-git-send-email-j.anaszewski@samsung.com>
- <56C1C775.2090002@linux.intel.com> <56C1CD3E.6090108@samsung.com>
- <20160218120951.GO32612@valkosipuli.retiisi.org.uk>
- <56C5C3C0.7000808@samsung.com>
- <20160321000714.GE11084@valkosipuli.retiisi.org.uk>
-In-reply-to: <20160321000714.GE11084@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
+	a.hajda@samsung.com, s.nawrocki@samsung.com, kgene@kernel.org,
+	k.kozlowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	hyun.kwon@xilinx.com, soren.brinkmann@xilinx.com,
+	gregkh@linuxfoundation.org, perex@perex.cz, tiwai@suse.com,
+	hans.verkuil@cisco.com, lixiubo@cmss.chinamobile.com,
+	javier@osg.samsung.com, g.liakhovetski@gmx.de,
+	chehabrafael@gmail.com, crope@iki.fi, tommi.franttila@intel.com,
+	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
+	hamohammed.sa@gmail.com, der.herr@hofr.at, navyasri.tech@gmail.com,
+	Julia.Lawall@lip6.fr, amitoj1606@gmail.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [PATCH] media: add GFP flag to media_*() that could get called
+ in atomic context
+Message-ID: <20160315125535.775c8cc3@recife.lan>
+In-Reply-To: <20160314120909.GS11084@valkosipuli.retiisi.org.uk>
+References: <1457833689-4926-1-git-send-email-shuahkh@osg.samsung.com>
+	<20160314072236.GO11084@valkosipuli.retiisi.org.uk>
+	<20160314071358.27c87dab@recife.lan>
+	<20160314105253.GQ11084@valkosipuli.retiisi.org.uk>
+	<20160314084633.521d3e35@recife.lan>
+	<20160314120909.GS11084@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em Mon, 14 Mar 2016 14:09:09 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-On 03/21/2016 01:07 AM, Sakari Ailus wrote:
-> Hi Jacek,
->
-> On Thu, Feb 18, 2016 at 02:14:40PM +0100, Jacek Anaszewski wrote:
->> Hi Sakari,
->>
->> On 02/18/2016 01:09 PM, Sakari Ailus wrote:
->>> Hi Jacek,
->>>
->>> On Mon, Feb 15, 2016 at 02:06:06PM +0100, Jacek Anaszewski wrote:
->>>> Hi Sakari,
->>>>
->>>> Thanks for the review.
->>>>
->>>> On 02/15/2016 01:41 PM, Sakari Ailus wrote:
->>>>> Hi Jacek,
->>>>>
->>>>> Jacek Anaszewski wrote:
->>>>>> Ioctls executed on complex media devices need special handling.
->>>>>> For instance some ioctls need to be targeted for specific sub-devices,
->>>>>> depending on the media device configuration. The APIs being introduced
->>>>>> address such requirements.
->>>>>>
->>>>>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
->>>>>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
->>>>>> ---
->>>>>>   utils/media-ctl/Makefile.am          |    2 +-
->>>>>>   utils/media-ctl/libv4l2media_ioctl.c |  404 ++++++++++++++++++++++++++++++++++
->>>>>>   utils/media-ctl/libv4l2media_ioctl.h |   48 ++++
->>>>>>   3 files changed, 453 insertions(+), 1 deletion(-)
->>>>>>   create mode 100644 utils/media-ctl/libv4l2media_ioctl.c
->>>>>>   create mode 100644 utils/media-ctl/libv4l2media_ioctl.h
->>>>>>
->>>>>> diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
->>>>>> index 3e883e0..7f18624 100644
->>>>>> --- a/utils/media-ctl/Makefile.am
->>>>>> +++ b/utils/media-ctl/Makefile.am
->>>>>> @@ -1,6 +1,6 @@
->>>>>>   noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la libmediatext.la
->>>>>>
->>>>>> -libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
->>>>>> +libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h libv4l2media_ioctl.c libv4l2media_ioctl.h
->>>>>>   libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
->>>>>>   libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
->>>>>>
->>>>>> diff --git a/utils/media-ctl/libv4l2media_ioctl.c b/utils/media-ctl/libv4l2media_ioctl.c
->>>>>> new file mode 100644
->>>>>> index 0000000..b186121
->>>>>> --- /dev/null
->>>>>> +++ b/utils/media-ctl/libv4l2media_ioctl.c
->>>>>> @@ -0,0 +1,404 @@
->>>>>> +/*
->>>>>> + * Copyright (c) 2015 Samsung Electronics Co., Ltd.
->>>>>> + *              http://www.samsung.com
->>>>>> + *
->>>>>> + * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
->>>>>> + *
->>>>>> + * This program is free software; you can redistribute it and/or modify
->>>>>> + * it under the terms of the GNU Lesser General Public License as published by
->>>>>> + * the Free Software Foundation; either version 2.1 of the License, or
->>>>>> + * (at your option) any later version.
->>>>>> + *
->>>>>> + * This program is distributed in the hope that it will be useful,
->>>>>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->>>>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->>>>>> + * Lesser General Public License for more details.
->>>>>> + */
->>>>>> +
->>>>>> +#include <errno.h>
->>>>>> +#include <stdlib.h>
->>>>>> +#include <sys/syscall.h>
->>>>>> +#include <unistd.h>
->>>>>> +
->>>>>> +#include <linux/videodev2.h>
->>>>>> +
->>>>>> +#include "libv4l2media_ioctl.h"
->>>>>> +#include "mediactl-priv.h"
->>>>>> +#include "mediactl.h"
->>>>>> +#include "v4l2subdev.h"
->>>>>> +
->>>>>> +#define VIDIOC_CTRL(type)					\
->>>>>> +	((type) == VIDIOC_S_CTRL ? "VIDIOC_S_CTRL" :		\
->>>>>> +				   "VIDIOC_G_CTRL")
->>>>>> +
->>>>>> +#define VIDIOC_EXT_CTRL(type)					\
->>>>>> +	((type) == VIDIOC_S_EXT_CTRLS ? 			\
->>>>>> +		"VIDIOC_S_EXT_CTRLS"	:			\
->>>>>> +		 ((type) == VIDIOC_G_EXT_CTRLS ? 		\
->>>>>> +				    "VIDIOC_G_EXT_CTRLS" :	\
->>>>>> +				    "VIDIOC_TRY_EXT_CTRLS"))
->>>>>> +
->>>>>> +#define SYS_IOCTL(fd, cmd, arg) \
->>>>>> +	syscall(SYS_ioctl, (int)(fd), (unsigned long)(cmd), (void *)(arg))
->>>>>> +
->>>>>> +
->>>>>> +int media_ioctl_ctrl(struct media_device *media, int request,
->>>>>
->>>>> unsigned int request
->>>>
->>>> OK.
->>>>
->>>>>
->>>>>> +		     struct v4l2_control *arg)
->>>>>
->>>>> I wonder if it'd make sense to always use v4l2_ext_control instead. You
->>>>> can't access 64-bit integer controls with VIDIOC_S_CTRL for instance.
->>>>
->>>> This function is meant to handle VIDIOC_S_CTRL/VIDIOC_G_CTRL ioctls.
->>>> For ext ctrls there is media_ioctl_ext_ctrl().
->>>
->>> Is there any reason not to use extended control always?
->>>
->>> In other words, do we have a driver that does support Media controller but
->>> does not support extended controls?
->>
->> Shouldn't we support non-extended controls for backward compatibility
->> reasons? I am not aware of the policy in this matter.
->
-> To put it bluntly, supporting the non-extended controls in this use is waste
-> of time IMHO.
+> Hi Mauro,
+> 
+> On Mon, Mar 14, 2016 at 08:46:33AM -0300, Mauro Carvalho Chehab wrote:
+> > Em Mon, 14 Mar 2016 12:52:54 +0200
+> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> >   
+> > > Hi Mauro,
+> > > 
+> > > On Mon, Mar 14, 2016 at 07:13:58AM -0300, Mauro Carvalho Chehab wrote:  
+> > > > Em Mon, 14 Mar 2016 09:22:37 +0200
+> > > > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> > > >     
+> > > > > Hi Shuah,
+> > > > > 
+> > > > > On Sat, Mar 12, 2016 at 06:48:09PM -0700, Shuah Khan wrote:    
+> > > > > > Add GFP flags to media_create_pad_link(), media_create_intf_link(),
+> > > > > > media_devnode_create(), and media_add_link() that could get called
+> > > > > > in atomic context to allow callers to pass in the right flags for
+> > > > > > memory allocation.
+> > > > > > 
+> > > > > > tree-wide driver changes for media_*() GFP flags change:
+> > > > > > Change drivers to add gfpflags to interffaces, media_create_pad_link(),
+> > > > > > media_create_intf_link() and media_devnode_create().
+> > > > > > 
+> > > > > > Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> > > > > > Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>      
+> > > > > 
+> > > > > What's the use case for calling the above functions in an atomic context?
+> > > > >     
+> > > > 
+> > > > ALSA code seems to do a lot of stuff at atomic context. That's what
+> > > > happens on my test machine when au0828 gets probed before
+> > > > snd-usb-audio:
+> > > > 	http://pastebin.com/LEX5LD5K
+> > > > 
+> > > > It seems that ALSA USB probe routine (usb_audio_probe) happens in
+> > > > atomic context.    
+> > > 
+> > > usb_audio_probe() grabs a mutex (register_mutex) on its own. It certainly
+> > > cannot be called in atomic context.
+> > > 
+> > > In the above log, what I did notice, though, was that because *we* grab
+> > > mdev->lock spinlock in media_device_register_entity(), we may not sleep
+> > > which is what the notify() callback implementation in au0828 driver does
+> > > (for memory allocation).  
+> > 
+> > True. After looking into the code, the problem is that the notify
+> > callbacks are called with the spinlock hold. I don't see any reason
+> > to do that.  
+> 
+> Notify callbacks, perhaps not, but the list is still protected by the
+> spinlock. It perhaps is not likely that another process would change it but
+> I don't think we can rely on that.
 
-OK, I'll drop the non-ext controls related API then.
+I can see only 2 risks protected by the lock:
 
->>>>> As this is a user space library, I'd probably add a function to handle
->>>>> S/G/TRY control each.
->>>>
->>>> There is media_ioctl_ext_ctrl() that handles VIDIOC_S_EXT_CTRLS,
->>>> VIDIOC_G_EXT_CTRLS and VIDIOC_TRY_EXT_CTRLS.
->>>>
->>>>> Have you considered binding the control to a video node rather than a
->>>>> media device? We have many sensors on current media devices already, and
->>>>> e.g. exposure time control can be found in multiple sub-devices.
->>>>
->>>> Doesn't v4l2-ctrl-redir config entry address that?
->>>
->>> How does it work if you have, say, two video nodes where you can capture
->>> images from a different sensor? I.e. your media graph could look like this:
->>>
->>> 	sensor0 -> CSI-2 0 -> video0
->>>
->>> 	sensor1 -> CSI-2 1 -> video1
->>
->> Exemplary config settings for this case:
->>
->> v4l2-ctrl-redir 0x0098091f -> "sensor0"
->> v4l2-ctrl-redir 0x0098091f -> "sensor1"
->>
->> In media_ioctl_ctrl the v4l2_subdev_get_pipeline_entity_by_cid(media,
->> ctrl.id) is called which walks through the pipeline and checks if there
->> has been a v4l2 control redirection defined for given entity.
->
-> That's still based on media device, not video device. Two video devices may
-> be part of different pipelines, and a different sensor as well.
- >
-> Redirecting the controls should be based on a video node, not media device.
+1) mdev gets freed while an entity is being created. This is a problem
+   with the current memory protection schema we're using. I guess the
+   only way to fix it is to use kref for mdev/entities/interfaces/links/pads.
+   This change doesn't make it better or worse.
+   Also, I don't think we have such risk with the current devices.
 
-Why do you consider it as based on a media device? I'd rather say that
-it is based on media entity, so indirectly based on media device.
-Is it what you have on mind?
+2) a notifier may be inserted or removed by another driver, while the
+   loop is running.
 
->>
->> If no redirection is defined then the control is set on the first
->> entity in the pipeline that supports it. Effectively, for this
->> arrangement no redirection would be required if the control
->> is to be set on sensors. It would be required if we wanted
->> to bind the control to the videoN entity. Now I am wondering
->> if I should change the entry name to v4l2-ctrl-binding, or maybe
->> someone has better idea?
->>
->> BTW, are there some unique identifiers added to the entity names if
->> more than one entity of a name is to be registered? E.g. what would
->> happen if I had two S5C73M3 sensors in a media device? I assumed that
->> entity names are unique.
->
-> Yes. Currently we've got away with the problem by adding the i2c address of
-> i2c devices to the entity name. The proper solution (there was a lengthy
-> discussion on it ~ a year ago, too late to try to find out exactly when)
-> would be to provide all the available information on the entity to the user
-> space using the property API (which we don't have yet). The entity name
-> remains unique in most situations but it's not necessarily stable.
->
+To avoid (2), I see 3 alternatives:
 
-I assume that the fact that they're not stable mean that we cannot rely
-on the entity name. Using sub-dev names and video device names seems
-reasonable then.
+a) keep the loop as proposed on this patch. As the list is navigated using 
+list_for_each_entry_safe(), I guess[1] it should be safe to remove/add
+new notify callbacks there while the loop is running by some other process. 
+
+[1] It *is* safe if the change were done inside the loop - but I'm not
+100% sure that it is safe if some other CPU touches the notify list.
+
+b) Unlock/relock the spinlock every time:
+
+	/* previous code that locks mdev->lock spinlock */
+
+ 	/* invoke entity_notify callbacks */
+ 	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
+		spin_unlock(&mdev->lock);
+ 		(notify)->notify(entity, notify->notify_data);
+		spin_lock(&mdev->lock);
+ 	}
+ 
+	spin_unlock(&mdev->lock);
+
+c) use a separate lock for the notify list -this seems to be an overkill.
+
+d) Protect it with the graph traversal mutex. That sounds the worse idea,
+   IMHO, as we'll be abusing the lock.
+
+> 
+> >   
+> > > Could we instead replace mdev->lock by a mutex?  
+> > 
+> > We changed the code to use a spinlock for a reason: this fixed some
+> > troubles in the past with the code locking (can't remember the problem,
+> > but this was documented at the kernel logs and at the ML). Yet, the code
+> > under the spinlock never sleeps, so this is fine.  
+> 
+> struct media_device.lock was added by this patch:
+> 
+> commit 53e269c102fbaf77e7dc526b1606ad4a48e57200
+> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Date:   Wed Dec 9 08:40:00 2009 -0300
+> 
+>     [media] media: Entities, pads and links
+> 
+>     As video hardware pipelines become increasingly complex and
+>     configurable, the current hardware description through v4l2 subdevices
+>     reaches its limits. In addition to enumerating and configuring
+>     subdevices, video camera drivers need a way to discover and modify at
+>     runtime how those subdevices are connected. This is done through new
+>     elements called entities, pads and links.
+> 
+> ...
+> 
+>     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>     Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>     Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> I think it was always a spinlock, for the reason you stated above as well:
+> it did not need to sleep. But if there is a need to sleep, I think we should
+> consider changing that.
+
+True, but there were some places that were using the graph_mutex
+instead of the spinlock. 
+
+> 
+> > 
+> > Yet, in the future, we'll need to do a review of all the locking schema,
+> > in order to better support dynamic graph changes.  
+> 
+> Agreed. I think more fine grained locking should be considered. The media
+> graph mutex will become a bottleneck at some point, especially if we make
+> the media devices system wide at some point.
+
+Yes. I guess we should protect the memory allocated stuff with a kref,
+and try to use RCS on most places, but we need more discussions and
+more tests to implement a solution that would be reliable even if the
+callers don't behave well.
+
+> >   
+> > > If there is no pressing need to implement atomic memory allocation I simply
+> > > wouldn't do it, especially in device initialisation where an allocation
+> > > failure will lead to probe failure as well.  
+> > 
+> > The fix for this issue should be simple. See the enclosed code. Btw.
+> > it probably makes sense to add some code here to avoid starving the
+> > stack, as a notify callback could try to create an entity, with,
+> > in turn, would call the notify callback again.
+> > 
+> > I'll run some tests here to double check if it fixes the issue.
+> > 
+> > ---
+> > 
+> > [media] media-device: Don't call notify callbacks holding a spinlock
+> > 
+> > The notify routines may sleep. So, they can't be called in spinlock
+> > context. Also, they may want to call other media routines that might
+> > be spinning the spinlock, like creating a link.
+> > 
+> > This fixes the following bug:
+> > 
+> > [ 1839.510587] BUG: sleeping function called from invalid context at mm/slub.c:1289
+> > [ 1839.510881] in_atomic(): 1, irqs_disabled(): 0, pid: 3479, name: modprobe
+> > [ 1839.511157] 4 locks held by modprobe/3479:
+> > [ 1839.511415]  #0:  (&dev->mutex){......}, at: [<ffffffff81ce8933>] __driver_attach+0xa3/0x160
+> > [ 1839.512381]  #1:  (&dev->mutex){......}, at: [<ffffffff81ce8941>] __driver_attach+0xb1/0x160
+> > [ 1839.512388]  #2:  (register_mutex#5){+.+.+.}, at: [<ffffffffa10596c7>] usb_audio_probe+0x257/0x1c90 [snd_usb_audio]
+> > [ 1839.512401]  #3:  (&(&mdev->lock)->rlock){+.+.+.}, at: [<ffffffffa0e6051b>] media_device_register_entity+0x1cb/0x700 [media]
+> > [ 1839.512412] CPU: 2 PID: 3479 Comm: modprobe Not tainted 4.5.0-rc3+ #49
+> > [ 1839.512415] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+> > [ 1839.512417]  0000000000000000 ffff8803b3f6f288 ffffffff81933901 ffff8803c4bae000
+> > [ 1839.512422]  ffff8803c4bae5c8 ffff8803b3f6f2b0 ffffffff811c6af5 ffff8803c4bae000
+> > [ 1839.512427]  ffffffff8285d7f6 0000000000000509 ffff8803b3f6f2f0 ffffffff811c6ce5
+> > [ 1839.512432] Call Trace:
+> > [ 1839.512436]  [<ffffffff81933901>] dump_stack+0x85/0xc4
+> > [ 1839.512440]  [<ffffffff811c6af5>] ___might_sleep+0x245/0x3a0
+> > [ 1839.512443]  [<ffffffff811c6ce5>] __might_sleep+0x95/0x1a0
+> > [ 1839.512446]  [<ffffffff8155aade>] kmem_cache_alloc_trace+0x20e/0x300
+> > [ 1839.512451]  [<ffffffffa0e66e3d>] ? media_add_link+0x4d/0x140 [media]
+> > [ 1839.512455]  [<ffffffffa0e66e3d>] media_add_link+0x4d/0x140 [media]
+> > [ 1839.512459]  [<ffffffffa0e69931>] media_create_pad_link+0xa1/0x600 [media]
+> > [ 1839.512463]  [<ffffffffa0fe11b3>] au0828_media_graph_notify+0x173/0x360 [au0828]
+> > [ 1839.512467]  [<ffffffffa0e68a6a>] ? media_gobj_create+0x1ba/0x480 [media]
+> > [ 1839.512471]  [<ffffffffa0e606fb>] media_device_register_entity+0x3ab/0x700 [media]
+> > 
+> > (untested)
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 6ba6e8f982fc..fc3c199e5500 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -587,14 +587,15 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+> >  		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
+> >  			       &entity->pads[i].graph_obj);
+> >  
+> > +	spin_unlock(&mdev->lock);
+> > +
+> >  	/* invoke entity_notify callbacks */
+> >  	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
+> >  		(notify)->notify(entity, notify->notify_data);
+> >  	}
+> >  
+> > -	spin_unlock(&mdev->lock);
+> > -
+> >  	mutex_lock(&mdev->graph_mutex);
+> > +
+> >  	if (mdev->entity_internal_idx_max  
+> >  	    >= mdev->pm_count_walk.ent_enum.idx_max) {  
+> >  		struct media_entity_graph new = { .top = 0 };
+> >   
+> 
+
 
 -- 
-Best regards,
-Jacek Anaszewski
+Thanks,
+Mauro
