@@ -1,118 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:57997 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750941AbcCaH0I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2016 03:26:08 -0400
-Date: Thu, 31 Mar 2016 09:26:04 +0200
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Vignesh R <vigneshr@ti.com>
-Cc: David Woodhouse <dwmw2@infradead.org>,
-	Brian Norris <computersforpeace@gmail.com>,
-	<linux-mtd@lists.infradead.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dave Gordon <david.s.gordon@intel.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	<devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Chen-Yu Tsai <wens@csie.org>, Rob Herring <robh+dt@kernel.org>,
-	<linux-spi@vger.kernel.org>, Richard Weinberger <richard@nod.at>,
-	<linux-sunxi@googlegroups.com>, Mark Brown <broonie@kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from lists.s-osg.org ([54.187.51.154]:54161 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933471AbcCPOgh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2016 10:36:37 -0400
+Date: Wed, 16 Mar 2016 11:36:25 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kumar Gala <galak@codeaurora.org>, <dmaengine@vger.kernel.org>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	<linux-media@vger.kernel.org>,
-	Dan Williams <dan.j.williams@intel.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	Geunyoung Kim <nenggun.kim@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
+	<chehabrafael@gmail.com>, Matthias Schwarzott <zzam@gentoo.org>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Patrick Boettcher <patrick.boettcher@posteo.de>,
+	Luis de Bethencourt <luis@debethencourt.com>,
+	"linux-arm-kernel@lists.infradead.org"
 	<linux-arm-kernel@lists.infradead.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-Subject: Re: [v2,4/7] scatterlist: add sg_alloc_table_from_buf() helper
-Message-ID: <20160331092604.219cf104@bbrezillon>
-In-Reply-To: <56FCAE1B.90206@ti.com>
-References: <1459352394-22810-5-git-send-email-boris.brezillon@free-electrons.com>
-	<56FCAE1B.90206@ti.com>
+	"linux-samsung-soc@vger.kernel.org"
+	<linux-samsung-soc@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 5/5] [media] media-device: make media_device_cleanup()
+ static
+Message-ID: <20160316113625.23f1bf82@recife.lan>
+In-Reply-To: <CABxcv=mvtXBs9qu6+HDbiB4pmMAM9cf=3mPTtLp0XWftRrGM1g@mail.gmail.com>
+References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
+	<864cdbedcdde600b09d77bfecb1b828e16e41ac0.1458129823.git.mchehab@osg.samsung.com>
+	<CABxcv=mvtXBs9qu6+HDbiB4pmMAM9cf=3mPTtLp0XWftRrGM1g@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vignesh,
+Em Wed, 16 Mar 2016 11:03:38 -0300
+Javier Martinez Canillas <javier@dowhile0.org> escreveu:
 
-On Thu, 31 Mar 2016 10:26:59 +0530
-Vignesh R <vigneshr@ti.com> wrote:
-
-> Hi,
+> Hello Mauro,
 > 
-> On 03/30/2016 09:09 PM, Boris BREZILLON wrote:
+> The patch looks mostly good to me, I just have a question below:
 > 
-> [...]
+> On Wed, Mar 16, 2016 at 9:04 AM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
 > 
-> > +int sg_alloc_table_from_buf(struct sg_table *sgt, const void *buf, size_t len,
-> > +			    const struct sg_constraints *constraints,
-> > +			    gfp_t gfp_mask)
-> > +{
-> > +	struct sg_constraints cons = { };
-> > +	size_t remaining, chunk_len;
-> > +	const void *sg_buf;
-> > +	int i, ret;
-> > +
-> > +	if (constraints)
-> > +		cons = *constraints;
-> > +
-> > +	ret = sg_check_constraints(&cons, buf, len);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	sg_buf = buf;
-> > +	remaining = len;
-> > +	i = 0;
-> > +	sg_for_each_chunk_in_buf(sg_buf, remaining, chunk_len, &cons)
-> > +		i++;
-> > +
-> > +	ret = sg_alloc_table(sgt, i, gfp_mask);
-> > +	if (ret)
-> > +		return ret;
-> > +
-> > +	sg_buf = buf;
-> > +	remaining = len;
-> > +	i = 0;
-> > +	sg_for_each_chunk_in_buf(sg_buf, remaining, chunk_len, &cons) {
-> > +		if (is_vmalloc_addr(sg_buf)) {
-> > +			struct page *vm_page;
-> > +
-> > +			vm_page = vmalloc_to_page(sg_buf);
-> > +			if (!vm_page) {
-> > +				ret = -ENOMEM;
-> > +				goto err_free_table;
-> > +			}
-> > +
-> > +			sg_set_page(&sgt->sgl[i], vm_page, chunk_len,
-> > +				    offset_in_page(sg_buf));
-> > +		} else {
-> > +			sg_set_buf(&sgt->sgl[i], sg_buf, chunk_len);
-> > +		}
-> > +
+> [snip]
 > 
-> If the buf address is in PKMAP_BASE - PAGE_OFFSET-1 region (I have
-> observed that JFFS2 FS provides buffers in above region to MTD layer),
-> if CONFIG_DEBUG_SG is set then sg_set_buf() will throw a BUG_ON() as
-> virt_addr_is_valid() will return false. Is there a sane way to handle
-> buffers of PKMAP_BASE region with sg_*  APIs?
-> Or, is the function sg_alloc_table_from_buf() not to be used with such
-> buffers?
+> >
+> > -void media_device_cleanup(struct media_device *mdev)
+> > +static void media_device_cleanup(struct media_device *mdev)
+> >  {
+> >         ida_destroy(&mdev->entity_internal_idx);
+> >         mdev->entity_internal_idx_max = 0;
+> >         media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
+> > -       mutex_destroy(&mdev->graph_mutex);  
+> 
+> Any reason why this is removed? mutex_init() is still called in
+> media_device_init() so I believe the destroy should be kept here.
 
-It should be usable with kmapped buffers too: I'll provide a new version
-to support that.
-That makes me realize I'm not checking the virtual address consistency
-in sg_check_constraints().
+This code is now called only at do_media_device_unregister, with
+is protected by the mutex. If we keep the mutex_destroy there,
+the mutex will be destroyed in lock state, causing an error if
+mutex debug is enabled.
 
-Thanks,
+Btw, the standard implementation for the mutex is:
+	include/linux/mutex.h:static inline void mutex_destroy(struct mutex *lock) {}
 
-Boris
+Only when mutex debug is enabled, it becomes something else:
+	include/linux/mutex-debug.h:extern void mutex_destroy(struct mutex *lock);
+
+With produces a warning if the mutex_destroy() is called with the
+mutex is hold. This can never happen with the current implementation, as
+the logic is:
+	mutex_lock(&mdev->graph_mutex);
+	kref_put(&mdev->kref, do_media_device_unregister);
+	mutex_unlock(&mdev->graph_mutex);
+
+We could eventually move the mutex lock to
+do_media_device_unregister() and then add there the mutex_destroy()
+
+Regards,
+Mauro
+
+> 
+> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> Best regards,
+> Javier
+
 
 -- 
-Boris Brezillon, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Thanks,
+Mauro
