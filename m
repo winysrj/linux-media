@@ -1,53 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.macqel.be ([109.135.2.61]:60076 "EHLO smtp2.macqel.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932842AbcCOKOW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2016 06:14:22 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.macqel.be (Postfix) with ESMTP id AA2BF158AC3
-	for <linux-media@vger.kernel.org>; Tue, 15 Mar 2016 11:14:19 +0100 (CET)
-Received: from smtp2.macqel.be ([127.0.0.1])
-	by localhost (mail.macqel.be [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id x1YNpB29LPAt for <linux-media@vger.kernel.org>;
-	Tue, 15 Mar 2016 11:14:18 +0100 (CET)
-Received: from frolo.macqel.be (frolo.macqel [10.1.40.73])
-	by smtp2.macqel.be (Postfix) with ESMTP id 0E394150A89
-	for <linux-media@vger.kernel.org>; Tue, 15 Mar 2016 11:14:18 +0100 (CET)
-Date: Tue, 15 Mar 2016 11:14:17 +0100
-From: Philippe De Muyter <phdm@macq.eu>
-To: linux-media@vger.kernel.org
-Subject: subdev sensor driver and
-	V4L2_FRMIVAL_TYPE_CONTINUOUS/V4L2_FRMIVAL_TYPE_STEPWISE
-Message-ID: <20160315101417.GA31990@frolo.macqel>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:37900 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932444AbcCPSxu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2016 14:53:50 -0400
+Received: by mail-wm0-f43.google.com with SMTP id l68so85948573wml.1
+        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2016 11:53:50 -0700 (PDT)
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH] media: rc: remove unneeded mutex in rc_register_device
+Message-ID: <56E9ABB0.3010106@gmail.com>
+Date: Wed, 16 Mar 2016 19:53:36 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Access to dev->initialized is atomic, therefore we don't have to
+protect it with a mutex.
 
-Sorry if you read the following twice, but the subject of my previous post
-was not precise enough :(
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/rc-main.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-I am in the process of converting a sensor driver compatible with the imx6
-freescale linux kernel, to a subdev driver compatible with a current kernel
-and Steve Longerbeam's work.
-
-My sensor can work at any fps (even fractional) up to 60 fps with its default
-frame size or even higher when using crop or "binning'.  That fact is reflected
-in my previous implemetation of VIDIOC_ENUM_FRAMEINTERVALS, which answered
-with a V4L2_FRMIVAL_TYPE_CONTINUOUS-type reply.
-
-This seem not possible anymore because of the lack of the needed fields
-in the 'struct v4l2_subdev_frame_interval_enum' used to delegate the question
-to the subdev driver.  V4L2_FRMIVAL_TYPE_STEPWISE does not seem possible
-anymore either.  Has that been replaced by something else or is that
-functionality not considered relevant anymorea ?
-
-Best regards
-
-Philippe
-
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 4e9bbe7..68541b1 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1492,9 +1492,7 @@ int rc_register_device(struct rc_dev *dev)
+ 	}
+ 
+ 	/* Allow the RC sysfs nodes to be accessible */
+-	mutex_lock(&dev->lock);
+ 	atomic_set(&dev->initialized, 1);
+-	mutex_unlock(&dev->lock);
+ 
+ 	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
+ 		   dev->minor,
 -- 
-Philippe De Muyter +32 2 6101532 Macq SA rue de l'Aeronef 2 B-1140 Bruxelles
+2.7.3
+
