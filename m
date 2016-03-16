@@ -1,57 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 6.mo69.mail-out.ovh.net ([46.105.50.107]:35360 "EHLO
-	6.mo69.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758798AbcCVNNS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Mar 2016 09:13:18 -0400
-Received: from mail401.ha.ovh.net (gw6.ovh.net [213.251.189.206])
-	by mo69.mail-out.ovh.net (Postfix) with SMTP id B68E8FFA20E
-	for <linux-media@vger.kernel.org>; Tue, 22 Mar 2016 11:44:10 +0100 (CET)
-From: Franck Jullien <franck.jullien@odyssee-systemes.fr>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hyun.kwon@xilinx.com,
-	Franck Jullien <franck.jullien@odyssee-systemes.fr>
-Subject: [PATCH] [media] xilinx-vipp: remove unnecessary of_node_put
-Date: Tue, 22 Mar 2016 11:43:58 +0100
-Message-Id: <1458643438-3486-1-git-send-email-franck.jullien@odyssee-systemes.fr>
+Received: from lists.s-osg.org ([54.187.51.154]:54123 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933966AbcCPNK1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2016 09:10:27 -0400
+Date: Wed, 16 Mar 2016 10:10:21 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 1/5] [media] media-device: get rid of the spinlock
+Message-ID: <20160316101021.60274478@recife.lan>
+In-Reply-To: <CABxcv=k+MQE7Q+d_g=NgKqgwVqyg9J4LhXhjVyF9kartMt_PJw@mail.gmail.com>
+References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
+	<CABxcv=k+MQE7Q+d_g=NgKqgwVqyg9J4LhXhjVyF9kartMt_PJw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-of_graph_get_next_endpoint(node, ep) decrements refcount on
-ep. When next==NULL we break and refcount on ep is decremented
-again.
+Em Wed, 16 Mar 2016 09:53:12 -0300
+Javier Martinez Canillas <javier@dowhile0.org> escreveu:
 
-Signed-off-by: Franck Jullien <franck.jullien@odyssee-systemes.fr>
----
- drivers/media/platform/xilinx/xilinx-vipp.c |    8 ++------
- 1 files changed, 2 insertions(+), 6 deletions(-)
+> Hello Mauro,
+> 
+> On Wed, Mar 16, 2016 at 9:04 AM, Mauro Carvalho Chehab
+> <mchehab@osg.samsung.com> wrote:
+> > Right now, the lock schema for media_device struct is messy,
+> > since sometimes, it is protected via a spin lock, while, for
+> > media graph traversal, it is protected by a mutex.
+> >
+> > Solve this conflict by always using a mutex.
+> >
+> > As a side effect, this prevents a bug where the media notifiers
+> > were called at atomic context.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
-index e795a45..feb3b2f 100644
---- a/drivers/media/platform/xilinx/xilinx-vipp.c
-+++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-@@ -351,19 +351,15 @@ static int xvip_graph_parse_one(struct xvip_composite_device *xdev,
- 	struct xvip_graph_entity *entity;
- 	struct device_node *remote;
- 	struct device_node *ep = NULL;
--	struct device_node *next;
- 	int ret = 0;
- 
- 	dev_dbg(xdev->dev, "parsing node %s\n", node->full_name);
- 
- 	while (1) {
--		next = of_graph_get_next_endpoint(node, ep);
--		if (next == NULL)
-+		ep = of_graph_get_next_endpoint(node, ep);
-+		if (ep == NULL)
- 			break;
- 
--		of_node_put(ep);
--		ep = next;
--
- 		dev_dbg(xdev->dev, "handling endpoint %s\n", ep->full_name);
- 
- 		remote = of_graph_get_remote_port_parent(ep);
+Btw, I'm running a stress test here, doing bind/unbind on au0828,
+while calling mc_nextgen_test:
+
+Running one instance of this loop:
+	$ i=0; while :; do i=$((i+1)); echo "loop $i"; sudo su -c "echo 1-3.1.2:1.0 > /sys/bus/usb/drivers/au0828/bind"; sudo su -c "echo 1-3.1.2:1.0 > /sys/bus/usb/drivers/au0828/unbind"; done
+
+
+and 3 instances of this loop:
+	$ while :; do clear; mc_nextgen_test; done
+
+My test machine has 4 CPUs, so this should be enough to check
+if the mutexes at ioctl and at the register/unregister functions
+are ok.
+
+Right now, the loop ran 160 times. Not a single trouble.
+
+Ok, it is not doing any graph traversal ops, but the code seems to be
+pretty much reliable with mutexes.
+
+I'll keep it running for more time to be sure, but it seems that
+the current media core works fine for dynamic
+entity/interface/link addition/removal.
+
+Regards,
+Mauro
+
+
+> > ---  
+> 
+> I agree with the patch.
+> 
+> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> Best regards,
+> Javier
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 -- 
-1.7.1
-
+Thanks,
+Mauro
