@@ -1,45 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbcCXX1y (ORCPT
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:38376 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754151AbcCPMxN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:27:54 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 04/51] v4l: vsp1: Fix vsp1_du_atomic_(begin|flush) declarations
-Date: Fri, 25 Mar 2016 01:27:00 +0200
-Message-Id: <1458862067-19525-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 16 Mar 2016 08:53:13 -0400
+Received: by mail-ig0-f171.google.com with SMTP id ig19so43374797igb.1
+        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2016 05:53:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
+References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
+Date: Wed, 16 Mar 2016 09:53:12 -0300
+Message-ID: <CABxcv=k+MQE7Q+d_g=NgKqgwVqyg9J4LhXhjVyF9kartMt_PJw@mail.gmail.com>
+Subject: Re: [PATCH 1/5] [media] media-device: get rid of the spinlock
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The functions are void, make the declaration match the definition.
+Hello Mauro,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- include/media/vsp1.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On Wed, Mar 16, 2016 at 9:04 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Right now, the lock schema for media_device struct is messy,
+> since sometimes, it is protected via a spin lock, while, for
+> media graph traversal, it is protected by a mutex.
+>
+> Solve this conflict by always using a mutex.
+>
+> As a side effect, this prevents a bug where the media notifiers
+> were called at atomic context.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
 
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index cc541753896f..d01f7cb8f691 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -23,11 +23,11 @@ int vsp1_du_init(struct device *dev);
- int vsp1_du_setup_lif(struct device *dev, unsigned int width,
- 		      unsigned int height);
- 
--int vsp1_du_atomic_begin(struct device *dev);
-+void vsp1_du_atomic_begin(struct device *dev);
- int vsp1_du_atomic_update(struct device *dev, unsigned int rpf, u32 pixelformat,
- 			  unsigned int pitch, dma_addr_t mem[2],
- 			  const struct v4l2_rect *src,
- 			  const struct v4l2_rect *dst);
--int vsp1_du_atomic_flush(struct device *dev);
-+void vsp1_du_atomic_flush(struct device *dev);
- 
- #endif /* __MEDIA_VSP1_H__ */
--- 
-2.7.3
+I agree with the patch.
 
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Best regards,
+Javier
