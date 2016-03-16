@@ -1,48 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:34059 "EHLO
-	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933880AbcCQNLT (ORCPT
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:34414 "EHLO
+	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752208AbcCPVSw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Mar 2016 09:11:19 -0400
-Received: by mail-lf0-f68.google.com with SMTP id i75so2931359lfb.1
-        for <linux-media@vger.kernel.org>; Thu, 17 Mar 2016 06:11:18 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 1/2] mceusb: add support for Adaptec eHome receiver
-Date: Thu, 17 Mar 2016 15:11:09 +0200
-Message-Id: <1458220270-1650-1-git-send-email-olli.salonen@iki.fi>
+	Wed, 16 Mar 2016 17:18:52 -0400
+Received: by mail-wm0-f49.google.com with SMTP id p65so207935133wmp.1
+        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2016 14:18:51 -0700 (PDT)
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH] media: rc: reduce size of struct ir_raw_event
+Message-ID: <56E9CDAE.2040200@gmail.com>
+Date: Wed, 16 Mar 2016 22:18:38 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New USB ID for Adaptec eHome receiver in some HP laptops.
+struct ir_raw_event currently has a size of 12 bytes on most (all?)
+architectures. This can be reduced to 8 bytes whilst maintaining
+full backwards compatibility.
+This saves 2KB in size of struct ir_raw_event_ctrl (as element
+kfifo is reduced by 512 * 4 bytes) and it allows to copy the
+full struct ir_raw_event with a single 64 bit operation.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Successfully tested with the Nuvoton driver and successfully
+compile-tested with the ene_ir driver (as it uses the carrier /
+duty_cycle elements).
+
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- drivers/media/rc/mceusb.c | 3 +++
- 1 file changed, 3 insertions(+)
+ include/media/rc-core.h | 26 ++++++++------------------
+ 1 file changed, 8 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 35155ae..09ca9f6 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -188,6 +188,7 @@
- #define VENDOR_TWISTEDMELON	0x2596
- #define VENDOR_HAUPPAUGE	0x2040
- #define VENDOR_PCTV		0x2013
-+#define VENDOR_ADAPTEC		0x03f3
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 0f77b3d..b8f27c9 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -214,27 +214,17 @@ enum raw_event_type {
  
- enum mceusb_model_type {
- 	MCE_GEN2 = 0,		/* Most boards */
-@@ -405,6 +406,8 @@ static struct usb_device_id mceusb_dev_table[] = {
- 	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
- 	{ USB_DEVICE(VENDOR_PCTV, 0x025e),
- 	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
-+	/* Adaptec / HP eHome Receiver */
-+	{ USB_DEVICE(VENDOR_ADAPTEC, 0x0094) },
+ struct ir_raw_event {
+ 	union {
+-		u32             duration;
+-
+-		struct {
+-			u32     carrier;
+-			u8      duty_cycle;
+-		};
++		u32	duration;
++		u32	carrier;
+ 	};
+-
+-	unsigned                pulse:1;
+-	unsigned                reset:1;
+-	unsigned                timeout:1;
+-	unsigned                carrier_report:1;
++	u8		duty_cycle;
++	u8		pulse:1;
++	u8		reset:1;
++	u8		timeout:1;
++	u8		carrier_report:1;
+ };
  
- 	/* Terminating entry */
- 	{ }
+-#define DEFINE_IR_RAW_EVENT(event) \
+-	struct ir_raw_event event = { \
+-		{ .duration = 0 } , \
+-		.pulse = 0, \
+-		.reset = 0, \
+-		.timeout = 0, \
+-		.carrier_report = 0 }
++#define DEFINE_IR_RAW_EVENT(event) struct ir_raw_event event = {}
+ 
+ static inline void init_ir_raw_event(struct ir_raw_event *ev)
+ {
 -- 
-1.9.1
+2.7.3
 
