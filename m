@@ -1,171 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:56130 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752046AbcCCNdN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 08:33:13 -0500
-Subject: Re: [PATCH 4/8] media: Rename is_media_entity_v4l2_io to
- is_media_entity_v4l2_video_device
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1456844246-18778-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D83D1F.6020309@xs4all.nl>
-Date: Thu, 3 Mar 2016 14:33:19 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:54143 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966494AbcCPOZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2016 10:25:46 -0400
+Date: Wed, 16 Mar 2016 11:25:40 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 4/5] [media] media-device: use kref for media_device
+ instance
+Message-ID: <20160316112540.37086aba@recife.lan>
+In-Reply-To: <56E9681B.3070403@osg.samsung.com>
+References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
+	<82ef082c4de7c0a1c546da1d9e462bc86ab423bf.1458129823.git.mchehab@osg.samsung.com>
+	<56E9681B.3070403@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <1456844246-18778-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/01/16 15:57, Laurent Pinchart wrote:
-> All users of is_media_entity_v4l2_io() (the exynos4-is, omap3isp,
-> davince_vpfe and omap4iss drivers) use the function to check whether
-> entities are video_device instances, either to ensure they can cast the
-> entity to a struct video_device, or to count the number of video nodes
-> users.
-> 
-> The purpose of the function is thus to identify whether the media entity
-> instance is an instance of the video_device object, not to check whether
-> it can perform I/O. Rename it accordingly, we will introduce a more
-> specific is_media_entity_v4l2_io() check when needed.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Em Wed, 16 Mar 2016 08:05:15 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thanks for the much clearer commit text, that makes it much more understandable
-what is going on here.
-
-	Hans
-
-> ---
->  drivers/media/platform/exynos4-is/media-dev.c   | 4 ++--
->  drivers/media/platform/omap3isp/isp.c           | 2 +-
->  drivers/media/platform/omap3isp/ispvideo.c      | 2 +-
->  drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
->  drivers/staging/media/omap4iss/iss.c            | 2 +-
->  drivers/staging/media/omap4iss/iss_video.c      | 2 +-
->  include/media/media-entity.h                    | 4 ++--
->  7 files changed, 9 insertions(+), 9 deletions(-)
+> On 03/16/2016 06:04 AM, Mauro Carvalho Chehab wrote:
+> > Now that the media_device can be used by multiple drivers,
+> > via devres, we need to be sure that it will be dropped only
+> > when all drivers stop using it.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > ---
+> >  drivers/media/media-device.c | 48 +++++++++++++++++++++++++++++++-------------
+> >  include/media/media-device.h |  3 +++
+> >  2 files changed, 37 insertions(+), 14 deletions(-)
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index c32fa15cc76e..38e6c319fe6e 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -721,6 +721,15 @@ int __must_check __media_device_register(struct media_device *mdev,
+> >  {
+> >  	int ret;
+> >  
+> > +	/* Check if mdev was ever registered at all */
+> > +	mutex_lock(&mdev->graph_mutex);
+> > +	if (media_devnode_is_registered(&mdev->devnode)) {
+> > +		kref_get(&mdev->kref);
+> > +		mutex_unlock(&mdev->graph_mutex);
+> > +		return 0;
+> > +	}
+> > +	kref_init(&mdev->kref);
+> > +
+> >  	/* Register the device node. */
+> >  	mdev->devnode.fops = &media_device_fops;
+> >  	mdev->devnode.parent = mdev->dev;
+> > @@ -730,8 +739,10 @@ int __must_check __media_device_register(struct media_device *mdev,
+> >  	mdev->topology_version = 0;
+> >  
+> >  	ret = media_devnode_register(&mdev->devnode, owner);
+> > -	if (ret < 0)
+> > +	if (ret < 0) {
+> > +		media_devnode_unregister(&mdev->devnode);
+> >  		return ret;
+> > +	}
+> >  
+> >  	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
+> >  	if (ret < 0) {
+> > @@ -739,6 +750,7 @@ int __must_check __media_device_register(struct media_device *mdev,
+> >  		return ret;
+> >  	}
+> >  
+> > +	mutex_unlock(&mdev->graph_mutex);
+> >  	dev_dbg(mdev->dev, "Media device registered\n");
+> >  
+> >  	return 0;
+> > @@ -773,23 +785,15 @@ void media_device_unregister_entity_notify(struct media_device *mdev,
+> >  }
+> >  EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
+> >  
+> > -void media_device_unregister(struct media_device *mdev)
+> > +static void struct kref *kref)
+> >  {
+> > +	struct media_device *mdev;
+> >  	struct media_entity *entity;
+> >  	struct media_entity *next;
+> >  	struct media_interface *intf, *tmp_intf;
+> >  	struct media_entity_notify *notify, *nextp;
+> >  
+> > -	if (mdev == NULL)
+> > -		return;
+> > -
+> > -	mutex_lock(&mdev->graph_mutex);
+> > -
+> > -	/* Check if mdev was ever registered at all */
+> > -	if (!media_devnode_is_registered(&mdev->devnode)) {
+> > -		mutex_unlock(&mdev->graph_mutex);
+> > -		return;
+> > -	}
+> > +	mdev = container_of(kref, struct media_device, kref);
+> >  
+> >  	/* Remove all entities from the media device */
+> >  	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+> > @@ -807,13 +811,26 @@ void media_device_unregister(struct media_device *mdev)
+> >  		kfree(intf);
+> >  	}
+> >  
+> > -	mutex_unlock(&mdev->graph_mutex);
+> > +	/* Check if mdev devnode was registered */
+> > +	if (!media_devnode_is_registered(&mdev->devnode))
+> > +		return;
+> >  
+> >  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> >  	media_devnode_unregister(&mdev->devnode);  
 > 
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+> Patch looks good.
 > 
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index feb521f28e14..9a377d9dd58a 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -1130,7 +1130,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
->  	media_entity_graph_walk_start(graph, entity);
->  
->  	while ((entity = media_entity_graph_walk_next(graph))) {
-> -		if (!is_media_entity_v4l2_io(entity))
-> +		if (!is_media_entity_v4l2_video_device(entity))
->  			continue;
->  
->  		ret  = __fimc_md_modify_pipeline(entity, enable);
-> @@ -1145,7 +1145,7 @@ err:
->  	media_entity_graph_walk_start(graph, entity_err);
->  
->  	while ((entity_err = media_entity_graph_walk_next(graph))) {
-> -		if (!is_media_entity_v4l2_io(entity_err))
-> +		if (!is_media_entity_v4l2_video_device(entity_err))
->  			continue;
->  
->  		__fimc_md_modify_pipeline(entity_err, !enable);
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> index f9e5245f26ac..12f07e409f0b 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -691,7 +691,7 @@ static int isp_pipeline_pm_use_count(struct media_entity *entity,
->  	media_entity_graph_walk_start(graph, entity);
->  
->  	while ((entity = media_entity_graph_walk_next(graph))) {
-> -		if (is_media_entity_v4l2_io(entity))
-> +		if (is_media_entity_v4l2_video_device(entity))
->  			use += entity->use_count;
->  	}
->  
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-> index 2aff755ff77c..c4734a5b8886 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -249,7 +249,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
->  		if (entity == &video->video.entity)
->  			continue;
->  
-> -		if (!is_media_entity_v4l2_io(entity))
-> +		if (!is_media_entity_v4l2_video_device(entity))
->  			continue;
->  
->  		__video = to_isp_video(media_entity_to_video_device(entity));
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> index db49af90217e..7d8fa34f31f3 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> @@ -154,7 +154,7 @@ static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
->  	while ((entity = media_entity_graph_walk_next(&graph))) {
->  		if (entity == &video->video_dev.entity)
->  			continue;
-> -		if (!is_media_entity_v4l2_io(entity))
-> +		if (!is_media_entity_v4l2_video_device(entity))
->  			continue;
->  		far_end = to_vpfe_video(media_entity_to_video_device(entity));
->  		if (far_end->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-> index 30b473cfb020..d41231521775 100644
-> --- a/drivers/staging/media/omap4iss/iss.c
-> +++ b/drivers/staging/media/omap4iss/iss.c
-> @@ -397,7 +397,7 @@ static int iss_pipeline_pm_use_count(struct media_entity *entity,
->  	media_entity_graph_walk_start(graph, entity);
->  
->  	while ((entity = media_entity_graph_walk_next(graph))) {
-> -		if (is_media_entity_v4l2_io(entity))
-> +		if (is_media_entity_v4l2_video_device(entity))
->  			use += entity->use_count;
->  	}
->  
-> diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-> index 058233a9de67..002d81d4ee45 100644
-> --- a/drivers/staging/media/omap4iss/iss_video.c
-> +++ b/drivers/staging/media/omap4iss/iss_video.c
-> @@ -221,7 +221,7 @@ iss_video_far_end(struct iss_video *video)
->  		if (entity == &video->video.entity)
->  			continue;
->  
-> -		if (!is_media_entity_v4l2_io(entity))
-> +		if (!is_media_entity_v4l2_video_device(entity))
->  			continue;
->  
->  		far_end = to_iss_video(media_entity_to_video_device(entity));
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index cbd37530f6b8..e5108f052fe2 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -356,14 +356,14 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
->  }
->  
->  /**
-> - * is_media_entity_v4l2_io() - Check if the entity is a video_device
-> + * is_media_entity_v4l2_video_device() - Check if the entity is a video_device
->   * @entity:	pointer to entity
->   *
->   * Return: true if the entity is an instance of a video_device object and can
->   * safely be cast to a struct video_device using the container_of() macro, or
->   * false otherwise.
->   */
-> -static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
-> +static inline bool is_media_entity_v4l2_video_device(struct media_entity *entity)
->  {
->  	return entity && entity->type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
->  }
+> Reviewed-by: Shuah Khan <shuahkh@osg.samsung.com>
 > 
+> Please see a few comments below that aren't related to this patch.
+> 
+> The above is unprotected and could be done twice when two drivers
+> call media_device_unregister(). I think we still mark the media
+> device unregistered in media_devnode_unregister(). We have to
+> protect these two steps still.
+> 
+> I attempted to do this with a unregister in progress flag which
+> gets set at the beginning in media_device_unregister(). That
+> does ensure media_device_unregister() runs only once. If that
+> approach isn't desirable, we have to find another way.
+
+Do you mean do_media_device_unregister()? This is protected, as
+this function is only called via media_device_unregister(),
+with the mutex hold. I opted to take the mutex there, as
+it makes the return code simpler.
+
+> 
+> -- Shuah
+> >  
+> >  	dev_dbg(mdev->dev, "Media device unregistered\n");
+> >  }
+> > +
+> > +void media_device_unregister(struct media_device *mdev)
+> > +{
+> > +	if (mdev == NULL)
+> > +		return;
+> > +
+> > +	mutex_lock(&mdev->graph_mutex);
+> > +	kref_put(&mdev->kref, do_media_device_unregister);
+> > +	mutex_unlock(&mdev->graph_mutex);
+> > +
+> > +}
+> >  EXPORT_SYMBOL_GPL(media_device_unregister);
+> >  
+> >  static void media_device_release_devres(struct device *dev, void *res)
+> > @@ -825,13 +842,16 @@ struct media_device *media_device_get_devres(struct device *dev)
+> >  	struct media_device *mdev;
+> >  
+> >  	mdev = devres_find(dev, media_device_release_devres, NULL, NULL);
+> > -	if (mdev)
+> > +	if (mdev) {
+> > +		kref_get(&mdev->kref);
+> >  		return mdev;
+> > +	}
+> >  
+> >  	mdev = devres_alloc(media_device_release_devres,
+> >  				sizeof(struct media_device), GFP_KERNEL);
+> >  	if (!mdev)
+> >  		return NULL;
+> > +
+> >  	return devres_get(dev, mdev, NULL, NULL);
+> >  }
+> >  EXPORT_SYMBOL_GPL(media_device_get_devres);
+> > diff --git a/include/media/media-device.h b/include/media/media-device.h
+> > index ca3871b853ba..73c16e6e6b6b 100644
+> > --- a/include/media/media-device.h
+> > +++ b/include/media/media-device.h
+> > @@ -23,6 +23,7 @@
+> >  #ifndef _MEDIA_DEVICE_H
+> >  #define _MEDIA_DEVICE_H
+> >  
+> > +#include <linux/kref.h>
+> >  #include <linux/list.h>
+> >  #include <linux/mutex.h>
+> >  
+> > @@ -283,6 +284,7 @@ struct media_entity_notify {
+> >   * struct media_device - Media device
+> >   * @dev:	Parent device
+> >   * @devnode:	Media device node
+> > + * @kref:	Object refcount
+> >   * @driver_name: Optional device driver name. If not set, calls to
+> >   *		%MEDIA_IOC_DEVICE_INFO will return dev->driver->name.
+> >   *		This is needed for USB drivers for example, as otherwise
+> > @@ -347,6 +349,7 @@ struct media_device {
+> >  	/* dev->driver_data points to this struct. */
+> >  	struct device *dev;
+> >  	struct media_devnode devnode;
+> > +	struct kref kref;
+> >  
+> >  	char model[32];
+> >  	char driver_name[32];
+> >   
+> 
+> 
+
+
+-- 
+Thanks,
+Mauro
