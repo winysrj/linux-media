@@ -1,75 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:47478 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362AbcCYBqu (ORCPT
+Received: from mail-ig0-f195.google.com ([209.85.213.195]:33589 "EHLO
+	mail-ig0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965315AbcCPNXq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 21:46:50 -0400
-Date: Fri, 25 Mar 2016 10:46:45 +0900
-From: Simon Horman <horms+renesas@verge.net.au>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Simon Horman <horms+renesas@verge.net.au>
-Subject: [PATCH v3 repost] media: platform: rcar_jpu, vsp1: Use ARCH_RENESAS
-Message-ID: <20160325014645.GA31681@verge.net.au>
+	Wed, 16 Mar 2016 09:23:46 -0400
+Received: by mail-ig0-f195.google.com with SMTP id nt3so4348930igb.0
+        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2016 06:23:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <82ef082c4de7c0a1c546da1d9e462bc86ab423bf.1458129823.git.mchehab@osg.samsung.com>
+References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
+	<82ef082c4de7c0a1c546da1d9e462bc86ab423bf.1458129823.git.mchehab@osg.samsung.com>
+Date: Wed, 16 Mar 2016 10:23:45 -0300
+Message-ID: <CABxcv=kCTxQ55+54OP4jDGaFW8Qk8EJ88_zXnzGmoq=65G8Dbw@mail.gmail.com>
+Subject: Re: [PATCH 4/5] [media] media-device: use kref for media_device instance
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
+Hello Mauro,
 
-This is part of an ongoing process to migrate from ARCH_SHMOBILE to
-ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
-appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
+Patch looks almost good to me, I just have a question below:
 
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
----
-Mauro, please consider applying this patch.
+On Wed, Mar 16, 2016 at 9:04 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+> Now that the media_device can be used by multiple drivers,
+> via devres, we need to be sure that it will be dropped only
+> when all drivers stop using it.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/media-device.c | 48 +++++++++++++++++++++++++++++++-------------
+>  include/media/media-device.h |  3 +++
+>  2 files changed, 37 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index c32fa15cc76e..38e6c319fe6e 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -721,6 +721,15 @@ int __must_check __media_device_register(struct media_device *mdev,
+>  {
+>         int ret;
+>
+> +       /* Check if mdev was ever registered at all */
+> +       mutex_lock(&mdev->graph_mutex);
+> +       if (media_devnode_is_registered(&mdev->devnode)) {
+> +               kref_get(&mdev->kref);
+> +               mutex_unlock(&mdev->graph_mutex);
+> +               return 0;
+> +       }
+> +       kref_init(&mdev->kref);
+> +
+>         /* Register the device node. */
+>         mdev->devnode.fops = &media_device_fops;
+>         mdev->devnode.parent = mdev->dev;
+> @@ -730,8 +739,10 @@ int __must_check __media_device_register(struct media_device *mdev,
+>         mdev->topology_version = 0;
+>
+>         ret = media_devnode_register(&mdev->devnode, owner);
+> -       if (ret < 0)
+> +       if (ret < 0) {
+> +               media_devnode_unregister(&mdev->devnode);
 
-Based on media-tree/master
+Why are you adding this? If media_devnode_register() failed then the
+device node won't be registered so is not correct to call
+media_devnode_unregister(). Or maybe I'm missing something.
 
-v3
-* Update subject to not refer to sh_vou
-* Added acks from Laurent Pinchart and Hans Verkuil
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-v2
-* Do not update VIDEO_SH_VOU to use ARCH_RENESAS as this is
-  used by some SH-based platforms and is not used by any ARM-based platforms
-  so a dependency on ARCH_SHMOBILE is correct for that driver
-* Added Geert Uytterhoeven's Ack
----
- drivers/media/platform/Kconfig | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 201f5c296a95..84e041c0a70e 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -238,7 +238,7 @@ config VIDEO_SH_VEU
- config VIDEO_RENESAS_JPU
- 	tristate "Renesas JPEG Processing Unit"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
--	depends on ARCH_SHMOBILE || COMPILE_TEST
-+	depends on ARCH_RENESAS || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	---help---
-@@ -250,7 +250,7 @@ config VIDEO_RENESAS_JPU
- config VIDEO_RENESAS_VSP1
- 	tristate "Renesas VSP1 Video Processing Engine"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
--	depends on (ARCH_SHMOBILE && OF) || COMPILE_TEST
-+	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
--- 
-2.1.4
-
+Best regards,
+Javier
