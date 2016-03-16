@@ -1,66 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:55500 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752510AbcCYNKq (ORCPT
+Received: from [198.137.202.9] ([198.137.202.9]:59717 "EHLO
+	bombadil.infradead.org" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1755288AbcCPNBc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 09:10:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv14 08/18] cec: add compat32 ioctl support
-Date: Fri, 25 Mar 2016 14:10:06 +0100
-Message-Id: <1458911416-47981-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
-References: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 16 Mar 2016 09:01:32 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Takashi Iwai <tiwai@suse.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	alsa-devel@alsa-project.org
+Subject: [PATCH 1/2] sound/usb/media: use core routine to initialize media_device
+Date: Wed, 16 Mar 2016 10:00:37 -0300
+Message-Id: <907cfedffb3524aeffcdfde0efe3f23f2eb70dd1.1458133227.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The media core has now a routine to initialize media_device
+for USB devices. Use it, instead of doing its own logic,
+as it warrants that all USB drivers will behave the same. It
+also warrants that the device will get the same data, no matter
+if it was initialized initially via snd-usb-audio or via
+some other driver, like au0828.
 
-The CEC ioctls didn't have compat32 support, so they returned -ENOTTY
-when used in a 32 bit application on a 64 bit kernel.
-
-Since all the CEC ioctls are 32-bit compatible adding support for this
-API is trivial.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- fs/compat_ioctl.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ sound/usb/media.c | 18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
-index 6402eaf..4f17e4e 100644
---- a/fs/compat_ioctl.c
-+++ b/fs/compat_ioctl.c
-@@ -57,6 +57,7 @@
- #include <linux/i2c-dev.h>
- #include <linux/atalk.h>
- #include <linux/gfp.h>
-+#include <linux/cec.h>
- 
- #include "internal.h"
- 
-@@ -1399,6 +1400,18 @@ COMPATIBLE_IOCTL(VIDEO_GET_NAVI)
- COMPATIBLE_IOCTL(VIDEO_SET_ATTRIBUTES)
- COMPATIBLE_IOCTL(VIDEO_GET_SIZE)
- COMPATIBLE_IOCTL(VIDEO_GET_FRAME_RATE)
-+/* cec */
-+COMPATIBLE_IOCTL(CEC_ADAP_G_CAPS)
-+COMPATIBLE_IOCTL(CEC_ADAP_LOG_STATUS)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_LOG_ADDRS)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_LOG_ADDRS)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_PHYS_ADDR)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_PHYS_ADDR)
-+COMPATIBLE_IOCTL(CEC_G_MODE)
-+COMPATIBLE_IOCTL(CEC_S_MODE)
-+COMPATIBLE_IOCTL(CEC_TRANSMIT)
-+COMPATIBLE_IOCTL(CEC_RECEIVE)
-+COMPATIBLE_IOCTL(CEC_DQEVENT)
- 
- /* joystick */
- COMPATIBLE_IOCTL(JSIOCGVERSION)
+diff --git a/sound/usb/media.c b/sound/usb/media.c
+index 93a50d01490c..44a5de91f748 100644
+--- a/sound/usb/media.c
++++ b/sound/usb/media.c
+@@ -263,19 +263,11 @@ int media_snd_device_create(struct snd_usb_audio *chip,
+ 	mdev = media_device_get_devres(&usbdev->dev);
+ 	if (!mdev)
+ 		return -ENOMEM;
+-	if (!mdev->dev) {
+-		/* register media device */
+-		mdev->dev = &usbdev->dev;
+-		if (usbdev->product)
+-			strlcpy(mdev->model, usbdev->product,
+-				sizeof(mdev->model));
+-		if (usbdev->serial)
+-			strlcpy(mdev->serial, usbdev->serial,
+-				sizeof(mdev->serial));
+-		strcpy(mdev->bus_info, usbdev->devpath);
+-		mdev->hw_revision = le16_to_cpu(usbdev->descriptor.bcdDevice);
+-		media_device_init(mdev);
+-	}
++
++	/* Initialize media device */
++	if (!mdev->dev)
++		media_device_usb_init(mdev, usbdev, NULL);
++
+ 	if (!media_devnode_is_registered(&mdev->devnode)) {
+ 		ret = media_device_register(mdev);
+ 		if (ret) {
 -- 
-2.7.0
+2.5.0
 
