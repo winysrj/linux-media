@@ -1,49 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swift.blarg.de ([78.47.110.205]:58940 "EHLO swift.blarg.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755368AbcCUM0t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 08:26:49 -0400
-Subject: [PATCH] drivers/media/rc: postpone kfree(rc_dev)
-From: Max Kellermann <max@duempel.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Date: Mon, 21 Mar 2016 13:26:47 +0100
-Message-ID: <145856320721.10992.11927452939962449623.stgit@woodpecker.blarg.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail.lysator.liu.se ([130.236.254.3]:39787 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965207AbcCPMOm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2016 08:14:42 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Peter Rosin <peda@axentia.se>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH] [media] m88ds3103: fix undefined division
+Date: Wed, 16 Mar 2016 13:14:13 +0100
+Message-Id: <1458130453-1421-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CONFIG_DEBUG_KOBJECT_RELEASE found this bug.
+From: Peter Rosin <peda@axentia.se>
 
-Signed-off-by: Max Kellermann <max@duempel.org>
+s32tmp in the below code may be negative, and dev->mclk_khz is an
+unsigned type.
+
+	s32tmp = 0x10000 * (tuner_frequency - c->frequency);
+	s32tmp = DIV_ROUND_CLOSEST(s32tmp, dev->mclk_khz);
+
+This is undefined, as DIV_ROUND_CLOSEST is undefined for negative
+dividends when the divisor is of unsigned type.
+
+So, change mclk_khz to be signed (s32).
+
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/rc/rc-main.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/media/dvb-frontends/m88ds3103_priv.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 1042fa3..cb3e8db 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1248,6 +1248,9 @@ unlock:
- 
- static void rc_dev_release(struct device *device)
- {
-+	struct rc_dev *dev = to_rc_dev(device);
-+
-+	kfree(dev);
- }
- 
- #define ADD_HOTPLUG_VAR(fmt, val...)					\
-@@ -1369,7 +1372,9 @@ void rc_free_device(struct rc_dev *dev)
- 
- 	put_device(&dev->dev);
- 
--	kfree(dev);
-+	/* kfree(dev) will be called by the callback function
-+	   rc_dev_release() */
-+
- 	module_put(THIS_MODULE);
- }
- EXPORT_SYMBOL_GPL(rc_free_device);
+
+Note, this was found by code inspection, I don't have the hardware,
+I don't know what the consequences of a garbage result are at this
+point in the code and the patch has only been build-tested. It looks
+obvious enough though. It should probably go to stable as well...
+
+Cheers,
+Peter
+
+diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
+index eee8c22c51ec..651e005146b2 100644
+--- a/drivers/media/dvb-frontends/m88ds3103_priv.h
++++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
+@@ -46,7 +46,7 @@ struct m88ds3103_dev {
+ 	/* auto detect chip id to do different config */
+ 	u8 chip_id;
+ 	/* main mclk is calculated for M88RS6000 dynamically */
+-	u32 mclk_khz;
++	s32 mclk_khz;
+ 	u64 post_bit_error;
+ 	u64 post_bit_count;
+ };
+-- 
+2.1.4
 
