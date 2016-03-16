@@ -1,175 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from axentia.se ([87.96.186.132]:16790 "EHLO EMAIL.axentia.se"
+Received: from mout.web.de ([212.227.17.12]:60348 "EHLO mout.web.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751112AbcCBXCj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 18:02:39 -0500
-From: Peter Rosin <peda@axentia.se>
-To: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@lysator.liu.se>
-CC: Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	"Srinivas Pandruvada" <srinivas.pandruvada@linux.intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicholas Mc Guire <hofrat@osadl.org>,
-	Olli Salonen <olli.salonen@iki.fi>,
-	"linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Subject: RE: [PATCH v3 0/8] i2c mux cleanup and locking update
-Date: Wed, 2 Mar 2016 22:55:10 +0000
-Message-ID: <d0164db34a634171afa631a3167269b8@EMAIL.axentia.se>
-References: <1452265496-22475-1-git-send-email-peda@lysator.liu.se>
- <20160302172904.GC5439@katana>
-In-Reply-To: <20160302172904.GC5439@katana>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S966012AbcCPNmr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2016 09:42:47 -0400
+Subject: [PATCH RESEND] media: dvb_ringbuffer: Add memory barriers
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1451248920-4935-1-git-send-email-smoch@web.de>
+Cc: Soeren Moch <smoch@web.de>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+From: Soeren Moch <smoch@web.de>
+Message-ID: <56E962C2.4060001@web.de>
+Date: Wed, 16 Mar 2016 14:42:26 +0100
 MIME-Version: 1.0
+In-Reply-To: <1451248920-4935-1-git-send-email-smoch@web.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Wolfram Sang wrote:
-> On Fri, Jan 08, 2016 at 04:04:48PM +0100, Peter Rosin wrote:
-> > 
-> > Hi!
-> > 
-> > [doing a v3 even if there is no "big picture" feedback yet, but
-> >  previous versions has bugs that make them harder to test than
-> >  needed, and testing is very much desired]
-> > 
-> > I have a pair of boards with this i2c topology:
-> > 
-> >                        GPIO ---|  ------ BAT1
-> >                         |      v /
-> >    I2C  -----+------B---+---- MUX
-> >              |                   \
-> >            EEPROM                 ------ BAT2
-> > 
-> > 	(B denotes the boundary between the boards)
-> > 
-> > The problem with this is that the GPIO controller sits on the same i2c bus
-> > that it MUXes. For pca954x devices this is worked around by using unlocked
-> > transfers when updating the MUX. I have no such luck as the GPIO is a general
-> > purpose IO expander and the MUX is just a random bidirectional MUX, unaware
-> > of the fact that it is muxing an i2c bus, and extending unlocked transfers
-> > into the GPIO subsystem is too ugly to even think about. But the general hw
-> > approach is sane in my opinion, with the number of connections between the
-> > two boards minimized. To put is plainly, I need support for it.
-> > 
-> > So, I observe that while it is needed to have the i2c bus locked during the
-> > actual MUX update in order to avoid random garbage on the slave side, it
-> > is not strictly a must to have it locked over the whole sequence of a full
-> > select-transfer-deselect operation. The MUX itself needs to be locked, so
-> > transfers to clients behind the mux are serialized, and the MUX needs to be
-> > stable during all i2c traffic (otherwise individual mux slave segments
-> > might see garbage).
-> > 
-> > This series accomplishes this by adding code to i2c-mux-gpio and
-> > i2c-mux-pinctrl that determines if all involved devices used to update the
-> > mux are controlled by the same root i2c adapter that is muxed. When this
-> > is the case, the select-transfer-deselect operations should be locked
-> > individually to avoid the deadlock. The i2c bus *is* still locked
-> > during muxing, since the muxing happens as part of i2c transfers. This
-> > is true even if the MUX is updated with several transfers to the GPIO (at
-> > least as long as *all* MUX changes are using the i2s master bus). A lock
-> > is added to the mux so that transfers through the mux are serialized.
-> > 
-> > Concerns:
-> > - The locking is perhaps too complex?
-> > - I worry about the priority inheritance aspect of the adapter lock. When
-> >   the transfers behind the mux are divided into select-transfer-deselect all
-> >   locked individually, low priority transfers get more chances to interfere
-> >   with high priority transfers.
-> > - When doing an i2c_transfer() in_atomic() context or with irqs_disabled(),
-> >   there is a higher possibility that the mux is not returned to its idle
-> >   state after a failed (-EAGAIN) transfer due to trylock.
-> > - Is the detection of i2c-controlled gpios and pinctrls sane (i.e. the
-> >   usage of the new i2c_root_adapter() function in 8/8)?
-> > 
-> > To summarize the series, there's some i2c-mux infrastructure cleanup work
-> > first (I think that part stands by itself as desireable regardless), the
-> > locking changes are in the last three patches of the series, with the real
-> > meat in 8/8.
-> > 
-> > PS. needs a bunch of testing, I do not have access to all the involved hw
-> 
-> I want to let you know that I am currently thinking about this series.
+Implement memory barriers according to Documentation/circular-buffers.txt:
+- use smp_store_release() to update ringbuffer read/write pointers
+- use smp_load_acquire() to load write pointer on reader side
+- use ACCESS_ONCE() to load read pointer on writer side
 
-Glad to hear it!
+This fixes data stream corruptions observed e.g. on an ARM Cortex-A9
+quad core system with different types (PCI, USB) of DVB tuners.
 
-> There seems to be a second occasion where it could have helped AFAICT.
-> http://patchwork.ozlabs.org/patch/584776/ (check my comments there from
-> yesterday and today)
+Signed-off-by: Soeren Moch <smoch@web.de>
+Cc: stable@vger.kernel.org # 3.14+
+---
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-The mpu6050 driver has to set muxc->i2c_controlled before adding
-any child adapters for anything to behave differently, and it also
-has to make sure that all accesses in select/deselect are normal
-i2c accesses (i.e. not unlocked accesses). When doing so,
-unreleated i2c traffic might interleave with the muxing. So, if
-the chip is auto-deselecting on the first i2c transfer after select
-it will never work properly.
+Since smp_store_release() and smp_load_acquire() were introduced in linux-3.14,
+a 3.14+ stable tag was added. Is it desired to apply a similar patch to older
+stable kernels?
+---
+ drivers/media/dvb-core/dvb_ringbuffer.c | 27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-> First of all, really thank you that you tried to find the proper
-> solution and went all the way for it. It is easy to do a fire&forget
-> hack here, but you didn't.
+diff --git a/drivers/media/dvb-core/dvb_ringbuffer.c b/drivers/media/dvb-core/dvb_ringbuffer.c
+index 1100e98..58b5968 100644
+--- a/drivers/media/dvb-core/dvb_ringbuffer.c
++++ b/drivers/media/dvb-core/dvb_ringbuffer.c
+@@ -55,7 +55,7 @@ void dvb_ringbuffer_init(struct dvb_ringbuffer *rbuf, void *data, size_t len)
+ 
+ int dvb_ringbuffer_empty(struct dvb_ringbuffer *rbuf)
+ {
+-	return (rbuf->pread==rbuf->pwrite);
++	return (rbuf->pread == smp_load_acquire(&rbuf->pwrite));
+ }
+ 
+ 
+@@ -64,7 +64,7 @@ ssize_t dvb_ringbuffer_free(struct dvb_ringbuffer *rbuf)
+ {
+ 	ssize_t free;
+ 
+-	free = rbuf->pread - rbuf->pwrite;
++	free = ACCESS_ONCE(rbuf->pread) - rbuf->pwrite;
+ 	if (free <= 0)
+ 		free += rbuf->size;
+ 	return free-1;
+@@ -76,7 +76,7 @@ ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf)
+ {
+ 	ssize_t avail;
+ 
+-	avail = rbuf->pwrite - rbuf->pread;
++	avail = smp_load_acquire(&rbuf->pwrite) - rbuf->pread;
+ 	if (avail < 0)
+ 		avail += rbuf->size;
+ 	return avail;
+@@ -86,14 +86,15 @@ ssize_t dvb_ringbuffer_avail(struct dvb_ringbuffer *rbuf)
+ 
+ void dvb_ringbuffer_flush(struct dvb_ringbuffer *rbuf)
+ {
+-	rbuf->pread = rbuf->pwrite;
++	smp_store_release(&rbuf->pread, smp_load_acquire(&rbuf->pwrite));
+ 	rbuf->error = 0;
+ }
+ EXPORT_SYMBOL(dvb_ringbuffer_flush);
+ 
+ void dvb_ringbuffer_reset(struct dvb_ringbuffer *rbuf)
+ {
+-	rbuf->pread = rbuf->pwrite = 0;
++	smp_store_release(&rbuf->pread, 0);
++	smp_store_release(&rbuf->pwrite, 0);
+ 	rbuf->error = 0;
+ }
+ 
+@@ -119,12 +120,12 @@ ssize_t dvb_ringbuffer_read_user(struct dvb_ringbuffer *rbuf, u8 __user *buf, si
+ 			return -EFAULT;
+ 		buf += split;
+ 		todo -= split;
+-		rbuf->pread = 0;
++		smp_store_release(&rbuf->pread, 0);
+ 	}
+ 	if (copy_to_user(buf, rbuf->data+rbuf->pread, todo))
+ 		return -EFAULT;
+ 
+-	rbuf->pread = (rbuf->pread + todo) % rbuf->size;
++	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
+ 
+ 	return len;
+ }
+@@ -139,11 +140,11 @@ void dvb_ringbuffer_read(struct dvb_ringbuffer *rbuf, u8 *buf, size_t len)
+ 		memcpy(buf, rbuf->data+rbuf->pread, split);
+ 		buf += split;
+ 		todo -= split;
+-		rbuf->pread = 0;
++		smp_store_release(&rbuf->pread, 0);
+ 	}
+ 	memcpy(buf, rbuf->data+rbuf->pread, todo);
+ 
+-	rbuf->pread = (rbuf->pread + todo) % rbuf->size;
++	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
+ }
+ 
+ 
+@@ -158,10 +159,10 @@ ssize_t dvb_ringbuffer_write(struct dvb_ringbuffer *rbuf, const u8 *buf, size_t
+ 		memcpy(rbuf->data+rbuf->pwrite, buf, split);
+ 		buf += split;
+ 		todo -= split;
+-		rbuf->pwrite = 0;
++		smp_store_release(&rbuf->pwrite, 0);
+ 	}
+ 	memcpy(rbuf->data+rbuf->pwrite, buf, todo);
+-	rbuf->pwrite = (rbuf->pwrite + todo) % rbuf->size;
++	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
+ 
+ 	return len;
+ }
+@@ -181,12 +182,12 @@ ssize_t dvb_ringbuffer_write_user(struct dvb_ringbuffer *rbuf,
+ 			return len - todo;
+ 		buf += split;
+ 		todo -= split;
+-		rbuf->pwrite = 0;
++		smp_store_release(&rbuf->pwrite, 0);
+ 	}
+ 	status = copy_from_user(rbuf->data+rbuf->pwrite, buf, todo);
+ 	if (status)
+ 		return len - todo;
+-	rbuf->pwrite = (rbuf->pwrite + todo) % rbuf->size;
++	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
+ 
+ 	return len;
+ }
+-- 1.9.1
 
-Fire&forget often turns out to be just the fire. If you do it properly
-there is a better chance that you really can forget it...
-
-> I hope you understand, though, that I need to make a balance between
-> features and complexity in my subsystem to have maintainable and stable
-> code.
-> 
-> As I wrote in the mentioned thread already: "However, I am still
-> undecided if that series should go upstream because it makes the mux
-> code another magnitude more complex. And while this seems to be the
-> second issue which could be fixed by that series, both issues seem to
-> be corner cases, so I am not sure it is worth the complexity."
-> 
-> And for the cleanup series using struct mux_core. It is quite an
-> intrusive change and, frankly, the savings look surprisingly low. I
-> would have expected more, but you never find out until you do it. So, I
-> am unsure here as well.
-
-Yes, that part of the series went ballistic when the half-dozen mux
-users outside of drivers/i2c was added to the mix (I was originally
-not aware of them). The savings looked better when only the i2c-internal
-muxes was considered, mainly because the external muxes are often not
-real muxes and only have one child adapter. Creating the mux-core for
-that one adapter then swallows the savings.
-
-Funnily enough, I was just the other day looking at the series again and
-decided to redo those 5 patches so that I first add the new mux core
-and implement the old interface in terms of the new interface, then
-convert all the mux users one patch at a time, then remove the glue.
-That means 15 patches instead of 5, but each patch only touches one
-subsystem, which should ease the transition. The end result is
-equivalent, I only had to change a few names to make it possible to
-have both the old and the new interfaces active at the same time.
-
-In doing so, I realized that what might be good for the non-generic
-one-child-only "muxes" is perhaps an interface that creates a mux core
-and registers one child adapter with one call?
-
-One other thing that could help the +- statistics is to maybe add more
-parameters to i2c_mux_alloc, such as parent adapter and select/deselect
-ops. But that is fairly cosmetic...
-
-> I am not decided and open for discussion. This is just where we are
-> currently. All interested parties, I am looking forward to more
-> thoughts.
-
-Cheers,
-Peter
