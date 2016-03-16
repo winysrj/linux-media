@@ -1,61 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.sig21.net ([80.244.240.74]:41807 "EHLO mail.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751337AbcCDOJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 09:09:27 -0500
-Date: Fri, 4 Mar 2016 15:09:09 +0100
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	Keith Packard <keithp@keithp.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160304140909.GA15636@linuxtv.org>
-References: <20160213145317.247c63c7@lwn.net>
- <87y49zr74t.fsf@intel.com>
- <20160303071305.247e30b1@lwn.net>
- <20160303155037.705f33dd@recife.lan>
- <86egbrm9hw.fsf@hiro.keithp.com>
- <20160303221930.32558496@recife.lan>
- <87si06r6i3.fsf@intel.com>
- <20160304095950.3358a2cb@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160304095950.3358a2cb@recife.lan>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45990 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751347AbcCPEFk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Mar 2016 00:05:40 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 699DD182E7D
+	for <linux-media@vger.kernel.org>; Wed, 16 Mar 2016 05:05:33 +0100 (CET)
+Date: Wed, 16 Mar 2016 05:05:33 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160316040533.699DD182E7D@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 04, 2016 at 09:59:50AM -0300, Mauro Carvalho Chehab wrote:
-> 
-> 3) I tried to use a .. cssclass, as Johannes suggested, but
-> I was not able to include the CSS file. I suspect that this is
-> easy to fix, but I want to see if the cssclass will also work for
-> the pdf output as well.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-"cssclass" was (I think) a custom role defined in the example,
-unless you also have defined a custom role you can use plain "class".
-I have not looked deeper into the theming and template stuff.
+Results of the daily build of media_tree:
 
-> 4) It seems that it can't produce nested tables in pdf:
-> 
-> Markup is unsupported in LaTeX:
-> v4l-table-within-table:: nested tables are not yet implemented.
-> Makefile:115: recipe for target 'latexpdf' failed
+date:		Wed Mar 16 04:00:19 CET 2016
+git branch:	test
+git hash:	da470473c9cf9c4ebb40d046b306c76427b6df94
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-51-ga53cea2
+smatch version:	v0.5.0-3228-g5cf65ab
+host hardware:	x86_64
+host os:	4.4.0-164
 
-This:
-http://www.sphinx-doc.org/en/stable/markup/misc.html#tables
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-suggests you need to add the tabularcolumns directive
-for complex tables.
+Detailed results are available here:
 
-BTW, as an alternative to the ASCII-art input
-there is also support for CSV and list tables:
-http://docutils.sourceforge.net/docs/ref/rst/directives.html#table
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
+Full logs are available here:
 
-Johannes
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
