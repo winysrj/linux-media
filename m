@@ -1,55 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:52946 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757565AbcCDPiI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 10:38:08 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] v4l2/dvb: allow v4l2_mc functions to be used by dvb
-Date: Fri, 04 Mar 2016 16:37:29 +0100
-Message-ID: <4935115.sMizstOCUV@wuerfel>
-In-Reply-To: <20160303142953.2f8943bd@recife.lan>
-References: <1456692724-751344-1-git-send-email-arnd@arndb.de> <20160303142953.2f8943bd@recife.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:34059 "EHLO
+	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933880AbcCQNLT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Mar 2016 09:11:19 -0400
+Received: by mail-lf0-f68.google.com with SMTP id i75so2931359lfb.1
+        for <linux-media@vger.kernel.org>; Thu, 17 Mar 2016 06:11:18 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 1/2] mceusb: add support for Adaptec eHome receiver
+Date: Thu, 17 Mar 2016 15:11:09 +0200
+Message-Id: <1458220270-1650-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 03 March 2016 14:29:53 Mauro Carvalho Chehab wrote:
-> Em Sun, 28 Feb 2016 21:51:48 +0100
-> Arnd Bergmann <arnd@arndb.de> escreveu:
-> 
-> > In a configuration that supports all DVB drivers but that disables
-> > V4L2 or builds it as a loadable module, we get link errors because
-> > of the recent change to use __v4l2_mc_usb_media_device_init:
-> > 
-> > drivers/media/built-in.o: In function `dvb_usb_adapter_dvb_init':
-> > :(.text+0xe7966): undefined reference to `__v4l2_mc_usb_media_device_init'
-> > drivers/media/built-in.o: In function `dvb_usbv2_init':
-> > :(.text+0xff1cc): undefined reference to `__v4l2_mc_usb_media_device_init'
-> > drivers/media/built-in.o: In function `smsusb_init_device':
-> > :(.text+0x113be4): undefined reference to `__v4l2_mc_usb_media_device_init'
-> > drivers/media/built-in.o: In function `au0828_usb_probe':
-> > :(.text+0x114d08): undefined reference to `__v4l2_mc_usb_media_device_init'
-> > 
-> > This patch is one way out, by simply building the v4l2-mc.c file
-> > whenever at least one of VIDEO_V4L2 or DVB_CORE are enabled, including
-> > the case that one of them is a module and the other is built-in, which
-> > leads the MC code to become built-in as well.
-> 
-> Thanks for the patch, but I actually solved this issue the other way
-> around: I moved those functions to the media core, where both V4L and DVB
-> uses it. This also allows using the function outside (like on ALSA).
-> 
-> I should be pushing it later today to Linux next.
-> 
-> 
+New USB ID for Adaptec eHome receiver in some HP laptops.
 
-Excellent! I was trying to come up with a better place for the code but
-didn't know where else to put it.
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/rc/mceusb.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-	Arnd
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 35155ae..09ca9f6 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -188,6 +188,7 @@
+ #define VENDOR_TWISTEDMELON	0x2596
+ #define VENDOR_HAUPPAUGE	0x2040
+ #define VENDOR_PCTV		0x2013
++#define VENDOR_ADAPTEC		0x03f3
+ 
+ enum mceusb_model_type {
+ 	MCE_GEN2 = 0,		/* Most boards */
+@@ -405,6 +406,8 @@ static struct usb_device_id mceusb_dev_table[] = {
+ 	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
+ 	{ USB_DEVICE(VENDOR_PCTV, 0x025e),
+ 	  .driver_info = HAUPPAUGE_CX_HYBRID_TV },
++	/* Adaptec / HP eHome Receiver */
++	{ USB_DEVICE(VENDOR_ADAPTEC, 0x0094) },
+ 
+ 	/* Terminating entry */
+ 	{ }
+-- 
+1.9.1
+
