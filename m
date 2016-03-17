@@ -1,57 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:40679 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750955AbcCNIVx (ORCPT
+Received: from mail-lb0-f193.google.com ([209.85.217.193]:36856 "EHLO
+	mail-lb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935641AbcCQNLY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 04:21:53 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media-entity: fix sparse warning in media_entity_pads_init()
-Message-ID: <56E6749A.405@xs4all.nl>
-Date: Mon, 14 Mar 2016 09:21:46 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Thu, 17 Mar 2016 09:11:24 -0400
+Received: by mail-lb0-f193.google.com with SMTP id sx8so181935lbb.3
+        for <linux-media@vger.kernel.org>; Thu, 17 Mar 2016 06:11:23 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 2/2] mceusb: add support for SMK eHome receiver
+Date: Thu, 17 Mar 2016 15:11:10 +0200
+Message-Id: <1458220270-1650-2-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1458220270-1650-1-git-send-email-olli.salonen@iki.fi>
+References: <1458220270-1650-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this sparse warning:
+Add USB ID of SMK RXX6000 series IR receiver. Often branded as
+Lenovo receiver.
 
-drivers/media/media-entity.c:212:5: warning: context imbalance in 'media_entity_pads_init' - different lock contexts for basic block
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+---
+ drivers/media/rc/mceusb.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 09ca9f6..5cf2e74 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -303,6 +303,9 @@ static struct usb_device_id mceusb_dev_table[] = {
+ 	/* SMK/I-O Data GV-MC7/RCKIT Receiver */
+ 	{ USB_DEVICE(VENDOR_SMK, 0x0353),
+ 	  .driver_info = MCE_GEN2_NO_TX },
++	/* SMK RXX6000 Infrared Receiver */
++	{ USB_DEVICE(VENDOR_SMK, 0x0357),
++	  .driver_info = MCE_GEN2_NO_TX },
+ 	/* Tatung eHome Infrared Transceiver */
+ 	{ USB_DEVICE(VENDOR_TATUNG, 0x9150) },
+ 	/* Shuttle eHome Infrared Transceiver */
+-- 
+1.9.1
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index e95070b..be29d62 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -217,20 +217,19 @@ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
-
- 	entity->num_pads = num_pads;
- 	entity->pads = pads;
--
--	if (mdev)
--		spin_lock(&mdev->lock);
--
- 	for (i = 0; i < num_pads; i++) {
- 		pads[i].entity = entity;
- 		pads[i].index = i;
--		if (mdev)
--			media_gobj_create(mdev, MEDIA_GRAPH_PAD,
--					&entity->pads[i].graph_obj);
- 	}
-
--	if (mdev)
--		spin_unlock(&mdev->lock);
-+	if (mdev == NULL)
-+		return 0;
-+
-+	spin_lock(&mdev->lock);
-+	for (i = 0; i < num_pads; i++)
-+		media_gobj_create(mdev, MEDIA_GRAPH_PAD,
-+				  &entity->pads[i].graph_obj);
-+	spin_unlock(&mdev->lock);
-
- 	return 0;
- }
