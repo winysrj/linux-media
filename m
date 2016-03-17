@@ -1,52 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:43345 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752672AbcCCAZY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 19:25:24 -0500
-Date: Thu, 3 Mar 2016 09:25:13 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33819 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936349AbcCQQnj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Mar 2016 12:43:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Simon Horman <horms+renesas@verge.net.au>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
 	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2] media: platform: rcar_jpu, sh_vou, vsp1: Use
- ARCH_RENESAS
-Message-ID: <20160303002513.GG23040@verge.net.au>
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v4 0/2] media: soc_camera: rcar_vin: add fallback and r8a7792 bindings
+Date: Thu, 17 Mar 2016 13:08:38 +0200
+Message-ID: <4368165.sSKIRcCx2U@avalon>
+In-Reply-To: <1458002427-3063-1-git-send-email-horms+renesas@verge.net.au>
+References: <1458002427-3063-1-git-send-email-horms+renesas@verge.net.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <56D6E7D6.1010806@cogentembedded.com>
- <56D6CF57.2030507@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 02, 2016 at 12:32:39PM +0100, Hans Verkuil wrote:
-> Hi Simon,
+Hi Simon,
+
+Thank you for the patches.
+
+For the whole series,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+On Tuesday 15 March 2016 09:40:25 Simon Horman wrote:
+> Hi,
 > 
-> Note that the patch subject still mentions sh_vou.
+> this short series adds add fallback and r8a7792 bindings to rcar_vin.
 > 
-> Otherwise:
+> Based on media-tree/master
 > 
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-[snip]
-
-On Wed, Mar 02, 2016 at 04:17:10PM +0300, Sergei Shtylyov wrote:
-
-[snip]
-
-> >v2
-> >* Do not update VIDEO_SH_VOU to use ARCH_RENESAS as this is
-> >   used by some SH-based platforms and is not used by any ARM-based platforms
-> >   so a dependency on ARCH_SHMOBILE is correct for that driver
+> Changes since v3:
+> * Add Acks
+> * Correct typo in changelog
 > 
->    You forgot to remove it from the subject though.
+> Simon Horman (1):
+>   media: soc_camera: rcar_vin: add device tree support for r8a7792
+> 
+> Yoshihiro Kaneko (1):
+>   media: soc_camera: rcar_vin: add R-Car Gen 2 and 3 fallback
+>     compatibility strings
+> 
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 12 ++++++++++--
+>  drivers/media/platform/soc_camera/rcar_vin.c         |  2 ++
+>  2 files changed, 12 insertions(+), 2 deletions(-)
 
-[snip]
+-- 
+Regards,
 
-
-Thanks, I have posted v3 with sh_vou removed from the subject line.
+Laurent Pinchart
 
