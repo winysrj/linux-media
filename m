@@ -1,37 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54620 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753143AbcCIJou (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:41967 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934678AbcCQWqk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Mar 2016 04:44:50 -0500
-Date: Wed, 9 Mar 2016 11:44:15 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Vladimir Zapolskiy <vz@mleia.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: i2c/adp1653: fix check of devm_gpiod_get() error
- code
-Message-ID: <20160309094415.GJ11084@valkosipuli.retiisi.org.uk>
-References: <1457375972-9923-1-git-send-email-vz@mleia.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1457375972-9923-1-git-send-email-vz@mleia.com>
+	Thu, 17 Mar 2016 18:46:40 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, tiwai@suse.de,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: fix media_device_unregister() to destroy media device device resource
+Date: Thu, 17 Mar 2016 16:46:36 -0600
+Message-Id: <1458254796-7727-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vladimir,
+When all drivers except usb-core driver is unbound, destroy the media device
+resource. Other wise, media device resource will persist in a defunct state.
+This leads to use-after-free and bad access errors during a subsequent bind.
+Fix it to destroy the media device resource when last reference is released
+in media_device_unregister().
 
-On Mon, Mar 07, 2016 at 08:39:32PM +0200, Vladimir Zapolskiy wrote:
-> The devm_gpiod_get() function returns either a valid pointer to
-> struct gpio_desc or ERR_PTR() error value, check for NULL is bogus.
-> 
-> Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/media-device.c | 28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
-Thanks! Applied to my fixes branch.
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 070421e..7312612 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -822,22 +822,38 @@ printk("%s: mdev=%p\n", __func__, mdev);
+ 	dev_dbg(mdev->dev, "Media device unregistered\n");
+ }
+ 
++static void media_device_release_devres(struct device *dev, void *res)
++{
++}
++
++static void media_device_destroy_devres(struct device *dev)
++{
++	int ret;
++
++	ret = devres_destroy(dev, media_device_release_devres, NULL, NULL);
++	pr_debug("%s: devres_destroy() returned %d\n", __func__, ret);
++}
++
+ void media_device_unregister(struct media_device *mdev)
+ {
++	int ret;
++	struct device *dev;
+ printk("%s: mdev=%p\n", __func__, mdev);
+ 	if (mdev == NULL)
+ 		return;
+ 
+-	mutex_lock(&mdev->graph_mutex);
+-	kref_put(&mdev->kref, do_media_device_unregister);
+-	mutex_unlock(&mdev->graph_mutex);
++	ret = kref_put_mutex(&mdev->kref, do_media_device_unregister,
++			     &mdev->graph_mutex);
++	if (ret) {
++		/* do_media_device_unregister() has run */
++		dev = mdev->dev;
++		mutex_unlock(&mdev->graph_mutex);
++		media_device_destroy_devres(dev);
++	}
+ 
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
+-static void media_device_release_devres(struct device *dev, void *res)
+-{
+-}
+ 
+ struct media_device *media_device_get_devres(struct device *dev)
+ {
 -- 
-Kind regards,
+2.5.0
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
