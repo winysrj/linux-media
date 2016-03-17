@@ -1,119 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44849 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754141AbcCAO5Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Mar 2016 09:57:25 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH 7/8] vivid: set device_caps in video_device.
-Date: Tue,  1 Mar 2016 16:57:25 +0200
-Message-Id: <1456844246-18778-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1456844246-18778-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from down.free-electrons.com ([37.187.137.238]:48815 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1030967AbcCQOGX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Mar 2016 10:06:23 -0400
+Date: Thu, 17 Mar 2016 15:06:19 +0100
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Dave Gordon <david.s.gordon@intel.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	linux-mtd@lists.infradead.org
+Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org
+Subject: Re: [PATCH 6/7] mtd: nand: sunxi: add support for DMA assisted
+ operations
+Message-ID: <20160317150619.7d6b5f37@bbrezillon>
+In-Reply-To: <1457435715-24740-7-git-send-email-boris.brezillon@free-electrons.com>
+References: <1457435715-24740-1-git-send-email-boris.brezillon@free-electrons.com>
+	<1457435715-24740-7-git-send-email-boris.brezillon@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue,  8 Mar 2016 12:15:14 +0100
+Boris Brezillon <boris.brezillon@free-electrons.com> wrote:
 
-This simplifies the querycap function.
+> The sunxi NAND controller is able to pipeline ECC operations only when
+> operated in DMA mode, which improves a lot NAND throughput while keeping
+> CPU usage low.
+> 
+> Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+> ---
+>  drivers/mtd/nand/sunxi_nand.c | 301 +++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 297 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/mtd/nand/sunxi_nand.c b/drivers/mtd/nand/sunxi_nand.c
+> index 07c3af7..7ba285e 100644
+> --- a/drivers/mtd/nand/sunxi_nand.c
+> +++ b/drivers/mtd/nand/sunxi_nand.c
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vivid/vivid-core.c | 22 +++++++---------------
- 1 file changed, 7 insertions(+), 15 deletions(-)
+[...]
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index ec125becb7af..c14da84af09b 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -200,27 +200,12 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
- {
- 	struct vivid_dev *dev = video_drvdata(file);
--	struct video_device *vdev = video_devdata(file);
- 
- 	strcpy(cap->driver, "vivid");
- 	strcpy(cap->card, "vivid");
- 	snprintf(cap->bus_info, sizeof(cap->bus_info),
- 			"platform:%s", dev->v4l2_dev.name);
- 
--	if (vdev->vfl_type == VFL_TYPE_GRABBER && vdev->vfl_dir == VFL_DIR_RX)
--		cap->device_caps = dev->vid_cap_caps;
--	if (vdev->vfl_type == VFL_TYPE_GRABBER && vdev->vfl_dir == VFL_DIR_TX)
--		cap->device_caps = dev->vid_out_caps;
--	else if (vdev->vfl_type == VFL_TYPE_VBI && vdev->vfl_dir == VFL_DIR_RX)
--		cap->device_caps = dev->vbi_cap_caps;
--	else if (vdev->vfl_type == VFL_TYPE_VBI && vdev->vfl_dir == VFL_DIR_TX)
--		cap->device_caps = dev->vbi_out_caps;
--	else if (vdev->vfl_type == VFL_TYPE_SDR)
--		cap->device_caps = dev->sdr_cap_caps;
--	else if (vdev->vfl_type == VFL_TYPE_RADIO && vdev->vfl_dir == VFL_DIR_RX)
--		cap->device_caps = dev->radio_rx_caps;
--	else if (vdev->vfl_type == VFL_TYPE_RADIO && vdev->vfl_dir == VFL_DIR_TX)
--		cap->device_caps = dev->radio_tx_caps;
- 	cap->capabilities = dev->vid_cap_caps | dev->vid_out_caps |
- 		dev->vbi_cap_caps | dev->vbi_out_caps |
- 		dev->radio_rx_caps | dev->radio_tx_caps |
-@@ -1135,6 +1120,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		strlcpy(vfd->name, "vivid-vid-cap", sizeof(vfd->name));
- 		vfd->fops = &vivid_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->vid_cap_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->queue = &dev->vb_vid_cap_q;
-@@ -1160,6 +1146,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->vfl_dir = VFL_DIR_TX;
- 		vfd->fops = &vivid_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->vid_out_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->queue = &dev->vb_vid_out_q;
-@@ -1184,6 +1171,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		strlcpy(vfd->name, "vivid-vbi-cap", sizeof(vfd->name));
- 		vfd->fops = &vivid_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->vbi_cap_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->queue = &dev->vb_vbi_cap_q;
-@@ -1207,6 +1195,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->vfl_dir = VFL_DIR_TX;
- 		vfd->fops = &vivid_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->vbi_out_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->queue = &dev->vb_vbi_out_q;
-@@ -1229,6 +1218,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		strlcpy(vfd->name, "vivid-sdr-cap", sizeof(vfd->name));
- 		vfd->fops = &vivid_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->sdr_cap_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->queue = &dev->vb_sdr_cap_q;
-@@ -1247,6 +1237,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		strlcpy(vfd->name, "vivid-rad-rx", sizeof(vfd->name));
- 		vfd->fops = &vivid_radio_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->radio_rx_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->lock = &dev->mutex;
-@@ -1265,6 +1256,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		vfd->vfl_dir = VFL_DIR_TX;
- 		vfd->fops = &vivid_radio_fops;
- 		vfd->ioctl_ops = &vivid_ioctl_ops;
-+		vfd->device_caps = dev->radio_tx_caps;
- 		vfd->release = video_device_release_empty;
- 		vfd->v4l2_dev = &dev->v4l2_dev;
- 		vfd->lock = &dev->mutex;
+> +static int sunxi_nfc_hw_ecc_write_page_dma(struct mtd_info *mtd,
+> +					   struct nand_chip *chip,
+> +					   const u8 *buf,
+> +					   int oob_required,
+> +					   int page)
+> +{
+> +	struct nand_chip *nand = mtd_to_nand(mtd);
+> +	struct sunxi_nfc *nfc = to_sunxi_nfc(nand->controller);
+> +	struct nand_ecc_ctrl *ecc = &nand->ecc;
+> +	struct sg_table sgt;
+> +	int ret, i;
+> +
+> +	ret = sunxi_nfc_wait_cmd_fifo_empty(nfc);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = sunxi_nfc_dma_op_prepare(mtd, buf, ecc->size, ecc->steps,
+> +				       DMA_TO_DEVICE, &sgt);
+> +	if (ret)
+> +		goto pio_fallback;
+> +
+> +	for (i = 0; i < ecc->steps; i++) {
+> +		const u8 *oob = nand->oob_poi + (i * (ecc->bytes + 4));
+> +
+> +		sunxi_nfc_hw_ecc_set_prot_oob_bytes(mtd, oob, i, !i, page);
+> +	}
+> +
+> +	sunxi_nfc_hw_ecc_enable(mtd);
+> +	sunxi_nfc_randomizer_config(mtd, page, false);
+> +	sunxi_nfc_randomizer_enable(mtd);
+> +
+> +	writel((NAND_CMD_RNDIN << 8) | NAND_CMD_PAGEPROG,
+> +	       nfc->regs + NFC_REG_RCMD_SET);
+> +
+> +	dma_async_issue_pending(nfc->dmac);
+> +
+> +	writel(NFC_PAGE_OP | NFC_DATA_SWAP_METHOD |
+> +	       NFC_DATA_TRANS | NFC_ACCESS_DIR,
+> +	       nfc->regs + NFC_REG_CMD);
+> +
+> +	ret = sunxi_nfc_wait_events(nfc, NFC_CMD_INT_FLAG, true, 0);
+> +	if (ret)
+> +		dmaengine_terminate_all(nfc->dmac);
+> +
+> +	sunxi_nfc_randomizer_disable(mtd);
+> +	sunxi_nfc_hw_ecc_disable(mtd);
+> +
+> +	sunxi_nfc_dma_op_cleanup(mtd, DMA_FROM_DEVICE, &sgt);
+
+		Should be DMA_TO_DEVICE here ^
+
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (oob_required || (chip->options & NAND_NEED_SCRAMBLING))
+> +		/* TODO: use DMA to transfer extra OOB bytes ? */
+> +		sunxi_nfc_hw_ecc_write_extra_oob(mtd, chip->oob_poi,
+> +						 NULL, page);
+> +
+> +	return 0;
+> +
+> +pio_fallback:
+> +	return sunxi_nfc_hw_ecc_write_page(mtd, chip, buf, oob_required, page);
+> +}
+
+
+
+
 -- 
-2.4.10
-
+Boris Brezillon, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
