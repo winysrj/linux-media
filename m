@@ -1,86 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40677 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752383AbcCYKop (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34619 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932532AbcCQTjc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 06:44:45 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 18/54] v4l: vsp1: Enable display list support for the HS[IT], LUT, SRU and UDS
-Date: Fri, 25 Mar 2016 12:43:52 +0200
-Message-Id: <1458902668-1141-19-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Thu, 17 Mar 2016 15:39:32 -0400
+Received: by mail-wm0-f68.google.com with SMTP id p65so1594961wmp.1
+        for <linux-media@vger.kernel.org>; Thu, 17 Mar 2016 12:39:31 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH v2] media: rc: reduce size of struct ir_raw_event
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Message-ID: <56EB07E1.5030701@gmail.com>
+Date: Thu, 17 Mar 2016 20:39:13 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those modules were left out of display list integration as they're not
-used by the DRM pipeline. To prepare for display list support in non-DRM
-pipelines use the module write API to set registers.
+struct ir_raw_event currently has a size of 12 bytes on most (all?)
+architectures. This can be reduced to 8 bytes whilst maintaining
+full backwards compatibility.
+This saves 2KB in size of struct ir_raw_event_ctrl (as element
+kfifo is reduced by 512 * 4 bytes) and it allows to copy the
+full struct ir_raw_event with a single 64 bit operation.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Successfully tested with the Nuvoton driver and successfully
+compile-tested with the ene_ir driver (as it uses the carrier /
+duty_cycle elements).
+
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- drivers/media/platform/vsp1/vsp1_hsit.c | 2 +-
- drivers/media/platform/vsp1/vsp1_lut.c  | 2 +-
- drivers/media/platform/vsp1/vsp1_sru.c  | 2 +-
- drivers/media/platform/vsp1/vsp1_uds.c  | 4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+v2:
+- don't change type of bit field members
+---
+ include/media/rc-core.h | 18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
-index ce42ce2e4847..e971dfa9714d 100644
---- a/drivers/media/platform/vsp1/vsp1_hsit.c
-+++ b/drivers/media/platform/vsp1/vsp1_hsit.c
-@@ -28,7 +28,7 @@
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 0f77b3d..f6f55b7 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -215,12 +215,9 @@ enum raw_event_type {
+ struct ir_raw_event {
+ 	union {
+ 		u32             duration;
+-
+-		struct {
+-			u32     carrier;
+-			u8      duty_cycle;
+-		};
++		u32             carrier;
+ 	};
++	u8                      duty_cycle;
  
- static inline void vsp1_hsit_write(struct vsp1_hsit *hsit, u32 reg, u32 data)
+ 	unsigned                pulse:1;
+ 	unsigned                reset:1;
+@@ -228,13 +225,7 @@ struct ir_raw_event {
+ 	unsigned                carrier_report:1;
+ };
+ 
+-#define DEFINE_IR_RAW_EVENT(event) \
+-	struct ir_raw_event event = { \
+-		{ .duration = 0 } , \
+-		.pulse = 0, \
+-		.reset = 0, \
+-		.timeout = 0, \
+-		.carrier_report = 0 }
++#define DEFINE_IR_RAW_EVENT(event) struct ir_raw_event event = {}
+ 
+ static inline void init_ir_raw_event(struct ir_raw_event *ev)
  {
--	vsp1_write(hsit->entity.vsp1, reg, data);
-+	vsp1_mod_write(&hsit->entity, reg, data);
- }
+@@ -256,8 +247,7 @@ void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
  
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index f0cd4f79fbff..c24712fe5f2c 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -29,7 +29,7 @@
- 
- static inline void vsp1_lut_write(struct vsp1_lut *lut, u32 reg, u32 data)
+ static inline void ir_raw_event_reset(struct rc_dev *dev)
  {
--	vsp1_write(lut->entity.vsp1, reg, data);
-+	vsp1_mod_write(&lut->entity, reg, data);
- }
+-	DEFINE_IR_RAW_EVENT(ev);
+-	ev.reset = true;
++	struct ir_raw_event ev = { .reset = true };
  
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index a97541492af8..7de62be37cff 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -28,7 +28,7 @@
- 
- static inline void vsp1_sru_write(struct vsp1_sru *sru, u32 reg, u32 data)
- {
--	vsp1_write(sru->entity.vsp1, reg, data);
-+	vsp1_mod_write(&sru->entity, reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index b1881a0a314f..7eaf42a2b036 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -31,8 +31,8 @@
- 
- static inline void vsp1_uds_write(struct vsp1_uds *uds, u32 reg, u32 data)
- {
--	vsp1_write(uds->entity.vsp1,
--		   reg + uds->entity.index * VI6_UDS_OFFSET, data);
-+	vsp1_mod_write(&uds->entity, reg + uds->entity.index * VI6_UDS_OFFSET,
-+		       data);
- }
- 
- /* -----------------------------------------------------------------------------
+ 	ir_raw_event_store(dev, &ev);
+ 	ir_raw_event_handle(dev);
 -- 
 2.7.3
+
 
