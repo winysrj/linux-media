@@ -1,95 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751836AbcCXX2D (ORCPT
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:37784 "EHLO
+	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933380AbcCRORZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:28:03 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 18 Mar 2016 10:17:25 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 11/51] v4l: vsp1: Simplify frame end processing
-Date: Fri, 25 Mar 2016 01:27:07 +0200
-Message-Id: <1458862067-19525-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 03/17] dts: exynos4412-odroid*: enable the HDMI CEC device
+Date: Fri, 18 Mar 2016 15:07:02 +0100
+Message-Id: <1458310036-19252-4-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
+References: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DRM pipeline, as it runs in automatic restart mode, never sees the
-pipeline state set to VSP1_PIPELINE_STOPPING or VSP1_PIPELINE_STOPPED
-when running the frame end interrupt handler. We can thus skip the
-checks various checks in the handler and return immediately.
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Similarly the DRM frame end handler calls vsp1_pipeline_run()
-unnecessarily, as the state there is never VSP1_PIPELINE_STOPPED. Remove
-the function call and the frame end handler is it's now empty.
+Add a dts node entry and enable the HDMI CEC device present in the Exynos4
+family of SoCs.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/vsp1/vsp1_drm.c  | 15 ---------------
- drivers/media/platform/vsp1/vsp1_pipe.c |  9 ++++++---
- 2 files changed, 6 insertions(+), 18 deletions(-)
+ arch/arm/boot/dts/exynos4412-odroid-common.dtsi | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 8cf7c19f4344..9ecba4c1332e 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -27,20 +27,6 @@
- #include "vsp1_rwpf.h"
- 
- /* -----------------------------------------------------------------------------
-- * Runtime Handling
-- */
--
--static void vsp1_drm_pipeline_frame_end(struct vsp1_pipeline *pipe)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&pipe->irqlock, flags);
--	if (pipe->num_inputs)
--		vsp1_pipeline_run(pipe);
--	spin_unlock_irqrestore(&pipe->irqlock, flags);
--}
--
--/* -----------------------------------------------------------------------------
-  * DU Driver API
-  */
- 
-@@ -569,7 +555,6 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
- 	pipe = &vsp1->drm->pipe;
- 
- 	vsp1_pipeline_init(pipe);
--	pipe->frame_end = vsp1_drm_pipeline_frame_end;
- 
- 	/* The DRM pipeline is static, add entities manually. */
- 	for (i = 0; i < vsp1->info->rpf_count; ++i) {
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 6659f06b1643..78096122a22d 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -289,7 +289,8 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
- 		vsp1_dl_irq_frame_end(pipe->dl);
- 
- 	/* Signal frame end to the pipeline handler. */
--	pipe->frame_end(pipe);
-+	if (pipe->frame_end)
-+		pipe->frame_end(pipe);
- 
- 	spin_lock_irqsave(&pipe->irqlock, flags);
- 
-@@ -298,8 +299,10 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
- 	/* When using display lists in continuous frame mode the pipeline is
- 	 * automatically restarted by the hardware.
- 	 */
--	if (!pipe->dl)
--		pipe->state = VSP1_PIPELINE_STOPPED;
-+	if (pipe->dl)
-+		goto done;
+diff --git a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
+index 395c3ca..c9b1425 100644
+--- a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
++++ b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
+@@ -500,3 +500,7 @@
+ &watchdog {
+ 	status = "okay";
+ };
 +
-+	pipe->state = VSP1_PIPELINE_STOPPED;
- 
- 	/* If a stop has been requested, mark the pipeline as stopped and
- 	 * return.
++&hdmicec {
++	status = "okay";
++};
 -- 
-2.7.3
+2.7.0
 
