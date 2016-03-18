@@ -1,100 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38629 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752046AbcCCNhV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 08:37:21 -0500
-Subject: Re: tw686x driver
-To: =?UTF-8?Q?Krzysztof_Ha=c5=82asa?= <khalasa@piap.pl>
-References: <56D6A50F.4060404@xs4all.nl> <m3povcnjfo.fsf@t19.piap.pl>
- <56D7E87B.1080505@xs4all.nl> <m3lh5zohsf.fsf@t19.piap.pl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D83E16.1010907@xs4all.nl>
-Date: Thu, 3 Mar 2016 14:37:26 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:54563 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932244AbcCROMn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Mar 2016 10:12:43 -0400
+Subject: Re: [PATCH] [media] media: rename media unregister function
+To: Shuah Khan <shuahkh@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <2ffc02c944068b2c8655727238d1542f8328385d.1458306276.git.mchehab@osg.samsung.com>
+ <56EC0A55.3010803@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hyun Kwon <hyun.kwon@xilinx.com>,
+	Michal Simek <michal.simek@xilinx.com>,
+	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Takashi Iwai <tiwai@suse.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Geunyoung Kim <nenggun.kim@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>, Tommi Rantala <tt.rantala@gmail.com>,
+	Matthias Schwarzott <zzam@gentoo.org>,
+	Patrick Boettcher <patrick.boettcher@posteo.de>,
+	Luis de Bethencourt <luis@debethencourt.com>,
+	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
+	Julia Lawall <Julia.Lawall@lip6.fr>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org,
+	alsa-devel@alsa-project.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <56EC0CC4.1070309@osg.samsung.com>
+Date: Fri, 18 Mar 2016 11:12:20 -0300
 MIME-Version: 1.0
-In-Reply-To: <m3lh5zohsf.fsf@t19.piap.pl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <56EC0A55.3010803@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/16 13:41, Krzysztof Hałasa wrote:
-> Hans Verkuil <hverkuil@xs4all.nl> writes:
+Hello Shuah,
+
+On 03/18/2016 11:01 AM, Shuah Khan wrote:
+> On 03/18/2016 07:05 AM, Mauro Carvalho Chehab wrote:
+>> Now that media_device_unregister() also does a cleanup, rename it
+>> to media_device_unregister_cleanup().
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 > 
->> When a driver is merged for the first time in the kernel it is always as
->> a single change, i.e. you don't include the development history as that
->> would pollute the kernel's history.
-> 
-> We don't generally add new drivers with long patch series, that's right.
-> That's because there is usually no reason to do so. This situation is
-> different, there is a very good reason.
-> 
-> I'm not asking for doing this with a long patch set. A single patch from
-> me + single patch containing the Ezequiel changes would suffice.
-> 
->> Those earlier versions have never
->> been tested/reviewed to the same extent as the final version
-> 
-> This is not a real problem, given the code will be changed immediately
-> again.
-> 
->> and adding
->> them could break git bisect.
-> 
-> Not really. You can apply the version based on current media tree,
-> I have posted it a week ago or so. This doesn't require any effort.
-> 
-> BTW applying the thing in two consecutive patches (the old version +
-> changes) doesn't break git bisect at all. It only breaks the compiling,
-> and only in the very case when git bisect happens to stop between the
-> first and second patch, and the driver is configured in. Very unlikely,
-> though the remedy is very easy as shown in "man git-bisect".
-> This is a common thing when you do git bisect, though the related
-> patches are usually much more distant and thus the probability that the
-> kernel won't compile is much much greater.
-> 
-> Alternatively one could apply the original version to an older kernel and
-> merge the product. Less trivial and I don't know why one would want to
-> do so, given #1.
-> 
-> One could also disable the CONFIG_VIDEO_TW686X in Kconfig (at the
-> original patch). Possibilities are endless.
-> 
-> We have to face it: there is absolutely no problem with adding the
-> driver with two patches, either using my original patch or the updated
-> one. And it doesn't require any effort, just a couple of git commands.
-> 
->> It is a quite unusual situation and the only way I could make it worse would
->> by not merging anything.
-> 
-> Not really.
-> There is a very easy way out. You can just add the driver properly with
-> two patches.
-> 
-> 
-> Though I don't know why do you think my driver alone doesn't qualify to
-> be merged (without subsequent Ezequiel's changes). It's functional
-> and stable, and I have been using it (in various versions) for many
-> months. It's much more mature than many other drivers which make it to
-> the kernel regularly.
-> 
-> It is definitely _not_ my driver that is problematic.
+> I think adding cleanup is redundant. media_device_unregister()
+> would imply that there has to be some cleanup releasing resources.
+> I wouldn't make this change.
+>
+
+Problem is that there is a media_device_init() and media_device_register(),
+so having both unregister and cleanup in this function will make very clear
+that a single function is the counter part of the previous two operations.
+ 
+> thanks,
+> -- Shuah
 > 
 
-There is no point whatsoever in committing a driver and then replacing it
-with another which has a different feature set. I'm not going to do that.
-
-One option that might be much more interesting is to add your driver to
-staging with a TODO stating that the field support should be added to
-the mainline driver. So the code is there and having it in staging makes
-it a bit easier to do the migration. And if nothing is done about it
-after 1-2 years, then it is removed again since that indicates that there
-is not enough interest in the features specific to your driver version.
-
-I'm not sure if Mauro would go for it, but I think this is a fair option.
-
-Regards,
-
-	Hans
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
