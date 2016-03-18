@@ -1,69 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53229 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752128AbcCRKc6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 06:32:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Armin Weiss <weii@zhaw.ch>
-Subject: [RFCv1 PATCH 0/2] Driver for the Toshiba tc358840 HDMI-to-CSI2 bridge
-Date: Fri, 18 Mar 2016 11:32:50 +0100
-Message-Id: <1458297172-31867-1-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:54464 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933069AbcCRNhH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Mar 2016 09:37:07 -0400
+Subject: Re: [PATCH] media: fix media_device_unregister() to destroy media
+ device device resource
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1458254796-7727-1-git-send-email-shuahkh@osg.samsung.com>
+ <20160318065231.67f2cd8b@recife.lan>
+Cc: tiwai@suse.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56EC0479.3050405@osg.samsung.com>
+Date: Fri, 18 Mar 2016 07:36:57 -0600
+MIME-Version: 1.0
+In-Reply-To: <20160318065231.67f2cd8b@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 03/18/2016 03:52 AM, Mauro Carvalho Chehab wrote:
+> Em Thu, 17 Mar 2016 16:46:36 -0600
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> When all drivers except usb-core driver is unbound, destroy the media device
+>> resource. Other wise, media device resource will persist in a defunct state.
+>> This leads to use-after-free and bad access errors during a subsequent bind.
+>> Fix it to destroy the media device resource when last reference is released
+>> in media_device_unregister().
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/media-device.c | 28 ++++++++++++++++++++++------
+>>  1 file changed, 22 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+>> index 070421e..7312612 100644
+>> --- a/drivers/media/media-device.c
+>> +++ b/drivers/media/media-device.c
+>> @@ -822,22 +822,38 @@ printk("%s: mdev=%p\n", __func__, mdev);
+>>  	dev_dbg(mdev->dev, "Media device unregistered\n");
+>>  }
+>>  
+>> +static void media_device_release_devres(struct device *dev, void *res)
+>> +{
+>> +}
+>> +
+>> +static void media_device_destroy_devres(struct device *dev)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = devres_destroy(dev, media_device_release_devres, NULL, NULL);
+>> +	pr_debug("%s: devres_destroy() returned %d\n", __func__, ret);
+>> +}
+>> +
+>>  void media_device_unregister(struct media_device *mdev)
+>>  {
+>> +	int ret;
+>> +	struct device *dev;
+>>  printk("%s: mdev=%p\n", __func__, mdev);
+>>  	if (mdev == NULL)
+>>  		return;
+>>  
+>> -	mutex_lock(&mdev->graph_mutex);
+>> -	kref_put(&mdev->kref, do_media_device_unregister);
+>> -	mutex_unlock(&mdev->graph_mutex);
+>> +	ret = kref_put_mutex(&mdev->kref, do_media_device_unregister,
+>> +			     &mdev->graph_mutex);
+>> +	if (ret) {
+>> +		/* do_media_device_unregister() has run */
+>> +		dev = mdev->dev;
+>> +		mutex_unlock(&mdev->graph_mutex);
+> 
+> 
+>> +		media_device_destroy_devres(dev);
+> 
+> This doesn't seem right: what happens on drivers that don't use
+> devres to allocate struct media_device?
+> 
 
-This is an initial version for the Toshiba tc358840 HDMI-to-CSI2 bridge.
+That is okay. devres_destroy() won't find the resource. The way it works
+is it will try to find the resource with the match routine and data and
+that step will fail it will return -ENOENT. At that point nothing more
+is done.
 
-The original code was contributed by Armin Weiss and I have cleaned it up,
-rebased it to our media tree, finalized the 4k support and added CEC
-support (this is a separate patch and sits on top of the CEC v13 patch series
-which will be posted soon).
+ret = devres_destroy(dev, media_device_release_devres, NULL, NULL);
+pr_debug("%s: devres_destroy() returned %d\n", __func__, ret);
 
-My git tree containing the CEC v13 patches + these tc358840 patches is here:
+devres_destroy() combines the devres_find() and remove. So we are good
+here.
 
-http://git.linuxtv.org/hverkuil/media_tree.git/log/?h=tc358840
+thanks,
+-- Shuah
 
-This will be rebased every so often! You're warned :-)
-
-There are various things that need cleaning up before this is ready for mainlining:
-
-- The device tree properties are messy and need to be cleaned up and properly
-  documented.
-- There are a lot of FIXMEs that have to be checked (especially writes to registers
-  where it is not clear if that should be done or not).
-- The isr has a bunch of mdelay calls: I need to verify which of these (if any) is
-  really necessary and basically figure out what is going on there.
-
-Note for Armin: the EDID isn't set in this driver. It is userspace (or possibly the
-V4L2 driver) that has to set it. This is not something that this driver can decide.
-
-The v4l2-ctl utility can set predefined EDIDs using --set-edid. That said, it needs
-to be updated so it can set EDIDs suitable for 4k formats. I'll work on that.
-
-Regards,
-
-	Hans
-
-Hans Verkuil (2):
-  tc358840: add Toshiba HDMI-to-CSI bridge driver
-  tc358840: add CEC support
-
- .../devicetree/bindings/media/i2c/tc358840.txt     |   50 +
- MAINTAINERS                                        |    7 +
- drivers/media/i2c/Kconfig                          |   10 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/tc358840.c                       | 2529 ++++++++++++++++++++
- drivers/media/i2c/tc358840_regs.h                  |  815 +++++++
- include/media/i2c/tc358840.h                       |   89 +
- 7 files changed, 3501 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tc358840.txt
- create mode 100644 drivers/media/i2c/tc358840.c
- create mode 100644 drivers/media/i2c/tc358840_regs.h
- create mode 100644 include/media/i2c/tc358840.h
 
 -- 
-2.7.0
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
