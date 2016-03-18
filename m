@@ -1,336 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38855 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753574AbcCWOpB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 10:45:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
-Date: Wed, 23 Mar 2016 16:45:01 +0200
-Message-ID: <3511467.97gkNM9KCE@avalon>
-In-Reply-To: <56F2A2B5.80206@xs4all.nl>
-References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20160323073552.18db3b7e@recife.lan> <56F2A2B5.80206@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:54449 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752790AbcCRLRI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Mar 2016 07:17:08 -0400
+Date: Fri, 18 Mar 2016 08:17:01 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>, javier@osg.samsung.com
+Subject: Re: [PATCH 4/5] [media] media-device: use kref for media_device
+ instance
+Message-ID: <20160318081701.221d9d10@recife.lan>
+In-Reply-To: <20160317115053.GB11084@valkosipuli.retiisi.org.uk>
+References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
+	<82ef082c4de7c0a1c546da1d9e462bc86ab423bf.1458129823.git.mchehab@osg.samsung.com>
+	<20160317115053.GB11084@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Thu, 17 Mar 2016 13:50:53 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-On Wednesday 23 Mar 2016 15:05:41 Hans Verkuil wrote:
-> On 03/23/2016 11:35 AM, Mauro Carvalho Chehab wrote:
-> > Em Wed, 23 Mar 2016 10:45:55 +0200 Laurent Pinchart escreveu:
-> >> Code that processes media entities can require knowledge of the
-> >> structure type that embeds a particular media entity instance in order
-> >> to cast the entity to the proper object type. This needs is shown by the
-> >> presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
-> >> functions.
-> >> 
-> >> The implementation of those two functions relies on the entity function
-> >> field, which is both a wrong and an inefficient design, without even
-> >> mentioning the maintenance issue involved in updating the functions
-> >> every time a new entity function is added. Fix this by adding add an
-> >> obj_type field to the media entity structure to carry the information.
-> >> 
-> >> Signed-off-by: Laurent Pinchart
-> >> <laurent.pinchart+renesas@ideasonboard.com>
-> >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> ---
-> >> 
-> >>  drivers/media/media-device.c          |  2 +
-> >>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
-> >>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
-> >>  include/media/media-entity.h          | 79 ++++++++++++++++-------------
-> >>  4 files changed, 46 insertions(+), 37 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> >> index 4a97d92a7e7d..88d8de3b7a4f 100644
-> >> --- a/drivers/media/media-device.c
-> >> +++ b/drivers/media/media-device.c
-> >> @@ -580,6 +580,8 @@ int __must_check media_device_register_entity(struct
-> >> media_device *mdev,
-> >>  			 "Entity type for entity %s was not initialized!\n",
-> >>  			 entity->name);
-> >> 
-> >> +	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
-> >> +
-> > 
-> > This is not ok. There are valid cases where the entity is not embedded
-> > on some other struct. That's the case of connectors/connections, for
-> > example: a connector/connection entity doesn't need anything else but
-> > struct media device.
+> Hi Mauro,
 > 
-> Once connectors are enabled, then we do need a MEDIA_ENTITY_TYPE_CONNECTOR
-> or MEDIA_ENTITY_TYPE_STANDALONE or something along those lines.
-
-MEDIA_ENTITY_TYPE_CONNECTOR would make sense, but only if we add a struct 
-media_connector. I believe that can be a good idea, at least to simplify 
-management of the entity and the connector pad(s).
-
-> > Also, this is V4L2 specific. Neither ALSA nor DVB need to use
-> > container_of(). Actually, this won't even work there, as the entity is
-> > stored as a pointer, and not as an embedded data.
-
-That's sounds like a strange design decision at the very least. There can be 
-valid cases that require creation of bare entities, but I don't think they 
-should be that common.
-
-> Any other subsystem that *does* embed this can use obj_type. If it doesn't
-> embed it in anything, then MEDIA_ENTITY_TYPE_STANDALONE should be used (or
-> whatever name we give it). I agree that we need a type define for the case
-> where it is not embedded.
-
-I'd like to point out that I had defined MEDIA_ENTITY_TYPE_MEDIA_ENTITY for 
-that purpose in v4, and was requested to drop it.
-
-I can submit a v6 with MEDIA_ENTITY_TYPE_MEDIA_ENTITY added back. I'd like a 
-confirmation that it won't be rejected straight away though.
-
-The WARN_ON() is in my opinion useful, but I'm ready to leave it out for now 
-until we fix the connectors mess if it can help getting this patch merged 
-faster.
-
-> > So, if we're willing to do this, then it should, instead, create
-> > something like:
-> > 
-> > struct embedded_media_entity {
-> > 	struct media_entity entity;
-> > 	enum media_entity_type obj_type;
-> > };
+> On Wed, Mar 16, 2016 at 09:04:05AM -0300, Mauro Carvalho Chehab wrote:
+> > Now that the media_device can be used by multiple drivers,
+> > via devres, we need to be sure that it will be dropped only
+> > when all drivers stop using it.  
 > 
-> It's not v4l2 specific. It is just that v4l2 is the only subsystem that
-> requires this information at the moment. I see no reason at all to create
-> such an ugly struct.
-
-I totally agree.
-
-> I very strongly suspect that other subsystems will also embed this in their
-> own internal structs. I actually wonder why it isn't embedded in struct
-> dvb_device, but I have to admit that I didn't take a close look at that.
-> The pads are embedded there, so it is somewhat odd that the entity isn't.
+> Not long ago we split media device initialisation and registration into two.
+> The intent with that was to prevent users from seeing the media device until
+> all the initialisation is finished. I suppose that with dynamic updates, or
+> media device being shared with two drivers, it might be difficult to achieve
+> that. At least the method has to be different.
 > 
-> > And then replace the occurrences of embedded media_entity by
-> > embedded_media_entity at the V4L2 subsystem only, in the places where
-> > the struct is embeded on another one.
+> media_device_init() and media_device_cleanup() were a pair where the latter
+> undid the first. 
+
+Yes, this patch breaks the balance of _init()/_cleanup(), but this is for
+a greater good. It is very hard to remove the devnode and cleanup the
+media_device struct when multiple drivers can use it. The best way to
+warrant that we'll be doing that is via kref.
+
+> This patchs remove the requirement of calling cleanup
+> explitly, breaking that model. It's perhaps not a big problem, there is
+> likely no single driver which would initialise the media controller device
+> once but would register and unregister it multiple times. I still wonder if
+> we really lost something important if we removed media_device_init() and
+> media_device_cleanup() altogether and merged the functionality in
+> media_device_{,un}register().
+> 
+> Cc Javier who wrote the patch.
+
+That patch was written to avoid a race trouble of having the media
+devnode to initialize too early. Merging them back would cause troubles.
+
+Maybe what we could do, instead, is to rename media_device_init()
+to media_device_register(), and call the function that creates the
+devnode as media_device_create_devnode().
+
+What do you think?
+
+> 
+> commit 9832e155f1ed3030fdfaa19e72c06472dc2ecb1d
+> Author: Javier Martinez Canillas <javier@osg.samsung.com>
+> Date:   Fri Dec 11 20:57:08 2015 -0200
+> 
+>     [media] media-device: split media initialization and registration
+> 
+> For system-wide media device, I think we'd need to introduce a new concept,
+> graph, that would define an interconnected set of entities. This would
+> mainly be needed for callbacks, e.g. the power on / off sequences of the
+> entities could be specific to V4L as discussed earlier. With this approach
+> hacks wouldn't be needed to be made in the first place to support two drivers
+> sharing a media device.
+> 
+> What was the original reason you needed to share the media device btw.?
+> 
 > > 
-> >>  	/* Warn if we apparently re-register an entity */
-> >>  	WARN_ON(entity->graph_obj.mdev != NULL);
-> >>  	entity->graph_obj.mdev = mdev;
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
-> >> b/drivers/media/v4l2-core/v4l2-dev.c index d8e5994cccf1..70b559d7ca80
-> >> 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> >> @@ -735,6 +735,7 @@ static int video_register_media_controller(struct
-> >> video_device *vdev, int type)>> 
-> >>  	if (!vdev->v4l2_dev->mdev)
-> >>  	
-> >>  		return 0;
-> >> 
-> >> +	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
-> >> 
-> >>  	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
-> >>  	
-> >>  	switch (type) {
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
-> >> b/drivers/media/v4l2-core/v4l2-subdev.c index d63083803144..0fa60801a428
-> >> 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> >> @@ -584,6 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const
-> >> struct v4l2_subdev_ops *ops)>> 
-> >>  	sd->host_priv = NULL;
-> >>  
-> >>  #if defined(CONFIG_MEDIA_CONTROLLER)
-> >>  
-> >>  	sd->entity.name = sd->name;
-> >> 
-> >> +	sd->entity.obj_type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
-> >> 
-> >>  	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
-> >>  
-> >>  #endif
-> >>  }
-> >> 
-> >> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> >> index 6dc9e4e8cbd4..5cea57955a3a 100644
-> >> --- a/include/media/media-entity.h
-> >> +++ b/include/media/media-entity.h
-> >> @@ -188,10 +188,41 @@ struct media_entity_operations {
-> >> 
-> >>  };
-> >>  
-> >>  /**
-> >> 
-> >> + * enum media_entity_type - Media entity type
-> >> + *
-> >> + * @MEDIA_ENTITY_TYPE_INVALID:
-> >> + *	Invalid type, used to catch uninitialized fields.
-> >> + * @MEDIA_ENTITY_TYPE_VIDEO_DEVICE:
-> >> + *	The entity is embedded in a struct video_device instance.
-> >> + * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
-> >> + *	The entity is embedded in a struct v4l2_subdev instance.
-> >> + *
-> >> + * Media entity objects are not instantiated directly,
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > ---
+> >  drivers/media/media-device.c | 48 +++++++++++++++++++++++++++++++-------------
+> >  include/media/media-device.h |  3 +++
+> >  2 files changed, 37 insertions(+), 14 deletions(-)
 > > 
-> > As I said before, this is not true (nor even at V4L2 subsystem, due to
-> > the connectors/connections).
-> > 
-> > As before, you should call this as:
-> > 	enum embedded_media_entity_type
-> > 
-> > And then change the test to:
-> > 	"Media entity objects declared via struct embedded_media_device are not
-> > 	
-> > 	 instantiated directly,"
-> > 
-> > and fix the text below accordingly.
-> > 
-> >> but the media entity
-> >> + * structure is inherited by (through embedding) other
-> >> subsystem-specific
-> >> + * structures. The media entity type identifies the type of the subclass
-> >> + * structure that implements a media entity instance.
-> >> + *
-> >> + * This allows runtime type identification of media entities and safe
-> >> casting to + * the correct object type. For instance, a media entity
-> >> structure instance + * embedded in a v4l2_subdev structure instance will
-> >> have the type + * MEDIA_ENTITY_TYPE_V4L2_SUBDEV and can safely be cast
-> >> to a v4l2_subdev + * structure using the container_of() macro.
-> >> + *
-> >> + * The MEDIA_ENTITY_TYPE_INVALID type should never be set as an entity
-> >> type, it + * only serves to catch uninitialized fields when registering
-> >> entities. + */
-> >> +enum media_entity_type {
-> >> +	MEDIA_ENTITY_TYPE_INVALID,
-> >> +	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
-> >> +	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
-> >> +};
-> >> +
-> >> +/**
-> >> 
-> >>   * struct media_entity - A media entity graph object.
-> >>   *
-> >>   * @graph_obj:	Embedded structure containing the media object common
-> >>   data.
-> >>   * @name:	Entity name.
-> >> 
-> >> + * @obj_type:	Type of the object that implements the media_entity.
-> >> 
-> >>   * @function:	Entity main function, as defined in uapi/media.h
-> >>   *		(MEDIA_ENT_F_*)
-> >>   * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
-> >> 
-> >> @@ -220,6 +251,7 @@ struct media_entity_operations {
-> >> 
-> >>  struct media_entity {
-> >>  
-> >>  	struct media_gobj graph_obj;	/* must be first field in struct */
-> >>  	const char *name;
-> >> 
-> >> +	enum media_entity_type obj_type;
-> > 
-> > See above. This doesn't below to the generic media entity struct,
-> > but to an special type that is meant to be embedded on some places.
-> > 
-> >>  	u32 function;
-> >>  	unsigned long flags;
-> >> 
-> >> @@ -329,56 +361,29 @@ static inline u32 media_gobj_gen_id(enum
-> >> media_gobj_type type, u64 local_id)>> 
-> >>  }
-> >>  
-> >>  /**
-> >> 
-> >> - * is_media_entity_v4l2_io() - identify if the entity main function
-> >> - *			       is a V4L2 I/O
-> >> - *
-> >> + * is_media_entity_v4l2_io() - Check if the entity is a video_device
-> >> 
-> >>   * @entity:	pointer to entity
-> >>   *
-> >> 
-> >> - * Return: true if the entity main function is one of the V4L2 I/O types
-> >> - *	(video, VBI or SDR radio); false otherwise.
-> >> + * Return: true if the entity is an instance of a video_device object
-> >> and can + * safely be cast to a struct video_device using the
-> >> container_of() macro, or + * false otherwise.
-> >> 
-> >>   */
-> >>  
-> >>  static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
-> >>  {
-> >> 
-> >> -	if (!entity)
-> >> -		return false;
-> >> -
-> >> -	switch (entity->function) {
-> >> -	case MEDIA_ENT_F_IO_V4L:
-> >> -	case MEDIA_ENT_F_IO_VBI:
-> >> -	case MEDIA_ENT_F_IO_SWRADIO:
-> >> -		return true;
-> >> -	default:
-> >> -		return false;
-> >> -	}
-> >> +	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
-> >> 
-> >>  }
-> >>  
-> >>  /**
-> >> 
-> >> - * is_media_entity_v4l2_subdev - return true if the entity main function
-> >> is - *				 associated with the V4L2 API subdev usage
-> >> - *
-> >> + * is_media_entity_v4l2_subdev() - Check if the entity is a v4l2_subdev
-> >> 
-> >>   * @entity:	pointer to entity
-> >>   *
-> >> 
-> >> - * This is an ancillary function used by subdev-based V4L2 drivers.
-> >> - * It checks if the entity function is one of functions used by a V4L2
-> >> subdev, - * e. g. camera-relatef functions, analog TV decoder, TV tuner,
-> >> V4L2 DSPs. + * Return: true if the entity is an instance of a
-> >> v4l2_subdev object and can + * safely be cast to a struct v4l2_subdev
-> >> using the container_of() macro, or + * false otherwise.
-> >> 
-> >>   */
-> >>  
-> >>  static inline bool is_media_entity_v4l2_subdev(struct media_entity
-> >>  *entity)
-> >>  {
-> >> 
-> >> -	if (!entity)
-> >> -		return false;
-> >> -
-> >> -	switch (entity->function) {
-> >> -	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
-> >> -	case MEDIA_ENT_F_CAM_SENSOR:
-> >> -	case MEDIA_ENT_F_FLASH:
-> >> -	case MEDIA_ENT_F_LENS:
-> >> -	case MEDIA_ENT_F_ATV_DECODER:
-> >> -	case MEDIA_ENT_F_TUNER:
-> >> -		return true;
-> >> -
-> >> -	default:
-> >> -		return false;
-> >> -	}
-> >> +	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
-> >> 
-> >>  }
-> >>  
-> >>  /**
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index c32fa15cc76e..38e6c319fe6e 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -721,6 +721,15 @@ int __must_check __media_device_register(struct media_device *mdev,
+> >  {
+> >  	int ret;
+> >  
+> > +	/* Check if mdev was ever registered at all */
+> > +	mutex_lock(&mdev->graph_mutex);
+> > +	if (media_devnode_is_registered(&mdev->devnode)) {
+> > +		kref_get(&mdev->kref);
+> > +		mutex_unlock(&mdev->graph_mutex);
+> > +		return 0;
+> > +	}
+> > +	kref_init(&mdev->kref);
+> > +
+> >  	/* Register the device node. */
+> >  	mdev->devnode.fops = &media_device_fops;
+> >  	mdev->devnode.parent = mdev->dev;
+> > @@ -730,8 +739,10 @@ int __must_check __media_device_register(struct media_device *mdev,
+> >  	mdev->topology_version = 0;
+> >  
+> >  	ret = media_devnode_register(&mdev->devnode, owner);
+> > -	if (ret < 0)
+> > +	if (ret < 0) {
+> > +		media_devnode_unregister(&mdev->devnode);
+> >  		return ret;
+> > +	}
+> >  
+> >  	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
+> >  	if (ret < 0) {
+> > @@ -739,6 +750,7 @@ int __must_check __media_device_register(struct media_device *mdev,
+> >  		return ret;
+> >  	}
+> >  
+> > +	mutex_unlock(&mdev->graph_mutex);
+> >  	dev_dbg(mdev->dev, "Media device registered\n");
+> >  
+> >  	return 0;
+> > @@ -773,23 +785,15 @@ void media_device_unregister_entity_notify(struct media_device *mdev,
+> >  }
+> >  EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
+> >  
+> > -void media_device_unregister(struct media_device *mdev)
+> > +static void do_media_device_unregister(struct kref *kref)
+> >  {
+> > +	struct media_device *mdev;
+> >  	struct media_entity *entity;
+> >  	struct media_entity *next;
+> >  	struct media_interface *intf, *tmp_intf;
+> >  	struct media_entity_notify *notify, *nextp;
+> >  
+> > -	if (mdev == NULL)
+> > -		return;
+> > -
+> > -	mutex_lock(&mdev->graph_mutex);
+> > -
+> > -	/* Check if mdev was ever registered at all */
+> > -	if (!media_devnode_is_registered(&mdev->devnode)) {
+> > -		mutex_unlock(&mdev->graph_mutex);
+> > -		return;
+> > -	}
+> > +	mdev = container_of(kref, struct media_device, kref);
+> >  
+> >  	/* Remove all entities from the media device */
+> >  	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+> > @@ -807,13 +811,26 @@ void media_device_unregister(struct media_device *mdev)
+> >  		kfree(intf);
+> >  	}
+> >  
+> > -	mutex_unlock(&mdev->graph_mutex);
+> > +	/* Check if mdev devnode was registered */
+> > +	if (!media_devnode_is_registered(&mdev->devnode))
+> > +		return;
+> >  
+> >  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> >  	media_devnode_unregister(&mdev->devnode);
+> >  
+> >  	dev_dbg(mdev->dev, "Media device unregistered\n");
+> >  }
+> > +
+> > +void media_device_unregister(struct media_device *mdev)
+> > +{
+> > +	if (mdev == NULL)
+> > +		return;
+> > +
+> > +	mutex_lock(&mdev->graph_mutex);
+> > +	kref_put(&mdev->kref, do_media_device_unregister);
+> > +	mutex_unlock(&mdev->graph_mutex);
+> > +
+> > +}
+> >  EXPORT_SYMBOL_GPL(media_device_unregister);
+> >  
+> >  static void media_device_release_devres(struct device *dev, void *res)
+> > @@ -825,13 +842,16 @@ struct media_device *media_device_get_devres(struct device *dev)
+> >  	struct media_device *mdev;
+> >  
+> >  	mdev = devres_find(dev, media_device_release_devres, NULL, NULL);
+> > -	if (mdev)
+> > +	if (mdev) {
+> > +		kref_get(&mdev->kref);
+> >  		return mdev;
+> > +	}
+> >  
+> >  	mdev = devres_alloc(media_device_release_devres,
+> >  				sizeof(struct media_device), GFP_KERNEL);
+> >  	if (!mdev)
+> >  		return NULL;
+> > +
+> >  	return devres_get(dev, mdev, NULL, NULL);
+> >  }
+> >  EXPORT_SYMBOL_GPL(media_device_get_devres);
+> > diff --git a/include/media/media-device.h b/include/media/media-device.h
+> > index ca3871b853ba..73c16e6e6b6b 100644
+> > --- a/include/media/media-device.h
+> > +++ b/include/media/media-device.h
+> > @@ -23,6 +23,7 @@
+> >  #ifndef _MEDIA_DEVICE_H
+> >  #define _MEDIA_DEVICE_H
+> >  
+> > +#include <linux/kref.h>
+> >  #include <linux/list.h>
+> >  #include <linux/mutex.h>
+> >  
+> > @@ -283,6 +284,7 @@ struct media_entity_notify {
+> >   * struct media_device - Media device
+> >   * @dev:	Parent device
+> >   * @devnode:	Media device node
+> > + * @kref:	Object refcount
+> >   * @driver_name: Optional device driver name. If not set, calls to
+> >   *		%MEDIA_IOC_DEVICE_INFO will return dev->driver->name.
+> >   *		This is needed for USB drivers for example, as otherwise
+> > @@ -347,6 +349,7 @@ struct media_device {
+> >  	/* dev->driver_data points to this struct. */
+> >  	struct device *dev;
+> >  	struct media_devnode devnode;
+> > +	struct kref kref;
+> >  
+> >  	char model[32];
+> >  	char driver_name[32];
+> > -- 
+> > 2.5.0
+> >   
+> 
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Thanks,
+Mauro
