@@ -1,86 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34544 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757972AbcCCVSQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 16:18:16 -0500
-Subject: Re: [PATCH v3 13/22] media: Change v4l-core to check if source is
- free
-To: Olli Salonen <olli.salonen@iki.fi>
-References: <cover.1455233150.git.shuahkh@osg.samsung.com>
- <d9c55486ee5daff0caf19c1eab8ca8856d79ff5d.1455233154.git.shuahkh@osg.samsung.com>
- <CAAZRmGziEGkywO5fU8aQqk6gFC8EWrY0VJA84PMCDj5crtiO3w@mail.gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56D8AA16.7040909@osg.samsung.com>
-Date: Thu, 3 Mar 2016 14:18:14 -0700
-MIME-Version: 1.0
-In-Reply-To: <CAAZRmGziEGkywO5fU8aQqk6gFC8EWrY0VJA84PMCDj5crtiO3w@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:56441 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933221AbcCROQk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Mar 2016 10:16:40 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 01/17] dts: exynos4*: add HDMI CEC pin definition to pinctrl
+Date: Fri, 18 Mar 2016 15:07:00 +0100
+Message-Id: <1458310036-19252-2-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
+References: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2016 01:39 PM, Olli Salonen wrote:
-> Hello Shuah,
-> 
-> This patch seems to cause issues with my setup. Basically, when I try
-> to tune to a channel, I get an oops. I'm using TechnoTrend CT2-4650
-> PCIe DVB-T tuner (cx23885).
-> 
-> Here's the oops:
-> 
-> [  548.443272] BUG: unable to handle kernel NULL pointer dereference
-> at 0000000000000010
-> [  548.452036] IP: [<ffffffffc020ffc9>]
-> v4l_vb2q_enable_media_source+0x9/0x50 [videodev]
+From: Kamil Debski <kamil@wypas.org>
 
-Hi Olli,
+Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
+Exynos4x12 SoCs. These are required by the HDMI CEC device.
 
-Will you be able to use gdb and tell me which source line is
-the cause? Could you give this following patch a try and if it
-fixes the problem?
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+---
+ arch/arm/boot/dts/exynos4210-pinctrl.dtsi | 7 +++++++
+ arch/arm/boot/dts/exynos4x12-pinctrl.dtsi | 7 +++++++
+ 2 files changed, 14 insertions(+)
 
-thanks,
--- Shuah
-
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 643686d..a39a3cd 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -214,6 +214,8 @@ int v4l_vb2q_enable_media_source(struct vb2_queue *q)
- {
-        struct v4l2_fh *fh = q->owner;
+diff --git a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
+index a7c2128..9331c62 100644
+--- a/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
++++ b/arch/arm/boot/dts/exynos4210-pinctrl.dtsi
+@@ -820,6 +820,13 @@
+ 			samsung,pin-pud = <1>;
+ 			samsung,pin-drv = <0>;
+ 		};
++
++		hdmi_cec: hdmi-cec {
++			samsung,pins = "gpx3-6";
++			samsung,pin-function = <3>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <0>;
++		};
+ 	};
  
--       return v4l_enable_media_source(fh->vdev);
-+       if (fh && fh->vdev)
-+               return v4l_enable_media_source(fh->vdev);
-+       return 0;
- }
- EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
-shuah@anduin:~/lkml/linux_media_feb27_2016$ git diff > temp.diff
-shuah@anduin:~/lkml/linux_media_feb27_2016$ cat temp.diff
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 643686d..a39a3cd 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -214,6 +214,8 @@ int v4l_vb2q_enable_media_source(struct vb2_queue *q)
- {
- 	struct v4l2_fh *fh = q->owner;
+ 	pinctrl@03860000 {
+diff --git a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
+index bac25c6..856b292 100644
+--- a/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
++++ b/arch/arm/boot/dts/exynos4x12-pinctrl.dtsi
+@@ -885,6 +885,13 @@
+ 			samsung,pin-pud = <0>;
+ 			samsung,pin-drv = <0>;
+ 		};
++
++		hdmi_cec: hdmi-cec {
++			samsung,pins = "gpx3-6";
++			samsung,pin-function = <3>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <0>;
++		};
+ 	};
  
--	return v4l_enable_media_source(fh->vdev);
-+	if (fh && fh->vdev)
-+		return v4l_enable_media_source(fh->vdev);
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
-
-
-
+ 	pinctrl_2: pinctrl@03860000 {
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.7.0
+
