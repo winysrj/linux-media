@@ -1,176 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:57403 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757223AbcCCW2n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:28:43 -0500
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Viorel Suman <viorel.suman@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v4 04/18] i2c: i2c-arb-gpio-challenge: convert to use an explicit i2c mux core
-Date: Thu,  3 Mar 2016 23:27:16 +0100
-Message-Id: <1457044050-15230-5-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
-References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:26547 "EHLO
+	aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752592AbcCROQl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Mar 2016 10:16:41 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv13 02/17] dts: exynos4: add node for the HDMI CEC device
+Date: Fri, 18 Mar 2016 15:07:01 +0100
+Message-Id: <1458310036-19252-3-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
+References: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+From: Kamil Debski <kamil@wypas.org>
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select/deselect ops to be in terms of the i2c mux core
-instead of the child adapter.
+This patch adds HDMI CEC node specific to the Exynos4210/4x12 SoC series.
 
-Signed-off-by: Peter Rosin <peda@axentia.se>
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 ---
- drivers/i2c/muxes/i2c-arb-gpio-challenge.c | 47 +++++++++++++-----------------
- 1 file changed, 20 insertions(+), 27 deletions(-)
+ arch/arm/boot/dts/exynos4.dtsi | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
-index 402e3a6c671a..a42827b3c672 100644
---- a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
-+++ b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
-@@ -28,8 +28,6 @@
- /**
-  * struct i2c_arbitrator_data - Driver data for I2C arbitrator
-  *
-- * @parent: Parent adapter
-- * @child: Child bus
-  * @our_gpio: GPIO we'll use to claim.
-  * @our_gpio_release: 0 if active high; 1 if active low; AKA if the GPIO ==
-  *   this then consider it released.
-@@ -42,8 +40,6 @@
-  */
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index 045785c..8913408 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -751,6 +751,18 @@
+ 		status = "disabled";
+ 	};
  
- struct i2c_arbitrator_data {
--	struct i2c_adapter *parent;
--	struct i2c_adapter *child;
- 	int our_gpio;
- 	int our_gpio_release;
- 	int their_gpio;
-@@ -59,9 +55,9 @@ struct i2c_arbitrator_data {
-  *
-  * Use the GPIO-based signalling protocol; return -EBUSY if we fail.
-  */
--static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
-+static int i2c_arbitrator_select(struct i2c_mux_core *muxc, u32 chan)
- {
--	const struct i2c_arbitrator_data *arb = data;
-+	const struct i2c_arbitrator_data *arb = i2c_mux_priv(muxc);
- 	unsigned long stop_retry, stop_time;
- 
- 	/* Start a round of trying to claim the bus */
-@@ -93,7 +89,7 @@ static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
- 	/* Give up, release our claim */
- 	gpio_set_value(arb->our_gpio, arb->our_gpio_release);
- 	udelay(arb->slew_delay_us);
--	dev_err(&adap->dev, "Could not claim bus, timeout\n");
-+	dev_err(muxc->dev, "Could not claim bus, timeout\n");
- 	return -EBUSY;
- }
- 
-@@ -102,10 +98,9 @@ static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
-  *
-  * Release the I2C bus using the GPIO-based signalling protocol.
-  */
--static int i2c_arbitrator_deselect(struct i2c_adapter *adap, void *data,
--				   u32 chan)
-+static int i2c_arbitrator_deselect(struct i2c_mux_core *muxc, u32 chan)
- {
--	const struct i2c_arbitrator_data *arb = data;
-+	const struct i2c_arbitrator_data *arb = i2c_mux_priv(muxc);
- 
- 	/* Release the bus and wait for the other master to notice */
- 	gpio_set_value(arb->our_gpio, arb->our_gpio_release);
-@@ -119,6 +114,7 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	struct device_node *np = dev->of_node;
- 	struct device_node *parent_np;
-+	struct i2c_mux_core *muxc;
- 	struct i2c_arbitrator_data *arb;
- 	enum of_gpio_flags gpio_flags;
- 	unsigned long out_init;
-@@ -134,12 +130,13 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	arb = devm_kzalloc(dev, sizeof(*arb), GFP_KERNEL);
--	if (!arb) {
--		dev_err(dev, "Cannot allocate i2c_arbitrator_data\n");
-+	muxc = i2c_mux_alloc(NULL, dev, sizeof(*arb), 0,
-+			     i2c_arbitrator_select, i2c_arbitrator_deselect);
-+	if (!muxc)
- 		return -ENOMEM;
--	}
--	platform_set_drvdata(pdev, arb);
-+	arb = i2c_mux_priv(muxc);
++	hdmicec: cec@100B0000 {
++		compatible = "samsung,s5p-cec";
++		reg = <0x100B0000 0x200>;
++		interrupts = <0 114 0>;
++		clocks = <&clock CLK_HDMI_CEC>;
++		clock-names = "hdmicec";
++		samsung,syscon-phandle = <&pmu_system_controller>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&hdmi_cec>;
++		status = "disabled";
++	};
 +
-+	platform_set_drvdata(pdev, muxc);
- 
- 	/* Request GPIOs */
- 	ret = of_get_named_gpio_flags(np, "our-claim-gpio", 0, &gpio_flags);
-@@ -196,21 +193,18 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
- 		dev_err(dev, "Cannot parse i2c-parent\n");
- 		return -EINVAL;
- 	}
--	arb->parent = of_get_i2c_adapter_by_node(parent_np);
-+	muxc->parent = of_get_i2c_adapter_by_node(parent_np);
- 	of_node_put(parent_np);
--	if (!arb->parent) {
-+	if (!muxc->parent) {
- 		dev_err(dev, "Cannot find parent bus\n");
- 		return -EPROBE_DEFER;
- 	}
- 
- 	/* Actually add the mux adapter */
--	arb->child = i2c_add_mux_adapter(arb->parent, dev, arb, 0, 0, 0,
--					 i2c_arbitrator_select,
--					 i2c_arbitrator_deselect);
--	if (!arb->child) {
-+	ret = i2c_mux_add_adapter(muxc, 0, 0, 0);
-+	if (ret) {
- 		dev_err(dev, "Failed to add adapter\n");
--		ret = -ENODEV;
--		i2c_put_adapter(arb->parent);
-+		i2c_put_adapter(muxc->parent);
- 	}
- 
- 	return ret;
-@@ -218,11 +212,10 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
- 
- static int i2c_arbitrator_remove(struct platform_device *pdev)
- {
--	struct i2c_arbitrator_data *arb = platform_get_drvdata(pdev);
--
--	i2c_del_mux_adapter(arb->child);
--	i2c_put_adapter(arb->parent);
-+	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
- 
-+	i2c_mux_del_adapters(muxc);
-+	i2c_put_adapter(muxc->parent);
- 	return 0;
- }
- 
+ 	mixer: mixer@12C10000 {
+ 		compatible = "samsung,exynos4210-mixer";
+ 		interrupts = <0 91 0>;
 -- 
-2.1.4
+2.7.0
 
