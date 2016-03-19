@@ -1,67 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40282 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbcCXX1y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:27:54 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 05/51] v4l: vsp1: drm: Include correct header file
-Date: Fri, 25 Mar 2016 01:27:01 +0200
-Message-Id: <1458862067-19525-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:54857 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752825AbcCSNZc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Mar 2016 09:25:32 -0400
+Subject: Re: [PATCH] sound/usb: fix to release stream resources from
+ media_snd_device_delete()
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1458355831-9467-1-git-send-email-shuahkh@osg.samsung.com>
+ <20160318235708.1eccf0e6@recife.lan> <20160319073944.60235d88@recife.lan>
+Cc: tiwai@suse.com, perex@perex.cz, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <56ED5343.1060401@osg.samsung.com>
+Date: Sat, 19 Mar 2016 07:25:23 -0600
+MIME-Version: 1.0
+In-Reply-To: <20160319073944.60235d88@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VSP1 DRM API is declared in <media/vsp1.h>, not <linux/vsp1.h>. Fix
-it. This also reverts commit 18922936dc28 ("[media] vsp1_drm.h: add
-missing prototypes") that added the same declarations in a different
-header file.
+On 03/19/2016 04:39 AM, Mauro Carvalho Chehab wrote:
+> Em Fri, 18 Mar 2016 23:57:08 -0300
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+> 
+>> Em Fri, 18 Mar 2016 20:50:31 -0600
+>> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+>>
+>>> Fix to release stream resources from media_snd_device_delete() before
+>>> media device is unregistered. Without this change, stream resource free
+>>> is attempted after the media device is unregistered which would result
+>>> in use-after-free errors.
+>>>
+>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>> ---
+>>>
+>>> - Ran bind/unbind loop (1000 iteration) test on snd-usb-audio
+>>>   while running mc_nextgen_test loop (1000 iterations) in parallel.
+>>> - Ran bind/unbind and rmmod/modprobe tests on both drivers. Also
+>>>   generated graphs when after bind/unbind, rmmod/modprobe. Graphs
+>>>   look good.
+>>> - Note: Please apply the following patch to fix memory leak:
+>>>   sound/usb: Fix memory leak in media_snd_stream_delete() during unbind
+>>>   https://lkml.org/lkml/2016/3/16/1050
+>>>
+>>>  sound/usb/media.c | 7 +++++++
+>>>  1 file changed, 7 insertions(+)
+>>>
+>>> diff --git a/sound/usb/media.c b/sound/usb/media.c
+>>> index de4a815..e35af88 100644
+>>> --- a/sound/usb/media.c
+>>> +++ b/sound/usb/media.c
+>>> @@ -301,6 +301,13 @@ int media_snd_device_create(struct snd_usb_audio *chip,
+>>>  void media_snd_device_delete(struct snd_usb_audio *chip)
+>>>  {
+>>>  	struct media_device *mdev = chip->media_dev;
+>>> +	struct snd_usb_stream *stream;
+>>> +
+>>> +	/* release resources */
+>>> +	list_for_each_entry(stream, &chip->pcm_list, list) {
+>>> +		media_snd_stream_delete(&stream->substream[0]);
+>>> +		media_snd_stream_delete(&stream->substream[1]);  
+>>
+>> I'll look on it better tomorrow, but it sounds weird to hardcode
+>> substream[0] and [1] here... are you sure that this is valid for
+>> *all* devices supported by snd-usb-audio?
+> 
+> After looking at pcm.c and finding this:
+> 
+> static void snd_usb_audio_stream_free(struct snd_usb_stream *stream)
+> {
+> 	free_substream(&stream->substream[0]);
+> 	free_substream(&stream->substream[1]);
+> 	list_del(&stream->list);
+> 	kfree(stream);
+> }
+> 
+> It seems that assuming that substream is always an array with size 2
+> is right.
+> 
+> I'll do some tests with it today with your patch.
+> 
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c |  2 +-
- drivers/media/platform/vsp1/vsp1_drm.h | 11 -----------
- 2 files changed, 1 insertion(+), 12 deletions(-)
+Right. snd-usb-audio uses this in several places like the one above you found.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index 021fe5778cd1..8cf7c19f4344 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -13,10 +13,10 @@
- 
- #include <linux/device.h>
- #include <linux/slab.h>
--#include <linux/vsp1.h>
- 
- #include <media/media-entity.h>
- #include <media/v4l2-subdev.h>
-+#include <media/vsp1.h>
- 
- #include "vsp1.h"
- #include "vsp1_bru.h"
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
-index f68056838319..7704038c3add 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.h
-+++ b/drivers/media/platform/vsp1/vsp1_drm.h
-@@ -35,15 +35,4 @@ int vsp1_drm_init(struct vsp1_device *vsp1);
- void vsp1_drm_cleanup(struct vsp1_device *vsp1);
- int vsp1_drm_create_links(struct vsp1_device *vsp1);
- 
--int vsp1_du_init(struct device *dev);
--int vsp1_du_setup_lif(struct device *dev, unsigned int width,
--		      unsigned int height);
--void vsp1_du_atomic_begin(struct device *dev);
--int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
--			  u32 pixelformat, unsigned int pitch,
--			  dma_addr_t mem[2], const struct v4l2_rect *src,
--			  const struct v4l2_rect *dst);
--void vsp1_du_atomic_flush(struct device *dev);
--
--
- #endif /* __VSP1_DRM_H__ */
+thanks,
+-- Shuah
+
+
 -- 
-2.7.3
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com | (970) 217-8978
