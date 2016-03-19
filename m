@@ -1,58 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:35138 "EHLO
-	mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753530AbcCHIUX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 03:20:23 -0500
-MIME-Version: 1.0
-In-Reply-To: <1457399038-14573-1-git-send-email-horms+renesas@verge.net.au>
-References: <1457399038-14573-1-git-send-email-horms+renesas@verge.net.au>
-Date: Tue, 8 Mar 2016 09:20:23 +0100
-Message-ID: <CAMuHMdVY5uDkrV77D1H9QTGY_gwJsnA4MXy+HAmkW33qk-YkxQ@mail.gmail.com>
-Subject: Re: [PATCH v2] media: sh_mobile_ceu_camera: Remove dependency on SUPERH
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Simon Horman <horms+renesas@verge.net.au>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from lists.s-osg.org ([54.187.51.154]:54902 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754898AbcCSTuq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Mar 2016 15:50:46 -0400
+From: Luis de Bethencourt <luisbg@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: sumit.semwal@linaro.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	Luis de Bethencourt <luisbg@osg.samsung.com>
+Subject: [PATCH] fence: add missing descriptions for fence
+Date: Sat, 19 Mar 2016 19:50:37 +0000
+Message-Id: <1458417037-26691-1-git-send-email-luisbg@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 8, 2016 at 2:03 AM, Simon Horman <horms+renesas@verge.net.au> wrote:
-> A dependency on ARCH_SHMOBILE seems to be the best option for
-> sh_mobile_ceu_camera:
->
-> * For Super H based SoCs: sh_mobile_ceu is used on SH_AP325RXA, SH_ECOVEC,
->   SH_KFR2R09, SH_MIGOR, and SH_7724_SOLUTION_ENGINE which depend on
->   CPU_SUBTYPE_SH7722, CPU_SUBTYPE_SH7723, or CPU_SUBTYPE_SH7724 which all
->   select ARCH_SHMOBILE.
->
-> * For ARM Based SoCs: Since the removal of legacy (non-multiplatform)
->   support this driver has not been used by any Renesas ARM based SoCs.
->   The Renesas ARM based SoCs currently select ARCH_SHMOBILE, however,
->   it is planned that this will no longer be the case.
->
-> This is part of an ongoing process to migrate from ARCH_SHMOBILE to
-> ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
-> appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
->
-> Thanks to Geert Uytterhoeven for analysis and portions of the
-> change log text.
->
-> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+Commit b55b54b5db33 ("staging/android: remove struct sync_pt")
+added the members child_list and active_list to the fence struct, but
+didn't add descriptions for these. Adding the descriptions.
 
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
+---
+Hi,
 
-Gr{oetje,eeting}s,
+Noticed this missing descriptions when running make htmldocs.
 
-                        Geert
+Got the following warnings:
+.//include/linux/fence.h:84: warning: No description found for parameter 'child_list'
+.//include/linux/fence.h:84: warning: No description found for parameter 'active_list'
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+Thanks :)
+Luis
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+ include/linux/fence.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/include/linux/fence.h b/include/linux/fence.h
+index 2b17698..2056e9f 100644
+--- a/include/linux/fence.h
++++ b/include/linux/fence.h
+@@ -49,6 +49,8 @@ struct fence_cb;
+  * @timestamp: Timestamp when the fence was signaled.
+  * @status: Optional, only valid if < 0, must be set before calling
+  * fence_signal, indicates that the fence has completed with an error.
++ * @child_list: list of children fences
++ * @active_list: list of active fences
+  *
+  * the flags member must be manipulated and read using the appropriate
+  * atomic ops (bit_*), so taking the spinlock will not be needed most
+-- 
+2.5.1
+
