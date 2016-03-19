@@ -1,127 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40282 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807AbcCXX2H (ORCPT
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:33808 "EHLO
+	mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754565AbcCSCuq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:28:07 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 16/51] v4l: vsp1: sru: Don't program intensity in control set handler
-Date: Fri, 25 Mar 2016 01:27:12 +0200
-Message-Id: <1458862067-19525-17-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 18 Mar 2016 22:50:46 -0400
+Date: Sat, 19 Mar 2016 11:50:40 +0900
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
+	lars@opdenkamp.eu, linux@arm.linux.org.uk,
+	Kamil Debski <kamil@wypas.org>, krzk@kernel.org
+Subject: Re: [PATCHv13 01/17] dts: exynos4*: add HDMI CEC pin definition to
+ pinctrl
+Message-ID: <20160319025040.GA7289@kozik-lap>
+References: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
+ <1458310036-19252-2-git-send-email-hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1458310036-19252-2-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The datasheet clearly states that all but a few registers can't be
-modified when the device is running. Programming the intensity
-parameters in the control set handler is thus prohibited. Program it
-when starting the module instead.
+On Fri, Mar 18, 2016 at 03:07:00PM +0100, Hans Verkuil wrote:
+> From: Kamil Debski <kamil@wypas.org>
+> 
+> Add pinctrl nodes for the HDMI CEC device to the Exynos4210 and
+> Exynos4x12 SoCs. These are required by the HDMI CEC device.
+> 
+> Signed-off-by: Kamil Debski <kamil@wypas.org>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+> ---
+>  arch/arm/boot/dts/exynos4210-pinctrl.dtsi | 7 +++++++
+>  arch/arm/boot/dts/exynos4x12-pinctrl.dtsi | 7 +++++++
+>  2 files changed, 14 insertions(+)
 
-This requires storing the intensity value internally as the module can
-be started from the frame completion interrupt handler, and accessing
-control values requires taking a mutex.
+Hi Hans,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_sru.c | 35 +++++++++-------------------------
- drivers/media/platform/vsp1/vsp1_sru.h |  2 ++
- 2 files changed, 11 insertions(+), 26 deletions(-)
+I see you have been carrying these three patches for a long time.
+Initially I thought that there are some dependencies... but maybe there
+are not?
 
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index 149ee1cd0b5a..d2c705563cd7 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -26,11 +26,6 @@
-  * Device Access
-  */
- 
--static inline u32 vsp1_sru_read(struct vsp1_sru *sru, u32 reg)
--{
--	return vsp1_read(sru->entity.vsp1, reg);
--}
--
- static inline void vsp1_sru_write(struct vsp1_sru *sru, u32 reg, u32 data)
- {
- 	vsp1_write(sru->entity.vsp1, reg, data);
-@@ -82,20 +77,10 @@ static int sru_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct vsp1_sru *sru =
- 		container_of(ctrl->handler, struct vsp1_sru, ctrls);
--	const struct vsp1_sru_param *param;
--	u32 value;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_VSP1_SRU_INTENSITY:
--		param = &vsp1_sru_params[ctrl->val - 1];
--
--		value = vsp1_sru_read(sru, VI6_SRU_CTRL0);
--		value &= ~(VI6_SRU_CTRL0_PARAM0_MASK |
--			   VI6_SRU_CTRL0_PARAM1_MASK);
--		value |= param->ctrl0;
--		vsp1_sru_write(sru, VI6_SRU_CTRL0, value);
--
--		vsp1_sru_write(sru, VI6_SRU_CTRL2, param->ctrl2);
-+		sru->intensity = ctrl->val;
- 		break;
- 	}
- 
-@@ -123,6 +108,7 @@ static const struct v4l2_ctrl_config sru_intensity_control = {
- 
- static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
- {
-+	const struct vsp1_sru_param *param;
- 	struct vsp1_sru *sru = to_sru(subdev);
- 	struct v4l2_mbus_framefmt *input;
- 	struct v4l2_mbus_framefmt *output;
-@@ -148,18 +134,13 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	if (input->width != output->width)
- 		ctrl0 |= VI6_SRU_CTRL0_MODE_UPSCALE;
- 
--	/* Take the control handler lock to ensure that the CTRL0 value won't be
--	 * changed behind our back by a set control operation.
--	 */
--	if (sru->entity.vsp1->info->uapi)
--		mutex_lock(sru->ctrls.lock);
--	ctrl0 |= vsp1_sru_read(sru, VI6_SRU_CTRL0)
--	       & (VI6_SRU_CTRL0_PARAM0_MASK | VI6_SRU_CTRL0_PARAM1_MASK);
--	vsp1_sru_write(sru, VI6_SRU_CTRL0, ctrl0);
--	if (sru->entity.vsp1->info->uapi)
--		mutex_unlock(sru->ctrls.lock);
-+	param = &vsp1_sru_params[sru->intensity - 1];
-+
-+	ctrl0 |= param->ctrl0;
- 
-+	vsp1_sru_write(sru, VI6_SRU_CTRL0, ctrl0);
- 	vsp1_sru_write(sru, VI6_SRU_CTRL1, VI6_SRU_CTRL1_PARAM5);
-+	vsp1_sru_write(sru, VI6_SRU_CTRL2, param->ctrl2);
- 
- 	return 0;
- }
-@@ -378,6 +359,8 @@ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
- 	v4l2_ctrl_handler_init(&sru->ctrls, 1);
- 	v4l2_ctrl_new_custom(&sru->ctrls, &sru_intensity_control, NULL);
- 
-+	sru->intensity = 1;
-+
- 	sru->entity.subdev.ctrl_handler = &sru->ctrls;
- 
- 	if (sru->ctrls.error) {
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.h b/drivers/media/platform/vsp1/vsp1_sru.h
-index b6768bf3dc47..85e241457af2 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.h
-+++ b/drivers/media/platform/vsp1/vsp1_sru.h
-@@ -28,6 +28,8 @@ struct vsp1_sru {
- 	struct vsp1_entity entity;
- 
- 	struct v4l2_ctrl_handler ctrls;
-+
-+	unsigned int intensity;
- };
- 
- static inline struct vsp1_sru *to_sru(struct v4l2_subdev *subdev)
--- 
-2.7.3
+Can I take these Exynos DTS patches to samsung-soc?
 
+Best regards,
+Krzysztof
