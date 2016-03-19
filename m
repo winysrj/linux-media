@@ -1,108 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.goneo.de ([85.220.129.37]:39582 "EHLO smtp3.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753719AbcCIPva convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Mar 2016 10:51:30 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by smtp3.goneo.de (Postfix) with ESMTP id F0AC623F948
-	for <linux-media@vger.kernel.org>; Wed,  9 Mar 2016 16:43:47 +0100 (CET)
-Received: from smtp3.goneo.de ([127.0.0.1])
-	by localhost (smtp3.goneo.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id m9RuVOHo5kdI for <linux-media@vger.kernel.org>;
-	Wed,  9 Mar 2016 16:43:37 +0100 (CET)
-Received: from sol.fritz.box (dyndsl-095-033-013-101.ewe-ip-backbone.de [95.33.13.101])
-	by smtp3.goneo.de (Postfix) with ESMTPSA id 8A3C323F40A
-	for <linux-media@vger.kernel.org>; Wed,  9 Mar 2016 16:43:37 +0100 (CET)
-From: Markus Heiser <markus.heiser@darmarit.de>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Subject: DVBv5 Tools: VDR support seems to be broken
-Message-Id: <19129703-C076-47F7-BEFF-8A57D172132D@darmarit.de>
-Date: Wed, 9 Mar 2016 16:43:36 +0100
-To: linux-media@vger.kernel.org
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:44393 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755075AbcCSVBr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Mar 2016 17:01:47 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH RFC 1/2] media: platform: transfer format translations to soc_mediabus
+Date: Sat, 19 Mar 2016 22:01:27 +0100
+Message-Id: <1458421288-22094-2-git-send-email-robert.jarzmik@free.fr>
+In-Reply-To: <1458421288-22094-1-git-send-email-robert.jarzmik@free.fr>
+References: <1458421288-22094-1-git-send-email-robert.jarzmik@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Transfer the formats translations to soc_mediabus. Even is soc_camera
+was to be deprecated, soc_mediabus will survive, and should describe all
+that happens on the bus connecting the image processing unit of the SoC
+and the sensor.
 
-I tested DVBv5 tools, creating vdr channel lists. My first attemp
-was to convert a dvbv5 channel list:
+The translation engine provides an easy way to compute the formats
+available in the v4l2 device, given any sensors format capabilities
+bound with known image processing transformations.
 
-<SNIP> -----------------------------
-# file: test_convert_in.conf
-#
-# converted with: dvb-format-convert -I DVBV5 -O VDR  test_convert_in.conf test_convert_out.conf
-#
-[Das Erste HD]
-	SERVICE_ID = 10301
-	VIDEO_PID = 5101
-	AUDIO_PID = 5102 5103 5106 5108
-	PID_0b = 5172 2171
-	PID_06 = 5105 5104
-	PID_05 = 1170
-	LNB = UNIVERSAL
-	FREQUENCY = 11494000
-	INVERSION = OFF
-	SYMBOL_RATE = 22000488
-	INNER_FEC = 2/3
-	MODULATION = PSK/8
-	PILOT = ON
-	ROLLOFF = 35
-	POLARIZATION = HORIZONTAL
-	STREAM_ID = 0
-	DELIVERY_SYSTEM = DVBS2
-<SNAP> -----------------------------
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ drivers/media/platform/soc_camera/soc_camera.c   |  7 +--
+ drivers/media/platform/soc_camera/soc_mediabus.c | 65 ++++++++++++++++++++++++
+ include/media/drv-intf/soc_mediabus.h            | 22 ++++++++
+ include/media/soc_camera.h                       | 15 ------
+ 4 files changed, 88 insertions(+), 21 deletions(-)
 
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 46c7186f7867..039524a20056 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -204,12 +204,7 @@ static void soc_camera_clock_stop(struct soc_camera_host *ici)
+ const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
+ 	struct soc_camera_device *icd, unsigned int fourcc)
+ {
+-	unsigned int i;
+-
+-	for (i = 0; i < icd->num_user_formats; i++)
+-		if (icd->user_formats[i].host_fmt->fourcc == fourcc)
+-			return icd->user_formats + i;
+-	return NULL;
++	return soc_mbus_xlate_by_fourcc(icd->user_formats, fourcc);
+ }
+ EXPORT_SYMBOL(soc_camera_xlate_by_fourcc);
+ 
+diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
+index e3e665e1c503..95c13055f50f 100644
+--- a/drivers/media/platform/soc_camera/soc_mediabus.c
++++ b/drivers/media/platform/soc_camera/soc_mediabus.c
+@@ -10,6 +10,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/slab.h>
+ 
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mediabus.h>
+@@ -512,6 +513,70 @@ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
+ }
+ EXPORT_SYMBOL(soc_mbus_config_compatible);
+ 
++struct soc_camera_format_xlate *soc_mbus_build_fmts_xlate(
++	struct v4l2_device *v4l2_dev, struct v4l2_subdev *subdev,
++	int (*get_formats)(struct v4l2_device *, unsigned int,
++			   struct soc_camera_format_xlate *xlate))
++{
++	unsigned int i, fmts = 0, raw_fmts = 0;
++	int ret;
++	struct v4l2_subdev_mbus_code_enum code = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	struct soc_camera_format_xlate *user_formats;
++
++	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
++		raw_fmts++;
++		code.index++;
++	}
++
++	/*
++	 * First pass - only count formats this host-sensor
++	 * configuration can provide
++	 */
++	for (i = 0; i < raw_fmts; i++) {
++		ret = get_formats(v4l2_dev, i, NULL);
++		if (ret < 0)
++			return ERR_PTR(ret);
++		fmts += ret;
++	}
++
++	if (!fmts)
++		return ERR_PTR(-ENXIO);
++
++	user_formats = kcalloc(fmts + 1, sizeof(*user_formats), GFP_KERNEL);
++	if (!user_formats)
++		return ERR_PTR(-ENOMEM);
++
++	/* Second pass - actually fill data formats */
++	fmts = 0;
++	for (i = 0; i < raw_fmts; i++) {
++		ret = get_formats(v4l2_dev, i, user_formats + fmts);
++		if (ret < 0)
++			goto egfmt;
++		fmts += ret;
++	}
++	user_formats[fmts].code = 0;
++
++	return user_formats;
++egfmt:
++	kfree(user_formats);
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL(soc_mbus_build_fmts_xlate);
++
++const struct soc_camera_format_xlate *soc_mbus_xlate_by_fourcc(
++	struct soc_camera_format_xlate *user_formats, unsigned int fourcc)
++{
++	unsigned int i;
++
++	for (i = 0; user_formats[i].code; i++)
++		if (user_formats[i].host_fmt->fourcc == fourcc)
++			return user_formats + i;
++	return NULL;
++}
++EXPORT_SYMBOL(soc_mbus_xlate_by_fourcc);
++
+ static int __init soc_mbus_init(void)
+ {
+ 	return 0;
+diff --git a/include/media/drv-intf/soc_mediabus.h b/include/media/drv-intf/soc_mediabus.h
+index 2ff773785fb6..08af52f6338c 100644
+--- a/include/media/drv-intf/soc_mediabus.h
++++ b/include/media/drv-intf/soc_mediabus.h
+@@ -95,6 +95,21 @@ struct soc_mbus_lookup {
+ 	struct soc_mbus_pixelfmt	fmt;
+ };
+ 
++/**
++ * struct soc_camera_format_xlate - match between host and sensor formats
++ * @code: code of a sensor provided format
++ * @host_fmt: host format after host translation from code
++ *
++ * Host and sensor translation structure. Used in table of host and sensor
++ * formats matchings in soc_camera_device. A host can override the generic list
++ * generation by implementing get_formats(), and use it for format checks and
++ * format setup.
++ */
++struct soc_camera_format_xlate {
++	u32 code;
++	const struct soc_mbus_pixelfmt *host_fmt;
++};
++
+ const struct soc_mbus_pixelfmt *soc_mbus_find_fmtdesc(
+ 	u32 code,
+ 	const struct soc_mbus_lookup *lookup,
+@@ -108,5 +123,12 @@ int soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf,
+ 			unsigned int *numerator, unsigned int *denominator);
+ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
+ 					unsigned int flags);
++struct soc_camera_format_xlate *soc_mbus_build_fmts_xlate(
++	struct v4l2_device *v4l2_dev, struct v4l2_subdev *subdev,
++	int (*get_formats)(struct v4l2_device *, unsigned int,
++			   struct soc_camera_format_xlate *xlate));
++const struct soc_camera_format_xlate *soc_mbus_xlate_by_fourcc(
++	struct soc_camera_format_xlate *user_formats, unsigned int fourcc);
++
+ 
+ #endif
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 97aa13314bfd..db6ea91d5cb0 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -285,21 +285,6 @@ void soc_camera_host_unregister(struct soc_camera_host *ici);
+ const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
+ 	struct soc_camera_device *icd, unsigned int fourcc);
+ 
+-/**
+- * struct soc_camera_format_xlate - match between host and sensor formats
+- * @code: code of a sensor provided format
+- * @host_fmt: host format after host translation from code
+- *
+- * Host and sensor translation structure. Used in table of host and sensor
+- * formats matchings in soc_camera_device. A host can override the generic list
+- * generation by implementing get_formats(), and use it for format checks and
+- * format setup.
+- */
+-struct soc_camera_format_xlate {
+-	u32 code;
+-	const struct soc_mbus_pixelfmt *host_fmt;
+-};
+-
+ #define SOCAM_SENSE_PCLK_CHANGED	(1 << 0)
+ 
+ /**
+-- 
+2.1.4
 
-this results in a strange VDR channel (test_convert_out.conf):
-
-
-<SNIP> -----------------------------
-Das Erste HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
-<SNAP> -----------------------------
-
-
-so I created an other (vdr) channel-file (test123.conf) to see how 
-to fix the problem:
-
-
-<SNIP> -----------------------------
-# file test123.conf
-#
-# tested with: mpv -v --dvbin-file=test123.conf dvb://"Das Erste HD fixed"
-#
-Das Erste HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
-#
-# dropping "(null):" and delete last ":" fixed the problem for mpv
-#
-Das Erste HD fixed:11494:S1HC23I0M5N1O35:S:22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0
-<SNAP> -----------------------------
-
-
-refering to the VDR Wikis ...
-
-* LinuxTV: http://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf
-* german comunity Wiki: http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Parameter_ab_VDR-1.7.4
-
-... there is no field at position [4] / in between "Source"
-and "SRate" which might have a value ... I suppose the '(null):'
-is the result of pointing to *nothing* ...
-
-An other mistake is the ending colon (":") at the line. It is not
-explicit specified but adding an collon to the end of an channel
-entry will prevent players (like mpv or mplayer) from parsing the
-line (they will ignore these lines).
-
-At least: generating a channel list with
-
-  dvbv5-scan --output-format=vdr ...
-
-will result in the same defective channel entry, containing
-"(null):" and the leading collon ":".
-
-If I can help -- e.g. testing -- please contact me.
-
-Regards
-
-  --M
