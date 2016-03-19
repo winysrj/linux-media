@@ -1,143 +1,326 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46810 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755836AbcCCK1h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 05:27:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH for 4.5] media.h: use hex values for the range offsets, move connectors base up.
-Date: Thu, 03 Mar 2016 12:27:35 +0200
-Message-ID: <2536094.RaAQmbIGIp@avalon>
-In-Reply-To: <56D80F76.4050009@xs4all.nl>
-References: <56D3FB27.7000202@xs4all.nl> <8424145.Mo5klZhWrz@avalon> <56D80F76.4050009@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from [198.137.202.9] ([198.137.202.9]:49637 "EHLO
+	bombadil.infradead.org" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1750748AbcCSAnX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Mar 2016 20:43:23 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jaroslav Kysela <perex@perex.cz>,
+	Takashi Iwai <tiwai@suse.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+	<chehabrafael@gmail.com>, alsa-devel@alsa-project.org
+Subject: [PATCH v2] [media] media-device: use kref for media_device instance
+Date: Fri, 18 Mar 2016 21:42:16 -0300
+Message-Id: <9d8830150475bc4d4dde2fa1f5163aef82a35477.1458347578.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Now that the media_device can be used by multiple drivers,
+via devres, we need to be sure that it will be dropped only
+when all drivers stop using it.
 
-On Thursday 03 March 2016 11:18:30 Hans Verkuil wrote:
-> On 03/03/16 11:12, Laurent Pinchart wrote:
-> > On Thursday 03 March 2016 11:03:02 Hans Verkuil wrote:
-> >> On 03/03/16 10:52, Laurent Pinchart wrote:
-> >>> On Monday 29 February 2016 09:02:47 Hans Verkuil wrote:
-> >>>> Make the base offset hexadecimal to simplify debugging since the base
-> >>>> addresses are hex too.
-> >>>> 
-> >>>> The offsets for connectors is also changed to start after the
-> >>>> 'reserved' range 0x10000-0x2ffff.
-> >>>> 
-> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> 
-> >>>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> >>>> index 95e126e..79960ae 100644
-> >>>> --- a/include/uapi/linux/media.h
-> >>>> +++ b/include/uapi/linux/media.h
-> >>>> @@ -66,17 +66,17 @@ struct media_device_info {
-> >>>>  /*
-> >>>>   * DVB entities
-> >>>>   */
-> >>>> -#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 1)
-> >>>> -#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 2)
-> >>>> -#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 3)
-> >>>> -#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 4)
-> >>>> +#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 0x00001)
-> >>>> +#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 0x00002)
-> >>>> +#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 0x00003)
-> >>>> +#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 0x00004)
-> >>>> 
-> >>>>  /*
-> >>>>   * I/O entities
-> >>>>   */
-> >>>> -#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 1001)
-> >>>> -#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 1002)
-> >>>> -#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 1003)
-> >>>> +#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 0x01001)
-> >>>> +#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 0x01002)
-> >>>> +#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 0x01003)
-> >>>> 
-> >>>>  /*
-> >>>>   * Analog TV IF-PLL decoders
-> >>>> @@ -84,23 +84,23 @@ struct media_device_info {
-> >>>>   * It is a responsibility of the master/bridge drivers to create links
-> >>>>   * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
-> >>>>   */
-> >>>> -#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 2001)
-> >>>> -#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 2002)
-> >>>> +#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 0x02001)
-> >>>> +#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 0x02002)
-> >>>> 
-> >>>>  /*
-> >>>>   * Audio Entity Functions
-> >>>>   */
-> >>>> -#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 3000)
-> >>>> -#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 3001)
-> >>>> -#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 3002)
-> >>>> +#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03000)
-> >>> 
-> >>> Why does this one start at 0x*000 while the others start at 0x*0001 ? I
-> >>> know that the problem predates your patch.
-> >> 
-> >> I hadn't noticed. It is my personal preference not to start with 0.
-> >> But it is not needed in this case, at least not today.
-> >> 
-> >> I think starting with 1 will help if we ever want to do AND operations
-> >> on the ID. Then it is nice that the lower 16 bits can't be 0 for valid
-> >> IDs.
-> > 
-> > I'm fine starting at 1, would you like to resubmit this patch to change
-> > that ?
-> >
-> >>>> +#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03001)
-> >>>> +#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03002)
-> >>>> 
-> >>>>  /*
-> >>>>  
-> >>>>   * Connectors
-> >>>>   */
-> >>>>  
-> >>>>  /* It is a responsibility of the entity drivers to add connectors and
-> >>>>  links
-> >>>> 
-> >>>> */ -#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
-> >>>> -#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
-> >>>> -#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-> >>>> +#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
-> >>> 
-> >>> Anything wrong with 0x4xxx ?
-> >> 
-> >> Possibly overkill, but Sakari preferred to make more generous use of the
-> >> 32 bit space. And since there may potentially be a lot of connector types
-> >> I thought I gave it plenty of space. Of course, if we ever need that
-> >> many, then something is seriously wrong...
-> > 
-> > And you'd need space *after* the existing connector IDs, not before. Using
-> > 0x30000 instead of 0x4000 has the effect of reserving plenty of space for
-> > audio functions, not for connectors. I think 0x4000 should be fine.
-> 
-> Huh? Connectors start at 0x30000, audio entities are 0x03000. I think you
-> got confused by that. Connectors can now go from 0x30000-0xffffffff :-)
-> Definitely more space than 0x4000-0xffff.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
 
-But less than 0x4000-0xffffffff :-) There's no information about how the range 
-is supposed to be split. And 4096 connector functions should be more than 
-enough.
+v2: The kref is now used only when media_device is allocated via 
+    the media_device*_devress. This warrants that other drivers won't be
+    affected, and that we can keep media_device_cleanup() balanced with
+    media_device_init().
 
-On a side note, writing "connector functions" really doesn't feel right. We're 
-not there yet, this API isn't correct.
+ drivers/media/media-device.c           | 117 +++++++++++++++++++++++++--------
+ drivers/media/usb/au0828/au0828-core.c |   3 +-
+ include/media/media-device.h           |  28 ++++++++
+ sound/usb/media.c                      |   3 +-
+ 4 files changed, 118 insertions(+), 33 deletions(-)
 
-> >>>> +#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
-> >>>> +#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
-> >>>> 
-> >>>>  /*
-> >>>>   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index c32fa15cc76e..4a97d92a7e7d 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -707,11 +707,16 @@ void media_device_init(struct media_device *mdev)
+ }
+ EXPORT_SYMBOL_GPL(media_device_init);
+ 
+-void media_device_cleanup(struct media_device *mdev)
++static void __media_device_cleanup(struct media_device *mdev)
+ {
+ 	ida_destroy(&mdev->entity_internal_idx);
+ 	mdev->entity_internal_idx_max = 0;
+ 	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
++}
++
++void media_device_cleanup(struct media_device *mdev)
++{
++	__media_device_cleanup(mdev);
+ 	mutex_destroy(&mdev->graph_mutex);
+ }
+ EXPORT_SYMBOL_GPL(media_device_cleanup);
+@@ -721,6 +726,9 @@ int __must_check __media_device_register(struct media_device *mdev,
+ {
+ 	int ret;
+ 
++	/* Check if mdev was ever registered at all */
++	mutex_lock(&mdev->graph_mutex);
++
+ 	/* Register the device node. */
+ 	mdev->devnode.fops = &media_device_fops;
+ 	mdev->devnode.parent = mdev->dev;
+@@ -731,17 +739,19 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 
+ 	ret = media_devnode_register(&mdev->devnode, owner);
+ 	if (ret < 0)
+-		return ret;
++		goto err;
+ 
+ 	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
+ 	if (ret < 0) {
+ 		media_devnode_unregister(&mdev->devnode);
+-		return ret;
++		goto err;
+ 	}
+ 
+ 	dev_dbg(mdev->dev, "Media device registered\n");
+ 
+-	return 0;
++err:
++	mutex_unlock(&mdev->graph_mutex);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+ 
+@@ -773,24 +783,13 @@ void media_device_unregister_entity_notify(struct media_device *mdev,
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
+ 
+-void media_device_unregister(struct media_device *mdev)
++static void __media_device_unregister(struct media_device *mdev)
+ {
+ 	struct media_entity *entity;
+ 	struct media_entity *next;
+ 	struct media_interface *intf, *tmp_intf;
+ 	struct media_entity_notify *notify, *nextp;
+ 
+-	if (mdev == NULL)
+-		return;
+-
+-	mutex_lock(&mdev->graph_mutex);
+-
+-	/* Check if mdev was ever registered at all */
+-	if (!media_devnode_is_registered(&mdev->devnode)) {
+-		mutex_unlock(&mdev->graph_mutex);
+-		return;
+-	}
+-
+ 	/* Remove all entities from the media device */
+ 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+ 		__media_device_unregister_entity(entity);
+@@ -807,38 +806,98 @@ void media_device_unregister(struct media_device *mdev)
+ 		kfree(intf);
+ 	}
+ 
+-	mutex_unlock(&mdev->graph_mutex);
+-
+-	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+-	media_devnode_unregister(&mdev->devnode);
++	/* Check if mdev devnode was registered */
++	if (media_devnode_is_registered(&mdev->devnode)) {
++		device_remove_file(&mdev->devnode.dev, &dev_attr_model);
++		media_devnode_unregister(&mdev->devnode);
++	}
+ 
+ 	dev_dbg(mdev->dev, "Media device unregistered\n");
+ }
++
++void media_device_unregister(struct media_device *mdev)
++{
++	if (mdev == NULL)
++		return;
++
++	mutex_lock(&mdev->graph_mutex);
++	__media_device_unregister(mdev);
++	mutex_unlock(&mdev->graph_mutex);
++}
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
+ static void media_device_release_devres(struct device *dev, void *res)
+ {
+ }
+ 
+-struct media_device *media_device_get_devres(struct device *dev)
++static void do_media_device_unregister_devres(struct kref *kref)
+ {
++	struct media_device_devres *mdev_devres;
+ 	struct media_device *mdev;
++	int ret;
+ 
+-	mdev = devres_find(dev, media_device_release_devres, NULL, NULL);
+-	if (mdev)
+-		return mdev;
++	mdev_devres = container_of(kref, struct media_device_devres, kref);
+ 
+-	mdev = devres_alloc(media_device_release_devres,
+-				sizeof(struct media_device), GFP_KERNEL);
+-	if (!mdev)
++	if (!mdev_devres)
++		return;
++
++	mdev = &mdev_devres->mdev;
++
++	mutex_lock(&mdev->graph_mutex);
++	__media_device_unregister(mdev);
++	__media_device_cleanup(mdev);
++	mutex_unlock(&mdev->graph_mutex);
++	mutex_destroy(&mdev->graph_mutex);
++
++	ret = devres_destroy(mdev->dev, media_device_release_devres,
++			     NULL, NULL);
++	pr_debug("%s: devres_destroy() returned %d\n", __func__, ret);
++}
++
++void media_device_unregister_devres(struct media_device *mdev)
++{
++	struct media_device_devres *mdev_devres;
++
++	mdev_devres = container_of(mdev, struct media_device_devres, mdev);
++	kref_put(&mdev_devres->kref, do_media_device_unregister_devres);
++}
++EXPORT_SYMBOL_GPL(media_device_unregister_devres);
++
++struct media_device *media_device_get_devres(struct device *dev)
++{
++	struct media_device_devres *mdev_devres, *ptr;
++
++	mdev_devres = devres_find(dev, media_device_release_devres, NULL, NULL);
++	if (mdev_devres) {
++		kref_get(&mdev_devres->kref);
++		return &mdev_devres->mdev;
++	}
++
++	mdev_devres = devres_alloc(media_device_release_devres,
++				   sizeof(struct media_device_devres),
++				   GFP_KERNEL);
++	if (!mdev_devres)
+ 		return NULL;
+-	return devres_get(dev, mdev, NULL, NULL);
++
++	ptr = devres_get(dev, mdev_devres, NULL, NULL);
++	if (ptr)
++		kref_init(&ptr->kref);
++	else
++		devres_free(mdev_devres);
++
++	return &ptr->mdev;
+ }
+ EXPORT_SYMBOL_GPL(media_device_get_devres);
+ 
+ struct media_device *media_device_find_devres(struct device *dev)
+ {
+-	return devres_find(dev, media_device_release_devres, NULL, NULL);
++	struct media_device_devres *mdev_devres;
++
++	mdev_devres = devres_find(dev, media_device_release_devres, NULL, NULL);
++	if (!mdev_devres)
++		return NULL;
++
++	return &mdev_devres->mdev;
+ }
+ EXPORT_SYMBOL_GPL(media_device_find_devres);
+ 
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index 06da73f1ff22..060904ed8f20 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -157,8 +157,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ 	dev->media_dev->enable_source = NULL;
+ 	dev->media_dev->disable_source = NULL;
+ 
+-	media_device_unregister(dev->media_dev);
+-	media_device_cleanup(dev->media_dev);
++	media_device_unregister_devres(dev->media_dev);
+ 	dev->media_dev = NULL;
+ #endif
+ }
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index b21ef244ad3e..e59772ed8494 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -23,6 +23,7 @@
+ #ifndef _MEDIA_DEVICE_H
+ #define _MEDIA_DEVICE_H
+ 
++#include <linux/kref.h>
+ #include <linux/list.h>
+ #include <linux/mutex.h>
+ 
+@@ -382,6 +383,16 @@ struct media_device {
+ 			   unsigned int notification);
+ };
+ 
++/**
++ * struct media_device_devres - Media device device resource
++ * @mdev:	pointer to struct media_device
++ * @kref:	Object refcount
++ */
++struct media_device_devres {
++	struct media_device mdev;
++	struct kref kref;
++};
++
+ /* We don't need to include pci.h or usb.h here */
+ struct pci_dev;
+ struct usb_device;
+@@ -604,6 +615,19 @@ struct media_device *media_device_get_devres(struct device *dev);
+  */
+ struct media_device *media_device_find_devres(struct device *dev);
+ 
++/**
++ * media_device_unregister_devres) - Unregister media device allocated as
++ *				     as device resource
++ *
++ * @dev: pointer to struct &device.
++ *
++ * Devices allocated via media_device_get_devres should be de-alocalted
++ * and freed via this function. Callers should not call
++ * media_device_unregister() nor media_device_cleanup() on devices
++ * allocated via media_device_get_devres().
++ */
++void media_device_unregister_devres(struct media_device *mdev);
++
+ /* Iterate over all entities. */
+ #define media_device_for_each_entity(entity, mdev)			\
+ 	list_for_each_entry(entity, &(mdev)->entities, graph_obj.list)
+@@ -688,6 +712,10 @@ static inline struct media_device *media_device_find_devres(struct device *dev)
+ 	return NULL;
+ }
+ 
++static inline void media_device_unregister_devres(struct media_device *mdev)
++{
++}
++
+ static inline void media_device_pci_init(struct media_device *mdev,
+ 					 struct pci_dev *pci_dev,
+ 					 char *name)
+diff --git a/sound/usb/media.c b/sound/usb/media.c
+index 93a50d01490c..f78955fd0d6e 100644
+--- a/sound/usb/media.c
++++ b/sound/usb/media.c
+@@ -311,8 +311,7 @@ void media_snd_device_delete(struct snd_usb_audio *chip)
+ 	media_snd_mixer_delete(chip);
+ 
+ 	if (mdev) {
+-		if (media_devnode_is_registered(&mdev->devnode))
+-			media_device_unregister(mdev);
++		media_device_unregister_devres(mdev);
+ 		chip->media_dev = NULL;
+ 	}
+ }
 -- 
-Regards,
+2.5.0
 
-Laurent Pinchart
 
