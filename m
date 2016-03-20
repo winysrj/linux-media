@@ -1,59 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:52704 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752356AbcCALnf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Mar 2016 06:43:35 -0500
-Date: Tue, 1 Mar 2016 08:43:30 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v2 3/4] media: Properly handle user pointers
-Message-ID: <20160301084330.173cd3ad@recife.lan>
-In-Reply-To: <1456174024-11389-4-git-send-email-sakari.ailus@linux.intel.com>
-References: <1456174024-11389-1-git-send-email-sakari.ailus@linux.intel.com>
-	<1456174024-11389-4-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45347 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750707AbcCTEBr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Mar 2016 00:01:47 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 4F8CB182E7D
+	for <linux-media@vger.kernel.org>; Sun, 20 Mar 2016 05:01:41 +0100 (CET)
+Date: Sun, 20 Mar 2016 05:01:41 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ABI WARNING
+Message-Id: <20160320040141.4F8CB182E7D@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 22 Feb 2016 22:47:03 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Mark pointers containing user pointers as such.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Results of the daily build of media_tree:
 
-Looks OK to me.
+date:		Sun Mar 20 04:00:26 CET 2016
+git branch:	test
+git hash:	b39950960d2b890c21465c69c7c0e4ff6253c6b5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	Warning: /share/smatch/smatch_data/ is not accessible.
+Use --no-data or --data to suppress this message.
+v0.5.0-3353-gcae47da
+host hardware:	x86_64
+host os:	4.4.0-164
 
-> ---
->  drivers/media/media-device.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 5ebb3cd..f001c27 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -245,10 +245,10 @@ static long __media_device_get_topology(struct media_device *mdev,
->  	struct media_interface *intf;
->  	struct media_pad *pad;
->  	struct media_link *link;
-> -	struct media_v2_entity kentity, *uentity;
-> -	struct media_v2_interface kintf, *uintf;
-> -	struct media_v2_pad kpad, *upad;
-> -	struct media_v2_link klink, *ulink;
-> +	struct media_v2_entity kentity, __user *uentity;
-> +	struct media_v2_interface kintf, __user *uintf;
-> +	struct media_v2_pad kpad, __user *upad;
-> +	struct media_v2_link klink, __user *ulink;
->  	unsigned int i;
->  	int ret = 0;
->  
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+apps: OK
+spec-git: OK
+ABI WARNING: change for arm-at91
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-exynos
+ABI WARNING: change for arm-mx
+ABI WARNING: change for arm-omap
+ABI WARNING: change for arm-omap1
+ABI WARNING: change for arm-pxa
+ABI WARNING: change for blackfin-bf561
+ABI WARNING: change for i686
+ABI WARNING: change for m32r
+ABI WARNING: change for mips
+ABI WARNING: change for powerpc64
+ABI WARNING: change for sh
+ABI WARNING: change for x86_64
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
 
--- 
-Thanks,
-Mauro
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
