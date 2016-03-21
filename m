@@ -1,142 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48689 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759353AbcCDUUB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Mar 2016 15:20:01 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH v4 4/4] media: Rename is_media_entity_v4l2_io to is_media_entity_v4l2_video_device
-Date: Fri,  4 Mar 2016 22:18:51 +0200
-Message-Id: <1457122731-22558-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1457122731-22558-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1457122731-22558-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:55044 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753709AbcCUKOt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 06:14:49 -0400
+Date: Mon, 21 Mar 2016 07:14:43 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: cron job: media_tree daily build: OK
+Message-ID: <20160321071443.2d139482@recife.lan>
+In-Reply-To: <20160321065708.281a4aa4@recife.lan>
+References: <20160321040508.0C6691800EC@tschai.lan>
+	<20160321065708.281a4aa4@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All users of is_media_entity_v4l2_io() (the exynos4-is, omap3isp,
-davince_vpfe and omap4iss drivers and the v4l2-mc power management code)
-use the function to check whether entities are video_device instances,
-either to ensure they can cast the entity to a struct video_device, or
-to count the number of video nodes users.
+Em Mon, 21 Mar 2016 06:57:08 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-The purpose of the function is thus to identify whether the media entity
-instance is an instance of the video_device object, not to check whether
-it can perform I/O. Rename it accordingly, we will introduce a more
-specific is_media_entity_v4l2_io() check when needed.
+> Em Mon, 21 Mar 2016 05:05:07 +0100
+> "Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
+> 
+> > This message is generated daily by a cron job that builds media_tree for
+> > the kernels and architectures in the list below.
+> > 
+> > Results of the daily build of media_tree:
+> > 
+> > date:		Mon Mar 21 04:00:22 CET 2016
+> > git branch:	test
+> > git hash:	b39950960d2b890c21465c69c7c0e4ff6253c6b5
+> > gcc version:	i686-linux-gcc (GCC) 5.3.0
+> > sparse version:	v0.5.0-56-g7647c77
+> > smatch version:	Warning: /share/smatch/smatch_data/ is not accessible.
+> > Use --no-data or --data to suppress this message.
+> > v0.5.0-3353-gcae47da  
+> 
+> Not sure how you're running smatch, but what I do here is to run
+> it as:
+> 	/<smatch_dir>/smatch
+> 
+> This way, it finds the smatch_data dir at /<smatch_dir, with also
+> suppress several false positive error messages from the smatch logs.
+> 
+> As a side effect, it simplifies a little bit the procedure to update
+> smatch's version.
+> 
+> Regards
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+As a reference, those are what I get here with the latest version of
+smatch (plus a patch to avoid a "Function too hairy." warning, posted
+in the end of this email):
+
+$ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y C=1 W=1 CHECK='/devel/smatch/smatch -p=kernel' M=drivers/staging/media
+$ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y C=1 W=1 CHECK='/devel/smatch/smatch -p=kernel' M=drivers/media
+drivers/media/tuners/tuner-xc2028.c:1498 xc2028_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
+drivers/media/radio/radio-aztech.c:87 aztech_alloc() warn: possible memory leak of 'az'
+drivers/media/pci/mantis/mantis_uart.c:105 mantis_uart_work() warn: this loop depends on readl() succeeding
+drivers/media/dvb-core/dvb_frontend.c:272 dvb_frontend_get_event() warn: inconsistent returns 'sem:&fepriv->sem'.
+  Locked on:   line 246
+               line 253
+               line 264
+               line 272
+  Unlocked on: line 261
+drivers/media/pci/ddbridge/ddbridge-core.c:1007 input_tasklet() warn: this loop depends on readl() succeeding
+drivers/media/pci/ddbridge/ddbridge-core.c:1351 flashio() warn: this loop depends on readl() succeeding
+drivers/media/pci/ddbridge/ddbridge-core.c:1371 flashio() warn: this loop depends on readl() succeeding
+drivers/media/tuners/tuner-simple.c:1102 simple_tuner_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
+drivers/media/radio/radio-typhoon.c:79 typhoon_alloc() warn: possible memory leak of 'ty'
+drivers/media/radio/radio-aimslab.c:73 rtrack_alloc() warn: possible memory leak of 'rt'
+drivers/media/radio/radio-zoltrix.c:83 zoltrix_alloc() warn: possible memory leak of 'zol'
+drivers/media/radio/radio-gemtek.c:189 gemtek_alloc() warn: possible memory leak of 'gt'
+drivers/media/tuners/tda9887.c:692 tda9887_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
+drivers/media/radio/radio-trust.c:60 trust_alloc() warn: possible memory leak of 'tr'
+drivers/media/tuners/tda18271-fe.c:1317 tda18271_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
+drivers/media/tuners/xc5000.c:1418 xc5000_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
+drivers/media/tuners/xc4000.c:1690 xc4000_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
+drivers/media/tuners/mxl5007t.c:878 mxl5007t_attach() error: potential null dereference 'state'.  (kzalloc returns null)
+drivers/media/rc/ir-lirc-codec.c:289 ir_lirc_ioctl() warn: check for integer overflow 'val'
+drivers/media/tuners/r820t.c:2342 r820t_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
+drivers/media/rc/st_rc.c:110 st_rc_rx_interrupt() warn: this loop depends on readl() succeeding
+drivers/media/pci/bt8xx/dvb-bt8xx.c:720 frontend_init() warn: possible memory leak of 'state'
+./arch/x86/include/asm/bitops.h:416:22: warning: asm output is not an lvalue
+./arch/x86/include/asm/bitops.h:416:22: warning: asm output is not an lvalue
+./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
+./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
+./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
+./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
+./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
+./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
+drivers/media/usb/uvc/uvc_ctrl.c:1387 uvc_ctrl_begin() warn: inconsistent returns 'mutex:&chain->ctrl_mutex'.
+  Locked on:   line 1387
+  Unlocked on: line 1387
+drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3676 pvr2_send_request_ex() error: we previously assumed 'write_data' could be null (see line 3648)
+drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3829 pvr2_send_request_ex() error: we previously assumed 'read_data' could be null (see line 3649)
+drivers/media/platform/vivid/vivid-rds-gen.c:82 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 43
+drivers/media/platform/vivid/vivid-rds-gen.c:83 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 42
+drivers/media/platform/vivid/vivid-rds-gen.c:89 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 84
+drivers/media/platform/vivid/vivid-rds-gen.c:90 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 85
+drivers/media/platform/vivid/vivid-rds-gen.c:92 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 86
+drivers/media/platform/vivid/vivid-rds-gen.c:93 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 87
+
 ---
- drivers/media/platform/exynos4-is/media-dev.c   | 4 ++--
- drivers/media/platform/omap3isp/ispvideo.c      | 2 +-
- drivers/media/v4l2-core/v4l2-mc.c               | 2 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
- drivers/staging/media/omap4iss/iss_video.c      | 2 +-
- include/media/media-entity.h                    | 4 ++--
- 6 files changed, 8 insertions(+), 8 deletions(-)
 
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+[PATCH] smatch_slist: use a higher memory limit
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index feb521f28e14..9a377d9dd58a 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1130,7 +1130,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
- 	media_entity_graph_walk_start(graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(graph))) {
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 
- 		ret  = __fimc_md_modify_pipeline(entity, enable);
-@@ -1145,7 +1145,7 @@ err:
- 	media_entity_graph_walk_start(graph, entity_err);
- 
- 	while ((entity_err = media_entity_graph_walk_next(graph))) {
--		if (!is_media_entity_v4l2_io(entity_err))
-+		if (!is_media_entity_v4l2_video_device(entity_err))
- 			continue;
- 
- 		__fimc_md_modify_pipeline(entity_err, !enable);
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index ac76d2901501..1b1a95d546f6 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -251,7 +251,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
- 		if (entity == &video->video.entity)
- 			continue;
- 
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 
- 		__video = to_isp_video(media_entity_to_video_device(entity));
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 7291018cf1bf..1ce68c92b397 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -279,7 +279,7 @@ static int pipeline_pm_use_count(struct media_entity *entity,
- 	media_entity_graph_walk_start(graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(graph))) {
--		if (is_media_entity_v4l2_io(entity))
-+		if (is_media_entity_v4l2_video_device(entity))
- 			use += entity->use_count;
- 	}
- 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index db49af90217e..7d8fa34f31f3 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -154,7 +154,7 @@ static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		if (entity == &video->video_dev.entity)
- 			continue;
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 		far_end = to_vpfe_video(media_entity_to_video_device(entity));
- 		if (far_end->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index f54349bce4de..cf8da23558bb 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -223,7 +223,7 @@ iss_video_far_end(struct iss_video *video)
- 		if (entity == &video->video.entity)
- 			continue;
- 
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 
- 		far_end = to_iss_video(media_entity_to_video_device(entity));
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index d148fc49c3be..0c485927622f 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -357,14 +357,14 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
- }
- 
- /**
-- * is_media_entity_v4l2_io() - Check if the entity is a video_device
-+ * is_media_entity_v4l2_video_device() - Check if the entity is a video_device
-  * @entity:	pointer to entity
-  *
-  * Return: true if the entity is an instance of a video_device object and can
-  * safely be cast to a struct video_device using the container_of() macro, or
-  * false otherwise.
-  */
--static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
-+static inline bool is_media_entity_v4l2_video_device(struct media_entity *entity)
+50M is not enough for some code at the Kernel. It produces this
+warning:
+
+drivers/media/pci/cx23885/cx23885-dvb.c:2046 dvb_register() Function too hairy.  Giving up.
+
+While checking for troubles on a loop with attaches the device
+specific sub-devices based on the PCI ID.
+
+There's not much that could be done at the code to simplify it.
+The code there is big just because the cx23885 driver supports
+lots of different cards.
+
+On the other hand, increasing the maximum memory size to 500MB
+is cheap, as nowadays even desktops have 16GB.
+
+So, let's increase it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/smatch_slist.c b/smatch_slist.c
+index 947c35c7f9e0..c4027341ca30 100644
+--- a/smatch_slist.c
++++ b/smatch_slist.c
+@@ -235,11 +235,11 @@ char *alloc_sname(const char *str)
+ int out_of_memory(void)
  {
- 	return entity && entity->type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
+ 	/*
+-	 * I decided to use 50M here based on trial and error.
++	 * I decided to use 500M here based on trial and error.
+ 	 * It works out OK for the kernel and so it should work
+ 	 * for most other projects as well.
+ 	 */
+-	if (sm_state_counter * sizeof(struct sm_state) >= 50000000)
++	if (sm_state_counter * sizeof(struct sm_state) >= 500000000)
+ 		return 1;
+ 	return 0;
  }
--- 
-2.4.10
 
+
+-- 
+Thanks,
+Mauro
