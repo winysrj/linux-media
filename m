@@ -1,97 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:53255 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932371AbcCKQBA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 11:01:00 -0500
-Date: Fri, 11 Mar 2016 13:00:54 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:34049 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757795AbcCUTWk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 15:22:40 -0400
+Subject: Re: [RFC PATCH 1/3] [media] v4l2-mc.h: Add a S-Video C input PAD to
+ demod enum
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
+ <1457550566-5465-2-git-send-email-javier@osg.samsung.com>
+ <56EC2294.603@xs4all.nl> <56EC3BF3.5040100@xs4all.nl>
+ <20160321114045.00f200a0@recife.lan> <56F00DAA.8000701@xs4all.nl>
+ <56F01AE7.6070508@xs4all.nl> <20160321145034.6fa4e677@recife.lan>
+ <56F038A0.1010004@xs4all.nl> <56F03C40.4090909@osg.samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
-	<chehabrafael@gmail.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [PATCH] [media] au0828: disable tuner->decoder on init
-Message-ID: <20160311130054.68723d6e@recife.lan>
-In-Reply-To: <56E1ED8E.8080401@osg.samsung.com>
-References: <436107c4db642cdab28d3f26ccc918f3c6e52e38.1457639860.git.mchehab@osg.samsung.com>
-	<56E1ED8E.8080401@osg.samsung.com>
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56F0461A.1070809@xs4all.nl>
+Date: Mon, 21 Mar 2016 20:06:02 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <56F03C40.4090909@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 10 Mar 2016 14:56:30 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-
-> On 03/10/2016 12:57 PM, Mauro Carvalho Chehab wrote:
-> > As au0828 assumes that all links to ATV decoder and DTV demod
-> > should be disabled, make sure this is the case.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > ---
-> >  drivers/media/usb/au0828/au0828-core.c | 19 +++++++++++--------
-> >  1 file changed, 11 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> > index 5dc82e8c8670..af68663915fd 100644
-> > --- a/drivers/media/usb/au0828/au0828-core.c
-> > +++ b/drivers/media/usb/au0828/au0828-core.c
-> > @@ -456,7 +456,9 @@ static int au0828_media_device_register(struct au0828_dev *dev,
-> >  {
-> >  #ifdef CONFIG_MEDIA_CONTROLLER
-> >  	int ret;
-> > -	struct media_entity *entity, *demod = NULL, *tuner = NULL;
-> > +	struct media_entity *entity;
-> > +	struct media_entity *demod = NULL, *tuner = NULL, *decoder = NULL;
-> > +	struct media_link *link;
-> >  
-> >  	if (!dev->media_dev)
-> >  		return 0;
-> > @@ -490,18 +492,19 @@ static int au0828_media_device_register(struct au0828_dev *dev,
-> >  	media_device_for_each_entity(entity, dev->media_dev) {
-> >  		if (entity->function == MEDIA_ENT_F_DTV_DEMOD)
-> >  			demod = entity;
-> > +		else if (entity->function == MEDIA_ENT_F_ATV_DECODER)
-> > +			decoder = entity;
-> >  		else if (entity->function == MEDIA_ENT_F_TUNER)
-> >  			tuner = entity;
-> >  	}
-> > -	/* Disable link between tuner and demod */
-> > -	if (tuner && demod) {
-> > -		struct media_link *link;
-> >  
-> > -		list_for_each_entry(link, &demod->links, list) {
-> > -			if (link->sink->entity == demod &&
-> > -			    link->source->entity == tuner) {
-> > +	/* Disable link between tuner->demod and/or tuner->decoder */
-> > +	if (tuner) {
-> > +		list_for_each_entry(link, &tuner->links, list) {
-> > +			if (demod && link->sink->entity == demod)
-> > +				media_entity_setup_link(link, 0);
-> > +			if (decoder && link->sink->entity == decoder)
-> >  				media_entity_setup_link(link, 0);
-> > -			}
-> >  		}
-> >  	}
-> >  
-> >   
+On 03/21/2016 07:24 PM, Javier Martinez Canillas wrote:
+> Hello Hans,
 > 
-> You probably don't need this patch if we revert the common
-> graph create patch. We will need this when we get the common
-> routine working.
+> On 03/21/2016 03:08 PM, Hans Verkuil wrote:
+>> On 03/21/2016 06:50 PM, Mauro Carvalho Chehab wrote:
+>>> Hi Hans,
+>>>
+>>> Em Mon, 21 Mar 2016 17:01:43 +0100
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>
+>>>>> A reasonable solution to simplify converting legacy drivers without creating
+>>>>> these global ugly pad indices is to add a new video (and probably audio) op
+>>>>> 'g_pad_of_type(type)' where you ask the subdev entity to return which pad carries
+>>>>> signals of a certain type.  
+>>>>
+>>>> This basically puts a layer between the low-level pads as defined by the entity
+>>>> and the 'meta-pads' that a generic MC link creator would need to handle legacy
+>>>> drivers. The nice thing is that this is wholly inside the kernel so we can
+>>>> modify it at will later without impacting userspace.
+>>>
+>>> I prepared a long answer to your email, but I guess we're not at the
+>>> same page.
+>>>
+>>> Let be clear on my view. Please let me know where you disagree:
+>>>
+>>> 1) I'm not defending Javier's patchset. I have my restrictions to
+>>> it too. My understanding is that he sent this as a RFC for feeding
+>>> our discussions for the media summit.
+>>>
+>>> Javier, please correct me if I'm wrong.
+>>>
+> 
+> That's correct. I wanted to have some patches that were aligned to what
+> were discussed so far in order to have more examples to contribute in
+> the media summit discussion (since I won't be there).
+> 
+> The patches are RFC and not meant to upstream since there are too many
+> open questions. I just hoped that having more examples could help of
+> them. I was specially interested in the DT bindings using OF graph to
+> lookup the connectors and the level of detail there.
+> 
+>>> 2) I don't understand what you're calling as "meta-pads". For me, a
+>>> PAD is a physical set of pins. 
+>>
+>> Poorly worded on my side. I'll elaborate below.
+>>
+>>> 3) IMO, the best is to have just one PAD for a decoder input. That makes
+>>> everything simple, yet functional.
+>>>
+>>> In my view, the input PAD will be linked to several "input connections".
+>>> So, in the case of tvp5150, it will have:
+>>>
+>>> 	- composite 1
+>>> 	- composite 2
+>>> 	- s-video
+>>>
+>>> 4) On that view, the input PAD is actually a set of pins. In the
+>>> case of tvp5150, the pins that compose the input PADs are
+>>> AIP1A and AIP1B.
+>>>
+>>> The output PAD is also a set of pins YOUT0 to YOUT7, plus some other
+>>> pins for sync. Yet, it should, IMHO, have just one output PAD at
+>>> the MC graph.
+>>
+>> Indeed. So a tvp5150 has three sink pads and one source pad (pixel port).
+> 
+> Why 3 sink pads? Are we going to model each possible connection as a PAD
+> instead of an entity or are you talking about physical pins? Because if
+> is the latter, then the tvp5150 has only 2 (Composite1 shares S-Video Y
+> and Composite2 shares C signal).
 
-Yes. I actually folded it on the patch caching tuner and decoder,
-with is also needed for the common routine to work (as the core
-knows nothing about any au0828-specific caching).
+I'd go with Mauro's proposal of a single pad. And I didn't look into detail
+in the hardware specs of the tvp5150, so that's why I got it wrong.
 
-At the end of the day, we'll need to remove the cache as a hole, as
-we move the au0828_enable_source to the core.
+>> Other similar devices may have different numbers of sink pads (say four
+>> composite sinks and no S-Video sinks). So the pads the entity creates
+>> should match what the hardware supports.
+>>
+>> So far, so good.
+>>
+> 
+> I'm confused. I thought that the latest agreed approach was to model the
+> actual connection signals and input pins as PADs instead of a simplied
+> model that just each connection as a sink.
+
+My opinion is to just use the simple option (one pad) if you can get away
+with it. I.e. in this case adding more sink pads doesn't add any useful
+information. In the case of an adv7604 it does provide useful information since
+you need to program the adv7604 based on how it is hooked up.
+
+BTW, if the tvp5150 needs to know which composite connector is connected
+to which hardware pin, then you still may need to be explicit w.r.t. the
+number of pads. I just thought of that.
+
+>> If we want to create code that can more-or-less automatically create a MC
+>> topology for legacy drivers, then we would like to be able to map a high-level
+>> description like 'the first S-Video sink pad' into the actual pad. So you'd
+>> have a 'MAP_PAD_SVID_1' define that, when passed to the g_pad_of_type() op
+>> would return the actual pad index for the first S-Video sink pad (or an error
+>> if there isn't one). That's what I meant with 'meta-pad' (and let's just
+>> forget about that name, poor choice from my side).
+>>
+> 
+> Can you please provide an example of a media pipeline that user-space should
+> use with this approach? AFAICT whatever PADs are created when initiliazing
+> the PADs for an entity, will be exposed to user-space in the media graph.
+> 
+> So I'm not understading how it will be used in practice. I don't mean that
+> your approach is not correct, is just I'm not getting it :)
+
+Why would userspace need to use the pads? This is for legacy drivers (right?)
+where the pipeline is fixed anyway.
+
+To quote Mauro:
+
+"we want this for two reasons:
+
+1) To fix the locking troubles with analog, digital and audio parts of
+the driver;
+
+2) To report userspace apps what devnodes belong to each devices."
+
+1) is internal to the kernel and doesn't involve userspace, 2) does involve
+userspace, but you won't need to know about pads to handle that.
 
 Regards,
-Mauro
 
-Thanks,
-Mauro
+	Hans
+
