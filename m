@@ -1,86 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f172.google.com ([209.85.213.172]:35904 "EHLO
-	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752961AbcCKOz7 (ORCPT
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:34884 "EHLO
+	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754716AbcCUTvA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 09:55:59 -0500
-Received: by mail-ig0-f172.google.com with SMTP id vs8so12085033igb.1
-        for <linux-media@vger.kernel.org>; Fri, 11 Mar 2016 06:55:59 -0800 (PST)
+	Mon, 21 Mar 2016 15:51:00 -0400
+Received: by mail-wm0-f48.google.com with SMTP id l68so124545593wml.0
+        for <linux-media@vger.kernel.org>; Mon, 21 Mar 2016 12:50:59 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <56E2C206.6020103@samsung.com>
-References: <1457122813-12791-1-git-send-email-javier@osg.samsung.com>
-	<1457122813-12791-3-git-send-email-javier@osg.samsung.com>
-	<56E2C206.6020103@samsung.com>
-Date: Fri, 11 Mar 2016 11:55:58 -0300
-Message-ID: <CABxcv=nteCTgaN9t33vOovXoHarMXf_knxjTUfV+G36iQs8AGQ@mail.gmail.com>
-Subject: Re: [PATCH 2/2] [media] exynos4-is: FIMC port parse should fail if
- there's no endpoint
-From: Javier Martinez Canillas <javier@dowhile0.org>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Linux Kernel <linux-kernel@vger.kernel.org>,
-	Kukjin Kim <kgene@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <56EFDEAC.2040904@xs4all.nl>
+References: <1453699436-4309-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+	<1456929016-4160-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+	<56EFDEAC.2040904@xs4all.nl>
+Date: Mon, 21 Mar 2016 15:49:36 -0300
+Message-ID: <CAAEAJfB+UBChTt0LHteGAJb8QJsG589nXkoMC5d7Z0hZW95t5w@mail.gmail.com>
+Subject: Re: [PATCH v3] media: Support Intersil/Techwell TW686x-based video
+ capture cards
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	=?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sylwester,
-
-On Fri, Mar 11, 2016 at 10:03 AM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> On 03/04/2016 09:20 PM, Javier Martinez Canillas wrote:
->> The fimc_md_parse_port_node() function return 0 if an endpoint node is
->> not found but according to Documentation/devicetree/bindings/graph.txt,
->> a port must always have at least one enpoint.
+On 21 March 2016 at 08:44, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Ezequiel,
+>
+> On 03/02/2016 03:30 PM, Ezequiel Garcia wrote:
+>> This commit introduces the support for the Techwell TW686x video
+>> capture IC. This hardware supports a few DMA modes, including
+>> scatter-gather and frame (contiguous).
 >>
->> So return an -EINVAL errno code to the caller instead, so it knows that
->> the port node parse failed due an invalid Device Tree description.
+>> This commit makes little use of the DMA engine and instead has
+>> a memcpy based implementation. DMA frame and scatter-gather modes
+>> support may be added in the future.
+>>
+>> Currently supported chips:
+>> - TW6864 (4 video channels),
+>> - TW6865 (4 video channels, not tested, second generation chip),
+>> - TW6868 (8 video channels but only 4 first channels using
+>>            built-in video decoder are supported, not tested),
+>> - TW6869 (8 video channels, second generation chip).
+>>
+>> Cc: Krzysztof Hałasa <khalasa@piap.pl>
+>> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 >
-> I don't think it is forbidden to have a port node in device tree
-> containing no endpoint nodes. Empty port node means only that,
-> for example, a subsystem has a port/bus for connecting external
-> devices but nothing is actually connected to it.
+> I've tested this with my PCIe tw6869 card (arrived this week).
 >
-
-That's not what I understood by reading both
-Documentation/devicetree/bindings/media/video-interfaces.txt and
-Documentation/devicetree/bindings/graph.txt but maybe these are not
-that clear about it or I just failed to parse the english.
-
-> In case of Exynos CSIS it might not be so useful to have an empty
-> port node specified in some top level *.dtsi file and only
-> the endpoints specified in a board specific dts file. Nevertheless,
-> I wouldn't be saying in general a port node must always have some
-> endpoint node defined.
->
-
-Ok, but if that is valid then I believe that at the very least
-Documentation/devicetree/bindings/media/samsung-fimc.txt should
-explicitly mention which (sub)nodes are optional and which are
-required so the DT parsing logic could follow what's documented there.
-
-> I could apply this patch as it doesn't do any harm considering
-> existing dts files in the kernel tree (arch/arm/boot/dts/
-> exynos4412-trats2.dts), but the commit description would need to
-> be changed.
+> Video is fine, but only the first audio input is available. I suspect you
+> have only one audio input?
 >
 
-I don't mind if you want to change the commit message but if those
-nodes are really optional then a follow-up should be to update the DT
-binding docs to make that clear IMHO.
+The driver exposes the eight audio channels as subdevices
+(ALSA substreams) of a single device.
 
-> --
-> Thanks,
-> Sylwester
-> --
+$ sudo arecord -l
+**** List of CAPTURE Hardware Devices ****
+[..]
+card 1: tw686x [tw686x], device 0: tw686x [tw686x PCM]
+  Subdevices: 8/8
+  Subdevice #0: vch0 audio
+  Subdevice #1: vch1 audio
+  Subdevice #2: vch2 audio
+  Subdevice #3: vch3 audio
+  Subdevice #4: vch4 audio
+  Subdevice #5: vch5 audio
+  Subdevice #6: vch6 audio
+  Subdevice #7: vch7 audio
 
-Best regards,
-Javier
+> Regarding the memcpy: if you have a patch for me that reverts back to a non-memcpy
+> situation, then I can do duration tests for you.
+>
+
+Yes, that would be great. I've just pushed my staging branch:
+
+http://git.infradead.org/users/ezequielg/linux/shortlog/refs/heads/tw686x-upstream-for-v4.7
+
+It introduces a dma_mode parameter which let's the user pick the
+DMA operation. It accepts these values: memcpy, contig, sg. Only
+"memcpy" and "contig" are working, while "sg" needs more work.
+
+Feel free to test it and let me know how it goes.
+
+Thanks,
+-- 
+Ezequiel García, VanguardiaSur
+www.vanguardiasur.com.ar
