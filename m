@@ -1,120 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [198.137.202.9] ([198.137.202.9]:51210 "EHLO
-	bombadil.infradead.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751785AbcC1SL6 (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:35212 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755417AbcCUM07 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2016 14:11:58 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/2] [media] media-device: Fix mutex handling code for ioctl
-Date: Mon, 28 Mar 2016 15:11:03 -0300
-Message-Id: <91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
-In-Reply-To: <20160328150948.3efa93ee@recife.lan>
-References: <20160328150948.3efa93ee@recife.lan>
+	Mon, 21 Mar 2016 08:26:59 -0400
+Received: by mail-wm0-f47.google.com with SMTP id l68so107843802wml.0
+        for <linux-media@vger.kernel.org>; Mon, 21 Mar 2016 05:26:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
+References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
+	<1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
+Date: Mon, 21 Mar 2016 13:26:58 +0100
+Message-ID: <CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
+From: David Herrmann <dh.herrmann@gmail.com>
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: DRI Development <dri-devel@lists.freedesktop.org>,
+	Chris Wilson <chris@chris-wilson.co.uk>,
+	Tiago Vignatti <tiago.vignatti@intel.com>,
+	=?UTF-8?Q?St=C3=A9phane_Marchesin?= <marcheu@chromium.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Daniel Vetter <daniel.vetter@intel.com>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove two nested mutex left-overs at find_entity and make sure
-that the code won't suffer race conditions if the device is
-being removed while ioctl is being handled nor the topology changes,
-by protecting all ioctls with a mutex at media_device_ioctl().
+Hi
 
-As reported by Laurent, commit c38077d39c7e ("[media] media-device:
-get rid of the spinlock") introduced a deadlock in the
-MEDIA_IOC_ENUM_LINKS ioctl handler:
+On Mon, Mar 21, 2016 at 8:51 AM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
+> Just a bit of wording polish plus mentioning that it can fail and must
+> be restarted.
+>
+> Requested by Sumit.
+>
+> v2: Fix them typos (Hans).
+>
+> Cc: Chris Wilson <chris@chris-wilson.co.uk>
+> Cc: Tiago Vignatti <tiago.vignatti@intel.com>
+> Cc: Stéphane Marchesin <marcheu@chromium.org>
+> Cc: David Herrmann <dh.herrmann@gmail.com>
+> Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> Cc: Daniel Vetter <daniel.vetter@intel.com>
+> CC: linux-media@vger.kernel.org
+> Cc: dri-devel@lists.freedesktop.org
+> Cc: linaro-mm-sig@lists.linaro.org
+> Cc: intel-gfx@lists.freedesktop.org
+> Cc: devel@driverdev.osuosl.org
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
+> Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+> ---
+>  Documentation/dma-buf-sharing.txt | 11 ++++++-----
+>  drivers/dma-buf/dma-buf.c         |  2 +-
+>  2 files changed, 7 insertions(+), 6 deletions(-)
+>
+> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+> index 32ac32e773e1..ca44c5820585 100644
+> --- a/Documentation/dma-buf-sharing.txt
+> +++ b/Documentation/dma-buf-sharing.txt
+> @@ -352,7 +352,8 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
+>
+>     No special interfaces, userspace simply calls mmap on the dma-buf fd, making
+>     sure that the cache synchronization ioctl (DMA_BUF_IOCTL_SYNC) is *always*
+> -   used when the access happens. This is discussed next paragraphs.
+> +   used when the access happens. Note that DMA_BUF_IOCTL_SYNC can fail with
+> +   -EAGAIN or -EINTR, in which case it must be restarted.
 
-[ 2760.127749] INFO: task media-ctl:954 blocked for more than 120 seconds.
-[ 2760.131867]       Not tainted 4.5.0+ #357
-[ 2760.134622] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-[ 2760.139310] media-ctl       D ffffffc000086bcc     0   954    671 0x00000001
-[ 2760.143618] Call trace:
-[ 2760.145601] [<ffffffc000086bcc>] __switch_to+0x90/0xa4
-[ 2760.148941] [<ffffffc0004e6ef0>] __schedule+0x188/0x5b0
-[ 2760.152309] [<ffffffc0004e7354>] schedule+0x3c/0xa0
-[ 2760.155495] [<ffffffc0004e7768>] schedule_preempt_disabled+0x20/0x38
-[ 2760.159423] [<ffffffc0004e8d28>] __mutex_lock_slowpath+0xc4/0x148
-[ 2760.163217] [<ffffffc0004e8df0>] mutex_lock+0x44/0x5c
-[ 2760.166483] [<ffffffc0003e87d4>] find_entity+0x2c/0xac
-[ 2760.169773] [<ffffffc0003e8d34>] __media_device_enum_links+0x20/0x1dc
-[ 2760.173711] [<ffffffc0003e9718>] media_device_ioctl+0x214/0x33c
-[ 2760.177384] [<ffffffc0003e9eec>] media_ioctl+0x24/0x3c
-[ 2760.180671] [<ffffffc0001bee64>] do_vfs_ioctl+0xac/0x758
-[ 2760.184026] [<ffffffc0001bf594>] SyS_ioctl+0x84/0x98
-[ 2760.187196] [<ffffffc000085d30>] el0_svc_naked+0x24/0x28
+What is "restart on EAGAIN" supposed to mean? Or more generally, what
+does EAGAIN tell the caller?
 
-That's because find_entity() holds the graph_mutex, but both
-MEDIA_IOC_ENUM_LINKS and MEDIA_IOC_SETUP_LINK logic also take
-the mutex.
+Thanks
+David
 
-Reported-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/media-device.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 7bfb2b24f644..6cfa890af7b4 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -90,8 +90,6 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
- 
- 	id &= ~MEDIA_ENT_ID_FLAG_NEXT;
- 
--	mutex_lock(&mdev->graph_mutex);
--
- 	media_device_for_each_entity(entity, mdev) {
- 		if (((media_entity_id(entity) == id) && !next) ||
- 		    ((media_entity_id(entity) > id) && next)) {
-@@ -100,8 +98,6 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
- 		}
- 	}
- 
--	mutex_unlock(&mdev->graph_mutex);
--
- 	return NULL;
- }
- 
-@@ -431,6 +427,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 	struct media_device *dev = devnode->media_dev;
- 	long ret;
- 
-+	mutex_lock(&dev->graph_mutex);
- 	switch (cmd) {
- 	case MEDIA_IOC_DEVICE_INFO:
- 		ret = media_device_get_info(dev,
-@@ -443,29 +440,24 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 		break;
- 
- 	case MEDIA_IOC_ENUM_LINKS:
--		mutex_lock(&dev->graph_mutex);
- 		ret = media_device_enum_links(dev,
- 				(struct media_links_enum __user *)arg);
--		mutex_unlock(&dev->graph_mutex);
- 		break;
- 
- 	case MEDIA_IOC_SETUP_LINK:
--		mutex_lock(&dev->graph_mutex);
- 		ret = media_device_setup_link(dev,
- 				(struct media_link_desc __user *)arg);
--		mutex_unlock(&dev->graph_mutex);
- 		break;
- 
- 	case MEDIA_IOC_G_TOPOLOGY:
--		mutex_lock(&dev->graph_mutex);
- 		ret = media_device_get_topology(dev,
- 				(struct media_v2_topology __user *)arg);
--		mutex_unlock(&dev->graph_mutex);
- 		break;
- 
- 	default:
- 		ret = -ENOIOCTLCMD;
- 	}
-+	mutex_unlock(&dev->graph_mutex);
- 
- 	return ret;
- }
--- 
-2.5.5
-
+>     Some systems might need some sort of cache coherency management e.g. when
+>     CPU and GPU domains are being accessed through dma-buf at the same time. To
+> @@ -366,10 +367,10 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
+>         want (with the new data being consumed by the GPU or say scanout device)
+>       - munmap once you don't need the buffer any more
+>
+> -    Therefore, for correctness and optimal performance, systems with the memory
+> -    cache shared by the GPU and CPU i.e. the "coherent" and also the
+> -    "incoherent" are always required to use SYNC_START and SYNC_END before and
+> -    after, respectively, when accessing the mapped address.
+> +    For correctness and optimal performance, it is always required to use
+> +    SYNC_START and SYNC_END before and after, respectively, when accessing the
+> +    mapped address. Userspace cannot rely on coherent access, even when there
+> +    are systems where it just works without calling these ioctls.
+>
+>  2. Supporting existing mmap interfaces in importers
+>
+> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+> index 774a60f4309a..4a2c07ee6677 100644
+> --- a/drivers/dma-buf/dma-buf.c
+> +++ b/drivers/dma-buf/dma-buf.c
+> @@ -612,7 +612,7 @@ EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
+>   * @dmabuf:    [in]    buffer to complete cpu access for.
+>   * @direction: [in]    length of range for cpu access.
+>   *
+> - * This call must always succeed.
+> + * Can return negative error values, returns 0 on success.
+>   */
+>  int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
+>                            enum dma_data_direction direction)
+> --
+> 2.8.0.rc3
+>
