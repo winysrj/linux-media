@@ -1,68 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:3318 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932877AbcCROSA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 10:18:00 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv13 08/17] cec: add compat32 ioctl support
-Date: Fri, 18 Mar 2016 15:07:07 +0100
-Message-Id: <1458310036-19252-9-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
-References: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
+Received: from lists.s-osg.org ([54.187.51.154]:55386 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933402AbcCUVPi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 17:15:38 -0400
+Date: Mon, 21 Mar 2016 18:15:32 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [RFC PATCH 1/3] [media] v4l2-mc.h: Add a S-Video C input PAD to
+ demod enum
+Message-ID: <20160321181532.58827d37@recife.lan>
+In-Reply-To: <56F04FFC.3080706@osg.samsung.com>
+References: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
+	<1457550566-5465-2-git-send-email-javier@osg.samsung.com>
+	<56EC2294.603@xs4all.nl>
+	<56EC3BF3.5040100@xs4all.nl>
+	<20160321114045.00f200a0@recife.lan>
+	<56F00DAA.8000701@xs4all.nl>
+	<56F01AE7.6070508@xs4all.nl>
+	<20160321145034.6fa4e677@recife.lan>
+	<56F038A0.1010004@xs4all.nl>
+	<56F03C40.4090909@osg.samsung.com>
+	<56F0461A.1070809@xs4all.nl>
+	<56F04969.6070908@osg.samsung.com>
+	<56F04BF3.2000006@xs4all.nl>
+	<56F04FFC.3080706@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The CEC ioctls didn't have compat32 support, so they returned -ENOTTY
-when used in a 32 bit application on a 64 bit kernel.
+Em Mon, 21 Mar 2016 16:48:12 -0300
+Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
 
-Since all the CEC ioctls are 32-bit compatible adding support for this
-API is trivial.
+> Hello Hans,
+> 
+> On 03/21/2016 04:30 PM, Hans Verkuil wrote:
+> 
+> [snip]
+> 
+> >>>>
+> >>>> Can you please provide an example of a media pipeline that user-space should
+> >>>> use with this approach? AFAICT whatever PADs are created when initiliazing
+> >>>> the PADs for an entity, will be exposed to user-space in the media graph.
+> >>>>
+> >>>> So I'm not understading how it will be used in practice. I don't mean that
+> >>>> your approach is not correct, is just I'm not getting it :)  
+> >>>
+> >>> Why would userspace need to use the pads? This is for legacy drivers (right?)
+> >>> where the pipeline is fixed anyway.
+> >>>  
+> >>
+> >> I asked because the user needs to setup the links in the media pipeline to
+> >> choose  which input connection will be linked to the tvp5150 decoder. But it
+> >> doesn't matter if we are going with the single sink pad approach since the
+> >> user will always do something like:  
+> > 
+> > Why? The user will use an application that uses ENUM/S/G_INPUT for this. We're
+> > talking legacy drivers ('interface centric drivers' would be a better description)
+> > where we don't even expose the v4l-subdevX device nodes. Explicitly programming
+> > a media pipeline is something you do for complex devices (embedded systems and
+> > the like). Not for simple and generally fixed pipelines. Utterly pointless.
+> >  
+> 
+> Mauro was talking about legacy 'interface centric' PC-consumer's hardware but
+> my test system is an embedded board that also has a tvp5150 decoder. The
+> board has an OMAP3 and the tvp5150 is attached to the SoC ISP. Is this one:
+> 
+> https://www.isee.biz/products/igep-expansion-boards/igepv2-expansion
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- fs/compat_ioctl.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+Yeah, subdevs should be prepared to work with both "interface centric" and
+"media controller centric" approaches.
 
-diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
-index 6402eaf..140934c 100644
---- a/fs/compat_ioctl.c
-+++ b/fs/compat_ioctl.c
-@@ -57,6 +57,7 @@
- #include <linux/i2c-dev.h>
- #include <linux/atalk.h>
- #include <linux/gfp.h>
-+#include <linux/cec.h>
- 
- #include "internal.h"
- 
-@@ -1399,6 +1400,22 @@ COMPATIBLE_IOCTL(VIDEO_GET_NAVI)
- COMPATIBLE_IOCTL(VIDEO_SET_ATTRIBUTES)
- COMPATIBLE_IOCTL(VIDEO_GET_SIZE)
- COMPATIBLE_IOCTL(VIDEO_GET_FRAME_RATE)
-+/* cec */
-+COMPATIBLE_IOCTL(CEC_ADAP_G_CAPS)
-+COMPATIBLE_IOCTL(CEC_ADAP_LOG_STATUS)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_LOG_ADDRS)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_LOG_ADDRS)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_STATE)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_STATE)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_PHYS_ADDR)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_PHYS_ADDR)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_VENDOR_ID)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_VENDOR_ID)
-+COMPATIBLE_IOCTL(CEC_G_MODE)
-+COMPATIBLE_IOCTL(CEC_S_MODE)
-+COMPATIBLE_IOCTL(CEC_TRANSMIT)
-+COMPATIBLE_IOCTL(CEC_RECEIVE)
-+COMPATIBLE_IOCTL(CEC_DQEVENT)
- 
- /* joystick */
- COMPATIBLE_IOCTL(JSIOCGVERSION)
--- 
-2.7.0
+Yet, I don't think using one sink pad for tvp5150 is a bad thing.
 
+> As you can see, the board has 2 RCA connectors and each one is routed a tvp5150
+> composite input and both connectors can be used for S-Video. So the user needs
+> to setup the pipeline manually to choose which input connection to use.
+
+Actually, on your tests, you were not able to make this work, nor
+S-Video is officially supported by the manufacturer. So, in the
+specific case of IGEPv2, I would not be adding a S-Video connector.
+
+Btw, even on devices with an S-Video connector and tvp5150, at
+least on my tests, the driver were not able to setup S-Video. It
+seems that there's something more than just setting the mux.
+
+- 
+Thanks,
+Mauro
