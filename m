@@ -1,64 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [198.137.202.9] ([198.137.202.9]:59717 "EHLO
-	bombadil.infradead.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1755288AbcCPNBc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 09:01:32 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	alsa-devel@alsa-project.org
-Subject: [PATCH 1/2] sound/usb/media: use core routine to initialize media_device
-Date: Wed, 16 Mar 2016 10:00:37 -0300
-Message-Id: <907cfedffb3524aeffcdfde0efe3f23f2eb70dd1.1458133227.git.mchehab@osg.samsung.com>
+Received: from swift.blarg.de ([78.47.110.205]:47899 "EHLO swift.blarg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753816AbcCULdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 07:33:08 -0400
+Subject: [PATCH] drivers/media/rc: postpone kfree(rc_dev)
+From: Max Kellermann <max@duempel.org>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Date: Mon, 21 Mar 2016 12:33:05 +0100
+Message-ID: <145855998541.9135.18170484612406448203.stgit@woodpecker.blarg.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media core has now a routine to initialize media_device
-for USB devices. Use it, instead of doing its own logic,
-as it warrants that all USB drivers will behave the same. It
-also warrants that the device will get the same data, no matter
-if it was initialized initially via snd-usb-audio or via
-some other driver, like au0828.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CONFIG_DEBUG_KOBJECT_RELEASE found this bug.
 ---
- sound/usb/media.c | 18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ drivers/media/rc/rc-main.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-index 93a50d01490c..44a5de91f748 100644
---- a/sound/usb/media.c
-+++ b/sound/usb/media.c
-@@ -263,19 +263,11 @@ int media_snd_device_create(struct snd_usb_audio *chip,
- 	mdev = media_device_get_devres(&usbdev->dev);
- 	if (!mdev)
- 		return -ENOMEM;
--	if (!mdev->dev) {
--		/* register media device */
--		mdev->dev = &usbdev->dev;
--		if (usbdev->product)
--			strlcpy(mdev->model, usbdev->product,
--				sizeof(mdev->model));
--		if (usbdev->serial)
--			strlcpy(mdev->serial, usbdev->serial,
--				sizeof(mdev->serial));
--		strcpy(mdev->bus_info, usbdev->devpath);
--		mdev->hw_revision = le16_to_cpu(usbdev->descriptor.bcdDevice);
--		media_device_init(mdev);
--	}
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 1042fa3..cb3e8db 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1248,6 +1248,9 @@ unlock:
+ 
+ static void rc_dev_release(struct device *device)
+ {
++	struct rc_dev *dev = to_rc_dev(device);
 +
-+	/* Initialize media device */
-+	if (!mdev->dev)
-+		media_device_usb_init(mdev, usbdev, NULL);
++	kfree(dev);
+ }
+ 
+ #define ADD_HOTPLUG_VAR(fmt, val...)					\
+@@ -1369,7 +1372,9 @@ void rc_free_device(struct rc_dev *dev)
+ 
+ 	put_device(&dev->dev);
+ 
+-	kfree(dev);
++	/* kfree(dev) will be called by the callback function
++	   rc_dev_release() */
 +
- 	if (!media_devnode_is_registered(&mdev->devnode)) {
- 		ret = media_device_register(mdev);
- 		if (ret) {
--- 
-2.5.0
+ 	module_put(THIS_MODULE);
+ }
+ EXPORT_SYMBOL_GPL(rc_free_device);
 
