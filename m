@@ -1,153 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34334 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:55071 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753549AbcCCTGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 14:06:48 -0500
-Subject: Re: [PATCH v5 22/22] sound/usb: Use Media Controller API to share
- media resources
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1456937431-3794-1-git-send-email-shuahkh@osg.samsung.com>
- <20160302204131.GV5273@mwanda> <56D76FBF.9050209@osg.samsung.com>
- <20160303152152.303c85ea@recife.lan>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, tiwai@suse.com,
-	clemens@ladisch.de, hans.verkuil@cisco.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56D88B43.8090803@osg.samsung.com>
-Date: Thu, 3 Mar 2016 12:06:43 -0700
+	id S1754496AbcCUMZe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 08:25:34 -0400
+Date: Mon, 21 Mar 2016 09:25:29 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Max Kellermann <max@duempel.org>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] drivers/media/media-devnode: add missing mutex lock in
+ error handler
+Message-ID: <20160321092529.46527adb@recife.lan>
+In-Reply-To: <145855999281.9224.17355739501867370595.stgit@woodpecker.blarg.de>
+References: <145855999281.9224.17355739501867370595.stgit@woodpecker.blarg.de>
 MIME-Version: 1.0
-In-Reply-To: <20160303152152.303c85ea@recife.lan>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/03/2016 11:21 AM, Mauro Carvalho Chehab wrote:
-> Em Wed, 2 Mar 2016 15:57:03 -0700
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> 
->> On 03/02/2016 01:41 PM, Dan Carpenter wrote:
->>> On Wed, Mar 02, 2016 at 09:50:31AM -0700, Shuah Khan wrote:
->>>> +	mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
->>>> +	if (!mctl)
->>>> +		return -ENOMEM;
->>>> +
->>>> +	mctl->media_dev = mdev;
->>>> +	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
->>>> +		intf_type = MEDIA_INTF_T_ALSA_PCM_PLAYBACK;
->>>> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_PLAYBACK;
->>>> +		mctl->media_pad.flags = MEDIA_PAD_FL_SOURCE;
->>>> +		mixer_pad = 1;
->>>> +	} else {
->>>> +		intf_type = MEDIA_INTF_T_ALSA_PCM_CAPTURE;
->>>> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_CAPTURE;
->>>> +		mctl->media_pad.flags = MEDIA_PAD_FL_SINK;
->>>> +		mixer_pad = 2;
->>>> +	}
->>>> +	mctl->media_entity.name = pcm->name;
->>>> +	media_entity_pads_init(&mctl->media_entity, 1, &mctl->media_pad);
->>>> +	ret =  media_device_register_entity(mctl->media_dev,
->>>> +					    &mctl->media_entity);
->>>> +	if (ret)
->>>> +		goto err1;
->>>
->>> Could we give this label a meaningful name instead of a number?
->>> goto free_mctl;
->>
->> I do see other places where numbered labels are used.
->> Names might help with code readability.
->>
->> register_entity_fail probably makes more sense as a
->> label than free_mctl. In any case, I can address the
->> labels in a follow-on patch.
->>
->>>
->>>> +
->>>> +	mctl->intf_devnode = media_devnode_create(mdev, intf_type, 0,
->>>> +						  MAJOR(pcm_dev->devt),
->>>> +						  MINOR(pcm_dev->devt));
->>>> +	if (!mctl->intf_devnode) {
->>>> +		ret = -ENOMEM;
->>>> +		goto err2;
->>>
->>> goto unregister_device;
->>>
->>>> +	}
->>>> +	mctl->intf_link = media_create_intf_link(&mctl->media_entity,
->>>> +						 &mctl->intf_devnode->intf,
->>>> +						 MEDIA_LNK_FL_ENABLED);
->>>> +	if (!mctl->intf_link) {
->>>> +		ret = -ENOMEM;
->>>> +		goto err3;
->>>
->>> goto delete_devnode;
->>>
->>>> +	}
->>>> +
->>>> +	/* create link between mixer and audio */
->>>> +	media_device_for_each_entity(entity, mdev) {
->>>> +		switch (entity->function) {
->>>> +		case MEDIA_ENT_F_AUDIO_MIXER:
->>>> +			ret = media_create_pad_link(entity, mixer_pad,
->>>> +						    &mctl->media_entity, 0,
->>>> +						    MEDIA_LNK_FL_ENABLED);
->>>> +			if (ret)
->>>> +				goto err4;
->>>
->>> This is a bit weird because we're inside a loop.  Shouldn't we call
->>> media_entity_remove_links() or something if this is the second time
->>> through the loop?
->>
->> Links are removed from media_device_unregister_entity()
->> which is called in the error path.
->>
->>>
->>> I don't understand this.  The kernel has the media_entity_cleanup() stub
->>> function which is supposed to do this but it hasn't been implemented
->>> yet?
->>>
->>
->> Please see above. Links are removed when entity is
->> unregistered. media_entity_cleanup() is a stub. It
->> isn't intended for removing links.
-> 
-> Shuah,
-> 
-> Please address the issue that Dan is pointing on a separate
-> patch.
-> 
+Em Mon, 21 Mar 2016 12:33:12 +0100
+Max Kellermann <max@duempel.org> escreveu:
 
-Mauro,
 
-Sent it a couple of hours ago. 
+Please, always send us your Signed-off-by on your patches, as described at:
+	https://linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Developer.27s_Certificate_of_Origin_1.1
 
-https://lkml.org/lkml/2016/3/3/601
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg95141.html
+Also, please add a description to the patch.
 
-thanks,
--- Shuah
+Thanks,
+Mauro
+
+> ---
+>  drivers/media/media-devnode.c |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+> index cea35bf..4d7e8dd 100644
+> --- a/drivers/media/media-devnode.c
+> +++ b/drivers/media/media-devnode.c
+> @@ -266,8 +266,11 @@ int __must_check media_devnode_register(struct media_devnode *mdev,
+>  	return 0;
+>  
+>  error:
+> +	mutex_lock(&media_devnode_lock);
+>  	cdev_del(&mdev->cdev);
+>  	clear_bit(mdev->minor, media_devnode_nums);
+> +	mutex_unlock(&media_devnode_lock);
+> +
+>  	return ret;
+>  }
+>  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Thanks,
+Mauro
