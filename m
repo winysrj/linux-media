@@ -1,85 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36260 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752925AbcCOMkh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Mar 2016 08:40:37 -0400
-Date: Tue, 15 Mar 2016 14:40:33 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Philippe De Muyter <phdm@macq.eu>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: subdev sensor driver and
- V4L2_FRMIVAL_TYPE_CONTINUOUS/V4L2_FRMIVAL_TYPE_STEPWISE
-Message-ID: <20160315124033.GU11084@valkosipuli.retiisi.org.uk>
-References: <20160315101417.GA31990@frolo.macqel>
- <20160315110608.GT11084@valkosipuli.retiisi.org.uk>
- <56E7F7EE.10308@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:55396 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757953AbcCUVUx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 17:20:53 -0400
+Date: Mon, 21 Mar 2016 18:20:47 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [RFC PATCH 1/3] [media] v4l2-mc.h: Add a S-Video C input PAD to
+ demod enum
+Message-ID: <20160321182047.3f52e119@recife.lan>
+In-Reply-To: <56F04969.6070908@osg.samsung.com>
+References: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
+	<1457550566-5465-2-git-send-email-javier@osg.samsung.com>
+	<56EC2294.603@xs4all.nl>
+	<56EC3BF3.5040100@xs4all.nl>
+	<20160321114045.00f200a0@recife.lan>
+	<56F00DAA.8000701@xs4all.nl>
+	<56F01AE7.6070508@xs4all.nl>
+	<20160321145034.6fa4e677@recife.lan>
+	<56F038A0.1010004@xs4all.nl>
+	<56F03C40.4090909@osg.samsung.com>
+	<56F0461A.1070809@xs4all.nl>
+	<56F04969.6070908@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <56E7F7EE.10308@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Mon, 21 Mar 2016 16:20:09 -0300
+Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
 
-On Tue, Mar 15, 2016 at 12:54:22PM +0100, Hans Verkuil wrote:
-> On 03/15/16 12:06, Sakari Ailus wrote:
-> > Hi Philippe,
-> > 
-> > On Tue, Mar 15, 2016 at 11:14:17AM +0100, Philippe De Muyter wrote:
-> >> Hi,
-> >>
-> >> Sorry if you read the following twice, but the subject of my previous post
-> >> was not precise enough :(
-> >>
-> >> I am in the process of converting a sensor driver compatible with the imx6
-> >> freescale linux kernel, to a subdev driver compatible with a current kernel
-> >> and Steve Longerbeam's work.
-> >>
-> >> My sensor can work at any fps (even fractional) up to 60 fps with its default
-> >> frame size or even higher when using crop or "binning'.  That fact is reflected
-> >> in my previous implemetation of VIDIOC_ENUM_FRAMEINTERVALS, which answered
-> >> with a V4L2_FRMIVAL_TYPE_CONTINUOUS-type reply.
-> >>
-> >> This seem not possible anymore because of the lack of the needed fields
-> >> in the 'struct v4l2_subdev_frame_interval_enum' used to delegate the question
-> >> to the subdev driver.  V4L2_FRMIVAL_TYPE_STEPWISE does not seem possible
-> >> anymore either.  Has that been replaced by something else or is that
-> >> functionality not considered relevant anymorea ?
-> > 
-> > I think the issue was that the CONTINUOUS and STEPWISE were considered too
-> > clumsy for applications and practically no application was using them, or at
-> > least the need for these was not seen to be there. They were not added to
-> > the V4L2 sub-device implementation of the interface as a result.
+> > BTW, if the tvp5150 needs to know which composite connector is connected
+> > to which hardware pin, then you still may need to be explicit w.r.t. the
+> > number of pads. I just thought of that.
+> >  
 > 
-> It never made sense to me why the two APIs weren't kept the same.
+> The tvp5150 doesn't care about that, as Mauro said is just a mux so you can
+> have logic in the .link_setup that does the mux depending on the remote
+> entity (that's in fact how I implemented and is currently in mainline).
 > 
-> My suggestion would be to add step_width and step_height fields to
-> struct v4l2_subdev_frame_size_enum, that way you have the same functionality
-> back.
+> Now, the user needs to know which entity is mapped to which input pin.
+> All its know from the HW documentation is that for example the left
+> RCA connector is AIP1A and the one inf the right is connected to AIP1B.
 > 
-> I.e. for discrete formats the min values equal the max values, for continuous
-> formats the step values are both 1 (or 0 for compability's sake) and the
-> remainder maps to a stepwise range.
+> So there could be a convention that the composite connected to AIP1A pin
+> (the default) is Composite0 and the connected to AIP1B is Composite1.
 
-On frame intervals... I'm not against changing it if there's a need to.
 
-Cc'ing Laurent who I believe wrote the original API. I probably acked it.
+We should avoid a convention here... instead, we should support
+properties via the properties API to export enough info for userspace
+to know what physical connectors correspond to each "connection" entity.
 
-We just needed to add the type field (snatch one from the reserved array),
-DISCRETE translates to zero so there are on compatibility issues either.
-struct v4l2_frmival_stepwise will consume all remaining reserved entries
-with the exception of one, but there is still room for it.
+As we've discussed previously, such properties can be:
+	- connector's name
+	- color
+	- position
+etc...
 
-Documentation is needed as well.
 
-I don't think it'd be very pretty but I guess there's no way around that at
-this point. We should have had the which field before the interval field.
-
--- 
 Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Mauro
