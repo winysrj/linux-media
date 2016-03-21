@@ -1,64 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:48400 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752002AbcCJOu2 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53398 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751159AbcCUWt6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2016 09:50:28 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: fix !CONFIG_MEDIA_CONTROLLER compile error for v4l_change_media_source()
-Date: Thu, 10 Mar 2016 07:50:22 -0700
-Message-Id: <1457621422-3187-1-git-send-email-shuahkh@osg.samsung.com>
+	Mon, 21 Mar 2016 18:49:58 -0400
+Subject: Re: [PATCH RFC 0/2] pxa_camera transition to v4l2 standalone device
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+References: <1458421288-22094-1-git-send-email-robert.jarzmik@free.fr>
+ <56EFAD47.8010403@xs4all.nl> <87lh5bmpro.fsf@belgarion.home>
+ <56F077A4.1090808@xs4all.nl> <87h9fzmozy.fsf@belgarion.home>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56F07A90.8060305@xs4all.nl>
+Date: Mon, 21 Mar 2016 23:49:52 +0100
+MIME-Version: 1.0
+In-Reply-To: <87h9fzmozy.fsf@belgarion.home>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This error is a result of not defining v4l_change_media_source() stub
-in include/media/v4l2-mc.h for !CONFIG_MEDIA_CONTROLLER case.
+On 03/21/2016 11:42 PM, Robert Jarzmik wrote:
+> Hans Verkuil <hverkuil@xs4all.nl> writes:
+> 
+>>> Input ioctls:
+>>> 	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>>> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>>> 	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>>> 	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>>> 		fail: v4l2-test-input-output.cpp(418): G_INPUT not supported for a capture device
+>>
+>> ENUM/G/S_INPUT is missing and is required for capture devices.
+> Okay, that one will be easy I think :) It's a mono-sensor mono-videostream IP.
+> I will add that when for RFC v2.
+> 
+>>> 	Format ioctls:
+>>> 		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>>> 		test VIDIOC_G/S_PARM: OK (Not Supported)
+>>> 		test VIDIOC_G_FBUF: OK (Not Supported)
+>>> 		fail: v4l2-test-formats.cpp(329): pixelformat != V4L2_PIX_FMT_JPEG && colorspace == V4L2_COLORSPACE_JPEG
+>>> 		fail: v4l2-test-formats.cpp(432): testColorspace(pix.pixelformat, pix.colorspace, pix.ycbcr_enc, pix.quantization)
+>>
+>> The sensor should almost certainly use COLORSPACE_SRGB. Certainly not
+>> COLORSPACE_JPEG.
+> Ah even for YUYV format, I didn't know ...
 
-Fix the following compile error:
+The pixel format != colorspace. You can read more about that here, if you are
+interested:
 
-url:    https://github.com/0day-ci/linux/commits/Shuah-Khan/media-add-change_source-handler-support/20160310-131140
-base:   git://linuxtv.org/media_tree.git master
-config: x86_64-rhel (attached as .config)
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=x86_64
+https://hverkuil.home.xs4all.nl/spec/media.html#colorspaces
 
-All errors (new ones prefixed by >>):
+> 
+>>> 	Buffer ioctls:
+>>> 		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>>> 		fail: v4l2-test-buffers.cpp(571): q.has_expbuf(node)
+>>
+>> You are missing .vidioc_expbuf = vbs_ioctl_expbuf and the vb2 io_mode
+>> VB2_DMABUF.
+> Nope, I have :
+> 	.vidioc_expbuf			= vb2_ioctl_expbuf,
+> 	vq->io_modes = VB2_MMAP | VB2_DMABUF;
+> 
+> So it's something more subtle, and I have a bit of work to understand what.
 
-   drivers/media/usb/au0828/au0828-video.c: In function 'vidioc_s_input':
->> drivers/media/usb/au0828/au0828-video.c:1474:2: error: implicit declaration of function 'v4l_change_media_source' [-Werror=implicit-function-declaration]
-     return v4l_change_media_source(vfd);
-     ^
-   cc1: some warnings being treated as errors
+Fix the colorspace issue first, I wonder if it is just fallout from that earlier
+issue.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
+Regards,
 
-This patch applies on top of:
-https://lkml.org/lkml/2016/3/10/7
+	Hans
 
- include/media/v4l2-mc.h | 5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-index 884b969..50b9348 100644
---- a/include/media/v4l2-mc.h
-+++ b/include/media/v4l2-mc.h
-@@ -237,6 +237,11 @@ static inline int v4l_enable_media_source(struct video_device *vdev)
- 	return 0;
- }
- 
-+static inline int v4l_change_media_source(struct video_device *vdev)
-+{
-+	return 0;
-+}
-+
- static inline void v4l_disable_media_source(struct video_device *vdev)
- {
- }
--- 
-2.5.0
+> 
+> Cheers.
+> 
+> --
+> Robert
+> 
 
