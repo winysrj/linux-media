@@ -1,264 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58673 "EHLO lists.s-osg.org"
+Received: from swift.blarg.de ([78.47.110.205]:58940 "EHLO swift.blarg.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751212AbcC1S2s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2016 14:28:48 -0400
-Date: Mon, 28 Mar 2016 15:28:41 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: <laurent.pinchart@ideasonboard.com>, <perex@perex.cz>,
-	<tiwai@suse.com>, <hans.verkuil@cisco.com>,
-	<chehabrafael@gmail.com>, <javier@osg.samsung.com>,
-	<jh1009.sung@samsung.com>, <linux-kernel@vger.kernel.org>,
-	<linux-media@vger.kernel.org>, <alsa-devel@alsa-project.org>
-Subject: Re: [RFC PATCH 3/4] media: Add refcount to keep track of media
- device registrations
-Message-ID: <20160328152841.64b99e42@recife.lan>
-In-Reply-To: <dd4a411224763aa8a8e83ba43e2fbf668c2ba15f.1458966594.git.shuahkh@osg.samsung.com>
-References: <cover.1458966594.git.shuahkh@osg.samsung.com>
- <dd4a411224763aa8a8e83ba43e2fbf668c2ba15f.1458966594.git.shuahkh@osg.samsung.com>
+	id S1755368AbcCUM0t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 08:26:49 -0400
+Subject: [PATCH] drivers/media/rc: postpone kfree(rc_dev)
+From: Max Kellermann <max@duempel.org>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Date: Mon, 21 Mar 2016 13:26:47 +0100
+Message-ID: <145856320721.10992.11927452939962449623.stgit@woodpecker.blarg.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 25 Mar 2016 22:38:44 -0600
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+CONFIG_DEBUG_KOBJECT_RELEASE found this bug.
 
-> Add refcount to keep track of media device registrations to avoid release
-> of media device when one of the drivers does unregister when media device
-> belongs to more than one driver. Also add a new interfaces to unregister
-> a media device allocated using Media Device Allocator and a hold register
-> refcount. Change media_open() to get media device reference and put the
-> reference in media_release().
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/media-device.c  | 53 +++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/media-devnode.c |  3 +++
->  include/media/media-device.h  | 32 ++++++++++++++++++++++++++
->  3 files changed, 88 insertions(+)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 93aff4e..3359235 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -36,6 +36,7 @@
->  #include <media/media-device.h>
->  #include <media/media-devnode.h>
->  #include <media/media-entity.h>
-> +#include <media/media-dev-allocator.h>
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  
-> @@ -702,6 +703,7 @@ void media_device_init(struct media_device *mdev)
->  	INIT_LIST_HEAD(&mdev->entity_notify);
->  	mutex_init(&mdev->graph_mutex);
->  	ida_init(&mdev->entity_internal_idx);
-> +	kref_init(&mdev->refcount);
->  
->  	dev_dbg(mdev->dev, "Media device initialized\n");
->  }
-> @@ -730,6 +732,13 @@ printk("%s: mdev %p\n", __func__, mdev);
->  	/* Check if mdev was ever registered at all */
->  	mutex_lock(&mdev->graph_mutex);
->  
-> +	/* if media device is already registered, bump the register refcount */
-> +	if (media_devnode_is_registered(&mdev->devnode)) {
-> +		kref_get(&mdev->refcount);
-> +		mutex_unlock(&mdev->graph_mutex);
-> +		return 0;
-> +	}
-> +
->  	/* Register the device node. */
->  	mdev->devnode.fops = &media_device_fops;
->  	mdev->devnode.parent = mdev->dev;
-> @@ -756,6 +765,22 @@ err:
->  }
->  EXPORT_SYMBOL_GPL(__media_device_register);
->  
-> +void media_device_register_ref(struct media_device *mdev)
-> +{
-> +	if (!mdev)
-> +		return;
-> +
-> +	pr_info("%s: mdev %p\n", __func__, mdev);
-> +	mutex_lock(&mdev->graph_mutex);
-> +
-> +	/* Check if mdev is registered - bump registered refcount */
-> +	if (media_devnode_is_registered(&mdev->devnode))
-> +		kref_get(&mdev->refcount);
-> +
-> +	mutex_unlock(&mdev->graph_mutex);
-> +}
-> +EXPORT_SYMBOL_GPL(media_device_register_ref);
-> +
->  int __must_check media_device_register_entity_notify(struct media_device *mdev,
->  					struct media_entity_notify *nptr)
->  {
-> @@ -829,6 +854,34 @@ printk("%s: mdev=%p\n", __func__, mdev);
->  }
->  EXPORT_SYMBOL_GPL(media_device_unregister);
->  
-> +static void __media_device_unregister_kref(struct kref *kref)
-> +{
-> +	struct media_device *mdev;
-> +
-> +	mdev = container_of(kref, struct media_device, refcount);
-> +	__media_device_unregister(mdev);
-> +}
-> +
-> +void media_device_unregister_put(struct media_device *mdev)
-> +{
-> +	int ret;
-> +
-> +	if (mdev == NULL)
-> +		return;
-> +
-> +	pr_info("%s: mdev=%p\n", __func__, mdev);
-> +	ret = kref_put_mutex(&mdev->refcount, __media_device_unregister_kref,
-> +			     &mdev->graph_mutex);
-> +	if (ret) {
-> +		/* __media_device_unregister() ran */
-> +		__media_device_cleanup(mdev);
-> +		mutex_unlock(&mdev->graph_mutex);
-> +		mutex_destroy(&mdev->graph_mutex);
-> +		media_device_set_to_delete_state(mdev->dev);
+Signed-off-by: Max Kellermann <max@duempel.org>
+---
+ drivers/media/rc/rc-main.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-Where you're freeing the media_dev (or its container struct)?
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 1042fa3..cb3e8db 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1248,6 +1248,9 @@ unlock:
+ 
+ static void rc_dev_release(struct device *device)
+ {
++	struct rc_dev *dev = to_rc_dev(device);
++
++	kfree(dev);
+ }
+ 
+ #define ADD_HOTPLUG_VAR(fmt, val...)					\
+@@ -1369,7 +1372,9 @@ void rc_free_device(struct rc_dev *dev)
+ 
+ 	put_device(&dev->dev);
+ 
+-	kfree(dev);
++	/* kfree(dev) will be called by the callback function
++	   rc_dev_release() */
++
+ 	module_put(THIS_MODULE);
+ }
+ EXPORT_SYMBOL_GPL(rc_free_device);
 
-You need to be sure that it will be freed only here.
-
-> +	}
-> +}
-> +EXPORT_SYMBOL_GPL(media_device_unregister_put);
-> +
->  static void media_device_release_devres(struct device *dev, void *res)
->  {
->  }
-> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-> index 29409f4..d1d1263 100644
-> --- a/drivers/media/media-devnode.c
-> +++ b/drivers/media/media-devnode.c
-> @@ -44,6 +44,7 @@
->  #include <linux/uaccess.h>
->  
->  #include <media/media-devnode.h>
-> +#include <media/media-dev-allocator.h>
->  
->  #define MEDIA_NUM_DEVICES	256
->  #define MEDIA_NAME		"media"
-> @@ -186,6 +187,7 @@ static int media_open(struct inode *inode, struct file *filp)
->  		}
->  	}
->  
-> +	media_device_get_ref(mdev->parent);
->  	return 0;
->  }
->  
-> @@ -201,6 +203,7 @@ static int media_release(struct inode *inode, struct file *filp)
->  	   return value is ignored. */
->  	put_device(&mdev->dev);
->  	filp->private_data = NULL;
-> +	media_device_put(mdev->parent);
->  	return 0;
->  }
->  
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index e59772e..64114ae 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -284,6 +284,8 @@ struct media_entity_notify {
->   * struct media_device - Media device
->   * @dev:	Parent device
->   * @devnode:	Media device node
-> + * @refcount:	Media device register reference count. Used when more
-> + *		than one driver owns the device.
->   * @driver_name: Optional device driver name. If not set, calls to
->   *		%MEDIA_IOC_DEVICE_INFO will return dev->driver->name.
->   *		This is needed for USB drivers for example, as otherwise
-> @@ -348,6 +350,7 @@ struct media_device {
->  	/* dev->driver_data points to this struct. */
->  	struct device *dev;
->  	struct media_devnode devnode;
-> +	struct kref refcount;
-
-You can't simply embed a kref at media_device. The problem is that
-several conditions should be met for this approach to work:
-
-1) The structs that have struct media_device should not have a kref
-their own (I guess that's the current case, but it should be documented
-somewhere);
-
-2) the struct that embeds it can only be destroyed when kref refcount
-reaches zero. That actually means that the core should either allocate
-the struct itself or that a release callback for those structs should
-do the kfree(). It means that all drivers should be changed for it to
-happen.
-
-Also, if you're adding a kref here, you likely should not have a kref
-at struct media_device_instance(), as there's no need for two kref
-destroy logic.
-
->  
->  	char model[32];
->  	char driver_name[32];
-> @@ -501,6 +504,17 @@ int __must_check __media_device_register(struct media_device *mdev,
->  #define media_device_register(mdev) __media_device_register(mdev, THIS_MODULE)
->  
->  /**
-> + * media_device_register_ref() - Increments media device register refcount
-> + *
-> + * @mdev:	pointer to struct &media_device
-> + *
-> + * When more than one driver is associated with the media device, it is
-> + * necessary to refcount the number of registrations to avoid unregister
-> + * when it is still in use.
-> + */
-> +void media_device_register_ref(struct media_device *mdev);
-> +
-> +/**
->   * media_device_unregister() - Unregisters a media device element
->   *
->   * @mdev:	pointer to struct &media_device
-> @@ -512,6 +526,18 @@ int __must_check __media_device_register(struct media_device *mdev,
->  void media_device_unregister(struct media_device *mdev);
->  
->  /**
-> + * media_device_unregister_put() - Unregisters a media device element
-> + *
-> + * @mdev:	pointer to struct &media_device
-> + *
-> + * Should be called to unregister media device allocated with Media Device
-> + * Allocator API media_device_get() interface.
-> + * It is safe to call this function on an unregistered (but initialised)
-> + * media device.
-> + */
-> +void media_device_unregister_put(struct media_device *mdev);
-> +
-> +/**
->   * media_device_register_entity() - registers a media entity inside a
->   *	previously registered media device.
->   *
-> @@ -681,9 +707,15 @@ static inline int media_device_register(struct media_device *mdev)
->  {
->  	return 0;
->  }
-> +static inline void media_device_register_ref(struct media_device *mdev)
-> +{
-> +}
->  static inline void media_device_unregister(struct media_device *mdev)
->  {
->  }
-> +static inline void media_device_unregister_put(struct media_device *mdev)
-> +{
-> +}
->  static inline int media_device_register_entity(struct media_device *mdev,
->  						struct media_entity *entity)
->  {
-
-
--- 
-Thanks,
-Mauro
