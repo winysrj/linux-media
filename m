@@ -1,44 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:48976 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750871AbcCUXcO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 19:32:14 -0400
-From: Colin King <colin.king@canonical.com>
-To: prabhakar.csengg@gmail.com,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] media: am437x-vpfe: ensure ret is initialized
-Date: Mon, 21 Mar 2016 23:32:10 +0000
-Message-Id: <1458603130-6158-1-git-send-email-colin.king@canonical.com>
+Received: from swift.blarg.de ([78.47.110.205]:53816 "EHLO swift.blarg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754874AbcCULdP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 07:33:15 -0400
+Subject: [PATCH] drivers/media/media-devnode: add missing mutex lock in
+ error handler
+From: Max Kellermann <max@duempel.org>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Date: Mon, 21 Mar 2016 12:33:12 +0100
+Message-ID: <145855999281.9224.17355739501867370595.stgit@woodpecker.blarg.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
 
-ret should be initialized to 0; for example if pfe->fmt.fmt.pix.field
-is V4L2_FIELD_NONE then ret will contain garbage from the
-uninitialized state causing garbage to be returned if it is non-zero.
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- drivers/media/platform/am437x/am437x-vpfe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/media-devnode.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index de32e3a..7d14732 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1047,7 +1047,7 @@ static int vpfe_get_ccdc_image_format(struct vpfe_device *vpfe,
- static int vpfe_config_ccdc_image_format(struct vpfe_device *vpfe)
- {
- 	enum ccdc_frmfmt frm_fmt = CCDC_FRMFMT_INTERLACED;
--	int ret;
-+	int ret = 0;
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index cea35bf..4d7e8dd 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -266,8 +266,11 @@ int __must_check media_devnode_register(struct media_devnode *mdev,
+ 	return 0;
  
- 	vpfe_dbg(2, vpfe, "vpfe_config_ccdc_image_format\n");
+ error:
++	mutex_lock(&media_devnode_lock);
+ 	cdev_del(&mdev->cdev);
+ 	clear_bit(mdev->minor, media_devnode_nums);
++	mutex_unlock(&media_devnode_lock);
++
+ 	return ret;
+ }
  
--- 
-2.7.3
 
