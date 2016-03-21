@@ -1,46 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:35499 "EHLO
-	mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbcC2G2k (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:38858 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752594AbcCUHaA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2016 02:28:40 -0400
+	Mon, 21 Mar 2016 03:30:00 -0400
+Received: by mail-wm0-f50.google.com with SMTP id l68so110332565wml.1
+        for <linux-media@vger.kernel.org>; Mon, 21 Mar 2016 00:29:59 -0700 (PDT)
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: DRI Development <dri-devel@lists.freedesktop.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Chris Wilson <chris@chris-wilson.co.uk>,
+	Tiago Vignatti <tiago.vignatti@intel.com>,
+	=?UTF-8?q?St=C3=A9phane=20Marchesin?= <marcheu@chromium.org>,
+	David Herrmann <dh.herrmann@gmail.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Daniel Vetter <daniel.vetter@intel.com>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	intel-gfx@lists.freedesktop.org, devel@driverdev.osuosl.org
+Subject: [PATCH] dma-buf: Update docs for SYNC ioctl
+Date: Mon, 21 Mar 2016 08:30:43 +0100
+Message-Id: <1458545443-3302-1-git-send-email-daniel.vetter@ffwll.ch>
+In-Reply-To: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
+References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1458911416-47981-4-git-send-email-hverkuil@xs4all.nl>
-References: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
-	<1458911416-47981-4-git-send-email-hverkuil@xs4all.nl>
-Date: Tue, 29 Mar 2016 15:28:39 +0900
-Message-ID: <CAJKOXPdpkE5OdNEAVTsbQrjpZZgwDgY2=g9ocM0rFaOU-N=pEw@mail.gmail.com>
-Subject: Re: [PATCHv14 03/18] dts: exynos4412-odroid*: enable the HDMI CEC device
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
-	lars@opdenkamp.eu, linux@arm.linux.org.uk,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 25, 2016 at 10:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Marek Szyprowski <m.szyprowski@samsung.com>
->
-> Add a dts node entry and enable the HDMI CEC device present in the Exynos4
-> family of SoCs.
->
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  arch/arm/boot/dts/exynos4412-odroid-common.dtsi | 4 ++++
->  1 file changed, 4 insertions(+)
+Just a bit of wording polish plus mentioning that it can fail and must
+be restarted.
 
-Applied for v4.7 with a little bit different subject and the new node
-put in alphabetical order. Please don't include your original patch in
-your tree because any merging will probably end with having these
-nodes twice.
+Requested by Sumit.
 
-https://git.kernel.org/cgit/linux/kernel/git/krzk/linux.git/log/?h=next/dt
-(but tell me if you need to base on this so I would prepare a tag)
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Tiago Vignatti <tiago.vignatti@intel.com>
+Cc: Stéphane Marchesin <marcheu@chromium.org>
+Cc: David Herrmann <dh.herrmann@gmail.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Daniel Vetter <daniel.vetter@intel.com>
+CC: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linaro-mm-sig@lists.linaro.org
+Cc: intel-gfx@lists.freedesktop.org
+Cc: devel@driverdev.osuosl.org
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+---
+ Documentation/dma-buf-sharing.txt | 11 ++++++-----
+ drivers/dma-buf/dma-buf.c         |  2 +-
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-Best regards,
-Krzysztof
+diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+index 32ac32e773e1..5c4e3e586ec8 100644
+--- a/Documentation/dma-buf-sharing.txt
++++ b/Documentation/dma-buf-sharing.txt
+@@ -352,7 +352,8 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
+ 
+    No special interfaces, userspace simply calls mmap on the dma-buf fd, making
+    sure that the cache synchronization ioctl (DMA_BUF_IOCTL_SYNC) is *always*
+-   used when the access happens. This is discussed next paragraphs.
++   used when the access happens. Note that DMA_BUF_IOCTL_SYNC can fail with
++   -EGAIN or -EINTR, in which case it must be restarted.
+ 
+    Some systems might need some sort of cache coherency management e.g. when
+    CPU and GPU domains are being accessed through dma-buf at the same time. To
+@@ -366,10 +367,10 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
+        want (with the new data being consumed by the GPU or say scanout device)
+      - munmap once you don't need the buffer any more
+ 
+-    Therefore, for correctness and optimal performance, systems with the memory
+-    cache shared by the GPU and CPU i.e. the "coherent" and also the
+-    "incoherent" are always required to use SYNC_START and SYNC_END before and
+-    after, respectively, when accessing the mapped address.
++    For correctness and optimal performance, it is always required to use
++    SYNC_START and SYNC_END before and after, respectively, when accessing the
++    mapped address. Userspace cannot on coherent access, even when there are
++    systems where it just works without calling these ioctls.
+ 
+ 2. Supporting existing mmap interfaces in importers
+ 
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index 774a60f4309a..4a2c07ee6677 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -612,7 +612,7 @@ EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
+  * @dmabuf:	[in]	buffer to complete cpu access for.
+  * @direction:	[in]	length of range for cpu access.
+  *
+- * This call must always succeed.
++ * Can return negative error values, returns 0 on success.
+  */
+ int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
+ 			   enum dma_data_direction direction)
+-- 
+2.8.0.rc3
+
