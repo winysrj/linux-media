@@ -1,104 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42737 "EHLO
-	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934510AbcCNPXj (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:52665 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756392AbcCUPFW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 11:23:39 -0400
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: kernel@pengutronix.de, patchwork-lst@pengutronix.de
-Subject: [PATCH v3 7/9] [media] tvp5150: remove pin configuration from initialization tables
-Date: Mon, 14 Mar 2016 16:23:35 +0100
-Message-Id: <1457969017-4088-7-git-send-email-l.stach@pengutronix.de>
-In-Reply-To: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
-References: <1457969017-4088-1-git-send-email-l.stach@pengutronix.de>
+	Mon, 21 Mar 2016 11:05:22 -0400
+Subject: Re: [RFC PATCH 1/3] [media] v4l2-mc.h: Add a S-Video C input PAD to
+ demod enum
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
+ <1457550566-5465-2-git-send-email-javier@osg.samsung.com>
+ <56EC2294.603@xs4all.nl> <56EC3BF3.5040100@xs4all.nl>
+ <20160321114045.00f200a0@recife.lan>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56F00DAA.8000701@xs4all.nl>
+Date: Mon, 21 Mar 2016 16:05:14 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160321114045.00f200a0@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+On 03/21/2016 03:40 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 18 Mar 2016 18:33:39 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 03/18/2016 04:45 PM, Hans Verkuil wrote:
+>>> On 03/09/2016 08:09 PM, Javier Martinez Canillas wrote:  
+>>>> The enum demod_pad_index list the PADs that an analog TV demod has but
+>>>> in some decoders the S-Video Y (luminance) and C (chrominance) signals
+>>>> are carried by different connectors. So a single DEMOD_PAD_IF_INPUT is
+>>>> not enough and an additional PAD is needed in the case of S-Video for
+>>>> the additional C signal.
+>>>>
+>>>> Add a DEMOD_PAD_C_INPUT that can be used for this case and the existing
+>>>> DEMOD_PAD_IF_INPUT can be used for either Composite or the Y signal.
+>>>>
+>>>> Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>>>
+>>>> ---
+>>>> Hello,
+>>>>
+>>>> This change was suggested by Mauro in [0] although is still not clear
+>>>> if this is the way forward since changing PAD indexes can break the
+>>>> uAPI depending on how the PADs are looked up. Another alternative is
+>>>> to have a PAD type as Mauro mentioned on the same email but since the
+>>>> series are RFC, I'm making this change as an example and hopping that
+>>>> the patches can help with the discussion.
+>>>>
+>>>> [0]: http://www.spinics.net/lists/linux-media/msg98042.html
+>>>>
+>>>> Best regards,
+>>>> Javier
+>>>>
+>>>>  include/media/v4l2-mc.h | 3 ++-
+>>>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
+>>>> index 98a938aabdfb..47c00c288a06 100644
+>>>> --- a/include/media/v4l2-mc.h
+>>>> +++ b/include/media/v4l2-mc.h
+>>>> @@ -94,7 +94,8 @@ enum if_aud_dec_pad_index {
+>>>>   * @DEMOD_NUM_PADS:	Maximum number of output pads.
+>>>>   */
+>>>>  enum demod_pad_index {
+>>>> -	DEMOD_PAD_IF_INPUT,
+>>>> +	DEMOD_PAD_IF_INPUT, /* S-Video Y input or Composite */
+>>>> +	DEMOD_PAD_C_INPUT,  /* S-Video C input or Composite */
+>>>>  	DEMOD_PAD_VID_OUT,
+>>>>  	DEMOD_PAD_VBI_OUT,
+>>>>  	DEMOD_PAD_AUDIO_OUT,
+>>>>  
+>>>
+>>> These pad index enums are butt ugly and won't scale in the long run. An entity
+>>> should have just as many pads as it needs and no more.
+>>>
+>>> If you want to have an heuristic so you can find which pad carries e.g.
+>>> composite video, then it is better to ask the subdev for that.
+>>>
+>>> E.g.: err = v4l2_subdev_call(sd, pad, g_signal_pad, V4L2_PAD_Y_SIG_INPUT, &pad)
+>>>
+>>> The subdev driver knows which pad has which signal, so this does not rely on
+>>> hardcoding all combinations of possible pad types and you can still heuristically
+>>> build a media graph for legacy drivers.
+> 
+> Yes, accessing PADs via a hardcoded index is butt ugly.
+> 
+> For sure, we need a better strategy than that. This is one of the things
+> we need to discuss at the media summit.
+> 
+>>> What we do now is reminiscent of the bad old days when the input numbers (as
+>>> returned by ENUMINPUT) where mapped to the i2c routing (basically pads). I worked
+>>> hard to get rid of that hardcoded relationship and I don't like to see it coming
+>>> back.
+> 
+> No, this is completely unrelated with ENUMINPUT. 
+> 
+> With VIDIOC_*INPUT ioctls, a hardcoded list of inputs can happen only at
+> the Kernel side, as, userspace should not rely on the input index, but,
+> instead, should call VIDIOC_ENUMINPUT.
+> 
+> However, the media controller currently lacks an "ENUMPADS" ioctl that
+> would tell userspace what kind of data each PAD contains. Due to that,
+> on entities with more than one sink pad and/or more than one source
+> pad, the application should rely on the PAD index.
+> 
+> That also reflects on the Kernel side, that forces drivers to do
+> things like:
+> 
+> 	struct tvp5150 *core = to_tvp5150(sd);
+> 	int res;
+> 
+> 	core->pads[DEMOD_PAD_IF_INPUT].flags = MEDIA_PAD_FL_SINK;
+> 	core->pads[DEMOD_PAD_VID_OUT].flags = MEDIA_PAD_FL_SOURCE;
+> 	core->pads[DEMOD_PAD_VBI_OUT].flags = MEDIA_PAD_FL_SOURCE;
+> 
+> 	res = media_entity_pads_init(&sd->entity, DEMOD_NUM_PADS, core->pads);
+> 
+> hardcoding the PAD indexes.
+> 
+> The enums that are right now at v4l2-mc.h just prevents the mess to
+> spread all over the drivers, while we don't have a better solution, as
+> at least it will prevent two different devices with the very same type
+> to have a completely different set of PADs, with would cause lots of
+> pain on drivers that work with a multiple set of entities of the same
+> type.
 
-To allow optional interrupt support, we want to configure the pin settings
-dynamically. Move those register accesses out of the static initialization
-tables.
+This is already device specific. The video and audio s_routing ops are there
+precisely because the routing between devices is board specific. It links
+entities with each other the way we had to before we had the media controller.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
----
- drivers/media/i2c/tvp5150.c     | 19 +++++++------------
- drivers/media/i2c/tvp5150_reg.h |  1 +
- 2 files changed, 8 insertions(+), 12 deletions(-)
+Subdev entities should *not* use these fake pads. It's going to be a nightmare.
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index d0b5e148dcd8..e0f5bc219ced 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -323,9 +323,6 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
- 	{ /* 0x0e */
- 		TVP5150_LUMA_PROC_CTL_3,0x00
- 	},
--	{ /* 0x0f */
--		TVP5150_CONF_SHARED_PIN,0x08
--	},
- 	{ /* 0x11 */
- 		TVP5150_ACT_VD_CROP_ST_MSB,0x00
- 	},
-@@ -362,9 +359,6 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
- 	{ /* 0x1d */
- 		TVP5150_INT_ENABLE_REG_B,0x00
- 	},
--	{ /* 0x1e */
--		TVP5150_INTT_CONFIG_REG_B,0x00
--	},
- 	{ /* 0x28 */
- 		TVP5150_VIDEO_STD,0x00
- 	},
-@@ -383,9 +377,6 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
- 	{ /* 0xc1 */
- 		TVP5150_INT_ENABLE_REG_A,0x00
- 	},
--	{ /* 0xc2 */
--		TVP5150_INT_CONF,0x04
--	},
- 	{ /* 0xc8 */
- 		TVP5150_FIFO_INT_THRESHOLD,0x80
- 	},
-@@ -420,9 +411,7 @@ static const struct i2c_reg_value tvp5150_init_default[] = {
- 
- /* Default values as sugested at TVP5150AM1 datasheet */
- static const struct i2c_reg_value tvp5150_init_enable[] = {
--	{
--		TVP5150_CONF_SHARED_PIN, 2
--	},{	/* Automatic offset and AGC enabled */
-+	{	/* Automatic offset and AGC enabled */
- 		TVP5150_ANAL_CHL_CTL, 0x15
- 	},{	/* Activate YCrCb output 0x9 or 0xd ? */
- 		TVP5150_MISC_CTL, 0x6f
-@@ -772,6 +761,12 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- 	/* Initializes TVP5150 to its default values */
- 	tvp5150_write_inittab(sd, tvp5150_init_default);
- 
-+	/* Configure pins: FID, VSYNC, GPCL/VBLK, SCLK */
-+	regmap_write(map, TVP5150_CONF_SHARED_PIN, 0x2);
-+	/* Keep interrupt polarity active low */
-+	regmap_write(map, TVP5150_INT_CONF, TVP5150_VDPOE);
-+	regmap_write(map, TVP5150_INTT_CONFIG_REG_B, 0x0);
-+
- 	/* Initializes VDP registers */
- 	tvp5150_vdp_init(sd, vbi_ram_default);
- 
-diff --git a/drivers/media/i2c/tvp5150_reg.h b/drivers/media/i2c/tvp5150_reg.h
-index 25a994944918..fc3bcb26413a 100644
---- a/drivers/media/i2c/tvp5150_reg.h
-+++ b/drivers/media/i2c/tvp5150_reg.h
-@@ -117,6 +117,7 @@
- #define TVP5150_INT_STATUS_REG_A    0xc0 /* Interrupt status register A */
- #define TVP5150_INT_ENABLE_REG_A    0xc1 /* Interrupt enable register A */
- #define TVP5150_INT_CONF            0xc2 /* Interrupt configuration */
-+#define   TVP5150_VDPOE             BIT(2)
- #define TVP5150_VDP_CONF_RAM_DATA   0xc3 /* VDP configuration RAM data */
- #define TVP5150_CONF_RAM_ADDR_LOW   0xc4 /* Configuration RAM address low byte */
- #define TVP5150_CONF_RAM_ADDR_HIGH  0xc5 /* Configuration RAM address high byte */
--- 
-2.7.0
+A reasonable solution to simplify converting legacy drivers without creating
+these global ugly pad indices is to add a new video (and probably audio) op
+'g_pad_of_type(type)' where you ask the subdev entity to return which pad carries
+signals of a certain type.
 
+> Please notice that this is not a problem with connectors. It is a
+> broader problem at the MC infra and API, with affects all subdevs.
+> 
+>>> Actually, I am not sure if a new subdev op will work at all. This information
+>>> really belongs to the device tree or card info. Just as it is done today with
+>>> the audio and video s_routing op. The op basically sets up the routing (i.e.
+>>> pads). We didn't have pads (or an MC) when I made that op, but the purpose
+>>> is the same.
+> 
+> I didn't think yet on the implementation, but it should be something that the
+> core should be able to get, if we want to avoid having to add a huge block
+> of MC-specific routines on each driver, with a really complex logic.
+> 
+> The problem is that the routines that builds the V4L2 graph and
+> enables/disables the PADs should know what PADs to use.
+> 
+> A subdev ops seem to be a good way for doing that, as it is the subdev
+> that will create the pads when running its .probe() function.
+> 
+> If we move the media-controller specific initialization out of .probe(), like
+> what I proposed at:
+> 	https://patchwork.linuxtv.org/patch/33466/
+> 
+> Then, we can let the caller driver to tell the subdev-specific PAD init
+> code to create only the PADs that the driver will be using.
+> 
+> For example, on em28xx driver, devices with certain chips in the family
+> (like em2820 and em28xx) don't support VBI. So, the driver could ask
+> the demod to not create a VBI out PAD, creating only 2 pads.
+
+No, subdev drivers should create the number of pads that corresponds to the
+hardware. I think it makes life very difficult if you make this dynamic based
+on what someone else wants.
+
+What you want is to ask the subdev driver which pad carries a certain signal.
+That can be done with a g_pad_of_type()-like op.
+
+> 
+> Yet, it sounds painful to create a generic media_init() callback that
+> would allow to control the number and the meaning of the PADs that
+> would cover all cases.
+> 
+>>> Although I guess that a g_signal_pad might be enough in many cases. I don't
+>>> know what is the best solution, to be honest. All I know is that the current
+>>> approach will end in tears.
+>>>
+>>> Hmm, looking at saa7134-cards you have lists of inputs. You could add a pad_type
+>>> field there and use the g_signal_pad to obtain the corresponding pad of the
+>>> subdev entity. You'd have pad types TV, COMPOSITE[1-N], SVIDEO[1-N], etc.
+>>>
+>>> Note that input 1 could map to pad type COMPOSITE3 since that all depends on
+>>> how the board is wired up.
+>>>
+>>> But at least this approach doesn't force subdevs to have more pads than they
+>>> need.  
+>>
+>> Actually, there is really no need for these 'pad types'. Why not just put the
+>> actual pads in the card info? You know that anyway since you have to configure
+>> the routing. So just stick it in the board info structs.
+> 
+> If we hardcode the PAD indexes at the board info, that would mean that
+> we can't have a generic core routine to create the graph or enable/disable
+> the sources. We should get rid of hardcoding it, and not adding more
+> hardcoded values.
+
+You can create something generic that covers 90%, but forget about 100%. Hardware
+designer are crazy and you can never to everything automatic. So hardcoding will
+always be part of life.
+
+Try this with a complex driver like ivtv (or anything using saa7115 and/or msp34xx).
+
+Drivers currently have to use s_routing with board specific arguments to set these
+up, so those are nice difficult test cases.
+
+>> Why this rush to get all this in? Can we at least disable the media device
+>> creation for these usb and pci devices until we are sure we got all the details
+>> right? As long as we don't register the media device these pads aren't used and
+>> we can still make changes.
+>>
+>> Let's be honest: nobody is waiting for media devices for these chipsets. We want
+>> it because we want to be consistent and it is great for prototyping, but other
+>> than us no one cares.
+> 
+> No, we want this for two reasons:
+> 
+> 1) To fix the locking troubles with analog, digital and audio parts of
+> the driver;
+> 
+> 2) To report userspace apps what devnodes belong to each devices.
+> 
+> Both are longstanding bugs. (2) is partially solved via libmedia_dev, with
+> was actually added inside tvtime and xawtv, as we never agreed with the
+> library's API.
+
+I agree that the MC is the right place to fix it, and I really, really want it
+too. But it has to be done right, and using DEMOD_PAD_* is really wrong.
+
+> 
+>> This stuff is really hard to get right, and I feel these things are exposed too
+>> soon. And once it is part of the public API it is very hard to revert.
+> 
+> Well, this problem is there already, as userspace relies on
+> hardcoded index values since when the media controller got merged.
+
+Yes, but those index values map to real hardware properties. That's not the case
+with these DEMOD_PAD_ indices. Those have no relationship with real hardware pins.
+
+> What we did with connectors was actually your suggestion: we removed
+> the definition of the connectors from the uAPI, with should give
+> us flexibility to change it as needed.
+> 
+> We could, instead, not be calling media_devnode_register() at the
+> new drivers and at PCI/USB drivers until we fix it, but we'll
+> still have to address backward compat with the legacy drivers.
+
+Sorry, I don't understand which 'backward compat with the legacy drivers' you
+mean. That existing drivers like omap3 use fixed pads? That's actually the
+way it should be since pads should map to hardware. Or do you mean something
+else?
+
+Regards,
+
+	Hans
