@@ -1,68 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40278 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933958AbcCITJw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Mar 2016 14:09:52 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:36077 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753693AbcCUIsK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 04:48:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [RFC PATCH 1/3] [media] v4l2-mc.h: Add a S-Video C input PAD to demod enum
-Date: Wed,  9 Mar 2016 16:09:24 -0300
-Message-Id: <1457550566-5465-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
-References: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
+Cc: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 1/2] v4l2-ioctl: simplify code
+Date: Mon, 21 Mar 2016 09:47:59 +0100
+Message-Id: <1458550080-42743-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1458550080-42743-1-git-send-email-hverkuil@xs4all.nl>
+References: <1458550080-42743-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The enum demod_pad_index list the PADs that an analog TV demod has but
-in some decoders the S-Video Y (luminance) and C (chrominance) signals
-are carried by different connectors. So a single DEMOD_PAD_IF_INPUT is
-not enough and an additional PAD is needed in the case of S-Video for
-the additional C signal.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add a DEMOD_PAD_C_INPUT that can be used for this case and the existing
-DEMOD_PAD_IF_INPUT can be used for either Composite or the Y signal.
+Instead of a big if at the beginning, just check if g_selection == NULL
+and call the cropcap op immediately and return the result.
 
-Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+No functional changes in this patch.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Hello,
+ drivers/media/v4l2-core/v4l2-ioctl.c | 51 ++++++++++++++++++++----------------
+ 1 file changed, 29 insertions(+), 22 deletions(-)
 
-This change was suggested by Mauro in [0] although is still not clear
-if this is the way forward since changing PAD indexes can break the
-uAPI depending on how the PADs are looked up. Another alternative is
-to have a PAD type as Mauro mentioned on the same email but since the
-series are RFC, I'm making this change as an example and hopping that
-the patches can help with the discussion.
-
-[0]: http://www.spinics.net/lists/linux-media/msg98042.html
-
-Best regards,
-Javier
-
- include/media/v4l2-mc.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-index 98a938aabdfb..47c00c288a06 100644
---- a/include/media/v4l2-mc.h
-+++ b/include/media/v4l2-mc.h
-@@ -94,7 +94,8 @@ enum if_aud_dec_pad_index {
-  * @DEMOD_NUM_PADS:	Maximum number of output pads.
-  */
- enum demod_pad_index {
--	DEMOD_PAD_IF_INPUT,
-+	DEMOD_PAD_IF_INPUT, /* S-Video Y input or Composite */
-+	DEMOD_PAD_C_INPUT,  /* S-Video C input or Composite */
- 	DEMOD_PAD_VID_OUT,
- 	DEMOD_PAD_VBI_OUT,
- 	DEMOD_PAD_AUDIO_OUT,
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 6bf5a3e..3cf8d3a 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -2160,33 +2160,40 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
+ 	struct v4l2_cropcap *p = arg;
++	struct v4l2_selection s = { .type = p->type };
++	int ret;
+ 
+-	if (ops->vidioc_g_selection) {
+-		struct v4l2_selection s = { .type = p->type };
+-		int ret;
++	if (ops->vidioc_g_selection == NULL) {
++		/*
++		 * The determine_valid_ioctls() call already should ensure
++		 * that ops->vidioc_cropcap != NULL, but just in case...
++		 */
++		if (ops->vidioc_cropcap)
++			return ops->vidioc_cropcap(file, fh, p);
++		return -ENOTTY;
++	}
+ 
+-		/* obtaining bounds */
+-		if (V4L2_TYPE_IS_OUTPUT(p->type))
+-			s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
+-		else
+-			s.target = V4L2_SEL_TGT_CROP_BOUNDS;
++	/* obtaining bounds */
++	if (V4L2_TYPE_IS_OUTPUT(p->type))
++		s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
++	else
++		s.target = V4L2_SEL_TGT_CROP_BOUNDS;
+ 
+-		ret = ops->vidioc_g_selection(file, fh, &s);
+-		if (ret)
+-			return ret;
+-		p->bounds = s.r;
++	ret = ops->vidioc_g_selection(file, fh, &s);
++	if (ret)
++		return ret;
++	p->bounds = s.r;
+ 
+-		/* obtaining defrect */
+-		if (V4L2_TYPE_IS_OUTPUT(p->type))
+-			s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
+-		else
+-			s.target = V4L2_SEL_TGT_CROP_DEFAULT;
++	/* obtaining defrect */
++	if (V4L2_TYPE_IS_OUTPUT(p->type))
++		s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
++	else
++		s.target = V4L2_SEL_TGT_CROP_DEFAULT;
+ 
+-		ret = ops->vidioc_g_selection(file, fh, &s);
+-		if (ret)
+-			return ret;
+-		p->defrect = s.r;
+-	}
++	ret = ops->vidioc_g_selection(file, fh, &s);
++	if (ret)
++		return ret;
++	p->defrect = s.r;
+ 
+ 	/* setting trivial pixelaspect */
+ 	p->pixelaspect.numerator = 1;
 -- 
-2.5.0
+2.7.0
 
