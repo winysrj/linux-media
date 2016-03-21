@@ -1,51 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:39461 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753132AbcCHBEA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2016 20:04:00 -0500
-From: Simon Horman <horms+renesas@verge.net.au>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Simon Horman <horms+renesas@verge.net.au>
-Subject: [PATCH v2] media: rcar_vin: Use ARCH_RENESAS
-Date: Tue,  8 Mar 2016 10:03:55 +0900
-Message-Id: <1457399035-14527-1-git-send-email-horms+renesas@verge.net.au>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:39108 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755072AbcCUMsH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 08:48:07 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 06293180B83
+	for <linux-media@vger.kernel.org>; Mon, 21 Mar 2016 13:48:02 +0100 (CET)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.7] Various fixes, small device_caps enhancement
+Message-ID: <56EFED81.7040000@xs4all.nl>
+Date: Mon, 21 Mar 2016 13:48:01 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
+Various fixes.
 
-This is part of an ongoing process to migrate from ARCH_SHMOBILE to
-ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
-appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
+Note the small enhancement where the device_caps field is added to struct video_device.
 
-Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+This means that the core now knows the caps of the device. This will be useful
+going forward.
 
----
-Based on media-tree/next
+My five patches were originally part of a pull request for 4.6 that never made it in
+for some reason. Trying again :-)
 
-v2
-* Break out of a (slightly) larger patch
----
- drivers/media/platform/soc_camera/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Regards,
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index 355298989dd8..08db3b040bbe 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -28,7 +28,7 @@ config VIDEO_PXA27x
- config VIDEO_RCAR_VIN
- 	tristate "R-Car Video Input (VIN) support"
- 	depends on VIDEO_DEV && SOC_CAMERA
--	depends on ARCH_SHMOBILE || COMPILE_TEST
-+	depends on ARCH_RENESAS || COMPILE_TEST
- 	depends on HAS_DMA
- 	select VIDEOBUF2_DMA_CONTIG
- 	select SOC_CAMERA_SCALE_CROP
--- 
-2.1.4
+	Hans
 
+The following changes since commit b39950960d2b890c21465c69c7c0e4ff6253c6b5:
+
+  [media] media: au0828 fix to clear enable/disable/change source handlers (2016-03-18 07:37:22 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.7a
+
+for you to fetch changes up to ff0fbc445cab75cba0399d7d553657b2a5a6d4e1:
+
+  m5mols: potential uninitialized variable (2016-03-21 13:34:31 +0100)
+
+----------------------------------------------------------------
+Arnd Bergmann (2):
+      cobalt: add MTD dependency
+      am437x-vfpe: fix typo in vpfe_get_app_input_index
+
+Dan Carpenter (3):
+      am437x-vpfe: fix an uninitialized variable bug
+      cx23885: uninitialized variable in cx23885_av_work_handler()
+      m5mols: potential uninitialized variable
+
+Hans Verkuil (5):
+      v4l2: add device_caps to struct video_device
+      v4l2-pci-skeleton.c: fill in device_caps in video_device
+      vivid: set device_caps in video_device.
+      v4l2-ioctl: simplify code
+      v4l2-ioctl: improve cropcap handling
+
+Sudip Mukherjee (2):
+      cx231xx: fix memory leak
+      dw2102: fix unreleased firmware
+
+Tiffany Lin (1):
+      media: v4l2-compat-ioctl32: fix missing reserved field copy in put_v4l2_create32
+
+ Documentation/video4linux/v4l2-pci-skeleton.c |  5 ++---
+ drivers/media/i2c/m5mols/m5mols_controls.c    |  2 +-
+ drivers/media/pci/cobalt/Kconfig              |  1 +
+ drivers/media/pci/cx23885/cx23885-av.c        |  2 +-
+ drivers/media/platform/am437x/am437x-vpfe.c   |  4 ++--
+ drivers/media/platform/vivid/vivid-core.c     | 22 ++++++------------
+ drivers/media/usb/cx231xx/cx231xx-417.c       |  9 ++++++++
+ drivers/media/usb/dvb-usb/dw2102.c            |  3 +++
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  3 ++-
+ drivers/media/v4l2-core/v4l2-ioctl.c          | 81 +++++++++++++++++++++++++++++++++++++++++++++----------------------
+ include/media/v4l2-dev.h                      |  3 +++
+ 11 files changed, 86 insertions(+), 49 deletions(-)
