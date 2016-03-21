@@ -1,65 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:35989 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932296AbcCCIEw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 03:04:52 -0500
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	David Brown <david.brown@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
-	rtc-linux@googlegroups.com, linux-arm-msm@vger.kernel.org,
-	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-usb@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [RFC 05/15] phy: hi6220: Add missing MFD_SYSCON dependency on HAS_IOMEM
-Date: Thu, 03 Mar 2016 17:03:31 +0900
-Message-id: <1456992221-26712-6-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
-References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+Received: from swift.blarg.de ([78.47.110.205]:48047 "EHLO swift.blarg.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756154AbcCUNaT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 09:30:19 -0400
+Subject: [PATCH 1/6] drivers/media/dvb-core/en50221: move code to
+ dvb_ca_private_free()
+From: Max Kellermann <max@duempel.org>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Date: Mon, 21 Mar 2016 14:30:17 +0100
+Message-ID: <145856701730.21117.7759662061999658129.stgit@woodpecker.blarg.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MFD_SYSCON depends on HAS_IOMEM so when selecting it avoid unmet
-direct dependencies.
+Prepare for postponing the call until all file handles have been
+closed.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Signed-off-by: Max Kellermann <max@duempel.org>
 ---
- drivers/phy/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/dvb-core/dvb_ca_en50221.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index 0124d17bd9fe..cfdb3551a675 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -225,6 +225,7 @@ config PHY_MT65XX_USB3
- config PHY_HI6220_USB
- 	tristate "hi6220 USB PHY support"
- 	depends on (ARCH_HISI && ARM64) || COMPILE_TEST
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select GENERIC_PHY
- 	select MFD_SYSCON
- 	help
--- 
-2.5.0
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index f82cd1f..e33364c 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -161,6 +161,17 @@ struct dvb_ca_private {
+ 	struct mutex ioctl_mutex;
+ };
+ 
++static void dvb_ca_private_free(struct dvb_ca_private *ca)
++{
++	dvb_unregister_device(ca->dvbdev);
++	unsigned int i;
++	for (i = 0; i < ca->slot_count; i++) {
++		vfree(ca->slot_info[i].rx_buffer.data);
++	}
++	kfree(ca->slot_info);
++	kfree(ca);
++}
++
+ static void dvb_ca_en50221_thread_wakeup(struct dvb_ca_private *ca);
+ static int dvb_ca_en50221_read_data(struct dvb_ca_private *ca, int slot, u8 * ebuf, int ecount);
+ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot, u8 * ebuf, int ecount);
+@@ -1759,10 +1770,7 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
+ 
+ 	for (i = 0; i < ca->slot_count; i++) {
+ 		dvb_ca_en50221_slot_shutdown(ca, i);
+-		vfree(ca->slot_info[i].rx_buffer.data);
+ 	}
+-	kfree(ca->slot_info);
+-	dvb_unregister_device(ca->dvbdev);
+-	kfree(ca);
++	dvb_ca_private_free(ca);
+ 	pubca->private = NULL;
+ }
 
