@@ -1,70 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:39181 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751367AbcCDIPz (ORCPT
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:35813 "EHLO
+	mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757895AbcCUThO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 03:15:55 -0500
-Message-ID: <1457079352.2782.3.camel@xs4all.nl>
-Subject: Re: DVBSky T980C CI issues (kernel 4.0.x)
-From: Jurgen Kramer <gtmkramer@xs4all.nl>
-To: Olli Salonen <olli.salonen@iki.fi>,
-	Torbjorn Jansson <torbjorn.jansson@mbox200.swipnet.se>
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Fri, 04 Mar 2016 09:15:52 +0100
-In-Reply-To: <CAAZRmGwME6Mb+HAtd5nwPxc9RJi-XdTbS_Cfn1P1LOi0Y2UYZg@mail.gmail.com>
-References: <1436697509.2446.14.camel@xs4all.nl>
-	 <1440352250.13381.3.camel@xs4all.nl> <55F332FE.7040201@mbox200.swipnet.se>
-	 <1442041326.2442.2.camel@xs4all.nl>
-	 <CAAZRmGxvrXjanCTcd0Ybk-qzHhqO5e6JhrpSWxNXSa+zzPsdUg@mail.gmail.com>
-	 <1454007436.13371.4.camel@xs4all.nl>
-	 <CAAZRmGwuinufZpCpTs8t+BRyTcfio-4z34PCKH7Ha3J+dxXNqw@mail.gmail.com>
-	 <56ADCBE4.6050609@mbox200.swipnet.se>
-	 <CAAZRmGy21S+qkrC9d0hz02J98woUc9p+LtnhK8Det=yWmb_myg@mail.gmail.com>
-	 <56C88CEB.3080907@mbox200.swipnet.se> <1455988859.21645.6.camel@xs4all.nl>
-	 <CAAZRmGwME6Mb+HAtd5nwPxc9RJi-XdTbS_Cfn1P1LOi0Y2UYZg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Mon, 21 Mar 2016 15:37:14 -0400
+Received: by mail-yw0-f193.google.com with SMTP id d21so8724014ywe.2
+        for <linux-media@vger.kernel.org>; Mon, 21 Mar 2016 12:37:14 -0700 (PDT)
+MIME-Version: 1.0
+Reply-To: peterakupa112@gmail.com
+Date: Mon, 21 Mar 2016 20:37:13 +0100
+Message-ID: <CAF9tuFZ-cy8SrZPzWfWAC8kEGrEYUO-zWfxmB7LFLO5HdsP4Vg@mail.gmail.com>
+Subject: FOR YOUR INFORMATION DEAR BENEFICIARY,
+From: David Kedogo <chamberjerry.william@gmail.com>
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Olli,
+FOR YOUR INFORMATION DEAR BENEFICIARY,
 
-On Thu, 2016-03-03 at 13:02 +0200, Olli Salonen wrote:
-> Hi Jurgen, Torbjörn,
-> 
-> I've noticed that there is currently a small confusion about the
-> firmware versions for the Si2168-A20 demodulator. This is used in the
-> older versions of DVBSky T680C (TechnoTrend CT2-4650 CI) and DVBSky
-> T980C (TechnoTrend CT2-4500 CI).
-> 
-> The version 2.0.5 does not support PLP handling and seems to work
-> very
-> badly with the Linux driver - at least for me. Version 2.0.35 on the
-> other hand seems to find all DVB-T/T2 channels for me just fine with
-> both dvbv5-scan and w_scan (devices used for this test: TechnoTrend
-> CT2-4650 CI and TechnoTrend CT2-4500 CI new version).
-> 
-> Versions used:
-> dvbv5-scan version 1.7.0
-> w_scan version 20150111 (compiled for DVB API 5.10)
-> 
-> So if you are running these Si2168-A20 based devices, make sure
-> you've
-> got the firmware 2.0.35 that can be downloaded for example here:
-> http://palosaari.fi/linux/v4l-dvb/firmware/Si2168/Si2168-A20/32e06713
-> b33915f674bfb2c209beaea5/
+Your Over-due ATM Card payment of $1.5MUSD by the UN Office have
+deposited to the ATM MASTER CARD OFFICE. All you have to do now is to
+contact the Office Manager Dr. peter Akupa Boni at:
+(peterakupa112@gmail.com) and Phone number: +229 61 31 07 78  , he
+will give you direction on how you will receive your ATM MASTER CARD
+immediately.
 
-It seems my TC980Cs have Si2168-A30's on board
+Contact person: Dr. peter Akupa,
+E-mail: (peterakupa112@gmail.com )
 
-[  118.526665] si2168 8-0064: found a 'Silicon Labs Si2168-A30'
-[  118.640642] si2168 8-0064: downloading firmware from file 'dvb-
-demod-si2168-a30-01.fw'
-[  121.762983] si2168 8-0064: firmware version: 3.0.16
+You have to also contact him with the following details:
 
-dvbv5_scan does not work me.
-sha1sum for this firmware is:
-59a0b90703d65229fb2589b52834ca68d1e96ad9  dvb-demod-si2168-a30-01.fw
+1. Your full name:
+2. Your contact cell phone number:
+3. Your age:
+4. your Email
 
-Jurgen
-
+Thanks
+David Kedogo
