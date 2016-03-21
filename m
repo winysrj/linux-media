@@ -1,326 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [198.137.202.9] ([198.137.202.9]:49637 "EHLO
-	bombadil.infradead.org" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1750748AbcCSAnX (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:33061 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753825AbcCULl1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 20:43:23 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	=?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-	<chehabrafael@gmail.com>, alsa-devel@alsa-project.org
-Subject: [PATCH v2] [media] media-device: use kref for media_device instance
-Date: Fri, 18 Mar 2016 21:42:16 -0300
-Message-Id: <9d8830150475bc4d4dde2fa1f5163aef82a35477.1458347578.git.mchehab@osg.samsung.com>
+	Mon, 21 Mar 2016 07:41:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Krzysztof Halasa <khalasa@piap.pl>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH 0/4] tw686x drivers
+Date: Mon, 21 Mar 2016 12:41:17 +0100
+Message-Id: <1458560481-16200-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the media_device can be used by multiple drivers,
-via devres, we need to be sure that it will be dropped only
-when all drivers stop using it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
+Even though the two tw686x drivers have been posted before I thought I'd
+post them again before I make a pull request due to the fact that I had
+to make a few changes to the staging driver and because of the unusual
+circumstances.
 
-v2: The kref is now used only when media_device is allocated via 
-    the media_device*_devress. This warrants that other drivers won't be
-    affected, and that we can keep media_device_cleanup() balanced with
-    media_device_init().
+Krzysztof, I renamed the driver (and sources) to tw686x-kh to prevent
+conflicts with the name of Ezequiel's driver.
 
- drivers/media/media-device.c           | 117 +++++++++++++++++++++++++--------
- drivers/media/usb/au0828/au0828-core.c |   3 +-
- include/media/media-device.h           |  28 ++++++++
- sound/usb/media.c                      |   3 +-
- 4 files changed, 118 insertions(+), 33 deletions(-)
+I also prevent it from being built if VIDEO_TW686X is already selected
+so we don't install two drivers for the same hardware.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index c32fa15cc76e..4a97d92a7e7d 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -707,11 +707,16 @@ void media_device_init(struct media_device *mdev)
- }
- EXPORT_SYMBOL_GPL(media_device_init);
- 
--void media_device_cleanup(struct media_device *mdev)
-+static void __media_device_cleanup(struct media_device *mdev)
- {
- 	ida_destroy(&mdev->entity_internal_idx);
- 	mdev->entity_internal_idx_max = 0;
- 	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
-+}
-+
-+void media_device_cleanup(struct media_device *mdev)
-+{
-+	__media_device_cleanup(mdev);
- 	mutex_destroy(&mdev->graph_mutex);
- }
- EXPORT_SYMBOL_GPL(media_device_cleanup);
-@@ -721,6 +726,9 @@ int __must_check __media_device_register(struct media_device *mdev,
- {
- 	int ret;
- 
-+	/* Check if mdev was ever registered at all */
-+	mutex_lock(&mdev->graph_mutex);
-+
- 	/* Register the device node. */
- 	mdev->devnode.fops = &media_device_fops;
- 	mdev->devnode.parent = mdev->dev;
-@@ -731,17 +739,19 @@ int __must_check __media_device_register(struct media_device *mdev,
- 
- 	ret = media_devnode_register(&mdev->devnode, owner);
- 	if (ret < 0)
--		return ret;
-+		goto err;
- 
- 	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
- 	if (ret < 0) {
- 		media_devnode_unregister(&mdev->devnode);
--		return ret;
-+		goto err;
- 	}
- 
- 	dev_dbg(mdev->dev, "Media device registered\n");
- 
--	return 0;
-+err:
-+	mutex_unlock(&mdev->graph_mutex);
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(__media_device_register);
- 
-@@ -773,24 +783,13 @@ void media_device_unregister_entity_notify(struct media_device *mdev,
- }
- EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
- 
--void media_device_unregister(struct media_device *mdev)
-+static void __media_device_unregister(struct media_device *mdev)
- {
- 	struct media_entity *entity;
- 	struct media_entity *next;
- 	struct media_interface *intf, *tmp_intf;
- 	struct media_entity_notify *notify, *nextp;
- 
--	if (mdev == NULL)
--		return;
--
--	mutex_lock(&mdev->graph_mutex);
--
--	/* Check if mdev was ever registered at all */
--	if (!media_devnode_is_registered(&mdev->devnode)) {
--		mutex_unlock(&mdev->graph_mutex);
--		return;
--	}
--
- 	/* Remove all entities from the media device */
- 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
- 		__media_device_unregister_entity(entity);
-@@ -807,38 +806,98 @@ void media_device_unregister(struct media_device *mdev)
- 		kfree(intf);
- 	}
- 
--	mutex_unlock(&mdev->graph_mutex);
--
--	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
--	media_devnode_unregister(&mdev->devnode);
-+	/* Check if mdev devnode was registered */
-+	if (media_devnode_is_registered(&mdev->devnode)) {
-+		device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-+		media_devnode_unregister(&mdev->devnode);
-+	}
- 
- 	dev_dbg(mdev->dev, "Media device unregistered\n");
- }
-+
-+void media_device_unregister(struct media_device *mdev)
-+{
-+	if (mdev == NULL)
-+		return;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+	__media_device_unregister(mdev);
-+	mutex_unlock(&mdev->graph_mutex);
-+}
- EXPORT_SYMBOL_GPL(media_device_unregister);
- 
- static void media_device_release_devres(struct device *dev, void *res)
- {
- }
- 
--struct media_device *media_device_get_devres(struct device *dev)
-+static void do_media_device_unregister_devres(struct kref *kref)
- {
-+	struct media_device_devres *mdev_devres;
- 	struct media_device *mdev;
-+	int ret;
- 
--	mdev = devres_find(dev, media_device_release_devres, NULL, NULL);
--	if (mdev)
--		return mdev;
-+	mdev_devres = container_of(kref, struct media_device_devres, kref);
- 
--	mdev = devres_alloc(media_device_release_devres,
--				sizeof(struct media_device), GFP_KERNEL);
--	if (!mdev)
-+	if (!mdev_devres)
-+		return;
-+
-+	mdev = &mdev_devres->mdev;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+	__media_device_unregister(mdev);
-+	__media_device_cleanup(mdev);
-+	mutex_unlock(&mdev->graph_mutex);
-+	mutex_destroy(&mdev->graph_mutex);
-+
-+	ret = devres_destroy(mdev->dev, media_device_release_devres,
-+			     NULL, NULL);
-+	pr_debug("%s: devres_destroy() returned %d\n", __func__, ret);
-+}
-+
-+void media_device_unregister_devres(struct media_device *mdev)
-+{
-+	struct media_device_devres *mdev_devres;
-+
-+	mdev_devres = container_of(mdev, struct media_device_devres, mdev);
-+	kref_put(&mdev_devres->kref, do_media_device_unregister_devres);
-+}
-+EXPORT_SYMBOL_GPL(media_device_unregister_devres);
-+
-+struct media_device *media_device_get_devres(struct device *dev)
-+{
-+	struct media_device_devres *mdev_devres, *ptr;
-+
-+	mdev_devres = devres_find(dev, media_device_release_devres, NULL, NULL);
-+	if (mdev_devres) {
-+		kref_get(&mdev_devres->kref);
-+		return &mdev_devres->mdev;
-+	}
-+
-+	mdev_devres = devres_alloc(media_device_release_devres,
-+				   sizeof(struct media_device_devres),
-+				   GFP_KERNEL);
-+	if (!mdev_devres)
- 		return NULL;
--	return devres_get(dev, mdev, NULL, NULL);
-+
-+	ptr = devres_get(dev, mdev_devres, NULL, NULL);
-+	if (ptr)
-+		kref_init(&ptr->kref);
-+	else
-+		devres_free(mdev_devres);
-+
-+	return &ptr->mdev;
- }
- EXPORT_SYMBOL_GPL(media_device_get_devres);
- 
- struct media_device *media_device_find_devres(struct device *dev)
- {
--	return devres_find(dev, media_device_release_devres, NULL, NULL);
-+	struct media_device_devres *mdev_devres;
-+
-+	mdev_devres = devres_find(dev, media_device_release_devres, NULL, NULL);
-+	if (!mdev_devres)
-+		return NULL;
-+
-+	return &mdev_devres->mdev;
- }
- EXPORT_SYMBOL_GPL(media_device_find_devres);
- 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 06da73f1ff22..060904ed8f20 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -157,8 +157,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
- 	dev->media_dev->enable_source = NULL;
- 	dev->media_dev->disable_source = NULL;
- 
--	media_device_unregister(dev->media_dev);
--	media_device_cleanup(dev->media_dev);
-+	media_device_unregister_devres(dev->media_dev);
- 	dev->media_dev = NULL;
- #endif
- }
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index b21ef244ad3e..e59772ed8494 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -23,6 +23,7 @@
- #ifndef _MEDIA_DEVICE_H
- #define _MEDIA_DEVICE_H
- 
-+#include <linux/kref.h>
- #include <linux/list.h>
- #include <linux/mutex.h>
- 
-@@ -382,6 +383,16 @@ struct media_device {
- 			   unsigned int notification);
- };
- 
-+/**
-+ * struct media_device_devres - Media device device resource
-+ * @mdev:	pointer to struct media_device
-+ * @kref:	Object refcount
-+ */
-+struct media_device_devres {
-+	struct media_device mdev;
-+	struct kref kref;
-+};
-+
- /* We don't need to include pci.h or usb.h here */
- struct pci_dev;
- struct usb_device;
-@@ -604,6 +615,19 @@ struct media_device *media_device_get_devres(struct device *dev);
-  */
- struct media_device *media_device_find_devres(struct device *dev);
- 
-+/**
-+ * media_device_unregister_devres) - Unregister media device allocated as
-+ *				     as device resource
-+ *
-+ * @dev: pointer to struct &device.
-+ *
-+ * Devices allocated via media_device_get_devres should be de-alocalted
-+ * and freed via this function. Callers should not call
-+ * media_device_unregister() nor media_device_cleanup() on devices
-+ * allocated via media_device_get_devres().
-+ */
-+void media_device_unregister_devres(struct media_device *mdev);
-+
- /* Iterate over all entities. */
- #define media_device_for_each_entity(entity, mdev)			\
- 	list_for_each_entry(entity, &(mdev)->entities, graph_obj.list)
-@@ -688,6 +712,10 @@ static inline struct media_device *media_device_find_devres(struct device *dev)
- 	return NULL;
- }
- 
-+static inline void media_device_unregister_devres(struct media_device *mdev)
-+{
-+}
-+
- static inline void media_device_pci_init(struct media_device *mdev,
- 					 struct pci_dev *pci_dev,
- 					 char *name)
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-index 93a50d01490c..f78955fd0d6e 100644
---- a/sound/usb/media.c
-+++ b/sound/usb/media.c
-@@ -311,8 +311,7 @@ void media_snd_device_delete(struct snd_usb_audio *chip)
- 	media_snd_mixer_delete(chip);
- 
- 	if (mdev) {
--		if (media_devnode_is_registered(&mdev->devnode))
--			media_device_unregister(mdev);
-+		media_device_unregister_devres(mdev);
- 		chip->media_dev = NULL;
- 	}
- }
+I also added two patches: the first adds the GFP_DMA32 flag to ensure
+the DMA buffers are in 32 bit memory (you probably never tested it on
+a 64 bit system). The second mentions adds audio support to the TODO list.
+
+For those who haven't paid attention:
+
+We've ended up with two drivers: one only supports V4L2_FIELD_SEQ_BT,
+FIELD_TOP and FIELD_BOTTOM interlaced modes and no audio, the other only
+supports FIELD_INTERLACED by way of a memcpy and has audio support.
+
+Part of the reason is weird hardware design that has different DMA modes
+depending on the field settings. Krzysztof didn't need FIELD_INTERLACED,
+so he never implemented that, and unfortunately when Ezequiel took his
+code as starting point he only implemented the FIELD_INTERLACED format.
+The memcpy was needed due to unstable DMA when using the DMA mode that
+can do FIELD_INTERLACED. It is not known at this time if that unstable
+behavior is specific to the hardware Ezequiel is using or if it is
+inherent to the tw686x.
+
+In the ideal world both feature sets should be merged into one driver.
+
+But for now I decided to add Ezequiel's driver to the mainline and
+Krzysztof's driver to staging. The reason for moving Ezequiel's driver
+to mainline is that application support for FIELD_INTERLACED is standard,
+whereas FIELD_TOP/BOTTOM/SEQ_BT is pretty rare. In addition, Ezequiel's
+driver has audio support.
+
+My hope is that someone will merge the feature sets and we can get rid
+of one of the two drivers.
+
+I have tested both drivers with this card:
+
+http://www.nanzoom.com/product/nz-2108E.shtml
+
+(available on ebay)
+
+If there are no comments, then I'll make a pull request, probably next
+week.
+
+Regards,
+
+	Hans
+
+Ezequiel Garcia (1):
+  media: Support Intersil/Techwell TW686x-based video capture cards
+
+Hans Verkuil (2):
+  tw686x-kh: specify that the DMA is 32 bits
+  tw686x-kh: add audio support to the TODO list
+
+Krzysztof Hałasa (1):
+  TW686x frame grabber driver
+
+ MAINTAINERS                                       |   8 +
+ drivers/media/pci/Kconfig                         |   1 +
+ drivers/media/pci/Makefile                        |   1 +
+ drivers/media/pci/tw686x/Kconfig                  |  18 +
+ drivers/media/pci/tw686x/Makefile                 |   3 +
+ drivers/media/pci/tw686x/tw686x-audio.c           | 386 +++++++++
+ drivers/media/pci/tw686x/tw686x-core.c            | 415 ++++++++++
+ drivers/media/pci/tw686x/tw686x-regs.h            | 122 +++
+ drivers/media/pci/tw686x/tw686x-video.c           | 927 ++++++++++++++++++++++
+ drivers/media/pci/tw686x/tw686x.h                 | 158 ++++
+ drivers/staging/media/Kconfig                     |   2 +
+ drivers/staging/media/Makefile                    |   1 +
+ drivers/staging/media/tw686x-kh/Kconfig           |  17 +
+ drivers/staging/media/tw686x-kh/Makefile          |   3 +
+ drivers/staging/media/tw686x-kh/TODO              |   6 +
+ drivers/staging/media/tw686x-kh/tw686x-kh-core.c  | 140 ++++
+ drivers/staging/media/tw686x-kh/tw686x-kh-regs.h  | 103 +++
+ drivers/staging/media/tw686x-kh/tw686x-kh-video.c | 821 +++++++++++++++++++
+ drivers/staging/media/tw686x-kh/tw686x-kh.h       | 118 +++
+ 19 files changed, 3250 insertions(+)
+ create mode 100644 drivers/media/pci/tw686x/Kconfig
+ create mode 100644 drivers/media/pci/tw686x/Makefile
+ create mode 100644 drivers/media/pci/tw686x/tw686x-audio.c
+ create mode 100644 drivers/media/pci/tw686x/tw686x-core.c
+ create mode 100644 drivers/media/pci/tw686x/tw686x-regs.h
+ create mode 100644 drivers/media/pci/tw686x/tw686x-video.c
+ create mode 100644 drivers/media/pci/tw686x/tw686x.h
+ create mode 100644 drivers/staging/media/tw686x-kh/Kconfig
+ create mode 100644 drivers/staging/media/tw686x-kh/Makefile
+ create mode 100644 drivers/staging/media/tw686x-kh/TODO
+ create mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-core.c
+ create mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-regs.h
+ create mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh-video.c
+ create mode 100644 drivers/staging/media/tw686x-kh/tw686x-kh.h
+
 -- 
-2.5.0
-
+2.7.0
 
