@@ -1,69 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:34023 "EHLO vena.lwn.net"
+Received: from swift.blarg.de ([78.47.110.205]:57034 "EHLO swift.blarg.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751247AbcCCPRL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 10:17:11 -0500
-Date: Thu, 3 Mar 2016 08:17:09 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Keith Packard <keithp@keithp.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160303081709.5907bcd8@lwn.net>
-In-Reply-To: <20160303143425.2361dea2@lxorguk.ukuu.org.uk>
-References: <20160213145317.247c63c7@lwn.net>
-	<87y49zr74t.fsf@intel.com>
-	<20160303071305.247e30b1@lwn.net>
-	<20160303143425.2361dea2@lxorguk.ukuu.org.uk>
+	id S1756273AbcCUNaZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 09:30:25 -0400
+Subject: [PATCH 2/6] drivers/media/dvb-core/en50221: postpone release until
+ file is closed
+From: Max Kellermann <max@duempel.org>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Date: Mon, 21 Mar 2016 14:30:22 +0100
+Message-ID: <145856702263.21117.11870746253652920203.stgit@woodpecker.blarg.de>
+In-Reply-To: <145856701730.21117.7759662061999658129.stgit@woodpecker.blarg.de>
+References: <145856701730.21117.7759662061999658129.stgit@woodpecker.blarg.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 3 Mar 2016 14:34:25 +0000
-One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk> wrote:
+Fixes use-after-free bug which occurs when I disconnect my DVB-S
+received while VDR is running.
 
-> We only have docbook because it was the tool of choice rather a lot of
-> years ago to then get useful output formats. It was just inherited when
-> borrowed the original scripts from Gnome/Gtk. It's still the most
-> effective way IMHO of building big structured documents out of the kernel.
+Signed-off-by: Max Kellermann <max@duempel.org>
+---
+ drivers/media/dvb-core/dvb_ca_en50221.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-...except that we haven't used it that way.  Instead, we make a whole
-bunch of smaller, partially structured document silos.
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
+index e33364c..dfc686a 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -148,6 +148,9 @@ struct dvb_ca_private {
+ 	/* Flag indicating if the CA device is open */
+ 	unsigned int open:1;
+ 
++	/* Flag indicating if the CA device is released */
++	unsigned int released:1;
++
+ 	/* Flag indicating the thread should wake up now */
+ 	unsigned int wakeup:1;
+ 
+@@ -1392,6 +1395,11 @@ static int dvb_ca_en50221_io_read_condition(struct dvb_ca_private *ca,
+ 	int found = 0;
+ 	u8 hdr[2];
+ 
++	if (ca->released) {
++		*result = -ENODEV;
++		return 1;
++	}
++
+ 	slot = ca->next_read_slot;
+ 	while ((slot_count < ca->slot_count) && (!found)) {
+ 		if (ca->slot_info[slot].slot_state != DVB_CA_SLOTSTATE_RUNNING)
+@@ -1595,6 +1603,9 @@ static int dvb_ca_en50221_io_release(struct inode *inode, struct file *file)
+ 
+ 	err = dvb_generic_release(inode, file);
+ 
++	if (ca->released)
++		dvb_ca_private_free(ca);
++
+ 	module_put(ca->pub->owner);
+ 
+ 	return err;
+@@ -1701,6 +1712,7 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
+ 	}
+ 	init_waitqueue_head(&ca->wait_queue);
+ 	ca->open = 0;
++	ca->released = 0;
+ 	ca->wakeup = 0;
+ 	ca->next_read_slot = 0;
+ 	pubca->private = ca;
+@@ -1765,12 +1777,21 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
+ 
+ 	dprintk("%s\n", __func__);
+ 
++	BUG_ON(ca->released);
++
+ 	/* shutdown the thread if there was one */
+ 	kthread_stop(ca->thread);
+ 
+ 	for (i = 0; i < ca->slot_count; i++) {
+ 		dvb_ca_en50221_slot_shutdown(ca, i);
+ 	}
+-	dvb_ca_private_free(ca);
++
++	if (ca->open) {
++		ca->released = 1;
++		mb();
++		wake_up_interruptible(&ca->wait_queue);
++	} else
++		dvb_ca_private_free(ca);
++
+ 	pubca->private = NULL;
+ }
 
-> The Gtk people long ago rewrote the original document script into a real
-> tool so they have some different and maintained tools that are close to
-> equivalent and already have some markdown support. Before we go off and
-> re-invent the wheel it might be worth just borrowing their wheel and
-> tweaking it as needed ? In particular they can generate help indexes so
-> that the entire output becomes nicely browsable with an HTML based help
-> browser.
-
-Well, not inventing the wheel was kind of the motivation behind much of
-this effort; I got kind of worried watching us trying to cobble more
-functionality into our existing house-of-cards documentation system.
-
-Sphinx is a well-established, heavily used, and well supported system;
-using it would not be an exercise in wheel reinvention.  As far as I can
-tell, it does everything we need (with some open questions about table
-support), lets us drop the whole DocBook toolchain dependency, and move to
-a much better-supported setup than we have now.  Plus we get much nicer
-output, index generation, cross-references between documents, and the
-ability to write documents in a lightweight markup language.  Seems like a
-win.
-
-I assume you're referring to gtk-doc?  It's web page
-(http://www.gtk.org/gtk-doc/) starts by noting that it's "a bit awkward to
-setup and use"; they recommend looking at Doxygen instead.  So I guess I'm
-not really sure what it offers that merits throwing another option into
-the mix now?  What am I missing?
-
-Thanks,
-
-jon
