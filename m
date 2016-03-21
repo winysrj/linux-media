@@ -1,67 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40271 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751407AbcCITJq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Mar 2016 14:09:46 -0500
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [RFC PATCH 0/3] [media] tvp515p: Proposal for MC input connector support
-Date: Wed,  9 Mar 2016 16:09:23 -0300
-Message-Id: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:59934 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751435AbcCUIOG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 04:14:06 -0400
+Subject: Re: [PATCH RFC 0/2] pxa_camera transition to v4l2 standalone device
+To: Robert Jarzmik <robert.jarzmik@free.fr>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1458421288-22094-1-git-send-email-robert.jarzmik@free.fr>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56EFAD47.8010403@xs4all.nl>
+Date: Mon, 21 Mar 2016 09:13:59 +0100
+MIME-Version: 1.0
+In-Reply-To: <1458421288-22094-1-git-send-email-robert.jarzmik@free.fr>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 03/19/2016 10:01 PM, Robert Jarzmik wrote:
+> Hi Hans and Guennadi,
+> 
+> As Hans is converting sh_mobile_ceu_camera.c,
 
-I was waiting for the MC input connector support discussion to settle before
-attempting to propose another patch series for the tvp5150 video decoder but
-IIUC you are going to continue the discussion at ELC so I'm posting a series
-that I believe is aligned with the latest conversations.
+That's not going as fast as I hoped. This driver is quite complex and extracting
+it from soc-camera isn't easy. I also can't spend as much time as I'd like on this.
 
-This is of course a RFC and not meant to be merged but just to start looking
-how the DT binding using OF graph for connectors could look like and to see
-an implementation that uses a PAD (and thus link) per electrical signal (the
-1:1 model mentioned by Laurent).
+> let's see how close our ports are
+> to see if there are things we could either reuse of change.
+> 
+> The port is assuming :
+>  - the formation translation is transferred into soc_mediabus, so that it can be
+>    reused across all v4l2 devices
 
-The mc_nextgen_test dot output after applying the series can be found at [0]
-and the graph png generated using the dot tool at [1].
+At best this will be a temporary helper source. I never liked soc_mediabus, I don't
+believe it is the right approach. But I have no problem if it is used for now to
+simplify the soc-camera dependency removal.
 
-I've also uploaded the dot files and png when the Composite0 [2,3], Composite1
-[4,5] and S-Video [6,7] links are enabled.
+>  - pxa_camera is ported
+> 
+> This sets a ground of discussion for soc_camera adherence removal from
+> pxa_camera. I'd like to have a comment from Hans if this is what he has in mind,
+> and Guennadi if he agrees to transfer the soc xlate stuff to soc_mediabus.
 
-I tested these patches on an IGEPv2 by capturing using both Composite inputs,
-unfortuantely S-Video using the two RCA connectors is not working, but seems
-that is a regression with the tvp5150 driver not related with these patches.
+Can you provide the output of 'v4l2-compliance -s' with your new pxa driver?
+I would be curious to see the result of that.
 
-[0]: http://hastebin.com/novoxezeko.tex
-[1]: http://i.imgur.com/RWZEpMn.png
-[2]: http://hastebin.com/asaduyetuf.tex
-[3]: http://i.imgur.com/6y7d7AS.png
-[4]: http://hastebin.com/dijowanuki.tex
-[5]: http://i.imgur.com/Qr1F9dL.png
-[6]: http://hastebin.com/zegiwisoli.tex
-[7]: http://i.imgur.com/TdrVJ0R.png
+Regards,
 
-Best regards,
-Javier
-
-
-Javier Martinez Canillas (3):
-  [media] v4l2-mc.h: Add a S-Video C input PAD to demod enum
-  [media] tvp5150: Add input connectors DT bindings
-  [media] tvp5150: Replace connector support according to DT binding
-
- .../devicetree/bindings/media/i2c/tvp5150.txt      |  59 +++++++
- drivers/media/i2c/tvp5150.c                        | 190 +++++++++++++++------
- include/media/v4l2-mc.h                            |   3 +-
- 3 files changed, 203 insertions(+), 49 deletions(-)
-
--- 
-2.5.0
-
+	Hans
