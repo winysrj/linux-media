@@ -1,80 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from home.keithp.com ([63.227.221.253]:43449 "EHLO elaine.keithp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756944AbcCCXX0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 18:23:26 -0500
-From: Keith Packard <keithp@keithp.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41071 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757283AbcCUSIi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 14:08:38 -0400
+Subject: Re: [RFC PATCH 1/3] [media] v4l2-mc.h: Add a S-Video C input PAD to
+ demod enum
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-In-Reply-To: <20160303155037.705f33dd@recife.lan>
-References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com> <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan>
-Date: Thu, 03 Mar 2016 15:23:23 -0800
-Message-ID: <86egbrm9hw.fsf@hiro.keithp.com>
+	Javier Martinez Canillas <javier@osg.samsung.com>
+References: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
+ <1457550566-5465-2-git-send-email-javier@osg.samsung.com>
+ <56EC2294.603@xs4all.nl> <56EC3BF3.5040100@xs4all.nl>
+ <20160321114045.00f200a0@recife.lan> <56F00DAA.8000701@xs4all.nl>
+ <56F01AE7.6070508@xs4all.nl> <20160321145034.6fa4e677@recife.lan>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <56F038A0.1010004@xs4all.nl>
+Date: Mon, 21 Mar 2016 19:08:32 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha256; protocol="application/pgp-signature"
+In-Reply-To: <20160321145034.6fa4e677@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On 03/21/2016 06:50 PM, Mauro Carvalho Chehab wrote:
+> Hi Hans,
+> 
+> Em Mon, 21 Mar 2016 17:01:43 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>>> A reasonable solution to simplify converting legacy drivers without creating
+>>> these global ugly pad indices is to add a new video (and probably audio) op
+>>> 'g_pad_of_type(type)' where you ask the subdev entity to return which pad carries
+>>> signals of a certain type.  
+>>
+>> This basically puts a layer between the low-level pads as defined by the entity
+>> and the 'meta-pads' that a generic MC link creator would need to handle legacy
+>> drivers. The nice thing is that this is wholly inside the kernel so we can
+>> modify it at will later without impacting userspace.
+> 
+> I prepared a long answer to your email, but I guess we're not at the
+> same page.
+> 
+> Let be clear on my view. Please let me know where you disagree:
+> 
+> 1) I'm not defending Javier's patchset. I have my restrictions to
+> it too. My understanding is that he sent this as a RFC for feeding
+> our discussions for the media summit.
+> 
+> Javier, please correct me if I'm wrong.
+> 
+> 2) I don't understand what you're calling as "meta-pads". For me, a
+> PAD is a physical set of pins. 
 
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> writes:
+Poorly worded on my side. I'll elaborate below.
 
-> On my tests, Sphinix seemed too limited to format tables. Asciidoc
-> produced an output that worked better.
+> 3) IMO, the best is to have just one PAD for a decoder input. That makes
+> everything simple, yet functional.
+> 
+> In my view, the input PAD will be linked to several "input connections".
+> So, in the case of tvp5150, it will have:
+> 
+> 	- composite 1
+> 	- composite 2
+> 	- s-video
+> 
+> 4) On that view, the input PAD is actually a set of pins. In the
+> case of tvp5150, the pins that compose the input PADs are
+> AIP1A and AIP1B.
+> 
+> The output PAD is also a set of pins YOUT0 to YOUT7, plus some other
+> pins for sync. Yet, it should, IMHO, have just one output PAD at
+> the MC graph.
 
-Yes, asciidoc has much more flexibility in table formatting, including
-the ability to control text layout within cells and full control over
-borders.
+Indeed. So a tvp5150 has three sink pads and one source pad (pixel port).
+Other similar devices may have different numbers of sink pads (say four
+composite sinks and no S-Video sinks). So the pads the entity creates
+should match what the hardware supports.
 
-However, I think asciidoc has two serious problems:
+So far, so good.
 
-  1) the python version (asciidoc) appears to have been abandoned in
-     favor of the ruby version.=20
+If we want to create code that can more-or-less automatically create a MC
+topology for legacy drivers, then we would like to be able to map a high-level
+description like 'the first S-Video sink pad' into the actual pad. So you'd
+have a 'MAP_PAD_SVID_1' define that, when passed to the g_pad_of_type() op
+would return the actual pad index for the first S-Video sink pad (or an error
+if there isn't one). That's what I meant with 'meta-pad' (and let's just
+forget about that name, poor choice from my side).
 
-  2) It really is just a docbook pre-processor. Native html/latex output
-     is poorly supported at best, and exposes only a small subset of the
-     full capabilities of the input language.
+What I think Javier's patch did was to require subdevs that have an S-Video pad
+to use the DEMOD_PAD_C_INPUT + IF_INPUT pad indices for that. That's really
+wrong. The subdev driver decides how many pads there are and which pad is
+assigned to which index. That shouldn't be forced on them from the outside
+because that won't scale.
 
-As such, we would have to commit to using the ruby version and either
-committing to fixing the native html output backend or continuing to use
-the rest of the docbook toolchain.
+But you can make an op that asks 'which pad carries this signal?'. That's fine.
 
-We could insist on using the python version, of course. I spent a bit of
-time hacking that up to add 'real' support for a table-of-contents in
-the native HTML backend and it looks like getting those changes
-upstreamed would be reasonably straightforward. However, we'd end up
-'owning' the code, and I'm not sure we want to.
+I hope this clarifies matters.
 
-=2D-=20
-=2Dkeith
+Regards,
 
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIVAwUBVtjHa9siGmkAAAARAQiNaw//RtWj3w/yFqFZ1dcPe09OIBoerzkkJGw0
-sPTf04vADfVrDdDgu5ck3neuDE44H4+tEjcI7hDHZJzQdgTvHbkKar/MK2DzzS47
-Dv/LHeD8A/uN0mH+U1zC6Zf/olJghl6l/Mve7h8ULQmz8qwzAM+G1rDIUD/gXErR
-fqdQy7uPaSI0QMSjxIkXfGky7QOiCiR5Hn9KVG0+dwz9eTuUphUT0miwtSnsYjqp
-6qqQhcm+iL0L2veNNJOH468+889OhUtYTfc4AWrwchjRV1Sb0hEUksRTaj1fV61e
-k+ZNTmTUKDITUm+MTk4MkUvyAHr9CPU7qBJ+sytzknBIvqG2FVeIdgSnVy4ta0Pm
-wuLnS0QLsphY2ESORuvWnQ9Pt1xXuouVLpY6Ef0/QVd+WBuF1Ci/m7gGfWI7L0mC
-bNnnXPrd8wIWHEJndyM9ty673LTUMhugkoVJWPbeRSXptBf0a6s7r56xXa4FPyt/
-sID1RD6dQkLAQ+5vTGkB9YJZZmuN/1SMSGdaECl3IpLKldAyvvx+0ejZlAJqO0+p
-hG49A/WNLTGwUAMT2xu9e9AytTvsIZHyr6kizJ4lO5jifA753D3Sy7WAJTTugKGx
-JsyakCQOFCjlbmwaNYV2ikKfarXbuFVNoiqF8c5vpTLgOuaGJOkdqHVbw3yknNIP
-63/ZjpYDV60=
-=9aNz
------END PGP SIGNATURE-----
---=-=-=--
+	Hans
