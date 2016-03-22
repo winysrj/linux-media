@@ -1,44 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:35986 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934359AbcCKINN (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37793 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085AbcCVMND (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 03:13:13 -0500
-Date: Fri, 11 Mar 2016 11:13:01 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] [media] em28xx-i2c: rt_mutex_trylock() returns zero on
- failure
-Message-ID: <20160311081301.GD31887@mwanda>
+	Tue, 22 Mar 2016 08:13:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Franck Jullien <franck.jullien@odyssee-systemes.fr>
+Cc: linux-media@vger.kernel.org, hyun.kwon@xilinx.com
+Subject: Re: [PATCH] [media] xilinx-vipp: remove unnecessary of_node_put
+Date: Tue, 22 Mar 2016 14:12:59 +0200
+Message-ID: <21142136.KJJkg38sI8@avalon>
+In-Reply-To: <1458643438-3486-1-git-send-email-franck.jullien@odyssee-systemes.fr>
+References: <1458643438-3486-1-git-send-email-franck.jullien@odyssee-systemes.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code is checking for negative returns but it should be checking for
-zero.
+Hi Frank,
 
-Fixes: aab3125c43d8 ('[media] em28xx: add support for registering multiple i2c buses')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-Is -EBUSY correct?  -EAGAIN?
+Thank you for the patch.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index a19b5c8..f80dd3a 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -507,9 +507,8 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 	if (dev->disconnected)
- 		return -ENODEV;
- 
--	rc = rt_mutex_trylock(&dev->i2c_bus_lock);
--	if (rc < 0)
--		return rc;
-+	if (!rt_mutex_trylock(&dev->i2c_bus_lock))
-+		return -EBUSY;
- 
- 	/* Switch I2C bus if needed */
- 	if (bus != dev->cur_i2c_bus &&
+On Tuesday 22 Mar 2016 11:43:58 Franck Jullien wrote:
+> of_graph_get_next_endpoint(node, ep) decrements refcount on
+> ep. When next==NULL we break and refcount on ep is decremented
+> again.
+> 
+> Signed-off-by: Franck Jullien <franck.jullien@odyssee-systemes.fr>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+I don't have patches queued for Xilinx drivers, would you like to push this 
+one to Mauro directly, or would you prefer me to take it in my tree ?
+
+> ---
+>  drivers/media/platform/xilinx/xilinx-vipp.c |    8 ++------
+>  1 files changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c
+> b/drivers/media/platform/xilinx/xilinx-vipp.c index e795a45..feb3b2f 100644
+> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
+> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+> @@ -351,19 +351,15 @@ static int xvip_graph_parse_one(struct
+> xvip_composite_device *xdev, struct xvip_graph_entity *entity;
+>  	struct device_node *remote;
+>  	struct device_node *ep = NULL;
+> -	struct device_node *next;
+>  	int ret = 0;
+> 
+>  	dev_dbg(xdev->dev, "parsing node %s\n", node->full_name);
+> 
+>  	while (1) {
+> -		next = of_graph_get_next_endpoint(node, ep);
+> -		if (next == NULL)
+> +		ep = of_graph_get_next_endpoint(node, ep);
+> +		if (ep == NULL)
+>  			break;
+> 
+> -		of_node_put(ep);
+> -		ep = next;
+> -
+>  		dev_dbg(xdev->dev, "handling endpoint %s\n", ep->full_name);
+> 
+>  		remote = of_graph_get_remote_port_parent(ep);
+
+-- 
+Regards,
+
+Laurent Pinchart
+
