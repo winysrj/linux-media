@@ -1,208 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57946 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752178AbcCBTb7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2016 14:31:59 -0500
-Date: Wed, 2 Mar 2016 16:31:54 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [RFC] Representing hardware connections via MC
-Message-ID: <20160302163154.1239551a@recife.lan>
-In-Reply-To: <56D731F6.8010008@xs4all.nl>
-References: <20160226091317.5a07c374@recife.lan>
-	<1753279.MBUKgSvGQl@avalon>
-	<20160302081323.36eddba5@recife.lan>
-	<1736605.4kGg8lYGrV@avalon>
-	<56D6CE4A.1000208@xs4all.nl>
-	<20160302090857.49ff68e4@recife.lan>
-	<56D731F6.8010008@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37606 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750764AbcCVEIs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2016 00:08:48 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 476BA18045B
+	for <linux-media@vger.kernel.org>; Tue, 22 Mar 2016 05:08:42 +0100 (CET)
+Date: Tue, 22 Mar 2016 05:08:42 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160322040842.476BA18045B@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 02 Mar 2016 19:33:26 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On 03/02/2016 01:08 PM, Mauro Carvalho Chehab wrote:
-> > Em Wed, 02 Mar 2016 12:28:10 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> On 03/02/16 12:16, Laurent Pinchart wrote:  
-> >>> Hi Mauro,
-> >>>
-> >>> On Wednesday 02 March 2016 08:13:23 Mauro Carvalho Chehab wrote:    
-> >>>> Em Wed, 02 Mar 2016 12:34:42 +0200 Laurent Pinchart escreveu:    
-> >>>>> On Friday 26 February 2016 09:13:17 Mauro Carvalho Chehab wrote:    
-> >>>
-> >>> [snip]
-> >>>     
-> >>>>>> NOTE:
-> >>>>>>
-> >>>>>> The labels at the PADs currently can't be represented, but the
-> >>>>>> idea is adding it as a property via the upcoming properties API.    
-> >>>>>
-> >>>>> Whether to add labels to pads, and more generically how to differentiate
-> >>>>> them from userspace, is an interesting question. I'd like to decouple it
-> >>>>> from the connectors entities discussion if possible, in such a way that
-> >>>>> using labels wouldn't be required to leave the discussion open on that
-> >>>>> topic. If we foresee a dependency on labels for pads then we should open
-> >>>>> that discussion now.    
-> >>>>
-> >>>> We can postpone such discussion. PAD labels are not needed for
-> >>>> what we have so far (RF, Composite, S-Video). Still, I think that
-> >>>> we'll need it by the time we add connector support for more complex
-> >>>> connector types, like HDMI.    
-> >>>
-> >>> If we don't add pad labels now then they should be optional for future 
-> >>> connectors too, including HDMI. If you think that HDMI connectors will require 
-> >>> them then we should discuss them now.
-> >>>     
-> >>
-> >> Pad labels are IMHO only useful for producing human readable output. For complex
-> >> designs that helps a lot to understand what is going on.
-> >>
-> >> But for kernel/applications all you need are #defines with the pad numbers (e.g.
-> >> HDMI_PAD_TMDS, HDMI_PAD_CEC, HDMI_PAD_ARC) to use for connectors.  
-> > 
-> > As we add complexity to MC graph, just hardcoding PAD numbers don't work
-> > fine even at the Kernel level. 
-> > 
-> > Basically, what we currently call as "PAD number", is actually a PAD
-> > number+type, as different PADs have different types/functions on most
-> > cases.
-> > 
-> > Any code that needs to connect PADs need to know which type corresponds
-> > to a pad number on a given entity.
-> > 
-> > See for example the code at : it only
-> > works because we've created a generic enum demod_pad_index that
-> > is been used by the analog TV demods currently supported by the
-> > drivers that enable the MC API.
-> > 
-> > There, we had to standardize the PAD numbers for the analog TV
-> > demod, as we need to be able to link the connectors for v4l2-interface
-> > centric devices, in order to have a generic function to build the
-> > links:
-> > 
-> > enum demod_pad_index {
-> > 	DEMOD_PAD_IF_INPUT,
-> > 	DEMOD_PAD_VID_OUT,
-> > 	DEMOD_PAD_VBI_OUT,
-> > 	DEMOD_NUM_PADS
-> > };
-> > 
-> > (I'll ommit DEMOD_NUM_PADS on the discussions below, just to make
-> > the enums clearer)
-> > 
-> > Due to S-Video, we'll need to add an extra input PAD there
-> > (and one extra PAD for audio output - currently only supported
-> > by au0828 driver):
-> > 
-> > enum demod_pad_index {
-> > 	/* Input PADs */
-> > 	DEMOD_PAD_IF_INPUT,	/* Composite or Y input */
-> > 	DEMOD_PAD_C_INPUT,
-> > 
-> > 	/* Output PADs*/
-> > 	DEMOD_PAD_VID_OUT,
-> > 	DEMOD_PAD_VBI_OUT,
-> > 	DEMOD_PAD_AUDIO_OUT,
-> > };
-> > 
-> > But, an HDMI-only demod would need, instead:
-> > 
-> > enum hdmi_demod_pad_index {
-> > 	/* HDMI-specific input PADs*/
-> > 	DEMOD_HDMI_PAD_TMDS,
-> > 	DEMOD_HDMI_PAD_CEC,
-> > 	DEMOD_HDMI_PAD_ARC,
-> > 
-> > 	/* Output PADs */
-> > 	DEMOD_HDMI_PAD_VID_OUT,
-> > 	DEMOD_HDMI_PAD_VBI_OUT,
-> > 	DEMOD_HDMI_PAD_AUDIO_OUT,
-> > };
-> > 
-> > If we do that, an extra logic to handle the "HDMI" special case
-> > would need at v4l2_mc_create_media_graph(), and we'll need to
-> > use a different function for such entity, for it to work.
-> > 
-> > A demod capable of handling both HDMI and analog TV would need a mix
-> > of the above enums:
-> > 
-> > enum hdmi_and_composite_demod_pad_index {
-> > 	/* HDMI-specific input PADs*/
-> > 	DEMOD2_PAD_HDMI_TMDS,
-> > 	DEMOD2_PAD_HDMI_CEC,
-> > 	DEMOD2_PAD_HDMI_ARC,
-> > 
-> > 	/* non-HDMI Input PADs */
-> > 	DEMOD2_PAD_IF_INPUT,	/* Composite or Y input */
-> > 	DEMOD2_PAD_C_INPUT,
-> > 
-> > 	/* Output PADs */
-> > 	DEMOD2_PAD_VID_OUT,
-> > 	DEMOD2_PAD_VBI_OUT,
-> > };
-> > 
-> > Again, we'll need an extra logic v4l2_mc_create_media_graph(), and
-> > a different function for the entity.
-> > 
-> > We could, instead, just add those new PADs at the existing 
-> > enum demod_pad_index, but, if add pad numbers to existing enums, 
-> > we will be breaking binary compatibility on every new release,
-> > and entities will be exporting PADs that the hardware don't support.
-> > 
-> > The same trouble will happen also at userspace side, as a generic
-> > application written to work with subdev-centric devices would need to
-> > know the PAD numbers for each PAD type and for each entity type.
-> > 
-> > Also, a given entity type would need to have a fixed number of PADs,
-> > and such pad numbers are actually part of the uAPI/ABI.
-> > 
-> > So, IMHO, the proper fix is to create, inside the Kernel, a PAD type
-> > field, with will be used by the Kernel generic functions and allow each
-> > driver to create as many PADs it needs, without needing to add
-> > PADs for non-supported types. So, a demod like saa7115 will never have
-> > DEMOD_HDMI_PAD_*. It will be driver's responsibility to fill the PAD
-> > type for each PAD.
-> > 
-> > The core will then use the PAD type to create the pads via
-> > v4l2_mc_create_media_graph().
-> > 
-> > For a generic mc-centric application, the PAD type (or PAD label?)
-> > will need to be exported to userspace, for the userspace logic
-> > that would be equivalent to what's done at v4l2_mc_create_media_graph().  
-> 
-> I would have to think about this much more carefully. Perhaps this could be
-> a topic if we're having a media mini/micro summit.
+Results of the daily build of media_tree:
 
-Yes, I guess it would be worth to have a topic about that, and about
-the properties we want to export via the properties API.
+date:		Tue Mar 22 04:00:32 CET 2016
+git branch:	test
+git hash:	b39950960d2b890c21465c69c7c0e4ff6253c6b5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3353-gcae47da
+host hardware:	x86_64
+host os:	4.4.0-164
 
-> 
-> I don't see the HDMI ever hooked up to a demod. It's all digital after all,
-> I don't think there is anything to demod. I have certainly never seen anything
-> like that in the various HDMI receivers/transmitters that I am familiar with.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-"demod" name is a misleading name for devices that handle pure digital
-video, but a device like adv7604 with has 12-channel analog input mux
-and is also an HDMI receiver is a demod (for the analog input entries).
+Detailed results are available here:
 
-We might export it as two separate entities, one for the analog demod
-and another one for the HDMI receiver, but this doesn't seem right.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-So, at the end of the day, we'll need to support one entity that
-will have both analog TV demod and HDMI receiver on it, and we'll
-need the core or the userspace to know that such entity will have
-more PADs than a normal demod, and what types are associated with
-each pad number.
+Full logs are available here:
 
-Regards,
-Mauro
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
