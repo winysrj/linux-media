@@ -1,95 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swift.blarg.de ([78.47.110.205]:57034 "EHLO swift.blarg.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756273AbcCUNaZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 09:30:25 -0400
-Subject: [PATCH 2/6] drivers/media/dvb-core/en50221: postpone release until
- file is closed
-From: Max Kellermann <max@duempel.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Date: Mon, 21 Mar 2016 14:30:22 +0100
-Message-ID: <145856702263.21117.11870746253652920203.stgit@woodpecker.blarg.de>
-In-Reply-To: <145856701730.21117.7759662061999658129.stgit@woodpecker.blarg.de>
-References: <145856701730.21117.7759662061999658129.stgit@woodpecker.blarg.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:31452 "EHLO
+	aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758376AbcCVK34 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Mar 2016 06:29:56 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/3] vidioc-dv-timings-cap.xml: explicitly state that pad and reserved should be zeroed
+Date: Tue, 22 Mar 2016 11:30:29 +0100
+Message-Id: <1458642629-15742-4-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <1458642629-15742-1-git-send-email-hans.verkuil@cisco.com>
+References: <1458642629-15742-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes use-after-free bug which occurs when I disconnect my DVB-S
-received while VDR is running.
+The DV_TIMINGS_CAP documentation didn't state clearly that the pad and
+reserved fields should be zeroed by the application. For subdev pad can
+be other values as well.
 
-Signed-off-by: Max Kellermann <max@duempel.org>
+It also mistakenly said that only drivers would have to zero the reserved
+field, that's not correct.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-core/dvb_ca_en50221.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index e33364c..dfc686a 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -148,6 +148,9 @@ struct dvb_ca_private {
- 	/* Flag indicating if the CA device is open */
- 	unsigned int open:1;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
+index a2017bf..b6f47a6 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
+@@ -55,8 +55,9 @@
+       interface and may change in the future.</para>
+     </note>
  
-+	/* Flag indicating if the CA device is released */
-+	unsigned int released:1;
-+
- 	/* Flag indicating the thread should wake up now */
- 	unsigned int wakeup:1;
+-    <para>To query the capabilities of the DV receiver/transmitter applications
+-can call the <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl on a video node
++    <para>To query the capabilities of the DV receiver/transmitter applications initialize the
++<structfield>pad</structfield> field to 0, zero the reserved array of &v4l2-dv-timings-cap;
++and call the <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl on a video node
+ and the driver will fill in the structure. Note that drivers may return
+ different values after switching the video input or output.</para>
  
-@@ -1392,6 +1395,11 @@ static int dvb_ca_en50221_io_read_condition(struct dvb_ca_private *ca,
- 	int found = 0;
- 	u8 hdr[2];
+@@ -65,8 +66,8 @@ queried by calling the <constant>VIDIOC_SUBDEV_DV_TIMINGS_CAP</constant> ioctl
+ directly on a subdevice node. The capabilities are specific to inputs (for DV
+ receivers) or outputs (for DV transmitters), applications must specify the
+ desired pad number in the &v4l2-dv-timings-cap; <structfield>pad</structfield>
+-field. Attempts to query capabilities on a pad that doesn't support them will
+-return an &EINVAL;.</para>
++field and zero the <structfield>reserved</structfield> array. Attempts to query
++capabilities on a pad that doesn't support them will return an &EINVAL;.</para>
  
-+	if (ca->released) {
-+		*result = -ENODEV;
-+		return 1;
-+	}
-+
- 	slot = ca->next_read_slot;
- 	while ((slot_count < ca->slot_count) && (!found)) {
- 		if (ca->slot_info[slot].slot_state != DVB_CA_SLOTSTATE_RUNNING)
-@@ -1595,6 +1603,9 @@ static int dvb_ca_en50221_io_release(struct inode *inode, struct file *file)
- 
- 	err = dvb_generic_release(inode, file);
- 
-+	if (ca->released)
-+		dvb_ca_private_free(ca);
-+
- 	module_put(ca->pub->owner);
- 
- 	return err;
-@@ -1701,6 +1712,7 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
- 	}
- 	init_waitqueue_head(&ca->wait_queue);
- 	ca->open = 0;
-+	ca->released = 0;
- 	ca->wakeup = 0;
- 	ca->next_read_slot = 0;
- 	pubca->private = ca;
-@@ -1765,12 +1777,21 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
- 
- 	dprintk("%s\n", __func__);
- 
-+	BUG_ON(ca->released);
-+
- 	/* shutdown the thread if there was one */
- 	kthread_stop(ca->thread);
- 
- 	for (i = 0; i < ca->slot_count; i++) {
- 		dvb_ca_en50221_slot_shutdown(ca, i);
- 	}
--	dvb_ca_private_free(ca);
-+
-+	if (ca->open) {
-+		ca->released = 1;
-+		mb();
-+		wake_up_interruptible(&ca->wait_queue);
-+	} else
-+		dvb_ca_private_free(ca);
-+
- 	pubca->private = NULL;
- }
+     <table pgwide="1" frame="none" id="v4l2-bt-timings-cap">
+       <title>struct <structname>v4l2_bt_timings_cap</structname></title>
+@@ -145,7 +146,8 @@ return an &EINVAL;.</para>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>reserved</structfield>[2]</entry>
+-	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
++	    <entry>Reserved for future extensions. Drivers and applications must
++	    set the array to zero.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>union</entry>
+-- 
+2.7.0
 
