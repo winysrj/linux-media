@@ -1,66 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:58116 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932338AbcCCIE7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 03:04:59 -0500
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	David Brown <david.brown@linaro.org>,
+Received: from lists.s-osg.org ([54.187.51.154]:55492 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757485AbcCVAQO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Mar 2016 20:16:14 -0400
+Subject: Re: [RFC PATCH 1/3] [media] v4l2-mc.h: Add a S-Video C input PAD to
+ demod enum
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
+ <1457550566-5465-2-git-send-email-javier@osg.samsung.com>
+ <56EC2294.603@xs4all.nl> <56EC3BF3.5040100@xs4all.nl>
+ <20160321114045.00f200a0@recife.lan> <56F00DAA.8000701@xs4all.nl>
+ <56F01AE7.6070508@xs4all.nl> <20160321145034.6fa4e677@recife.lan>
+ <56F038A0.1010004@xs4all.nl> <56F03C40.4090909@osg.samsung.com>
+ <56F0461A.1070809@xs4all.nl> <56F04969.6070908@osg.samsung.com>
+ <20160321182047.3f52e119@recife.lan>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
-	rtc-linux@googlegroups.com, linux-arm-msm@vger.kernel.org,
-	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-usb@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [RFC 06/15] pinctrl: rockchip: Add missing MFD_SYSCON dependency on
- HAS_IOMEM
-Date: Thu, 03 Mar 2016 17:03:32 +0900
-Message-id: <1456992221-26712-7-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
-References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <56F08EC4.5050105@osg.samsung.com>
+Date: Mon, 21 Mar 2016 21:16:04 -0300
+MIME-Version: 1.0
+In-Reply-To: <20160321182047.3f52e119@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MFD_SYSCON depends on HAS_IOMEM so when selecting it avoid unmet
-direct dependencies.
+Hello Mauro,
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- drivers/pinctrl/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+On 03/21/2016 06:20 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 21 Mar 2016 16:20:09 -0300
+> Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
+> 
+>>> BTW, if the tvp5150 needs to know which composite connector is connected
+>>> to which hardware pin, then you still may need to be explicit w.r.t. the
+>>> number of pads. I just thought of that.
+>>>  
+>>
+>> The tvp5150 doesn't care about that, as Mauro said is just a mux so you can
+>> have logic in the .link_setup that does the mux depending on the remote
+>> entity (that's in fact how I implemented and is currently in mainline).
+>>
+>> Now, the user needs to know which entity is mapped to which input pin.
+>> All its know from the HW documentation is that for example the left
+>> RCA connector is AIP1A and the one inf the right is connected to AIP1B.
+>>
+>> So there could be a convention that the composite connected to AIP1A pin
+>> (the default) is Composite0 and the connected to AIP1B is Composite1.
+> 
+> 
+> We should avoid a convention here... instead, we should support
+> properties via the properties API to export enough info for userspace
+> to know what physical connectors correspond to each "connection" entity.
+> 
+> As we've discussed previously, such properties can be:
+> 	- connector's name
+> 	- color
+> 	- position
+> etc...
+>
 
-diff --git a/drivers/pinctrl/Kconfig b/drivers/pinctrl/Kconfig
-index fb8200b8e8ec..dc7ab58d4d74 100644
---- a/drivers/pinctrl/Kconfig
-+++ b/drivers/pinctrl/Kconfig
-@@ -131,6 +131,7 @@ config PINCTRL_MESON
+Right, I forgot about the properties API.
  
- config PINCTRL_ROCKCHIP
- 	bool
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select PINMUX
- 	select GENERIC_PINCONF
- 	select GENERIC_IRQ_CHIP
--- 
-2.5.0
+> 
+> Regards,
+> Mauro
+> 
 
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
