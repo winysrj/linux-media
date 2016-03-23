@@ -1,86 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34076 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752013AbcCBRQ7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 12:16:59 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	hans.verkuil@cisco.com, ian.molton@codethink.co.uk,
-	lars@metafoo.de, william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v2 2/9] media: adv7604: automatic "default-input" selection
-Date: Wed,  2 Mar 2016 18:16:30 +0100
-Message-Id: <1456938997-29971-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1456938997-29971-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1456938997-29971-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from mail.fireflyinternet.com ([87.106.93.118]:52761 "EHLO
+	fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752022AbcCWPmk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2016 11:42:40 -0400
+Date: Wed, 23 Mar 2016 15:42:23 +0000
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: David Herrmann <dh.herrmann@gmail.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	Tiago Vignatti <tiago.vignatti@intel.com>,
+	=?iso-8859-1?Q?St=E9phane?= Marchesin <marcheu@chromium.org>,
+	Daniel Vetter <daniel.vetter@intel.com>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
+Message-ID: <20160323154223.GJ21717@nuc-i3427.alporthouse.com>
+References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
+ <1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
+ <CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
+ <20160321171405.GP28483@phenom.ffwll.local>
+ <CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
+ <20160323115659.GF21717@nuc-i3427.alporthouse.com>
+ <CANq1E4SFPMoE4G4XARFLyEH40OOZnR2v_PQD4=ps3KBvVXUHpA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CANq1E4SFPMoE4G4XARFLyEH40OOZnR2v_PQD4=ps3KBvVXUHpA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: William Towle <william.towle@codethink.co.uk>
+On Wed, Mar 23, 2016 at 04:32:59PM +0100, David Herrmann wrote:
+> Hi
+> 
+> On Wed, Mar 23, 2016 at 12:56 PM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
+> > On Wed, Mar 23, 2016 at 12:30:42PM +0100, David Herrmann wrote:
+> >> My question was rather about why we do this? Semantics for EINTR are
+> >> well defined, and with SA_RESTART (default on linux) user-space can
+> >> ignore it. However, looping on EAGAIN is very uncommon, and it is not
+> >> at all clear why it is needed?
+> >>
+> >> Returning an error to user-space makes sense if user-space has a
+> >> reason to react to it. I fail to see how EAGAIN on a cache-flush/sync
+> >> operation helps user-space at all? As someone without insight into the
+> >> driver implementation, it is hard to tell why.. Any hints?
+> >
+> > The reason we return EAGAIN is to workaround a deadlock we face when
+> > blocking on the GPU holding the struct_mutex (inside the client's
+> > process), but the GPU is dead. As our locking is very, very coarse we
+> > cannot restart the GPU without acquiring the struct_mutex being held by
+> > the client so we wake the client up and tell them the resource they are
+> > waiting on (the flush of the object from the GPU into the CPU domain) is
+> > temporarily unavailable. If they try to immediately wait upon the ioctl
+> > again, they are blocked waiting for the reset to occur before they may
+> > complete their flush. There are a few other possible deadlocks that are
+> > also avoided with EAGAIN (again, the issue is more or less the lack of
+> > fine grained locking).
+> 
+> ...so you hijacked EAGAIN for all DRM ioctls just for a driver
+> workaround?
 
-Add logic such that the "default-input" property becomes unnecessary
-for chips that only have one suitable input (ADV7611 by design, and
-ADV7612 due to commit 7111cddd "[media] media: adv7604: reduce support
-to first (digital) input").
+No, we utilized the fact that EAGAIN was already enshrined by libdrm as
+the defacto mechanism for repeating the ioctl in order to repeat the
+ioctl for a driver workaround.
+-Chris
 
-Additionally, Ian's documentation in commit bf9c8227 ("[media] media:
-adv7604: ability to read default input port from DT") states that the
-"default-input" property should reside directly in the node for
-adv7612. Hence, also adjust the parsing to make the implementation
-consistent with this.
-
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/i2c/adv7604.c | 24 +++++++++++++++++-------
- 1 file changed, 17 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index f8dd750..2097c48 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2799,7 +2799,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	struct device_node *endpoint;
- 	struct device_node *np;
- 	unsigned int flags;
--	u32 v;
-+	u32 v = -1;
- 
- 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
- 
-@@ -2809,14 +2809,24 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 		return -EINVAL;
- 
- 	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
--
--	if (!of_property_read_u32(endpoint, "default-input", &v))
--		state->pdata.default_input = v;
--	else
--		state->pdata.default_input = -1;
--
- 	of_node_put(endpoint);
- 
-+	if (of_property_read_u32(np, "default-input", &v)) {
-+		/* not specified ... can we choose automatically? */
-+		switch (state->info->type) {
-+		case ADV7611:
-+			v = 0;
-+			break;
-+		case ADV7612:
-+			if (state->info->max_port == ADV76XX_PAD_HDMI_PORT_A)
-+				v = 0;
-+			/* else is unhobbled, leave unspecified */
-+		default:
-+			break;
-+		}
-+	}
-+	state->pdata.default_input = v;
-+
- 	flags = bus_cfg.bus.parallel.flags;
- 
- 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
 -- 
-2.6.4
-
+Chris Wilson, Intel Open Source Technology Centre
