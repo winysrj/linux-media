@@ -1,37 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:36465 "EHLO ni.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751901AbcCDGL3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 01:11:29 -0500
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: tw686x driver
-References: <56D6A50F.4060404@xs4all.nl> <m3povcnjfo.fsf@t19.piap.pl>
-	<56D7E87B.1080505@xs4all.nl> <m3lh5zohsf.fsf@t19.piap.pl>
-	<56D83E16.1010907@xs4all.nl> <m3h9gnod3t.fsf@t19.piap.pl>
-	<56D84CA7.4050800@xs4all.nl>
-Date: Fri, 04 Mar 2016 07:11:25 +0100
-In-Reply-To: <56D84CA7.4050800@xs4all.nl> (Hans Verkuil's message of "Thu, 3
-	Mar 2016 15:39:35 +0100")
-Message-ID: <m3d1raojqq.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:39101 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755857AbcCWT1v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2016 15:27:51 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/4] [media] media-device: Simplify compat32 logic
+Date: Wed, 23 Mar 2016 16:27:43 -0300
+Message-Id: <442844a1add7446a8d5d2d91229fc0f043363381.1458760750.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1458760750.git.mchehab@osg.samsung.com>
+References: <cover.1458760750.git.mchehab@osg.samsung.com>
+In-Reply-To: <cover.1458760750.git.mchehab@osg.samsung.com>
+References: <cover.1458760750.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+Only MEDIA_IOC_ENUM_LINKS32 require an special logic when
+userspace is 32 bits and Kernel is 64 bits.
 
->> Staging is meant for completely different situation - for immature,
->> incomplete code. It has nothing to do with the case.
->
-> It can be for anything that prevents it from being mainlined. It was (still is?)
-> used for mature android drivers, for example.
+For the rest, media_device_ioctl() will do the right thing,
+and will return -ENOIOCTLCMD if the ioctl is unknown.
 
-What is preventing my driver from being mainlined?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/media-device.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 4a97d92a7e7d..4b5a2ab17b7e 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -508,10 +508,7 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+ 	long ret;
+ 
+ 	switch (cmd) {
+-	case MEDIA_IOC_DEVICE_INFO:
+-	case MEDIA_IOC_ENUM_ENTITIES:
+-	case MEDIA_IOC_SETUP_LINK:
+-	case MEDIA_IOC_G_TOPOLOGY:
++	default:
+ 		return media_device_ioctl(filp, cmd, arg);
+ 
+ 	case MEDIA_IOC_ENUM_LINKS32:
+@@ -520,9 +517,6 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+ 				(struct media_links_enum32 __user *)arg);
+ 		mutex_unlock(&dev->graph_mutex);
+ 		break;
+-
+-	default:
+-		ret = -ENOIOCTLCMD;
+ 	}
+ 
+ 	return ret;
 -- 
-Krzysztof Halasa
+2.5.5
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+
