@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:39787 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965207AbcCPMOm (ORCPT
+Received: from mail.fireflyinternet.com ([87.106.93.118]:49542 "EHLO
+	fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751765AbcCWMNk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 08:14:42 -0400
-From: Peter Rosin <peda@lysator.liu.se>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Peter Rosin <peda@axentia.se>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH] [media] m88ds3103: fix undefined division
-Date: Wed, 16 Mar 2016 13:14:13 +0100
-Message-Id: <1458130453-1421-1-git-send-email-peda@lysator.liu.se>
+	Wed, 23 Mar 2016 08:13:40 -0400
+Date: Wed, 23 Mar 2016 11:56:59 +0000
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: David Herrmann <dh.herrmann@gmail.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	Tiago Vignatti <tiago.vignatti@intel.com>,
+	=?iso-8859-1?Q?St=E9phane?= Marchesin <marcheu@chromium.org>,
+	Daniel Vetter <daniel.vetter@intel.com>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
+Message-ID: <20160323115659.GF21717@nuc-i3427.alporthouse.com>
+References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
+ <1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
+ <CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
+ <20160321171405.GP28483@phenom.ffwll.local>
+ <CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+On Wed, Mar 23, 2016 at 12:30:42PM +0100, David Herrmann wrote:
+> My question was rather about why we do this? Semantics for EINTR are
+> well defined, and with SA_RESTART (default on linux) user-space can
+> ignore it. However, looping on EAGAIN is very uncommon, and it is not
+> at all clear why it is needed?
+> 
+> Returning an error to user-space makes sense if user-space has a
+> reason to react to it. I fail to see how EAGAIN on a cache-flush/sync
+> operation helps user-space at all? As someone without insight into the
+> driver implementation, it is hard to tell why.. Any hints?
 
-s32tmp in the below code may be negative, and dev->mclk_khz is an
-unsigned type.
+The reason we return EAGAIN is to workaround a deadlock we face when
+blocking on the GPU holding the struct_mutex (inside the client's
+process), but the GPU is dead. As our locking is very, very coarse we
+cannot restart the GPU without acquiring the struct_mutex being held by
+the client so we wake the client up and tell them the resource they are
+waiting on (the flush of the object from the GPU into the CPU domain) is
+temporarily unavailable. If they try to immediately wait upon the ioctl
+again, they are blocked waiting for the reset to occur before they may
+complete their flush. There are a few other possible deadlocks that are
+also avoided with EAGAIN (again, the issue is more or less the lack of
+fine grained locking).
+-Chris
 
-	s32tmp = 0x10000 * (tuner_frequency - c->frequency);
-	s32tmp = DIV_ROUND_CLOSEST(s32tmp, dev->mclk_khz);
-
-This is undefined, as DIV_ROUND_CLOSEST is undefined for negative
-dividends when the divisor is of unsigned type.
-
-So, change mclk_khz to be signed (s32).
-
-Signed-off-by: Peter Rosin <peda@axentia.se>
----
- drivers/media/dvb-frontends/m88ds3103_priv.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-
-Note, this was found by code inspection, I don't have the hardware,
-I don't know what the consequences of a garbage result are at this
-point in the code and the patch has only been build-tested. It looks
-obvious enough though. It should probably go to stable as well...
-
-Cheers,
-Peter
-
-diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
-index eee8c22c51ec..651e005146b2 100644
---- a/drivers/media/dvb-frontends/m88ds3103_priv.h
-+++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
-@@ -46,7 +46,7 @@ struct m88ds3103_dev {
- 	/* auto detect chip id to do different config */
- 	u8 chip_id;
- 	/* main mclk is calculated for M88RS6000 dynamically */
--	u32 mclk_khz;
-+	s32 mclk_khz;
- 	u64 post_bit_error;
- 	u64 post_bit_count;
- };
 -- 
-2.1.4
-
+Chris Wilson, Intel Open Source Technology Centre
