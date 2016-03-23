@@ -1,106 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:51740 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750832AbcCDM1d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 07:27:33 -0500
-Subject: Re: [PATCHv12 05/17] HID: add HDMI CEC specific keycodes
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-input@vger.kernel.org
-References: <1455108711-29850-1-git-send-email-hverkuil@xs4all.nl>
- <1455108711-29850-6-git-send-email-hverkuil@xs4all.nl>
- <56BDA577.5060302@xs4all.nl> <56CD6A53.4090606@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Message-ID: <56D97F2E.6020209@xs4all.nl>
-Date: Fri, 4 Mar 2016 13:27:26 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:56613 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755433AbcCWPYo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2016 11:24:44 -0400
+Date: Wed, 23 Mar 2016 12:24:38 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	<linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
+Message-ID: <20160323122438.101874ba@recife.lan>
+In-Reply-To: <1938529.9P9zNWsNbc@avalon>
+References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<56F2A2B5.80206@xs4all.nl>
+	<20160323120059.030a7b61@recife.lan>
+	<1938529.9P9zNWsNbc@avalon>
 MIME-Version: 1.0
-In-Reply-To: <56CD6A53.4090606@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry,
+Em Wed, 23 Mar 2016 17:11:30 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Ping? Please? I can't merge this without your Ack.
+> Hi Mauro,
+> 
+> On Wednesday 23 Mar 2016 12:00:59 Mauro Carvalho Chehab wrote:
+> > Em Wed, 23 Mar 2016 15:05:41 +0100 Hans Verkuil escreveu:  
+> > > On 03/23/2016 11:35 AM, Mauro Carvalho Chehab wrote:  
+> > >> Em Wed, 23 Mar 2016 10:45:55 +0200 Laurent Pinchart escreveu:  
+> > >>> Code that processes media entities can require knowledge of the
+> > >>> structure type that embeds a particular media entity instance in order
+> > >>> to cast the entity to the proper object type. This needs is shown by
+> > >>> the presence of the is_media_entity_v4l2_io and
+> > >>> is_media_entity_v4l2_subdev functions.
+> > >>> 
+> > >>> The implementation of those two functions relies on the entity function
+> > >>> field, which is both a wrong and an inefficient design, without even
+> > >>> mentioning the maintenance issue involved in updating the functions
+> > >>> every time a new entity function is added. Fix this by adding add an
+> > >>> obj_type field to the media entity structure to carry the information.
+> > >>> 
+> > >>> Signed-off-by: Laurent Pinchart
+> > >>> <laurent.pinchart+renesas@ideasonboard.com>
+> > >>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >>> ---
+> > >>> 
+> > >>>  drivers/media/media-device.c          |  2 +
+> > >>>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
+> > >>>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
+> > >>>  include/media/media-entity.h          | 79 ++++++++++++++-------------
+> > >>>  4 files changed, 46 insertions(+), 37 deletions(-)
+> > >>> 
+> > >>> diff --git a/drivers/media/media-device.c
+> > >>> b/drivers/media/media-device.c
+> > >>> index 4a97d92a7e7d..88d8de3b7a4f 100644
+> > >>> --- a/drivers/media/media-device.c
+> > >>> +++ b/drivers/media/media-device.c
+> > >>> @@ -580,6 +580,8 @@ int __must_check
+> > >>> media_device_register_entity(struct media_device *mdev,> >> 
+> > >>>  			 "Entity type for entity %s was not initialized!\n",
+> > >>>  			 entity->name);
+> > >>> 
+> > >>> +	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
+> > >>> +  
+> > >> 
+> > >> This is not ok. There are valid cases where the entity is not embedded
+> > >> on some other struct. That's the case of connectors/connections, for
+> > >> example: a connector/connection entity doesn't need anything else but
+> > >> struct media device.  
+> > > 
+> > > Once connectors are enabled, then we do need a MEDIA_ENTITY_TYPE_CONNECTOR
+> > > or MEDIA_ENTITY_TYPE_STANDALONE or something along those lines.
+> > >   
+> > >> Also, this is V4L2 specific. Neither ALSA nor DVB need to use
+> > >> container_of(). Actually, this won't even work there, as the entity is
+> > >> stored as a pointer, and not as an embedded data.  
+> > > 
+> > > Any other subsystem that *does* embed this can use obj_type. If it doesn't
+> > > embed it in anything, then MEDIA_ENTITY_TYPE_STANDALONE should be used
+> > > (or whatever name we give it). I agree that we need a type define for the
+> > > case where it is not embedded.
+> > >   
+> > >> So, if we're willing to do this, then it should, instead, create
+> > >> something like:
+> > >> 
+> > >> struct embedded_media_entity {
+> > >> 
+> > >> 	struct media_entity entity;
+> > >> 	enum media_entity_type obj_type;
+> > >> 
+> > >> };  
+> > > 
+> > > It's not v4l2 specific. It is just that v4l2 is the only subsystem that
+> > > requires this information at the moment. I see no reason at all to create
+> > > such an ugly struct.  
+> > 
+> > At the minute we added a BUG_ON() there,  
+> 
+> Note that it's a WARN_ON(), not a BUG_ON().
 
-Regards,
+WARN_ON() should warn about a trouble. This is not the case here.
+It is only a problem for a few drivers that need to use container_of()
+to get the container struct..
 
-	Hans
+> 
+> > it became mandatory that all struct media_entity to be embedded.  
+> 
+> No, it becomes mandatory to initialize the field.
 
-On 02/24/2016 09:31 AM, Hans Verkuil wrote:
-> Dmitry,
+The current patch makes it mandatory, causing lots of bogus WARN_ON().
+
 > 
-> Ping!
+> > This is not always true, but as the intention is to avoid the risk of
+> > embedding it without a type, it makes sense to have the above struct. This
+> > way, the obj_type usage will be enforced *only* in the places where it is
+> > needed.
+> > 
+> > We could, instead, remove BUG_ON() and make MEDIA_ENTITY_TYPE_STANDALONE
+> > the default type, but that won't enforce its usage where it is needed.
+> >   
+> > > I very strongly suspect that other subsystems will also embed this in
+> > > their own internal structs.  
+> > 
+> > They will if they need.
+> >   
+> > > I actually wonder why it isn't embedded in struct dvb_device,
+> > > but I have to admit that I didn't take a close look at that. The pads are
+> > > embedded there, so it is somewhat odd that the entity isn't.  
+> > 
+> > The only advantage of embedding instead of using a pointer is that
+> > it would allow to use container_of() to get the struct. On the
+> > other hand, there's one drawback: both container and embedded
+> > structs will be destroyed at the same time. This can be a problem
+> > if the embedded object needs to live longer than the container.
+> > 
+> > Also, the usage of container_of() doesn't work fine if the
+> > container have embedded two objects of the same type.
+> > 
+> > In the specific case of DVB, let's imagine we would use the above
+> > solution and add a MEDIA_ENTITY_TYPE_DVB_DEVICE.
+> > 
+> > If you look into struct dvb_device, you'll see that there are
+> > actually two media_entities on it:
+> > 
+> > struct dvb_device {
+> > ...
+> >         struct media_entity *entity, *tsout_entity;
+> > ...
+> > };
+> > 
+> > If we had embedded them, just knowing that the container is
+> > struct dvb_device won't help, as the offsets for "entity"
+> > and for "tsout_entity" to get its container would be different.  
 > 
-> Regards,
+> That's not the issue. The two entities above do not represent the DVB device, 
+> struct dvb_device should certainly not inherit from media_entity. Those two 
+> entities should be embedded in the DVB structures that model the objects they 
+> represented.
+
+On what structs they should be embedded? There's no subdev concept
+at the DVB subsystem, and it doesn't make any sense to add it just
+to make you happy.
+
 > 
-> 	Hans
+> > OK, we could have added two types there, but all of these
+> > would be just adding uneeded complexity and wound't be error
+> > prone. Also, there's no need to use container_of(), as a pointer
+> > to the dvb_device struct is always there at the DVB code.
+> > 
+> > The same happens at ALSA code: so far, there's no need to go from a
+> > media_entity to its container.
+> > 
+> > So, as I said before, the usage of container_of() and the need for an
+> > object type is currently V4L2 specific, and it is due to the way
+> > the v4l2 core and subdev framework was modeled. Don't expect or
+> > force that all subsystems would do the same.  
 > 
-> On 02/12/16 10:27, Hans Verkuil wrote:
->> Dmitry,
->>
->> Can you provide an Ack for this patch?
->>
->> Thanks!
->>
->> 	Hans
->>
->> On 02/10/2016 01:51 PM, Hans Verkuil wrote:
->>> From: Kamil Debski <kamil@wypas.org>
->>>
->>> Add HDMI CEC specific keycodes to the keycodes definition.
->>>
->>> Signed-off-by: Kamil Debski <kamil@wypas.org>
->>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>> ---
->>>  include/uapi/linux/input-event-codes.h | 28 ++++++++++++++++++++++++++++
->>>  1 file changed, 28 insertions(+)
->>>
->>> diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
->>> index 87cf351..2662500 100644
->>> --- a/include/uapi/linux/input-event-codes.h
->>> +++ b/include/uapi/linux/input-event-codes.h
->>> @@ -611,6 +611,34 @@
->>>  #define KEY_KBDINPUTASSIST_ACCEPT		0x264
->>>  #define KEY_KBDINPUTASSIST_CANCEL		0x265
->>>  
->>> +#define KEY_RIGHT_UP			0x266
->>> +#define KEY_RIGHT_DOWN			0x267
->>> +#define KEY_LEFT_UP			0x268
->>> +#define KEY_LEFT_DOWN			0x269
->>> +#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
->>> +#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
->>> +#define KEY_NUMERIC_11			0x26c
->>> +#define KEY_NUMERIC_12			0x26d
->>> +/*
->>> + * Toggle Audio Description: refers to an audio service that helps blind and
->>> + * visually impaired consumers understand the action in a program. Note: in
->>> + * some countries this is referred to as "Video Description".
->>> + */
->>> +#define KEY_AUDIO_DESC			0x26e
->>> +#define KEY_3D_MODE			0x26f
->>> +#define KEY_NEXT_FAVORITE		0x270
->>> +#define KEY_STOP_RECORD			0x271
->>> +#define KEY_PAUSE_RECORD		0x272
->>> +#define KEY_VOD				0x273 /* Video on Demand */
->>> +#define KEY_UNMUTE			0x274
->>> +#define KEY_FASTREVERSE			0x275
->>> +#define KEY_SLOWREVERSE			0x276
->>> +/*
->>> + * Control a data application associated with the currently viewed channel,
->>> + * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
->>> + */
->>> +#define KEY_DATA			0x275
->>> +
->>>  #define BTN_TRIGGER_HAPPY		0x2c0
->>>  #define BTN_TRIGGER_HAPPY1		0x2c0
->>>  #define BTN_TRIGGER_HAPPY2		0x2c1
->>>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+> It's not a V4L2-specific concept, it's an OOP concept. The fact that the very 
+> few users of media entities outside of V4L2 don't currently embed struct 
+> media_entity doesn't change anything here.
+
+If there was a consensus at the Kernel that this is something that
+should be used everywhere, it should have something at the core to
+handle it.
+
+Also, the kernel was not written in c++. OOP usage should not be
+enforced everywhere. It should be used only when there are good
+reasons for doing it.
+
+-- 
+Thanks,
+Mauro
