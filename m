@@ -1,80 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:34595 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754943AbcCCTM4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 14:12:56 -0500
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: albert@newtec.dk, Jan Kara <jack@suse.cz>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 1/2] [media] vb2-memops: Fix over allocation of frame vectors
-Date: Thu,  3 Mar 2016 20:12:48 +0100
-Message-Id: <1457032369-10503-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:56644 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752975AbcCWQrs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2016 12:47:48 -0400
+Date: Wed, 23 Mar 2016 13:47:42 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	<linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
+Message-ID: <20160323134742.5b9b6711@recife.lan>
+In-Reply-To: <20160323161738.GJ11084@valkosipuli.retiisi.org.uk>
+References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<1458722756-7269-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<20160323073552.18db3b7e@recife.lan>
+	<56F2A2B5.80206@xs4all.nl>
+	<20160323120059.030a7b61@recife.lan>
+	<20160323161738.GJ11084@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On page unaligned frames, create_framevec forces get_vaddr_frames to
-allocate an extra page at the end of the buffer. Under some
-circumstances, this leads to -EINVAL on VIDIOC_QBUF.
+Em Wed, 23 Mar 2016 18:17:38 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-E.g:
-We have vm_a that vm_area that goes from 0x1000 to 0x3000. And a
-frame that goes from 0x1800 to 0x2800, i.e. 2 pages.
+> Hi Mauro,
+> 
+> On Wed, Mar 23, 2016 at 12:00:59PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Wed, 23 Mar 2016 15:05:41 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> > > On 03/23/2016 11:35 AM, Mauro Carvalho Chehab wrote:  
+> > > > Em Wed, 23 Mar 2016 10:45:55 +0200
+> > > > Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
+> > > >     
+> > > >> Code that processes media entities can require knowledge of the
+> > > >> structure type that embeds a particular media entity instance in order
+> > > >> to cast the entity to the proper object type. This needs is shown by the
+> > > >> presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
+> > > >> functions.
+> > > >>
+> > > >> The implementation of those two functions relies on the entity function
+> > > >> field, which is both a wrong and an inefficient design, without even
+> > > >> mentioning the maintenance issue involved in updating the functions
+> > > >> every time a new entity function is added. Fix this by adding add an
+> > > >> obj_type field to the media entity structure to carry the information.
+> > > >>
+> > > >> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> > > >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > >> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > > >> ---
+> > > >>  drivers/media/media-device.c          |  2 +
+> > > >>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
+> > > >>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
+> > > >>  include/media/media-entity.h          | 79 +++++++++++++++++++----------------
+> > > >>  4 files changed, 46 insertions(+), 37 deletions(-)
+> > > >>
+> > > >> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > > >> index 4a97d92a7e7d..88d8de3b7a4f 100644
+> > > >> --- a/drivers/media/media-device.c
+> > > >> +++ b/drivers/media/media-device.c
+> > > >> @@ -580,6 +580,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+> > > >>  			 "Entity type for entity %s was not initialized!\n",
+> > > >>  			 entity->name);
+> > > >>  
+> > > >> +	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
+> > > >> +    
+> > > > 
+> > > > This is not ok. There are valid cases where the entity is not embedded
+> > > > on some other struct. That's the case of connectors/connections, for
+> > > > example: a connector/connection entity doesn't need anything else but
+> > > > struct media device.    
+> > > 
+> > > Once connectors are enabled, then we do need a MEDIA_ENTITY_TYPE_CONNECTOR or
+> > > MEDIA_ENTITY_TYPE_STANDALONE or something along those lines.
+> > >   
+> > > > Also, this is V4L2 specific. Neither ALSA nor DVB need to use container_of().
+> > > > Actually, this won't even work there, as the entity is stored as a pointer,
+> > > > and not as an embedded data.    
+> > > 
+> > > Any other subsystem that *does* embed this can use obj_type. If it doesn't embed
+> > > it in anything, then MEDIA_ENTITY_TYPE_STANDALONE should be used (or whatever
+> > > name we give it). I agree that we need a type define for the case where it is
+> > > not embedded.
+> > >   
+> > > > 
+> > > > So, if we're willing to do this, then it should, instead, create
+> > > > something like:
+> > > > 
+> > > > struct embedded_media_entity {
+> > > > 	struct media_entity entity;
+> > > > 	enum media_entity_type obj_type;
+> > > > };    
+> > > 
+> > > It's not v4l2 specific. It is just that v4l2 is the only subsystem that requires
+> > > this information at the moment. I see no reason at all to create such an ugly
+> > > struct.  
+> > 
+> > At the minute we added a BUG_ON() there, it became mandatory that all
+> > struct media_entity to be embedded. This is not always true, but
+> > as the intention is to avoid the risk of embedding it without a type,
+> > it makes sense to have the above struct. This way, the obj_type
+> > usage will be enforced *only* in the places where it is needed.
+> > 
+> > We could, instead, remove BUG_ON() and make MEDIA_ENTITY_TYPE_STANDALONE
+> > the default type, but that won't enforce its usage where it is needed.  
+> 
+> My understanding, based on the previous discussion, was that the
+> media_entity would in practice be always embedded in another struct. If
+> that's not the case, I think Hans proposed a few good options for type enums
+> telling the media_entity is not embedded in another struct.
+> 
+> For what it's worth, my personal favourite is "NONE".
 
-frame_vector_create will be called with the following params:
+A "standalone" type would work. "none" doesn't seem a good name
+though, but I don't intend to spend much time with naming issues.
 
-get_vaddr_frames(0x1800 , 2, write, 1, vec);
+> 
+> >   
+> > > I very strongly suspect that other subsystems will also embed this in their own
+> > > internal structs.   
+> > 
+> > They will if they need.
+> >   
+> > > I actually wonder why it isn't embedded in struct dvb_device,
+> > > but I have to admit that I didn't take a close look at that. The pads are embedded
+> > > there, so it is somewhat odd that the entity isn't.  
+> > 
+> > The only advantage of embedding instead of using a pointer is that
+> > it would allow to use container_of() to get the struct. On the
+> > other hand, there's one drawback: both container and embedded
+> > structs will be destroyed at the same time. This can be a problem
+> > if the embedded object needs to live longer than the container.
+> > 
+> > Also, the usage of container_of() doesn't work fine if the
+> > container have embedded two objects of the same type.
+> > 
+> > In the specific case of DVB, let's imagine we would use the above
+> > solution and add a MEDIA_ENTITY_TYPE_DVB_DEVICE.
+> > 
+> > If you look into struct dvb_device, you'll see that there are
+> > actually two media_entities on it:
+> > 
+> > struct dvb_device {
+> > ...
+> >         struct media_entity *entity, *tsout_entity;
+> > ...
+> > };
+> > 
+> > If we had embedded them, just knowing that the container is
+> > struct dvb_device won't help, as the offsets for "entity"
+> > and for "tsout_entity" to get its container would be different.
+> > 
+> > OK, we could have added two types there, but all of these
+> > would be just adding uneeded complexity and wound't be error
+> > prone. Also, there's no need to use container_of(), as a pointer
+> > to the dvb_device struct is always there at the DVB code.  
+> 
+> If you wanted to obtain the dvb_device here, you'd instead add another
+> struct that embeds the struct media_entity. This struct would contain a
+> pointer to struct dvb_device. Simple and efficient.
 
-get_vaddr will allocate the first page after checking that the memory
-0x1800-0x27ff is valid, but it will not allocate the second page because
-the range 0x2800-0x37ff is out of the vm_a range. This results in
-create_framevec returning -EFAULT
+Why would someone need that? There's no need to embedding it at 
+the DVB core. Adding an extra struct just to make the media core
+happy would just add extra complexity for no good reason.
 
-Error Trace:
-[ 9083.793015] video0: VIDIOC_QBUF: 00:00:00.00000000 index=1,
-type=vid-cap, flags=0x00002002, field=any, sequence=0,
-memory=userptr, bytesused=0, offset/userptr=0x7ff2b023ca80, length=5765760
-[ 9083.793028] timecode=00:00:00 type=0, flags=0x00000000,
-frames=0, userbits=0x00000000
-[ 9083.793117] video0: VIDIOC_QBUF: error -22: 00:00:00.00000000
-index=2, type=vid-cap, flags=0x00000000, field=any, sequence=0,
-memory=userptr, bytesused=0, offset/userptr=0x7ff2b07bc500, length=5765760
+> 
+> > 
+> > The same happens at ALSA code: so far, there's no need to go from a
+> > media_entity to its container.
+> > 
+> > So, as I said before, the usage of container_of() and the need for an
+> > object type is currently V4L2 specific, and it is due to the way
+> > the v4l2 core and subdev framework was modeled. Don't expect or
+> > force that all subsystems would do the same.  
+> 
+> What you do miss with using a pointer above is to find sub-system specific
+> information related to the entity. It's a very common operation, if there is
+> sub-system specific information related to an entity. I would say that if
+> you don't, the driver creating the media device must be aware of a lot of
+> the properties of the devices the media graph consists of, or use 
+> alternative means to associate subsystem specific information to entities.
+> Looping over a linked list, for instance, is bound to be less efficient.
 
-Fixes: 21fb0cb7ec65 ("[media] vb2: Provide helpers for mapping virtual addresses")
-Reported-by: Albert Antony <albert@newtec.dk>
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
+The media device creation is handled by the core at the DVB side.
+he knows already about any subsystem-specific data.
 
-Maybe we should cc stable.
+> I don't see anything V4L2 specific here as such, even though no other
+> sub-system would (yet) need the feature.
 
-This error has not pop-out yet because userptr is usually called with memory
-on the heap and malloc usually overallocate. This error has been a pain to trace :).
+Right now, this need happens in the case here the media entity is created
+inside I2C devices, where the I2C driver doesn't know much about the
+callers.
 
-Regards!
+Such need is specific to a few subsystems: like v4l2 and hwmon.
 
+Ok, other systems could need to do that in the future, but such
+need assumes that the media_entities will be created by drivers
+that are connected to the main driver via some bus, with is not
+the generic case.
 
-
- drivers/media/v4l2-core/videobuf2-memops.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
-index dbec5923fcf0..e4e4976c6849 100644
---- a/drivers/media/v4l2-core/videobuf2-memops.c
-+++ b/drivers/media/v4l2-core/videobuf2-memops.c
-@@ -49,7 +49,7 @@ struct frame_vector *vb2_create_framevec(unsigned long start,
- 	vec = frame_vector_create(nr);
- 	if (!vec)
- 		return ERR_PTR(-ENOMEM);
--	ret = get_vaddr_frames(start, nr, write, 1, vec);
-+	ret = get_vaddr_frames(start & PAGE_MASK, nr, write, 1, vec);
- 	if (ret < 0)
- 		goto out_destroy;
- 	/* We accept only complete set of PFNs */
--- 
-2.7.0
-
+Regards,
+Mauro
