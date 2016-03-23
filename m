@@ -1,48 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:60117 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753967AbcCDCZD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 21:25:03 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, olli.salonen@iki.fi
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: fix null pointer dereference in v4l_vb2q_enable_media_source()
-Date: Thu,  3 Mar 2016 19:24:58 -0700
-Message-Id: <1457058298-7782-1-git-send-email-shuahkh@osg.samsung.com>
+Received: from seymour.toledo.br ([200.148.142.55]:44327 "EHLO
+	seymour.toledo.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756401AbcCWUsw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2016 16:48:52 -0400
+Content-Type: text/plain; charset=US-ASCII
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: CISCO IP PHONES AND CPU's
+To: Recipients <support@ensuretech.com>
+From: Laison@seymour.toledo.br, Computech@seymour.toledo.br,
+	"Inc <support"@ensuretech.com
+Date: Thu, 24 Mar 2016 01:52:57 +0700
+Reply-To: sales@laisoncomputertech.us
+Message-Id: <20160323201657.241F8A6BD2@seymour.toledo.br>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the null pointer dereference in v4l_vb2q_enable_media_source().
-DVB only drivers don't have valid struct v4l2_fh pointer.
+Hi,
 
-[  548.443272] BUG: unable to handle kernel NULL pointer dereference
-at 0000000000000010
-[  548.452036] IP: [<ffffffffc020ffc9>]
-v4l_vb2q_enable_media_source+0x9/0x50 [videodev]
-[  548.460792] PGD b820e067 PUD bb3df067 PMD 0
-[  548.465582] Oops: 0000 [#1] SMP
+Our Stock list.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-Reported-by: Olli Salonen <olli.salonen@iki.fi>
----
- drivers/media/v4l2-core/v4l2-mc.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Brand NEW
+96 x Cisco 7900 IP Phone
+87 x Unified IP Phone 6900
+12 x Unified IP Phone 8900
+76 x Unified IP Phone 9900
+55 x Unified IP Phone 8800
+67 x Cisco 1921
+67 x Cisco 1941
+56 x Cisco CP-7961G 7961G
+34 x Cisco CP-7971G-GE 7971G
+19 x Cisco Unified IP Conference Station 7937G Model: 7937 CP-7937G
+20 x Cisco CP-7975G 7975G
 
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 643686d..a39a3cd 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -214,6 +214,8 @@ int v4l_vb2q_enable_media_source(struct vb2_queue *q)
- {
- 	struct v4l2_fh *fh = q->owner;
- 
--	return v4l_enable_media_source(fh->vdev);
-+	if (fh && fh->vdev)
-+		return v4l_enable_media_source(fh->vdev);
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
--- 
-2.5.0
+Brand New Sealed :
 
+23 x  CISCO1921-SEC/K9
+Conditions: Brand New Sealed
+Description: CISCO 1921 Security Bundle w/SEC license PAK
+
+45 x CISCO1921/K9
+Conditions: Brand New Sealed
+Description: CISCO 1921 Modular Router, 2 GE, 2 EHWIC slots, 512DRAM, IP Base
+
+(1)  WS-C4500X-16SFP+
+Serial number:  JAE183501L3
+US&#36;2600
+
+(1)  WS-C3850-48PW-S
+Serial number:  FCW1823C0EW
+US&#36;2650
+
+(1)  WS-X6908-10G-2T
+Serial number:  SAL1620CKUB
+US&#36;3650
+
+(1)  ASR1000-ESP10
+Serial number:  JAE181306C3
+US&#36;3800
+
+(1)  AIR-CT5508-250-K9   (this is new but box is open!)
+Serial number:  FCW1521L038
+US&#36;4000
+
+CPUs part number below
+
+89 x  X5650
+
+975 x  X5660
+
+150 x  X5680
+
+265 x  X5690
+
+Kindly make your price offers.
+
+Sincerely
+Barbara Johnson
+Laison Computech
+210 N Scoring Ave,
+Rialto California, 92376
+Tel: +1-657-232-7047
+Fax: +1-347-214-0478
+Email: sales@laisoncomputertech.us
