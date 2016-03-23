@@ -1,121 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:38351 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752966AbcCND7g (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:34784 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751739AbcCWLao convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Mar 2016 23:59:36 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id DFC50180470
-	for <linux-media@vger.kernel.org>; Mon, 14 Mar 2016 04:59:30 +0100 (CET)
-Date: Mon, 14 Mar 2016 04:59:30 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160314035930.DFC50180470@tschai.lan>
+	Wed, 23 Mar 2016 07:30:44 -0400
+Received: by mail-wm0-f41.google.com with SMTP id p65so229369320wmp.1
+        for <linux-media@vger.kernel.org>; Wed, 23 Mar 2016 04:30:43 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20160321171405.GP28483@phenom.ffwll.local>
+References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
+	<1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
+	<CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
+	<20160321171405.GP28483@phenom.ffwll.local>
+Date: Wed, 23 Mar 2016 12:30:42 +0100
+Message-ID: <CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
+From: David Herrmann <dh.herrmann@gmail.com>
+To: Daniel Vetter <daniel@ffwll.ch>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	Chris Wilson <chris@chris-wilson.co.uk>,
+	Tiago Vignatti <tiago.vignatti@intel.com>,
+	=?UTF-8?Q?St=C3=A9phane_Marchesin?= <marcheu@chromium.org>,
+	Daniel Vetter <daniel.vetter@intel.com>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hey
 
-Results of the daily build of media_tree:
+On Mon, Mar 21, 2016 at 6:14 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Mon, Mar 21, 2016 at 01:26:58PM +0100, David Herrmann wrote:
+>> Hi
+>>
+>> On Mon, Mar 21, 2016 at 8:51 AM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
+>> > Just a bit of wording polish plus mentioning that it can fail and must
+>> > be restarted.
+>> >
+>> > Requested by Sumit.
+>> >
+>> > v2: Fix them typos (Hans).
+>> >
+>> > Cc: Chris Wilson <chris@chris-wilson.co.uk>
+>> > Cc: Tiago Vignatti <tiago.vignatti@intel.com>
+>> > Cc: Stéphane Marchesin <marcheu@chromium.org>
+>> > Cc: David Herrmann <dh.herrmann@gmail.com>
+>> > Cc: Sumit Semwal <sumit.semwal@linaro.org>
+>> > Cc: Daniel Vetter <daniel.vetter@intel.com>
+>> > CC: linux-media@vger.kernel.org
+>> > Cc: dri-devel@lists.freedesktop.org
+>> > Cc: linaro-mm-sig@lists.linaro.org
+>> > Cc: intel-gfx@lists.freedesktop.org
+>> > Cc: devel@driverdev.osuosl.org
+>> > Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> > Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
+>> > Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+>> > ---
+>> >  Documentation/dma-buf-sharing.txt | 11 ++++++-----
+>> >  drivers/dma-buf/dma-buf.c         |  2 +-
+>> >  2 files changed, 7 insertions(+), 6 deletions(-)
+>> >
+>> > diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+>> > index 32ac32e773e1..ca44c5820585 100644
+>> > --- a/Documentation/dma-buf-sharing.txt
+>> > +++ b/Documentation/dma-buf-sharing.txt
+>> > @@ -352,7 +352,8 @@ Being able to mmap an export dma-buf buffer object has 2 main use-cases:
+>> >
+>> >     No special interfaces, userspace simply calls mmap on the dma-buf fd, making
+>> >     sure that the cache synchronization ioctl (DMA_BUF_IOCTL_SYNC) is *always*
+>> > -   used when the access happens. This is discussed next paragraphs.
+>> > +   used when the access happens. Note that DMA_BUF_IOCTL_SYNC can fail with
+>> > +   -EAGAIN or -EINTR, in which case it must be restarted.
+>>
+>> What is "restart on EAGAIN" supposed to mean? Or more generally, what
+>> does EAGAIN tell the caller?
+>
+> Do what drmIoctl does essentially.
+>
+> while (ret == -1 && (errno == EAGAIN || errno == EINTR)
+>         ret = ioctl();
+>
+> Typed from memery, too lazy to look it up in the source ;-) I'm trying to
+> sell the idea of a real dma-buf manpage to Sumit, we should clarify this
+> in detail there.
 
-date:		Mon Mar 14 04:00:21 CET 2016
-git branch:	test
-git hash:	da470473c9cf9c4ebb40d046b306c76427b6df94
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.4.0-164
+My question was rather about why we do this? Semantics for EINTR are
+well defined, and with SA_RESTART (default on linux) user-space can
+ignore it. However, looping on EAGAIN is very uncommon, and it is not
+at all clear why it is needed?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Returning an error to user-space makes sense if user-space has a
+reason to react to it. I fail to see how EAGAIN on a cache-flush/sync
+operation helps user-space at all? As someone without insight into the
+driver implementation, it is hard to tell why.. Any hints?
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks
+David
