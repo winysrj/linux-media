@@ -1,47 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-3.cisco.com ([173.38.203.53]:37784 "EHLO
-	aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933380AbcCRORZ (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:33944 "EHLO
+	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751119AbcCWPdA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 10:17:25 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv13 03/17] dts: exynos4412-odroid*: enable the HDMI CEC device
-Date: Fri, 18 Mar 2016 15:07:02 +0100
-Message-Id: <1458310036-19252-4-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
-References: <1458310036-19252-1-git-send-email-hans.verkuil@cisco.com>
+	Wed, 23 Mar 2016 11:33:00 -0400
+Received: by mail-wm0-f51.google.com with SMTP id p65so238864054wmp.1
+        for <linux-media@vger.kernel.org>; Wed, 23 Mar 2016 08:33:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20160323115659.GF21717@nuc-i3427.alporthouse.com>
+References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
+	<1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
+	<CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
+	<20160321171405.GP28483@phenom.ffwll.local>
+	<CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
+	<20160323115659.GF21717@nuc-i3427.alporthouse.com>
+Date: Wed, 23 Mar 2016 16:32:59 +0100
+Message-ID: <CANq1E4SFPMoE4G4XARFLyEH40OOZnR2v_PQD4=ps3KBvVXUHpA@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
+From: David Herrmann <dh.herrmann@gmail.com>
+To: Chris Wilson <chris@chris-wilson.co.uk>,
+	David Herrmann <dh.herrmann@gmail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	Tiago Vignatti <tiago.vignatti@intel.com>,
+	=?UTF-8?Q?St=C3=A9phane_Marchesin?= <marcheu@chromium.org>,
+	Daniel Vetter <daniel.vetter@intel.com>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+Hi
 
-Add a dts node entry and enable the HDMI CEC device present in the Exynos4
-family of SoCs.
+On Wed, Mar 23, 2016 at 12:56 PM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
+> On Wed, Mar 23, 2016 at 12:30:42PM +0100, David Herrmann wrote:
+>> My question was rather about why we do this? Semantics for EINTR are
+>> well defined, and with SA_RESTART (default on linux) user-space can
+>> ignore it. However, looping on EAGAIN is very uncommon, and it is not
+>> at all clear why it is needed?
+>>
+>> Returning an error to user-space makes sense if user-space has a
+>> reason to react to it. I fail to see how EAGAIN on a cache-flush/sync
+>> operation helps user-space at all? As someone without insight into the
+>> driver implementation, it is hard to tell why.. Any hints?
+>
+> The reason we return EAGAIN is to workaround a deadlock we face when
+> blocking on the GPU holding the struct_mutex (inside the client's
+> process), but the GPU is dead. As our locking is very, very coarse we
+> cannot restart the GPU without acquiring the struct_mutex being held by
+> the client so we wake the client up and tell them the resource they are
+> waiting on (the flush of the object from the GPU into the CPU domain) is
+> temporarily unavailable. If they try to immediately wait upon the ioctl
+> again, they are blocked waiting for the reset to occur before they may
+> complete their flush. There are a few other possible deadlocks that are
+> also avoided with EAGAIN (again, the issue is more or less the lack of
+> fine grained locking).
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/boot/dts/exynos4412-odroid-common.dtsi | 4 ++++
- 1 file changed, 4 insertions(+)
+...so you hijacked EAGAIN for all DRM ioctls just for a driver
+workaround? EAGAIN is universally used to signal the caller about a
+blocking resource. It is very much linked to O_NONBLOCK. Why not use
+EBUSY, ECANCELED, ECOMM, EDEADLOCK, EIO, EL3RST, ...
 
-diff --git a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-index 395c3ca..c9b1425 100644
---- a/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-+++ b/arch/arm/boot/dts/exynos4412-odroid-common.dtsi
-@@ -500,3 +500,7 @@
- &watchdog {
- 	status = "okay";
- };
-+
-+&hdmicec {
-+	status = "okay";
-+};
--- 
-2.7.0
+Anyhow, I guess that ship has sailed. But just mentioning EAGAIN in a
+kernel-doc is way to vague for user-space to figure out they should
+loop on it.
 
+Thanks
+David
