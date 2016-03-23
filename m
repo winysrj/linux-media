@@ -1,121 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37152 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752265AbcCQEB2 (ORCPT
+Received: from mail.lysator.liu.se ([130.236.254.3]:59051 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755488AbcCWQ7B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Mar 2016 00:01:28 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 6A5C0182E7D
-	for <linux-media@vger.kernel.org>; Thu, 17 Mar 2016 05:01:22 +0100 (CET)
-Date: Thu, 17 Mar 2016 05:01:22 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160317040122.6A5C0182E7D@tschai.lan>
+	Wed, 23 Mar 2016 12:59:01 -0400
+Message-ID: <56F2CB4D.4030104@lysator.liu.se>
+Date: Wed, 23 Mar 2016 17:58:53 +0100
+From: Peter Rosin <peda@lysator.liu.se>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+CC: Peter Rosin <peda@axentia.se>, linux-i2c@vger.kernel.org
+Subject: Re: [PATCH] si2168: use i2c controlled mux interface
+References: <1452058920-9797-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1452058920-9797-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 2016-01-06 06:42, Antti Palosaari wrote:
+> Recent i2c mux locking update offers support for i2c controlled i2c
+> muxes. Use it and get the rid of homemade hackish i2c adapter
+> locking code.
 
-Results of the daily build of media_tree:
+[actual patch elided]
 
-date:		Thu Mar 17 04:00:24 CET 2016
-git branch:	test
-git hash:	da470473c9cf9c4ebb40d046b306c76427b6df94
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-51-ga53cea2
-smatch version:	v0.5.0-3228-g5cf65ab
-host hardware:	x86_64
-host os:	4.4.0-164
+I had a 2nd look and it seems that the saa7164 driver has support for
+a HVR2055 card with dual si2168 chips. These two chips appear to sit
+on the same i2c-bus with different i2c-addresses (0x64 and 0x66) and
+with gates (implemented as muxes) to two identical tuners with the
+same i2c-address (0x60). Do I read it right?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+With the current i2c-mux-locking (parent-locked muxes), this works
+fine as an access to one of the tuners locks the root i2c adapter
+and thus the other tuner is also locked out. But with the upcoming
+i2c-mux-locking for i2c-controlled muxes (self-locked muxes), the
+root i2c adapter would no longer be locked for the full transaction
+when one of the tuners is accessed. This means that accesses to the
+two tuners may interleave and cause all kinds of trouble, should
+both gates be open at the same time. So, is it really correct and
+safe to change the si2168 driver to use a self-locked mux?
 
-Detailed results are available here:
+Unless there is some other mechanism that prevents the two tuners
+from being accessed in parallel, I think not. But maybe there is such
+a mechanism?
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+Peter
