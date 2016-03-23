@@ -1,346 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752283AbcCYKol (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55284 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751088AbcCWQYr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 06:44:41 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 13/54] v4l: vsp1: Store the display list manager in the WPF
-Date: Fri, 25 Mar 2016 12:43:47 +0200
-Message-Id: <1458902668-1141-14-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 23 Mar 2016 12:24:47 -0400
+Date: Wed, 23 Mar 2016 18:24:13 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	gjasny@googlemail.com, hdegoede@redhat.com, hverkuil@xs4all.nl
+Subject: Re: [PATCH 13/15] mediactl: Add media device ioctl API
+Message-ID: <20160323162413.GK11084@valkosipuli.retiisi.org.uk>
+References: <1453133860-21571-1-git-send-email-j.anaszewski@samsung.com>
+ <1453133860-21571-14-git-send-email-j.anaszewski@samsung.com>
+ <56C1C775.2090002@linux.intel.com>
+ <56C1CD3E.6090108@samsung.com>
+ <20160218120951.GO32612@valkosipuli.retiisi.org.uk>
+ <56C5C3C0.7000808@samsung.com>
+ <20160321000714.GE11084@valkosipuli.retiisi.org.uk>
+ <56F11205.8000903@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <56F11205.8000903@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each WPF can process display lists independently, move the manager to
-the WPF to reflect that and prepare for display list support for non-DRM
-pipelines.
+Hi Jacek,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_dl.c     | 37 ++++++++++++++++++++++++++-----
- drivers/media/platform/vsp1/vsp1_dl.h     | 26 ++++------------------
- drivers/media/platform/vsp1/vsp1_drm.c    | 19 +++++++---------
- drivers/media/platform/vsp1/vsp1_drm.h    |  8 +------
- drivers/media/platform/vsp1/vsp1_entity.c |  2 ++
- drivers/media/platform/vsp1/vsp1_entity.h |  2 ++
- drivers/media/platform/vsp1/vsp1_rwpf.h   |  3 +++
- drivers/media/platform/vsp1/vsp1_wpf.c    | 18 +++++++++++++++
- 8 files changed, 70 insertions(+), 45 deletions(-)
+On Tue, Mar 22, 2016 at 10:36:05AM +0100, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> On 03/21/2016 01:07 AM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >On Thu, Feb 18, 2016 at 02:14:40PM +0100, Jacek Anaszewski wrote:
+> >>Hi Sakari,
+> >>
+> >>On 02/18/2016 01:09 PM, Sakari Ailus wrote:
+> >>>Hi Jacek,
+> >>>
+> >>>On Mon, Feb 15, 2016 at 02:06:06PM +0100, Jacek Anaszewski wrote:
+> >>>>Hi Sakari,
+> >>>>
+> >>>>Thanks for the review.
+> >>>>
+> >>>>On 02/15/2016 01:41 PM, Sakari Ailus wrote:
+> >>>>>Hi Jacek,
+> >>>>>
+> >>>>>Jacek Anaszewski wrote:
+> >>>>>>Ioctls executed on complex media devices need special handling.
+> >>>>>>For instance some ioctls need to be targeted for specific sub-devices,
+> >>>>>>depending on the media device configuration. The APIs being introduced
+> >>>>>>address such requirements.
+> >>>>>>
+> >>>>>>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>>>>>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>>>>>---
+> >>>>>>  utils/media-ctl/Makefile.am          |    2 +-
+> >>>>>>  utils/media-ctl/libv4l2media_ioctl.c |  404 ++++++++++++++++++++++++++++++++++
+> >>>>>>  utils/media-ctl/libv4l2media_ioctl.h |   48 ++++
+> >>>>>>  3 files changed, 453 insertions(+), 1 deletion(-)
+> >>>>>>  create mode 100644 utils/media-ctl/libv4l2media_ioctl.c
+> >>>>>>  create mode 100644 utils/media-ctl/libv4l2media_ioctl.h
+> >>>>>>
+> >>>>>>diff --git a/utils/media-ctl/Makefile.am b/utils/media-ctl/Makefile.am
+> >>>>>>index 3e883e0..7f18624 100644
+> >>>>>>--- a/utils/media-ctl/Makefile.am
+> >>>>>>+++ b/utils/media-ctl/Makefile.am
+> >>>>>>@@ -1,6 +1,6 @@
+> >>>>>>  noinst_LTLIBRARIES = libmediactl.la libv4l2subdev.la libmediatext.la
+> >>>>>>
+> >>>>>>-libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h
+> >>>>>>+libmediactl_la_SOURCES = libmediactl.c mediactl-priv.h libv4l2media_ioctl.c libv4l2media_ioctl.h
+> >>>>>>  libmediactl_la_CFLAGS = -static $(LIBUDEV_CFLAGS)
+> >>>>>>  libmediactl_la_LDFLAGS = -static $(LIBUDEV_LIBS)
+> >>>>>>
+> >>>>>>diff --git a/utils/media-ctl/libv4l2media_ioctl.c b/utils/media-ctl/libv4l2media_ioctl.c
+> >>>>>>new file mode 100644
+> >>>>>>index 0000000..b186121
+> >>>>>>--- /dev/null
+> >>>>>>+++ b/utils/media-ctl/libv4l2media_ioctl.c
+> >>>>>>@@ -0,0 +1,404 @@
+> >>>>>>+/*
+> >>>>>>+ * Copyright (c) 2015 Samsung Electronics Co., Ltd.
+> >>>>>>+ *              http://www.samsung.com
+> >>>>>>+ *
+> >>>>>>+ * Author: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>>>>>+ *
+> >>>>>>+ * This program is free software; you can redistribute it and/or modify
+> >>>>>>+ * it under the terms of the GNU Lesser General Public License as published by
+> >>>>>>+ * the Free Software Foundation; either version 2.1 of the License, or
+> >>>>>>+ * (at your option) any later version.
+> >>>>>>+ *
+> >>>>>>+ * This program is distributed in the hope that it will be useful,
+> >>>>>>+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >>>>>>+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> >>>>>>+ * Lesser General Public License for more details.
+> >>>>>>+ */
+> >>>>>>+
+> >>>>>>+#include <errno.h>
+> >>>>>>+#include <stdlib.h>
+> >>>>>>+#include <sys/syscall.h>
+> >>>>>>+#include <unistd.h>
+> >>>>>>+
+> >>>>>>+#include <linux/videodev2.h>
+> >>>>>>+
+> >>>>>>+#include "libv4l2media_ioctl.h"
+> >>>>>>+#include "mediactl-priv.h"
+> >>>>>>+#include "mediactl.h"
+> >>>>>>+#include "v4l2subdev.h"
+> >>>>>>+
+> >>>>>>+#define VIDIOC_CTRL(type)					\
+> >>>>>>+	((type) == VIDIOC_S_CTRL ? "VIDIOC_S_CTRL" :		\
+> >>>>>>+				   "VIDIOC_G_CTRL")
+> >>>>>>+
+> >>>>>>+#define VIDIOC_EXT_CTRL(type)					\
+> >>>>>>+	((type) == VIDIOC_S_EXT_CTRLS ? 			\
+> >>>>>>+		"VIDIOC_S_EXT_CTRLS"	:			\
+> >>>>>>+		 ((type) == VIDIOC_G_EXT_CTRLS ? 		\
+> >>>>>>+				    "VIDIOC_G_EXT_CTRLS" :	\
+> >>>>>>+				    "VIDIOC_TRY_EXT_CTRLS"))
+> >>>>>>+
+> >>>>>>+#define SYS_IOCTL(fd, cmd, arg) \
+> >>>>>>+	syscall(SYS_ioctl, (int)(fd), (unsigned long)(cmd), (void *)(arg))
+> >>>>>>+
+> >>>>>>+
+> >>>>>>+int media_ioctl_ctrl(struct media_device *media, int request,
+> >>>>>
+> >>>>>unsigned int request
+> >>>>
+> >>>>OK.
+> >>>>
+> >>>>>
+> >>>>>>+		     struct v4l2_control *arg)
+> >>>>>
+> >>>>>I wonder if it'd make sense to always use v4l2_ext_control instead. You
+> >>>>>can't access 64-bit integer controls with VIDIOC_S_CTRL for instance.
+> >>>>
+> >>>>This function is meant to handle VIDIOC_S_CTRL/VIDIOC_G_CTRL ioctls.
+> >>>>For ext ctrls there is media_ioctl_ext_ctrl().
+> >>>
+> >>>Is there any reason not to use extended control always?
+> >>>
+> >>>In other words, do we have a driver that does support Media controller but
+> >>>does not support extended controls?
+> >>
+> >>Shouldn't we support non-extended controls for backward compatibility
+> >>reasons? I am not aware of the policy in this matter.
+> >
+> >To put it bluntly, supporting the non-extended controls in this use is waste
+> >of time IMHO.
+> 
+> OK, I'll drop the non-ext controls related API then.
+> 
+> >>>>>As this is a user space library, I'd probably add a function to handle
+> >>>>>S/G/TRY control each.
+> >>>>
+> >>>>There is media_ioctl_ext_ctrl() that handles VIDIOC_S_EXT_CTRLS,
+> >>>>VIDIOC_G_EXT_CTRLS and VIDIOC_TRY_EXT_CTRLS.
+> >>>>
+> >>>>>Have you considered binding the control to a video node rather than a
+> >>>>>media device? We have many sensors on current media devices already, and
+> >>>>>e.g. exposure time control can be found in multiple sub-devices.
+> >>>>
+> >>>>Doesn't v4l2-ctrl-redir config entry address that?
+> >>>
+> >>>How does it work if you have, say, two video nodes where you can capture
+> >>>images from a different sensor? I.e. your media graph could look like this:
+> >>>
+> >>>	sensor0 -> CSI-2 0 -> video0
+> >>>
+> >>>	sensor1 -> CSI-2 1 -> video1
+> >>
+> >>Exemplary config settings for this case:
+> >>
+> >>v4l2-ctrl-redir 0x0098091f -> "sensor0"
+> >>v4l2-ctrl-redir 0x0098091f -> "sensor1"
+> >>
+> >>In media_ioctl_ctrl the v4l2_subdev_get_pipeline_entity_by_cid(media,
+> >>ctrl.id) is called which walks through the pipeline and checks if there
+> >>has been a v4l2 control redirection defined for given entity.
+> >
+> >That's still based on media device, not video device. Two video devices may
+> >be part of different pipelines, and a different sensor as well.
+> >
+> >Redirecting the controls should be based on a video node, not media device.
+> 
+> Why do you consider it as based on a media device? I'd rather say that
+> it is based on media entity, so indirectly based on media device.
+> Is it what you have on mind?
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 72fb667814eb..0b2896c04f4f 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -48,6 +48,25 @@ struct vsp1_dl_list {
- 	int reg_count;
- };
- 
-+/**
-+ * struct vsp1_dl_manager - Display List manager
-+ * @vsp1: the VSP1 device
-+ * @lock: protects the active, queued and pending lists
-+ * @free: array of all free display lists
-+ * @active: list currently being processed (loaded) by hardware
-+ * @queued: list queued to the hardware (written to the DL registers)
-+ * @pending: list waiting to be queued to the hardware
-+ */
-+struct vsp1_dl_manager {
-+	struct vsp1_device *vsp1;
-+
-+	spinlock_t lock;
-+	struct list_head free;
-+	struct vsp1_dl_list *active;
-+	struct vsp1_dl_list *queued;
-+	struct vsp1_dl_list *pending;
-+};
-+
- /* -----------------------------------------------------------------------------
-  * Display List Transaction Management
-  */
-@@ -257,11 +276,16 @@ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
- 	dlm->pending = NULL;
- }
- 
--int vsp1_dlm_init(struct vsp1_device *vsp1, struct vsp1_dl_manager *dlm,
--		  unsigned int prealloc)
-+struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
-+					unsigned int prealloc)
- {
-+	struct vsp1_dl_manager *dlm;
- 	unsigned int i;
- 
-+	dlm = devm_kzalloc(vsp1->dev, sizeof(*dlm), GFP_KERNEL);
-+	if (!dlm)
-+		return NULL;
-+
- 	dlm->vsp1 = vsp1;
- 
- 	spin_lock_init(&dlm->lock);
-@@ -272,18 +296,21 @@ int vsp1_dlm_init(struct vsp1_device *vsp1, struct vsp1_dl_manager *dlm,
- 
- 		dl = vsp1_dl_list_alloc(dlm);
- 		if (!dl)
--			return -ENOMEM;
-+			return NULL;
- 
- 		list_add_tail(&dl->list, &dlm->free);
- 	}
- 
--	return 0;
-+	return dlm;
- }
- 
--void vsp1_dlm_cleanup(struct vsp1_dl_manager *dlm)
-+void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
- {
- 	struct vsp1_dl_list *dl, *next;
- 
-+	if (!dlm)
-+		return;
-+
- 	list_for_each_entry_safe(dl, next, &dlm->free, list) {
- 		list_del(&dl->list);
- 		vsp1_dl_list_free(dl);
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index caa6a85f6825..46f7ae337374 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -17,31 +17,13 @@
- 
- struct vsp1_device;
- struct vsp1_dl_list;
--
--/**
-- * struct vsp1_dl_manager - Display List manager
-- * @vsp1: the VSP1 device
-- * @lock: protects the active, queued and pending lists
-- * @free: array of all free display lists
-- * @active: list currently being processed (loaded) by hardware
-- * @queued: list queued to the hardware (written to the DL registers)
-- * @pending: list waiting to be queued to the hardware
-- */
--struct vsp1_dl_manager {
--	struct vsp1_device *vsp1;
--
--	spinlock_t lock;
--	struct list_head free;
--	struct vsp1_dl_list *active;
--	struct vsp1_dl_list *queued;
--	struct vsp1_dl_list *pending;
--};
-+struct vsp1_dl_manager;
- 
- void vsp1_dlm_setup(struct vsp1_device *vsp1);
- 
--int vsp1_dlm_init(struct vsp1_device *vsp1, struct vsp1_dl_manager *dlm,
--		  unsigned int prealloc);
--void vsp1_dlm_cleanup(struct vsp1_dl_manager *dlm);
-+struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
-+					unsigned int prealloc);
-+void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_reset(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm);
- void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index a8cd74335f20..22f67360b750 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -31,11 +31,14 @@
-  * Interrupt Handling
-  */
- 
--void vsp1_drm_frame_end(struct vsp1_pipeline *pipe)
-+void vsp1_drm_display_start(struct vsp1_device *vsp1)
- {
--	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
-+}
- 
--	vsp1_dlm_irq_frame_end(&vsp1->drm->dlm);
-+void vsp1_drm_frame_end(struct vsp1_pipeline *pipe)
-+{
-+	vsp1_dlm_irq_frame_end(pipe->output->dlm);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -101,7 +104,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
- 
- 		pipe->num_inputs = 0;
- 
--		vsp1_dlm_reset(&vsp1->drm->dlm);
-+		vsp1_dlm_reset(pipe->output->dlm);
- 		vsp1_device_put(vsp1);
- 
- 		dev_dbg(vsp1->dev, "%s: pipeline disabled\n", __func__);
-@@ -228,7 +231,7 @@ void vsp1_du_atomic_begin(struct device *dev)
- 	spin_unlock_irqrestore(&pipe->irqlock, flags);
- 
- 	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(&vsp1->drm->dlm);
-+	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
- }
- EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
- 
-@@ -555,16 +558,11 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
- {
- 	struct vsp1_pipeline *pipe;
- 	unsigned int i;
--	int ret;
- 
- 	vsp1->drm = devm_kzalloc(vsp1->dev, sizeof(*vsp1->drm), GFP_KERNEL);
- 	if (!vsp1->drm)
- 		return -ENOMEM;
- 
--	ret = vsp1_dlm_init(vsp1, &vsp1->drm->dlm, 4);
--	if (ret < 0)
--		return ret;
--
- 	pipe = &vsp1->drm->pipe;
- 
- 	vsp1_pipeline_init(pipe);
-@@ -590,5 +588,4 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
- 
- void vsp1_drm_cleanup(struct vsp1_device *vsp1)
- {
--	vsp1_dlm_cleanup(&vsp1->drm->dlm);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
-index 5ef32cff9601..e9242f2c870e 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.h
-+++ b/drivers/media/platform/vsp1/vsp1_drm.h
-@@ -13,7 +13,6 @@
- #ifndef __VSP1_DRM_H__
- #define __VSP1_DRM_H__
- 
--#include "vsp1_dl.h"
- #include "vsp1_pipe.h"
- 
- /**
-@@ -21,22 +20,17 @@
-  * @pipe: the VSP1 pipeline used for display
-  * @num_inputs: number of active pipeline inputs at the beginning of an update
-  * @update: the pipeline configuration has been updated
-- * @dlm: display list manager used for DRM operation
-  */
- struct vsp1_drm {
- 	struct vsp1_pipeline pipe;
- 	unsigned int num_inputs;
- 	bool update;
--	struct vsp1_dl_manager dlm;
- };
- 
- int vsp1_drm_init(struct vsp1_device *vsp1);
- void vsp1_drm_cleanup(struct vsp1_device *vsp1);
- int vsp1_drm_create_links(struct vsp1_device *vsp1);
- 
--static inline void vsp1_drm_display_start(struct vsp1_device *vsp1)
--{
--	vsp1_dlm_irq_display_start(&vsp1->drm->dlm);
--}
-+void vsp1_drm_display_start(struct vsp1_device *vsp1);
- 
- #endif /* __VSP1_DRM_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 83689588900a..a94f544dcc77 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -244,6 +244,8 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- 
- void vsp1_entity_destroy(struct vsp1_entity *entity)
- {
-+	if (entity->destroy)
-+		entity->destroy(entity);
- 	if (entity->subdev.ctrl_handler)
- 		v4l2_ctrl_handler_free(entity->subdev.ctrl_handler);
- 	media_entity_cleanup(&entity->subdev.entity);
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 311d5b64c9a5..259880e524fe 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -56,6 +56,8 @@ struct vsp1_route {
- struct vsp1_entity {
- 	struct vsp1_device *vsp1;
- 
-+	void (*destroy)(struct vsp1_entity *);
-+
- 	enum vsp1_entity_type type;
- 	unsigned int index;
- 	const struct vsp1_route *route;
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 8e8235682ada..d04df39b2737 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -24,6 +24,7 @@
- #define RWPF_PAD_SOURCE				1
- 
- struct v4l2_ctrl;
-+struct vsp1_dl_manager;
- struct vsp1_rwpf;
- struct vsp1_video;
- 
-@@ -60,6 +61,8 @@ struct vsp1_rwpf {
- 
- 	unsigned int offsets[2];
- 	dma_addr_t buf_addr[3];
-+
-+	struct vsp1_dl_manager *dlm;
- };
- 
- static inline struct vsp1_rwpf *to_rwpf(struct v4l2_subdev *subdev)
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index d2735f09d1da..3640989b3fd5 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -16,6 +16,7 @@
- #include <media/v4l2-subdev.h>
- 
- #include "vsp1.h"
-+#include "vsp1_dl.h"
- #include "vsp1_rwpf.h"
- #include "vsp1_video.h"
- 
-@@ -218,6 +219,13 @@ static const struct vsp1_rwpf_operations wpf_vdev_ops = {
-  * Initialization and Cleanup
-  */
- 
-+static void vsp1_wpf_destroy(struct vsp1_entity *entity)
-+{
-+	struct vsp1_rwpf *wpf = container_of(entity, struct vsp1_rwpf, entity);
-+
-+	vsp1_dlm_destroy(wpf->dlm);
-+}
-+
- struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- {
- 	struct v4l2_subdev *subdev;
-@@ -233,6 +241,7 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	wpf->max_width = WPF_MAX_WIDTH;
- 	wpf->max_height = WPF_MAX_HEIGHT;
- 
-+	wpf->entity.destroy = vsp1_wpf_destroy;
- 	wpf->entity.type = VSP1_ENTITY_WPF;
- 	wpf->entity.index = index;
- 
-@@ -240,6 +249,15 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	if (ret < 0)
- 		return ERR_PTR(ret);
- 
-+	/* Initialize the display list manager if the WPF is used for display */
-+	if ((vsp1->info->features & VSP1_HAS_LIF) && index == 0) {
-+		wpf->dlm = vsp1_dlm_create(vsp1, 4);
-+		if (!wpf->dlm) {
-+			ret = -ENOMEM;
-+			goto error;
-+		}
-+	}
-+
- 	/* Initialize the V4L2 subdev. */
- 	subdev = &wpf->entity.subdev;
- 	v4l2_subdev_init(subdev, &wpf_ops);
+The first argument of the functions in the patch is a pointer ot the media
+device, not the media entity.
+
+> 
+> >>
+> >>If no redirection is defined then the control is set on the first
+> >>entity in the pipeline that supports it. Effectively, for this
+> >>arrangement no redirection would be required if the control
+> >>is to be set on sensors. It would be required if we wanted
+> >>to bind the control to the videoN entity. Now I am wondering
+> >>if I should change the entry name to v4l2-ctrl-binding, or maybe
+> >>someone has better idea?
+> >>
+> >>BTW, are there some unique identifiers added to the entity names if
+> >>more than one entity of a name is to be registered? E.g. what would
+> >>happen if I had two S5C73M3 sensors in a media device? I assumed that
+> >>entity names are unique.
+> >
+> >Yes. Currently we've got away with the problem by adding the i2c address of
+> >i2c devices to the entity name. The proper solution (there was a lengthy
+> >discussion on it ~ a year ago, too late to try to find out exactly when)
+> >would be to provide all the available information on the entity to the user
+> >space using the property API (which we don't have yet). The entity name
+> >remains unique in most situations but it's not necessarily stable.
+> >
+> 
+> I assume that the fact that they're not stable mean that we cannot rely
+> on the entity name. Using sub-dev names and video device names seems
+> reasonable then.
+
+They're even less so, unfortunately; the device nodes depend e.g. on the
+initialisation order an other devices. Please use the entity names, they're
+the best option for now.
+
+I wish I'll have some time to proceed the work on the property API. So many
+things to do, but so little time. :-I
+
 -- 
-2.7.3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
