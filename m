@@ -1,149 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40282 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901AbcCXX2K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:28:10 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 20/51] v4l: vsp1: Remove unneeded entity streaming flag
-Date: Fri, 25 Mar 2016 01:27:16 +0200
-Message-Id: <1458862067-19525-21-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from lists.s-osg.org ([54.187.51.154]:56604 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753030AbcCWPRg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2016 11:17:36 -0400
+Date: Wed, 23 Mar 2016 12:17:30 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	<linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
+Message-ID: <20160323121730.089fab87@recife.lan>
+In-Reply-To: <56F2AEC6.4030209@xs4all.nl>
+References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<20160323073552.18db3b7e@recife.lan>
+	<56F2A2B5.80206@xs4all.nl>
+	<3511467.97gkNM9KCE@avalon>
+	<56F2AEC6.4030209@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The flag is set but never read, remove it.
+Em Wed, 23 Mar 2016 15:57:10 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_bru.c    |  2 --
- drivers/media/platform/vsp1/vsp1_entity.c | 23 -----------------------
- drivers/media/platform/vsp1/vsp1_entity.h |  6 ------
- drivers/media/platform/vsp1/vsp1_rpf.c    |  2 --
- drivers/media/platform/vsp1/vsp1_sru.c    |  2 --
- drivers/media/platform/vsp1/vsp1_wpf.c    |  2 --
- 6 files changed, 37 deletions(-)
+> On 03/23/2016 03:45 PM, Laurent Pinchart wrote:
+> > Hi Hans,
+> > 
+> > On Wednesday 23 Mar 2016 15:05:41 Hans Verkuil wrote:  
+> >> On 03/23/2016 11:35 AM, Mauro Carvalho Chehab wrote:  
+> >>> Em Wed, 23 Mar 2016 10:45:55 +0200 Laurent Pinchart escreveu:  
+> >>>> Code that processes media entities can require knowledge of the
+> >>>> structure type that embeds a particular media entity instance in order
+> >>>> to cast the entity to the proper object type. This needs is shown by the
+> >>>> presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
+> >>>> functions.
+> >>>>
+> >>>> The implementation of those two functions relies on the entity function
+> >>>> field, which is both a wrong and an inefficient design, without even
+> >>>> mentioning the maintenance issue involved in updating the functions
+> >>>> every time a new entity function is added. Fix this by adding add an
+> >>>> obj_type field to the media entity structure to carry the information.
+> >>>>
+> >>>> Signed-off-by: Laurent Pinchart
+> >>>> <laurent.pinchart+renesas@ideasonboard.com>
+> >>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >>>> ---
+> >>>>
+> >>>>  drivers/media/media-device.c          |  2 +
+> >>>>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
+> >>>>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
+> >>>>  include/media/media-entity.h          | 79 ++++++++++++++++-------------
+> >>>>  4 files changed, 46 insertions(+), 37 deletions(-)
+> >>>>
+> >>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> >>>> index 4a97d92a7e7d..88d8de3b7a4f 100644
+> >>>> --- a/drivers/media/media-device.c
+> >>>> +++ b/drivers/media/media-device.c
+> >>>> @@ -580,6 +580,8 @@ int __must_check media_device_register_entity(struct
+> >>>> media_device *mdev,
+> >>>>  			 "Entity type for entity %s was not initialized!\n",
+> >>>>  			 entity->name);
+> >>>>
+> >>>> +	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
+> >>>> +  
+> >>>
+> >>> This is not ok. There are valid cases where the entity is not embedded
+> >>> on some other struct. That's the case of connectors/connections, for
+> >>> example: a connector/connection entity doesn't need anything else but
+> >>> struct media device.  
+> >>
+> >> Once connectors are enabled, then we do need a MEDIA_ENTITY_TYPE_CONNECTOR
+> >> or MEDIA_ENTITY_TYPE_STANDALONE or something along those lines.  
+> > 
+> > MEDIA_ENTITY_TYPE_CONNECTOR would make sense, but only if we add a struct 
+> > media_connector. I believe that can be a good idea, at least to simplify 
+> > management of the entity and the connector pad(s).
+> >   
+> >>> Also, this is V4L2 specific. Neither ALSA nor DVB need to use
+> >>> container_of(). Actually, this won't even work there, as the entity is
+> >>> stored as a pointer, and not as an embedded data.  
+> > 
+> > That's sounds like a strange design decision at the very least. There can be 
+> > valid cases that require creation of bare entities, but I don't think they 
+> > should be that common.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 5feec203e6fb..1814d8dc1cd2 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -67,8 +67,6 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	unsigned int flags;
- 	unsigned int i;
- 
--	vsp1_entity_set_streaming(&bru->entity, enable);
--
- 	if (!enable)
- 		return 0;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 6b425ae9aba3..be67727f6f78 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -33,27 +33,6 @@ void vsp1_mod_write(struct vsp1_entity *e, u32 reg, u32 data)
- 		vsp1_write(e->vsp1, reg, data);
- }
- 
--bool vsp1_entity_is_streaming(struct vsp1_entity *entity)
--{
--	unsigned long flags;
--	bool streaming;
--
--	spin_lock_irqsave(&entity->lock, flags);
--	streaming = entity->streaming;
--	spin_unlock_irqrestore(&entity->lock, flags);
--
--	return streaming;
--}
--
--void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&entity->lock, flags);
--	entity->streaming = streaming;
--	spin_unlock_irqrestore(&entity->lock, flags);
--}
--
- void vsp1_entity_route_setup(struct vsp1_entity *source)
- {
- 	struct vsp1_entity *sink;
-@@ -198,8 +177,6 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
- 	if (i == ARRAY_SIZE(vsp1_routes))
- 		return -EINVAL;
- 
--	spin_lock_init(&entity->lock);
--
- 	entity->vsp1 = vsp1;
- 	entity->source_pad = num_pads - 1;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index c0d6db82ebfb..203872164f8e 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -73,9 +73,6 @@ struct vsp1_entity {
- 
- 	struct v4l2_subdev subdev;
- 	struct v4l2_mbus_framefmt *formats;
--
--	spinlock_t lock;		/* Protects the streaming field */
--	bool streaming;
- };
- 
- static inline struct vsp1_entity *to_vsp1_entity(struct v4l2_subdev *subdev)
-@@ -100,9 +97,6 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
- void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_pad_config *cfg);
- 
--bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
--void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
--
- void vsp1_entity_route_setup(struct vsp1_entity *source);
- 
- void vsp1_mod_write(struct vsp1_entity *e, u32 reg, u32 data);
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 3509202f1b4a..9857d633f61e 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -46,8 +46,6 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	u32 pstride;
- 	u32 infmt;
- 
--	vsp1_entity_set_streaming(&rpf->entity, enable);
--
- 	if (!enable)
- 		return 0;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index 7de62be37cff..5a7ffbd18043 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -114,8 +114,6 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct v4l2_mbus_framefmt *output;
- 	u32 ctrl0;
- 
--	vsp1_entity_set_streaming(&sru->entity, enable);
--
- 	if (!enable)
- 		return 0;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 978dd6cda9d3..cf18183370f4 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -47,8 +47,6 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	u32 srcrpf = 0;
- 	u32 outfmt = 0;
- 
--	vsp1_entity_set_streaming(&wpf->entity, enable);
--
- 	if (!enable) {
- 		vsp1_write(vsp1, VI6_WPF_IRQ_ENB(wpf->entity.index), 0);
- 		vsp1_write(vsp1, wpf->entity.index * VI6_WPF_OFFSET +
--- 
-2.7.3
+This is where we disagree.
 
+Basically the problem we have is that we have something like:
+
+struct container {
+	struct object obj;
+};
+
+or
+
+struct container {
+	struct object *obj;
+};
+
+
+The normal usage is the way both DVB and ALSA currently does: they
+always go from the container to the obj:
+
+	obj = container.obj;
+or
+	obj = container->obj;
+
+Anyway, either embeeding or usin a pointer, for such usage, there's no
+need for an "obj_type".
+
+At some V4L2 drivers, however, it is needed to do something like:
+
+if (obj_type == MEDIA_TYPE_FOO)
+	container_foo = container_of(obj, struct container_foo, obj);
+
+if (obj_type == MEDIA_TYPE_BAR)
+	container_bar = container_of(obj, struct container_bar, obj);
+
+Ok, certainly there are cases where this could be unavoidable, but it is
+*ugly*.
+
+The way DVB uses it is a way cleaner, as never needs to use
+container_of(), as the container struct is always known. Also, there's
+no need to embed the struct.
+
+As not all DVB drivers support the media controller, using pointers
+make the data footprint smaller.
+
+Also, as I answered on my previous e-mail, struct dvb_device needs
+two media_entity structs on it.
+
+So, there's no good reason why not using pointers there.
+
+Regards,
+Mauro
