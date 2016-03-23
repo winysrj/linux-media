@@ -1,52 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:33729 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753089AbcCMAhI (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49298 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754383AbcCWJkz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Mar 2016 19:37:08 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] media: add dump_stack() if called in atomic context
-Date: Sat, 12 Mar 2016 17:37:05 -0700
-Message-Id: <1457829425-4411-1-git-send-email-shuahkh@osg.samsung.com>
+	Wed, 23 Mar 2016 05:40:55 -0400
+Date: Wed, 23 Mar 2016 11:40:19 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/3] EDID/DV_TIMINGS docbook fixes
+Message-ID: <20160323094019.GI11084@valkosipuli.retiisi.org.uk>
+References: <1458642629-15742-1-git-send-email-hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1458642629-15742-1-git-send-email-hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change media_add_link() and media_devnode_create() to dump_stack when
-called in atomic context.
+On Tue, Mar 22, 2016 at 11:30:26AM +0100, Hans Verkuil wrote:
+> Fixes a few issues I found in the documentation.
+> 
+> Hans Verkuil (3):
+>   vidioc-g-edid.xml: be explicit about zeroing the reserved array
+>   vidioc-enum-dv-timings.xml: explicitly state that pad and reserved
+>     should be zeroed
+>   vidioc-dv-timings-cap.xml: explicitly state that pad and reserved
+>     should be zeroed
+> 
+>  Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml  | 12 +++++++-----
+>  Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml |  5 +++--
+>  Documentation/DocBook/media/v4l/vidioc-g-edid.xml          | 10 ++++++----
+>  3 files changed, 16 insertions(+), 11 deletions(-)
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-Suggested-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/media-entity.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index e95070b..66a5392 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -570,6 +570,9 @@ static struct media_link *media_add_link(struct list_head *head)
- {
- 	struct media_link *link;
- 
-+	if (in_atomic())
-+		dump_stack();
-+
- 	link = kzalloc(sizeof(*link), GFP_KERNEL);
- 	if (link == NULL)
- 		return NULL;
-@@ -891,6 +894,9 @@ struct media_intf_devnode *media_devnode_create(struct media_device *mdev,
- {
- 	struct media_intf_devnode *devnode;
- 
-+	if (in_atomic())
-+		dump_stack();
-+
- 	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
- 	if (!devnode)
- 		return NULL;
 -- 
-2.5.0
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
