@@ -1,59 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:33819 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936349AbcCQQnj (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:44664 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754652AbcCWNDJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Mar 2016 12:43:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Simon Horman <horms+renesas@verge.net.au>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v4 0/2] media: soc_camera: rcar_vin: add fallback and r8a7792 bindings
-Date: Thu, 17 Mar 2016 13:08:38 +0200
-Message-ID: <4368165.sSKIRcCx2U@avalon>
-In-Reply-To: <1458002427-3063-1-git-send-email-horms+renesas@verge.net.au>
-References: <1458002427-3063-1-git-send-email-horms+renesas@verge.net.au>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 23 Mar 2016 09:03:09 -0400
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] media: i2c: ths7303: remove redundant assignment on bt
+Date: Wed, 23 Mar 2016 13:03:03 +0000
+Message-Id: <1458738183-7395-1-git-send-email-colin.king@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Simon,
+From: Colin Ian King <colin.king@canonical.com>
 
-Thank you for the patches.
+The extraneous assignment on bt is redundant and can be removed.
 
-For the whole series,
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/i2c/ths7303.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-On Tuesday 15 March 2016 09:40:25 Simon Horman wrote:
-> Hi,
-> 
-> this short series adds add fallback and r8a7792 bindings to rcar_vin.
-> 
-> Based on media-tree/master
-> 
-> Changes since v3:
-> * Add Acks
-> * Correct typo in changelog
-> 
-> Simon Horman (1):
->   media: soc_camera: rcar_vin: add device tree support for r8a7792
-> 
-> Yoshihiro Kaneko (1):
->   media: soc_camera: rcar_vin: add R-Car Gen 2 and 3 fallback
->     compatibility strings
-> 
->  Documentation/devicetree/bindings/media/rcar_vin.txt | 12 ++++++++++--
->  drivers/media/platform/soc_camera/rcar_vin.c         |  2 ++
->  2 files changed, 12 insertions(+), 2 deletions(-)
-
+diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
+index 5bbfcab..71a3135 100644
+--- a/drivers/media/i2c/ths7303.c
++++ b/drivers/media/i2c/ths7303.c
+@@ -285,7 +285,7 @@ static int ths7303_log_status(struct v4l2_subdev *sd)
+ 	v4l2_info(sd, "stream %s\n", state->stream_on ? "On" : "Off");
+ 
+ 	if (state->bt.pixelclock) {
+-		struct v4l2_bt_timings *bt = bt = &state->bt;
++		struct v4l2_bt_timings *bt = &state->bt;
+ 		u32 frame_width, frame_height;
+ 
+ 		frame_width = V4L2_DV_BT_FRAME_WIDTH(bt);
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.3
 
