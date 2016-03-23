@@ -1,60 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:36506 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750724AbcCERkq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Mar 2016 12:40:46 -0500
-Date: Sat, 5 Mar 2016 14:40:40 -0300
+Received: from bombadil.infradead.org ([198.137.202.9]:39103 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755867AbcCWT1v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2016 15:27:51 -0400
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Michael Ira Krufky <mkrufky@linuxtv.org>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: Linux Media Summit in April, 7 - San Diego - CA - USA
-Message-ID: <20160305144040.4e8d0265@recife.lan>
-In-Reply-To: <CAOcJUbxF=et60pAiSmTQhvu5xqL=oU8as1CdPtFOHR-ev=paPw@mail.gmail.com>
-References: <20160305120814.116ae4c0@recife.lan>
-	<CAOcJUbxF=et60pAiSmTQhvu5xqL=oU8as1CdPtFOHR-ev=paPw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: [PATCH 0/4]  Some fixes and cleanups for the Media Controller code
+Date: Wed, 23 Mar 2016 16:27:42 -0300
+Message-Id: <cover.1458760750.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 05 Mar 2016 10:54:58 -0500
-Michael Ira Krufky <mkrufky@linuxtv.org> escreveu:
+The first three patches in this series are simple cleanup patches.
+No functional changes.
 
-> On Sat, Mar 5, 2016 at 10:08 AM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > As discussed on our IRC #v4l channel at Freenode, we'll be running a 1-day
-> > Linux Media Summit in San Diego on Aug, 7, just after the Embedded
-> > Linux Conference.
-> >
-> > Feel free to submit relevant topics related to the Linux Kernel support
-> > for media, in order to help us to build the workshop's agenda and take
-> > other needs into account when working on it.
-> >
-> > As usual, we'll be using the media-workshop@linuxtv.org ML for the
-> > specific discussions about that, so the ones interested on participate
-> > on such discussions and/or be present there are requested to subscribe
-> > it, and to submit themes of interest via the mailing lists.
-> >
-> > Please also send an e-mail if you're intending to join us there, to
-> > allow us to be sure that we'll have enough seats for the participants.
-> >
-> > Hope to see you there!
-> >
-> > Regards,
-> > Mauro  
-> 
-> Just to clarify, this will be on APRIL 7th, not Aug 7, is that correct?
+The final patch fixes a longstanding bug at the Media Controller framework:
+it prevents race conditions when the /dev/media? device is being removed,
+while some program is still accessing it.
 
-Oh! Yes, April, 7th.
+I tested it with au0828 and snd-usb-audio and the issues I was noticing 
+before it disappeared.
 
-Thanks for seeing that!
+Shuah,
 
-Regards,
+Could you please test it also?
+
+Thanks!
 Mauro
 
+Mauro Carvalho Chehab (4):
+  [media] media-device: Simplify compat32 logic
+  [media] media-devnode: fix namespace mess
+  [media] media-device: get rid of a leftover comment
+  [meida] media-device: dynamically allocate struct media_devnode
 
+ drivers/media/media-device.c           |  47 ++++++++------
+ drivers/media/media-devnode.c          | 115 +++++++++++++++++----------------
+ drivers/media/usb/au0828/au0828-core.c |   4 +-
+ drivers/media/usb/uvc/uvc_driver.c     |   2 +-
+ include/media/media-device.h           |   5 +-
+ include/media/media-devnode.h          |  27 +++++---
+ sound/usb/media.c                      |   8 +--
+ 7 files changed, 113 insertions(+), 95 deletions(-)
 
 -- 
-Thanks,
-Mauro
+2.5.5
+
