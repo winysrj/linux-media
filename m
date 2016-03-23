@@ -1,118 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38558 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750797AbcCXX1w (ORCPT
+	with ESMTP id S1754078AbcCWIqF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:27:52 -0400
+	Wed, 23 Mar 2016 04:46:05 -0400
 From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 02/51] v4l: subdev: Add pad config allocator and init
-Date: Fri, 25 Mar 2016 01:26:58 +0200
-Message-Id: <1458862067-19525-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
+Date: Wed, 23 Mar 2016 10:45:55 +0200
+Message-Id: <1458722756-7269-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@linaro.org>
+Code that processes media entities can require knowledge of the
+structure type that embeds a particular media entity instance in order
+to cast the entity to the proper object type. This needs is shown by the
+presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
+functions.
 
-Add a new subdev operation to initialize a subdev pad config array, and
-a helper function to allocate and initialize the array. This can be used
-by bridge drivers to implement try format based on subdev pad
-operations.
+The implementation of those two functions relies on the entity function
+field, which is both a wrong and an inefficient design, without even
+mentioning the maintenance issue involved in updating the functions
+every time a new entity function is added. Fix this by adding add an
+obj_type field to the media entity structure to carry the information.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
-Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-subdev.c | 31 ++++++++++++++++++++++++++++++-
- include/media/v4l2-subdev.h           |  8 ++++++++
- 2 files changed, 38 insertions(+), 1 deletion(-)
+ drivers/media/media-device.c          |  2 +
+ drivers/media/v4l2-core/v4l2-dev.c    |  1 +
+ drivers/media/v4l2-core/v4l2-subdev.c |  1 +
+ include/media/media-entity.h          | 79 +++++++++++++++++++----------------
+ 4 files changed, 46 insertions(+), 37 deletions(-)
 
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 4a97d92a7e7d..88d8de3b7a4f 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -580,6 +580,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 			 "Entity type for entity %s was not initialized!\n",
+ 			 entity->name);
+ 
++	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
++
+ 	/* Warn if we apparently re-register an entity */
+ 	WARN_ON(entity->graph_obj.mdev != NULL);
+ 	entity->graph_obj.mdev = mdev;
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index d8e5994cccf1..70b559d7ca80 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -735,6 +735,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+ 	if (!vdev->v4l2_dev->mdev)
+ 		return 0;
+ 
++	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
+ 	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
+ 
+ 	switch (type) {
 diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 0fa60801a428..d4007f8f58d1 100644
+index d63083803144..0fa60801a428 100644
 --- a/drivers/media/v4l2-core/v4l2-subdev.c
 +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -35,7 +35,7 @@
- static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
-+	fh->pad = v4l2_subdev_alloc_pad_config(sd);
- 	if (fh->pad == NULL)
- 		return -ENOMEM;
+@@ -584,6 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ 	sd->host_priv = NULL;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	sd->entity.name = sd->name;
++	sd->entity.obj_type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
+ 	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
  #endif
-@@ -569,6 +569,35 @@ int v4l2_subdev_link_validate(struct media_link *link)
- 		sink, link, &source_fmt, &sink_fmt);
  }
- EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
-+
-+struct v4l2_subdev_pad_config *
-+v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+	int ret;
-+
-+	if (!sd->entity.num_pads)
-+		return NULL;
-+
-+	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
-+	if (!cfg)
-+		return NULL;
-+
-+	ret = v4l2_subdev_call(sd, pad, init_cfg, cfg);
-+	if (ret < 0 && ret != -ENOIOCTLCMD) {
-+		kfree(cfg);
-+		return NULL;
-+	}
-+
-+	return cfg;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
-+
-+void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
-+{
-+	kfree(cfg);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_subdev_free_pad_config);
- #endif /* CONFIG_MEDIA_CONTROLLER */
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 6dc9e4e8cbd4..5cea57955a3a 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -188,10 +188,41 @@ struct media_entity_operations {
+ };
  
- void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 11e2dfec0198..32fc7a4beb5e 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -572,6 +572,7 @@ struct v4l2_subdev_pad_config {
  /**
-  * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
++ * enum media_entity_type - Media entity type
++ *
++ * @MEDIA_ENTITY_TYPE_INVALID:
++ *	Invalid type, used to catch uninitialized fields.
++ * @MEDIA_ENTITY_TYPE_VIDEO_DEVICE:
++ *	The entity is embedded in a struct video_device instance.
++ * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
++ *	The entity is embedded in a struct v4l2_subdev instance.
++ *
++ * Media entity objects are not instantiated directly, but the media entity
++ * structure is inherited by (through embedding) other subsystem-specific
++ * structures. The media entity type identifies the type of the subclass
++ * structure that implements a media entity instance.
++ *
++ * This allows runtime type identification of media entities and safe casting to
++ * the correct object type. For instance, a media entity structure instance
++ * embedded in a v4l2_subdev structure instance will have the type
++ * MEDIA_ENTITY_TYPE_V4L2_SUBDEV and can safely be cast to a v4l2_subdev
++ * structure using the container_of() macro.
++ *
++ * The MEDIA_ENTITY_TYPE_INVALID type should never be set as an entity type, it
++ * only serves to catch uninitialized fields when registering entities.
++ */
++enum media_entity_type {
++	MEDIA_ENTITY_TYPE_INVALID,
++	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
++	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
++};
++
++/**
+  * struct media_entity - A media entity graph object.
   *
-+ * @init_cfg: initialize the pad config to default values
-  * @enum_mbus_code: callback for VIDIOC_SUBDEV_ENUM_MBUS_CODE ioctl handler
-  *		    code.
-  * @enum_frame_size: callback for VIDIOC_SUBDEV_ENUM_FRAME_SIZE ioctl handler
-@@ -607,6 +608,8 @@ struct v4l2_subdev_pad_config {
-  *                  may be adjusted by the subdev driver to device capabilities.
-  */
- struct v4l2_subdev_pad_ops {
-+	int (*init_cfg)(struct v4l2_subdev *sd,
-+			struct v4l2_subdev_pad_config *cfg);
- 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_mbus_code_enum *code);
-@@ -801,7 +804,12 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
- 				      struct v4l2_subdev_format *source_fmt,
- 				      struct v4l2_subdev_format *sink_fmt);
- int v4l2_subdev_link_validate(struct media_link *link);
-+
-+struct v4l2_subdev_pad_config *
-+v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
-+void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
- #endif /* CONFIG_MEDIA_CONTROLLER */
-+
- void v4l2_subdev_init(struct v4l2_subdev *sd,
- 		      const struct v4l2_subdev_ops *ops);
+  * @graph_obj:	Embedded structure containing the media object common data.
+  * @name:	Entity name.
++ * @obj_type:	Type of the object that implements the media_entity.
+  * @function:	Entity main function, as defined in uapi/media.h
+  *		(MEDIA_ENT_F_*)
+  * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
+@@ -220,6 +251,7 @@ struct media_entity_operations {
+ struct media_entity {
+ 	struct media_gobj graph_obj;	/* must be first field in struct */
+ 	const char *name;
++	enum media_entity_type obj_type;
+ 	u32 function;
+ 	unsigned long flags;
  
+@@ -329,56 +361,29 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
+ }
+ 
+ /**
+- * is_media_entity_v4l2_io() - identify if the entity main function
+- *			       is a V4L2 I/O
+- *
++ * is_media_entity_v4l2_io() - Check if the entity is a video_device
+  * @entity:	pointer to entity
+  *
+- * Return: true if the entity main function is one of the V4L2 I/O types
+- *	(video, VBI or SDR radio); false otherwise.
++ * Return: true if the entity is an instance of a video_device object and can
++ * safely be cast to a struct video_device using the container_of() macro, or
++ * false otherwise.
+  */
+ static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
+ {
+-	if (!entity)
+-		return false;
+-
+-	switch (entity->function) {
+-	case MEDIA_ENT_F_IO_V4L:
+-	case MEDIA_ENT_F_IO_VBI:
+-	case MEDIA_ENT_F_IO_SWRADIO:
+-		return true;
+-	default:
+-		return false;
+-	}
++	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
+ }
+ 
+ /**
+- * is_media_entity_v4l2_subdev - return true if the entity main function is
+- *				 associated with the V4L2 API subdev usage
+- *
++ * is_media_entity_v4l2_subdev() - Check if the entity is a v4l2_subdev
+  * @entity:	pointer to entity
+  *
+- * This is an ancillary function used by subdev-based V4L2 drivers.
+- * It checks if the entity function is one of functions used by a V4L2 subdev,
+- * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
++ * Return: true if the entity is an instance of a v4l2_subdev object and can
++ * safely be cast to a struct v4l2_subdev using the container_of() macro, or
++ * false otherwise.
+  */
+ static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
+ {
+-	if (!entity)
+-		return false;
+-
+-	switch (entity->function) {
+-	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
+-	case MEDIA_ENT_F_CAM_SENSOR:
+-	case MEDIA_ENT_F_FLASH:
+-	case MEDIA_ENT_F_LENS:
+-	case MEDIA_ENT_F_ATV_DECODER:
+-	case MEDIA_ENT_F_TUNER:
+-		return true;
+-
+-	default:
+-		return false;
+-	}
++	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
+ }
+ 
+ /**
 -- 
 2.7.3
 
