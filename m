@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:33944 "EHLO
-	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119AbcCWPdA (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38559 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754274AbcCWIqF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 11:33:00 -0400
-Received: by mail-wm0-f51.google.com with SMTP id p65so238864054wmp.1
-        for <linux-media@vger.kernel.org>; Wed, 23 Mar 2016 08:33:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20160323115659.GF21717@nuc-i3427.alporthouse.com>
-References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
-	<1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
-	<CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
-	<20160321171405.GP28483@phenom.ffwll.local>
-	<CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
-	<20160323115659.GF21717@nuc-i3427.alporthouse.com>
-Date: Wed, 23 Mar 2016 16:32:59 +0100
-Message-ID: <CANq1E4SFPMoE4G4XARFLyEH40OOZnR2v_PQD4=ps3KBvVXUHpA@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
-From: David Herrmann <dh.herrmann@gmail.com>
-To: Chris Wilson <chris@chris-wilson.co.uk>,
-	David Herrmann <dh.herrmann@gmail.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	Tiago Vignatti <tiago.vignatti@intel.com>,
-	=?UTF-8?Q?St=C3=A9phane_Marchesin?= <marcheu@chromium.org>,
-	Daniel Vetter <daniel.vetter@intel.com>,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 23 Mar 2016 04:46:05 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [PATCH v5 0/2] media: Add entity types
+Date: Wed, 23 Mar 2016 10:45:54 +0200
+Message-Id: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hello,
 
-On Wed, Mar 23, 2016 at 12:56 PM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
-> On Wed, Mar 23, 2016 at 12:30:42PM +0100, David Herrmann wrote:
->> My question was rather about why we do this? Semantics for EINTR are
->> well defined, and with SA_RESTART (default on linux) user-space can
->> ignore it. However, looping on EAGAIN is very uncommon, and it is not
->> at all clear why it is needed?
->>
->> Returning an error to user-space makes sense if user-space has a
->> reason to react to it. I fail to see how EAGAIN on a cache-flush/sync
->> operation helps user-space at all? As someone without insight into the
->> driver implementation, it is hard to tell why.. Any hints?
->
-> The reason we return EAGAIN is to workaround a deadlock we face when
-> blocking on the GPU holding the struct_mutex (inside the client's
-> process), but the GPU is dead. As our locking is very, very coarse we
-> cannot restart the GPU without acquiring the struct_mutex being held by
-> the client so we wake the client up and tell them the resource they are
-> waiting on (the flush of the object from the GPU into the CPU domain) is
-> temporarily unavailable. If they try to immediately wait upon the ioctl
-> again, they are blocked waiting for the reset to occur before they may
-> complete their flush. There are a few other possible deadlocks that are
-> also avoided with EAGAIN (again, the issue is more or less the lack of
-> fine grained locking).
+This patch series adds an obj_type field to the media entity structure. It is
+a resend of v4 rebased on top of the latest media master branch, with the type
+field renamed to obj_type and the documentation clarified. I have dropped
+patches 1 and 2 as they have been merged already.
 
-...so you hijacked EAGAIN for all DRM ioctls just for a driver
-workaround? EAGAIN is universally used to signal the caller about a
-blocking resource. It is very much linked to O_NONBLOCK. Why not use
-EBUSY, ECANCELED, ECOMM, EDEADLOCK, EIO, EL3RST, ...
+As a reminder, a few words about what types are and are not. The purpose of
+the entity type is to identify the object type that implements the entity, in
+order to safely cast the entity to that object (using container_of()). Two
+types are currently defined, for media entities that are embedded in a struct
+video_device (MEDIA_ENTITY_TYPE_VIDEO_DEVICE) or embedded in a struct
+v4l2_subdev (MEDIA_ENTITY_TYPE_V4L2_SUBDEV). A third type is defined to catch
+uninitialized fields (MEDIA_ENTITY_TYPE_INVALID) but should not be used
+directly.
 
-Anyhow, I guess that ship has sailed. But just mentioning EAGAIN in a
-kernel-doc is way to vague for user-space to figure out they should
-loop on it.
+Types do not convey any additional information. They don't tell anything about
+the features of the entity or the object that implements it. In particular
+they don't report capabilities of video_device instances, which is why the
+is_media_entity_v4l2_io() function performs additional checks on the video
+device capabilities field, after verifying with the type that it can safely be
+cast to a video_device instance.
 
-Thanks
-David
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+
+Laurent Pinchart (2):
+  media: Add obj_type field to struct media_entity
+  media: Rename is_media_entity_v4l2_io to
+    is_media_entity_v4l2_video_device
+
+ drivers/media/media-device.c                    |  2 +
+ drivers/media/platform/exynos4-is/media-dev.c   |  4 +-
+ drivers/media/platform/omap3isp/ispvideo.c      |  2 +-
+ drivers/media/v4l2-core/v4l2-dev.c              |  1 +
+ drivers/media/v4l2-core/v4l2-mc.c               |  2 +-
+ drivers/media/v4l2-core/v4l2-subdev.c           |  1 +
+ drivers/staging/media/davinci_vpfe/vpfe_video.c |  2 +-
+ drivers/staging/media/omap4iss/iss_video.c      |  2 +-
+ include/media/media-entity.h                    | 81 +++++++++++++------------
+ 9 files changed, 53 insertions(+), 44 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
