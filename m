@@ -1,132 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:57994 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932460AbcCCIFf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 03:05:35 -0500
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-To: Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	David Brown <david.brown@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org,
-	linux-gpio@vger.kernel.org, linux-pm@vger.kernel.org,
-	rtc-linux@googlegroups.com, linux-arm-msm@vger.kernel.org,
-	linux-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-usb@vger.kernel.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: [RFC 10/15] net: ethernet: Add missing MFD_SYSCON dependency on
- HAS_IOMEM
-Date: Thu, 03 Mar 2016 17:03:36 +0900
-Message-id: <1456992221-26712-11-git-send-email-k.kozlowski@samsung.com>
-In-reply-to: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
-References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55160 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755038AbcCWQSN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2016 12:18:13 -0400
+Date: Wed, 23 Mar 2016 18:17:38 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
+Message-ID: <20160323161738.GJ11084@valkosipuli.retiisi.org.uk>
+References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1458722756-7269-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <20160323073552.18db3b7e@recife.lan>
+ <56F2A2B5.80206@xs4all.nl>
+ <20160323120059.030a7b61@recife.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160323120059.030a7b61@recife.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MFD_SYSCON depends on HAS_IOMEM so when selecting it avoid unmet
-direct dependencies.
+Hi Mauro,
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
----
- drivers/net/ethernet/hisilicon/Kconfig      | 1 +
- drivers/net/ethernet/stmicro/stmmac/Kconfig | 6 ++++++
- drivers/net/ethernet/ti/Kconfig             | 1 +
- 3 files changed, 8 insertions(+)
+On Wed, Mar 23, 2016 at 12:00:59PM -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 23 Mar 2016 15:05:41 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On 03/23/2016 11:35 AM, Mauro Carvalho Chehab wrote:
+> > > Em Wed, 23 Mar 2016 10:45:55 +0200
+> > > Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
+> > >   
+> > >> Code that processes media entities can require knowledge of the
+> > >> structure type that embeds a particular media entity instance in order
+> > >> to cast the entity to the proper object type. This needs is shown by the
+> > >> presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
+> > >> functions.
+> > >>
+> > >> The implementation of those two functions relies on the entity function
+> > >> field, which is both a wrong and an inefficient design, without even
+> > >> mentioning the maintenance issue involved in updating the functions
+> > >> every time a new entity function is added. Fix this by adding add an
+> > >> obj_type field to the media entity structure to carry the information.
+> > >>
+> > >> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> > >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > >> ---
+> > >>  drivers/media/media-device.c          |  2 +
+> > >>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
+> > >>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
+> > >>  include/media/media-entity.h          | 79 +++++++++++++++++++----------------
+> > >>  4 files changed, 46 insertions(+), 37 deletions(-)
+> > >>
+> > >> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > >> index 4a97d92a7e7d..88d8de3b7a4f 100644
+> > >> --- a/drivers/media/media-device.c
+> > >> +++ b/drivers/media/media-device.c
+> > >> @@ -580,6 +580,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+> > >>  			 "Entity type for entity %s was not initialized!\n",
+> > >>  			 entity->name);
+> > >>  
+> > >> +	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
+> > >> +  
+> > > 
+> > > This is not ok. There are valid cases where the entity is not embedded
+> > > on some other struct. That's the case of connectors/connections, for
+> > > example: a connector/connection entity doesn't need anything else but
+> > > struct media device.  
+> > 
+> > Once connectors are enabled, then we do need a MEDIA_ENTITY_TYPE_CONNECTOR or
+> > MEDIA_ENTITY_TYPE_STANDALONE or something along those lines.
+> > 
+> > > Also, this is V4L2 specific. Neither ALSA nor DVB need to use container_of().
+> > > Actually, this won't even work there, as the entity is stored as a pointer,
+> > > and not as an embedded data.  
+> > 
+> > Any other subsystem that *does* embed this can use obj_type. If it doesn't embed
+> > it in anything, then MEDIA_ENTITY_TYPE_STANDALONE should be used (or whatever
+> > name we give it). I agree that we need a type define for the case where it is
+> > not embedded.
+> > 
+> > > 
+> > > So, if we're willing to do this, then it should, instead, create
+> > > something like:
+> > > 
+> > > struct embedded_media_entity {
+> > > 	struct media_entity entity;
+> > > 	enum media_entity_type obj_type;
+> > > };  
+> > 
+> > It's not v4l2 specific. It is just that v4l2 is the only subsystem that requires
+> > this information at the moment. I see no reason at all to create such an ugly
+> > struct.
+> 
+> At the minute we added a BUG_ON() there, it became mandatory that all
+> struct media_entity to be embedded. This is not always true, but
+> as the intention is to avoid the risk of embedding it without a type,
+> it makes sense to have the above struct. This way, the obj_type
+> usage will be enforced *only* in the places where it is needed.
+> 
+> We could, instead, remove BUG_ON() and make MEDIA_ENTITY_TYPE_STANDALONE
+> the default type, but that won't enforce its usage where it is needed.
 
-diff --git a/drivers/net/ethernet/hisilicon/Kconfig b/drivers/net/ethernet/hisilicon/Kconfig
-index 74beb1867230..6a9c91781bf9 100644
---- a/drivers/net/ethernet/hisilicon/Kconfig
-+++ b/drivers/net/ethernet/hisilicon/Kconfig
-@@ -26,6 +26,7 @@ config HIX5HD2_GMAC
- config HIP04_ETH
- 	tristate "HISILICON P04 Ethernet support"
- 	select MARVELL_PHY
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select MFD_SYSCON
- 	select HNS_MDIO
- 	---help---
-diff --git a/drivers/net/ethernet/stmicro/stmmac/Kconfig b/drivers/net/ethernet/stmicro/stmmac/Kconfig
-index cec147d1d34f..d6902bf6e90f 100644
---- a/drivers/net/ethernet/stmicro/stmmac/Kconfig
-+++ b/drivers/net/ethernet/stmicro/stmmac/Kconfig
-@@ -16,6 +16,7 @@ if STMMAC_ETH
- config STMMAC_PLATFORM
- 	tristate "STMMAC Platform bus support"
- 	depends on STMMAC_ETH
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select MFD_SYSCON
- 	default y
- 	---help---
-@@ -41,6 +42,7 @@ config DWMAC_IPQ806X
- 	tristate "QCA IPQ806x DWMAC support"
- 	default ARCH_QCOM
- 	depends on OF
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select MFD_SYSCON
- 	help
- 	  Support for QCA IPQ806X DWMAC Ethernet.
-@@ -54,6 +56,7 @@ config DWMAC_LPC18XX
- 	tristate "NXP LPC18xx/43xx DWMAC support"
- 	default ARCH_LPC18XX
- 	depends on OF
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select MFD_SYSCON
- 	---help---
- 	  Support for NXP LPC18xx/43xx DWMAC Ethernet.
-@@ -73,6 +76,7 @@ config DWMAC_ROCKCHIP
- 	tristate "Rockchip dwmac support"
- 	default ARCH_ROCKCHIP
- 	depends on OF
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select MFD_SYSCON
- 	help
- 	  Support for Ethernet controller on Rockchip RK3288 SoC.
-@@ -84,6 +88,7 @@ config DWMAC_SOCFPGA
- 	tristate "SOCFPGA dwmac support"
- 	default ARCH_SOCFPGA
- 	depends on OF
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select MFD_SYSCON
- 	help
- 	  Support for ethernet controller on Altera SOCFPGA
-@@ -96,6 +101,7 @@ config DWMAC_STI
- 	tristate "STi GMAC support"
- 	default ARCH_STI
- 	depends on OF
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select MFD_SYSCON
- 	---help---
- 	  Support for ethernet controller on STi SOCs.
-diff --git a/drivers/net/ethernet/ti/Kconfig b/drivers/net/ethernet/ti/Kconfig
-index e7f0b7d95b65..ec56cebe929d 100644
---- a/drivers/net/ethernet/ti/Kconfig
-+++ b/drivers/net/ethernet/ti/Kconfig
-@@ -62,6 +62,7 @@ config TI_CPSW_ALE
- config TI_CPSW
- 	tristate "TI CPSW Switch Support"
- 	depends on ARCH_DAVINCI || ARCH_OMAP2PLUS
-+	depends on HAS_IOMEM	# For MFD_SYSCON
- 	select TI_DAVINCI_CPDMA
- 	select TI_DAVINCI_MDIO
- 	select TI_CPSW_PHY_SEL
+My understanding, based on the previous discussion, was that the
+media_entity would in practice be always embedded in another struct. If
+that's not the case, I think Hans proposed a few good options for type enums
+telling the media_entity is not embedded in another struct.
+
+For what it's worth, my personal favourite is "NONE".
+
+> 
+> > I very strongly suspect that other subsystems will also embed this in their own
+> > internal structs. 
+> 
+> They will if they need.
+> 
+> > I actually wonder why it isn't embedded in struct dvb_device,
+> > but I have to admit that I didn't take a close look at that. The pads are embedded
+> > there, so it is somewhat odd that the entity isn't.
+> 
+> The only advantage of embedding instead of using a pointer is that
+> it would allow to use container_of() to get the struct. On the
+> other hand, there's one drawback: both container and embedded
+> structs will be destroyed at the same time. This can be a problem
+> if the embedded object needs to live longer than the container.
+> 
+> Also, the usage of container_of() doesn't work fine if the
+> container have embedded two objects of the same type.
+> 
+> In the specific case of DVB, let's imagine we would use the above
+> solution and add a MEDIA_ENTITY_TYPE_DVB_DEVICE.
+> 
+> If you look into struct dvb_device, you'll see that there are
+> actually two media_entities on it:
+> 
+> struct dvb_device {
+> ...
+>         struct media_entity *entity, *tsout_entity;
+> ...
+> };
+> 
+> If we had embedded them, just knowing that the container is
+> struct dvb_device won't help, as the offsets for "entity"
+> and for "tsout_entity" to get its container would be different.
+> 
+> OK, we could have added two types there, but all of these
+> would be just adding uneeded complexity and wound't be error
+> prone. Also, there's no need to use container_of(), as a pointer
+> to the dvb_device struct is always there at the DVB code.
+
+If you wanted to obtain the dvb_device here, you'd instead add another
+struct that embeds the struct media_entity. This struct would contain a
+pointer to struct dvb_device. Simple and efficient.
+
+> 
+> The same happens at ALSA code: so far, there's no need to go from a
+> media_entity to its container.
+> 
+> So, as I said before, the usage of container_of() and the need for an
+> object type is currently V4L2 specific, and it is due to the way
+> the v4l2 core and subdev framework was modeled. Don't expect or
+> force that all subsystems would do the same.
+
+What you do miss with using a pointer above is to find sub-system specific
+information related to the entity. It's a very common operation, if there is
+sub-system specific information related to an entity. I would say that if
+you don't, the driver creating the media device must be aware of a lot of
+the properties of the devices the media graph consists of, or use 
+alternative means to associate subsystem specific information to entities.
+Looping over a linked list, for instance, is bound to be less efficient.
+
+I don't see anything V4L2 specific here as such, even though no other
+sub-system would (yet) need the feature.
+
 -- 
-2.5.0
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
