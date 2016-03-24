@@ -1,68 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:39469 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753132AbcCHBEE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Mar 2016 20:04:04 -0500
-From: Simon Horman <horms+renesas@verge.net.au>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>,
-	Simon Horman <horms+renesas@verge.net.au>
-Subject: [PATCH v2] media: sh_mobile_ceu_camera: Remove dependency on SUPERH
-Date: Tue,  8 Mar 2016 10:03:58 +0900
-Message-Id: <1457399038-14573-1-git-send-email-horms+renesas@verge.net.au>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:33418 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755680AbcCXLYA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2016 07:24:00 -0400
+Received: by mail-wm0-f43.google.com with SMTP id l68so269902220wml.0
+        for <linux-media@vger.kernel.org>; Thu, 24 Mar 2016 04:23:59 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	hugues.fruchet@st.com, linux-media@vger.kernel.org
+Subject: [PATCH 2/3] [media] c8sectpfe: Demote print to dev_dbg
+Date: Thu, 24 Mar 2016 11:23:51 +0000
+Message-Id: <1458818632-25552-3-git-send-email-peter.griffin@linaro.org>
+In-Reply-To: <1458818632-25552-1-git-send-email-peter.griffin@linaro.org>
+References: <1458818632-25552-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A dependency on ARCH_SHMOBILE seems to be the best option for
-sh_mobile_ceu_camera:
-
-* For Super H based SoCs: sh_mobile_ceu is used on SH_AP325RXA, SH_ECOVEC,
-  SH_KFR2R09, SH_MIGOR, and SH_7724_SOLUTION_ENGINE which depend on
-  CPU_SUBTYPE_SH7722, CPU_SUBTYPE_SH7723, or CPU_SUBTYPE_SH7724 which all
-  select ARCH_SHMOBILE.
-
-* For ARM Based SoCs: Since the removal of legacy (non-multiplatform)
-  support this driver has not been used by any Renesas ARM based SoCs.
-  The Renesas ARM based SoCs currently select ARCH_SHMOBILE, however,
-  it is planned that this will no longer be the case.
-
-This is part of an ongoing process to migrate from ARCH_SHMOBILE to
-ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
-appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
-
-Thanks to Geert Uytterhoeven for analysis and portions of the
-change log text.
-
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
-
---
-Based on media-tree/next
-
-v2
-* Break out of a (slightly) larger patch
-* Re-work to drop SUPERH dependency rather than replacing
-  ARCH_SHMOBILE with ARCH_RENESAS.
+Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
 ---
- drivers/media/platform/soc_camera/Kconfig | 2 +-
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index 08db3b040bbe..83029a4854ae 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -45,7 +45,7 @@ config VIDEO_SH_MOBILE_CSI2
- config VIDEO_SH_MOBILE_CEU
- 	tristate "SuperH Mobile CEU Interface driver"
- 	depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA && HAVE_CLK
--	depends on ARCH_SHMOBILE || SUPERH || COMPILE_TEST
-+	depends on ARCH_SHMOBILE || COMPILE_TEST
- 	depends on HAS_DMA
- 	select VIDEOBUF2_DMA_CONTIG
- 	select SOC_CAMERA_SCALE_CROP
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+index 875d384..acd0767 100644
+--- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+@@ -585,7 +585,7 @@ static int configure_memdma_and_inputblock(struct c8sectpfei *fei,
+ 	writel(tsin->pid_buffer_busaddr,
+ 		fei->io + PIDF_BASE(tsin->tsin_id));
+ 
+-	dev_info(fei->dev, "chan=%d PIDF_BASE=0x%x pid_bus_addr=%pad\n",
++	dev_dbg(fei->dev, "chan=%d PIDF_BASE=0x%x pid_bus_addr=%pad\n",
+ 		tsin->tsin_id, readl(fei->io + PIDF_BASE(tsin->tsin_id)),
+ 		&tsin->pid_buffer_busaddr);
+ 
 -- 
-2.1.4
+1.9.1
 
