@@ -1,74 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:34829 "EHLO
-	mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934358AbcCKIEP (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39539 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751454AbcCXIPZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 03:04:15 -0500
-MIME-Version: 1.0
-In-Reply-To: <1457666737-10519-2-git-send-email-horms+renesas@verge.net.au>
-References: <1457666737-10519-1-git-send-email-horms+renesas@verge.net.au>
-	<1457666737-10519-2-git-send-email-horms+renesas@verge.net.au>
-Date: Fri, 11 Mar 2016 09:04:14 +0100
-Message-ID: <CAMuHMdUQnY-o220E0EwtiJrWUc1AyyVmp_Kudvt8zWmn+zdu-Q@mail.gmail.com>
-Subject: Re: [PATCH v3 1/2] media: soc_camera: rcar_vin: add R-Car Gen 2 and 3
- fallback compatibility strings
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Simon Horman <horms+renesas@verge.net.au>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Thu, 24 Mar 2016 04:15:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
 	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org,
-	Yoshihiro Kaneko <ykaneko0929@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+	linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
+Date: Thu, 24 Mar 2016 10:15:24 +0200
+Message-ID: <1531138.5SJC8n9jCF@avalon>
+In-Reply-To: <20160323142935.68d417be@recife.lan>
+References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <4580235.WOIJ26Ec16@avalon> <20160323142935.68d417be@recife.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 11, 2016 at 4:25 AM, Simon Horman
-<horms+renesas@verge.net.au> wrote:
-> From: Yoshihiro Kaneko <ykaneko0929@gmail.com>
->
-> Add fallback compatibility string for R-Car Gen 1 and 2.
->
-> In the case of Renesas R-Car hardware we know that there are generations of
-> SoCs, e.g. Gen 2 and 3. But beyond that its not clear what the relationship
-> between IP blocks might be. For example, I believe that r8a7790 is older
-> than r8a7791 but that doesn't imply that the latter is a descendant of the
-> former or vice versa.
->
-> We can, however, by examining the documentation and behaviour of the
-> hardware at run-time observe that the current driver implementation appears
-> to be compatible with the IP blocks on SoCs within a given generation.
->
-> For the above reasons and convenience when enabling new SoCs a
-> per-generation fallback compatibility string scheme being adopted for
-> drivers for Renesas SoCs.
->
-> Signed-off-by: Yoshihiro Kaneko <ykaneko0929@gmail.com>
-> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+On Wednesday 23 Mar 2016 14:29:35 Mauro Carvalho Chehab wrote:
+> Em Wed, 23 Mar 2016 17:41:44 +0200 Laurent Pinchart escreveu:
+> > On Wednesday 23 Mar 2016 12:17:30 Mauro Carvalho Chehab wrote:
+> >> Em Wed, 23 Mar 2016 15:57:10 +0100 Hans Verkuil escreveu:
+> >>> On 03/23/2016 03:45 PM, Laurent Pinchart wrote:
+> >>>> On Wednesday 23 Mar 2016 15:05:41 Hans Verkuil wrote:
+> >>>>> On 03/23/2016 11:35 AM, Mauro Carvalho Chehab wrote:
 
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+[snip]
 
-> --- a/drivers/media/platform/soc_camera/rcar_vin.c
-> +++ b/drivers/media/platform/soc_camera/rcar_vin.c
-> @@ -1845,6 +1845,8 @@ static const struct of_device_id rcar_vin_of_table[] = {
->         { .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
->         { .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
->         { .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
-> +       { .compatible = "renesas,rcar-gen3-vin", .data = (void *)RCAR_GEN3 },
-> +       { .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+> >>>>>> Also, this is V4L2 specific. Neither ALSA nor DVB need to use
+> >>>>>> container_of(). Actually, this won't even work there, as the entity
+> >>>>>> is stored as a pointer, and not as an embedded data.
+> >>>> 
+> >>>> That's sounds like a strange design decision at the very least. There
+> >>>> can be valid cases that require creation of bare entities, but I
+> >>>> don't think they should be that common.
+> >> 
+> >> This is where we disagree.
+> >> 
+> >> Basically the problem we have is that we have something like:
+> >> 
+> >> struct container {
+> >> 	struct object obj;
+> >> };
+> >> 
+> >> or
+> >> 
+> >> struct container {
+> >> 	struct object *obj;
+> >> };
+> >> 
+> >> 
+> >> The normal usage is the way both DVB and ALSA currently does: they
+> >> 
+> >> always go from the container to the obj:
+> >> 	obj = container.obj;
+> >> 
+> >> or
+> >> 
+> >> 	obj = container->obj;
+> >> 
+> >> Anyway, either embeeding or usin a pointer, for such usage, there's no
+> >> need for an "obj_type".
+> >> 
+> >> At some V4L2 drivers, however, it is needed to do something like:
+> >> 
+> >> if (obj_type == MEDIA_TYPE_FOO)
+> >> 	container_foo = container_of(obj, struct container_foo, obj);
+> >> 
+> >> if (obj_type == MEDIA_TYPE_BAR)
+> >> 	container_bar = container_of(obj, struct container_bar, obj);
+> >> 
+> >> Ok, certainly there are cases where this could be unavoidable, but it is
+> >> *ugly*.
+> >> 
+> >> The way DVB uses it is a way cleaner, as never needs to use
+> >> container_of(), as the container struct is always known. Also, there's
+> >> no need to embed the struct.
+> > 
+> > No, no, no and no. Looks like it's time for a bit of Object Oriented
+> > Programming 101.
+> 
+> I know what you're doing. I had my usual workload of programs
+> in c++ programming.
+> 
+> > Casting from a superclass (a.k.a. base class) type to a subclass type is a
+> > basic programming concept found in most languages that deal with objects.
+> > It allows creating collections of objects of different subclasses than
+> > all inherit from the same base class, handle them with generic code and
+> > still offer the ability for custom processing when needed.
+> > 
+> > C++ implements this concept with the dynamic_cast<> operator. As the
+> > kernel is written in plain C we use container_of() instead for the same
+> > purpose, and need explicit object types to perform RTTI.
+> 
+> I'm not arguing against the c++ theory, but, instead, about its
+> implementation.
+> 
+> On (almost?) all cases where we use container_of() in the Kernel, the
+> container type is already known. So, drivers just use container_of()
+> without any if/switch().
+> 
+> That's OK.
+> 
+> What's different in this usecase is that the driver that needs to
+> use container_of() doesn't know the type of the object that it
+> is needing to reference. So, it has things like[1]:
+> 
+> 	while (pad) {
+> 		if (!is_media_entity_v4l2_subdev(pad->entity))
+> 			break;
+> 
+> 		subdev = container_of(pad->entity, struct v4l2_subdev, entity)
+> 		entity = container_of(subdev, struct vsp1_entity, subdev);
+> ...
+> 	}
+> 
+> [1] I changed the code snippet a little bit to show the container_of()
+> that would be otherwise hidden by a function call.
+> 
+> This is needed only because the loop doesn't know if the pad->entity
+> may not be contained inside struct v4l2_subdev.
+> 
+> While the above *works*, it is, IMHO, ugly, as, if the type is not
+> properly set, it will cause an horrible crash.
+> 
+> I bet you won't find too many places with similar tests at the Kernel.
 
-Your patch is correct, but I would sort gen2 before gen3, though.
+I believe that the construct will be quite common at least in embedded device 
+drivers, and more generically in drivers that use the subdev userspace API, as 
+they have a need to go through a pipeline (and thus iterating over 
+media_entity instances) and process the entities depending on their type. One 
+particular example is pipeline validation code where formats on connected pads 
+must be matched, and how to retrieve that format differs between subdevs and 
+video nodes.
 
->         { },
+> On most places, what you'll find is just:
+> 
+> 	function xxx(struct foo)
+> 	{
+> 		struct bar = container_of(obj, foo, obj);
+> 
+> without any ifs.
+> 
+> Yet, while I don't like the if's before container_of() and I would
+> avoid doing that on my own code, I see why you need it, and I'm ok
+> with that.
 
-Gr{oetje,eeting}s,
+-- 
+Regards,
 
-                        Geert
+Laurent Pinchart
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
