@@ -1,76 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40677 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752782AbcCYKpP (ORCPT
+	with ESMTP id S1750797AbcCXX1w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 06:45:15 -0400
+	Thu, 24 Mar 2016 19:27:52 -0400
 From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
 Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 54/54] v4l: vsp1: Update WPF and LIF maximum sizes for Gen3
-Date: Fri, 25 Mar 2016 12:44:28 +0200
-Message-Id: <1458902668-1141-55-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH 02/51] v4l: subdev: Add pad config allocator and init
+Date: Fri, 25 Mar 2016 01:26:58 +0200
+Message-Id: <1458862067-19525-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The maximum image size supported by the WPF is 2048x2048 on Gen2 and
-8190x8190 on Gen3. Update the code accordingly, and fix the maximum LIF
-size for both Gen2 and Gen3.
+From: Laurent Pinchart <laurent.pinchart@linaro.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Add a new subdev operation to initialize a subdev pad config array, and
+a helper function to allocate and initialize the array. This can be used
+by bridge drivers to implement try format based on subdev pad
+operations.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
+Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/vsp1/vsp1_lif.c |  2 +-
- drivers/media/platform/vsp1/vsp1_wpf.c | 15 +++++++++++----
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/media/v4l2-core/v4l2-subdev.c | 31 ++++++++++++++++++++++++++++++-
+ include/media/v4l2-subdev.h           |  8 ++++++++
+ 2 files changed, 38 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index d1d52a25c15b..4275ec3d2043 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -21,7 +21,7 @@
- #include "vsp1_lif.h"
- 
- #define LIF_MIN_SIZE				2U
--#define LIF_MAX_SIZE				2048U
-+#define LIF_MAX_SIZE				8190U
- 
- /* -----------------------------------------------------------------------------
-  * Device Access
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index a88ed0fc69ac..a50624477d5f 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -21,8 +21,10 @@
- #include "vsp1_rwpf.h"
- #include "vsp1_video.h"
- 
--#define WPF_MAX_WIDTH				2048
--#define WPF_MAX_HEIGHT				2048
-+#define WPF_GEN2_MAX_WIDTH			2048U
-+#define WPF_GEN2_MAX_HEIGHT			2048U
-+#define WPF_GEN3_MAX_WIDTH			8190U
-+#define WPF_GEN3_MAX_HEIGHT			8190U
- 
- /* -----------------------------------------------------------------------------
-  * Device Access
-@@ -201,8 +203,13 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
- 	if (wpf == NULL)
- 		return ERR_PTR(-ENOMEM);
- 
--	wpf->max_width = WPF_MAX_WIDTH;
--	wpf->max_height = WPF_MAX_HEIGHT;
-+	if (vsp1->info->gen == 2) {
-+		wpf->max_width = WPF_GEN2_MAX_WIDTH;
-+		wpf->max_height = WPF_GEN2_MAX_HEIGHT;
-+	} else {
-+		wpf->max_width = WPF_GEN3_MAX_WIDTH;
-+		wpf->max_height = WPF_GEN3_MAX_HEIGHT;
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 0fa60801a428..d4007f8f58d1 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -35,7 +35,7 @@
+ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
++	fh->pad = v4l2_subdev_alloc_pad_config(sd);
+ 	if (fh->pad == NULL)
+ 		return -ENOMEM;
+ #endif
+@@ -569,6 +569,35 @@ int v4l2_subdev_link_validate(struct media_link *link)
+ 		sink, link, &source_fmt, &sink_fmt);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
++
++struct v4l2_subdev_pad_config *
++v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
++{
++	struct v4l2_subdev_pad_config *cfg;
++	int ret;
++
++	if (!sd->entity.num_pads)
++		return NULL;
++
++	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
++	if (!cfg)
++		return NULL;
++
++	ret = v4l2_subdev_call(sd, pad, init_cfg, cfg);
++	if (ret < 0 && ret != -ENOIOCTLCMD) {
++		kfree(cfg);
++		return NULL;
 +	}
++
++	return cfg;
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
++
++void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
++{
++	kfree(cfg);
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_free_pad_config);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
  
- 	wpf->entity.ops = &wpf_entity_ops;
- 	wpf->entity.type = VSP1_ENTITY_WPF;
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 11e2dfec0198..32fc7a4beb5e 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -572,6 +572,7 @@ struct v4l2_subdev_pad_config {
+ /**
+  * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
+  *
++ * @init_cfg: initialize the pad config to default values
+  * @enum_mbus_code: callback for VIDIOC_SUBDEV_ENUM_MBUS_CODE ioctl handler
+  *		    code.
+  * @enum_frame_size: callback for VIDIOC_SUBDEV_ENUM_FRAME_SIZE ioctl handler
+@@ -607,6 +608,8 @@ struct v4l2_subdev_pad_config {
+  *                  may be adjusted by the subdev driver to device capabilities.
+  */
+ struct v4l2_subdev_pad_ops {
++	int (*init_cfg)(struct v4l2_subdev *sd,
++			struct v4l2_subdev_pad_config *cfg);
+ 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code);
+@@ -801,7 +804,12 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+ 				      struct v4l2_subdev_format *source_fmt,
+ 				      struct v4l2_subdev_format *sink_fmt);
+ int v4l2_subdev_link_validate(struct media_link *link);
++
++struct v4l2_subdev_pad_config *
++v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
++void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
++
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
 -- 
 2.7.3
 
