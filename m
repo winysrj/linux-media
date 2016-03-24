@@ -1,740 +1,355 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:57321 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756697AbcCaSm7 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39545 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751933AbcCXIYo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2016 14:42:59 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Thu, 24 Mar 2016 04:24:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Jaroslav Kysela <perex@perex.cz>,
 	Takashi Iwai <tiwai@suse.com>,
 	Shuah Khan <shuahkh@osg.samsung.com>,
-	Ricard Wanderlof <ricard.wanderlof@axis.com>,
-	Julian Scheel <julian@jusst.de>,
-	Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Takamichi Horikawa <takamichiho@gmail.com>,
-	=?UTF-8?q?Dominic=20Sacr=C3=A9?= <dominic.sacre@gmx.de>,
-	Geliang Tang <geliangtang@163.com>,
-	=?UTF-8?q?Johan=20Rast=C3=A9n?= <johan@oljud.se>,
-	alsa-devel@alsa-project.org
-Subject: [PATCH 1/2] [media] Revert "[media] sound/usb: Use Media Controller API to share media resources"
-Date: Thu, 31 Mar 2016 15:41:52 -0300
-Message-Id: <c89178f57a19300b2056f58167e183e966a4836d.1459449687.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Rafael =?ISO-8859-1?Q?Louren=E7o?= de Lima Chehab
+	<chehabrafael@gmail.com>, alsa-devel@alsa-project.org
+Subject: Re: [PATCH 4/4] [meida] media-device: dynamically allocate struct media_devnode
+Date: Thu, 24 Mar 2016 10:24:44 +0200
+Message-ID: <4033448.cTfoZapJ5n@avalon>
+In-Reply-To: <0e1737bc1fd4fb4c114cd1f4823767a35b5c5b77.1458760750.git.mchehab@osg.samsung.com>
+References: <cover.1458760750.git.mchehab@osg.samsung.com> <0e1737bc1fd4fb4c114cd1f4823767a35b5c5b77.1458760750.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Unfortunately, this patch caused several regressions at au0828 and
-snd-usb-audio, like this one:
-	https://bugzilla.kernel.org/show_bug.cgi?id=115561
+On Wednesday 23 Mar 2016 16:27:46 Mauro Carvalho Chehab wrote:
+> struct media_devnode is currently embedded at struct media_device.
+> 
+> While this works fine during normal usage, it leads to a race
+> condition during devnode unregister. the problem is that drivers
+> assume that, after calling media_device_unregister(), the struct
+> that contains media_device can be freed. This is not true, as it
+> can't be freed until userspace closes all opened /dev/media devnodes.
+> 
+> In other words, if the media devnode is still open, and media_device
+> gets freed, any call to an ioctl will make the core to try to access
+> struct media_device, with will cause an use-after-free and even GPF.
+> 
+> Fix this by dynamically allocating the struct media_devnode and only
+> freeing it when it is safe.
 
-It also showed several troubles at the MC core that handles pretty
-poorly the memory protections and data lifetime management.
+We have the exact same issue with video_device, and there we've solved the 
+problem by passing the release call all the way up to the driver. I'm open to 
+discuss what the best solution is, but I don't think we should special-case 
+media_device unless there are compelling arguments regarding why different 
+solutions are needed for media_device and video_device.
 
-So, better to revert it and fix the core before reapplying this
-change.
+I also suspect we will need to consider dynamic pipeline management sooner 
+than later to solve the problem properly if we don't want to create code today 
+that will need to be completely reworked tomorrow.
 
-This reverts commit aebb2b89bff0 ("[media] sound/usb: Use Media
-Controller API to share media resources")'
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/media-device.c           | 38 +++++++++++++++++++------------
+>  drivers/media/media-devnode.c          |  7 ++++++-
+>  drivers/media/usb/au0828/au0828-core.c |  4 ++--
+>  drivers/media/usb/uvc/uvc_driver.c     |  2 +-
+>  include/media/media-device.h           |  5 +----
+>  include/media/media-devnode.h          | 15 ++++++++++++--
+>  sound/usb/media.c                      |  8 +++----
+>  7 files changed, 52 insertions(+), 27 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 10cc4766de10..d10dc615e7a8 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -428,7 +428,7 @@ static long media_device_ioctl(struct file *filp,
+> unsigned int cmd, unsigned long arg)
+>  {
+>  	struct media_devnode *devnode = media_devnode_data(filp);
+> -	struct media_device *dev = to_media_device(devnode);
+> +	struct media_device *dev = devnode->media_dev;
+>  	long ret;
+> 
+>  	switch (cmd) {
+> @@ -504,7 +504,7 @@ static long media_device_compat_ioctl(struct file *filp,
+> unsigned int cmd, unsigned long arg)
+>  {
+>  	struct media_devnode *devnode = media_devnode_data(filp);
+> -	struct media_device *dev = to_media_device(devnode);
+> +	struct media_device *dev = devnode->media_dev;
+>  	long ret;
+> 
+>  	switch (cmd) {
+> @@ -540,7 +540,8 @@ static const struct media_file_operations
+> media_device_fops = { static ssize_t show_model(struct device *cd,
+>  			  struct device_attribute *attr, char *buf)
+>  {
+> -	struct media_device *mdev = to_media_device(to_media_devnode(cd));
+> +	struct media_devnode *devnode = to_media_devnode(cd);
+> +	struct media_device *mdev = devnode->media_dev;
+> 
+>  	return sprintf(buf, "%.*s\n", (int)sizeof(mdev->model), mdev->model);
+>  }
+> @@ -718,25 +719,36 @@ EXPORT_SYMBOL_GPL(media_device_cleanup);
+>  int __must_check __media_device_register(struct media_device *mdev,
+>  					 struct module *owner)
+>  {
+> +	struct media_devnode *devnode;
+>  	int ret;
+> 
+>  	mutex_lock(&mdev->graph_mutex);
+> 
+> +	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
+> +	if (!devnode)
+> +		return -ENOMEM;
+> +
+>  	/* Register the device node. */
+> -	mdev->devnode.fops = &media_device_fops;
+> -	mdev->devnode.parent = mdev->dev;
+> -	mdev->devnode.release = media_device_release;
+> +	mdev->devnode = devnode;
+> +	devnode->fops = &media_device_fops;
+> +	devnode->parent = mdev->dev;
+> +	devnode->release = media_device_release;
+> 
+>  	/* Set version 0 to indicate user-space that the graph is static */
+>  	mdev->topology_version = 0;
+> 
+> -	ret = media_devnode_register(&mdev->devnode, owner);
+> -	if (ret < 0)
+> +	ret = media_devnode_register(mdev, devnode, owner);
+> +	if (ret < 0) {
+> +		mdev->devnode = NULL;
+> +		kfree(devnode);
+>  		goto err;
+> +	}
+> 
+> -	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
+> +	ret = device_create_file(&devnode->dev, &dev_attr_model);
+>  	if (ret < 0) {
+> -		media_devnode_unregister(&mdev->devnode);
+> +		mdev->devnode = NULL;
+> +		media_devnode_unregister(devnode);
+> +		kfree(devnode);
+>  		goto err;
+>  	}
+> 
+> @@ -800,9 +812,9 @@ static void __media_device_unregister(struct
+> media_device *mdev) }
+> 
+>  	/* Check if mdev devnode was registered */
+> -	if (media_devnode_is_registered(&mdev->devnode)) {
+> -		device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> -		media_devnode_unregister(&mdev->devnode);
+> +	if (media_devnode_is_registered(mdev->devnode)) {
+> +		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+> +		media_devnode_unregister(mdev->devnode);
+>  	}
+> 
+>  	dev_dbg(mdev->dev, "Media device unregistered\n");
+> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+> index ae2bc0b7a368..db47063d8801 100644
+> --- a/drivers/media/media-devnode.c
+> +++ b/drivers/media/media-devnode.c
+> @@ -44,6 +44,7 @@
+>  #include <linux/uaccess.h>
+> 
+>  #include <media/media-devnode.h>
+> +#include <media/media-device.h>
+> 
+>  #define MEDIA_NUM_DEVICES	256
+>  #define MEDIA_NAME		"media"
+> @@ -74,6 +75,8 @@ static void media_devnode_release(struct device *cd)
+>  	/* Release media_devnode and perform other cleanups as needed. */
+>  	if (devnode->release)
+>  		devnode->release(devnode);
+> +
+> +	kfree(devnode);
+>  }
+> 
+>  static struct bus_type media_bus_type = {
+> @@ -218,7 +221,8 @@ static const struct file_operations media_devnode_fops =
+> { .llseek = no_llseek,
+>  };
+> 
+> -int __must_check media_devnode_register(struct media_devnode *devnode,
+> +int __must_check media_devnode_register(struct media_device *mdev,
+> +					struct media_devnode *devnode,
+>  					struct module *owner)
+>  {
+>  	int minor;
+> @@ -237,6 +241,7 @@ int __must_check media_devnode_register(struct
+> media_devnode *devnode, mutex_unlock(&media_devnode_lock);
+> 
+>  	devnode->minor = minor;
+> +	devnode->media_dev = mdev;
+> 
+>  	/* Part 2: Initialize and register the character device */
+>  	cdev_init(&devnode->cdev, &media_devnode_fops);
+> diff --git a/drivers/media/usb/au0828/au0828-core.c
+> b/drivers/media/usb/au0828/au0828-core.c index 85c13ca5178f..598a85388d77
+> 100644
+> --- a/drivers/media/usb/au0828/au0828-core.c
+> +++ b/drivers/media/usb/au0828/au0828-core.c
+> @@ -142,7 +142,7 @@ static void au0828_unregister_media_device(struct
+> au0828_dev *dev) struct media_device *mdev = dev->media_dev;
+>  	struct media_entity_notify *notify, *nextp;
+> 
+> -	if (!mdev || !media_devnode_is_registered(&mdev->devnode))
+> +	if (!mdev || !media_devnode_is_registered(mdev->devnode))
+>  		return;
+> 
+>  	/* Remove au0828 entity_notify callbacks */
+> @@ -480,7 +480,7 @@ static int au0828_media_device_register(struct
+> au0828_dev *dev, if (!dev->media_dev)
+>  		return 0;
+> 
+> -	if (!media_devnode_is_registered(&dev->media_dev->devnode)) {
+> +	if (!media_devnode_is_registered(dev->media_dev->devnode)) {
+> 
+>  		/* register media device */
+>  		ret = media_device_register(dev->media_dev);
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index 451e84e962e2..302e284a95eb
+> 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -1674,7 +1674,7 @@ static void uvc_delete(struct uvc_device *dev)
+>  	if (dev->vdev.dev)
+>  		v4l2_device_unregister(&dev->vdev);
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+> -	if (media_devnode_is_registered(&dev->mdev.devnode))
+> +	if (media_devnode_is_registered(dev->mdev.devnode))
+>  		media_device_unregister(&dev->mdev);
+>  	media_device_cleanup(&dev->mdev);
+>  #endif
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index e59772ed8494..b04cfa907350 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -347,7 +347,7 @@ struct media_entity_notify {
+>  struct media_device {
+>  	/* dev->driver_data points to this struct. */
+>  	struct device *dev;
+> -	struct media_devnode devnode;
+> +	struct media_devnode *devnode;
+> 
+>  	char model[32];
+>  	char driver_name[32];
+> @@ -403,9 +403,6 @@ struct usb_device;
+>  #define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
+>  #define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
+> 
+> -/* media_devnode to media_device */
+> -#define to_media_device(node) container_of(node, struct media_device,
+> devnode) -
+>  /**
+>   * media_entity_enum_init - Initialise an entity enumeration
+>   *
+> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+> index e1d5af077adb..cc2b3155593c 100644
+> --- a/include/media/media-devnode.h
+> +++ b/include/media/media-devnode.h
+> @@ -33,6 +33,8 @@
+>  #include <linux/device.h>
+>  #include <linux/cdev.h>
+> 
+> +struct media_device;
+> +
+>  /*
+>   * Flag to mark the media_devnode struct as registered. Drivers must not
+> touch * this flag directly, it will be set and cleared by
+> media_devnode_register and @@ -81,6 +83,8 @@ struct media_file_operations {
+>   * before registering the node.
+>   */
+>  struct media_devnode {
+> +	struct media_device *media_dev;
+> +
+>  	/* device ops */
+>  	const struct media_file_operations *fops;
+> 
+> @@ -103,7 +107,8 @@ struct media_devnode {
+>  /**
+>   * media_devnode_register - register a media device node
+>   *
+> - * @devnode: media device node structure we want to register
+> + * @media_dev: struct media_device we want to register a device node
+> + * @devnode: the device node to unregister
+>   * @owner: should be filled with %THIS_MODULE
+>   *
+>   * The registration code assigns minor numbers and registers the new device
+> node @@ -116,7 +121,8 @@ struct media_devnode {
+>   * the media_devnode structure is *not* called, so the caller is
+> responsible for * freeing any data.
+>   */
+> -int __must_check media_devnode_register(struct media_devnode *devnode,
+> +int __must_check media_devnode_register(struct media_device *mdev,
+> +					struct media_devnode *devnode,
+>  					struct module *owner);
+> 
+>  /**
+> @@ -146,9 +152,14 @@ static inline struct media_devnode
+> *media_devnode_data(struct file *filp) *	false otherwise.
+>   *
+>   * @devnode: pointer to struct &media_devnode.
+> + *
+> + * Note: If mdev is NULL, it also returns false.
+>   */
+>  static inline int media_devnode_is_registered(struct media_devnode
+> *devnode) {
+> +	if (!devnode)
+> +		return false;
+> +
+>  	return test_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+>  }
+> 
+> diff --git a/sound/usb/media.c b/sound/usb/media.c
+> index 6db4878045e5..8fed0adec9e1 100644
+> --- a/sound/usb/media.c
+> +++ b/sound/usb/media.c
+> @@ -136,7 +136,7 @@ void media_snd_stream_delete(struct snd_usb_substream
+> *subs) struct media_device *mdev;
+> 
+>  		mdev = mctl->media_dev;
+> -		if (mdev && media_devnode_is_registered(&mdev->devnode)) {
+> +		if (mdev && media_devnode_is_registered(mdev->devnode)) {
+>  			media_devnode_remove(mctl->intf_devnode);
+>  			media_device_unregister_entity(&mctl->media_entity);
+>  			media_entity_cleanup(&mctl->media_entity);
+> @@ -241,14 +241,14 @@ static void media_snd_mixer_delete(struct
+> snd_usb_audio *chip) if (!mixer->media_mixer_ctl)
+>  			continue;
+> 
+> -		if (media_devnode_is_registered(&mdev->devnode)) {
+> +		if (media_devnode_is_registered(mdev->devnode)) {
+>  			media_device_unregister_entity(&mctl->media_entity);
+>  			media_entity_cleanup(&mctl->media_entity);
+>  		}
+>  		kfree(mctl);
+>  		mixer->media_mixer_ctl = NULL;
+>  	}
+> -	if (media_devnode_is_registered(&mdev->devnode))
+> +	if (media_devnode_is_registered(mdev->devnode))
+>  		media_devnode_remove(chip->ctl_intf_media_devnode);
+>  	chip->ctl_intf_media_devnode = NULL;
+>  }
+> @@ -268,7 +268,7 @@ int media_snd_device_create(struct snd_usb_audio *chip,
+>  	if (!mdev->dev)
+>  		media_device_usb_init(mdev, usbdev, NULL);
+> 
+> -	if (!media_devnode_is_registered(&mdev->devnode)) {
+> +	if (!media_devnode_is_registered(mdev->devnode)) {
+>  		ret = media_device_register(mdev);
+>  		if (ret) {
+>  			dev_err(&usbdev->dev,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- sound/usb/Kconfig        |   4 -
- sound/usb/Makefile       |   2 -
- sound/usb/card.c         |  14 ---
- sound/usb/card.h         |   3 -
- sound/usb/media.c        | 318 -----------------------------------------------
- sound/usb/media.h        |  72 -----------
- sound/usb/mixer.h        |   3 -
- sound/usb/pcm.c          |  28 +----
- sound/usb/quirks-table.h |   1 -
- sound/usb/stream.c       |   2 -
- sound/usb/usbaudio.h     |   6 -
- 11 files changed, 5 insertions(+), 448 deletions(-)
- delete mode 100644 sound/usb/media.c
- delete mode 100644 sound/usb/media.h
-
-diff --git a/sound/usb/Kconfig b/sound/usb/Kconfig
-index d14bf411515b..a452ad7cec40 100644
---- a/sound/usb/Kconfig
-+++ b/sound/usb/Kconfig
-@@ -15,7 +15,6 @@ config SND_USB_AUDIO
- 	select SND_RAWMIDI
- 	select SND_PCM
- 	select BITREVERSE
--	select SND_USB_AUDIO_USE_MEDIA_CONTROLLER if MEDIA_CONTROLLER && (MEDIA_SUPPORT=y || MEDIA_SUPPORT=SND_USB_AUDIO)
- 	help
- 	  Say Y here to include support for USB audio and USB MIDI
- 	  devices.
-@@ -23,9 +22,6 @@ config SND_USB_AUDIO
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called snd-usb-audio.
- 
--config SND_USB_AUDIO_USE_MEDIA_CONTROLLER
--	bool
--
- config SND_USB_UA101
- 	tristate "Edirol UA-101/UA-1000 driver"
- 	select SND_PCM
-diff --git a/sound/usb/Makefile b/sound/usb/Makefile
-index 8dca3c407f5a..2d2d122b069f 100644
---- a/sound/usb/Makefile
-+++ b/sound/usb/Makefile
-@@ -15,8 +15,6 @@ snd-usb-audio-objs := 	card.o \
- 			quirks.o \
- 			stream.o
- 
--snd-usb-audio-$(CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER) += media.o
--
- snd-usbmidi-lib-objs := midi.o
- 
- # Toplevel Module Dependency
-diff --git a/sound/usb/card.c b/sound/usb/card.c
-index 63244bbba8c7..3fc63583a537 100644
---- a/sound/usb/card.c
-+++ b/sound/usb/card.c
-@@ -66,7 +66,6 @@
- #include "format.h"
- #include "power.h"
- #include "stream.h"
--#include "media.h"
- 
- MODULE_AUTHOR("Takashi Iwai <tiwai@suse.de>");
- MODULE_DESCRIPTION("USB Audio");
-@@ -612,11 +611,6 @@ static int usb_audio_probe(struct usb_interface *intf,
- 	if (err < 0)
- 		goto __error;
- 
--	if (quirk->media_device) {
--		/* don't want to fail when media_snd_device_create() fails */
--		media_snd_device_create(chip, intf);
--	}
--
- 	usb_chip[chip->index] = chip;
- 	chip->num_interfaces++;
- 	usb_set_intfdata(intf, chip);
-@@ -673,14 +667,6 @@ static void usb_audio_disconnect(struct usb_interface *intf)
- 		list_for_each(p, &chip->midi_list) {
- 			snd_usbmidi_disconnect(p);
- 		}
--		/*
--		 * Nice to check quirk && quirk->media_device
--		 * need some special handlings. Doesn't look like
--		 * we have access to quirk here
--		 * Acceses mixer_list
--		*/
--		media_snd_device_delete(chip);
--
- 		/* release mixer resources */
- 		list_for_each_entry(mixer, &chip->mixer_list, list) {
- 			snd_usb_mixer_disconnect(mixer);
-diff --git a/sound/usb/card.h b/sound/usb/card.h
-index 34a0898e2238..71778ca4b26a 100644
---- a/sound/usb/card.h
-+++ b/sound/usb/card.h
-@@ -105,8 +105,6 @@ struct snd_usb_endpoint {
- 	struct list_head list;
- };
- 
--struct media_ctl;
--
- struct snd_usb_substream {
- 	struct snd_usb_stream *stream;
- 	struct usb_device *dev;
-@@ -158,7 +156,6 @@ struct snd_usb_substream {
- 	} dsd_dop;
- 
- 	bool trigger_tstamp_pending_update; /* trigger timestamp being updated from initial estimate */
--	struct media_ctl *media_ctl;
- };
- 
- struct snd_usb_stream {
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-deleted file mode 100644
-index 93a50d01490c..000000000000
---- a/sound/usb/media.c
-+++ /dev/null
-@@ -1,318 +0,0 @@
--/*
-- * media.c - Media Controller specific ALSA driver code
-- *
-- * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-- * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-- *
-- * This file is released under the GPLv2.
-- */
--
--/*
-- * This file adds Media Controller support to ALSA driver
-- * to use the Media Controller API to share tuner with DVB
-- * and V4L2 drivers that control media device. Media device
-- * is created based on existing quirks framework. Using this
-- * approach, the media controller API usage can be added for
-- * a specific device.
--*/
--
--#include <linux/init.h>
--#include <linux/list.h>
--#include <linux/mutex.h>
--#include <linux/slab.h>
--#include <linux/usb.h>
--
--#include <sound/pcm.h>
--#include <sound/core.h>
--
--#include "usbaudio.h"
--#include "card.h"
--#include "mixer.h"
--#include "media.h"
--
--static int media_snd_enable_source(struct media_ctl *mctl)
--{
--	if (mctl && mctl->media_dev->enable_source)
--		return mctl->media_dev->enable_source(&mctl->media_entity,
--						      &mctl->media_pipe);
--	return 0;
--}
--
--static void media_snd_disable_source(struct media_ctl *mctl)
--{
--	if (mctl && mctl->media_dev->disable_source)
--		mctl->media_dev->disable_source(&mctl->media_entity);
--}
--
--int media_snd_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
--			int stream)
--{
--	struct media_device *mdev;
--	struct media_ctl *mctl;
--	struct device *pcm_dev = &pcm->streams[stream].dev;
--	u32 intf_type;
--	int ret = 0;
--	u16 mixer_pad;
--	struct media_entity *entity;
--
--	mdev = subs->stream->chip->media_dev;
--	if (!mdev)
--		return -ENODEV;
--
--	if (subs->media_ctl)
--		return 0;
--
--	/* allocate media_ctl */
--	mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
--	if (!mctl)
--		return -ENOMEM;
--
--	mctl->media_dev = mdev;
--	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
--		intf_type = MEDIA_INTF_T_ALSA_PCM_PLAYBACK;
--		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_PLAYBACK;
--		mctl->media_pad.flags = MEDIA_PAD_FL_SOURCE;
--		mixer_pad = 1;
--	} else {
--		intf_type = MEDIA_INTF_T_ALSA_PCM_CAPTURE;
--		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_CAPTURE;
--		mctl->media_pad.flags = MEDIA_PAD_FL_SINK;
--		mixer_pad = 2;
--	}
--	mctl->media_entity.name = pcm->name;
--	media_entity_pads_init(&mctl->media_entity, 1, &mctl->media_pad);
--	ret =  media_device_register_entity(mctl->media_dev,
--					    &mctl->media_entity);
--	if (ret)
--		goto free_mctl;
--
--	mctl->intf_devnode = media_devnode_create(mdev, intf_type, 0,
--						  MAJOR(pcm_dev->devt),
--						  MINOR(pcm_dev->devt));
--	if (!mctl->intf_devnode) {
--		ret = -ENOMEM;
--		goto unregister_entity;
--	}
--	mctl->intf_link = media_create_intf_link(&mctl->media_entity,
--						 &mctl->intf_devnode->intf,
--						 MEDIA_LNK_FL_ENABLED);
--	if (!mctl->intf_link) {
--		ret = -ENOMEM;
--		goto devnode_remove;
--	}
--
--	/* create link between mixer and audio */
--	media_device_for_each_entity(entity, mdev) {
--		switch (entity->function) {
--		case MEDIA_ENT_F_AUDIO_MIXER:
--			ret = media_create_pad_link(entity, mixer_pad,
--						    &mctl->media_entity, 0,
--						    MEDIA_LNK_FL_ENABLED);
--			if (ret)
--				goto remove_intf_link;
--			break;
--		}
--	}
--
--	subs->media_ctl = mctl;
--	return 0;
--
--remove_intf_link:
--	media_remove_intf_link(mctl->intf_link);
--devnode_remove:
--	media_devnode_remove(mctl->intf_devnode);
--unregister_entity:
--	media_device_unregister_entity(&mctl->media_entity);
--free_mctl:
--	kfree(mctl);
--	return ret;
--}
--
--void media_snd_stream_delete(struct snd_usb_substream *subs)
--{
--	struct media_ctl *mctl = subs->media_ctl;
--
--	if (mctl && mctl->media_dev) {
--		struct media_device *mdev;
--
--		mdev = subs->stream->chip->media_dev;
--		if (mdev && media_devnode_is_registered(&mdev->devnode)) {
--			media_devnode_remove(mctl->intf_devnode);
--			media_device_unregister_entity(&mctl->media_entity);
--			media_entity_cleanup(&mctl->media_entity);
--		}
--		kfree(mctl);
--		subs->media_ctl = NULL;
--	}
--}
--
--int media_snd_start_pipeline(struct snd_usb_substream *subs)
--{
--	struct media_ctl *mctl = subs->media_ctl;
--
--	if (mctl)
--		return media_snd_enable_source(mctl);
--	return 0;
--}
--
--void media_snd_stop_pipeline(struct snd_usb_substream *subs)
--{
--	struct media_ctl *mctl = subs->media_ctl;
--
--	if (mctl)
--		media_snd_disable_source(mctl);
--}
--
--int media_snd_mixer_init(struct snd_usb_audio *chip)
--{
--	struct device *ctl_dev = &chip->card->ctl_dev;
--	struct media_intf_devnode *ctl_intf;
--	struct usb_mixer_interface *mixer;
--	struct media_device *mdev = chip->media_dev;
--	struct media_mixer_ctl *mctl;
--	u32 intf_type = MEDIA_INTF_T_ALSA_CONTROL;
--	int ret;
--
--	if (!mdev)
--		return -ENODEV;
--
--	ctl_intf = chip->ctl_intf_media_devnode;
--	if (!ctl_intf) {
--		ctl_intf = media_devnode_create(mdev, intf_type, 0,
--						MAJOR(ctl_dev->devt),
--						MINOR(ctl_dev->devt));
--		if (!ctl_intf)
--			return -ENOMEM;
--		chip->ctl_intf_media_devnode = ctl_intf;
--	}
--
--	list_for_each_entry(mixer, &chip->mixer_list, list) {
--
--		if (mixer->media_mixer_ctl)
--			continue;
--
--		/* allocate media_mixer_ctl */
--		mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
--		if (!mctl)
--			return -ENOMEM;
--
--		mctl->media_dev = mdev;
--		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_MIXER;
--		mctl->media_entity.name = chip->card->mixername;
--		mctl->media_pad[0].flags = MEDIA_PAD_FL_SINK;
--		mctl->media_pad[1].flags = MEDIA_PAD_FL_SOURCE;
--		mctl->media_pad[2].flags = MEDIA_PAD_FL_SOURCE;
--		media_entity_pads_init(&mctl->media_entity, MEDIA_MIXER_PAD_MAX,
--				  mctl->media_pad);
--		ret =  media_device_register_entity(mctl->media_dev,
--						    &mctl->media_entity);
--		if (ret) {
--			kfree(mctl);
--			return ret;
--		}
--
--		mctl->intf_link = media_create_intf_link(&mctl->media_entity,
--							 &ctl_intf->intf,
--							 MEDIA_LNK_FL_ENABLED);
--		if (!mctl->intf_link) {
--			media_device_unregister_entity(&mctl->media_entity);
--			media_entity_cleanup(&mctl->media_entity);
--			kfree(mctl);
--			return -ENOMEM;
--		}
--		mctl->intf_devnode = ctl_intf;
--		mixer->media_mixer_ctl = mctl;
--	}
--	return 0;
--}
--
--static void media_snd_mixer_delete(struct snd_usb_audio *chip)
--{
--	struct usb_mixer_interface *mixer;
--	struct media_device *mdev = chip->media_dev;
--
--	if (!mdev)
--		return;
--
--	list_for_each_entry(mixer, &chip->mixer_list, list) {
--		struct media_mixer_ctl *mctl;
--
--		mctl = mixer->media_mixer_ctl;
--		if (!mixer->media_mixer_ctl)
--			continue;
--
--		if (media_devnode_is_registered(&mdev->devnode)) {
--			media_device_unregister_entity(&mctl->media_entity);
--			media_entity_cleanup(&mctl->media_entity);
--		}
--		kfree(mctl);
--		mixer->media_mixer_ctl = NULL;
--	}
--	if (media_devnode_is_registered(&mdev->devnode))
--		media_devnode_remove(chip->ctl_intf_media_devnode);
--	chip->ctl_intf_media_devnode = NULL;
--}
--
--int media_snd_device_create(struct snd_usb_audio *chip,
--			struct usb_interface *iface)
--{
--	struct media_device *mdev;
--	struct usb_device *usbdev = interface_to_usbdev(iface);
--	int ret;
--
--	mdev = media_device_get_devres(&usbdev->dev);
--	if (!mdev)
--		return -ENOMEM;
--	if (!mdev->dev) {
--		/* register media device */
--		mdev->dev = &usbdev->dev;
--		if (usbdev->product)
--			strlcpy(mdev->model, usbdev->product,
--				sizeof(mdev->model));
--		if (usbdev->serial)
--			strlcpy(mdev->serial, usbdev->serial,
--				sizeof(mdev->serial));
--		strcpy(mdev->bus_info, usbdev->devpath);
--		mdev->hw_revision = le16_to_cpu(usbdev->descriptor.bcdDevice);
--		media_device_init(mdev);
--	}
--	if (!media_devnode_is_registered(&mdev->devnode)) {
--		ret = media_device_register(mdev);
--		if (ret) {
--			dev_err(&usbdev->dev,
--				"Couldn't register media device. Error: %d\n",
--				ret);
--			return ret;
--		}
--	}
--
--	/* save media device - avoid lookups */
--	chip->media_dev = mdev;
--
--	/* Create media entities for mixer and control dev */
--	ret = media_snd_mixer_init(chip);
--	if (ret) {
--		dev_err(&usbdev->dev,
--			"Couldn't create media mixer entities. Error: %d\n",
--			ret);
--
--		/* clear saved media_dev */
--		chip->media_dev = NULL;
--
--		return ret;
--	}
--	return 0;
--}
--
--void media_snd_device_delete(struct snd_usb_audio *chip)
--{
--	struct media_device *mdev = chip->media_dev;
--
--	media_snd_mixer_delete(chip);
--
--	if (mdev) {
--		if (media_devnode_is_registered(&mdev->devnode))
--			media_device_unregister(mdev);
--		chip->media_dev = NULL;
--	}
--}
-diff --git a/sound/usb/media.h b/sound/usb/media.h
-deleted file mode 100644
-index 1dcdcdc5f7aa..000000000000
---- a/sound/usb/media.h
-+++ /dev/null
-@@ -1,72 +0,0 @@
--/*
-- * media.h - Media Controller specific ALSA driver code
-- *
-- * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-- * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-- *
-- * This file is released under the GPLv2.
-- */
--
--/*
-- * This file adds Media Controller support to ALSA driver
-- * to use the Media Controller API to share tuner with DVB
-- * and V4L2 drivers that control media device. Media device
-- * is created based on existing quirks framework. Using this
-- * approach, the media controller API usage can be added for
-- * a specific device.
--*/
--#ifndef __MEDIA_H
--
--#ifdef CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER
--
--#include <media/media-device.h>
--#include <media/media-entity.h>
--#include <sound/asound.h>
--
--struct media_ctl {
--	struct media_device *media_dev;
--	struct media_entity media_entity;
--	struct media_intf_devnode *intf_devnode;
--	struct media_link *intf_link;
--	struct media_pad media_pad;
--	struct media_pipeline media_pipe;
--};
--
--/*
-- * One source pad each for SNDRV_PCM_STREAM_CAPTURE and
-- * SNDRV_PCM_STREAM_PLAYBACK. One for sink pad to link
-- * to AUDIO Source
--*/
--#define MEDIA_MIXER_PAD_MAX    (SNDRV_PCM_STREAM_LAST + 2)
--
--struct media_mixer_ctl {
--	struct media_device *media_dev;
--	struct media_entity media_entity;
--	struct media_intf_devnode *intf_devnode;
--	struct media_link *intf_link;
--	struct media_pad media_pad[MEDIA_MIXER_PAD_MAX];
--	struct media_pipeline media_pipe;
--};
--
--int media_snd_device_create(struct snd_usb_audio *chip,
--			    struct usb_interface *iface);
--void media_snd_device_delete(struct snd_usb_audio *chip);
--int media_snd_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
--			  int stream);
--void media_snd_stream_delete(struct snd_usb_substream *subs);
--int media_snd_start_pipeline(struct snd_usb_substream *subs);
--void media_snd_stop_pipeline(struct snd_usb_substream *subs);
--#else
--static inline int media_snd_device_create(struct snd_usb_audio *chip,
--					  struct usb_interface *iface)
--						{ return 0; }
--static inline void media_snd_device_delete(struct snd_usb_audio *chip) { }
--static inline int media_snd_stream_init(struct snd_usb_substream *subs,
--					struct snd_pcm *pcm, int stream)
--						{ return 0; }
--static inline void media_snd_stream_delete(struct snd_usb_substream *subs) { }
--static inline int media_snd_start_pipeline(struct snd_usb_substream *subs)
--					{ return 0; }
--static inline void media_snd_stop_pipeline(struct snd_usb_substream *subs) { }
--#endif
--#endif /* __MEDIA_H */
-diff --git a/sound/usb/mixer.h b/sound/usb/mixer.h
-index f3789446ab9c..3417ef347e40 100644
---- a/sound/usb/mixer.h
-+++ b/sound/usb/mixer.h
-@@ -3,8 +3,6 @@
- 
- #include <sound/info.h>
- 
--struct media_mixer_ctl;
--
- struct usb_mixer_interface {
- 	struct snd_usb_audio *chip;
- 	struct usb_host_interface *hostif;
-@@ -24,7 +22,6 @@ struct usb_mixer_interface {
- 	struct urb *rc_urb;
- 	struct usb_ctrlrequest *rc_setup_packet;
- 	u8 rc_buffer[6];
--	struct media_mixer_ctl *media_mixer_ctl;
- };
- 
- #define MAX_CHANNELS	16	/* max logical channels */
-diff --git a/sound/usb/pcm.c b/sound/usb/pcm.c
-index 0e4e0640c504..44d178ee9177 100644
---- a/sound/usb/pcm.c
-+++ b/sound/usb/pcm.c
-@@ -35,7 +35,6 @@
- #include "pcm.h"
- #include "clock.h"
- #include "power.h"
--#include "media.h"
- 
- #define SUBSTREAM_FLAG_DATA_EP_STARTED	0
- #define SUBSTREAM_FLAG_SYNC_EP_STARTED	1
-@@ -718,14 +717,10 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
- 	struct audioformat *fmt;
- 	int ret;
- 
--	ret = media_snd_start_pipeline(subs);
--	if (ret)
--		return ret;
--
- 	ret = snd_pcm_lib_alloc_vmalloc_buffer(substream,
- 					       params_buffer_bytes(hw_params));
- 	if (ret < 0)
--		goto err_ret;
-+		return ret;
- 
- 	subs->pcm_format = params_format(hw_params);
- 	subs->period_bytes = params_period_bytes(hw_params);
-@@ -739,27 +734,22 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
- 		dev_dbg(&subs->dev->dev,
- 			"cannot set format: format = %#x, rate = %d, channels = %d\n",
- 			   subs->pcm_format, subs->cur_rate, subs->channels);
--		ret = -EINVAL;
--		goto err_ret;
-+		return -EINVAL;
- 	}
- 
- 	ret = snd_usb_lock_shutdown(subs->stream->chip);
- 	if (ret < 0)
--		goto err_ret;
-+		return ret;
- 	ret = set_format(subs, fmt);
- 	snd_usb_unlock_shutdown(subs->stream->chip);
- 	if (ret < 0)
--		goto err_ret;
-+		return ret;
- 
- 	subs->interface = fmt->iface;
- 	subs->altset_idx = fmt->altset_idx;
- 	subs->need_setup_ep = true;
- 
- 	return 0;
--
--err_ret:
--	media_snd_stop_pipeline(subs);
--	return ret;
- }
- 
- /*
-@@ -771,7 +761,6 @@ static int snd_usb_hw_free(struct snd_pcm_substream *substream)
- {
- 	struct snd_usb_substream *subs = substream->runtime->private_data;
- 
--	media_snd_stop_pipeline(subs);
- 	subs->cur_audiofmt = NULL;
- 	subs->cur_rate = 0;
- 	subs->period_bytes = 0;
-@@ -1232,7 +1221,6 @@ static int snd_usb_pcm_open(struct snd_pcm_substream *substream, int direction)
- 	struct snd_usb_stream *as = snd_pcm_substream_chip(substream);
- 	struct snd_pcm_runtime *runtime = substream->runtime;
- 	struct snd_usb_substream *subs = &as->substream[direction];
--	int ret;
- 
- 	subs->interface = -1;
- 	subs->altset_idx = 0;
-@@ -1246,12 +1234,7 @@ static int snd_usb_pcm_open(struct snd_pcm_substream *substream, int direction)
- 	subs->dsd_dop.channel = 0;
- 	subs->dsd_dop.marker = 1;
- 
--	ret = setup_hw_info(runtime, subs);
--	if (ret == 0)
--		ret = media_snd_stream_init(subs, as->pcm, direction);
--	if (ret)
--		snd_usb_autosuspend(subs->stream->chip);
--	return ret;
-+	return setup_hw_info(runtime, subs);
- }
- 
- static int snd_usb_pcm_close(struct snd_pcm_substream *substream, int direction)
-@@ -1260,7 +1243,6 @@ static int snd_usb_pcm_close(struct snd_pcm_substream *substream, int direction)
- 	struct snd_usb_substream *subs = &as->substream[direction];
- 
- 	stop_endpoints(subs, true);
--	media_snd_stop_pipeline(subs);
- 
- 	if (subs->interface >= 0 &&
- 	    !snd_usb_lock_shutdown(subs->stream->chip)) {
-diff --git a/sound/usb/quirks-table.h b/sound/usb/quirks-table.h
-index 9d087b19c70c..c60a776e815d 100644
---- a/sound/usb/quirks-table.h
-+++ b/sound/usb/quirks-table.h
-@@ -2886,7 +2886,6 @@ YAMAHA_DEVICE(0x7010, "UB99"),
- 		.product_name = pname, \
- 		.ifnum = QUIRK_ANY_INTERFACE, \
- 		.type = QUIRK_AUDIO_ALIGN_TRANSFER, \
--		.media_device = 1, \
- 	} \
- }
- 
-diff --git a/sound/usb/stream.c b/sound/usb/stream.c
-index 51258a15f653..c4dc577ab1bd 100644
---- a/sound/usb/stream.c
-+++ b/sound/usb/stream.c
-@@ -36,7 +36,6 @@
- #include "format.h"
- #include "clock.h"
- #include "stream.h"
--#include "media.h"
- 
- /*
-  * free a substream
-@@ -53,7 +52,6 @@ static void free_substream(struct snd_usb_substream *subs)
- 		kfree(fp);
- 	}
- 	kfree(subs->rate_list.list);
--	media_snd_stream_delete(subs);
- }
- 
- 
-diff --git a/sound/usb/usbaudio.h b/sound/usb/usbaudio.h
-index a161c7c1b126..b665d85555cb 100644
---- a/sound/usb/usbaudio.h
-+++ b/sound/usb/usbaudio.h
-@@ -30,9 +30,6 @@
-  *
-  */
- 
--struct media_device;
--struct media_intf_devnode;
--
- struct snd_usb_audio {
- 	int index;
- 	struct usb_device *dev;
-@@ -63,8 +60,6 @@ struct snd_usb_audio {
- 	bool autoclock;			/* from the 'autoclock' module param */
- 
- 	struct usb_host_interface *ctrl_intf;	/* the audio control interface */
--	struct media_device *media_dev;
--	struct media_intf_devnode *ctl_intf_media_devnode;
- };
- 
- #define usb_audio_err(chip, fmt, args...) \
-@@ -115,7 +110,6 @@ struct snd_usb_audio_quirk {
- 	const char *product_name;
- 	int16_t ifnum;
- 	uint16_t type;
--	bool media_device;
- 	const void *data;
- };
- 
 -- 
-2.5.5
+Regards,
+
+Laurent Pinchart
 
