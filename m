@@ -1,63 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dimen.winder.org.uk ([87.127.116.10]:59278 "EHLO
-	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751626AbcCLSvv (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752041AbcCXX2c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Mar 2016 13:51:51 -0500
-Message-ID: <1457808708.4030.64.camel@winder.org.uk>
-Subject: Support for WinTV-soloHD
-From: Russel Winder <russel@winder.org.uk>
-To: DVB_Linux_Media <linux-media@vger.kernel.org>
-Date: Sat, 12 Mar 2016 18:51:48 +0000
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-ROsJV7IU4s7RSLRZPbYG"
-Mime-Version: 1.0
+	Thu, 24 Mar 2016 19:28:32 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 47/51] v4l: vsp1: dl: Fix race conditions
+Date: Fri, 25 Mar 2016 01:27:43 +0200
+Message-Id: <1458862067-19525-48-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The vsp1_dl_list_put() function expects to be called with the display
+list manager lock held. This assumption is correct for calls from within
+the vsp1_dl.c file, but not for the external calls. Fix it by taking the
+lock inside the function and providing an unlocked version for the
+internal callers.
 
---=-ROsJV7IU4s7RSLRZPbYG
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_dl.c | 41 +++++++++++++++++++++++++----------
+ 1 file changed, 29 insertions(+), 12 deletions(-)
 
-I plugged a WinTV-soloHD device into my Debian Sid system running:
-
-Linux anglides 4.4.0-1-amd64 #1 SMP Debian 4.4.4-2 (2016-03-09) x86_64
-GNU/Linux
-
-but the device, whilst appearing in the lsusb listing, didn't cause a
-/dev/dvb hierarchy to appear. I am guessing then that the change:
-
-http://git.linuxtv.org/media_tree.git/commit/?id=3D1efc21701d94ed0c5b9146
-7b042bed8b8becd5cc
-
-hasn't actually appeared in the 4.4 kernel. Is it in the 4.5 kernel?
-
-
---=20
-Russel.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
-et
-41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
-London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
-
-
---=-ROsJV7IU4s7RSLRZPbYG
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAlbkZUQACgkQ+ooS3F10Be/T2gCdG2aBz7Z72JAuS/AK+K/jsjYx
-Na8Ani36Nh1nKCqrSjzvKUHdJdLOJVGc
-=NfT1
------END PGP SIGNATURE-----
-
---=-ROsJV7IU4s7RSLRZPbYG--
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 8efa5447c1b3..4f2c3c95bfa4 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -164,25 +164,36 @@ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm)
+ 	return dl;
+ }
+ 
++/* This function must be called with the display list manager lock held.*/
++static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
++{
++	if (!dl)
++		return;
++
++	dl->reg_count = 0;
++
++	list_add_tail(&dl->list, &dl->dlm->free);
++}
++
+ /**
+  * vsp1_dl_list_put - Release a display list
+  * @dl: The display list
+  *
+  * Release the display list and return it to the pool of free lists.
+  *
+- * This function must be called with the display list manager lock held.
+- *
+  * Passing a NULL pointer to this function is safe, in that case no operation
+  * will be performed.
+  */
+ void vsp1_dl_list_put(struct vsp1_dl_list *dl)
+ {
++	unsigned long flags;
++
+ 	if (!dl)
+ 		return;
+ 
+-	dl->reg_count = 0;
+-
+-	list_add_tail(&dl->list, &dl->dlm->free);
++	spin_lock_irqsave(&dl->dlm->lock, flags);
++	__vsp1_dl_list_put(dl);
++	spin_unlock_irqrestore(&dl->dlm->lock, flags);
+ }
+ 
+ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
+@@ -220,7 +231,7 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+ 	 */
+ 	update = !!(vsp1_read(vsp1, VI6_DL_BODY_SIZE) & VI6_DL_BODY_SIZE_UPD);
+ 	if (update) {
+-		vsp1_dl_list_put(dlm->pending);
++		__vsp1_dl_list_put(dlm->pending);
+ 		dlm->pending = dl;
+ 		goto done;
+ 	}
+@@ -233,7 +244,7 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+ 	vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
+ 		   (dl->reg_count * 8));
+ 
+-	vsp1_dl_list_put(dlm->queued);
++	__vsp1_dl_list_put(dlm->queued);
+ 	dlm->queued = dl;
+ 
+ done:
+@@ -253,7 +264,7 @@ void vsp1_dlm_irq_display_start(struct vsp1_dl_manager *dlm)
+ 	 * processing by the device. The active display list, if any, won't be
+ 	 * accessed anymore and can be reused.
+ 	 */
+-	vsp1_dl_list_put(dlm->active);
++	__vsp1_dl_list_put(dlm->active);
+ 	dlm->active = NULL;
+ 
+ 	spin_unlock(&dlm->lock);
+@@ -265,7 +276,7 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ 
+ 	spin_lock(&dlm->lock);
+ 
+-	vsp1_dl_list_put(dlm->active);
++	__vsp1_dl_list_put(dlm->active);
+ 	dlm->active = NULL;
+ 
+ 	/* Header mode is used for mem-to-mem pipelines only. We don't need to
+@@ -328,9 +339,15 @@ void vsp1_dlm_setup(struct vsp1_device *vsp1)
+ 
+ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
+ {
+-	vsp1_dl_list_put(dlm->active);
+-	vsp1_dl_list_put(dlm->queued);
+-	vsp1_dl_list_put(dlm->pending);
++	unsigned long flags;
++
++	spin_lock_irqsave(&dlm->lock, flags);
++
++	__vsp1_dl_list_put(dlm->active);
++	__vsp1_dl_list_put(dlm->queued);
++	__vsp1_dl_list_put(dlm->pending);
++
++	spin_unlock_irqrestore(&dlm->lock, flags);
+ 
+ 	dlm->active = NULL;
+ 	dlm->queued = NULL;
+-- 
+2.7.3
 
