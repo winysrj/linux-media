@@ -1,48 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39290 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753028AbcCNCZb (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751836AbcCXX2D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Mar 2016 22:25:31 -0400
-Date: Sun, 13 Mar 2016 19:24:58 -0700
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-	Bjorn Helgaas <bhelgaas@google.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	devel@driverdev.osuosl.org, kernel-mentors@selenic.com,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Add tw5864 driver
-Message-ID: <20160314022458.GA4036@kroah.com>
-References: <1457920461-20713-1-git-send-email-andrey_utkin@fastmail.com>
- <1457920514-20792-1-git-send-email-andrey_utkin@fastmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1457920514-20792-1-git-send-email-andrey_utkin@fastmail.com>
+	Thu, 24 Mar 2016 19:28:03 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 11/51] v4l: vsp1: Simplify frame end processing
+Date: Fri, 25 Mar 2016 01:27:07 +0200
+Message-Id: <1458862067-19525-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 14, 2016 at 03:55:14AM +0200, Andrey Utkin wrote:
-> --- a/include/linux/pci_ids.h
-> +++ b/include/linux/pci_ids.h
-> @@ -2333,6 +2333,7 @@
->  #define PCI_VENDOR_ID_CAVIUM		0x177d
->  
->  #define PCI_VENDOR_ID_TECHWELL		0x1797
-> +#define PCI_DEVICE_ID_TECHWELL_5864	0x5864
->  #define PCI_DEVICE_ID_TECHWELL_6800	0x6800
->  #define PCI_DEVICE_ID_TECHWELL_6801	0x6801
->  #define PCI_DEVICE_ID_TECHWELL_6804	0x6804
+The DRM pipeline, as it runs in automatic restart mode, never sees the
+pipeline state set to VSP1_PIPELINE_STOPPING or VSP1_PIPELINE_STOPPED
+when running the frame end interrupt handler. We can thus skip the
+checks various checks in the handler and return immediately.
 
-Please read the comments at the top of this file for why you don't need
-to put any new ids into it.
+Similarly the DRM frame end handler calls vsp1_pipeline_run()
+unnecessarily, as the state there is never VSP1_PIPELINE_STOPPED. Remove
+the function call and the frame end handler is it's now empty.
 
-thanks,
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c  | 15 ---------------
+ drivers/media/platform/vsp1/vsp1_pipe.c |  9 ++++++---
+ 2 files changed, 6 insertions(+), 18 deletions(-)
 
-greg k-h
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 8cf7c19f4344..9ecba4c1332e 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -27,20 +27,6 @@
+ #include "vsp1_rwpf.h"
+ 
+ /* -----------------------------------------------------------------------------
+- * Runtime Handling
+- */
+-
+-static void vsp1_drm_pipeline_frame_end(struct vsp1_pipeline *pipe)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&pipe->irqlock, flags);
+-	if (pipe->num_inputs)
+-		vsp1_pipeline_run(pipe);
+-	spin_unlock_irqrestore(&pipe->irqlock, flags);
+-}
+-
+-/* -----------------------------------------------------------------------------
+  * DU Driver API
+  */
+ 
+@@ -569,7 +555,6 @@ int vsp1_drm_init(struct vsp1_device *vsp1)
+ 	pipe = &vsp1->drm->pipe;
+ 
+ 	vsp1_pipeline_init(pipe);
+-	pipe->frame_end = vsp1_drm_pipeline_frame_end;
+ 
+ 	/* The DRM pipeline is static, add entities manually. */
+ 	for (i = 0; i < vsp1->info->rpf_count; ++i) {
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 6659f06b1643..78096122a22d 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -289,7 +289,8 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ 		vsp1_dl_irq_frame_end(pipe->dl);
+ 
+ 	/* Signal frame end to the pipeline handler. */
+-	pipe->frame_end(pipe);
++	if (pipe->frame_end)
++		pipe->frame_end(pipe);
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 
+@@ -298,8 +299,10 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
+ 	/* When using display lists in continuous frame mode the pipeline is
+ 	 * automatically restarted by the hardware.
+ 	 */
+-	if (!pipe->dl)
+-		pipe->state = VSP1_PIPELINE_STOPPED;
++	if (pipe->dl)
++		goto done;
++
++	pipe->state = VSP1_PIPELINE_STOPPED;
+ 
+ 	/* If a stop has been requested, mark the pipeline as stopped and
+ 	 * return.
+-- 
+2.7.3
+
