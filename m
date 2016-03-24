@@ -1,191 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:35835 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750932AbcCDM75 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 07:59:57 -0500
-Date: Fri, 4 Mar 2016 09:59:50 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Keith Packard <keithp@keithp.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>,
-	Johannes Stezenbach <js@linuxtv.org>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160304095950.3358a2cb@recife.lan>
-In-Reply-To: <87si06r6i3.fsf@intel.com>
-References: <20160213145317.247c63c7@lwn.net>
-	<87y49zr74t.fsf@intel.com>
-	<20160303071305.247e30b1@lwn.net>
-	<20160303155037.705f33dd@recife.lan>
-	<86egbrm9hw.fsf@hiro.keithp.com>
-	<20160303221930.32558496@recife.lan>
-	<87si06r6i3.fsf@intel.com>
+Received: from mail.lysator.liu.se ([130.236.254.3]:34617 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757149AbcCXLGN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2016 07:06:13 -0400
+Message-ID: <56F3CA0E.60906@lysator.liu.se>
+Date: Thu, 24 Mar 2016 12:05:50 +0100
+From: Peter Rosin <peda@lysator.liu.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+CC: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@axentia.se>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Nicholas Mc Guire <hofrat@osadl.org>,
+	Olli Salonen <olli.salonen@iki.fi>, linux-i2c@vger.kernel.org,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/8] i2c-mux: add common core data for every mux instance
+References: <1452009438-27347-1-git-send-email-peda@lysator.liu.se> <1452009438-27347-2-git-send-email-peda@lysator.liu.se> <56F3B86E.4050002@mentor.com>
+In-Reply-To: <56F3B86E.4050002@mentor.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 04 Mar 2016 10:29:08 +0200
-Jani Nikula <jani.nikula@intel.com> escreveu:
+Hi Vladimir,
 
-> On Fri, 04 Mar 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> > Em Thu, 03 Mar 2016 15:23:23 -0800
-> > Keith Packard <keithp@keithp.com> escreveu:
-> >  
-> >> Mauro Carvalho Chehab <mchehab@osg.samsung.com> writes:
-> >>   
-> >> > On my tests, Sphinix seemed too limited to format tables. Asciidoc
-> >> > produced an output that worked better.    
-> >> 
-> >> Yes, asciidoc has much more flexibility in table formatting, including
-> >> the ability to control text layout within cells and full control over
-> >> borders.
-> >> 
-> >> However, I think asciidoc has two serious problems:
-> >> 
-> >>   1) the python version (asciidoc) appears to have been abandoned in
-> >>      favor of the ruby version. 
-> >> 
-> >>   2) It really is just a docbook pre-processor. Native html/latex output
-> >>      is poorly supported at best, and exposes only a small subset of the
-> >>      full capabilities of the input language.
-> >> 
-> >> As such, we would have to commit to using the ruby version and either
-> >> committing to fixing the native html output backend or continuing to use
-> >> the rest of the docbook toolchain.
-> >> 
-> >> We could insist on using the python version, of course. I spent a bit of
-> >> time hacking that up to add 'real' support for a table-of-contents in
-> >> the native HTML backend and it looks like getting those changes
-> >> upstreamed would be reasonably straightforward. However, we'd end up
-> >> 'owning' the code, and I'm not sure we want to.  
-> >
-> > I'm a way more concerned about using a tool that fulfill our needs
-> > than to look for something that won't use the docbook toolchain or
-> > require to install ruby.  
+On 2016-03-24 10:50, Vladimir Zapolskiy wrote:
+> Hi Peter,
 > 
-> I think you meant that to be the other way round, or I fail at parsing
-> you. ;)
-
-I mean: I'm a way more concerned about using a tool that fulfill our
-needs than on toolchain it uses.
-
+> On 05.01.2016 17:57, Peter Rosin wrote:
+>> From: Peter Rosin <peda@axentia.se>
+>>
+>> The initial core mux structure starts off small with only the parent
+>> adapter pointer, which all muxes have, and a priv pointer for mux
+>> driver private data.
+>>
+>> Add i2c_mux_alloc function to unify the creation of a mux.
+>>
+>> Where appropriate, pass around the mux core structure instead of the
+>> parent adapter or the driver private data.
+>>
+>> Remove the parent adapter pointer from the driver private data for all
+>> mux drivers.
+>>
+>> Signed-off-by: Peter Rosin <peda@axentia.se>
 > 
-> > In the case of Docbook, we know it works and we know already its
-> > issues. Please correct me if I'm wrong, but the big problem we
-> > have is not due to the DocBook toolchain, but due to the lack of
-> > features at the kernel-doc script. Also, xmlto is already installed
-> > by the ones that build the kernel docs. So, keeping use it won't
-> > require to install a weird toolchain by hand.  
+> is it still under review? If yes, please find one question from me below :)
+
+Yes, the series is still under review/testing, with an update planned in a
+week or so.
+
+> [snip]
 > 
-> I think kernel-doc is just a small part of the puzzle. It's a problem,
-> but a small one at that, and we've already made it output asciidoc, rst
-> and docbook as part of this exercise. For real, as in code, not as in
-> talk.
+>> @@ -196,21 +195,21 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+>>  		dev_err(dev, "Cannot parse i2c-parent\n");
+>>  		return -EINVAL;
+>>  	}
+>> -	arb->parent = of_get_i2c_adapter_by_node(parent_np);
+>> +	muxc->parent = of_find_i2c_adapter_by_node(parent_np);
 > 
-> The reasons I'm involved in this is that I want to make writing
-> documentation and rich kernel-doc comments easier (using lightweight
-> markup) and I want to make building the documentation easier (using a
-> straightforward toolchain with not too many dependencies). I'm hoping
-> the former makes writing documentation more attractive and the latter
-> keeps the documentation and the toolchain in a better shape through
-> having more people actually build the documentation.
-
-I don't think the toolchain is a problem. We don't attract too many
-people because developers don't like writing documentation.
-
-Ok, using a markup language can be easier than writing DocBook
-tags directly, but people usually don't even add C comments on
-the code they submit.
-
-> IMHO docbook is problematic because the toolchain gets too long and
-> fragile. You need plenty of tools installed to build the documentation,
-> it's fussy to get working, and people just won't. Like code,
-> documentation bitrots too when it's not used. 
-
-On most distros, a single command installs all that it is needed.
-
-> The documentation build is broken too often. 
-
-This is indeed a problem, but the way I solved this at the media
-subsystem is that I rebuild the documentation every time a media
-file either at Documentation/Docbook or included at device-drivers.tmpl
-is touched.
-
-If the script produces error, I nack the patch.
-
-So, IMHO, this is not a toolchain fault, but the lack of a process.
-
-The kernel build robot is now producing e-mails when the documentation
-has new troubles, so I guess this will help a lot to avoid adding
-new documentation breakages.
-
-> Debugging formatting issues through the entire
-> pipeline gets hard; I already faced some of this when playing with the
-> kernel-doc->asciidoc->docbook->html chain.
+> why do you prefer here to use "unlocked" version of API?
 > 
-> In short, I don't think the docbook toolchain fills all of our needs
-> either.
-> 
-> > So, to be frank, it doesn't scary me to use either pyhton or
-> > ruby script + docbook.
-> >
-> > Of course, having to own the code has a cost that should be evaluated.
-> >
-> > If, on the other hand, we decide to use RST, we'll very likely need to
-> > patch it to fulfill our needs in order to add proper table support.
-> > I've no idea how easy/difficult would be to do that, nor if Sphinx
-> > upstream would accept such changes.
-> >
-> > So, at the end of the day, we may end by having to carry on our own
-> > version of Sphinx inside our tree, with doesn't sound good, specially
-> > since it is not just a script, but a package with hundreds of
-> > files.  
-> 
-> If we end up having to modify Sphinx, it has a powerful extension
-> mechanism for this. We wouldn't have to worry about getting it merged to
-> Sphinx upstream, and we wouldn't have to carry a local version of all of
-> Sphinx. (In fact, the extension mechanism provides a future path for
-> doing kernel-doc within Sphinx instead of as a preprocessing step.)
+> Foe example would it be safe/possible to unload an I2C bus device driver
+> module or unbind I2C device itself in runtime?
 
-That's indeed a good news.
+I think you ask why I change from of_get_i2c_... to of_find_i2c_..., and that
+change was not intentional. It was the result of a bad merge during an early
+rebase.
 
-> 
-> I know none of this alleviates your concerns with table supports right
-> now. I'll try to have a look at that a bit more.
+Does that cover it?
 
-I created a PoC tree with a few usecases taken from the V4L2 uAPI
-documentation:
-	https://git.linuxtv.org/mchehab/v4l2-docs-poc.git/
-
-Perhaps you could help to fix the issues there:
-
-1) We want borderless tables, on both PDF and HTML outputs, for
-the table at:
-	https://git.linuxtv.org/mchehab/v4l2-docs-poc.git/tree/v4l-table-within-table.rst
-
-2) The tables at packed-rgb.rst are not created:
-	https://git.linuxtv.org/mchehab/v4l2-docs-poc.git/diff/packed-rgb.rst
-
-It complains that the table there is malformed:                                                                                                   
-	packed-rgb.rst:12: ERROR: Malformed table.
-
-3) I tried to use a .. cssclass, as Johannes suggested, but
-I was not able to include the CSS file. I suspect that this is
-easy to fix, but I want to see if the cssclass will also work for
-the pdf output as well.
-
-4) It seems that it can't produce nested tables in pdf:
-
-Markup is unsupported in LaTeX:
-v4l-table-within-table:: nested tables are not yet implemented.
-Makefile:115: recipe for target 'latexpdf' failed
-
-Can you help solving those issues?
-
-Thanks,
-Mauro
+Cheers,
+Peter
