@@ -1,130 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:59833 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758550AbcCCW3h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:29:37 -0500
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Viorel Suman <viorel.suman@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v4 11/18] [media] rtl2832: convert to use an explicit i2c mux core
-Date: Thu,  3 Mar 2016 23:27:23 +0100
-Message-Id: <1457044050-15230-12-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
-References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40282 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751067AbcCXX2M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2016 19:28:12 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 22/51] v4l: vsp1: Fix 80 characters per line violations
+Date: Fri, 25 Mar 2016 01:27:18 +0200
+Message-Id: <1458862067-19525-23-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+Commit f7234138f14c ("v4l2-subdev: replace v4l2_subdev_fh by
+v4l2_subdev_pad_config") introduced lots of 80 characters per line
+violations. Fix them.
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select/deselect ops to be in terms of the i2c mux core
-instead of the child adapter.
-
-Signed-off-by: Peter Rosin <peda@axentia.se>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/rtl2832.c      | 22 +++++++++++-----------
- drivers/media/dvb-frontends/rtl2832_priv.h |  2 +-
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/media/platform/vsp1/vsp1_bru.c  | 12 ++++++++----
+ drivers/media/platform/vsp1/vsp1_lif.c  |  6 ++++--
+ drivers/media/platform/vsp1/vsp1_lut.c  |  6 ++++--
+ drivers/media/platform/vsp1/vsp1_rwpf.c | 12 ++++++++----
+ drivers/media/platform/vsp1/vsp1_rwpf.h |  6 ++++--
+ drivers/media/platform/vsp1/vsp1_sru.c  |  9 ++++++---
+ drivers/media/platform/vsp1/vsp1_uds.c  |  9 ++++++---
+ 7 files changed, 40 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 10f2119935da..775444898599 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -866,9 +866,9 @@ err:
- 	dev_dbg(&client->dev, "failed=%d\n", ret);
- }
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 1814d8dc1cd2..fe6ebfa83311 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -195,7 +195,8 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			return -EINVAL;
  
--static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
-+static int rtl2832_select(struct i2c_mux_core *muxc, u32 chan_id)
- {
--	struct rtl2832_dev *dev = mux_priv;
-+	struct rtl2832_dev *dev = i2c_mux_priv(muxc);
- 	struct i2c_client *client = dev->client;
- 	int ret;
- 
-@@ -889,10 +889,9 @@ err:
- 	return ret;
- }
- 
--static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv,
--			    u32 chan_id)
-+static int rtl2832_deselect(struct i2c_mux_core *muxc, u32 chan_id)
- {
--	struct rtl2832_dev *dev = mux_priv;
-+	struct rtl2832_dev *dev = i2c_mux_priv(muxc);
- 
- 	schedule_delayed_work(&dev->i2c_gate_work, usecs_to_jiffies(100));
- 	return 0;
-@@ -1078,7 +1077,7 @@ static struct i2c_adapter *rtl2832_get_i2c_adapter(struct i2c_client *client)
- 	struct rtl2832_dev *dev = i2c_get_clientdata(client);
- 
- 	dev_dbg(&client->dev, "\n");
--	return dev->i2c_adapter_tuner;
-+	return dev->muxc->adapter[0];
- }
- 
- static int rtl2832_enable_slave_ts(struct i2c_client *client)
-@@ -1253,12 +1252,13 @@ static int rtl2832_probe(struct i2c_client *client,
- 		goto err_regmap_exit;
- 
- 	/* create muxed i2c adapter for demod tuner bus */
--	dev->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, dev,
--			0, 0, 0, rtl2832_select, rtl2832_deselect);
--	if (dev->i2c_adapter_tuner == NULL) {
--		ret = -ENODEV;
-+	dev->muxc = i2c_mux_one_adapter(i2c, &i2c->dev, 0, 0, 0, 0, 0,
-+					rtl2832_select, rtl2832_deselect);
-+	if (IS_ERR(dev->muxc)) {
-+		ret = PTR_ERR(dev->muxc);
- 		goto err_regmap_exit;
+ 		format = vsp1_entity_get_pad_format(&bru->entity, cfg,
+-						    BRU_PAD_SINK(0), code->which);
++						    BRU_PAD_SINK(0),
++						    code->which);
+ 		code->code = format->code;
  	}
-+	dev->muxc->priv = dev;
  
- 	/* create dvb_frontend */
- 	memcpy(&dev->fe.ops, &rtl2832_ops, sizeof(struct dvb_frontend_ops));
-@@ -1293,7 +1293,7 @@ static int rtl2832_remove(struct i2c_client *client)
+@@ -235,7 +236,8 @@ static struct v4l2_rect *bru_get_compose(struct vsp1_bru *bru,
+ 	}
+ }
  
- 	cancel_delayed_work_sync(&dev->i2c_gate_work);
+-static int bru_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++static int bru_get_format(struct v4l2_subdev *subdev,
++			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_bru *bru = to_bru(subdev);
+@@ -246,7 +248,8 @@ static int bru_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
+ 	return 0;
+ }
  
--	i2c_del_mux_adapter(dev->i2c_adapter_tuner);
-+	i2c_mux_del_adapters(dev->muxc);
+-static void bru_try_format(struct vsp1_bru *bru, struct v4l2_subdev_pad_config *cfg,
++static void bru_try_format(struct vsp1_bru *bru,
++			   struct v4l2_subdev_pad_config *cfg,
+ 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt,
+ 			   enum v4l2_subdev_format_whence which)
+ {
+@@ -274,7 +277,8 @@ static void bru_try_format(struct vsp1_bru *bru, struct v4l2_subdev_pad_config *
+ 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
+ }
  
- 	regmap_exit(dev->regmap);
+-static int bru_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++static int bru_set_format(struct v4l2_subdev *subdev,
++			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_bru *bru = to_bru(subdev);
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index 56054fddb675..53725769442d 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -128,7 +128,8 @@ static int lif_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
  
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index 5dcd3a41d23f..6b3cd23a2c26 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -36,7 +36,7 @@ struct rtl2832_dev {
- 	struct mutex regmap_mutex;
- 	struct regmap_config regmap_config;
- 	struct regmap *regmap;
--	struct i2c_adapter *i2c_adapter_tuner;
-+	struct i2c_mux_core *muxc;
- 	struct dvb_frontend fe;
- 	struct delayed_work stat_work;
- 	enum fe_status fe_status;
+-static int lif_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++static int lif_get_format(struct v4l2_subdev *subdev,
++			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_lif *lif = to_lif(subdev);
+@@ -139,7 +140,8 @@ static int lif_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
+ 	return 0;
+ }
+ 
+-static int lif_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++static int lif_set_format(struct v4l2_subdev *subdev,
++			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_lif *lif = to_lif(subdev);
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index c24712fe5f2c..1c0eefeee2f3 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -139,7 +139,8 @@ static int lut_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-static int lut_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++static int lut_get_format(struct v4l2_subdev *subdev,
++			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_lut *lut = to_lut(subdev);
+@@ -150,7 +151,8 @@ static int lut_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
+ 	return 0;
+ }
+ 
+-static int lut_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++static int lut_set_format(struct v4l2_subdev *subdev,
++			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_lut *lut = to_lut(subdev);
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
+index 54070ccdc2ff..0924079b920c 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+@@ -73,11 +73,13 @@ int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+ }
+ 
+ static struct v4l2_rect *
+-vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf, struct v4l2_subdev_pad_config *cfg, u32 which)
++vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf, struct v4l2_subdev_pad_config *cfg,
++		   u32 which)
+ {
+ 	switch (which) {
+ 	case V4L2_SUBDEV_FORMAT_TRY:
+-		return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, cfg, RWPF_PAD_SINK);
++		return v4l2_subdev_get_try_crop(&rwpf->entity.subdev, cfg,
++						RWPF_PAD_SINK);
+ 	case V4L2_SUBDEV_FORMAT_ACTIVE:
+ 		return &rwpf->crop;
+ 	default:
+@@ -85,7 +87,8 @@ vsp1_rwpf_get_crop(struct vsp1_rwpf *rwpf, struct v4l2_subdev_pad_config *cfg, u
+ 	}
+ }
+ 
+-int vsp1_rwpf_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
++			 struct v4l2_subdev_pad_config *cfg,
+ 			 struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+@@ -96,7 +99,8 @@ int vsp1_rwpf_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_conf
+ 	return 0;
+ }
+ 
+-int vsp1_rwpf_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
++			 struct v4l2_subdev_pad_config *cfg,
+ 			 struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index bda0416dc7db..57f15d45f8bb 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -86,9 +86,11 @@ int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
+ int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_frame_size_enum *fse);
+-int vsp1_rwpf_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
++			 struct v4l2_subdev_pad_config *cfg,
+ 			 struct v4l2_subdev_format *fmt);
+-int vsp1_rwpf_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
++			 struct v4l2_subdev_pad_config *cfg,
+ 			 struct v4l2_subdev_format *fmt);
+ int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
+ 			    struct v4l2_subdev_pad_config *cfg,
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index 5a7ffbd18043..d81a5b6300de 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -209,7 +209,8 @@ static int sru_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-static int sru_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++static int sru_get_format(struct v4l2_subdev *subdev,
++			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_sru *sru = to_sru(subdev);
+@@ -220,7 +221,8 @@ static int sru_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
+ 	return 0;
+ }
+ 
+-static void sru_try_format(struct vsp1_sru *sru, struct v4l2_subdev_pad_config *cfg,
++static void sru_try_format(struct vsp1_sru *sru,
++			   struct v4l2_subdev_pad_config *cfg,
+ 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt,
+ 			   enum v4l2_subdev_format_whence which)
+ {
+@@ -271,7 +273,8 @@ static void sru_try_format(struct vsp1_sru *sru, struct v4l2_subdev_pad_config *
+ 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
+ }
+ 
+-static int sru_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++static int sru_set_format(struct v4l2_subdev *subdev,
++			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_sru *sru = to_sru(subdev);
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index 7eaf42a2b036..286d0daea810 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -222,7 +222,8 @@ static int uds_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-static int uds_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++static int uds_get_format(struct v4l2_subdev *subdev,
++			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_uds *uds = to_uds(subdev);
+@@ -233,7 +234,8 @@ static int uds_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_con
+ 	return 0;
+ }
+ 
+-static void uds_try_format(struct vsp1_uds *uds, struct v4l2_subdev_pad_config *cfg,
++static void uds_try_format(struct vsp1_uds *uds,
++			   struct v4l2_subdev_pad_config *cfg,
+ 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt,
+ 			   enum v4l2_subdev_format_whence which)
+ {
+@@ -269,7 +271,8 @@ static void uds_try_format(struct vsp1_uds *uds, struct v4l2_subdev_pad_config *
+ 	fmt->colorspace = V4L2_COLORSPACE_SRGB;
+ }
+ 
+-static int uds_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_pad_config *cfg,
++static int uds_set_format(struct v4l2_subdev *subdev,
++			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+ 	struct vsp1_uds *uds = to_uds(subdev);
 -- 
-2.1.4
+2.7.3
 
