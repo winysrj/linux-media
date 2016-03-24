@@ -1,71 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:33987 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965098AbcCPVdK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 17:33:10 -0400
-Received: by mail-wm0-f44.google.com with SMTP id p65so361798wmp.1
-        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2016 14:33:09 -0700 (PDT)
-Subject: Re: [PATCH] media: rc: remove unneeded mutex in rc_register_device
-To: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <56E9ABB0.3010106@gmail.com> <56E9B4FA.3060707@mentor.com>
-Cc: linux-media@vger.kernel.org
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Message-ID: <56E9CEFB.1050601@gmail.com>
-Date: Wed, 16 Mar 2016 22:24:11 +0100
+Received: from lists.s-osg.org ([54.187.51.154]:56828 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751321AbcCXLir (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2016 07:38:47 -0400
+Date: Thu, 24 Mar 2016 08:38:40 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH v6 0/2] media: Add entity types
+Message-ID: <20160324083840.6fb306b4@recife.lan>
+In-Reply-To: <1458809408-32611-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458809408-32611-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <56E9B4FA.3060707@mentor.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 16.03.2016 um 20:33 schrieb Vladimir Zapolskiy:
-> On 16.03.2016 20:53, Heiner Kallweit wrote:
->> Access to dev->initialized is atomic, therefore we don't have to
->> protect it with a mutex.
-> 
-> Mutexes are used to split the code to mutually exclusive execution blocks,
-> so not arguing about the apparently correct change itself I want to
-> emphasize that the given explanation of the change in the commit message is
-> wrong. Atomic access does not cancel a specific care about execution
-> ordering.
-> 
-> Indirectly it applies to ("rc-core: allow calling rc_open with device not
-> initialized"), where "initialized" bool property was changed to atomic_t
-> type --- this (sub-)change is just useless.
-> 
-> Please grasp the topic and reword the commit message.
-> 
-Thanks for the hint, you're right.
-Will change the commit message and send a v2.
+Em Thu, 24 Mar 2016 10:50:06 +0200
+Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
 
-Regards, Heiner
-
->> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
->> ---
->>  drivers/media/rc/rc-main.c | 2 --
->>  1 file changed, 2 deletions(-)
->>
->> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
->> index 4e9bbe7..68541b1 100644
->> --- a/drivers/media/rc/rc-main.c
->> +++ b/drivers/media/rc/rc-main.c
->> @@ -1492,9 +1492,7 @@ int rc_register_device(struct rc_dev *dev)
->>  	}
->>  
->>  	/* Allow the RC sysfs nodes to be accessible */
->> -	mutex_lock(&dev->lock);
->>  	atomic_set(&dev->initialized, 1);
->> -	mutex_unlock(&dev->lock);
->>  
->>  	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
->>  		   dev->minor,
->>
+> Hello,
 > 
-> --
-> With best wishes,
-> Vladimir
+> This patch series adds an obj_type field to the media entity structure. It
+> is a resend of v5 with the MEDIA_ENTITY_TYPE_INVALID type replaced by
+> MEDIA_ENTITY_TYPE_BASE to identify media entity instances not embedded in
+> another structure.
+
+Patches looked OK to me. I'll apply them next week.
+
+> 
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+> 
+> Laurent Pinchart (2):
+>   media: Add obj_type field to struct media_entity
+>   media: Rename is_media_entity_v4l2_io to
+>     is_media_entity_v4l2_video_device
+> 
+>  drivers/media/platform/exynos4-is/media-dev.c   |  4 +-
+>  drivers/media/platform/omap3isp/ispvideo.c      |  2 +-
+>  drivers/media/v4l2-core/v4l2-dev.c              |  1 +
+>  drivers/media/v4l2-core/v4l2-mc.c               |  2 +-
+>  drivers/media/v4l2-core/v4l2-subdev.c           |  1 +
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c |  2 +-
+>  drivers/staging/media/omap4iss/iss_video.c      |  2 +-
+>  include/media/media-entity.h                    | 78 +++++++++++++------------
+>  8 files changed, 48 insertions(+), 44 deletions(-)
 > 
 
+
+-- 
+Thanks,
+Mauro
