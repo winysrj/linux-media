@@ -1,76 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f178.google.com ([209.85.223.178]:33906 "EHLO
-	mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755989AbcCCL4b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 06:56:31 -0500
-MIME-Version: 1.0
-In-Reply-To: <3162705.iiHBb2SECU@avalon>
-References: <1455242450-24493-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<1535853.p3kynkDehl@avalon>
-	<8737s8armo.wl%kuninori.morimoto.gx@renesas.com>
-	<3162705.iiHBb2SECU@avalon>
-Date: Thu, 3 Mar 2016 12:56:29 +0100
-Message-ID: <CAMuHMdWai64fZg6b2ZSWKwRQg325ZKNS2mfm5oAY-B4YXtvUgg@mail.gmail.com>
-Subject: Re: [PATCH/RFC 1/9] clk: shmobile: r8a7795: Add FCP clocks
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org,
-	Geert Uytterhoeven <geert+renesas@glider.be>
-Content-Type: text/plain; charset=UTF-8
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40247 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750772AbcCXWWs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2016 18:22:48 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCH 2/2] Revert "[media] media-device: get rid of the spinlock"
+Date: Fri, 25 Mar 2016 00:22:44 +0200
+Message-Id: <1458858164-1066-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458858164-1066-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458858164-1066-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This reverts commit c38077d39c7eb84f031b072eab8009acfff57134 that
+introduced a deadlock.
 
-On Thu, Mar 3, 2016 at 11:49 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Thursday 03 March 2016 08:37:02 Kuninori Morimoto wrote:
->> >>>>  - s2d2 (for 200MHz)
->> >>>>  - s2d1 (for 400MHz)
->> >>>
->> >>> Thank you for the information. Do you mean that different FCP instances
->> >>> use different clocks ? If so, could you tell us which clock is used by
->> >>> each instance in th H3 ES1 ?
->> >>
->> >> Sorry for my confusable mail.
->> >> All FCP on H3 ES1 is using above,
->> >> but, M3 or E3 will use different clock.
->> >>
->> >> Is this more clear ?
->> >
->> > Does it mean that every FCP instance uses both the S2D2 and the S2D1
->> > clocks as functional clocks on H3 ES1 ?
->>
->>  - s2d2 (200MHz) is for APB-IF,
->>  - s2d1 (400MHz) is for AXI-IF, and internal
->>
->> Is this clear answer ?
->
-> It is, thank you very much for putting up with my slow mind ;-)
->
-> Geert, deciding what clock to use as a parent for the MSTP clock becomes
-> interesting, As S2D2 clocks the control interface I propose picking it. This
-> shows the limits of the MSTP clock model though, MSTP is really a module stop
-> bit, not a clock.
+[ 2760.127749] INFO: task media-ctl:954 blocked for more than 120 seconds.
+[ 2760.131867]       Not tainted 4.5.0+ #357
+[ 2760.134622] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 2760.139310] media-ctl       D ffffffc000086bcc     0   954    671 0x00000001
+[ 2760.143618] Call trace:
+[ 2760.145601] [<ffffffc000086bcc>] __switch_to+0x90/0xa4
+[ 2760.148941] [<ffffffc0004e6ef0>] __schedule+0x188/0x5b0
+[ 2760.152309] [<ffffffc0004e7354>] schedule+0x3c/0xa0
+[ 2760.155495] [<ffffffc0004e7768>] schedule_preempt_disabled+0x20/0x38
+[ 2760.159423] [<ffffffc0004e8d28>] __mutex_lock_slowpath+0xc4/0x148
+[ 2760.163217] [<ffffffc0004e8df0>] mutex_lock+0x44/0x5c
+[ 2760.166483] [<ffffffc0003e87d4>] find_entity+0x2c/0xac
+[ 2760.169773] [<ffffffc0003e8d34>] __media_device_enum_links+0x20/0x1dc
+[ 2760.173711] [<ffffffc0003e9718>] media_device_ioctl+0x214/0x33c
+[ 2760.177384] [<ffffffc0003e9eec>] media_ioctl+0x24/0x3c
+[ 2760.180671] [<ffffffc0001bee64>] do_vfs_ioctl+0xac/0x758
+[ 2760.184026] [<ffffffc0001bf594>] SyS_ioctl+0x84/0x98
+[ 2760.187196] [<ffffffc000085d30>] el0_svc_naked+0x24/0x28
 
-Quoting R-Car Gen3 rev. 0.5E:
-"Under software control, the CPG is capable of turning the supply of
-clock signals
- to individual modules on or off and of resetting individual modules."
+Fixes: c38077d39c7e ("[media] media-device: get rid of the spinlock")
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/media-device.c | 32 ++++++++++++++++++--------------
+ drivers/media/media-entity.c | 16 ++++++++--------
+ include/media/media-device.h |  6 +++++-
+ 3 files changed, 31 insertions(+), 23 deletions(-)
 
-So it is a clock signal, or better (or worse): clock signals (plural).
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index c32fa15cc76e..6e43c95629ea 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -90,17 +90,17 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+ 
+ 	id &= ~MEDIA_ENT_ID_FLAG_NEXT;
+ 
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->lock);
+ 
+ 	media_device_for_each_entity(entity, mdev) {
+ 		if (((media_entity_id(entity) == id) && !next) ||
+ 		    ((media_entity_id(entity) > id) && next)) {
+-			mutex_unlock(&mdev->graph_mutex);
++			spin_unlock(&mdev->lock);
+ 			return entity;
+ 		}
+ 	}
+ 
+-	mutex_unlock(&mdev->graph_mutex);
++	spin_unlock(&mdev->lock);
+ 
+ 	return NULL;
+ }
+@@ -590,12 +590,12 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	if (!ida_pre_get(&mdev->entity_internal_idx, GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->lock);
+ 
+ 	ret = ida_get_new_above(&mdev->entity_internal_idx, 1,
+ 				&entity->internal_idx);
+ 	if (ret < 0) {
+-		mutex_unlock(&mdev->graph_mutex);
++		spin_unlock(&mdev->lock);
+ 		return ret;
+ 	}
+ 
+@@ -615,6 +615,9 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 		(notify)->notify(entity, notify->notify_data);
+ 	}
+ 
++	spin_unlock(&mdev->lock);
++
++	mutex_lock(&mdev->graph_mutex);
+ 	if (mdev->entity_internal_idx_max
+ 	    >= mdev->pm_count_walk.ent_enum.idx_max) {
+ 		struct media_entity_graph new = { .top = 0 };
+@@ -677,9 +680,9 @@ void media_device_unregister_entity(struct media_entity *entity)
+ 	if (mdev == NULL)
+ 		return;
+ 
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->lock);
+ 	__media_device_unregister_entity(entity);
+-	mutex_unlock(&mdev->graph_mutex);
++	spin_unlock(&mdev->lock);
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+ 
+@@ -700,6 +703,7 @@ void media_device_init(struct media_device *mdev)
+ 	INIT_LIST_HEAD(&mdev->pads);
+ 	INIT_LIST_HEAD(&mdev->links);
+ 	INIT_LIST_HEAD(&mdev->entity_notify);
++	spin_lock_init(&mdev->lock);
+ 	mutex_init(&mdev->graph_mutex);
+ 	ida_init(&mdev->entity_internal_idx);
+ 
+@@ -748,9 +752,9 @@ EXPORT_SYMBOL_GPL(__media_device_register);
+ int __must_check media_device_register_entity_notify(struct media_device *mdev,
+ 					struct media_entity_notify *nptr)
+ {
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->lock);
+ 	list_add_tail(&nptr->list, &mdev->entity_notify);
+-	mutex_unlock(&mdev->graph_mutex);
++	spin_unlock(&mdev->lock);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
+@@ -767,9 +771,9 @@ static void __media_device_unregister_entity_notify(struct media_device *mdev,
+ void media_device_unregister_entity_notify(struct media_device *mdev,
+ 					struct media_entity_notify *nptr)
+ {
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->lock);
+ 	__media_device_unregister_entity_notify(mdev, nptr);
+-	mutex_unlock(&mdev->graph_mutex);
++	spin_unlock(&mdev->lock);
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
+ 
+@@ -783,11 +787,11 @@ void media_device_unregister(struct media_device *mdev)
+ 	if (mdev == NULL)
+ 		return;
+ 
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->lock);
+ 
+ 	/* Check if mdev was ever registered at all */
+ 	if (!media_devnode_is_registered(&mdev->devnode)) {
+-		mutex_unlock(&mdev->graph_mutex);
++		spin_unlock(&mdev->lock);
+ 		return;
+ 	}
+ 
+@@ -807,7 +811,7 @@ void media_device_unregister(struct media_device *mdev)
+ 		kfree(intf);
+ 	}
+ 
+-	mutex_unlock(&mdev->graph_mutex);
++	spin_unlock(&mdev->lock);
+ 
+ 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+ 	media_devnode_unregister(&mdev->devnode);
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index c53c1d5589a0..e95070b3a3d4 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -219,7 +219,7 @@ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+ 	entity->pads = pads;
+ 
+ 	if (mdev)
+-		mutex_lock(&mdev->graph_mutex);
++		spin_lock(&mdev->lock);
+ 
+ 	for (i = 0; i < num_pads; i++) {
+ 		pads[i].entity = entity;
+@@ -230,7 +230,7 @@ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+ 	}
+ 
+ 	if (mdev)
+-		mutex_unlock(&mdev->graph_mutex);
++		spin_unlock(&mdev->lock);
+ 
+ 	return 0;
+ }
+@@ -747,9 +747,9 @@ void media_entity_remove_links(struct media_entity *entity)
+ 	if (mdev == NULL)
+ 		return;
+ 
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->lock);
+ 	__media_entity_remove_links(entity);
+-	mutex_unlock(&mdev->graph_mutex);
++	spin_unlock(&mdev->lock);
+ }
+ EXPORT_SYMBOL_GPL(media_entity_remove_links);
+ 
+@@ -951,9 +951,9 @@ void media_remove_intf_link(struct media_link *link)
+ 	if (mdev == NULL)
+ 		return;
+ 
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->lock);
+ 	__media_remove_intf_link(link);
+-	mutex_unlock(&mdev->graph_mutex);
++	spin_unlock(&mdev->lock);
+ }
+ EXPORT_SYMBOL_GPL(media_remove_intf_link);
+ 
+@@ -975,8 +975,8 @@ void media_remove_intf_links(struct media_interface *intf)
+ 	if (mdev == NULL)
+ 		return;
+ 
+-	mutex_lock(&mdev->graph_mutex);
++	spin_lock(&mdev->lock);
+ 	__media_remove_intf_links(intf);
+-	mutex_unlock(&mdev->graph_mutex);
++	spin_unlock(&mdev->lock);
+ }
+ EXPORT_SYMBOL_GPL(media_remove_intf_links);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index b21ef244ad3e..07809f698464 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -25,6 +25,7 @@
+ 
+ #include <linux/list.h>
+ #include <linux/mutex.h>
++#include <linux/spinlock.h>
+ 
+ #include <media/media-devnode.h>
+ #include <media/media-entity.h>
+@@ -303,7 +304,8 @@ struct media_entity_notify {
+  * @pads:	List of registered pads
+  * @links:	List of registered links
+  * @entity_notify: List of registered entity_notify callbacks
+- * @graph_mutex: Protects access to struct media_device data
++ * @lock:	Entities list lock
++ * @graph_mutex: Entities graph operation lock
+  * @pm_count_walk: Graph walk for power state walk. Access serialised using
+  *		   graph_mutex.
+  *
+@@ -369,6 +371,8 @@ struct media_device {
+ 	/* notify callback list invoked when a new entity is registered */
+ 	struct list_head entity_notify;
+ 
++	/* Protects the graph objects creation/removal */
++	spinlock_t lock;
+ 	/* Serializes graph operations. */
+ 	struct mutex graph_mutex;
+ 	struct media_entity_graph pm_count_walk;
+-- 
+2.7.3
 
-Hence MSTP gates one or more clocks. Sigh...
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
