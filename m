@@ -1,149 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400AbcCYKoo (ORCPT
+	with ESMTP id S1751807AbcCXX2B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 06:44:44 -0400
+	Thu, 24 Mar 2016 19:28:01 -0400
 From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
 Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 17/54] v4l: vsp1: Don't setup control handler when starting streaming
-Date: Fri, 25 Mar 2016 12:43:51 +0200
-Message-Id: <1458902668-1141-18-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH 10/51] v4l: vsp1: Always setup the display list
+Date: Fri, 25 Mar 2016 01:27:06 +0200
+Message-Id: <1458862067-19525-11-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The control handler set operations don't program the hardware anymore,
-there's thus no need to call them when starting the stream.
+Make sure display list usage is correctly disabled by always setting up
+the corresponding registers, including when the display list feature
+isn't used.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/platform/vsp1/vsp1_bru.c    |  5 +----
- drivers/media/platform/vsp1/vsp1_entity.c | 18 +-----------------
- drivers/media/platform/vsp1/vsp1_entity.h |  2 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    |  5 +----
- drivers/media/platform/vsp1/vsp1_sru.c    |  5 +----
- drivers/media/platform/vsp1/vsp1_wpf.c    |  5 +----
- 6 files changed, 6 insertions(+), 34 deletions(-)
+ drivers/media/platform/vsp1/vsp1_dl.c  | 7 +++----
+ drivers/media/platform/vsp1/vsp1_drv.c | 3 +--
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index 16345ec66870..5feec203e6fb 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -66,11 +66,8 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct v4l2_mbus_framefmt *format;
- 	unsigned int flags;
- 	unsigned int i;
--	int ret;
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 3bdd002a9c80..7f9fe09af92d 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -243,15 +243,14 @@ done:
  
--	ret = vsp1_entity_set_streaming(&bru->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&bru->entity, enable);
- 
- 	if (!enable)
- 		return 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index a94f544dcc77..6b425ae9aba3 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -45,29 +45,13 @@ bool vsp1_entity_is_streaming(struct vsp1_entity *entity)
- 	return streaming;
- }
- 
--int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
-+void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
+ void vsp1_dl_setup(struct vsp1_device *vsp1)
  {
- 	unsigned long flags;
--	int ret;
+-	u32 ctrl = (256 << VI6_DL_CTRL_AR_WAIT_SHIFT)
+-		 | VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
+-		 | VI6_DL_CTRL_DLE;
++	u32 ctrl = (256 << VI6_DL_CTRL_AR_WAIT_SHIFT);
  
- 	spin_lock_irqsave(&entity->lock, flags);
- 	entity->streaming = streaming;
- 	spin_unlock_irqrestore(&entity->lock, flags);
--
--	if (!streaming)
--		return 0;
--
--	if (!entity->vsp1->info->uapi || !entity->subdev.ctrl_handler)
--		return 0;
--
--	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
--	if (ret < 0) {
--		spin_lock_irqsave(&entity->lock, flags);
--		entity->streaming = false;
--		spin_unlock_irqrestore(&entity->lock, flags);
--	}
--
--	return ret;
+ 	/* The DRM pipeline operates with header-less display lists in
+ 	 * Continuous Frame Mode.
+ 	 */
+ 	if (vsp1->drm)
+-		ctrl |= VI6_DL_CTRL_CFM0 | VI6_DL_CTRL_NH0;
++		ctrl |= VI6_DL_CTRL_DC2 | VI6_DL_CTRL_DC1 | VI6_DL_CTRL_DC0
++		     |  VI6_DL_CTRL_DLE | VI6_DL_CTRL_CFM0 | VI6_DL_CTRL_NH0;
+ 
+ 	vsp1_write(vsp1, VI6_DL_CTRL, ctrl);
+ 	vsp1_write(vsp1, VI6_DL_SWAP, VI6_DL_SWAP_LWS);
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 58632d766a2a..d657949bac3b 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -462,8 +462,7 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
+ 	vsp1_write(vsp1, VI6_DPR_HGT_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
+ 		   (VI6_DPR_NODE_UNUSED << VI6_DPR_SMPPT_PT_SHIFT));
+ 
+-	if (!vsp1->info->uapi)
+-		vsp1_dl_setup(vsp1);
++	vsp1_dl_setup(vsp1);
+ 
+ 	return 0;
  }
- 
- void vsp1_entity_route_setup(struct vsp1_entity *source)
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 259880e524fe..c0d6db82ebfb 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -101,7 +101,7 @@ void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
- 			      struct v4l2_subdev_pad_config *cfg);
- 
- bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
--int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
-+void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
- 
- void vsp1_entity_route_setup(struct vsp1_entity *source);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 8721c82801ca..8c7c385ec046 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -45,11 +45,8 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	const struct v4l2_rect *crop = &rpf->crop;
- 	u32 pstride;
- 	u32 infmt;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&rpf->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&rpf->entity, enable);
- 
- 	if (!enable)
- 		return 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index d2c705563cd7..a97541492af8 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -113,11 +113,8 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
- 	struct v4l2_mbus_framefmt *input;
- 	struct v4l2_mbus_framefmt *output;
- 	u32 ctrl0;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&sru->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&sru->entity, enable);
- 
- 	if (!enable)
- 		return 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index 1ca08f4d67c2..a7101f700d9e 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -46,11 +46,8 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
- 	unsigned int i;
- 	u32 srcrpf = 0;
- 	u32 outfmt = 0;
--	int ret;
- 
--	ret = vsp1_entity_set_streaming(&wpf->entity, enable);
--	if (ret < 0)
--		return ret;
-+	vsp1_entity_set_streaming(&wpf->entity, enable);
- 
- 	if (!enable) {
- 		vsp1_write(vsp1, VI6_WPF_IRQ_ENB(wpf->entity.index), 0);
 -- 
 2.7.3
 
