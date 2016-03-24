@@ -1,151 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55044 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753709AbcCUKOt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 06:14:49 -0400
-Date: Mon, 21 Mar 2016 07:14:43 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: cron job: media_tree daily build: OK
-Message-ID: <20160321071443.2d139482@recife.lan>
-In-Reply-To: <20160321065708.281a4aa4@recife.lan>
-References: <20160321040508.0C6691800EC@tschai.lan>
-	<20160321065708.281a4aa4@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40282 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751729AbcCXX2B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Mar 2016 19:28:01 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 07/51] v4l: vsp1: Set entities functions
+Date: Fri, 25 Mar 2016 01:27:03 +0200
+Message-Id: <1458862067-19525-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 21 Mar 2016 06:57:08 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+Initialize the function field of all subdev entities instantiated by the
+driver. This gets rids of multiple warnings printed by the media
+controller core.
 
-> Em Mon, 21 Mar 2016 05:05:07 +0100
-> "Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
-> 
-> > This message is generated daily by a cron job that builds media_tree for
-> > the kernels and architectures in the list below.
-> > 
-> > Results of the daily build of media_tree:
-> > 
-> > date:		Mon Mar 21 04:00:22 CET 2016
-> > git branch:	test
-> > git hash:	b39950960d2b890c21465c69c7c0e4ff6253c6b5
-> > gcc version:	i686-linux-gcc (GCC) 5.3.0
-> > sparse version:	v0.5.0-56-g7647c77
-> > smatch version:	Warning: /share/smatch/smatch_data/ is not accessible.
-> > Use --no-data or --data to suppress this message.
-> > v0.5.0-3353-gcae47da  
-> 
-> Not sure how you're running smatch, but what I do here is to run
-> it as:
-> 	/<smatch_dir>/smatch
-> 
-> This way, it finds the smatch_data dir at /<smatch_dir, with also
-> suppress several false positive error messages from the smatch logs.
-> 
-> As a side effect, it simplifies a little bit the procedure to update
-> smatch's version.
-> 
-> Regards
-
-As a reference, those are what I get here with the latest version of
-smatch (plus a patch to avoid a "Function too hairy." warning, posted
-in the end of this email):
-
-$ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y C=1 W=1 CHECK='/devel/smatch/smatch -p=kernel' M=drivers/staging/media
-$ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y C=1 W=1 CHECK='/devel/smatch/smatch -p=kernel' M=drivers/media
-drivers/media/tuners/tuner-xc2028.c:1498 xc2028_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
-drivers/media/radio/radio-aztech.c:87 aztech_alloc() warn: possible memory leak of 'az'
-drivers/media/pci/mantis/mantis_uart.c:105 mantis_uart_work() warn: this loop depends on readl() succeeding
-drivers/media/dvb-core/dvb_frontend.c:272 dvb_frontend_get_event() warn: inconsistent returns 'sem:&fepriv->sem'.
-  Locked on:   line 246
-               line 253
-               line 264
-               line 272
-  Unlocked on: line 261
-drivers/media/pci/ddbridge/ddbridge-core.c:1007 input_tasklet() warn: this loop depends on readl() succeeding
-drivers/media/pci/ddbridge/ddbridge-core.c:1351 flashio() warn: this loop depends on readl() succeeding
-drivers/media/pci/ddbridge/ddbridge-core.c:1371 flashio() warn: this loop depends on readl() succeeding
-drivers/media/tuners/tuner-simple.c:1102 simple_tuner_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
-drivers/media/radio/radio-typhoon.c:79 typhoon_alloc() warn: possible memory leak of 'ty'
-drivers/media/radio/radio-aimslab.c:73 rtrack_alloc() warn: possible memory leak of 'rt'
-drivers/media/radio/radio-zoltrix.c:83 zoltrix_alloc() warn: possible memory leak of 'zol'
-drivers/media/radio/radio-gemtek.c:189 gemtek_alloc() warn: possible memory leak of 'gt'
-drivers/media/tuners/tda9887.c:692 tda9887_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
-drivers/media/radio/radio-trust.c:60 trust_alloc() warn: possible memory leak of 'tr'
-drivers/media/tuners/tda18271-fe.c:1317 tda18271_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
-drivers/media/tuners/xc5000.c:1418 xc5000_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
-drivers/media/tuners/xc4000.c:1690 xc4000_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
-drivers/media/tuners/mxl5007t.c:878 mxl5007t_attach() error: potential null dereference 'state'.  (kzalloc returns null)
-drivers/media/rc/ir-lirc-codec.c:289 ir_lirc_ioctl() warn: check for integer overflow 'val'
-drivers/media/tuners/r820t.c:2342 r820t_attach() error: potential null dereference 'priv'.  (kzalloc returns null)
-drivers/media/rc/st_rc.c:110 st_rc_rx_interrupt() warn: this loop depends on readl() succeeding
-drivers/media/pci/bt8xx/dvb-bt8xx.c:720 frontend_init() warn: possible memory leak of 'state'
-./arch/x86/include/asm/bitops.h:416:22: warning: asm output is not an lvalue
-./arch/x86/include/asm/bitops.h:416:22: warning: asm output is not an lvalue
-./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
-./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
-./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
-./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
-./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
-./arch/x86/include/asm/bitops.h:457:22: warning: asm output is not an lvalue
-drivers/media/usb/uvc/uvc_ctrl.c:1387 uvc_ctrl_begin() warn: inconsistent returns 'mutex:&chain->ctrl_mutex'.
-  Locked on:   line 1387
-  Unlocked on: line 1387
-drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3676 pvr2_send_request_ex() error: we previously assumed 'write_data' could be null (see line 3648)
-drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3829 pvr2_send_request_ex() error: we previously assumed 'read_data' could be null (see line 3649)
-drivers/media/platform/vivid/vivid-rds-gen.c:82 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 43
-drivers/media/platform/vivid/vivid-rds-gen.c:83 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 42
-drivers/media/platform/vivid/vivid-rds-gen.c:89 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 84
-drivers/media/platform/vivid/vivid-rds-gen.c:90 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 85
-drivers/media/platform/vivid/vivid-rds-gen.c:92 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 86
-drivers/media/platform/vivid/vivid-rds-gen.c:93 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 87
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
+ drivers/media/platform/vsp1/vsp1_bru.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_hsit.c | 2 ++
+ drivers/media/platform/vsp1/vsp1_lif.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_lut.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_sru.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_uds.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_wpf.c  | 2 ++
+ 8 files changed, 16 insertions(+)
 
-[PATCH] smatch_slist: use a higher memory limit
-
-50M is not enough for some code at the Kernel. It produces this
-warning:
-
-drivers/media/pci/cx23885/cx23885-dvb.c:2046 dvb_register() Function too hairy.  Giving up.
-
-While checking for troubles on a loop with attaches the device
-specific sub-devices based on the PCI ID.
-
-There's not much that could be done at the code to simplify it.
-The code there is big just because the cx23885 driver supports
-lots of different cards.
-
-On the other hand, increasing the maximum memory size to 500MB
-is cheap, as nowadays even desktops have 16GB.
-
-So, let's increase it.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/smatch_slist.c b/smatch_slist.c
-index 947c35c7f9e0..c4027341ca30 100644
---- a/smatch_slist.c
-+++ b/smatch_slist.c
-@@ -235,11 +235,11 @@ char *alloc_sname(const char *str)
- int out_of_memory(void)
- {
- 	/*
--	 * I decided to use 50M here based on trial and error.
-+	 * I decided to use 500M here based on trial and error.
- 	 * It works out OK for the kernel and so it should work
- 	 * for most other projects as well.
- 	 */
--	if (sm_state_counter * sizeof(struct sm_state) >= 50000000)
-+	if (sm_state_counter * sizeof(struct sm_state) >= 500000000)
- 		return 1;
- 	return 0;
- }
-
-
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index cb0dbc15ddad..565c8b2edf19 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -424,7 +424,9 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
+ 	subdev = &bru->entity.subdev;
+ 	v4l2_subdev_init(subdev, &bru_ops);
+ 
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_COMPOSER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s bru",
+ 		 dev_name(vsp1->dev));
+diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
+index c1087cff31a0..ce42ce2e4847 100644
+--- a/drivers/media/platform/vsp1/vsp1_hsit.c
++++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+@@ -203,7 +203,9 @@ struct vsp1_hsit *vsp1_hsit_create(struct vsp1_device *vsp1, bool inverse)
+ 	subdev = &hsit->entity.subdev;
+ 	v4l2_subdev_init(subdev, &hsit_ops);
+ 
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_CONVERTER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s %s",
+ 		 dev_name(vsp1->dev), inverse ? "hsi" : "hst");
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index 433853ce8dbf..56054fddb675 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -223,7 +223,9 @@ struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1)
+ 	subdev = &lif->entity.subdev;
+ 	v4l2_subdev_init(subdev, &lif_ops);
+ 
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_GENERIC;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s lif",
+ 		 dev_name(vsp1->dev));
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 4b89095e7b5f..f0cd4f79fbff 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -237,7 +237,9 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
+ 	subdev = &lut->entity.subdev;
+ 	v4l2_subdev_init(subdev, &lut_ops);
+ 
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_GENERIC;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s lut",
+ 		 dev_name(vsp1->dev));
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 5bc1d1574a43..7853e0f1d526 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -245,7 +245,9 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	subdev = &rpf->entity.subdev;
+ 	v4l2_subdev_init(subdev, &rpf_ops);
+ 
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_CONVERTER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s rpf.%u",
+ 		 dev_name(vsp1->dev), index);
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index cc09efbfb24f..149ee1cd0b5a 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -363,7 +363,9 @@ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
+ 	subdev = &sru->entity.subdev;
+ 	v4l2_subdev_init(subdev, &sru_ops);
+ 
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s sru",
+ 		 dev_name(vsp1->dev));
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index bba67770cf95..b1881a0a314f 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -338,7 +338,9 @@ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
+ 	subdev = &uds->entity.subdev;
+ 	v4l2_subdev_init(subdev, &uds_ops);
+ 
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s uds.%u",
+ 		 dev_name(vsp1->dev), index);
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index c78d4af50fcf..d2735f09d1da 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -244,7 +244,9 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	subdev = &wpf->entity.subdev;
+ 	v4l2_subdev_init(subdev, &wpf_ops);
+ 
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_CONVERTER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s wpf.%u",
+ 		 dev_name(vsp1->dev), index);
 -- 
-Thanks,
-Mauro
+2.7.3
+
