@@ -1,144 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43301 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752822AbcC2HkD (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:50763 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752339AbcCXOY6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2016 03:40:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2 01/54] media: Add video processing entity functions
-Date: Tue, 29 Mar 2016 10:40:05 +0300
-Message-ID: <5885130.y4A9fxS5bx@avalon>
-In-Reply-To: <20160328230155.GE32125@valkosipuli.retiisi.org.uk>
-References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1458902668-1141-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20160328230155.GE32125@valkosipuli.retiisi.org.uk>
+	Thu, 24 Mar 2016 10:24:58 -0400
+Subject: Re: [PATCH v2 1/8] i2c-mux: add common core data for every mux
+ instance
+To: Peter Rosin <peda@lysator.liu.se>
+References: <1452009438-27347-1-git-send-email-peda@lysator.liu.se>
+ <1452009438-27347-2-git-send-email-peda@lysator.liu.se>
+ <56F3B86E.4050002@mentor.com> <56F3CA0E.60906@lysator.liu.se>
+CC: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@axentia.se>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Nicholas Mc Guire <hofrat@osadl.org>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	<linux-i2c@vger.kernel.org>, <devicetree@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+	<linux-media@vger.kernel.org>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <56F3F89F.8000805@mentor.com>
+Date: Thu, 24 Mar 2016 16:24:31 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <56F3CA0E.60906@lysator.liu.se>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Peter,
 
-On Tuesday 29 Mar 2016 02:01:55 Sakari Ailus wrote:
-> Hi Laurent,
+On 24.03.2016 13:05, Peter Rosin wrote:
+> Hi Vladimir,
 > 
-> On Fri, Mar 25, 2016 at 12:43:35PM +0200, Laurent Pinchart wrote:
-> > Add composer, format converter and scaler functions, as well as generic
-> > video processing to be used when no other processing function is
-> > applicable.
+> On 2016-03-24 10:50, Vladimir Zapolskiy wrote:
+>> Hi Peter,
+>>
+>> On 05.01.2016 17:57, Peter Rosin wrote:
+>>> From: Peter Rosin <peda@axentia.se>
+>>>
+>>> The initial core mux structure starts off small with only the parent
+>>> adapter pointer, which all muxes have, and a priv pointer for mux
+>>> driver private data.
+>>>
+>>> Add i2c_mux_alloc function to unify the creation of a mux.
+>>>
+>>> Where appropriate, pass around the mux core structure instead of the
+>>> parent adapter or the driver private data.
+>>>
+>>> Remove the parent adapter pointer from the driver private data for all
+>>> mux drivers.
+>>>
+>>> Signed-off-by: Peter Rosin <peda@axentia.se>
+>>
+>> is it still under review? If yes, please find one question from me below :)
 > 
-> How are these intended to be used?
+> Yes, the series is still under review/testing, with an update planned in a
+> week or so.
 > 
-> Say, if a sub-device implements functionality that matches more than one of
-> these, do you pick one?
+>> [snip]
+>>
+>>> @@ -196,21 +195,21 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+>>>  		dev_err(dev, "Cannot parse i2c-parent\n");
+>>>  		return -EINVAL;
+>>>  	}
+>>> -	arb->parent = of_get_i2c_adapter_by_node(parent_np);
+>>> +	muxc->parent = of_find_i2c_adapter_by_node(parent_np);
+>>
+>> why do you prefer here to use "unlocked" version of API?
+>>
+>> Foe example would it be safe/possible to unload an I2C bus device driver
+>> module or unbind I2C device itself in runtime?
+> 
+> I think you ask why I change from of_get_i2c_... to of_find_i2c_..., and that
+> change was not intentional. It was the result of a bad merge during an early
+> rebase.
+> 
+> Does that cover it?
+> 
 
-The whole point of functions is that they're not mutually exclusive, and the 
-full list of functions will be reported as properties for the entity. The 
-function field of the media entity structure stores the main function only.
+Yep, thank you for clarification, please account this in v3.
 
-> Supposedly you control at least some of this functionality using the
-> selections API, and frankly, I think the way it's currently defined in the
-> spec worked okay-ish for the devices at hand at the time, but defining that
-> the order of processing from the sink towards the source is sink crop, sink
-> compose and then source crop is not generic. We should have a better way to
-> tell this, using a similar API which is used to control the functionality,
-> just as is done with V4L2 controls.
+I'll try to find some time to review the whole changeset carefully,
+in fact I briefly reviewed it two months ago, but I didn't find
+anything obviously wrong that time.
 
-Sure, but how is that related to this patch ? :-)
-
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  Documentation/DocBook/media/v4l/media-types.xml | 34 ++++++++++++++++++++
-> >  include/uapi/linux/media.h                      |  8 ++++++
-> >  2 files changed, 42 insertions(+)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/media-types.xml
-> > b/Documentation/DocBook/media/v4l/media-types.xml index
-> > 5e3f20fdcf17..a6e171e80bce 100644
-> > --- a/Documentation/DocBook/media/v4l/media-types.xml
-> > +++ b/Documentation/DocBook/media/v4l/media-types.xml
-> > @@ -121,6 +121,40 @@
-> > 
-> >  	    <entry><constant>MEDIA_ENT_F_AUDIO_MIXER</constant></entry>
-> >  	    <entry>Audio Mixer Function Entity.</entry>
-> >  	  
-> >  	  </row>
-> > 
-> > +	  <row>
-> > +	    
-<entry><constant>MEDIA_ENT_F_PROC_VIDEO_GENERIC</constant></entry>
-> > +	    <entry>Generic video processing, when no other processing 
-function
-> > +		   is applicable.
-> > +	    </entry>
-> > +	  <row>
-> > +	    
-<entry><constant>MEDIA_ENT_F_PROC_VIDEO_COMPOSER</constant></entry>
-> > +	    <entry>Video composer (blender). An entity capable of video
-> > +		   composing must have at least two sink pads and one source
-> > +		   pad, and composes input video frames onto output video
-> > +		   frames. Composition can be performed using alpha blending,
-> > +		   color keying, raster operations (ROP), stitching or any other
-> > +		   mean.
-> > +	    </entry>
-> > +	  </row>
-> > +	  </row>
-> > +	    
-<entry><constant>MEDIA_ENT_F_PROC_VIDEO_CONVERTER</constant></entry>
-> > +	    <entry>Video format converter. An entity capable of video format
-> > +		   conversion must have at least one sink pad and one source
-> > +		   pad, and convert the format of pixels received on its sink
-> > +		   pad(s) to a different format output on its source pad(s).
-> > +	    </entry>
-> > +	  </row>
-> > +	  <row>
-> > +	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_SCALER</constant></entry>
-> > +	    <entry>Video scaler. An entity capable of video scaling must have
-> > +		   at least one sink pad and one source pad, and scaling the
-> > +		   video frame(s) received on its sink pad(s) to a different
-> > +		   resolution output on its source pad(s). The range of
-> > +		   supported scaling ratios is entity-specific and can differ
-> > +		   between the horizontal and vertical directions. In particular
-> > +		   scaling can be supported in one direction only.
-> > +	    </entry>
-> > +	  </row>
-> > 
-> >  	</tbody>
-> >  	
-> >        </tgroup>
-> >      
-> >      </table>
-> > 
-> > diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> > index df59edee25d1..884ec1cae09d 100644
-> > --- a/include/uapi/linux/media.h
-> > +++ b/include/uapi/linux/media.h
-> > @@ -95,6 +95,14 @@ struct media_device_info {
-> > 
-> >  #define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03003)
-> >  
-> >  /*
-> > 
-> > + * Processing entities
-> > + */
-> > +#define MEDIA_ENT_F_PROC_VIDEO_GENERIC		(MEDIA_ENT_F_BASE + 0x4001)
-> > +#define MEDIA_ENT_F_PROC_VIDEO_COMPOSER		(MEDIA_ENT_F_BASE + 0x4002)
-> > +#define MEDIA_ENT_F_PROC_VIDEO_CONVERTER	(MEDIA_ENT_F_BASE + 0x4003)
-> > +#define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4004)
-> > +
-> > +/*
-> > 
-> >   * Connectors
-> >   */
-> >  
-> >  /* It is a responsibility of the entity drivers to add connectors and
-> >  links */
-
--- 
-Regards,
-
-Laurent Pinchart
-
+--
+With best wishes,
+Vladimir
