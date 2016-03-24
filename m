@@ -1,40 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751723AbcCXX16 (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:34383 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755680AbcCXLX4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:27:58 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 08/51] v4l: vsp1: VSPD instances have no LUT on Gen3
-Date: Fri, 25 Mar 2016 01:27:04 +0200
-Message-Id: <1458862067-19525-9-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Thu, 24 Mar 2016 07:23:56 -0400
+Received: by mail-wm0-f41.google.com with SMTP id p65so269657453wmp.1
+        for <linux-media@vger.kernel.org>; Thu, 24 Mar 2016 04:23:56 -0700 (PDT)
+From: Peter Griffin <peter.griffin@linaro.org>
+To: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	srinivas.kandagatla@gmail.com, maxime.coquelin@st.com,
+	patrice.chotard@st.com, mchehab@osg.samsung.com
+Cc: peter.griffin@linaro.org, lee.jones@linaro.org,
+	hugues.fruchet@st.com, linux-media@vger.kernel.org
+Subject: [PATCH 0/3] [media] c8sectpfe: Various driver fixups
+Date: Thu, 24 Mar 2016 11:23:49 +0000
+Message-Id: <1458818632-25552-1-git-send-email-peter.griffin@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the HAS_LUT flag in the corresponding device information entry.
+Hi Mauro,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drv.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This series includes a few fixes for the c8sectpfe Linux dvb demux driver.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 25750a0e4631..da43e3f35610 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -623,7 +623,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.uapi = true,
- 	}, {
- 		.version = VI6_IP_VERSION_MODEL_VSPD_GEN3,
--		.features = VSP1_HAS_BRU | VSP1_HAS_LIF | VSP1_HAS_LUT,
-+		.features = VSP1_HAS_BRU | VSP1_HAS_LIF,
- 		.rpf_count = 5,
- 		.wpf_count = 2,
- 		.num_bru_inputs = 5,
+The first fixes a bug introduced in the review process to the circular 
+buffer WP management. The second re-works the firmware loading code to not
+rely on the CONFIG_FW_LOADER_USER_HELPER_FALLBACK which was removed in
+a previous patch. The third patch simly demotes a print statement to
+dev_dbg.
+
+regards,
+
+Peter.
+
+Peter Griffin (3):
+  [media] c8sectpfe: Fix broken circular buffer wp management
+  [media] c8sectpfe: Demote print to dev_dbg
+  [media] c8sectpfe: Rework firmware loading mechanism
+
+ .../media/platform/sti/c8sectpfe/c8sectpfe-core.c  | 69 ++++++++--------------
+ 1 file changed, 24 insertions(+), 45 deletions(-)
+
 -- 
-2.7.3
+1.9.1
 
