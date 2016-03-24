@@ -1,96 +1,308 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:41934 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751038AbcCaM3u (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087AbcCXX2a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2016 08:29:50 -0400
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: David Woodhouse <dwmw2@infradead.org>,
-	Brian Norris <computersforpeace@gmail.com>,
-	linux-mtd@lists.infradead.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dave Gordon <david.s.gordon@intel.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Richard Weinberger <richard@nod.at>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-crypto@vger.kernel.org, Vignesh R <vigneshr@ti.com>,
-	linux-mm@kvack.org, Joerg Roedel <joro@8bytes.org>,
-	iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 0/4] scatterlist: sg_table from virtual pointer
-Date: Thu, 31 Mar 2016 14:29:40 +0200
-Message-Id: <1459427384-21374-1-git-send-email-boris.brezillon@free-electrons.com>
+	Thu, 24 Mar 2016 19:28:30 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 43/51] v4l: vsp1: Factorize media bus codes enumeration code
+Date: Fri, 25 Mar 2016 01:27:39 +0200
+Message-Id: <1458862067-19525-44-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Most of the entities can't perform format conversion and implement the
+same media bus enumeration function. Factorize the code into a single
+implementation.
 
-This series has been extracted from another series [1] adding support
-for DMA operations in a NAND driver.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_bru.c    | 26 ++---------------
+ drivers/media/platform/vsp1/vsp1_entity.c | 46 +++++++++++++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_entity.h |  4 +++
+ drivers/media/platform/vsp1/vsp1_lif.c    | 29 ++-----------------
+ drivers/media/platform/vsp1/vsp1_lut.c    | 29 ++-----------------
+ drivers/media/platform/vsp1/vsp1_sru.c    | 29 ++-----------------
+ drivers/media/platform/vsp1/vsp1_uds.c    | 29 ++-----------------
+ 7 files changed, 60 insertions(+), 132 deletions(-)
 
-The reason I decided to post those patches separately is because they
-are touching core stuff, and I'd like to have feedback on these specific
-aspects.
-
-The idea is to provide a generic function creating an sg_table from
-a virtual pointer and a length. This operation is complicated by
-the different memory regions exposed in kernel space. For example,
-you have the lowmem region, which guarantees that buffers are
-physically contiguous, while the vmalloc region does not.
-
-sg_alloc_table_from_buf() detects in which memory region your buffer
-reside, and takes the appropriate precautions when creating the
-sg_table. This function also takes an extract parameter, allowing
-one to specify extra constraints, like the maximum DMA segment size,
-the required and the preferred alignment.
-
-Patch 1 and 2 are implementing sg_alloc_table_from_buf() (patch 1
-is needed to properly detect buffers residing in the highmem/kmap
-area).
-
-Patch 3 is making use of sg_alloc_table_from_buf() in the spi_map_buf()
-function (hopefully, other subsystems/drivers will be able to easily
-switch to this function too).
-
-Patch 4 is implementing what I really need: generic functions
-to map/unmap a virtual buffer passed through mtd->_read/_write().
-
-I'm not exactly a DMA or MM experts, so that would be great to have
-feedbacks on this approach. That's why I added so many people in Cc
-even if they're not directly impacted by those patches. Let me know if
-you want me to drop/add people from/to the recipient list.
-
-Thanks.
-
-Best Regards,
-
-Boris
-
-[1]http://www.spinics.net/lists/arm-kernel/msg493552.html
-
-Boris Brezillon (4):
-  mm: add is_highmem_addr() helper
-  scatterlist: add sg_alloc_table_from_buf() helper
-  spi: use sg_alloc_table_from_buf()
-  mtd: provide helper to prepare buffers for DMA operations
-
- drivers/mtd/mtdcore.c       |  66 ++++++++++++++++
- drivers/spi/spi.c           |  45 ++---------
- include/linux/highmem.h     |  13 ++++
- include/linux/mtd/mtd.h     |  25 ++++++
- include/linux/scatterlist.h |  24 ++++++
- lib/scatterlist.c           | 183 ++++++++++++++++++++++++++++++++++++++++++++
- 6 files changed, 316 insertions(+), 40 deletions(-)
-
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index fa293ee2829d..835593dd88b3 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -76,31 +76,9 @@ static int bru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
+-	struct vsp1_bru *bru = to_bru(subdev);
+-
+-	if (code->pad == BRU_PAD_SINK(0)) {
+-		if (code->index >= ARRAY_SIZE(codes))
+-			return -EINVAL;
+-
+-		code->code = codes[code->index];
+-	} else {
+-		struct v4l2_subdev_pad_config *config;
+-		struct v4l2_mbus_framefmt *format;
+ 
+-		if (code->index)
+-			return -EINVAL;
+-
+-		config = vsp1_entity_get_pad_config(&bru->entity, cfg,
+-						    code->which);
+-		if (!config)
+-			return -EINVAL;
+-
+-		format = vsp1_entity_get_pad_format(&bru->entity, config,
+-						    BRU_PAD_SINK(0));
+-		code->code = format->code;
+-	}
+-
+-	return 0;
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
++					  ARRAY_SIZE(codes));
+ }
+ 
+ static int bru_enum_frame_size(struct v4l2_subdev *subdev,
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 5030974f3083..b347442bc662 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -141,6 +141,52 @@ int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
++/*
++ * vsp1_subdev_enum_mbus_code - Subdev pad enum_mbus_code handler
++ * @subdev: V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @code: Media bus code enumeration
++ * @codes: Array of supported media bus codes
++ * @ncodes: Number of supported media bus codes
++ *
++ * This function implements the subdev enum_mbus_code pad operation for entities
++ * that do not support format conversion. It enumerates the given supported
++ * media bus codes on the sink pad and reports a source pad format identical to
++ * the sink pad.
++ */
++int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_mbus_code_enum *code,
++			       const unsigned int *codes, unsigned int ncodes)
++{
++	struct vsp1_entity *entity = to_vsp1_entity(subdev);
++
++	if (code->pad == 0) {
++		if (code->index >= ncodes)
++			return -EINVAL;
++
++		code->code = codes[code->index];
++	} else {
++		struct v4l2_subdev_pad_config *config;
++		struct v4l2_mbus_framefmt *format;
++
++		/* The entity can't perform format conversion, the sink format
++		 * is always identical to the source format.
++		 */
++		if (code->index)
++			return -EINVAL;
++
++		config = vsp1_entity_get_pad_config(entity, cfg, code->which);
++		if (!config)
++			return -EINVAL;
++
++		format = vsp1_entity_get_pad_format(entity, config, 0);
++		code->code = format->code;
++	}
++
++	return 0;
++}
++
+ /* -----------------------------------------------------------------------------
+  * Media Operations
+  */
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index 7845e931138f..fbde42256522 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -130,5 +130,9 @@ void vsp1_entity_route_setup(struct vsp1_entity *source,
+ int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
+ 			       struct v4l2_subdev_pad_config *cfg,
+ 			       struct v4l2_subdev_format *fmt);
++int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_mbus_code_enum *code,
++			       const unsigned int *codes, unsigned int ncodes);
+ 
+ #endif /* __VSP1_ENTITY_H__ */
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index db698e7d4884..ded4c5a87d4c 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -45,34 +45,9 @@ static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
+-	struct vsp1_lif *lif = to_lif(subdev);
+-
+-	if (code->pad == LIF_PAD_SINK) {
+-		if (code->index >= ARRAY_SIZE(codes))
+-			return -EINVAL;
+-
+-		code->code = codes[code->index];
+-	} else {
+-		struct v4l2_subdev_pad_config *config;
+-		struct v4l2_mbus_framefmt *format;
+-
+-		/* The LIF can't perform format conversion, the sink format is
+-		 * always identical to the source format.
+-		 */
+-		if (code->index)
+-			return -EINVAL;
+-
+-		config = vsp1_entity_get_pad_config(&lif->entity, cfg,
+-						    code->which);
+-		if (!config)
+-			return -EINVAL;
+ 
+-		format = vsp1_entity_get_pad_format(&lif->entity, config,
+-						    LIF_PAD_SINK);
+-		code->code = format->code;
+-	}
+-
+-	return 0;
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
++					  ARRAY_SIZE(codes));
+ }
+ 
+ static int lif_enum_frame_size(struct v4l2_subdev *subdev,
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 6a0f10f71dda..781ea99abccf 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -71,34 +71,9 @@ static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_AHSV8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
+-	struct vsp1_lut *lut = to_lut(subdev);
+-
+-	if (code->pad == LUT_PAD_SINK) {
+-		if (code->index >= ARRAY_SIZE(codes))
+-			return -EINVAL;
+-
+-		code->code = codes[code->index];
+-	} else {
+-		struct v4l2_subdev_pad_config *config;
+-		struct v4l2_mbus_framefmt *format;
+-
+-		/* The LUT can't perform format conversion, the sink format is
+-		 * always identical to the source format.
+-		 */
+-		if (code->index)
+-			return -EINVAL;
+-
+-		config = vsp1_entity_get_pad_config(&lut->entity, cfg,
+-						    code->which);
+-		if (!config)
+-			return -EINVAL;
+ 
+-		format = vsp1_entity_get_pad_format(&lut->entity, config,
+-						    LUT_PAD_SINK);
+-		code->code = format->code;
+-	}
+-
+-	return 0;
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
++					  ARRAY_SIZE(codes));
+ }
+ 
+ static int lut_enum_frame_size(struct v4l2_subdev *subdev,
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index 38fb4e1e8bae..9dc7c77c74f8 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -116,34 +116,9 @@ static int sru_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
+-	struct vsp1_sru *sru = to_sru(subdev);
+-
+-	if (code->pad == SRU_PAD_SINK) {
+-		if (code->index >= ARRAY_SIZE(codes))
+-			return -EINVAL;
+-
+-		code->code = codes[code->index];
+-	} else {
+-		struct v4l2_subdev_pad_config *config;
+-		struct v4l2_mbus_framefmt *format;
+-
+-		/* The SRU can't perform format conversion, the sink format is
+-		 * always identical to the source format.
+-		 */
+-		if (code->index)
+-			return -EINVAL;
+ 
+-		config = vsp1_entity_get_pad_config(&sru->entity, cfg,
+-						    code->which);
+-		if (!config)
+-			return -EINVAL;
+-
+-		format = vsp1_entity_get_pad_format(&sru->entity, config,
+-						    SRU_PAD_SINK);
+-		code->code = format->code;
+-	}
+-
+-	return 0;
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
++					  ARRAY_SIZE(codes));
+ }
+ 
+ static int sru_enum_frame_size(struct v4l2_subdev *subdev,
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index 59432c7c29b9..26f7393d278e 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -119,34 +119,9 @@ static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
+ 		MEDIA_BUS_FMT_ARGB8888_1X32,
+ 		MEDIA_BUS_FMT_AYUV8_1X32,
+ 	};
+-	struct vsp1_uds *uds = to_uds(subdev);
+-
+-	if (code->pad == UDS_PAD_SINK) {
+-		if (code->index >= ARRAY_SIZE(codes))
+-			return -EINVAL;
+-
+-		code->code = codes[code->index];
+-	} else {
+-		struct v4l2_subdev_pad_config *config;
+-		struct v4l2_mbus_framefmt *format;
+-
+-		config = vsp1_entity_get_pad_config(&uds->entity, cfg,
+-						    code->which);
+-		if (!config)
+-			return -EINVAL;
+-
+-		/* The UDS can't perform format conversion, the sink format is
+-		 * always identical to the source format.
+-		 */
+-		if (code->index)
+-			return -EINVAL;
+ 
+-		format = vsp1_entity_get_pad_format(&uds->entity, config,
+-						    UDS_PAD_SINK);
+-		code->code = format->code;
+-	}
+-
+-	return 0;
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
++					  ARRAY_SIZE(codes));
+ }
+ 
+ static int uds_enum_frame_size(struct v4l2_subdev *subdev,
 -- 
-2.5.0
+2.7.3
 
