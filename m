@@ -1,114 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:32948 "EHLO pokefinder.org"
+Received: from lists.s-osg.org ([54.187.51.154]:56796 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750709AbcCESar (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Mar 2016 13:30:47 -0500
-Date: Sat, 5 Mar 2016 19:29:35 +0100
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: Peter Rosin <peda@lysator.liu.se>, Peter Rosin <peda@axentia.se>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
+	id S1750883AbcCXAny (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Mar 2016 20:43:54 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
 	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicholas Mc Guire <hofrat@osadl.org>,
-	Olli Salonen <olli.salonen@iki.fi>, linux-i2c@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Subject: Re: [PATCH v3 0/8] i2c mux cleanup and locking update
-Message-ID: <20160305182934.GA1394@katana>
-References: <1452265496-22475-1-git-send-email-peda@lysator.liu.se>
- <20160302172904.GC5439@katana>
- <56DB1C07.4040008@kernel.org>
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Kukjin Kim <kgene@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?q?Andreas=20F=C3=A4rber?= <afaerber@suse.de>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [RFT PATCH v2] [media] exynos4-is: Fix fimc_is_parse_sensor_config() nodes handling
+Date: Wed, 23 Mar 2016 21:41:40 -0300
+Message-Id: <1458780100-8865-1-git-send-email-javier@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
-Content-Disposition: inline
-In-Reply-To: <56DB1C07.4040008@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The same struct device_node * is used for looking up the I2C sensor, OF
+graph endpoint and port. So the reference count is incremented but not
+decremented for the endpoint and port nodes.
 
---bg08WKrSYDhXBjb5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fix this by having separate pointers for each node looked up.
 
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-> Perhaps it's one to let sit into at least the next cycle (and get some te=
-sting
-> on those media devices if we can) but, whilst it is fiddly the gains seen=
- in
-> individual drivers (like the example Peter put in response to the V4 seri=
-es)
-> make it look worthwhile to me.  Also, whilst the invensense part is plain=
- odd
-> in many ways, the case Peter had looks rather more normal.
->=20
-> At the end of the day, sometimes fiddly problems need fiddly code.=20
-> (says a guy who doesn't have to maintain it!)
->=20
-> It certainly helps that Peter has done a thorough job, broken the patches
-> up cleanly and provided clean descriptions of what he is doing.
+---
+Hello,
 
-Yes, Peter has done a great job so far and the latest results were very
-convincing (fixing the invensense issue and the savings for rtl2832).
+This patch was only build tested because I don't have an Exynos4
+board to test. So testing on real HW will be highly appreciated.
 
-And yes, I am reluctant to maintain this code alone, so my question
-would be:
+Best regards,
+Javier
 
-Peter, are you interested in becoming the i2c-mux maintainer and look
-after the code even after it was merged? (From "you reviewing patches and
-me picking them up" to "you have your own branch which I pull", we can
-discuss the best workflow.)
+Changes in v2:
+- Use the correct node var in the error print out. Suggested by Andreas Färber.
 
-If that would be the case, I have the same idea like Jonathan: Give it
-another cycle for more review & test and aim for the 4.7 merge window.
+ drivers/media/platform/exynos4-is/fimc-is.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-I have to admit that I still haven't done a more thorough review, so I
-can't say if I see a show-stopper in this series. Yet, even if so I am
-positive it can be sorted out. Oh, and we should call for people with
-special experience in locking.
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 979c388ebf60..a97edd078327 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -165,6 +165,7 @@ static int fimc_is_parse_sensor_config(struct fimc_is *is, unsigned int index,
+ 						struct device_node *node)
+ {
+ 	struct fimc_is_sensor *sensor = &is->sensor[index];
++	struct device_node *ep, *port;
+ 	u32 tmp = 0;
+ 	int ret;
+ 
+@@ -175,22 +176,25 @@ static int fimc_is_parse_sensor_config(struct fimc_is *is, unsigned int index,
+ 		return -EINVAL;
+ 	}
+ 
+-	node = of_graph_get_next_endpoint(node, NULL);
+-	if (!node)
++	ep = of_graph_get_next_endpoint(node, NULL);
++	if (!ep)
+ 		return -ENXIO;
+ 
+-	node = of_graph_get_remote_port(node);
+-	if (!node)
++	port = of_graph_get_remote_port(ep);
++	of_node_put(ep);
++	if (!port)
+ 		return -ENXIO;
+ 
+ 	/* Use MIPI-CSIS channel id to determine the ISP I2C bus index. */
+-	ret = of_property_read_u32(node, "reg", &tmp);
++	ret = of_property_read_u32(port, "reg", &tmp);
+ 	if (ret < 0) {
+ 		dev_err(&is->pdev->dev, "reg property not found at: %s\n",
+-							 node->full_name);
++							 port->full_name);
++		of_node_put(port);
+ 		return ret;
+ 	}
+ 
++	of_node_put(port);
+ 	sensor->i2c_bus = tmp - FIMC_INPUT_MIPI_CSI2_0;
+ 	return 0;
+ }
+-- 
+2.5.0
 
-What do people think?
-
-Regards,
-
-   Wolfram
-
-PS: Peter, have you seen my demuxer driver in my for-next branch? I hope
-it won't spoil your design?
-
-
---bg08WKrSYDhXBjb5
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJW2yWOAAoJEBQN5MwUoCm2h8QQAJpKVERebHnxPRdoWQvKdFgA
-bAkwdGd9yBqmnBLvZ7MmxLOqRdZAd9YoXa2D7fVAUeVC20nGiicwpMALB4JwUC/I
-6zmMQjEwQtErLKnHx3MUvELmsvnj5jhlFph17KgmtH4scKrJmzSSPdv//L02CxYT
-CwdmPCZAfqdSbpa8X+ZIyrMBuy0h1dYcytj5ZXlz8tXugqSSpnk7t0ruwMq3gVuy
-L50WIpWF6dJpMQRiRPVh5d5tKUOEYCbb2PbHGjIq7msFYTdD/fg6Ml4dIZuxf80C
-Fj8YwNoPEq+OuXFvF0r6PYyYZ2XfW+2wdqNRmRAr9Xt+ECav3wNMZb8E7RqfoVmE
-ssXkInXcg0+oofVNPHDzJYFQxjfPqmY4N32nmQ88z1HUCaUwA5Abfmw6SWfcI92f
-VcNjAs5AQVDzhfpfwm/atwTGs1xm6gXQymL77hDvmKQnOUvIRATuXHjSB+FLbuSs
-ypt52ZDBml0xdMTdwznX8uThijBeM6Ynw4w2UkIqkgipOfCzDuomcHd/+8n8z3i0
-WwA5NKx8rI65R72BXkHj0nHy4c9StOuTXfNilMVyBHIsE8K+GDbdu375em3TuKcD
-qiJRUHk0xpdmnhrXbURzUzvnbc3BdeG/JDJd/ErVycicx6wSXtktaqtRiEjwreSG
-qK61eIj0COHEjoX/hk3s
-=rkf3
------END PGP SIGNATURE-----
-
---bg08WKrSYDhXBjb5--
