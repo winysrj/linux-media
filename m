@@ -1,77 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:41946 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752504AbcCaM3u (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:44848 "EHLO
+	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755204AbcCXJuy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2016 08:29:50 -0400
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: David Woodhouse <dwmw2@infradead.org>,
-	Brian Norris <computersforpeace@gmail.com>,
-	linux-mtd@lists.infradead.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dave Gordon <david.s.gordon@intel.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Thu, 24 Mar 2016 05:50:54 -0400
+Subject: Re: [PATCH v2 1/8] i2c-mux: add common core data for every mux
+ instance
+To: Peter Rosin <peda@lysator.liu.se>
+References: <1452009438-27347-1-git-send-email-peda@lysator.liu.se>
+ <1452009438-27347-2-git-send-email-peda@lysator.liu.se>
+CC: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@axentia.se>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Richard Weinberger <richard@nod.at>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-crypto@vger.kernel.org, Vignesh R <vigneshr@ti.com>,
-	linux-mm@kvack.org, Joerg Roedel <joro@8bytes.org>,
-	iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/4] mm: add is_highmem_addr() helper
-Date: Thu, 31 Mar 2016 14:29:41 +0200
-Message-Id: <1459427384-21374-2-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1459427384-21374-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1459427384-21374-1-git-send-email-boris.brezillon@free-electrons.com>
+	Nicholas Mc Guire <hofrat@osadl.org>,
+	Olli Salonen <olli.salonen@iki.fi>,
+	<linux-i2c@vger.kernel.org>, <devicetree@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <linux-iio@vger.kernel.org>,
+	<linux-media@vger.kernel.org>
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Message-ID: <56F3B86E.4050002@mentor.com>
+Date: Thu, 24 Mar 2016 11:50:38 +0200
+MIME-Version: 1.0
+In-Reply-To: <1452009438-27347-2-git-send-email-peda@lysator.liu.se>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an helper to check if a virtual address is in the highmem region.
+Hi Peter,
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- include/linux/highmem.h | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+On 05.01.2016 17:57, Peter Rosin wrote:
+> From: Peter Rosin <peda@axentia.se>
+> 
+> The initial core mux structure starts off small with only the parent
+> adapter pointer, which all muxes have, and a priv pointer for mux
+> driver private data.
+> 
+> Add i2c_mux_alloc function to unify the creation of a mux.
+> 
+> Where appropriate, pass around the mux core structure instead of the
+> parent adapter or the driver private data.
+> 
+> Remove the parent adapter pointer from the driver private data for all
+> mux drivers.
+> 
+> Signed-off-by: Peter Rosin <peda@axentia.se>
 
-diff --git a/include/linux/highmem.h b/include/linux/highmem.h
-index bb3f329..13dff37 100644
---- a/include/linux/highmem.h
-+++ b/include/linux/highmem.h
-@@ -41,6 +41,14 @@ void kmap_flush_unused(void);
- 
- struct page *kmap_to_page(void *addr);
- 
-+static inline bool is_highmem_addr(const void *x)
-+{
-+	unsigned long vaddr = (unsigned long)x;
-+
-+	return vaddr >=  PKMAP_BASE &&
-+	       vaddr < ((PKMAP_BASE + LAST_PKMAP) * PAGE_SIZE);
-+}
-+
- #else /* CONFIG_HIGHMEM */
- 
- static inline unsigned int nr_free_highpages(void) { return 0; }
-@@ -50,6 +58,11 @@ static inline struct page *kmap_to_page(void *addr)
- 	return virt_to_page(addr);
- }
- 
-+static inline bool is_highmem_addr(const void *x)
-+{
-+	return false;
-+}
-+
- #define totalhigh_pages 0UL
- 
- #ifndef ARCH_HAS_KMAP
--- 
-2.5.0
+is it still under review? If yes, please find one question from me below :)
 
+[snip]
+
+> @@ -196,21 +195,21 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+>  		dev_err(dev, "Cannot parse i2c-parent\n");
+>  		return -EINVAL;
+>  	}
+> -	arb->parent = of_get_i2c_adapter_by_node(parent_np);
+> +	muxc->parent = of_find_i2c_adapter_by_node(parent_np);
+
+why do you prefer here to use "unlocked" version of API?
+
+Foe example would it be safe/possible to unload an I2C bus device driver
+module or unbind I2C device itself in runtime?
+
+>  	of_node_put(parent_np);
+> -	if (!arb->parent) {
+> +	if (!muxc->parent) {
+>  		dev_err(dev, "Cannot find parent bus\n");
+>  		return -EPROBE_DEFER;
+>  	}
+>  
+>  	/* Actually add the mux adapter */
+> -	arb->child = i2c_add_mux_adapter(arb->parent, dev, arb, 0, 0, 0,
+> +	arb->child = i2c_add_mux_adapter(muxc, dev, arb, 0, 0, 0,
+>  					 i2c_arbitrator_select,
+>  					 i2c_arbitrator_deselect);
+>  	if (!arb->child) {
+>  		dev_err(dev, "Failed to add adapter\n");
+>  		ret = -ENODEV;
+> -		i2c_put_adapter(arb->parent);
+> +		i2c_put_adapter(muxc->parent);
+>  	}
+>  
+>  	return ret;
+
+--
+With best wishes,
+Vladimir
