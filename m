@@ -1,210 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44468 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752157AbcCJPVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Mar 2016 10:21:10 -0500
-Date: Thu, 10 Mar 2016 12:21:01 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160310122101.2fca3d79@recife.lan>
-In-Reply-To: <87fuvypr2h.fsf@intel.com>
-References: <20160213145317.247c63c7@lwn.net>
-	<87y49zr74t.fsf@intel.com>
-	<20160303071305.247e30b1@lwn.net>
-	<20160303155037.705f33dd@recife.lan>
-	<86egbrm9hw.fsf@hiro.keithp.com>
-	<1457076530.13171.13.camel@winder.org.uk>
-	<CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
-	<87a8m9qoy8.fsf@intel.com>
-	<20160308082948.4e2e0f82@recife.lan>
-	<CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
-	<20160308103922.48d87d9d@recife.lan>
-	<20160308123921.6f2248ab@recife.lan>
-	<20160309182709.7ab1e5db@recife.lan>
-	<87fuvypr2h.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:41674 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752510AbcCYNKl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2016 09:10:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv14 06/18] rc: Add HDMI CEC protocol handling
+Date: Fri, 25 Mar 2016 14:10:04 +0100
+Message-Id: <1458911416-47981-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
+References: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 10 Mar 2016 12:25:58 +0200
-Jani Nikula <jani.nikula@intel.com> escreveu:
+From: Kamil Debski <kamil@wypas.org>
 
-> TL;DR? Skip to the last paragraph.
-> 
-> On Wed, 09 Mar 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
-> > I guess the conversion to asciidoc format is now in good shape,
-> > at least to demonstrate that it is possible to use this format for the
-> > media docbook. Still, there are lots of broken references.  
-> 
-> Getting references right with asciidoc is a big problem in the
-> kernel-doc side. As I wrote before, the proofs of concept only worked
-> because everything was processed as one big file (via includes). The
-> Asciidoctor inter-document references won't help, because we won't know
-> the target document name while processing kernel-doc.
+Add handling of remote control events coming from the HDMI CEC bus.
+This patch includes a new keymap that maps values found in the CEC
+messages to the keys pressed and released. Also, a new protocol has
+been added to the core.
 
-I was able to produce chunked htmls here with:
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/rc/keymaps/Makefile |   1 +
+ drivers/media/rc/keymaps/rc-cec.c | 174 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/rc-main.c        |   1 +
+ include/media/rc-map.h            |   5 +-
+ 4 files changed, 180 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/rc/keymaps/rc-cec.c
 
-	asciidoctor -b docbook45 media_api.adoc
-	xmlto -o html-dir html media_api.xml
-
-The results are at:
-	https://mchehab.fedorapeople.org/media-kabi-docs-test/asciidoc_tests/chunked/
-
-But yeah, all references seem to be broken there. It could be due to some
-conversion issue (I didn't actually tried to check what's wrong there),
-but I think that there's something not ok with docbook45
-output for multi-part documents (on both AsciiDoc and Asciidoctor).
-
-> Sphinx is massively better at handling cross references for
-> kernel-doc. We can use domains (C language) and roles (e.g. functions,
-> types, etc.) for the references, which provide kind of
-> namespaces. Sphinx warns for referencing non-existing targets, but
-> doesn't generate broken links in the result like Asciidoctor does.
-> 
-> For example, in the documentation for a function that has struct foo as
-> parameter or return type, a cross reference to struct foo is added
-> automagically, but only if documentation for struct foo actually
-> exists. In Asciidoctor, we would have to blindly generate the references
-> ourselves, and try to resolve broken links ourselves by somehow
-> post-processing the result.
-> 
-> > Yet, from my side, if we're willing to get rid of DocBook, then
-> > Asciidoctor seems to be the *only* alternative so far to parse the
-> > complex media documents.  
-> 
-> I think you mean, "get rid of DocBook as source format", not altogether?
-> I'm yet to be convinved we could rely on Asciidoctor's native formats.
-
-What I mean is that, right now, I see only two alternatives for the
-media uAPI documentation:
-	1) keep using DocBook;
-	2) AsciiDoc/Asciidoctor.
-
-Sphinx doesn't have what's needed to support the complexity of the
-media books, specially since cell span seems to be possible only
-by using asciiArt formats. Writing a big table using asciiArt is
-something that is a *real pain*. Also, as tested, if the table is
-too big, it fails to parse such asciiArt tables. So, while Sphinx
-doesn't have a decent way to describe tables, we can't use it.
-
-If it starts implementing it, then we can check if the other
-features used by the media documentation are also supported.
-Probably, multi-part books would be another pain with Sphinx.
-We have actually 4 books inside a common body. A few chapters
-(like book licensing, bibliography, error codes) are shared
-by all 4 documents.
-
-But, so far, I can't see any way to port media books without
-lots of lot of work to develop new features at the Sphinx code.
-
-> ---
-> 
-> Mauro, I truly appreciate your efforts at evaluating both
-> alternatives. I also appreciate Dan's inputs on Asciidoctor.
-> 
-> Despite your evaluation that Asciidoctor is the only alternative for
-> media documents, it is my opinion that we should go with Sphinx.
-> 
-> It's an opinion, it's subjective, it's from my perspective, especially
-> from the kernel-doc POV, so please don't take it as a slap in the face
-> after all the work you've done. With that out of the way, here's why.
-> 
-> For starters, Jon's Sphinx proof-of-concept at
-> http://static.lwn.net/kerneldoc/ is pretty amazing. It's beautiful and
-> usable. Cross references work, there are no broken links (I hacked a bit
-> more on kernel-doc and it gets even better). There's embedded search
-> (and if this gets exported to https://readthedocs.org/ the search is
-> even better). The API documentation is sensible and the headings aren't
-> mixed up with other headings. It's all there. It's what we've been
-> looking for.
-> 
-> The toolchain gets faster, easier to debug and simplified a lot with
-> DocBook out of the equation completely. Sphinx itself is stable, widely
-> available, and well documented. IMO there's sufficient native output
-> format support. There are plenty of really nice extensions
-> available. There's a possibility of doing kernel-doc as an extension in
-> the future (either by calling current kernel-doc from the extension or
-> by rewriting it).
-
-Well, if we go to Sphinx for kernel-doc, that means that we'll need
-2 different tools for the documentation:
-	- Sphinx for kernel-doc
-	- either DocBook or Asciidoctor/AsciiDoc for media.
-
-IMHO, this is the worse scenario, as we'll keep depending on
-DocBook plus requiring Sphinx, but it is up to Jon to decide.
-
-> Dan keeps bringing up the active community in Asciidoctor, and how
-> they're fixing things up as we speak... which is great, but Sphinx is
-> here now, packaged and shipping in distros ready to use. It seems that
-> of the two, an Asciidoctor based toolchain is currently more in need of
-> hacking and extending to meet our needs. Which brings us to the
-> implementation language, Python vs. Ruby.
-> 
-> I won't make the mistake of comparing the relative merits of the
-> languages, but I'll boldly claim the set of kernel developers who know
-> Python is likely larger than the set of kernel developers who know Ruby
-> [citation needed]. AFAICT there are no Ruby tools in the kernel tree,
-> but there is a bunch of Python. My own very limited and subjective
-> experience with other tools around the kernel is that Python is much
-> more popular than Ruby. So my claim here is that we're in a better
-> position to hack on Sphinx extensions ourselves than Asciidoctor.
-
-Sorry, but I don't buy it. Python is, IMHO, a mess: each new version
-is incompatible with the previous one, and requires the source to
-change, in order to use a newer version than the one used to write
-the code. So, when talking about Python, we're actually talking about
-several different dialects that don't talk well to each other.
-
-I don't know about Ruby. So far, I don't have anything against (or in
-favor) of it. I bet most Kernel developers would actually prefer a
-toolchain in C. If such tool doesn't exist, anything else seems
-equally the same ;)
-
-> My conclusion is that Sphinx covers the vast majority of the needs of
-> our documentation producers and consumers, in an amazing way, out of the
-> box, better than Asciidoctor.
-> 
-> Which brings us to the minority and the parts where Sphinx falls short,
-> media documentation in particular. It's complex documentation, with very
-> specific requirements on the output, especially that many things remain
-> exactly as they are now. It also feels like the target is more to have
-> standalone media documentation, and not so much to be aligned with and
-> be part of the rest of the kernel documentation.
-> 
-> I want to question the need to have all kernel documentation use tools
-> that meet the strict requirements of the outlier, when there's a better
-> alternative for the vast majority of the documentation. Especially when
-> Asciidoctor isn't a ready solution for media documentation either.
-> 
-> In summary, my proposal is to go with Sphinx, leave media docs as
-> DocBook for now, and see if and how they can be converted to
-> Sphinx/reStructuredText later on when we have everything else in
-> place. It's not the perfect outcome, but IMHO it's the best overall
-> choice.
-
-Well, this could be done. We don't have any good reason to move
-the media docs out of DocBook. On the contrary, this means an extra
-work. The only advantage is that it is a way simpler to write
-documentation with a markup language, but converting from the PoC
-to its integration at the Kernel tree still require lots of work,
-specially due to the cross-refs "magic" scripts that we have under
-Documentation/DocBook/media/Makefile.
-
-As I said, the only big drawback is to keep depending on two
-different tools for kernel-doc and for media documentation.
-
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index fbbd3bb..9cffcc6 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -18,6 +18,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-behold.o \
+ 			rc-behold-columbus.o \
+ 			rc-budget-ci-old.o \
++			rc-cec.o \
+ 			rc-cinergy-1400.o \
+ 			rc-cinergy.o \
+ 			rc-delock-61959.o \
+diff --git a/drivers/media/rc/keymaps/rc-cec.c b/drivers/media/rc/keymaps/rc-cec.c
+new file mode 100644
+index 0000000..193cdca
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-cec.c
+@@ -0,0 +1,174 @@
++/* Keytable for the CEC remote control
++ *
++ * Copyright (c) 2015 by Kamil Debski
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <media/rc-map.h>
++#include <linux/module.h>
++
++/* CEC Spec "High-Definition Multimedia Interface Specification" can be obtained
++ * here: http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
++ * The list of control codes is listed in Table 27: User Control Codes p. 95 */
++
++static struct rc_map_table cec[] = {
++	{ 0x00, KEY_OK },
++	{ 0x01, KEY_UP },
++	{ 0x02, KEY_DOWN },
++	{ 0x03, KEY_LEFT },
++	{ 0x04, KEY_RIGHT },
++	{ 0x05, KEY_RIGHT_UP },
++	{ 0x06, KEY_RIGHT_DOWN },
++	{ 0x07, KEY_LEFT_UP },
++	{ 0x08, KEY_LEFT_DOWN },
++	{ 0x09, KEY_ROOT_MENU }, /* CEC Spec: Device Root Menu - see Note 2 */
++	/* Note 2: This is the initial display that a device shows. It is
++	 * device-dependent and can be, for example, a contents menu, setup
++	 * menu, favorite menu or other menu. The actual menu displayed
++	 * may also depend on the device's current state. */
++	{ 0x0a, KEY_SETUP },
++	{ 0x0b, KEY_MENU }, /* CEC Spec: Contents Menu */
++	{ 0x0c, KEY_FAVORITES }, /* CEC Spec: Favorite Menu */
++	{ 0x0d, KEY_EXIT },
++	/* 0x0e-0x0f: Reserved */
++	{ 0x10, KEY_MEDIA_TOP_MENU },
++	{ 0x11, KEY_CONTEXT_MENU },
++	/* 0x12-0x1c: Reserved */
++	{ 0x1d, KEY_DIGITS }, /* CEC Spec: select/toggle a Number Entry Mode */
++	{ 0x1e, KEY_NUMERIC_11 },
++	{ 0x1f, KEY_NUMERIC_12 },
++	/* 0x20-0x29: Keys 0 to 9 */
++	{ 0x20, KEY_NUMERIC_0 },
++	{ 0x21, KEY_NUMERIC_1 },
++	{ 0x22, KEY_NUMERIC_2 },
++	{ 0x23, KEY_NUMERIC_3 },
++	{ 0x24, KEY_NUMERIC_4 },
++	{ 0x25, KEY_NUMERIC_5 },
++	{ 0x26, KEY_NUMERIC_6 },
++	{ 0x27, KEY_NUMERIC_7 },
++	{ 0x28, KEY_NUMERIC_8 },
++	{ 0x29, KEY_NUMERIC_9 },
++	{ 0x2a, KEY_DOT },
++	{ 0x2b, KEY_ENTER },
++	{ 0x2c, KEY_CLEAR },
++	/* 0x2d-0x2e: Reserved */
++	{ 0x2f, KEY_NEXT_FAVORITE }, /* CEC Spec: Next Favorite */
++	{ 0x30, KEY_CHANNELUP },
++	{ 0x31, KEY_CHANNELDOWN },
++	{ 0x32, KEY_PREVIOUS }, /* CEC Spec: Previous Channel */
++	{ 0x33, KEY_SOUND }, /* CEC Spec: Sound Select */
++	{ 0x34, KEY_VIDEO }, /* 0x34: CEC Spec: Input Select */
++	{ 0x35, KEY_INFO }, /* CEC Spec: Display Information */
++	{ 0x36, KEY_HELP },
++	{ 0x37, KEY_PAGEUP },
++	{ 0x38, KEY_PAGEDOWN },
++	/* 0x39-0x3f: Reserved */
++	{ 0x40, KEY_POWER },
++	{ 0x41, KEY_VOLUMEUP },
++	{ 0x42, KEY_VOLUMEDOWN },
++	{ 0x43, KEY_MUTE },
++	{ 0x44, KEY_PLAYCD },
++	{ 0x45, KEY_STOPCD },
++	{ 0x46, KEY_PAUSECD },
++	{ 0x47, KEY_RECORD },
++	{ 0x48, KEY_REWIND },
++	{ 0x49, KEY_FASTFORWARD },
++	{ 0x4a, KEY_EJECTCD }, /* CEC Spec: Eject */
++	{ 0x4b, KEY_FORWARD },
++	{ 0x4c, KEY_BACK },
++	{ 0x4d, KEY_STOP_RECORD }, /* CEC Spec: Stop-Record */
++	{ 0x4e, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record */
++	/* 0x4f: Reserved */
++	{ 0x50, KEY_ANGLE },
++	{ 0x51, KEY_TV2 },
++	{ 0x52, KEY_VOD }, /* CEC Spec: Video on Demand */
++	{ 0x53, KEY_EPG },
++	{ 0x54, KEY_TIME }, /* CEC Spec: Timer */
++	{ 0x55, KEY_CONFIG },
++	/* The following codes are hard to implement at this moment, as they
++	 * carry an additional additional argument. Most likely changes to RC
++	 * framework are necessary.
++	 * For now they are interpreted by the CEC framework as non keycodes
++	 * and are passed as messages enabling user application to parse them.
++	 * */
++	/* 0x56: CEC Spec: Select Broadcast Type */
++	/* 0x57: CEC Spec: Select Sound presentation */
++	{ 0x58, KEY_AUDIO_DESC }, /* CEC 2.0 and up */
++	{ 0x59, KEY_WWW }, /* CEC 2.0 and up */
++	{ 0x5a, KEY_3D_MODE }, /* CEC 2.0 and up */
++	/* 0x5b-0x5f: Reserved */
++	{ 0x60, KEY_PLAYCD }, /* CEC Spec: Play Function */
++	{ 0x6005, KEY_FASTFORWARD },
++	{ 0x6006, KEY_FASTFORWARD },
++	{ 0x6007, KEY_FASTFORWARD },
++	{ 0x6015, KEY_SLOW },
++	{ 0x6016, KEY_SLOW },
++	{ 0x6017, KEY_SLOW },
++	{ 0x6009, KEY_FASTREVERSE },
++	{ 0x600a, KEY_FASTREVERSE },
++	{ 0x600b, KEY_FASTREVERSE },
++	{ 0x6019, KEY_SLOWREVERSE },
++	{ 0x601a, KEY_SLOWREVERSE },
++	{ 0x601b, KEY_SLOWREVERSE },
++	{ 0x6020, KEY_REWIND },
++	{ 0x6024, KEY_PLAYCD },
++	{ 0x6025, KEY_PAUSECD },
++	{ 0x61, KEY_PLAYPAUSE }, /* CEC Spec: Pause-Play Function */
++	{ 0x62, KEY_RECORD }, /* Spec: Record Function */
++	{ 0x63, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record Function */
++	{ 0x64, KEY_STOPCD }, /* CEC Spec: Stop Function */
++	{ 0x65, KEY_MUTE }, /* CEC Spec: Mute Function */
++	{ 0x66, KEY_UNMUTE }, /* CEC Spec: Restore the volume */
++	/* The following codes are hard to implement at this moment, as they
++	 * carry an additional additional argument. Most likely changes to RC
++	 * framework are necessary.
++	 * For now they are interpreted by the CEC framework as non keycodes
++	 * and are passed as messages enabling user application to parse them.
++	 * */
++	/* 0x67: CEC Spec: Tune Function */
++	/* 0x68: CEC Spec: Seleect Media Function */
++	/* 0x69: CEC Spec: Select A/V Input Function */
++	/* 0x6a: CEC Spec: Select Audio Input Function */
++	{ 0x6b, KEY_POWER }, /* CEC Spec: Power Toggle Function */
++	{ 0x6c, KEY_SLEEP }, /* CEC Spec: Power Off Function */
++	{ 0x6d, KEY_WAKEUP }, /* CEC Spec: Power On Function */
++	/* 0x6e-0x70: Reserved */
++	{ 0x71, KEY_BLUE }, /* CEC Spec: F1 (Blue) */
++	{ 0x72, KEY_RED }, /* CEC Spec: F2 (Red) */
++	{ 0x73, KEY_GREEN }, /* CEC Spec: F3 (Green) */
++	{ 0x74, KEY_YELLOW }, /* CEC Spec: F4 (Yellow) */
++	{ 0x75, KEY_F5 },
++	{ 0x76, KEY_DATA }, /* CEC Spec: Data - see Note 3 */
++	/* Note 3: This is used, for example, to enter or leave a digital TV
++	 * data broadcast application. */
++	/* 0x77-0xff: Reserved */
++};
++
++static struct rc_map_list cec_map = {
++	.map = {
++		.scan		= cec,
++		.size		= ARRAY_SIZE(cec),
++		.rc_type	= RC_TYPE_CEC,
++		.name		= RC_MAP_CEC,
++	}
++};
++
++static int __init init_rc_map_cec(void)
++{
++	return rc_map_register(&cec_map);
++}
++
++static void __exit exit_rc_map_cec(void)
++{
++	rc_map_unregister(&cec_map);
++}
++
++module_init(init_rc_map_cec);
++module_exit(exit_rc_map_cec);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Kamil Debski");
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 4e9bbe7..85c364a 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -804,6 +804,7 @@ static const struct {
+ 	{ RC_BIT_SHARP,		"sharp",	"ir-sharp-decoder"	},
+ 	{ RC_BIT_MCE_KBD,	"mce_kbd",	"ir-mce_kbd-decoder"	},
+ 	{ RC_BIT_XMP,		"xmp",		"ir-xmp-decoder"	},
++	{ RC_BIT_CEC,		"cec",		NULL			},
+ };
+ 
+ /**
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 7844e98..6e6557d 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -31,6 +31,7 @@ enum rc_type {
+ 	RC_TYPE_RC6_MCE		= 16,	/* MCE (Philips RC6-6A-32 subtype) protocol */
+ 	RC_TYPE_SHARP		= 17,	/* Sharp protocol */
+ 	RC_TYPE_XMP		= 18,	/* XMP protocol */
++	RC_TYPE_CEC		= 19,	/* CEC protocol */
+ };
+ 
+ #define RC_BIT_NONE		0ULL
+@@ -53,6 +54,7 @@ enum rc_type {
+ #define RC_BIT_RC6_MCE		(1ULL << RC_TYPE_RC6_MCE)
+ #define RC_BIT_SHARP		(1ULL << RC_TYPE_SHARP)
+ #define RC_BIT_XMP		(1ULL << RC_TYPE_XMP)
++#define RC_BIT_CEC		(1ULL << RC_TYPE_CEC)
+ 
+ #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
+ 			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
+@@ -61,7 +63,7 @@ enum rc_type {
+ 			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
+ 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
+ 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
+-			 RC_BIT_XMP)
++			 RC_BIT_XMP | RC_BIT_CEC)
+ 
+ 
+ #define RC_SCANCODE_UNKNOWN(x)			(x)
+@@ -123,6 +125,7 @@ void rc_map_init(void);
+ #define RC_MAP_BEHOLD_COLUMBUS           "rc-behold-columbus"
+ #define RC_MAP_BEHOLD                    "rc-behold"
+ #define RC_MAP_BUDGET_CI_OLD             "rc-budget-ci-old"
++#define RC_MAP_CEC                       "rc-cec"
+ #define RC_MAP_CINERGY_1400              "rc-cinergy-1400"
+ #define RC_MAP_CINERGY                   "rc-cinergy"
+ #define RC_MAP_DELOCK_61959              "rc-delock-61959"
 -- 
-Thanks,
-Mauro
+2.7.0
+
