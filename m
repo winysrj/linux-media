@@ -1,63 +1,312 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:34678 "EHLO
-	mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750797AbcCUGjV (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752703AbcCYKpE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 02:39:21 -0400
-Received: by mail-qk0-f193.google.com with SMTP id u128so6724314qkh.1
-        for <linux-media@vger.kernel.org>; Sun, 20 Mar 2016 23:39:20 -0700 (PDT)
-Received: from mail-qk0-f176.google.com (mail-qk0-f176.google.com. [209.85.220.176])
-        by smtp.gmail.com with ESMTPSA id j68sm11621207qge.41.2016.03.20.23.39.19
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 20 Mar 2016 23:39:20 -0700 (PDT)
-Received: by mail-qk0-f176.google.com with SMTP id s5so75920103qkd.0
-        for <linux-media@vger.kernel.org>; Sun, 20 Mar 2016 23:39:19 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <145833668973.2935.1789623774430960345.stgit@woodpecker.blarg.de>
-References: <145833668973.2935.1789623774430960345.stgit@woodpecker.blarg.de>
-Date: Mon, 21 Mar 2016 08:39:19 +0200
-Message-ID: <CAAZRmGxb8XqOgQtd+kcLCgDi5CypxrikxScC+0MeROYVdLPRNw@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media/dvb-core: fix inverted check
-From: Olli Salonen <olli.salonen@iki.fi>
-To: Max Kellermann <max@duempel.org>
-Cc: linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 25 Mar 2016 06:45:04 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 39/54] v4l: vsp1: video: Reorder functions
+Date: Fri, 25 Mar 2016 12:44:13 +0200
+Message-Id: <1458902668-1141-40-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Max,
+Move the pipeline initialization and cleanup functions to prepare for
+the next commit. No functional code change is performed here.
 
-Already in the tree:
-http://git.linuxtv.org/media_tree.git/commit/drivers/media/dvb-core?id=711f3fba6ffd3914fd1b5ed9faf8d22bab6f2203
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 266 +++++++++++++++----------------
+ 1 file changed, 133 insertions(+), 133 deletions(-)
 
-Cheers,
--olli
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 2c642726a259..4396018d1408 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -172,6 +172,139 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
+  * Pipeline Management
+  */
+ 
++/*
++ * vsp1_video_complete_buffer - Complete the current buffer
++ * @video: the video node
++ *
++ * This function completes the current buffer by filling its sequence number,
++ * time stamp and payload size, and hands it back to the videobuf core.
++ *
++ * When operating in DU output mode (deep pipeline to the DU through the LIF),
++ * the VSP1 needs to constantly supply frames to the display. In that case, if
++ * no other buffer is queued, reuse the one that has just been processed instead
++ * of handing it back to the videobuf core.
++ *
++ * Return the next queued buffer or NULL if the queue is empty.
++ */
++static struct vsp1_vb2_buffer *
++vsp1_video_complete_buffer(struct vsp1_video *video)
++{
++	struct vsp1_pipeline *pipe = video->rwpf->pipe;
++	struct vsp1_vb2_buffer *next = NULL;
++	struct vsp1_vb2_buffer *done;
++	unsigned long flags;
++	unsigned int i;
++
++	spin_lock_irqsave(&video->irqlock, flags);
++
++	if (list_empty(&video->irqqueue)) {
++		spin_unlock_irqrestore(&video->irqlock, flags);
++		return NULL;
++	}
++
++	done = list_first_entry(&video->irqqueue,
++				struct vsp1_vb2_buffer, queue);
++
++	/* In DU output mode reuse the buffer if the list is singular. */
++	if (pipe->lif && list_is_singular(&video->irqqueue)) {
++		spin_unlock_irqrestore(&video->irqlock, flags);
++		return done;
++	}
++
++	list_del(&done->queue);
++
++	if (!list_empty(&video->irqqueue))
++		next = list_first_entry(&video->irqqueue,
++					struct vsp1_vb2_buffer, queue);
++
++	spin_unlock_irqrestore(&video->irqlock, flags);
++
++	done->buf.sequence = video->sequence++;
++	done->buf.vb2_buf.timestamp = ktime_get_ns();
++	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
++		vb2_set_plane_payload(&done->buf.vb2_buf, i,
++				      vb2_plane_size(&done->buf.vb2_buf, i));
++	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
++
++	return next;
++}
++
++static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
++				 struct vsp1_rwpf *rwpf)
++{
++	struct vsp1_video *video = rwpf->video;
++	struct vsp1_vb2_buffer *buf;
++	unsigned long flags;
++
++	buf = vsp1_video_complete_buffer(video);
++	if (buf == NULL)
++		return;
++
++	spin_lock_irqsave(&pipe->irqlock, flags);
++
++	video->rwpf->mem = buf->mem;
++	pipe->buffers_ready |= 1 << video->pipe_index;
++
++	spin_unlock_irqrestore(&pipe->irqlock, flags);
++}
++
++static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
++{
++	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
++	unsigned int i;
++
++	if (!pipe->dl)
++		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
++
++	for (i = 0; i < vsp1->info->rpf_count; ++i) {
++		struct vsp1_rwpf *rwpf = pipe->inputs[i];
++
++		if (rwpf)
++			vsp1_rwpf_set_memory(rwpf, pipe->dl);
++	}
++
++	if (!pipe->lif)
++		vsp1_rwpf_set_memory(pipe->output, pipe->dl);
++
++	vsp1_dl_list_commit(pipe->dl);
++	pipe->dl = NULL;
++
++	vsp1_pipeline_run(pipe);
++}
++
++static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
++{
++	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
++	enum vsp1_pipeline_state state;
++	unsigned long flags;
++	unsigned int i;
++
++	/* Complete buffers on all video nodes. */
++	for (i = 0; i < vsp1->info->rpf_count; ++i) {
++		if (!pipe->inputs[i])
++			continue;
++
++		vsp1_video_frame_end(pipe, pipe->inputs[i]);
++	}
++
++	vsp1_video_frame_end(pipe, pipe->output);
++
++	spin_lock_irqsave(&pipe->irqlock, flags);
++
++	state = pipe->state;
++	pipe->state = VSP1_PIPELINE_STOPPED;
++
++	/* If a stop has been requested, mark the pipeline as stopped and
++	 * return. Otherwise restart the pipeline if ready.
++	 */
++	if (state == VSP1_PIPELINE_STOPPING)
++		wake_up(&pipe->wq);
++	else if (vsp1_pipeline_ready(pipe))
++		vsp1_video_pipeline_run(pipe);
++
++	spin_unlock_irqrestore(&pipe->irqlock, flags);
++}
++
+ static int vsp1_video_pipeline_build_branch(struct vsp1_pipeline *pipe,
+ 					    struct vsp1_rwpf *input,
+ 					    struct vsp1_rwpf *output)
+@@ -369,139 +502,6 @@ static void vsp1_video_pipeline_cleanup(struct vsp1_pipeline *pipe)
+ 	mutex_unlock(&pipe->lock);
+ }
+ 
+-/*
+- * vsp1_video_complete_buffer - Complete the current buffer
+- * @video: the video node
+- *
+- * This function completes the current buffer by filling its sequence number,
+- * time stamp and payload size, and hands it back to the videobuf core.
+- *
+- * When operating in DU output mode (deep pipeline to the DU through the LIF),
+- * the VSP1 needs to constantly supply frames to the display. In that case, if
+- * no other buffer is queued, reuse the one that has just been processed instead
+- * of handing it back to the videobuf core.
+- *
+- * Return the next queued buffer or NULL if the queue is empty.
+- */
+-static struct vsp1_vb2_buffer *
+-vsp1_video_complete_buffer(struct vsp1_video *video)
+-{
+-	struct vsp1_pipeline *pipe = video->rwpf->pipe;
+-	struct vsp1_vb2_buffer *next = NULL;
+-	struct vsp1_vb2_buffer *done;
+-	unsigned long flags;
+-	unsigned int i;
+-
+-	spin_lock_irqsave(&video->irqlock, flags);
+-
+-	if (list_empty(&video->irqqueue)) {
+-		spin_unlock_irqrestore(&video->irqlock, flags);
+-		return NULL;
+-	}
+-
+-	done = list_first_entry(&video->irqqueue,
+-				struct vsp1_vb2_buffer, queue);
+-
+-	/* In DU output mode reuse the buffer if the list is singular. */
+-	if (pipe->lif && list_is_singular(&video->irqqueue)) {
+-		spin_unlock_irqrestore(&video->irqlock, flags);
+-		return done;
+-	}
+-
+-	list_del(&done->queue);
+-
+-	if (!list_empty(&video->irqqueue))
+-		next = list_first_entry(&video->irqqueue,
+-					struct vsp1_vb2_buffer, queue);
+-
+-	spin_unlock_irqrestore(&video->irqlock, flags);
+-
+-	done->buf.sequence = video->sequence++;
+-	done->buf.vb2_buf.timestamp = ktime_get_ns();
+-	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
+-		vb2_set_plane_payload(&done->buf.vb2_buf, i,
+-				      vb2_plane_size(&done->buf.vb2_buf, i));
+-	vb2_buffer_done(&done->buf.vb2_buf, VB2_BUF_STATE_DONE);
+-
+-	return next;
+-}
+-
+-static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
+-				 struct vsp1_rwpf *rwpf)
+-{
+-	struct vsp1_video *video = rwpf->video;
+-	struct vsp1_vb2_buffer *buf;
+-	unsigned long flags;
+-
+-	buf = vsp1_video_complete_buffer(video);
+-	if (buf == NULL)
+-		return;
+-
+-	spin_lock_irqsave(&pipe->irqlock, flags);
+-
+-	video->rwpf->mem = buf->mem;
+-	pipe->buffers_ready |= 1 << video->pipe_index;
+-
+-	spin_unlock_irqrestore(&pipe->irqlock, flags);
+-}
+-
+-static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+-{
+-	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+-	unsigned int i;
+-
+-	if (!pipe->dl)
+-		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+-
+-	for (i = 0; i < vsp1->info->rpf_count; ++i) {
+-		struct vsp1_rwpf *rwpf = pipe->inputs[i];
+-
+-		if (rwpf)
+-			vsp1_rwpf_set_memory(rwpf, pipe->dl);
+-	}
+-
+-	if (!pipe->lif)
+-		vsp1_rwpf_set_memory(pipe->output, pipe->dl);
+-
+-	vsp1_dl_list_commit(pipe->dl);
+-	pipe->dl = NULL;
+-
+-	vsp1_pipeline_run(pipe);
+-}
+-
+-static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
+-{
+-	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+-	enum vsp1_pipeline_state state;
+-	unsigned long flags;
+-	unsigned int i;
+-
+-	/* Complete buffers on all video nodes. */
+-	for (i = 0; i < vsp1->info->rpf_count; ++i) {
+-		if (!pipe->inputs[i])
+-			continue;
+-
+-		vsp1_video_frame_end(pipe, pipe->inputs[i]);
+-	}
+-
+-	vsp1_video_frame_end(pipe, pipe->output);
+-
+-	spin_lock_irqsave(&pipe->irqlock, flags);
+-
+-	state = pipe->state;
+-	pipe->state = VSP1_PIPELINE_STOPPED;
+-
+-	/* If a stop has been requested, mark the pipeline as stopped and
+-	 * return. Otherwise restart the pipeline if ready.
+-	 */
+-	if (state == VSP1_PIPELINE_STOPPING)
+-		wake_up(&pipe->wq);
+-	else if (vsp1_pipeline_ready(pipe))
+-		vsp1_video_pipeline_run(pipe);
+-
+-	spin_unlock_irqrestore(&pipe->irqlock, flags);
+-}
+-
+ /* -----------------------------------------------------------------------------
+  * videobuf2 Queue Operations
+  */
+-- 
+2.7.3
 
-On 18 March 2016 at 23:31, Max Kellermann <max@duempel.org> wrote:
-> Breakage caused by commit f50d51661a
->
-> Signed-off-by: Max Kellermann <max@duempel.org>
-> ---
->  drivers/media/dvb-core/dvbdev.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
-> index 560450a..c756d4b 100644
-> --- a/drivers/media/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb-core/dvbdev.c
-> @@ -682,7 +682,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
->         if (demux && ca) {
->                 ret = media_create_pad_link(demux, 1, ca,
->                                             0, MEDIA_LNK_FL_ENABLED);
-> -               if (!ret)
-> +               if (ret)
->                         return -ENOMEM;
->         }
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
