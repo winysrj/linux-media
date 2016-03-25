@@ -1,94 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f194.google.com ([209.85.217.194]:33907 "EHLO
-	mail-lb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966644AbcCPLDA (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752078AbcCYKog (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 07:03:00 -0400
-Received: by mail-lb0-f194.google.com with SMTP id vk4so3113767lbb.1
-        for <linux-media@vger.kernel.org>; Wed, 16 Mar 2016 04:02:59 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
+	Fri, 25 Mar 2016 06:44:36 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 1/2] ds3000: return meaningful return codes
-Date: Wed, 16 Mar 2016 13:02:50 +0200
-Message-Id: <1458126171-13871-1-git-send-email-olli.salonen@iki.fi>
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 07/54] v4l: vsp1: Set entities functions
+Date: Fri, 25 Mar 2016 12:43:41 +0200
+Message-Id: <1458902668-1141-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ds3000 driver returned 1 as an error code in many places.
+Initialize the function field of all subdev entities instantiated by the
+driver. This gets rids of multiple warnings printed by the media
+controller core.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/dvb-frontends/ds3000.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/platform/vsp1/vsp1_bru.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_hsit.c | 2 ++
+ drivers/media/platform/vsp1/vsp1_lif.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_lut.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_sru.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_uds.c  | 2 ++
+ drivers/media/platform/vsp1/vsp1_wpf.c  | 2 ++
+ 8 files changed, 16 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
-index e8fc032..addffc3 100644
---- a/drivers/media/dvb-frontends/ds3000.c
-+++ b/drivers/media/dvb-frontends/ds3000.c
-@@ -458,7 +458,7 @@ static int ds3000_read_status(struct dvb_frontend *fe, enum fe_status *status)
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index cb0dbc15ddad..565c8b2edf19 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -424,7 +424,9 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
+ 	subdev = &bru->entity.subdev;
+ 	v4l2_subdev_init(subdev, &bru_ops);
  
- 		break;
- 	default:
--		return 1;
-+		return -EINVAL;
- 	}
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_COMPOSER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s bru",
+ 		 dev_name(vsp1->dev));
+diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
+index c1087cff31a0..ce42ce2e4847 100644
+--- a/drivers/media/platform/vsp1/vsp1_hsit.c
++++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+@@ -203,7 +203,9 @@ struct vsp1_hsit *vsp1_hsit_create(struct vsp1_device *vsp1, bool inverse)
+ 	subdev = &hsit->entity.subdev;
+ 	v4l2_subdev_init(subdev, &hsit_ops);
  
- 	if (state->config->set_lock_led)
-@@ -528,7 +528,7 @@ static int ds3000_read_ber(struct dvb_frontend *fe, u32* ber)
- 			*ber = 0xffffffff;
- 		break;
- 	default:
--		return 1;
-+		return -EINVAL;
- 	}
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_CONVERTER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s %s",
+ 		 dev_name(vsp1->dev), inverse ? "hsi" : "hst");
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index 433853ce8dbf..56054fddb675 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -223,7 +223,9 @@ struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1)
+ 	subdev = &lif->entity.subdev;
+ 	v4l2_subdev_init(subdev, &lif_ops);
  
- 	return 0;
-@@ -623,7 +623,7 @@ static int ds3000_read_snr(struct dvb_frontend *fe, u16 *snr)
- 				snr_reading, *snr);
- 		break;
- 	default:
--		return 1;
-+		return -EINVAL;
- 	}
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_GENERIC;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s lif",
+ 		 dev_name(vsp1->dev));
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index 4b89095e7b5f..f0cd4f79fbff 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -237,7 +237,9 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
+ 	subdev = &lut->entity.subdev;
+ 	v4l2_subdev_init(subdev, &lut_ops);
  
- 	return 0;
-@@ -661,7 +661,7 @@ static int ds3000_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- 		state->prevUCBS2 = _ucblocks;
- 		break;
- 	default:
--		return 1;
-+		return -EINVAL;
- 	}
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_GENERIC;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s lut",
+ 		 dev_name(vsp1->dev));
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 5bc1d1574a43..7853e0f1d526 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -245,7 +245,9 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	subdev = &rpf->entity.subdev;
+ 	v4l2_subdev_init(subdev, &rpf_ops);
  
- 	return 0;
-@@ -754,7 +754,7 @@ static int ds3000_send_diseqc_msg(struct dvb_frontend *fe,
- 		data |= 0x80;
- 		ds3000_writereg(state, 0xa2, data);
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_CONVERTER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s rpf.%u",
+ 		 dev_name(vsp1->dev), index);
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index cc09efbfb24f..149ee1cd0b5a 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -363,7 +363,9 @@ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
+ 	subdev = &sru->entity.subdev;
+ 	v4l2_subdev_init(subdev, &sru_ops);
  
--		return 1;
-+		return -ETIMEDOUT;
- 	}
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s sru",
+ 		 dev_name(vsp1->dev));
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index bba67770cf95..b1881a0a314f 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -338,7 +338,9 @@ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
+ 	subdev = &uds->entity.subdev;
+ 	v4l2_subdev_init(subdev, &uds_ops);
  
- 	data = ds3000_readreg(state, 0xa2);
-@@ -808,7 +808,7 @@ static int ds3000_diseqc_send_burst(struct dvb_frontend *fe,
- 		data |= 0x80;
- 		ds3000_writereg(state, 0xa2, data);
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s uds.%u",
+ 		 dev_name(vsp1->dev), index);
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index c78d4af50fcf..d2735f09d1da 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -244,7 +244,9 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	subdev = &wpf->entity.subdev;
+ 	v4l2_subdev_init(subdev, &wpf_ops);
  
--		return 1;
-+		return -ETIMEDOUT;
- 	}
- 
- 	data = ds3000_readreg(state, 0xa2);
-@@ -951,7 +951,7 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
- 			ds3000_writereg(state, 0xfe, 0x98);
- 		break;
- 	default:
--		return 1;
-+		return -EINVAL;
- 	}
- 
- 	/* enable 27MHz clock output */
++	subdev->entity.function = MEDIA_ENT_F_PROC_VIDEO_CONVERTER;
+ 	subdev->entity.ops = &vsp1->media_ops;
++
+ 	subdev->internal_ops = &vsp1_subdev_internal_ops;
+ 	snprintf(subdev->name, sizeof(subdev->name), "%s wpf.%u",
+ 		 dev_name(vsp1->dev), index);
 -- 
-1.9.1
+2.7.3
 
