@@ -1,100 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54763 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750748AbcCSAtl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 20:49:41 -0400
-Date: Fri, 18 Mar 2016 21:49:27 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?B?U8O2cmVu?= Brinkmann <soren.brinkmann@xilinx.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
-	<chehabrafael@gmail.com>, Tommi Rantala <tt.rantala@gmail.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>,
-	Luis de Bethencourt <luis@debethencourt.com>,
-	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH] [media] media: rename media unregister function
-Message-ID: <20160318214927.507f715a@recife.lan>
-In-Reply-To: <56EC0EA3.6010108@linux.intel.com>
-References: <2ffc02c944068b2c8655727238d1542f8328385d.1458306276.git.mchehab@osg.samsung.com>
-	<56EC0A55.3010803@osg.samsung.com>
-	<56EC0CC4.1070309@osg.samsung.com>
-	<56EC0DF9.4050601@osg.samsung.com>
-	<56EC0EA3.6010108@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35990 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750795AbcCYEAx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2016 00:00:53 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id A7ADF180B83
+	for <linux-media@vger.kernel.org>; Fri, 25 Mar 2016 05:00:46 +0100 (CET)
+Date: Fri, 25 Mar 2016 05:00:46 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160325040046.A7ADF180B83@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 18 Mar 2016 16:20:19 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Shuah Khan wrote:
-> > On 03/18/2016 08:12 AM, Javier Martinez Canillas wrote:  
-> >> Hello Shuah,
-> >>
-> >> On 03/18/2016 11:01 AM, Shuah Khan wrote:  
-> >>> On 03/18/2016 07:05 AM, Mauro Carvalho Chehab wrote:  
-> >>>> Now that media_device_unregister() also does a cleanup, rename it
-> >>>> to media_device_unregister_cleanup().
-> >>>>
-> >>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>  
-> >>>
-> >>> I think adding cleanup is redundant. media_device_unregister()
-> >>> would imply that there has to be some cleanup releasing resources.
-> >>> I wouldn't make this change.
-> >>>  
-> >>
-> >> Problem is that there is a media_device_init() and media_device_register(),
-> >> so having both unregister and cleanup in this function will make very clear
-> >> that a single function is the counter part of the previous two operations.
-> >>    
-> > 
-> > Yes. I realized that this change is motivated by the fact that there is
-> > the media_device_init() and we had the counterpart media_device_cleanup()
-> > as an exported function. I still think there is no need to make the change
-> > to add _cleanup() at the end of media_device_unregister(). It can be handled
-> > in API documentation that it does both.  
-> 
-> I think that's a bad idea. People will only read the documentation when
-> something doesn't work. In this case it's easy to miss that.
+Results of the daily build of media_tree:
 
-After thinking about that, I guess the best is to use kref only
-if the media_device_*devres functions are used. With this, we don't
-need to touch at media_device_cleanup().
+date:		Fri Mar 25 04:00:23 CET 2016
+git branch:	test
+git hash:	2705c1a96f978450377f1019d4bef34190b4ef05
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3353-gcae47da
+host hardware:	x86_64
+host os:	4.4.0-164
 
-Just the patch to the ML:
-	https://patchwork.linuxtv.org/patch/33533/
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-It was tested with HVR-950Q.
+Detailed results are available here:
 
-Regards,
-Mauro
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
