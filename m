@@ -1,111 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46712 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753642AbcCCJwo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 04:52:44 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH for 4.5] media.h: use hex values for the range offsets, move connectors base up.
-Date: Thu, 03 Mar 2016 11:52:42 +0200
-Message-ID: <3268993.kua0PM2kZ4@avalon>
-In-Reply-To: <56D3FB27.7000202@xs4all.nl>
-References: <56D3FB27.7000202@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	with ESMTP id S1752400AbcCYKoo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2016 06:44:44 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 17/54] v4l: vsp1: Don't setup control handler when starting streaming
+Date: Fri, 25 Mar 2016 12:43:51 +0200
+Message-Id: <1458902668-1141-18-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The control handler set operations don't program the hardware anymore,
+there's thus no need to call them when starting the stream.
 
-Thank you for the patch.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_bru.c    |  5 +----
+ drivers/media/platform/vsp1/vsp1_entity.c | 18 +-----------------
+ drivers/media/platform/vsp1/vsp1_entity.h |  2 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c    |  5 +----
+ drivers/media/platform/vsp1/vsp1_sru.c    |  5 +----
+ drivers/media/platform/vsp1/vsp1_wpf.c    |  5 +----
+ 6 files changed, 6 insertions(+), 34 deletions(-)
 
-On Monday 29 February 2016 09:02:47 Hans Verkuil wrote:
-> Make the base offset hexadecimal to simplify debugging since the base
-> addresses are hex too.
-> 
-> The offsets for connectors is also changed to start after the 'reserved'
-> range 0x10000-0x2ffff.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 95e126e..79960ae 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -66,17 +66,17 @@ struct media_device_info {
->  /*
->   * DVB entities
->   */
-> -#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 1)
-> -#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 2)
-> -#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 3)
-> -#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 4)
-> +#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 0x00001)
-> +#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 0x00002)
-> +#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 0x00003)
-> +#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 0x00004)
-> 
->  /*
->   * I/O entities
->   */
-> -#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 1001)
-> -#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 1002)
-> -#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 1003)
-> +#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 0x01001)
-> +#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 0x01002)
-> +#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 0x01003)
-> 
->  /*
->   * Analog TV IF-PLL decoders
-> @@ -84,23 +84,23 @@ struct media_device_info {
->   * It is a responsibility of the master/bridge drivers to create links
->   * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
->   */
-> -#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 2001)
-> -#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 2002)
-> +#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 0x02001)
-> +#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 0x02002)
-> 
->  /*
->   * Audio Entity Functions
->   */
-> -#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 3000)
-> -#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 3001)
-> -#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 3002)
-> +#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03000)
-
-Why does this one start at 0x*000 while the others start at 0x*0001 ? I know 
-that the problem predates your patch.
-
-> +#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03001)
-> +#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03002)
-> 
->  /*
->   * Connectors
->   */
->  /* It is a responsibility of the entity drivers to add connectors and links
-> */ -#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 10001)
-> -#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 10002)
-> -#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 10003)
-> +#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
-
-Anything wrong with 0x4xxx ?
-
-> +#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
-> +#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
-> 
->  /*
->   * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 16345ec66870..5feec203e6fb 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -66,11 +66,8 @@ static int bru_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	struct v4l2_mbus_framefmt *format;
+ 	unsigned int flags;
+ 	unsigned int i;
+-	int ret;
+ 
+-	ret = vsp1_entity_set_streaming(&bru->entity, enable);
+-	if (ret < 0)
+-		return ret;
++	vsp1_entity_set_streaming(&bru->entity, enable);
+ 
+ 	if (!enable)
+ 		return 0;
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index a94f544dcc77..6b425ae9aba3 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -45,29 +45,13 @@ bool vsp1_entity_is_streaming(struct vsp1_entity *entity)
+ 	return streaming;
+ }
+ 
+-int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
++void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming)
+ {
+ 	unsigned long flags;
+-	int ret;
+ 
+ 	spin_lock_irqsave(&entity->lock, flags);
+ 	entity->streaming = streaming;
+ 	spin_unlock_irqrestore(&entity->lock, flags);
+-
+-	if (!streaming)
+-		return 0;
+-
+-	if (!entity->vsp1->info->uapi || !entity->subdev.ctrl_handler)
+-		return 0;
+-
+-	ret = v4l2_ctrl_handler_setup(entity->subdev.ctrl_handler);
+-	if (ret < 0) {
+-		spin_lock_irqsave(&entity->lock, flags);
+-		entity->streaming = false;
+-		spin_unlock_irqrestore(&entity->lock, flags);
+-	}
+-
+-	return ret;
+ }
+ 
+ void vsp1_entity_route_setup(struct vsp1_entity *source)
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index 259880e524fe..c0d6db82ebfb 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -101,7 +101,7 @@ void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
+ 			      struct v4l2_subdev_pad_config *cfg);
+ 
+ bool vsp1_entity_is_streaming(struct vsp1_entity *entity);
+-int vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
++void vsp1_entity_set_streaming(struct vsp1_entity *entity, bool streaming);
+ 
+ void vsp1_entity_route_setup(struct vsp1_entity *source);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 8721c82801ca..8c7c385ec046 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -45,11 +45,8 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	const struct v4l2_rect *crop = &rpf->crop;
+ 	u32 pstride;
+ 	u32 infmt;
+-	int ret;
+ 
+-	ret = vsp1_entity_set_streaming(&rpf->entity, enable);
+-	if (ret < 0)
+-		return ret;
++	vsp1_entity_set_streaming(&rpf->entity, enable);
+ 
+ 	if (!enable)
+ 		return 0;
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index d2c705563cd7..a97541492af8 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -113,11 +113,8 @@ static int sru_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	struct v4l2_mbus_framefmt *input;
+ 	struct v4l2_mbus_framefmt *output;
+ 	u32 ctrl0;
+-	int ret;
+ 
+-	ret = vsp1_entity_set_streaming(&sru->entity, enable);
+-	if (ret < 0)
+-		return ret;
++	vsp1_entity_set_streaming(&sru->entity, enable);
+ 
+ 	if (!enable)
+ 		return 0;
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 1ca08f4d67c2..a7101f700d9e 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -46,11 +46,8 @@ static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	unsigned int i;
+ 	u32 srcrpf = 0;
+ 	u32 outfmt = 0;
+-	int ret;
+ 
+-	ret = vsp1_entity_set_streaming(&wpf->entity, enable);
+-	if (ret < 0)
+-		return ret;
++	vsp1_entity_set_streaming(&wpf->entity, enable);
+ 
+ 	if (!enable) {
+ 		vsp1_write(vsp1, VI6_WPF_IRQ_ENB(wpf->entity.index), 0);
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.3
 
