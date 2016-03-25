@@ -1,193 +1,344 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55341 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756398AbcCUTyp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 15:54:45 -0400
-Subject: Re: [RFC PATCH 1/3] [media] v4l2-mc.h: Add a S-Video C input PAD to
- demod enum
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
- <1457550566-5465-2-git-send-email-javier@osg.samsung.com>
- <56EC2294.603@xs4all.nl> <56EC3BF3.5040100@xs4all.nl>
- <20160321114045.00f200a0@recife.lan> <56F00DAA.8000701@xs4all.nl>
- <56F01AE7.6070508@xs4all.nl> <20160321145034.6fa4e677@recife.lan>
- <56F038A0.1010004@xs4all.nl> <56F03C40.4090909@osg.samsung.com>
- <20160321153439.104a4eff@recife.lan>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <56F03F97.1020708@osg.samsung.com>
-Date: Mon, 21 Mar 2016 15:38:15 -0300
-MIME-Version: 1.0
-In-Reply-To: <20160321153439.104a4eff@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40677 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752723AbcCYKpH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2016 06:45:07 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 42/54] v4l: vsp1: Factorize get pad format code
+Date: Fri, 25 Mar 2016 12:44:16 +0200
+Message-Id: <1458902668-1141-43-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+All entities implement the same get pad format handler, factorize it
+into a common function.
 
-On 03/21/2016 03:34 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 21 Mar 2016 15:24:00 -0300
-> Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
-> 
->> Hello Hans,
->>
->> On 03/21/2016 03:08 PM, Hans Verkuil wrote:
->>> On 03/21/2016 06:50 PM, Mauro Carvalho Chehab wrote:
->>>> Hi Hans,
->>>>
->>>> Em Mon, 21 Mar 2016 17:01:43 +0100
->>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>>
->>>>>> A reasonable solution to simplify converting legacy drivers without creating
->>>>>> these global ugly pad indices is to add a new video (and probably audio) op
->>>>>> 'g_pad_of_type(type)' where you ask the subdev entity to return which pad carries
->>>>>> signals of a certain type.  
->>>>>
->>>>> This basically puts a layer between the low-level pads as defined by the entity
->>>>> and the 'meta-pads' that a generic MC link creator would need to handle legacy
->>>>> drivers. The nice thing is that this is wholly inside the kernel so we can
->>>>> modify it at will later without impacting userspace.
->>>>
->>>> I prepared a long answer to your email, but I guess we're not at the
->>>> same page.
->>>>
->>>> Let be clear on my view. Please let me know where you disagree:
->>>>
->>>> 1) I'm not defending Javier's patchset. I have my restrictions to
->>>> it too. My understanding is that he sent this as a RFC for feeding
->>>> our discussions for the media summit.
->>>>
->>>> Javier, please correct me if I'm wrong.
->>>>
->>
->> That's correct. I wanted to have some patches that were aligned to what
->> were discussed so far in order to have more examples to contribute in
->> the media summit discussion (since I won't be there).
->>
->> The patches are RFC and not meant to upstream since there are too many
->> open questions. I just hoped that having more examples could help of
->> them. I was specially interested in the DT bindings using OF graph to
->> lookup the connectors and the level of detail there.
->>
->>>> 2) I don't understand what you're calling as "meta-pads". For me, a
->>>> PAD is a physical set of pins. 
->>>
->>> Poorly worded on my side. I'll elaborate below.
->>>
->>>> 3) IMO, the best is to have just one PAD for a decoder input. That makes
->>>> everything simple, yet functional.
->>>>
->>>> In my view, the input PAD will be linked to several "input connections".
->>>> So, in the case of tvp5150, it will have:
->>>>
->>>> 	- composite 1
->>>> 	- composite 2
->>>> 	- s-video
->>>>
->>>> 4) On that view, the input PAD is actually a set of pins. In the
->>>> case of tvp5150, the pins that compose the input PADs are
->>>> AIP1A and AIP1B.
->>>>
->>>> The output PAD is also a set of pins YOUT0 to YOUT7, plus some other
->>>> pins for sync. Yet, it should, IMHO, have just one output PAD at
->>>> the MC graph.
->>>
->>> Indeed. So a tvp5150 has three sink pads and one source pad (pixel port).
->>
->> Why 3 sink pads? Are we going to model each possible connection as a PAD
->> instead of an entity or are you talking about physical pins? Because if
->> is the latter, then the tvp5150 has only 2 (Composite1 shares S-Video Y
->> and Composite2 shares C signal).
->>
->>> Other similar devices may have different numbers of sink pads (say four
->>> composite sinks and no S-Video sinks). So the pads the entity creates
->>> should match what the hardware supports.
->>>
->>> So far, so good.
->>>
->>
->> I'm confused. I thought that the latest agreed approach was to model the
->> actual connection signals and input pins as PADs instead of a simplied
->> model that just each connection as a sink.
->>  
->>> If we want to create code that can more-or-less automatically create a MC
->>> topology for legacy drivers, then we would like to be able to map a high-level
->>> description like 'the first S-Video sink pad' into the actual pad. So you'd
->>> have a 'MAP_PAD_SVID_1' define that, when passed to the g_pad_of_type() op
->>> would return the actual pad index for the first S-Video sink pad (or an error
->>> if there isn't one). That's what I meant with 'meta-pad' (and let's just
->>> forget about that name, poor choice from my side).
->>>
->>
->> Can you please provide an example of a media pipeline that user-space should
->> use with this approach? AFAICT whatever PADs are created when initiliazing
->> the PADs for an entity, will be exposed to user-space in the media graph.
->>
->> So I'm not understading how it will be used in practice. I don't mean that
->> your approach is not correct, is just I'm not getting it :)
->>
->>> What I think Javier's patch did was to require subdevs that have an S-Video pad
->>> to use the DEMOD_PAD_C_INPUT + IF_INPUT pad indices for that. That's really
->>> wrong. The subdev driver decides how many pads there are and which pad is
->>> assigned to which index. That shouldn't be forced on them from the outside
->>> because that won't scale.
->>>
->>
->> Yes, that was something that Mauro suggested in [0] as a possible approach
->> but I also was not sure about it and mentioned in the patch comments.
->>
->>> But you can make an op that asks 'which pad carries this signal?'. That's fine.
->>>
->>> I hope this clarifies matters.
->>>
->>> Regards,
->>>
->>> 	Hans
->>>
->>
->> [0]: http://www.spinics.net/lists/linux-media/msg98042.html
-> 
-> Yeah, I proposed that, but, after more thinking, it seems easier to
-> just use a single sink pad for all supported inputs, just like what's
-> there today.
->
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_bru.c    | 19 +------------------
+ drivers/media/platform/vsp1/vsp1_entity.c | 25 +++++++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_entity.h |  4 ++++
+ drivers/media/platform/vsp1/vsp1_hsit.c   | 19 +------------------
+ drivers/media/platform/vsp1/vsp1_lif.c    | 19 +------------------
+ drivers/media/platform/vsp1/vsp1_lut.c    | 19 +------------------
+ drivers/media/platform/vsp1/vsp1_rwpf.c   | 19 +------------------
+ drivers/media/platform/vsp1/vsp1_sru.c    | 19 +------------------
+ drivers/media/platform/vsp1/vsp1_uds.c    | 19 +------------------
+ 9 files changed, 36 insertions(+), 126 deletions(-)
 
-Indeed, that's actually how the driver works today since is the model I in
-commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support").
-
-But after the patches landed, I was told that the DT binding was
-wrong because it didn't use the OF graph (so got reverted) and that
-it didn't model the connectors correctly since there weren't three
-different physical connectors but three different "connections"
-that used two physical connectors.
-
-That's why I thought the latest agreed approach was to model the
-actual pins and signals as PAD instead of a simplified version.
-
-It seems now that is agreed how the DT binding should look like
-(basically use OF graph ports and endpoints) but we still are
-discussing what the entities, PADs and links should model.
-
-> We'll need to do something different for HDMI, as the HDMI input
-> may have signals like CEC that would be going through different
-> chips, but for TV decoders that have just composite/RF/s-video
-> inputs, I don't see any need to make the model complex.
-> 
-
-I see, it would be nice though to think about that case too so
-the DT bindings can be consistent for both analog and digital.
-
-> Thanks,
-> Mauro
-> 
-
-Best regards,
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 972526b5239e..fa293ee2829d 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -129,23 +129,6 @@ static struct v4l2_rect *bru_get_compose(struct vsp1_bru *bru,
+ 	return v4l2_subdev_get_try_compose(&bru->entity.subdev, cfg, pad);
+ }
+ 
+-static int bru_get_format(struct v4l2_subdev *subdev,
+-			  struct v4l2_subdev_pad_config *cfg,
+-			  struct v4l2_subdev_format *fmt)
+-{
+-	struct vsp1_bru *bru = to_bru(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-
+-	config = vsp1_entity_get_pad_config(&bru->entity, cfg, fmt->which);
+-	if (!config)
+-		return -EINVAL;
+-
+-	fmt->format = *vsp1_entity_get_pad_format(&bru->entity, config,
+-						  fmt->pad);
+-
+-	return 0;
+-}
+-
+ static void bru_try_format(struct vsp1_bru *bru,
+ 			   struct v4l2_subdev_pad_config *config,
+ 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt)
+@@ -292,7 +275,7 @@ static struct v4l2_subdev_pad_ops bru_pad_ops = {
+ 	.init_cfg = vsp1_entity_init_cfg,
+ 	.enum_mbus_code = bru_enum_mbus_code,
+ 	.enum_frame_size = bru_enum_frame_size,
+-	.get_fmt = bru_get_format,
++	.get_fmt = vsp1_subdev_get_pad_format,
+ 	.set_fmt = bru_set_format,
+ 	.get_selection = bru_get_selection,
+ 	.set_selection = bru_set_selection,
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index e4f832c764a6..5030974f3083 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -116,6 +116,31 @@ int vsp1_entity_init_cfg(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
++/*
++ * vsp1_subdev_get_pad_format - Subdev pad get_fmt handler
++ * @subdev: V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @fmt: V4L2 subdev format
++ *
++ * This function implements the subdev get_fmt pad operation. It can be used as
++ * a direct drop-in for the operation handler.
++ */
++int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_format *fmt)
++{
++	struct vsp1_entity *entity = to_vsp1_entity(subdev);
++	struct v4l2_subdev_pad_config *config;
++
++	config = vsp1_entity_get_pad_config(entity, cfg, fmt->which);
++	if (!config)
++		return -EINVAL;
++
++	fmt->format = *vsp1_entity_get_pad_format(entity, config, fmt->pad);
++
++	return 0;
++}
++
+ /* -----------------------------------------------------------------------------
+  * Media Operations
+  */
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index b58bcb15c087..7845e931138f 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -127,4 +127,8 @@ int vsp1_entity_init_cfg(struct v4l2_subdev *subdev,
+ void vsp1_entity_route_setup(struct vsp1_entity *source,
+ 			     struct vsp1_dl_list *dl);
+ 
++int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_format *fmt);
++
+ #endif /* __VSP1_ENTITY_H__ */
+diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
+index 1b67ba9a69ed..af810eb1fdb0 100644
+--- a/drivers/media/platform/vsp1/vsp1_hsit.c
++++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+@@ -90,23 +90,6 @@ static int hsit_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-static int hsit_get_format(struct v4l2_subdev *subdev,
+-			   struct v4l2_subdev_pad_config *cfg,
+-			   struct v4l2_subdev_format *fmt)
+-{
+-	struct vsp1_hsit *hsit = to_hsit(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-
+-	config = vsp1_entity_get_pad_config(&hsit->entity, cfg, fmt->which);
+-	if (!config)
+-		return -EINVAL;
+-
+-	fmt->format = *vsp1_entity_get_pad_format(&hsit->entity, config,
+-						  fmt->pad);
+-
+-	return 0;
+-}
+-
+ static int hsit_set_format(struct v4l2_subdev *subdev,
+ 			   struct v4l2_subdev_pad_config *cfg,
+ 			   struct v4l2_subdev_format *fmt)
+@@ -154,7 +137,7 @@ static struct v4l2_subdev_pad_ops hsit_pad_ops = {
+ 	.init_cfg = vsp1_entity_init_cfg,
+ 	.enum_mbus_code = hsit_enum_mbus_code,
+ 	.enum_frame_size = hsit_enum_frame_size,
+-	.get_fmt = hsit_get_format,
++	.get_fmt = vsp1_subdev_get_pad_format,
+ 	.set_fmt = hsit_set_format,
+ };
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index 628109aba23b..db698e7d4884 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -107,23 +107,6 @@ static int lif_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-static int lif_get_format(struct v4l2_subdev *subdev,
+-			  struct v4l2_subdev_pad_config *cfg,
+-			  struct v4l2_subdev_format *fmt)
+-{
+-	struct vsp1_lif *lif = to_lif(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-
+-	config = vsp1_entity_get_pad_config(&lif->entity, cfg, fmt->which);
+-	if (!config)
+-		return -EINVAL;
+-
+-	fmt->format = *vsp1_entity_get_pad_format(&lif->entity, config,
+-						  fmt->pad);
+-
+-	return 0;
+-}
+-
+ static int lif_set_format(struct v4l2_subdev *subdev,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+@@ -173,7 +156,7 @@ static struct v4l2_subdev_pad_ops lif_pad_ops = {
+ 	.init_cfg = vsp1_entity_init_cfg,
+ 	.enum_mbus_code = lif_enum_mbus_code,
+ 	.enum_frame_size = lif_enum_frame_size,
+-	.get_fmt = lif_get_format,
++	.get_fmt = vsp1_subdev_get_pad_format,
+ 	.set_fmt = lif_set_format,
+ };
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index fba6cc4e67a1..6a0f10f71dda 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -136,23 +136,6 @@ static int lut_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-static int lut_get_format(struct v4l2_subdev *subdev,
+-			  struct v4l2_subdev_pad_config *cfg,
+-			  struct v4l2_subdev_format *fmt)
+-{
+-	struct vsp1_lut *lut = to_lut(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-
+-	config = vsp1_entity_get_pad_config(&lut->entity, cfg, fmt->which);
+-	if (!config)
+-		return -EINVAL;
+-
+-	fmt->format = *vsp1_entity_get_pad_format(&lut->entity, config,
+-						  fmt->pad);
+-
+-	return 0;
+-}
+-
+ static int lut_set_format(struct v4l2_subdev *subdev,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+@@ -208,7 +191,7 @@ static struct v4l2_subdev_pad_ops lut_pad_ops = {
+ 	.init_cfg = vsp1_entity_init_cfg,
+ 	.enum_mbus_code = lut_enum_mbus_code,
+ 	.enum_frame_size = lut_enum_frame_size,
+-	.get_fmt = lut_get_format,
++	.get_fmt = vsp1_subdev_get_pad_format,
+ 	.set_fmt = lut_set_format,
+ };
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
+index 4d302f5cccb2..64d649a1bcf5 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+@@ -83,23 +83,6 @@ static int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-static int vsp1_rwpf_get_format(struct v4l2_subdev *subdev,
+-				struct v4l2_subdev_pad_config *cfg,
+-				struct v4l2_subdev_format *fmt)
+-{
+-	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-
+-	config = vsp1_entity_get_pad_config(&rwpf->entity, cfg, fmt->which);
+-	if (!config)
+-		return -EINVAL;
+-
+-	fmt->format = *vsp1_entity_get_pad_format(&rwpf->entity, config,
+-						  fmt->pad);
+-
+-	return 0;
+-}
+-
+ static int vsp1_rwpf_set_format(struct v4l2_subdev *subdev,
+ 				struct v4l2_subdev_pad_config *cfg,
+ 				struct v4l2_subdev_format *fmt)
+@@ -254,7 +237,7 @@ const struct v4l2_subdev_pad_ops vsp1_rwpf_pad_ops = {
+ 	.init_cfg = vsp1_entity_init_cfg,
+ 	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
+ 	.enum_frame_size = vsp1_rwpf_enum_frame_size,
+-	.get_fmt = vsp1_rwpf_get_format,
++	.get_fmt = vsp1_subdev_get_pad_format,
+ 	.set_fmt = vsp1_rwpf_set_format,
+ 	.get_selection = vsp1_rwpf_get_selection,
+ 	.set_selection = vsp1_rwpf_set_selection,
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index 3dc335d1499d..38fb4e1e8bae 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -184,23 +184,6 @@ static int sru_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-static int sru_get_format(struct v4l2_subdev *subdev,
+-			  struct v4l2_subdev_pad_config *cfg,
+-			  struct v4l2_subdev_format *fmt)
+-{
+-	struct vsp1_sru *sru = to_sru(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-
+-	config = vsp1_entity_get_pad_config(&sru->entity, cfg, fmt->which);
+-	if (!config)
+-		return -EINVAL;
+-
+-	fmt->format = *vsp1_entity_get_pad_format(&sru->entity, config,
+-						  fmt->pad);
+-
+-	return 0;
+-}
+-
+ static void sru_try_format(struct vsp1_sru *sru,
+ 			   struct v4l2_subdev_pad_config *config,
+ 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt)
+@@ -285,7 +268,7 @@ static struct v4l2_subdev_pad_ops sru_pad_ops = {
+ 	.init_cfg = vsp1_entity_init_cfg,
+ 	.enum_mbus_code = sru_enum_mbus_code,
+ 	.enum_frame_size = sru_enum_frame_size,
+-	.get_fmt = sru_get_format,
++	.get_fmt = vsp1_subdev_get_pad_format,
+ 	.set_fmt = sru_set_format,
+ };
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index 0bc0616f6b18..59432c7c29b9 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -182,23 +182,6 @@ static int uds_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return 0;
+ }
+ 
+-static int uds_get_format(struct v4l2_subdev *subdev,
+-			  struct v4l2_subdev_pad_config *cfg,
+-			  struct v4l2_subdev_format *fmt)
+-{
+-	struct vsp1_uds *uds = to_uds(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-
+-	config = vsp1_entity_get_pad_config(&uds->entity, cfg, fmt->which);
+-	if (!config)
+-		return -EINVAL;
+-
+-	fmt->format = *vsp1_entity_get_pad_format(&uds->entity, config,
+-						  fmt->pad);
+-
+-	return 0;
+-}
+-
+ static void uds_try_format(struct vsp1_uds *uds,
+ 			   struct v4l2_subdev_pad_config *config,
+ 			   unsigned int pad, struct v4l2_mbus_framefmt *fmt)
+@@ -272,7 +255,7 @@ static struct v4l2_subdev_pad_ops uds_pad_ops = {
+ 	.init_cfg = vsp1_entity_init_cfg,
+ 	.enum_mbus_code = uds_enum_mbus_code,
+ 	.enum_frame_size = uds_enum_frame_size,
+-	.get_fmt = uds_get_format,
++	.get_fmt = vsp1_subdev_get_pad_format,
+ 	.set_fmt = uds_set_format,
+ };
+ 
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.7.3
+
