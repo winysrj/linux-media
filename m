@@ -1,74 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:55500 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752392AbcCYNKj (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751950AbcCYKod (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 09:10:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 25 Mar 2016 06:44:33 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv14 05/18] HID: add HDMI CEC specific keycodes
-Date: Fri, 25 Mar 2016 14:10:03 +0100
-Message-Id: <1458911416-47981-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
-References: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 02/54] v4l: subdev: Add pad config allocator and init
+Date: Fri, 25 Mar 2016 12:43:36 +0200
+Message-Id: <1458902668-1141-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+From: Laurent Pinchart <laurent.pinchart@linaro.org>
 
-Add HDMI CEC specific keycodes to the keycodes definition.
+Add a new subdev operation to initialize a subdev pad config array, and
+a helper function to allocate and initialize the array. This can be used
+by bridge drivers to implement try format based on subdev pad
+operations.
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
+Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/uapi/linux/input-event-codes.h | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ drivers/media/v4l2-core/v4l2-subdev.c | 31 ++++++++++++++++++++++++++++++-
+ include/media/v4l2-subdev.h           |  8 ++++++++
+ 2 files changed, 38 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
-index 87cf351..02b7b3a 100644
---- a/include/uapi/linux/input-event-codes.h
-+++ b/include/uapi/linux/input-event-codes.h
-@@ -611,6 +611,36 @@
- #define KEY_KBDINPUTASSIST_ACCEPT		0x264
- #define KEY_KBDINPUTASSIST_CANCEL		0x265
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 0fa60801a428..d4007f8f58d1 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -35,7 +35,7 @@
+ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
++	fh->pad = v4l2_subdev_alloc_pad_config(sd);
+ 	if (fh->pad == NULL)
+ 		return -ENOMEM;
+ #endif
+@@ -569,6 +569,35 @@ int v4l2_subdev_link_validate(struct media_link *link)
+ 		sink, link, &source_fmt, &sink_fmt);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
++
++struct v4l2_subdev_pad_config *
++v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
++{
++	struct v4l2_subdev_pad_config *cfg;
++	int ret;
++
++	if (!sd->entity.num_pads)
++		return NULL;
++
++	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
++	if (!cfg)
++		return NULL;
++
++	ret = v4l2_subdev_call(sd, pad, init_cfg, cfg);
++	if (ret < 0 && ret != -ENOIOCTLCMD) {
++		kfree(cfg);
++		return NULL;
++	}
++
++	return cfg;
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
++
++void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
++{
++	kfree(cfg);
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_free_pad_config);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
  
-+/* Diagonal movement keys */
-+#define KEY_RIGHT_UP			0x266
-+#define KEY_RIGHT_DOWN			0x267
-+#define KEY_LEFT_UP			0x268
-+#define KEY_LEFT_DOWN			0x269
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 11e2dfec0198..32fc7a4beb5e 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -572,6 +572,7 @@ struct v4l2_subdev_pad_config {
+ /**
+  * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
+  *
++ * @init_cfg: initialize the pad config to default values
+  * @enum_mbus_code: callback for VIDIOC_SUBDEV_ENUM_MBUS_CODE ioctl handler
+  *		    code.
+  * @enum_frame_size: callback for VIDIOC_SUBDEV_ENUM_FRAME_SIZE ioctl handler
+@@ -607,6 +608,8 @@ struct v4l2_subdev_pad_config {
+  *                  may be adjusted by the subdev driver to device capabilities.
+  */
+ struct v4l2_subdev_pad_ops {
++	int (*init_cfg)(struct v4l2_subdev *sd,
++			struct v4l2_subdev_pad_config *cfg);
+ 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code);
+@@ -801,7 +804,12 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+ 				      struct v4l2_subdev_format *source_fmt,
+ 				      struct v4l2_subdev_format *sink_fmt);
+ int v4l2_subdev_link_validate(struct media_link *link);
 +
-+#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
-+#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
-+#define KEY_NUMERIC_11			0x26c
-+#define KEY_NUMERIC_12			0x26d
-+/*
-+ * Toggle Audio Description: refers to an audio service that helps blind and
-+ * visually impaired consumers understand the action in a program. Note: in
-+ * some countries this is referred to as "Video Description".
-+ */
-+#define KEY_AUDIO_DESC			0x26e
-+#define KEY_3D_MODE			0x26f
-+#define KEY_NEXT_FAVORITE		0x270
-+#define KEY_STOP_RECORD			0x271
-+#define KEY_PAUSE_RECORD		0x272
-+#define KEY_VOD				0x273 /* Video on Demand */
-+#define KEY_UNMUTE			0x274
-+#define KEY_FASTREVERSE			0x275
-+#define KEY_SLOWREVERSE			0x276
-+/*
-+ * Control a data application associated with the currently viewed channel,
-+ * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
-+ */
-+#define KEY_DATA			0x275
++struct v4l2_subdev_pad_config *
++v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
++void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
+ #endif /* CONFIG_MEDIA_CONTROLLER */
 +
- #define BTN_TRIGGER_HAPPY		0x2c0
- #define BTN_TRIGGER_HAPPY1		0x2c0
- #define BTN_TRIGGER_HAPPY2		0x2c1
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
 -- 
-2.7.0
+2.7.3
 
