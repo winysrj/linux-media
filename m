@@ -1,66 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:60902 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751938AbcCaRYn (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752782AbcCYKpL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2016 13:24:43 -0400
-Date: Thu, 31 Mar 2016 10:23:53 -0700
-From: Mark Brown <broonie@kernel.org>
-To: Boris Brezillon <boris.brezillon@free-electrons.com>
-Cc: David Woodhouse <dwmw2@infradead.org>,
-	Brian Norris <computersforpeace@gmail.com>,
-	linux-mtd@lists.infradead.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Dave Gordon <david.s.gordon@intel.com>,
-	linux-spi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Richard Weinberger <richard@nod.at>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-crypto@vger.kernel.org, Vignesh R <vigneshr@ti.com>,
-	linux-mm@kvack.org, Joerg Roedel <joro@8bytes.org>,
-	iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
-Message-ID: <20160331172353.GJ2350@sirena.org.uk>
-References: <1459427384-21374-1-git-send-email-boris.brezillon@free-electrons.com>
- <1459427384-21374-4-git-send-email-boris.brezillon@free-electrons.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="HHj6mHPeUinss9N+"
-Content-Disposition: inline
-In-Reply-To: <1459427384-21374-4-git-send-email-boris.brezillon@free-electrons.com>
-Subject: Re: [PATCH 3/4] spi: use sg_alloc_table_from_buf()
+	Fri, 25 Mar 2016 06:45:11 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 49/54] v4l: vsp1: lut: Use display list fragments to fill LUT
+Date: Fri, 25 Mar 2016 12:44:23 +0200
+Message-Id: <1458902668-1141-50-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Synchronize the userspace LUT setup with the pipeline operation by using
+a display list fragment to store LUT data.
 
---HHj6mHPeUinss9N+
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_lut.c | 31 ++++++++++++++++++++++++++-----
+ drivers/media/platform/vsp1/vsp1_lut.h |  6 +++++-
+ 2 files changed, 31 insertions(+), 6 deletions(-)
 
-On Thu, Mar 31, 2016 at 02:29:43PM +0200, Boris Brezillon wrote:
-> Replace custom implementation of sg_alloc_table_from_buf() by a call to
-> sg_alloc_table_from_buf().
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index d45f563dea00..c5250abfd0d0 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -38,10 +38,25 @@ static inline void vsp1_lut_write(struct vsp1_lut *lut, struct vsp1_dl_list *dl,
+  * V4L2 Subdevice Core Operations
+  */
+ 
+-static void lut_set_table(struct vsp1_lut *lut, struct vsp1_lut_config *config)
++static int lut_set_table(struct vsp1_lut *lut, struct vsp1_lut_config *config)
+ {
+-	memcpy_toio(lut->entity.vsp1->mmio + VI6_LUT_TABLE, config->lut,
+-		    sizeof(config->lut));
++	struct vsp1_dl_body *dlb;
++	unsigned int i;
++
++	dlb = vsp1_dl_fragment_alloc(lut->entity.vsp1, ARRAY_SIZE(config->lut));
++	if (!dlb)
++		return -ENOMEM;
++
++	for (i = 0; i < ARRAY_SIZE(config->lut); ++i)
++		vsp1_dl_fragment_write(dlb, VI6_LUT_TABLE + 4 * i,
++				       config->lut[i]);
++
++	mutex_lock(&lut->lock);
++	swap(lut->lut, dlb);
++	mutex_unlock(&lut->lock);
++
++	vsp1_dl_fragment_free(dlb);
++	return 0;
+ }
+ 
+ static long lut_ioctl(struct v4l2_subdev *subdev, unsigned int cmd, void *arg)
+@@ -50,8 +65,7 @@ static long lut_ioctl(struct v4l2_subdev *subdev, unsigned int cmd, void *arg)
+ 
+ 	switch (cmd) {
+ 	case VIDIOC_VSP1_LUT_CONFIG:
+-		lut_set_table(lut, arg);
+-		return 0;
++		return lut_set_table(lut, arg);
+ 
+ 	default:
+ 		return -ENOIOCTLCMD;
+@@ -161,6 +175,13 @@ static void lut_configure(struct vsp1_entity *entity,
+ 	struct vsp1_lut *lut = to_lut(&entity->subdev);
+ 
+ 	vsp1_lut_write(lut, dl, VI6_LUT_CTRL, VI6_LUT_CTRL_EN);
++
++	mutex_lock(&lut->lock);
++	if (lut->lut) {
++		vsp1_dl_list_add_fragment(dl, lut->lut);
++		lut->lut = NULL;
++	}
++	mutex_unlock(&lut->lock);
+ }
+ 
+ static const struct vsp1_entity_operations lut_entity_ops = {
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.h b/drivers/media/platform/vsp1/vsp1_lut.h
+index f92ffb867350..cef874f22b6a 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.h
++++ b/drivers/media/platform/vsp1/vsp1_lut.h
+@@ -13,6 +13,8 @@
+ #ifndef __VSP1_LUT_H__
+ #define __VSP1_LUT_H__
+ 
++#include <linux/mutex.h>
++
+ #include <media/media-entity.h>
+ #include <media/v4l2-subdev.h>
+ 
+@@ -25,7 +27,9 @@ struct vsp1_device;
+ 
+ struct vsp1_lut {
+ 	struct vsp1_entity entity;
+-	u32 lut[256];
++
++	struct mutex lock;
++	struct vsp1_dl_body *lut;
+ };
+ 
+ static inline struct vsp1_lut *to_lut(struct v4l2_subdev *subdev)
+-- 
+2.7.3
 
-Acked-by: Mark Brown <broonie@kernel.org>
-
---HHj6mHPeUinss9N+
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJW/V0aAAoJECTWi3JdVIfQuGEH+wdaKEhHxJuIIwseLFy64w88
-sFhI2BJSaVk6ppdvYIdf67ku24WUoLyYEApHSGXfhntu00xAlzBh8YZjvg6F41Yg
-7Ql/wnd5YumDVMT72a9Cv1OlJ+dsUdBJuQl7/A952W53l4IR2AcBDrJ/zBWQDtOc
-bbohxZsXJP+Qou2Q9x8OebYsFr3p2Hw3XjteAVB6jwA9gINwDDLj05HgRCKbotHe
-5bMQ3pj2I1ruS4wN44SWj7YOMvLzR3nE4xVOdHV+iaFhcVTkaYn7fuWi1fdSRChk
-tCB1auoxNjAIsfnsvj6nnzAOcW/kPwKzOKIgz58DZPFkgiRKDM9wuDnN2AlMPBI=
-=uMgt
------END PGP SIGNATURE-----
-
---HHj6mHPeUinss9N+--
