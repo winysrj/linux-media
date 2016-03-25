@@ -1,105 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nautilus.laiva.org ([62.142.120.74]:55161 "EHLO
-	nautilus.laiva.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362AbcCBLNN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Mar 2016 06:13:13 -0500
-From: Olli Salonen <olli.salonen@iki.fi>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752811AbcCYKpO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2016 06:45:14 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH 2/2] dw2102: add support for TeVii S662
-Date: Wed,  2 Mar 2016 13:06:06 +0200
-Message-Id: <1456916766-28165-2-git-send-email-olli.salonen@iki.fi>
-In-Reply-To: <1456916766-28165-1-git-send-email-olli.salonen@iki.fi>
-References: <1456916766-28165-1-git-send-email-olli.salonen@iki.fi>
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 53/54] v4l: vsp1: Fix V4L2_PIX_FMT_XRGB444 format definition
+Date: Fri, 25 Mar 2016 12:44:27 +0200
+Message-Id: <1458902668-1141-54-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-TeVii S662 is a USB 2.0 DVB-S2 tuner that's identical to TechnoTrend
-S2-4600 tuner. Add the USB ID to dw2102 driver.
+The format is erroneously defined with an alpha channel. Fix it.
 
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/usb/dvb-usb/dw2102.c |   23 +++++++++++++++++------
- 1 files changed, 17 insertions(+), 6 deletions(-)
+ drivers/media/platform/vsp1/vsp1_pipe.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-index 8fd1aae..aa9a203 100644
---- a/drivers/media/usb/dvb-usb/dw2102.c
-+++ b/drivers/media/usb/dvb-usb/dw2102.c
-@@ -1,9 +1,10 @@
- /* DVB USB framework compliant Linux driver for the
-  *	DVBWorld DVB-S 2101, 2102, DVB-S2 2104, DVB-C 3101,
-- *	TeVii S600, S630, S650, S660, S480, S421, S632
-+ *	TeVii S421, S480, S482, S600, S630, S632, S650, S660, S662,
-  *	Prof 1100, 7500,
-  *	Geniatech SU3000, T220,
-- *	TechnoTrend S2-4600 Cards
-+ *	TechnoTrend S2-4600,
-+ *	Terratec Cinergy S2 cards
-  * Copyright (C) 2008-2012 Igor M. Liplianin (liplianin@me.by)
-  *
-  *	This program is free software; you can redistribute it and/or modify it
-@@ -65,6 +66,10 @@
- #define USB_PID_TEVII_S660 0xd660
- #endif
- 
-+#ifndef USB_PID_TEVII_S662
-+#define USB_PID_TEVII_S662 0xd662
-+#endif
-+
- #ifndef USB_PID_TEVII_S480_1
- #define USB_PID_TEVII_S480_1 0xd481
- #endif
-@@ -1688,6 +1693,7 @@ enum dw2102_table_entry {
- 	TEVII_S482_1,
- 	TEVII_S482_2,
- 	TERRATEC_CINERGY_S2_BOX,
-+	TEVII_S662
- };
- 
- static struct usb_device_id dw2102_table[] = {
-@@ -1716,6 +1722,7 @@ static struct usb_device_id dw2102_table[] = {
- 	[TEVII_S482_1] = {USB_DEVICE(0x9022, 0xd483)},
- 	[TEVII_S482_2] = {USB_DEVICE(0x9022, 0xd484)},
- 	[TERRATEC_CINERGY_S2_BOX] = {USB_DEVICE(USB_VID_TERRATEC, 0x0105)},
-+	[TEVII_S662] = {USB_DEVICE(0x9022, USB_PID_TEVII_S662)},
- 	{ }
- };
- 
-@@ -2233,7 +2240,7 @@ static struct dvb_usb_device_properties tt_s2_4600_properties = {
- 		} },
- 		}
- 	},
--	.num_device_descs = 4,
-+	.num_device_descs = 5,
- 	.devices = {
- 		{ "TechnoTrend TT-connect S2-4600",
- 			{ &dw2102_table[TECHNOTREND_S2_4600], NULL },
-@@ -2251,6 +2258,10 @@ static struct dvb_usb_device_properties tt_s2_4600_properties = {
- 			{ &dw2102_table[TERRATEC_CINERGY_S2_BOX], NULL },
- 			{ NULL },
- 		},
-+		{ "TeVii S662",
-+			{ &dw2102_table[TEVII_S662], NULL },
-+			{ NULL },
-+		},
- 	}
- };
- 
-@@ -2364,10 +2375,10 @@ module_usb_driver(dw2102_driver);
- MODULE_AUTHOR("Igor M. Liplianin (c) liplianin@me.by");
- MODULE_DESCRIPTION("Driver for DVBWorld DVB-S 2101, 2102, DVB-S2 2104,"
- 			" DVB-C 3101 USB2.0,"
--			" TeVii S600, S630, S650, S660, S480, S421, S632"
--			" Prof 1100, 7500 USB2.0,"
-+			" TeVii S421, S480, S482, S600, S630, S632, S650,"
-+			" TeVii S660, S662, Prof 1100, 7500 USB2.0,"
- 			" Geniatech SU3000, T220,"
--			" TechnoTrend S2-4600 devices");
-+			" TechnoTrend S2-4600, Terratec Cinergy S2 devices");
- MODULE_VERSION("0.1");
- MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(DW2101_FIRMWARE);
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 15e028321fa1..4f3b4a1d028a 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -43,7 +43,7 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
+ 	{ V4L2_PIX_FMT_XRGB444, MEDIA_BUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_XRGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS,
+-	  1, { 16, 0, 0 }, false, false, 1, 1, true },
++	  1, { 16, 0, 0 }, false, false, 1, 1, false },
+ 	{ V4L2_PIX_FMT_ARGB555, MEDIA_BUS_FMT_ARGB8888_1X32,
+ 	  VI6_FMT_ARGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
+ 	  VI6_RPF_DSWAP_P_WDS,
 -- 
-1.7.0.4
+2.7.3
 
