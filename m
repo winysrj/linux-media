@@ -1,275 +1,366 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:40034 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751610AbcCWOFs (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40677 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752612AbcCYKpE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 10:05:48 -0400
-Subject: Re: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1458722756-7269-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <20160323073552.18db3b7e@recife.lan>
-Cc: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56F2A2B5.80206@xs4all.nl>
-Date: Wed, 23 Mar 2016 15:05:41 +0100
-MIME-Version: 1.0
-In-Reply-To: <20160323073552.18db3b7e@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Fri, 25 Mar 2016 06:45:04 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 40/54] v4l: vsp1: Allocate pipelines on demand
+Date: Fri, 25 Mar 2016 12:44:14 +0200
+Message-Id: <1458902668-1141-41-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/23/2016 11:35 AM, Mauro Carvalho Chehab wrote:
-> Em Wed, 23 Mar 2016 10:45:55 +0200
-> Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
-> 
->> Code that processes media entities can require knowledge of the
->> structure type that embeds a particular media entity instance in order
->> to cast the entity to the proper object type. This needs is shown by the
->> presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
->> functions.
->>
->> The implementation of those two functions relies on the entity function
->> field, which is both a wrong and an inefficient design, without even
->> mentioning the maintenance issue involved in updating the functions
->> every time a new entity function is added. Fix this by adding add an
->> obj_type field to the media entity structure to carry the information.
->>
->> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
->> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->>  drivers/media/media-device.c          |  2 +
->>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
->>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
->>  include/media/media-entity.h          | 79 +++++++++++++++++++----------------
->>  4 files changed, 46 insertions(+), 37 deletions(-)
->>
->> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->> index 4a97d92a7e7d..88d8de3b7a4f 100644
->> --- a/drivers/media/media-device.c
->> +++ b/drivers/media/media-device.c
->> @@ -580,6 +580,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
->>  			 "Entity type for entity %s was not initialized!\n",
->>  			 entity->name);
->>  
->> +	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
->> +
-> 
-> This is not ok. There are valid cases where the entity is not embedded
-> on some other struct. That's the case of connectors/connections, for
-> example: a connector/connection entity doesn't need anything else but
-> struct media device.
+Instead of embedding pipelines in the vsp1_video objects allocate them
+on demand when they are needed. This fixes the streamon race condition
+where pipelines objects from different video nodes could be used for the
+same pipeline.
 
-Once connectors are enabled, then we do need a MEDIA_ENTITY_TYPE_CONNECTOR or
-MEDIA_ENTITY_TYPE_STANDALONE or something along those lines.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_bru.c   |   1 +
+ drivers/media/platform/vsp1/vsp1_drv.c   |   1 +
+ drivers/media/platform/vsp1/vsp1_pipe.c  |   1 +
+ drivers/media/platform/vsp1/vsp1_pipe.h  |   5 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c   |   1 +
+ drivers/media/platform/vsp1/vsp1_video.c | 124 +++++++++++++++++--------------
+ drivers/media/platform/vsp1/vsp1_video.h |   2 -
+ drivers/media/platform/vsp1/vsp1_wpf.c   |   1 +
+ 8 files changed, 75 insertions(+), 61 deletions(-)
 
-> Also, this is V4L2 specific. Neither ALSA nor DVB need to use container_of().
-> Actually, this won't even work there, as the entity is stored as a pointer,
-> and not as an embedded data.
-
-Any other subsystem that *does* embed this can use obj_type. If it doesn't embed
-it in anything, then MEDIA_ENTITY_TYPE_STANDALONE should be used (or whatever
-name we give it). I agree that we need a type define for the case where it is
-not embedded.
-
-> 
-> So, if we're willing to do this, then it should, instead, create
-> something like:
-> 
-> struct embedded_media_entity {
-> 	struct media_entity entity;
-> 	enum media_entity_type obj_type;
-> };
-
-It's not v4l2 specific. It is just that v4l2 is the only subsystem that requires
-this information at the moment. I see no reason at all to create such an ugly
-struct.
-
-I very strongly suspect that other subsystems will also embed this in their own
-internal structs. I actually wonder why it isn't embedded in struct dvb_device,
-but I have to admit that I didn't take a close look at that. The pads are embedded
-there, so it is somewhat odd that the entity isn't.
-
-Regards,
-
-	Hans
-
-> 
-> And then replace the occurrences of embedded media_entity by
-> embedded_media_entity at the V4L2 subsystem only, in the places where
-> the struct is embeded on another one.
-> 
->>  	/* Warn if we apparently re-register an entity */
->>  	WARN_ON(entity->graph_obj.mdev != NULL);
->>  	entity->graph_obj.mdev = mdev;
->> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
->> index d8e5994cccf1..70b559d7ca80 100644
->> --- a/drivers/media/v4l2-core/v4l2-dev.c
->> +++ b/drivers/media/v4l2-core/v4l2-dev.c
->> @@ -735,6 +735,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
->>  	if (!vdev->v4l2_dev->mdev)
->>  		return 0;
->>  
->> +	vdev->entity.obj_type = MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
->>  	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
->>  
->>  	switch (type) {
->> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
->> index d63083803144..0fa60801a428 100644
->> --- a/drivers/media/v4l2-core/v4l2-subdev.c
->> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
->> @@ -584,6 +584,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
->>  	sd->host_priv = NULL;
->>  #if defined(CONFIG_MEDIA_CONTROLLER)
->>  	sd->entity.name = sd->name;
->> +	sd->entity.obj_type = MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
->>  	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
->>  #endif
->>  }
->> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
->> index 6dc9e4e8cbd4..5cea57955a3a 100644
->> --- a/include/media/media-entity.h
->> +++ b/include/media/media-entity.h
->> @@ -188,10 +188,41 @@ struct media_entity_operations {
->>  };
->>  
->>  /**
->> + * enum media_entity_type - Media entity type
->> + *
->> + * @MEDIA_ENTITY_TYPE_INVALID:
->> + *	Invalid type, used to catch uninitialized fields.
->> + * @MEDIA_ENTITY_TYPE_VIDEO_DEVICE:
->> + *	The entity is embedded in a struct video_device instance.
->> + * @MEDIA_ENTITY_TYPE_V4L2_SUBDEV:
->> + *	The entity is embedded in a struct v4l2_subdev instance.
->> + *
->> + * Media entity objects are not instantiated directly, 
-> 
-> As I said before, this is not true (nor even at V4L2 subsystem, due to
-> the connectors/connections).
-> 
-> As before, you should call this as:
-> 	enum embedded_media_entity_type
-> 
-> And then change the test to:
-> 
-> 	"Media entity objects declared via struct embedded_media_device are not
-> 	 instantiated directly,"
-> 
-> and fix the text below accordingly.
-> 
->> but the media entity
->> + * structure is inherited by (through embedding) other subsystem-specific
->> + * structures. The media entity type identifies the type of the subclass
->> + * structure that implements a media entity instance.
->> + *
->> + * This allows runtime type identification of media entities and safe casting to
->> + * the correct object type. For instance, a media entity structure instance
->> + * embedded in a v4l2_subdev structure instance will have the type
->> + * MEDIA_ENTITY_TYPE_V4L2_SUBDEV and can safely be cast to a v4l2_subdev
->> + * structure using the container_of() macro.
->> + *
->> + * The MEDIA_ENTITY_TYPE_INVALID type should never be set as an entity type, it
->> + * only serves to catch uninitialized fields when registering entities.
->> + */
->> +enum media_entity_type {
->> +	MEDIA_ENTITY_TYPE_INVALID,
->> +	MEDIA_ENTITY_TYPE_VIDEO_DEVICE,
->> +	MEDIA_ENTITY_TYPE_V4L2_SUBDEV,
->> +};
->> +
->> +/**
->>   * struct media_entity - A media entity graph object.
->>   *
->>   * @graph_obj:	Embedded structure containing the media object common data.
->>   * @name:	Entity name.
->> + * @obj_type:	Type of the object that implements the media_entity.
->>   * @function:	Entity main function, as defined in uapi/media.h
->>   *		(MEDIA_ENT_F_*)
->>   * @flags:	Entity flags, as defined in uapi/media.h (MEDIA_ENT_FL_*)
->> @@ -220,6 +251,7 @@ struct media_entity_operations {
->>  struct media_entity {
->>  	struct media_gobj graph_obj;	/* must be first field in struct */
->>  	const char *name;
->> +	enum media_entity_type obj_type;
-> 
-> See above. This doesn't below to the generic media entity struct,
-> but to an special type that is meant to be embedded on some places.
-> 
->>  	u32 function;
->>  	unsigned long flags;
->>  
->> @@ -329,56 +361,29 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
->>  }
->>  
->>  /**
->> - * is_media_entity_v4l2_io() - identify if the entity main function
->> - *			       is a V4L2 I/O
->> - *
->> + * is_media_entity_v4l2_io() - Check if the entity is a video_device
->>   * @entity:	pointer to entity
->>   *
->> - * Return: true if the entity main function is one of the V4L2 I/O types
->> - *	(video, VBI or SDR radio); false otherwise.
->> + * Return: true if the entity is an instance of a video_device object and can
->> + * safely be cast to a struct video_device using the container_of() macro, or
->> + * false otherwise.
->>   */
->>  static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
->>  {
->> -	if (!entity)
->> -		return false;
->> -
->> -	switch (entity->function) {
->> -	case MEDIA_ENT_F_IO_V4L:
->> -	case MEDIA_ENT_F_IO_VBI:
->> -	case MEDIA_ENT_F_IO_SWRADIO:
->> -		return true;
->> -	default:
->> -		return false;
->> -	}
->> +	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
->>  }
->>  
->>  /**
->> - * is_media_entity_v4l2_subdev - return true if the entity main function is
->> - *				 associated with the V4L2 API subdev usage
->> - *
->> + * is_media_entity_v4l2_subdev() - Check if the entity is a v4l2_subdev
->>   * @entity:	pointer to entity
->>   *
->> - * This is an ancillary function used by subdev-based V4L2 drivers.
->> - * It checks if the entity function is one of functions used by a V4L2 subdev,
->> - * e. g. camera-relatef functions, analog TV decoder, TV tuner, V4L2 DSPs.
->> + * Return: true if the entity is an instance of a v4l2_subdev object and can
->> + * safely be cast to a struct v4l2_subdev using the container_of() macro, or
->> + * false otherwise.
->>   */
->>  static inline bool is_media_entity_v4l2_subdev(struct media_entity *entity)
->>  {
->> -	if (!entity)
->> -		return false;
->> -
->> -	switch (entity->function) {
->> -	case MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN:
->> -	case MEDIA_ENT_F_CAM_SENSOR:
->> -	case MEDIA_ENT_F_FLASH:
->> -	case MEDIA_ENT_F_LENS:
->> -	case MEDIA_ENT_F_ATV_DECODER:
->> -	case MEDIA_ENT_F_TUNER:
->> -		return true;
->> -
->> -	default:
->> -		return false;
->> -	}
->> +	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_V4L2_SUBDEV;
->>  }
->>  
->>  /**
-> 
-> 
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 820c3c90a4a6..972526b5239e 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -19,6 +19,7 @@
+ #include "vsp1.h"
+ #include "vsp1_bru.h"
+ #include "vsp1_dl.h"
++#include "vsp1_pipe.h"
+ #include "vsp1_rwpf.h"
+ #include "vsp1_video.h"
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index f1be2680013d..596f26d81494 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -30,6 +30,7 @@
+ #include "vsp1_hsit.h"
+ #include "vsp1_lif.h"
+ #include "vsp1_lut.h"
++#include "vsp1_pipe.h"
+ #include "vsp1_rwpf.h"
+ #include "vsp1_sru.h"
+ #include "vsp1_uds.h"
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 8ac080f87b08..4913b933562c 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -194,6 +194,7 @@ void vsp1_pipeline_init(struct vsp1_pipeline *pipe)
+ 	mutex_init(&pipe->lock);
+ 	spin_lock_init(&pipe->irqlock);
+ 	init_waitqueue_head(&pipe->wq);
++	kref_init(&pipe->kref);
+ 
+ 	INIT_LIST_HEAD(&pipe->entities);
+ 	pipe->state = VSP1_PIPELINE_STOPPED;
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index 9fd688bfe638..7b56113511dd 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -13,6 +13,7 @@
+ #ifndef __VSP1_PIPE_H__
+ #define __VSP1_PIPE_H__
+ 
++#include <linux/kref.h>
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
+ #include <linux/wait.h>
+@@ -63,7 +64,7 @@ enum vsp1_pipeline_state {
+  * @wq: work queue to wait for state change completion
+  * @frame_end: frame end interrupt handler
+  * @lock: protects the pipeline use count and stream count
+- * @use_count: number of video nodes using the pipeline
++ * @kref: pipeline reference count
+  * @stream_count: number of streaming video nodes
+  * @buffers_ready: bitmask of RPFs and WPFs with at least one buffer available
+  * @num_inputs: number of RPFs
+@@ -86,7 +87,7 @@ struct vsp1_pipeline {
+ 	void (*frame_end)(struct vsp1_pipeline *pipe);
+ 
+ 	struct mutex lock;
+-	unsigned int use_count;
++	struct kref kref;
+ 	unsigned int stream_count;
+ 	unsigned int buffers_ready;
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index e373f1473c1f..bc94427c0740 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -17,6 +17,7 @@
+ 
+ #include "vsp1.h"
+ #include "vsp1_dl.h"
++#include "vsp1_pipe.h"
+ #include "vsp1_rwpf.h"
+ #include "vsp1_video.h"
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 4396018d1408..a9aec5c0bec6 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -399,14 +399,10 @@ static int vsp1_video_pipeline_build(struct vsp1_pipeline *pipe,
+ 	unsigned int i;
+ 	int ret;
+ 
+-	mutex_lock(&mdev->graph_mutex);
+-
+ 	/* Walk the graph to locate the entities and video nodes. */
+ 	ret = media_entity_graph_walk_init(&graph, mdev);
+-	if (ret) {
+-		mutex_unlock(&mdev->graph_mutex);
++	if (ret)
+ 		return ret;
+-	}
+ 
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+@@ -439,15 +435,11 @@ static int vsp1_video_pipeline_build(struct vsp1_pipeline *pipe,
+ 		}
+ 	}
+ 
+-	mutex_unlock(&mdev->graph_mutex);
+-
+ 	media_entity_graph_walk_cleanup(&graph);
+ 
+ 	/* We need one output and at least one input. */
+-	if (pipe->num_inputs == 0 || !pipe->output) {
+-		ret = -EPIPE;
+-		goto error;
+-	}
++	if (pipe->num_inputs == 0 || !pipe->output)
++		return -EPIPE;
+ 
+ 	/* Follow links downstream for each input and make sure the graph
+ 	 * contains no loop and that all branches end at the output WPF.
+@@ -459,47 +451,66 @@ static int vsp1_video_pipeline_build(struct vsp1_pipeline *pipe,
+ 		ret = vsp1_video_pipeline_build_branch(pipe, pipe->inputs[i],
+ 						       pipe->output);
+ 		if (ret < 0)
+-			goto error;
++			return ret;
+ 	}
+ 
+ 	return 0;
+-
+-error:
+-	vsp1_pipeline_reset(pipe);
+-	return ret;
+ }
+ 
+ static int vsp1_video_pipeline_init(struct vsp1_pipeline *pipe,
+ 				    struct vsp1_video *video)
+ {
++	vsp1_pipeline_init(pipe);
++
++	pipe->frame_end = vsp1_video_pipeline_frame_end;
++
++	return vsp1_video_pipeline_build(pipe, video);
++}
++
++static struct vsp1_pipeline *vsp1_video_pipeline_get(struct vsp1_video *video)
++{
++	struct vsp1_pipeline *pipe;
+ 	int ret;
+ 
+-	mutex_lock(&pipe->lock);
++	/* Get a pipeline object for the video node. If a pipeline has already
++	 * been allocated just increment its reference count and return it.
++	 * Otherwise allocate a new pipeline and initialize it, it will be freed
++	 * when the last reference is released.
++	 */
++	if (!video->rwpf->pipe) {
++		pipe = kzalloc(sizeof(*pipe), GFP_KERNEL);
++		if (!pipe)
++			return ERR_PTR(-ENOMEM);
+ 
+-	/* If we're the first user build and validate the pipeline. */
+-	if (pipe->use_count == 0) {
+-		ret = vsp1_video_pipeline_build(pipe, video);
+-		if (ret < 0)
+-			goto done;
++		ret = vsp1_video_pipeline_init(pipe, video);
++		if (ret < 0) {
++			vsp1_pipeline_reset(pipe);
++			kfree(pipe);
++			return ERR_PTR(ret);
++		}
++	} else {
++		pipe = video->rwpf->pipe;
++		kref_get(&pipe->kref);
+ 	}
+ 
+-	pipe->use_count++;
+-	ret = 0;
+-
+-done:
+-	mutex_unlock(&pipe->lock);
+-	return ret;
++	return pipe;
+ }
+ 
+-static void vsp1_video_pipeline_cleanup(struct vsp1_pipeline *pipe)
++static void vsp1_video_pipeline_release(struct kref *kref)
+ {
+-	mutex_lock(&pipe->lock);
++	struct vsp1_pipeline *pipe = container_of(kref, typeof(*pipe), kref);
+ 
+-	/* If we're the last user clean up the pipeline. */
+-	if (--pipe->use_count == 0)
+-		vsp1_pipeline_reset(pipe);
++	vsp1_pipeline_reset(pipe);
++	kfree(pipe);
++}
+ 
+-	mutex_unlock(&pipe->lock);
++static void vsp1_video_pipeline_put(struct vsp1_pipeline *pipe)
++{
++	struct media_device *mdev = &pipe->output->entity.vsp1->media_dev;
++
++	mutex_lock(&mdev->graph_mutex);
++	kref_put(&pipe->kref, vsp1_video_pipeline_release);
++	mutex_unlock(&mdev->graph_mutex);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -674,8 +685,8 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 	}
+ 	mutex_unlock(&pipe->lock);
+ 
+-	vsp1_video_pipeline_cleanup(pipe);
+ 	media_entity_pipeline_stop(&video->video.entity);
++	vsp1_video_pipeline_put(pipe);
+ 
+ 	/* Remove all buffers from the IRQ queue. */
+ 	spin_lock_irqsave(&video->irqlock, flags);
+@@ -787,6 +798,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ {
+ 	struct v4l2_fh *vfh = file->private_data;
+ 	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
++	struct media_device *mdev = &video->vsp1->media_dev;
+ 	struct vsp1_pipeline *pipe;
+ 	int ret;
+ 
+@@ -795,20 +807,25 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 
+ 	video->sequence = 0;
+ 
+-	/* Start streaming on the pipeline. No link touching an entity in the
+-	 * pipeline can be activated or deactivated once streaming is started.
+-	 *
+-	 * Use the VSP1 pipeline object embedded in the first video object that
+-	 * starts streaming.
+-	 *
+-	 * FIXME: This is racy, the ioctl is only protected by the video node
+-	 * lock.
++	/* Get a pipeline for the video node and start streaming on it. No link
++	 * touching an entity in the pipeline can be activated or deactivated
++	 * once streaming is started.
+ 	 */
+-	pipe = video->rwpf->pipe ? video->rwpf->pipe : &video->pipe;
++	mutex_lock(&mdev->graph_mutex);
+ 
+-	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
+-	if (ret < 0)
+-		return ret;
++	pipe = vsp1_video_pipeline_get(video);
++	if (IS_ERR(pipe)) {
++		mutex_unlock(&mdev->graph_mutex);
++		return PTR_ERR(pipe);
++	}
++
++	ret = __media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
++	if (ret < 0) {
++		mutex_unlock(&mdev->graph_mutex);
++		goto err_pipe;
++	}
++
++	mutex_unlock(&mdev->graph_mutex);
+ 
+ 	/* Verify that the configured format matches the output of the connected
+ 	 * subdev.
+@@ -817,21 +834,17 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (ret < 0)
+ 		goto err_stop;
+ 
+-	ret = vsp1_video_pipeline_init(pipe, video);
+-	if (ret < 0)
+-		goto err_stop;
+-
+ 	/* Start the queue. */
+ 	ret = vb2_streamon(&video->queue, type);
+ 	if (ret < 0)
+-		goto err_cleanup;
++		goto err_stop;
+ 
+ 	return 0;
+ 
+-err_cleanup:
+-	vsp1_video_pipeline_cleanup(pipe);
+ err_stop:
+ 	media_entity_pipeline_stop(&video->video.entity);
++err_pipe:
++	vsp1_video_pipeline_put(pipe);
+ 	return ret;
+ }
+ 
+@@ -947,9 +960,6 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
+ 	spin_lock_init(&video->irqlock);
+ 	INIT_LIST_HEAD(&video->irqqueue);
+ 
+-	vsp1_pipeline_init(&video->pipe);
+-	video->pipe.frame_end = vsp1_video_pipeline_frame_end;
+-
+ 	/* Initialize the media entity... */
+ 	ret = media_entity_pads_init(&video->video.entity, 1, &video->pad);
+ 	if (ret < 0)
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index 64abd39ee1e7..867b00807c46 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -18,7 +18,6 @@
+ 
+ #include <media/videobuf2-v4l2.h>
+ 
+-#include "vsp1_pipe.h"
+ #include "vsp1_rwpf.h"
+ 
+ struct vsp1_vb2_buffer {
+@@ -44,7 +43,6 @@ struct vsp1_video {
+ 
+ 	struct mutex lock;
+ 
+-	struct vsp1_pipeline pipe;
+ 	unsigned int pipe_index;
+ 
+ 	struct vb2_queue queue;
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 5aa5eb4b8121..a88ed0fc69ac 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -17,6 +17,7 @@
+ 
+ #include "vsp1.h"
+ #include "vsp1_dl.h"
++#include "vsp1_pipe.h"
+ #include "vsp1_rwpf.h"
+ #include "vsp1_video.h"
+ 
+-- 
+2.7.3
 
