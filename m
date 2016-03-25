@@ -1,44 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56914 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932868AbcCPOLB (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:47478 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362AbcCYBqu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 10:11:01 -0400
-Date: Wed, 16 Mar 2016 16:10:57 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Thu, 24 Mar 2016 21:46:50 -0400
+Date: Fri, 25 Mar 2016 10:46:45 +0900
+From: Simon Horman <horms+renesas@verge.net.au>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Subject: Re: [PATCH 1/5] [media] media-device: get rid of the spinlock
-Message-ID: <20160316141057.GY11084@valkosipuli.retiisi.org.uk>
-References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Simon Horman <horms+renesas@verge.net.au>
+Subject: [PATCH v3 repost] media: platform: rcar_jpu, vsp1: Use ARCH_RENESAS
+Message-ID: <20160325014645.GA31681@verge.net.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
 
-On Wed, Mar 16, 2016 at 09:04:02AM -0300, Mauro Carvalho Chehab wrote:
-> Right now, the lock schema for media_device struct is messy,
-> since sometimes, it is protected via a spin lock, while, for
-> media graph traversal, it is protected by a mutex.
-> 
-> Solve this conflict by always using a mutex.
-> 
-> As a side effect, this prevents a bug where the media notifiers
-> were called at atomic context.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+This is part of an ongoing process to migrate from ARCH_SHMOBILE to
+ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
+appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
 
-The scope of mdev->lock isn't much, really. I think this is fine, no need to
-create another mutex.
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+---
+Mauro, please consider applying this patch.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Based on media-tree/master
 
+v3
+* Update subject to not refer to sh_vou
+* Added acks from Laurent Pinchart and Hans Verkuil
+
+v2
+* Do not update VIDEO_SH_VOU to use ARCH_RENESAS as this is
+  used by some SH-based platforms and is not used by any ARM-based platforms
+  so a dependency on ARCH_SHMOBILE is correct for that driver
+* Added Geert Uytterhoeven's Ack
+---
+ drivers/media/platform/Kconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 201f5c296a95..84e041c0a70e 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -238,7 +238,7 @@ config VIDEO_SH_VEU
+ config VIDEO_RENESAS_JPU
+ 	tristate "Renesas JPEG Processing Unit"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+-	depends on ARCH_SHMOBILE || COMPILE_TEST
++	depends on ARCH_RENESAS || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+ 	---help---
+@@ -250,7 +250,7 @@ config VIDEO_RENESAS_JPU
+ config VIDEO_RENESAS_VSP1
+ 	tristate "Renesas VSP1 Video Processing Engine"
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
+-	depends on (ARCH_SHMOBILE && OF) || COMPILE_TEST
++	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	---help---
+ 	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.1.4
+
