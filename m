@@ -1,68 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58424 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751160AbcC1Np5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2016 09:45:57 -0400
-Subject: Re: [RFC PATCH 1/4] media: Add Media Device Allocator API
-To: Joe Perches <joe@perches.com>, laurent.pinchart@ideasonboard.com,
-	mchehab@osg.samsung.com, perex@perex.cz, tiwai@suse.com,
-	hans.verkuil@cisco.com, chehabrafael@gmail.com,
-	javier@osg.samsung.com, jh1009.sung@samsung.com
-References: <cover.1458966594.git.shuahkh@osg.samsung.com>
- <41d017ef76e3206780c018399ec60b63d865f65c.1458966594.git.shuahkh@osg.samsung.com>
- <1458996622.23450.4.camel@perches.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56F93589.4020102@osg.samsung.com>
-Date: Mon, 28 Mar 2016 07:45:45 -0600
-MIME-Version: 1.0
-In-Reply-To: <1458996622.23450.4.camel@perches.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40677 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752383AbcCYKop (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2016 06:44:45 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 18/54] v4l: vsp1: Enable display list support for the HS[IT], LUT, SRU and UDS
+Date: Fri, 25 Mar 2016 12:43:52 +0200
+Message-Id: <1458902668-1141-19-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/26/2016 06:50 AM, Joe Perches wrote:
-> On Fri, 2016-03-25 at 22:38 -0600, Shuah Khan wrote:
->> Add Media Device Allocator API to manage Media Device life time problems.
->> There are known problems with media device life time management. When media
->> device is released while an media ioctl is in progress, ioctls fail with
->> use-after-free errors and kernel hangs in some cases.
-> 
-> Seems reasonable, thanks.
-> 
-> trivial:
-> 
->> diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
-> []
->> +static struct media_device *__media_device_get(struct device *dev,
->> +					       bool alloc, bool kref)
->> +{
-> []
->> +	pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
-> 
-> All of the pr_info uses here seem like debugging
-> and should likely be pr_debug instead.
+Those modules were left out of display list integration as they're not
+used by the DRM pipeline. To prepare for display list support in non-DRM
+pipelines use the module write API to set registers.
 
-Correct. These are for debug and I plan to either remove them completely
-or make them pr_debug().
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_hsit.c | 2 +-
+ drivers/media/platform/vsp1/vsp1_lut.c  | 2 +-
+ drivers/media/platform/vsp1/vsp1_sru.c  | 2 +-
+ drivers/media/platform/vsp1/vsp1_uds.c  | 4 ++--
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
->> +struct media_device *media_device_find(struct device *dev)
->> +{
->> +	pr_info("%s\n", __func__);
-> 
-> These seem like function tracing and maybe could/should
-> use ftrace instead.
-> +/* don't allocate - increment kref if one is found */
->> +struct media_device *media_device_get_ref(struct device *dev)
->> +{
->> +	pr_info("%s\n", __func__);
-> 
+diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
+index ce42ce2e4847..e971dfa9714d 100644
+--- a/drivers/media/platform/vsp1/vsp1_hsit.c
++++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+@@ -28,7 +28,7 @@
+ 
+ static inline void vsp1_hsit_write(struct vsp1_hsit *hsit, u32 reg, u32 data)
+ {
+-	vsp1_write(hsit->entity.vsp1, reg, data);
++	vsp1_mod_write(&hsit->entity, reg, data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index f0cd4f79fbff..c24712fe5f2c 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -29,7 +29,7 @@
+ 
+ static inline void vsp1_lut_write(struct vsp1_lut *lut, u32 reg, u32 data)
+ {
+-	vsp1_write(lut->entity.vsp1, reg, data);
++	vsp1_mod_write(&lut->entity, reg, data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index a97541492af8..7de62be37cff 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -28,7 +28,7 @@
+ 
+ static inline void vsp1_sru_write(struct vsp1_sru *sru, u32 reg, u32 data)
+ {
+-	vsp1_write(sru->entity.vsp1, reg, data);
++	vsp1_mod_write(&sru->entity, reg, data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index b1881a0a314f..7eaf42a2b036 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -31,8 +31,8 @@
+ 
+ static inline void vsp1_uds_write(struct vsp1_uds *uds, u32 reg, u32 data)
+ {
+-	vsp1_write(uds->entity.vsp1,
+-		   reg + uds->entity.index * VI6_UDS_OFFSET, data);
++	vsp1_mod_write(&uds->entity, reg + uds->entity.index * VI6_UDS_OFFSET,
++		       data);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+-- 
+2.7.3
 
-Same here. This is also debug. However, you gave me an idea, this could be a
-tracevent, if I find it useful for event tracing. It might be useful to be able
-to track kref holds on this.
-
-thanks,
--- Shuah
