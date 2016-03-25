@@ -1,260 +1,452 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:36109 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758488AbcCCW2d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:28:33 -0500
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Viorel Suman <viorel.suman@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v4 03/18] i2c: i2c-mux-pinctrl: convert to use an explicit i2c mux core
-Date: Thu,  3 Mar 2016 23:27:15 +0100
-Message-Id: <1457044050-15230-4-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
-References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40677 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752580AbcCYKpL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2016 06:45:11 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 48/54] v4l: vsp1: dl: Add support for multi-body display lists
+Date: Fri, 25 Mar 2016 12:44:22 +0200
+Message-Id: <1458902668-1141-49-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+Display lists support up to 8 bodies but we currently use a single one.
+To support preparing display lists for large look-up tables, add support
+for multi-body display lists.
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select/deselect ops to be in terms of the i2c mux core
-instead of the child adapter.
-
-Signed-off-by: Peter Rosin <peda@axentia.se>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/i2c/muxes/i2c-mux-pinctrl.c | 86 +++++++++++++------------------------
- 1 file changed, 30 insertions(+), 56 deletions(-)
+ drivers/media/platform/vsp1/vsp1_dl.c | 291 ++++++++++++++++++++++++++++------
+ drivers/media/platform/vsp1/vsp1_dl.h |   8 +
+ 2 files changed, 252 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/i2c/muxes/i2c-mux-pinctrl.c b/drivers/i2c/muxes/i2c-mux-pinctrl.c
-index b5a982ba8898..bbfabf4f52be 100644
---- a/drivers/i2c/muxes/i2c-mux-pinctrl.c
-+++ b/drivers/i2c/muxes/i2c-mux-pinctrl.c
-@@ -26,27 +26,22 @@
- #include <linux/of.h>
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 4f2c3c95bfa4..f283035560a8 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -19,28 +19,20 @@
+ #include "vsp1.h"
+ #include "vsp1_dl.h"
  
- struct i2c_mux_pinctrl {
--	struct device *dev;
- 	struct i2c_mux_pinctrl_platform_data *pdata;
- 	struct pinctrl *pinctrl;
- 	struct pinctrl_state **states;
- 	struct pinctrl_state *state_idle;
--	struct i2c_adapter *parent;
--	struct i2c_adapter **busses;
+-/*
+- * Global resources
+- *
+- * - Display-related interrupts (can be used for vblank evasion ?)
+- * - Display-list enable
+- * - Header-less for WPF0
+- * - DL swap
+- */
+-
+-#define VSP1_DL_HEADER_SIZE		76
+-#define VSP1_DL_BODY_SIZE		(2 * 4 * 256)
++#define VSP1_DL_NUM_ENTRIES		256
+ #define VSP1_DL_NUM_LISTS		3
+ 
+ #define VSP1_DLH_INT_ENABLE		(1 << 1)
+ #define VSP1_DLH_AUTO_START		(1 << 0)
+ 
++struct vsp1_dl_header_list {
++	u32 num_bytes;
++	u32 addr;
++} __attribute__((__packed__));
++
+ struct vsp1_dl_header {
+ 	u32 num_lists;
+-	struct {
+-		u32 num_bytes;
+-		u32 addr;
+-	} lists[8];
++	struct vsp1_dl_header_list lists[8];
+ 	u32 next_header;
+ 	u32 flags;
+ } __attribute__((__packed__));
+@@ -50,17 +42,44 @@ struct vsp1_dl_entry {
+ 	u32 data;
+ } __attribute__((__packed__));
+ 
+-struct vsp1_dl_list {
++/**
++ * struct vsp1_dl_body - Display list body
++ * @list: entry in the display list list of bodies
++ * @vsp1: the VSP1 device
++ * @entries: array of entries
++ * @dma: DMA address of the entries
++ * @size: size of the DMA memory in bytes
++ * @num_entries: number of stored entries
++ */
++struct vsp1_dl_body {
+ 	struct list_head list;
++	struct vsp1_device *vsp1;
++
++	struct vsp1_dl_entry *entries;
++	dma_addr_t dma;
++	size_t size;
++
++	unsigned int num_entries;
++};
+ 
++/**
++ * struct vsp1_dl_list - Display list
++ * @list: entry in the display list manager lists
++ * @dlm: the display list manager
++ * @header: display list header, NULL for headerless lists
++ * @dma: DMA address for the header
++ * @body0: first display list body
++ * @fragments: list of extra display list bodies
++ */
++struct vsp1_dl_list {
++	struct list_head list;
+ 	struct vsp1_dl_manager *dlm;
+ 
+ 	struct vsp1_dl_header *header;
+-	struct vsp1_dl_entry *body;
+ 	dma_addr_t dma;
+-	size_t size;
+ 
+-	unsigned int reg_count;
++	struct vsp1_dl_body body0;
++	struct list_head fragments;
  };
  
--static int i2c_mux_pinctrl_select(struct i2c_adapter *adap, void *data,
--				  u32 chan)
-+static int i2c_mux_pinctrl_select(struct i2c_mux_core *muxc, u32 chan)
+ enum vsp1_dl_mode {
+@@ -92,6 +111,111 @@ struct vsp1_dl_manager {
+ };
+ 
+ /* -----------------------------------------------------------------------------
++ * Display List Body Management
++ */
++
++/*
++ * Initialize a display list body object and allocate DMA memory for the body
++ * data. The display list body object is expected to have been initialized to
++ * 0 when allocated.
++ */
++static int vsp1_dl_body_init(struct vsp1_device *vsp1,
++			     struct vsp1_dl_body *dlb, unsigned int num_entries,
++			     size_t extra_size)
++{
++	size_t size = num_entries * sizeof(*dlb->entries) + extra_size;
++
++	dlb->vsp1 = vsp1;
++	dlb->size = size;
++
++	dlb->entries = dma_alloc_writecombine(vsp1->dev, dlb->size,
++					      &dlb->dma, GFP_KERNEL);
++	if (!dlb->entries)
++		return -ENOMEM;
++
++	return 0;
++}
++
++/*
++ * Cleanup a display list body and free allocated DMA memory allocated.
++ */
++static void vsp1_dl_body_cleanup(struct vsp1_dl_body *dlb)
++{
++	dma_free_writecombine(dlb->vsp1->dev, dlb->size, dlb->entries,
++			      dlb->dma);
++}
++
++/**
++ * vsp1_dl_fragment_alloc - Allocate a display list fragment
++ * @vsp1: The VSP1 device
++ * @num_entries: The maximum number of entries that the fragment can contain
++ *
++ * Allocate a display list fragment with enough memory to contain the requested
++ * number of entries.
++ *
++ * Return a pointer to a fragment on success or NULL if memory can't be
++ * allocated.
++ */
++struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
++					    unsigned int num_entries)
++{
++	struct vsp1_dl_body *dlb;
++	int ret;
++
++	dlb = kzalloc(sizeof(*dlb), GFP_KERNEL);
++	if (!dlb)
++		return NULL;
++
++	ret = vsp1_dl_body_init(vsp1, dlb, num_entries, 0);
++	if (ret < 0) {
++		kfree(dlb);
++		return NULL;
++	}
++
++	return dlb;
++}
++
++/**
++ * vsp1_dl_fragment_free - Free a display list fragment
++ * @dlb: The fragment
++ *
++ * Free the given display list fragment and the associated DMA memory.
++ *
++ * Fragments must only be freed explicitly if they are not added to a display
++ * list, as the display list will take ownership of them and free them
++ * otherwise. Manual free typically happens at cleanup time for fragments that
++ * have been allocated but not used.
++ *
++ * Passing a NULL pointer to this function is safe, in that case no operation
++ * will be performed.
++ */
++void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb)
++{
++	if (!dlb)
++		return;
++
++	vsp1_dl_body_cleanup(dlb);
++	kfree(dlb);
++}
++
++/**
++ * vsp1_dl_fragment_write - Write a register to a display list fragment
++ * @dlb: The fragment
++ * @reg: The register address
++ * @data: The register value
++ *
++ * Write the given register and value to the display list fragment. The maximum
++ * number of entries that can be written in a fragment is specified when the
++ * fragment is allocated by vsp1_dl_fragment_alloc().
++ */
++void vsp1_dl_fragment_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
++{
++	dlb->entries[dlb->num_entries].addr = reg;
++	dlb->entries[dlb->num_entries].data = data;
++	dlb->num_entries++;
++}
++
++/* -----------------------------------------------------------------------------
+  * Display List Transaction Management
+  */
+ 
+@@ -99,43 +223,61 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
  {
--	struct i2c_mux_pinctrl *mux = data;
-+	struct i2c_mux_pinctrl *mux = i2c_mux_priv(muxc);
- 
- 	return pinctrl_select_state(mux->pinctrl, mux->states[chan]);
- }
- 
--static int i2c_mux_pinctrl_deselect(struct i2c_adapter *adap, void *data,
--				    u32 chan)
-+static int i2c_mux_pinctrl_deselect(struct i2c_mux_core *muxc, u32 chan)
- {
--	struct i2c_mux_pinctrl *mux = data;
-+	struct i2c_mux_pinctrl *mux = i2c_mux_priv(muxc);
- 
- 	return pinctrl_select_state(mux->pinctrl, mux->state_idle);
- }
-@@ -55,6 +50,7 @@ static int i2c_mux_pinctrl_deselect(struct i2c_adapter *adap, void *data,
- static int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
- 				struct platform_device *pdev)
- {
-+	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
- 	struct device_node *np = pdev->dev.of_node;
- 	int num_names, i, ret;
- 	struct device_node *adapter_np;
-@@ -64,15 +60,12 @@ static int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
- 		return 0;
- 
- 	mux->pdata = devm_kzalloc(&pdev->dev, sizeof(*mux->pdata), GFP_KERNEL);
--	if (!mux->pdata) {
--		dev_err(mux->dev,
--			"Cannot allocate i2c_mux_pinctrl_platform_data\n");
-+	if (!mux->pdata)
- 		return -ENOMEM;
--	}
- 
- 	num_names = of_property_count_strings(np, "pinctrl-names");
- 	if (num_names < 0) {
--		dev_err(mux->dev, "Cannot parse pinctrl-names: %d\n",
-+		dev_err(muxc->dev, "Cannot parse pinctrl-names: %d\n",
- 			num_names);
- 		return num_names;
- 	}
-@@ -80,23 +73,21 @@ static int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
- 	mux->pdata->pinctrl_states = devm_kzalloc(&pdev->dev,
- 		sizeof(*mux->pdata->pinctrl_states) * num_names,
- 		GFP_KERNEL);
--	if (!mux->pdata->pinctrl_states) {
--		dev_err(mux->dev, "Cannot allocate pinctrl_states\n");
-+	if (!mux->pdata->pinctrl_states)
- 		return -ENOMEM;
--	}
- 
- 	for (i = 0; i < num_names; i++) {
- 		ret = of_property_read_string_index(np, "pinctrl-names", i,
- 			&mux->pdata->pinctrl_states[mux->pdata->bus_count]);
- 		if (ret < 0) {
--			dev_err(mux->dev, "Cannot parse pinctrl-names: %d\n",
-+			dev_err(muxc->dev, "Cannot parse pinctrl-names: %d\n",
- 				ret);
- 			return ret;
- 		}
- 		if (!strcmp(mux->pdata->pinctrl_states[mux->pdata->bus_count],
- 			    "idle")) {
- 			if (i != num_names - 1) {
--				dev_err(mux->dev, "idle state must be last\n");
-+				dev_err(muxc->dev, "idle state must be last\n");
- 				return -EINVAL;
- 			}
- 			mux->pdata->pinctrl_state_idle = "idle";
-@@ -107,13 +98,13 @@ static int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
- 
- 	adapter_np = of_parse_phandle(np, "i2c-parent", 0);
- 	if (!adapter_np) {
--		dev_err(mux->dev, "Cannot parse i2c-parent\n");
-+		dev_err(muxc->dev, "Cannot parse i2c-parent\n");
- 		return -ENODEV;
- 	}
- 	adapter = of_find_i2c_adapter_by_node(adapter_np);
- 	of_node_put(adapter_np);
- 	if (!adapter) {
--		dev_err(mux->dev, "Cannot find parent bus\n");
-+		dev_err(muxc->dev, "Cannot find parent bus\n");
- 		return -EPROBE_DEFER;
- 	}
- 	mux->pdata->parent_bus_num = i2c_adapter_id(adapter);
-@@ -131,19 +122,18 @@ static inline int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
- 
- static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
- {
-+	struct i2c_mux_core *muxc;
- 	struct i2c_mux_pinctrl *mux;
--	int (*deselect)(struct i2c_adapter *, void *, u32);
- 	int i, ret;
- 
--	mux = devm_kzalloc(&pdev->dev, sizeof(*mux), GFP_KERNEL);
--	if (!mux) {
--		dev_err(&pdev->dev, "Cannot allocate i2c_mux_pinctrl\n");
-+	muxc = i2c_mux_alloc(NULL, &pdev->dev, sizeof(*mux), 0,
-+			     i2c_mux_pinctrl_select, NULL);
-+	if (!muxc) {
- 		ret = -ENOMEM;
- 		goto err;
- 	}
--	platform_set_drvdata(pdev, mux);
+ 	struct vsp1_dl_list *dl;
+ 	size_t header_size;
 -
--	mux->dev = &pdev->dev;
-+	mux = i2c_mux_priv(muxc);
-+	platform_set_drvdata(pdev, muxc);
+-	/* The body needs to be aligned on a 8 bytes boundary, pad the header
+-	 * size to allow allocating both in a single operation.
+-	 */
+-	header_size = dlm->mode == VSP1_DL_MODE_HEADER
+-		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
+-		    : 0;
++	int ret;
  
- 	mux->pdata = dev_get_platdata(&pdev->dev);
- 	if (!mux->pdata) {
-@@ -166,14 +156,9 @@ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
- 		goto err;
+ 	dl = kzalloc(sizeof(*dl), GFP_KERNEL);
+ 	if (!dl)
+ 		return NULL;
+ 
++	INIT_LIST_HEAD(&dl->fragments);
+ 	dl->dlm = dlm;
+-	dl->size = header_size + VSP1_DL_BODY_SIZE;
+ 
+-	dl->header = dma_alloc_writecombine(dlm->vsp1->dev, dl->size, &dl->dma,
+-					    GFP_KERNEL);
+-	if (!dl->header) {
++	/* Initialize the display list body and allocate DMA memory for the body
++	 * and the optional header. Both are allocated together to avoid memory
++	 * fragmentation, with the header located right after the body in
++	 * memory.
++	 */
++	header_size = dlm->mode == VSP1_DL_MODE_HEADER
++		    ? ALIGN(sizeof(struct vsp1_dl_header), 8)
++		    : 0;
++
++	ret = vsp1_dl_body_init(dlm->vsp1, &dl->body0, VSP1_DL_NUM_ENTRIES,
++				header_size);
++	if (ret < 0) {
+ 		kfree(dl);
+ 		return NULL;
  	}
  
--	mux->busses = devm_kzalloc(&pdev->dev,
--				   sizeof(*mux->busses) * mux->pdata->bus_count,
--				   GFP_KERNEL);
--	if (!mux->busses) {
--		dev_err(&pdev->dev, "Cannot allocate busses\n");
--		ret = -ENOMEM;
-+	ret = i2c_mux_reserve_adapters(muxc, mux->pdata->bus_count);
-+	if (ret)
- 		goto err;
--	}
- 
- 	mux->pinctrl = devm_pinctrl_get(&pdev->dev);
- 	if (IS_ERR(mux->pinctrl)) {
-@@ -203,13 +188,11 @@ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
- 			goto err;
- 		}
- 
--		deselect = i2c_mux_pinctrl_deselect;
--	} else {
--		deselect = NULL;
-+		muxc->deselect = i2c_mux_pinctrl_deselect;
+ 	if (dlm->mode == VSP1_DL_MODE_HEADER) {
++		size_t header_offset = VSP1_DL_NUM_ENTRIES
++				     * sizeof(*dl->body0.entries);
++
++		dl->header = ((void *)dl->body0.entries) + header_offset;
++		dl->dma = dl->body0.dma + header_offset;
++
+ 		memset(dl->header, 0, sizeof(*dl->header));
+-		dl->header->lists[0].addr = dl->dma + header_size;
++		dl->header->lists[0].addr = dl->body0.dma;
+ 		dl->header->flags = VSP1_DLH_INT_ENABLE;
  	}
  
--	mux->parent = i2c_get_adapter(mux->pdata->parent_bus_num);
--	if (!mux->parent) {
-+	muxc->parent = i2c_get_adapter(mux->pdata->parent_bus_num);
-+	if (!muxc->parent) {
- 		dev_err(&pdev->dev, "Parent adapter (%d) not found\n",
- 			mux->pdata->parent_bus_num);
- 		ret = -EPROBE_DEFER;
-@@ -220,12 +203,8 @@ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
- 		u32 bus = mux->pdata->base_bus_num ?
- 				(mux->pdata->base_bus_num + i) : 0;
- 
--		mux->busses[i] = i2c_add_mux_adapter(mux->parent, &pdev->dev,
--						     mux, bus, i, 0,
--						     i2c_mux_pinctrl_select,
--						     deselect);
--		if (!mux->busses[i]) {
--			ret = -ENODEV;
-+		ret = i2c_mux_add_adapter(muxc, bus, i, 0);
-+		if (ret) {
- 			dev_err(&pdev->dev, "Failed to add adapter %d\n", i);
- 			goto err_del_adapter;
- 		}
-@@ -234,23 +213,18 @@ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_del_adapter:
--	for (; i > 0; i--)
--		i2c_del_mux_adapter(mux->busses[i - 1]);
--	i2c_put_adapter(mux->parent);
-+	i2c_mux_del_adapters(muxc);
-+	i2c_put_adapter(muxc->parent);
- err:
- 	return ret;
+-	dl->body = ((void *)dl->header) + header_size;
+-
+ 	return dl;
  }
  
- static int i2c_mux_pinctrl_remove(struct platform_device *pdev)
++static void vsp1_dl_list_free_fragments(struct vsp1_dl_list *dl)
++{
++	struct vsp1_dl_body *dlb, *next;
++
++	list_for_each_entry_safe(dlb, next, &dl->fragments, list) {
++		list_del(&dlb->list);
++		vsp1_dl_body_cleanup(dlb);
++		kfree(dlb);
++	}
++}
++
+ static void vsp1_dl_list_free(struct vsp1_dl_list *dl)
  {
--	struct i2c_mux_pinctrl *mux = platform_get_drvdata(pdev);
--	int i;
--
--	for (i = 0; i < mux->pdata->bus_count; i++)
--		i2c_del_mux_adapter(mux->busses[i]);
--
--	i2c_put_adapter(mux->parent);
-+	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
- 
-+	i2c_mux_del_adapters(muxc);
-+	i2c_put_adapter(muxc->parent);
- 	return 0;
+-	dma_free_writecombine(dl->dlm->vsp1->dev, dl->size, dl->header,
+-			      dl->dma);
++	vsp1_dl_body_cleanup(&dl->body0);
++	vsp1_dl_list_free_fragments(dl);
+ 	kfree(dl);
  }
  
+@@ -170,7 +312,8 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
+ 	if (!dl)
+ 		return;
+ 
+-	dl->reg_count = 0;
++	vsp1_dl_list_free_fragments(dl);
++	dl->body0.num_entries = 0;
+ 
+ 	list_add_tail(&dl->list, &dl->dlm->free);
+ }
+@@ -196,11 +339,45 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl)
+ 	spin_unlock_irqrestore(&dl->dlm->lock, flags);
+ }
+ 
++/**
++ * vsp1_dl_list_write - Write a register to the display list
++ * @dl: The display list
++ * @reg: The register address
++ * @data: The register value
++ *
++ * Write the given register and value to the display list. Up to 256 registers
++ * can be written per display list.
++ */
+ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
+ {
+-	dl->body[dl->reg_count].addr = reg;
+-	dl->body[dl->reg_count].data = data;
+-	dl->reg_count++;
++	vsp1_dl_fragment_write(&dl->body0, reg, data);
++}
++
++/**
++ * vsp1_dl_list_add_fragment - Add a fragment to the display list
++ * @dl: The display list
++ * @dlb: The fragment
++ *
++ * Add a display list body as a fragment to a display list. Registers contained
++ * in fragments are processed after registers contained in the main display
++ * list, in the order in which fragments are added.
++ *
++ * Adding a fragment to a display list passes ownership of the fragment to the
++ * list. The caller must not touch the fragment after this call, and must not
++ * free it explicitly with vsp1_dl_fragment_free().
++ *
++ * Fragments are only usable for display lists in header mode. Attempt to
++ * add a fragment to a header-less display list will return an error.
++ */
++int vsp1_dl_list_add_fragment(struct vsp1_dl_list *dl,
++			      struct vsp1_dl_body *dlb)
++{
++	/* Multi-body lists are only available in header mode. */
++	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
++		return -EINVAL;
++
++	list_add_tail(&dlb->list, &dl->fragments);
++	return 0;
+ }
+ 
+ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+@@ -213,11 +390,30 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+ 	spin_lock_irqsave(&dlm->lock, flags);
+ 
+ 	if (dl->dlm->mode == VSP1_DL_MODE_HEADER) {
+-		/* Program the hardware with the display list body address and
+-		 * size. In header mode the caller guarantees that the hardware
+-		 * is idle at this point.
++		struct vsp1_dl_header_list *hdr = dl->header->lists;
++		struct vsp1_dl_body *dlb;
++		unsigned int num_lists = 0;
++
++		/* Fill the header with the display list bodies addresses and
++		 * sizes. The address of the first body has already been filled
++		 * when the display list was allocated.
++		 *
++		 * In header mode the caller guarantees that the hardware is
++		 * idle at this point.
+ 		 */
+-		dl->header->lists[0].num_bytes = dl->reg_count * 8;
++		hdr->num_bytes = dl->body0.num_entries
++			       * sizeof(*dl->header->lists);
++
++		list_for_each_entry(dlb, &dl->fragments, list) {
++			num_lists++;
++			hdr++;
++
++			hdr->addr = dlb->dma;
++			hdr->num_bytes = dlb->num_entries
++				       * sizeof(*dl->header->lists);
++		}
++
++		dl->header->num_lists = num_lists;
+ 		vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
+ 
+ 		dlm->active = dl;
+@@ -240,9 +436,9 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+ 	 * The UPD bit will be cleared by the device when the display list is
+ 	 * processed.
+ 	 */
+-	vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->dma);
++	vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0.dma);
+ 	vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
+-		   (dl->reg_count * 8));
++		   (dl->body0.num_entries * sizeof(*dl->header->lists)));
+ 
+ 	__vsp1_dl_list_put(dlm->queued);
+ 	dlm->queued = dl;
+@@ -308,9 +504,10 @@ void vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm)
+ 	if (dlm->pending) {
+ 		struct vsp1_dl_list *dl = dlm->pending;
+ 
+-		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->dma);
++		vsp1_write(vsp1, VI6_DL_HDR_ADDR(0), dl->body0.dma);
+ 		vsp1_write(vsp1, VI6_DL_BODY_SIZE, VI6_DL_BODY_SIZE_UPD |
+-			   (dl->reg_count * 8));
++			   (dl->body0.num_entries *
++			    sizeof(*dl->header->lists)));
+ 
+ 		dlm->queued = dl;
+ 		dlm->pending = NULL;
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
+index 571ed6d8e7c2..de387cd4d745 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.h
++++ b/drivers/media/platform/vsp1/vsp1_dl.h
+@@ -16,6 +16,7 @@
+ #include <linux/types.h>
+ 
+ struct vsp1_device;
++struct vsp1_dl_fragment;
+ struct vsp1_dl_list;
+ struct vsp1_dl_manager;
+ 
+@@ -34,4 +35,11 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
+ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
+ void vsp1_dl_list_commit(struct vsp1_dl_list *dl);
+ 
++struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
++					    unsigned int num_entries);
++void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb);
++void vsp1_dl_fragment_write(struct vsp1_dl_body *dlb, u32 reg, u32 data);
++int vsp1_dl_list_add_fragment(struct vsp1_dl_list *dl,
++			      struct vsp1_dl_body *dlb);
++
+ #endif /* __VSP1_DL_H__ */
 -- 
-2.1.4
+2.7.3
 
