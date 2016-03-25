@@ -1,102 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47515 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752813AbcCNJK4 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40608 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752568AbcCYI3s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 05:10:56 -0400
-Subject: Re: FW: [PATCH v5 0/8] Add MT8173 Video Encoder Driver and VPU Driver
-To: tiffany lin <tiffany.lin@mediatek.com>
-References: <D706F7FE148A8A429434F78C46336826048E7053@mtkmbs02n1>
- <1457939579.32502.10.camel@mtksdaap41> <56E66672.9030307@xs4all.nl>
- <1457946267.16701.6.camel@mtksdaap41>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, daniel.thompson@linaro.org,
-	Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56E68019.4010007@xs4all.nl>
-Date: Mon, 14 Mar 2016 10:10:50 +0100
+	Fri, 25 Mar 2016 04:29:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 00/51] R-Car VSP improvements for v4.6
+Date: Fri, 25 Mar 2016 10:29:45 +0200
+Message-ID: <4370353.kdHmKTOgsC@avalon>
+In-Reply-To: <CAMuHMdUAtZAP+oeKgD_ufvfgR6ieOohMpaP9gT+asuypENbjYg@mail.gmail.com>
+References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdUAtZAP+oeKgD_ufvfgR6ieOohMpaP9gT+asuypENbjYg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1457946267.16701.6.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/14/2016 10:04 AM, tiffany lin wrote:
-> On Mon, 2016-03-14 at 08:21 +0100, Hans Verkuil wrote:
->> On 03/14/2016 08:12 AM, tiffany lin wrote:
->>> Hi Hans,
->>>
->>> After change to use "v4l-utils.git master branch", "V4l2-compliance
->>> -d /dev/video1" fail on "fail: v4l2-test-buffers.cpp(555):
->>> check_0(crbufs.reserved, sizeof(crbufs.reserved))".
->>>
->>> Check the source code and found
->>>
->>> 	memset(&crbufs, 0xff, sizeof(crbufs));   -> crbufs to 0xff
->>>         node->g_fmt(crbufs.format, i);
->>>         crbufs.count = 0;
->>>         crbufs.memory = m;
->>>         fail_on_test(doioctl(node, VIDIOC_CREATE_BUFS, &crbufs));   
->>>         fail_on_test(check_0(crbufs.reserved, sizeof(crbufs.reserved)));
->>>         fail_on_test(crbufs.index != q.g_buffers());
->>>
->>> crbufs is initialized to fill with 0xff and after VIDIOC_CREATE_BUFS,
->>> crbufs.reserved field should be 0x0. But v4l2_m2m_create_bufs and
->>> vb2_create_bufs do not process reserved filed.
->>> Do we really need to check reserved filed filled with 0x0? Or we need to
->>> change vb2_create_bufs to fix this issue?
->>
->> The reserved field is zeroed in v4l_create_bufs() in v4l2-ioctl.c, so even before
->> vb2_create_bufs et al is called.
->>
->> The fact that it is no longer zeroed afterwards suggests that someone is messing
->> with the reserved field.
->>
->> You'll have to do a bit more digging, I'm afraid.
->>
-> Hi Hans,
+Hi Geert,
+
+On Friday 25 Mar 2016 09:08:14 Geert Uytterhoeven wrote:
+> On Fri, Mar 25, 2016 at 12:26 AM, Laurent Pinchart wrote:
+> > This patch series contains all the pending vsp1 driver improvements for
+> > v4.6.
+>
+> v4.6 or v4.7?
+
+My bad, it's of course v4.7. That what you get when posting patches late in 
+the night, time blurs and the past, present and future all become one.
+
+(I'll refrain from quoting Doctor Who here, although the influence of a TARDIS 
+on kernel development would be an interesting subject to study.)
+
+> > In particular, it enables display list usage in non-DRM pipelines (24/51)
+> > and adds support for multi-body display lists (48/51) and the R-Car Gen3
+> > RPF alpha multiplier (50/51) and Z-order control (51/51).
+> > 
+> > The other patches are cleanups, bug fixes and refactoring to support the
+> > four features listed above.
+> > 
+> > The code is based on top of the "[PATCH v6 0/2] media: Add entity types"
+> > patch series. For convenience I've pushed a branch that contains all the
+> > necessary patches on top of the latest Linux media master branch to
+> > 
+> >         git://linuxtv.org/pinchartl/media.git vsp1/next
+> > 
+> > Note that while patch 51/51 enables support for Z-order control in the
+> > vsp1 driver, enabling the feature for userspace requires an additional
+> > patch for the rcar-du-drm driver. I have pushed a branch that includes the
+> > rcar-du-drm changes and platform enablements to
+> > 
+> >         git://linuxtv.org/pinchartl/media.git drm/du/vsp1-kms/boards
 > 
-> Thanks for your information.
-> I found the root cause is in "put_v4l2_create32".
-> It do not copy reserved field from kernel space to user space.
-> After modification,"test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK"
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index f38c076..109f687 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -280,7 +280,8 @@ static int put_v4l2_format32(struct v4l2_format *kp,
-> struct v4l2_format32 __user
->  static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct
-> v4l2_create_buffers32 __user *up)
->  {
->         if (!access_ok(VERIFY_WRITE, up, sizeof(struct
-> v4l2_create_buffers32)) ||
-> -           copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32,
-> format)))
-> +           copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32,
-> format)) ||
-> +           copy_to_user(up->reserved, kp->reserved,
-> sizeof(kp->reserved)))
->                 return -EFAULT;
->         return __put_v4l2_format32(&kp->format, &up->format);
->  }
+> I assume this is the branch to be included by renesas-drivers?
 
-Yup, that's the cause. Can you post this as a 'proper' patch to the mailinglist?
+That's correct. I'll update the branch with more patches in the very near 
+future, likely today. I'll keep you informed.
 
-I'll take it for kernel 4.6 (and I'll add a CC to the stable mailinglist to
-get it backported as well).
+-- 
+Regards,
 
-Thanks!
+Laurent Pinchart
 
-	Hans
