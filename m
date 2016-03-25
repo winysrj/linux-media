@@ -1,99 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:57571 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754685AbcCBQ7r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2016 11:59:47 -0500
-Subject: Re: [PATCH v4 22/22] sound/usb: Use Media Controller API to share
- media resources
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1456725482-4849-1-git-send-email-shuahkh@osg.samsung.com>
- <2166908.Ghbrb0Anbr@avalon>
-Cc: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, sakari.ailus@linux.intel.com,
-	javier@osg.samsung.com, pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	dan.carpenter@oracle.com, tvboxspy@gmail.com, crope@iki.fi,
-	ruchandani.tina@gmail.com, corbet@lwn.net, chehabrafael@gmail.com,
-	k.kozlowski@samsung.com, stefanr@s5r6.in-berlin.de,
-	inki.dae@samsung.com, jh1009.sung@samsung.com,
-	elfring@users.sourceforge.net, prabhakar.csengg@gmail.com,
-	sw0312.kim@samsung.com, p.zabel@pengutronix.de,
-	ricardo.ribalda@gmail.com, labbott@fedoraproject.org,
-	pierre-louis.bossart@linux.intel.com, ricard.wanderlof@axis.com,
-	julian@jusst.de, takamichiho@gmail.com, dominic.sacre@gmx.de,
-	misterpib@gmail.com, daniel@zonque.org, gtmkramer@xs4all.nl,
-	normalperson@yhbt.net, joe@oampo.co.uk, linuxbugs@vittgam.net,
-	johan@oljud.se, klock.android@gmail.com, nenggun.kim@samsung.com,
-	j.anaszewski@samsung.com, geliangtang@163.com,
-	"al bert"@huitsing.nl, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56D71BFF.2020104@osg.samsung.com>
-Date: Wed, 2 Mar 2016 09:59:43 -0700
-MIME-Version: 1.0
-In-Reply-To: <2166908.Ghbrb0Anbr@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40676 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352AbcCYKop (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Mar 2016 06:44:45 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 19/54] v4l: vsp1: Don't configure RPF memory buffers before calculating offsets
+Date: Fri, 25 Mar 2016 12:43:53 +0200
+Message-Id: <1458902668-1141-20-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/01/2016 12:53 PM, Laurent Pinchart wrote:
-> Hi Shuah,
-> 
-> Thank you for the patch.
-> 
+The RPF source memory pointers need to be offset to take the crop
+rectangle into account. Offsets are computed in the RPF stream start,
+which can happen (when using the DRM pipeline) after calling the RPF
+.set_memory() operation that programs the buffer addresses.
 
-snip
+The .set_memory() operation tries to guard against the problem by
+skipping programming of the registers when the module isn't streaming.
+This will however only protect the first use of an RPF in a DRM
+pipeline, as in all subsequent uses the module streaming flag will be
+set and the .set_memory() operation will use potentially incorrect
+offsets.
 
->> +struct media_mixer_ctl {
->> +	struct media_device *media_dev;
->> +	struct media_entity media_entity;
->> +	struct media_intf_devnode *intf_devnode;
->> +	struct media_link *intf_link;
->> +	struct media_pad media_pad[MEDIA_MIXER_PAD_MAX];
->> +	struct media_pipeline media_pipe;
->> +};
->> +
->> +int media_device_create(struct snd_usb_audio *chip,
->> +			struct usb_interface *iface);
->> +void media_device_delete(struct snd_usb_audio *chip);
->> +int media_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
->> +			int stream);
->> +void media_stream_delete(struct snd_usb_substream *subs);
->> +int media_start_pipeline(struct snd_usb_substream *subs);
->> +void media_stop_pipeline(struct snd_usb_substream *subs);
-> 
-> As this API is sound-specific, would it make sense to call the functions 
-> media_snd_* or something similar ? The names are very generic now, and could 
-> clash with core media code.
+Fix this by allowing the caller to decide whether to program the
+hardware immediately or just cache the addresses. While at it refactor
+the memory set code and create a new vsp1_rwpf_set_memory() that cache
+addresses and calls the .set_memory() operation to apply them to the
+hardware.
 
-Thanks. I renamed the interfaces. Please see patch v5
-that was sent out a little while ago.
+As a side effect the driver now writes all three DMA address registers
+regardless of the number of planes, and initializes unused addresses to
+zero.
 
--- Shuah
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c   |  7 ++++--
+ drivers/media/platform/vsp1/vsp1_rpf.c   | 37 ++++++++++----------------------
+ drivers/media/platform/vsp1/vsp1_rwpf.c  | 26 ++++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_rwpf.h  | 11 ++++++++--
+ drivers/media/platform/vsp1/vsp1_video.c |  9 ++++++--
+ drivers/media/platform/vsp1/vsp1_wpf.c   | 10 ++++-----
+ 6 files changed, 62 insertions(+), 38 deletions(-)
 
-> 
->> +#else
->> +static inline int media_device_create(struct snd_usb_audio *chip,
->> +				      struct usb_interface *iface)
->> +						{ return 0; }
->> +static inline void media_device_delete(struct snd_usb_audio *chip) { }
->> +static inline int media_stream_init(struct snd_usb_substream *subs,
->> +					struct snd_pcm *pcm, int stream)
->> +						{ return 0; }
->> +static inline void media_stream_delete(struct snd_usb_substream *subs) { }
->> +static inline int media_start_pipeline(struct snd_usb_substream *subs)
->> +					{ return 0; }
->> +static inline void media_stop_pipeline(struct snd_usb_substream *subs) { }
->> +#endif
->> +#endif /* __MEDIA_H */
-> 
-
-
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 22f67360b750..96ad8072d5d6 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -420,12 +420,15 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
+ 	rpf->location.left = dst->left;
+ 	rpf->location.top = dst->top;
+ 
+-	/* Set the memory buffer address. */
++	/* Set the memory buffer address but don't apply the values to the
++	 * hardware as the crop offsets haven't been computed yet.
++	 */
+ 	memory.num_planes = fmtinfo->planes;
+ 	memory.addr[0] = mem[0];
+ 	memory.addr[1] = mem[1];
++	memory.addr[2] = 0;
+ 
+-	rpf->ops->set_memory(rpf, &memory);
++	vsp1_rwpf_set_memory(rpf, &memory, false);
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 8c7c385ec046..3509202f1b4a 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -69,25 +69,20 @@ static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
+ 	pstride = format->plane_fmt[0].bytesperline
+ 		<< VI6_RPF_SRCM_PSTRIDE_Y_SHIFT;
+ 
+-	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y,
+-		       rpf->buf_addr[0] + rpf->offsets[0]);
+-
+ 	if (format->num_planes > 1) {
+ 		rpf->offsets[1] = crop->top * format->plane_fmt[1].bytesperline
+ 				+ crop->left * fmtinfo->bpp[1] / 8;
+ 		pstride |= format->plane_fmt[1].bytesperline
+ 			<< VI6_RPF_SRCM_PSTRIDE_C_SHIFT;
+-
+-		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0,
+-			       rpf->buf_addr[1] + rpf->offsets[1]);
+-
+-		if (format->num_planes > 2)
+-			vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1,
+-				       rpf->buf_addr[2] + rpf->offsets[1]);
++	} else {
++		rpf->offsets[1] = 0;
+ 	}
+ 
+ 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_PSTRIDE, pstride);
+ 
++	/* Now that the offsets have been computed program the DMA addresses. */
++	rpf->ops->set_memory(rpf);
++
+ 	/* Format */
+ 	infmt = VI6_RPF_INFMT_CIPM
+ 	      | (fmtinfo->hwfmt << VI6_RPF_INFMT_RDFMT_SHIFT);
+@@ -154,24 +149,14 @@ static struct v4l2_subdev_ops rpf_ops = {
+  * Video Device Operations
+  */
+ 
+-static void rpf_set_memory(struct vsp1_rwpf *rpf, struct vsp1_rwpf_memory *mem)
++static void rpf_set_memory(struct vsp1_rwpf *rpf)
+ {
+-	unsigned int i;
+-
+-	for (i = 0; i < 3; ++i)
+-		rpf->buf_addr[i] = mem->addr[i];
+-
+-	if (!vsp1_entity_is_streaming(&rpf->entity))
+-		return;
+-
+ 	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y,
+-		       mem->addr[0] + rpf->offsets[0]);
+-	if (mem->num_planes > 1)
+-		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0,
+-			       mem->addr[1] + rpf->offsets[1]);
+-	if (mem->num_planes > 2)
+-		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1,
+-			       mem->addr[2] + rpf->offsets[1]);
++		       rpf->buf_addr[0] + rpf->offsets[0]);
++	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0,
++		       rpf->buf_addr[1] + rpf->offsets[1]);
++	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1,
++		       rpf->buf_addr[2] + rpf->offsets[1]);
+ }
+ 
+ static const struct vsp1_rwpf_operations rpf_vdev_ops = {
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
+index ba50386db35c..54070ccdc2ff 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+@@ -265,3 +265,29 @@ int vsp1_rwpf_init_ctrls(struct vsp1_rwpf *rwpf)
+ 
+ 	return rwpf->ctrls.error;
+ }
++
++/* -----------------------------------------------------------------------------
++ * Buffers
++ */
++
++/**
++ * vsp1_rwpf_set_memory - Configure DMA addresses for a [RW]PF
++ * @rwpf: the [RW]PF instance
++ * @mem: DMA memory addresses
++ * @apply: whether to apply the configuration to the hardware
++ *
++ * This function stores the DMA addresses for all planes in the rwpf instance
++ * and optionally applies the configuration to hardware registers if the apply
++ * argument is set to true.
++ */
++void vsp1_rwpf_set_memory(struct vsp1_rwpf *rwpf, struct vsp1_rwpf_memory *mem,
++			  bool apply)
++{
++	unsigned int i;
++
++	for (i = 0; i < 3; ++i)
++		rwpf->buf_addr[i] = mem->addr[i];
++
++	if (apply)
++		rwpf->ops->set_memory(rwpf);
++}
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index 66af2a06dd8b..bda0416dc7db 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -34,9 +34,13 @@ struct vsp1_rwpf_memory {
+ 	unsigned int length[3];
+ };
+ 
++/**
++ * struct vsp1_rwpf_operations - RPF and WPF operations
++ * @set_memory: Setup memory buffer access. This operation applies the settings
++ *		stored in the rwpf buf_addr field to the hardware.
++ */
+ struct vsp1_rwpf_operations {
+-	void (*set_memory)(struct vsp1_rwpf *rwpf,
+-			   struct vsp1_rwpf_memory *mem);
++	void (*set_memory)(struct vsp1_rwpf *rwpf);
+ };
+ 
+ struct vsp1_rwpf {
+@@ -93,4 +97,7 @@ int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
+ 			    struct v4l2_subdev_pad_config *cfg,
+ 			    struct v4l2_subdev_selection *sel);
+ 
++void vsp1_rwpf_set_memory(struct vsp1_rwpf *rwpf, struct vsp1_rwpf_memory *mem,
++			  bool apply);
++
+ #endif /* __VSP1_RWPF_H__ */
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index b97bbdb1a256..96b04fcd33ae 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -443,7 +443,7 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 
+-	video->rwpf->ops->set_memory(video->rwpf, &buf->mem);
++	vsp1_rwpf_set_memory(video->rwpf, &buf->mem, true);
+ 	pipe->buffers_ready |= 1 << video->pipe_index;
+ 
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+@@ -522,6 +522,11 @@ static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
+ 			return -EINVAL;
+ 	}
+ 
++	for ( ; i < 3; ++i) {
++		buf->mem.addr[i] = 0;
++		buf->mem.length[i] = 0;
++	}
++
+ 	return 0;
+ }
+ 
+@@ -544,7 +549,7 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+ 
+-	video->rwpf->ops->set_memory(video->rwpf, &buf->mem);
++	vsp1_rwpf_set_memory(video->rwpf, &buf->mem, true);
+ 	pipe->buffers_ready |= 1 << video->pipe_index;
+ 
+ 	if (vb2_is_streaming(&video->queue) &&
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index a7101f700d9e..978dd6cda9d3 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -157,13 +157,11 @@ static struct v4l2_subdev_ops wpf_ops = {
+  * Video Device Operations
+  */
+ 
+-static void wpf_set_memory(struct vsp1_rwpf *wpf, struct vsp1_rwpf_memory *mem)
++static void wpf_set_memory(struct vsp1_rwpf *wpf)
+ {
+-	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, mem->addr[0]);
+-	if (mem->num_planes > 1)
+-		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, mem->addr[1]);
+-	if (mem->num_planes > 2)
+-		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, mem->addr[2]);
++	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, wpf->buf_addr[0]);
++	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, wpf->buf_addr[1]);
++	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, wpf->buf_addr[2]);
+ }
+ 
+ static const struct vsp1_rwpf_operations wpf_vdev_ops = {
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.7.3
+
