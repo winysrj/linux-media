@@ -1,255 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:33006 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752335AbcCSKIt (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40552 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752008AbcCYHxS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Mar 2016 06:08:49 -0400
-Received: by mail-wm0-f50.google.com with SMTP id l68so98157872wml.0
-        for <linux-media@vger.kernel.org>; Sat, 19 Mar 2016 03:08:48 -0700 (PDT)
-Date: Sat, 19 Mar 2016 11:09:36 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: intel-gfx@lists.freedesktop.org, devel@driverdev.osuosl.org,
-	=?iso-8859-1?Q?St=E9phane?= Marchesin <marcheu@chromium.org>,
-	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
-	Daniel Vetter <daniel.vetter@intel.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf, drm, ion: Propagate error code from
- dma_buf_start_cpu_access()
-Message-ID: <20160319100936.GQ14170@phenom.ffwll.local>
-References: <1458331359-2634-1-git-send-email-chris@chris-wilson.co.uk>
+	Fri, 25 Mar 2016 03:53:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 03/51] v4l: subdev: Call pad init_cfg operation when opening subdevs
+Date: Fri, 25 Mar 2016 09:53:19 +0200
+Message-ID: <2303498.O6f8W55eDb@avalon>
+In-Reply-To: <1458862067-19525-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1458862067-19525-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1458331359-2634-1-git-send-email-chris@chris-wilson.co.uk>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 18, 2016 at 08:02:39PM +0000, Chris Wilson wrote:
-> Drivers, especially i915.ko, can fail during the initial migration of a
-> dma-buf for CPU access. However, the error code from the driver was not
-> being propagated back to ioctl and so userspace was blissfully ignorant
-> of the failure. Rendering corruption ensues.
+On Friday 25 Mar 2016 01:26:59 Laurent Pinchart wrote:
+> The subdev core code currently rely on the subdev open handler to
+> initialize the file handle's pad configuration, even though subdevs now
+> have a pad operation dedicated for that purpose.
 > 
-> Whilst fixing the ioctl to return the error code from
-> dma_buf_start_cpu_access(), also do the same for
-> dma_buf_end_cpu_access().  For most drivers, dma_buf_end_cpu_access()
-> cannot fail. i915.ko however, as most drivers would, wants to avoid being
-> uninterruptible (as would be required to guarrantee no failure when
-> flushing the buffer to the device). As userspace already has to handle
-> errors from the SYNC_IOCTL, take advantage of this to be able to restart
-> the syscall across signals.
-> 
-> This fixes a coherency issue for i915.ko as well as reducing the
-> uninterruptible hold upon its BKL, the struct_mutex.
-> 
-> Fixes commit c11e391da2a8fe973c3c2398452000bed505851e
-> Author: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Date:   Thu Feb 11 20:04:51 2016 -0200
-> 
->     dma-buf: Add ioctls to allow userspace to flush
-> 
-> Testcase: igt/gem_concurrent_blit/*dmabuf*interruptible
-> Testcase: igt/prime_mmap_coherency/ioctl-errors
-> Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-> Cc: Tiago Vignatti <tiago.vignatti@intel.com>
-> Cc: Stéphane Marchesin <marcheu@chromium.org>
-> Cc: David Herrmann <dh.herrmann@gmail.com>
-> Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> Cc: Daniel Vetter <daniel.vetter@intel.com>
-> CC: linux-media@vger.kernel.org
-> Cc: dri-devel@lists.freedesktop.org
-> Cc: linaro-mm-sig@lists.linaro.org
-> Cc: intel-gfx@lists.freedesktop.org
-> Cc: devel@driverdev.osuosl.org
+> As a first step towards migration to init_cfg, call the operation
+> operation in the subdev core open implementation. Subdevs that are
 
-Applied to drm-misc, I'll send a pull to Dave the next few days if no one
-screams.
--Daniel
+I'll s/ are// in the next version.
 
+> haven't been moved to init_cfg yet will just continue implementing pad
+> config initialization in their open handler.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 > ---
->  drivers/dma-buf/dma-buf.c                 | 17 +++++++++++------
->  drivers/gpu/drm/i915/i915_gem_dmabuf.c    | 15 +++++----------
->  drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c |  5 +++--
->  drivers/gpu/drm/udl/udl_fb.c              |  4 ++--
->  drivers/staging/android/ion/ion.c         |  6 ++++--
->  include/linux/dma-buf.h                   |  6 +++---
->  6 files changed, 28 insertions(+), 25 deletions(-)
+>  drivers/media/v4l2-core/v4l2-subdev.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
 > 
-> diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
-> index 9810d1df0691..774a60f4309a 100644
-> --- a/drivers/dma-buf/dma-buf.c
-> +++ b/drivers/dma-buf/dma-buf.c
-> @@ -259,6 +259,7 @@ static long dma_buf_ioctl(struct file *file,
->  	struct dma_buf *dmabuf;
->  	struct dma_buf_sync sync;
->  	enum dma_data_direction direction;
-> +	int ret;
->  
->  	dmabuf = file->private_data;
->  
-> @@ -285,11 +286,11 @@ static long dma_buf_ioctl(struct file *file,
->  		}
->  
->  		if (sync.flags & DMA_BUF_SYNC_END)
-> -			dma_buf_end_cpu_access(dmabuf, direction);
-> +			ret = dma_buf_end_cpu_access(dmabuf, direction);
->  		else
-> -			dma_buf_begin_cpu_access(dmabuf, direction);
-> +			ret = dma_buf_begin_cpu_access(dmabuf, direction);
->  
-> -		return 0;
-> +		return ret;
->  	default:
->  		return -ENOTTY;
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
+> b/drivers/media/v4l2-core/v4l2-subdev.c index d4007f8f58d1..1fa6b713ee19
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -83,6 +83,12 @@ static int subdev_open(struct file *file)
 >  	}
-> @@ -613,13 +614,17 @@ EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
->   *
->   * This call must always succeed.
->   */
-> -void dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-> -			    enum dma_data_direction direction)
-> +int dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-> +			   enum dma_data_direction direction)
->  {
-> +	int ret = 0;
-> +
->  	WARN_ON(!dmabuf);
->  
->  	if (dmabuf->ops->end_cpu_access)
-> -		dmabuf->ops->end_cpu_access(dmabuf, direction);
-> +		ret = dmabuf->ops->end_cpu_access(dmabuf, direction);
-> +
-> +	return ret;
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_end_cpu_access);
->  
-> diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> index 1f3eef6fb345..0506016e18e0 100644
-> --- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> +++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
-> @@ -228,25 +228,20 @@ static int i915_gem_begin_cpu_access(struct dma_buf *dma_buf, enum dma_data_dire
->  	return ret;
->  }
->  
-> -static void i915_gem_end_cpu_access(struct dma_buf *dma_buf, enum dma_data_direction direction)
-> +static int i915_gem_end_cpu_access(struct dma_buf *dma_buf, enum dma_data_direction direction)
->  {
->  	struct drm_i915_gem_object *obj = dma_buf_to_obj(dma_buf);
->  	struct drm_device *dev = obj->base.dev;
-> -	struct drm_i915_private *dev_priv = to_i915(dev);
-> -	bool was_interruptible;
->  	int ret;
->  
-> -	mutex_lock(&dev->struct_mutex);
-> -	was_interruptible = dev_priv->mm.interruptible;
-> -	dev_priv->mm.interruptible = false;
-> +	ret = i915_mutex_lock_interruptible(dev);
-> +	if (ret)
-> +		return ret;
->  
->  	ret = i915_gem_object_set_to_gtt_domain(obj, false);
-> -
-> -	dev_priv->mm.interruptible = was_interruptible;
->  	mutex_unlock(&dev->struct_mutex);
->  
-> -	if (unlikely(ret))
-> -		DRM_ERROR("unable to flush buffer following CPU access; rendering may be corrupt\n");
-> +	return ret;
->  }
->  
->  static const struct dma_buf_ops i915_dmabuf_ops =  {
-> diff --git a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-> index 3cf8aab23a39..af267c35d813 100644
-> --- a/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-> +++ b/drivers/gpu/drm/omapdrm/omap_gem_dmabuf.c
-> @@ -97,11 +97,12 @@ static int omap_gem_dmabuf_begin_cpu_access(struct dma_buf *buffer,
->  	return omap_gem_get_pages(obj, &pages, true);
->  }
->  
-> -static void omap_gem_dmabuf_end_cpu_access(struct dma_buf *buffer,
-> -		enum dma_data_direction dir)
-> +static int omap_gem_dmabuf_end_cpu_access(struct dma_buf *buffer,
-> +					  enum dma_data_direction dir)
->  {
->  	struct drm_gem_object *obj = buffer->priv;
->  	omap_gem_put_pages(obj);
-> +	return 0;
->  }
->  
->  
-> diff --git a/drivers/gpu/drm/udl/udl_fb.c b/drivers/gpu/drm/udl/udl_fb.c
-> index c427499133d6..33239a2b264a 100644
-> --- a/drivers/gpu/drm/udl/udl_fb.c
-> +++ b/drivers/gpu/drm/udl/udl_fb.c
-> @@ -423,8 +423,8 @@ static int udl_user_framebuffer_dirty(struct drm_framebuffer *fb,
->  	}
->  
->  	if (ufb->obj->base.import_attach) {
-> -		dma_buf_end_cpu_access(ufb->obj->base.import_attach->dmabuf,
-> -				       DMA_FROM_DEVICE);
-> +		ret = dma_buf_end_cpu_access(ufb->obj->base.import_attach->dmabuf,
-> +					     DMA_FROM_DEVICE);
->  	}
->  
->   unlock:
-> diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-> index 0754a37c9674..49436b4510f4 100644
-> --- a/drivers/staging/android/ion/ion.c
-> +++ b/drivers/staging/android/ion/ion.c
-> @@ -1075,14 +1075,16 @@ static int ion_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
->  	return PTR_ERR_OR_ZERO(vaddr);
->  }
->  
-> -static void ion_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-> -				       enum dma_data_direction direction)
-> +static int ion_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-> +				      enum dma_data_direction direction)
->  {
->  	struct ion_buffer *buffer = dmabuf->priv;
->  
->  	mutex_lock(&buffer->lock);
->  	ion_buffer_kmap_put(buffer);
->  	mutex_unlock(&buffer->lock);
-> +
-> +	return 0;
->  }
->  
->  static struct dma_buf_ops dma_buf_ops = {
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index 532108ea0c1c..3fe90d494edb 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -94,7 +94,7 @@ struct dma_buf_ops {
->  	void (*release)(struct dma_buf *);
->  
->  	int (*begin_cpu_access)(struct dma_buf *, enum dma_data_direction);
-> -	void (*end_cpu_access)(struct dma_buf *, enum dma_data_direction);
-> +	int (*end_cpu_access)(struct dma_buf *, enum dma_data_direction);
->  	void *(*kmap_atomic)(struct dma_buf *, unsigned long);
->  	void (*kunmap_atomic)(struct dma_buf *, unsigned long, void *);
->  	void *(*kmap)(struct dma_buf *, unsigned long);
-> @@ -224,8 +224,8 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
->  				enum dma_data_direction);
->  int dma_buf_begin_cpu_access(struct dma_buf *dma_buf,
->  			     enum dma_data_direction dir);
-> -void dma_buf_end_cpu_access(struct dma_buf *dma_buf,
-> -			    enum dma_data_direction dir);
-> +int dma_buf_end_cpu_access(struct dma_buf *dma_buf,
-> +			   enum dma_data_direction dir);
->  void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long);
->  void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long, void *);
->  void *dma_buf_kmap(struct dma_buf *, unsigned long);
-> -- 
-> 2.8.0.rc3
+>  #endif
 > 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> +#if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> +	ret = v4l2_subdev_call(sd, pad, init_cfg, subdev_fh->pad);
+> +	if (ret < 0 && ret != -ENOIOCTLCMD)
+> +		goto err;
+> +#endif
+> +
+>  	if (sd->internal_ops && sd->internal_ops->open) {
+>  		ret = sd->internal_ops->open(sd, subdev_fh);
+>  		if (ret < 0)
 
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Regards,
+
+Laurent Pinchart
+
