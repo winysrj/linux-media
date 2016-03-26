@@ -1,149 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34180 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752562AbcC1XLb (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:54558 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750743AbcCZEAG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Mar 2016 19:11:31 -0400
-Date: Tue, 29 Mar 2016 02:11:27 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v3] v4l: subdev: Add pad config allocator and init
-Message-ID: <20160328231127.GF32125@valkosipuli.retiisi.org.uk>
-References: <1458902668-1141-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1458919665-32417-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1458919665-32417-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Sat, 26 Mar 2016 00:00:06 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DBB5718321F
+	for <linux-media@vger.kernel.org>; Sat, 26 Mar 2016 04:59:59 +0100 (CET)
+Date: Sat, 26 Mar 2016 04:59:59 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160326035959.DBB5718321F@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the patch. One comment below...
+Results of the daily build of media_tree:
 
-On Fri, Mar 25, 2016 at 05:27:45PM +0200, Laurent Pinchart wrote:
-> From: Laurent Pinchart <laurent.pinchart@linaro.org>
-> 
-> Add a new subdev operation to initialize a subdev pad config array, and
-> a helper function to allocate and initialize the array. This can be used
-> by bridge drivers to implement try format based on subdev pad
-> operations.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
-> Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-subdev.c | 37 ++++++++++++++++++++++++++++++++---
->  include/media/v4l2-subdev.h           |  8 ++++++++
->  2 files changed, 42 insertions(+), 3 deletions(-)
-> 
-> Changes since v2:
-> 
-> - Don't fail due to pad config allocation when the subdev has no pad.
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 0fa60801a428..8c6f016d1791 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -35,9 +35,11 @@
->  static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
->  {
->  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-> -	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
-> -	if (fh->pad == NULL)
-> -		return -ENOMEM;
-> +	if (sd->entity.num_pads) {
-> +		fh->pad = v4l2_subdev_alloc_pad_config(sd);
-> +		if (fh->pad == NULL)
-> +			return -ENOMEM;
-> +	}
->  #endif
->  	return 0;
->  }
-> @@ -569,6 +571,35 @@ int v4l2_subdev_link_validate(struct media_link *link)
->  		sink, link, &source_fmt, &sink_fmt);
->  }
->  EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
-> +
-> +struct v4l2_subdev_pad_config *
-> +v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
+date:		Sat Mar 26 04:00:28 CET 2016
+git branch:	test
+git hash:	2705c1a96f978450377f1019d4bef34190b4ef05
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3353-gcae47da
+host hardware:	x86_64
+host os:	4.4.0-164
 
-What's the use case for calling v4l2_subdev_alloc_pad_config() elsewhere
-than from subdev_fh_init()?
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-> +{
-> +	struct v4l2_subdev_pad_config *cfg;
-> +	int ret;
-> +
-> +	if (!sd->entity.num_pads)
-> +		return NULL;
-> +
-> +	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
-> +	if (!cfg)
-> +		return NULL;
-> +
-> +	ret = v4l2_subdev_call(sd, pad, init_cfg, cfg);
-> +	if (ret < 0 && ret != -ENOIOCTLCMD) {
-> +		kfree(cfg);
-> +		return NULL;
-> +	}
-> +
-> +	return cfg;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
-> +
-> +void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
-> +{
-> +	kfree(cfg);
+Detailed results are available here:
 
-Not really a bug but --- I think it'd be cleaner to call this from
-v4l2_fh_cleanup(), rather than freeing cfg directly using kfree().
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_subdev_free_pad_config);
->  #endif /* CONFIG_MEDIA_CONTROLLER */
->  
->  void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 11e2dfec0198..32fc7a4beb5e 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -572,6 +572,7 @@ struct v4l2_subdev_pad_config {
->  /**
->   * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
->   *
-> + * @init_cfg: initialize the pad config to default values
->   * @enum_mbus_code: callback for VIDIOC_SUBDEV_ENUM_MBUS_CODE ioctl handler
->   *		    code.
->   * @enum_frame_size: callback for VIDIOC_SUBDEV_ENUM_FRAME_SIZE ioctl handler
-> @@ -607,6 +608,8 @@ struct v4l2_subdev_pad_config {
->   *                  may be adjusted by the subdev driver to device capabilities.
->   */
->  struct v4l2_subdev_pad_ops {
-> +	int (*init_cfg)(struct v4l2_subdev *sd,
-> +			struct v4l2_subdev_pad_config *cfg);
->  	int (*enum_mbus_code)(struct v4l2_subdev *sd,
->  			      struct v4l2_subdev_pad_config *cfg,
->  			      struct v4l2_subdev_mbus_code_enum *code);
-> @@ -801,7 +804,12 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
->  				      struct v4l2_subdev_format *source_fmt,
->  				      struct v4l2_subdev_format *sink_fmt);
->  int v4l2_subdev_link_validate(struct media_link *link);
-> +
-> +struct v4l2_subdev_pad_config *
-> +v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
-> +void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
->  #endif /* CONFIG_MEDIA_CONTROLLER */
-> +
->  void v4l2_subdev_init(struct v4l2_subdev *sd,
->  		      const struct v4l2_subdev_ops *ops);
->  
+Full logs are available here:
 
--- 
-Kind regards,
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
