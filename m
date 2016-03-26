@@ -1,58 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:63869 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754660AbcCCKzN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 05:55:13 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>,
-	Vinod Koul <vinod.koul@intel.com>,
-	Jason Cooper <jason@lakedaemon.net>,
-	Marc Zyngier <marc.zyngier@arm.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Lee Jones <lee.jones@linaro.org>,
-	Giuseppe Cavallaro <peppe.cavallaro@st.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-	Andy Gross <andy.gross@linaro.org>,
-	David Brown <david.brown@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	netdev@vger.kernel.org, linux-gpio@vger.kernel.org,
-	linux-pm@vger.kernel.org, rtc-linux@googlegroups.com,
-	linux-arm-msm@vger.kernel.org, linux-soc@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org
-Subject: Re: [RFC 04/15] irqchip: st: Add missing MFD_SYSCON dependency on HAS_IOMEM
-Date: Thu, 03 Mar 2016 11:53:38 +0100
-Message-ID: <2506651.J2Z42d81nD@wuerfel>
-In-Reply-To: <1456992221-26712-5-git-send-email-k.kozlowski@samsung.com>
-References: <1456992221-26712-1-git-send-email-k.kozlowski@samsung.com> <1456992221-26712-5-git-send-email-k.kozlowski@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout.easymail.ca ([64.68.201.169]:49970 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751273AbcCZEiv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Mar 2016 00:38:51 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	perex@perex.cz, tiwai@suse.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	jh1009.sung@samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [RFC PATCH 0/4] Media Device Allocator API 
+Date: Fri, 25 Mar 2016 22:38:41 -0600
+Message-Id: <cover.1458966594.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 03 March 2016 17:03:30 Krzysztof Kozlowski wrote:
->  config ST_IRQCHIP
->         bool
->         select REGMAP
-> +       depends on HAS_IOMEM    # For MFD_SYSCON
->         select MFD_SYSCON
->         help
->           Enables SysCfg Controlled IRQs on STi based platforms.
-> 
+There are known problems with media device life time management. When media
+device is released while an media ioctl is in progress, ioctls fail with
+use-after-free errors and kernel hangs in some cases.
 
-Not user visible.
+Media Device can be in any the following states:
 
-	Arnd
+- Allocated
+- Registered (could be tied to more than one driver)
+- Unregistered, not in use (media device file is not open)
+- Unregistered, in use (media device file is not open)
+- Released
+
+When media device belongs to  more than one driver, registrations should be
+refcounted to avoid unregistering when one of the drivers does unregister.
+A refcount field in the struct media_device covers this case. Unregister on
+a Media Allocator media device is a kref_put() call. The media device should
+be unregistered only when the last unregister occurs.
+
+
+When a media device is in use when it is unregistered, it should not be
+released until the application exits when it detects the unregistered
+status. Media device that is in use when it is unregistered is moved to
+to_delete_list. When the last unregister occurs, media device is unregistered
+and becomes an unregistered, still allocated device. Unregister marks the
+device to be deleted.
+
+When media device belongs to more than one driver, as both drivers could be
+unbound/bound, driver should not end up getting stale media device that is
+on its way out. Moving the unregistered media device to to_delete_list helps
+this case as well.
+
+I am sending this RFC series out for review. I tested to verify media ioctls
+don't fail when media device is unregistered and it gets released when the
+last reference goes. I still need to do more testing. I didb't fully test
+if the media device gets deleted in all cases. So please consider this as
+work in progress. I decided to send this out to get early review to see if
+this solution is viable.
+
+Shuah Khan (4):
+  media: Add Media Device Allocator API
+  media: Add Media Device Allocator API documentation
+  media: Add refcount to keep track of media device registrations
+  drivers: change au0828, uvcvideo, snd-usb-audio to use Media Device
+    Allocator
+
+ drivers/media/Makefile                 |   3 +-
+ drivers/media/media-dev-allocator.c    | 153 +++++++++++++++++++++++++++++++++
+ drivers/media/media-device.c           |  53 ++++++++++++
+ drivers/media/media-devnode.c          |   3 +
+ drivers/media/usb/au0828/au0828-core.c |   7 +-
+ drivers/media/usb/au0828/au0828.h      |   1 +
+ drivers/media/usb/uvc/uvc_driver.c     |  32 ++++---
+ drivers/media/usb/uvc/uvcvideo.h       |   3 +-
+ include/media/media-dev-allocator.h    | 113 ++++++++++++++++++++++++
+ include/media/media-device.h           |  32 +++++++
+ sound/usb/media.c                      |  10 ++-
+ sound/usb/media.h                      |   1 +
+ 12 files changed, 390 insertions(+), 21 deletions(-)
+ create mode 100644 drivers/media/media-dev-allocator.c
+ create mode 100644 include/media/media-dev-allocator.h
+
+-- 
+2.5.0
+
