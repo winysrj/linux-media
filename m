@@ -1,61 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:44976 "EHLO
-	relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbcCPTdS (ORCPT
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:37554 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737AbcC0VPj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 15:33:18 -0400
-Subject: Re: [PATCH] media: rc: remove unneeded mutex in rc_register_device
-To: Heiner Kallweit <hkallweit1@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <56E9ABB0.3010106@gmail.com>
-CC: <linux-media@vger.kernel.org>
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Message-ID: <56E9B4FA.3060707@mentor.com>
-Date: Wed, 16 Mar 2016 21:33:14 +0200
-MIME-Version: 1.0
-In-Reply-To: <56E9ABB0.3010106@gmail.com>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	Sun, 27 Mar 2016 17:15:39 -0400
+Received: by mail-wm0-f52.google.com with SMTP id p65so78492195wmp.0
+        for <linux-media@vger.kernel.org>; Sun, 27 Mar 2016 14:15:38 -0700 (PDT)
+From: Claudiu Beznea <claudiu.beznea@gmail.com>
+To: mchehab@osg.samsung.com, gregkh@linuxfoundation.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Claudiu Beznea <claudiu.beznea@gmail.com>
+Subject: [PATCH] Staging: media: bcm2048: defined region_configs[] array as const array
+Date: Mon, 28 Mar 2016 00:15:14 +0300
+Message-Id: <1459113314-7286-1-git-send-email-claudiu.beznea@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16.03.2016 20:53, Heiner Kallweit wrote:
-> Access to dev->initialized is atomic, therefore we don't have to
-> protect it with a mutex.
+This patch defines region_configs[] array as const array since it
+is not changed anywhere in code.
 
-Mutexes are used to split the code to mutually exclusive execution blocks,
-so not arguing about the apparently correct change itself I want to
-emphasize that the given explanation of the change in the commit message is
-wrong. Atomic access does not cancel a specific care about execution
-ordering.
+Signed-off-by: Claudiu Beznea <claudiu.beznea@gmail.com>
+---
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Indirectly it applies to ("rc-core: allow calling rc_open with device not
-initialized"), where "initialized" bool property was changed to atomic_t
-type --- this (sub-)change is just useless.
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index abf330f..8dade19 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -308,7 +308,7 @@ module_param(radio_nr, int, 0);
+ MODULE_PARM_DESC(radio_nr,
+ 		 "Minor number for radio device (-1 ==> auto assign)");
+ 
+-static struct region_info region_configs[] = {
++static const struct region_info region_configs[] = {
+ 	/* USA */
+ 	{
+ 		.channel_spacing	= 20,
+-- 
+1.9.1
 
-Please grasp the topic and reword the commit message.
-
-> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
-> ---
->  drivers/media/rc/rc-main.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 4e9bbe7..68541b1 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -1492,9 +1492,7 @@ int rc_register_device(struct rc_dev *dev)
->  	}
->  
->  	/* Allow the RC sysfs nodes to be accessible */
-> -	mutex_lock(&dev->lock);
->  	atomic_set(&dev->initialized, 1);
-> -	mutex_unlock(&dev->lock);
->  
->  	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
->  		   dev->minor,
-> 
-
---
-With best wishes,
-Vladimir
