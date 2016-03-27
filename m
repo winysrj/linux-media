@@ -1,49 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40412 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757460AbcCUTXw (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35994 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751297AbcC0HKo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 15:23:52 -0400
-Subject: Re: [RFC PATCH 1/3] [media] v4l2-mc.h: Add a S-Video C input PAD to
- demod enum
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1457550566-5465-1-git-send-email-javier@osg.samsung.com>
- <1457550566-5465-2-git-send-email-javier@osg.samsung.com>
- <56EC2294.603@xs4all.nl> <56EC3BF3.5040100@xs4all.nl>
- <20160321114045.00f200a0@recife.lan> <56F00DAA.8000701@xs4all.nl>
- <56F01AE7.6070508@xs4all.nl> <20160321145034.6fa4e677@recife.lan>
- <56F038A0.1010004@xs4all.nl> <20160321152323.01e29553@recife.lan>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56F04218.5040908@xs4all.nl>
-Date: Mon, 21 Mar 2016 19:48:56 +0100
+	Sun, 27 Mar 2016 03:10:44 -0400
+Subject: [PATCH 16/31] media: saa7115: use parity functions
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1458788612-4367-1-git-send-email-zhaoxiu.zeng@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+From: "zhaoxiu.zeng" <zhaoxiu.zeng@gmail.com>
+Message-ID: <56F78758.5050307@gmail.com>
+Date: Sun, 27 Mar 2016 15:10:16 +0800
 MIME-Version: 1.0
-In-Reply-To: <20160321152323.01e29553@recife.lan>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <1458788612-4367-1-git-send-email-zhaoxiu.zeng@gmail.com>
+Content-Type: text/plain; charset=gbk
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/21/2016 07:23 PM, Mauro Carvalho Chehab wrote:
->> Indeed. So a tvp5150 has three sink pads and one source pad (pixel port).
-> 
-> I would actually map tvp5150 with just one sink pad, with 3 links
-> (one for each connector).
-> 
-> In other words, I'm mapping tvp5150 input mux via links, and the
-> output of its mux as the sink pad.
-> 
-> IMHO, this works a way better than one sink pad per input at its
-> internal mux.
+From: Zeng Zhaoxiu <zhaoxiu.zeng@gmail.com>
 
-You're right, that would work better for this specific device.
+Signed-off-by: Zeng Zhaoxiu <zhaoxiu.zeng@gmail.com>
+---
+ drivers/media/i2c/saa7115.c | 17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
-Regards,
-
-	Hans
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index d2a1ce2..4c22df8 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -672,15 +672,6 @@ static const unsigned char saa7115_init_misc[] = {
+ 	0x00, 0x00
+ };
+ 
+-static int saa711x_odd_parity(u8 c)
+-{
+-	c ^= (c >> 4);
+-	c ^= (c >> 2);
+-	c ^= (c >> 1);
+-
+-	return c & 1;
+-}
+-
+ static int saa711x_decode_vps(u8 *dst, u8 *p)
+ {
+ 	static const u8 biphase_tbl[] = {
+@@ -733,7 +724,6 @@ static int saa711x_decode_wss(u8 *p)
+ 	static const int wss_bits[8] = {
+ 		0, 0, 0, 1, 0, 1, 1, 1
+ 	};
+-	unsigned char parity;
+ 	int wss = 0;
+ 	int i;
+ 
+@@ -745,11 +735,8 @@ static int saa711x_decode_wss(u8 *p)
+ 			return -1;
+ 		wss |= b2 << i;
+ 	}
+-	parity = wss & 15;
+-	parity ^= parity >> 2;
+-	parity ^= parity >> 1;
+ 
+-	if (!(parity & 1))
++	if (!parity4(wss))
+ 		return -1;
+ 
+ 	return wss;
+@@ -1235,7 +1222,7 @@ static int saa711x_decode_vbi_line(struct v4l2_subdev *sd, struct v4l2_decode_vb
+ 		vbi->type = V4L2_SLICED_TELETEXT_B;
+ 		break;
+ 	case 4:
+-		if (!saa711x_odd_parity(p[0]) || !saa711x_odd_parity(p[1]))
++		if (!parity8(p[0]) || !parity8(p[1]))
+ 			return 0;
+ 		vbi->type = V4L2_SLICED_CAPTION_525;
+ 		break;
+-- 
+2.5.5
 
