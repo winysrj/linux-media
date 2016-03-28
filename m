@@ -1,84 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:28254 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932473AbcCKPkV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 10:40:21 -0500
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: platform: pxa_camera: convert to vb2
-References: <1457543851-17823-1-git-send-email-robert.jarzmik@free.fr>
-	<56E2BD79.9080405@xs4all.nl> <8760wtdtda.fsf@belgarion.home>
-	<56E2CF64.9040809@xs4all.nl>
-Date: Fri, 11 Mar 2016 16:40:15 +0100
-In-Reply-To: <56E2CF64.9040809@xs4all.nl> (Hans Verkuil's message of "Fri, 11
-	Mar 2016 15:00:04 +0100")
-Message-ID: <87oaal81ls.fsf@belgarion.home>
+Received: from lists.s-osg.org ([54.187.51.154]:58650 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750860AbcC1S21 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Mar 2016 14:28:27 -0400
+Date: Mon, 28 Mar 2016 15:28:21 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: <laurent.pinchart@ideasonboard.com>, <perex@perex.cz>,
+	<tiwai@suse.com>, <hans.verkuil@cisco.com>,
+	<chehabrafael@gmail.com>, <javier@osg.samsung.com>,
+	<jh1009.sung@samsung.com>, <linux-kernel@vger.kernel.org>,
+	<linux-media@vger.kernel.org>, <alsa-devel@alsa-project.org>
+Subject: Re: [RFC PATCH 2/4] media: Add Media Device Allocator API
+ documentation
+Message-ID: <20160328152821.18142532@recife.lan>
+In-Reply-To: <33083175297b174a68b937e9bf2d867add363e23.1458966594.git.shuahkh@osg.samsung.com>
+References: <cover.1458966594.git.shuahkh@osg.samsung.com>
+ <33083175297b174a68b937e9bf2d867add363e23.1458966594.git.shuahkh@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+Em Fri, 25 Mar 2016 22:38:43 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-> On 03/11/2016 02:41 PM, Robert Jarzmik wrote:
->> Hans Verkuil <hverkuil@xs4all.nl> writes:
-> One area where I would like to see some helper functions is with respect to
-> format/media bus processing. I played with this a little bit but it is surprisingly
-> hard to do. A lot of devices have all sorts of weird and wonderful exceptions
-> that make this quite problematic.
+> Add Media Device Allocator API documentation.
 
-I'm also worried about the initial probing, where the subdevice, be that an I2C
-sensor or something else has to be available, ie. the v4l2_async_notifier and
-its implications.
+Please merge this with the previous patch.
 
->> Ah, that's a special case we need to discuss.
->> I've written in the commit message a chapter about a "special port of this
->> code". This is it.
->> 
->> This usecase is when a user does the following :
->>  - set format to 1280x1024, RGB565
->>  - REQBUF for MMAP buffers
->>  - QBUF, capture, DQBUF
->> 
->>  - then set format to 640x480, RGB565
->>    => here the new format fits in the previously allocated video buffer
->>  - QBUF
->>    => the test in pxa_vb2_prepare() detects this, and calls pxa_buffer_init()
->>    again
->> 
->> Now if this usecase is impossible, then I'll do as you say to simplify the code
->> : use icd->sizeimage, remove the code in pxa_vb2_prepare(), etc ...
->
-> Does this actually work with soc-camera? As far as I can see soc-camera returns
-> -EBUSY in soc_camera_s_fmt_vid_cap() if you attempt to change the format while
-> streaming.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  include/media/media-dev-allocator.h | 32 ++++++++++++++++++++++++++++++++
+>  1 file changed, 32 insertions(+)
+> 
+> diff --git a/include/media/media-dev-allocator.h b/include/media/media-dev-allocator.h
+> index 2932c90..174840c 100644
+> --- a/include/media/media-dev-allocator.h
+> +++ b/include/media/media-dev-allocator.h
+> @@ -20,6 +20,38 @@
+>  
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  /**
+> + * DOC: Media Controller Device Allocator API
+> + * There are known problems with media device life time management. When media
+> + * device is released while an media ioctl is in progress, ioctls fail with
+> + * use-after-free errors and kernel hangs in some cases.
+> + * 
+> + * Media Device can be in any the following states:
+> + * 
+> + * - Allocated
+> + * - Registered (could be tied to more than one driver)
+> + * - Unregistered, not in use (media device file is not open)
+> + * - Unregistered, in use (media device file is not open)
+> + * - Released
+> + * 
+> + * When media device belongs to  more than one driver, registrations should be
+> + * refcounted to avoid unregistering when one of the drivers does unregister.
+> + * A refcount field in the struct media_device covers this case. Unregister on
+> + * a Media Allocator media device is a kref_put() call. The media device should
+> + * be unregistered only when the last unregister occurs.
+> + * 
+> + * When a media device is in use when it is unregistered, it should not be
+> + * released until the application exits when it detects the unregistered
+> + * status. Media device that is in use when it is unregistered is moved to
+> + * to_delete_list. When the last unregister occurs, media device is unregistered
+> + * and becomes an unregistered, still allocated device. Unregister marks the
+> + * device to be deleted.
+> + * 
+> + * When media device belongs to more than one driver, as both drivers could be
+> + * unbound/bound, driver should not end up getting stale media device that is
+> + * on its way out. Moving the unregistered media device to to_delete_list helps
+> + * this case as well.
+> + */
+> +/**
+>   * media_device_get() - Allocate and return global media device
+>   *
+>   * @mdev
 
-It's not "while streaming" in the described usecase, it's after streaming is
-finished actually. I should have added in the third dash VIDIOC_STREAMON before
-"capture" and VIDIOC_STREAMOFF after DQBUF. I think it's working, even if I had
-not tried recently. I certainly don't care that much about the usecase, and I
-won't feel sad dropping it :)
-
-> We theorized about this use-case, but nobody actually implemented it.
-> As far as I can see this use-case isn't supported today, so I would certainly not
-> implement it for this vb2 conversion.
-Fair enough, simpler is better, I'll remove it for v2.
-
->>> If the latter, then just remove it. If you don't have the memory to allocate
->>> the buffers, then reqbufs will just return ENOMEM. I never saw a reason for
->>> such checks.
->> Okay, that was to be consistent with former driver behavior. This was from the
->> beginning in this driver. If Guennadi doesn't care, then I'll remove that, as he
->> is the original author of this limitation.
->
-> I've removed it from other drivers in the past, nobody complained :-)
-Good, let's do that here then.
-
-Cheers.
 
 -- 
-Robert
+Thanks,
+Mauro
