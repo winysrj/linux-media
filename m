@@ -1,355 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36750 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754091AbcCULK1 (ORCPT
+Received: from [198.137.202.9] ([198.137.202.9]:51209 "EHLO
+	bombadil.infradead.org" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1754086AbcC1SL6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 07:10:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mon, 28 Mar 2016 14:11:58 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
 	Shuah Khan <shuahkh@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Rafael =?ISO-8859-1?Q?Louren=E7o?= de Lima Chehab
-	<chehabrafael@gmail.com>, alsa-devel@alsa-project.org
-Subject: Re: [PATCH v2] [media] media-device: use kref for media_device instance
-Date: Mon, 21 Mar 2016 13:10:33 +0200
-Message-ID: <3052381.o5ho2okSRi@avalon>
-In-Reply-To: <9d8830150475bc4d4dde2fa1f5163aef82a35477.1458347578.git.mchehab@osg.samsung.com>
-References: <9d8830150475bc4d4dde2fa1f5163aef82a35477.1458347578.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 2/2] [media] avoid double locks with graph_mutex
+Date: Mon, 28 Mar 2016 15:11:04 -0300
+Message-Id: <3cabc4b828abac3c6dea240ae22d4754a438ad1b.1459188623.git.mchehab@osg.samsung.com>
+In-Reply-To: <91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
+References: <20160328150948.3efa93ee@recife.lan>
+ <91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
+In-Reply-To: <91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
+References: <91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Add a note at the headers telling that the link setup
+callbacks are called with the mutex hold. Also, removes a
+double lock at the PM suspend callbacks.
 
-Thank you for the patch.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/media-device.c      | 1 -
+ drivers/media/v4l2-core/v4l2-mc.c | 4 ----
+ include/media/media-device.h      | 3 ++-
+ include/media/media-entity.h      | 3 +++
+ 4 files changed, 5 insertions(+), 6 deletions(-)
 
-On Friday 18 Mar 2016 21:42:16 Mauro Carvalho Chehab wrote:
-> Now that the media_device can be used by multiple drivers,
-> via devres, we need to be sure that it will be dropped only
-> when all drivers stop using it.
-
-I've discussed this with Shuah previously and I'm surprised to see that the 
-problem hasn't been fixed : using devres for this purpose is just plain wrong. 
-The empty media_device_release_devres() function should have given you a hint.
-
-What we need instead is a list of media devices indexed by struct device (for 
-this use case) or by struct device_node (for DT use cases). It will both 
-simplify the code and get rid of the devres abuse.
-
-Shuah, if I recall correctly you worked on implementing such a solution after 
-our last discussion on the topic. Could you please update us on the status ?
-
-In the mean time, let's hold off on this patch, and merge a proper solution 
-instead.
-
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
-> 
-> v2: The kref is now used only when media_device is allocated via
->     the media_device*_devress. This warrants that other drivers won't be
->     affected, and that we can keep media_device_cleanup() balanced with
->     media_device_init().
-> 
->  drivers/media/media-device.c           | 117 ++++++++++++++++++++++--------
->  drivers/media/usb/au0828/au0828-core.c |   3 +-
->  include/media/media-device.h           |  28 ++++++++
->  sound/usb/media.c                      |   3 +-
->  4 files changed, 118 insertions(+), 33 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index c32fa15cc76e..4a97d92a7e7d 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -707,11 +707,16 @@ void media_device_init(struct media_device *mdev)
->  }
->  EXPORT_SYMBOL_GPL(media_device_init);
-> 
-> -void media_device_cleanup(struct media_device *mdev)
-> +static void __media_device_cleanup(struct media_device *mdev)
->  {
->  	ida_destroy(&mdev->entity_internal_idx);
->  	mdev->entity_internal_idx_max = 0;
->  	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
-> +}
-> +
-> +void media_device_cleanup(struct media_device *mdev)
-> +{
-> +	__media_device_cleanup(mdev);
->  	mutex_destroy(&mdev->graph_mutex);
->  }
->  EXPORT_SYMBOL_GPL(media_device_cleanup);
-> @@ -721,6 +726,9 @@ int __must_check __media_device_register(struct
-> media_device *mdev, {
->  	int ret;
-> 
-> +	/* Check if mdev was ever registered at all */
-> +	mutex_lock(&mdev->graph_mutex);
-> +
->  	/* Register the device node. */
->  	mdev->devnode.fops = &media_device_fops;
->  	mdev->devnode.parent = mdev->dev;
-> @@ -731,17 +739,19 @@ int __must_check __media_device_register(struct
-> media_device *mdev,
-> 
->  	ret = media_devnode_register(&mdev->devnode, owner);
->  	if (ret < 0)
-> -		return ret;
-> +		goto err;
-> 
->  	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
->  	if (ret < 0) {
->  		media_devnode_unregister(&mdev->devnode);
-> -		return ret;
-> +		goto err;
->  	}
-> 
->  	dev_dbg(mdev->dev, "Media device registered\n");
-> 
-> -	return 0;
-> +err:
-> +	mutex_unlock(&mdev->graph_mutex);
-> +	return ret;
->  }
->  EXPORT_SYMBOL_GPL(__media_device_register);
-> 
-> @@ -773,24 +783,13 @@ void media_device_unregister_entity_notify(struct
-> media_device *mdev, }
->  EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
-> 
-> -void media_device_unregister(struct media_device *mdev)
-> +static void __media_device_unregister(struct media_device *mdev)
->  {
->  	struct media_entity *entity;
->  	struct media_entity *next;
->  	struct media_interface *intf, *tmp_intf;
->  	struct media_entity_notify *notify, *nextp;
-> 
-> -	if (mdev == NULL)
-> -		return;
-> -
-> -	mutex_lock(&mdev->graph_mutex);
-> -
-> -	/* Check if mdev was ever registered at all */
-> -	if (!media_devnode_is_registered(&mdev->devnode)) {
-> -		mutex_unlock(&mdev->graph_mutex);
-> -		return;
-> -	}
-> -
->  	/* Remove all entities from the media device */
->  	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
->  		__media_device_unregister_entity(entity);
-> @@ -807,38 +806,98 @@ void media_device_unregister(struct media_device
-> *mdev) kfree(intf);
->  	}
-> 
-> -	mutex_unlock(&mdev->graph_mutex);
-> -
-> -	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-> -	media_devnode_unregister(&mdev->devnode);
-> +	/* Check if mdev devnode was registered */
-> +	if (media_devnode_is_registered(&mdev->devnode)) {
-> +		device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-> +		media_devnode_unregister(&mdev->devnode);
-> +	}
-> 
->  	dev_dbg(mdev->dev, "Media device unregistered\n");
->  }
-> +
-> +void media_device_unregister(struct media_device *mdev)
-> +{
-> +	if (mdev == NULL)
-> +		return;
-> +
-> +	mutex_lock(&mdev->graph_mutex);
-> +	__media_device_unregister(mdev);
-> +	mutex_unlock(&mdev->graph_mutex);
-> +}
->  EXPORT_SYMBOL_GPL(media_device_unregister);
-> 
->  static void media_device_release_devres(struct device *dev, void *res)
->  {
->  }
-> 
-> -struct media_device *media_device_get_devres(struct device *dev)
-> +static void do_media_device_unregister_devres(struct kref *kref)
->  {
-> +	struct media_device_devres *mdev_devres;
->  	struct media_device *mdev;
-> +	int ret;
-> 
-> -	mdev = devres_find(dev, media_device_release_devres, NULL, NULL);
-> -	if (mdev)
-> -		return mdev;
-> +	mdev_devres = container_of(kref, struct media_device_devres, kref);
-> 
-> -	mdev = devres_alloc(media_device_release_devres,
-> -				sizeof(struct media_device), GFP_KERNEL);
-> -	if (!mdev)
-> +	if (!mdev_devres)
-> +		return;
-> +
-> +	mdev = &mdev_devres->mdev;
-> +
-> +	mutex_lock(&mdev->graph_mutex);
-> +	__media_device_unregister(mdev);
-> +	__media_device_cleanup(mdev);
-> +	mutex_unlock(&mdev->graph_mutex);
-> +	mutex_destroy(&mdev->graph_mutex);
-> +
-> +	ret = devres_destroy(mdev->dev, media_device_release_devres,
-> +			     NULL, NULL);
-> +	pr_debug("%s: devres_destroy() returned %d\n", __func__, ret);
-> +}
-> +
-> +void media_device_unregister_devres(struct media_device *mdev)
-> +{
-> +	struct media_device_devres *mdev_devres;
-> +
-> +	mdev_devres = container_of(mdev, struct media_device_devres, mdev);
-> +	kref_put(&mdev_devres->kref, do_media_device_unregister_devres);
-> +}
-> +EXPORT_SYMBOL_GPL(media_device_unregister_devres);
-> +
-> +struct media_device *media_device_get_devres(struct device *dev)
-> +{
-> +	struct media_device_devres *mdev_devres, *ptr;
-> +
-> +	mdev_devres = devres_find(dev, media_device_release_devres, NULL, NULL);
-> +	if (mdev_devres) {
-> +		kref_get(&mdev_devres->kref);
-> +		return &mdev_devres->mdev;
-> +	}
-> +
-> +	mdev_devres = devres_alloc(media_device_release_devres,
-> +				   sizeof(struct media_device_devres),
-> +				   GFP_KERNEL);
-> +	if (!mdev_devres)
->  		return NULL;
-> -	return devres_get(dev, mdev, NULL, NULL);
-> +
-> +	ptr = devres_get(dev, mdev_devres, NULL, NULL);
-> +	if (ptr)
-> +		kref_init(&ptr->kref);
-> +	else
-> +		devres_free(mdev_devres);
-> +
-> +	return &ptr->mdev;
->  }
->  EXPORT_SYMBOL_GPL(media_device_get_devres);
-> 
->  struct media_device *media_device_find_devres(struct device *dev)
->  {
-> -	return devres_find(dev, media_device_release_devres, NULL, NULL);
-> +	struct media_device_devres *mdev_devres;
-> +
-> +	mdev_devres = devres_find(dev, media_device_release_devres, NULL, NULL);
-> +	if (!mdev_devres)
-> +		return NULL;
-> +
-> +	return &mdev_devres->mdev;
->  }
->  EXPORT_SYMBOL_GPL(media_device_find_devres);
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-core.c
-> b/drivers/media/usb/au0828/au0828-core.c index 06da73f1ff22..060904ed8f20
-> 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -157,8 +157,7 @@ static void au0828_unregister_media_device(struct
-> au0828_dev *dev) dev->media_dev->enable_source = NULL;
->  	dev->media_dev->disable_source = NULL;
-> 
-> -	media_device_unregister(dev->media_dev);
-> -	media_device_cleanup(dev->media_dev);
-> +	media_device_unregister_devres(dev->media_dev);
->  	dev->media_dev = NULL;
->  #endif
->  }
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index b21ef244ad3e..e59772ed8494 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -23,6 +23,7 @@
->  #ifndef _MEDIA_DEVICE_H
->  #define _MEDIA_DEVICE_H
-> 
-> +#include <linux/kref.h>
->  #include <linux/list.h>
->  #include <linux/mutex.h>
-> 
-> @@ -382,6 +383,16 @@ struct media_device {
->  			   unsigned int notification);
->  };
-> 
-> +/**
-> + * struct media_device_devres - Media device device resource
-> + * @mdev:	pointer to struct media_device
-> + * @kref:	Object refcount
-> + */
-> +struct media_device_devres {
-> +	struct media_device mdev;
-> +	struct kref kref;
-> +};
-> +
->  /* We don't need to include pci.h or usb.h here */
->  struct pci_dev;
->  struct usb_device;
-> @@ -604,6 +615,19 @@ struct media_device *media_device_get_devres(struct
-> device *dev); */
->  struct media_device *media_device_find_devres(struct device *dev);
-> 
-> +/**
-> + * media_device_unregister_devres) - Unregister media device allocated as
-> + *				     as device resource
-> + *
-> + * @dev: pointer to struct &device.
-> + *
-> + * Devices allocated via media_device_get_devres should be de-alocalted
-> + * and freed via this function. Callers should not call
-> + * media_device_unregister() nor media_device_cleanup() on devices
-> + * allocated via media_device_get_devres().
-> + */
-> +void media_device_unregister_devres(struct media_device *mdev);
-> +
->  /* Iterate over all entities. */
->  #define media_device_for_each_entity(entity, mdev)			\
->  	list_for_each_entry(entity, &(mdev)->entities, graph_obj.list)
-> @@ -688,6 +712,10 @@ static inline struct media_device
-> *media_device_find_devres(struct device *dev) return NULL;
->  }
-> 
-> +static inline void media_device_unregister_devres(struct media_device
-> *mdev)
-> +{
-> +}
-> +
->  static inline void media_device_pci_init(struct media_device *mdev,
->  					 struct pci_dev *pci_dev,
->  					 char *name)
-> diff --git a/sound/usb/media.c b/sound/usb/media.c
-> index 93a50d01490c..f78955fd0d6e 100644
-> --- a/sound/usb/media.c
-> +++ b/sound/usb/media.c
-> @@ -311,8 +311,7 @@ void media_snd_device_delete(struct snd_usb_audio *chip)
-> media_snd_mixer_delete(chip);
-> 
->  	if (mdev) {
-> -		if (media_devnode_is_registered(&mdev->devnode))
-> -			media_device_unregister(mdev);
-> +		media_device_unregister_devres(mdev);
->  		chip->media_dev = NULL;
->  	}
->  }
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 6cfa890af7b4..6af5e6932271 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -93,7 +93,6 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+ 	media_device_for_each_entity(entity, mdev) {
+ 		if (((media_entity_id(entity) == id) && !next) ||
+ 		    ((media_entity_id(entity) > id) && next)) {
+-			mutex_unlock(&mdev->graph_mutex);
+ 			return entity;
+ 		}
+ 	}
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+index 2228cd3a846e..d44ff2ec314f 100644
+--- a/drivers/media/v4l2-core/v4l2-mc.c
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -348,8 +348,6 @@ int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
+ 	int change = use ? 1 : -1;
+ 	int ret;
+ 
+-	mutex_lock(&mdev->graph_mutex);
+-
+ 	/* Apply use count to node. */
+ 	entity->use_count += change;
+ 	WARN_ON(entity->use_count < 0);
+@@ -359,8 +357,6 @@ int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
+ 	if (ret < 0)
+ 		entity->use_count -= change;
+ 
+-	mutex_unlock(&mdev->graph_mutex);
+-
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_pipeline_pm_use);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index b04cfa907350..e6ad30c323fc 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -312,7 +312,8 @@ struct media_entity_notify {
+  * @enable_source: Enable Source Handler function pointer
+  * @disable_source: Disable Source Handler function pointer
+  *
+- * @link_notify: Link state change notification callback
++ * @link_notify: Link state change notification callback. This callback is
++ * Called with the graph_mutex hold.
+  *
+  * This structure represents an abstract high-level media device. It allows easy
+  * access to entities and provides basic media device-level support. The
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 6dc9e4e8cbd4..0b16ebe36db7 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -179,6 +179,9 @@ struct media_pad {
+  * @link_validate:	Return whether a link is valid from the entity point of
+  *			view. The media_entity_pipeline_start() function
+  *			validates all links by calling this operation. Optional.
++ *
++ * Note: Those ioctls should not touch the struct media_device.@graph_mutex
++ * field, as they're called with it already hold.
+  */
+ struct media_entity_operations {
+ 	int (*link_setup)(struct media_entity *entity,
 -- 
-Regards,
-
-Laurent Pinchart
+2.5.5
 
