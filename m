@@ -1,79 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58959 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752366AbcC2Nje (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Mar 2016 09:39:34 -0400
-Subject: Re: [PATCH v2 1/2] [media] media-device: Fix mutex handling code for
- ioctl
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <fef855a4cd482eb02cff982b01511c893ea6e75d.1459243882.git.mchehab@osg.samsung.com>
- <20160329102402.GI32125@valkosipuli.retiisi.org.uk>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56FA8593.6030301@osg.samsung.com>
-Date: Tue, 29 Mar 2016 07:39:32 -0600
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34180 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752562AbcC1XLb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Mar 2016 19:11:31 -0400
+Date: Tue, 29 Mar 2016 02:11:27 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v3] v4l: subdev: Add pad config allocator and init
+Message-ID: <20160328231127.GF32125@valkosipuli.retiisi.org.uk>
+References: <1458902668-1141-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1458919665-32417-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20160329102402.GI32125@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1458919665-32417-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/29/2016 04:24 AM, Sakari Ailus wrote:
-> Hi Mauro,
+Hi Laurent,
+
+Thanks for the patch. One comment below...
+
+On Fri, Mar 25, 2016 at 05:27:45PM +0200, Laurent Pinchart wrote:
+> From: Laurent Pinchart <laurent.pinchart@linaro.org>
 > 
-> On Tue, Mar 29, 2016 at 06:31:27AM -0300, Mauro Carvalho Chehab wrote:
->> Remove two nested mutex left-overs at find_entity and make sure
->> that the code won't suffer race conditions if the device is
->> being removed while ioctl is being handled nor the topology changes,
->> by protecting all ioctls with a mutex at media_device_ioctl().
->>
->> As reported by Laurent, commit c38077d39c7e ("[media] media-device:
->> get rid of the spinlock") introduced a deadlock in the
->> MEDIA_IOC_ENUM_LINKS ioctl handler:
->>
->> [ 2760.127749] INFO: task media-ctl:954 blocked for more than 120 seconds.
->> [ 2760.131867]       Not tainted 4.5.0+ #357
->> [ 2760.134622] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
->> [ 2760.139310] media-ctl       D ffffffc000086bcc     0   954    671 0x00000001
->> [ 2760.143618] Call trace:
->> [ 2760.145601] [<ffffffc000086bcc>] __switch_to+0x90/0xa4
->> [ 2760.148941] [<ffffffc0004e6ef0>] __schedule+0x188/0x5b0
->> [ 2760.152309] [<ffffffc0004e7354>] schedule+0x3c/0xa0
->> [ 2760.155495] [<ffffffc0004e7768>] schedule_preempt_disabled+0x20/0x38
->> [ 2760.159423] [<ffffffc0004e8d28>] __mutex_lock_slowpath+0xc4/0x148
->> [ 2760.163217] [<ffffffc0004e8df0>] mutex_lock+0x44/0x5c
->> [ 2760.166483] [<ffffffc0003e87d4>] find_entity+0x2c/0xac
->> [ 2760.169773] [<ffffffc0003e8d34>] __media_device_enum_links+0x20/0x1dc
->> [ 2760.173711] [<ffffffc0003e9718>] media_device_ioctl+0x214/0x33c
->> [ 2760.177384] [<ffffffc0003e9eec>] media_ioctl+0x24/0x3c
->> [ 2760.180671] [<ffffffc0001bee64>] do_vfs_ioctl+0xac/0x758
->> [ 2760.184026] [<ffffffc0001bf594>] SyS_ioctl+0x84/0x98
->> [ 2760.187196] [<ffffffc000085d30>] el0_svc_naked+0x24/0x28
->>
->> That's because find_entity() holds the graph_mutex, but both
->> MEDIA_IOC_ENUM_LINKS and MEDIA_IOC_SETUP_LINK logic also take
->> the mutex.
->>
->> Reported-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Add a new subdev operation to initialize a subdev pad config array, and
+> a helper function to allocate and initialize the array. This can be used
+> by bridge drivers to implement try format based on subdev pad
+> operations.
 > 
-> Tested-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
+> Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-subdev.c | 37 ++++++++++++++++++++++++++++++++---
+>  include/media/v4l2-subdev.h           |  8 ++++++++
+>  2 files changed, 42 insertions(+), 3 deletions(-)
 > 
+> Changes since v2:
+> 
+> - Don't fail due to pad config allocation when the subdev has no pad.
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> index 0fa60801a428..8c6f016d1791 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -35,9 +35,11 @@
+>  static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+>  {
+>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> -	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
+> -	if (fh->pad == NULL)
+> -		return -ENOMEM;
+> +	if (sd->entity.num_pads) {
+> +		fh->pad = v4l2_subdev_alloc_pad_config(sd);
+> +		if (fh->pad == NULL)
+> +			return -ENOMEM;
+> +	}
+>  #endif
+>  	return 0;
+>  }
+> @@ -569,6 +571,35 @@ int v4l2_subdev_link_validate(struct media_link *link)
+>  		sink, link, &source_fmt, &sink_fmt);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
+> +
+> +struct v4l2_subdev_pad_config *
+> +v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
 
-Please add my
+What's the use case for calling v4l2_subdev_alloc_pad_config() elsewhere
+than from subdev_fh_init()?
 
-Ran bind/unbind loop test on both au0828 and snd_usb_audio. On au08282, ran into
-the media device lifetime related use-after-free which is a known issue present
-in older releases. I did include the following bug fix for my testing: 
+> +{
+> +	struct v4l2_subdev_pad_config *cfg;
+> +	int ret;
+> +
+> +	if (!sd->entity.num_pads)
+> +		return NULL;
+> +
+> +	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
+> +	if (!cfg)
+> +		return NULL;
+> +
+> +	ret = v4l2_subdev_call(sd, pad, init_cfg, cfg);
+> +	if (ret < 0 && ret != -ENOIOCTLCMD) {
+> +		kfree(cfg);
+> +		return NULL;
+> +	}
+> +
+> +	return cfg;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
+> +
+> +void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
+> +{
+> +	kfree(cfg);
 
-media: au0828 fix au0828_v4l2_device_register() to not unlock and free
-https://lkml.org/lkml/2016/3/28/453
+Not really a bug but --- I think it'd be cleaner to call this from
+v4l2_fh_cleanup(), rather than freeing cfg directly using kfree().
 
-Tested-by: Shuah Khan <shuahkh@osg.samsung.com>
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_subdev_free_pad_config);
+>  #endif /* CONFIG_MEDIA_CONTROLLER */
+>  
+>  void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 11e2dfec0198..32fc7a4beb5e 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -572,6 +572,7 @@ struct v4l2_subdev_pad_config {
+>  /**
+>   * struct v4l2_subdev_pad_ops - v4l2-subdev pad level operations
+>   *
+> + * @init_cfg: initialize the pad config to default values
+>   * @enum_mbus_code: callback for VIDIOC_SUBDEV_ENUM_MBUS_CODE ioctl handler
+>   *		    code.
+>   * @enum_frame_size: callback for VIDIOC_SUBDEV_ENUM_FRAME_SIZE ioctl handler
+> @@ -607,6 +608,8 @@ struct v4l2_subdev_pad_config {
+>   *                  may be adjusted by the subdev driver to device capabilities.
+>   */
+>  struct v4l2_subdev_pad_ops {
+> +	int (*init_cfg)(struct v4l2_subdev *sd,
+> +			struct v4l2_subdev_pad_config *cfg);
+>  	int (*enum_mbus_code)(struct v4l2_subdev *sd,
+>  			      struct v4l2_subdev_pad_config *cfg,
+>  			      struct v4l2_subdev_mbus_code_enum *code);
+> @@ -801,7 +804,12 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+>  				      struct v4l2_subdev_format *source_fmt,
+>  				      struct v4l2_subdev_format *sink_fmt);
+>  int v4l2_subdev_link_validate(struct media_link *link);
+> +
+> +struct v4l2_subdev_pad_config *
+> +v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
+> +void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
+>  #endif /* CONFIG_MEDIA_CONTROLLER */
+> +
+>  void v4l2_subdev_init(struct v4l2_subdev *sd,
+>  		      const struct v4l2_subdev_ops *ops);
+>  
 
-thanks,
--- Shuah
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
