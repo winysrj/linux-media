@@ -1,277 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from down.free-electrons.com ([37.187.137.238]:40365 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932818AbcCHLP2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Mar 2016 06:15:28 -0500
-From: Boris Brezillon <boris.brezillon@free-electrons.com>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Dave Gordon <david.s.gordon@intel.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Brian Norris <computersforpeace@gmail.com>,
-	linux-mtd@lists.infradead.org
-Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
-	Boris Brezillon <boris.brezillon@free-electrons.com>
-Subject: [PATCH 1/7] mtd: nand: sunxi: move some ECC related operations to their own functions
-Date: Tue,  8 Mar 2016 12:15:09 +0100
-Message-Id: <1457435715-24740-2-git-send-email-boris.brezillon@free-electrons.com>
-In-Reply-To: <1457435715-24740-1-git-send-email-boris.brezillon@free-electrons.com>
-References: <1457435715-24740-1-git-send-email-boris.brezillon@free-electrons.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33406 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752562AbcC1V7M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Mar 2016 17:59:12 -0400
+Date: Tue, 29 Mar 2016 00:58:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/2] [media] media-device: Fix mutex handling code for
+ ioctl
+Message-ID: <20160328215837.GC32125@valkosipuli.retiisi.org.uk>
+References: <20160328150948.3efa93ee@recife.lan>
+ <91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order to support DMA operations in a clean way we need to extract some
-of the logic coded in sunxi_nfc_hw_ecc_read/write_page() into their own
-function.
+Hi Mauro,
 
-Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
----
- drivers/mtd/nand/sunxi_nand.c | 163 ++++++++++++++++++++++++++++--------------
- 1 file changed, 108 insertions(+), 55 deletions(-)
+Please see the comments below.
 
-diff --git a/drivers/mtd/nand/sunxi_nand.c b/drivers/mtd/nand/sunxi_nand.c
-index 0616f3b..90c121d 100644
---- a/drivers/mtd/nand/sunxi_nand.c
-+++ b/drivers/mtd/nand/sunxi_nand.c
-@@ -776,6 +776,94 @@ static inline void sunxi_nfc_user_data_to_buf(u32 user_data, u8 *buf)
- 	buf[3] = user_data >> 24;
- }
- 
-+static inline u32 sunxi_nfc_buf_to_user_data(const u8 *buf)
-+{
-+	return buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
-+}
-+
-+static void sunxi_nfc_hw_ecc_get_prot_oob_bytes(struct mtd_info *mtd, u8 *oob,
-+						int step, bool bbm, int page)
-+{
-+	struct nand_chip *nand = mtd_to_nand(mtd);
-+	struct sunxi_nfc *nfc = to_sunxi_nfc(nand->controller);
-+
-+	sunxi_nfc_user_data_to_buf(readl(nfc->regs + NFC_REG_USER_DATA(step)),
-+				   oob);
-+
-+	/* De-randomize the Bad Block Marker. */
-+	if (bbm && (nand->options & NAND_NEED_SCRAMBLING))
-+		sunxi_nfc_randomize_bbm(mtd, page, oob);
-+}
-+
-+static void sunxi_nfc_hw_ecc_set_prot_oob_bytes(struct mtd_info *mtd,
-+						const u8 *oob, int step,
-+						bool bbm, int page)
-+{
-+	struct nand_chip *nand = mtd_to_nand(mtd);
-+	struct sunxi_nfc *nfc = to_sunxi_nfc(nand->controller);
-+	u8 user_data[4];
-+
-+	/* Randomize the Bad Block Marker. */
-+	if (bbm && (nand->options & NAND_NEED_SCRAMBLING)) {
-+		memcpy(user_data, oob, sizeof(user_data));
-+		sunxi_nfc_randomize_bbm(mtd, page, user_data);
-+		oob = user_data;
-+	}
-+
-+	writel(sunxi_nfc_buf_to_user_data(oob),
-+	       nfc->regs + NFC_REG_USER_DATA(step));
-+}
-+
-+static void sunxi_nfc_hw_ecc_update_stats(struct mtd_info *mtd,
-+					  unsigned int *max_bitflips, int ret)
-+{
-+	if (ret < 0) {
-+		mtd->ecc_stats.failed++;
-+	} else {
-+		mtd->ecc_stats.corrected += ret;
-+		*max_bitflips = max_t(unsigned int, *max_bitflips, ret);
-+	}
-+}
-+
-+static int sunxi_nfc_hw_ecc_correct(struct mtd_info *mtd, u8 *data, u8 *oob,
-+				    int step, bool *erased)
-+{
-+	struct nand_chip *nand = mtd_to_nand(mtd);
-+	struct sunxi_nfc *nfc = to_sunxi_nfc(nand->controller);
-+	struct nand_ecc_ctrl *ecc = &nand->ecc;
-+	u32 status, tmp;
-+
-+	*erased = false;
-+
-+	status = readl(nfc->regs + NFC_REG_ECC_ST);
-+
-+	if (status & NFC_ECC_ERR(step))
-+		return -EBADMSG;
-+
-+	if (status & NFC_ECC_PAT_FOUND(step)) {
-+		u8 pattern;
-+
-+		if (unlikely(!(readl(nfc->regs + NFC_REG_PAT_ID) & 0x1))) {
-+			pattern = 0x0;
-+		} else {
-+			pattern = 0xff;
-+			*erased = true;
-+		}
-+
-+		if (data)
-+			memset(data, pattern, ecc->size);
-+
-+		if (oob)
-+			memset(oob, pattern, ecc->bytes + 4);
-+
-+		return 0;
-+	}
-+
-+	tmp = readl(nfc->regs + NFC_REG_ECC_ERR_CNT(step));
-+
-+	return NFC_ECC_ERR_CNT(step, tmp);
-+}
-+
- static int sunxi_nfc_hw_ecc_read_chunk(struct mtd_info *mtd,
- 				       u8 *data, int data_off,
- 				       u8 *oob, int oob_off,
-@@ -787,7 +875,7 @@ static int sunxi_nfc_hw_ecc_read_chunk(struct mtd_info *mtd,
- 	struct sunxi_nfc *nfc = to_sunxi_nfc(nand->controller);
- 	struct nand_ecc_ctrl *ecc = &nand->ecc;
- 	int raw_mode = 0;
--	u32 status;
-+	bool erased;
- 	int ret;
- 
- 	if (*cur_off != data_off)
-@@ -813,27 +901,11 @@ static int sunxi_nfc_hw_ecc_read_chunk(struct mtd_info *mtd,
- 
- 	*cur_off = oob_off + ecc->bytes + 4;
- 
--	status = readl(nfc->regs + NFC_REG_ECC_ST);
--	if (status & NFC_ECC_PAT_FOUND(0)) {
--		u8 pattern = 0xff;
--
--		if (unlikely(!(readl(nfc->regs + NFC_REG_PAT_ID) & 0x1)))
--			pattern = 0x0;
--
--		memset(data, pattern, ecc->size);
--		memset(oob, pattern, ecc->bytes + 4);
--
-+	ret = sunxi_nfc_hw_ecc_correct(mtd, data, oob, 0, &erased);
-+	if (erased)
- 		return 1;
--	}
--
--	ret = NFC_ECC_ERR_CNT(0, readl(nfc->regs + NFC_REG_ECC_ERR_CNT(0)));
--
--	memcpy_fromio(data, nfc->regs + NFC_RAM0_BASE, ecc->size);
- 
--	nand->cmdfunc(mtd, NAND_CMD_RNDOUT, oob_off, -1);
--	sunxi_nfc_randomizer_read_buf(mtd, oob, ecc->bytes + 4, true, page);
--
--	if (status & NFC_ECC_ERR(0)) {
-+	if (ret < 0) {
- 		/*
- 		 * Re-read the data with the randomizer disabled to identify
- 		 * bitflips in erased pages.
-@@ -841,35 +913,32 @@ static int sunxi_nfc_hw_ecc_read_chunk(struct mtd_info *mtd,
- 		if (nand->options & NAND_NEED_SCRAMBLING) {
- 			nand->cmdfunc(mtd, NAND_CMD_RNDOUT, data_off, -1);
- 			nand->read_buf(mtd, data, ecc->size);
--			nand->cmdfunc(mtd, NAND_CMD_RNDOUT, oob_off, -1);
--			nand->read_buf(mtd, oob, ecc->bytes + 4);
-+		} else {
-+			memcpy_fromio(data, nfc->regs + NFC_RAM0_BASE,
-+				      ecc->size);
- 		}
- 
-+		nand->cmdfunc(mtd, NAND_CMD_RNDOUT, oob_off, -1);
-+		nand->read_buf(mtd, oob, ecc->bytes + 4);
-+
- 		ret = nand_check_erased_ecc_chunk(data,	ecc->size,
- 						  oob, ecc->bytes + 4,
- 						  NULL, 0, ecc->strength);
- 		if (ret >= 0)
- 			raw_mode = 1;
- 	} else {
--		/*
--		 * The engine protects 4 bytes of OOB data per chunk.
--		 * Retrieve the corrected OOB bytes.
--		 */
--		sunxi_nfc_user_data_to_buf(readl(nfc->regs + NFC_REG_USER_DATA(0)),
--					   oob);
-+		memcpy_fromio(data, nfc->regs + NFC_RAM0_BASE, ecc->size);
- 
--		/* De-randomize the Bad Block Marker. */
--		if (bbm && nand->options & NAND_NEED_SCRAMBLING)
--			sunxi_nfc_randomize_bbm(mtd, page, oob);
--	}
-+		nand->cmdfunc(mtd, NAND_CMD_RNDOUT, oob_off, -1);
-+		sunxi_nfc_randomizer_read_buf(mtd, oob, ecc->bytes + 4,
-+					      true, page);
- 
--	if (ret < 0) {
--		mtd->ecc_stats.failed++;
--	} else {
--		mtd->ecc_stats.corrected += ret;
--		*max_bitflips = max_t(unsigned int, *max_bitflips, ret);
-+		sunxi_nfc_hw_ecc_get_prot_oob_bytes(mtd, oob, 0,
-+						    bbm, page);
- 	}
- 
-+	sunxi_nfc_hw_ecc_update_stats(mtd, max_bitflips, ret);
-+
- 	return raw_mode;
- }
- 
-@@ -898,11 +967,6 @@ static void sunxi_nfc_hw_ecc_read_extra_oob(struct mtd_info *mtd,
- 	*cur_off = mtd->oobsize + mtd->writesize;
- }
- 
--static inline u32 sunxi_nfc_buf_to_user_data(const u8 *buf)
--{
--	return buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
--}
--
- static int sunxi_nfc_hw_ecc_write_chunk(struct mtd_info *mtd,
- 					const u8 *data, int data_off,
- 					const u8 *oob, int oob_off,
-@@ -919,19 +983,6 @@ static int sunxi_nfc_hw_ecc_write_chunk(struct mtd_info *mtd,
- 
- 	sunxi_nfc_randomizer_write_buf(mtd, data, ecc->size, false, page);
- 
--	/* Fill OOB data in */
--	if ((nand->options & NAND_NEED_SCRAMBLING) && bbm) {
--		u8 user_data[4];
--
--		memcpy(user_data, oob, 4);
--		sunxi_nfc_randomize_bbm(mtd, page, user_data);
--		writel(sunxi_nfc_buf_to_user_data(user_data),
--		       nfc->regs + NFC_REG_USER_DATA(0));
--	} else {
--		writel(sunxi_nfc_buf_to_user_data(oob),
--		       nfc->regs + NFC_REG_USER_DATA(0));
--	}
--
- 	if (data_off + ecc->size != oob_off)
- 		nand->cmdfunc(mtd, NAND_CMD_RNDIN, oob_off, -1);
- 
-@@ -940,6 +991,8 @@ static int sunxi_nfc_hw_ecc_write_chunk(struct mtd_info *mtd,
- 		return ret;
- 
- 	sunxi_nfc_randomizer_enable(mtd);
-+	sunxi_nfc_hw_ecc_set_prot_oob_bytes(mtd, oob, 0, bbm, page);
-+
- 	writel(NFC_DATA_TRANS | NFC_DATA_SWAP_METHOD |
- 	       NFC_ACCESS_DIR | NFC_ECC_OP,
- 	       nfc->regs + NFC_REG_CMD);
+On Mon, Mar 28, 2016 at 03:11:03PM -0300, Mauro Carvalho Chehab wrote:
+> Remove two nested mutex left-overs at find_entity and make sure
+> that the code won't suffer race conditions if the device is
+> being removed while ioctl is being handled nor the topology changes,
+> by protecting all ioctls with a mutex at media_device_ioctl().
+> 
+> As reported by Laurent, commit c38077d39c7e ("[media] media-device:
+> get rid of the spinlock") introduced a deadlock in the
+> MEDIA_IOC_ENUM_LINKS ioctl handler:
+> 
+> [ 2760.127749] INFO: task media-ctl:954 blocked for more than 120 seconds.
+> [ 2760.131867]       Not tainted 4.5.0+ #357
+> [ 2760.134622] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+> [ 2760.139310] media-ctl       D ffffffc000086bcc     0   954    671 0x00000001
+> [ 2760.143618] Call trace:
+> [ 2760.145601] [<ffffffc000086bcc>] __switch_to+0x90/0xa4
+> [ 2760.148941] [<ffffffc0004e6ef0>] __schedule+0x188/0x5b0
+> [ 2760.152309] [<ffffffc0004e7354>] schedule+0x3c/0xa0
+> [ 2760.155495] [<ffffffc0004e7768>] schedule_preempt_disabled+0x20/0x38
+> [ 2760.159423] [<ffffffc0004e8d28>] __mutex_lock_slowpath+0xc4/0x148
+> [ 2760.163217] [<ffffffc0004e8df0>] mutex_lock+0x44/0x5c
+> [ 2760.166483] [<ffffffc0003e87d4>] find_entity+0x2c/0xac
+> [ 2760.169773] [<ffffffc0003e8d34>] __media_device_enum_links+0x20/0x1dc
+> [ 2760.173711] [<ffffffc0003e9718>] media_device_ioctl+0x214/0x33c
+> [ 2760.177384] [<ffffffc0003e9eec>] media_ioctl+0x24/0x3c
+> [ 2760.180671] [<ffffffc0001bee64>] do_vfs_ioctl+0xac/0x758
+> [ 2760.184026] [<ffffffc0001bf594>] SyS_ioctl+0x84/0x98
+> [ 2760.187196] [<ffffffc000085d30>] el0_svc_naked+0x24/0x28
+> 
+> That's because find_entity() holds the graph_mutex, but both
+> MEDIA_IOC_ENUM_LINKS and MEDIA_IOC_SETUP_LINK logic also take
+> the mutex.
+> 
+> Reported-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> ---
+>  drivers/media/media-device.c | 12 ++----------
+>  1 file changed, 2 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 7bfb2b24f644..6cfa890af7b4 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -90,8 +90,6 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+>  
+>  	id &= ~MEDIA_ENT_ID_FLAG_NEXT;
+>  
+> -	mutex_lock(&mdev->graph_mutex);
+> -
+>  	media_device_for_each_entity(entity, mdev) {
+>  		if (((media_entity_id(entity) == id) && !next) ||
+>  		    ((media_entity_id(entity) > id) && next)) {
+> @@ -100,8 +98,6 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+>  		}
+>  	}
+>  
+> -	mutex_unlock(&mdev->graph_mutex);
+
+find_entity() will return the entity inside the loop if it's found,
+releasing the mutex.
+
+> -
+>  	return NULL;
+>  }
+>  
+> @@ -431,6 +427,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  	struct media_device *dev = devnode->media_dev;
+>  	long ret;
+>  
+> +	mutex_lock(&dev->graph_mutex);
+>  	switch (cmd) {
+>  	case MEDIA_IOC_DEVICE_INFO:
+>  		ret = media_device_get_info(dev,
+> @@ -443,29 +440,24 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  		break;
+>  
+>  	case MEDIA_IOC_ENUM_LINKS:
+> -		mutex_lock(&dev->graph_mutex);
+>  		ret = media_device_enum_links(dev,
+>  				(struct media_links_enum __user *)arg);
+> -		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+>  	case MEDIA_IOC_SETUP_LINK:
+> -		mutex_lock(&dev->graph_mutex);
+>  		ret = media_device_setup_link(dev,
+>  				(struct media_link_desc __user *)arg);
+> -		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+>  	case MEDIA_IOC_G_TOPOLOGY:
+> -		mutex_lock(&dev->graph_mutex);
+>  		ret = media_device_get_topology(dev,
+>  				(struct media_v2_topology __user *)arg);
+> -		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+>  	default:
+>  		ret = -ENOIOCTLCMD;
+>  	}
+> +	mutex_unlock(&dev->graph_mutex);
+>  
+>  	return ret;
+>  }
+
 -- 
-2.1.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
