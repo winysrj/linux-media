@@ -1,67 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56271 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752808AbcCMTep (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:57156 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753511AbcC1DI0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Mar 2016 15:34:45 -0400
-Subject: Re: Fwd: Re: tw68 fails with motion package running more than 4
- cameras on 8 channel card
-To: Tony IBM-MAIN <v1i9v6a6@gmail.com>, linux-media@vger.kernel.org
-References: <56E57B89.70406@gmail.com> <56E57C01.8070906@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56E5C0CC.3070908@xs4all.nl>
-Date: Sun, 13 Mar 2016 20:34:36 +0100
-MIME-Version: 1.0
-In-Reply-To: <56E57C01.8070906@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sun, 27 Mar 2016 23:08:26 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 6D0171804F4
+	for <linux-media@vger.kernel.org>; Mon, 28 Mar 2016 05:08:19 +0200 (CEST)
+Date: Mon, 28 Mar 2016 05:08:19 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160328030819.6D0171804F4@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/13/2016 03:41 PM, Tony IBM-MAIN wrote:
-> Hans,
-> 
-> Sorry for the long delay in responding. Only just got around to testing
-> qv4l2.
-> 
-> All was well with qv4l2 on 4 camera's each capturing 25fps. Then when I
-> activated the 5th camera it all went pear shaped.
-> One camera dies, the image on its screen freezes on the last good frame.
-> All the other cameras get corrupt screens like line sync is missing.
-> Horizontal lines everywhere. See
-> http://www.doom.talktalk.net/2016-03-13-124047_1152x864_scrot.png.
-> 
-> I have seen this effect 4 years ago using zoneminder. I had two camera
-> working fine in zoneminder with motion detect recording. Adding two more
-> caused the effect in the screen capture. Eventually I put it down to
-> Zoneminder being very CPU hungry event at the lowest framerate. I
-> switched to motion and it would happily run motion detect on 6 cameras
-> using about 15% on one CPU (Dual core AMD Athlon(tm) II X2 270u
-> Processor 1600Mhz). Both zoneminder and motion were using the same old
-> tw68 module from github.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I think I know what the problem is. The default pixelformat that the driver
-choses is RGB24 (3 bytes per pixel). One stream of 720x576p25 then takes
-30 MB/s, so 5 streams is 150 MB/s which is more than the max bandwidth of
-a PCI device (133 MB/s).
+Results of the daily build of media_tree:
 
-I suspect that the default format of the old driver was probably YUYV, which
-is only 20 MB/s, so 120 MB/s for 6 streams.
+date:		Mon Mar 28 04:00:23 CEST 2016
+git branch:	test
+git hash:	2705c1a96f978450377f1019d4bef34190b4ef05
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3353-gcae47da
+host hardware:	x86_64
+host os:	4.4.0-164
 
-The solution would be to set the format to YUYV before streaming. I don't
-know if that's possible with the software you're using, but you can always
-use qv4l2 or v4l2-ctl (v4l2-ctl -d /dev/videoX -v pixelformat=YUYV) for this.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-Another option is to scale down the image and reduce the bandwidth that
-way.
+Detailed results are available here:
 
-> I have set up motion to capture at a relative low 2fps, it is all I
-> need. Can I set qv4l2 to capture at a lower rate to see if it resolves
-> the problem?
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-No, that's not possible. But changing the format to YUYV should fix the
-issue for you.
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-	Hans
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
