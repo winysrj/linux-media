@@ -1,107 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59617 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752401AbcCDIZ5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Mar 2016 03:25:57 -0500
-Subject: Re: [PATCH] media: add prefixes to interface types
-To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
-	hans.verkuil@cisco.com
-References: <1457050112-6831-1-git-send-email-shuahkh@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56D9468C.3090205@xs4all.nl>
-Date: Fri, 4 Mar 2016 09:25:48 +0100
+Received: from mga09.intel.com ([134.134.136.24]:1288 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753567AbcC1TmU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Mar 2016 15:42:20 -0400
+Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
+To: Chris Wilson <chris@chris-wilson.co.uk>,
+	David Herrmann <dh.herrmann@gmail.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	=?UTF-8?Q?St=c3=a9phane_Marchesin?= <marcheu@chromium.org>,
+	Daniel Vetter <daniel.vetter@intel.com>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
+References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
+ <1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
+ <CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
+ <20160321171405.GP28483@phenom.ffwll.local>
+ <CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
+ <20160323115659.GF21717@nuc-i3427.alporthouse.com>
+ <CANq1E4SFPMoE4G4XARFLyEH40OOZnR2v_PQD4=ps3KBvVXUHpA@mail.gmail.com>
+ <20160323154223.GJ21717@nuc-i3427.alporthouse.com>
+From: Tiago Vignatti <tiago.vignatti@intel.com>
+Message-ID: <56F98915.1030200@intel.com>
+Date: Mon, 28 Mar 2016 16:42:13 -0300
 MIME-Version: 1.0
-In-Reply-To: <1457050112-6831-1-git-send-email-shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <20160323154223.GJ21717@nuc-i3427.alporthouse.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 03/23/2016 12:42 PM, Chris Wilson wrote:
+> On Wed, Mar 23, 2016 at 04:32:59PM +0100, David Herrmann wrote:
+>> Hi
+>>
+>> On Wed, Mar 23, 2016 at 12:56 PM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
+>>> On Wed, Mar 23, 2016 at 12:30:42PM +0100, David Herrmann wrote:
+>>>> My question was rather about why we do this? Semantics for EINTR are
+>>>> well defined, and with SA_RESTART (default on linux) user-space can
+>>>> ignore it. However, looping on EAGAIN is very uncommon, and it is not
+>>>> at all clear why it is needed?
+>>>>
+>>>> Returning an error to user-space makes sense if user-space has a
+>>>> reason to react to it. I fail to see how EAGAIN on a cache-flush/sync
+>>>> operation helps user-space at all? As someone without insight into the
+>>>> driver implementation, it is hard to tell why.. Any hints?
+>>>
+>>> The reason we return EAGAIN is to workaround a deadlock we face when
+>>> blocking on the GPU holding the struct_mutex (inside the client's
+>>> process), but the GPU is dead. As our locking is very, very coarse we
+>>> cannot restart the GPU without acquiring the struct_mutex being held by
+>>> the client so we wake the client up and tell them the resource they are
+>>> waiting on (the flush of the object from the GPU into the CPU domain) is
+>>> temporarily unavailable. If they try to immediately wait upon the ioctl
+>>> again, they are blocked waiting for the reset to occur before they may
+>>> complete their flush. There are a few other possible deadlocks that are
+>>> also avoided with EAGAIN (again, the issue is more or less the lack of
+>>> fine grained locking).
+>>
+>> ...so you hijacked EAGAIN for all DRM ioctls just for a driver
+>> workaround?
+>
+> No, we utilized the fact that EAGAIN was already enshrined by libdrm as
+> the defacto mechanism for repeating the ioctl in order to repeat the
+> ioctl for a driver workaround.
 
+Do we have an agreement here after all? David? I need to know whether 
+this fixup is okay to go cause I'll need to submit to Chrome OS then.
 
-On 03/04/2016 01:08 AM, Shuah Khan wrote:
-> Add missing prefixes for DVB, V4L, and ALSA interface types.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/media-entity.c | 32 ++++++++++++++++----------------
->  1 file changed, 16 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index bcd7464..561c939 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -46,41 +46,41 @@ static inline const char *intf_type(struct media_interface *intf)
->  {
->  	switch (intf->type) {
->  	case MEDIA_INTF_T_DVB_FE:
-> -		return "frontend";
-> +		return "dvb-frontend";
->  	case MEDIA_INTF_T_DVB_DEMUX:
-> -		return "demux";
-> +		return "dvb-demux";
->  	case MEDIA_INTF_T_DVB_DVR:
-> -		return "DVR";
-> +		return "dvb-DVR";
+Best Regards,
 
-'dvb-dvr', everything else is lower case as well.
+Tiago
 
->  	case MEDIA_INTF_T_DVB_CA:
-> -		return  "CA";
-> +		return  "dvb-conditional-access";
-
-I'd keep this 'dvb-ca', unless Mauro likes this better.
-
->  	case MEDIA_INTF_T_DVB_NET:
-> -		return "dvbnet";
-> +		return "dvb-net";
->  	case MEDIA_INTF_T_V4L_VIDEO:
-> -		return "video";
-> +		return "v4l-video";
->  	case MEDIA_INTF_T_V4L_VBI:
-> -		return "vbi";
-> +		return "v4l-vbi";
->  	case MEDIA_INTF_T_V4L_RADIO:
-> -		return "radio";
-> +		return "v4l-radio";
->  	case MEDIA_INTF_T_V4L_SUBDEV:
->  		return "v4l2-subdev";
-
-Change this to 'v4l-subdev'.
-
->  	case MEDIA_INTF_T_V4L_SWRADIO:
-> -		return "swradio";
-> +		return "v4l-swradio";
->  	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
-> -		return "pcm-capture";
-> +		return "alsa-pcm-capture";
->  	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
-> -		return "pcm-playback";
-> +		return "alsa-pcm-playback";
->  	case MEDIA_INTF_T_ALSA_CONTROL:
->  		return "alsa-control";
->  	case MEDIA_INTF_T_ALSA_COMPRESS:
-> -		return "compress";
-> +		return "alsa-compress";
->  	case MEDIA_INTF_T_ALSA_RAWMIDI:
-> -		return "rawmidi";
-> +		return "alsa-rawmidi";
->  	case MEDIA_INTF_T_ALSA_HWDEP:
-> -		return "hwdep";
-> +		return "alsa-hwdep";
->  	case MEDIA_INTF_T_ALSA_SEQUENCER:
-> -		return "sequencer";
-> +		return "alsa-sequencer";
->  	case MEDIA_INTF_T_ALSA_TIMER:
-> -		return "timer";
-> +		return "alsa-timer";
->  	default:
->  		return "unknown-intf";
->  	}
-> 
-
-Regards,
-
-	Hans
