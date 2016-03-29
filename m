@@ -1,65 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47263 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754951AbcCNHVv (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59827 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756599AbcC2Jbi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 03:21:51 -0400
-Subject: Re: FW: [PATCH v5 0/8] Add MT8173 Video Encoder Driver and VPU Driver
-To: tiffany lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>
-References: <D706F7FE148A8A429434F78C46336826048E7053@mtkmbs02n1>
- <1457939579.32502.10.camel@mtksdaap41>
-Cc: Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mediatek@lists.infradead.org, PoChun.Lin@mediatek.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56E66672.9030307@xs4all.nl>
-Date: Mon, 14 Mar 2016 08:21:22 +0100
-MIME-Version: 1.0
-In-Reply-To: <1457939579.32502.10.camel@mtksdaap41>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Tue, 29 Mar 2016 05:31:38 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 1/2] [media] media-device: Fix mutex handling code for ioctl
+Date: Tue, 29 Mar 2016 06:31:27 -0300
+Message-Id: <fef855a4cd482eb02cff982b01511c893ea6e75d.1459243882.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/14/2016 08:12 AM, tiffany lin wrote:
-> Hi Hans,
-> 
-> After change to use "v4l-utils.git master branch", "V4l2-compliance
-> -d /dev/video1" fail on "fail: v4l2-test-buffers.cpp(555):
-> check_0(crbufs.reserved, sizeof(crbufs.reserved))".
-> 
-> Check the source code and found
-> 
-> 	memset(&crbufs, 0xff, sizeof(crbufs));   -> crbufs to 0xff
->         node->g_fmt(crbufs.format, i);
->         crbufs.count = 0;
->         crbufs.memory = m;
->         fail_on_test(doioctl(node, VIDIOC_CREATE_BUFS, &crbufs));   
->         fail_on_test(check_0(crbufs.reserved, sizeof(crbufs.reserved)));
->         fail_on_test(crbufs.index != q.g_buffers());
-> 
-> crbufs is initialized to fill with 0xff and after VIDIOC_CREATE_BUFS,
-> crbufs.reserved field should be 0x0. But v4l2_m2m_create_bufs and
-> vb2_create_bufs do not process reserved filed.
-> Do we really need to check reserved filed filled with 0x0? Or we need to
-> change vb2_create_bufs to fix this issue?
+Remove two nested mutex left-overs at find_entity and make sure
+that the code won't suffer race conditions if the device is
+being removed while ioctl is being handled nor the topology changes,
+by protecting all ioctls with a mutex at media_device_ioctl().
 
-The reserved field is zeroed in v4l_create_bufs() in v4l2-ioctl.c, so even before
-vb2_create_bufs et al is called.
+As reported by Laurent, commit c38077d39c7e ("[media] media-device:
+get rid of the spinlock") introduced a deadlock in the
+MEDIA_IOC_ENUM_LINKS ioctl handler:
 
-The fact that it is no longer zeroed afterwards suggests that someone is messing
-with the reserved field.
+[ 2760.127749] INFO: task media-ctl:954 blocked for more than 120 seconds.
+[ 2760.131867]       Not tainted 4.5.0+ #357
+[ 2760.134622] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[ 2760.139310] media-ctl       D ffffffc000086bcc     0   954    671 0x00000001
+[ 2760.143618] Call trace:
+[ 2760.145601] [<ffffffc000086bcc>] __switch_to+0x90/0xa4
+[ 2760.148941] [<ffffffc0004e6ef0>] __schedule+0x188/0x5b0
+[ 2760.152309] [<ffffffc0004e7354>] schedule+0x3c/0xa0
+[ 2760.155495] [<ffffffc0004e7768>] schedule_preempt_disabled+0x20/0x38
+[ 2760.159423] [<ffffffc0004e8d28>] __mutex_lock_slowpath+0xc4/0x148
+[ 2760.163217] [<ffffffc0004e8df0>] mutex_lock+0x44/0x5c
+[ 2760.166483] [<ffffffc0003e87d4>] find_entity+0x2c/0xac
+[ 2760.169773] [<ffffffc0003e8d34>] __media_device_enum_links+0x20/0x1dc
+[ 2760.173711] [<ffffffc0003e9718>] media_device_ioctl+0x214/0x33c
+[ 2760.177384] [<ffffffc0003e9eec>] media_ioctl+0x24/0x3c
+[ 2760.180671] [<ffffffc0001bee64>] do_vfs_ioctl+0xac/0x758
+[ 2760.184026] [<ffffffc0001bf594>] SyS_ioctl+0x84/0x98
+[ 2760.187196] [<ffffffc000085d30>] el0_svc_naked+0x24/0x28
 
-You'll have to do a bit more digging, I'm afraid.
+That's because find_entity() holds the graph_mutex, but both
+MEDIA_IOC_ENUM_LINKS and MEDIA_IOC_SETUP_LINK logic also take
+the mutex.
 
-Regards,
+Reported-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/media-device.c | 13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-	Hans
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 7bfb2b24f644..6af5e6932271 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -90,18 +90,13 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+ 
+ 	id &= ~MEDIA_ENT_ID_FLAG_NEXT;
+ 
+-	mutex_lock(&mdev->graph_mutex);
+-
+ 	media_device_for_each_entity(entity, mdev) {
+ 		if (((media_entity_id(entity) == id) && !next) ||
+ 		    ((media_entity_id(entity) > id) && next)) {
+-			mutex_unlock(&mdev->graph_mutex);
+ 			return entity;
+ 		}
+ 	}
+ 
+-	mutex_unlock(&mdev->graph_mutex);
+-
+ 	return NULL;
+ }
+ 
+@@ -431,6 +426,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 	struct media_device *dev = devnode->media_dev;
+ 	long ret;
+ 
++	mutex_lock(&dev->graph_mutex);
+ 	switch (cmd) {
+ 	case MEDIA_IOC_DEVICE_INFO:
+ 		ret = media_device_get_info(dev,
+@@ -443,29 +439,24 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 		break;
+ 
+ 	case MEDIA_IOC_ENUM_LINKS:
+-		mutex_lock(&dev->graph_mutex);
+ 		ret = media_device_enum_links(dev,
+ 				(struct media_links_enum __user *)arg);
+-		mutex_unlock(&dev->graph_mutex);
+ 		break;
+ 
+ 	case MEDIA_IOC_SETUP_LINK:
+-		mutex_lock(&dev->graph_mutex);
+ 		ret = media_device_setup_link(dev,
+ 				(struct media_link_desc __user *)arg);
+-		mutex_unlock(&dev->graph_mutex);
+ 		break;
+ 
+ 	case MEDIA_IOC_G_TOPOLOGY:
+-		mutex_lock(&dev->graph_mutex);
+ 		ret = media_device_get_topology(dev,
+ 				(struct media_v2_topology __user *)arg);
+-		mutex_unlock(&dev->graph_mutex);
+ 		break;
+ 
+ 	default:
+ 		ret = -ENOIOCTLCMD;
+ 	}
++	mutex_unlock(&dev->graph_mutex);
+ 
+ 	return ret;
+ }
+-- 
+2.5.5
+
