@@ -1,179 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:53134 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932709AbcCCW3t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Mar 2016 17:29:49 -0500
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
+Received: from mailgw01.mediatek.com ([210.61.82.183]:43523 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756824AbcC2LcV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2016 07:32:21 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Viorel Suman <viorel.suman@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-iio@vger.kernel.org,
-	linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-	Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v4 13/18] [media] cx231xx: convert to use an explicit i2c mux core
-Date: Thu,  3 Mar 2016 23:27:25 +0100
-Message-Id: <1457044050-15230-14-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
-References: <1457044050-15230-1-git-send-email-peda@lysator.liu.se>
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
+	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v6 8/8] arm64: dts: mediatek: Add Video Encoder for MT8173
+Date: Tue, 29 Mar 2016 19:32:10 +0800
+Message-ID: <1459251130-53774-9-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1459251130-53774-8-git-send-email-tiffany.lin@mediatek.com>
+References: <1459251130-53774-1-git-send-email-tiffany.lin@mediatek.com>
+ <1459251130-53774-2-git-send-email-tiffany.lin@mediatek.com>
+ <1459251130-53774-3-git-send-email-tiffany.lin@mediatek.com>
+ <1459251130-53774-4-git-send-email-tiffany.lin@mediatek.com>
+ <1459251130-53774-5-git-send-email-tiffany.lin@mediatek.com>
+ <1459251130-53774-6-git-send-email-tiffany.lin@mediatek.com>
+ <1459251130-53774-7-git-send-email-tiffany.lin@mediatek.com>
+ <1459251130-53774-8-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+Add video encoder node for MT8173
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select op to be in terms of the i2c mux core instead
-of the child adapter.
-
-Signed-off-by: Peter Rosin <peda@axentia.se>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-core.c |  6 ++--
- drivers/media/usb/cx231xx/cx231xx-i2c.c  | 47 ++++++++++++++++----------------
- drivers/media/usb/cx231xx/cx231xx.h      |  4 ++-
- 3 files changed, 31 insertions(+), 26 deletions(-)
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi |   39 ++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index f497888d94bf..f7aac2abd783 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -1304,6 +1304,9 @@ int cx231xx_dev_init(struct cx231xx *dev)
- 	cx231xx_i2c_register(&dev->i2c_bus[1]);
- 	cx231xx_i2c_register(&dev->i2c_bus[2]);
+diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+index 5b0b38a..26aeffe 100644
+--- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
++++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+@@ -1150,6 +1150,45 @@
+ 			clock-names = "apb", "smi";
+ 		};
  
-+	errCode = cx231xx_i2c_mux_create(dev);
-+	if (errCode < 0)
-+		return errCode;
- 	cx231xx_i2c_mux_register(dev, 0);
- 	cx231xx_i2c_mux_register(dev, 1);
- 
-@@ -1426,8 +1429,7 @@ EXPORT_SYMBOL_GPL(cx231xx_dev_init);
- void cx231xx_dev_uninit(struct cx231xx *dev)
- {
- 	/* Un Initialize I2C bus */
--	cx231xx_i2c_mux_unregister(dev, 1);
--	cx231xx_i2c_mux_unregister(dev, 0);
-+	cx231xx_i2c_mux_unregister(dev);
- 	cx231xx_i2c_unregister(&dev->i2c_bus[2]);
- 	cx231xx_i2c_unregister(&dev->i2c_bus[1]);
- 	cx231xx_i2c_unregister(&dev->i2c_bus[0]);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index a29c345b027d..eb22e05d4add 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -557,40 +557,41 @@ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
-  * cx231xx_i2c_mux_select()
-  * switch i2c master number 1 between port1 and port3
-  */
--static int cx231xx_i2c_mux_select(struct i2c_adapter *adap,
--			void *mux_priv, u32 chan_id)
-+static int cx231xx_i2c_mux_select(struct i2c_mux_core *muxc, u32 chan_id)
- {
--	struct cx231xx *dev = mux_priv;
-+	struct cx231xx *dev = i2c_mux_priv(muxc);
- 
- 	return cx231xx_enable_i2c_port_3(dev, chan_id);
- }
- 
-+int cx231xx_i2c_mux_create(struct cx231xx *dev)
-+{
-+	dev->muxc = i2c_mux_alloc(&dev->i2c_bus[1].i2c_adap, dev->dev, 0, 0,
-+				  cx231xx_i2c_mux_select, NULL);
-+	if (!dev->muxc)
-+		return -ENOMEM;
-+	dev->muxc->priv = dev;
-+	return 0;
-+}
++		vcodec_enc: vcodec@18002000 {
++			compatible = "mediatek,mt8173-vcodec-enc";
++			reg = <0 0x18002000 0 0x1000>,	/* VENC_SYS */
++			      <0 0x19002000 0 0x1000>;	/* VENC_LT_SYS */
++			interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
++				     <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
++			mediatek,larb = <&larb3>,
++					<&larb5>;
++			iommus = <&iommu M4U_PORT_VENC_RCPU>,
++				 <&iommu M4U_PORT_VENC_REC>,
++				 <&iommu M4U_PORT_VENC_BSDMA>,
++				 <&iommu M4U_PORT_VENC_SV_COMV>,
++				 <&iommu M4U_PORT_VENC_RD_COMV>,
++				 <&iommu M4U_PORT_VENC_CUR_LUMA>,
++				 <&iommu M4U_PORT_VENC_CUR_CHROMA>,
++				 <&iommu M4U_PORT_VENC_REF_LUMA>,
++				 <&iommu M4U_PORT_VENC_REF_CHROMA>,
++				 <&iommu M4U_PORT_VENC_NBM_RDMA>,
++				 <&iommu M4U_PORT_VENC_NBM_WDMA>,
++				 <&iommu M4U_PORT_VENC_RCPU_SET2>,
++				 <&iommu M4U_PORT_VENC_REC_FRM_SET2>,
++				 <&iommu M4U_PORT_VENC_BSDMA_SET2>,
++				 <&iommu M4U_PORT_VENC_SV_COMA_SET2>,
++				 <&iommu M4U_PORT_VENC_RD_COMA_SET2>,
++				 <&iommu M4U_PORT_VENC_CUR_LUMA_SET2>,
++				 <&iommu M4U_PORT_VENC_CUR_CHROMA_SET2>,
++				 <&iommu M4U_PORT_VENC_REF_LUMA_SET2>,
++				 <&iommu M4U_PORT_VENC_REC_CHROMA_SET2>;
++			mediatek,vpu = <&vpu>;
++			clocks = <&topckgen CLK_TOP_VENCPLL_D2>,
++				 <&topckgen CLK_TOP_VENC_SEL>,
++				 <&topckgen CLK_TOP_UNIVPLL1_D2>,
++				 <&topckgen CLK_TOP_VENC_LT_SEL>;
++			clock-names = "venc_sel_src",
++				      "venc_sel",
++				      "venc_lt_sel_src",
++				      "venc_lt_sel";
++		};
 +
- int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
- {
--	struct i2c_adapter *i2c_parent = &dev->i2c_bus[1].i2c_adap;
--	/* what is the correct mux_dev? */
--	struct device *mux_dev = dev->dev;
--
--	dev->i2c_mux_adap[mux_no] = i2c_add_mux_adapter(i2c_parent,
--				mux_dev,
--				dev /* mux_priv */,
--				0,
--				mux_no /* chan_id */,
--				0 /* class */,
--				&cx231xx_i2c_mux_select,
--				NULL);
--
--	if (!dev->i2c_mux_adap[mux_no])
-+	int rc;
-+
-+	rc = i2c_mux_add_adapter(dev->muxc,
-+				 0,
-+				 mux_no /* chan_id */,
-+				 0 /* class */);
-+	if (rc)
- 		dev_warn(dev->dev,
- 			 "i2c mux %d register FAILED\n", mux_no);
- 
--	return 0;
-+	return rc;
- }
- 
--void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no)
-+void cx231xx_i2c_mux_unregister(struct cx231xx *dev)
- {
--	i2c_del_mux_adapter(dev->i2c_mux_adap[mux_no]);
--	dev->i2c_mux_adap[mux_no] = NULL;
-+	i2c_mux_del_adapters(dev->muxc);
- }
- 
- struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
-@@ -603,9 +604,9 @@ struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
- 	case I2C_2:
- 		return &dev->i2c_bus[2].i2c_adap;
- 	case I2C_1_MUX_1:
--		return dev->i2c_mux_adap[0];
-+		return dev->muxc->adapter[0];
- 	case I2C_1_MUX_3:
--		return dev->i2c_mux_adap[1];
-+		return dev->muxc->adapter[1];
- 	default:
- 		return NULL;
- 	}
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index ec6d3f5bc36d..fab222059e51 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -625,6 +625,7 @@ struct cx231xx {
- 
- 	/* I2C adapters: Master 1 & 2 (External) & Master 3 (Internal only) */
- 	struct cx231xx_i2c i2c_bus[3];
-+	struct i2c_mux_core *muxc;
- 	struct i2c_adapter *i2c_mux_adap[2];
- 
- 	unsigned int xc_fw_load_done:1;
-@@ -759,8 +760,9 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
- void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
- int cx231xx_i2c_register(struct cx231xx_i2c *bus);
- int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
-+int cx231xx_i2c_mux_create(struct cx231xx *dev);
- int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no);
--void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no);
-+void cx231xx_i2c_mux_unregister(struct cx231xx *dev);
- struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port);
- 
- /* Internal block control functions */
+ 		vencltsys: clock-controller@19000000 {
+ 			compatible = "mediatek,mt8173-vencltsys", "syscon";
+ 			reg = <0 0x19000000 0 0x1000>;
 -- 
-2.1.4
+1.7.9.5
 
