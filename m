@@ -1,70 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:39586 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752144AbcCXIke (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59832 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756579AbcC2Jbh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 04:40:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Tue, 29 Mar 2016 05:31:37 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/4] [media] media-device: Simplify compat32 logic
-Date: Thu, 24 Mar 2016 10:40:33 +0200
-Message-ID: <1719837.HF58P2gl46@avalon>
-In-Reply-To: <442844a1add7446a8d5d2d91229fc0f043363381.1458760750.git.mchehab@osg.samsung.com>
-References: <cover.1458760750.git.mchehab@osg.samsung.com> <442844a1add7446a8d5d2d91229fc0f043363381.1458760750.git.mchehab@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Subject: [PATCH v2 2/2] [media] media: Improve documentation for link_setup/link_modify
+Date: Tue, 29 Mar 2016 06:31:28 -0300
+Message-Id: <0a562f0766e40f47092716e0f7744368bd6d963d.1459243882.git.mchehab@osg.samsung.com>
+In-Reply-To: <fef855a4cd482eb02cff982b01511c893ea6e75d.1459243882.git.mchehab@osg.samsung.com>
+References: <fef855a4cd482eb02cff982b01511c893ea6e75d.1459243882.git.mchehab@osg.samsung.com>
+In-Reply-To: <fef855a4cd482eb02cff982b01511c893ea6e75d.1459243882.git.mchehab@osg.samsung.com>
+References: <fef855a4cd482eb02cff982b01511c893ea6e75d.1459243882.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 23 Mar 2016 16:27:43 Mauro Carvalho Chehab wrote:
-> Only MEDIA_IOC_ENUM_LINKS32 require an special logic when
-> userspace is 32 bits and Kernel is 64 bits.
-> 
-> For the rest, media_device_ioctl() will do the right thing,
-> and will return -ENOIOCTLCMD if the ioctl is unknown.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/media-device.c | 8 +-------
->  1 file changed, 1 insertion(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 4a97d92a7e7d..4b5a2ab17b7e 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -508,10 +508,7 @@ static long media_device_compat_ioctl(struct file
-> *filp, unsigned int cmd, long ret;
-> 
->  	switch (cmd) {
-> -	case MEDIA_IOC_DEVICE_INFO:
-> -	case MEDIA_IOC_ENUM_ENTITIES:
-> -	case MEDIA_IOC_SETUP_LINK:
-> -	case MEDIA_IOC_G_TOPOLOGY:
-> +	default:
->  		return media_device_ioctl(filp, cmd, arg);
+Those callbacks are called with the media_device.graph_mutex hold.
 
-I'd move the default case last as done usually. Apart from that,
+Add a note about that, as the code called by those notifiers should
+not be touching in the mutex.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ include/media/media-device.h | 3 ++-
+ include/media/media-entity.h | 3 +++
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-> 
->  	case MEDIA_IOC_ENUM_LINKS32:
-> @@ -520,9 +517,6 @@ static long media_device_compat_ioctl(struct file *filp,
-> unsigned int cmd, (struct media_links_enum32 __user *)arg);
->  		mutex_unlock(&dev->graph_mutex);
->  		break;
-> -
-> -	default:
-> -		ret = -ENOIOCTLCMD;
->  	}
-> 
->  	return ret;
-
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index b04cfa907350..e6ad30c323fc 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -312,7 +312,8 @@ struct media_entity_notify {
+  * @enable_source: Enable Source Handler function pointer
+  * @disable_source: Disable Source Handler function pointer
+  *
+- * @link_notify: Link state change notification callback
++ * @link_notify: Link state change notification callback. This callback is
++ * Called with the graph_mutex hold.
+  *
+  * This structure represents an abstract high-level media device. It allows easy
+  * access to entities and provides basic media device-level support. The
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 6dc9e4e8cbd4..0b16ebe36db7 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -179,6 +179,9 @@ struct media_pad {
+  * @link_validate:	Return whether a link is valid from the entity point of
+  *			view. The media_entity_pipeline_start() function
+  *			validates all links by calling this operation. Optional.
++ *
++ * Note: Those ioctls should not touch the struct media_device.@graph_mutex
++ * field, as they're called with it already hold.
+  */
+ struct media_entity_operations {
+ 	int (*link_setup)(struct media_entity *entity,
 -- 
-Regards,
-
-Laurent Pinchart
+2.5.5
 
