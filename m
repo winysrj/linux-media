@@ -1,152 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:56592 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755388AbcCWPBE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 11:01:04 -0400
-Date: Wed, 23 Mar 2016 12:00:59 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	<linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v5 1/2] media: Add obj_type field to struct media_entity
-Message-ID: <20160323120059.030a7b61@recife.lan>
-In-Reply-To: <56F2A2B5.80206@xs4all.nl>
-References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<1458722756-7269-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<20160323073552.18db3b7e@recife.lan>
-	<56F2A2B5.80206@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:43816 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751230AbcC2DD0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Mar 2016 23:03:26 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1433C180526
+	for <linux-media@vger.kernel.org>; Tue, 29 Mar 2016 05:03:20 +0200 (CEST)
+Date: Tue, 29 Mar 2016 05:03:19 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160329030320.1433C180526@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 23 Mar 2016 15:05:41 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On 03/23/2016 11:35 AM, Mauro Carvalho Chehab wrote:
-> > Em Wed, 23 Mar 2016 10:45:55 +0200
-> > Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
-> >   
-> >> Code that processes media entities can require knowledge of the
-> >> structure type that embeds a particular media entity instance in order
-> >> to cast the entity to the proper object type. This needs is shown by the
-> >> presence of the is_media_entity_v4l2_io and is_media_entity_v4l2_subdev
-> >> functions.
-> >>
-> >> The implementation of those two functions relies on the entity function
-> >> field, which is both a wrong and an inefficient design, without even
-> >> mentioning the maintenance issue involved in updating the functions
-> >> every time a new entity function is added. Fix this by adding add an
-> >> obj_type field to the media entity structure to carry the information.
-> >>
-> >> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> ---
-> >>  drivers/media/media-device.c          |  2 +
-> >>  drivers/media/v4l2-core/v4l2-dev.c    |  1 +
-> >>  drivers/media/v4l2-core/v4l2-subdev.c |  1 +
-> >>  include/media/media-entity.h          | 79 +++++++++++++++++++----------------
-> >>  4 files changed, 46 insertions(+), 37 deletions(-)
-> >>
-> >> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> >> index 4a97d92a7e7d..88d8de3b7a4f 100644
-> >> --- a/drivers/media/media-device.c
-> >> +++ b/drivers/media/media-device.c
-> >> @@ -580,6 +580,8 @@ int __must_check media_device_register_entity(struct media_device *mdev,
-> >>  			 "Entity type for entity %s was not initialized!\n",
-> >>  			 entity->name);
-> >>  
-> >> +	WARN_ON(entity->obj_type == MEDIA_ENTITY_TYPE_INVALID);
-> >> +  
-> > 
-> > This is not ok. There are valid cases where the entity is not embedded
-> > on some other struct. That's the case of connectors/connections, for
-> > example: a connector/connection entity doesn't need anything else but
-> > struct media device.  
-> 
-> Once connectors are enabled, then we do need a MEDIA_ENTITY_TYPE_CONNECTOR or
-> MEDIA_ENTITY_TYPE_STANDALONE or something along those lines.
-> 
-> > Also, this is V4L2 specific. Neither ALSA nor DVB need to use container_of().
-> > Actually, this won't even work there, as the entity is stored as a pointer,
-> > and not as an embedded data.  
-> 
-> Any other subsystem that *does* embed this can use obj_type. If it doesn't embed
-> it in anything, then MEDIA_ENTITY_TYPE_STANDALONE should be used (or whatever
-> name we give it). I agree that we need a type define for the case where it is
-> not embedded.
-> 
-> > 
-> > So, if we're willing to do this, then it should, instead, create
-> > something like:
-> > 
-> > struct embedded_media_entity {
-> > 	struct media_entity entity;
-> > 	enum media_entity_type obj_type;
-> > };  
-> 
-> It's not v4l2 specific. It is just that v4l2 is the only subsystem that requires
-> this information at the moment. I see no reason at all to create such an ugly
-> struct.
+Results of the daily build of media_tree:
 
-At the minute we added a BUG_ON() there, it became mandatory that all
-struct media_entity to be embedded. This is not always true, but
-as the intention is to avoid the risk of embedding it without a type,
-it makes sense to have the above struct. This way, the obj_type
-usage will be enforced *only* in the places where it is needed.
+date:		Tue Mar 29 04:00:22 CEST 2016
+git branch:	test
+git hash:	2705c1a96f978450377f1019d4bef34190b4ef05
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3353-gcae47da
+host hardware:	x86_64
+host os:	4.4.0-164
 
-We could, instead, remove BUG_ON() and make MEDIA_ENTITY_TYPE_STANDALONE
-the default type, but that won't enforce its usage where it is needed.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
-> I very strongly suspect that other subsystems will also embed this in their own
-> internal structs. 
+Detailed results are available here:
 
-They will if they need.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-> I actually wonder why it isn't embedded in struct dvb_device,
-> but I have to admit that I didn't take a close look at that. The pads are embedded
-> there, so it is somewhat odd that the entity isn't.
+Full logs are available here:
 
-The only advantage of embedding instead of using a pointer is that
-it would allow to use container_of() to get the struct. On the
-other hand, there's one drawback: both container and embedded
-structs will be destroyed at the same time. This can be a problem
-if the embedded object needs to live longer than the container.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-Also, the usage of container_of() doesn't work fine if the
-container have embedded two objects of the same type.
+The Media Infrastructure API from this daily build is here:
 
-In the specific case of DVB, let's imagine we would use the above
-solution and add a MEDIA_ENTITY_TYPE_DVB_DEVICE.
-
-If you look into struct dvb_device, you'll see that there are
-actually two media_entities on it:
-
-struct dvb_device {
-...
-        struct media_entity *entity, *tsout_entity;
-...
-};
-
-If we had embedded them, just knowing that the container is
-struct dvb_device won't help, as the offsets for "entity"
-and for "tsout_entity" to get its container would be different.
-
-OK, we could have added two types there, but all of these
-would be just adding uneeded complexity and wound't be error
-prone. Also, there's no need to use container_of(), as a pointer
-to the dvb_device struct is always there at the DVB code.
-
-The same happens at ALSA code: so far, there's no need to go from a
-media_entity to its container.
-
-So, as I said before, the usage of container_of() and the need for an
-object type is currently V4L2 specific, and it is due to the way
-the v4l2 core and subdev framework was modeled. Don't expect or
-force that all subsystems would do the same.
-
-Regards,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
