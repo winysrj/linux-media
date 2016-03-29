@@ -1,74 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35441 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755837AbcCCHhT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Mar 2016 02:37:19 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l2-mc.h: fix compiler warnings
-Message-ID: <56D7E9AA.90304@xs4all.nl>
-Date: Thu, 3 Mar 2016 08:37:14 +0100
+Received: from mga02.intel.com ([134.134.136.20]:27069 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753748AbcC2RUq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2016 13:20:46 -0400
+Subject: Re: [PATCH] dma-buf: Update docs for SYNC ioctl
+To: David Herrmann <dh.herrmann@gmail.com>
+References: <CAO_48GGT48RZaLjg9C+51JyPKzYkkDCFCTrMgfUB+PxQyV8d+Q@mail.gmail.com>
+ <1458546705-3564-1-git-send-email-daniel.vetter@ffwll.ch>
+ <CANq1E4S0skXbWBOv2bgVddLmZXZE6B7es=+NHKDuJehggnzSvw@mail.gmail.com>
+ <20160321171405.GP28483@phenom.ffwll.local>
+ <CANq1E4S4_vmCcPZJwpHkfOYuDe3boHCsYGW8q0U4=+tLui+QYg@mail.gmail.com>
+ <20160323115659.GF21717@nuc-i3427.alporthouse.com>
+ <CANq1E4SFPMoE4G4XARFLyEH40OOZnR2v_PQD4=ps3KBvVXUHpA@mail.gmail.com>
+ <20160323154223.GJ21717@nuc-i3427.alporthouse.com>
+ <56F98915.1030200@intel.com>
+ <CANq1E4Q-aXTx5YGh0yOiU8cRh_opqrUrGin7qn-9N_EszjXfvA@mail.gmail.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	=?UTF-8?Q?St=c3=a9phane_Marchesin?= <marcheu@chromium.org>,
+	Daniel Vetter <daniel.vetter@intel.com>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
+	devel@driverdev.osuosl.org, Hans Verkuil <hverkuil@xs4all.nl>
+From: Tiago Vignatti <tiago.vignatti@intel.com>
+Message-ID: <56FAB954.2060408@intel.com>
+Date: Tue, 29 Mar 2016 14:20:20 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <CANq1E4Q-aXTx5YGh0yOiU8cRh_opqrUrGin7qn-9N_EszjXfvA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix these warnings when CONFIG_MEDIA_CONTROLLER is not defined:
+On 03/29/2016 06:47 AM, David Herrmann wrote:
+> Hi
+>
+> On Mon, Mar 28, 2016 at 9:42 PM, Tiago Vignatti
+> <tiago.vignatti@intel.com> wrote:
+>> Do we have an agreement here after all? David? I need to know whether this
+>> fixup is okay to go cause I'll need to submit to Chrome OS then.
+>
+> Sure it is fine. The code is already there, we cannot change it.
 
-In file included from /home/hans/work/build/media-git/drivers/media/v4l2-core/v4l2-fh.c:32:0:
-/home/hans/work/build/media-git/include/media/v4l2-mc.h:173:12: warning: 'v4l_enable_media_source' defined but not used [-Wunused-function]
- static int v4l_enable_media_source(struct video_device *vdev)
-            ^
-/home/hans/work/build/media-git/include/media/v4l2-mc.h:183:12: warning: 'v4l_vb2q_enable_media_source' defined but not used [-Wunused-function]
- static int v4l_vb2q_enable_media_source(struct vb2_queue *q)
-            ^
-In file included from /home/hans/work/build/media-git/include/media/tuner.h:23:0,
-                 from /home/hans/work/build/media-git/drivers/media/tuners/tuner-types.c:9:
-/home/hans/work/build/media-git/include/media/v4l2-mc.h:173:12: warning: 'v4l_enable_media_source' defined but not used [-Wunused-function]
- static int v4l_enable_media_source(struct video_device *vdev)
-            ^
-/home/hans/work/build/media-git/include/media/v4l2-mc.h:178:13: warning: 'v4l_disable_media_source' defined but not used [-Wunused-function]
- static void v4l_disable_media_source(struct video_device *vdev)
-             ^
+ah true. Only now that I've noticed it's already in Linus tree. Thanks 
+anyway!
 
+Tiago
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-
-Please test without CONFIG_MEDIA_CONTROLLER or at least check the daily build results!
-This is the second time I have to clean up a mistake in this header.
-
-Regards,
-
-	Hans
-
----
-diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-index 5cbc209..311885e 100644
---- a/include/media/v4l2-mc.h
-+++ b/include/media/v4l2-mc.h
-@@ -170,17 +170,17 @@ static inline int v4l2_mc_create_media_graph(struct media_device *mdev)
- 	return 0;
- }
-
--static int v4l_enable_media_source(struct video_device *vdev)
-+static inline int v4l_enable_media_source(struct video_device *vdev)
- {
- 	return 0;
- }
-
--static void v4l_disable_media_source(struct video_device *vdev)
-+static inline void v4l_disable_media_source(struct video_device *vdev)
- {
- 	return;
- }
-
--static int v4l_vb2q_enable_media_source(struct vb2_queue *q)
-+static inline int v4l_vb2q_enable_media_source(struct vb2_queue *q)
- {
- 	return 0;
- }
