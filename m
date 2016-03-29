@@ -1,107 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40281 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055AbcCXX1z (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:39809 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755541AbcC2AZe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 19:27:55 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 06/51] v4l: vsp1: video: Fix coding style
-Date: Fri, 25 Mar 2016 01:27:02 +0200
-Message-Id: <1458862067-19525-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458862067-19525-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 28 Mar 2016 20:25:34 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, hans.verkuil@cisco.com,
+	nenggun.kim@samsung.com, jh1009.sung@samsung.com,
+	chehabrafael@gmail.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] media: au0828 fix au0828_v4l2_device_register() to not unlock and free
+Date: Mon, 28 Mar 2016 18:25:29 -0600
+Message-Id: <1459211129-7968-1-git-send-email-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 54b5a749b4f3 ("[media] v4l: vsp1: Use media entity enumeration
-interface") wasn't aligned with the driver coding style. Fix it by
-renaming the rval variable to ret.
+au0828_v4l2_device_register() unlocks au0828_dev->lock and frees au0828
+dev in error legs before return. au0828_usb_probe() does the same when
+au0828_v4l2_device_register() returns error.
 
-Furthermore shorten lines by accessing the media_device instance in a
-more straightforward fashion.
+Fix au0828_v4l2_device_register() to not to unlock and free in its error
+legs.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ drivers/media/usb/au0828/au0828-video.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 72cc7d3729f8..b97bbdb1a256 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -175,31 +175,30 @@ static int vsp1_video_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 					       struct vsp1_rwpf *input,
- 					       struct vsp1_rwpf *output)
- {
--	struct vsp1_entity *entity;
- 	struct media_entity_enum ent_enum;
-+	struct vsp1_entity *entity;
- 	struct media_pad *pad;
--	int rval;
- 	bool bru_found = false;
-+	int ret;
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 32d7db9..7d0ec4c 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -679,8 +679,6 @@ int au0828_v4l2_device_register(struct usb_interface *interface,
+ 	if (retval) {
+ 		pr_err("%s() v4l2_device_register failed\n",
+ 		       __func__);
+-		mutex_unlock(&dev->lock);
+-		kfree(dev);
+ 		return retval;
+ 	}
  
- 	input->location.left = 0;
- 	input->location.top = 0;
- 
--	rval = media_entity_enum_init(
--		&ent_enum, input->entity.pads[RWPF_PAD_SOURCE].graph_obj.mdev);
--	if (rval)
--		return rval;
-+	ret = media_entity_enum_init(&ent_enum, &input->entity.vsp1->media_dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	pad = media_entity_remote_pad(&input->entity.pads[RWPF_PAD_SOURCE]);
- 
- 	while (1) {
- 		if (pad == NULL) {
--			rval = -EPIPE;
-+			ret = -EPIPE;
- 			goto out;
- 		}
- 
- 		/* We've reached a video node, that shouldn't have happened. */
- 		if (!is_media_entity_v4l2_subdev(pad->entity)) {
--			rval = -EPIPE;
-+			ret = -EPIPE;
- 			goto out;
- 		}
- 
-@@ -229,14 +228,14 @@ static int vsp1_video_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 		/* Ensure the branch has no loop. */
- 		if (media_entity_enum_test_and_set(&ent_enum,
- 						   &entity->subdev.entity)) {
--			rval = -EPIPE;
-+			ret = -EPIPE;
- 			goto out;
- 		}
- 
- 		/* UDS can't be chained. */
- 		if (entity->type == VSP1_ENTITY_UDS) {
- 			if (pipe->uds) {
--				rval = -EPIPE;
-+				ret = -EPIPE;
- 				goto out;
- 			}
- 
-@@ -256,12 +255,12 @@ static int vsp1_video_pipeline_validate_branch(struct vsp1_pipeline *pipe,
- 
- 	/* The last entity must be the output WPF. */
- 	if (entity != &output->entity)
--		rval = -EPIPE;
-+		ret = -EPIPE;
- 
- out:
- 	media_entity_enum_cleanup(&ent_enum);
- 
--	return rval;
-+	return ret;
- }
- 
- static int vsp1_video_pipeline_validate(struct vsp1_pipeline *pipe,
+@@ -691,8 +689,6 @@ int au0828_v4l2_device_register(struct usb_interface *interface,
+ 	if (retval) {
+ 		pr_err("%s() v4l2_ctrl_handler_init failed\n",
+ 		       __func__);
+-		mutex_unlock(&dev->lock);
+-		kfree(dev);
+ 		return retval;
+ 	}
+ 	dev->v4l2_dev.ctrl_handler = &dev->v4l2_ctrl_hdl;
 -- 
-2.7.3
+2.5.0
 
