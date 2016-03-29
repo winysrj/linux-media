@@ -1,71 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54533 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933188AbcCROCB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Mar 2016 10:02:01 -0400
-Subject: Re: [PATCH] [media] media: rename media unregister function
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <2ffc02c944068b2c8655727238d1542f8328385d.1458306276.git.mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hyun Kwon <hyun.kwon@xilinx.com>,
-	Michal Simek <michal.simek@xilinx.com>,
-	=?UTF-8?Q?S=c3=b6ren_Brinkmann?= <soren.brinkmann@xilinx.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Geunyoung Kim <nenggun.kim@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>, Tommi Rantala <tt.rantala@gmail.com>,
-	Matthias Schwarzott <zzam@gentoo.org>,
-	Patrick Boettcher <patrick.boettcher@posteo.de>,
-	Luis de Bethencourt <luis@debethencourt.com>,
-	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-	Julia Lawall <Julia.Lawall@lip6.fr>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56EC0A55.3010803@osg.samsung.com>
-Date: Fri, 18 Mar 2016 08:01:57 -0600
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:35499 "EHLO
+	mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751041AbcC2G2k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2016 02:28:40 -0400
 MIME-Version: 1.0
-In-Reply-To: <2ffc02c944068b2c8655727238d1542f8328385d.1458306276.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1458911416-47981-4-git-send-email-hverkuil@xs4all.nl>
+References: <1458911416-47981-1-git-send-email-hverkuil@xs4all.nl>
+	<1458911416-47981-4-git-send-email-hverkuil@xs4all.nl>
+Date: Tue, 29 Mar 2016 15:28:39 +0900
+Message-ID: <CAJKOXPdpkE5OdNEAVTsbQrjpZZgwDgY2=g9ocM0rFaOU-N=pEw@mail.gmail.com>
+Subject: Re: [PATCHv14 03/18] dts: exynos4412-odroid*: enable the HDMI CEC device
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-samsung-soc@vger.kernel.org, linux-input@vger.kernel.org,
+	lars@opdenkamp.eu, linux@arm.linux.org.uk,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/18/2016 07:05 AM, Mauro Carvalho Chehab wrote:
-> Now that media_device_unregister() also does a cleanup, rename it
-> to media_device_unregister_cleanup().
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+On Fri, Mar 25, 2016 at 10:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
+>
+> Add a dts node entry and enable the HDMI CEC device present in the Exynos4
+> family of SoCs.
+>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  arch/arm/boot/dts/exynos4412-odroid-common.dtsi | 4 ++++
+>  1 file changed, 4 insertions(+)
 
-I think adding cleanup is redundant. media_device_unregister()
-would imply that there has to be some cleanup releasing resources.
-I wouldn't make this change.
+Applied for v4.7 with a little bit different subject and the new node
+put in alphabetical order. Please don't include your original patch in
+your tree because any merging will probably end with having these
+nodes twice.
 
-thanks,
--- Shuah
+https://git.kernel.org/cgit/linux/kernel/git/krzk/linux.git/log/?h=next/dt
+(but tell me if you need to base on this so I would prepare a tag)
 
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Best regards,
+Krzysztof
