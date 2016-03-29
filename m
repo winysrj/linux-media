@@ -1,101 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55052 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:58928 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754400AbcCUL6M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 07:58:12 -0400
-Date: Mon, 21 Mar 2016 08:58:05 -0300
+	id S1756573AbcC2JRk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Mar 2016 05:17:40 -0400
+Date: Tue, 29 Mar 2016 06:17:34 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jaroslav Kysela <perex@perex.cz>,
-	Takashi Iwai <tiwai@suse.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
-	<chehabrafael@gmail.com>, alsa-devel@alsa-project.org
-Subject: Re: [PATCH v2] [media] media-device: use kref for media_device
- instance
-Message-ID: <20160321085805.5e8c4634@recife.lan>
-In-Reply-To: <3052381.o5ho2okSRi@avalon>
-References: <9d8830150475bc4d4dde2fa1f5163aef82a35477.1458347578.git.mchehab@osg.samsung.com>
-	<3052381.o5ho2okSRi@avalon>
+	Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Re: [PATCH 2/2] [media] avoid double locks with graph_mutex
+Message-ID: <20160329061734.1a1a5291@recife.lan>
+In-Reply-To: <20160328220642.GD32125@valkosipuli.retiisi.org.uk>
+References: <91b3d9b66d52707ca95d996edd423c0f5e36b6ca.1459188623.git.mchehab@osg.samsung.com>
+	<3cabc4b828abac3c6dea240ae22d4754a438ad1b.1459188623.git.mchehab@osg.samsung.com>
+	<20160328220642.GD32125@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 21 Mar 2016 13:10:33 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Em Tue, 29 Mar 2016 01:06:42 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
 > Hi Mauro,
 > 
-> Thank you for the patch.
+> Please see my comments below.
 > 
-> On Friday 18 Mar 2016 21:42:16 Mauro Carvalho Chehab wrote:
-> > Now that the media_device can be used by multiple drivers,
-> > via devres, we need to be sure that it will be dropped only
-> > when all drivers stop using it.  
+> On Mon, Mar 28, 2016 at 03:11:04PM -0300, Mauro Carvalho Chehab wrote:
+> > Add a note at the headers telling that the link setup
+> > callbacks are called with the mutex hold. Also, removes a
+> > double lock at the PM suspend callbacks.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > ---
+> >  drivers/media/media-device.c      | 1 -
+> >  drivers/media/v4l2-core/v4l2-mc.c | 4 ----
+> >  include/media/media-device.h      | 3 ++-
+> >  include/media/media-entity.h      | 3 +++
+> >  4 files changed, 5 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 6cfa890af7b4..6af5e6932271 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -93,7 +93,6 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+> >  	media_device_for_each_entity(entity, mdev) {
+> >  		if (((media_entity_id(entity) == id) && !next) ||
+> >  		    ((media_entity_id(entity) > id) && next)) {
+> > -			mutex_unlock(&mdev->graph_mutex);  
 > 
-> I've discussed this with Shuah previously and I'm surprised to see that the 
-> problem hasn't been fixed : using devres for this purpose is just plain wrong. 
+> Unrelated to this patch.
 
-I didn't follow your discussions with Shuah. I'm pretty sure I didn't
-see any such reply to the /22 patch series. 
+Yes. This belongs to patch 1.
 
-For sure there are other approaches, although I wouldn't say that this
-approach is plain wrong. It was actually suggested by Greg KH at the
-USB summit, back in 2011:
-	https://lkml.org/lkml/2011/8/21/61
-
-It works fine in the cases like the ones Shuah is currently addressing: 
-USB devices that have multiple interfaces handled by independent drivers.
-
-Going further, right now, as far as I'm aware of, there are only two use
-cases for a driver-independent media_device struct in the media subsystem
-(on the upstream Kernel):
-
-- USB devices with USB Audio Class: au0828 and em28xx drivers,
-  plus snd-usb-audio;
-
-- bt878/bt879 PCI devices, where the DVB driver is independent
-  from the V4L2 one (affects bt87x and bttv drivers).
-
-The devres approach fits well for both use cases.
-
-Ok, there are a plenty of OOT SoC drivers that might benefit of some
-other solution, but we should care about them only if/when they got
-upstreamed.
-
-> The empty media_device_release_devres() function should have given you a hint.
 > 
-> What we need instead is a list of media devices indexed by struct device (for 
-> this use case) or by struct device_node (for DT use cases). It will both 
-> simplify the code and get rid of the devres abuse.
+> Please do also consider compat IOCTL handling code.
+> 
+> >  			return entity;
+> >  		}
+> >  	}
+> > diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+> > index 2228cd3a846e..d44ff2ec314f 100644
+> > --- a/drivers/media/v4l2-core/v4l2-mc.c
+> > +++ b/drivers/media/v4l2-core/v4l2-mc.c
+> > @@ -348,8 +348,6 @@ int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
+> >  	int change = use ? 1 : -1;
+> >  	int ret;
+> >  
+> > -	mutex_lock(&mdev->graph_mutex);  
+> 
+> What's the motivation for this change and the one below?
+> 
+> As far as I can see, they remove access serialisation of graph state during
+> graph walk, which certainly is not the right thing to do.
 
-Yeah, Shuah's approach should be changed to a different one, in order to
-work for DT use cases. It would be good to have a real DT use case for us
-to validate the solution, before we start implementing something in the
-wild.
+You're right. This is not correct. I was thinking that v4l2_pipeline_pm_use()
+was called by v4l2_pipeline_link_notify(), but this is not the case. The 
+function called there is pipeline_pm_use_count(), with doesn't hold the mutex.
 
-Still, it would very likely need a kref there, in order to destroy the
-media controller struct only after all drivers stop using it.
+> > -
+> >  	/* Apply use count to node. */
+> >  	entity->use_count += change;
+> >  	WARN_ON(entity->use_count < 0);
+> > @@ -359,8 +357,6 @@ int v4l2_pipeline_pm_use(struct media_entity *entity, int use)
+> >  	if (ret < 0)
+> >  		entity->use_count -= change;
+> >  
+> > -	mutex_unlock(&mdev->graph_mutex);
+> > -
+> >  	return ret;
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_pipeline_pm_use);
+> > diff --git a/include/media/media-device.h b/include/media/media-device.h
+> > index b04cfa907350..e6ad30c323fc 100644
+> > --- a/include/media/media-device.h
+> > +++ b/include/media/media-device.h
+> > @@ -312,7 +312,8 @@ struct media_entity_notify {
+> >   * @enable_source: Enable Source Handler function pointer
+> >   * @disable_source: Disable Source Handler function pointer
+> >   *
+> > - * @link_notify: Link state change notification callback
+> > + * @link_notify: Link state change notification callback. This callback is
+> > + * Called with the graph_mutex hold.  
+> 
+> I don't mind adding documentation such as this, but I'd put it into a
+> separate patch.
 
-> Shuah, if I recall correctly you worked on implementing such a solution after 
-> our last discussion on the topic. Could you please update us on the status ?
+Ok. Patch 2 will be just a documentation patch. I'll resend the series in
+a few.
 
-I saw a Shuah's email proposing to discuss this at the media summit.
 
-> In the mean time, let's hold off on this patch, and merge a proper solution 
-> instead.
+> 
+> >   *
+> >   * This structure represents an abstract high-level media device. It allows easy
+> >   * access to entities and provides basic media device-level support. The
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 6dc9e4e8cbd4..0b16ebe36db7 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -179,6 +179,9 @@ struct media_pad {
+> >   * @link_validate:	Return whether a link is valid from the entity point of
+> >   *			view. The media_entity_pipeline_start() function
+> >   *			validates all links by calling this operation. Optional.
+> > + *
+> > + * Note: Those ioctls should not touch the struct media_device.@graph_mutex
+> > + * field, as they're called with it already hold.
+> >   */
+> >  struct media_entity_operations {
+> >  	int (*link_setup)(struct media_entity *entity,  
+> 
 
-Well, we should send a fix for the current issues for Kernel 4.6.
 
-As the number of drivers that would be using this internal API is small
-(right now, only 2 drivers), replacing devres by some other strategy
-in the future should be easy.
-
-Regards,
+-- 
+Thanks,
 Mauro
