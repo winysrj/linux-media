@@ -1,77 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:33858 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964938AbcCNNnu (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55813 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754584AbcC3C1q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 09:43:50 -0400
-Received: by mail-lb0-f176.google.com with SMTP id k12so6819663lbb.1
-        for <linux-media@vger.kernel.org>; Mon, 14 Mar 2016 06:43:49 -0700 (PDT)
-Date: Mon, 14 Mar 2016 14:43:47 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-	<niklas.soderlund@ragnatech.se>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/2] v4l2-ioctl: simplify code
-Message-ID: <20160314134347.GB24409@bigcity.dyn.berto.se>
-References: <1456741000-39069-1-git-send-email-hverkuil@xs4all.nl>
- <1456741000-39069-2-git-send-email-hverkuil@xs4all.nl>
- <20160314124243.GA24409@bigcity.dyn.berto.se>
- <56E6B401.5090504@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <56E6B401.5090504@xs4all.nl>
+	Tue, 29 Mar 2016 22:27:46 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id D541C180436
+	for <linux-media@vger.kernel.org>; Wed, 30 Mar 2016 04:27:40 +0200 (CEST)
+Date: Wed, 30 Mar 2016 04:27:40 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160330022740.D541C180436@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-03-14 13:52:17 +0100, Hans Verkuil wrote:
-> On 03/14/2016 01:42 PM, Niklas Söderlund wrote:
-> > Hi Hans,
-> > 
-> > On 2016-02-29 11:16:39 +0100, Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> Instead of a big if at the beginning, just check if g_selection == NULL
-> >> and call the cropcap op immediately and return the result.
-> >>
-> >> No functional changes in this patch.
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>  drivers/media/v4l2-core/v4l2-ioctl.c | 44 ++++++++++++++++++------------------
-> >>  1 file changed, 22 insertions(+), 22 deletions(-)
-> >>
-> >> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> >> index 86c4c19..67dbb03 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> >> @@ -2157,33 +2157,33 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
-> >>  				struct file *file, void *fh, void *arg)
-> >>  {
-> >>  	struct v4l2_cropcap *p = arg;
-> >> +	struct v4l2_selection s = { .type = p->type };
-> >> +	int ret;
-> >>  
-> >> -	if (ops->vidioc_g_selection) {
-> >> -		struct v4l2_selection s = { .type = p->type };
-> >> -		int ret;
-> >> +	if (ops->vidioc_g_selection == NULL)
-> >> +		return ops->vidioc_cropcap(file, fh, p);
-> > 
-> > I might be missing something but is there a guarantee 
-> > ops->vidioc_cropcap is not NULL here?
-> 
-> There is, either vidioc_g_selection or vidioc_cropcap will always be
-> non-NULL. Since g_selection == NULL it follows that cropcap != NULL.
-> 
-> But I admit that it isn't exactly obvious since the test that ensures
-> this is in determine_valid_ioctls() in v4l2-dev.c.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Nice, thanks for clarifying.
+Results of the daily build of media_tree:
 
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+date:		Wed Mar 30 04:00:23 CEST 2016
+git branch:	test
+git hash:	d3f5193019443ef8e556b64f3cd359773c4d377b
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3353-gcae47da
+host hardware:	x86_64
+host os:	4.4.0-164
 
--- 
-Regards,
-Niklas Söderlund
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: ERRORS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
