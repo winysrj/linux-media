@@ -1,202 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54141 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934290AbcCPOFR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 10:05:17 -0400
-Subject: Re: [PATCH 4/5] [media] media-device: use kref for media_device
- instance
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4.1458129823.git.mchehab@osg.samsung.com>
- <82ef082c4de7c0a1c546da1d9e462bc86ab423bf.1458129823.git.mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56E9681B.3070403@osg.samsung.com>
-Date: Wed, 16 Mar 2016 08:05:15 -0600
-MIME-Version: 1.0
-In-Reply-To: <82ef082c4de7c0a1c546da1d9e462bc86ab423bf.1458129823.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from down.free-electrons.com ([37.187.137.238]:60551 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754560AbcC3PkB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Mar 2016 11:40:01 -0400
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	linux-mtd@lists.infradead.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dave Gordon <david.s.gordon@intel.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Richard Weinberger <richard@nod.at>
+Subject: [PATCH v2 3/7] mtd: nand: sunxi: make cur_off parameter optional in extra oob helpers
+Date: Wed, 30 Mar 2016 17:39:50 +0200
+Message-Id: <1459352394-22810-4-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1459352394-22810-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1459352394-22810-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2016 06:04 AM, Mauro Carvalho Chehab wrote:
-> Now that the media_device can be used by multiple drivers,
-> via devres, we need to be sure that it will be dropped only
-> when all drivers stop using it.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/media-device.c | 48 +++++++++++++++++++++++++++++++-------------
->  include/media/media-device.h |  3 +++
->  2 files changed, 37 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index c32fa15cc76e..38e6c319fe6e 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -721,6 +721,15 @@ int __must_check __media_device_register(struct media_device *mdev,
->  {
->  	int ret;
->  
-> +	/* Check if mdev was ever registered at all */
-> +	mutex_lock(&mdev->graph_mutex);
-> +	if (media_devnode_is_registered(&mdev->devnode)) {
-> +		kref_get(&mdev->kref);
-> +		mutex_unlock(&mdev->graph_mutex);
-> +		return 0;
-> +	}
-> +	kref_init(&mdev->kref);
-> +
->  	/* Register the device node. */
->  	mdev->devnode.fops = &media_device_fops;
->  	mdev->devnode.parent = mdev->dev;
-> @@ -730,8 +739,10 @@ int __must_check __media_device_register(struct media_device *mdev,
->  	mdev->topology_version = 0;
->  
->  	ret = media_devnode_register(&mdev->devnode, owner);
-> -	if (ret < 0)
-> +	if (ret < 0) {
-> +		media_devnode_unregister(&mdev->devnode);
->  		return ret;
-> +	}
->  
->  	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
->  	if (ret < 0) {
-> @@ -739,6 +750,7 @@ int __must_check __media_device_register(struct media_device *mdev,
->  		return ret;
->  	}
->  
-> +	mutex_unlock(&mdev->graph_mutex);
->  	dev_dbg(mdev->dev, "Media device registered\n");
->  
->  	return 0;
-> @@ -773,23 +785,15 @@ void media_device_unregister_entity_notify(struct media_device *mdev,
->  }
->  EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
->  
-> -void media_device_unregister(struct media_device *mdev)
-> +static void do_media_device_unregister(struct kref *kref)
->  {
-> +	struct media_device *mdev;
->  	struct media_entity *entity;
->  	struct media_entity *next;
->  	struct media_interface *intf, *tmp_intf;
->  	struct media_entity_notify *notify, *nextp;
->  
-> -	if (mdev == NULL)
-> -		return;
-> -
-> -	mutex_lock(&mdev->graph_mutex);
-> -
-> -	/* Check if mdev was ever registered at all */
-> -	if (!media_devnode_is_registered(&mdev->devnode)) {
-> -		mutex_unlock(&mdev->graph_mutex);
-> -		return;
-> -	}
-> +	mdev = container_of(kref, struct media_device, kref);
->  
->  	/* Remove all entities from the media device */
->  	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
-> @@ -807,13 +811,26 @@ void media_device_unregister(struct media_device *mdev)
->  		kfree(intf);
->  	}
->  
-> -	mutex_unlock(&mdev->graph_mutex);
-> +	/* Check if mdev devnode was registered */
-> +	if (!media_devnode_is_registered(&mdev->devnode))
-> +		return;
->  
->  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
->  	media_devnode_unregister(&mdev->devnode);
+Allow for NULL cur_offs values when the caller does not know where the
+NAND page register pointer point to.
 
-Patch looks good.
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ drivers/mtd/nand/sunxi_nand.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Reviewed-by: Shuah Khan <shuahkh@osg.samsung.com>
-
-Please see a few comments below that aren't related to this patch.
-
-The above is unprotected and could be done twice when two drivers
-call media_device_unregister(). I think we still mark the media
-device unregistered in media_devnode_unregister(). We have to
-protect these two steps still.
-
-I attempted to do this with a unregister in progress flag which
-gets set at the beginning in media_device_unregister(). That
-does ensure media_device_unregister() runs only once. If that
-approach isn't desirable, we have to find another way.
-
--- Shuah
->  
->  	dev_dbg(mdev->dev, "Media device unregistered\n");
->  }
-> +
-> +void media_device_unregister(struct media_device *mdev)
-> +{
-> +	if (mdev == NULL)
-> +		return;
-> +
-> +	mutex_lock(&mdev->graph_mutex);
-> +	kref_put(&mdev->kref, do_media_device_unregister);
-> +	mutex_unlock(&mdev->graph_mutex);
-> +
-> +}
->  EXPORT_SYMBOL_GPL(media_device_unregister);
->  
->  static void media_device_release_devres(struct device *dev, void *res)
-> @@ -825,13 +842,16 @@ struct media_device *media_device_get_devres(struct device *dev)
->  	struct media_device *mdev;
->  
->  	mdev = devres_find(dev, media_device_release_devres, NULL, NULL);
-> -	if (mdev)
-> +	if (mdev) {
-> +		kref_get(&mdev->kref);
->  		return mdev;
-> +	}
->  
->  	mdev = devres_alloc(media_device_release_devres,
->  				sizeof(struct media_device), GFP_KERNEL);
->  	if (!mdev)
->  		return NULL;
-> +
->  	return devres_get(dev, mdev, NULL, NULL);
->  }
->  EXPORT_SYMBOL_GPL(media_device_get_devres);
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index ca3871b853ba..73c16e6e6b6b 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -23,6 +23,7 @@
->  #ifndef _MEDIA_DEVICE_H
->  #define _MEDIA_DEVICE_H
->  
-> +#include <linux/kref.h>
->  #include <linux/list.h>
->  #include <linux/mutex.h>
->  
-> @@ -283,6 +284,7 @@ struct media_entity_notify {
->   * struct media_device - Media device
->   * @dev:	Parent device
->   * @devnode:	Media device node
-> + * @kref:	Object refcount
->   * @driver_name: Optional device driver name. If not set, calls to
->   *		%MEDIA_IOC_DEVICE_INFO will return dev->driver->name.
->   *		This is needed for USB drivers for example, as otherwise
-> @@ -347,6 +349,7 @@ struct media_device {
->  	/* dev->driver_data points to this struct. */
->  	struct device *dev;
->  	struct media_devnode devnode;
-> +	struct kref kref;
->  
->  	char model[32];
->  	char driver_name[32];
-> 
-
-
+diff --git a/drivers/mtd/nand/sunxi_nand.c b/drivers/mtd/nand/sunxi_nand.c
+index 3e7b919..6d6b166 100644
+--- a/drivers/mtd/nand/sunxi_nand.c
++++ b/drivers/mtd/nand/sunxi_nand.c
+@@ -956,7 +956,7 @@ static void sunxi_nfc_hw_ecc_read_extra_oob(struct mtd_info *mtd,
+ 	if (len <= 0)
+ 		return;
+ 
+-	if (*cur_off != offset)
++	if (!cur_off || *cur_off != offset)
+ 		nand->cmdfunc(mtd, NAND_CMD_RNDOUT,
+ 			      offset + mtd->writesize, -1);
+ 
+@@ -966,7 +966,8 @@ static void sunxi_nfc_hw_ecc_read_extra_oob(struct mtd_info *mtd,
+ 		sunxi_nfc_randomizer_read_buf(mtd, oob + offset, len,
+ 					      false, page);
+ 
+-	*cur_off = mtd->oobsize + mtd->writesize;
++	if (cur_off)
++		*cur_off = mtd->oobsize + mtd->writesize;
+ }
+ 
+ static int sunxi_nfc_hw_ecc_write_chunk(struct mtd_info *mtd,
+@@ -1021,13 +1022,14 @@ static void sunxi_nfc_hw_ecc_write_extra_oob(struct mtd_info *mtd,
+ 	if (len <= 0)
+ 		return;
+ 
+-	if (*cur_off != offset)
++	if (!cur_off || *cur_off != offset)
+ 		nand->cmdfunc(mtd, NAND_CMD_RNDIN,
+ 			      offset + mtd->writesize, -1);
+ 
+ 	sunxi_nfc_randomizer_write_buf(mtd, oob + offset, len, false, page);
+ 
+-	*cur_off = mtd->oobsize + mtd->writesize;
++	if (cur_off)
++		*cur_off = mtd->oobsize + mtd->writesize;
+ }
+ 
+ static int sunxi_nfc_hw_ecc_read_page(struct mtd_info *mtd,
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+2.5.0
+
