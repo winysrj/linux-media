@@ -1,65 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:24396 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752299AbcCKMiA (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:60585 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754578AbcC3PkC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Mar 2016 07:38:00 -0500
-Subject: Re: [RFT 2/2] [media] exynos4-is: Add missing port parent of_node_put
- on error paths
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-References: <1453768906-28979-1-git-send-email-k.kozlowski@samsung.com>
- <1453768906-28979-2-git-send-email-k.kozlowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kukjin Kim <kgene@kernel.org>, linux-media@vger.kernel.org,
+	Wed, 30 Mar 2016 11:40:02 -0400
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	linux-mtd@lists.infradead.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dave Gordon <david.s.gordon@intel.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <56E2BC1F.1090805@samsung.com>
-Date: Fri, 11 Mar 2016 13:37:51 +0100
-MIME-version: 1.0
-In-reply-to: <1453768906-28979-2-git-send-email-k.kozlowski@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Richard Weinberger <richard@nod.at>
+Subject: [PATCH v2 5/7] mtd: provide helper to prepare buffers for DMA operations
+Date: Wed, 30 Mar 2016 17:39:52 +0200
+Message-Id: <1459352394-22810-6-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1459352394-22810-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1459352394-22810-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/26/2016 01:41 AM, Krzysztof Kozlowski wrote:
-> In fimc_md_parse_port_node() remote port parent node is get with
-> of_graph_get_remote_port_parent() but it is not put on error path.
-> 
-> Fixes: fa91f1056f17 ("[media] exynos4-is: Add support for 
-> asynchronous subdevices registration")
-> Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Some NAND controller drivers are making use of DMA to transfer data from
+the controller to the buffer passed by the MTD user.
+Provide a generic mtd_map/unmap_buf() implementation to avoid open coded
+(and sometime erroneous) implementations.
 
-Thanks, patch applied with s/is get/is acquired/.
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ drivers/mtd/mtdcore.c   | 66 +++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mtd/mtd.h | 25 +++++++++++++++++++
+ 2 files changed, 91 insertions(+)
 
-> ---
-> 
-> Not tested on hardware, only built+static checkers.
-> ---
->  drivers/media/platform/exynos4-is/media-dev.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c 
-> b/drivers/media/platform/exynos4-is/media-dev.c
-> index de0977479327..d2e564878e06 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -385,8 +385,10 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->  	else
->  		pd->fimc_bus_type = pd->sensor_bus_type;
->  
-> -	if (WARN_ON(index >= ARRAY_SIZE(fmd->sensor)))
-> +	if (WARN_ON(index >= ARRAY_SIZE(fmd->sensor))) {
-> +		of_node_put(rem);
->  		return -EINVAL;
-> +	}
->  
->  	fmd->sensor[index].asd.match_type = V4L2_ASYNC_MATCH_OF;
->  	fmd->sensor[index].asd.match.of.node = rem;
-
+diff --git a/drivers/mtd/mtdcore.c b/drivers/mtd/mtdcore.c
+index 3096251..3c368f0 100644
+--- a/drivers/mtd/mtdcore.c
++++ b/drivers/mtd/mtdcore.c
+@@ -1253,6 +1253,72 @@ void *mtd_kmalloc_up_to(const struct mtd_info *mtd, size_t *size)
+ }
+ EXPORT_SYMBOL_GPL(mtd_kmalloc_up_to);
+ 
++#ifdef CONFIG_HAS_DMA
++/**
++ * mtd_map_buf - create an SG table and prepare it for DMA operations
++ *
++ * @mtd: mtd device description object pointer
++ * @dev: device handling the DMA operation
++ * @buf: buf used to create the SG table
++ * @len: length of buf
++ * @constraints: optional constraints to take into account when creating
++ *		 the SG table. Can be NULL if no specific constraints
++ *		 are required.
++ * @dir: direction of the DMA operation
++ *
++ * This function should be used when an MTD driver wants to do DMA operations
++ * on a buffer passed by the MTD layer. This functions takes care of
++ * vmallocated buffer constraints, and return and sg_table that you can safely
++ * use.
++ */
++int mtd_map_buf(struct mtd_info *mtd, struct device *dev,
++		struct sg_table *sgt, const void *buf, size_t len,
++		const struct sg_constraints *constraints,
++		enum dma_data_direction dir)
++{
++	int ret;
++
++	ret = sg_alloc_table_from_buf(sgt, buf, len, constraints, GFP_KERNEL);
++	if (ret)
++		return ret;
++
++	ret = dma_map_sg(dev, sgt->sgl, sgt->nents, dir);
++	if (!ret)
++		ret = -ENOMEM;
++
++	if (ret < 0) {
++		sg_free_table(sgt);
++		return ret;
++	}
++
++	sgt->nents = ret;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(mtd_map_buf);
++
++/**
++ * mtd_map_buf - unmap an SG table and release its resources
++ *
++ * @mtd: mtd device description object pointer
++ * @dev: device handling the DMA operation
++ * @sgt: SG table
++ * @dir: direction of the DMA operation
++ *
++ * This function unmaps a previously mapped SG table and release SG table
++ * resources. Should be called when your DMA operation is done.
++ */
++void mtd_unmap_buf(struct mtd_info *mtd, struct device *dev,
++		   struct sg_table *sgt, enum dma_data_direction dir)
++{
++	if (sgt->orig_nents) {
++		dma_unmap_sg(dev, sgt->sgl, sgt->orig_nents, dir);
++		sg_free_table(sgt);
++	}
++}
++EXPORT_SYMBOL_GPL(mtd_unmap_buf);
++#endif /* !CONFIG_HAS_DMA */
++
+ #ifdef CONFIG_PROC_FS
+ 
+ /*====================================================================*/
+diff --git a/include/linux/mtd/mtd.h b/include/linux/mtd/mtd.h
+index 7712721..15cff85 100644
+--- a/include/linux/mtd/mtd.h
++++ b/include/linux/mtd/mtd.h
+@@ -24,6 +24,7 @@
+ #include <linux/uio.h>
+ #include <linux/notifier.h>
+ #include <linux/device.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <mtd/mtd-abi.h>
+ 
+@@ -410,6 +411,30 @@ extern void register_mtd_user (struct mtd_notifier *new);
+ extern int unregister_mtd_user (struct mtd_notifier *old);
+ void *mtd_kmalloc_up_to(const struct mtd_info *mtd, size_t *size);
+ 
++#ifdef CONFIG_HAS_DMA
++int mtd_map_buf(struct mtd_info *mtd, struct device *dev,
++		struct sg_table *sgt, const void *buf, size_t len,
++		const struct sg_constraints *constraints,
++		enum dma_data_direction dir);
++void mtd_unmap_buf(struct mtd_info *mtd, struct device *dev,
++		   struct sg_table *sgt, enum dma_data_direction dir);
++#else
++static inline int mtd_map_buf(struct mtd_info *mtd, struct device *dev,
++			      struct sg_table *sgt, const void *buf,
++			      size_t len,
++			      const struct sg_constraints *constraints
++			      enum dma_data_direction dir)
++{
++	return -ENOTSUPP;
++}
++
++static void mtd_unmap_buf(struct mtd_info *mtd, struct device *dev,
++			  struct sg_table *sgt, enum dma_data_direction dir)
++{
++	return -ENOTSUPP;
++}
++#endif
++
+ void mtd_erase_callback(struct erase_info *instr);
+ 
+ static inline int mtd_is_bitflip(int err) {
 -- 
-Regards,
-Sylwester
+2.5.0
+
