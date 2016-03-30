@@ -1,91 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:37055 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751531AbcCHPj2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Mar 2016 10:39:28 -0500
-Date: Tue, 8 Mar 2016 12:39:21 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Dan Allen <dan@opendevise.io>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160308123921.6f2248ab@recife.lan>
-In-Reply-To: <20160308103922.48d87d9d@recife.lan>
-References: <20160213145317.247c63c7@lwn.net>
-	<87y49zr74t.fsf@intel.com>
-	<20160303071305.247e30b1@lwn.net>
-	<20160303155037.705f33dd@recife.lan>
-	<86egbrm9hw.fsf@hiro.keithp.com>
-	<1457076530.13171.13.camel@winder.org.uk>
-	<CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
-	<87a8m9qoy8.fsf@intel.com>
-	<20160308082948.4e2e0f82@recife.lan>
-	<CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
-	<20160308103922.48d87d9d@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from down.free-electrons.com ([37.187.137.238]:60572 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754568AbcC3PkC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Mar 2016 11:40:02 -0400
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	linux-mtd@lists.infradead.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dave Gordon <david.s.gordon@intel.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Richard Weinberger <richard@nod.at>
+Subject: [PATCH v2 4/7] scatterlist: add sg_alloc_table_from_buf() helper
+Date: Wed, 30 Mar 2016 17:39:51 +0200
+Message-Id: <1459352394-22810-5-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1459352394-22810-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1459352394-22810-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 8 Mar 2016 10:39:22 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+sg_alloc_table_from_buf() provides an easy solution to create an sg_table
+from a virtual address pointer. This function takes care of dealing with
+vmallocated buffers, buffer alignment, or DMA engine limitations (maximum
+DMA transfer size).
 
-> Em Tue, 08 Mar 2016 05:13:13 -0700
-> Dan Allen <dan@opendevise.io> escreveu:
-> 
-> > On Tue, Mar 8, 2016 at 4:29 AM, Mauro Carvalho Chehab <  
-> > mchehab@osg.samsung.com> wrote:    
-> >   
-> > > pandoc did a really crap job on the conversion. To convert this
-> > > into something useful, we'll need to spend a lot of time, as it lost
-> > > most of the cross-references, as they were defined via DocBook macros.
-> > >    
-> > 
-> > I agree pandoc creates crappy AsciiDoc. We have a much better converter in
-> > the works called DocBookRx.
-> > 
-> > https://github.com/opendevise/docbookrx
-> > 
-> > It has converted several very serious DocBook documents and we're
-> > continuing to improve it. It's also a lot easier to hack than pandoc.  
-> 
-> Didn't work:
-> 
-> $ ./bin/docbookrx ~/devel/docbook_test/v4l2.xml 
-> No visitor defined for <part>! Skipping.
-> No visitor defined for <part>! Skipping.
-> No visitor defined for <part>! Skipping.
-> No visitor defined for <part>! Skipping.
-> No visitor defined for <appendixinfo>! Skipping.
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ include/linux/scatterlist.h |  24 +++++++
+ lib/scatterlist.c           | 161 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 185 insertions(+)
 
-I tried to use docbookrx for the bits that were not properly converted,
-like the manpage-like pages:
-
-$  ../docbookrx/bin/docbookrx Documentation/DocBook/media/v4l/func-ioctl.xml
-No visitor defined for <refentry>! Skipping.
-
-Dan, if you want to take a look on what's going wrong here, 
-the XML I'm trying to convert is:
-
-	https://git.linuxtv.org/media_tree.git/tree/Documentation/DocBook/media/v4l/func-ioctl.xml
-
-If this would work, it should be generating something like:
-	https://git.linuxtv.org/mchehab/asciidoc-poc.git/tree/func-ioctl.adoc
-
-Pandoc failed to fully convert it, but at least it left all the texts,
-with prevented rewriting it from scratch. This is the manual fix
-I applied to it:
-	https://git.linuxtv.org/mchehab/asciidoc-poc.git/commit/func-ioctl.adoc?id=801d336c3742f26731e08c284290c32c0b4632fc
-
-FYI, we have 133 xml files at the media uAPI doc with refmeta.
-
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index 556ec1e..4a75362 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -41,6 +41,27 @@ struct sg_table {
+ 	unsigned int orig_nents;	/* original size of list */
+ };
+ 
++/**
++ * struct sg_constraints - SG constraints structure
++ *
++ * @max_chunk_len: maximum chunk buffer length. Each SG entry has to be smaller
++ *		   than this value. Zero means no constraint.
++ * @required_alignment: minimum alignment. Is used for both size and pointer
++ *			alignment. If this constraint is not met, the function
++ *			should return -EINVAL.
++ * @preferred_alignment: preferred alignment. Mainly used to optimize
++ *			 throughput when the DMA engine performs better when
++ *			 doing aligned accesses.
++ *
++ * This structure is here to help sg_alloc_table_from_buf() create the optimal
++ * SG list based on DMA engine constraints.
++ */
++struct sg_constraints {
++	size_t max_chunk_len;
++	size_t required_alignment;
++	size_t preferred_alignment;
++};
++
+ /*
+  * Notes on SG table design.
+  *
+@@ -265,6 +286,9 @@ int sg_alloc_table_from_pages(struct sg_table *sgt,
+ 	struct page **pages, unsigned int n_pages,
+ 	unsigned long offset, unsigned long size,
+ 	gfp_t gfp_mask);
++int sg_alloc_table_from_buf(struct sg_table *sgt, const void *buf, size_t len,
++			    const struct sg_constraints *constraints,
++			    gfp_t gfp_mask);
+ 
+ size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
+ 		      size_t buflen, off_t skip, bool to_buffer);
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index 004fc70..94776ff 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -433,6 +433,167 @@ int sg_alloc_table_from_pages(struct sg_table *sgt,
+ }
+ EXPORT_SYMBOL(sg_alloc_table_from_pages);
+ 
++static size_t sg_buf_chunk_len(const void *buf, size_t len,
++			       const struct sg_constraints *cons)
++{
++	size_t chunk_len = len;
++
++	if (cons->max_chunk_len)
++		chunk_len = min_t(size_t, chunk_len, cons->max_chunk_len);
++
++	if (is_vmalloc_addr(buf)) {
++		unsigned long offset_in_page = offset_in_page(buf);
++		size_t contig_len = PAGE_SIZE - offset_in_page;
++		unsigned long phys = vmalloc_to_pfn(buf) - offset_in_page;
++		const void *contig_ptr = buf + contig_len;
++
++		/*
++		 * Vmalloced buffer might be composed of several physically
++		 * contiguous pages. Avoid extra scattergather entries in
++		 * this case.
++		 */
++		while (contig_len < chunk_len) {
++			if (phys + PAGE_SIZE != vmalloc_to_pfn(contig_ptr))
++				break;
++
++			contig_len += PAGE_SIZE;
++			contig_ptr += PAGE_SIZE;
++			phys += PAGE_SIZE;
++		}
++
++		chunk_len = min_t(size_t, chunk_len, contig_len);
++	}
++
++	if (!IS_ALIGNED((unsigned long)buf, cons->preferred_alignment)) {
++		const void *aligned_buf = PTR_ALIGN(buf,
++						    cons->preferred_alignment);
++		size_t unaligned_len = (unsigned long)(aligned_buf - buf);
++
++		chunk_len = min_t(size_t, chunk_len, unaligned_len);
++	} else if (chunk_len > cons->preferred_alignment) {
++		chunk_len &= ~(cons->preferred_alignment - 1);
++	}
++
++	return chunk_len;
++}
++
++#define sg_for_each_chunk_in_buf(buf, len, chunk_len, constraints)	\
++	for (chunk_len = sg_buf_chunk_len(buf, len, constraints);	\
++	     len;							\
++	     len -= chunk_len, buf += chunk_len,			\
++	     chunk_len = sg_buf_chunk_len(buf, len, constraints))
++
++static int sg_check_constraints(struct sg_constraints *cons,
++				const void *buf, size_t len)
++{
++	if (!cons->required_alignment)
++		cons->required_alignment = 1;
++
++	if (!cons->preferred_alignment)
++		cons->preferred_alignment = cons->required_alignment;
++
++	/* Test if buf and len are properly aligned. */
++	if (!IS_ALIGNED((unsigned long)buf, cons->required_alignment) ||
++	    !IS_ALIGNED(len, cons->required_alignment))
++		return -EINVAL;
++
++	/*
++	 * if the buffer has been vmallocated and required_alignment is
++	 * more than PAGE_SIZE we cannot guarantee it.
++	 */
++	if (is_vmalloc_addr(buf) && cons->required_alignment > PAGE_SIZE)
++		return -EINVAL;
++
++	/*
++	 * max_chunk_len has to be aligned to required_alignment to
++	 * guarantee that all buffer chunks are aligned correctly.
++	 */
++	if (!IS_ALIGNED(cons->max_chunk_len, cons->required_alignment))
++		return -EINVAL;
++
++	/*
++	 * preferred_alignment has to be aligned to required_alignment
++	 * to avoid misalignment of buffer chunks.
++	 */
++	if (!IS_ALIGNED(cons->preferred_alignment, cons->required_alignment))
++		return -EINVAL;
++
++	return 0;
++}
++
++/**
++ * sg_alloc_table_from_buf - create an SG table from a buffer
++ *
++ * @sgt: SG table
++ * @buf: buffer you want to create this SG table from
++ * @len: length of buf
++ * @constraints: optional constraints to take into account when creating
++ *		 the SG table. Can be NULL if no specific constraints are
++ *		 required.
++ * @gfp_mask: type of allocation to use when creating the table
++ *
++ * This function creates an SG table from a buffer, its length and some
++ * SG constraints.
++ *
++ * Note: This function supports vmallocated and physically contiguous buffers.
++ */
++int sg_alloc_table_from_buf(struct sg_table *sgt, const void *buf, size_t len,
++			    const struct sg_constraints *constraints,
++			    gfp_t gfp_mask)
++{
++	struct sg_constraints cons = { };
++	size_t remaining, chunk_len;
++	const void *sg_buf;
++	int i, ret;
++
++	if (constraints)
++		cons = *constraints;
++
++	ret = sg_check_constraints(&cons, buf, len);
++	if (ret)
++		return ret;
++
++	sg_buf = buf;
++	remaining = len;
++	i = 0;
++	sg_for_each_chunk_in_buf(sg_buf, remaining, chunk_len, &cons)
++		i++;
++
++	ret = sg_alloc_table(sgt, i, gfp_mask);
++	if (ret)
++		return ret;
++
++	sg_buf = buf;
++	remaining = len;
++	i = 0;
++	sg_for_each_chunk_in_buf(sg_buf, remaining, chunk_len, &cons) {
++		if (is_vmalloc_addr(sg_buf)) {
++			struct page *vm_page;
++
++			vm_page = vmalloc_to_page(sg_buf);
++			if (!vm_page) {
++				ret = -ENOMEM;
++				goto err_free_table;
++			}
++
++			sg_set_page(&sgt->sgl[i], vm_page, chunk_len,
++				    offset_in_page(sg_buf));
++		} else {
++			sg_set_buf(&sgt->sgl[i], sg_buf, chunk_len);
++		}
++
++		i++;
++	}
++
++	return 0;
++
++err_free_table:
++	sg_free_table(sgt);
++
++	return ret;
++}
++EXPORT_SYMBOL(sg_alloc_table_from_buf);
++
+ void __sg_page_iter_start(struct sg_page_iter *piter,
+ 			  struct scatterlist *sglist, unsigned int nents,
+ 			  unsigned long pgoffset)
 -- 
-Thanks,
-Mauro
+2.5.0
+
