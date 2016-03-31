@@ -1,210 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40677 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580AbcCYKpC (ORCPT
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:34094 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753216AbcCaTcT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Mar 2016 06:45:02 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Thu, 31 Mar 2016 15:32:19 -0400
+From: info@are.ma
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 38/54] v4l: vsp1: Store pipeline pointer in rwpf
-Date: Fri, 25 Mar 2016 12:44:12 +0200
-Message-Id: <1458902668-1141-39-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458902668-1141-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?=
+	<knightrider@are.ma>, linux-kernel@vger.kernel.org, crope@iki.fi,
+	m.chehab@samsung.com, mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 0/8] DVB driver for Earthsoft PT3, PLEX PX-Q3PE ISDB-S/T PCIE cards & PX-BCUD ISDB-S USB dongle
+Date: Fri,  1 Apr 2016 04:32:07 +0900
+Message-Id: <cover.1459450632.git.knightrider@are.ma>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This prepares for dynamic pipeline allocation by providing a field that
-can be used to store the pipeline pointer atomically under driver
-control.
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drv.c   |  4 +---
- drivers/media/platform/vsp1/vsp1_pipe.c  | 14 +++++++++-----
- drivers/media/platform/vsp1/vsp1_pipe.h  |  8 --------
- drivers/media/platform/vsp1/vsp1_rwpf.h  |  2 ++
- drivers/media/platform/vsp1/vsp1_video.c | 13 +++++++------
- 5 files changed, 19 insertions(+), 22 deletions(-)
+DVB driver for Earthsoft PT3, PLEX PX-Q3PE ISDB-S/T PCIE cards & PX-BCUD ISDB-S USB dongle
+==========================================================================================
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index bfdc01c9172d..f1be2680013d 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -49,17 +49,15 @@ static irqreturn_t vsp1_irq_handler(int irq, void *data)
- 
- 	for (i = 0; i < vsp1->info->wpf_count; ++i) {
- 		struct vsp1_rwpf *wpf = vsp1->wpf[i];
--		struct vsp1_pipeline *pipe;
- 
- 		if (wpf == NULL)
- 			continue;
- 
--		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
- 		status = vsp1_read(vsp1, VI6_WPF_IRQ_STA(i));
- 		vsp1_write(vsp1, VI6_WPF_IRQ_STA(i), ~status & mask);
- 
- 		if (status & VI6_WFP_IRQ_STA_FRE) {
--			vsp1_pipeline_frame_end(pipe);
-+			vsp1_pipeline_frame_end(wpf->pipe);
- 			ret = IRQ_HANDLED;
- 		}
- 	}
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 4d06519f717d..8ac080f87b08 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -172,14 +172,18 @@ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
- 			bru->inputs[i].rpf = NULL;
- 	}
- 
--	for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i)
-+	for (i = 0; i < pipe->num_inputs; ++i) {
-+		pipe->inputs[i]->pipe = NULL;
- 		pipe->inputs[i] = NULL;
-+	}
-+
-+	pipe->output->pipe = NULL;
-+	pipe->output = NULL;
- 
- 	INIT_LIST_HEAD(&pipe->entities);
- 	pipe->state = VSP1_PIPELINE_STOPPED;
- 	pipe->buffers_ready = 0;
- 	pipe->num_inputs = 0;
--	pipe->output = NULL;
- 	pipe->bru = NULL;
- 	pipe->lif = NULL;
- 	pipe->uds = NULL;
-@@ -344,7 +348,7 @@ void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
- 		if (wpf == NULL)
- 			continue;
- 
--		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+		pipe = wpf->pipe;
- 		if (pipe == NULL)
- 			continue;
- 
-@@ -361,7 +365,7 @@ void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
- 		if (wpf == NULL)
- 			continue;
- 
--		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+		pipe = wpf->pipe;
- 		if (pipe == NULL)
- 			continue;
- 
-@@ -385,7 +389,7 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
- 		if (wpf == NULL)
- 			continue;
- 
--		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+		pipe = wpf->pipe;
- 		if (pipe == NULL)
- 			continue;
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 1100229a1ed2..9fd688bfe638 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -103,14 +103,6 @@ struct vsp1_pipeline {
- 	struct vsp1_dl_list *dl;
- };
- 
--static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
--{
--	if (likely(e->pipe))
--		return container_of(e->pipe, struct vsp1_pipeline, pipe);
--	else
--		return NULL;
--}
--
- void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
- void vsp1_pipeline_init(struct vsp1_pipeline *pipe);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-index 38c8c902db52..9ff7c78f239e 100644
---- a/drivers/media/platform/vsp1/vsp1_rwpf.h
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -25,6 +25,7 @@
- 
- struct v4l2_ctrl;
- struct vsp1_dl_manager;
-+struct vsp1_pipeline;
- struct vsp1_rwpf;
- struct vsp1_video;
- 
-@@ -36,6 +37,7 @@ struct vsp1_rwpf {
- 	struct vsp1_entity entity;
- 	struct v4l2_ctrl_handler ctrls;
- 
-+	struct vsp1_pipeline *pipe;
- 	struct vsp1_video *video;
- 
- 	unsigned int max_width;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index a16a661e5b69..2c642726a259 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -293,10 +293,12 @@ static int vsp1_video_pipeline_build(struct vsp1_pipeline *pipe,
- 			rwpf = to_rwpf(subdev);
- 			pipe->inputs[rwpf->entity.index] = rwpf;
- 			rwpf->video->pipe_index = ++pipe->num_inputs;
-+			rwpf->pipe = pipe;
- 		} else if (e->type == VSP1_ENTITY_WPF) {
- 			rwpf = to_rwpf(subdev);
- 			pipe->output = rwpf;
- 			rwpf->video->pipe_index = 0;
-+			rwpf->pipe = pipe;
- 		} else if (e->type == VSP1_ENTITY_LIF) {
- 			pipe->lif = e;
- 		} else if (e->type == VSP1_ENTITY_BRU) {
-@@ -384,7 +386,7 @@ static void vsp1_video_pipeline_cleanup(struct vsp1_pipeline *pipe)
- static struct vsp1_vb2_buffer *
- vsp1_video_complete_buffer(struct vsp1_video *video)
- {
--	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
-+	struct vsp1_pipeline *pipe = video->rwpf->pipe;
- 	struct vsp1_vb2_buffer *next = NULL;
- 	struct vsp1_vb2_buffer *done;
- 	unsigned long flags;
-@@ -563,7 +565,7 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- {
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
--	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
-+	struct vsp1_pipeline *pipe = video->rwpf->pipe;
- 	struct vsp1_vb2_buffer *buf = to_vsp1_vb2_buffer(vbuf);
- 	unsigned long flags;
- 	bool empty;
-@@ -628,7 +630,7 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct vsp1_video *video = vb2_get_drv_priv(vq);
--	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
-+	struct vsp1_pipeline *pipe = video->rwpf->pipe;
- 	unsigned long flags;
- 	int ret;
- 
-@@ -655,7 +657,7 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
- static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- {
- 	struct vsp1_video *video = vb2_get_drv_priv(vq);
--	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
-+	struct vsp1_pipeline *pipe = video->rwpf->pipe;
- 	struct vsp1_vb2_buffer *buffer;
- 	unsigned long flags;
- 	int ret;
-@@ -802,8 +804,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	 * FIXME: This is racy, the ioctl is only protected by the video node
- 	 * lock.
- 	 */
--	pipe = video->video.entity.pipe
--	     ? to_vsp1_pipeline(&video->video.entity) : &video->pipe;
-+	pipe = video->rwpf->pipe ? video->rwpf->pipe : &video->pipe;
- 
- 	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
- 	if (ret < 0)
+Status: stable
+
+Features:
+1. in addition to the real frequency:
+	ISDB-S : freq. channel ID
+	ISDB-T : freq# (I/O# +128), ch#, ch# +64 for CATV
+2. in addition to TSID:
+	ISDB-S : slot#
+
+Supported Cards & Main components:
+A. EarthSoft PT3:
+1. Altera	EP4CGX15BF14C8N	: customized FPGA PCI bridge
+2. Toshiba	TC90522XBG	: quad demodulator (2ch OFDM + 2ch 8PSK)
+3. Sharp	VA4M6JC2103	: contains 2 ISDB-S + 2 ISDB-T tuners
+	ISDB-S : Sharp QM1D1C0042 RF-IC, chip ver. 0x48
+	ISDB-T : MaxLinear CMOS Hybrid TV MxL301RF
+
+B. PLEX PX-Q3PE:
+1. ASICEN	ASV5220		: PCI-E bridge
+2. Toshiba	TC90522XBG	: quad demodulator (2ch OFDM + 2ch 8PSK)
+3. NXP Semiconductors TDA20142	: ISDB-S tuner
+4. Newport Media NM120		: ISDB-T tuner
+5. ASICEN	ASIE5606X8	: crypting controller
+
+C. PLEX PX-BCUD (ISDB-S USB dongle)
+1. Empia	EM28178		: USB I/F (courtesy of Nagahama Satoshi)
+2. Toshiba	TC90532		: demodulator (using TC90522 driver)
+3. Sharp	QM1D1C0045_2	: ISDB-S RF-IC, chip ver. 0x68
+
+Notes:
+This is a complex but smartly polished driver package containing 2 (dual head)
+PCI-E bridge I/F drivers, single demodulator frontend, and 4 (quad tail) tuner drivers,
+plus, simplified Nagahama's patch for PLEX PX-BCUD (ISDB-S USB dongle).
+Generic registration related procedures (subdevices, frontend, etc.) summarized in
+ptx_common.c are very useful also for other DVB drivers, and would be very handy if
+inserted into the core (e.g. dvb_frontend.c & dvb_frontend.h).
+
+For example, currently, the entity of struct dvb_frontend is created sometimes in
+demodulators, some in tuners, or even in the parent (bridge) drivers. IMHO, this entity
+should be provided by dvb_core. ptx_register_fe() included in ptx_common.c simplifies
+the tasks and in fact, significantly reduces coding & kernel size.
+
+Also, currently dvb_frontend's .demodulator_priv & .tuner_priv are of type (void *).
+These should be changed to (struct i2c_client *), IMHO. Private data for demodulator
+or tuner should be attached under i2c_client, using i2c_set_clientdata() for instance.
+
+FILENAME	SUPPORTED CHIPS
+========	===============
+tc90522.c	TC90522XBG, TC90532XBG,...
+tda2014x.c	TDA20142
+qm1d1c004x.c	QM1D1C0042, QM1D1C0045, QM1D1C0045_2
+nm131.c		NM131, NM130, NM120
+mxl301rf.c	MxL301RF
+pt3_pci.c	EP4CGX15BF14C8N
+pxq3pe_pci.c	ASV5220
+
+Full package:
+- URL:	https://github.com/knight-rider/ptx
+
+Буди Романто, AreMa Inc (8):
+  The current limit is too low for latest cards with 8+ tuners on a
+    single slot, change to 64.
+  NXP tda2014x & Newport Media nm120/130/131 tuner drivers for PLEX
+    PX-Q3PE
+  Obsoleted & superseded, please read cover letter for details.
+  Toshiba TC905xx demodulator driver for PT3, PX-Q3PE & PX-BCUD
+  MaxLinear MxL301RF ISDB-T tuner
+  Sharp QM1D1C004x ISDB-S tuner driver for PT3 and PX-BCUD
+  PCIE bridge driver for PT3 & PX-Q3PE     Please read cover letter for
+    details.
+  Support for PLEX PX-BCUD (ISDB-S usb dongle)     Nagahama's patch
+    simplified...
+
+ drivers/media/dvb-core/dvbdev.h         |   2 +-
+ drivers/media/dvb-frontends/tc90522.c   | 965 +++++++-------------------------
+ drivers/media/dvb-frontends/tc90522.h   |  36 +-
+ drivers/media/pci/Kconfig               |   2 +-
+ drivers/media/pci/Makefile              |   2 +-
+ drivers/media/pci/pt3/Kconfig           |  10 -
+ drivers/media/pci/pt3/Makefile          |   8 -
+ drivers/media/pci/pt3/pt3.c             | 874 -----------------------------
+ drivers/media/pci/pt3/pt3.h             | 186 ------
+ drivers/media/pci/pt3/pt3_dma.c         | 225 --------
+ drivers/media/pci/pt3/pt3_i2c.c         | 240 --------
+ drivers/media/pci/ptx/Kconfig           |  21 +
+ drivers/media/pci/ptx/Makefile          |   8 +
+ drivers/media/pci/ptx/pt3_pci.c         | 425 ++++++++++++++
+ drivers/media/pci/ptx/ptx_common.c      | 252 +++++++++
+ drivers/media/pci/ptx/ptx_common.h      |  74 +++
+ drivers/media/pci/ptx/pxq3pe_pci.c      | 585 +++++++++++++++++++
+ drivers/media/tuners/Kconfig            |  21 +-
+ drivers/media/tuners/Makefile           |   4 +-
+ drivers/media/tuners/mxl301rf.c         | 471 ++++++----------
+ drivers/media/tuners/mxl301rf.h         |  19 +-
+ drivers/media/tuners/nm131.c            | 248 ++++++++
+ drivers/media/tuners/nm131.h            |  13 +
+ drivers/media/tuners/qm1d1c0042.c       | 448 ---------------
+ drivers/media/tuners/qm1d1c0042.h       |  37 --
+ drivers/media/tuners/qm1d1c004x.c       | 242 ++++++++
+ drivers/media/tuners/qm1d1c004x.h       |  23 +
+ drivers/media/tuners/tda2014x.c         | 342 +++++++++++
+ drivers/media/tuners/tda2014x.h         |  13 +
+ drivers/media/usb/em28xx/Kconfig        |   2 +
+ drivers/media/usb/em28xx/em28xx-cards.c |  27 +
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  79 ++-
+ drivers/media/usb/em28xx/em28xx.h       |   1 +
+ 33 files changed, 2752 insertions(+), 3153 deletions(-)
+ delete mode 100644 drivers/media/pci/pt3/Kconfig
+ delete mode 100644 drivers/media/pci/pt3/Makefile
+ delete mode 100644 drivers/media/pci/pt3/pt3.c
+ delete mode 100644 drivers/media/pci/pt3/pt3.h
+ delete mode 100644 drivers/media/pci/pt3/pt3_dma.c
+ delete mode 100644 drivers/media/pci/pt3/pt3_i2c.c
+ create mode 100644 drivers/media/pci/ptx/Kconfig
+ create mode 100644 drivers/media/pci/ptx/Makefile
+ create mode 100644 drivers/media/pci/ptx/pt3_pci.c
+ create mode 100644 drivers/media/pci/ptx/ptx_common.c
+ create mode 100644 drivers/media/pci/ptx/ptx_common.h
+ create mode 100644 drivers/media/pci/ptx/pxq3pe_pci.c
+ create mode 100644 drivers/media/tuners/nm131.c
+ create mode 100644 drivers/media/tuners/nm131.h
+ delete mode 100644 drivers/media/tuners/qm1d1c0042.c
+ delete mode 100644 drivers/media/tuners/qm1d1c0042.h
+ create mode 100644 drivers/media/tuners/qm1d1c004x.c
+ create mode 100644 drivers/media/tuners/qm1d1c004x.h
+ create mode 100644 drivers/media/tuners/tda2014x.c
+ create mode 100644 drivers/media/tuners/tda2014x.h
+
 -- 
-2.7.3
+2.7.4
 
