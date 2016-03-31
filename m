@@ -1,134 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:58766 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754650AbcCBW5I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Mar 2016 17:57:08 -0500
-Subject: Re: [PATCH v5 22/22] sound/usb: Use Media Controller API to share
- media resources
-To: Dan Carpenter <dan.carpenter@oracle.com>
-References: <1456937431-3794-1-git-send-email-shuahkh@osg.samsung.com>
- <20160302204131.GV5273@mwanda>
-Cc: mchehab@osg.samsung.com, tiwai@suse.com, clemens@ladisch.de,
-	hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@linux.intel.com, javier@osg.samsung.com,
-	pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, perex@perex.cz, arnd@arndb.de,
-	tvboxspy@gmail.com, crope@iki.fi, ruchandani.tina@gmail.com,
-	corbet@lwn.net, chehabrafael@gmail.com, k.kozlowski@samsung.com,
-	stefanr@s5r6.in-berlin.de, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, elfring@users.sourceforge.net,
-	prabhakar.csengg@gmail.com, sw0312.kim@samsung.com,
-	p.zabel@pengutronix.de, ricardo.ribalda@gmail.com,
-	labbott@fedoraproject.org, pierre-louis.bossart@linux.intel.com,
-	ricard.wanderlof@axis.com, julian@jusst.de, takamichiho@gmail.com,
-	dominic.sacre@gmx.de, misterpib@gmail.com, daniel@zonque.org,
-	gtmkramer@xs4all.nl, normalperson@yhbt.net, joe@oampo.co.uk,
-	linuxbugs@vittgam.net, johan@oljud.se, klock.android@gmail.com,
-	nenggun.kim@samsung.com, j.anaszewski@samsung.com,
-	geliangtang@163.com, albert@huitsing.nl,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <56D76FBF.9050209@osg.samsung.com>
-Date: Wed, 2 Mar 2016 15:57:03 -0700
+Received: from abts-kk-static-ilp-078.168.181.122.airtel.in ([122.181.168.78]:36064
+	"EHLO muthoottumini.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751455AbcCaICO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2016 04:02:14 -0400
+Date: Thu, 31 Mar 2016 13:29:35 +0530 (IST)
+From: Nethaji road <nethajiroad@muthoottumini.com>
+Message-ID: <798259170.442958.1459411175652.JavaMail.root@muthoottumini.com>
+In-Reply-To: <243313206.418853.1459409843137.JavaMail.root@muthoottumini.com>
+References: <243313206.418853.1459409843137.JavaMail.root@muthoottumini.com>
+Subject: Fwd: Urgent- Quotations Needed
 MIME-Version: 1.0
-In-Reply-To: <20160302204131.GV5273@mwanda>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/02/2016 01:41 PM, Dan Carpenter wrote:
-> On Wed, Mar 02, 2016 at 09:50:31AM -0700, Shuah Khan wrote:
->> +	mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
->> +	if (!mctl)
->> +		return -ENOMEM;
->> +
->> +	mctl->media_dev = mdev;
->> +	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
->> +		intf_type = MEDIA_INTF_T_ALSA_PCM_PLAYBACK;
->> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_PLAYBACK;
->> +		mctl->media_pad.flags = MEDIA_PAD_FL_SOURCE;
->> +		mixer_pad = 1;
->> +	} else {
->> +		intf_type = MEDIA_INTF_T_ALSA_PCM_CAPTURE;
->> +		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_CAPTURE;
->> +		mctl->media_pad.flags = MEDIA_PAD_FL_SINK;
->> +		mixer_pad = 2;
->> +	}
->> +	mctl->media_entity.name = pcm->name;
->> +	media_entity_pads_init(&mctl->media_entity, 1, &mctl->media_pad);
->> +	ret =  media_device_register_entity(mctl->media_dev,
->> +					    &mctl->media_entity);
->> +	if (ret)
->> +		goto err1;
-> 
-> Could we give this label a meaningful name instead of a number?
-> goto free_mctl;
 
-I do see other places where numbered labels are used.
-Names might help with code readability.
 
-register_entity_fail probably makes more sense as a
-label than free_mctl. In any case, I can address the
-labels in a follow-on patch.
 
-> 
->> +
->> +	mctl->intf_devnode = media_devnode_create(mdev, intf_type, 0,
->> +						  MAJOR(pcm_dev->devt),
->> +						  MINOR(pcm_dev->devt));
->> +	if (!mctl->intf_devnode) {
->> +		ret = -ENOMEM;
->> +		goto err2;
-> 
-> goto unregister_device;
-> 
->> +	}
->> +	mctl->intf_link = media_create_intf_link(&mctl->media_entity,
->> +						 &mctl->intf_devnode->intf,
->> +						 MEDIA_LNK_FL_ENABLED);
->> +	if (!mctl->intf_link) {
->> +		ret = -ENOMEM;
->> +		goto err3;
-> 
-> goto delete_devnode;
-> 
->> +	}
->> +
->> +	/* create link between mixer and audio */
->> +	media_device_for_each_entity(entity, mdev) {
->> +		switch (entity->function) {
->> +		case MEDIA_ENT_F_AUDIO_MIXER:
->> +			ret = media_create_pad_link(entity, mixer_pad,
->> +						    &mctl->media_entity, 0,
->> +						    MEDIA_LNK_FL_ENABLED);
->> +			if (ret)
->> +				goto err4;
-> 
-> This is a bit weird because we're inside a loop.  Shouldn't we call
-> media_entity_remove_links() or something if this is the second time
-> through the loop?
 
-Links are removed from media_device_unregister_entity()
-which is called in the error path.
-
-> 
-> I don't understand this.  The kernel has the media_entity_cleanup() stub
-> function which is supposed to do this but it hasn't been implemented
-> yet?
-> 
-
-Please see above. Links are removed when entity is
-unregistered. media_entity_cleanup() is a stub. It
-isn't intended for removing links.
-
-thanks,
--- Shuah
-
--- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America (Silicon Valley)
-shuahkh@osg.samsung.com | (970) 217-8978
+Dear Sir,
+FYI kindly send us proforma ASAP for the attached purchase order.
+Thanks
+Carmen Rodriguez
