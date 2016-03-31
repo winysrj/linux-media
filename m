@@ -1,56 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.74]:55729 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752005AbcCNWlK (ORCPT
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:44795 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751500AbcCaOOn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Mar 2016 18:41:10 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
+	Thu, 31 Mar 2016 10:14:43 -0400
+Date: Thu, 31 Mar 2016 15:14:13 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Boris Brezillon <boris.brezillon@free-electrons.com>
+Cc: David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	linux-mtd@lists.infradead.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dave Gordon <david.s.gordon@intel.com>,
+	linux-crypto@vger.kernel.org,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Richard Weinberger <richard@nod.at>,
+	Joerg Roedel <joro@8bytes.org>, linux-kernel@vger.kernel.org,
+	linux-spi@vger.kernel.org, Vignesh R <vigneshr@ti.com>,
+	linux-mm@kvack.org, iommu@lists.linux-foundation.org,
+	Mark Brown <broonie@kernel.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Benoit Parrot <bparrot@ti.com>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 2/3] [media] am437x-vfpe: fix typo in vpfe_get_app_input_index
-Date: Mon, 14 Mar 2016 23:40:08 +0100
-Message-Id: <1457995225-1199991-2-git-send-email-arnd@arndb.de>
-In-Reply-To: <1457995225-1199991-1-git-send-email-arnd@arndb.de>
-References: <1457995225-1199991-1-git-send-email-arnd@arndb.de>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	dmaengine@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>,
+	linux-media@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+Subject: Re: [PATCH 2/4] scatterlist: add sg_alloc_table_from_buf() helper
+Message-ID: <20160331141412.GK19428@n2100.arm.linux.org.uk>
+References: <1459427384-21374-1-git-send-email-boris.brezillon@free-electrons.com>
+ <1459427384-21374-3-git-send-email-boris.brezillon@free-electrons.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1459427384-21374-3-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gcc-6 points out an obviously silly comparison in vpfe_get_app_input_index():
+On Thu, Mar 31, 2016 at 02:29:42PM +0200, Boris Brezillon wrote:
+> sg_alloc_table_from_buf() provides an easy solution to create an sg_table
+> from a virtual address pointer. This function takes care of dealing with
+> vmallocated buffers, buffer alignment, or DMA engine limitations (maximum
+> DMA transfer size).
 
-drivers/media/platform/am437x/am437x-vpfe.c: In function 'vpfe_get_app_input_index':
-drivers/media/platform/am437x/am437x-vpfe.c:1709:27: warning: self-comparison always evaluats to true [-Wtautological-compare]
-       client->adapter->nr == client->adapter->nr) {
-                           ^~
+Please note that the DMA API does not take account of coherency of memory
+regions other than non-high/lowmem - there are specific extensions to
+deal with this.
 
-This was introduced in a slighly incorrect conversion, and it's
-clear that the comparison was meant to compare the iterator
-to the current subdev instead, as we do in the line above.
+What this means is that having an API that takes any virtual address
+pointer, converts it to a scatterlist which is then DMA mapped, is
+unsafe.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: d37232390fd4 ("[media] media: am437x-vpfe: match the OF node/i2c addr instead of name")
----
- drivers/media/platform/am437x/am437x-vpfe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+It'll be okay for PIPT and non-aliasing VIPT cache architectures, but
+for other cache architectures this will hide this problem and make
+review harder.
 
-diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-index de32e3a3d4d1..e6a7bff4650c 100644
---- a/drivers/media/platform/am437x/am437x-vpfe.c
-+++ b/drivers/media/platform/am437x/am437x-vpfe.c
-@@ -1706,7 +1706,7 @@ static int vpfe_get_app_input_index(struct vpfe_device *vpfe,
- 		sdinfo = &cfg->sub_devs[i];
- 		client = v4l2_get_subdevdata(sdinfo->sd);
- 		if (client->addr == curr_client->addr &&
--		    client->adapter->nr == client->adapter->nr) {
-+		    client->adapter->nr == curr_client->adapter->nr) {
- 			if (vpfe->current_input >= 1)
- 				return -1;
- 			*app_input_index = j + vpfe->current_input;
 -- 
-2.7.0
-
+RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
