@@ -1,123 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34364 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750758AbcCUEFO (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:42009 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754429AbcCaM3w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Mar 2016 00:05:14 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0C6691800EC
-	for <linux-media@vger.kernel.org>; Mon, 21 Mar 2016 05:05:08 +0100 (CET)
-Date: Mon, 21 Mar 2016 05:05:07 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160321040508.0C6691800EC@tschai.lan>
+	Thu, 31 Mar 2016 08:29:52 -0400
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	linux-mtd@lists.infradead.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dave Gordon <david.s.gordon@intel.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Richard Weinberger <richard@nod.at>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-crypto@vger.kernel.org, Vignesh R <vigneshr@ti.com>,
+	linux-mm@kvack.org, Joerg Roedel <joro@8bytes.org>,
+	iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 4/4] mtd: provide helper to prepare buffers for DMA operations
+Date: Thu, 31 Mar 2016 14:29:44 +0200
+Message-Id: <1459427384-21374-5-git-send-email-boris.brezillon@free-electrons.com>
+In-Reply-To: <1459427384-21374-1-git-send-email-boris.brezillon@free-electrons.com>
+References: <1459427384-21374-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Some NAND controller drivers are making use of DMA to transfer data from
+the controller to the buffer passed by the MTD user.
+Provide a generic mtd_map/unmap_buf() implementation to avoid open coded
+(and sometime erroneous) implementations.
 
-Results of the daily build of media_tree:
+Signed-off-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+---
+ drivers/mtd/mtdcore.c   | 66 +++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/mtd/mtd.h | 25 +++++++++++++++++++
+ 2 files changed, 91 insertions(+)
 
-date:		Mon Mar 21 04:00:22 CET 2016
-git branch:	test
-git hash:	b39950960d2b890c21465c69c7c0e4ff6253c6b5
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	Warning: /share/smatch/smatch_data/ is not accessible.
-Use --no-data or --data to suppress this message.
-v0.5.0-3353-gcae47da
-host hardware:	x86_64
-host os:	4.4.0-164
+diff --git a/drivers/mtd/mtdcore.c b/drivers/mtd/mtdcore.c
+index 3096251..4c20f33 100644
+--- a/drivers/mtd/mtdcore.c
++++ b/drivers/mtd/mtdcore.c
+@@ -1253,6 +1253,72 @@ void *mtd_kmalloc_up_to(const struct mtd_info *mtd, size_t *size)
+ }
+ EXPORT_SYMBOL_GPL(mtd_kmalloc_up_to);
+ 
++#ifdef CONFIG_HAS_DMA
++/**
++ * mtd_map_buf - create an SG table and prepare it for DMA operations
++ *
++ * @mtd: mtd device description object pointer
++ * @dev: device handling the DMA operation
++ * @buf: buf used to create the SG table
++ * @len: length of buf
++ * @constraints: optional constraints to take into account when creating
++ *		 the SG table. Can be NULL if no specific constraints
++ *		 are required.
++ * @dir: direction of the DMA operation
++ *
++ * This function should be used when an MTD driver wants to do DMA operations
++ * on a buffer passed by the MTD layer. This functions takes care of
++ * vmallocated buffer constraints, and return and sg_table that you can safely
++ * use.
++ */
++int mtd_map_buf(struct mtd_info *mtd, struct device *dev,
++		struct sg_table *sgt, const void *buf, size_t len,
++		const struct sg_constraints *constraints,
++		enum dma_data_direction dir)
++{
++	int ret;
++
++	ret = sg_alloc_table_from_buf(sgt, buf, len, constraints, GFP_KERNEL);
++	if (ret)
++		return ret;
++
++	ret = dma_map_sg(dev, sgt->sgl, sgt->nents, dir);
++	if (!ret)
++		ret = -ENOMEM;
++
++	if (ret < 0) {
++		sg_free_table(sgt);
++		return ret;
++	}
++
++	sgt->nents = ret;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(mtd_map_buf);
++
++/**
++ * mtd_unmap_buf - unmap an SG table and release its resources
++ *
++ * @mtd: mtd device description object pointer
++ * @dev: device handling the DMA operation
++ * @sgt: SG table
++ * @dir: direction of the DMA operation
++ *
++ * This function unmaps a previously mapped SG table and release SG table
++ * resources. Should be called when your DMA operation is done.
++ */
++void mtd_unmap_buf(struct mtd_info *mtd, struct device *dev,
++		   struct sg_table *sgt, enum dma_data_direction dir)
++{
++	if (sgt->orig_nents) {
++		dma_unmap_sg(dev, sgt->sgl, sgt->orig_nents, dir);
++		sg_free_table(sgt);
++	}
++}
++EXPORT_SYMBOL_GPL(mtd_unmap_buf);
++#endif /* !CONFIG_HAS_DMA */
++
+ #ifdef CONFIG_PROC_FS
+ 
+ /*====================================================================*/
+diff --git a/include/linux/mtd/mtd.h b/include/linux/mtd/mtd.h
+index 7712721..15cff85 100644
+--- a/include/linux/mtd/mtd.h
++++ b/include/linux/mtd/mtd.h
+@@ -24,6 +24,7 @@
+ #include <linux/uio.h>
+ #include <linux/notifier.h>
+ #include <linux/device.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <mtd/mtd-abi.h>
+ 
+@@ -410,6 +411,30 @@ extern void register_mtd_user (struct mtd_notifier *new);
+ extern int unregister_mtd_user (struct mtd_notifier *old);
+ void *mtd_kmalloc_up_to(const struct mtd_info *mtd, size_t *size);
+ 
++#ifdef CONFIG_HAS_DMA
++int mtd_map_buf(struct mtd_info *mtd, struct device *dev,
++		struct sg_table *sgt, const void *buf, size_t len,
++		const struct sg_constraints *constraints,
++		enum dma_data_direction dir);
++void mtd_unmap_buf(struct mtd_info *mtd, struct device *dev,
++		   struct sg_table *sgt, enum dma_data_direction dir);
++#else
++static inline int mtd_map_buf(struct mtd_info *mtd, struct device *dev,
++			      struct sg_table *sgt, const void *buf,
++			      size_t len,
++			      const struct sg_constraints *constraints
++			      enum dma_data_direction dir)
++{
++	return -ENOTSUPP;
++}
++
++static void mtd_unmap_buf(struct mtd_info *mtd, struct device *dev,
++			  struct sg_table *sgt, enum dma_data_direction dir)
++{
++	return -ENOTSUPP;
++}
++#endif
++
+ void mtd_erase_callback(struct erase_info *instr);
+ 
+ static inline int mtd_is_bitflip(int err) {
+-- 
+2.5.0
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
