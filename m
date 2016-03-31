@@ -1,122 +1,327 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:54095 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965816AbcCPMCi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Mar 2016 08:02:38 -0400
-Date: Wed, 16 Mar 2016 09:02:21 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, kyungmin.park@samsung.com,
-	a.hajda@samsung.com, s.nawrocki@samsung.com, kgene@kernel.org,
-	k.kozlowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	hyun.kwon@xilinx.com, soren.brinkmann@xilinx.com,
-	gregkh@linuxfoundation.org, perex@perex.cz, tiwai@suse.com,
-	hans.verkuil@cisco.com, lixiubo@cmss.chinamobile.com,
-	javier@osg.samsung.com, g.liakhovetski@gmx.de,
-	chehabrafael@gmail.com, crope@iki.fi, tommi.franttila@intel.com,
-	dan.carpenter@oracle.com, prabhakar.csengg@gmail.com,
-	hamohammed.sa@gmail.com, der.herr@hofr.at, navyasri.tech@gmail.com,
-	Julia.Lawall@lip6.fr, amitoj1606@gmail.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org,
-	alsa-devel@alsa-project.org
-Subject: Re: [PATCH] media: add GFP flag to media_*() that could get called
- in atomic context
-Message-ID: <20160316090221.02d0a699@recife.lan>
-In-Reply-To: <20160316082834.GX11084@valkosipuli.retiisi.org.uk>
-References: <1457833689-4926-1-git-send-email-shuahkh@osg.samsung.com>
-	<20160314072236.GO11084@valkosipuli.retiisi.org.uk>
-	<20160314071358.27c87dab@recife.lan>
-	<20160314105253.GQ11084@valkosipuli.retiisi.org.uk>
-	<20160314084633.521d3e35@recife.lan>
-	<20160314120909.GS11084@valkosipuli.retiisi.org.uk>
-	<20160315125535.775c8cc3@recife.lan>
-	<20160316082834.GX11084@valkosipuli.retiisi.org.uk>
+Received: from mail-pa0-f68.google.com ([209.85.220.68]:36261 "EHLO
+	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757873AbcCaTmq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2016 15:42:46 -0400
+From: info@are.ma
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?=
+	<knightrider@are.ma>, linux-kernel@vger.kernel.org, crope@iki.fi,
+	m.chehab@samsung.com, mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 4/8] Toshiba TC905xx demodulator for PT3/PX-Q3PE/PX-BCUD
+Date: Fri,  1 Apr 2016 04:42:28 +0900
+Message-Id: <93cf90911a84df4b75502f6c4c6c97e9495c8583.1459450632.git.knightrider@are.ma>
+In-Reply-To: <cover.1459450632.git.knightrider@are.ma>
+References: <cover.1459450632.git.knightrider@are.ma>
+In-Reply-To: <cover.1459450632.git.knightrider@are.ma>
+References: <cover.1459450632.git.knightrider@are.ma>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 16 Mar 2016 10:28:35 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-> Hi Mauro,
-> 
-> On Tue, Mar 15, 2016 at 12:55:35PM -0300, Mauro Carvalho Chehab wrote:
-> > Em Mon, 14 Mar 2016 14:09:09 +0200
-> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> >   
-> > > Hi Mauro,
-> > > 
+Toshiba TC905xx demodulator driver for PT3, PX-Q3PE & PX-BCUD
 
-...
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+---
+ drivers/media/dvb-frontends/tc90522.c | 255 ++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/tc90522.h |  18 +++
+ 2 files changed, 273 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/tc90522.c
+ create mode 100644 drivers/media/dvb-frontends/tc90522.h
 
-> > > Notify callbacks, perhaps not, but the list is still protected by the
-> > > spinlock. It perhaps is not likely that another process would change it but
-> > > I don't think we can rely on that.  
-> > 
-> > I can see only 2 risks protected by the lock:
-> > 
-> > 1) mdev gets freed while an entity is being created. This is a problem
-> >    with the current memory protection schema we're using. I guess the
-> >    only way to fix it is to use kref for mdev/entities/interfaces/links/pads.
-> >    This change doesn't make it better or worse.
-> >    Also, I don't think we have such risk with the current devices.
-> > 
-> > 2) a notifier may be inserted or removed by another driver, while the
-> >    loop is running.
-> > 
-> > To avoid (2), I see 3 alternatives:
-> > 
-> > a) keep the loop as proposed on this patch. As the list is navigated using 
-> > list_for_each_entry_safe(), I guess[1] it should be safe to remove/add
-> > new notify callbacks there while the loop is running by some other process.   
-> 
-> list_for_each_entry_safe() does not protect against concurrent access, only
-> against adding and removing list entries by the same user. List access
-> serialisation is still needed, whether you use _safe() functions or not.
-> 
-> > 
-> > [1] It *is* safe if the change were done inside the loop - but I'm not
-> > 100% sure that it is safe if some other CPU touches the notify list.  
-> 
-> Indeed.
-> 
-> > 
-> > b) Unlock/relock the spinlock every time:
-> > 
-> > 	/* previous code that locks mdev->lock spinlock */
-> > 
-> >  	/* invoke entity_notify callbacks */
-> >  	list_for_each_entry_safe(notify, next, &mdev->entity_notify, list) {
-> > 		spin_unlock(&mdev->lock);
-> >  		(notify)->notify(entity, notify->notify_data);
-> > 		spin_lock(&mdev->lock);
-> >  	}
-> >  
-> > 	spin_unlock(&mdev->lock);
-> > 
-> > c) use a separate lock for the notify list -this seems to be an overkill.
-> > 
-> > d) Protect it with the graph traversal mutex. That sounds the worse idea,
-> >    IMHO, as we'll be abusing the lock.  
-> 
-> I'd simply replace the spinlock with a mutex here. As we want to get rid of
-> the graph mutex anyway in the long run, let's not mix the two as they're
-> well separated now. As long as the mutex users do not sleep (i.e. the
-> notify() callback) the mutex is about as fast to use as the spinlock.
+diff --git a/drivers/media/dvb-frontends/tc90522.c b/drivers/media/dvb-frontends/tc90522.c
+new file mode 100644
+index 0000000..97007ec
+--- /dev/null
++++ b/drivers/media/dvb-frontends/tc90522.c
+@@ -0,0 +1,255 @@
++/*
++	Toshiba TC90522XBG 2ch OFDM(ISDB-T) + 2ch 8PSK(ISDB-S) demodulator
++
++	Copyright (C) Budi Rachmanto, AreMa Inc. <info@are.ma>
++
++	CHIP		CARDS
++	TC90522XBG	Earthsoft PT3, PLEX PX-Q3PE
++	TC90532		PLEX PX-BCUD
++
++	This program is distributed in the hope that it will be useful,
++	but WITHOUT ANY WARRANTY; without even the implied warranty of
++	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++	GNU General Public License for more details.
++ */
++
++#include <linux/pci.h>
++#include "dvb_math.h"
++#include "dvb_frontend.h"
++#include "tc90522.h"
++
++bool tc90522_r(struct i2c_client *d, u8 slvadr, u8 *buf, u8 len)
++{
++	struct i2c_msg msg[] = {
++		{.addr = d->addr,	.flags = 0,		.buf = &slvadr,	.len = 1,},
++		{.addr = d->addr,	.flags = I2C_M_RD,	.buf = buf,	.len = len,},
++	};
++	return i2c_transfer(d->adapter, msg, 2) == 2;
++}
++
++bool tc90522_w(struct i2c_client *d, u8 slvadr, u8 dat)
++{
++	u8 buf[] = {slvadr, dat};
++	struct i2c_msg msg[] = {
++		{.addr = d->addr,	.flags = 0,	.buf = buf,	.len = 2,},
++	};
++	return i2c_transfer(d->adapter, msg, 1) == 1;
++}
++
++u64 tc90522_n2int(const u8 *data, u8 n)		/* convert n_bytes data from stream (network byte order) to integer */
++{						/* can't use <arpa/inet.h>'s ntoh*() as sometimes n = 3,5,...       */
++	u32 i, val = 0;
++
++	for (i = 0; i < n; i++) {
++		val <<= 8;
++		val |= data[i];
++	}
++	return val;
++}
++
++int tc90522_cn_raw(struct dvb_frontend *fe, u16 *raw)	/* for DVBv3 compatibility	*/
++{
++	u8	buf[3],
++		len	= fe->dtv_property_cache.delivery_system == SYS_ISDBS ? 2 : 3,
++		adr	= fe->dtv_property_cache.delivery_system == SYS_ISDBS ? 0xbc : 0x8b;
++	bool	ok	= tc90522_r(fe->demodulator_priv, adr, buf, len);
++	int	cn	= tc90522_n2int(buf, len);
++
++	if (!ok)
++		return -EIO;
++	*raw = cn;
++	return cn;
++}
++
++int tc90522_status(struct dvb_frontend *fe, enum fe_status *stat)
++{
++	enum fe_status			*festat	= i2c_get_clientdata(fe->demodulator_priv);
++	struct dtv_frontend_properties	*c	= &fe->dtv_property_cache;
++	u16	v16;
++	s64	raw	= tc90522_cn_raw(fe, &v16),
++		x,
++		y;
++
++	s64 cn_s(void)	/* @ .0001 dB */
++	{
++		raw -= 3000;
++		if (raw < 0)
++			raw = 0;
++		x = int_sqrt(raw << 20);
++		y = 16346ll * x - (143410ll << 16);
++		y = ((x * y) >> 16) + (502590ll << 16);
++		y = ((x * y) >> 16) - (889770ll << 16);
++		y = ((x * y) >> 16) + (895650ll << 16);
++		y = (588570ll << 16) - ((x * y) >> 16);
++		return y < 0 ? 0 : y >> 16;
++	}
++
++	s64 cn_t(void)	/* @ .0001 dB */
++	{
++		if (!raw)
++			return 0;
++		x = (1130911733ll - 10ll * intlog10(raw)) >> 2;
++		y = (x >> 2) - (x >> 6) + (x >> 8) + (x >> 9) - (x >> 10) + (x >> 11) + (x >> 12) - (16ll << 22);
++		y = ((x * y) >> 22) + (398ll << 22);
++		y = ((x * y) >> 22) + (5491ll << 22);
++		y = ((x * y) >> 22) + (30965ll << 22);
++		return y >> 22;
++	}
++
++	c->cnr.len		= 1;
++	c->cnr.stat[0].svalue	= fe->dtv_property_cache.delivery_system == SYS_ISDBS ? cn_s() : cn_t();
++	c->cnr.stat[0].scale	= FE_SCALE_DECIBEL;
++	*stat = *festat;
++	return *festat;
++}
++
++int tc90522_get_frontend_algo(struct dvb_frontend *fe)
++{
++	return DVBFE_ALGO_HW;
++}
++
++int tc90522_tune(struct dvb_frontend *fe, bool retune, u32 mode_flags, u32 *delay, enum fe_status *stat)
++{
++	u32 fno2kHz(u32 fno)
++	{
++		if (fno < 12)
++			return 1049480 + 38360 * fno;		/* BS		*/
++		else if (fno < 24)
++			return 1613000 + 40000 * (fno - 12);	/* CS110 right	*/
++		return 1593000 + 40000 * (fno - 24);		/* CS110 left	*/
++	}
++
++	void s_kHz(u32 *f)
++	{
++		*f =	*f > 3000000 ? fno2kHz(14)	:	/* max kHz, CNN	*/
++			*f >= 1049480 ? *f		:	/* min real kHz	*/
++			*f > 48 ? fno2kHz(4)		:	/* BS11 etc.	*/
++			fno2kHz(*f - 1);
++	}
++
++	u32 fno2Hz(u32 fno)
++	{
++		return	(fno > 112 ? 557 : 93 + 6 * fno + (fno < 12 ? 0 : fno < 17 ? 2 : fno < 63 ? 0 : 2)) * 1000000 + 142857;
++	}
++
++	void t_Hz(u32 *f)
++	{
++		*f =	*f >= 90000000	? *f			:	/* real_freq Hz	*/
++			*f > 255	? fno2Hz(77)		:	/* NHK		*/
++			*f > 127	? fno2Hz(*f - 128)	:	/* freqno (IO#)	*/
++			*f > 63	? (*f -= 64,				/* CATV		*/
++				*f > 22	? fno2Hz(*f - 1)	:	/* C23-C62	*/
++				*f > 12	? fno2Hz(*f - 10)	:	/* C13-C22	*/
++				fno2Hz(77))			:
++			*f > 62	? fno2Hz(77)			:
++			*f > 12	? fno2Hz(*f + 50)		:	/* 13-62	*/
++			*f > 3	? fno2Hz(*f +  9)		:	/*  4-12	*/
++			*f		? fno2Hz(*f -  1)	:	/*  1-3		*/
++			fno2Hz(77);
++	}
++	struct i2c_client	*d	= fe->demodulator_priv;
++	enum fe_status		*festat	= i2c_get_clientdata(d);
++	u16			set_id	= fe->dtv_property_cache.stream_id,
++				i	= 999;
++	u8			data[16];
++
++	if (!retune)		/* once is enough */
++		return 0;
++	*festat = 0;
++	if (fe->dtv_property_cache.delivery_system == SYS_ISDBT)
++		goto ISDBT;
++
++	s_kHz(&fe->dtv_property_cache.frequency);
++	if (fe->ops.tuner_ops.set_params(fe))
++		return -EIO;
++	while (i--) {
++		if	((tc90522_r(d, 0xC3, data, 1), !(data[0] & 0x10))	&&	/* locked	*/
++			(tc90522_r(d, 0xCE, data, 2), *(u16 *)data != 0)	&&	/* valid TSID	*/
++			tc90522_r(d, 0xC3, data, 1)				&&
++			tc90522_r(d, 0xCE, data, 16))
++			break;
++		msleep_interruptible(5);
++	}
++	if (!i)
++		goto ERR;
++	for (i = 0; i < 8; i++) {
++		u16 tsid = tc90522_n2int(data + i*2, 2);
++
++		if ((tsid == set_id || set_id == i)	&&
++			tc90522_w(d, 0x8F, tsid >> 8)	&&
++			tc90522_w(d, 0x90, tsid & 0xFF)	&&
++			tc90522_r(d, 0xE6, data, 2)	&&
++			tc90522_n2int(data, 2) == tsid)
++			goto LOCK;
++	}
++	goto ERR;
++ISDBT:
++	t_Hz(&fe->dtv_property_cache.frequency);
++	if (fe->ops.tuner_ops.set_params(fe))
++		return -EIO;
++	while (i--) {
++		bool	retryov,
++			lock0,
++			lock1;
++		if (!tc90522_r(d, 0x80, data, 1) || !tc90522_r(d, 0xB0, data + 1, 1))
++			break;
++		retryov	= data[0] & 0b10000000 ? true : false;
++		lock0	= data[0] & 0b00001000 ? false : true;
++		lock1	= data[1] & 0b00001000 ? true : false;
++		if (lock0 && lock1) {
++LOCK:
++			*festat = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_LOCK;
++			*stat = *festat;
++			return 0;
++		}
++		if (retryov)
++			break;
++		msleep_interruptible(1);
++	}
++ERR:
++	*stat = *festat;
++	return -ETIMEDOUT;
++}
++
++static struct dvb_frontend_ops tc90522_ops = {
++	.info = {
++		.name = TC90522_MODNAME,
++		.caps = FE_CAN_INVERSION_AUTO | FE_CAN_FEC_AUTO | FE_CAN_QAM_AUTO | FE_CAN_MULTISTREAM |
++			FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO,
++		.frequency_min	= 1,		/* actual limit settings are set by .tune */
++		.frequency_max	= 770000000,
++	},
++	.get_frontend_algo = tc90522_get_frontend_algo,
++	.read_snr	= tc90522_cn_raw,
++	.read_status	= tc90522_status,
++	.tune		= tc90522_tune,
++};
++
++int tc90522_probe(struct i2c_client *d, const struct i2c_device_id *id)
++{
++	struct dvb_frontend	*fe	= d->dev.platform_data;
++	static enum fe_status	festat;
++
++	memcpy(&fe->ops, &tc90522_ops, sizeof(struct dvb_frontend_ops));
++	festat = 0;
++	i2c_set_clientdata(d, &festat);
++	return 0;
++}
++
++static struct i2c_device_id tc90522_id[] = {
++	{TC90522_MODNAME, 0},
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, tc90522_id);
++
++static struct i2c_driver tc90522_driver = {
++	.driver.name	= tc90522_id->name,
++	.probe		= tc90522_probe,
++	.id_table	= tc90522_id,
++};
++module_i2c_driver(tc90522_driver);
++
++MODULE_AUTHOR("Budi Rachmanto, AreMa Inc. <knightrider(@)are.ma>");
++MODULE_DESCRIPTION("Toshiba TC90522 8PSK(ISDB-S)/OFDM(ISDB-T) quad demodulator");
++MODULE_LICENSE("GPL");
++
+diff --git a/drivers/media/dvb-frontends/tc90522.h b/drivers/media/dvb-frontends/tc90522.h
+new file mode 100644
+index 0000000..b6ee014
+--- /dev/null
++++ b/drivers/media/dvb-frontends/tc90522.h
+@@ -0,0 +1,18 @@
++/*
++ * Toshiba TC90522XBG 2ch OFDM(ISDB-T) + 2ch 8PSK(ISDB-S) demodulator
++ *
++ * Copyright (C) Budi Rachmanto, AreMa Inc. <info@are.ma>
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef	TC90522_H
++#define	TC90522_H
++
++#define TC90522_MODNAME "tc90522"
++
++#endif
++
+-- 
+2.7.4
 
-It could work. I added such patch on an experimental branch, where
-I'm addressing a few troubles with au0828 unbind logic:
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=au0828-unbind-fixes
-
-The patch itself is at:
-	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=au0828-unbind-fixes&id=dba4d41bdfa6bb8dc51cb0f692102919b2b7c8b4
-
-At least for au0828, it seems to work fine.
-
-Regards,
-Mauro
