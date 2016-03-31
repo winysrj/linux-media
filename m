@@ -1,140 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38566 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343AbcCWIqI (ORCPT
+Received: from down.free-electrons.com ([37.187.137.238]:41934 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751038AbcCaM3u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Mar 2016 04:46:08 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: [PATCH v5 2/2] media: Rename is_media_entity_v4l2_io to is_media_entity_v4l2_video_device
-Date: Wed, 23 Mar 2016 10:45:56 +0200
-Message-Id: <1458722756-7269-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1458722756-7269-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Thu, 31 Mar 2016 08:29:50 -0400
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	linux-mtd@lists.infradead.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dave Gordon <david.s.gordon@intel.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-spi@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Vinod Koul <vinod.koul@intel.com>,
+	Dan Williams <dan.j.williams@intel.com>,
+	dmaengine@vger.kernel.org,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Boris Brezillon <boris.brezillon@free-electrons.com>,
+	Richard Weinberger <richard@nod.at>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-crypto@vger.kernel.org, Vignesh R <vigneshr@ti.com>,
+	linux-mm@kvack.org, Joerg Roedel <joro@8bytes.org>,
+	iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 0/4] scatterlist: sg_table from virtual pointer
+Date: Thu, 31 Mar 2016 14:29:40 +0200
+Message-Id: <1459427384-21374-1-git-send-email-boris.brezillon@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All users of is_media_entity_v4l2_io() (the exynos4-is, omap3isp,
-davince_vpfe and omap4iss drivers and the v4l2-mc power management code)
-use the function to check whether entities are video_device instances,
-either to ensure they can cast the entity to a struct video_device, or
-to count the number of video nodes users.
+Hello,
 
-The purpose of the function is thus to identify whether the media entity
-instance is an instance of the video_device object, not to check whether
-it can perform I/O. Rename it accordingly, we will introduce a more
-specific is_media_entity_v4l2_io() check when needed.
+This series has been extracted from another series [1] adding support
+for DMA operations in a NAND driver.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/exynos4-is/media-dev.c   | 4 ++--
- drivers/media/platform/omap3isp/ispvideo.c      | 2 +-
- drivers/media/v4l2-core/v4l2-mc.c               | 2 +-
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
- drivers/staging/media/omap4iss/iss_video.c      | 2 +-
- include/media/media-entity.h                    | 4 ++--
- 6 files changed, 8 insertions(+), 8 deletions(-)
+The reason I decided to post those patches separately is because they
+are touching core stuff, and I'd like to have feedback on these specific
+aspects.
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index feb521f28e14..9a377d9dd58a 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1130,7 +1130,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
- 	media_entity_graph_walk_start(graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(graph))) {
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 
- 		ret  = __fimc_md_modify_pipeline(entity, enable);
-@@ -1145,7 +1145,7 @@ err:
- 	media_entity_graph_walk_start(graph, entity_err);
- 
- 	while ((entity_err = media_entity_graph_walk_next(graph))) {
--		if (!is_media_entity_v4l2_io(entity_err))
-+		if (!is_media_entity_v4l2_video_device(entity_err))
- 			continue;
- 
- 		__fimc_md_modify_pipeline(entity_err, !enable);
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index ac76d2901501..1b1a95d546f6 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -251,7 +251,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
- 		if (entity == &video->video.entity)
- 			continue;
- 
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 
- 		__video = to_isp_video(media_entity_to_video_device(entity));
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 2228cd3a846e..ca94bded3386 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -263,7 +263,7 @@ static int pipeline_pm_use_count(struct media_entity *entity,
- 	media_entity_graph_walk_start(graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(graph))) {
--		if (is_media_entity_v4l2_io(entity))
-+		if (is_media_entity_v4l2_video_device(entity))
- 			use += entity->use_count;
- 	}
- 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index db49af90217e..7d8fa34f31f3 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -154,7 +154,7 @@ static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		if (entity == &video->video_dev.entity)
- 			continue;
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 		far_end = to_vpfe_video(media_entity_to_video_device(entity));
- 		if (far_end->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index f54349bce4de..cf8da23558bb 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -223,7 +223,7 @@ iss_video_far_end(struct iss_video *video)
- 		if (entity == &video->video.entity)
- 			continue;
- 
--		if (!is_media_entity_v4l2_io(entity))
-+		if (!is_media_entity_v4l2_video_device(entity))
- 			continue;
- 
- 		far_end = to_iss_video(media_entity_to_video_device(entity));
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 5cea57955a3a..9e67b886557a 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -361,14 +361,14 @@ static inline u32 media_gobj_gen_id(enum media_gobj_type type, u64 local_id)
- }
- 
- /**
-- * is_media_entity_v4l2_io() - Check if the entity is a video_device
-+ * is_media_entity_v4l2_video_device() - Check if the entity is a video_device
-  * @entity:	pointer to entity
-  *
-  * Return: true if the entity is an instance of a video_device object and can
-  * safely be cast to a struct video_device using the container_of() macro, or
-  * false otherwise.
-  */
--static inline bool is_media_entity_v4l2_io(struct media_entity *entity)
-+static inline bool is_media_entity_v4l2_video_device(struct media_entity *entity)
- {
- 	return entity && entity->obj_type == MEDIA_ENTITY_TYPE_VIDEO_DEVICE;
- }
+The idea is to provide a generic function creating an sg_table from
+a virtual pointer and a length. This operation is complicated by
+the different memory regions exposed in kernel space. For example,
+you have the lowmem region, which guarantees that buffers are
+physically contiguous, while the vmalloc region does not.
+
+sg_alloc_table_from_buf() detects in which memory region your buffer
+reside, and takes the appropriate precautions when creating the
+sg_table. This function also takes an extract parameter, allowing
+one to specify extra constraints, like the maximum DMA segment size,
+the required and the preferred alignment.
+
+Patch 1 and 2 are implementing sg_alloc_table_from_buf() (patch 1
+is needed to properly detect buffers residing in the highmem/kmap
+area).
+
+Patch 3 is making use of sg_alloc_table_from_buf() in the spi_map_buf()
+function (hopefully, other subsystems/drivers will be able to easily
+switch to this function too).
+
+Patch 4 is implementing what I really need: generic functions
+to map/unmap a virtual buffer passed through mtd->_read/_write().
+
+I'm not exactly a DMA or MM experts, so that would be great to have
+feedbacks on this approach. That's why I added so many people in Cc
+even if they're not directly impacted by those patches. Let me know if
+you want me to drop/add people from/to the recipient list.
+
+Thanks.
+
+Best Regards,
+
+Boris
+
+[1]http://www.spinics.net/lists/arm-kernel/msg493552.html
+
+Boris Brezillon (4):
+  mm: add is_highmem_addr() helper
+  scatterlist: add sg_alloc_table_from_buf() helper
+  spi: use sg_alloc_table_from_buf()
+  mtd: provide helper to prepare buffers for DMA operations
+
+ drivers/mtd/mtdcore.c       |  66 ++++++++++++++++
+ drivers/spi/spi.c           |  45 ++---------
+ include/linux/highmem.h     |  13 ++++
+ include/linux/mtd/mtd.h     |  25 ++++++
+ include/linux/scatterlist.h |  24 ++++++
+ lib/scatterlist.c           | 183 ++++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 316 insertions(+), 40 deletions(-)
+
 -- 
-2.7.3
+2.5.0
 
