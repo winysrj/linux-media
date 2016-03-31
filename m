@@ -1,66 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:47862 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751627AbcCYCRo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Mar 2016 22:17:44 -0400
-Date: Fri, 25 Mar 2016 11:17:38 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v2] media: rcar_vin: Use ARCH_RENESAS
-Message-ID: <20160325021738.GD31681@verge.net.au>
-References: <1457399035-14527-1-git-send-email-horms+renesas@verge.net.au>
+Received: from comal.ext.ti.com ([198.47.26.152]:35467 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750769AbcCaE6a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Mar 2016 00:58:30 -0400
+Subject: Re: [v2,4/7] scatterlist: add sg_alloc_table_from_buf() helper
+To: Boris BREZILLON <boris.brezillon@free-electrons.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Brian Norris <computersforpeace@gmail.com>,
+	<linux-mtd@lists.infradead.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Dave Gordon <david.s.gordon@intel.com>
+References: <1459352394-22810-5-git-send-email-boris.brezillon@free-electrons.com>
+CC: Mark Rutland <mark.rutland@arm.com>, <devicetree@vger.kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Vinod Koul <vinod.koul@intel.com>,
+	Chen-Yu Tsai <wens@csie.org>, Rob Herring <robh+dt@kernel.org>,
+	<linux-spi@vger.kernel.org>, Richard Weinberger <richard@nod.at>,
+	<linux-sunxi@googlegroups.com>, Mark Brown <broonie@kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kumar Gala <galak@codeaurora.org>, <dmaengine@vger.kernel.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	<linux-media@vger.kernel.org>,
+	Dan Williams <dan.j.williams@intel.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>
+From: Vignesh R <vigneshr@ti.com>
+Message-ID: <56FCAE1B.90206@ti.com>
+Date: Thu, 31 Mar 2016 10:26:59 +0530
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1457399035-14527-1-git-send-email-horms+renesas@verge.net.au>
+In-Reply-To: <1459352394-22810-5-git-send-email-boris.brezillon@free-electrons.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 08, 2016 at 10:03:55AM +0900, Simon Horman wrote:
-> Make use of ARCH_RENESAS in place of ARCH_SHMOBILE.
-> 
-> This is part of an ongoing process to migrate from ARCH_SHMOBILE to
-> ARCH_RENESAS the motivation for which being that RENESAS seems to be a more
-> appropriate name than SHMOBILE for the majority of Renesas ARM based SoCs.
-> 
-> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+Hi,
 
-Hi Guennadi,
+On 03/30/2016 09:09 PM, Boris BREZILLON wrote:
 
-I am wondering if you could consider applying this patch.
+[...]
 
-Thanks!
+> +int sg_alloc_table_from_buf(struct sg_table *sgt, const void *buf, size_t len,
+> +			    const struct sg_constraints *constraints,
+> +			    gfp_t gfp_mask)
+> +{
+> +	struct sg_constraints cons = { };
+> +	size_t remaining, chunk_len;
+> +	const void *sg_buf;
+> +	int i, ret;
+> +
+> +	if (constraints)
+> +		cons = *constraints;
+> +
+> +	ret = sg_check_constraints(&cons, buf, len);
+> +	if (ret)
+> +		return ret;
+> +
+> +	sg_buf = buf;
+> +	remaining = len;
+> +	i = 0;
+> +	sg_for_each_chunk_in_buf(sg_buf, remaining, chunk_len, &cons)
+> +		i++;
+> +
+> +	ret = sg_alloc_table(sgt, i, gfp_mask);
+> +	if (ret)
+> +		return ret;
+> +
+> +	sg_buf = buf;
+> +	remaining = len;
+> +	i = 0;
+> +	sg_for_each_chunk_in_buf(sg_buf, remaining, chunk_len, &cons) {
+> +		if (is_vmalloc_addr(sg_buf)) {
+> +			struct page *vm_page;
+> +
+> +			vm_page = vmalloc_to_page(sg_buf);
+> +			if (!vm_page) {
+> +				ret = -ENOMEM;
+> +				goto err_free_table;
+> +			}
+> +
+> +			sg_set_page(&sgt->sgl[i], vm_page, chunk_len,
+> +				    offset_in_page(sg_buf));
+> +		} else {
+> +			sg_set_buf(&sgt->sgl[i], sg_buf, chunk_len);
+> +		}
+> +
 
-> ---
-> Based on media-tree/next
+If the buf address is in PKMAP_BASE - PAGE_OFFSET-1 region (I have
+observed that JFFS2 FS provides buffers in above region to MTD layer),
+if CONFIG_DEBUG_SG is set then sg_set_buf() will throw a BUG_ON() as
+virt_addr_is_valid() will return false. Is there a sane way to handle
+buffers of PKMAP_BASE region with sg_*  APIs?
+Or, is the function sg_alloc_table_from_buf() not to be used with such
+buffers?
 
-The above should have been media-tree/master
 
-> 
-> v2
-> * Break out of a (slightly) larger patch
-> ---
->  drivers/media/platform/soc_camera/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-> index 355298989dd8..08db3b040bbe 100644
-> --- a/drivers/media/platform/soc_camera/Kconfig
-> +++ b/drivers/media/platform/soc_camera/Kconfig
-> @@ -28,7 +28,7 @@ config VIDEO_PXA27x
->  config VIDEO_RCAR_VIN
->  	tristate "R-Car Video Input (VIN) support"
->  	depends on VIDEO_DEV && SOC_CAMERA
-> -	depends on ARCH_SHMOBILE || COMPILE_TEST
-> +	depends on ARCH_RENESAS || COMPILE_TEST
->  	depends on HAS_DMA
->  	select VIDEOBUF2_DMA_CONTIG
->  	select SOC_CAMERA_SCALE_CROP
-> -- 
-> 2.1.4
-> 
+-- 
+Regards
+Vignesh
