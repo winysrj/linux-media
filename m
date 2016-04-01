@@ -1,76 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58950 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751330AbcDCRue (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Apr 2016 13:50:34 -0400
-Subject: Re: [PATCH 2/3] [media] adv7180: Add cropcap operation
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	linux-renesas-soc@vger.kernel.org, lars@metafoo.de,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org
-References: <1459618940-8170-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
- <1459618940-8170-3-git-send-email-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <570157E2.10607@xs4all.nl>
-Date: Sun, 3 Apr 2016 10:50:26 -0700
+Received: from mail-yw0-f178.google.com ([209.85.161.178]:33787 "EHLO
+	mail-yw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751364AbcDATLU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2016 15:11:20 -0400
+Received: by mail-yw0-f178.google.com with SMTP id h65so182010288ywe.0
+        for <linux-media@vger.kernel.org>; Fri, 01 Apr 2016 12:11:20 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1459618940-8170-3-git-send-email-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <56FEA192.9020303@nexvision.fr>
+References: <56FE9B7F.7060206@nexvision.fr> <56FEA192.9020303@nexvision.fr>
+From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Date: Fri, 1 Apr 2016 21:11:00 +0200
+Message-ID: <CAH-u=83J0kJzaV5Mqz7Zt76JgfVz6M_v_nhzPEeqwcRCRKm8VQ@mail.gmail.com>
+Subject: Re: [PATCH] Add GS1662 driver (a SPI video serializer)
+To: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Charles-Antoine,
 
+Thank you for the patch.
+FIrst of all, we, on the ML, do prefer reading patches as sent by git
+send-email tool.
+It is easier to comment the patch.
 
-On 04/02/2016 10:42 AM, Niklas Söderlund wrote:
-> Add support to get the pixel aspect ratio depending on the current
-> standard (50 vs 60 Hz).
->
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Next, you should add a complete description to your commit. Just
+having an object and a signed-off-by line is not enough.
+You also have to use the scripts/checkpatch.pl script to verify that
+everything is ok with it.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Last thing, I can't see anything related to V4L2 in your patch. It is
+just used to initialize the chip and the spi bus, that's all.
+Adding a subdev is a start, and some operations if it can do something
+else than just serializing.
 
-Thanks!
+That's it for the moment, when you submit a v2, I (and others) may
+have some more comments :).
 
-	Hans
+Thanks,
+JM
 
-> ---
->   drivers/media/i2c/adv7180.c | 16 ++++++++++++++++
->   1 file changed, 16 insertions(+)
->
-> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-> index d680d76..80ded70 100644
-> --- a/drivers/media/i2c/adv7180.c
-> +++ b/drivers/media/i2c/adv7180.c
-> @@ -726,6 +726,21 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
->   	return 0;
->   }
->
-> +static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *cropcap)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	if (state->curr_norm & V4L2_STD_525_60) {
-> +		cropcap->pixelaspect.numerator = 11;
-> +		cropcap->pixelaspect.denominator = 10;
-> +	} else {
-> +		cropcap->pixelaspect.numerator = 54;
-> +		cropcap->pixelaspect.denominator = 59;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->   static const struct v4l2_subdev_video_ops adv7180_video_ops = {
->   	.s_std = adv7180_s_std,
->   	.g_std = adv7180_g_std,
-> @@ -733,6 +748,7 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
->   	.g_input_status = adv7180_g_input_status,
->   	.s_routing = adv7180_s_routing,
->   	.g_mbus_config = adv7180_g_mbus_config,
-> +	.cropcap = adv7180_cropcap,
->   };
->
->
+2016-04-01 18:28 GMT+02:00 Charles-Antoine Couret
+<charles-antoine.couret@nexvision.fr>:
 >
