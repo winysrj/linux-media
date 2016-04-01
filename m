@@ -1,118 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:25090 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932859AbcDSP7R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2016 11:59:17 -0400
-Subject: Re: [PATCH v6 08/24] iio: imu: inv_mpu6050: convert to use an
- explicit i2c mux core
-To: Peter Rosin <peda@lysator.liu.se>, linux-kernel@vger.kernel.org
-References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
- <1459673574-11440-9-git-send-email-peda@lysator.liu.se>
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-From: Crestez Dan Leonard <leonard.crestez@intel.com>
-Message-ID: <57165593.4040700@intel.com>
-Date: Tue, 19 Apr 2016 18:58:11 +0300
+Received: from 20.mo4.mail-out.ovh.net ([46.105.33.73]:56616 "EHLO
+	20.mo4.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751175AbcDAQhk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2016 12:37:40 -0400
+Received: from mail699.ha.ovh.net (b6.ovh.net [213.186.33.56])
+	by mo4.mail-out.ovh.net (Postfix) with SMTP id 8D343111426C
+	for <linux-media@vger.kernel.org>; Fri,  1 Apr 2016 18:28:03 +0200 (CEST)
+Subject: [PATCH] Add GS1662 driver (a SPI video serializer)
+References: <56FE9B7F.7060206@nexvision.fr>
+To: linux-media@vger.kernel.org
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Message-ID: <56FEA192.9020303@nexvision.fr>
+Date: Fri, 1 Apr 2016 18:28:02 +0200
 MIME-Version: 1.0
-In-Reply-To: <1459673574-11440-9-git-send-email-peda@lysator.liu.se>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <56FE9B7F.7060206@nexvision.fr>
+Content-Type: multipart/mixed;
+ boundary="------------050704040506070907030402"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/03/2016 11:52 AM, Peter Rosin wrote:
-> From: Peter Rosin <peda@axentia.se>
-> 
-> Allocate an explicit i2c mux core to handle parent and child adapters
-> etc. Update the select/deselect ops to be in terms of the i2c mux core
-> instead of the child adapter.
-> 
-> --- a/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
-> +++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
-> @@ -136,16 +133,15 @@ static int inv_mpu_probe(struct i2c_client *client,
->  		return result;
->  
->  	st = iio_priv(dev_get_drvdata(&client->dev));
-> -	st->mux_adapter = i2c_add_mux_adapter(client->adapter,
-> -					      &client->dev,
-> -					      client,
-> -					      0, 0, 0,
-> -					      inv_mpu6050_select_bypass,
-> -					      inv_mpu6050_deselect_bypass);
-> -	if (!st->mux_adapter) {
-> -		result = -ENODEV;
-> +	st->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0, 0,
-> +				       0, 0, 0,
-> +				       inv_mpu6050_select_bypass,
-> +				       inv_mpu6050_deselect_bypass);
-> +	if (IS_ERR(st->muxc)) {
-> +		result = PTR_ERR(st->muxc);
->  		goto out_unreg_device;
->  	}
-> +	st->muxc->priv = client;
+This is a multi-part message in MIME format.
+--------------050704040506070907030402
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-I just tested this patch on mpu9150 (combo mpu6050+ak8975) and I got a
-crash on probe which looks sort of like this:
 
-[    5.565374] RIP: 0010:[<ffffffff81481aed>] [<ffffffff81481aed>]
-mutex_lock+0xd/0x30
-[    5.565374] Call Trace:
-[    5.565374]  [<ffffffff813be34c>] inv_mpu6050_select_bypass+0x1c/0xa0
-...
-[    5.565374]  [<ffffffff81392141>] i2c_transfer+0x51/0x90
-...
-[    5.565374]  [<ffffffff81392cb5>] i2c_smbus_read_i2c_block_data+0x45/0xd0
-[    5.565374]  [<ffffffff813bec5a>] ak8975_probe+0x14a/0x5c0
-...
-[    5.565374]  [<ffffffff813933d8>] i2c_new_device+0x178/0x1e0
-[    5.565374]  [<ffffffff8139362d>] of_i2c_register_device+0xdd/0x1a0
-[    5.565374]  [<ffffffff8139372b>] of_i2c_register_devices+0x3b/0x60
-[    5.565374]  [<ffffffff81393e88>] i2c_register_adapter+0x178/0x410
-[    5.565374]  [<ffffffff81394203>] i2c_add_adapter+0x73/0x90
-[    5.565374]  [<ffffffff81395f3d>] i2c_mux_add_adapter+0x2ed/0x400
-[    5.565374]  [<ffffffff81396091>] i2c_mux_one_adapter+0x41/0x70
-[    5.565374]  [<ffffffff813be48a>] inv_mpu_probe+0xba/0x1a0
+--------------050704040506070907030402
+Content-Type: text/x-patch;
+ name="gs1662.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="gs1662.patch"
 
-This happens because muxc->priv is not initialized when probing devices
-behind the mux as described by devicetree. This can be easily fixed by
-using muxc->dev instead of muxc->priv, or perhaps by calling
-i2c_mux_alloc, initializing priv and later doing i2c_mux_add_adapter.
+>From 65b48bf1c77801c210bf93c07bc7f513efdbcbb5 Mon Sep 17 00:00:00 2001
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Date: Fri, 1 Apr 2016 17:19:26 +0200
+Subject: [PATCH] Add GS1662 driver (a SPI video serializer)
 
-These fixes are driver-specific and other drivers might experience
-similar issues. Perhaps i2c_mux_one_adapter should take void *priv just
-like old i2c_add_mux_adapter?
+Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+---
+ drivers/media/Kconfig      |   1 +
+ drivers/media/Makefile     |   2 +-
+ drivers/media/spi/Kconfig  |   5 ++
+ drivers/media/spi/Makefile |   1 +
+ drivers/media/spi/gs1662.c | 128 +++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 136 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/spi/Kconfig
+ create mode 100644 drivers/media/spi/Makefile
+ create mode 100644 drivers/media/spi/gs1662.c
 
-After I fix this locally the deadlock when reading from both devices no
-longer happens.
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index a8518fb..d2fa6e7 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -215,5 +215,6 @@ config MEDIA_ATTACH
+ source "drivers/media/i2c/Kconfig"
+ source "drivers/media/tuners/Kconfig"
+ source "drivers/media/dvb-frontends/Kconfig"
++source "drivers/media/spi/Kconfig"
+ 
+ endif # MEDIA_SUPPORT
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index e608bbc..75bc82e 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -28,6 +28,6 @@ obj-y += rc/
+ # Finally, merge the drivers that require the core
+ #
+ 
+-obj-y += common/ platform/ pci/ usb/ mmc/ firewire/
++obj-y += common/ platform/ pci/ usb/ mmc/ firewire/ spi/
+ obj-$(CONFIG_VIDEO_DEV) += radio/
+ 
+diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
+new file mode 100644
+index 0000000..d5e7b98
+--- /dev/null
++++ b/drivers/media/spi/Kconfig
+@@ -0,0 +1,5 @@
++config VIDEO_GS1662
++	tristate "Gennum Serializer 1662 video"
++	depends on SPI
++	---help---
++	  Enable the GS1662 driver which serializes video streams.
+diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
+new file mode 100644
+index 0000000..ea64013
+--- /dev/null
++++ b/drivers/media/spi/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_GS1662) += gs1662.o
+diff --git a/drivers/media/spi/gs1662.c b/drivers/media/spi/gs1662.c
+new file mode 100644
+index 0000000..6698fbf
+--- /dev/null
++++ b/drivers/media/spi/gs1662.c
+@@ -0,0 +1,128 @@
++/*
++ * GS1662 device registration
++ *
++ * Copyright (C) 2015-2016 Nexvision
++ * Author: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/spi/spi.h>
++#include <linux/platform_device.h>
++#include <linux/ctype.h>
++#include <linux/err.h>
++#include <linux/device.h>
++
++#define READ_FLAG		0x8000
++#define WRITE_FLAG		0x0000
++#define BURST_FLAG		0x1000
++
++#define ADDRESS_MASK	0x0FFF
++
++static int gs1662_read_register(struct spi_device *spi, u16 addr, u16 *value)
++{
++	int ret;
++	u16 buf_addr =  (READ_FLAG | (ADDRESS_MASK & addr));
++	u16 buf_value = 0;
++	struct spi_message msg;
++	struct spi_transfer tx[] = {
++		{
++			.tx_buf = &buf_addr,
++			.len = 2,
++			.delay_usecs = 1,
++		}, {
++			.rx_buf = &buf_value,
++			.len = 2,
++			.delay_usecs = 1,
++		},
++	};
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx[0], &msg);
++	spi_message_add_tail(&tx[1], &msg);
++	ret = spi_sync(spi, &msg);
++
++	*value = buf_value;
++
++	return ret;
++}
++
++static int gs1662_write_register(struct spi_device *spi, u16 addr, u16 value)
++{
++	int ret;
++	u16 buf_addr = (WRITE_FLAG | (ADDRESS_MASK & addr));
++	u16 buf_value = value;
++	struct spi_message msg;
++	struct spi_transfer tx[] = {
++		{
++			.tx_buf = &buf_addr,
++			.len = 2,
++			.delay_usecs = 1,
++		}, {
++			.tx_buf = &buf_value,
++			.len = 2,
++			.delay_usecs = 1,
++		},
++	};
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx[0], &msg);
++	spi_message_add_tail(&tx[1], &msg);
++	ret = spi_sync(spi, &msg);
++
++	return ret;
++}
++
++static int gs1662_probe(struct spi_device *spi)
++{
++	int ret;
++
++	spi->mode = SPI_MODE_0;
++	spi->irq = -1;
++	spi->max_speed_hz = 10000000;
++	spi->bits_per_word = 16;
++	ret = spi_setup(spi);
++
++	/* Set H_CONFIG to SMPTE timings */
++	gs1662_write_register(spi, 0x0, 0x100);
++
++	return ret;
++}
++
++static int gs1662_remove(struct spi_device *spi)
++{
++	return 0;
++}
++
++static struct spi_driver gs1662_driver = {
++	.driver = {
++		.name		= "gs1662",
++		.owner		= THIS_MODULE,
++	},
++
++	.probe		= gs1662_probe,
++	.remove		= gs1662_remove,
++};
++
++static int __init gs1662_init(void)
++{
++	spi_register_driver(&gs1662_driver);
++	return 0;
++}
++
++static void __exit gs1662_exit(void)
++{
++	spi_unregister_driver(&gs1662_driver);
++}
++
++module_init(gs1662_init);
++module_exit(gs1662_exit);
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>");
++MODULE_DESCRIPTION("GS1662 SPI driver");
+-- 
+2.5.5
 
---
-Regards,
-Leonard
+
+--------------050704040506070907030402--
