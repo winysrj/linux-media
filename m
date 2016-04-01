@@ -1,132 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53114 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751080AbcDONEJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 09:04:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from 20.mo4.mail-out.ovh.net ([46.105.33.73]:35858 "EHLO
+	20.mo4.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751175AbcDAQhm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2016 12:37:42 -0400
+Received: from mail699.ha.ovh.net (b6.ovh.net [213.186.33.56])
+	by mo4.mail-out.ovh.net (Postfix) with SMTP id 866C611142A3
+	for <linux-media@vger.kernel.org>; Fri,  1 Apr 2016 18:30:37 +0200 (CEST)
+Subject: Fwd: [PATCH] Add GS1662 driver (a SPI video serializer)
+References: <56FE9B7F.7060206@nexvision.fr>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Florian Echtler <floe@butterbrot.org>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Benoit Parrot <bparrot@ti.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCHv2 01/12] vb2: add a dev field to use for the default allocation context
-Date: Fri, 15 Apr 2016 15:03:45 +0200
-Message-Id: <1460725436-20045-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
-References: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Message-ID: <56FEA22B.3040502@nexvision.fr>
+Date: Fri, 1 Apr 2016 18:30:35 +0200
+MIME-Version: 1.0
+In-Reply-To: <56FE9B7F.7060206@nexvision.fr>
+Content-Type: multipart/mixed;
+ boundary="------------090504090100080906090503"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is a multi-part message in MIME format.
+--------------090504090100080906090503
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-The allocation context is nothing more than a per-plane device pointer
-to use when allocating buffers. So just provide a dev pointer in vb2_queue
-for that purpose and drivers can skip allocating/releasing/filling in
-the allocation context unless they require different per-plane device
-pointers as used by some Samsung SoCs.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Florian Echtler <floe@butterbrot.org>
-Cc: Federico Vaga <federico.vaga@gmail.com>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Fabien Dessenne <fabien.dessenne@st.com>
-Cc: Benoit Parrot <bparrot@ti.com>
-Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Javier Martin <javier.martin@vista-silicon.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+--------------090504090100080906090503
+Content-Type: text/x-patch;
+ name="gs1662.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="gs1662.patch"
+
+>From 65b48bf1c77801c210bf93c07bc7f513efdbcbb5 Mon Sep 17 00:00:00 2001
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Date: Fri, 1 Apr 2016 17:19:26 +0200
+Subject: [PATCH] Add GS1662 driver (a SPI video serializer)
+
+Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 16 +++++++++-------
- include/media/videobuf2-core.h           |  3 +++
- 2 files changed, 12 insertions(+), 7 deletions(-)
+ drivers/media/Kconfig      |   1 +
+ drivers/media/Makefile     |   2 +-
+ drivers/media/spi/Kconfig  |   5 ++
+ drivers/media/spi/Makefile |   1 +
+ drivers/media/spi/gs1662.c | 128 +++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 136 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/spi/Kconfig
+ create mode 100644 drivers/media/spi/Makefile
+ create mode 100644 drivers/media/spi/gs1662.c
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 5d016f4..88b5e48 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -206,8 +206,9 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index a8518fb..d2fa6e7 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -215,5 +215,6 @@ config MEDIA_ATTACH
+ source "drivers/media/i2c/Kconfig"
+ source "drivers/media/tuners/Kconfig"
+ source "drivers/media/dvb-frontends/Kconfig"
++source "drivers/media/spi/Kconfig"
  
--		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
--				      size, dma_dir, q->gfp_flags);
-+		mem_priv = call_ptr_memop(vb, alloc,
-+				q->alloc_ctx[plane] ? : &q->dev,
-+				size, dma_dir, q->gfp_flags);
- 		if (IS_ERR_OR_NULL(mem_priv))
- 			goto free;
+ endif # MEDIA_SUPPORT
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index e608bbc..75bc82e 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -28,6 +28,6 @@ obj-y += rc/
+ # Finally, merge the drivers that require the core
+ #
  
-@@ -1131,9 +1132,10 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- 		vb->planes[plane].data_offset = 0;
+-obj-y += common/ platform/ pci/ usb/ mmc/ firewire/
++obj-y += common/ platform/ pci/ usb/ mmc/ firewire/ spi/
+ obj-$(CONFIG_VIDEO_DEV) += radio/
  
- 		/* Acquire each plane's memory */
--		mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
--				      planes[plane].m.userptr,
--				      planes[plane].length, dma_dir);
-+		mem_priv = call_ptr_memop(vb, get_userptr,
-+				q->alloc_ctx[plane] ? : &q->dev,
-+				planes[plane].m.userptr,
-+				planes[plane].length, dma_dir);
- 		if (IS_ERR_OR_NULL(mem_priv)) {
- 			dprintk(1, "failed acquiring userspace "
- 						"memory for plane %d\n", plane);
-@@ -1256,8 +1258,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
- 
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, attach_dmabuf,
--			q->alloc_ctx[plane], dbuf, planes[plane].length,
--			dma_dir);
-+				q->alloc_ctx[plane] ? : &q->dev,
-+				dbuf, planes[plane].length, dma_dir);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed to attach dmabuf\n");
- 			ret = PTR_ERR(mem_priv);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 8a0f55b..0f8b97b 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -397,6 +397,8 @@ struct vb2_buf_ops {
-  *		caller. For example, for V4L2, it should match
-  *		the V4L2_BUF_TYPE_* in include/uapi/linux/videodev2.h
-  * @io_modes:	supported io methods (see vb2_io_modes enum)
-+ * @dev:	device to use for the default allocation context if the driver
-+ *		doesn't fill in the @alloc_ctx array.
-  * @fileio_read_once:		report EOF after reading the first buffer
-  * @fileio_write_immediately:	queue buffer after each write() call
-  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
-@@ -460,6 +462,7 @@ struct vb2_buf_ops {
- struct vb2_queue {
- 	unsigned int			type;
- 	unsigned int			io_modes;
-+	struct device			*dev;
- 	unsigned			fileio_read_once:1;
- 	unsigned			fileio_write_immediately:1;
- 	unsigned			allow_zero_bytesused:1;
+diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
+new file mode 100644
+index 0000000..d5e7b98
+--- /dev/null
++++ b/drivers/media/spi/Kconfig
+@@ -0,0 +1,5 @@
++config VIDEO_GS1662
++	tristate "Gennum Serializer 1662 video"
++	depends on SPI
++	---help---
++	  Enable the GS1662 driver which serializes video streams.
+diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
+new file mode 100644
+index 0000000..ea64013
+--- /dev/null
++++ b/drivers/media/spi/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_GS1662) += gs1662.o
+diff --git a/drivers/media/spi/gs1662.c b/drivers/media/spi/gs1662.c
+new file mode 100644
+index 0000000..6698fbf
+--- /dev/null
++++ b/drivers/media/spi/gs1662.c
+@@ -0,0 +1,128 @@
++/*
++ * GS1662 device registration
++ *
++ * Copyright (C) 2015-2016 Nexvision
++ * Author: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/spi/spi.h>
++#include <linux/platform_device.h>
++#include <linux/ctype.h>
++#include <linux/err.h>
++#include <linux/device.h>
++
++#define READ_FLAG		0x8000
++#define WRITE_FLAG		0x0000
++#define BURST_FLAG		0x1000
++
++#define ADDRESS_MASK	0x0FFF
++
++static int gs1662_read_register(struct spi_device *spi, u16 addr, u16 *value)
++{
++	int ret;
++	u16 buf_addr =  (READ_FLAG | (ADDRESS_MASK & addr));
++	u16 buf_value = 0;
++	struct spi_message msg;
++	struct spi_transfer tx[] = {
++		{
++			.tx_buf = &buf_addr,
++			.len = 2,
++			.delay_usecs = 1,
++		}, {
++			.rx_buf = &buf_value,
++			.len = 2,
++			.delay_usecs = 1,
++		},
++	};
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx[0], &msg);
++	spi_message_add_tail(&tx[1], &msg);
++	ret = spi_sync(spi, &msg);
++
++	*value = buf_value;
++
++	return ret;
++}
++
++static int gs1662_write_register(struct spi_device *spi, u16 addr, u16 value)
++{
++	int ret;
++	u16 buf_addr = (WRITE_FLAG | (ADDRESS_MASK & addr));
++	u16 buf_value = value;
++	struct spi_message msg;
++	struct spi_transfer tx[] = {
++		{
++			.tx_buf = &buf_addr,
++			.len = 2,
++			.delay_usecs = 1,
++		}, {
++			.tx_buf = &buf_value,
++			.len = 2,
++			.delay_usecs = 1,
++		},
++	};
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx[0], &msg);
++	spi_message_add_tail(&tx[1], &msg);
++	ret = spi_sync(spi, &msg);
++
++	return ret;
++}
++
++static int gs1662_probe(struct spi_device *spi)
++{
++	int ret;
++
++	spi->mode = SPI_MODE_0;
++	spi->irq = -1;
++	spi->max_speed_hz = 10000000;
++	spi->bits_per_word = 16;
++	ret = spi_setup(spi);
++
++	/* Set H_CONFIG to SMPTE timings */
++	gs1662_write_register(spi, 0x0, 0x100);
++
++	return ret;
++}
++
++static int gs1662_remove(struct spi_device *spi)
++{
++	return 0;
++}
++
++static struct spi_driver gs1662_driver = {
++	.driver = {
++		.name		= "gs1662",
++		.owner		= THIS_MODULE,
++	},
++
++	.probe		= gs1662_probe,
++	.remove		= gs1662_remove,
++};
++
++static int __init gs1662_init(void)
++{
++	spi_register_driver(&gs1662_driver);
++	return 0;
++}
++
++static void __exit gs1662_exit(void)
++{
++	spi_unregister_driver(&gs1662_driver);
++}
++
++module_init(gs1662_init);
++module_exit(gs1662_exit);
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>");
++MODULE_DESCRIPTION("GS1662 SPI driver");
 -- 
-2.8.0.rc3
+2.5.5
 
+
+
+--------------090504090100080906090503--
