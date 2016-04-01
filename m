@@ -1,494 +1,597 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43443 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752258AbcD0WU7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 18:20:59 -0400
-Reply-To: shuah.kh@samsung.com
-Subject: Re: [PATCH 4/4] [meida] media-device: dynamically allocate struct
- media_devnode
-References: <cover.1458760750.git.mchehab@osg.samsung.com>
- <0e1737bc1fd4fb4c114cd1f4823767a35b5c5b77.1458760750.git.mchehab@osg.samsung.com>
- <4033448.cTfoZapJ5n@avalon> <20160324083710.24d0d57e@recife.lan>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
-	<chehabrafael@gmail.com>, linux-media@vger.kernel.org,
-	Lars-Peter Clausen <lars@metafoo.de>
-From: Shuah Khan <shuah.kh@samsung.com>
-Message-ID: <57213B48.50109@samsung.com>
-Date: Wed, 27 Apr 2016 16:20:56 -0600
-MIME-Version: 1.0
-In-Reply-To: <20160324083710.24d0d57e@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mail-qg0-f41.google.com ([209.85.192.41]:35159 "EHLO
+	mail-qg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753797AbcDAWip (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2016 18:38:45 -0400
+Received: by mail-qg0-f41.google.com with SMTP id y89so108328171qge.2
+        for <linux-media@vger.kernel.org>; Fri, 01 Apr 2016 15:38:44 -0700 (PDT)
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH 2/7] tw686x: Introduce an interface to support multiple DMA modes
+Date: Fri,  1 Apr 2016 19:38:22 -0300
+Message-Id: <1459550307-688-3-git-send-email-ezequiel@vanguardiasur.com.ar>
+In-Reply-To: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+References: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/24/2016 05:37 AM, Mauro Carvalho Chehab wrote:
-> Em Thu, 24 Mar 2016 10:24:44 +0200
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
-> 
->> On Wednesday 23 Mar 2016 16:27:46 Mauro Carvalho Chehab wrote:
->>> struct media_devnode is currently embedded at struct media_device.
->>>
->>> While this works fine during normal usage, it leads to a race
->>> condition during devnode unregister. the problem is that drivers
->>> assume that, after calling media_device_unregister(), the struct
->>> that contains media_device can be freed. This is not true, as it
->>> can't be freed until userspace closes all opened /dev/media devnodes.
->>>
->>> In other words, if the media devnode is still open, and media_device
->>> gets freed, any call to an ioctl will make the core to try to access
->>> struct media_device, with will cause an use-after-free and even GPF.
->>>
->>> Fix this by dynamically allocating the struct media_devnode and only
->>> freeing it when it is safe.  
+Let's set the corner stone to support all the DMA modes
+available on this device.
 
-Hi Mauro,
+For stability reasons, the driver is currently setting DMA frame
+mode, and using single DMA buffers to get the P and B buffers.
+Each frame is then memcpy'ed into the user buffer.
 
-I think this is the patch you were referring to in response to the patch
-I sent out. Looks like this is still under review and some outstanding
-issues. This patch itself doesn't ensure media_devnode sticks around
-until the last app. closes the cdev. More work is needed such as adding
-cdev parent and providing kobject release function that can be called
-from cdev-core which will free media_devnode when the last cdev ref
-is gone.
+However, other platforms might be interested in avoiding this
+memcpy, or in taking advantage of the chip's DMA scatter-gather
+capabilities.
 
-Anyway, since you asked me to do the fix on top of your patch, I am asking
-to see if this patch is in a good shape for me to apply. As such, we no
-longer have sound/us/media.c in the mix. Hence this patch needs work before
-I can base my work on it.
+To achieve this, this commit introduces a "dma_mode" module parameter,
+and a tw686x_dma_ops struct. This will allow to define functions to
+alloc/free DMA buffers, and to return the frames to userspace.
 
-Lars gave a few comments on the patch I sent out in the code that makes
-devnode dynamic which are relevant to be folded into your patch. Added
-Lars to this thread.
+The memcpy-based method described above is named as dma_mode="memcpy".
+Current alloc/free functions are renamed as tw686x_memcpy_xxx,
+and are now used through a memcpy_dma_ops.
 
-P.S: removed alsa folks and alsa list and added linux-media
+Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+---
+ drivers/media/pci/tw686x/tw686x-core.c  |  48 +++++-
+ drivers/media/pci/tw686x/tw686x-regs.h  |   5 +
+ drivers/media/pci/tw686x/tw686x-video.c | 254 ++++++++++++++++++--------------
+ drivers/media/pci/tw686x/tw686x.h       |  20 ++-
+ 4 files changed, 206 insertions(+), 121 deletions(-)
 
-thanks,
--- Shuah
->>
->> We have the exact same issue with video_device, and there we've solved the 
->> problem by passing the release call all the way up to the driver. I'm open to 
->> discuss what the best solution is, but I don't think we should special-case 
->> media_device unless there are compelling arguments regarding why different 
->> solutions are needed for media_device and video_device.
-> 
-> The relationship between a video driver and  video_device/v4l2_dev is
-> different. On V4L2 we have:
-> 	- One driver using video_device resources;
-> 	- multiple video_device devnodes.
-> 
-> For media devices, the relationship is the opposite:
-> 	- multiple independent drivers using media_devnode.
-> 	- One media device node;
-> 
-> On media devices, when multiple drivers are sharing the same devnode, the
-> .probe() order can be different than the .release() order.
-> 
-> So, we don't need to use the same solution as we did for video_device
-> on media controller. Actually, the V4L2 solution won't work.
-> 
-> On V4L2, a video device is typically initialized with:
-> 
->         video-dev->release = video_device_release;
->         err = video_register_device(video_dev,VFL_TYPE_GRABBER,
->                                     video_nr[dev->nr]);
-> 
-> And video_device_release is simply a kfree:
-> 
-> void video_device_release(struct video_device *vdev)
-> {
->         kfree(vdev);
-> }
-> 
-> The caller driver may opt to use its own code to free the resources
-> instead of the core one, but it needs to free vdev in the end
-> (or some struct that embedds it).
-> 
-> In the specific case of media, drivers don't need to touch or even
-> be aware of media_devnode, as the creation of the media devnode is
-> handled internally by the core. Also, there's no good reason to
-> make the caller drivers to be aware of that.
-> 
-> So, the approach taken by this patch is actually simpler, as the
-> kfree() is internal to the core, and it doesn't require
-> any callbacks. This patch provides all that it is needed to make devnode
-> destroy safe. 
-> 
-> On the common case where one driver allocates one /dev/media devnode,
-> using the standard media_device_register()/media_device_unregister(),
-> grants that a media_devnode instance will only be freed after all uses
-> have gone, including open() descriptors. It also grants that the caller
-> can free its own resources after media_device_unregister(), because
-> media_devnode won't use media_device anymore.
-> 
-> This happens because media_devnode_is_registered() will return
-> false after media_device_unregister(), and the media_ioctl logic
-> will return an error in this case:
-> __media_ioctl(struct file *filp, unsigned int cmd, unsigned long arg,
-> 	      long (*ioctl_func)(struct file *filp, unsigned int cmd,
-> 				 unsigned long arg))
-> {
-> 	struct media_devnode *devnode = media_devnode_data(filp);
-> 
-> 	if (!ioctl_func)
-> 		return -ENOTTY;
-> 
-> 	if (!media_devnode_is_registered(devnode))
-> 		return -EIO;
-> 		/* IMHO, it should be -ENODEV here */
-> 
-> 	return ioctl_func(filp, cmd, arg);
-> }
-> 
-> all other syscalls have a similar test.
-> 
-> When more than one driver shares the same media devnode - e. g. the
-> case that it is currently using media_device_*_devres(), the V4L2
-> solution of exposing the .release() callback to the caller driver
-> won't work, as the unbind order can be different than the binding
-> one. So, it is not possible to have .release() callbacks.
-> 
-> On the multiple drivers scenario, a kref is used to identify when
-> all drivers called media_device_unregister_devres(). Only when the
-> last driver called it, it will do the actual media_device cleanups
-> and will wait for userspace to close all opened file descriptors,
-> calling kfree(media_devnode) only after that. It is also safe for
-> a device driver to cleanup its own resources after
-> media_device_release_devres(), as, if the driver is not the last
-> one, media_device and media_devnode will still be allocated, and,
-> if it is the last one, this will fallback on the case of a single
-> driver.
-> 
-> I can't think on any other race-free solution than the one implemented
-> by this patch, and still being simple.
-> 
->> I also suspect we will need to consider dynamic pipeline management sooner 
->> than later to solve the problem properly if we don't want to create code today 
->> that will need to be completely reworked tomorrow.
-> 
-> On the stress testing we're doing, we're removing/recreating part of the
-> graph, by unbinding/rebinding one one of the drivers, while keep calling
-> G_TOPOLOGY on an endless loop.
-> 
-> It is working quite well. The change from semaphore->mutex, suggested
-> by Sakari seemed to solve all the locking issues we had before.
-> 
-> Ok, I didn't test SETUP_LINK, but, as it is now protected by the same
-> mutex, except for some hidden bug, I guess it will work just fine.
-> 
-> So, I don't see any need to change the locking schema at the core,
-> to avoid race issues.
-> 
->>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>> ---
->>>  drivers/media/media-device.c           | 38 +++++++++++++++++++------------
->>>  drivers/media/media-devnode.c          |  7 ++++++-
->>>  drivers/media/usb/au0828/au0828-core.c |  4 ++--
->>>  drivers/media/usb/uvc/uvc_driver.c     |  2 +-
->>>  include/media/media-device.h           |  5 +----
->>>  include/media/media-devnode.h          | 15 ++++++++++++--
->>>  sound/usb/media.c                      |  8 +++----
->>>  7 files changed, 52 insertions(+), 27 deletions(-)
->>>
->>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->>> index 10cc4766de10..d10dc615e7a8 100644
->>> --- a/drivers/media/media-device.c
->>> +++ b/drivers/media/media-device.c
->>> @@ -428,7 +428,7 @@ static long media_device_ioctl(struct file *filp,
->>> unsigned int cmd, unsigned long arg)
->>>  {
->>>  	struct media_devnode *devnode = media_devnode_data(filp);
->>> -	struct media_device *dev = to_media_device(devnode);
->>> +	struct media_device *dev = devnode->media_dev;
->>>  	long ret;
->>>
->>>  	switch (cmd) {
->>> @@ -504,7 +504,7 @@ static long media_device_compat_ioctl(struct file *filp,
->>> unsigned int cmd, unsigned long arg)
->>>  {
->>>  	struct media_devnode *devnode = media_devnode_data(filp);
->>> -	struct media_device *dev = to_media_device(devnode);
->>> +	struct media_device *dev = devnode->media_dev;
->>>  	long ret;
->>>
->>>  	switch (cmd) {
->>> @@ -540,7 +540,8 @@ static const struct media_file_operations
->>> media_device_fops = { static ssize_t show_model(struct device *cd,
->>>  			  struct device_attribute *attr, char *buf)
->>>  {
->>> -	struct media_device *mdev = to_media_device(to_media_devnode(cd));
->>> +	struct media_devnode *devnode = to_media_devnode(cd);
->>> +	struct media_device *mdev = devnode->media_dev;
->>>
->>>  	return sprintf(buf, "%.*s\n", (int)sizeof(mdev->model), mdev->model);
->>>  }
->>> @@ -718,25 +719,36 @@ EXPORT_SYMBOL_GPL(media_device_cleanup);
->>>  int __must_check __media_device_register(struct media_device *mdev,
->>>  					 struct module *owner)
->>>  {
->>> +	struct media_devnode *devnode;
->>>  	int ret;
->>>
->>>  	mutex_lock(&mdev->graph_mutex);
->>>
->>> +	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
->>> +	if (!devnode)
->>> +		return -ENOMEM;
->>> +
->>>  	/* Register the device node. */
->>> -	mdev->devnode.fops = &media_device_fops;
->>> -	mdev->devnode.parent = mdev->dev;
->>> -	mdev->devnode.release = media_device_release;
->>> +	mdev->devnode = devnode;
->>> +	devnode->fops = &media_device_fops;
->>> +	devnode->parent = mdev->dev;
->>> +	devnode->release = media_device_release;
->>>
->>>  	/* Set version 0 to indicate user-space that the graph is static */
->>>  	mdev->topology_version = 0;
->>>
->>> -	ret = media_devnode_register(&mdev->devnode, owner);
->>> -	if (ret < 0)
->>> +	ret = media_devnode_register(mdev, devnode, owner);
->>> +	if (ret < 0) {
->>> +		mdev->devnode = NULL;
->>> +		kfree(devnode);
->>>  		goto err;
->>> +	}
->>>
->>> -	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
->>> +	ret = device_create_file(&devnode->dev, &dev_attr_model);
->>>  	if (ret < 0) {
->>> -		media_devnode_unregister(&mdev->devnode);
->>> +		mdev->devnode = NULL;
->>> +		media_devnode_unregister(devnode);
->>> +		kfree(devnode);
->>>  		goto err;
->>>  	}
->>>
->>> @@ -800,9 +812,9 @@ static void __media_device_unregister(struct
->>> media_device *mdev) }
->>>
->>>  	/* Check if mdev devnode was registered */
->>> -	if (media_devnode_is_registered(&mdev->devnode)) {
->>> -		device_remove_file(&mdev->devnode.dev, &dev_attr_model);
->>> -		media_devnode_unregister(&mdev->devnode);
->>> +	if (media_devnode_is_registered(mdev->devnode)) {
->>> +		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
->>> +		media_devnode_unregister(mdev->devnode);
->>>  	}
->>>
->>>  	dev_dbg(mdev->dev, "Media device unregistered\n");
->>> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
->>> index ae2bc0b7a368..db47063d8801 100644
->>> --- a/drivers/media/media-devnode.c
->>> +++ b/drivers/media/media-devnode.c
->>> @@ -44,6 +44,7 @@
->>>  #include <linux/uaccess.h>
->>>
->>>  #include <media/media-devnode.h>
->>> +#include <media/media-device.h>
->>>
->>>  #define MEDIA_NUM_DEVICES	256
->>>  #define MEDIA_NAME		"media"
->>> @@ -74,6 +75,8 @@ static void media_devnode_release(struct device *cd)
->>>  	/* Release media_devnode and perform other cleanups as needed. */
->>>  	if (devnode->release)
->>>  		devnode->release(devnode);
->>> +
->>> +	kfree(devnode);
->>>  }
->>>
->>>  static struct bus_type media_bus_type = {
->>> @@ -218,7 +221,8 @@ static const struct file_operations media_devnode_fops =
->>> { .llseek = no_llseek,
->>>  };
->>>
->>> -int __must_check media_devnode_register(struct media_devnode *devnode,
->>> +int __must_check media_devnode_register(struct media_device *mdev,
->>> +					struct media_devnode *devnode,
->>>  					struct module *owner)
->>>  {
->>>  	int minor;
->>> @@ -237,6 +241,7 @@ int __must_check media_devnode_register(struct
->>> media_devnode *devnode, mutex_unlock(&media_devnode_lock);
->>>
->>>  	devnode->minor = minor;
->>> +	devnode->media_dev = mdev;
->>>
->>>  	/* Part 2: Initialize and register the character device */
->>>  	cdev_init(&devnode->cdev, &media_devnode_fops);
->>> diff --git a/drivers/media/usb/au0828/au0828-core.c
->>> b/drivers/media/usb/au0828/au0828-core.c index 85c13ca5178f..598a85388d77
->>> 100644
->>> --- a/drivers/media/usb/au0828/au0828-core.c
->>> +++ b/drivers/media/usb/au0828/au0828-core.c
->>> @@ -142,7 +142,7 @@ static void au0828_unregister_media_device(struct
->>> au0828_dev *dev) struct media_device *mdev = dev->media_dev;
->>>  	struct media_entity_notify *notify, *nextp;
->>>
->>> -	if (!mdev || !media_devnode_is_registered(&mdev->devnode))
->>> +	if (!mdev || !media_devnode_is_registered(mdev->devnode))
->>>  		return;
->>>
->>>  	/* Remove au0828 entity_notify callbacks */
->>> @@ -480,7 +480,7 @@ static int au0828_media_device_register(struct
->>> au0828_dev *dev, if (!dev->media_dev)
->>>  		return 0;
->>>
->>> -	if (!media_devnode_is_registered(&dev->media_dev->devnode)) {
->>> +	if (!media_devnode_is_registered(dev->media_dev->devnode)) {
->>>
->>>  		/* register media device */
->>>  		ret = media_device_register(dev->media_dev);
->>> diff --git a/drivers/media/usb/uvc/uvc_driver.c
->>> b/drivers/media/usb/uvc/uvc_driver.c index 451e84e962e2..302e284a95eb
->>> 100644
->>> --- a/drivers/media/usb/uvc/uvc_driver.c
->>> +++ b/drivers/media/usb/uvc/uvc_driver.c
->>> @@ -1674,7 +1674,7 @@ static void uvc_delete(struct uvc_device *dev)
->>>  	if (dev->vdev.dev)
->>>  		v4l2_device_unregister(&dev->vdev);
->>>  #ifdef CONFIG_MEDIA_CONTROLLER
->>> -	if (media_devnode_is_registered(&dev->mdev.devnode))
->>> +	if (media_devnode_is_registered(dev->mdev.devnode))
->>>  		media_device_unregister(&dev->mdev);
->>>  	media_device_cleanup(&dev->mdev);
->>>  #endif
->>> diff --git a/include/media/media-device.h b/include/media/media-device.h
->>> index e59772ed8494..b04cfa907350 100644
->>> --- a/include/media/media-device.h
->>> +++ b/include/media/media-device.h
->>> @@ -347,7 +347,7 @@ struct media_entity_notify {
->>>  struct media_device {
->>>  	/* dev->driver_data points to this struct. */
->>>  	struct device *dev;
->>> -	struct media_devnode devnode;
->>> +	struct media_devnode *devnode;
->>>
->>>  	char model[32];
->>>  	char driver_name[32];
->>> @@ -403,9 +403,6 @@ struct usb_device;
->>>  #define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
->>>  #define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
->>>
->>> -/* media_devnode to media_device */
->>> -#define to_media_device(node) container_of(node, struct media_device,
->>> devnode) -
->>>  /**
->>>   * media_entity_enum_init - Initialise an entity enumeration
->>>   *
->>> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
->>> index e1d5af077adb..cc2b3155593c 100644
->>> --- a/include/media/media-devnode.h
->>> +++ b/include/media/media-devnode.h
->>> @@ -33,6 +33,8 @@
->>>  #include <linux/device.h>
->>>  #include <linux/cdev.h>
->>>
->>> +struct media_device;
->>> +
->>>  /*
->>>   * Flag to mark the media_devnode struct as registered. Drivers must not
->>> touch * this flag directly, it will be set and cleared by
->>> media_devnode_register and @@ -81,6 +83,8 @@ struct media_file_operations {
->>>   * before registering the node.
->>>   */
->>>  struct media_devnode {
->>> +	struct media_device *media_dev;
->>> +
->>>  	/* device ops */
->>>  	const struct media_file_operations *fops;
->>>
->>> @@ -103,7 +107,8 @@ struct media_devnode {
->>>  /**
->>>   * media_devnode_register - register a media device node
->>>   *
->>> - * @devnode: media device node structure we want to register
->>> + * @media_dev: struct media_device we want to register a device node
->>> + * @devnode: the device node to unregister
->>>   * @owner: should be filled with %THIS_MODULE
->>>   *
->>>   * The registration code assigns minor numbers and registers the new device
->>> node @@ -116,7 +121,8 @@ struct media_devnode {
->>>   * the media_devnode structure is *not* called, so the caller is
->>> responsible for * freeing any data.
->>>   */
->>> -int __must_check media_devnode_register(struct media_devnode *devnode,
->>> +int __must_check media_devnode_register(struct media_device *mdev,
->>> +					struct media_devnode *devnode,
->>>  					struct module *owner);
->>>
->>>  /**
->>> @@ -146,9 +152,14 @@ static inline struct media_devnode
->>> *media_devnode_data(struct file *filp) *	false otherwise.
->>>   *
->>>   * @devnode: pointer to struct &media_devnode.
->>> + *
->>> + * Note: If mdev is NULL, it also returns false.
->>>   */
->>>  static inline int media_devnode_is_registered(struct media_devnode
->>> *devnode) {
->>> +	if (!devnode)
->>> +		return false;
->>> +
->>>  	return test_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
->>>  }
->>>
->>> diff --git a/sound/usb/media.c b/sound/usb/media.c
->>> index 6db4878045e5..8fed0adec9e1 100644
->>> --- a/sound/usb/media.c
->>> +++ b/sound/usb/media.c
->>> @@ -136,7 +136,7 @@ void media_snd_stream_delete(struct snd_usb_substream
->>> *subs) struct media_device *mdev;
->>>
->>>  		mdev = mctl->media_dev;
->>> -		if (mdev && media_devnode_is_registered(&mdev->devnode)) {
->>> +		if (mdev && media_devnode_is_registered(mdev->devnode)) {
->>>  			media_devnode_remove(mctl->intf_devnode);
->>>  			media_device_unregister_entity(&mctl->media_entity);
->>>  			media_entity_cleanup(&mctl->media_entity);
->>> @@ -241,14 +241,14 @@ static void media_snd_mixer_delete(struct
->>> snd_usb_audio *chip) if (!mixer->media_mixer_ctl)
->>>  			continue;
->>>
->>> -		if (media_devnode_is_registered(&mdev->devnode)) {
->>> +		if (media_devnode_is_registered(mdev->devnode)) {
->>>  			media_device_unregister_entity(&mctl->media_entity);
->>>  			media_entity_cleanup(&mctl->media_entity);
->>>  		}
->>>  		kfree(mctl);
->>>  		mixer->media_mixer_ctl = NULL;
->>>  	}
->>> -	if (media_devnode_is_registered(&mdev->devnode))
->>> +	if (media_devnode_is_registered(mdev->devnode))
->>>  		media_devnode_remove(chip->ctl_intf_media_devnode);
->>>  	chip->ctl_intf_media_devnode = NULL;
->>>  }
->>> @@ -268,7 +268,7 @@ int media_snd_device_create(struct snd_usb_audio *chip,
->>>  	if (!mdev->dev)
->>>  		media_device_usb_init(mdev, usbdev, NULL);
->>>
->>> -	if (!media_devnode_is_registered(&mdev->devnode)) {
->>> +	if (!media_devnode_is_registered(mdev->devnode)) {
->>>  		ret = media_device_register(mdev);
->>>  		if (ret) {
->>>  			dev_err(&usbdev->dev,  
->>
-> 
-> 
-
-
+diff --git a/drivers/media/pci/tw686x/tw686x-core.c b/drivers/media/pci/tw686x/tw686x-core.c
+index cf53b0e97be2..01c06bb59e78 100644
+--- a/drivers/media/pci/tw686x/tw686x-core.c
++++ b/drivers/media/pci/tw686x/tw686x-core.c
+@@ -21,12 +21,14 @@
+  * under stress testings it has been found that the machine can
+  * freeze completely if DMA registers are programmed while streaming
+  * is active.
+- * This driver tries to access hardware registers as infrequently
+- * as possible by:
+- *   i.  allocating fixed DMA buffers and memcpy'ing into
+- *       vmalloc'ed buffers
+- *   ii. using a timer to mitigate the rate of DMA reset operations,
+- *       on DMA channels error.
++ *
++ * Therefore, driver implements a dma_mode called 'memcpy' which
++ * avoids cycling the DMA buffers, and insteads allocates extra DMA buffers
++ * and then copies into vmalloc'ed user buffers.
++ *
++ * In addition to this, when streaming is on, the driver tries to access
++ * hardware registers as infrequently as possible. This is done by using
++ * a timer to limit the rate at which DMA is reset on DMA channels error.
+  */
+ 
+ #include <linux/init.h>
+@@ -55,6 +57,34 @@ static u32 dma_interval = 0x00098968;
+ module_param(dma_interval, int, 0444);
+ MODULE_PARM_DESC(dma_interval, "Minimum time span for DMA interrupting host");
+ 
++static unsigned int dma_mode = TW686X_DMA_MODE_MEMCPY;
++static const char *dma_mode_name(unsigned int mode)
++{
++	switch (mode) {
++	case TW686X_DMA_MODE_MEMCPY:
++		return "memcpy";
++	default:
++		return "unknown";
++	}
++}
++
++static int tw686x_dma_mode_get(char *buffer, struct kernel_param *kp)
++{
++	return sprintf(buffer, dma_mode_name(dma_mode));
++}
++
++static int tw686x_dma_mode_set(const char *val, struct kernel_param *kp)
++{
++	if (!strcasecmp(val, dma_mode_name(TW686X_DMA_MODE_MEMCPY)))
++		dma_mode = TW686X_DMA_MODE_MEMCPY;
++	else
++		return -EINVAL;
++	return 0;
++}
++module_param_call(dma_mode, tw686x_dma_mode_set, tw686x_dma_mode_get,
++		  &dma_mode, S_IRUGO|S_IWUSR);
++MODULE_PARM_DESC(dma_mode, "DMA operation mode");
++
+ void tw686x_disable_channel(struct tw686x_dev *dev, unsigned int channel)
+ {
+ 	u32 dma_en = reg_read(dev, DMA_CHANNEL_ENABLE);
+@@ -212,6 +242,7 @@ static int tw686x_probe(struct pci_dev *pci_dev,
+ 	if (!dev)
+ 		return -ENOMEM;
+ 	dev->type = pci_id->driver_data;
++	dev->dma_mode = dma_mode;
+ 	sprintf(dev->name, "tw%04X", pci_dev->device);
+ 
+ 	dev->video_channels = kcalloc(max_channels(dev),
+@@ -228,9 +259,10 @@ static int tw686x_probe(struct pci_dev *pci_dev,
+ 		goto free_video;
+ 	}
+ 
+-	pr_info("%s: PCI %s, IRQ %d, MMIO 0x%lx\n", dev->name,
++	pr_info("%s: PCI %s, IRQ %d, MMIO 0x%lx (%s mode)\n", dev->name,
+ 		pci_name(pci_dev), pci_dev->irq,
+-		(unsigned long)pci_resource_start(pci_dev, 0));
++		(unsigned long)pci_resource_start(pci_dev, 0),
++		dma_mode_name(dma_mode));
+ 
+ 	dev->pci_dev = pci_dev;
+ 	if (pci_enable_device(pci_dev)) {
+diff --git a/drivers/media/pci/tw686x/tw686x-regs.h b/drivers/media/pci/tw686x/tw686x-regs.h
+index fcef586a4c8c..37c39bcd7572 100644
+--- a/drivers/media/pci/tw686x/tw686x-regs.h
++++ b/drivers/media/pci/tw686x/tw686x-regs.h
+@@ -119,4 +119,9 @@
+ #define TW686X_STD_PAL_CN	5
+ #define TW686X_STD_PAL_60	6
+ 
++#define TW686X_FIELD_MODE	0x3
++#define TW686X_FRAME_MODE	0x2
++/* 0x1 is reserved */
++#define TW686X_SG_MODE		0x0
++
+ #define TW686X_FIFO_ERROR(x)	(x & ~(0xff))
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index 19a348fe04e3..82ae607b1d01 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -43,6 +43,111 @@ static const struct tw686x_format formats[] = {
+ 	}
+ };
+ 
++static void tw686x_buf_done(struct tw686x_video_channel *vc,
++			    unsigned int pb)
++{
++	struct tw686x_dma_desc *desc = &vc->dma_descs[pb];
++	struct tw686x_dev *dev = vc->dev;
++	struct vb2_v4l2_buffer *vb;
++	struct vb2_buffer *vb2_buf;
++
++	if (vc->curr_bufs[pb]) {
++		vb = &vc->curr_bufs[pb]->vb;
++
++		vb->field = dev->dma_ops->field;
++		vb->sequence = vc->sequence++;
++		vb2_buf = &vb->vb2_buf;
++
++		if (dev->dma_mode == TW686X_DMA_MODE_MEMCPY)
++			memcpy(vb2_plane_vaddr(vb2_buf, 0), desc->virt,
++			       desc->size);
++		vb2_buf->timestamp = ktime_get_ns();
++		vb2_buffer_done(vb2_buf, VB2_BUF_STATE_DONE);
++	}
++
++	vc->pb = !pb;
++}
++
++/*
++ * We can call this even when alloc_dma failed for the given channel
++ */
++static void tw686x_memcpy_dma_free(struct tw686x_video_channel *vc,
++				   unsigned int pb)
++{
++	struct tw686x_dma_desc *desc = &vc->dma_descs[pb];
++	struct tw686x_dev *dev = vc->dev;
++	struct pci_dev *pci_dev;
++	unsigned long flags;
++
++	/* Check device presence. Shouldn't really happen! */
++	spin_lock_irqsave(&dev->lock, flags);
++	pci_dev = dev->pci_dev;
++	spin_unlock_irqrestore(&dev->lock, flags);
++	if (!pci_dev) {
++		WARN(1, "trying to deallocate on missing device\n");
++		return;
++	}
++
++	if (desc->virt) {
++		pci_free_consistent(dev->pci_dev, desc->size,
++				    desc->virt, desc->phys);
++		desc->virt = NULL;
++	}
++}
++
++static int tw686x_memcpy_dma_alloc(struct tw686x_video_channel *vc,
++				   unsigned int pb)
++{
++	struct tw686x_dev *dev = vc->dev;
++	u32 reg = pb ? VDMA_B_ADDR[vc->ch] : VDMA_P_ADDR[vc->ch];
++	unsigned int len;
++	void *virt;
++
++	WARN(vc->dma_descs[pb].virt,
++	     "Allocating buffer but previous still here\n");
++
++	len = (vc->width * vc->height * vc->format->depth) >> 3;
++	virt = pci_alloc_consistent(dev->pci_dev, len,
++				    &vc->dma_descs[pb].phys);
++	if (!virt) {
++		v4l2_err(&dev->v4l2_dev,
++			 "dma%d: unable to allocate %s-buffer\n",
++			 vc->ch, pb ? "B" : "P");
++		return -ENOMEM;
++	}
++	vc->dma_descs[pb].size = len;
++	vc->dma_descs[pb].virt = virt;
++	reg_write(dev, reg, vc->dma_descs[pb].phys);
++
++	return 0;
++}
++
++static void tw686x_memcpy_buf_refill(struct tw686x_video_channel *vc,
++				     unsigned int pb)
++{
++	struct tw686x_v4l2_buf *buf;
++
++	while (!list_empty(&vc->vidq_queued)) {
++
++		buf = list_first_entry(&vc->vidq_queued,
++			struct tw686x_v4l2_buf, list);
++		list_del(&buf->list);
++
++		vc->curr_bufs[pb] = buf;
++		return;
++	}
++	vc->curr_bufs[pb] = NULL;
++}
++
++const struct tw686x_dma_ops memcpy_dma_ops = {
++	.alloc		= tw686x_memcpy_dma_alloc,
++	.free		= tw686x_memcpy_dma_free,
++	.buf_refill	= tw686x_memcpy_buf_refill,
++	.mem_ops	= &vb2_vmalloc_memops,
++	.hw_dma_mode	= TW686X_FRAME_MODE,
++	.field		= V4L2_FIELD_INTERLACED,
++};
++
+ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
+ {
+ 	static const unsigned int map[15] = {
+@@ -114,6 +219,7 @@ static int tw686x_queue_setup(struct vb2_queue *vq,
+ 		return 0;
+ 	}
+ 
++	alloc_ctxs[0] = vc->dev->alloc_ctx;
+ 	sizes[0] = szimage;
+ 	*nplanes = 1;
+ 	return 0;
+@@ -143,75 +249,6 @@ static void tw686x_buf_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&vc->qlock, flags);
+ }
+ 
+-/*
+- * We can call this even when alloc_dma failed for the given channel
+- */
+-static void tw686x_free_dma(struct tw686x_video_channel *vc, unsigned int pb)
+-{
+-	struct tw686x_dma_desc *desc = &vc->dma_descs[pb];
+-	struct tw686x_dev *dev = vc->dev;
+-	struct pci_dev *pci_dev;
+-	unsigned long flags;
+-
+-	/* Check device presence. Shouldn't really happen! */
+-	spin_lock_irqsave(&dev->lock, flags);
+-	pci_dev = dev->pci_dev;
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-	if (!pci_dev) {
+-		WARN(1, "trying to deallocate on missing device\n");
+-		return;
+-	}
+-
+-	if (desc->virt) {
+-		pci_free_consistent(dev->pci_dev, desc->size,
+-				    desc->virt, desc->phys);
+-		desc->virt = NULL;
+-	}
+-}
+-
+-static int tw686x_alloc_dma(struct tw686x_video_channel *vc, unsigned int pb)
+-{
+-	struct tw686x_dev *dev = vc->dev;
+-	u32 reg = pb ? VDMA_B_ADDR[vc->ch] : VDMA_P_ADDR[vc->ch];
+-	unsigned int len;
+-	void *virt;
+-
+-	WARN(vc->dma_descs[pb].virt,
+-	     "Allocating buffer but previous still here\n");
+-
+-	len = (vc->width * vc->height * vc->format->depth) >> 3;
+-	virt = pci_alloc_consistent(dev->pci_dev, len,
+-				    &vc->dma_descs[pb].phys);
+-	if (!virt) {
+-		v4l2_err(&dev->v4l2_dev,
+-			 "dma%d: unable to allocate %s-buffer\n",
+-			 vc->ch, pb ? "B" : "P");
+-		return -ENOMEM;
+-	}
+-	vc->dma_descs[pb].size = len;
+-	vc->dma_descs[pb].virt = virt;
+-	reg_write(dev, reg, vc->dma_descs[pb].phys);
+-
+-	return 0;
+-}
+-
+-static void tw686x_buffer_refill(struct tw686x_video_channel *vc,
+-				 unsigned int pb)
+-{
+-	struct tw686x_v4l2_buf *buf;
+-
+-	while (!list_empty(&vc->vidq_queued)) {
+-
+-		buf = list_first_entry(&vc->vidq_queued,
+-			struct tw686x_v4l2_buf, list);
+-		list_del(&buf->list);
+-
+-		vc->curr_bufs[pb] = buf;
+-		return;
+-	}
+-	vc->curr_bufs[pb] = NULL;
+-}
+-
+ static void tw686x_clear_queue(struct tw686x_video_channel *vc,
+ 			       enum vb2_buffer_state state)
+ {
+@@ -253,7 +290,8 @@ static int tw686x_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	spin_lock_irqsave(&vc->qlock, flags);
+ 
+ 	/* Sanity check */
+-	if (!vc->dma_descs[0].virt || !vc->dma_descs[1].virt) {
++	if (dev->dma_mode == TW686X_DMA_MODE_MEMCPY &&
++	    (!vc->dma_descs[0].virt || !vc->dma_descs[1].virt)) {
+ 		spin_unlock_irqrestore(&vc->qlock, flags);
+ 		v4l2_err(&dev->v4l2_dev,
+ 			 "video%d: refusing to start without DMA buffers\n",
+@@ -263,7 +301,7 @@ static int tw686x_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	}
+ 
+ 	for (pb = 0; pb < 2; pb++)
+-		tw686x_buffer_refill(vc, pb);
++		dev->dma_ops->buf_refill(vc, pb);
+ 	spin_unlock_irqrestore(&vc->qlock, flags);
+ 
+ 	vc->sequence = 0;
+@@ -366,10 +404,11 @@ static int tw686x_g_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+ 	struct tw686x_video_channel *vc = video_drvdata(file);
++	struct tw686x_dev *dev = vc->dev;
+ 
+ 	f->fmt.pix.width = vc->width;
+ 	f->fmt.pix.height = vc->height;
+-	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
++	f->fmt.pix.field = dev->dma_ops->field;
+ 	f->fmt.pix.pixelformat = vc->format->fourcc;
+ 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 	f->fmt.pix.bytesperline = (f->fmt.pix.width * vc->format->depth) / 8;
+@@ -381,6 +420,7 @@ static int tw686x_try_fmt_vid_cap(struct file *file, void *priv,
+ 				  struct v4l2_format *f)
+ {
+ 	struct tw686x_video_channel *vc = video_drvdata(file);
++	struct tw686x_dev *dev = vc->dev;
+ 	unsigned int video_height = TW686X_VIDEO_HEIGHT(vc->video_standard);
+ 	const struct tw686x_format *format;
+ 
+@@ -403,7 +443,7 @@ static int tw686x_try_fmt_vid_cap(struct file *file, void *priv,
+ 	f->fmt.pix.bytesperline = (f->fmt.pix.width * format->depth) / 8;
+ 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
+ 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+-	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
++	f->fmt.pix.field = dev->dma_ops->field;
+ 
+ 	return 0;
+ }
+@@ -412,6 +452,7 @@ static int tw686x_s_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+ 	struct tw686x_video_channel *vc = video_drvdata(file);
++	struct tw686x_dev *dev = vc->dev;
+ 	u32 val, width, line_width, height;
+ 	unsigned long bitsperframe;
+ 	int err, pb;
+@@ -429,15 +470,16 @@ static int tw686x_s_fmt_vid_cap(struct file *file, void *priv,
+ 	vc->height = f->fmt.pix.height;
+ 
+ 	/* We need new DMA buffers if the framesize has changed */
+-	if (bitsperframe != vc->width * vc->height * vc->format->depth) {
++	if (dev->dma_ops->alloc &&
++	    bitsperframe != vc->width * vc->height * vc->format->depth) {
+ 		for (pb = 0; pb < 2; pb++)
+-			tw686x_free_dma(vc, pb);
++			dev->dma_ops->free(vc, pb);
+ 
+ 		for (pb = 0; pb < 2; pb++) {
+-			err = tw686x_alloc_dma(vc, pb);
++			err = dev->dma_ops->alloc(vc, pb);
+ 			if (err) {
+ 				if (pb > 0)
+-					tw686x_free_dma(vc, 0);
++					dev->dma_ops->free(vc, 0);
+ 				return err;
+ 			}
+ 		}
+@@ -704,26 +746,11 @@ const struct v4l2_ioctl_ops tw686x_video_ioctl_ops = {
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
+-static void tw686x_buffer_copy(struct tw686x_video_channel *vc,
+-			       unsigned int pb, struct vb2_v4l2_buffer *vb)
+-{
+-	struct tw686x_dma_desc *desc = &vc->dma_descs[pb];
+-	struct vb2_buffer *vb2_buf = &vb->vb2_buf;
+-
+-	vb->field = V4L2_FIELD_INTERLACED;
+-	vb->sequence = vc->sequence++;
+-
+-	memcpy(vb2_plane_vaddr(vb2_buf, 0), desc->virt, desc->size);
+-	vb2_buf->timestamp = ktime_get_ns();
+-	vb2_buffer_done(vb2_buf, VB2_BUF_STATE_DONE);
+-}
+-
+ void tw686x_video_irq(struct tw686x_dev *dev, unsigned long requests,
+ 		      unsigned int pb_status, unsigned int fifo_status,
+ 		      unsigned int *reset_ch)
+ {
+ 	struct tw686x_video_channel *vc;
+-	struct vb2_v4l2_buffer *vb;
+ 	unsigned long flags;
+ 	unsigned int ch, pb;
+ 
+@@ -772,14 +799,9 @@ void tw686x_video_irq(struct tw686x_dev *dev, unsigned long requests,
+ 			continue;
+ 		}
+ 
+-		/* handle video stream */
+ 		spin_lock_irqsave(&vc->qlock, flags);
+-		if (vc->curr_bufs[pb]) {
+-			vb = &vc->curr_bufs[pb]->vb;
+-			tw686x_buffer_copy(vc, pb, vb);
+-		}
+-		vc->pb = !pb;
+-		tw686x_buffer_refill(vc, pb);
++		tw686x_buf_done(vc, pb);
++		dev->dma_ops->buf_refill(vc, pb);
+ 		spin_unlock_irqrestore(&vc->qlock, flags);
+ 	}
+ }
+@@ -794,9 +816,13 @@ void tw686x_video_free(struct tw686x_dev *dev)
+ 		if (vc->device)
+ 			video_unregister_device(vc->device);
+ 
+-		for (pb = 0; pb < 2; pb++)
+-			tw686x_free_dma(vc, pb);
++		if (dev->dma_ops->free)
++			for (pb = 0; pb < 2; pb++)
++				dev->dma_ops->free(vc, pb);
+ 	}
++
++	if (dev->dma_ops->cleanup)
++		dev->dma_ops->cleanup(dev);
+ }
+ 
+ int tw686x_video_init(struct tw686x_dev *dev)
+@@ -804,10 +830,21 @@ int tw686x_video_init(struct tw686x_dev *dev)
+ 	unsigned int ch, val, pb;
+ 	int err;
+ 
++	if (dev->dma_mode == TW686X_DMA_MODE_MEMCPY)
++		dev->dma_ops = &memcpy_dma_ops;
++	else
++		return -EINVAL;
++
+ 	err = v4l2_device_register(&dev->pci_dev->dev, &dev->v4l2_dev);
+ 	if (err)
+ 		return err;
+ 
++	if (dev->dma_ops->setup) {
++		err = dev->dma_ops->setup(dev);
++		if (err)
++			return err;
++	}
++
+ 	for (ch = 0; ch < max_channels(dev); ch++) {
+ 		struct tw686x_video_channel *vc = &dev->video_channels[ch];
+ 		struct video_device *vdev;
+@@ -833,10 +870,12 @@ int tw686x_video_init(struct tw686x_dev *dev)
+ 		reg_write(dev, HACTIVE_LO[ch], 0xd0);
+ 		reg_write(dev, VIDEO_SIZE[ch], 0);
+ 
+-		for (pb = 0; pb < 2; pb++) {
+-			err = tw686x_alloc_dma(vc, pb);
+-			if (err)
+-				goto error;
++		if (dev->dma_ops->alloc) {
++			for (pb = 0; pb < 2; pb++) {
++				err = dev->dma_ops->alloc(vc, pb);
++				if (err)
++					goto error;
++			}
+ 		}
+ 
+ 		vc->vidq.io_modes = VB2_READ | VB2_MMAP | VB2_DMABUF;
+@@ -844,7 +883,7 @@ int tw686x_video_init(struct tw686x_dev *dev)
+ 		vc->vidq.drv_priv = vc;
+ 		vc->vidq.buf_struct_size = sizeof(struct tw686x_v4l2_buf);
+ 		vc->vidq.ops = &tw686x_video_qops;
+-		vc->vidq.mem_ops = &vb2_vmalloc_memops;
++		vc->vidq.mem_ops = dev->dma_ops->mem_ops;
+ 		vc->vidq.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		vc->vidq.min_buffers_needed = 2;
+ 		vc->vidq.lock = &vc->vb_mutex;
+@@ -906,10 +945,9 @@ int tw686x_video_init(struct tw686x_dev *dev)
+ 		vc->num = vdev->num;
+ 	}
+ 
+-	/* Set DMA frame mode on all channels. Only supported mode for now. */
+ 	val = TW686X_DEF_PHASE_REF;
+ 	for (ch = 0; ch < max_channels(dev); ch++)
+-		val |= TW686X_FRAME_MODE << (16 + ch * 2);
++		val |= dev->dma_ops->hw_dma_mode << (16 + ch * 2);
+ 	reg_write(dev, PHASE_REF, val);
+ 
+ 	reg_write(dev, MISC2[0], 0xe7);
+diff --git a/drivers/media/pci/tw686x/tw686x.h b/drivers/media/pci/tw686x/tw686x.h
+index 103dd4a0d951..2b9884b709e0 100644
+--- a/drivers/media/pci/tw686x/tw686x.h
++++ b/drivers/media/pci/tw686x/tw686x.h
+@@ -27,16 +27,13 @@
+ #define TYPE_SECOND_GEN		0x10
+ #define TW686X_DEF_PHASE_REF	0x1518
+ 
+-#define TW686X_FIELD_MODE	0x3
+-#define TW686X_FRAME_MODE	0x2
+-/* 0x1 is reserved */
+-#define TW686X_SG_MODE		0x0
+-
+ #define TW686X_AUDIO_PAGE_SZ		4096
+ #define TW686X_AUDIO_PAGE_MAX		16
+ #define TW686X_AUDIO_PERIODS_MIN	2
+ #define TW686X_AUDIO_PERIODS_MAX	TW686X_AUDIO_PAGE_MAX
+ 
++#define TW686X_DMA_MODE_MEMCPY		0
++
+ struct tw686x_format {
+ 	char *name;
+ 	unsigned fourcc;
+@@ -99,6 +96,17 @@ struct tw686x_video_channel {
+ 	bool no_signal;
+ };
+ 
++struct tw686x_dma_ops {
++	int (*setup)(struct tw686x_dev *dev);
++	void (*cleanup)(struct tw686x_dev *dev);
++	int (*alloc)(struct tw686x_video_channel *vc, unsigned int pb);
++	void (*free)(struct tw686x_video_channel *vc, unsigned int pb);
++	void (*buf_refill)(struct tw686x_video_channel *vc, unsigned int pb);
++	const struct vb2_mem_ops *mem_ops;
++	enum v4l2_field field;
++	u32 hw_dma_mode;
++};
++
+ /**
+  * struct tw686x_dev - global device status
+  * @lock: spinlock controlling access to the
+@@ -112,11 +120,13 @@ struct tw686x_dev {
+ 
+ 	char name[32];
+ 	unsigned int type;
++	unsigned int dma_mode;
+ 	struct pci_dev *pci_dev;
+ 	__u32 __iomem *mmio;
+ 
+ 	void *alloc_ctx;
+ 
++	const struct tw686x_dma_ops *dma_ops;
+ 	struct tw686x_video_channel *video_channels;
+ 	struct tw686x_audio_channel *audio_channels;
+ 
 -- 
-Shuah Khan
-Sr. Linux Kernel Developer
-Open Source Innovation Group
-Samsung Research America(Silicon Valley)
-shuah.kh@samsung.com | (970) 217-8978
+2.7.0
+
