@@ -1,48 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f50.google.com ([209.85.192.50]:33627 "EHLO
-	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753057AbcDRQhL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2016 12:37:11 -0400
-Received: by mail-qg0-f50.google.com with SMTP id v14so28886438qge.0
-        for <linux-media@vger.kernel.org>; Mon, 18 Apr 2016 09:37:11 -0700 (PDT)
-From: Alejandro Torrado <aletorrado@gmail.com>
-Cc: Alejandro Torrado <aletorrado@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] USB_PID_DIBCOM_STK8096GP also comes with USB_VID_DIBCOM vendor ID (FIXED PATCH)
-Date: Mon, 18 Apr 2016 13:37:00 -0300
-Message-Id: <1460997420-6530-1-git-send-email-aletorrado@gmail.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mout.gmx.net ([212.227.17.21]:58629 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750740AbcDAEAN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Apr 2016 00:00:13 -0400
+Received: from django19.localnet ([94.216.225.229]) by mail.gmx.com (mrgmx102)
+ with ESMTPSA (Nemesis) id 0MQu9K-1aIbKe2IsY-00UNhR for
+ <linux-media@vger.kernel.org>; Fri, 01 Apr 2016 06:00:10 +0200
+From: I don't like Spam <unknown@public-files.de>
+To: linux-media@vger.kernel.org
+Subject: conflict DD-cine C/T V7 with older dvb-cards
+Date: Fri, 01 Apr 2016 06:00:09 +0200
+Message-ID: <1740048.QukWnjDs6D@django19>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Alejandro Torrado <aletorrado@gmail.com>
----
- drivers/media/usb/dvb-usb/dib0700_devices.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Hello,
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index ea0391e..0857b56 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -3814,6 +3814,7 @@ struct usb_device_id dib0700_usb_id_table[] = {
- 	{ USB_DEVICE(USB_VID_PCTV,      USB_PID_PCTV_2002E) },
- 	{ USB_DEVICE(USB_VID_PCTV,      USB_PID_PCTV_2002E_SE) },
- 	{ USB_DEVICE(USB_VID_PCTV,      USB_PID_DIBCOM_STK8096PVR) },
-+	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK8096PVR) },
- 	{ 0 }		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -5017,7 +5018,8 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 		.num_device_descs = 1,
- 		.devices = {
- 			{   "DiBcom STK8096-PVR reference design",
--				{ &dib0700_usb_id_table[83], NULL },
-+				{ &dib0700_usb_id_table[83],
-+					&dib0700_usb_id_table[84], NULL},
- 				{ NULL },
- 			},
- 		},
--- 
-1.9.1
+I recently bought a cine C/T V7 DVB-card from digital devices and I realized 
+some strange behaviour.
+The older dvb-cards are KNC or Mystique dvb-C cards that work fine for years.
+
+When I compile the driver from digital devices, the cine C/T works fine, but 
+the older cards stop with errors.
+
+I did a quick search and diff and found out, that digital devices provides a 
+dvb_core aparently incompatible with the dvb_core from kernel.
+I don't have any idea of kernel or driver hacking. 
+Is anybody out there, who can help with that drama?
+
+
+best regards
+
+Reinhard 
 
