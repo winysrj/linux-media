@@ -1,89 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36461 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752053AbcDVNPS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 09:15:18 -0400
-Received: by mail-wm0-f67.google.com with SMTP id w143so3193568wmw.3
-        for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 06:15:17 -0700 (PDT)
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/6] sta2x11_vip: fix s_std
-Date: Fri, 22 Apr 2016 15:15:15 +0200
-Message-ID: <146136747.clRru94iZt@number-5>
-In-Reply-To: <1461330222-34096-3-git-send-email-hverkuil@xs4all.nl>
-References: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl> <1461330222-34096-3-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:60185 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751022AbcDASWj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Apr 2016 14:22:39 -0400
+Date: Fri, 1 Apr 2016 15:22:34 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>
+Cc: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+	<hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2] [media] tpg: Export the tpg code from vivid as a
+ module
+Message-ID: <20160401152234.4803ad11@recife.lan>
+In-Reply-To: <1459531093-7071-1-git-send-email-helen.koike@collabora.co.uk>
+References: <1459531093-7071-1-git-send-email-helen.koike@collabora.co.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Federico Vaga <federico.vaga@gmail.com>
+Hi Helen,
 
-It sounds fine to me (even the ADV7180 patch). Unfortunately I do not have the 
-hardware to test it.
+This is just a quick look on it. See below.
 
-On Friday, April 22, 2016 03:03:38 PM Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Fri, 1 Apr 2016 14:18:13 -0300
+Helen Mae Koike Fornazier <helen.koike@collabora.co.uk> escreveu:
+
+> The test pattern generator will be used by other drivers as the virtual
+> media controller (vimc)
 > 
-> The s_std ioctl was broken in this driver, partially due to the
-> changes to the adv7180 driver (this affected the handling of
-> V4L2_STD_ALL) and partially because the new standard was never
-> stored in vip->std.
-> 
-> The handling of V4L2_STD_ALL has been rewritten to just call querystd
-> and the new standard is now stored correctly.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Federico Vaga <federico.vaga@gmail.com>
+> Signed-off-by: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>
 > ---
->  drivers/media/pci/sta2x11/sta2x11_vip.c | 26 ++++++++++----------------
->  1 file changed, 10 insertions(+), 16 deletions(-)
 > 
-> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c
-> b/drivers/media/pci/sta2x11/sta2x11_vip.c index 753411c..c79623c 100644
-> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
-> @@ -444,27 +444,21 @@ static int vidioc_querycap(struct file *file, void
-> *priv, static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id
-> std) {
->  	struct sta2x11_vip *vip = video_drvdata(file);
-> -	v4l2_std_id oldstd = vip->std, newstd;
-> +	v4l2_std_id oldstd = vip->std;
->  	int status;
+> The patch is based on 'media/master' branch and available at
+>         https://github.com/helen-fornazier/opw-staging tpg/review/vivid
 > 
-> -	if (V4L2_STD_ALL == std) {
-> -		v4l2_subdev_call(vip->decoder, video, s_std, std);
-> -		ssleep(2);
-> -		v4l2_subdev_call(vip->decoder, video, querystd, &newstd);
-> -		v4l2_subdev_call(vip->decoder, video, g_input_status, &status);
-> -		if (status & V4L2_IN_ST_NO_SIGNAL)
-> +	/*
-> +	 * This is here for backwards compatibility only.
-> +	 * The use of V4L2_STD_ALL to trigger a querystd is non-standard.
-> +	 */
-> +	if (std == V4L2_STD_ALL) {
-> +		v4l2_subdev_call(vip->decoder, video, querystd, &std);
-> +		if (std == V4L2_STD_UNKNOWN)
->  			return -EIO;
-> -		std = vip->std = newstd;
-> -		if (oldstd != std) {
-> -			if (V4L2_STD_525_60 & std)
-> -				vip->format = formats_60[0];
-> -			else
-> -				vip->format = formats_50[0];
-> -		}
-> -		return 0;
->  	}
+> Changes since last version:
+> 	* module name: tpg -> video-tpg
+> 	* header ifdef/define:
+> 		_TPG_H_ -> _MEDIA_TPG_H_
+> 		_TPG_COLORS_H_ -> _MEDIA_TPG_COLORS_H_
 > 
-> -	if (oldstd != std) {
-> +	if (vip->std != std) {
-> +		vip->std = std;
->  		if (V4L2_STD_525_60 & std)
->  			vip->format = formats_60[0];
->  		else
+>  drivers/media/platform/Kconfig                  |    2 +
+>  drivers/media/platform/Makefile                 |    2 +
+>  drivers/media/platform/tpg/Kconfig              |    5 +
+>  drivers/media/platform/tpg/Makefile             |    3 +
+>  drivers/media/platform/tpg/tpg-colors.c         | 1415 ++++++++++++++
+>  drivers/media/platform/tpg/tpg-core.c           | 2334 +++++++++++++++++++++++
+>  drivers/media/platform/vivid/Kconfig            |    1 +
+>  drivers/media/platform/vivid/Makefile           |    2 +-
+>  drivers/media/platform/vivid/vivid-core.h       |    2 +-
+>  drivers/media/platform/vivid/vivid-tpg-colors.c | 1416 --------------
+>  drivers/media/platform/vivid/vivid-tpg-colors.h |   68 -
+>  drivers/media/platform/vivid/vivid-tpg.c        | 2314 ----------------------
+>  drivers/media/platform/vivid/vivid-tpg.h        |  598 ------
+>  include/media/tpg-colors.h                      |   68 +
+>  include/media/tpg.h                             |  597 ++++++
+>  15 files changed, 4429 insertions(+), 4398 deletions(-)
+>  create mode 100644 drivers/media/platform/tpg/Kconfig
+>  create mode 100644 drivers/media/platform/tpg/Makefile
+>  create mode 100644 drivers/media/platform/tpg/tpg-colors.c
+>  create mode 100644 drivers/media/platform/tpg/tpg-core.c
+>  delete mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.c
+>  delete mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.h
+>  delete mode 100644 drivers/media/platform/vivid/vivid-tpg.c
+>  delete mode 100644 drivers/media/platform/vivid/vivid-tpg.h
+>  create mode 100644 include/media/tpg-colors.h
+>  create mode 100644 include/media/tpg.h
 
--- 
-Federico Vaga
+
+Please, generate the patch with -M, for us to see what was changed,
+instead of seeing a big diff where (I suspect that) 99% of the code
+didn't change.
+
+That helps a lot for us to know what actually changed, without needing
+to compare everything line per line.
+
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 201f5c2..8f7cf86 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -284,6 +284,8 @@ menuconfig V4L_TEST_DRIVERS
+>  
+>  if V4L_TEST_DRIVERS
+>  
+> +source "drivers/media/platform/tpg/Kconfig"
+> +
+>  source "drivers/media/platform/vivid/Kconfig"
+>  
+>  config VIDEO_VIM2M
+> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+> index bbb7bd1..569dd1a 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -12,6 +12,8 @@ obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
+>  
+>  obj-$(CONFIG_VIDEO_VIU) += fsl-viu.o
+>  
+> +obj-$(CONFIG_VIDEO_TPG)			+= tpg/
+> +obj-$(CONFIG_VIDEO_VIMC)		+= vimc/
+>  obj-$(CONFIG_VIDEO_VIVID)		+= vivid/
+>  obj-$(CONFIG_VIDEO_VIM2M)		+= vim2m.o
+>  
+> diff --git a/drivers/media/platform/tpg/Kconfig b/drivers/media/platform/tpg/Kconfig
+> new file mode 100644
+> index 0000000..1b6b19c0
+> --- /dev/null
+> +++ b/drivers/media/platform/tpg/Kconfig
+> @@ -0,0 +1,5 @@
+> +config VIDEO_TPG
+> +	tristate "Test Pattern Generator (TPG)"
+> +	default n
+> +	---help---
+> +	  Export functions to generate image patterns used in vivid and vimc drivers
+
+
+No need to have a menu for this. The best would be to do define it as:
+
+config VIDEO_TPG
+	tristate
+	depends on VIDEO_VIVID || VIDEO_VIMC
+
+This way, it will be automatically selected if the driver(s) that
+needs it is selected, without forcing the user to manually guess the
+reverse dependency. It also makes life easier for distros that have
+VIDEO_VIVID already enabled.
+
+Regards,
+Mauro
