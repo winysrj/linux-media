@@ -1,65 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f193.google.com ([209.85.213.193]:34232 "EHLO
-	mail-ig0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751932AbcD1IAL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2016 04:00:11 -0400
-MIME-Version: 1.0
-In-Reply-To: <7242073.I0M81bb6ct@avalon>
-References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<1461620198-13428-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<20160428025429.GA11679@rob-hp-laptop>
-	<7242073.I0M81bb6ct@avalon>
-Date: Thu, 28 Apr 2016 10:00:10 +0200
-Message-ID: <CAMuHMdXHYGTNSV-7JAo8Fp_q3z-WPcJEB7CuenaRuhZJABxc0A@mail.gmail.com>
-Subject: Re: [PATCH v2 01/13] dt-bindings: Add Renesas R-Car FCP DT bindings
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Rob Herring <robh@kernel.org>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-qg0-f47.google.com ([209.85.192.47]:33850 "EHLO
+	mail-qg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752708AbcDAWik (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2016 18:38:40 -0400
+Received: by mail-qg0-f47.google.com with SMTP id n34so100161711qge.1
+        for <linux-media@vger.kernel.org>; Fri, 01 Apr 2016 15:38:40 -0700 (PDT)
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH 0/7] media: tw686x: Improvements
+Date: Fri,  1 Apr 2016 19:38:20 -0300
+Message-Id: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 28, 2016 at 8:36 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->> > diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt
->> > b/Documentation/devicetree/bindings/media/renesas,fcp.txt new file mode
->> > 100644
->> > index 000000000000..0c72ca24379f
->> > --- /dev/null
->> > +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
->> > @@ -0,0 +1,31 @@
->> > +Renesas R-Car Frame Compression Processor (FCP)
->> > +-----------------------------------------------
->> > +
->> > +The FCP is a companion module of video processing modules in the Renesas
->> > R-Car +Gen3 SoCs. It provides data compression and decompression, data
->> > caching, and +conversion of AXI transactions in order to reduce the
->> > memory bandwidth. +
->> > +There are three types of FCP whose configuration and behaviour highly
->> > depend +on the module they are paired with.
->>
->> 3 types?, but I only see one compatible and no relationship with said
->> module described.
->
-> The bindings currently support a single type, as that's all the driver
-> currently supports and I'm not comfortable merging bindings without at least
-> one test implementation. Should I clarify that with something as "These DT
-> bindings currently support the "FCP for Video" type only" ?
+Hi,
 
-Yes please.
+This patchset contains two groups of improvements:
 
-Gr{oetje,eeting}s,
+ * Add support for frame (zero-copy) DMA mode,
+   and also scatter-gather DMA mode.
 
-                        Geert
+ * Audio improvements: prevent hw param changes,
+   and allow period size configuration.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+The DMA modes are selected at module insertion time,
+through a module parameter called dma_mode.
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+While it should be theoretically possible to switch this at
+runtime, I believe the complexity involved does not worth the
+benefit: users will be interested in some specific use case,
+and thus will set the DMA mode right from the start.
+
+Note that in scatter-gather mode, only V4L2_FIELD_SEQ_TB
+is possible. As far as I can see, in this DMA mode, the
+device delivers a sequential top-bottom field frame,
+and cannot deliver separate top/bottom frames.
+
+The only sane thing we can do is limit the DMA length
+and get a top (or bottom field), but I doubt that's
+useful for anyone.
+
+Then again, any additional support can be done as follow
+up patches. For instance, the current series does not add
+support for the "FIELD" mode provided by the device.
+
+The reason for this is that it looked quite complex, and
+required a lot of changes. I'd really like to avoid adding
+any complexity until we have some users demanding it.
+
+Series based on v4.6-rc1, plus patch "media: Support
+Intersil/Techwell TW686x-based video capture cards"
+(https://patchwork.linuxtv.org/patch/33546/)
+
+Ezequiel Garcia (7):
+  tw686x: Specify that the DMA is 32 bits
+  tw686x: Introduce an interface to support multiple DMA modes
+  tw686x: Add support for DMA contiguous interlaced frame mode
+  tw686x: Add support for DMA scatter-gather mode
+  tw686x: audio: Implement non-memcpy capture
+  tw686x: audio: Allow to configure the period size
+  tw686x: audio: Prevent hw param changes while busy
+
+ drivers/media/pci/tw686x/Kconfig        |   2 +
+ drivers/media/pci/tw686x/tw686x-audio.c |  92 ++++--
+ drivers/media/pci/tw686x/tw686x-core.c  |  56 +++-
+ drivers/media/pci/tw686x/tw686x-regs.h  |   9 +
+ drivers/media/pci/tw686x/tw686x-video.c | 493 +++++++++++++++++++++++++-------
+ drivers/media/pci/tw686x/tw686x.h       |  41 ++-
+ 6 files changed, 545 insertions(+), 148 deletions(-)
+
+-- 
+2.7.0
+
