@@ -1,98 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37359 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965208AbcDYVg1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 17:36:27 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 09/13] v4l: vsp1: Move frame sequence number from video node to pipeline
-Date: Tue, 26 Apr 2016 00:36:34 +0300
-Message-Id: <1461620198-13428-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:45180 "EHLO
+	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750978AbcDBRm6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2016 13:42:58 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+To: linux-renesas-soc@vger.kernel.org, lars@metafoo.de,
+	mchehab@osg.samsung.com, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl
+Cc: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 1/3] [media] adv7180: Add g_std operation
+Date: Sat,  2 Apr 2016 19:42:18 +0200
+Message-Id: <1459618940-8170-2-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <1459618940-8170-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+References: <1459618940-8170-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The frame sequence number is global to the pipeline, there's no need to
-store copies in each video node.
+Add support to get the standard to the adv7180 driver.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/platform/vsp1/vsp1_pipe.c  | 2 ++
- drivers/media/platform/vsp1/vsp1_pipe.h  | 2 ++
- drivers/media/platform/vsp1/vsp1_video.c | 4 +---
- drivers/media/platform/vsp1/vsp1_video.h | 1 -
- 4 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/media/i2c/adv7180.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 0c1dc80eb304..be47c8a1a812 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -286,6 +286,8 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
- 
- 	if (pipe->frame_end)
- 		pipe->frame_end(pipe);
-+
-+	pipe->sequence++;
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index ff57c1d..d680d76 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -434,6 +434,15 @@ out:
+ 	return ret;
  }
  
- /*
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 7b56113511dd..febc62f99d6d 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -67,6 +67,7 @@ enum vsp1_pipeline_state {
-  * @kref: pipeline reference count
-  * @stream_count: number of streaming video nodes
-  * @buffers_ready: bitmask of RPFs and WPFs with at least one buffer available
-+ * @sequence: frame sequence number
-  * @num_inputs: number of RPFs
-  * @inputs: array of RPFs in the pipeline (indexed by RPF index)
-  * @output: WPF at the output of the pipeline
-@@ -90,6 +91,7 @@ struct vsp1_pipeline {
- 	struct kref kref;
- 	unsigned int stream_count;
- 	unsigned int buffers_ready;
-+	unsigned int sequence;
++static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
++{
++	struct adv7180_state *state = to_state(sd);
++
++	*norm = state->curr_norm;
++
++	return 0;
++}
++
+ static int adv7180_set_power(struct adv7180_state *state, bool on)
+ {
+ 	u8 val;
+@@ -719,6 +728,7 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
  
- 	unsigned int num_inputs;
- 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF];
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index a9aec5c0bec6..34aa6427662d 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -219,7 +219,7 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- 
- 	spin_unlock_irqrestore(&video->irqlock, flags);
- 
--	done->buf.sequence = video->sequence++;
-+	done->buf.sequence = pipe->sequence;
- 	done->buf.vb2_buf.timestamp = ktime_get_ns();
- 	for (i = 0; i < done->buf.vb2_buf.num_planes; ++i)
- 		vb2_set_plane_payload(&done->buf.vb2_buf, i,
-@@ -805,8 +805,6 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	if (video->queue.owner && video->queue.owner != file->private_data)
- 		return -EBUSY;
- 
--	video->sequence = 0;
--
- 	/* Get a pipeline for the video node and start streaming on it. No link
- 	 * touching an entity in the pipeline can be activated or deactivated
- 	 * once streaming is started.
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-index 867b00807c46..1595fd587fbc 100644
---- a/drivers/media/platform/vsp1/vsp1_video.h
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -49,7 +49,6 @@ struct vsp1_video {
- 	void *alloc_ctx;
- 	spinlock_t irqlock;
- 	struct list_head irqqueue;
--	unsigned int sequence;
- };
- 
- static inline struct vsp1_video *to_vsp1_video(struct video_device *vdev)
+ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ 	.s_std = adv7180_s_std,
++	.g_std = adv7180_g_std,
+ 	.querystd = adv7180_querystd,
+ 	.g_input_status = adv7180_g_input_status,
+ 	.s_routing = adv7180_s_routing,
 -- 
-2.7.3
+2.7.4
 
