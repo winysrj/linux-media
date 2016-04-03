@@ -1,446 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40806 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752697AbcD0NvS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 09:51:18 -0400
-Subject: Re: [PATCH] media: fix media_ioctl use-after-free when driver unbinds
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1461726512-9828-1-git-send-email-shuahkh@osg.samsung.com>
- <20160427065526.7f091355@recife.lan>
-Cc: laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	chehabrafael@gmail.com, sakari.ailus@iki.fi,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <5720C3CC.5090009@osg.samsung.com>
-Date: Wed, 27 Apr 2016 07:51:08 -0600
-MIME-Version: 1.0
-In-Reply-To: <20160427065526.7f091355@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mail.lysator.liu.se ([130.236.254.3]:43452 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752516AbcDCIza (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:55:30 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v6 10/24] [media] rtl2830: convert to use an explicit i2c mux core
+Date: Sun,  3 Apr 2016 10:52:40 +0200
+Message-Id: <1459673574-11440-11-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Peter Rosin <peda@axentia.se>
 
-On 04/27/2016 03:55 AM, Mauro Carvalho Chehab wrote:
-> Hi Shuah,
-> 
-> Good work! I have a few notes below.
-> 
-> Em Tue, 26 Apr 2016 21:08:32 -0600
-> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
-> 
->> When driver unbind is run while media_ioctl is in progress, media_ioctl()
->> fails with use-after-free. This first use-after-free is followed by more
->> user-after-free errors in media_release(), kobject_put(), and cdev_put()
->> as driver unbind continues. This problem is found on uvcvideo, em28xx, and
->> au0828 drivers and fix has been tested on all three.
->>
->> This fix allocates media devnode and manages its lifetime separate from the
->> struct media_device. Adds kobject to the media_devnode structure and this
->> kobject is set as the cdev parent kobject. This allows cdev_add() to hold
->> a reference to it and release the reference in cdev_del() ensuring that the
->> media_devnode is not deallocated as long as the application has the cdev
->> open.
->>
->> The first error is below:
->>
->> [  472.424302] ==================================================================
->> [  472.424333] BUG: KASAN: use-after-free in media_ioctl+0xf0/0x130 [media] at addr ffff880027b72330
->> [  472.424341] Read of size 8 by task media_device_te/1794
->> [  472.424348] =============================================================================
->> [  472.424356] BUG kmalloc-4096 (Not tainted): kasan: bad access detected
->> [  472.424361] -----------------------------------------------------------------------------
->> [  472.431973] CPU: 1 PID: 1794 Comm: media_device_te Tainted: G    B           4.6.0-rc5 #2
->> [  472.431988] Hardware name: Hewlett-Packard HP ProBook 6475b/180F, BIOS 68TTU Ver. F.04 08/03/2012
->> [  472.431996]  ffffea00009edc00 ffff88009ddffc78 ffffffff81aecac3 ffff8801fa403200
->> [  472.432016]  ffff880027b72260 ffff88009ddffca8 ffffffff815359b2 ffff8801fa403200
->> [  472.432040]  ffffea00009edc00 ffff880027b72260 ffffffffa0c9cc60 ffff88009ddffcd0
->> [  472.432059] Call Trace:
->> [  472.432079]  [<ffffffff81aecac3>] dump_stack+0x67/0x94
->> [  472.432092]  [<ffffffff815359b2>] print_trailer+0x112/0x1a0
->> [  472.432108]  [<ffffffff8153b5e4>] object_err+0x34/0x40
->> [  472.432125]  [<ffffffff8153d9d4>] kasan_report_error+0x224/0x530
->> [  472.432148]  [<ffffffffa0c934c0>] ? __media_device_get_topology+0x1850/0x1850 [media]
->> [  472.432167]  [<ffffffff8153de13>] __asan_report_load8_noabort+0x43/0x50
->> [  472.432190]  [<ffffffffa0c94f60>] ? media_ioctl+0x120/0x130 [media]
->> [  472.432209]  [<ffffffffa0c94f60>] media_ioctl+0x120/0x130 [media]
->> [  472.432229]  [<ffffffff815a9e44>] do_vfs_ioctl+0x184/0xe80
->> [  472.432243]  [<ffffffff815a9cc0>] ? ioctl_preallocate+0x1a0/0x1a0
->> [  472.432256]  [<ffffffff8127b1f0>] ? __hrtimer_init+0x170/0x170
->> [  472.432272]  [<ffffffff82846b01>] ? do_nanosleep+0x161/0x480
->> [  472.432298]  [<ffffffff811451d0>] ? sigprocmask+0x290/0x290
->> [  472.432323]  [<ffffffff815c7209>] ? __fget_light+0x139/0x200
->> [  472.432358]  [<ffffffff815aabb9>] SyS_ioctl+0x79/0x90
->> [  472.432381]  [<ffffffff82848aa5>] entry_SYSCALL_64_fastpath+0x18/0xa8
-> 
-> This patch is almost identical to my patch, as you took the same
-> approach as I did:
-> 	https://patchwork.linuxtv.org/patch/33577/
-> 
-> So, I compared both to identify the differences. What I noticed is
-> that:
-> 
-> 1) your patch is setting cdev->parent; in my case, I fixed on a
->    separate patch. 
-> 
-> IMHO, this should be on a separate patch, as cdev is a separate bug.
-> 
-> 2) On my patch, I also fixed the error conditions at 
->    __media_device_register(): currently, it has a few issues, and,
->    after the patch, if an error occurs, mdev->devnode should be
->    set to NULL;
-> 
-> 3) you added a kref. I would prefer to see this on a separate patch
->    too, as this is not related with moving from an embedded struct
->    to a dynamically allocated one. One logical change per patch,
->    please.
-> 
-> There's also the point that you're using my patch, but removing
-> my credits. In this specific case, as a developer, I don't mind
-> much about that, as it is just one patch and didn't take much
-> of my time to produce. Yet, maintainers should not allow stripping
-> off credits, as this could cause troubles later.
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select op to be in terms of the i2c mux core instead
+of the child adapter.
 
-I don't do things like using another developer's work and strip
-credits.
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/dvb-frontends/rtl2830.c      | 17 +++++++++--------
+ drivers/media/dvb-frontends/rtl2830_priv.h |  2 +-
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-I didn't user your patch. I started from scratch to solve the problem.
-There is a good reason for that.
-
-For one thing, your patch came out when we were dealing with lots of
-problems with having au0828 and snd-us-audio in the mix. I also wanted
-to start from a clean slate and not use any code that was done while we
-were debugging two driver problems. As such, there a flood of patches
-from you at that time, and I didn't know which ones are applicable
-for a single driver case, and which ones aren't. So I just went the
-route of clean slate.
-
-That said, I am fine with you want to not take my patch and use yours.
-
-> 
-> So, IMHO, the best would be to split this patch in 3 patches:
-> 
-> - my patch (fixing the context changes);
-
-I will leave it up to you to fix the context changes if any.
-I can apply you patch as is and then add the cdev and kref
-patch.
-
-> - cdev patch;
-> - kref patch.
-> 
-> As a bonus side, by breaking into that, it helps to identify what
-> fixes are needed if we found similar issues at the other parts of
-> the subsystems.
-
-No problem breaking the it into 3 patches. I think the order should
-be kref and the a patch to set cdev kobj parent. Is that what you
-had in mind?
-
-> 
-> If I remember well, I ended by having some cdev troubles with the
-> V4L2 core on one of my stress test. So, this is something that
-> we want to double check at RC, DVB and V4L parts that handle
-> cdev, and eventually porting the changes to the core of those
-> subsystems.
-
-Is that when you were playing with allocating cdev as opposed to
-setting parent. btw. just setting parent isn't enough. Kobject
-is necessary as it can then invoke the kobject put handler from
-cdev-core.
-
-> 
-> PS.: I did just a code review. I intend to test this along the
-> week.
-
-Please let me know if your patch is in good shape for me to use it.
-
-thanks,
--- Shuah
-
-> 
-> 
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/media-device.c           | 32 ++++++++++++++++++++------------
->>  drivers/media/media-devnode.c          | 23 +++++++++++++++++++++++
->>  drivers/media/usb/au0828/au0828-core.c |  4 ++--
->>  drivers/media/usb/uvc/uvc_driver.c     |  2 +-
->>  include/media/media-device.h           |  7 ++-----
->>  include/media/media-devnode.h          |  8 +++++++-
->>  6 files changed, 55 insertions(+), 21 deletions(-)
->>
->> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->> index 6e43c95..78b0350 100644
->> --- a/drivers/media/media-device.c
->> +++ b/drivers/media/media-device.c
->> @@ -428,7 +428,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
->>  			       unsigned long arg)
->>  {
->>  	struct media_devnode *devnode = media_devnode_data(filp);
->> -	struct media_device *dev = to_media_device(devnode);
->> +	struct media_device *dev = devnode->media_dev;
->>  	long ret;
->>  
->>  	switch (cmd) {
->> @@ -504,7 +504,7 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
->>  				      unsigned long arg)
->>  {
->>  	struct media_devnode *devnode = media_devnode_data(filp);
->> -	struct media_device *dev = to_media_device(devnode);
->> +	struct media_device *dev = devnode->media_dev;
->>  	long ret;
->>  
->>  	switch (cmd) {
->> @@ -546,7 +546,8 @@ static const struct media_file_operations media_device_fops = {
->>  static ssize_t show_model(struct device *cd,
->>  			  struct device_attribute *attr, char *buf)
->>  {
->> -	struct media_device *mdev = to_media_device(to_media_devnode(cd));
->> +	struct media_devnode *devnode = to_media_devnode(cd);
->> +	struct media_device *mdev = devnode->media_dev;
->>  
->>  	return sprintf(buf, "%.*s\n", (int)sizeof(mdev->model), mdev->model);
->>  }
->> @@ -725,21 +726,26 @@ int __must_check __media_device_register(struct media_device *mdev,
->>  {
->>  	int ret;
->>  
->> +	mdev->devnode = kzalloc(sizeof(struct media_devnode), GFP_KERNEL);
->> +	if (!mdev->devnode)
->> +		return -ENOMEM;
->> +
->>  	/* Register the device node. */
->> -	mdev->devnode.fops = &media_device_fops;
->> -	mdev->devnode.parent = mdev->dev;
->> -	mdev->devnode.release = media_device_release;
->> +	mdev->devnode->fops = &media_device_fops;
->> +	mdev->devnode->parent = mdev->dev;
->> +	mdev->devnode->media_dev = mdev;
->> +	mdev->devnode->release = media_device_release;
->>  
->>  	/* Set version 0 to indicate user-space that the graph is static */
->>  	mdev->topology_version = 0;
->>  
->> -	ret = media_devnode_register(&mdev->devnode, owner);
->> +	ret = media_devnode_register(mdev->devnode, owner);
->>  	if (ret < 0)
->>  		return ret;
->>  
->> -	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
->> +	ret = device_create_file(&mdev->devnode->dev, &dev_attr_model);
->>  	if (ret < 0) {
->> -		media_devnode_unregister(&mdev->devnode);
->> +		media_devnode_unregister(mdev->devnode);
->>  		return ret;
->>  	}
->>  
->> @@ -790,7 +796,7 @@ void media_device_unregister(struct media_device *mdev)
->>  	spin_lock(&mdev->lock);
->>  
->>  	/* Check if mdev was ever registered at all */
->> -	if (!media_devnode_is_registered(&mdev->devnode)) {
->> +	if (!media_devnode_is_registered(mdev->devnode)) {
->>  		spin_unlock(&mdev->lock);
->>  		return;
->>  	}
->> @@ -813,8 +819,10 @@ void media_device_unregister(struct media_device *mdev)
->>  
->>  	spin_unlock(&mdev->lock);
->>  
->> -	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
->> -	media_devnode_unregister(&mdev->devnode);
->> +	device_remove_file(&mdev->devnode->dev, &dev_attr_model);
->> +	media_devnode_unregister(mdev->devnode);
->> +	/* kfree devnode is done via kobject_put() handler */
->> +	mdev->devnode = NULL;
->>  
->>  	dev_dbg(mdev->dev, "Media device unregistered\n");
->>  }
->> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
->> index 29409f4..9af9ba1 100644
->> --- a/drivers/media/media-devnode.c
->> +++ b/drivers/media/media-devnode.c
->> @@ -171,6 +171,9 @@ static int media_open(struct inode *inode, struct file *filp)
->>  		mutex_unlock(&media_devnode_lock);
->>  		return -ENXIO;
->>  	}
->> +
->> +	kobject_get(&mdev->kobj);
->> +
->>  	/* and increase the device refcount */
->>  	get_device(&mdev->dev);
->>  	mutex_unlock(&media_devnode_lock);
->> @@ -181,6 +184,7 @@ static int media_open(struct inode *inode, struct file *filp)
->>  		ret = mdev->fops->open(filp);
->>  		if (ret) {
->>  			put_device(&mdev->dev);
->> +			kobject_put(&mdev->kobj);
->>  			filp->private_data = NULL;
->>  			return ret;
->>  		}
->> @@ -200,6 +204,7 @@ static int media_release(struct inode *inode, struct file *filp)
->>  	/* decrease the refcount unconditionally since the release()
->>  	   return value is ignored. */
->>  	put_device(&mdev->dev);
->> +	kobject_put(&mdev->kobj);
->>  	filp->private_data = NULL;
->>  	return 0;
->>  }
->> @@ -218,6 +223,19 @@ static const struct file_operations media_devnode_fops = {
->>  	.llseek = no_llseek,
->>  };
->>  
->> +static void media_devnode_free(struct kobject *kobj)
->> +{
->> +	struct media_devnode *devnode =
->> +			container_of(kobj, struct media_devnode, kobj);
->> +
->> +	kfree(devnode);
->> +	pr_info("%s: Media Devnode Deallocated\n", __func__);
->> +}
->> +
->> +static struct kobj_type media_devnode_ktype = {
->> +	.release = media_devnode_free,
->> +};
->> +
->>  int __must_check media_devnode_register(struct media_devnode *mdev,
->>  					struct module *owner)
->>  {
->> @@ -238,9 +256,12 @@ int __must_check media_devnode_register(struct media_devnode *mdev,
->>  
->>  	mdev->minor = minor;
->>  
->> +	kobject_init(&mdev->kobj, &media_devnode_ktype);
->> +
->>  	/* Part 2: Initialize and register the character device */
->>  	cdev_init(&mdev->cdev, &media_devnode_fops);
->>  	mdev->cdev.owner = owner;
->> +	mdev->cdev.kobj.parent = &mdev->kobj;
->>  
->>  	ret = cdev_add(&mdev->cdev, MKDEV(MAJOR(media_dev_t), mdev->minor), 1);
->>  	if (ret < 0) {
->> @@ -269,6 +290,7 @@ int __must_check media_devnode_register(struct media_devnode *mdev,
->>  error:
->>  	cdev_del(&mdev->cdev);
->>  	clear_bit(mdev->minor, media_devnode_nums);
->> +	kobject_put(&mdev->kobj);
->>  	return ret;
->>  }
->>  
->> @@ -282,6 +304,7 @@ void media_devnode_unregister(struct media_devnode *mdev)
->>  	clear_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
->>  	mutex_unlock(&media_devnode_lock);
->>  	device_unregister(&mdev->dev);
->> +	kobject_put(&mdev->kobj);
->>  }
->>  
->>  /*
->> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
->> index cc22b32..8af9344 100644
->> --- a/drivers/media/usb/au0828/au0828-core.c
->> +++ b/drivers/media/usb/au0828/au0828-core.c
->> @@ -136,7 +136,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
->>  
->>  #ifdef CONFIG_MEDIA_CONTROLLER
->>  	if (dev->media_dev &&
->> -		media_devnode_is_registered(&dev->media_dev->devnode)) {
->> +		media_devnode_is_registered(dev->media_dev->devnode)) {
->>  		/* clear enable_source, disable_source */
->>  		dev->media_dev->source_priv = NULL;
->>  		dev->media_dev->enable_source = NULL;
->> @@ -468,7 +468,7 @@ static int au0828_media_device_register(struct au0828_dev *dev,
->>  	if (!dev->media_dev)
->>  		return 0;
->>  
->> -	if (!media_devnode_is_registered(&dev->media_dev->devnode)) {
->> +	if (!media_devnode_is_registered(dev->media_dev->devnode)) {
->>  
->>  		/* register media device */
->>  		ret = media_device_register(dev->media_dev);
->> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
->> index 451e84e9..302e284 100644
->> --- a/drivers/media/usb/uvc/uvc_driver.c
->> +++ b/drivers/media/usb/uvc/uvc_driver.c
->> @@ -1674,7 +1674,7 @@ static void uvc_delete(struct uvc_device *dev)
->>  	if (dev->vdev.dev)
->>  		v4l2_device_unregister(&dev->vdev);
->>  #ifdef CONFIG_MEDIA_CONTROLLER
->> -	if (media_devnode_is_registered(&dev->mdev.devnode))
->> +	if (media_devnode_is_registered(dev->mdev.devnode))
->>  		media_device_unregister(&dev->mdev);
->>  	media_device_cleanup(&dev->mdev);
->>  #endif
->> diff --git a/include/media/media-device.h b/include/media/media-device.h
->> index df74cfa..65394f3 100644
->> --- a/include/media/media-device.h
->> +++ b/include/media/media-device.h
->> @@ -283,7 +283,7 @@ struct media_entity_notify {
->>  /**
->>   * struct media_device - Media device
->>   * @dev:	Parent device
->> - * @devnode:	Media device node
->> + * @devnode:	Media device node pointer
->>   * @driver_name: Optional device driver name. If not set, calls to
->>   *		%MEDIA_IOC_DEVICE_INFO will return dev->driver->name.
->>   *		This is needed for USB drivers for example, as otherwise
->> @@ -348,7 +348,7 @@ struct media_entity_notify {
->>  struct media_device {
->>  	/* dev->driver_data points to this struct. */
->>  	struct device *dev;
->> -	struct media_devnode devnode;
->> +	struct media_devnode *devnode;
->>  
->>  	char model[32];
->>  	char driver_name[32];
->> @@ -396,9 +396,6 @@ struct usb_device;
->>  #define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
->>  #define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
->>  
->> -/* media_devnode to media_device */
->> -#define to_media_device(node) container_of(node, struct media_device, devnode)
->> -
->>  /**
->>   * media_entity_enum_init - Initialise an entity enumeration
->>   *
->> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
->> index fe42f08..ba4bdaa 100644
->> --- a/include/media/media-devnode.h
->> +++ b/include/media/media-devnode.h
->> @@ -70,7 +70,9 @@ struct media_file_operations {
->>   * @fops:	pointer to struct &media_file_operations with media device ops
->>   * @dev:	struct device pointer for the media controller device
->>   * @cdev:	struct cdev pointer character device
->> + * @kobj:	struct kobject
->>   * @parent:	parent device
->> + * @media_dev:	media device
->>   * @minor:	device node minor number
->>   * @flags:	flags, combination of the MEDIA_FLAG_* constants
->>   * @release:	release callback called at the end of media_devnode_release()
->> @@ -87,7 +89,9 @@ struct media_devnode {
->>  	/* sysfs */
->>  	struct device dev;		/* media device */
->>  	struct cdev cdev;		/* character device */
->> +	struct kobject kobj;		/* set as cdev parent kobj */
->>  	struct device *parent;		/* device parent */
->> +	struct media_device *media_dev; /* media device for the devnode */
->>  
->>  	/* device info */
->>  	int minor;
->> @@ -149,7 +153,9 @@ static inline struct media_devnode *media_devnode_data(struct file *filp)
->>   */
->>  static inline int media_devnode_is_registered(struct media_devnode *mdev)
->>  {
->> -	return test_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
->> +	if (mdev)
->> +		return test_bit(MEDIA_FLAG_REGISTERED, &mdev->flags);
->> +	return false;
->>  }
->>  
->>  #endif /* _MEDIA_DEVNODE_H */
-> 
-> 
+diff --git a/drivers/media/dvb-frontends/rtl2830.c b/drivers/media/dvb-frontends/rtl2830.c
+index 3f96429af0e5..ab02c3a07194 100644
+--- a/drivers/media/dvb-frontends/rtl2830.c
++++ b/drivers/media/dvb-frontends/rtl2830.c
+@@ -677,9 +677,9 @@ err:
+  * adapter lock is already taken by tuner driver.
+  * Gate is closed automatically after single I2C transfer.
+  */
+-static int rtl2830_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
++static int rtl2830_select(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct i2c_client *client = mux_priv;
++	struct i2c_client *client = i2c_mux_priv(muxc);
+ 	struct rtl2830_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 
+@@ -712,7 +712,7 @@ static struct i2c_adapter *rtl2830_get_i2c_adapter(struct i2c_client *client)
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+-	return dev->adapter;
++	return dev->muxc->adapter[0];
+ }
+ 
+ /*
+@@ -865,12 +865,13 @@ static int rtl2830_probe(struct i2c_client *client,
+ 		goto err_regmap_exit;
+ 
+ 	/* create muxed i2c adapter for tuner */
+-	dev->adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
+-			client, 0, 0, 0, rtl2830_select, NULL);
+-	if (dev->adapter == NULL) {
+-		ret = -ENODEV;
++	dev->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0, 0,
++					0, 0, 0, rtl2830_select, NULL);
++	if (IS_ERR(dev->muxc)) {
++		ret = PTR_ERR(dev->muxc);
+ 		goto err_regmap_exit;
+ 	}
++	dev->muxc->priv = client;
+ 
+ 	/* create dvb frontend */
+ 	memcpy(&dev->fe.ops, &rtl2830_ops, sizeof(dev->fe.ops));
+@@ -903,7 +904,7 @@ static int rtl2830_remove(struct i2c_client *client)
+ 	/* stop statistics polling */
+ 	cancel_delayed_work_sync(&dev->stat_work);
+ 
+-	i2c_del_mux_adapter(dev->adapter);
++	i2c_mux_del_adapters(dev->muxc);
+ 	regmap_exit(dev->regmap);
+ 	kfree(dev);
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2830_priv.h b/drivers/media/dvb-frontends/rtl2830_priv.h
+index cf793f39a09b..da4909543da2 100644
+--- a/drivers/media/dvb-frontends/rtl2830_priv.h
++++ b/drivers/media/dvb-frontends/rtl2830_priv.h
+@@ -29,7 +29,7 @@ struct rtl2830_dev {
+ 	struct rtl2830_platform_data *pdata;
+ 	struct i2c_client *client;
+ 	struct regmap *regmap;
+-	struct i2c_adapter *adapter;
++	struct i2c_mux_core *muxc;
+ 	struct dvb_frontend fe;
+ 	bool sleeping;
+ 	unsigned long filters;
+-- 
+2.1.4
 
