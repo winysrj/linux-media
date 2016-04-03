@@ -1,107 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f47.google.com ([209.85.192.47]:33986 "EHLO
-	mail-qg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754372AbcDAWiz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2016 18:38:55 -0400
-Received: by mail-qg0-f47.google.com with SMTP id n34so100165301qge.1
-        for <linux-media@vger.kernel.org>; Fri, 01 Apr 2016 15:38:55 -0700 (PDT)
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 7/7] tw686x: audio: Prevent hw param changes while busy
-Date: Fri,  1 Apr 2016 19:38:27 -0300
-Message-Id: <1459550307-688-8-git-send-email-ezequiel@vanguardiasur.com.ar>
-In-Reply-To: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-References: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Received: from mail.lysator.liu.se ([130.236.254.3]:55979 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752962AbcDCIyN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:54:13 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v6 04/24] i2c: i2c-arb-gpio-challenge: convert to use an explicit i2c mux core
+Date: Sun,  3 Apr 2016 10:52:34 +0200
+Message-Id: <1459673574-11440-5-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Audio hw params are shared across all DMA channels,
-so if the user changes any of these while any DMA channel is
-enabled, it will impact the enabled channels, potentially causing
-serious instability issues.
+From: Peter Rosin <peda@axentia.se>
 
-This commit avoids such situation, by preventing any hw param
-change (on any DMA channel) if any other DMA audio channel is capturing.
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
-Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/pci/tw686x/tw686x-audio.c | 20 ++++++++++++++++----
- drivers/media/pci/tw686x/tw686x.h       |  1 +
- 2 files changed, 17 insertions(+), 4 deletions(-)
+ drivers/i2c/muxes/i2c-arb-gpio-challenge.c | 47 +++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/pci/tw686x/tw686x-audio.c b/drivers/media/pci/tw686x/tw686x-audio.c
-index 987a22663525..96e444c49173 100644
---- a/drivers/media/pci/tw686x/tw686x-audio.c
-+++ b/drivers/media/pci/tw686x/tw686x-audio.c
-@@ -94,10 +94,8 @@ static int tw686x_pcm_hw_free(struct snd_pcm_substream *ss)
- 
- /*
-  * Audio parameters are global and shared among all
-- * capture channels. The driver makes no effort to prevent
-- * any modifications. User is free change the audio rate,
-- * or period size, thus changing parameters for all capture
-- * sub-devices.
-+ * capture channels. The driver prevents changes to
-+ * the parameters if any audio channel is capturing.
+diff --git a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
+index 402e3a6c671a..a42827b3c672 100644
+--- a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
++++ b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
+@@ -28,8 +28,6 @@
+ /**
+  * struct i2c_arbitrator_data - Driver data for I2C arbitrator
+  *
+- * @parent: Parent adapter
+- * @child: Child bus
+  * @our_gpio: GPIO we'll use to claim.
+  * @our_gpio_release: 0 if active high; 1 if active low; AKA if the GPIO ==
+  *   this then consider it released.
+@@ -42,8 +40,6 @@
   */
- static const struct snd_pcm_hardware tw686x_capture_hw = {
- 	.info			= (SNDRV_PCM_INFO_MMAP |
-@@ -154,6 +152,14 @@ static int tw686x_pcm_prepare(struct snd_pcm_substream *ss)
- 	int i;
  
- 	spin_lock_irqsave(&dev->lock, flags);
-+	/*
-+	 * Given the audio parameters are global (i.e. shared across
-+	 * DMA channels), we need to check new params are allowed.
-+	 */
-+	if (((dev->audio_rate != rt->rate) ||
-+	     (dev->period_size != period_size)) && dev->audio_enabled)
-+		goto err_audio_busy;
-+
- 	tw686x_disable_channel(dev, AUDIO_CHANNEL_OFFSET + ac->ch);
- 	spin_unlock_irqrestore(&dev->lock, flags);
+ struct i2c_arbitrator_data {
+-	struct i2c_adapter *parent;
+-	struct i2c_adapter *child;
+ 	int our_gpio;
+ 	int our_gpio_release;
+ 	int their_gpio;
+@@ -59,9 +55,9 @@ struct i2c_arbitrator_data {
+  *
+  * Use the GPIO-based signalling protocol; return -EBUSY if we fail.
+  */
+-static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
++static int i2c_arbitrator_select(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	const struct i2c_arbitrator_data *arb = data;
++	const struct i2c_arbitrator_data *arb = i2c_mux_priv(muxc);
+ 	unsigned long stop_retry, stop_time;
  
-@@ -210,6 +216,10 @@ static int tw686x_pcm_prepare(struct snd_pcm_substream *ss)
- 	spin_unlock_irqrestore(&ac->lock, flags);
- 
- 	return 0;
-+
-+err_audio_busy:
-+	spin_unlock_irqrestore(&dev->lock, flags);
-+	return -EBUSY;
+ 	/* Start a round of trying to claim the bus */
+@@ -93,7 +89,7 @@ static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
+ 	/* Give up, release our claim */
+ 	gpio_set_value(arb->our_gpio, arb->our_gpio_release);
+ 	udelay(arb->slew_delay_us);
+-	dev_err(&adap->dev, "Could not claim bus, timeout\n");
++	dev_err(muxc->dev, "Could not claim bus, timeout\n");
+ 	return -EBUSY;
  }
  
- static int tw686x_pcm_trigger(struct snd_pcm_substream *ss, int cmd)
-@@ -223,6 +233,7 @@ static int tw686x_pcm_trigger(struct snd_pcm_substream *ss, int cmd)
- 	case SNDRV_PCM_TRIGGER_START:
- 		if (ac->curr_bufs[0] && ac->curr_bufs[1]) {
- 			spin_lock_irqsave(&dev->lock, flags);
-+			dev->audio_enabled = 1;
- 			tw686x_enable_channel(dev,
- 				AUDIO_CHANNEL_OFFSET + ac->ch);
- 			spin_unlock_irqrestore(&dev->lock, flags);
-@@ -235,6 +246,7 @@ static int tw686x_pcm_trigger(struct snd_pcm_substream *ss, int cmd)
- 		break;
- 	case SNDRV_PCM_TRIGGER_STOP:
- 		spin_lock_irqsave(&dev->lock, flags);
-+		dev->audio_enabled = 0;
- 		tw686x_disable_channel(dev, AUDIO_CHANNEL_OFFSET + ac->ch);
- 		spin_unlock_irqrestore(&dev->lock, flags);
+@@ -102,10 +98,9 @@ static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
+  *
+  * Release the I2C bus using the GPIO-based signalling protocol.
+  */
+-static int i2c_arbitrator_deselect(struct i2c_adapter *adap, void *data,
+-				   u32 chan)
++static int i2c_arbitrator_deselect(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	const struct i2c_arbitrator_data *arb = data;
++	const struct i2c_arbitrator_data *arb = i2c_mux_priv(muxc);
  
-diff --git a/drivers/media/pci/tw686x/tw686x.h b/drivers/media/pci/tw686x/tw686x.h
-index a5e94e0454d0..66f1a33fdcec 100644
---- a/drivers/media/pci/tw686x/tw686x.h
-+++ b/drivers/media/pci/tw686x/tw686x.h
-@@ -141,6 +141,7 @@ struct tw686x_dev {
- 	/* Per-device audio parameters */
- 	int audio_rate;
- 	int period_size;
-+	int audio_enabled;
+ 	/* Release the bus and wait for the other master to notice */
+ 	gpio_set_value(arb->our_gpio, arb->our_gpio_release);
+@@ -119,6 +114,7 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *np = dev->of_node;
+ 	struct device_node *parent_np;
++	struct i2c_mux_core *muxc;
+ 	struct i2c_arbitrator_data *arb;
+ 	enum of_gpio_flags gpio_flags;
+ 	unsigned long out_init;
+@@ -134,12 +130,13 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
  
- 	struct timer_list dma_delay_timer;
- 	u32 pending_dma_en; /* must be protected by lock */
+-	arb = devm_kzalloc(dev, sizeof(*arb), GFP_KERNEL);
+-	if (!arb) {
+-		dev_err(dev, "Cannot allocate i2c_arbitrator_data\n");
++	muxc = i2c_mux_alloc(NULL, dev, sizeof(*arb), 0,
++			     i2c_arbitrator_select, i2c_arbitrator_deselect);
++	if (!muxc)
+ 		return -ENOMEM;
+-	}
+-	platform_set_drvdata(pdev, arb);
++	arb = i2c_mux_priv(muxc);
++
++	platform_set_drvdata(pdev, muxc);
+ 
+ 	/* Request GPIOs */
+ 	ret = of_get_named_gpio_flags(np, "our-claim-gpio", 0, &gpio_flags);
+@@ -196,21 +193,18 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+ 		dev_err(dev, "Cannot parse i2c-parent\n");
+ 		return -EINVAL;
+ 	}
+-	arb->parent = of_get_i2c_adapter_by_node(parent_np);
++	muxc->parent = of_get_i2c_adapter_by_node(parent_np);
+ 	of_node_put(parent_np);
+-	if (!arb->parent) {
++	if (!muxc->parent) {
+ 		dev_err(dev, "Cannot find parent bus\n");
+ 		return -EPROBE_DEFER;
+ 	}
+ 
+ 	/* Actually add the mux adapter */
+-	arb->child = i2c_add_mux_adapter(arb->parent, dev, arb, 0, 0, 0,
+-					 i2c_arbitrator_select,
+-					 i2c_arbitrator_deselect);
+-	if (!arb->child) {
++	ret = i2c_mux_add_adapter(muxc, 0, 0, 0);
++	if (ret) {
+ 		dev_err(dev, "Failed to add adapter\n");
+-		ret = -ENODEV;
+-		i2c_put_adapter(arb->parent);
++		i2c_put_adapter(muxc->parent);
+ 	}
+ 
+ 	return ret;
+@@ -218,11 +212,10 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
+ 
+ static int i2c_arbitrator_remove(struct platform_device *pdev)
+ {
+-	struct i2c_arbitrator_data *arb = platform_get_drvdata(pdev);
+-
+-	i2c_del_mux_adapter(arb->child);
+-	i2c_put_adapter(arb->parent);
++	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
+ 
++	i2c_mux_del_adapters(muxc);
++	i2c_put_adapter(muxc->parent);
+ 	return 0;
+ }
+ 
 -- 
-2.7.0
+2.1.4
 
