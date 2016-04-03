@@ -1,187 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:35623 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053AbcDRQwi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2016 12:52:38 -0400
-Received: by mail-ob0-f179.google.com with SMTP id n10so36730085obb.2
-        for <linux-media@vger.kernel.org>; Mon, 18 Apr 2016 09:52:38 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1459550307-688-4-git-send-email-ezequiel@vanguardiasur.com.ar>
-References: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-	<1459550307-688-4-git-send-email-ezequiel@vanguardiasur.com.ar>
-Date: Mon, 18 Apr 2016 09:52:37 -0700
-Message-ID: <CAJ+vNU1=2YRMnYRys1cv4sH+MwZO-0aiMTUaKsoc-MJuV1Ajcw@mail.gmail.com>
-Subject: Re: [PATCH 3/7] tw686x: Add support for DMA contiguous interlaced
- frame mode
-From: Tim Harvey <tharvey@gateworks.com>
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	=?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.lysator.liu.se ([130.236.254.3]:58029 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419AbcDCI4J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:56:09 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v6 13/24] [media] cx231xx: convert to use an explicit i2c mux core
+Date: Sun,  3 Apr 2016 10:52:43 +0200
+Message-Id: <1459673574-11440-14-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 1, 2016 at 3:38 PM, Ezequiel Garcia
-<ezequiel@vanguardiasur.com.ar> wrote:
-> Now that the driver has the infrastructure to support more
-> DMA modes, let's add the DMA contiguous interlaced frame mode.
->
-> In this mode, the DMA P and B buffers are programmed with
-> the user-provided buffers. When a P (or B) frame is ready,
-> a new buffer is dequeued into P (or B).
->
-> In addition to interlaced fields, the device can also be
-> programmed to deliver alternate fields. Only interlaced
-> mode is supported for now.
->
-> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-> ---
->  drivers/media/pci/tw686x/Kconfig        |  1 +
->  drivers/media/pci/tw686x/tw686x-core.c  |  4 +++
->  drivers/media/pci/tw686x/tw686x-video.c | 50 +++++++++++++++++++++++++++++++++
->  drivers/media/pci/tw686x/tw686x.h       |  1 +
->  4 files changed, 56 insertions(+)
->
-> diff --git a/drivers/media/pci/tw686x/Kconfig b/drivers/media/pci/tw686x/Kconfig
-> index fb8536974052..ef8ca85522f8 100644
-> --- a/drivers/media/pci/tw686x/Kconfig
-> +++ b/drivers/media/pci/tw686x/Kconfig
-> @@ -3,6 +3,7 @@ config VIDEO_TW686X
->         depends on PCI && VIDEO_DEV && VIDEO_V4L2 && SND
->         depends on HAS_DMA
->         select VIDEOBUF2_VMALLOC
-> +       select VIDEOBUF2_DMA_CONTIG
->         select SND_PCM
->         help
->           Support for Intersil/Techwell TW686x-based frame grabber cards.
-> diff --git a/drivers/media/pci/tw686x/tw686x-core.c b/drivers/media/pci/tw686x/tw686x-core.c
-> index 01c06bb59e78..9a7646c0f9f6 100644
-> --- a/drivers/media/pci/tw686x/tw686x-core.c
-> +++ b/drivers/media/pci/tw686x/tw686x-core.c
-> @@ -63,6 +63,8 @@ static const char *dma_mode_name(unsigned int mode)
->         switch (mode) {
->         case TW686X_DMA_MODE_MEMCPY:
->                 return "memcpy";
-> +       case TW686X_DMA_MODE_CONTIG:
-> +               return "contig";
->         default:
->                 return "unknown";
->         }
-> @@ -77,6 +79,8 @@ static int tw686x_dma_mode_set(const char *val, struct kernel_param *kp)
->  {
->         if (!strcasecmp(val, dma_mode_name(TW686X_DMA_MODE_MEMCPY)))
->                 dma_mode = TW686X_DMA_MODE_MEMCPY;
-> +       else if (!strcasecmp(val, dma_mode_name(TW686X_DMA_MODE_CONTIG)))
-> +               dma_mode = TW686X_DMA_MODE_CONTIG;
->         else
->                 return -EINVAL;
->         return 0;
-> diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-> index 82ae607b1d01..ed6abb4c41c2 100644
-> --- a/drivers/media/pci/tw686x/tw686x-video.c
-> +++ b/drivers/media/pci/tw686x/tw686x-video.c
-> @@ -19,6 +19,7 @@
->  #include <linux/slab.h>
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-event.h>
-> +#include <media/videobuf2-dma-contig.h>
->  #include <media/videobuf2-vmalloc.h>
->  #include "tw686x.h"
->  #include "tw686x-regs.h"
-> @@ -148,6 +149,53 @@ const struct tw686x_dma_ops memcpy_dma_ops = {
->         .field          = V4L2_FIELD_INTERLACED,
->  };
->
-> +static void tw686x_contig_buf_refill(struct tw686x_video_channel *vc,
-> +                                    unsigned int pb)
-> +{
-> +       struct tw686x_v4l2_buf *buf;
-> +
-> +       while (!list_empty(&vc->vidq_queued)) {
-> +               u32 reg = pb ? VDMA_B_ADDR[vc->ch] : VDMA_P_ADDR[vc->ch];
-> +               dma_addr_t phys;
-> +
-> +               buf = list_first_entry(&vc->vidq_queued,
-> +                       struct tw686x_v4l2_buf, list);
-> +               list_del(&buf->list);
-> +
-> +               phys = vb2_dma_contig_plane_dma_addr(&buf->vb.vb2_buf, 0);
-> +               reg_write(vc->dev, reg, phys);
-> +
-> +               buf->vb.vb2_buf.state = VB2_BUF_STATE_ACTIVE;
-> +               vc->curr_bufs[pb] = buf;
-> +               return;
-> +       }
-> +       vc->curr_bufs[pb] = NULL;
-> +}
-> +
-> +static void tw686x_contig_cleanup(struct tw686x_dev *dev)
-> +{
-> +       vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
-> +}
-> +
-> +static int tw686x_contig_setup(struct tw686x_dev *dev)
-> +{
-> +       dev->alloc_ctx = vb2_dma_contig_init_ctx(&dev->pci_dev->dev);
-> +       if (IS_ERR(dev->alloc_ctx)) {
-> +               dev_err(&dev->pci_dev->dev, "unable to init DMA context\n");
-> +               return PTR_ERR(dev->alloc_ctx);
-> +       }
-> +       return 0;
-> +}
-> +
-> +const struct tw686x_dma_ops contig_dma_ops = {
-> +       .setup          = tw686x_contig_setup,
-> +       .cleanup        = tw686x_contig_cleanup,
-> +       .buf_refill     = tw686x_contig_buf_refill,
-> +       .mem_ops        = &vb2_dma_contig_memops,
-> +       .hw_dma_mode    = TW686X_FRAME_MODE,
-> +       .field          = V4L2_FIELD_INTERLACED,
-> +};
-> +
->  static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
->  {
->         static const unsigned int map[15] = {
-> @@ -832,6 +880,8 @@ int tw686x_video_init(struct tw686x_dev *dev)
->
->         if (dev->dma_mode == TW686X_DMA_MODE_MEMCPY)
->                 dev->dma_ops = &memcpy_dma_ops;
-> +       else if (dev->dma_mode == TW686X_DMA_MODE_CONTIG)
-> +               dev->dma_ops = &contig_dma_ops;
->         else
->                 return -EINVAL;
->
-> diff --git a/drivers/media/pci/tw686x/tw686x.h b/drivers/media/pci/tw686x/tw686x.h
-> index 2b9884b709e0..938f16b2449a 100644
-> --- a/drivers/media/pci/tw686x/tw686x.h
-> +++ b/drivers/media/pci/tw686x/tw686x.h
-> @@ -33,6 +33,7 @@
->  #define TW686X_AUDIO_PERIODS_MAX       TW686X_AUDIO_PAGE_MAX
->
->  #define TW686X_DMA_MODE_MEMCPY         0
-> +#define TW686X_DMA_MODE_CONTIG         1
->
->  struct tw686x_format {
->         char *name;
-> --
-> 2.7.0
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: Peter Rosin <peda@axentia.se>
 
-Ezequiel,
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select op to be in terms of the i2c mux core instead
+of the child adapter.
 
-Thanks for adding this support, and thanks to Krzysztof for the
-orignal driver and efforts as well!
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/usb/cx231xx/cx231xx-core.c |  6 ++--
+ drivers/media/usb/cx231xx/cx231xx-i2c.c  | 47 ++++++++++++++++----------------
+ drivers/media/usb/cx231xx/cx231xx.h      |  4 ++-
+ 3 files changed, 31 insertions(+), 26 deletions(-)
 
-I am able to use this on an IMX6 board with a MiniPCIe Advanced Micro
-avc8000 card with the TW6869. With this hardware configuration I can't
-use the TW686X_DMA_MODE_MEMCPY as the IMX6 has a limited 16MB iATU for
-PCI RX buffers and I can't get enough choherent_pool memory to support
-the buffers needed and TW686X_DMA_MODE_CONTIG solves this issue.
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index f497888d94bf..f7aac2abd783 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -1304,6 +1304,9 @@ int cx231xx_dev_init(struct cx231xx *dev)
+ 	cx231xx_i2c_register(&dev->i2c_bus[1]);
+ 	cx231xx_i2c_register(&dev->i2c_bus[2]);
+ 
++	errCode = cx231xx_i2c_mux_create(dev);
++	if (errCode < 0)
++		return errCode;
+ 	cx231xx_i2c_mux_register(dev, 0);
+ 	cx231xx_i2c_mux_register(dev, 1);
+ 
+@@ -1426,8 +1429,7 @@ EXPORT_SYMBOL_GPL(cx231xx_dev_init);
+ void cx231xx_dev_uninit(struct cx231xx *dev)
+ {
+ 	/* Un Initialize I2C bus */
+-	cx231xx_i2c_mux_unregister(dev, 1);
+-	cx231xx_i2c_mux_unregister(dev, 0);
++	cx231xx_i2c_mux_unregister(dev);
+ 	cx231xx_i2c_unregister(&dev->i2c_bus[2]);
+ 	cx231xx_i2c_unregister(&dev->i2c_bus[1]);
+ 	cx231xx_i2c_unregister(&dev->i2c_bus[0]);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+index a29c345b027d..eb22e05d4add 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
++++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
+@@ -557,40 +557,41 @@ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
+  * cx231xx_i2c_mux_select()
+  * switch i2c master number 1 between port1 and port3
+  */
+-static int cx231xx_i2c_mux_select(struct i2c_adapter *adap,
+-			void *mux_priv, u32 chan_id)
++static int cx231xx_i2c_mux_select(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct cx231xx *dev = mux_priv;
++	struct cx231xx *dev = i2c_mux_priv(muxc);
+ 
+ 	return cx231xx_enable_i2c_port_3(dev, chan_id);
+ }
+ 
++int cx231xx_i2c_mux_create(struct cx231xx *dev)
++{
++	dev->muxc = i2c_mux_alloc(&dev->i2c_bus[1].i2c_adap, dev->dev, 0, 0,
++				  cx231xx_i2c_mux_select, NULL);
++	if (!dev->muxc)
++		return -ENOMEM;
++	dev->muxc->priv = dev;
++	return 0;
++}
++
+ int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
+ {
+-	struct i2c_adapter *i2c_parent = &dev->i2c_bus[1].i2c_adap;
+-	/* what is the correct mux_dev? */
+-	struct device *mux_dev = dev->dev;
+-
+-	dev->i2c_mux_adap[mux_no] = i2c_add_mux_adapter(i2c_parent,
+-				mux_dev,
+-				dev /* mux_priv */,
+-				0,
+-				mux_no /* chan_id */,
+-				0 /* class */,
+-				&cx231xx_i2c_mux_select,
+-				NULL);
+-
+-	if (!dev->i2c_mux_adap[mux_no])
++	int rc;
++
++	rc = i2c_mux_add_adapter(dev->muxc,
++				 0,
++				 mux_no /* chan_id */,
++				 0 /* class */);
++	if (rc)
+ 		dev_warn(dev->dev,
+ 			 "i2c mux %d register FAILED\n", mux_no);
+ 
+-	return 0;
++	return rc;
+ }
+ 
+-void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no)
++void cx231xx_i2c_mux_unregister(struct cx231xx *dev)
+ {
+-	i2c_del_mux_adapter(dev->i2c_mux_adap[mux_no]);
+-	dev->i2c_mux_adap[mux_no] = NULL;
++	i2c_mux_del_adapters(dev->muxc);
+ }
+ 
+ struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
+@@ -603,9 +604,9 @@ struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
+ 	case I2C_2:
+ 		return &dev->i2c_bus[2].i2c_adap;
+ 	case I2C_1_MUX_1:
+-		return dev->i2c_mux_adap[0];
++		return dev->muxc->adapter[0];
+ 	case I2C_1_MUX_3:
+-		return dev->i2c_mux_adap[1];
++		return dev->muxc->adapter[1];
+ 	default:
+ 		return NULL;
+ 	}
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 69f6d20870f5..90c867683076 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -624,6 +624,7 @@ struct cx231xx {
+ 
+ 	/* I2C adapters: Master 1 & 2 (External) & Master 3 (Internal only) */
+ 	struct cx231xx_i2c i2c_bus[3];
++	struct i2c_mux_core *muxc;
+ 	struct i2c_adapter *i2c_mux_adap[2];
+ 
+ 	unsigned int xc_fw_load_done:1;
+@@ -760,8 +761,9 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
+ void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
+ int cx231xx_i2c_register(struct cx231xx_i2c *bus);
+ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
++int cx231xx_i2c_mux_create(struct cx231xx *dev);
+ int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no);
+-void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no);
++void cx231xx_i2c_mux_unregister(struct cx231xx *dev);
+ struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port);
+ 
+ /* Internal block control functions */
+-- 
+2.1.4
 
-Tested-by: Tim Harvey <tharvey@gateworks.com>
