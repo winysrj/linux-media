@@ -1,495 +1,445 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:54907 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754582AbcDYMaW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 08:30:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv15 15/15] cec: add ARC and CDC support
-Date: Mon, 25 Apr 2016 14:24:42 +0200
-Message-Id: <1461587082-48041-16-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.lysator.liu.se ([130.236.254.3]:40388 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753733AbcDCI5Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:57:16 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v6 19/24] i2c-mux: document i2c muxes and elaborate on parent-/mux-locked muxes
+Date: Sun,  3 Apr 2016 10:52:49 +0200
+Message-Id: <1459673574-11440-20-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Peter Rosin <peda@axentia.se>
 
-Preliminary ARC and CDC support. Untested and experimental!
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- .../DocBook/media/v4l/cec-ioc-adap-g-caps.xml      |  10 ++
- Documentation/DocBook/media/v4l/cec-ioc-g-mode.xml |  36 ++++
- Documentation/cec.txt                              |  75 ++++++++
- drivers/staging/media/cec/cec.c                    | 198 ++++++++++++++++++++-
- include/linux/cec.h                                |   5 +
- include/media/cec.h                                |  12 ++
- 6 files changed, 334 insertions(+), 2 deletions(-)
+ Documentation/i2c/i2c-topology | 370 +++++++++++++++++++++++++++++++++++++++++
+ MAINTAINERS                    |   1 +
+ 2 files changed, 371 insertions(+)
+ create mode 100644 Documentation/i2c/i2c-topology
 
-diff --git a/Documentation/DocBook/media/v4l/cec-ioc-adap-g-caps.xml b/Documentation/DocBook/media/v4l/cec-ioc-adap-g-caps.xml
-index b99ed22..65250b7 100644
---- a/Documentation/DocBook/media/v4l/cec-ioc-adap-g-caps.xml
-+++ b/Documentation/DocBook/media/v4l/cec-ioc-adap-g-caps.xml
-@@ -129,6 +129,16 @@
- 	    <entry>The CEC hardware can monitor all messages, not just directed and
- 	    broadcast messages.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>CEC_CAP_ARC</constant></entry>
-+	    <entry>0x00000040</entry>
-+	    <entry>This adapter supports the Audio Return Channel protocol.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_CAP_CDC_HPD</constant></entry>
-+	    <entry>0x00000080</entry>
-+	    <entry>This adapter supports the hotplug detect protocol over CDC.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/DocBook/media/v4l/cec-ioc-g-mode.xml b/Documentation/DocBook/media/v4l/cec-ioc-g-mode.xml
-index 0cb1941..485e8b2 100644
---- a/Documentation/DocBook/media/v4l/cec-ioc-g-mode.xml
-+++ b/Documentation/DocBook/media/v4l/cec-ioc-g-mode.xml
-@@ -187,6 +187,42 @@ The follower can of course always call &CEC-TRANSMIT;.</para>
- 	&cs-def;
- 	<tbody valign="top">
- 	  <row>
-+	    <entry><constant>CEC_MSG_INITIATE_ARC</constant></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_TERMINATE_ARC</constant></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_REQUEST_ARC_INITIATION</constant></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_REQUEST_ARC_TERMINATION</constant></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_REPORT_ARC_INITIATED</constant></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_REPORT_ARC_TERMINATED</constant></entry>
-+	    <entry>If <constant>CEC_CAP_ARC</constant> is not set, then just pass
-+	    it on to userspace for processing. However, if <constant>CEC_CAP_ARC</constant> is
-+	    set, then the core framework processes this message and userspace will
-+	    not see it, not even in passthrough mode.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>CEC_MSG_CDC_MESSAGE</constant></entry>
-+	    <entry>If <constant>CEC_CAP_CDC_HPD</constant> is not set, then just pass
-+	    it on to userspace for processing. Do the same if the CDC command is not
-+	    one of <constant>CEC_MSG_CDC_HPD_REPORT_STATE</constant> or
-+	    <constant>CEC_MSG_CDC_HPD_SET_STATE</constant>. Else the core framework
-+	    processes this message and userspace will not see it, not even in passthrough
-+	    mode.</entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>CEC_MSG_GET_CEC_VERSION</constant></entry>
- 	    <entry>When in passthrough mode this message has to be handled by userspace,
- 	    otherwise the core will return the CEC version that was set with &CEC-ADAP-S-LOG-ADDRS;.</entry>
-diff --git a/Documentation/cec.txt b/Documentation/cec.txt
-index 75155fe..8a61819 100644
---- a/Documentation/cec.txt
-+++ b/Documentation/cec.txt
-@@ -216,6 +216,16 @@ struct cec_adap_ops {
- 
- 	/* High-level CEC message callback */
- 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
+diff --git a/Documentation/i2c/i2c-topology b/Documentation/i2c/i2c-topology
+new file mode 100644
+index 000000000000..7a10edd0874f
+--- /dev/null
++++ b/Documentation/i2c/i2c-topology
+@@ -0,0 +1,370 @@
++I2C topology
++============
 +
-+	/* High-level CDC Hotplug Detect callbacks */
-+	u8 (*source_cdc_hpd)(struct cec_adapter *adap, u8 cdc_hpd_state);
-+	void (*sink_cdc_hpd)(struct cec_adapter *adap, u8 cdc_hpd_state, u8 cdc_hpd_error);
++There are a couple of reasons for building more complex i2c topologies
++than a straight-forward i2c bus with one adapter and one or more devices.
 +
-+	/* High-level Audio Return Channel callbacks */
-+	int (*sink_initiate_arc)(struct cec_adapter *adap);
-+	int (*sink_terminate_arc)(struct cec_adapter *adap);
-+	int (*source_arc_initiated)(struct cec_adapter *adap);
-+	int (*source_arc_terminated)(struct cec_adapter *adap);
- };
- 
- The received() callback allows the driver to optionally handle a newly
-@@ -228,6 +238,62 @@ callback. If it doesn't want to handle this message, then it should return
- -ENOMSG, otherwise the CEC framework assumes it processed this message and
- it will not no anything with it.
- 
-+The other callbacks deal with two CEC features: CDC Hotplug Detect and
-+Audio Return Channel. Here the framework takes care of handling these
-+messages and it calls the callbacks to notify the driver when it needs
-+to take action.
++1. A mux may be needed on the bus to prevent address collisions.
 +
-+CDC Hotplug Support
++2. The bus may be accessible from some external bus master, and arbitration
++   may be needed to determine if it is ok to access the bus.
++
++3. A device (particularly RF tuners) may want to avoid the digital noise
++   from the i2c bus, at least most of the time, and sits behind a gate
++   that has to be operated before the device can be accessed.
++
++Etc
++
++These constructs are represented as i2c adapter trees by Linux, where
++each adapter has a parent adapter (except the root adapter) and zero or
++more child adapters. The root adapter is the actual adapter that issues
++i2c transfers, and all adapters with a parent are part of an "i2c-mux"
++object (quoted, since it can also be an arbitrator or a gate).
++
++Depending of the particular mux driver, something happens when there is
++an i2c transfer on one of its child adapters. The mux driver can
++obviously operate a mux, but it can also do arbitration with an external
++bus master or open a gate. The mux driver has two operations for this,
++select and deselect. select is called before the transfer and (the
++optional) deselect is called after the transfer.
++
++
++Locking
++=======
++
++There are two variants of locking available to i2c muxes, they can be
++mux-locked or parent-locked muxes. As is evident from below, it can be
++useful to know if a mux is mux-locked or if it is parent-locked. The
++following list was correct at the time of writing:
++
++In drivers/i2c/muxes/
++i2c-arb-gpio-challenge    Parent-locked
++i2c-mux-gpio              Normally parent-locked, mux-locked iff
++                          all involved gpio pins are controlled by the
++                          same i2c root adapter that they mux.
++i2c-mux-pca9541           Parent-locked
++i2c-mux-pca954x           Parent-locked
++i2c-mux-pinctrl           Normally parent-locked, mux-locked iff
++                          all involved pinctrl devices are controlled
++                          by the same i2c root adapter that they mux.
++i2c-mux-reg               Parent-locked
++
++In drivers/iio/
++imu/inv_mpu6050/          Parent-locked
++
++In drivers/media/
++dvb-frontends/m88ds3103   Parent-locked
++dvb-frontends/rtl2830     Parent-locked
++dvb-frontends/rtl2832     Parent-locked
++dvb-frontends/si2168      Parent-locked
++usb/cx231xx/              Parent-locked
++
++
++Mux-locked muxes
++----------------
++
++Mux-locked muxes does not lock the entire parent adapter during the
++full select-transfer-deselect transaction, only the muxes on the parent
++adapter are locked. Mux-locked muxes are mostly interesting if the
++select and/or deselect operations must use i2c transfers to complete
++their tasks. Since the parent adapter is not fully locked during the
++full transaction, unrelated i2c transfers may interleave the different
++stages of the transaction. This has the benefit that the mux driver
++may be easier and cleaner to implement, but it has some caveats.
++
++ML1. If you build a topology with a mux-locked mux being the parent
++     of a parent-locked mux, this might break the expectation from the
++     parent-locked mux that the root adapter is locked during the
++     transaction.
++
++ML2. It is not safe to build arbitrary topologies with two (or more)
++     mux-locked muxes that are not siblings, when there are address
++     collisions between the devices on the child adapters of these
++     non-sibling muxes.
++
++     I.e. the select-transfer-deselect transaction targeting e.g. device
++     address 0x42 behind mux-one may be interleaved with a similar
++     operation targeting device address 0x42 behind mux-two. The
++     intension with such a topology would in this hypothetical example
++     be that mux-one and mux-two should not be selected simultaneously,
++     but mux-locked muxes do not guarantee that in all topologies.
++
++ML3. A mux-locked mux cannot be used by a driver for auto-closing
++     gates/muxes, i.e. something that closes automatically after a given
++     number (one, in most cases) of i2c transfers. Unrelated i2c transfers
++     may creep in and close prematurely.
++
++ML4. If any non-i2c operation in the mux driver changes the i2c mux state,
++     the driver has to lock the root adapter during that operation.
++     Otherwise garbage may appear on the bus as seen from devices
++     behind the mux, when an unrelated i2c transfer is in flight during
++     the non-i2c mux-changing operation.
++
++
++Mux-locked Example
++------------------
++
++                   .----------.     .--------.
++    .--------.     |   mux-   |-----| dev D1 |
++    |  root  |--+--|  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  .--------.
++                |  '----------'  '--| dev D2 |
++                |  .--------.       '--------'
++                '--| dev D3 |
++                   '--------'
++
++When there is an access to D1, this happens:
++
++ 1. Someone issues an i2c-transfer to D1.
++ 2. M1 locks muxes on its parent (the root adapter in this case).
++ 3. M1 calls ->select to ready the mux.
++ 4. M1 (presumably) does some i2c-transfers as part of its select.
++    These transfers are normal i2c-transfers that locks the parent
++    adapter.
++ 5. M1 feeds the i2c-transfer from step 1 to its parent adapter as a
++    normal i2c-transfer that locks the parent adapter.
++ 6. M1 calls ->deselect, if it has one.
++ 7. Same rules as in step 4, but for ->deselect.
++ 8. M1 unlocks muxes on its parent.
++
++This means that accesses to D2 are lockout out for the full duration
++of the entire operation. But accesses to D3 are possibly interleaved
++at any point.
++
++
++Parent-locked muxes
 +-------------------
 +
-+A source received a hotplug state change message:
++Parent-locked muxes lock the parent adapter during the full select-
++transfer-deselect transaction. The implication is that the mux driver
++has to ensure that any and all i2c transfers through that parent
++adapter during the transaction are unlocked i2c transfers (using e.g.
++__i2c_transfer), or a deadlock will follow. There are a couple of
++caveats.
 +
-+	u8 (*source_cdc_hpd)(struct cec_adapter *adap, u8 cdc_hpd_state);
++PL1. If you build a topology with a parent-locked mux being the child
++     of another mux, this might break a possible assumption from the
++     child mux that the root adapter is unused between its select op
++     and the actual transfer (e.g. if the child mux is auto-closing
++     and the parent mux issus i2c-transfers as part of its select).
++     This is especailly the case if the parent mux is mux-locked, but
++     it may also happen if the parent mux is parent-locked.
 +
-+A source received a CEC_MSG_CDC_HPD_SET_STATE message. The framework will
-+reply with a CEC_MSG_CDC_HPD_REPORT_STATE message and this callback is used
-+to fill in the HPD Error Code Operand of the REPORT_STATE message. In addition,
-+the driver can act in this callback on the hotplug state change.
-+
-+Only implement if CEC_CAP_CDC_HPD is set.
-+
-+A sink received a hotplug report state message:
-+
-+	void (*sink_cdc_hpd)(struct cec_adapter *adap, u8 cdc_hpd_state, u8 cdc_hpd_error);
-+
-+A sink received a CEC_MSG_CDC_HPD_REPORT_STATE message. This callback will
-+do anything necessary to implement this hotplug change. The two arguments
-+are the HPD Error State and HPD Error Code Operands from the CEC_MSG_CDC_HPD_REPORT_STATE
-+message.
++PL2. If select/deselect calls out to other subsystems such as gpio,
++     pinctrl, regmap or iio, it is essential that any i2c transfers
++     caused by these subsystems are unlocked. This can be convoluted to
++     accomplish, maybe even impossible if an acceptably clean solution
++     is sought.
 +
 +
-+Audio Return Channel Support
++Parent-locked Example
++---------------------
++
++                   .----------.     .--------.
++    .--------.     |  parent- |-----| dev D1 |
++    |  root  |--+--|  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  .--------.
++                |  '----------'  '--| dev D2 |
++                |  .--------.       '--------'
++                '--| dev D3 |
++                   '--------'
++
++When there is an access to D1, this happens:
++
++ 1. Someone issues an i2c-transfer to D1.
++ 2. M1 locks muxes on its parent (the root adapter in this case).
++ 3. M1 locks its parent adapter.
++ 4. M1 calls ->select to ready the mux.
++ 5. If M1 does any i2c-transfers (on this root adapter) as part of
++    its select, those transfers must be unlocked i2c-transfers so
++    that they do not deadlock the root adapter.
++ 6. M1 feeds the i2c-transfer from step 1 to the root adapter as an
++    unlocked i2c-transfer, so that it does not deadlock the parent
++    adapter.
++ 7. M1 calls ->deselect, if it has one.
++ 8. Same rules as in step 5, but for ->deselect.
++ 9. M1 unlocks its parent adapter.
++10. M1 unlocks muxes on its parent.
++
++
++This means that accesses to both D2 and D3 are locked out for the full
++duration of the entire operation.
++
++
++Complex Examples
++================
++
++Parent-locked mux as parent of parent-locked mux
++------------------------------------------------
++
++This is a useful topology, but it can be bad.
++
++                   .----------.     .----------.     .--------.
++    .--------.     |  parent- |-----|  parent- |-----| dev D1 |
++    |  root  |--+--|  locked  |     |  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  |  mux M2  |--.  .--------.
++                |  '----------'  |  '----------'  '--| dev D2 |
++                |  .--------.    |  .--------.       '--------'
++                '--| dev D4 |    '--| dev D3 |
++                   '--------'       '--------'
++
++When any device is accessed, all other devices are locked out for
++the full duration of the operation (both muxes lock their parent,
++and specifically when M2 requests its parent to lock, M1 passes
++the buck to the root adapter).
++
++This topology is bad if M2 is an auto-closing mux and M1->select
++issues any unlocked i2c transfers on the root adapter that may leak
++through and be seen by the M2 adapter, thus closing M2 prematurely.
++
++
++Mux-locked mux as parent of mux-locked mux
++------------------------------------------
++
++This is a good topology.
++
++                   .----------.     .----------.     .--------.
++    .--------.     |   mux-   |-----|   mux-   |-----| dev D1 |
++    |  root  |--+--|  locked  |     |  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  |  mux M2  |--.  .--------.
++                |  '----------'  |  '----------'  '--| dev D2 |
++                |  .--------.    |  .--------.       '--------'
++                '--| dev D4 |    '--| dev D3 |
++                   '--------'       '--------'
++
++When device D1 is accessed, accesses to D2 are locked out for the
++full duration of the operation (muxes on the top child adapter of M1
++are locked). But accesses to D3 and D4 are possibly interleaved at
++any point. Accesses to D3 locks out D1 and D2, but accesses to D4
++are still possibly interleaved.
++
++
++Mux-locked mux as parent of parent-locked mux
++---------------------------------------------
++
++This is probably a bad topology.
++
++                   .----------.     .----------.     .--------.
++    .--------.     |   mux-   |-----|  parent- |-----| dev D1 |
++    |  root  |--+--|  locked  |     |  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  |  mux M2  |--.  .--------.
++                |  '----------'  |  '----------'  '--| dev D2 |
++                |  .--------.    |  .--------.       '--------'
++                '--| dev D4 |    '--| dev D3 |
++                   '--------'       '--------'
++
++When device D1 is accessed, accesses to D2 and D3 are locked out
++for the full duration of the operation (M1 locks child muxes on the
++root adapter). But accesses to D4 are possibly interleaved at any
++point.
++
++This kind of topology is generally not suitable and should probably
++be avoided. The reason is that M2 probably assumes that there will
++be no i2c transfers during its calls to ->select and ->deselect, and
++if there are, any such transfers might appear on the slave side of M2
++as partial i2c transfers, i.e. garbage or worse. This might cause
++device lockups and/or other problems.
++
++The topology is especially troublesome if M2 is an auto-closing
++mux. In that case, any interleaved accesses to D4 might close M2
++prematurely, as might any i2c-transfers part of M1->select.
++
++But if M2 is not making the above stated assumption, and if M2 is not
++auto-closing, the topology is fine.
++
++
++Parent-locked mux as parent of mux-locked mux
++---------------------------------------------
++
++This is a good topology.
++
++                   .----------.     .----------.     .--------.
++    .--------.     |  parent- |-----|   mux-   |-----| dev D1 |
++    |  root  |--+--|  locked  |     |  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  |  mux M2  |--.  .--------.
++                |  '----------'  |  '----------'  '--| dev D2 |
++                |  .--------.    |  .--------.       '--------'
++                '--| dev D4 |    '--| dev D3 |
++                   '--------'       '--------'
++
++When D1 is accessed, accesses to D2 are locked out for the full
++duration of the operation (muxes on the top child adapter of M1
++are locked). Accesses to D3 and D4 are possibly interleaved at
++any point, just as is expected for mux-locked muxes.
++
++When D3 or D4 are accessed, everything else is locked out. For D3
++accesses, M1 locks the root adapter. For D4 accesses, the root
++adapter is locked directly.
++
++
++Two mux-locked sibling muxes
 +----------------------------
 +
-+Called if a CEC_MSG_INITIATE_ARC message is received by an HDMI sink.
-+This callback should start sending audio over the audio return channel. If
-+successful it should return 0.
++This is a good topology.
 +
-+	int (*sink_initiate_arc)(struct cec_adapter *adap);
++                                    .--------.
++                   .----------.  .--| dev D1 |
++                   |   mux-   |--'  '--------'
++                .--|  locked  |     .--------.
++                |  |  mux M1  |-----| dev D2 |
++                |  '----------'     '--------'
++                |  .----------.     .--------.
++    .--------.  |  |   mux-   |-----| dev D3 |
++    |  root  |--+--|  locked  |     '--------'
++    '--------'  |  |  mux M2  |--.  .--------.
++                |  '----------'  '--| dev D4 |
++                |  .--------.       '--------'
++                '--| dev D5 |
++                   '--------'
 +
-+Called if a CEC_MSG_TERMINATE_ARC message is received by an HDMI sink.
-+This callback should stop sending audio over the audio return channel. If
-+successful it should return 0.
++When D1 is accessed, accesses to D2, D3 and D4 are locked out. But
++accesses to D5 may be interleaved at any time.
 +
-+	void (*sink_terminate_arc)(struct cec_adapter *adap);
 +
-+Called if a CEC_MSG_REPORT_ARC_INITIATED message is received by an
-+HDMI source. This callback can be used to enable receiving audio from
-+the audio return channel.
++Two parent-locked sibling muxes
++-------------------------------
 +
-+	void (*source_arc_initiated)(struct cec_adapter *adap);
++This is a good topology.
 +
-+Called if a CEC_MSG_REPORT_ARC_TERMINATED message is received by an
-+HDMI source. This callback can be used to disable receiving audio from
-+the audio return channel.
++                                   .--------.
++                   .----------.  .--| dev D1 |
++                   |  parent- |--'  '--------'
++                .--|  locked  |     .--------.
++                |  |  mux M1  |-----| dev D2 |
++                |  '----------'     '--------'
++                |  .----------.     .--------.
++    .--------.  |  |  parent- |-----| dev D3 |
++    |  root  |--+--|  locked  |     '--------'
++    '--------'  |  |  mux M2  |--.  .--------.
++                |  '----------'  '--| dev D4 |
++                |  .--------.       '--------'
++                '--| dev D5 |
++                   '--------'
 +
-+	void (*source_arc_terminated)(struct cec_adapter *adap);
++When any device is accessed, accesses to all other devices are locked
++out.
 +
- 
- CEC framework functions
- -----------------------
-@@ -265,3 +331,12 @@ log_addrs->num_log_addrs set to 0. The block argument is ignored when
- unconfiguring. This function will just return if the physical address is
- invalid. Once the physical address becomes valid, then the framework will
- attempt to claim these logical addresses.
 +
-+u8 cec_sink_cdc_hpd(struct cec_adapter *adap, u8 input_port, u8 cdc_hpd_state);
++Mux-locked and parent-locked sibling muxes
++------------------------------------------
 +
-+If an HDMI receiver supports hotplug signalling over CDC (CEC_CAP_CDC_HPD is
-+set), then the driver should call this function whenever the hotplug state
-+changes for an input. This call will send an appropriate CDC message over
-+the CEC line. It returns CEC_OP_HPD_ERROR_NONE on success, if the adapter
-+is unconfigured it returns CEC_OP_HPD_ERROR_INITIATOR_WRONG_STATE and if
-+the cec_transmit fails it returns CEC_OP_HPD_ERROR_OTHER.
-diff --git a/drivers/staging/media/cec/cec.c b/drivers/staging/media/cec/cec.c
-index 3c5f084..6e9b411 100644
---- a/drivers/staging/media/cec/cec.c
-+++ b/drivers/staging/media/cec/cec.c
-@@ -87,6 +87,42 @@ static inline struct cec_devnode *cec_devnode_data(struct file *filp)
- 	return &fh->adap->devnode;
- }
- 
-+/*
-+ * Two physical addresses are adjacent if they have a direct link.
-+ * So 0.0.0.0 and 1.0.0.0 are adjacent, but not 0.0.0.0 and 1.1.0.0.
-+ * And 2.3.0.0 and 2.3.1.0 are adjacent, but not 2.3.0.0 and 2.4.0.0.
-+ *
-+ * In other words, the two addresses share the same prefix, but then
-+ * one has a zero and the other has a non-zero value. And the remaining
-+ * components are all zero for both.
-+ */
-+static bool cec_pa_are_adjacent(const struct cec_adapter *adap, u16 pa1, u16 pa2)
-+{
-+	u16 mask = 0xf000;
-+	int i;
++This is a good topology.
 +
-+	if (pa1 == CEC_PHYS_ADDR_INVALID || pa2 == CEC_PHYS_ADDR_INVALID)
-+		return false;
-+	for (i = 0; i < 3; i++) {
-+		if ((pa1 & mask) != (pa2 & mask))
-+			break;
-+		mask = (mask >> 4) | 0xf000;
-+	}
-+	if ((pa1 & ~mask) || (pa2 & ~mask))
-+		return false;
-+	if (!(pa1 & mask) ^ !(pa2 & mask))
-+		return true;
-+	return false;
-+}
++                                   .--------.
++                   .----------.  .--| dev D1 |
++                   |   mux-   |--'  '--------'
++                .--|  locked  |     .--------.
++                |  |  mux M1  |-----| dev D2 |
++                |  '----------'     '--------'
++                |  .----------.     .--------.
++    .--------.  |  |  parent- |-----| dev D3 |
++    |  root  |--+--|  locked  |     '--------'
++    '--------'  |  |  mux M2  |--.  .--------.
++                |  '----------'  '--| dev D4 |
++                |  .--------.       '--------'
++                '--| dev D5 |
++                   '--------'
 +
-+static bool cec_la_are_adjacent(const struct cec_adapter *adap, u8 la1, u8 la2)
-+{
-+	u16 pa1 = adap->phys_addrs[la1];
-+	u16 pa2 = adap->phys_addrs[la2];
-+
-+	return cec_pa_are_adjacent(adap, pa1, pa2);
-+}
-+
- static int cec_log_addr2idx(const struct cec_adapter *adap, u8 log_addr)
- {
- 	int i;
-@@ -960,7 +996,9 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 	int la_idx = cec_log_addr2idx(adap, dest_laddr);
- 	bool is_directed = la_idx >= 0;
- 	bool from_unregistered = init_laddr == 0xf;
-+	u16 cdc_phys_addr;
- 	struct cec_msg tx_cec_msg = { };
-+	u8 *tx_msg = tx_cec_msg.msg;
- 
- 	dprintk(1, "cec_receive_notify: %*ph\n", msg->len, msg->msg);
- 
-@@ -971,12 +1009,57 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 	}
- 
- 	/*
--	 * REPORT_PHYSICAL_ADDR, CEC_MSG_USER_CONTROL_PRESSED and
-+	 * ARC, CDC and REPORT_PHYSICAL_ADDR, CEC_MSG_USER_CONTROL_PRESSED and
- 	 * CEC_MSG_USER_CONTROL_RELEASED messages always have to be
- 	 * handled by the CEC core, even if the passthrough mode is on.
--	 * The others are just ignored if passthrough mode is on.
-+	 * ARC and CDC messages will never be seen even if passthrough is
-+	 * on, but the others are just passed on normally after we processed
-+	 * them.
- 	 */
- 	switch (msg->msg[1]) {
-+	case CEC_MSG_INITIATE_ARC:
-+	case CEC_MSG_TERMINATE_ARC:
-+	case CEC_MSG_REQUEST_ARC_INITIATION:
-+	case CEC_MSG_REQUEST_ARC_TERMINATION:
-+	case CEC_MSG_REPORT_ARC_INITIATED:
-+	case CEC_MSG_REPORT_ARC_TERMINATED:
-+		/* ARC messages are never passed through if CAP_ARC is set */
-+
-+		/* Abort/ignore if ARC is not supported */
-+		if (!(adap->capabilities & CEC_CAP_ARC)) {
-+			/* Just abort if nobody is listening */
-+			if (is_directed && !is_reply && !adap->cec_follower &&
-+			    !adap->follower_cnt)
-+				return cec_feature_abort(adap, msg);
-+			goto skip_processing;
-+		}
-+		/* Ignore if addressing is wrong */
-+		if (is_broadcast || from_unregistered)
-+			return 0;
-+		break;
-+
-+	case CEC_MSG_CDC_MESSAGE:
-+		switch (msg->msg[4]) {
-+		case CEC_MSG_CDC_HPD_REPORT_STATE:
-+		case CEC_MSG_CDC_HPD_SET_STATE:
-+			/*
-+			 * CDC_HPD messages are never passed through if
-+			 * CAP_CDC_HPD is set
-+			 */
-+
-+			/* Ignore if CDC_HPD is not supported */
-+			if (!(adap->capabilities & CEC_CAP_CDC_HPD))
-+				goto skip_processing;
-+			/* or the addressing is wrong */
-+			if (!is_broadcast)
-+				return 0;
-+			break;
-+		default:
-+			/* Other CDC messages are ignored */
-+			goto skip_processing;
-+		}
-+		break;
-+
- 	case CEC_MSG_GET_CEC_VERSION:
- 	case CEC_MSG_GIVE_DEVICE_VENDOR_ID:
- 	case CEC_MSG_ABORT:
-@@ -1112,6 +1195,97 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 			return cec_report_features(adap, la_idx);
- 		return 0;
- 
-+	case CEC_MSG_REQUEST_ARC_INITIATION:
-+		if (cec_is_sink(adap) ||
-+		    !cec_la_are_adjacent(adap, dest_laddr, init_laddr))
-+			return cec_feature_refused(adap, msg);
-+		cec_msg_initiate_arc(&tx_cec_msg, false);
-+		return cec_transmit_msg(adap, &tx_cec_msg, false);
-+
-+	case CEC_MSG_REQUEST_ARC_TERMINATION:
-+		if (cec_is_sink(adap) ||
-+		    !cec_la_are_adjacent(adap, dest_laddr, init_laddr))
-+			return cec_feature_refused(adap, msg);
-+		cec_msg_terminate_arc(&tx_cec_msg, false);
-+		return cec_transmit_msg(adap, &tx_cec_msg, false);
-+
-+	case CEC_MSG_INITIATE_ARC:
-+		if (!cec_is_sink(adap) ||
-+		    !cec_la_are_adjacent(adap, dest_laddr, init_laddr))
-+			return cec_feature_refused(adap, msg);
-+		if (call_op(adap, sink_initiate_arc))
-+			return 0;
-+		cec_msg_report_arc_initiated(&tx_cec_msg);
-+		return cec_transmit_msg(adap, &tx_cec_msg, false);
-+
-+	case CEC_MSG_TERMINATE_ARC:
-+		if (!cec_is_sink(adap) ||
-+		    !cec_la_are_adjacent(adap, dest_laddr, init_laddr))
-+			return cec_feature_refused(adap, msg);
-+		call_void_op(adap, sink_terminate_arc);
-+		cec_msg_report_arc_terminated(&tx_cec_msg);
-+		return cec_transmit_msg(adap, &tx_cec_msg, false);
-+
-+	case CEC_MSG_REPORT_ARC_INITIATED:
-+		if (cec_is_sink(adap) ||
-+		    !cec_la_are_adjacent(adap, dest_laddr, init_laddr))
-+			return cec_feature_refused(adap, msg);
-+		call_void_op(adap, source_arc_initiated);
-+		return 0;
-+
-+	case CEC_MSG_REPORT_ARC_TERMINATED:
-+		if (cec_is_sink(adap) ||
-+		    !cec_la_are_adjacent(adap, dest_laddr, init_laddr))
-+			return cec_feature_refused(adap, msg);
-+		call_void_op(adap, source_arc_terminated);
-+		return 0;
-+
-+	case CEC_MSG_CDC_MESSAGE: {
-+		unsigned int shift;
-+		unsigned int input_port;
-+
-+		cdc_phys_addr = (msg->msg[2] << 8) | msg->msg[3];
-+		if (!cec_pa_are_adjacent(adap, cdc_phys_addr, adap->phys_addr))
-+			return 0;
-+
-+		switch (msg->msg[4]) {
-+		case CEC_MSG_CDC_HPD_REPORT_STATE:
-+			/*
-+			 * Ignore if we're not a sink or the message comes from
-+			 * an upstream device.
-+			 */
-+			if (!cec_is_sink(adap) || cdc_phys_addr <= adap->phys_addr)
-+				return 0;
-+			adap->ops->sink_cdc_hpd(adap, msg->msg[5] >> 4, msg->msg[5] & 0xf);
-+			return 0;
-+		case CEC_MSG_CDC_HPD_SET_STATE:
-+			/* Ignore if we're not a source */
-+			if (cec_is_sink(adap))
-+				return 0;
-+			break;
-+		default:
-+			return 0;
-+		}
-+
-+		input_port = msg->msg[5] >> 4;
-+		for (shift = 0; shift < 16; shift += 4) {
-+			if (cdc_phys_addr & (0xf000 >> shift))
-+				continue;
-+			cdc_phys_addr |= input_port << (12 - shift);
-+			break;
-+		}
-+		if (cdc_phys_addr != adap->phys_addr)
-+			return 0;
-+
-+		tx_cec_msg.len = 6;
-+		/* broadcast reply */
-+		tx_msg[0] = (adap->log_addrs.log_addr[0] << 4) | 0xf;
-+		cec_msg_cdc_hpd_report_state(&tx_cec_msg,
-+			     msg->msg[5] & 0xf,
-+			     adap->ops->source_cdc_hpd(adap, msg->msg[5] & 0xf));
-+		return cec_transmit_msg(adap, &tx_cec_msg, false);
-+	}
-+
- 	default:
- 		/*
- 		 * Unprocessed messages are aborted if userspace isn't doing
-@@ -1618,6 +1792,26 @@ static int cec_status(struct seq_file *file, void *priv)
- 	return 0;
- }
- 
-+/*
-+ * Called by drivers to update the CDC HPD state of an input port.
-+ */
-+u8 cec_sink_cdc_hpd(struct cec_adapter *adap, u8 input_port, u8 cdc_hpd_state)
-+{
-+	struct cec_msg msg = { };
-+	int err;
-+
-+	if (!adap->is_configured)
-+		return CEC_OP_HPD_ERROR_INITIATOR_WRONG_STATE;
-+
-+	msg.msg[0] = (adap->log_addrs.log_addr[0] << 4) | 0xf;
-+	cec_msg_cdc_hpd_set_state(&msg, input_port, cdc_hpd_state);
-+	err = cec_transmit_msg(adap, &msg, false);
-+	if (err)
-+		return CEC_OP_HPD_ERROR_OTHER;
-+	return CEC_OP_HPD_ERROR_NONE;
-+}
-+EXPORT_SYMBOL_GPL(cec_sink_cdc_hpd);
-+
- 
- /* CEC file operations */
- 
-diff --git a/include/linux/cec.h b/include/linux/cec.h
-index 521b07cb..bf984a0 100644
---- a/include/linux/cec.h
-+++ b/include/linux/cec.h
-@@ -305,12 +305,17 @@ static inline bool cec_is_unconfigured(__u16 log_addr_mask)
- #define CEC_CAP_TRANSMIT	(1 << 2)
- /*
-  * Passthrough all messages instead of processing them.
-+ * Note: ARC and CDC messages are always processed.
-  */
- #define CEC_CAP_PASSTHROUGH	(1 << 3)
- /* Supports remote control */
- #define CEC_CAP_RC		(1 << 4)
- /* Hardware can monitor all messages, not just directed and broadcast. */
- #define CEC_CAP_MONITOR_ALL	(1 << 5)
-+/* Supports ARC */
-+#define CEC_CAP_ARC		(1 << 6)
-+/* Supports CDC HPD */
-+#define CEC_CAP_CDC_HPD		(1 << 7)
- 
- /**
-  * struct cec_caps - CEC capabilities structure.
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 2dcd838..9260489 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -126,6 +126,16 @@ struct cec_adap_ops {
- 
- 	/* High-level CEC message callback */
- 	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
-+
-+	/* High-level CDC Hotplug Detect callbacks */
-+	u8 (*source_cdc_hpd)(struct cec_adapter *adap, u8 cdc_hpd_state);
-+	void (*sink_cdc_hpd)(struct cec_adapter *adap, u8 cdc_hpd_state, u8 cdc_hpd_error);
-+
-+	/* High-level Audio Return Channel callbacks */
-+	int (*sink_initiate_arc)(struct cec_adapter *adap);
-+	void (*sink_terminate_arc)(struct cec_adapter *adap);
-+	void (*source_arc_initiated)(struct cec_adapter *adap);
-+	void (*source_arc_terminated)(struct cec_adapter *adap);
- };
- 
- /*
-@@ -206,6 +216,8 @@ void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr,
- int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
- 		     bool block);
- 
-+u8 cec_sink_cdc_hpd(struct cec_adapter *adap, u8 input_port, u8 cdc_hpd_state);
-+
- /* Called by the adapter */
- void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
- 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
++When D1 or D2 are accessed, accesses to D3 and D4 are locked out while
++accesses to D5 may interleave. When D3 or D4 are accessed, accesses to
++all other devices are locked out.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 03e00c7c88eb..d17afeb81246 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5274,6 +5274,7 @@ I2C MUXES
+ M:	Peter Rosin <peda@axentia.se>
+ L:	linux-i2c@vger.kernel.org
+ S:	Maintained
++F:	Documentation/i2c/i2c-topology
+ F:	Documentation/i2c/muxes/
+ F:	Documentation/devicetree/bindings/i2c/i2c-mux*
+ F:	drivers/i2c/i2c-mux.c
 -- 
-2.8.1
+2.1.4
 
