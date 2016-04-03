@@ -1,271 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35898 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752321AbcDWXts (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2016 19:49:48 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 03/13] v4l: vsp1: Implement runtime PM support
-Date: Sun, 24 Apr 2016 02:49:50 +0300
-Message-Id: <1461455400-28767-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail.lysator.liu.se ([130.236.254.3]:42881 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751835AbcDCIxw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:53:52 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v6 02/24] i2c: i2c-mux-gpio: convert to use an explicit i2c mux core
+Date: Sun,  3 Apr 2016 10:52:32 +0200
+Message-Id: <1459673574-11440-3-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the manual refcount and clock management code by runtime PM.
+From: Peter Rosin <peda@axentia.se>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
+
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/platform/Kconfig          |   1 +
- drivers/media/platform/vsp1/vsp1.h      |   3 -
- drivers/media/platform/vsp1/vsp1_drv.c  | 101 ++++++++++++++++----------------
- drivers/media/platform/vsp1/vsp1_pipe.c |   2 +-
- 4 files changed, 54 insertions(+), 53 deletions(-)
+ drivers/i2c/muxes/i2c-mux-gpio.c | 54 ++++++++++++++++------------------------
+ 1 file changed, 21 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index f453910050be..28d0db102c0b 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -264,6 +264,7 @@ config VIDEO_RENESAS_VSP1
- 	tristate "Renesas VSP1 Video Processing Engine"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
- 	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
-+	depends on PM
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 46738b6c5f72..9e09bce43cf3 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -64,9 +64,6 @@ struct vsp1_device {
- 	void __iomem *mmio;
- 	struct clk *clock;
+diff --git a/drivers/i2c/muxes/i2c-mux-gpio.c b/drivers/i2c/muxes/i2c-mux-gpio.c
+index b8e11c16d98c..1bcc26737359 100644
+--- a/drivers/i2c/muxes/i2c-mux-gpio.c
++++ b/drivers/i2c/muxes/i2c-mux-gpio.c
+@@ -18,8 +18,6 @@
+ #include <linux/of_gpio.h>
  
--	struct mutex lock;
--	int ref_count;
--
- 	struct vsp1_bru *bru;
- 	struct vsp1_hsit *hsi;
- 	struct vsp1_hsit *hst;
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index e2d779fac0eb..d6abc7f1216a 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -19,6 +19,7 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
- #include <linux/videodev2.h>
- 
- #include <media/v4l2-subdev.h>
-@@ -462,35 +463,16 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
- /*
-  * vsp1_device_get - Acquire the VSP1 device
-  *
-- * Increment the VSP1 reference count and initialize the device if the first
-- * reference is taken.
-+ * Make sure the device is not suspended and initialize it if needed.
-  *
-  * Return 0 on success or a negative error code otherwise.
-  */
- int vsp1_device_get(struct vsp1_device *vsp1)
- {
--	int ret = 0;
--
--	mutex_lock(&vsp1->lock);
--	if (vsp1->ref_count > 0)
--		goto done;
--
--	ret = clk_prepare_enable(vsp1->clock);
--	if (ret < 0)
--		goto done;
--
--	ret = vsp1_device_init(vsp1);
--	if (ret < 0) {
--		clk_disable_unprepare(vsp1->clock);
--		goto done;
--	}
--
--done:
--	if (!ret)
--		vsp1->ref_count++;
-+	int ret;
- 
--	mutex_unlock(&vsp1->lock);
--	return ret;
-+	ret = pm_runtime_get_sync(vsp1->dev);
-+	return ret < 0 ? ret : 0;
- }
- 
- /*
-@@ -501,12 +483,7 @@ done:
-  */
- void vsp1_device_put(struct vsp1_device *vsp1)
- {
--	mutex_lock(&vsp1->lock);
--
--	if (--vsp1->ref_count == 0)
--		clk_disable_unprepare(vsp1->clock);
--
--	mutex_unlock(&vsp1->lock);
-+	pm_runtime_put_sync(vsp1->dev);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -518,37 +495,55 @@ static int vsp1_pm_suspend(struct device *dev)
- {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 
--	WARN_ON(mutex_is_locked(&vsp1->lock));
-+	vsp1_pipelines_suspend(vsp1);
-+	pm_runtime_force_suspend(vsp1->dev);
- 
--	if (vsp1->ref_count == 0)
--		return 0;
-+	return 0;
-+}
- 
--	vsp1_pipelines_suspend(vsp1);
-+static int vsp1_pm_resume(struct device *dev)
-+{
-+	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 
--	clk_disable_unprepare(vsp1->clock);
-+	pm_runtime_force_resume(vsp1->dev);
-+	vsp1_pipelines_resume(vsp1);
- 
- 	return 0;
- }
-+#endif
- 
--static int vsp1_pm_resume(struct device *dev)
-+static int vsp1_pm_runtime_suspend(struct device *dev)
- {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 
--	WARN_ON(mutex_is_locked(&vsp1->lock));
-+	clk_disable_unprepare(vsp1->clock);
- 
--	if (vsp1->ref_count == 0)
--		return 0;
-+	return 0;
-+}
- 
--	clk_prepare_enable(vsp1->clock);
-+static int vsp1_pm_runtime_resume(struct device *dev)
-+{
-+	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-+	int ret;
- 
--	vsp1_pipelines_resume(vsp1);
-+	ret = clk_prepare_enable(vsp1->clock);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (vsp1->info) {
-+		ret = vsp1_device_init(vsp1);
-+		if (ret < 0) {
-+			clk_disable_unprepare(vsp1->clock);
-+			return ret;
-+		}
-+	}
- 
- 	return 0;
- }
--#endif
- 
- static const struct dev_pm_ops vsp1_pm_ops = {
- 	SET_SYSTEM_SLEEP_PM_OPS(vsp1_pm_suspend, vsp1_pm_resume)
-+	SET_RUNTIME_PM_OPS(vsp1_pm_runtime_suspend, vsp1_pm_runtime_resume, NULL)
+ struct gpiomux {
+-	struct i2c_adapter *parent;
+-	struct i2c_adapter **adap; /* child busses */
+ 	struct i2c_mux_gpio_platform_data data;
+ 	unsigned gpio_base;
  };
- 
- /* -----------------------------------------------------------------------------
-@@ -640,10 +635,11 @@ static int vsp1_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	vsp1->dev = &pdev->dev;
--	mutex_init(&vsp1->lock);
- 	INIT_LIST_HEAD(&vsp1->entities);
- 	INIT_LIST_HEAD(&vsp1->videos);
- 
-+	platform_set_drvdata(pdev, vsp1);
-+
- 	/* I/O, IRQ and clock resources */
- 	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	vsp1->mmio = devm_ioremap_resource(&pdev->dev, io);
-@@ -670,12 +666,14 @@ static int vsp1_probe(struct platform_device *pdev)
- 	}
- 
- 	/* Configure device parameters based on the version register. */
--	ret = clk_prepare_enable(vsp1->clock);
-+	pm_runtime_enable(&pdev->dev);
-+
-+	ret = pm_runtime_get_sync(&pdev->dev);
- 	if (ret < 0)
--		return ret;
-+		goto done;
- 
- 	version = vsp1_read(vsp1, VI6_IP_VERSION);
--	clk_disable_unprepare(vsp1->clock);
-+	pm_runtime_put_sync(&pdev->dev);
- 
- 	for (i = 0; i < ARRAY_SIZE(vsp1_device_infos); ++i) {
- 		if ((version & VI6_IP_VERSION_MODEL_MASK) ==
-@@ -687,7 +685,8 @@ static int vsp1_probe(struct platform_device *pdev)
- 
- 	if (!vsp1->info) {
- 		dev_err(&pdev->dev, "unsupported IP version 0x%08x\n", version);
--		return -ENXIO;
-+		ret = -ENXIO;
-+		goto done;
- 	}
- 
- 	dev_dbg(&pdev->dev, "IP version 0x%08x\n", version);
-@@ -696,12 +695,14 @@ static int vsp1_probe(struct platform_device *pdev)
- 	ret = vsp1_create_entities(vsp1);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "failed to create entities\n");
--		return ret;
-+		goto done;
- 	}
- 
--	platform_set_drvdata(pdev, vsp1);
-+done:
-+	if (ret)
-+		pm_runtime_disable(&pdev->dev);
- 
--	return 0;
-+	return ret;
+@@ -33,18 +31,18 @@ static void i2c_mux_gpio_set(const struct gpiomux *mux, unsigned val)
+ 					val & (1 << i));
  }
  
- static int vsp1_remove(struct platform_device *pdev)
-@@ -710,6 +711,8 @@ static int vsp1_remove(struct platform_device *pdev)
+-static int i2c_mux_gpio_select(struct i2c_adapter *adap, void *data, u32 chan)
++static int i2c_mux_gpio_select(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct gpiomux *mux = data;
++	struct gpiomux *mux = i2c_mux_priv(muxc);
  
- 	vsp1_destroy_entities(vsp1);
+ 	i2c_mux_gpio_set(mux, chan);
  
-+	pm_runtime_disable(&pdev->dev);
-+
  	return 0;
  }
  
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 4f3b4a1d028a..0c1dc80eb304 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -383,7 +383,7 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
+-static int i2c_mux_gpio_deselect(struct i2c_adapter *adap, void *data, u32 chan)
++static int i2c_mux_gpio_deselect(struct i2c_mux_core *muxc, u32 chan)
  {
- 	unsigned int i;
+-	struct gpiomux *mux = data;
++	struct gpiomux *mux = i2c_mux_priv(muxc);
  
--	/* Resume pipeline all running pipelines. */
-+	/* Resume all running pipelines. */
- 	for (i = 0; i < vsp1->info->wpf_count; ++i) {
- 		struct vsp1_rwpf *wpf = vsp1->wpf[i];
- 		struct vsp1_pipeline *pipe;
+ 	i2c_mux_gpio_set(mux, mux->data.idle);
+ 
+@@ -136,19 +134,19 @@ static int i2c_mux_gpio_probe_dt(struct gpiomux *mux,
+ 
+ static int i2c_mux_gpio_probe(struct platform_device *pdev)
+ {
++	struct i2c_mux_core *muxc;
+ 	struct gpiomux *mux;
+ 	struct i2c_adapter *parent;
+-	int (*deselect) (struct i2c_adapter *, void *, u32);
+ 	unsigned initial_state, gpio_base;
+ 	int i, ret;
+ 
+-	mux = devm_kzalloc(&pdev->dev, sizeof(*mux), GFP_KERNEL);
+-	if (!mux) {
+-		dev_err(&pdev->dev, "Cannot allocate gpiomux structure");
++	muxc = i2c_mux_alloc(NULL, &pdev->dev, sizeof(*mux), 0,
++			     i2c_mux_gpio_select, NULL);
++	if (!muxc)
+ 		return -ENOMEM;
+-	}
++	mux = i2c_mux_priv(muxc);
+ 
+-	platform_set_drvdata(pdev, mux);
++	platform_set_drvdata(pdev, muxc);
+ 
+ 	if (!dev_get_platdata(&pdev->dev)) {
+ 		ret = i2c_mux_gpio_probe_dt(mux, pdev);
+@@ -180,24 +178,18 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
+ 	if (!parent)
+ 		return -EPROBE_DEFER;
+ 
+-	mux->parent = parent;
++	muxc->parent = parent;
+ 	mux->gpio_base = gpio_base;
+ 
+-	mux->adap = devm_kzalloc(&pdev->dev,
+-				 sizeof(*mux->adap) * mux->data.n_values,
+-				 GFP_KERNEL);
+-	if (!mux->adap) {
+-		dev_err(&pdev->dev, "Cannot allocate i2c_adapter structure");
+-		ret = -ENOMEM;
++	ret = i2c_mux_reserve_adapters(muxc, mux->data.n_values);
++	if (ret)
+ 		goto alloc_failed;
+-	}
+ 
+ 	if (mux->data.idle != I2C_MUX_GPIO_NO_IDLE) {
+ 		initial_state = mux->data.idle;
+-		deselect = i2c_mux_gpio_deselect;
++		muxc->deselect = i2c_mux_gpio_deselect;
+ 	} else {
+ 		initial_state = mux->data.values[0];
+-		deselect = NULL;
+ 	}
+ 
+ 	for (i = 0; i < mux->data.n_gpios; i++) {
+@@ -223,11 +215,8 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
+ 		u32 nr = mux->data.base_nr ? (mux->data.base_nr + i) : 0;
+ 		unsigned int class = mux->data.classes ? mux->data.classes[i] : 0;
+ 
+-		mux->adap[i] = i2c_add_mux_adapter(parent, &pdev->dev, mux, nr,
+-						   mux->data.values[i], class,
+-						   i2c_mux_gpio_select, deselect);
+-		if (!mux->adap[i]) {
+-			ret = -ENODEV;
++		ret = i2c_mux_add_adapter(muxc, nr, mux->data.values[i], class);
++		if (ret) {
+ 			dev_err(&pdev->dev, "Failed to add adapter %d\n", i);
+ 			goto add_adapter_failed;
+ 		}
+@@ -239,8 +228,7 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ add_adapter_failed:
+-	for (; i > 0; i--)
+-		i2c_del_mux_adapter(mux->adap[i - 1]);
++	i2c_mux_del_adapters(muxc);
+ 	i = mux->data.n_gpios;
+ err_request_gpio:
+ 	for (; i > 0; i--)
+@@ -253,16 +241,16 @@ alloc_failed:
+ 
+ static int i2c_mux_gpio_remove(struct platform_device *pdev)
+ {
+-	struct gpiomux *mux = platform_get_drvdata(pdev);
++	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
++	struct gpiomux *mux = i2c_mux_priv(muxc);
+ 	int i;
+ 
+-	for (i = 0; i < mux->data.n_values; i++)
+-		i2c_del_mux_adapter(mux->adap[i]);
++	i2c_mux_del_adapters(muxc);
+ 
+ 	for (i = 0; i < mux->data.n_gpios; i++)
+ 		gpio_free(mux->gpio_base + mux->data.gpios[i]);
+ 
+-	i2c_put_adapter(mux->parent);
++	i2c_put_adapter(muxc->parent);
+ 
+ 	return 0;
+ }
 -- 
-2.7.3
+2.1.4
 
