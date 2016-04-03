@@ -1,179 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db3on0134.outbound.protection.outlook.com ([157.55.234.134]:44038
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751899AbcDTPeu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2016 11:34:50 -0400
-From: Peter Rosin <peda@axentia.se>
-To: <linux-kernel@vger.kernel.org>
-CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	"Jonathan Corbet" <corbet@lwn.net>,
+Received: from mail.lysator.liu.se ([130.236.254.3]:55607 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419AbcDCI4U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:56:20 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
 	Peter Korsgaard <peter.korsgaard@barco.com>,
-	"Guenter Roeck" <linux@roeck-us.net>,
+	Guenter Roeck <linux@roeck-us.net>,
 	Jonathan Cameron <jic23@kernel.org>,
-	"Hartmut Knaack" <knaack.h@gmx.de>,
+	Hartmut Knaack <knaack.h@gmx.de>,
 	Lars-Peter Clausen <lars@metafoo.de>,
-	"Peter Meerwald" <pmeerw@pmeerw.net>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
 	Antti Palosaari <crope@iki.fi>,
-	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Rob Herring <robh+dt@kernel.org>,
-	"Frank Rowand" <frowand.list@gmail.com>,
+	Frank Rowand <frowand.list@gmail.com>,
 	Grant Likely <grant.likely@linaro.org>,
 	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
 	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"Kalle Valo" <kvalo@codeaurora.org>, Jiri Slaby <jslaby@suse.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
 	Daniel Baluta <daniel.baluta@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
 	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
 	Matt Ranostay <matt.ranostay@intel.com>,
 	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
 	Terry Heo <terryheo@google.com>,
-	"Arnd Bergmann" <arnd@arndb.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
 	Tommi Rantala <tt.rantala@gmail.com>,
-	"Crestez Dan Leonard" <leonard.crestez@intel.com>,
-	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v7 05/24] i2c: i2c-mux-pca9541: convert to use an explicit i2c mux core
-Date: Wed, 20 Apr 2016 17:17:45 +0200
-Message-ID: <1461165484-2314-6-git-send-email-peda@axentia.se>
-In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
-References: <1461165484-2314-1-git-send-email-peda@axentia.se>
-MIME-Version: 1.0
-Content-Type: text/plain
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v6 14/24] of/unittest: convert to use an explicit i2c mux core
+Date: Sun,  3 Apr 2016 10:52:44 +0200
+Message-Id: <1459673574-11440-15-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Peter Rosin <peda@axentia.se>
+
 Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select/deselect ops to be in terms of the i2c mux core
-instead of the child adapter.
+etc. Update the select op to be in terms of the i2c mux core instead
+of the child adapter.
 
 Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/i2c/muxes/i2c-mux-pca9541.c | 58 +++++++++++++++++--------------------
- 1 file changed, 27 insertions(+), 31 deletions(-)
+ drivers/of/unittest.c | 40 +++++++++++++++-------------------------
+ 1 file changed, 15 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/i2c/muxes/i2c-mux-pca9541.c b/drivers/i2c/muxes/i2c-mux-pca9541.c
-index d0ba424adebc..3cb8af635db5 100644
---- a/drivers/i2c/muxes/i2c-mux-pca9541.c
-+++ b/drivers/i2c/muxes/i2c-mux-pca9541.c
-@@ -73,7 +73,7 @@
- #define SELECT_DELAY_LONG	1000
+diff --git a/drivers/of/unittest.c b/drivers/of/unittest.c
+index e986e6ee52e0..84a65b711e8c 100644
+--- a/drivers/of/unittest.c
++++ b/drivers/of/unittest.c
+@@ -1692,13 +1692,7 @@ static struct i2c_driver unittest_i2c_dev_driver = {
  
- struct pca9541 {
--	struct i2c_adapter *mux_adap;
-+	struct i2c_client *client;
- 	unsigned long select_timeout;
- 	unsigned long arb_timeout;
- };
-@@ -217,7 +217,8 @@ static const u8 pca9541_control[16] = {
-  */
- static int pca9541_arbitrate(struct i2c_client *client)
+ #if IS_BUILTIN(CONFIG_I2C_MUX)
+ 
+-struct unittest_i2c_mux_data {
+-	int nchans;
+-	struct i2c_adapter *adap[];
+-};
+-
+-static int unittest_i2c_mux_select_chan(struct i2c_adapter *adap,
+-			       void *client, u32 chan)
++static int unittest_i2c_mux_select_chan(struct i2c_mux_core *muxc, u32 chan)
  {
--	struct pca9541 *data = i2c_get_clientdata(client);
-+	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
-+	struct pca9541 *data = i2c_mux_priv(muxc);
- 	int reg;
- 
- 	reg = pca9541_reg_read(client, PCA9541_CONTROL);
-@@ -285,9 +286,10 @@ static int pca9541_arbitrate(struct i2c_client *client)
  	return 0;
  }
- 
--static int pca9541_select_chan(struct i2c_adapter *adap, void *client, u32 chan)
-+static int pca9541_select_chan(struct i2c_mux_core *muxc, u32 chan)
+@@ -1706,11 +1700,11 @@ static int unittest_i2c_mux_select_chan(struct i2c_adapter *adap,
+ static int unittest_i2c_mux_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *id)
  {
--	struct pca9541 *data = i2c_get_clientdata(client);
-+	struct pca9541 *data = i2c_mux_priv(muxc);
-+	struct i2c_client *client = data->client;
- 	int ret;
- 	unsigned long timeout = jiffies + ARB2_TIMEOUT;
- 		/* give up after this time */
-@@ -309,9 +311,11 @@ static int pca9541_select_chan(struct i2c_adapter *adap, void *client, u32 chan)
- 	return -ETIMEDOUT;
- }
- 
--static int pca9541_release_chan(struct i2c_adapter *adap,
--				void *client, u32 chan)
-+static int pca9541_release_chan(struct i2c_mux_core *muxc, u32 chan)
- {
-+	struct pca9541 *data = i2c_mux_priv(muxc);
-+	struct i2c_client *client = data->client;
-+
- 	pca9541_release_bus(client);
- 	return 0;
- }
-@@ -324,20 +328,13 @@ static int pca9541_probe(struct i2c_client *client,
- {
- 	struct i2c_adapter *adap = client->adapter;
- 	struct pca954x_platform_data *pdata = dev_get_platdata(&client->dev);
+-	int ret, i, nchans, size;
++	int ret, i, nchans;
+ 	struct device *dev = &client->dev;
+ 	struct i2c_adapter *adap = to_i2c_adapter(dev->parent);
+ 	struct device_node *np = client->dev.of_node, *child;
+-	struct unittest_i2c_mux_data *stm;
 +	struct i2c_mux_core *muxc;
- 	struct pca9541 *data;
- 	int force;
--	int ret = -ENODEV;
-+	int ret;
+ 	u32 reg, max_reg;
  
- 	if (!i2c_check_functionality(adap, I2C_FUNC_SMBUS_BYTE_DATA))
--		goto err;
--
--	data = kzalloc(sizeof(struct pca9541), GFP_KERNEL);
--	if (!data) {
--		ret = -ENOMEM;
--		goto err;
--	}
--
--	i2c_set_clientdata(client, data);
-+		return -ENODEV;
- 
- 	/*
- 	 * I2C accesses are unprotected here.
-@@ -352,34 +349,33 @@ static int pca9541_probe(struct i2c_client *client,
- 	force = 0;
- 	if (pdata)
- 		force = pdata->modes[0].adap_id;
--	data->mux_adap = i2c_add_mux_adapter(adap, &client->dev, client,
--					     force, 0, 0,
--					     pca9541_select_chan,
--					     pca9541_release_chan);
-+	muxc = i2c_mux_alloc(adap, &client->dev, 1, sizeof(*data), 0,
-+			     pca9541_select_chan, pca9541_release_chan);
-+	if (!muxc)
-+		return -ENOMEM;
- 
--	if (data->mux_adap == NULL) {
-+	data = i2c_mux_priv(muxc);
-+	data->client = client;
-+
-+	i2c_set_clientdata(client, muxc);
-+
-+	ret = i2c_mux_add_adapter(muxc, force, 0, 0);
-+	if (ret) {
- 		dev_err(&client->dev, "failed to register master selector\n");
--		goto exit_free;
-+		return ret;
+ 	dev_dbg(dev, "%s for node @%s\n", __func__, np->full_name);
+@@ -1734,25 +1728,23 @@ static int unittest_i2c_mux_probe(struct i2c_client *client,
+ 		return -EINVAL;
  	}
  
- 	dev_info(&client->dev, "registered master selector for I2C %s\n",
- 		 client->name);
+-	size = offsetof(struct unittest_i2c_mux_data, adap[nchans]);
+-	stm = devm_kzalloc(dev, size, GFP_KERNEL);
+-	if (!stm) {
+-		dev_err(dev, "Out of memory\n");
++	muxc = i2c_mux_alloc(adap, dev, 0, 0,
++			     unittest_i2c_mux_select_chan, NULL);
++	if (!muxc)
+ 		return -ENOMEM;
+-	}
+-	stm->nchans = nchans;
++	ret = i2c_mux_reserve_adapters(muxc, nchans);
++	if (ret)
++		return ret;
+ 	for (i = 0; i < nchans; i++) {
+-		stm->adap[i] = i2c_add_mux_adapter(adap, dev, client,
+-				0, i, 0, unittest_i2c_mux_select_chan, NULL);
+-		if (!stm->adap[i]) {
++		ret = i2c_mux_add_adapter(muxc, 0, i, 0);
++		if (ret) {
+ 			dev_err(dev, "Failed to register mux #%d\n", i);
+-			for (i--; i >= 0; i--)
+-				i2c_del_mux_adapter(stm->adap[i]);
++			i2c_mux_del_adapters(muxc);
+ 			return -ENODEV;
+ 		}
+ 	}
+ 
+-	i2c_set_clientdata(client, stm);
++	i2c_set_clientdata(client, muxc);
  
  	return 0;
--
--exit_free:
--	kfree(data);
--err:
--	return ret;
- }
- 
- static int pca9541_remove(struct i2c_client *client)
+ };
+@@ -1761,12 +1753,10 @@ static int unittest_i2c_mux_remove(struct i2c_client *client)
  {
--	struct pca9541 *data = i2c_get_clientdata(client);
--
--	i2c_del_mux_adapter(data->mux_adap);
+ 	struct device *dev = &client->dev;
+ 	struct device_node *np = client->dev.of_node;
+-	struct unittest_i2c_mux_data *stm = i2c_get_clientdata(client);
+-	int i;
 +	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
  
--	kfree(data);
+ 	dev_dbg(dev, "%s for node @%s\n", __func__, np->full_name);
+-	for (i = stm->nchans - 1; i >= 0; i--)
+-		i2c_del_mux_adapter(stm->adap[i]);
 +	i2c_mux_del_adapters(muxc);
  	return 0;
  }
