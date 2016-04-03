@@ -1,213 +1,489 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42143 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751084AbcDWLDz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2016 07:03:55 -0400
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 7B52418021C
-	for <linux-media@vger.kernel.org>; Sat, 23 Apr 2016 13:03:49 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv4 00/13] vb2: replace allocation context by device pointer
-Date: Sat, 23 Apr 2016 13:03:36 +0200
-Message-Id: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.lysator.liu.se ([130.236.254.3]:37069 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865AbcDCI6A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:58:00 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v6 23/24] [media] rtl2832_sdr: get rid of empty regmap wrappers
+Date: Sun,  3 Apr 2016 10:52:53 +0200
+Message-Id: <1459673574-11440-24-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Peter Rosin <peda@axentia.se>
 
-The opaque allocation context that allocators use and drivers have to fill
-in is really nothing more than a device pointer wrapped in an kmalloc()ed
-struct.
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/dvb-frontends/rtl2832_sdr.c | 302 +++++++++++++-----------------
+ 1 file changed, 132 insertions(+), 170 deletions(-)
 
-This patch series adds a new 'struct device *dev' field that contains the
-default device pointer to use if the driver doesn't set alloc_ctxs. This
-simplifies many drivers since there are only two Samsung drivers that need
-different devices for different planes. All others use the same device for
-everything.
-
-So instead of having to allocate a context (and free it, which not all
-drivers did) you just set a dev pointer once.
-
-The last patch removes the allocation context code altogether and replaces
-it with proper struct device pointers instead of the untyped void pointer.
-
-Note: one idea I toyed with was to have an array of devs instead of a
-single dev field in vb2_queue, but that was actually awkward to use.
-
-A single dev turned out to be much easier to use.
-
-If there are no comments, then I intend to post a pull request on
-Monday.
-
-Regards,
-
-        Hans
-
-Changes since v3:
-- move dma_attrs out of struct vb2_dc_conf as the first patch. This
-  was originally done in the last patch, but that would actually break
-  dma-contig for the patches before that. Thanks to Laurent for noticing.
-  It is also better to have this as a separate patch anyway.
-- fixed up vsp1_video.c as per Laurent's requests.
-
-Changes since v2:
-- rebased against latest linuxtv master and converted the tw686x
-  drivers.
-
-Changes since v1:
-- rebased against latest linuxtv master
-- add dma_attrs field to vb2_queue to specify non-standard DMA attributes
-  for both dma-contig. This feature was added to v4.6.
-
-Hans Verkuil (13):
-  vb2: move dma_attrs to vb2_queue
-  vb2: add a dev field to use for the default allocation context
-  v4l2-pci-skeleton: set q->dev instead of allocating a context
-  sur40: set q->dev instead of allocating a context
-  media/pci: convert drivers to use the new vb2_queue dev field
-  staging/media: convert drivers to use the new vb2_queue dev field
-  media/platform: convert drivers to use the new vb2_queue dev field
-  media/platform: convert drivers to use the new vb2_queue dev field
-  media/platform: convert drivers to use the new vb2_queue dev field
-  media/.../soc-camera: convert drivers to use the new vb2_queue dev
-    field
-  media/platform: convert drivers to use the new vb2_queue dev field
-  media/platform: convert drivers to use the new vb2_queue dev field
-  vb2: replace void *alloc_ctxs by struct device *alloc_devs
-
- Documentation/video4linux/v4l2-pci-skeleton.c      | 17 ++------
- drivers/input/touchscreen/sur40.c                  | 15 +------
- drivers/media/dvb-frontends/rtl2832_sdr.c          |  2 +-
- drivers/media/pci/cobalt/cobalt-driver.c           |  9 ----
- drivers/media/pci/cobalt/cobalt-driver.h           |  1 -
- drivers/media/pci/cobalt/cobalt-v4l2.c             |  4 +-
- drivers/media/pci/cx23885/cx23885-417.c            |  3 +-
- drivers/media/pci/cx23885/cx23885-core.c           | 10 +----
- drivers/media/pci/cx23885/cx23885-dvb.c            |  4 +-
- drivers/media/pci/cx23885/cx23885-vbi.c            |  3 +-
- drivers/media/pci/cx23885/cx23885-video.c          |  5 ++-
- drivers/media/pci/cx23885/cx23885.h                |  1 -
- drivers/media/pci/cx25821/cx25821-core.c           | 10 +----
- drivers/media/pci/cx25821/cx25821-video.c          |  5 +--
- drivers/media/pci/cx25821/cx25821.h                |  1 -
- drivers/media/pci/cx88/cx88-blackbird.c            |  4 +-
- drivers/media/pci/cx88/cx88-dvb.c                  |  4 +-
- drivers/media/pci/cx88/cx88-mpeg.c                 | 10 +----
- drivers/media/pci/cx88/cx88-vbi.c                  |  3 +-
- drivers/media/pci/cx88/cx88-video.c                | 13 ++----
- drivers/media/pci/cx88/cx88.h                      |  2 -
- drivers/media/pci/dt3155/dt3155.c                  | 15 ++-----
- drivers/media/pci/dt3155/dt3155.h                  |  2 -
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  2 +-
- drivers/media/pci/saa7134/saa7134-core.c           | 22 ++++------
- drivers/media/pci/saa7134/saa7134-ts.c             |  3 +-
- drivers/media/pci/saa7134/saa7134-vbi.c            |  3 +-
- drivers/media/pci/saa7134/saa7134-video.c          |  5 ++-
- drivers/media/pci/saa7134/saa7134.h                |  3 +-
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     | 13 +-----
- drivers/media/pci/solo6x10/solo6x10-v4l2.c         | 12 +-----
- drivers/media/pci/solo6x10/solo6x10.h              |  2 -
- drivers/media/pci/sta2x11/sta2x11_vip.c            | 20 ++-------
- drivers/media/pci/tw68/tw68-core.c                 | 15 ++-----
- drivers/media/pci/tw68/tw68-video.c                |  4 +-
- drivers/media/pci/tw68/tw68.h                      |  1 -
- drivers/media/pci/tw686x/tw686x-video.c            |  2 +-
- drivers/media/platform/am437x/am437x-vpfe.c        | 14 ++-----
- drivers/media/platform/am437x/am437x-vpfe.h        |  2 -
- drivers/media/platform/blackfin/bfin_capture.c     | 17 ++------
- drivers/media/platform/coda/coda-common.c          | 18 ++------
- drivers/media/platform/coda/coda.h                 |  1 -
- drivers/media/platform/davinci/vpbe_display.c      | 14 +------
- drivers/media/platform/davinci/vpif_capture.c      | 15 ++-----
- drivers/media/platform/davinci/vpif_capture.h      |  2 -
- drivers/media/platform/davinci/vpif_display.c      | 15 ++-----
- drivers/media/platform/davinci/vpif_display.h      |  2 -
- drivers/media/platform/exynos-gsc/gsc-core.c       | 11 +----
- drivers/media/platform/exynos-gsc/gsc-core.h       |  2 -
- drivers/media/platform/exynos-gsc/gsc-m2m.c        |  8 ++--
- drivers/media/platform/exynos4-is/fimc-capture.c   |  9 ++--
- drivers/media/platform/exynos4-is/fimc-core.c      | 11 -----
- drivers/media/platform/exynos4-is/fimc-core.h      |  3 --
- drivers/media/platform/exynos4-is/fimc-is.c        | 13 +-----
- drivers/media/platform/exynos4-is/fimc-is.h        |  2 -
- drivers/media/platform/exynos4-is/fimc-isp-video.c | 11 ++---
- drivers/media/platform/exynos4-is/fimc-isp.h       |  2 -
- drivers/media/platform/exynos4-is/fimc-lite.c      | 21 ++--------
- drivers/media/platform/exynos4-is/fimc-lite.h      |  2 -
- drivers/media/platform/exynos4-is/fimc-m2m.c       |  8 ++--
- drivers/media/platform/m2m-deinterlace.c           | 17 ++------
- drivers/media/platform/marvell-ccic/mcam-core.c    | 26 +-----------
- drivers/media/platform/marvell-ccic/mcam-core.h    |  2 -
- drivers/media/platform/mx2_emmaprp.c               | 19 ++-------
- drivers/media/platform/omap3isp/ispvideo.c         | 14 ++-----
- drivers/media/platform/omap3isp/ispvideo.h         |  1 -
- drivers/media/platform/rcar_jpu.c                  | 24 +++--------
- drivers/media/platform/s3c-camif/camif-capture.c   |  5 +--
- drivers/media/platform/s3c-camif/camif-core.c      | 11 +----
- drivers/media/platform/s3c-camif/camif-core.h      |  2 -
- drivers/media/platform/s5p-g2d/g2d.c               | 16 ++-----
- drivers/media/platform/s5p-g2d/g2d.h               |  1 -
- drivers/media/platform/s5p-jpeg/jpeg-core.c        | 20 +++------
- drivers/media/platform/s5p-jpeg/jpeg-core.h        |  2 -
- drivers/media/platform/s5p-mfc/s5p_mfc.c           | 19 +--------
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  2 -
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 12 +++---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 16 +++----
- drivers/media/platform/s5p-tv/mixer.h              |  2 -
- drivers/media/platform/s5p-tv/mixer_video.c        | 18 ++------
- drivers/media/platform/sh_veu.c                    | 19 ++-------
- drivers/media/platform/sh_vou.c                    | 16 ++-----
- drivers/media/platform/soc_camera/atmel-isi.c      | 15 +------
- drivers/media/platform/soc_camera/rcar_vin.c       | 14 +------
- .../platform/soc_camera/sh_mobile_ceu_camera.c     | 17 ++------
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c      | 18 ++------
- drivers/media/platform/sti/bdisp/bdisp.h           |  2 -
- drivers/media/platform/ti-vpe/cal.c                | 17 +-------
- drivers/media/platform/ti-vpe/vpe.c                | 22 +++-------
- drivers/media/platform/vim2m.c                     |  7 +---
- drivers/media/platform/vivid/vivid-sdr-cap.c       |  2 +-
- drivers/media/platform/vivid/vivid-vbi-cap.c       |  2 +-
- drivers/media/platform/vivid/vivid-vbi-out.c       |  2 +-
- drivers/media/platform/vivid/vivid-vid-cap.c       |  7 +---
- drivers/media/platform/vivid/vivid-vid-out.c       |  7 +---
- drivers/media/platform/vsp1/vsp1_video.c           | 22 +++-------
- drivers/media/platform/vsp1/vsp1_video.h           |  1 -
- drivers/media/platform/xilinx/xilinx-dma.c         | 13 +-----
- drivers/media/platform/xilinx/xilinx-dma.h         |  2 -
- drivers/media/usb/airspy/airspy.c                  |  2 +-
- drivers/media/usb/au0828/au0828-vbi.c              |  2 +-
- drivers/media/usb/au0828/au0828-video.c            |  2 +-
- drivers/media/usb/em28xx/em28xx-vbi.c              |  2 +-
- drivers/media/usb/em28xx/em28xx-video.c            |  2 +-
- drivers/media/usb/go7007/go7007-v4l2.c             |  2 +-
- drivers/media/usb/hackrf/hackrf.c                  |  2 +-
- drivers/media/usb/msi2500/msi2500.c                |  2 +-
- drivers/media/usb/pwc/pwc-if.c                     |  2 +-
- drivers/media/usb/s2255/s2255drv.c                 |  2 +-
- drivers/media/usb/stk1160/stk1160-v4l.c            |  2 +-
- drivers/media/usb/usbtv/usbtv-video.c              |  2 +-
- drivers/media/usb/uvc/uvc_queue.c                  |  2 +-
- drivers/media/v4l2-core/videobuf2-core.c           | 28 +++++++------
- drivers/media/v4l2-core/videobuf2-dma-contig.c     | 49 ++++------------------
- drivers/media/v4l2-core/videobuf2-dma-sg.c         | 45 ++++----------------
- drivers/media/v4l2-core/videobuf2-vmalloc.c        |  9 ++--
- drivers/staging/media/davinci_vpfe/vpfe_video.c    | 14 ++-----
- drivers/staging/media/davinci_vpfe/vpfe_video.h    |  2 -
- drivers/staging/media/mx2/mx2_camera.c             | 19 ++-------
- drivers/staging/media/mx3/mx3_camera.c             | 18 ++------
- drivers/staging/media/omap4iss/iss_video.c         | 12 +-----
- drivers/staging/media/omap4iss/iss_video.h         |  1 -
- drivers/staging/media/tw686x-kh/tw686x-kh-video.c  | 12 +-----
- drivers/staging/media/tw686x-kh/tw686x-kh.h        |  1 -
- drivers/usb/gadget/function/uvc_queue.c            |  2 +-
- include/media/davinci/vpbe_display.h               |  2 -
- include/media/videobuf2-core.h                     | 24 ++++++-----
- include/media/videobuf2-dma-contig.h               | 10 -----
- include/media/videobuf2-dma-sg.h                   |  3 --
- 129 files changed, 258 insertions(+), 906 deletions(-)
-
+diff --git a/drivers/media/dvb-frontends/rtl2832_sdr.c b/drivers/media/dvb-frontends/rtl2832_sdr.c
+index 6a6b1debe277..47a480a7d46c 100644
+--- a/drivers/media/dvb-frontends/rtl2832_sdr.c
++++ b/drivers/media/dvb-frontends/rtl2832_sdr.c
+@@ -120,6 +120,7 @@ struct rtl2832_sdr_dev {
+ 	unsigned long flags;
+ 
+ 	struct platform_device *pdev;
++	struct regmap *regmap;
+ 
+ 	struct video_device vdev;
+ 	struct v4l2_device v4l2_dev;
+@@ -164,47 +165,6 @@ struct rtl2832_sdr_dev {
+ 	unsigned long jiffies_next;
+ };
+ 
+-/* write multiple registers */
+-static int rtl2832_sdr_wr_regs(struct rtl2832_sdr_dev *dev, u16 reg,
+-		const u8 *val, int len)
+-{
+-	struct platform_device *pdev = dev->pdev;
+-	struct rtl2832_sdr_platform_data *pdata = pdev->dev.platform_data;
+-	struct regmap *regmap = pdata->regmap;
+-
+-	return regmap_bulk_write(regmap, reg, val, len);
+-}
+-
+-#if 0
+-/* read multiple registers */
+-static int rtl2832_sdr_rd_regs(struct rtl2832_sdr_dev *dev, u16 reg, u8 *val,
+-		int len)
+-{
+-	struct platform_device *pdev = dev->pdev;
+-	struct rtl2832_sdr_platform_data *pdata = pdev->dev.platform_data;
+-	struct regmap *regmap = pdata->regmap;
+-
+-	return regmap_bulk_read(regmap, reg, val, len);
+-}
+-#endif
+-
+-/* write single register */
+-static int rtl2832_sdr_wr_reg(struct rtl2832_sdr_dev *dev, u16 reg, u8 val)
+-{
+-	return rtl2832_sdr_wr_regs(dev, reg, &val, 1);
+-}
+-
+-/* write single register with mask */
+-static int rtl2832_sdr_wr_reg_mask(struct rtl2832_sdr_dev *dev, u16 reg,
+-		u8 val, u8 mask)
+-{
+-	struct platform_device *pdev = dev->pdev;
+-	struct rtl2832_sdr_platform_data *pdata = pdev->dev.platform_data;
+-	struct regmap *regmap = pdata->regmap;
+-
+-	return regmap_update_bits(regmap, reg, mask, val);
+-}
+-
+ /* Private functions */
+ static struct rtl2832_sdr_frame_buf *rtl2832_sdr_get_next_fill_buf(
+ 		struct rtl2832_sdr_dev *dev)
+@@ -559,11 +519,11 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_dev *dev)
+ 
+ 	f_sr = dev->f_adc;
+ 
+-	ret = rtl2832_sdr_wr_regs(dev, 0x13e, "\x00\x00", 2);
++	ret = regmap_bulk_write(dev->regmap, 0x13e, "\x00\x00", 2);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2832_sdr_wr_regs(dev, 0x115, "\x00\x00\x00\x00", 4);
++	ret = regmap_bulk_write(dev->regmap, 0x115, "\x00\x00\x00\x00", 4);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -589,7 +549,7 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_dev *dev)
+ 	buf[1] = (u32tmp >>  8) & 0xff;
+ 	buf[2] = (u32tmp >>  0) & 0xff;
+ 
+-	ret = rtl2832_sdr_wr_regs(dev, 0x119, buf, 3);
++	ret = regmap_bulk_write(dev->regmap, 0x119, buf, 3);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -603,15 +563,15 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_dev *dev)
+ 		u8tmp2 = 0xcd; /* enable ADC I, ADC Q */
+ 	}
+ 
+-	ret = rtl2832_sdr_wr_reg(dev, 0x1b1, u8tmp1);
++	ret = regmap_write(dev->regmap, 0x1b1, u8tmp1);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2832_sdr_wr_reg(dev, 0x008, u8tmp2);
++	ret = regmap_write(dev->regmap, 0x008, u8tmp2);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2832_sdr_wr_reg(dev, 0x006, 0x80);
++	ret = regmap_write(dev->regmap, 0x006, 0x80);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -622,168 +582,169 @@ static int rtl2832_sdr_set_adc(struct rtl2832_sdr_dev *dev)
+ 	buf[1] = (u32tmp >> 16) & 0xff;
+ 	buf[2] = (u32tmp >>  8) & 0xff;
+ 	buf[3] = (u32tmp >>  0) & 0xff;
+-	ret = rtl2832_sdr_wr_regs(dev, 0x19f, buf, 4);
++	ret = regmap_bulk_write(dev->regmap, 0x19f, buf, 4);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* low-pass filter */
+-	ret = rtl2832_sdr_wr_regs(dev, 0x11c,
+-			"\xca\xdc\xd7\xd8\xe0\xf2\x0e\x35\x06\x50\x9c\x0d\x71\x11\x14\x71\x74\x19\x41\xa5",
+-			20);
++	ret = regmap_bulk_write(dev->regmap, 0x11c,
++				"\xca\xdc\xd7\xd8\xe0\xf2\x0e\x35\x06\x50\x9c\x0d\x71\x11\x14\x71\x74\x19\x41\xa5",
++				20);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2832_sdr_wr_regs(dev, 0x017, "\x11\x10", 2);
++	ret = regmap_bulk_write(dev->regmap, 0x017, "\x11\x10", 2);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* mode */
+-	ret = rtl2832_sdr_wr_regs(dev, 0x019, "\x05", 1);
++	ret = regmap_write(dev->regmap, 0x019, 0x05);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2832_sdr_wr_regs(dev, 0x01a, "\x1b\x16\x0d\x06\x01\xff", 6);
++	ret = regmap_bulk_write(dev->regmap, 0x01a,
++				"\x1b\x16\x0d\x06\x01\xff", 6);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* FSM */
+-	ret = rtl2832_sdr_wr_regs(dev, 0x192, "\x00\xf0\x0f", 3);
++	ret = regmap_bulk_write(dev->regmap, 0x192, "\x00\xf0\x0f", 3);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* PID filter */
+-	ret = rtl2832_sdr_wr_regs(dev, 0x061, "\x60", 1);
++	ret = regmap_write(dev->regmap, 0x061, 0x60);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* used RF tuner based settings */
+ 	switch (pdata->tuner) {
+ 	case RTL2832_SDR_TUNER_E4000:
+-		ret = rtl2832_sdr_wr_regs(dev, 0x112, "\x5a", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x102, "\x40", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x103, "\x5a", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c7, "\x30", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x104, "\xd0", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x105, "\xbe", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c8, "\x18", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x106, "\x35", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c9, "\x21", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1ca, "\x21", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1cb, "\x00", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x107, "\x40", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1cd, "\x10", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1ce, "\x10", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x108, "\x80", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x109, "\x7f", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x10a, "\x80", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x10b, "\x7f", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00e, "\xfc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00e, "\xfc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x011, "\xd4", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1e5, "\xf0", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1d9, "\x00", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1db, "\x00", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1dd, "\x14", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1de, "\xec", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1d8, "\x0c", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1e6, "\x02", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1d7, "\x09", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00d, "\x83", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x010, "\x49", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00d, "\x87", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00d, "\x85", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x013, "\x02", 1);
++		ret = regmap_write(dev->regmap, 0x112, 0x5a);
++		ret = regmap_write(dev->regmap, 0x102, 0x40);
++		ret = regmap_write(dev->regmap, 0x103, 0x5a);
++		ret = regmap_write(dev->regmap, 0x1c7, 0x30);
++		ret = regmap_write(dev->regmap, 0x104, 0xd0);
++		ret = regmap_write(dev->regmap, 0x105, 0xbe);
++		ret = regmap_write(dev->regmap, 0x1c8, 0x18);
++		ret = regmap_write(dev->regmap, 0x106, 0x35);
++		ret = regmap_write(dev->regmap, 0x1c9, 0x21);
++		ret = regmap_write(dev->regmap, 0x1ca, 0x21);
++		ret = regmap_write(dev->regmap, 0x1cb, 0x00);
++		ret = regmap_write(dev->regmap, 0x107, 0x40);
++		ret = regmap_write(dev->regmap, 0x1cd, 0x10);
++		ret = regmap_write(dev->regmap, 0x1ce, 0x10);
++		ret = regmap_write(dev->regmap, 0x108, 0x80);
++		ret = regmap_write(dev->regmap, 0x109, 0x7f);
++		ret = regmap_write(dev->regmap, 0x10a, 0x80);
++		ret = regmap_write(dev->regmap, 0x10b, 0x7f);
++		ret = regmap_write(dev->regmap, 0x00e, 0xfc);
++		ret = regmap_write(dev->regmap, 0x00e, 0xfc);
++		ret = regmap_write(dev->regmap, 0x011, 0xd4);
++		ret = regmap_write(dev->regmap, 0x1e5, 0xf0);
++		ret = regmap_write(dev->regmap, 0x1d9, 0x00);
++		ret = regmap_write(dev->regmap, 0x1db, 0x00);
++		ret = regmap_write(dev->regmap, 0x1dd, 0x14);
++		ret = regmap_write(dev->regmap, 0x1de, 0xec);
++		ret = regmap_write(dev->regmap, 0x1d8, 0x0c);
++		ret = regmap_write(dev->regmap, 0x1e6, 0x02);
++		ret = regmap_write(dev->regmap, 0x1d7, 0x09);
++		ret = regmap_write(dev->regmap, 0x00d, 0x83);
++		ret = regmap_write(dev->regmap, 0x010, 0x49);
++		ret = regmap_write(dev->regmap, 0x00d, 0x87);
++		ret = regmap_write(dev->regmap, 0x00d, 0x85);
++		ret = regmap_write(dev->regmap, 0x013, 0x02);
+ 		break;
+ 	case RTL2832_SDR_TUNER_FC0012:
+ 	case RTL2832_SDR_TUNER_FC0013:
+-		ret = rtl2832_sdr_wr_regs(dev, 0x112, "\x5a", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x102, "\x40", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x103, "\x5a", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c7, "\x2c", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x104, "\xcc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x105, "\xbe", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c8, "\x16", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x106, "\x35", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c9, "\x21", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1ca, "\x21", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1cb, "\x00", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x107, "\x40", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1cd, "\x10", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1ce, "\x10", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x108, "\x80", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x109, "\x7f", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x10a, "\x80", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x10b, "\x7f", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00e, "\xfc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00e, "\xfc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x011, "\xe9\xbf", 2);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1e5, "\xf0", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1d9, "\x00", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1db, "\x00", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1dd, "\x11", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1de, "\xef", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1d8, "\x0c", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1e6, "\x02", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1d7, "\x09", 1);
++		ret = regmap_write(dev->regmap, 0x112, 0x5a);
++		ret = regmap_write(dev->regmap, 0x102, 0x40);
++		ret = regmap_write(dev->regmap, 0x103, 0x5a);
++		ret = regmap_write(dev->regmap, 0x1c7, 0x2c);
++		ret = regmap_write(dev->regmap, 0x104, 0xcc);
++		ret = regmap_write(dev->regmap, 0x105, 0xbe);
++		ret = regmap_write(dev->regmap, 0x1c8, 0x16);
++		ret = regmap_write(dev->regmap, 0x106, 0x35);
++		ret = regmap_write(dev->regmap, 0x1c9, 0x21);
++		ret = regmap_write(dev->regmap, 0x1ca, 0x21);
++		ret = regmap_write(dev->regmap, 0x1cb, 0x00);
++		ret = regmap_write(dev->regmap, 0x107, 0x40);
++		ret = regmap_write(dev->regmap, 0x1cd, 0x10);
++		ret = regmap_write(dev->regmap, 0x1ce, 0x10);
++		ret = regmap_write(dev->regmap, 0x108, 0x80);
++		ret = regmap_write(dev->regmap, 0x109, 0x7f);
++		ret = regmap_write(dev->regmap, 0x10a, 0x80);
++		ret = regmap_write(dev->regmap, 0x10b, 0x7f);
++		ret = regmap_write(dev->regmap, 0x00e, 0xfc);
++		ret = regmap_write(dev->regmap, 0x00e, 0xfc);
++		ret = regmap_bulk_write(dev->regmap, 0x011, "\xe9\xbf", 2);
++		ret = regmap_write(dev->regmap, 0x1e5, 0xf0);
++		ret = regmap_write(dev->regmap, 0x1d9, 0x00);
++		ret = regmap_write(dev->regmap, 0x1db, 0x00);
++		ret = regmap_write(dev->regmap, 0x1dd, 0x11);
++		ret = regmap_write(dev->regmap, 0x1de, 0xef);
++		ret = regmap_write(dev->regmap, 0x1d8, 0x0c);
++		ret = regmap_write(dev->regmap, 0x1e6, 0x02);
++		ret = regmap_write(dev->regmap, 0x1d7, 0x09);
+ 		break;
+ 	case RTL2832_SDR_TUNER_R820T:
+ 	case RTL2832_SDR_TUNER_R828D:
+-		ret = rtl2832_sdr_wr_regs(dev, 0x112, "\x5a", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x102, "\x40", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x115, "\x01", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x103, "\x80", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c7, "\x24", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x104, "\xcc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x105, "\xbe", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c8, "\x14", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x106, "\x35", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c9, "\x21", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1ca, "\x21", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1cb, "\x00", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x107, "\x40", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1cd, "\x10", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1ce, "\x10", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x108, "\x80", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x109, "\x7f", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x10a, "\x80", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x10b, "\x7f", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00e, "\xfc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00e, "\xfc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x011, "\xf4", 1);
++		ret = regmap_write(dev->regmap, 0x112, 0x5a);
++		ret = regmap_write(dev->regmap, 0x102, 0x40);
++		ret = regmap_write(dev->regmap, 0x115, 0x01);
++		ret = regmap_write(dev->regmap, 0x103, 0x80);
++		ret = regmap_write(dev->regmap, 0x1c7, 0x24);
++		ret = regmap_write(dev->regmap, 0x104, 0xcc);
++		ret = regmap_write(dev->regmap, 0x105, 0xbe);
++		ret = regmap_write(dev->regmap, 0x1c8, 0x14);
++		ret = regmap_write(dev->regmap, 0x106, 0x35);
++		ret = regmap_write(dev->regmap, 0x1c9, 0x21);
++		ret = regmap_write(dev->regmap, 0x1ca, 0x21);
++		ret = regmap_write(dev->regmap, 0x1cb, 0x00);
++		ret = regmap_write(dev->regmap, 0x107, 0x40);
++		ret = regmap_write(dev->regmap, 0x1cd, 0x10);
++		ret = regmap_write(dev->regmap, 0x1ce, 0x10);
++		ret = regmap_write(dev->regmap, 0x108, 0x80);
++		ret = regmap_write(dev->regmap, 0x109, 0x7f);
++		ret = regmap_write(dev->regmap, 0x10a, 0x80);
++		ret = regmap_write(dev->regmap, 0x10b, 0x7f);
++		ret = regmap_write(dev->regmap, 0x00e, 0xfc);
++		ret = regmap_write(dev->regmap, 0x00e, 0xfc);
++		ret = regmap_write(dev->regmap, 0x011, 0xf4);
+ 		break;
+ 	case RTL2832_SDR_TUNER_FC2580:
+-		ret = rtl2832_sdr_wr_regs(dev, 0x112, "\x39", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x102, "\x40", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x103, "\x5a", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c7, "\x2c", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x104, "\xcc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x105, "\xbe", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c8, "\x16", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x106, "\x35", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1c9, "\x21", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1ca, "\x21", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1cb, "\x00", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x107, "\x40", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1cd, "\x10", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x1ce, "\x10", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x108, "\x80", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x109, "\x7f", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x10a, "\x9c", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x10b, "\x7f", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00e, "\xfc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x00e, "\xfc", 1);
+-		ret = rtl2832_sdr_wr_regs(dev, 0x011, "\xe9\xf4", 2);
++		ret = regmap_write(dev->regmap, 0x112, 0x39);
++		ret = regmap_write(dev->regmap, 0x102, 0x40);
++		ret = regmap_write(dev->regmap, 0x103, 0x5a);
++		ret = regmap_write(dev->regmap, 0x1c7, 0x2c);
++		ret = regmap_write(dev->regmap, 0x104, 0xcc);
++		ret = regmap_write(dev->regmap, 0x105, 0xbe);
++		ret = regmap_write(dev->regmap, 0x1c8, 0x16);
++		ret = regmap_write(dev->regmap, 0x106, 0x35);
++		ret = regmap_write(dev->regmap, 0x1c9, 0x21);
++		ret = regmap_write(dev->regmap, 0x1ca, 0x21);
++		ret = regmap_write(dev->regmap, 0x1cb, 0x00);
++		ret = regmap_write(dev->regmap, 0x107, 0x40);
++		ret = regmap_write(dev->regmap, 0x1cd, 0x10);
++		ret = regmap_write(dev->regmap, 0x1ce, 0x10);
++		ret = regmap_write(dev->regmap, 0x108, 0x80);
++		ret = regmap_write(dev->regmap, 0x109, 0x7f);
++		ret = regmap_write(dev->regmap, 0x10a, 0x9c);
++		ret = regmap_write(dev->regmap, 0x10b, 0x7f);
++		ret = regmap_write(dev->regmap, 0x00e, 0xfc);
++		ret = regmap_write(dev->regmap, 0x00e, 0xfc);
++		ret = regmap_bulk_write(dev->regmap, 0x011, "\xe9\xf4", 2);
+ 		break;
+ 	default:
+ 		dev_notice(&pdev->dev, "Unsupported tuner\n");
+ 	}
+ 
+ 	/* software reset */
+-	ret = rtl2832_sdr_wr_reg_mask(dev, 0x101, 0x04, 0x04);
++	ret = regmap_update_bits(dev->regmap, 0x101, 0x04, 0x04);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2832_sdr_wr_reg_mask(dev, 0x101, 0x00, 0x04);
++	ret = regmap_update_bits(dev->regmap, 0x101, 0x04, 0x00);
+ 	if (ret)
+ 		goto err;
+ err:
+@@ -798,29 +759,29 @@ static void rtl2832_sdr_unset_adc(struct rtl2832_sdr_dev *dev)
+ 	dev_dbg(&pdev->dev, "\n");
+ 
+ 	/* PID filter */
+-	ret = rtl2832_sdr_wr_regs(dev, 0x061, "\xe0", 1);
++	ret = regmap_write(dev->regmap, 0x061, 0xe0);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* mode */
+-	ret = rtl2832_sdr_wr_regs(dev, 0x019, "\x20", 1);
++	ret = regmap_write(dev->regmap, 0x019, 0x20);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2832_sdr_wr_regs(dev, 0x017, "\x11\x10", 2);
++	ret = regmap_bulk_write(dev->regmap, 0x017, "\x11\x10", 2);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* FSM */
+-	ret = rtl2832_sdr_wr_regs(dev, 0x192, "\x00\x0f\xff", 3);
++	ret = regmap_bulk_write(dev->regmap, 0x192, "\x00\x0f\xff", 3);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2832_sdr_wr_regs(dev, 0x13e, "\x40\x00", 2);
++	ret = regmap_bulk_write(dev->regmap, 0x13e, "\x40\x00", 2);
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = rtl2832_sdr_wr_regs(dev, 0x115, "\x06\x3f\xce\xcc", 4);
++	ret = regmap_bulk_write(dev->regmap, 0x115, "\x06\x3f\xce\xcc", 4);
+ 	if (ret)
+ 		goto err;
+ err:
+@@ -1400,6 +1361,7 @@ static int rtl2832_sdr_probe(struct platform_device *pdev)
+ 	subdev = pdata->v4l2_subdev;
+ 	dev->v4l2_subdev = pdata->v4l2_subdev;
+ 	dev->pdev = pdev;
++	dev->regmap = pdata->regmap;
+ 	dev->udev = pdata->dvb_usb_device->udev;
+ 	dev->f_adc = bands_adc[0].rangelow;
+ 	dev->f_tuner = bands_fm[0].rangelow;
 -- 
-2.8.0.rc3
+2.1.4
 
