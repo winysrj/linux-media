@@ -1,129 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:24003 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751584AbcDUJl1 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58950 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751330AbcDCRuQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2016 05:41:27 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>,
-	Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: [PATCH 6/8] Input: atmel_mxt_ts - add support for reference data
-Date: Thu, 21 Apr 2016 10:31:39 +0100
-Message-Id: <1461231101-1237-7-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
+	Sun, 3 Apr 2016 13:50:16 -0400
+Subject: Re: [PATCH 1/3] [media] adv7180: Add g_std operation
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	linux-renesas-soc@vger.kernel.org, lars@metafoo.de,
+	mchehab@osg.samsung.com, linux-media@vger.kernel.org
+References: <1459618940-8170-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+ <1459618940-8170-2-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <570157CF.8030400@xs4all.nl>
+Date: Sun, 3 Apr 2016 10:50:07 -0700
+MIME-Version: 1.0
+In-Reply-To: <1459618940-8170-2-git-send-email-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are different datatypes available from a maXTouch chip. Add
-support to retrieve reference data as well.
 
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 36 ++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index bac0aa0..6a35d94 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -135,6 +135,7 @@ struct t9_range {
- /* MXT_DEBUG_DIAGNOSTIC_T37 */
- #define MXT_DIAGNOSTIC_PAGEUP 0x01
- #define MXT_DIAGNOSTIC_DELTAS 0x10
-+#define MXT_DIAGNOSTIC_REFS   0x11
- #define MXT_DIAGNOSTIC_SIZE    128
- 
- #define MXT_FAMILY_1386			160
-@@ -247,6 +248,12 @@ struct mxt_dbg {
- 	int input;
- };
- 
-+enum v4l_dbg_inputs {
-+	MXT_V4L_INPUT_DELTAS,
-+	MXT_V4L_INPUT_REFS,
-+	MXT_V4L_INPUT_MAX,
-+};
-+
- static const struct v4l2_file_operations mxt_video_fops = {
- 	.owner = THIS_MODULE,
- 	.open = v4l2_fh_open,
-@@ -2270,6 +2277,7 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
- 	struct mxt_data *data = vb2_get_drv_priv(vb->vb2_queue);
- 	u16 *ptr;
- 	int ret;
-+	u8 mode;
- 
- 	ptr = vb2_plane_vaddr(vb, 0);
- 	if (!ptr) {
-@@ -2277,7 +2285,18 @@ static void mxt_buffer_queue(struct vb2_buffer *vb)
- 		goto fault;
- 	}
- 
--	ret = mxt_read_diagnostic_debug(data, MXT_DIAGNOSTIC_DELTAS, ptr);
-+	switch (data->dbg.input) {
-+	case MXT_V4L_INPUT_DELTAS:
-+	default:
-+		mode = MXT_DIAGNOSTIC_DELTAS;
-+		break;
-+
-+	case MXT_V4L_INPUT_REFS:
-+		mode = MXT_DIAGNOSTIC_REFS;
-+		break;
-+	}
-+
-+	ret = mxt_read_diagnostic_debug(data, mode, ptr);
- 	if (ret)
- 		goto fault;
- 
-@@ -2327,13 +2346,22 @@ static int mxt_vidioc_querycap(struct file *file, void *priv,
- static int mxt_vidioc_enum_input(struct file *file, void *priv,
- 				   struct v4l2_input *i)
- {
--	if (i->index > 0)
-+	if (i->index >= MXT_V4L_INPUT_MAX)
- 		return -EINVAL;
- 
- 	i->type = V4L2_INPUT_TYPE_CAMERA;
- 	i->std = V4L2_STD_UNKNOWN;
- 	i->capabilities = 0;
--	strlcpy(i->name, "Mutual References", sizeof(i->name));
-+
-+	switch (i->index) {
-+	case MXT_V4L_INPUT_REFS:
-+		strlcpy(i->name, "Mutual References", sizeof(i->name));
-+		break;
-+	case MXT_V4L_INPUT_DELTAS:
-+		strlcpy(i->name, "Mutual Deltas", sizeof(i->name));
-+		break;
-+	}
-+
- 	return 0;
- }
- 
-@@ -2341,7 +2369,7 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- {
- 	struct v4l2_pix_format *f = &data->dbg.format;
- 
--	if (i > 0)
-+	if (i >= MXT_V4L_INPUT_MAX)
- 		return -EINVAL;
- 
- 	f->width = data->xy_switch ? data->ysize : data->xsize;
--- 
-2.5.0
+On 04/02/2016 10:42 AM, Niklas Söderlund wrote:
+> Add support to get the standard to the adv7180 driver.
+>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks!
+
+	Hans
+
+> ---
+>   drivers/media/i2c/adv7180.c | 10 ++++++++++
+>   1 file changed, 10 insertions(+)
+>
+> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+> index ff57c1d..d680d76 100644
+> --- a/drivers/media/i2c/adv7180.c
+> +++ b/drivers/media/i2c/adv7180.c
+> @@ -434,6 +434,15 @@ out:
+>   	return ret;
+>   }
+>
+> +static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
+> +{
+> +	struct adv7180_state *state = to_state(sd);
+> +
+> +	*norm = state->curr_norm;
+> +
+> +	return 0;
+> +}
+> +
+>   static int adv7180_set_power(struct adv7180_state *state, bool on)
+>   {
+>   	u8 val;
+> @@ -719,6 +728,7 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+>
+>   static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+>   	.s_std = adv7180_s_std,
+> +	.g_std = adv7180_g_std,
+>   	.querystd = adv7180_querystd,
+>   	.g_input_status = adv7180_g_input_status,
+>   	.s_routing = adv7180_s_routing,
+>
