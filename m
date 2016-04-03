@@ -1,126 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:35778 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932097AbcDETeo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2016 15:34:44 -0400
-Received: by mail-lb0-f171.google.com with SMTP id bc4so16096604lbc.2
-        for <linux-media@vger.kernel.org>; Tue, 05 Apr 2016 12:34:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <570400DE.9040306@iki.fi>
-References: <CAO8Cc0qvJxO2Z63HJd1_df+mY8HHB-UrUUZLPqBHQuoyD=TAkQ@mail.gmail.com>
-	<570400DE.9040306@iki.fi>
-Date: Tue, 5 Apr 2016 21:34:41 +0200
-Message-ID: <CAO8Cc0oHFwaRHAZaY5BZUAyYwCWRoD7s_97gr0vLF5YLgGAntA@mail.gmail.com>
-Subject: Re: AVerMedia HD Volar (A867) AF9035 + MXL5007T driver issues
-From: Alessandro Radicati <alessandro@radicati.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.lysator.liu.se ([130.236.254.3]:41566 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753057AbcDCIyY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:54:24 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v6 05/24] i2c: i2c-mux-pca9541: convert to use an explicit i2c mux core
+Date: Sun,  3 Apr 2016 10:52:35 +0200
+Message-Id: <1459673574-11440-6-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 5, 2016 at 8:15 PM, Antti Palosaari <crope@iki.fi> wrote:
-> On 04/02/2016 01:44 PM, Alessandro Radicati wrote:
->>
->> Hi,
->> In trying to understand why my DVB USB tuner doesn't work with stock
->> kernel drivers (4.2.0), I decided to pull out my logic analyser and
->> sniff the I2C bus between the AF9035 and MXL5007T.  I seem to have
->> uncovered a couple of issues:
->>
->> 1) Attach fails because MXL5007T driver I2C soft reset fails.  This is
->> due to the preceding chip id read request that seems to hang the I2C
->> bus and cause subsequent I2C commands to fail.
->
->
-> In my understanding MXL5007T register read is done in a two transactions.
-> First you should write wanted register to register 0xfb. After that single
-> byte read from the chip returns value for register configured to 0xfb.
-> Write+read with repeated start is not supported and driver is buggy as it
-> request that which usually leads to bogus value.
->
+From: Peter Rosin <peda@axentia.se>
 
-I'm not sure if it supports repeated start or not, but in reality the
-AF9035 firmware will not perform a repeated start sequence.  I.e. a
-single read USB command results in two separate I2C transactions (s
-write ... p + s read ... p).  So using the specific I2C tuner read usb
-command (with address fields) is the same as using two separate write
-and read commands.  I've only tested default firmware version: LINK
-12.13.15.0 - OFDM 6.20.15.0
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
->
->> 2) AF9035 driver I2C master xfer incorrectly implements "Write read"
->> case.  The FW expects register address fields to be used to send the
->> I2C writes for register selection.  The current implementation ignores
->> these fields and the result is that only an I2C read is issued.
->> Therefore the "0x3f" returned by the MXL5007T chip id query is not
->> from the expected register.  This is what is seen on the I2C bus:
->>
->> S | Read 0x60 + ACK | 0x3F + NAK | ...
->>
->> After which SDA is held low for ~6sec; reason for subsequent commands
->> failing.
->
->
-> You should use "S | W | P | S | R | P", no "S | W | S | R | P" == write read
-> with repeated start condition.
->
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/i2c/muxes/i2c-mux-pca9541.c | 55 ++++++++++++++++---------------------
+ 1 file changed, 23 insertions(+), 32 deletions(-)
 
-This is what I sniffed on the bus without any modifications to the
-driver.  My intent was to show that there is no write transaction at
-all.
+diff --git a/drivers/i2c/muxes/i2c-mux-pca9541.c b/drivers/i2c/muxes/i2c-mux-pca9541.c
+index d0ba424adebc..93bea073ed13 100644
+--- a/drivers/i2c/muxes/i2c-mux-pca9541.c
++++ b/drivers/i2c/muxes/i2c-mux-pca9541.c
+@@ -73,7 +73,7 @@
+ #define SELECT_DELAY_LONG	1000
+ 
+ struct pca9541 {
+-	struct i2c_adapter *mux_adap;
++	struct i2c_client *client;
+ 	unsigned long select_timeout;
+ 	unsigned long arb_timeout;
+ };
+@@ -217,7 +217,8 @@ static const u8 pca9541_control[16] = {
+  */
+ static int pca9541_arbitrate(struct i2c_client *client)
+ {
+-	struct pca9541 *data = i2c_get_clientdata(client);
++	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
++	struct pca9541 *data = i2c_mux_priv(muxc);
+ 	int reg;
+ 
+ 	reg = pca9541_reg_read(client, PCA9541_CONTROL);
+@@ -285,9 +286,10 @@ static int pca9541_arbitrate(struct i2c_client *client)
+ 	return 0;
+ }
+ 
+-static int pca9541_select_chan(struct i2c_adapter *adap, void *client, u32 chan)
++static int pca9541_select_chan(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct pca9541 *data = i2c_get_clientdata(client);
++	struct pca9541 *data = i2c_mux_priv(muxc);
++	struct i2c_client *client = data->client;
+ 	int ret;
+ 	unsigned long timeout = jiffies + ARB2_TIMEOUT;
+ 		/* give up after this time */
+@@ -309,9 +311,11 @@ static int pca9541_select_chan(struct i2c_adapter *adap, void *client, u32 chan)
+ 	return -ETIMEDOUT;
+ }
+ 
+-static int pca9541_release_chan(struct i2c_adapter *adap,
+-				void *client, u32 chan)
++static int pca9541_release_chan(struct i2c_mux_core *muxc, u32 chan)
+ {
++	struct pca9541 *data = i2c_mux_priv(muxc);
++	struct i2c_client *client = data->client;
++
+ 	pca9541_release_bus(client);
+ 	return 0;
+ }
+@@ -324,20 +328,12 @@ static int pca9541_probe(struct i2c_client *client,
+ {
+ 	struct i2c_adapter *adap = client->adapter;
+ 	struct pca954x_platform_data *pdata = dev_get_platdata(&client->dev);
++	struct i2c_mux_core *muxc;
+ 	struct pca9541 *data;
+ 	int force;
+-	int ret = -ENODEV;
+ 
+ 	if (!i2c_check_functionality(adap, I2C_FUNC_SMBUS_BYTE_DATA))
+-		goto err;
+-
+-	data = kzalloc(sizeof(struct pca9541), GFP_KERNEL);
+-	if (!data) {
+-		ret = -ENOMEM;
+-		goto err;
+-	}
+-
+-	i2c_set_clientdata(client, data);
++		return -ENODEV;
+ 
+ 	/*
+ 	 * I2C accesses are unprotected here.
+@@ -352,34 +348,29 @@ static int pca9541_probe(struct i2c_client *client,
+ 	force = 0;
+ 	if (pdata)
+ 		force = pdata->modes[0].adap_id;
+-	data->mux_adap = i2c_add_mux_adapter(adap, &client->dev, client,
+-					     force, 0, 0,
+-					     pca9541_select_chan,
+-					     pca9541_release_chan);
+-
+-	if (data->mux_adap == NULL) {
++	muxc = i2c_mux_one_adapter(adap, &client->dev, sizeof(*data), 0,
++				   force, 0, 0,
++				   pca9541_select_chan, pca9541_release_chan);
++	if (IS_ERR(muxc)) {
+ 		dev_err(&client->dev, "failed to register master selector\n");
+-		goto exit_free;
++		return PTR_ERR(muxc);
+ 	}
++	data = i2c_mux_priv(muxc);
++	data->client = client;
++
++	i2c_set_clientdata(client, muxc);
+ 
+ 	dev_info(&client->dev, "registered master selector for I2C %s\n",
+ 		 client->name);
+ 
+ 	return 0;
+-
+-exit_free:
+-	kfree(data);
+-err:
+-	return ret;
+ }
+ 
+ static int pca9541_remove(struct i2c_client *client)
+ {
+-	struct pca9541 *data = i2c_get_clientdata(client);
+-
+-	i2c_del_mux_adapter(data->mux_adap);
++	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
+ 
+-	kfree(data);
++	i2c_mux_del_adapters(muxc);
+ 	return 0;
+ }
+ 
+-- 
+2.1.4
 
->> 3) After modifying the AF9035 driver to fix point 2 and use the
->> register address field, the following is seen on the I2C bus:
->>
->> S | Write 0x60 + ACK | 0xFB + ACK | 0xD9 + ACK | P
->> S | Read 0x60 + ACK | 0x14 + NAK | ...
->
->
-> That is correct sequence. You are trying to read more than 1 byte and it
-> fails?
->
-
-This is after I modified the driver to use the register address
-fields.  Sequence looks good except for the missing P after the NAK,
-but this is due to something holding SDA low or an issue with the
-AF9035.  I've tested this reading other registers, but same behavior.
-I've also tried using two separate write read commands, exact same I2C
-sequence and same result.  I also hacked the driver to read two bytes
-instead of one.  Interestingly I got 0x14 twice as expected, but again
-the bus hangs after the NAK that marks the end of the read.
-
->> This time we get an expected response, but the I2C bus still hangs
->> with SDA held low and no Stop sequence.  It seems that the MXL5007T is
->> holding SDA low since the AF9035 happily cycles SCL trying to execute
->> the subsequent writes.  Without a solution to this, it seems that
->> avoiding the I2C read is the best way to have the driver work
->> correctly.  There are no other tuner reads so point 2 above becomes
->> moot for at least this device.
->>
->> Does anyone have any insight on the MXL5007T chip ID command and
->> whether it should be issued in certain conditions?  Any suggestions on
->> how to resolve this given the above?
->
->
-> I tried to fix it earlier:
-> http://www.spinics.net/lists/linux-media/msg62264.html
->
-> Feel free to fix! It should not be very hard as you could even sniff data
-> from the I2C bus directly. I don't have any AF9035+MXL5007T device, but I
-> have tested it with older AF9015+MXL5007T.
->
-
-So there are two problems:
-1) AF9035 I2C master read function needs to use the register address
-fields.  This is a trivial fix and I've done a patch.  However I'm
-unsure of the consequences this may have with other tuners.  I can
-only guess that tuner reads are almost never done or are not
-important, otherwise this would have been caught earlier.  Again, this
-may be something related to this specific firmware, but unlikely.
-2) I2C bus hangs after any MXL5007t I2C read is performed.  I have no
-idea why this happens, or who is the culprit.  I'm happy to test out
-any suggestions.
-
-Thanks,
-Alessandro
