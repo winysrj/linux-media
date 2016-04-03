@@ -1,76 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36397 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753467AbcDYGdW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 02:33:22 -0400
-Received: by mail-wm0-f65.google.com with SMTP id w143so18377300wmw.3
-        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 23:33:21 -0700 (PDT)
-Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
-To: Pavel Machek <pavel@ucw.cz>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160424215541.GA6338@amd>
-Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
-	linux-media@vger.kernel.org
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <571DBA2E.9020305@gmail.com>
-Date: Mon, 25 Apr 2016 09:33:18 +0300
-MIME-Version: 1.0
-In-Reply-To: <20160424215541.GA6338@amd>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.lysator.liu.se ([130.236.254.3]:59282 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419AbcDCIzl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:55:41 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v6 11/24] [media] rtl2832: convert to use an explicit i2c mux core
+Date: Sun,  3 Apr 2016 10:52:41 +0200
+Message-Id: <1459673574-11440-12-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Peter Rosin <peda@axentia.se>
 
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
-On 25.04.2016 00:55, Pavel Machek wrote:
-> Hi!
->
->> Those patch series make cameras on Nokia N900 partially working.
->> Some more patches are needed, but I've already sent them for
->> upstreaming so they are not part of the series:
->>
->> https://lkml.org/lkml/2016/4/16/14
->> https://lkml.org/lkml/2016/4/16/33
->>
->> As omap3isp driver supports only one endpoint on ccp2 interface,
->> but cameras on N900 require different strobe settings, so far
->> it is not possible to have both cameras correctly working with
->> the same board DTS. DTS patch in the series has the correct
->> settings for the front camera. This is a problem still to be
->> solved.
->>
->> The needed pipeline could be made with:
->
-> Would you have similar pipeline for the back camera? Autofocus and
-> 5MPx makes it more interesting. I understand that different dts will
-> be needed.
->
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/dvb-frontends/rtl2832.c      | 22 +++++++++++-----------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  2 +-
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-Try with:
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 7c96f7679669..545c3bbbc668 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -847,9 +847,9 @@ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ }
+ 
+-static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
++static int rtl2832_select(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct rtl2832_dev *dev = mux_priv;
++	struct rtl2832_dev *dev = i2c_mux_priv(muxc);
+ 	struct i2c_client *client = dev->client;
+ 	int ret;
+ 
+@@ -870,10 +870,9 @@ err:
+ 	return ret;
+ }
+ 
+-static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv,
+-			    u32 chan_id)
++static int rtl2832_deselect(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct rtl2832_dev *dev = mux_priv;
++	struct rtl2832_dev *dev = i2c_mux_priv(muxc);
+ 
+ 	schedule_delayed_work(&dev->i2c_gate_work, usecs_to_jiffies(100));
+ 	return 0;
+@@ -1059,7 +1058,7 @@ static struct i2c_adapter *rtl2832_get_i2c_adapter(struct i2c_client *client)
+ 	struct rtl2832_dev *dev = i2c_get_clientdata(client);
+ 
+ 	dev_dbg(&client->dev, "\n");
+-	return dev->i2c_adapter_tuner;
++	return dev->muxc->adapter[0];
+ }
+ 
+ static int rtl2832_slave_ts_ctrl(struct i2c_client *client, bool enable)
+@@ -1242,12 +1241,13 @@ static int rtl2832_probe(struct i2c_client *client,
+ 		goto err_regmap_exit;
+ 
+ 	/* create muxed i2c adapter for demod tuner bus */
+-	dev->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, dev,
+-			0, 0, 0, rtl2832_select, rtl2832_deselect);
+-	if (dev->i2c_adapter_tuner == NULL) {
+-		ret = -ENODEV;
++	dev->muxc = i2c_mux_one_adapter(i2c, &i2c->dev, 0, 0, 0, 0, 0,
++					rtl2832_select, rtl2832_deselect);
++	if (IS_ERR(dev->muxc)) {
++		ret = PTR_ERR(dev->muxc);
+ 		goto err_regmap_exit;
+ 	}
++	dev->muxc->priv = dev;
+ 
+ 	/* create dvb_frontend */
+ 	memcpy(&dev->fe.ops, &rtl2832_ops, sizeof(struct dvb_frontend_ops));
+@@ -1282,7 +1282,7 @@ static int rtl2832_remove(struct i2c_client *client)
+ 
+ 	cancel_delayed_work_sync(&dev->i2c_gate_work);
+ 
+-	i2c_del_mux_adapter(dev->i2c_adapter_tuner);
++	i2c_mux_del_adapters(dev->muxc);
+ 
+ 	regmap_exit(dev->regmap);
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index 6b875f462f8b..d8f97d14f6fd 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -36,7 +36,7 @@ struct rtl2832_dev {
+ 	struct mutex regmap_mutex;
+ 	struct regmap_config regmap_config;
+ 	struct regmap *regmap;
+-	struct i2c_adapter *i2c_adapter_tuner;
++	struct i2c_mux_core *muxc;
+ 	struct dvb_frontend fe;
+ 	enum fe_status fe_status;
+ 	u64 post_bit_error_prev; /* for old DVBv3 read_ber() calculation */
+-- 
+2.1.4
 
-media-ctl -r
-media-ctl -l '"et8ek8 3-003e":0 -> "video-bus-switch":1 [1]'
-media-ctl -l '"video-bus-switch":0 -> "OMAP3 ISP CCP2":0 [1]'
-media-ctl -l '"OMAP3 ISP CCP2":1 -> "OMAP3 ISP CCDC":0 [1]'
-media-ctl -l '"OMAP3 ISP CCDC":2 -> "OMAP3 ISP preview":0 [1]'
-media-ctl -l '"OMAP3 ISP preview":1 -> "OMAP3 ISP resizer":0 [1]'
-media-ctl -l '"OMAP3 ISP resizer":1 -> "OMAP3 ISP resizer output":0 [1]'
-
-media-ctl -V '"et8ek8 3-003e":0 [SGRBG10 864x656]'
-media-ctl -V '"OMAP3 ISP CCP2":0 [SGRBG10 864x656]'
-media-ctl -V '"OMAP3 ISP CCP2":1 [SGRBG10 864x656]'
-media-ctl -V '"OMAP3 ISP CCDC":2 [SGRBG10 864x656]'
-media-ctl -V '"OMAP3 ISP preview":1 [UYVY 864x656]'
-media-ctl -V '"OMAP3 ISP resizer":1 [UYVY 800x600]'
-
-
-mplayer -tv 
-driver=v4l2:width=800:height=600:outfmt=uyvy:device=/dev/video6 -vo xv 
--vf screenshot tv://
-
-
-Regards,
-Ivo
