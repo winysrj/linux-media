@@ -1,217 +1,268 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35745 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753259AbcDXVKc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Apr 2016 17:10:32 -0400
-Received: by mail-wm0-f66.google.com with SMTP id e201so17587695wme.2
-        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:31 -0700 (PDT)
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: sakari.ailus@iki.fi
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org
-Subject: [RFC PATCH 18/24] v4l2-async: per notifier locking
-Date: Mon, 25 Apr 2016 00:08:18 +0300
-Message-Id: <1461532104-24032-19-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Received: from mail.lysator.liu.se ([130.236.254.3]:42668 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752898AbcDCIyE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:54:04 -0400
+From: Peter Rosin <peda@lysator.liu.se>
+To: linux-kernel@vger.kernel.org
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v6 03/24] i2c: i2c-mux-pinctrl: convert to use an explicit i2c mux core
+Date: Sun,  3 Apr 2016 10:52:33 +0200
+Message-Id: <1459673574-11440-4-git-send-email-peda@lysator.liu.se>
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sebastian Reichel <sre@kernel.org>
+From: Peter Rosin <peda@axentia.se>
 
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
+
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 50 ++++++++++++++++++------------------
- include/media/v4l2-async.h           |  2 ++
- 2 files changed, 27 insertions(+), 25 deletions(-)
+ drivers/i2c/muxes/i2c-mux-pinctrl.c | 86 +++++++++++++------------------------
+ 1 file changed, 30 insertions(+), 56 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index a4b224d..27789cd 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -56,7 +56,6 @@ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+diff --git a/drivers/i2c/muxes/i2c-mux-pinctrl.c b/drivers/i2c/muxes/i2c-mux-pinctrl.c
+index b5a982ba8898..bbfabf4f52be 100644
+--- a/drivers/i2c/muxes/i2c-mux-pinctrl.c
++++ b/drivers/i2c/muxes/i2c-mux-pinctrl.c
+@@ -26,27 +26,22 @@
+ #include <linux/of.h>
  
- static LIST_HEAD(subdev_list);
- static LIST_HEAD(notifier_list);
--static DEFINE_MUTEX(list_lock);
+ struct i2c_mux_pinctrl {
+-	struct device *dev;
+ 	struct i2c_mux_pinctrl_platform_data *pdata;
+ 	struct pinctrl *pinctrl;
+ 	struct pinctrl_state **states;
+ 	struct pinctrl_state *state_idle;
+-	struct i2c_adapter *parent;
+-	struct i2c_adapter **busses;
+ };
  
- static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
- 						    struct v4l2_subdev *sd)
-@@ -106,14 +105,17 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
- 
- 	if (notifier->bound) {
- 		ret = notifier->bound(notifier, sd, asd);
--		if (ret < 0)
-+		if (ret < 0) {
-+			dev_warn(notifier->v4l2_dev->dev, "subdev bound failed\n");
- 			return ret;
-+		}
- 	}
- 	/* Move from the global subdevice list to notifier's done */
- 	list_move(&sd->async_list, &notifier->done);
- 
- 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
- 	if (ret < 0) {
-+		dev_warn(notifier->v4l2_dev->dev, "subdev register failed\n");
- 		if (notifier->unbind)
- 			notifier->unbind(notifier, sd, asd);
- 		return ret;
-@@ -146,7 +148,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+-static int i2c_mux_pinctrl_select(struct i2c_adapter *adap, void *data,
+-				  u32 chan)
++static int i2c_mux_pinctrl_select(struct i2c_mux_core *muxc, u32 chan)
  {
- 	struct v4l2_subdev *sd, *tmp;
- 	struct v4l2_async_subdev *asd;
--	int i;
-+	int ret = 0, i;
+-	struct i2c_mux_pinctrl *mux = data;
++	struct i2c_mux_pinctrl *mux = i2c_mux_priv(muxc);
  
- 	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
- 		return -EINVAL;
-@@ -154,6 +156,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 	notifier->v4l2_dev = v4l2_dev;
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
-+	mutex_init(&notifier->lock);
- 
- 	for (i = 0; i < notifier->num_subdevs; i++) {
- 		asd = notifier->subdevs[i];
-@@ -173,28 +176,22 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 		list_add_tail(&asd->list, &notifier->waiting);
- 	}
- 
--	mutex_lock(&list_lock);
--
- 	/* Keep also completed notifiers on the list */
- 	list_add(&notifier->list, &notifier_list);
-+	mutex_lock(&notifier->lock);
- 
- 	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
--		int ret;
--
- 		asd = v4l2_async_belongs(notifier, sd);
- 		if (!asd)
- 			continue;
- 
- 		ret = v4l2_async_test_notify(notifier, sd, asd);
--		if (ret < 0) {
--			mutex_unlock(&list_lock);
--			return ret;
--		}
-+		if (ret < 0)
-+			break;
- 	}
-+	mutex_unlock(&notifier->lock);
- 
--	mutex_unlock(&list_lock);
--
--	return 0;
-+	return ret;
+ 	return pinctrl_select_state(mux->pinctrl, mux->states[chan]);
  }
- EXPORT_SYMBOL(v4l2_async_notifier_register);
  
-@@ -215,7 +212,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 			"Failed to allocate device cache!\n");
- 	}
- 
--	mutex_lock(&list_lock);
-+	mutex_lock(&notifier->lock);
- 
- 	list_del(&notifier->list);
- 
-@@ -242,7 +239,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 			put_device(d);
- 	}
- 
--	mutex_unlock(&list_lock);
-+	mutex_unlock(&notifier->lock);
- 
- 	/*
- 	 * Call device_attach() to reprobe devices
-@@ -267,6 +264,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	}
- 	kfree(dev);
- 
-+	mutex_destroy(&notifier->lock);
- 	notifier->v4l2_dev = NULL;
- 
- 	/*
-@@ -279,6 +277,7 @@ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+-static int i2c_mux_pinctrl_deselect(struct i2c_adapter *adap, void *data,
+-				    u32 chan)
++static int i2c_mux_pinctrl_deselect(struct i2c_mux_core *muxc, u32 chan)
  {
- 	struct v4l2_async_notifier *notifier;
-+	struct v4l2_async_notifier *tmp;
+-	struct i2c_mux_pinctrl *mux = data;
++	struct i2c_mux_pinctrl *mux = i2c_mux_priv(muxc);
  
- 	/*
- 	 * No reference taken. The reference is held by the device
-@@ -288,24 +287,25 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 	if (!sd->of_node && sd->dev)
- 		sd->of_node = sd->dev->of_node;
+ 	return pinctrl_select_state(mux->pinctrl, mux->state_idle);
+ }
+@@ -55,6 +50,7 @@ static int i2c_mux_pinctrl_deselect(struct i2c_adapter *adap, void *data,
+ static int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
+ 				struct platform_device *pdev)
+ {
++	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
+ 	struct device_node *np = pdev->dev.of_node;
+ 	int num_names, i, ret;
+ 	struct device_node *adapter_np;
+@@ -64,15 +60,12 @@ static int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
+ 		return 0;
  
--	mutex_lock(&list_lock);
--
- 	INIT_LIST_HEAD(&sd->async_list);
+ 	mux->pdata = devm_kzalloc(&pdev->dev, sizeof(*mux->pdata), GFP_KERNEL);
+-	if (!mux->pdata) {
+-		dev_err(mux->dev,
+-			"Cannot allocate i2c_mux_pinctrl_platform_data\n");
++	if (!mux->pdata)
+ 		return -ENOMEM;
+-	}
  
--	list_for_each_entry(notifier, &notifier_list, list) {
--		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-+	list_for_each_entry_safe(notifier, tmp, &notifier_list, list) {
-+		struct v4l2_async_subdev *asd;
-+
-+		/* TODO: FIXME: if this is called by ->bound() we will also iterate over the locked notifier */
-+		mutex_lock_nested(&notifier->lock, SINGLE_DEPTH_NESTING);
-+		asd = v4l2_async_belongs(notifier, sd);
- 		if (asd) {
- 			int ret = v4l2_async_test_notify(notifier, sd, asd);
--			mutex_unlock(&list_lock);
-+			mutex_unlock(&notifier->lock);
+ 	num_names = of_property_count_strings(np, "pinctrl-names");
+ 	if (num_names < 0) {
+-		dev_err(mux->dev, "Cannot parse pinctrl-names: %d\n",
++		dev_err(muxc->dev, "Cannot parse pinctrl-names: %d\n",
+ 			num_names);
+ 		return num_names;
+ 	}
+@@ -80,23 +73,21 @@ static int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
+ 	mux->pdata->pinctrl_states = devm_kzalloc(&pdev->dev,
+ 		sizeof(*mux->pdata->pinctrl_states) * num_names,
+ 		GFP_KERNEL);
+-	if (!mux->pdata->pinctrl_states) {
+-		dev_err(mux->dev, "Cannot allocate pinctrl_states\n");
++	if (!mux->pdata->pinctrl_states)
+ 		return -ENOMEM;
+-	}
+ 
+ 	for (i = 0; i < num_names; i++) {
+ 		ret = of_property_read_string_index(np, "pinctrl-names", i,
+ 			&mux->pdata->pinctrl_states[mux->pdata->bus_count]);
+ 		if (ret < 0) {
+-			dev_err(mux->dev, "Cannot parse pinctrl-names: %d\n",
++			dev_err(muxc->dev, "Cannot parse pinctrl-names: %d\n",
+ 				ret);
  			return ret;
  		}
-+		mutex_unlock(&notifier->lock);
+ 		if (!strcmp(mux->pdata->pinctrl_states[mux->pdata->bus_count],
+ 			    "idle")) {
+ 			if (i != num_names - 1) {
+-				dev_err(mux->dev, "idle state must be last\n");
++				dev_err(muxc->dev, "idle state must be last\n");
+ 				return -EINVAL;
+ 			}
+ 			mux->pdata->pinctrl_state_idle = "idle";
+@@ -107,13 +98,13 @@ static int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
+ 
+ 	adapter_np = of_parse_phandle(np, "i2c-parent", 0);
+ 	if (!adapter_np) {
+-		dev_err(mux->dev, "Cannot parse i2c-parent\n");
++		dev_err(muxc->dev, "Cannot parse i2c-parent\n");
+ 		return -ENODEV;
+ 	}
+ 	adapter = of_find_i2c_adapter_by_node(adapter_np);
+ 	of_node_put(adapter_np);
+ 	if (!adapter) {
+-		dev_err(mux->dev, "Cannot find parent bus\n");
++		dev_err(muxc->dev, "Cannot find parent bus\n");
+ 		return -EPROBE_DEFER;
+ 	}
+ 	mux->pdata->parent_bus_num = i2c_adapter_id(adapter);
+@@ -131,19 +122,18 @@ static inline int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
+ 
+ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
+ {
++	struct i2c_mux_core *muxc;
+ 	struct i2c_mux_pinctrl *mux;
+-	int (*deselect)(struct i2c_adapter *, void *, u32);
+ 	int i, ret;
+ 
+-	mux = devm_kzalloc(&pdev->dev, sizeof(*mux), GFP_KERNEL);
+-	if (!mux) {
+-		dev_err(&pdev->dev, "Cannot allocate i2c_mux_pinctrl\n");
++	muxc = i2c_mux_alloc(NULL, &pdev->dev, sizeof(*mux), 0,
++			     i2c_mux_pinctrl_select, NULL);
++	if (!muxc) {
+ 		ret = -ENOMEM;
+ 		goto err;
+ 	}
+-	platform_set_drvdata(pdev, mux);
+-
+-	mux->dev = &pdev->dev;
++	mux = i2c_mux_priv(muxc);
++	platform_set_drvdata(pdev, muxc);
+ 
+ 	mux->pdata = dev_get_platdata(&pdev->dev);
+ 	if (!mux->pdata) {
+@@ -166,14 +156,9 @@ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
+ 		goto err;
  	}
  
- 	/* None matched, wait for hot-plugging */
- 	list_add(&sd->async_list, &subdev_list);
+-	mux->busses = devm_kzalloc(&pdev->dev,
+-				   sizeof(*mux->busses) * mux->pdata->bus_count,
+-				   GFP_KERNEL);
+-	if (!mux->busses) {
+-		dev_err(&pdev->dev, "Cannot allocate busses\n");
+-		ret = -ENOMEM;
++	ret = i2c_mux_reserve_adapters(muxc, mux->pdata->bus_count);
++	if (ret)
+ 		goto err;
+-	}
  
--	mutex_unlock(&list_lock);
+ 	mux->pinctrl = devm_pinctrl_get(&pdev->dev);
+ 	if (IS_ERR(mux->pinctrl)) {
+@@ -203,13 +188,11 @@ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
+ 			goto err;
+ 		}
+ 
+-		deselect = i2c_mux_pinctrl_deselect;
+-	} else {
+-		deselect = NULL;
++		muxc->deselect = i2c_mux_pinctrl_deselect;
+ 	}
+ 
+-	mux->parent = i2c_get_adapter(mux->pdata->parent_bus_num);
+-	if (!mux->parent) {
++	muxc->parent = i2c_get_adapter(mux->pdata->parent_bus_num);
++	if (!muxc->parent) {
+ 		dev_err(&pdev->dev, "Parent adapter (%d) not found\n",
+ 			mux->pdata->parent_bus_num);
+ 		ret = -EPROBE_DEFER;
+@@ -220,12 +203,8 @@ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
+ 		u32 bus = mux->pdata->base_bus_num ?
+ 				(mux->pdata->base_bus_num + i) : 0;
+ 
+-		mux->busses[i] = i2c_add_mux_adapter(mux->parent, &pdev->dev,
+-						     mux, bus, i, 0,
+-						     i2c_mux_pinctrl_select,
+-						     deselect);
+-		if (!mux->busses[i]) {
+-			ret = -ENODEV;
++		ret = i2c_mux_add_adapter(muxc, bus, i, 0);
++		if (ret) {
+ 			dev_err(&pdev->dev, "Failed to add adapter %d\n", i);
+ 			goto err_del_adapter;
+ 		}
+@@ -234,23 +213,18 @@ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ err_del_adapter:
+-	for (; i > 0; i--)
+-		i2c_del_mux_adapter(mux->busses[i - 1]);
+-	i2c_put_adapter(mux->parent);
++	i2c_mux_del_adapters(muxc);
++	i2c_put_adapter(muxc->parent);
+ err:
+ 	return ret;
+ }
+ 
+ static int i2c_mux_pinctrl_remove(struct platform_device *pdev)
+ {
+-	struct i2c_mux_pinctrl *mux = platform_get_drvdata(pdev);
+-	int i;
 -
+-	for (i = 0; i < mux->pdata->bus_count; i++)
+-		i2c_del_mux_adapter(mux->busses[i]);
+-
+-	i2c_put_adapter(mux->parent);
++	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
+ 
++	i2c_mux_del_adapters(muxc);
++	i2c_put_adapter(muxc->parent);
  	return 0;
  }
- EXPORT_SYMBOL(v4l2_async_register_subdev);
-@@ -320,7 +320,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- 		return;
- 	}
  
--	mutex_lock(&list_lock);
-+	mutex_lock_nested(&notifier->lock, SINGLE_DEPTH_NESTING);
- 
- 	list_add(&sd->asd->list, &notifier->waiting);
- 
-@@ -329,6 +329,6 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- 	if (notifier->unbind)
- 		notifier->unbind(notifier, sd, sd->asd);
- 
--	mutex_unlock(&list_lock);
-+	mutex_unlock(&notifier->lock);
- }
- EXPORT_SYMBOL(v4l2_async_unregister_subdev);
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 1d6d7da..d2178c1 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -71,6 +71,7 @@ struct v4l2_async_subdev {
-  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-  * @done:	list of struct v4l2_subdev, already probed
-  * @list:	member in a global list of notifiers
-+ * @lock:       lock hold when the notifier is being processed
-  * @bound:	a subdevice driver has successfully probed one of subdevices
-  * @complete:	all subdevices have been probed successfully
-  * @unbind:	a subdevice is leaving
-@@ -82,6 +83,7 @@ struct v4l2_async_notifier {
- 	struct list_head waiting;
- 	struct list_head done;
- 	struct list_head list;
-+	struct mutex lock;
- 	int (*bound)(struct v4l2_async_notifier *notifier,
- 		     struct v4l2_subdev *subdev,
- 		     struct v4l2_async_subdev *asd);
 -- 
-1.9.1
+2.1.4
 
