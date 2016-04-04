@@ -1,556 +1,325 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53114 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751333AbcDONET (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 09:04:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:35057 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932550AbcDDREY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2016 13:04:24 -0400
+From: info@are.ma
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCHv2 08/12] media/platform: convert drivers to use the new vb2_queue dev field
-Date: Fri, 15 Apr 2016 15:03:52 +0200
-Message-Id: <1460725436-20045-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
-References: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?=
+	<knightrider@are.ma>, linux-kernel@vger.kernel.org, crope@iki.fi,
+	m.chehab@samsung.com, mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 3/6] Demodulator for Earthsoft PT3, PLEX PX-Q3PE ISDB-S/T PCIE cards & PX-BCUD ISDB-S USB dongle
+Date: Tue,  5 Apr 2016 02:04:02 +0900
+Message-Id: <22cf1dc77ff6f453765680d1a0383689e9b2b350.1459787898.git.knightrider@are.ma>
+In-Reply-To: <cover.1459787898.git.knightrider@are.ma>
+References: <cover.1459787898.git.knightrider@are.ma>
+In-Reply-To: <cover.1459787898.git.knightrider@are.ma>
+References: <cover.1459787898.git.knightrider@are.ma>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-Stop using alloc_ctx and just fill in the device pointer.
+Toshiba TC905xx demodulator driver for PT3, PX-Q3PE & PX-BCUD
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Javier Martin <javier.martin@vista-silicon.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
 ---
- drivers/media/platform/m2m-deinterlace.c        | 15 ++-------------
- drivers/media/platform/marvell-ccic/mcam-core.c | 24 +-----------------------
- drivers/media/platform/marvell-ccic/mcam-core.h |  2 --
- drivers/media/platform/mx2_emmaprp.c            | 17 +++--------------
- drivers/media/platform/omap3isp/ispvideo.c      | 12 ++----------
- drivers/media/platform/omap3isp/ispvideo.h      |  1 -
- drivers/media/platform/rcar_jpu.c               | 22 ++++------------------
- drivers/media/platform/sh_veu.c                 | 17 +++--------------
- drivers/media/platform/sh_vou.c                 | 14 ++------------
- 9 files changed, 17 insertions(+), 107 deletions(-)
+ drivers/media/dvb-frontends/tc90522.c | 254 ++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/tc90522.h |  18 +++
+ 2 files changed, 272 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/tc90522.c
+ create mode 100644 drivers/media/dvb-frontends/tc90522.h
 
-diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
-index 7383818..15110ea 100644
---- a/drivers/media/platform/m2m-deinterlace.c
-+++ b/drivers/media/platform/m2m-deinterlace.c
-@@ -136,7 +136,6 @@ struct deinterlace_dev {
- 	struct dma_chan		*dma_chan;
- 
- 	struct v4l2_m2m_dev	*m2m_dev;
--	struct vb2_alloc_ctx	*alloc_ctx;
- };
- 
- struct deinterlace_ctx {
-@@ -820,8 +819,6 @@ static int deinterlace_queue_setup(struct vb2_queue *vq,
- 	*nbuffers = count;
- 	sizes[0] = size;
- 
--	alloc_ctxs[0] = ctx->dev->alloc_ctx;
--
- 	dprintk(ctx->dev, "get %d buffer(s) of size %d each.\n", count, size);
- 
- 	return 0;
-@@ -874,6 +871,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->ops = &deinterlace_qops;
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	src_vq->dev = ctx->dev->v4l2_dev.dev;
- 	q_data[V4L2_M2M_SRC].fmt = &formats[0];
- 	q_data[V4L2_M2M_SRC].width = 640;
- 	q_data[V4L2_M2M_SRC].height = 480;
-@@ -891,6 +889,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->ops = &deinterlace_qops;
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	dst_vq->dev = ctx->dev->v4l2_dev.dev;
- 	q_data[V4L2_M2M_DST].fmt = &formats[0];
- 	q_data[V4L2_M2M_DST].width = 640;
- 	q_data[V4L2_M2M_DST].height = 480;
-@@ -1046,13 +1045,6 @@ static int deinterlace_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, pcdev);
- 
--	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(pcdev->alloc_ctx)) {
--		v4l2_err(&pcdev->v4l2_dev, "Failed to alloc vb2 context\n");
--		ret = PTR_ERR(pcdev->alloc_ctx);
--		goto err_ctx;
--	}
--
- 	pcdev->m2m_dev = v4l2_m2m_init(&m2m_ops);
- 	if (IS_ERR(pcdev->m2m_dev)) {
- 		v4l2_err(&pcdev->v4l2_dev, "Failed to init mem2mem device\n");
-@@ -1064,8 +1056,6 @@ static int deinterlace_probe(struct platform_device *pdev)
- 
- err_m2m:
- 	video_unregister_device(&pcdev->vfd);
--err_ctx:
--	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- unreg_dev:
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
- rel_dma:
-@@ -1082,7 +1072,6 @@ static int deinterlace_remove(struct platform_device *pdev)
- 	v4l2_m2m_release(pcdev->m2m_dev);
- 	video_unregister_device(&pcdev->vfd);
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
--	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- 	dma_release_channel(pcdev->dma_chan);
- 
- 	return 0;
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 9b878de..8a1f12d 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1059,10 +1059,6 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
- 
- 	if (*nbufs < minbufs)
- 		*nbufs = minbufs;
--	if (cam->buffer_mode == B_DMA_contig)
--		alloc_ctxs[0] = cam->vb_alloc_ctx;
--	else if (cam->buffer_mode == B_DMA_sg)
--		alloc_ctxs[0] = cam->vb_alloc_ctx_sg;
- 
- 	if (*num_planes)
- 		return sizes[0] < size ? -EINVAL : 0;
-@@ -1271,6 +1267,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
- 	vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
-+	vq->dev = cam->dev;
- 	INIT_LIST_HEAD(&cam->buffers);
- 	switch (cam->buffer_mode) {
- 	case B_DMA_contig:
-@@ -1279,9 +1276,6 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- 		vq->mem_ops = &vb2_dma_contig_memops;
- 		cam->dma_setup = mcam_ctlr_dma_contig;
- 		cam->frame_complete = mcam_dma_contig_done;
--		cam->vb_alloc_ctx = vb2_dma_contig_init_ctx(cam->dev);
--		if (IS_ERR(cam->vb_alloc_ctx))
--			return PTR_ERR(cam->vb_alloc_ctx);
- #endif
- 		break;
- 	case B_DMA_sg:
-@@ -1290,9 +1284,6 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- 		vq->mem_ops = &vb2_dma_sg_memops;
- 		cam->dma_setup = mcam_ctlr_dma_sg;
- 		cam->frame_complete = mcam_dma_sg_done;
--		cam->vb_alloc_ctx_sg = vb2_dma_sg_init_ctx(cam->dev);
--		if (IS_ERR(cam->vb_alloc_ctx_sg))
--			return PTR_ERR(cam->vb_alloc_ctx_sg);
- #endif
- 		break;
- 	case B_vmalloc:
-@@ -1309,18 +1300,6 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- 	return vb2_queue_init(vq);
- }
- 
--static void mcam_cleanup_vb2(struct mcam_camera *cam)
--{
--#ifdef MCAM_MODE_DMA_CONTIG
--	if (cam->buffer_mode == B_DMA_contig)
--		vb2_dma_contig_cleanup_ctx(cam->vb_alloc_ctx);
--#endif
--#ifdef MCAM_MODE_DMA_SG
--	if (cam->buffer_mode == B_DMA_sg)
--		vb2_dma_sg_cleanup_ctx(cam->vb_alloc_ctx_sg);
--#endif
--}
--
- 
- /* ---------------------------------------------------------------------- */
- /*
-@@ -1875,7 +1854,6 @@ void mccic_shutdown(struct mcam_camera *cam)
- 		cam_warn(cam, "Removing a device with users!\n");
- 		mcam_ctlr_power_down(cam);
- 	}
--	mcam_cleanup_vb2(cam);
- 	if (cam->buffer_mode == B_vmalloc)
- 		mcam_free_dma_bufs(cam);
- 	video_unregister_device(&cam->vdev);
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-index 35cd9e5..beb339f 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.h
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-@@ -176,8 +176,6 @@ struct mcam_camera {
- 
- 	/* DMA buffers - DMA modes */
- 	struct mcam_vb_buffer *vb_bufs[MAX_DMA_BUFS];
--	struct vb2_alloc_ctx *vb_alloc_ctx;
--	struct vb2_alloc_ctx *vb_alloc_ctx_sg;
- 
- 	/* Mode-specific ops, set at open time */
- 	void (*dma_setup)(struct mcam_camera *cam);
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index 3c4012d..88b3d98 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -211,7 +211,6 @@ struct emmaprp_dev {
- 	struct clk		*clk_emma_ahb, *clk_emma_ipg;
- 
- 	struct v4l2_m2m_dev	*m2m_dev;
--	struct vb2_alloc_ctx	*alloc_ctx;
- };
- 
- struct emmaprp_ctx {
-@@ -710,8 +709,6 @@ static int emmaprp_queue_setup(struct vb2_queue *vq,
- 	*nbuffers = count;
- 	sizes[0] = size;
- 
--	alloc_ctxs[0] = ctx->dev->alloc_ctx;
--
- 	dprintk(ctx->dev, "get %d buffer(s) of size %d each.\n", count, size);
- 
- 	return 0;
-@@ -765,6 +762,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->ops = &emmaprp_qops;
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	src_vq->dev = ctx->dev->v4l2_dev.dev;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -777,6 +775,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->ops = &emmaprp_qops;
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	dst_vq->dev = ctx->dev->v4l2_dev.dev;
- 
- 	return vb2_queue_init(dst_vq);
- }
-@@ -948,18 +947,11 @@ static int emmaprp_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto rel_vdev;
- 
--	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(pcdev->alloc_ctx)) {
--		v4l2_err(&pcdev->v4l2_dev, "Failed to alloc vb2 context\n");
--		ret = PTR_ERR(pcdev->alloc_ctx);
--		goto rel_vdev;
--	}
--
- 	pcdev->m2m_dev = v4l2_m2m_init(&m2m_ops);
- 	if (IS_ERR(pcdev->m2m_dev)) {
- 		v4l2_err(&pcdev->v4l2_dev, "Failed to init mem2mem device\n");
- 		ret = PTR_ERR(pcdev->m2m_dev);
--		goto rel_ctx;
-+		goto rel_vdev;
- 	}
- 
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-@@ -973,8 +965,6 @@ static int emmaprp_probe(struct platform_device *pdev)
- 
- rel_m2m:
- 	v4l2_m2m_release(pcdev->m2m_dev);
--rel_ctx:
--	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- rel_vdev:
- 	video_device_release(vfd);
- unreg_dev:
-@@ -993,7 +983,6 @@ static int emmaprp_remove(struct platform_device *pdev)
- 
- 	video_unregister_device(pcdev->vfd);
- 	v4l2_m2m_release(pcdev->m2m_dev);
--	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
- 	mutex_destroy(&pcdev->dev_mutex);
- 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 1b1a95d..486b875 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -342,8 +342,6 @@ static int isp_video_queue_setup(struct vb2_queue *queue,
- 	if (sizes[0] == 0)
- 		return -EINVAL;
- 
--	alloc_ctxs[0] = video->alloc_ctx;
--
- 	*count = min(*count, video->capture_mem / PAGE_ALIGN(sizes[0]));
- 
- 	return 0;
-@@ -1308,6 +1306,7 @@ static int isp_video_open(struct file *file)
- 	queue->mem_ops = &vb2_dma_contig_memops;
- 	queue->buf_struct_size = sizeof(struct isp_buffer);
- 	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	queue->dev = video->isp->dev;
- 
- 	ret = vb2_queue_init(&handle->queue);
- 	if (ret < 0) {
-@@ -1414,15 +1413,9 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
- 		return -EINVAL;
- 	}
- 
--	video->alloc_ctx = vb2_dma_contig_init_ctx(video->isp->dev);
--	if (IS_ERR(video->alloc_ctx))
--		return PTR_ERR(video->alloc_ctx);
--
- 	ret = media_entity_pads_init(&video->video.entity, 1, &video->pad);
--	if (ret < 0) {
--		vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
-+	if (ret < 0)
- 		return ret;
--	}
- 
- 	mutex_init(&video->mutex);
- 	atomic_set(&video->active, 0);
-@@ -1451,7 +1444,6 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
- 
- void omap3isp_video_cleanup(struct isp_video *video)
- {
--	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
- 	media_entity_cleanup(&video->video.entity);
- 	mutex_destroy(&video->queue_lock);
- 	mutex_destroy(&video->stream_lock);
-diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
-index 6a48d58..f6a2082 100644
---- a/drivers/media/platform/omap3isp/ispvideo.h
-+++ b/drivers/media/platform/omap3isp/ispvideo.h
-@@ -171,7 +171,6 @@ struct isp_video {
- 	bool error;
- 
- 	/* Video buffers queue */
--	void *alloc_ctx;
- 	struct vb2_queue *queue;
- 	struct mutex queue_lock;	/* protects the queue */
- 	spinlock_t irqlock;		/* protects dmaqueue */
-diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
-index 552789a..d81c410 100644
---- a/drivers/media/platform/rcar_jpu.c
-+++ b/drivers/media/platform/rcar_jpu.c
-@@ -203,7 +203,6 @@
-  * @irq: JPEG IP irq
-  * @clk: JPEG IP clock
-  * @dev: JPEG IP struct device
-- * @alloc_ctx: videobuf2 memory allocator's context
-  * @ref_count: reference counter
-  */
- struct jpu {
-@@ -220,7 +219,6 @@ struct jpu {
- 	unsigned int		irq;
- 	struct clk		*clk;
- 	struct device		*dev;
--	void			*alloc_ctx;
- 	int			ref_count;
- };
- 
-@@ -1033,17 +1031,14 @@ static int jpu_queue_setup(struct vb2_queue *vq,
- 
- 			if (sizes[i] < q_size)
- 				return -EINVAL;
--			alloc_ctxs[i] = ctx->jpu->alloc_ctx;
- 		}
- 		return 0;
- 	}
- 
- 	*nplanes = q_data->format.num_planes;
- 
--	for (i = 0; i < *nplanes; i++) {
-+	for (i = 0; i < *nplanes; i++)
- 		sizes[i] = q_data->format.plane_fmt[i].sizeimage;
--		alloc_ctxs[i] = ctx->jpu->alloc_ctx;
--	}
- 
- 	return 0;
- }
-@@ -1214,6 +1209,7 @@ static int jpu_queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	src_vq->lock = &ctx->jpu->mutex;
-+	src_vq->dev = ctx->jpu->v4l2_dev.dev;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -1228,6 +1224,7 @@ static int jpu_queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 	dst_vq->lock = &ctx->jpu->mutex;
-+	dst_vq->dev = ctx->jpu->v4l2_dev.dev;
- 
- 	return vb2_queue_init(dst_vq);
- }
-@@ -1676,13 +1673,6 @@ static int jpu_probe(struct platform_device *pdev)
- 		goto device_register_rollback;
- 	}
- 
--	jpu->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(jpu->alloc_ctx)) {
--		v4l2_err(&jpu->v4l2_dev, "Failed to init memory allocator\n");
--		ret = PTR_ERR(jpu->alloc_ctx);
--		goto m2m_init_rollback;
--	}
--
- 	/* fill in qantization and Huffman tables for encoder */
- 	for (i = 0; i < JPU_MAX_QUALITY; i++)
- 		jpu_generate_hdr(i, (unsigned char *)jpeg_hdrs[i]);
-@@ -1699,7 +1689,7 @@ static int jpu_probe(struct platform_device *pdev)
- 	ret = video_register_device(&jpu->vfd_encoder, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
- 		v4l2_err(&jpu->v4l2_dev, "Failed to register video device\n");
--		goto vb2_allocator_rollback;
-+		goto m2m_init_rollback;
- 	}
- 
- 	video_set_drvdata(&jpu->vfd_encoder, jpu);
-@@ -1732,9 +1722,6 @@ static int jpu_probe(struct platform_device *pdev)
- enc_vdev_register_rollback:
- 	video_unregister_device(&jpu->vfd_encoder);
- 
--vb2_allocator_rollback:
--	vb2_dma_contig_cleanup_ctx(jpu->alloc_ctx);
--
- m2m_init_rollback:
- 	v4l2_m2m_release(jpu->m2m_dev);
- 
-@@ -1750,7 +1737,6 @@ static int jpu_remove(struct platform_device *pdev)
- 
- 	video_unregister_device(&jpu->vfd_decoder);
- 	video_unregister_device(&jpu->vfd_encoder);
--	vb2_dma_contig_cleanup_ctx(jpu->alloc_ctx);
- 	v4l2_m2m_release(jpu->m2m_dev);
- 	v4l2_device_unregister(&jpu->v4l2_dev);
- 
-diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-index 82b5d69..afd21c9 100644
---- a/drivers/media/platform/sh_veu.c
-+++ b/drivers/media/platform/sh_veu.c
-@@ -118,7 +118,6 @@ struct sh_veu_dev {
- 	struct sh_veu_file *output;
- 	struct mutex fop_lock;
- 	void __iomem *base;
--	struct vb2_alloc_ctx *alloc_ctx;
- 	spinlock_t lock;
- 	bool is_2h;
- 	unsigned int xaction;
-@@ -882,14 +881,11 @@ static int sh_veu_queue_setup(struct vb2_queue *vq,
- 		*nbuffers = count;
- 	}
- 
--	if (*nplanes) {
--		alloc_ctxs[0] = veu->alloc_ctx;
-+	if (*nplanes)
- 		return sizes[0] < size ? -EINVAL : 0;
--	}
- 
- 	*nplanes = 1;
- 	sizes[0] = size;
--	alloc_ctxs[0] = veu->alloc_ctx;
- 
- 	dev_dbg(veu->dev, "get %d buffer(s) of size %d each.\n", count, size);
- 
-@@ -948,6 +944,7 @@ static int sh_veu_queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->lock = &veu->fop_lock;
- 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	src_vq->dev = veu->v4l2_dev.dev;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret < 0)
-@@ -962,6 +959,7 @@ static int sh_veu_queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->lock = &veu->fop_lock;
- 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	dst_vq->dev = veu->v4l2_dev.dev;
- 
- 	return vb2_queue_init(dst_vq);
- }
-@@ -1148,12 +1146,6 @@ static int sh_veu_probe(struct platform_device *pdev)
- 
- 	vdev = &veu->vdev;
- 
--	veu->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(veu->alloc_ctx)) {
--		ret = PTR_ERR(veu->alloc_ctx);
--		goto einitctx;
--	}
--
- 	*vdev = sh_veu_videodev;
- 	vdev->v4l2_dev = &veu->v4l2_dev;
- 	spin_lock_init(&veu->lock);
-@@ -1187,8 +1179,6 @@ evidreg:
- 	pm_runtime_disable(&pdev->dev);
- 	v4l2_m2m_release(veu->m2m_dev);
- em2minit:
--	vb2_dma_contig_cleanup_ctx(veu->alloc_ctx);
--einitctx:
- 	v4l2_device_unregister(&veu->v4l2_dev);
- 	return ret;
- }
-@@ -1202,7 +1192,6 @@ static int sh_veu_remove(struct platform_device *pdev)
- 	video_unregister_device(&veu->vdev);
- 	pm_runtime_disable(&pdev->dev);
- 	v4l2_m2m_release(veu->m2m_dev);
--	vb2_dma_contig_cleanup_ctx(veu->alloc_ctx);
- 	v4l2_device_unregister(&veu->v4l2_dev);
- 
- 	return 0;
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 1157404..59830a4 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -86,7 +86,6 @@ struct sh_vou_device {
- 	v4l2_std_id std;
- 	int pix_idx;
- 	struct vb2_queue queue;
--	struct vb2_alloc_ctx *alloc_ctx;
- 	struct sh_vou_buffer *active;
- 	enum sh_vou_status status;
- 	unsigned sequence;
-@@ -253,7 +252,6 @@ static int sh_vou_queue_setup(struct vb2_queue *vq,
- 
- 	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
- 
--	alloc_ctxs[0] = vou_dev->alloc_ctx;
- 	if (*nplanes)
- 		return sizes[0] < pix->height * bytes_per_line ? -EINVAL : 0;
- 	*nplanes = 1;
-@@ -1304,16 +1302,11 @@ static int sh_vou_probe(struct platform_device *pdev)
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->min_buffers_needed = 2;
- 	q->lock = &vou_dev->fop_lock;
-+	q->dev = &pdev->dev;
- 	ret = vb2_queue_init(q);
- 	if (ret)
--		goto einitctx;
-+		goto ei2cgadap;
- 
--	vou_dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(vou_dev->alloc_ctx)) {
--		dev_err(&pdev->dev, "Can't allocate buffer context");
--		ret = PTR_ERR(vou_dev->alloc_ctx);
--		goto einitctx;
--	}
- 	vdev->queue = q;
- 	INIT_LIST_HEAD(&vou_dev->buf_list);
- 
-@@ -1348,8 +1341,6 @@ ei2cnd:
- ereset:
- 	i2c_put_adapter(i2c_adap);
- ei2cgadap:
--	vb2_dma_contig_cleanup_ctx(vou_dev->alloc_ctx);
--einitctx:
- 	pm_runtime_disable(&pdev->dev);
- 	v4l2_device_unregister(&vou_dev->v4l2_dev);
- 	return ret;
-@@ -1367,7 +1358,6 @@ static int sh_vou_remove(struct platform_device *pdev)
- 	pm_runtime_disable(&pdev->dev);
- 	video_unregister_device(&vou_dev->vdev);
- 	i2c_put_adapter(client->adapter);
--	vb2_dma_contig_cleanup_ctx(vou_dev->alloc_ctx);
- 	v4l2_device_unregister(&vou_dev->v4l2_dev);
- 	return 0;
- }
+diff --git a/drivers/media/dvb-frontends/tc90522.c b/drivers/media/dvb-frontends/tc90522.c
+new file mode 100644
+index 0000000..c1c48e5
+--- /dev/null
++++ b/drivers/media/dvb-frontends/tc90522.c
+@@ -0,0 +1,254 @@
++/*
++	Toshiba TC90522XBG 2ch OFDM(ISDB-T) + 2ch 8PSK(ISDB-S) demodulator
++
++	Copyright (C) Budi Rachmanto, AreMa Inc. <info@are.ma>
++
++	CHIP		CARDS
++	TC90522XBG	Earthsoft PT3, PLEX PX-Q3PE
++	TC90532		PLEX PX-BCUD
++
++	This program is distributed in the hope that it will be useful,
++	but WITHOUT ANY WARRANTY; without even the implied warranty of
++	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++	GNU General Public License for more details.
++ */
++
++#include "dvb_math.h"
++#include "dvb_frontend.h"
++#include "tc90522.h"
++
++bool tc90522_r(struct i2c_client *d, u8 slvadr, u8 *buf, u8 len)
++{
++	struct i2c_msg msg[] = {
++		{.addr = d->addr,	.flags = 0,		.buf = &slvadr,	.len = 1,},
++		{.addr = d->addr,	.flags = I2C_M_RD,	.buf = buf,	.len = len,},
++	};
++	return i2c_transfer(d->adapter, msg, 2) == 2;
++}
++
++bool tc90522_w(struct i2c_client *d, u8 slvadr, u8 dat)
++{
++	u8 buf[] = {slvadr, dat};
++	struct i2c_msg msg[] = {
++		{.addr = d->addr,	.flags = 0,	.buf = buf,	.len = 2,},
++	};
++	return i2c_transfer(d->adapter, msg, 1) == 1;
++}
++
++u64 tc90522_n2int(const u8 *data, u8 n)		/* convert n_bytes data from stream (network byte order) to integer */
++{						/* can't use <arpa/inet.h>'s ntoh*() as sometimes n = 3,5,...       */
++	u32 i, val = 0;
++
++	for (i = 0; i < n; i++) {
++		val <<= 8;
++		val |= data[i];
++	}
++	return val;
++}
++
++int tc90522_cn_raw(struct dvb_frontend *fe, u16 *raw)	/* for DVBv3 compatibility	*/
++{
++	u8	buf[3],
++		len	= fe->dtv_property_cache.delivery_system == SYS_ISDBS ? 2 : 3,
++		adr	= fe->dtv_property_cache.delivery_system == SYS_ISDBS ? 0xbc : 0x8b;
++	bool	ok	= tc90522_r(fe->demodulator_priv, adr, buf, len);
++	int	cn	= tc90522_n2int(buf, len);
++
++	if (!ok)
++		return -EIO;
++	*raw = cn;
++	return cn;
++}
++
++int tc90522_status(struct dvb_frontend *fe, enum fe_status *stat)
++{
++	enum fe_status			*festat	= i2c_get_clientdata(fe->demodulator_priv);
++	struct dtv_frontend_properties	*c	= &fe->dtv_property_cache;
++	u16	v16;
++	s64	raw	= tc90522_cn_raw(fe, &v16),
++		x,
++		y;
++
++	s64 cn_s(void)	/* @ .0001 dB */
++	{
++		raw -= 3000;
++		if (raw < 0)
++			raw = 0;
++		x = int_sqrt(raw << 20);
++		y = 16346ll * x - (143410ll << 16);
++		y = ((x * y) >> 16) + (502590ll << 16);
++		y = ((x * y) >> 16) - (889770ll << 16);
++		y = ((x * y) >> 16) + (895650ll << 16);
++		y = (588570ll << 16) - ((x * y) >> 16);
++		return y < 0 ? 0 : y >> 16;
++	}
++
++	s64 cn_t(void)	/* @ .0001 dB */
++	{
++		if (!raw)
++			return 0;
++		x = (1130911733ll - 10ll * intlog10(raw)) >> 2;
++		y = (x >> 2) - (x >> 6) + (x >> 8) + (x >> 9) - (x >> 10) + (x >> 11) + (x >> 12) - (16ll << 22);
++		y = ((x * y) >> 22) + (398ll << 22);
++		y = ((x * y) >> 22) + (5491ll << 22);
++		y = ((x * y) >> 22) + (30965ll << 22);
++		return y >> 22;
++	}
++
++	c->cnr.len		= 1;
++	c->cnr.stat[0].svalue	= fe->dtv_property_cache.delivery_system == SYS_ISDBS ? cn_s() : cn_t();
++	c->cnr.stat[0].scale	= FE_SCALE_DECIBEL;
++	*stat = *festat;
++	return *festat;
++}
++
++int tc90522_get_frontend_algo(struct dvb_frontend *fe)
++{
++	return DVBFE_ALGO_HW;
++}
++
++int tc90522_tune(struct dvb_frontend *fe, bool retune, u32 mode_flags, u32 *delay, enum fe_status *stat)
++{
++	u32 fno2kHz(u32 fno)
++	{
++		if (fno < 12)
++			return 1049480 + 38360 * fno;		/* BS		*/
++		else if (fno < 24)
++			return 1613000 + 40000 * (fno - 12);	/* CS110 right	*/
++		return 1593000 + 40000 * (fno - 24);		/* CS110 left	*/
++	}
++
++	void s_kHz(u32 *f)
++	{
++		*f =	*f > 3000000 ? fno2kHz(14)	:	/* max kHz, CNN	*/
++			*f >= 1049480 ? *f		:	/* min real kHz	*/
++			*f > 48 ? fno2kHz(4)		:	/* BS11 etc.	*/
++			fno2kHz(*f - 1);
++	}
++
++	u32 fno2Hz(u32 fno)
++	{
++		return	(fno > 112 ? 557 : 93 + 6 * fno + (fno < 12 ? 0 : fno < 17 ? 2 : fno < 63 ? 0 : 2)) * 1000000 + 142857;
++	}
++
++	void t_Hz(u32 *f)
++	{
++		*f =	*f >= 90000000	? *f			:	/* real_freq Hz	*/
++			*f > 255	? fno2Hz(77)		:	/* NHK		*/
++			*f > 127	? fno2Hz(*f - 128)	:	/* freqno (IO#)	*/
++			*f > 63	? (*f -= 64,				/* CATV		*/
++				*f > 22	? fno2Hz(*f - 1)	:	/* C23-C62	*/
++				*f > 12	? fno2Hz(*f - 10)	:	/* C13-C22	*/
++				fno2Hz(77))			:
++			*f > 62	? fno2Hz(77)			:
++			*f > 12	? fno2Hz(*f + 50)		:	/* 13-62	*/
++			*f > 3	? fno2Hz(*f +  9)		:	/*  4-12	*/
++			*f		? fno2Hz(*f -  1)	:	/*  1-3		*/
++			fno2Hz(77);
++	}
++	struct i2c_client	*d	= fe->demodulator_priv;
++	enum fe_status		*festat	= i2c_get_clientdata(d);
++	u16			set_id	= fe->dtv_property_cache.stream_id,
++				i	= 999;
++	u8			data[16];
++
++	if (!retune)		/* once is enough */
++		return 0;
++	*festat = 0;
++	if (fe->dtv_property_cache.delivery_system == SYS_ISDBT)
++		goto ISDBT;
++
++	s_kHz(&fe->dtv_property_cache.frequency);
++	if (fe->ops.tuner_ops.set_params(fe))
++		return -EIO;
++	while (i--) {
++		if	((tc90522_r(d, 0xC3, data, 1), !(data[0] & 0x10))	&&	/* locked	*/
++			(tc90522_r(d, 0xCE, data, 2), *(u16 *)data != 0)	&&	/* valid TSID	*/
++			tc90522_r(d, 0xC3, data, 1)				&&
++			tc90522_r(d, 0xCE, data, 16))
++			break;
++		msleep_interruptible(5);
++	}
++	if (!i)
++		goto ERR;
++	for (i = 0; i < 8; i++) {
++		u16 tsid = tc90522_n2int(data + i*2, 2);
++
++		if ((tsid == set_id || set_id == i)	&&
++			tc90522_w(d, 0x8F, tsid >> 8)	&&
++			tc90522_w(d, 0x90, tsid & 0xFF)	&&
++			tc90522_r(d, 0xE6, data, 2)	&&
++			tc90522_n2int(data, 2) == tsid)
++			goto LOCK;
++	}
++	goto ERR;
++ISDBT:
++	t_Hz(&fe->dtv_property_cache.frequency);
++	if (fe->ops.tuner_ops.set_params(fe))
++		return -EIO;
++	while (i--) {
++		bool	retryov,
++			lock0,
++			lock1;
++		if (!tc90522_r(d, 0x80, data, 1) || !tc90522_r(d, 0xB0, data + 1, 1))
++			break;
++		retryov	= data[0] & 0b10000000 ? true : false;
++		lock0	= data[0] & 0b00001000 ? false : true;
++		lock1	= data[1] & 0b00001000 ? true : false;
++		if (lock0 && lock1) {
++LOCK:
++			*festat = FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_LOCK;
++			*stat = *festat;
++			return 0;
++		}
++		if (retryov)
++			break;
++		msleep_interruptible(1);
++	}
++ERR:
++	*stat = *festat;
++	return -ETIMEDOUT;
++}
++
++static struct dvb_frontend_ops tc90522_ops = {
++	.info = {
++		.name = TC90522_MODNAME,
++		.caps = FE_CAN_INVERSION_AUTO | FE_CAN_FEC_AUTO | FE_CAN_QAM_AUTO | FE_CAN_MULTISTREAM |
++			FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_GUARD_INTERVAL_AUTO | FE_CAN_HIERARCHY_AUTO,
++		.frequency_min	= 1,		/* actual limit settings are set by .tune */
++		.frequency_max	= 770000000,
++	},
++	.get_frontend_algo = tc90522_get_frontend_algo,
++	.read_snr	= tc90522_cn_raw,
++	.read_status	= tc90522_status,
++	.tune		= tc90522_tune,
++};
++
++int tc90522_probe(struct i2c_client *d, const struct i2c_device_id *id)
++{
++	struct dvb_frontend	*fe	= d->dev.platform_data;
++	static enum fe_status	festat;
++
++	memcpy(&fe->ops, &tc90522_ops, sizeof(struct dvb_frontend_ops));
++	festat = 0;
++	i2c_set_clientdata(d, &festat);
++	return 0;
++}
++
++static struct i2c_device_id tc90522_id[] = {
++	{TC90522_MODNAME, 0},
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, tc90522_id);
++
++static struct i2c_driver tc90522_driver = {
++	.driver.name	= tc90522_id->name,
++	.probe		= tc90522_probe,
++	.id_table	= tc90522_id,
++};
++module_i2c_driver(tc90522_driver);
++
++MODULE_AUTHOR("Budi Rachmanto, AreMa Inc. <knightrider(@)are.ma>");
++MODULE_DESCRIPTION("Toshiba TC90522 8PSK(ISDB-S)/OFDM(ISDB-T) quad demodulator");
++MODULE_LICENSE("GPL");
++
+diff --git a/drivers/media/dvb-frontends/tc90522.h b/drivers/media/dvb-frontends/tc90522.h
+new file mode 100644
+index 0000000..b6ee014
+--- /dev/null
++++ b/drivers/media/dvb-frontends/tc90522.h
+@@ -0,0 +1,18 @@
++/*
++ * Toshiba TC90522XBG 2ch OFDM(ISDB-T) + 2ch 8PSK(ISDB-S) demodulator
++ *
++ * Copyright (C) Budi Rachmanto, AreMa Inc. <info@are.ma>
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef	TC90522_H
++#define	TC90522_H
++
++#define TC90522_MODNAME "tc90522"
++
++#endif
++
 -- 
-2.8.0.rc3
+2.7.4
 
