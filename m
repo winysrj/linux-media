@@ -1,53 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:35883 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754392AbcDYKVg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 06:21:36 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 588421804B5
-	for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 12:21:31 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.6] One bug fix, two regression fixes
-Message-ID: <571DEFAB.2050305@xs4all.nl>
-Date: Mon, 25 Apr 2016 12:21:31 +0200
+Received: from mail.kernel.org ([198.145.29.136]:50059 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754470AbcDDFQg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Apr 2016 01:16:36 -0400
+Date: Mon, 4 Apr 2016 00:16:28 -0500
+From: Rob Herring <robh@kernel.org>
+To: Peter Rosin <peda@lysator.liu.se>
+Cc: linux-kernel@vger.kernel.org, Peter Rosin <peda@axentia.se>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 14/24] of/unittest: convert to use an explicit i2c mux
+ core
+Message-ID: <20160404051628.GO17806@rob-hp-laptop>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+ <1459673574-11440-15-git-send-email-peda@lysator.liu.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1459673574-11440-15-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Three fixes for 4.6: two vb2 regressions and one bug fix for 4k timings that
-was wrong since the beginning.
+On Sun, Apr 03, 2016 at 10:52:44AM +0200, Peter Rosin wrote:
+> From: Peter Rosin <peda@axentia.se>
+> 
+> Allocate an explicit i2c mux core to handle parent and child adapters
+> etc. Update the select op to be in terms of the i2c mux core instead
+> of the child adapter.
+> 
+> Signed-off-by: Peter Rosin <peda@axentia.se>
+> ---
+>  drivers/of/unittest.c | 40 +++++++++++++++-------------------------
+>  1 file changed, 15 insertions(+), 25 deletions(-)
 
-Regards,
+I assume you ran the unittest...
 
-	Hans
-
-The following changes since commit e07d46e7e0da86c146f199dae76f879096bc436a:
-
-  [media] tpg: Export the tpg code from vivid as a module (2016-04-20 16:14:39 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.6b
-
-for you to fetch changes up to 5630e38582d970604daff4bb261734fe204e2791:
-
-  vb2-memops: Fix over allocation of frame vectors (2016-04-25 12:19:30 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      v4l2-dv-timings.h: fix polarity for 4k formats
-
-Ricardo Ribalda Delgado (2):
-      media: vb2: Fix regression on poll() for RW mode
-      vb2-memops: Fix over allocation of frame vectors
-
- drivers/media/v4l2-core/videobuf2-core.c   | 10 ++++++++++
- drivers/media/v4l2-core/videobuf2-memops.c |  2 +-
- drivers/media/v4l2-core/videobuf2-v4l2.c   | 14 ++++++--------
- include/media/videobuf2-core.h             |  4 ++++
- include/uapi/linux/v4l2-dv-timings.h       | 30 ++++++++++++++++++++----------
- 5 files changed, 41 insertions(+), 19 deletions(-)
+Acked-by: Rob Herring <robh@kernel.org>
