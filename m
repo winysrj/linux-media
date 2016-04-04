@@ -1,122 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:35228 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754102AbcDVObe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 10:31:34 -0400
-Subject: Re: [PATCH] media: vb2: Fix regression on poll() for RW mode
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1461230116-6909-1-git-send-email-ricardo.ribalda@gmail.com>
- <5719EC8D.2000500@xs4all.nl> <20160422093141.7f9191bc@recife.lan>
- <571A1AF3.3040507@xs4all.nl> <20160422112136.06afe7c3@recife.lan>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Junghak Sung <jh1009.sung@samsung.com>, stable@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <571A35C0.8020900@xs4all.nl>
-Date: Fri, 22 Apr 2016 16:31:28 +0200
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:34619 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932104AbcDDRE2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2016 13:04:28 -0400
+From: info@are.ma
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?=
+	<knightrider@are.ma>, linux-kernel@vger.kernel.org, crope@iki.fi,
+	m.chehab@samsung.com, mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 6/6] Bridge driver for PLEX PX-BCUD ISDB-S USB dongle
+Date: Tue,  5 Apr 2016 02:04:05 +0900
+Message-Id: <5cc05f8eec50b9dd63d7f57c9e899c842d451ac8.1459787898.git.knightrider@are.ma>
+In-Reply-To: <cover.1459787898.git.knightrider@are.ma>
+References: <cover.1459787898.git.knightrider@are.ma>
+In-Reply-To: <cover.1459787898.git.knightrider@are.ma>
+References: <cover.1459787898.git.knightrider@are.ma>
 MIME-Version: 1.0
-In-Reply-To: <20160422112136.06afe7c3@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/22/2016 04:21 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 22 Apr 2016 14:37:07 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 04/22/2016 02:31 PM, Mauro Carvalho Chehab wrote:
->>> Em Fri, 22 Apr 2016 11:19:09 +0200
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>   
->>>> Hi Ricardo,
->>>>
->>>> On 04/21/2016 11:15 AM, Ricardo Ribalda Delgado wrote:  
->>>>> When using a device is read/write mode, vb2 does not handle properly the
->>>>> first select/poll operation. It allways return POLLERR.
->>>>>
->>>>> The reason for this is that when this code has been refactored, some of
->>>>> the operations have changed their order, and now fileio emulator is not
->>>>> started by poll, due to a previous check.
->>>>>
->>>>> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
->>>>> Cc: Junghak Sung <jh1009.sung@samsung.com>
->>>>> Cc: stable@vger.kernel.org
->>>>> Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
->>>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
->>>>> ---
->>>>>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++++++
->>>>>  drivers/media/v4l2-core/videobuf2-v4l2.c | 8 --------
->>>>>  2 files changed, 8 insertions(+), 8 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->>>>> index 5d016f496e0e..199c65dbe330 100644
->>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>>>> @@ -2298,6 +2298,14 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
->>>>>  		return POLLERR;
->>>>>  
->>>>>  	/*
->>>>> +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
->>>>> +	 * return POLLERR as well. This only affects capture queues, output
->>>>> +	 * queues will always initialize waiting_for_buffers to false.
->>>>> +	 */
->>>>> +	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
->>>>> +		return POLLERR;    
->>>>
->>>> The problem I have with this is that this should be specific to V4L2. The only
->>>> reason we do this is that we had to stay backwards compatible with vb1.
->>>>
->>>> This is the reason this code was placed in videobuf2-v4l2.c. But you are correct
->>>> that this causes a regression, and I see no other choice but to put it in core.c.
->>>>
->>>> That said, I would still only honor this when called from v4l2, so I suggest that
->>>> a new flag 'check_waiting_for_buffers' is added that is only set in vb2_queue_init
->>>> in videobuf2-v4l2.c.
->>>>
->>>> So the test above becomes:
->>>>
->>>> 	if (q->check_waiting_for_buffers && q->waiting_for_buffers &&
->>>> 	    (req_events & (POLLIN | POLLRDNORM)))
->>>>
->>>> It's not ideal, but at least this keeps this v4l2 specific.  
->>>
->>> I don't like the above approach, for two reasons:
->>>
->>> 1) it is not obvious that this is V4L2 specific from the code;  
->>
->> s/check_waiting_for_buffers/v4l2_needs_to_wait_for_buffers/
-> 
-> Better, but still hell of a hack. Maybe we could add a quirks
-> flag and add a flag like:
-> 	VB2_FLAG_ENABLE_POLLERR_IF_WAITING_BUFFERS_AND_NO_QBUF
-> (or some better naming, I'm not inspired today...)
-> 
-> Of course, such quirk should be properly documented.
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-How about 'quirk_poll_must_check_waiting_for_buffers'? Something with 'quirk' in the
-name is a good idea.
+Support for PLEX PX-BCUD (ISDB-S usb dongle)
+Nagahama's patch simplified...
 
-> 
->>>
->>> 2) we should not mess the core due to some V4L2 mess.  
->>
->> Well, the only other alternative I see is to split vb2_core_poll() into two
->> since the check has to happen in the middle. The v4l2 code would call core_poll1(),
->> then do the check and afterwards call core_poll2(). And that would really be ugly.
-> 
-> Actually, the first callback would be better called as
-> vb2_core_poll_check() - or something with similar name.
-> 
-> IMHO, this is the cleaner solution, although it adds an extra cost.
+Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
+---
+ drivers/media/Kconfig                   |  5 +-
+ drivers/media/usb/em28xx/Kconfig        |  3 ++
+ drivers/media/usb/em28xx/Makefile       |  1 +
+ drivers/media/usb/em28xx/em28xx-cards.c | 27 +++++++++++
+ drivers/media/usb/em28xx/em28xx-dvb.c   | 81 ++++++++++++++++++++++++++++++++-
+ drivers/media/usb/em28xx/em28xx.h       |  1 +
+ 6 files changed, 115 insertions(+), 3 deletions(-)
 
-I really don't like this. This has a much larger impact on vb2 core then adding
-a simple quirk flag.
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index a8518fb..37fae59 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -149,7 +149,10 @@ config DVB_NET
+ 	  You may want to disable the network support on embedded devices. If
+ 	  unsure say Y.
+ 
+-# This Kconfig option is used by both PCI and USB drivers
++# Options used by both PCI and USB drivers
++config DVB_PTX_COMMON
++	tristate
++
+ config TTPCI_EEPROM
+ 	tristate
+ 	depends on I2C
+diff --git a/drivers/media/usb/em28xx/Kconfig b/drivers/media/usb/em28xx/Kconfig
+index e382210..fc19edc 100644
+--- a/drivers/media/usb/em28xx/Kconfig
++++ b/drivers/media/usb/em28xx/Kconfig
+@@ -59,6 +59,9 @@ config VIDEO_EM28XX_DVB
+ 	select DVB_DRX39XYJ if MEDIA_SUBDRV_AUTOSELECT
+ 	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
++	select DVB_PTX_COMMON
++	select DVB_TC90522 if MEDIA_SUBDRV_AUTOSELECT
++	select MEDIA_TUNER_QM1D1C004X if MEDIA_SUBDRV_AUTOSELECT
+ 	---help---
+ 	  This adds support for DVB cards based on the
+ 	  Empiatech em28xx chips.
+diff --git a/drivers/media/usb/em28xx/Makefile b/drivers/media/usb/em28xx/Makefile
+index 3f850d5..1488829 100644
+--- a/drivers/media/usb/em28xx/Makefile
++++ b/drivers/media/usb/em28xx/Makefile
+@@ -14,3 +14,4 @@ ccflags-y += -Idrivers/media/i2c
+ ccflags-y += -Idrivers/media/tuners
+ ccflags-y += -Idrivers/media/dvb-core
+ ccflags-y += -Idrivers/media/dvb-frontends
++ccflags-y += -Idrivers/media/pci/ptx
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 930e3e3..772a8f8 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -492,6 +492,20 @@ static struct em28xx_reg_seq terratec_t2_stick_hd[] = {
+ 	{-1,                             -1,   -1,     -1},
+ };
+ 
++static struct em28xx_reg_seq plex_px_bcud[] = {
++	{EM2874_R80_GPIO_P0_CTRL,	0xff,	0xff,	0},
++	{0x0d,				0xff,	0xff,	0},
++	{EM2874_R50_IR_CONFIG,		0x01,	0xff,	0},
++	{EM28XX_R06_I2C_CLK,		0x40,	0xff,	0},
++	{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	100},
++	{EM28XX_R12_VINENABLE,		0x20,	0x20,	0},
++	{0x0d,				0x42,	0xff,	1000},
++	{EM2874_R80_GPIO_P0_CTRL,	0xfc,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	10},
++	{0x73,				0xfd,	0xff,	100},
++	{-1,				-1,	-1,	-1},
++};
++
+ /*
+  *  Button definitions
+  */
+@@ -2306,6 +2320,17 @@ struct em28xx_board em28xx_boards[] = {
+ 		.has_dvb       = 1,
+ 		.ir_codes      = RC_MAP_TERRATEC_SLIM_2,
+ 	},
++	/* 3275:0085 PLEX PX-BCUD.
++	 * Empia EM28178, TOSHIBA TC90532XBG, Sharp QM1D1C0042 */
++	[EM28178_BOARD_PLEX_PX_BCUD] = {
++		.name          = "PLEX PX-BCUD",
++		.xclk          = EM28XX_XCLK_FREQUENCY_4_3MHZ,
++		.def_i2c_bus   = 1,
++		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE,
++		.tuner_type    = TUNER_ABSENT,
++		.tuner_gpio    = plex_px_bcud,
++		.has_dvb       = 1,
++	},
+ };
+ EXPORT_SYMBOL_GPL(em28xx_boards);
+ 
+@@ -2495,6 +2520,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM2861_BOARD_LEADTEK_VC100 },
+ 	{ USB_DEVICE(0xeb1a, 0x8179),
+ 			.driver_info = EM28178_BOARD_TERRATEC_T2_STICK_HD },
++	{ USB_DEVICE(0x3275, 0x0085),
++			.driver_info = EM28178_BOARD_PLEX_PX_BCUD },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(usb, em28xx_id_table);
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 5d209c7..c45112e 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -12,6 +12,10 @@
+ 
+  (c) 2012 Frank Schäfer <fschaefer.oss@googlemail.com>
+ 
++ (c) 2016 Nagahama Satoshi <sattnag@aim.com>
++	  Budi Rachmanto, AreMa Inc. <info@are.ma>
++	- PLEX PX-BCUD support
++
+  Based on cx88-dvb, saa7134-dvb and videobuf-dvb originally written by:
+ 	(c) 2004, 2005 Chris Pascoe <c.pascoe@itee.uq.edu.au>
+ 	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
+@@ -25,11 +29,10 @@
+ #include <linux/slab.h>
+ #include <linux/usb.h>
+ 
++#include "ptx_common.h"
+ #include "em28xx.h"
+ #include <media/v4l2-common.h>
+-#include <dvb_demux.h>
+ #include <dvb_net.h>
+-#include <dmxdev.h>
+ #include <media/tuner.h>
+ #include "tuner-simple.h"
+ #include <linux/gpio.h>
+@@ -58,6 +61,8 @@
+ #include "ts2020.h"
+ #include "si2168.h"
+ #include "si2157.h"
++#include "tc90522.h"
++#include "qm1d1c004x.h"
+ 
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
+ MODULE_LICENSE("GPL");
+@@ -787,6 +792,65 @@ static int em28xx_mt352_terratec_xs_init(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
++static void px_bcud_init(struct em28xx *dev)
++{
++	int i;
++	struct {
++		unsigned char r[4];
++		int len;
++	} regs1[] = {
++		{{ 0x0e, 0x77 }, 2},
++		{{ 0x0f, 0x77 }, 2},
++		{{ 0x03, 0x90 }, 2},
++	}, regs2[] = {
++		{{ 0x07, 0x01 }, 2},
++		{{ 0x08, 0x10 }, 2},
++		{{ 0x13, 0x00 }, 2},
++		{{ 0x17, 0x00 }, 2},
++		{{ 0x03, 0x01 }, 2},
++		{{ 0x10, 0xb1 }, 2},
++		{{ 0x11, 0x40 }, 2},
++		{{ 0x85, 0x7a }, 2},
++		{{ 0x87, 0x04 }, 2},
++	};
++	static struct em28xx_reg_seq gpio[] = {
++		{EM28XX_R06_I2C_CLK,		0x40,	0xff,	300},
++		{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	60},
++		{EM28XX_R15_RGAIN,		0x20,	0xff,	0},
++		{EM28XX_R16_GGAIN,		0x20,	0xff,	0},
++		{EM28XX_R17_BGAIN,		0x20,	0xff,	0},
++		{EM28XX_R18_ROFFSET,		0x00,	0xff,	0},
++		{EM28XX_R19_GOFFSET,		0x00,	0xff,	0},
++		{EM28XX_R1A_BOFFSET,		0x00,	0xff,	0},
++		{EM28XX_R23_UOFFSET,		0x00,	0xff,	0},
++		{EM28XX_R24_VOFFSET,		0x00,	0xff,	0},
++		{EM28XX_R26_COMPR,		0x00,	0xff,	0},
++		{0x13,				0x08,	0xff,	0},
++		{EM28XX_R12_VINENABLE,		0x27,	0xff,	0},
++		{EM28XX_R0C_USBSUSP,		0x10,	0xff,	0},
++		{EM28XX_R27_OUTFMT,		0x00,	0xff,	0},
++		{EM28XX_R10_VINMODE,		0x00,	0xff,	0},
++		{EM28XX_R11_VINCTRL,		0x11,	0xff,	0},
++		{EM2874_R50_IR_CONFIG,		0x01,	0xff,	0},
++		{EM2874_R5F_TS_ENABLE,		0x80,	0xff,	0},
++		{EM28XX_R06_I2C_CLK,		0x46,	0xff,	0},
++	};
++	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x46);
++	/* sleeping ISDB-T */
++	dev->dvb->i2c_client_demod->addr = 0x14;
++	for (i = 0; i < ARRAY_SIZE(regs1); i++)
++		i2c_master_send(dev->dvb->i2c_client_demod, regs1[i].r, regs1[i].len);
++	/* sleeping ISDB-S */
++	dev->dvb->i2c_client_demod->addr = 0x15;
++	for (i = 0; i < ARRAY_SIZE(regs2); i++)
++		i2c_master_send(dev->dvb->i2c_client_demod, regs2[i].r, regs2[i].len);
++	for (i = 0; i < ARRAY_SIZE(gpio); i++) {
++		em28xx_write_reg_bits(dev, gpio[i].reg, gpio[i].val, gpio[i].mask);
++		if (gpio[i].sleep > 0)
++			msleep(gpio[i].sleep);
++	}
++};
++
+ static struct mt352_config terratec_xs_mt352_cfg = {
+ 	.demod_address = (0x1e >> 1),
+ 	.no_tuner = 1,
+@@ -1762,6 +1826,19 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			dvb->i2c_client_tuner = client;
+ 		}
+ 		break;
++	case EM28178_BOARD_PLEX_PX_BCUD:
++		{
++			struct ptx_subdev_info	pxbcud_subdev_info =
++				{SYS_ISDBS, 0x15, TC90522_MODNAME, 0x61, QM1D1C004X_MODNAME};
++
++			dvb->fe[0] = ptx_register_fe(&dev->i2c_adap[dev->def_i2c_bus], NULL, &pxbcud_subdev_info);
++			if (!dvb->fe[0])
++                                goto out_free;
++			dvb->i2c_client_demod = dvb->fe[0]->demodulator_priv;
++                        dvb->i2c_client_tuner = dvb->fe[0]->tuner_priv;
++			px_bcud_init(dev);
++		}
++		break;
+ 	default:
+ 		em28xx_errdev("/2: The frontend of your DVB/ATSC card"
+ 				" isn't supported yet\n");
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 2674449..9ad1240 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -145,6 +145,7 @@
+ #define EM2861_BOARD_LEADTEK_VC100                95
+ #define EM28178_BOARD_TERRATEC_T2_STICK_HD        96
+ #define EM2884_BOARD_ELGATO_EYETV_HYBRID_2008     97
++#define EM28178_BOARD_PLEX_PX_BCUD                98
+ 
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
+-- 
+2.7.4
 
-Regards,
-
-	Hans
