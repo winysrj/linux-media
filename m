@@ -1,102 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35898 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752514AbcDWXtw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2016 19:49:52 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 08/13] v4l: vsp1: Make vsp1_entity_get_pad_compose() more generic
-Date: Sun, 24 Apr 2016 02:49:55 +0300
-Message-Id: <1461455400-28767-9-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-vk0-f49.google.com ([209.85.213.49]:34549 "EHLO
+	mail-vk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751968AbcDDMgH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2016 08:36:07 -0400
+Received: by mail-vk0-f49.google.com with SMTP id e185so177202077vkb.1
+        for <linux-media@vger.kernel.org>; Mon, 04 Apr 2016 05:36:05 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <57022D5A.5080704@nexvision.fr>
+References: <56FE9B7F.7060206@nexvision.fr> <56FEA192.9020303@nexvision.fr>
+ <CAH-u=83J0kJzaV5Mqz7Zt76JgfVz6M_v_nhzPEeqwcRCRKm8VQ@mail.gmail.com> <57022D5A.5080704@nexvision.fr>
+From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Date: Mon, 4 Apr 2016 14:35:45 +0200
+Message-ID: <CAH-u=82LeD9TWrHpntjOmV9g-6rBLuboGy6RUsasSWBBtpyQJw@mail.gmail.com>
+Subject: Re: [PATCH] Add GS1662 driver (a SPI video serializer)
+To: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Turn the helper into a function that can retrieve crop and compose
-selection rectangles.
+>> Next, you should add a complete description to your commit. Just
+>> having an object and a signed-off-by line is not enough.
+> Oh, I'm sorry, I don't have any idea to explicit more details. I will
+> find something for that.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_entity.c | 24 ++++++++++++++++++++----
- drivers/media/platform/vsp1/vsp1_entity.h |  6 +++---
- drivers/media/platform/vsp1/vsp1_rpf.c    |  7 ++++---
- 3 files changed, 27 insertions(+), 10 deletions(-)
+Just get the description from the datasheet as a start ;-).
 
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index f60d7926d53f..8c49a74381a1 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -87,12 +87,28 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
- 	return v4l2_subdev_get_try_format(&entity->subdev, cfg, pad);
- }
- 
-+/**
-+ * vsp1_entity_get_pad_selection - Get a pad selection from storage for entity
-+ * @entity: the entity
-+ * @cfg: the configuration storage
-+ * @pad: the pad number
-+ * @target: the selection target
-+ *
-+ * Return the selection rectangle stored in the given configuration for an
-+ * entity's pad. The configuration can be an ACTIVE or TRY configuration. The
-+ * selection target can be COMPOSE or CROP.
-+ */
- struct v4l2_rect *
--vsp1_entity_get_pad_compose(struct vsp1_entity *entity,
--			    struct v4l2_subdev_pad_config *cfg,
--			    unsigned int pad)
-+vsp1_entity_get_pad_selection(struct vsp1_entity *entity,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      unsigned int pad, unsigned int target)
- {
--	return v4l2_subdev_get_try_compose(&entity->subdev, cfg, pad);
-+	if (target == V4L2_SEL_TGT_COMPOSE)
-+		return v4l2_subdev_get_try_compose(&entity->subdev, cfg, pad);
-+	else if (target == V4L2_SEL_TGT_CROP)
-+		return v4l2_subdev_get_try_crop(&entity->subdev, cfg, pad);
-+	else
-+		return NULL;
- }
- 
- /*
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index aaab05f4952c..a240fc1c59a6 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -122,9 +122,9 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
- 			   struct v4l2_subdev_pad_config *cfg,
- 			   unsigned int pad);
- struct v4l2_rect *
--vsp1_entity_get_pad_compose(struct vsp1_entity *entity,
--			    struct v4l2_subdev_pad_config *cfg,
--			    unsigned int pad);
-+vsp1_entity_get_pad_selection(struct vsp1_entity *entity,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      unsigned int pad, unsigned int target);
- int vsp1_entity_init_cfg(struct v4l2_subdev *subdev,
- 			 struct v4l2_subdev_pad_config *cfg);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 49168db3f529..64dfbddf2aba 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -130,9 +130,10 @@ static void rpf_configure(struct vsp1_entity *entity,
- 	if (pipe->bru) {
- 		const struct v4l2_rect *compose;
- 
--		compose = vsp1_entity_get_pad_compose(pipe->bru,
--						      pipe->bru->config,
--						      rpf->bru_input);
-+		compose = vsp1_entity_get_pad_selection(pipe->bru,
-+							pipe->bru->config,
-+							rpf->bru_input,
-+							V4L2_SEL_TGT_COMPOSE);
- 		left = compose->left;
- 		top = compose->top;
- 	}
--- 
-2.7.3
+>> You also have to use the scripts/checkpatch.pl script to verify that
+>> everything is ok with it.
+> I have executed this script before to send it. And it noticed nothing about that.
+>
+>> Last thing, I can't see anything related to V4L2 in your patch. It is
+>> just used to initialize the chip and the spi bus, that's all.
+>> Adding a subdev is a start, and some operations if it can do something
+>> else than just serializing.
+>
+> Maybe I'm in the wrong list for that in fact. I didn't know this list was about V4L2 and related topics.
+> This driver is only to configure the component to manage the video stream in electronic card, it is not to capture video stream via V4L.
+>
+> I should improve my driver to be configurable by userspace. But maybe I should submit my future patch in another ML.
 
+Well, I am not really sure about that. I added Hans in cc as he may
+have a better view.
+>From my point of view, it can be a V4L2 subdev, even a simple one, as
+you can configure outputs, etc.
+
+JM
