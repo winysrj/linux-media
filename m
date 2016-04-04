@@ -1,80 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:36526 "EHLO
-	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932231AbcDYSDA convert rfc822-to-8bit (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36387 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751156AbcDDX04 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 14:03:00 -0400
-Received: by mail-wm0-f51.google.com with SMTP id v188so108032980wme.1
-        for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 11:03:00 -0700 (PDT)
+	Mon, 4 Apr 2016 19:26:56 -0400
+Subject: Re: [PATCH v3] [media] tpg: Export the tpg code from vivid as a
+ module
+To: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	mchehab@osg.samsung.com
+References: <1459575308-13761-1-git-send-email-helen.koike@collabora.co.uk>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5702F835.3060708@xs4all.nl>
+Date: Mon, 4 Apr 2016 16:26:45 -0700
 MIME-Version: 1.0
-In-Reply-To: <1458707012-5063-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-References: <1458707012-5063-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-Date: Mon, 25 Apr 2016 15:02:59 -0300
-Message-ID: <CAAEAJfAmE90KfjpFs1c+Ho3p5vrq+hw_sLgynqabz5XAUgfw8Q@mail.gmail.com>
-Subject: Re: [PATCH] i2c: saa7115: Support CJC7113 detection
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: linux-media <linux-media@vger.kernel.org>,
-	"mchehab@osg.samsung.com" <mchehab@osg.samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Kevin Fitch <kfitch42@gmail.com>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1459575308-13761-1-git-send-email-helen.koike@collabora.co.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 March 2016 at 01:23, Ezequiel Garcia
-<ezequiel@vanguardiasur.com.ar> wrote:
-> From: Kevin Fitch <kfitch42@gmail.com>
->
-> It's been reported that CJC7113 devices are returning
-> all 1s when reading register 0:
->
->   "1111111111111111" found @ 0x4a (stk1160)
->
-> This new device is apparently compatible with SA7113, so let's
-> add a quirk to allow its autodetection. Given there isn't
-> any known differences with SAA7113, this commit does not
-> introduces a new saa711x_model value.
->
-> Reported-by: Philippe Desrochers <desrochers.philippe@gmail.com>
-> Signed-off-by: Kevin Fitch <kfitch42@gmail.com>
-> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-> ---
->  drivers/media/i2c/saa7115.c | 15 +++++++++++++++
->  1 file changed, 15 insertions(+)
->
-> diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-> index 24d2b76dbe97..04f266d0a1ef 100644
-> --- a/drivers/media/i2c/saa7115.c
-> +++ b/drivers/media/i2c/saa7115.c
-> @@ -1794,6 +1794,21 @@ static int saa711x_detect_chip(struct i2c_client *client,
->                 return GM7113C;
->         }
->
-> +       /* Check if it is a CJC7113 */
-> +       if (!memcmp(name, "1111111111111111", CHIP_VER_SIZE)) {
-> +               strlcpy(name, "cjc7113", CHIP_VER_SIZE);
-> +
-> +               if (!autodetect && strcmp(name, id->name))
-> +                       return -EINVAL;
-> +
-> +               v4l_dbg(1, debug, client,
-> +                       "It seems to be a %s chip (%*ph) @ 0x%x.\n",
-> +                       name, 16, chip_ver, client->addr << 1);
-> +
-> +               /* CJC7113 seems to be SAA7113-compatible */
-> +               return SAA7113;
-> +       }
-> +
->         /* Chip was not discovered. Return its ID and don't bind */
->         v4l_dbg(1, debug, client, "chip %*ph @ 0x%x is unknown.\n",
->                 16, chip_ver, client->addr << 1);
-> --
-> 2.7.0
->
+Hi Helen,
 
-Any feedback on this one?
--- 
-Ezequiel García, VanguardiaSur
-www.vanguardiasur.com.ar
+On 04/01/2016 10:35 PM, Helen Mae Koike Fornazier wrote:
+> The test pattern generator will be used by other drivers as the virtual
+> media controller (vimc)
+>
+> Signed-off-by: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>
+> ---
+>
+> The patch is based on 'media/master' branch and available at
+>          https://github.com/helen-fornazier/opw-staging tpg/review/vivid
+>
+> Changes since last version:
+> 	* mv drivers/media/platform/tpg drivers/media/common/v4l2-tpg
+> 	* files renamed with v4l2 prefix
+> 	* tpg removed from menuconfig, depends on VIDEO_VIVID and selected automaticaly by VIDEO_VIVID
+> 	* module's description
+>
+> NOTE: I left the "select VIDEO_V4L2_TPG" in the vivid Kconfig because without it the tpg module is
+> not selected automaticaly when selecting VIDEO_VIVID, it seems that using the "depends on VIDEO_VIVID" in
+> the tpg's Kconfig is not enough (I thought it should be, but apparently I missundestood the docs). Please,
+> let me know if this is not correct.
+>
+>   drivers/media/common/Kconfig                       |  1 +
+>   drivers/media/common/Makefile                      |  2 +-
+>   drivers/media/common/v4l2-tpg/Kconfig              |  3 +++
+>   drivers/media/common/v4l2-tpg/Makefile             |  3 +++
+>   .../v4l2-tpg/v4l2-tpg-colors.c}                    |  7 +++----
+>   .../v4l2-tpg/v4l2-tpg-core.c}                      | 24 ++++++++++++++++++++--
+>   drivers/media/platform/vivid/Kconfig               |  1 +
+>   drivers/media/platform/vivid/Makefile              |  2 +-
+>   drivers/media/platform/vivid/vivid-core.h          |  2 +-
+>   .../media/v4l2-tpg-colors.h                        |  6 +++---
+>   .../vivid/vivid-tpg.h => include/media/v4l2-tpg.h  |  9 ++++----
+>   11 files changed, 43 insertions(+), 17 deletions(-)
+>   create mode 100644 drivers/media/common/v4l2-tpg/Kconfig
+>   create mode 100644 drivers/media/common/v4l2-tpg/Makefile
+>   rename drivers/media/{platform/vivid/vivid-tpg-colors.c => common/v4l2-tpg/v4l2-tpg-colors.c} (99%)
+>   rename drivers/media/{platform/vivid/vivid-tpg.c => common/v4l2-tpg/v4l2-tpg-core.c} (98%)
+>   rename drivers/media/platform/vivid/vivid-tpg-colors.h => include/media/v4l2-tpg-colors.h (93%)
+>   rename drivers/media/platform/vivid/vivid-tpg.h => include/media/v4l2-tpg.h (99%)
+>
+> diff --git a/drivers/media/common/Kconfig b/drivers/media/common/Kconfig
+> index 21154dd..326df0a 100644
+> --- a/drivers/media/common/Kconfig
+> +++ b/drivers/media/common/Kconfig
+> @@ -19,3 +19,4 @@ config CYPRESS_FIRMWARE
+>   source "drivers/media/common/b2c2/Kconfig"
+>   source "drivers/media/common/saa7146/Kconfig"
+>   source "drivers/media/common/siano/Kconfig"
+> +source "drivers/media/common/v4l2-tpg/Kconfig"
+> diff --git a/drivers/media/common/Makefile b/drivers/media/common/Makefile
+> index 89b795d..2d1b0a0 100644
+> --- a/drivers/media/common/Makefile
+> +++ b/drivers/media/common/Makefile
+> @@ -1,4 +1,4 @@
+> -obj-y += b2c2/ saa7146/ siano/
+> +obj-y += b2c2/ saa7146/ siano/ v4l2-tpg/
+>   obj-$(CONFIG_VIDEO_CX2341X) += cx2341x.o
+>   obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
+>   obj-$(CONFIG_CYPRESS_FIRMWARE) += cypress_firmware.o
+> diff --git a/drivers/media/common/v4l2-tpg/Kconfig b/drivers/media/common/v4l2-tpg/Kconfig
+> new file mode 100644
+> index 0000000..3c36f52
+> --- /dev/null
+> +++ b/drivers/media/common/v4l2-tpg/Kconfig
+> @@ -0,0 +1,3 @@
+> +config VIDEO_V4L2_TPG
+> +	tristate
+> +	depends on VIDEO_VIVID
+
+This is weird. I would not expect a 'depends on' here, instead the vivid driver should select it.
+It's similar to how e.g. VIDEOBUF2_CORE works.
+
+Regards,
+
+	Hans
