@@ -1,506 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:54943 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753663AbcDCI5F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:57:05 -0400
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v6 18/24] i2c-mux: relax locking of the top i2c adapter during mux-locked muxing
-Date: Sun,  3 Apr 2016 10:52:48 +0200
-Message-Id: <1459673574-11440-19-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
-References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+Received: from 10.mo4.mail-out.ovh.net ([188.165.33.109]:51455 "EHLO
+	10.mo4.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754537AbcDDJhW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2016 05:37:22 -0400
+Received: from mail699.ha.ovh.net (b6.ovh.net [213.186.33.56])
+	by mo4.mail-out.ovh.net (Postfix) with SMTP id B23541140180
+	for <linux-media@vger.kernel.org>; Mon,  4 Apr 2016 11:01:16 +0200 (CEST)
+Subject: Re: [PATCH] Add GS1662 driver (a SPI video serializer)
+To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+References: <56FE9B7F.7060206@nexvision.fr> <56FEA192.9020303@nexvision.fr>
+ <CAH-u=83J0kJzaV5Mqz7Zt76JgfVz6M_v_nhzPEeqwcRCRKm8VQ@mail.gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Message-ID: <57022D5A.5080704@nexvision.fr>
+Date: Mon, 4 Apr 2016 11:01:14 +0200
+MIME-Version: 1.0
+In-Reply-To: <CAH-u=83J0kJzaV5Mqz7Zt76JgfVz6M_v_nhzPEeqwcRCRKm8VQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+Le 01/04/2016 21:11, Jean-Michel Hautbois a écrit :
+> Hi Charles-Antoine,
+Hi,
 
-With a i2c topology like the following
+> FIrst of all, we, on the ML, do prefer reading patches as sent by git
+> send-email tool.
 
-                       GPIO ---|  ------ BAT1
-                        |      v /
-   I2C  -----+----------+---- MUX
-             |                   \
-           EEPROM                 ------ BAT2
+Ok, I will configure that.
 
-there is a locking problem with the GPIO controller since it is a client
-on the same i2c bus that it muxes. Transfers to the mux clients (e.g. BAT1)
-will lock the whole i2c bus prior to attempting to switch the mux to the
-correct i2c segment. In the above case, the GPIO device is an I/O expander
-with an i2c interface, and since the GPIO subsystem knows nothing (and
-rightfully so) about the lockless needs of the i2c mux code, this results
-in a deadlock when the GPIO driver issues i2c transfers to modify the
-mux.
+> Next, you should add a complete description to your commit. Just
+> having an object and a signed-off-by line is not enough.
+Oh, I'm sorry, I don't have any idea to explicit more details. I will
+find something for that.
 
-So, observing that while it is needed to have the i2c bus locked during the
-actual MUX update in order to avoid random garbage on the slave side, it
-is not strictly a must to have it locked over the whole sequence of a full
-select-transfer-deselect mux client operation. The mux itself needs to be
-locked, so transfers to clients behind the mux are serialized, and the mux
-needs to be stable during all i2c traffic (otherwise individual mux slave
-segments might see garbage, or worse).
+> You also have to use the scripts/checkpatch.pl script to verify that
+> everything is ok with it.
+I have executed this script before to send it. And it noticed nothing about that.
 
-Introduce this new locking concept as "mux-locked" muxes, and call the
-pre-existing mux locking scheme "parent-locked".
+> Last thing, I can't see anything related to V4L2 in your patch. It is
+> just used to initialize the chip and the spi bus, that's all.
+> Adding a subdev is a start, and some operations if it can do something
+> else than just serializing.
 
-Modify the i2c mux locking so that muxes that are "mux-locked" locks only
-the muxes on the parent adapter instead of the whole i2c bus when there is
-a transfer to the slave side of the mux. This lock serializes transfers to
-the slave side of the muxes on the parent adapter.
+Maybe I'm in the wrong list for that in fact. I didn't know this list was about V4L2 and related topics.
+This driver is only to configure the component to manage the video stream in electronic card, it is not to capture video stream via V4L.
 
-Add code to i2c-mux-gpio and i2c-mux-pinctrl that checks if all involved
-gpio/pinctrl devices have a parent that is an i2c adapter in the same
-adapter tree that is muxed, and request a "mux-locked mux" if that is the
-case.
+I should improve my driver to be configurable by userspace. But maybe I should submit my future patch in another ML. 
 
-Modify the select-transfer-deselect code for "mux-locked" muxes so
-that each of the select-transfer-deselect ops locks the mux parent
-adapter individually.
-
-Signed-off-by: Peter Rosin <peda@axentia.se>
----
- drivers/i2c/i2c-core.c              |   1 +
- drivers/i2c/i2c-mux.c               | 152 +++++++++++++++++++++++++++++++++---
- drivers/i2c/muxes/i2c-mux-gpio.c    |  18 +++++
- drivers/i2c/muxes/i2c-mux-pinctrl.c |  38 +++++++++
- include/linux/i2c-mux.h             |   6 ++
- include/linux/i2c.h                 |   1 +
- 6 files changed, 203 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 5314434c2b5d..53514ea314cd 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -1543,6 +1543,7 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
- 	}
- 
- 	rt_mutex_init(&adap->bus_lock);
-+	rt_mutex_init(&adap->mux_lock);
- 	mutex_init(&adap->userspace_clients_lock);
- 	INIT_LIST_HEAD(&adap->userspace_clients);
- 
-diff --git a/drivers/i2c/i2c-mux.c b/drivers/i2c/i2c-mux.c
-index e1b2bb112efd..698b25816b65 100644
---- a/drivers/i2c/i2c-mux.c
-+++ b/drivers/i2c/i2c-mux.c
-@@ -35,6 +35,25 @@ struct i2c_mux_priv {
- 	u32 chan_id;
- };
- 
-+static int __i2c_mux_master_xfer(struct i2c_adapter *adap,
-+				 struct i2c_msg msgs[], int num)
-+{
-+	struct i2c_mux_priv *priv = adap->algo_data;
-+	struct i2c_mux_core *muxc = priv->muxc;
-+	struct i2c_adapter *parent = muxc->parent;
-+	int ret;
-+
-+	/* Switch to the right mux port and perform the transfer. */
-+
-+	ret = muxc->select(muxc, priv->chan_id);
-+	if (ret >= 0)
-+		ret = __i2c_transfer(parent, msgs, num);
-+	if (muxc->deselect)
-+		muxc->deselect(muxc, priv->chan_id);
-+
-+	return ret;
-+}
-+
- static int i2c_mux_master_xfer(struct i2c_adapter *adap,
- 			       struct i2c_msg msgs[], int num)
- {
-@@ -47,7 +66,29 @@ static int i2c_mux_master_xfer(struct i2c_adapter *adap,
- 
- 	ret = muxc->select(muxc, priv->chan_id);
- 	if (ret >= 0)
--		ret = __i2c_transfer(parent, msgs, num);
-+		ret = i2c_transfer(parent, msgs, num);
-+	if (muxc->deselect)
-+		muxc->deselect(muxc, priv->chan_id);
-+
-+	return ret;
-+}
-+
-+static int __i2c_mux_smbus_xfer(struct i2c_adapter *adap,
-+				u16 addr, unsigned short flags,
-+				char read_write, u8 command,
-+				int size, union i2c_smbus_data *data)
-+{
-+	struct i2c_mux_priv *priv = adap->algo_data;
-+	struct i2c_mux_core *muxc = priv->muxc;
-+	struct i2c_adapter *parent = muxc->parent;
-+	int ret;
-+
-+	/* Select the right mux port and perform the transfer. */
-+
-+	ret = muxc->select(muxc, priv->chan_id);
-+	if (ret >= 0)
-+		ret = parent->algo->smbus_xfer(parent, addr, flags,
-+					read_write, command, size, data);
- 	if (muxc->deselect)
- 		muxc->deselect(muxc, priv->chan_id);
- 
-@@ -68,8 +109,8 @@ static int i2c_mux_smbus_xfer(struct i2c_adapter *adap,
- 
- 	ret = muxc->select(muxc, priv->chan_id);
- 	if (ret >= 0)
--		ret = parent->algo->smbus_xfer(parent, addr, flags,
--					read_write, command, size, data);
-+		ret = i2c_smbus_xfer(parent, addr, flags,
-+				     read_write, command, size, data);
- 	if (muxc->deselect)
- 		muxc->deselect(muxc, priv->chan_id);
- 
-@@ -98,12 +139,49 @@ static unsigned int i2c_mux_parent_classes(struct i2c_adapter *parent)
- 	return class;
- }
- 
-+static void i2c_mux_lock_bus(struct i2c_adapter *adapter, int flags)
-+{
-+	struct i2c_mux_priv *priv = adapter->algo_data;
-+	struct i2c_adapter *parent = priv->muxc->parent;
-+
-+	rt_mutex_lock(&parent->mux_lock);
-+	if (!(flags & I2C_LOCK_ADAPTER))
-+		return;
-+	i2c_lock_bus(parent, flags);
-+}
-+
-+static int i2c_mux_trylock_bus(struct i2c_adapter *adapter, int flags)
-+{
-+	struct i2c_mux_priv *priv = adapter->algo_data;
-+	struct i2c_adapter *parent = priv->muxc->parent;
-+
-+	if (!rt_mutex_trylock(&parent->mux_lock))
-+		return 0;
-+	if (!(flags & I2C_LOCK_ADAPTER))
-+		return 1;
-+	if (parent->trylock_bus(parent, flags))
-+		return 1;
-+	rt_mutex_unlock(&parent->mux_lock);
-+	return 0;
-+}
-+
-+static void i2c_mux_unlock_bus(struct i2c_adapter *adapter, int flags)
-+{
-+	struct i2c_mux_priv *priv = adapter->algo_data;
-+	struct i2c_adapter *parent = priv->muxc->parent;
-+
-+	if (flags & I2C_LOCK_ADAPTER)
-+		i2c_unlock_bus(parent, flags);
-+	rt_mutex_unlock(&parent->mux_lock);
-+}
-+
- static void i2c_parent_lock_bus(struct i2c_adapter *adapter, int flags)
- {
- 	struct i2c_mux_priv *priv = adapter->algo_data;
- 	struct i2c_adapter *parent = priv->muxc->parent;
- 
--	parent->lock_bus(parent, flags);
-+	rt_mutex_lock(&parent->mux_lock);
-+	i2c_lock_bus(parent, flags);
- }
- 
- static int i2c_parent_trylock_bus(struct i2c_adapter *adapter, int flags)
-@@ -111,7 +189,12 @@ static int i2c_parent_trylock_bus(struct i2c_adapter *adapter, int flags)
- 	struct i2c_mux_priv *priv = adapter->algo_data;
- 	struct i2c_adapter *parent = priv->muxc->parent;
- 
--	return parent->trylock_bus(parent, flags);
-+	if (!rt_mutex_trylock(&parent->mux_lock))
-+		return 0;
-+	if (parent->trylock_bus(parent, flags))
-+		return 1;
-+	rt_mutex_unlock(&parent->mux_lock);
-+	return 0;
- }
- 
- static void i2c_parent_unlock_bus(struct i2c_adapter *adapter, int flags)
-@@ -119,8 +202,35 @@ static void i2c_parent_unlock_bus(struct i2c_adapter *adapter, int flags)
- 	struct i2c_mux_priv *priv = adapter->algo_data;
- 	struct i2c_adapter *parent = priv->muxc->parent;
- 
--	parent->unlock_bus(parent, flags);
-+	i2c_unlock_bus(parent, flags);
-+	rt_mutex_unlock(&parent->mux_lock);
-+}
-+
-+struct i2c_adapter *i2c_root_adapter(struct device *dev)
-+{
-+	struct device *i2c;
-+	struct i2c_adapter *i2c_root;
-+
-+	/*
-+	 * Walk up the device tree to find an i2c adapter, indicating
-+	 * that this is an i2c client device. Check all ancestors to
-+	 * handle mfd devices etc.
-+	 */
-+	for (i2c = dev; i2c; i2c = i2c->parent) {
-+		if (i2c->type == &i2c_adapter_type)
-+			break;
-+	}
-+	if (!i2c)
-+		return NULL;
-+
-+	/* Continue up the tree to find the root i2c adapter */
-+	i2c_root = to_i2c_adapter(i2c);
-+	while (i2c_parent_is_i2c_adapter(i2c_root))
-+		i2c_root = i2c_parent_is_i2c_adapter(i2c_root);
-+
-+	return i2c_root;
- }
-+EXPORT_SYMBOL_GPL(i2c_root_adapter);
- 
- int i2c_mux_reserve_adapters(struct i2c_mux_core *muxc, int adapters)
- {
-@@ -163,6 +273,8 @@ struct i2c_mux_core *i2c_mux_alloc(struct i2c_adapter *parent,
- 
- 	muxc->parent = parent;
- 	muxc->dev = dev;
-+	if (flags & I2C_MUX_LOCKED)
-+		muxc->mux_locked = 1;
- 	muxc->select = select;
- 	muxc->deselect = deselect;
- 
-@@ -200,10 +312,18 @@ int i2c_mux_add_adapter(struct i2c_mux_core *muxc,
- 	/* Need to do algo dynamically because we don't know ahead
- 	 * of time what sort of physical adapter we'll be dealing with.
- 	 */
--	if (parent->algo->master_xfer)
--		priv->algo.master_xfer = i2c_mux_master_xfer;
--	if (parent->algo->smbus_xfer)
--		priv->algo.smbus_xfer = i2c_mux_smbus_xfer;
-+	if (parent->algo->master_xfer) {
-+		if (muxc->mux_locked)
-+			priv->algo.master_xfer = i2c_mux_master_xfer;
-+		else
-+			priv->algo.master_xfer = __i2c_mux_master_xfer;
-+	}
-+	if (parent->algo->smbus_xfer) {
-+		if (muxc->mux_locked)
-+			priv->algo.smbus_xfer = i2c_mux_smbus_xfer;
-+		else
-+			priv->algo.smbus_xfer = __i2c_mux_smbus_xfer;
-+	}
- 	priv->algo.functionality = i2c_mux_functionality;
- 
- 	/* Now fill out new adapter structure */
-@@ -216,9 +336,15 @@ int i2c_mux_add_adapter(struct i2c_mux_core *muxc,
- 	priv->adap.retries = parent->retries;
- 	priv->adap.timeout = parent->timeout;
- 	priv->adap.quirks = parent->quirks;
--	priv->adap.lock_bus = i2c_parent_lock_bus;
--	priv->adap.trylock_bus = i2c_parent_trylock_bus;
--	priv->adap.unlock_bus = i2c_parent_unlock_bus;
-+	if (muxc->mux_locked) {
-+		priv->adap.lock_bus = i2c_mux_lock_bus;
-+		priv->adap.trylock_bus = i2c_mux_trylock_bus;
-+		priv->adap.unlock_bus = i2c_mux_unlock_bus;
-+	} else {
-+		priv->adap.lock_bus = i2c_parent_lock_bus;
-+		priv->adap.trylock_bus = i2c_parent_trylock_bus;
-+		priv->adap.unlock_bus = i2c_parent_unlock_bus;
-+	}
- 
- 	/* Sanity check on class */
- 	if (i2c_mux_parent_classes(parent) & class)
-diff --git a/drivers/i2c/muxes/i2c-mux-gpio.c b/drivers/i2c/muxes/i2c-mux-gpio.c
-index 1bcc26737359..e382c03e3020 100644
---- a/drivers/i2c/muxes/i2c-mux-gpio.c
-+++ b/drivers/i2c/muxes/i2c-mux-gpio.c
-@@ -15,6 +15,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <linux/gpio.h>
-+#include "../../gpio/gpiolib.h"
- #include <linux/of_gpio.h>
- 
- struct gpiomux {
-@@ -137,6 +138,7 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
- 	struct i2c_mux_core *muxc;
- 	struct gpiomux *mux;
- 	struct i2c_adapter *parent;
-+	struct i2c_adapter *root;
- 	unsigned initial_state, gpio_base;
- 	int i, ret;
- 
-@@ -178,6 +180,9 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
- 	if (!parent)
- 		return -EPROBE_DEFER;
- 
-+	root = i2c_root_adapter(&parent->dev);
-+
-+	muxc->mux_locked = true;
- 	muxc->parent = parent;
- 	mux->gpio_base = gpio_base;
- 
-@@ -193,6 +198,9 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
- 	}
- 
- 	for (i = 0; i < mux->data.n_gpios; i++) {
-+		struct device *gpio_dev;
-+		struct gpio_desc *gpio_desc;
-+
- 		ret = gpio_request(gpio_base + mux->data.gpios[i], "i2c-mux-gpio");
- 		if (ret) {
- 			dev_err(&pdev->dev, "Failed to request GPIO %d\n",
-@@ -209,8 +217,18 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
- 			i++;	/* gpio_request above succeeded, so must free */
- 			goto err_request_gpio;
- 		}
-+
-+		if (!muxc->mux_locked)
-+			continue;
-+
-+		gpio_desc = gpio_to_desc(gpio_base + mux->data.gpios[i]);
-+		gpio_dev = &gpio_desc->gdev->dev;
-+		muxc->mux_locked = i2c_root_adapter(gpio_dev) == root;
- 	}
- 
-+	if (muxc->mux_locked)
-+		dev_info(&pdev->dev, "mux-locked i2c mux\n");
-+
- 	for (i = 0; i < mux->data.n_values; i++) {
- 		u32 nr = mux->data.base_nr ? (mux->data.base_nr + i) : 0;
- 		unsigned int class = mux->data.classes ? mux->data.classes[i] : 0;
-diff --git a/drivers/i2c/muxes/i2c-mux-pinctrl.c b/drivers/i2c/muxes/i2c-mux-pinctrl.c
-index bbfabf4f52be..017c3af7d401 100644
---- a/drivers/i2c/muxes/i2c-mux-pinctrl.c
-+++ b/drivers/i2c/muxes/i2c-mux-pinctrl.c
-@@ -24,6 +24,7 @@
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-+#include "../../pinctrl/core.h"
- 
- struct i2c_mux_pinctrl {
- 	struct i2c_mux_pinctrl_platform_data *pdata;
-@@ -120,10 +121,31 @@ static inline int i2c_mux_pinctrl_parse_dt(struct i2c_mux_pinctrl *mux,
- }
- #endif
- 
-+static struct i2c_adapter *i2c_mux_pinctrl_root_adapter(
-+	struct pinctrl_state *state)
-+{
-+	struct i2c_adapter *root = NULL;
-+	struct pinctrl_setting *setting;
-+	struct i2c_adapter *pin_root;
-+
-+	list_for_each_entry(setting, &state->settings, node) {
-+		pin_root = i2c_root_adapter(setting->pctldev->dev);
-+		if (!pin_root)
-+			return NULL;
-+		if (!root)
-+			root = pin_root;
-+		else if (root != pin_root)
-+			return NULL;
-+	}
-+
-+	return root;
-+}
-+
- static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
- {
- 	struct i2c_mux_core *muxc;
- 	struct i2c_mux_pinctrl *mux;
-+	struct i2c_adapter *root;
- 	int i, ret;
- 
- 	muxc = i2c_mux_alloc(NULL, &pdev->dev, sizeof(*mux), 0,
-@@ -199,6 +221,22 @@ static int i2c_mux_pinctrl_probe(struct platform_device *pdev)
- 		goto err;
- 	}
- 
-+	root = i2c_root_adapter(&muxc->parent->dev);
-+
-+	muxc->mux_locked = true;
-+	for (i = 0; i < mux->pdata->bus_count; i++) {
-+		if (root != i2c_mux_pinctrl_root_adapter(mux->states[i])) {
-+			muxc->mux_locked = false;
-+			break;
-+		}
-+	}
-+	if (muxc->mux_locked && mux->pdata->pinctrl_state_idle
-+	    && root != i2c_mux_pinctrl_root_adapter(mux->state_idle))
-+		muxc->mux_locked = false;
-+
-+	if (muxc->mux_locked)
-+		dev_info(&pdev->dev, "mux-locked i2c mux\n");
-+
- 	for (i = 0; i < mux->pdata->bus_count; i++) {
- 		u32 bus = mux->pdata->base_bus_num ?
- 				(mux->pdata->base_bus_num + i) : 0;
-diff --git a/include/linux/i2c-mux.h b/include/linux/i2c-mux.h
-index 25c88ccf9c38..d7a16bbe6c4a 100644
---- a/include/linux/i2c-mux.h
-+++ b/include/linux/i2c-mux.h
-@@ -33,6 +33,7 @@ struct i2c_mux_core {
- 	int adapters;
- 	int max_adapters;
- 	struct device *dev;
-+	bool mux_locked;
- 
- 	void *priv;
- 
-@@ -46,11 +47,16 @@ struct i2c_mux_core *i2c_mux_alloc(struct i2c_adapter *parent,
- 				   int (*select)(struct i2c_mux_core *, u32),
- 				   int (*deselect)(struct i2c_mux_core *, u32));
- 
-+/* flags for i2c_mux_alloc */
-+#define I2C_MUX_LOCKED (1<<0)
-+
- static inline void *i2c_mux_priv(struct i2c_mux_core *muxc)
- {
- 	return muxc->priv;
- }
- 
-+struct i2c_adapter *i2c_root_adapter(struct device *dev);
-+
- int i2c_mux_reserve_adapters(struct i2c_mux_core *muxc, int adapters);
- 
- /*
-diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-index c5f79fec1bfb..e682d41fa4a6 100644
---- a/include/linux/i2c.h
-+++ b/include/linux/i2c.h
-@@ -524,6 +524,7 @@ struct i2c_adapter {
- 
- 	/* data fields that are valid for all devices	*/
- 	struct rt_mutex bus_lock;
-+	struct rt_mutex mux_lock;
- 
- 	int timeout;			/* in jiffies */
- 	int retries;
--- 
-2.1.4
-
+Thanks for all.
+Regards,
+Charles-Antoine
