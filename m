@@ -1,92 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53114 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751126AbcDONEM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 09:04:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Florian Echtler <floe@butterbrot.org>
-Subject: [PATCHv2 03/12] sur40: set q->dev instead of allocating a context
-Date: Fri, 15 Apr 2016 15:03:47 +0200
-Message-Id: <1460725436-20045-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
-References: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:33596 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754292AbcDDSPb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2016 14:15:31 -0400
+Received: by mail-pa0-f42.google.com with SMTP id zm5so149190809pac.0
+        for <linux-media@vger.kernel.org>; Mon, 04 Apr 2016 11:15:31 -0700 (PDT)
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Laura Abbott <labbott@redhat.com>
+Subject: Incorrect use of blocking ops in lirc_dev_fop_read
+Message-ID: <5702AF37.7070100@redhat.com>
+Date: Mon, 4 Apr 2016 11:15:19 -0700
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Stop using alloc_ctx and just fill in the device pointer.
+We received a bug report 
+(https://bugzilla.redhat.com/show_bug.cgi?id=1323440)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Florian Echtler <floe@butterbrot.org>
-#
-#total: 0 errors, 0 warnings, 304 lines checked
-#
-#Your patch has no obvious style problems and is ready for submission.
-#
-#total: 0 errors, 0 warnings, 8 lines checked
-#
-#Your patch has no obvious style problems and is ready for submission.
----
- drivers/input/touchscreen/sur40.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+WARNING: CPU: 3 PID: 765 at kernel/sched/core.c:7557 
+__might_sleep+0x75/0x80()
+do not call blocking ops when !TASK_RUNNING; state=1 set at
+[<ffffffffa03b2d31>] lirc_dev_fop_read+0x1e1/0x590 [lirc_dev]
+CPU: 3 PID: 765 Comm: lircd Not tainted 4.4.5-300.fc23.x86_64+debug #1
+Hardware name:                  /NUC5PPYB, BIOS
+PYBSWCEL.86A.0031.2015.0601.1712 06/01/2015
+  0000000000000286 00000000d9104369 ffff8801742bfc90 ffffffff8142b543
+  ffff8801742bfcd8 ffffffff81c893ec ffff8801742bfcc8 ffffffff810aef42
+  ffffffffa03b4428 00000000000002dc 0000000000000000 ffff88007640d380
+Call Trace:
+  [<ffffffff8142b543>] dump_stack+0x85/0xc2
+  [<ffffffff810aef42>] warn_slowpath_common+0x82/0xc0
+  [<ffffffff810aefdc>] warn_slowpath_fmt+0x5c/0x80
+  [<ffffffff81885186>] ? _raw_spin_unlock_irqrestore+0x36/0x60
+  [<ffffffffa03b2d31>] ? lirc_dev_fop_read+0x1e1/0x590 [lirc_dev]
+  [<ffffffffa03b2d31>] ? lirc_dev_fop_read+0x1e1/0x590 [lirc_dev]
+  [<ffffffff810dc475>] __might_sleep+0x75/0x80
+  [<ffffffff8121bcd3>] __might_fault+0x43/0xa0
+  [<ffffffffa03b2fe1>] lirc_dev_fop_read+0x491/0x590 [lirc_dev]
+  [<ffffffff8110a38d>] ? trace_hardirqs_on+0xd/0x10
+  [<ffffffff810e20f0>] ? wake_up_q+0x70/0x70
+  [<ffffffff81276dc7>] __vfs_read+0x37/0x100
+  [<ffffffff813a0963>] ? security_file_permission+0xa3/0xc0
+  [<ffffffff812778d9>] vfs_read+0x89/0x130
+  [<ffffffff81278658>] SyS_read+0x58/0xd0
+  [<ffffffff81885b72>] entry_SYSCALL_64_fastpath+0x12/0x76
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index 880c40b..cc4bd3e 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -151,7 +151,6 @@ struct sur40_state {
- 	struct mutex lock;
- 
- 	struct vb2_queue queue;
--	struct vb2_alloc_ctx *alloc_ctx;
- 	struct list_head buf_list;
- 	spinlock_t qlock;
- 	int sequence;
-@@ -580,19 +579,13 @@ static int sur40_probe(struct usb_interface *interface,
- 	sur40->queue = sur40_queue;
- 	sur40->queue.drv_priv = sur40;
- 	sur40->queue.lock = &sur40->lock;
-+	sur40->queue.dev = sur40->dev;
- 
- 	/* initialize the queue */
- 	error = vb2_queue_init(&sur40->queue);
- 	if (error)
- 		goto err_unreg_v4l2;
- 
--	sur40->alloc_ctx = vb2_dma_sg_init_ctx(sur40->dev);
--	if (IS_ERR(sur40->alloc_ctx)) {
--		dev_err(sur40->dev, "Can't allocate buffer context");
--		error = PTR_ERR(sur40->alloc_ctx);
--		goto err_unreg_v4l2;
--	}
--
- 	sur40->vdev = sur40_video_device;
- 	sur40->vdev.v4l2_dev = &sur40->v4l2;
- 	sur40->vdev.lock = &sur40->lock;
-@@ -633,7 +626,6 @@ static void sur40_disconnect(struct usb_interface *interface)
- 
- 	video_unregister_device(&sur40->vdev);
- 	v4l2_device_unregister(&sur40->v4l2);
--	vb2_dma_sg_cleanup_ctx(sur40->alloc_ctx);
- 
- 	input_unregister_polled_device(sur40->input);
- 	input_free_polled_device(sur40->input);
-@@ -655,11 +647,8 @@ static int sur40_queue_setup(struct vb2_queue *q,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
- 		       unsigned int sizes[], void *alloc_ctxs[])
- {
--	struct sur40_state *sur40 = vb2_get_drv_priv(q);
--
- 	if (q->num_buffers + *nbuffers < 3)
- 		*nbuffers = 3 - q->num_buffers;
--	alloc_ctxs[0] = sur40->alloc_ctx;
- 
- 	if (*nplanes)
- 		return sizes[0] < sur40_video_format.sizeimage ? -EINVAL : 0;
--- 
-2.8.0.rc3
+ From looking at the code, it looks like the issue is that copy_to_user
+may be called within the block of TASK_INTERRUPTIBLE. I don't know
+the code well enough to try and propose a patch to fix this (I broke
+code last time I tried to fix something like this)
 
+Thanks,
+Laura
