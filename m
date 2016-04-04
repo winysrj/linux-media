@@ -1,182 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:15426 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753675AbcDYJWK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 05:22:10 -0400
-Message-ID: <1461576123.15167.3.camel@mtksdaap41>
-Subject: Re: [PATCH v7 2/8] [media] VPU: mediatek: support Mediatek VPU
-From: andrew-ct chen <andrew-ct.chen@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Tiffany Lin <tiffany.lin@mediatek.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Date: Mon, 25 Apr 2016 17:22:03 +0800
-In-Reply-To: <571DCA04.8000703@xs4all.nl>
-References: <1461299131-57851-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1461299131-57851-2-git-send-email-tiffany.lin@mediatek.com>
-	 <1461299131-57851-3-git-send-email-tiffany.lin@mediatek.com>
-	 <571DCA04.8000703@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f171.google.com ([209.85.192.171]:32982 "EHLO
+	mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932104AbcDDREK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2016 13:04:10 -0400
+From: info@are.ma
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?=
+	<knightrider@are.ma>, linux-kernel@vger.kernel.org, crope@iki.fi,
+	m.chehab@samsung.com, mchehab@osg.samsung.com, hdegoede@redhat.com,
+	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
+	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
+	peter.senna@gmail.com
+Subject: [media 0/6] DVB driver for Earthsoft PT3, PLEX PX-Q3PE ISDB-S/T PCIE cards & PX-BCUD ISDB-S USB dongle
+Date: Tue,  5 Apr 2016 02:03:59 +0900
+Message-Id: <cover.1459787898.git.knightrider@are.ma>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2016-04-25 at 09:40 +0200, Hans Verkuil wrote:
-> On 04/22/2016 06:25 AM, Tiffany Lin wrote:
-> > From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-> > 
-> > The VPU driver for hw video codec embedded in Mediatek's MT8173 SOCs.
-> > It is able to handle video decoding/encoding of in a range of formats.
-> > The driver provides with VPU firmware download, memory management and
-> > the communication interface between CPU and VPU.
-> > For VPU initialization, it will create virtual memory for CPU access and
-> > IOMMU address for vcodec hw device access. When a decode/encode instance
-> > opens a device node, vpu driver will download vpu firmware to the device.
-> > A decode/encode instant will decode/encode a frame using VPU
-> > interface to interrupt vpu to handle decoding/encoding jobs.
-> > 
-> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> > 
-> > ---
-> >  drivers/media/platform/Kconfig           |   13 +
-> >  drivers/media/platform/Makefile          |    2 +
-> >  drivers/media/platform/mtk-vpu/Makefile  |    3 +
-> >  drivers/media/platform/mtk-vpu/mtk_vpu.c |  950 ++++++++++++++++++++++++++++++
-> >  drivers/media/platform/mtk-vpu/mtk_vpu.h |  162 +++++
-> >  5 files changed, 1130 insertions(+)
-> >  create mode 100644 drivers/media/platform/mtk-vpu/Makefile
-> >  create mode 100755 drivers/media/platform/mtk-vpu/mtk_vpu.c
-> >  create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu.h
-> > 
-> 
-> 
-> > +int vpu_load_firmware(struct platform_device *pdev)
-> > +{
-> > +	struct mtk_vpu *vpu = platform_get_drvdata(pdev);
-> > +	struct device *dev = &pdev->dev;
-> > +	struct vpu_run *run = &vpu->run;
-> > +	const struct firmware *vpu_fw;
-> > +	int ret;
-> > +
-> > +	if (!pdev) {
-> > +		dev_err(dev, "VPU platform device is invalid\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	ret = vpu_clock_enable(vpu);
-> > +	if (ret) {
-> > +		dev_err(dev, "enable clock failed %d\n", ret);
-> > +		return ret;
-> > +	}
-> > +
-> > +	mutex_lock(&vpu->vpu_mutex);
-> > +
-> > +	if (vpu_running(vpu)) {
-> > +		mutex_unlock(&vpu->vpu_mutex);
-> > +		vpu_clock_disable(vpu);
-> > +		dev_warn(dev, "vpu is running already\n");
-> 
-> This warning should be dropped. Currently vpu_load_firmware is called
-> every time the video device is opened and no one else has the video device
-> open. So calling this multiple times is perfectly normal and the log shouldn't
-> be spammed with warnings.
-> 
-> I would recommend adding a fw_loaded bool to struct mtk_vpu and just
-> check that at the beginning of this function and just return 0 if it is true.
-> 
-> Then you don't need to enable the vpu clock either.
-> 
-> I hope I understand the hw correctly, though.
-> 
-> Assuming you can do this, then this code from the v4l driver needs an
-> additional comment:
+From: Буди Романто, AreMa Inc <knightrider@are.ma>
 
-We will change this in next version.
 
-> 
-> >>> +	if (v4l2_fh_is_singular(&ctx->fh)) {
-> 
-> Add a comment here that says that vpu_load_firmware checks if it was
-> loaded already and does nothing in that case.
+DVB driver for Earthsoft PT3, PLEX PX-Q3PE ISDB-S/T PCIE cards & PX-BCUD ISDB-S USB dongle
+==========================================================================================
 
-We will change this in next version. Thanks
+Status: stable
 
-> 
-> >>> +		ret = vpu_load_firmware(dev->vpu_plat_dev);
-> >>> +		if (ret < 0) {
-> >>> +			/*
-> >>> +			  * Return 0 if downloading firmware successfully,
-> >>> +			  * otherwise it is failed
-> >>> +			  */
-> >>> +			mtk_v4l2_err("vpu_load_firmware failed!");
-> >>> +			goto err_load_fw;
-> >>> +		}
-> 
-> That makes it clear to the reader (i.e. me :-) ) that you can safely call
-> vpu_load_firmware multiple times.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > +		return 0;
-> > +	}
-> > +
-> > +	run->signaled = false;
-> > +	dev_dbg(vpu->dev, "firmware request\n");
-> > +	/* Downloading program firmware to device*/
-> > +	ret = load_requested_vpu(vpu, vpu_fw, P_FW);
-> > +	if (ret < 0) {
-> > +		dev_err(dev, "Failed to request %s, %d\n", VPU_P_FW, ret);
-> > +		goto OUT_LOAD_FW;
-> > +	}
-> > +
-> > +	/* Downloading data firmware to device */
-> > +	ret = load_requested_vpu(vpu, vpu_fw, D_FW);
-> > +	if (ret < 0) {
-> > +		dev_err(dev, "Failed to request %s, %d\n", VPU_D_FW, ret);
-> > +		goto OUT_LOAD_FW;
-> > +	}
-> > +
-> > +	/* boot up vpu */
-> > +	vpu_cfg_writel(vpu, 0x1, VPU_RESET);
-> > +
-> > +	ret = wait_event_interruptible_timeout(run->wq,
-> > +					       run->signaled,
-> > +					       msecs_to_jiffies(INIT_TIMEOUT_MS)
-> > +					       );
-> > +	if (ret == 0) {
-> > +		ret = -ETIME;
-> > +		dev_err(dev, "wait vpu initialization timout!\n");
-> > +		goto OUT_LOAD_FW;
-> > +	} else if (-ERESTARTSYS == ret) {
-> > +		dev_err(dev, "wait vpu interrupted by a signal!\n");
-> > +		goto OUT_LOAD_FW;
-> > +	}
-> > +
-> > +	ret = 0;
-> > +	dev_info(dev, "vpu is ready. Fw version %s\n", run->fw_ver);
-> > +
-> > +OUT_LOAD_FW:
-> > +	mutex_unlock(&vpu->vpu_mutex);
-> > +	vpu_clock_disable(vpu);
-> > +
-> > +	return ret;
-> > +}
-> > +EXPORT_SYMBOL_GPL(vpu_load_firmware);
-> 
+Features:
+1. in addition to the real frequency:
+        ISDB-S : freq. channel ID
+        ISDB-T : freq# (I/O# +128), ch#, ch# +64 for CATV
+2. in addition to TSID:
+        ISDB-S : slot#
 
+Supported Cards & Main components:
+A. EarthSoft PT3:
+1. Altera       EP4CGX15BF14C8N : customized FPGA PCI bridge
+2. Toshiba      TC90522XBG      : quad demodulator (2ch OFDM + 2ch 8PSK)
+3. Sharp        VA4M6JC2103     : contains 2 ISDB-S + 2 ISDB-T tuners
+        ISDB-S : Sharp QM1D1C0042 RF-IC, chip ver. 0x48
+        ISDB-T : MaxLinear CMOS Hybrid TV MxL301RF
+
+B. PLEX PX-Q3PE:
+1. ASICEN       ASV5220         : PCI-E bridge
+2. Toshiba      TC90522XBG      : quad demodulator (2ch OFDM + 2ch 8PSK)
+3. NXP Semiconductors TDA20142  : ISDB-S tuner
+4. Newport Media NM120          : ISDB-T tuner
+5. ASICEN       ASIE5606X8      : crypting controller
+
+C. PLEX PX-BCUD (ISDB-S USB dongle)
+1. Empia        EM28178         : USB I/F (courtesy of Nagahama Satoshi)
+2. Toshiba      TC90532         : demodulator (using TC90522 driver)
+3. Sharp        QM1D1C0045_2    : ISDB-S RF-IC, chip ver. 0x68
+
+Notes:
+This is a complex but smartly polished driver package containing 2 (dual head)
+PCI-E bridge I/F drivers, single demodulator frontend, and 4 (quad tail) tuner drivers,
+plus, simplified Nagahama's patch for PLEX PX-BCUD (ISDB-S USB dongle).
+Generic registration related procedures (subdevices, frontend, etc.) summarized in
+ptx_common.c are very useful also for other DVB drivers, and would be very handy if
+inserted into the core (e.g. dvb_frontend.c & dvb_frontend.h).
+
+For example, currently, the entity of struct dvb_frontend is created sometimes in
+demodulators, some in tuners, or even in the parent (bridge) drivers. IMHO, this entity
+should be provided by dvb_core. ptx_register_fe() included in ptx_common.c simplifies
+the tasks and in fact, significantly reduces coding & kernel size.
+
+Also, currently dvb_frontend's .demodulator_priv & .tuner_priv are of type (void *).
+These should be changed to (struct i2c_client *), IMHO. Private data for demodulator
+or tuner should be attached under i2c_client, using i2c_set_clientdata() for instance.
+
+FILENAME        SUPPORTED CHIPS
+========        ===============
+tc90522.c       TC90522XBG, TC90532XBG,...
+tda2014x.c      TDA20142
+qm1d1c004x.c    QM1D1C0042, QM1D1C0045, QM1D1C0045_2
+nm131.c         NM131, NM130, NM120
+mxl301rf.c      MxL301RF
+pt3_pci.c       EP4CGX15BF14C8N
+pxq3pe_pci.c    ASV5220
+
+Full package:
+- URL:  https://github.com/knight-rider/ptx
+
+
+Буди Романто, AreMa Inc (6):
+  Raise adapter number limit
+  drop backstabbing drivers
+  Demodulator for Earthsoft PT3, PLEX PX-Q3PE ISDB-S/T PCIE cards &
+    PX-BCUD ISDB-S USB dongle
+  Tuners for Earthsoft PT3, PLEX PX-Q3PE ISDB-S/T PCIE cards & PX-BCUD
+    ISDB-S USB dongle
+  PCIE bridge driver for PT3 & PX-Q3PE
+  Bridge driver for PLEX PX-BCUD ISDB-S USB dongle
+
+ drivers/media/Kconfig                   |   5 +-
+ drivers/media/dvb-core/Kconfig          |   4 +-
+ drivers/media/dvb-core/dvbdev.h         |   2 +-
+ drivers/media/dvb-frontends/tc90522.c   | 964 +++++++-------------------------
+ drivers/media/dvb-frontends/tc90522.h   |  36 +-
+ drivers/media/pci/Kconfig               |   2 +-
+ drivers/media/pci/Makefile              |   2 +-
+ drivers/media/pci/pt3/Kconfig           |  10 -
+ drivers/media/pci/pt3/Makefile          |   8 -
+ drivers/media/pci/pt3/pt3.c             | 874 -----------------------------
+ drivers/media/pci/pt3/pt3.h             | 186 ------
+ drivers/media/pci/pt3/pt3_dma.c         | 225 --------
+ drivers/media/pci/pt3/pt3_i2c.c         | 240 --------
+ drivers/media/pci/ptx/Kconfig           |  23 +
+ drivers/media/pci/ptx/Makefile          |   6 +
+ drivers/media/pci/ptx/pt3.c             | 426 ++++++++++++++
+ drivers/media/pci/ptx/ptx_common.c      | 266 +++++++++
+ drivers/media/pci/ptx/ptx_common.h      |  76 +++
+ drivers/media/pci/ptx/pxq3pe.c          | 585 +++++++++++++++++++
+ drivers/media/tuners/Kconfig            |  21 +-
+ drivers/media/tuners/Makefile           |   4 +-
+ drivers/media/tuners/mxl301rf.c         | 471 ++++++----------
+ drivers/media/tuners/mxl301rf.h         |  19 +-
+ drivers/media/tuners/nm131.c            | 248 ++++++++
+ drivers/media/tuners/nm131.h            |  13 +
+ drivers/media/tuners/qm1d1c0042.c       | 448 ---------------
+ drivers/media/tuners/qm1d1c0042.h       |  37 --
+ drivers/media/tuners/qm1d1c004x.c       | 242 ++++++++
+ drivers/media/tuners/qm1d1c004x.h       |  23 +
+ drivers/media/tuners/tda2014x.c         | 358 ++++++++++++
+ drivers/media/tuners/tda2014x.h         |  13 +
+ drivers/media/usb/em28xx/Kconfig        |   3 +
+ drivers/media/usb/em28xx/Makefile       |   1 +
+ drivers/media/usb/em28xx/em28xx-cards.c |  27 +
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  81 ++-
+ drivers/media/usb/em28xx/em28xx.h       |   1 +
+ 36 files changed, 2794 insertions(+), 3156 deletions(-)
+ delete mode 100644 drivers/media/pci/pt3/Kconfig
+ delete mode 100644 drivers/media/pci/pt3/Makefile
+ delete mode 100644 drivers/media/pci/pt3/pt3.c
+ delete mode 100644 drivers/media/pci/pt3/pt3.h
+ delete mode 100644 drivers/media/pci/pt3/pt3_dma.c
+ delete mode 100644 drivers/media/pci/pt3/pt3_i2c.c
+ create mode 100644 drivers/media/pci/ptx/Kconfig
+ create mode 100644 drivers/media/pci/ptx/Makefile
+ create mode 100644 drivers/media/pci/ptx/pt3.c
+ create mode 100644 drivers/media/pci/ptx/ptx_common.c
+ create mode 100644 drivers/media/pci/ptx/ptx_common.h
+ create mode 100644 drivers/media/pci/ptx/pxq3pe.c
+ create mode 100644 drivers/media/tuners/nm131.c
+ create mode 100644 drivers/media/tuners/nm131.h
+ delete mode 100644 drivers/media/tuners/qm1d1c0042.c
+ delete mode 100644 drivers/media/tuners/qm1d1c0042.h
+ create mode 100644 drivers/media/tuners/qm1d1c004x.c
+ create mode 100644 drivers/media/tuners/qm1d1c004x.h
+ create mode 100644 drivers/media/tuners/tda2014x.c
+ create mode 100644 drivers/media/tuners/tda2014x.h
+
+-- 
+2.7.4
 
