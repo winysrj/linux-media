@@ -1,147 +1,432 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37684 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752630AbcD2Hm1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 03:42:27 -0400
-Date: Fri, 29 Apr 2016 10:41:52 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 01/24] V4L fixes
-Message-ID: <20160429074151.GF32125@valkosipuli.retiisi.org.uk>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160425132549.GE32125@valkosipuli.retiisi.org.uk>
- <571E46B2.7060300@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:33670 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753584AbcDEQTd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Apr 2016 12:19:33 -0400
+Date: Tue, 5 Apr 2016 09:19:29 -0700
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: laurent.pinchart@ideasonboard.com, perex@perex.cz, tiwai@suse.com,
+	hans.verkuil@cisco.com, chehabrafael@gmail.com,
+	javier@osg.samsung.com, jh1009.sung@samsung.com,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	alsa-devel@alsa-project.org
+Subject: Re: [RFC PATCH 1/4] media: Add Media Device Allocator API
+Message-ID: <20160405091929.05b26df5@vela.lan>
+In-Reply-To: <56F9A357.6050107@osg.samsung.com>
+References: <cover.1458966594.git.shuahkh@osg.samsung.com>
+	<41d017ef76e3206780c018399ec60b63d865f65c.1458966594.git.shuahkh@osg.samsung.com>
+	<20160328152831.6f2ef88d@recife.lan>
+	<56F9A357.6050107@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <571E46B2.7060300@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ivaylo,
+Em Mon, 28 Mar 2016 15:34:15 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-On Mon, Apr 25, 2016 at 07:32:50PM +0300, Ivaylo Dimitrov wrote:
-> Hi,
+> On 03/28/2016 12:28 PM, Mauro Carvalho Chehab wrote:
+> > Hi Shuah,
+> > 
+> > I reviewed the entire patch series, but I'm adding the comments only here,
+> > as the other patches are coherent with this one.  
 > 
-> On 25.04.2016 16:25, Sakari Ailus wrote:
-> >Hi Ivaylo,
-> >
-> >Thanks for the set!
-> >
-> >On Mon, Apr 25, 2016 at 12:08:01AM +0300, Ivaylo Dimitrov wrote:
-> >>From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
-> >>
-> >>Squashed from the following upstream commits:
-> >>
-> >>V4L: Create control class for sensor mode
-> >>V4L: add ad5820 focus specific custom controls
-> >>V4L: add V4L2_CID_TEST_PATTERN
-> >>V4L: Add V4L2_CID_MODE_OPSYSCLOCK for reading output system clock
-> >>
-> >>Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-> >>Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
-> >>---
-> >>  include/uapi/linux/v4l2-controls.h | 17 +++++++++++++++++
-> >>  1 file changed, 17 insertions(+)
-> >>
-> >>diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> >>index b6a357a..23011cc 100644
-> >>--- a/include/uapi/linux/v4l2-controls.h
-> >>+++ b/include/uapi/linux/v4l2-controls.h
-> >>@@ -62,6 +62,7 @@
-> >>  #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
-> >>  #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
-> >>  #define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
-> >>+#define V4L2_CTRL_CLASS_MODE		0x00a40000	/* Sensor mode information */
-> >>
-> >>  /* User-class control IDs */
-> >>
-> >>@@ -974,4 +975,20 @@ enum v4l2_detect_md_mode {
-> >>  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
-> >>  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
-> >>
-> >>+/* SMIA-type sensor information */
-> >>+#define V4L2_CID_MODE_CLASS_BASE		(V4L2_CTRL_CLASS_MODE | 0x900)
-> >>+#define V4L2_CID_MODE_CLASS			(V4L2_CTRL_CLASS_MODE | 1)
-> >>+#define V4L2_CID_MODE_FRAME_WIDTH		(V4L2_CID_MODE_CLASS_BASE+1)
-> >>+#define V4L2_CID_MODE_FRAME_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+2)
-> >>+#define V4L2_CID_MODE_VISIBLE_WIDTH		(V4L2_CID_MODE_CLASS_BASE+3)
-> >>+#define V4L2_CID_MODE_VISIBLE_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+4)
-> >
-> >The interface here pre-dates the selection API. The frame width and height
-> >is today conveyed to the bridge driver by the smiapp driver in the scaler
-> >(or binner in case of the lack of the scaler) sub-device's source pad
-> >format.
-> >
-> >(While that's the current interface, I'm not entirely happy with it; it
-> >requires more sub-devices to be created for the same I2C device). I think in
-> >this case you'd need one more to properly control the sensor.
-> >
+> That is fine.
 > 
-> By looking at the code, it seems those are read-only, so I don't think it
-> make sense to add a binner sub-device with read-only controls.
+> > 
+> > Em Fri, 25 Mar 2016 22:38:42 -0600
+> > Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> >   
+> >> Add Media Device Allocator API to manage Media Device life time problems.
+> >> There are known problems with media device life time management. When media
+> >> device is released while an media ioctl is in progress, ioctls fail with
+> >> use-after-free errors and kernel hangs in some cases.
+> >>
+> >> Media Allocator API provides interfaces to allocate a refcounted media
+> >> device from system wide global list and maintains the state until the
+> >> last user of the media device releases it.
+> >>
+> >> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> >> ---
+> >>  drivers/media/Makefile              |   3 +-
+> >>  drivers/media/media-dev-allocator.c | 153 ++++++++++++++++++++++++++++++++++++
+> >>  include/media/media-dev-allocator.h |  81 +++++++++++++++++++
+> >>  3 files changed, 236 insertions(+), 1 deletion(-)
+> >>  create mode 100644 drivers/media/media-dev-allocator.c
+> >>  create mode 100644 include/media/media-dev-allocator.h
+> >>
+> >> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> >> index e608bbc..b08f091 100644
+> >> --- a/drivers/media/Makefile
+> >> +++ b/drivers/media/Makefile
+> >> @@ -2,7 +2,8 @@
+> >>  # Makefile for the kernel multimedia device drivers.
+> >>  #
+> >>  
+> >> -media-objs	:= media-device.o media-devnode.o media-entity.o
+> >> +media-objs	:= media-device.o media-devnode.o media-entity.o \
+> >> +		   media-dev-allocator.o
+> >>  
+> >>  #
+> >>  # I2C drivers should come before other drivers, otherwise they'll fail
+> >> diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
+> >> new file mode 100644
+> >> index 0000000..51edc49
+> >> --- /dev/null
+> >> +++ b/drivers/media/media-dev-allocator.c
+> >> @@ -0,0 +1,153 @@
+> >> +/*
+> >> + * media-devkref.c - Media Controller Device Allocator API
+> >> + *
+> >> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+> >> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
+> >> + *
+> >> + * This file is released under the GPLv2.
+> >> + * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> + */
+> >> +
+> >> +/*
+> >> + * This file adds Media Controller Device Instance with
+> >> + * Kref support. A system wide global media device list
+> >> + * is managed and each  media device is refcounted. The
+> >> + * last put on the media device releases the media device
+> >> + * instance.
+> >> +*/
+> >> +
+> >> +#ifdef CONFIG_MEDIA_CONTROLLER  
+> > 
+> > No need for an ifdef here. This file will be compiled only
+> > if CONFIG_MEDIA_CONTROLLER, as you added it for media.ko
+> > dependencies at the Makefile.  
+> 
+> Right. I will remove it.
+> 
+> >   
+> >> +
+> >> +#include <linux/slab.h>
+> >> +#include <linux/kref.h>
+> >> +#include <media/media-device.h>
+> >> +
+> >> +static LIST_HEAD(media_device_list);
+> >> +static LIST_HEAD(media_device_to_delete_list);
+> >> +static DEFINE_MUTEX(media_device_lock);
+> >> +
+> >> +struct media_device_instance {
+> >> +	struct media_device mdev;
+> >> +	struct list_head list;
+> >> +	struct list_head to_delete_list;
+> >> +	struct device *dev;
+> >> +	struct kref refcount;  
+> >   
+> >> +	bool to_delete; /* should be set when devnode is deleted */  
+> > 
+> > I don't think this is needed.  
+> 
+> This is necessary to handle race condition between ioctls and media
+> device unregister. Consider the case where the driver does unregister
+> while application has the device open and ioctl is in progress. 
 
-Well, I can't disagree with that. However, I think a number of other drivers
-would benefit from doing this properly --- the V4L2 selection API which
-defines a strict order for the processing steps does not suit to this use
-case very well. You could use the crop selection rectangle for now, albeit
-that doesn't fully express what the sensor does, or use private controls. We
-could then later replace this with something better.
+That is easy to handle: just take the graph_lock at the ioctl code
+and at the unregister code. This will serialize unregistering.
+
+> In this
+> case, media device should not be released until the application exits
+> with an error detecting media device has been unregistered. All ioctls
+> check for this condition.
+> 
+> A second issue is if the media device isn't free'd, a subsequent driver
+> bind finds the media device that is still in the list.
+
+Again, you don't need a newer flag, as there's already one flag at
+media_devnode that it is used for such case.
+
+For media_device, this can be safely freed if properly locked, even
+if media_devnode is not freed.
+
+A new flag here just makes things more complicated, non-standard and
+may lead into errors.
+
+> So this flag is
+> used to move the media device instance to a second to be deleted list.
+> We do have to make sure the media device gets deleted from this to be
+> deleted list in the cases when the applications dies without releasing
+> the reference to the media device which triggers the put.
+> 
+> When more than one driver is in play (e.g: au0828 and snd_usb_audio),
+> it is necessary to keep track of how many drivers are associated with
+> the media device. 
+
+That's exactly what kref does.
+
+> So we need a second kref in to do that. 
+
+I'm not convinced why you need two krefs. Just one seems to be enough.
+
+The more complex it is, the easier to get it wrong.
+
+IMHO, we should first solve the race issues at the MC core, and then put the
+media_device allocation in a linked list, and not the reverse, as otherwise
+we'll need to do lots of cleanups.
+
+So, IMHO, we should first:
+
+- apply the media_lock patch I did (folded with the fixup);
+- the patch that dynamically allocate media_devnode;
+- fix the cdev stuff;
+- add more patches to fix the remaining MC core races.
+
+After that, apply that kref patch I wrote and convert the *_devres into
+a linked list.
+
+> I saw your comment on RFC PATCH 3/4 about embedding kref in struct media_device.
+> I could add another kref to the media device instance to keep track
+> of registrations to trigger unregister.
+> 
+> >   
+> >> +};
+> >> +
+> >> +static struct media_device *__media_device_get(struct device *dev,
+> >> +					       bool alloc, bool kref)
+> >> +{  
+> > 
+> > Please don't use "kref" for a boolean here. Makes it confusing, as reviewers
+> > would expect "kref" to be of "struct kref" type.
+> > 
+> > Also, alloc seems to be a bad name for the other bool.
+> > 
+> > Maybe you could call them as "do_alloc" and "create_kref".  
+> 
+> Yes. Agreed. I changed the names.
+> 
+> >   
+> >> +	struct media_device_instance *mdi;
+> >> +
+> >> +	mutex_lock(&media_device_lock);
+> >> +
+> >> +	list_for_each_entry(mdi, &media_device_list, list) {
+> >> +		if (mdi->dev == dev) {
+> >> +			if (kref) {
+> >> +				kref_get(&mdi->refcount);
+> >> +				pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
+> >> +			}
+> >> +			goto done;
+> >> +		}
+> >> +	}
+> >> +
+> >> +	if (!alloc) {
+> >> +		mdi = NULL;
+> >> +		goto done;
+> >> +	}
+> >> +
+> >> +	mdi = kzalloc(sizeof(*mdi), GFP_KERNEL);
+> >> +	if (!mdi)
+> >> +		goto done;
+> >> +
+> >> +	mdi->dev = dev;
+> >> +	kref_init(&mdi->refcount);
+> >> +	list_add_tail(&mdi->list, &media_device_list);
+> >> +	pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
+> >> +
+> >> +done:
+> >> +	mutex_unlock(&media_device_lock);
+> >> +
+> >> +	return mdi ? &mdi->mdev : NULL;
+> >> +}
+> >> +
+> >> +struct media_device *media_device_get(struct device *dev)
+> >> +{
+> >> +	pr_info("%s\n", __func__);
+> >> +	return __media_device_get(dev, true, true);
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(media_device_get);
+> >> +
+> >> +/* Don't increment kref - this is a search and find */
+> >> +struct media_device *media_device_find(struct device *dev)
+> >> +{
+> >> +	pr_info("%s\n", __func__);
+> >> +	return __media_device_get(dev, false, false);
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(media_device_find);
+> >> +
+> >> +/* don't allocate - increment kref if one is found */
+> >> +struct media_device *media_device_get_ref(struct device *dev)
+> >> +{
+> >> +	pr_info("%s\n", __func__);
+> >> +	return __media_device_get(dev, false, true);
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(media_device_get_ref);
+> >> +
+> >> +static void media_device_instance_release(struct kref *kref)
+> >> +{
+> >> +	struct media_device_instance *mdi =
+> >> +		container_of(kref, struct media_device_instance, refcount);
+> >> +
+> >> +	pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
+> >> +
+> >> +	list_del(&mdi->list);
+> >> +	kfree(mdi);
+> >> +}
+> >> +
+> >> +void media_device_put(struct device *dev)
+> >> +{
+> >> +	struct media_device_instance *mdi;
+> >> +
+> >> +	mutex_lock(&media_device_lock);
+> >> +	/* search first in the media_device_list */
+> >> +	list_for_each_entry(mdi, &media_device_list, list) {
+> >> +		if (mdi->dev == dev) {
+> >> +			pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
+> >> +			kref_put(&mdi->refcount, media_device_instance_release);
+> >> +			goto done;
+> >> +		}
+> >> +	}
+> >> +	/* search in the media_device_to_delete_list */
+> >> +	list_for_each_entry(mdi, &media_device_to_delete_list, to_delete_list) {
+> >> +		if (mdi->dev == dev) {
+> >> +			pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
+> >> +			kref_put(&mdi->refcount, media_device_instance_release);
+> >> +			goto done;
+> >> +		}
+> >> +	}
+> >> +done:
+> >> +	mutex_unlock(&media_device_lock);
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(media_device_put);  
+> > 
+> > You also need something to initialize the kref for places where
+> > the struct media_device is embedded, or to convert all of them to use
+> > dynamically-allocated media_device structs.  
+> 
+> Yes. I think we need to convert all drivers to use the media device
+> allocator. That is the only way to solve the ioctl problems.
+
+No. Fixing ioctl problems can only solved by doing dynamic allocation of
+media_devnode.
 
 > 
-> >>+#define V4L2_CID_MODE_PIXELCLOCK		(V4L2_CID_MODE_CLASS_BASE+5)
-> >>+#define V4L2_CID_MODE_SENSITIVITY		(V4L2_CID_MODE_CLASS_BASE+6)
-> >>+#define V4L2_CID_MODE_OPSYSCLOCK		(V4L2_CID_MODE_CLASS_BASE+7)
-> >
-> >While I don't remember quite what the sensitivity value was about (it could
-> >be e.g. binning summing / averaging), the other two values are passed to
-> >(and also controlled by) the user space using controls. There are
-> >V4L2_CID_PIXEL_RATE and V4L2_CID_LINK_FREQ or such.
-> >
+> >   
+> >> +
+> >> +void media_device_set_to_delete_state(struct device *dev)
+> >> +{
+> >> +	struct media_device_instance *mdi;
+> >> +
+> >> +	mutex_lock(&media_device_lock);
+> >> +	list_for_each_entry(mdi, &media_device_list, list) {
+> >> +		if (mdi->dev == dev) {
+> >> +			pr_info("%s: mdev=%p\n", __func__, &mdi->mdev);
+> >> +			mdi->to_delete = true;
+> >> +			list_move(&mdi->list, &media_device_to_delete_list);
+> >> +			goto done;
+> >> +		}
+> >> +	}
+> >> +done:
+> >> +	mutex_unlock(&media_device_lock);
+> >> +}
+> >> +EXPORT_SYMBOL_GPL(media_device_set_to_delete_state);
+> >> +
+> >> +#endif /* CONFIG_MEDIA_CONTROLLER */
+> >> diff --git a/include/media/media-dev-allocator.h b/include/media/media-dev-allocator.h
+> >> new file mode 100644
+> >> index 0000000..2932c90
+> >> --- /dev/null
+> >> +++ b/include/media/media-dev-allocator.h
+> >> @@ -0,0 +1,81 @@
+> >> +/*
+> >> + * media-devkref.c - Media Controller Device Allocator API
+> >> + *
+> >> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+> >> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
+> >> + *
+> >> + * This file is released under the GPLv2.
+> >> + * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> + */
+> >> +
+> >> +/*
+> >> + * This file adds Media Controller Device Instance with Kref support.
+> >> + * A system wide global media device list is managed and each media
+> >> + * device is refcounted. The last put on the media device releases
+> >> + * the media device instance.
+> >> +*/
+> >> +
+> >> +#ifndef _MEDIA_DEV_ALLOCTOR_H
+> >> +#define _MEDIA_DEV_ALLOCTOR_H
+> >> +
+> >> +#ifdef CONFIG_MEDIA_CONTROLLER
+> >> +/**
+> >> + * media_device_get() - Allocate and return global media device
+> >> + *
+> >> + * @mdev
+> >> + *
+> >> + * This interface should be called to allocate media device. A new media
+> >> + * device instance is created and added to the system wide media device
+> >> + * instance list. If media device instance exists, media_device_get()
+> >> + * increments the reference count and returns the media device. When
+> >> + * more than one driver control the media device, the first driver to
+> >> + * probe will allocate and the second driver when it calls media_device_get()
+> >> + * it will get a reference.
+> >> + *
+> >> + */
+> >> +struct media_device *media_device_get(struct device *dev);
+> >> +/**
+> >> + * media_device_get_ref() - Get reference to an allocated and registered
+> >> + *			    media device.
+> >> + *
+> >> + * @mdev
+> >> + *
+> >> + * This interface should be called to get a reference to an allocated media
+> >> + * device. media_open() ioctl should call this to hold a reference to ensure
+> >> + * the media device will not be released until the media_release() does a put
+> >> + * on it.
+> >> + */
+> >> +struct media_device *media_device_get_ref(struct device *dev);
+> >> +/**
+> >> + * media_device_find() - Find an allocated and registered media device.
+> >> + *
+> >> + * @mdev
+> >> + *
+> >> + * This interface should be called to find a media device. This will not
+> >> + * incremnet the reference count.
+> >> + */
+> >> +struct media_device *media_device_find(struct device *dev);
+> >> +/**
+> >> + * media_device_put() - Release refcounted media device. Calls kref_put()
+> >> + *
+> >> + * @mdev
+> >> + *
+> >> + * This interface should be called to decrement refcount.
+> >> + */
+> >> +void media_device_put(struct device *dev);
+> >> +/**
+> >> + * media_device_set_to_delete_state() - Set the state to be deleted.
+> >> + *
+> >> + * @mdev
+> >> + *
+> >> + * This interface is used to not release the media device under from
+> >> + * an active ioctl if unregister happens.
+> >> + */
+> >> +void media_device_set_to_delete_state(struct device *dev);
+> >> +#else
+> >> +struct media_device *media_device_get(struct device *dev) { return NULL; }
+> >> +struct media_device *media_device_find(struct device *dev) { return NULL; }
+> >> +void media_device_put(struct media_device *mdev) { }
+> >> +void media_device_set_to_delete_state(struct device *dev) { }
+> >> +#endif /* CONFIG_MEDIA_CONTROLLER */
+> >> +#endif  
+> > 
+> >   
 > 
-> I've already made a change so V4L2_CID_PIXEL_RATE is used in et8ek8 driver (https://github.com/freemangordon/linux-n900/commit/54433e50451b4ed6cc6e3b25d149c5cacd97e438),
-> but V4L2_CID_MODE_PIXELCLOCK is used in smiapp driver, which seems to expose
-> its own controls. Not sure those are needed though. And if, what for. I hope
-> you know better than me.
-
-It's needed to tell the sensor timings to the user space. The camera control
-algorithms need that information.
-
+> thanks,
+> -- Shuah
 > 
-> I guess V4L2_CID_MODE_OPSYSCLOCK can be easily transformed to
-> V4L2_CID_LINK_FREQ in the same way as V4L2_CID_MODE_PIXELCLOCK.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Yes.
-
-> 
-> >>+
-> >>+/* Control IDs specific to the AD5820 driver as defined by V4L2 */
-> >>+#define V4L2_CID_FOCUS_AD5820_BASE 		(V4L2_CTRL_CLASS_CAMERA | 0x10af)
-> >>+#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_FOCUS_AD5820_BASE+0)
-> >>+#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
-> >
-> >The ad5820 driver isn't in upstream at the moment. It should be investigated
-> >whether there is a possibility to have standard V4L2 controls for lens
-> >devices, or whether device specific controls should be implemented instead.
-> >Device specific controls are a safe choice in this case, but they should be
-> >in a separate patch, possibly one that would also include the lens driver
-> >itself.
-> >
-> 
-> Yeah, I sent the whole patch for the sake of not losing the history too
-> much.
-
-There's still work to be done but I'm very happy to see that you and a few
-others are contributing. :-)
 
 -- 
-Kind regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Cheers,
+Mauro
