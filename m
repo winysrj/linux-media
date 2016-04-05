@@ -1,91 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55928 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030829AbcDMOgv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2016 10:36:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] uvc: Fix bytesperline calculation for planar YUV
-Date: Wed, 13 Apr 2016 17:36:58 +0300
-Message-ID: <4325164.Ph5FqXt1zq@avalon>
-In-Reply-To: <1452199428-3513-1-git-send-email-nicolas.dufresne@collabora.com>
-References: <1452199428-3513-1-git-send-email-nicolas.dufresne@collabora.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout.easymail.ca ([64.68.201.169]:50264 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752172AbcDEDgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2016 23:36:11 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	perex@perex.cz, tiwai@suse.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	jh1009.sung@samsung.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, pierre-louis.bossart@linux.intel.com,
+	clemens@ladisch.de, dominic.sacre@gmx.de, takamichiho@gmail.com,
+	johan@oljud.se, geliangtang@163.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [RFC PATCH v2 2/5] media: Add driver count to keep track of media device registrations
+Date: Mon,  4 Apr 2016 21:35:57 -0600
+Message-Id: <07bb92168242dc8a30338cf2978b22ec31395dc3.1459825702.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1459825702.git.shuahkh@osg.samsung.com>
+References: <cover.1459825702.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1459825702.git.shuahkh@osg.samsung.com>
+References: <cover.1459825702.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+Add driver count to keep track of media device registrations to avoid
+releasing the media device, when one of the drivers does unregister when
+media device belongs to more than one driver. Also add a new interfaces
+to unregister a media device allocated using Media Device Allocator and
+a increment register count.
 
-Thank you for the patch.
+Change media_open() to get media device reference and put the reference
+in media_release().
 
-On Thursday 07 Jan 2016 15:43:48 Nicolas Dufresne wrote:
-> The formula used to calculate bytesperline only works for packed format.
-> So far, all planar format we support have their bytesperline equal to
-> the image width (stride of the Y plane or a line of Y for M420).
-> 
-> Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c | 18 ++++++++++++++++--
->  1 file changed, 16 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index d7723ce..ceb1d1b 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -142,6 +142,20 @@ static __u32 uvc_try_frame_interval(struct uvc_frame
-> *frame, __u32 interval) return interval;
->  }
-> 
-> +static __u32 uvc_v4l2_get_bytesperline(struct uvc_format *format,
-> +	struct uvc_frame *frame)
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/media-device.c  | 49 ++++++++++++++++++++++++++++++++++++++++++-
+ drivers/media/media-devnode.c | 10 ++++++---
+ include/media/media-device.h  | 31 +++++++++++++++++++++++++++
+ 3 files changed, 86 insertions(+), 4 deletions(-)
 
-I'd make the two parameters const.
-
-> +{
-> +	switch (format->fcc) {
-> +	case V4L2_PIX_FMT_NV12:
-> +	case V4L2_PIX_FMT_YVU420:
-> +	case V4L2_PIX_FMT_YUV420:
-> +	case V4L2_PIX_FMT_M420:
-> +		return frame->wWidth;
-> +	default:
-> +		return format->bpp * frame->wWidth / 8;
-> +	}
-> +}
-> +
->  static int uvc_v4l2_try_format(struct uvc_streaming *stream,
->  	struct v4l2_format *fmt, struct uvc_streaming_control *probe,
->  	struct uvc_format **uvc_format, struct uvc_frame **uvc_frame)
-> @@ -245,7 +259,7 @@ static int uvc_v4l2_try_format(struct uvc_streaming
-> *stream, fmt->fmt.pix.width = frame->wWidth;
->  	fmt->fmt.pix.height = frame->wHeight;
->  	fmt->fmt.pix.field = V4L2_FIELD_NONE;
-> -	fmt->fmt.pix.bytesperline = format->bpp * frame->wWidth / 8;
-> +	fmt->fmt.pix.bytesperline = uvc_v4l2_get_bytesperline(format, frame);
->  	fmt->fmt.pix.sizeimage = probe->dwMaxVideoFrameSize;
->  	fmt->fmt.pix.colorspace = format->colorspace;
->  	fmt->fmt.pix.priv = 0;
-> @@ -282,7 +296,7 @@ static int uvc_v4l2_get_format(struct uvc_streaming
-> *stream, fmt->fmt.pix.width = frame->wWidth;
->  	fmt->fmt.pix.height = frame->wHeight;
->  	fmt->fmt.pix.field = V4L2_FIELD_NONE;
-> -	fmt->fmt.pix.bytesperline = format->bpp * frame->wWidth / 8;
-> +	fmt->fmt.pix.bytesperline = uvc_v4l2_get_bytesperline(format, frame);
->  	fmt->fmt.pix.sizeimage = stream->ctrl.dwMaxVideoFrameSize;
->  	fmt->fmt.pix.colorspace = format->colorspace;
->  	fmt->fmt.pix.priv = 0;
-
-This looks good to me otherwise.
-
-If it's fine with you I can fix the above issue while applying.
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 6e43c95..f22cf0f 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -36,6 +36,7 @@
+ #include <media/media-device.h>
+ #include <media/media-devnode.h>
+ #include <media/media-entity.h>
++#include <media/media-dev-allocator.h>
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 
+@@ -743,12 +744,31 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 		return ret;
+ 	}
+ 
+-	dev_dbg(mdev->dev, "Media device registered\n");
++	mdev->num_drivers++;
++	dev_dbg(mdev->dev, "Media device registered num_drivers %d\n",
++		mdev->num_drivers);
+ 
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+ 
++void media_device_register_ref(struct media_device *mdev)
++{
++	if (!mdev)
++		return;
++
++	mutex_lock(&mdev->graph_mutex);
++
++	/* Check if mdev is registered - bump registered driver count */
++	if (media_devnode_is_registered(&mdev->devnode))
++		mdev->num_drivers++;
++
++	dev_dbg(mdev->dev, "%s: mdev %p num_drivers %d\n", __func__, mdev,
++		mdev->num_drivers);
++	mutex_unlock(&mdev->graph_mutex);
++}
++EXPORT_SYMBOL_GPL(media_device_register_ref);
++
+ int __must_check media_device_register_entity_notify(struct media_device *mdev,
+ 					struct media_entity_notify *nptr)
+ {
+@@ -820,6 +840,33 @@ void media_device_unregister(struct media_device *mdev)
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
++void media_device_unregister_put(struct media_device *mdev)
++{
++	if (mdev == NULL)
++		return;
++
++	dev_dbg(mdev->dev, "%s: mdev %p num_drivers %d\n", __func__, mdev,
++		mdev->num_drivers);
++
++	mutex_lock(&mdev->graph_mutex);
++	mdev->num_drivers--;
++	if (mdev->num_drivers == 0) {
++		mutex_unlock(&mdev->graph_mutex);
++
++		/* unregister media device and cleanup */
++		media_device_unregister(mdev);
++		media_device_cleanup(mdev);
++
++		/* mark the media device for deletion */
++		media_device_set_to_delete_state(mdev->dev);
++	} else
++		mutex_unlock(&mdev->graph_mutex);
++
++	dev_dbg(mdev->dev, "%s: end mdev %p num_drivers %d\n", __func__, mdev,
++		mdev->num_drivers);
++}
++EXPORT_SYMBOL_GPL(media_device_unregister_put);
++
+ static void media_device_release_devres(struct device *dev, void *res)
+ {
+ }
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index 29409f4..ec18815 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -44,6 +44,7 @@
+ #include <linux/uaccess.h>
+ 
+ #include <media/media-devnode.h>
++#include <media/media-dev-allocator.h>
+ 
+ #define MEDIA_NUM_DEVICES	256
+ #define MEDIA_NAME		"media"
+@@ -173,7 +174,6 @@ static int media_open(struct inode *inode, struct file *filp)
+ 	}
+ 	/* and increase the device refcount */
+ 	get_device(&mdev->dev);
+-	mutex_unlock(&media_devnode_lock);
+ 
+ 	filp->private_data = mdev;
+ 
+@@ -182,11 +182,14 @@ static int media_open(struct inode *inode, struct file *filp)
+ 		if (ret) {
+ 			put_device(&mdev->dev);
+ 			filp->private_data = NULL;
+-			return ret;
++			goto done;
+ 		}
+ 	}
+ 
+-	return 0;
++	media_device_get_ref(mdev->parent);
++done:
++	mutex_unlock(&media_devnode_lock);
++	return ret;
+ }
+ 
+ /* Override for the release function */
+@@ -201,6 +204,7 @@ static int media_release(struct inode *inode, struct file *filp)
+ 	   return value is ignored. */
+ 	put_device(&mdev->dev);
+ 	filp->private_data = NULL;
++	media_device_put(mdev->parent);
+ 	return 0;
+ }
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index df74cfa..aaeac7a 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -284,6 +284,7 @@ struct media_entity_notify {
+  * struct media_device - Media device
+  * @dev:	Parent device
+  * @devnode:	Media device node
++ * @num_drivers: Number of drivers that own the media device and register.
+  * @driver_name: Optional device driver name. If not set, calls to
+  *		%MEDIA_IOC_DEVICE_INFO will return dev->driver->name.
+  *		This is needed for USB drivers for example, as otherwise
+@@ -349,6 +350,7 @@ struct media_device {
+ 	/* dev->driver_data points to this struct. */
+ 	struct device *dev;
+ 	struct media_devnode devnode;
++	int num_drivers;
+ 
+ 	char model[32];
+ 	char driver_name[32];
+@@ -494,6 +496,17 @@ int __must_check __media_device_register(struct media_device *mdev,
+ #define media_device_register(mdev) __media_device_register(mdev, THIS_MODULE)
+ 
+ /**
++ * media_device_register_ref() - Increments media device register driver count
++ *
++ * @mdev:	pointer to struct &media_device
++ *
++ * When more than one driver is associated with the media device, it is
++ * necessary to maintain the number of registrations to avoid unregister
++ * when it is still in use.
++ */
++void media_device_register_ref(struct media_device *mdev);
++
++/**
+  * __media_device_unregister() - Unegisters a media device element
+  *
+  * @mdev:	pointer to struct &media_device
+@@ -505,6 +518,18 @@ int __must_check __media_device_register(struct media_device *mdev,
+ void media_device_unregister(struct media_device *mdev);
+ 
+ /**
++ * media_device_unregister_put() - Unregisters a media device element
++ *
++ * @mdev:	pointer to struct &media_device
++ *
++ * Should be called to unregister media device allocated with Media Device
++ * Allocator API media_device_get() interface.
++ * It is safe to call this function on an unregistered (but initialised)
++ * media device.
++ */
++void media_device_unregister_put(struct media_device *mdev);
++
++/**
+  * media_device_register_entity() - registers a media entity inside a
+  *	previously registered media device.
+  *
+@@ -661,9 +686,15 @@ static inline int media_device_register(struct media_device *mdev)
+ {
+ 	return 0;
+ }
++static inline void media_device_register_ref(struct media_device *mdev)
++{
++}
+ static inline void media_device_unregister(struct media_device *mdev)
+ {
+ }
++static inline void media_device_unregister_put(struct media_device *mdev)
++{
++}
+ static inline int media_device_register_entity(struct media_device *mdev,
+ 						struct media_entity *entity)
+ {
 -- 
-Regards,
-
-Laurent Pinchart
+2.5.0
 
