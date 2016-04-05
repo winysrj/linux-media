@@ -1,37 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db3hn0248.outbound.protection.outlook.com ([157.55.234.248]:41114
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752661AbcDRLKX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2016 07:10:23 -0400
-Reply-To: <lawrencetyman@gmx.com>
-From: <verifelaw@gmx.com>
-Subject: IMPORTANT MAIL TO YOU
-Date: Mon, 18 Apr 2016 13:09:41 +0200
+Received: from mail.lysator.liu.se ([130.236.254.3]:51386 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754902AbcDEHui (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2016 03:50:38 -0400
+Message-ID: <57036E48.9080404@lysator.liu.se>
+Date: Tue, 05 Apr 2016 09:50:32 +0200
+From: Peter Rosin <peda@lysator.liu.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="Windows-1251"
+To: Jonathan Cameron <jic23@kernel.org>, linux-kernel@vger.kernel.org
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 19/24] i2c-mux: document i2c muxes and elaborate on
+ parent-/mux-locked muxes
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se> <1459673574-11440-20-git-send-email-peda@lysator.liu.se> <5700F9DA.1040501@kernel.org>
+In-Reply-To: <5700F9DA.1040501@kernel.org>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Message-ID: <613fad89-f8e9-4340-bd2b-935a5631973f@GSCADMINS22.gsc.org.uk>
-To: Undisclosed recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am Capt. Lawrence Tyman, an officer in US Army,and also a West Point
-Graduate, serving in the Military with the 82nd Air Borne Division
-Peace keeping force deployed from Afganistan to Syria.  
-We were moved to Syria from Iraq as the last batch just left,and i
-really need your help in assisting me with the safe keeping of 1 military
-trunk box contain funds amount of $10.2M which i secured on a raiding we carried out in 
-January in one of the chief Syrian IsIs base which i headed the squard as the 
-Captain.  With every possible arrangement to lift this box out, is intended to arrive 
-Belgium from there a diplomat will deliver it to your designated location
-I hope you can be trusted? You will be rewarded handsomely if you could help
-me secure the funds until I conclude my service here in 3 month to meet you while we can 
-plan head to head on a good and profitable business or company i can invest my funds in your country.
-If you can be trusted and willing to support me in securing this safely kindly indicate 
-by Letting me know this (1) Your name (2) Your address (3) Age (4) Occupation and 
-i will explain further when i get a response from you
-kindly contact me in this my private email address below: lawrencetyman@gmx.com
+On 2016-04-03 13:09, Jonathan Cameron wrote:
+> On 03/04/16 09:52, Peter Rosin wrote:
+>> From: Peter Rosin <peda@axentia.se>
+>>
+>> Signed-off-by: Peter Rosin <peda@axentia.se>
+> Very nice, one typo that I could see.
 
-Regards,
-Capt. Lawrence Tyman
+Thanks!
+
+*snip*
+
+>> +     and the actual transfer (e.g. if the child mux is auto-closing
+>> +     and the parent mux issus i2c-transfers as part of its select).
+>> +     This is especailly the case if the parent mux is mux-locked, but
+> especially
+
+Fixed now in my local repo.
+
+Cheers,
+Peter
