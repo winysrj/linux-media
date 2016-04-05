@@ -1,117 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:40262 "EHLO lists.s-osg.org"
+Received: from mout.gmx.net ([212.227.15.18]:57964 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753059AbcD0MAz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 08:00:55 -0400
-Date: Wed, 27 Apr 2016 09:00:49 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH] tw686x: use a formula instead of two tables for div
-Message-ID: <20160427090049.6add3527@recife.lan>
-In-Reply-To: <8344040026ad0985c3c3981e8ec4251fd563258f.1461754812.git.mchehab@osg.samsung.com>
-References: <20160427074055.091a90c8@recife.lan>
-	<8344040026ad0985c3c3981e8ec4251fd563258f.1461754812.git.mchehab@osg.samsung.com>
+	id S1751884AbcDEU4r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Apr 2016 16:56:47 -0400
+Date: Tue, 5 Apr 2016 22:56:33 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Simon Horman <horms+renesas@verge.net.au>
+cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v4 2/2] media: soc_camera: rcar_vin: add device tree
+ support for r8a7792
+In-Reply-To: <1458002427-3063-3-git-send-email-horms+renesas@verge.net.au>
+Message-ID: <Pine.LNX.4.64.1604052255200.10633@axis700.grange>
+References: <1458002427-3063-1-git-send-email-horms+renesas@verge.net.au>
+ <1458002427-3063-3-git-send-email-horms+renesas@verge.net.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hmm....
+Hi Simon,
 
-Em Wed, 27 Apr 2016 08:01:19 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+On Tue, 15 Mar 2016, Simon Horman wrote:
 
-> Instead of using two tables to estimate the temporal decimation
-> factor, use a formula. This allows to get the closest fps, with
-> sounds better than the current tables.
+> Simply document new compatibility string.
+> As a previous patch adds a generic R-Car Gen2 compatibility string
+> there appears to be no need for a driver updates.
 > 
-> Compile-tested only.
+> By documenting this compat string it may be used in DTSs shipped, for
+> example as part of ROMs. It must be used in conjunction with the Gen2
+> fallback compat string. At this time there are no known differences between
+> the r8a7792 IP block and that implemented by the driver for the Gen2
+> fallback compat string. Thus there is no need to update the driver as the
+> use of the Gen2 fallback compat string will activate the correct code in
+> the current driver while leaving the option for r8a7792-specific driver
+> code to be activated in an updated driver should the need arise.
+> 
+> Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+> Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-Please discard this patch. It is wrong.
+Strictly speaking, I see an ack from Geert to patch 1/2, but I don't see 
+one for this patch 2/2. Have I missed it or did Geert mean to ack the 
+whole series and forgot to mention that?
 
-I found the datasheet for this device at:
-	http://www.starterkit.ru/html/doc/tw6869-ds.pdf
+Thanks
+Guennadi
 
-Based on what it is said on page 50, it seems that it doesn't use a
-decimation filter, but, instead, it just discards some fields in
-a way that the average fps will be reduced.
-
-So, the actual frame rate is given by the number of enabled bits
-that are written to VIDEO_FIELD_CTRL[vc->ch] and are at the
-valid bitmask range, e. g:
-
-index  0, map = 0x00000000, 30 fps (60Hz), 25 fps (50Hz), output all fields
-index  1, map = 0x80000006, 2 fps (60Hz), 2 fps (50Hz)
-index  2, map = 0x80018006, 4 fps (60Hz), 4 fps (50Hz)
-index  3, map = 0x80618006, 6 fps (60Hz), 6 fps (50Hz)
-index  4, map = 0x81818186, 8 fps (60Hz), 8 fps (50Hz)
-index  5, map = 0x86186186, 10 fps (60Hz), 8 fps (50Hz)
-index  6, map = 0x86619866, 12 fps (60Hz), 10 fps (50Hz)
-index  7, map = 0x86666666, 14 fps (60Hz), 12 fps (50Hz)
-index  8, map = 0x9999999e, 16 fps (60Hz), 14 fps (50Hz)
-index  9, map = 0x99e6799e, 18 fps (60Hz), 16 fps (50Hz)
-index 10, map = 0x9e79e79e, 20 fps (60Hz), 16 fps (50Hz)
-index 11, map = 0x9e7e7e7e, 22 fps (60Hz), 18 fps (50Hz)
-index 12, map = 0x9fe7f9fe, 24 fps (60Hz), 20 fps (50Hz)
-index 13, map = 0x9ffe7ffe, 26 fps (60Hz), 22 fps (50Hz)
-index 14, map = 0x9ffffffe, 28 fps (60Hz), 24 fps (50Hz)
-
-This was done by using the enclosed program.
-
----
-
-#include <stdio.h>
-
-static const unsigned int map[15] = {
-                0x00000000, 0x00000001, 0x00004001, 0x00104001, 0x00404041,
-               	0x01041041, 0x01104411, 0x01111111, 0x04444445, 0x04511445,
-                0x05145145, 0x05151515, 0x05515455, 0x05551555, 0x05555555
-};
-
-unsigned int count_bits(unsigned int bits, unsigned int max)
-{
-	unsigned int i, c= 0;
-
-	for (i = 0; i < max; i++)
-		if ((1 << i) & bits)
-			c++;
-
-	return c;
-}
-
-void calc_map(unsigned int i)
-{
-	unsigned int m, fps_30, fps_25;
-
-	m = map[i] << 1;
-	m |= m << 1;
-
-	fps_30 = count_bits(m, 30);
-	fps_25 = count_bits(m, 25);
-
-	if (m)
-		m |= 1 << 31;
-	else {
-		fps_30 = 30;
-		fps_25 = 25;
-	}
-
-	printf("index %2i, map = 0x%08x, %d fps (60Hz), %d fps (50Hz)%s\n",
-		i, m, fps_30, fps_25,
-		i == 0 ? ", output all fields" : ""
-		);
-}
-
-int main(void)
-{
-	unsigned int i;
-
-	printf ("\nmap:\n");
-	for (i = 0; i < 15; i++)
-		calc_map(i);
-
-	return 0;
-}
+> ---
+> v4
+> * s/sting/string/ in changelog
+> * Added Ack from Geert Uytterhoeven
+> 
+> v3
+> * New patch
+> ---
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index 4266123888ed..6a4e61cbe011 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -9,6 +9,7 @@ channel which can be either RGB, YUYV or BT656.
+>     - "renesas,vin-r8a7795" for the R8A7795 device
+>     - "renesas,vin-r8a7794" for the R8A7794 device
+>     - "renesas,vin-r8a7793" for the R8A7793 device
+> +   - "renesas,vin-r8a7792" for the R8A7792 device
+>     - "renesas,vin-r8a7791" for the R8A7791 device
+>     - "renesas,vin-r8a7790" for the R8A7790 device
+>     - "renesas,vin-r8a7779" for the R8A7779 device
+> -- 
+> 2.1.4
+> 
