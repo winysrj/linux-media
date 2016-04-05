@@ -1,265 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:46760 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751835AbcDCIxT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:53:19 -0400
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v6 00/24] i2c mux cleanup and locking update
-Date: Sun,  3 Apr 2016 10:52:30 +0200
-Message-Id: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:35778 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932097AbcDETeo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2016 15:34:44 -0400
+Received: by mail-lb0-f171.google.com with SMTP id bc4so16096604lbc.2
+        for <linux-media@vger.kernel.org>; Tue, 05 Apr 2016 12:34:43 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <570400DE.9040306@iki.fi>
+References: <CAO8Cc0qvJxO2Z63HJd1_df+mY8HHB-UrUUZLPqBHQuoyD=TAkQ@mail.gmail.com>
+	<570400DE.9040306@iki.fi>
+Date: Tue, 5 Apr 2016 21:34:41 +0200
+Message-ID: <CAO8Cc0oHFwaRHAZaY5BZUAyYwCWRoD7s_97gr0vLF5YLgGAntA@mail.gmail.com>
+Subject: Re: AVerMedia HD Volar (A867) AF9035 + MXL5007T driver issues
+From: Alessandro Radicati <alessandro@radicati.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+On Tue, Apr 5, 2016 at 8:15 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 04/02/2016 01:44 PM, Alessandro Radicati wrote:
+>>
+>> Hi,
+>> In trying to understand why my DVB USB tuner doesn't work with stock
+>> kernel drivers (4.2.0), I decided to pull out my logic analyser and
+>> sniff the I2C bus between the AF9035 and MXL5007T.  I seem to have
+>> uncovered a couple of issues:
+>>
+>> 1) Attach fails because MXL5007T driver I2C soft reset fails.  This is
+>> due to the preceding chip id read request that seems to hang the I2C
+>> bus and cause subsequent I2C commands to fail.
+>
+>
+> In my understanding MXL5007T register read is done in a two transactions.
+> First you should write wanted register to register 0xfb. After that single
+> byte read from the chip returns value for register configured to 0xfb.
+> Write+read with repeated start is not supported and driver is buggy as it
+> request that which usually leads to bogus value.
+>
 
-Hi!
+I'm not sure if it supports repeated start or not, but in reality the
+AF9035 firmware will not perform a repeated start sequence.  I.e. a
+single read USB command results in two separate I2C transactions (s
+write ... p + s read ... p).  So using the specific I2C tuner read usb
+command (with address fields) is the same as using two separate write
+and read commands.  I've only tested default firmware version: LINK
+12.13.15.0 - OFDM 6.20.15.0
 
-I have a pair of boards with this i2c topology:
+>
+>> 2) AF9035 driver I2C master xfer incorrectly implements "Write read"
+>> case.  The FW expects register address fields to be used to send the
+>> I2C writes for register selection.  The current implementation ignores
+>> these fields and the result is that only an I2C read is issued.
+>> Therefore the "0x3f" returned by the MXL5007T chip id query is not
+>> from the expected register.  This is what is seen on the I2C bus:
+>>
+>> S | Read 0x60 + ACK | 0x3F + NAK | ...
+>>
+>> After which SDA is held low for ~6sec; reason for subsequent commands
+>> failing.
+>
+>
+> You should use "S | W | P | S | R | P", no "S | W | S | R | P" == write read
+> with repeated start condition.
+>
 
-                       GPIO ---|  ------ BAT1
-                        |      v /
-   I2C  -----+------B---+---- MUX
-             |                   \
-           EEPROM                 ------ BAT2
+This is what I sniffed on the bus without any modifications to the
+driver.  My intent was to show that there is no write transaction at
+all.
 
-	(B denotes the boundary between the boards)
+>> 3) After modifying the AF9035 driver to fix point 2 and use the
+>> register address field, the following is seen on the I2C bus:
+>>
+>> S | Write 0x60 + ACK | 0xFB + ACK | 0xD9 + ACK | P
+>> S | Read 0x60 + ACK | 0x14 + NAK | ...
+>
+>
+> That is correct sequence. You are trying to read more than 1 byte and it
+> fails?
+>
 
-The problem with this is that the GPIO controller sits on the same i2c bus
-that it MUXes. For pca954x devices this is worked around by using unlocked
-transfers when updating the MUX. I have no such luck as the GPIO is a general
-purpose IO expander and the MUX is just a random bidirectional MUX, unaware
-of the fact that it is muxing an i2c bus. Extending unlocked transfers
-into the GPIO subsystem is too ugly to even think about. But the general hw
-approach is sane in my opinion, with the number of connections between the
-two boards minimized. To put it plainly, I need support for it.
+This is after I modified the driver to use the register address
+fields.  Sequence looks good except for the missing P after the NAK,
+but this is due to something holding SDA low or an issue with the
+AF9035.  I've tested this reading other registers, but same behavior.
+I've also tried using two separate write read commands, exact same I2C
+sequence and same result.  I also hacked the driver to read two bytes
+instead of one.  Interestingly I got 0x14 twice as expected, but again
+the bus hangs after the NAK that marks the end of the read.
 
-So, I observe that while it is needed to have the i2c bus locked during the
-actual MUX update in order to avoid random garbage on the slave side, it
-is not strictly a must to have it locked over the whole sequence of a full
-select-transfer-deselect operation. The MUX itself needs to be locked, so
-transfers to clients behind the mux are serialized, and the MUX needs to be
-stable during all i2c traffic (otherwise individual mux slave segments
-might see garbage).
+>> This time we get an expected response, but the I2C bus still hangs
+>> with SDA held low and no Stop sequence.  It seems that the MXL5007T is
+>> holding SDA low since the AF9035 happily cycles SCL trying to execute
+>> the subsequent writes.  Without a solution to this, it seems that
+>> avoiding the I2C read is the best way to have the driver work
+>> correctly.  There are no other tuner reads so point 2 above becomes
+>> moot for at least this device.
+>>
+>> Does anyone have any insight on the MXL5007T chip ID command and
+>> whether it should be issued in certain conditions?  Any suggestions on
+>> how to resolve this given the above?
+>
+>
+> I tried to fix it earlier:
+> http://www.spinics.net/lists/linux-media/msg62264.html
+>
+> Feel free to fix! It should not be very hard as you could even sniff data
+> from the I2C bus directly. I don't have any AF9035+MXL5007T device, but I
+> have tested it with older AF9015+MXL5007T.
+>
 
-This series accomplishes this by adding code to i2c-mux-gpio and
-i2c-mux-pinctrl that determines if all involved devices used to update the
-mux are controlled by the same root i2c adapter that is muxed. When this
-is the case, the select-transfer-deselect operations should be locked
-individually to avoid the deadlock. The i2c bus *is* still locked
-during muxing, since the muxing happens as part of i2c transfers. This
-is true even if the MUX is updated with several transfers to the GPIO (at
-least as long as *all* MUX changes are using the i2c master bus). A lock
-is added to i2c adapters that muxes on that adapter grab, so that transfers
-through the muxes are serialized.
+So there are two problems:
+1) AF9035 I2C master read function needs to use the register address
+fields.  This is a trivial fix and I've done a patch.  However I'm
+unsure of the consequences this may have with other tuners.  I can
+only guess that tuner reads are almost never done or are not
+important, otherwise this would have been caught earlier.  Again, this
+may be something related to this specific firmware, but unlikely.
+2) I2C bus hangs after any MXL5007t I2C read is performed.  I have no
+idea why this happens, or who is the culprit.  I'm happy to test out
+any suggestions.
 
-Concerns:
-- The locking is perhaps too complex?
-- I worry about the priority inheritance aspect of the adapter lock. When
-  the transfers behind the mux are divided into select-transfer-deselect all
-  locked individually, low priority transfers get more chances to interfere
-  with high priority transfers.
-- When doing an i2c_transfer() in_atomic() context or with irqs_disabled(),
-  there is a higher possibility that the mux is not returned to its idle
-  state after a failed (-EAGAIN) transfer due to trylock.
-- Is the detection of i2c-controlled gpios and pinctrls sane (i.e. the
-  usage of the new i2c_root_adapter() function in 18/24)?
-
-To summarize the series, there's some i2c-mux infrastructure cleanup work
-first (I think that part stands by itself as desireable regardless), the
-locking changes are in 16/24 and after with the real meat in 18/24. There
-is some documentation added in 19/24 while 20/24 and after are cleanups to
-existing drivers utilizing the new stuff.
-
-PS. needs a bunch of testing, I do not have access to all the involved hw.
-
-Specifically, thank you Antti for testing v5, but I did not add any
-Tested-by for v6 since I moved the lock from the mux itself to the mux
-parent adapter. I did this to cope with the situation I described in
-    http://marc.info/?l=linux-i2c&m=145875234525803&w=2
-thus making it possible to get rid of the unlocked accesses in the
-si2168 driver (patch 21/24). I also didn't add any Reviewed-by for
-the parts of the rtl2832 driver changes that suffered the most from
-driver updates since v4.5-rc7, so please review that again as well.
-
-This series can also be pulled from github, if that is preferred:
-
----------------------
-The following changes since commit f55532a0c0b8bb6148f4e07853b876ef73bc69ca:
-
-  Linux 4.6-rc1 (2016-03-26 16:03:24 -0700)
-
-are available in the git repository at:
-
-  https://github.com/peda-r/i2c-mux.git mux-core-and-locking-6
-
-for you to fetch changes up to 81830e43de2bc849848b939166103217ac444df5:
-
-  [media] rtl2832: regmap is aware of lockdep, drop local locking hack (2016-04-03 09:35:52 +0200)
----------------------
-
-v6 compared to v5:
-- Rebase on top of v4.6-rc1
-- Adjust to gpio subsystem overhaul.
-- Adjust to changes in the inv_mpu6050 driver.
-- Adjust to changes in the rtl2832 driver.
-- Fix some new trivial checkpatch issues.
-- Rename "self-locked" muxes "mux-locked" instead, since the lock has
-  been moved to the parent adapter and is common for all muxes with
-  the same parent adapter. The advantage is that address collisions
-  behind sibling muxes are handled. Parent-locked muxes also grab this
-  new mux-lock so that parent-locked and mux-locked siblings interact
-  better.
-- Firmware mutex added to the si2168 driver.
-
-v5 compared to v4 (only published as a git branch):
-- Rebase on top of v4.5-rc7.
-- A new patch making me maintainer of i2c muxes (also sent separately).
-- A new file Documentation/i2c/i2c-topology that describes various muxing
-  issues.
-- Rename "i2c-controlled" muxes "self-locked" instead, as it is perfectly
-  reasonable to have i2c-controlled muxes that use the pre-existing locking
-  scheme. The pre-existing locking scheme for i2c muxes is from here on
-  called "parent-locked".
-- Rename i2c-mux.c:i2c_mux_master_xfer to __i2c_mux_master_xfer since it
-  calls __i2c_transfer, which leaves room for a new i2c_mux_master_xfer
-  that calls i2c_transfer. Similar rename shuffle for i2c_mux_smbus_xfer.
-- Use sizeof(*priv) instead of sizeof(struct i2c_mux_priv). One instance.
-- Some follow-up patches that were posted in response to v2-v4 cleaning up
-  and simplifying various i2c muxes outside drivers/i2c/, among those is
-  an unrelated cleanup patch to drivers/media/dvb-frontends/rtl2832.c that
-  I carry here since it conflicts (trivially) with this series. That
-  unrelated patch is (currently) the last patch in the series.
-
-v4 compared to v3:
-- Rebase on top of v4.5-rc6.
-- Update to add new i2c-mux interfaces in 01/18 including glue to implement
-  the old interfaces in terms of the new interfaces, then change the
-  mux users over to the new interfaces one by one (in 02/18 through 14/18),
-  and finally removing the old interfaces in 15/18. I.e. the first 15
-  patches of v4 replaces the first 5 patches of v3, with the following
-  points describing changes in the end result. Each patch is now touching
-  only one subsystem.
-- Rename i2c_add_mux_adapter and i2c_del_mux_adapters to i2c_mux_add_adapter
-  and i2c_mux_del_adapters (so that the old functions can live on during the
-  transition).
-- Make i2c_mux_alloc take a parent and the select/deselect ops as
-  arguments. Also add a flags argument to prevent churn later on.
-- Add a new interface i2c_mux_one_adapter(). Make use of it in suitable
-  mux users with a single child adapter.
-- Adjust to a rename in struct gpio_chip.
-- Update a couple of comments to match the new code.
-
-v3 compared to v2:
-- Fix devm_kfree of a NULL pointer in i2c_mux_reserve_adapters().
-- Remove device tree "i2c-controlled" property and determine this by walking
-  the dev tree instead.
-- Fix compile problems with inv_mpu_acpi.c
-- Wait with adding the client pointer to patch 2/8 for pca9541 and pca954x.
-
-v2 compared to v1:
-- Allocate mux core and (optional) priv in a combined allocation.
-- Kill dev_err messages triggered by memory allocation failure.
-- Fix the device specific i2c muxes that I had overlooked.
-- Rebase on top of v4.4-rc8 (was based on v4.4-rc6 previously).
-- Drop the last two patches in the series.
-
-Cheers,
-Peter
-
-Antti Palosaari (1):
-  [media] si2168: change the i2c gate to be mux-locked
-
-Peter Rosin (23):
-  i2c-mux: add common data for every i2c-mux instance
-  i2c: i2c-mux-gpio: convert to use an explicit i2c mux core
-  i2c: i2c-mux-pinctrl: convert to use an explicit i2c mux core
-  i2c: i2c-arb-gpio-challenge: convert to use an explicit i2c mux core
-  i2c: i2c-mux-pca9541: convert to use an explicit i2c mux core
-  i2c: i2c-mux-pca954x: convert to use an explicit i2c mux core
-  i2c: i2c-mux-reg: convert to use an explicit i2c mux core
-  iio: imu: inv_mpu6050: convert to use an explicit i2c mux core
-  [media] m88ds3103: convert to use an explicit i2c mux core
-  [media] rtl2830: convert to use an explicit i2c mux core
-  [media] rtl2832: convert to use an explicit i2c mux core
-  [media] si2168: convert to use an explicit i2c mux core
-  [media] cx231xx: convert to use an explicit i2c mux core
-  of/unittest: convert to use an explicit i2c mux core
-  i2c-mux: drop old unused i2c-mux api
-  i2c: allow adapter drivers to override the adapter locking
-  i2c: muxes always lock the parent adapter
-  i2c-mux: relax locking of the top i2c adapter during mux-locked muxing
-  i2c-mux: document i2c muxes and elaborate on parent-/mux-locked muxes
-  iio: imu: inv_mpu6050: change the i2c gate to be mux-locked
-  [media] rtl2832: change the i2c gate to be mux-locked
-  [media] rtl2832_sdr: get rid of empty regmap wrappers
-  [media] rtl2832: regmap is aware of lockdep, drop local locking hack
-
- Documentation/i2c/i2c-topology               | 370 +++++++++++++++++++++++++++
- MAINTAINERS                                  |   1 +
- drivers/i2c/i2c-core.c                       |  66 +++--
- drivers/i2c/i2c-mux.c                        | 350 ++++++++++++++++++++-----
- drivers/i2c/muxes/i2c-arb-gpio-challenge.c   |  47 ++--
- drivers/i2c/muxes/i2c-mux-gpio.c             |  72 +++---
- drivers/i2c/muxes/i2c-mux-pca9541.c          |  55 ++--
- drivers/i2c/muxes/i2c-mux-pca954x.c          |  64 ++---
- drivers/i2c/muxes/i2c-mux-pinctrl.c          | 124 +++++----
- drivers/i2c/muxes/i2c-mux-reg.c              |  63 ++---
- drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c   |   2 +-
- drivers/iio/imu/inv_mpu6050/inv_mpu_core.c   |   1 -
- drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c    |  78 ++----
- drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h    |   3 +-
- drivers/media/dvb-frontends/m88ds3103.c      |  18 +-
- drivers/media/dvb-frontends/m88ds3103_priv.h |   2 +-
- drivers/media/dvb-frontends/rtl2830.c        |  17 +-
- drivers/media/dvb-frontends/rtl2830_priv.h   |   2 +-
- drivers/media/dvb-frontends/rtl2832.c        | 241 +++--------------
- drivers/media/dvb-frontends/rtl2832.h        |   4 +-
- drivers/media/dvb-frontends/rtl2832_priv.h   |   3 +-
- drivers/media/dvb-frontends/rtl2832_sdr.c    | 303 ++++++++++------------
- drivers/media/dvb-frontends/rtl2832_sdr.h    |   5 +-
- drivers/media/dvb-frontends/si2168.c         | 103 +++-----
- drivers/media/dvb-frontends/si2168_priv.h    |   3 +-
- drivers/media/usb/cx231xx/cx231xx-core.c     |   6 +-
- drivers/media/usb/cx231xx/cx231xx-i2c.c      |  47 ++--
- drivers/media/usb/cx231xx/cx231xx.h          |   4 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c      |   5 +-
- drivers/of/unittest.c                        |  40 ++-
- include/linux/i2c-mux.h                      |  64 ++++-
- include/linux/i2c.h                          |  29 ++-
- 32 files changed, 1277 insertions(+), 915 deletions(-)
- create mode 100644 Documentation/i2c/i2c-topology
-
--- 
-2.1.4
-
+Thanks,
+Alessandro
