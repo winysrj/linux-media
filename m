@@ -1,72 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:21184 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752060AbcDFGnV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2016 02:43:21 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC v2 1/2] media: platform: transfer format translations to soc_mediabus
-References: <1459607213-15774-1-git-send-email-robert.jarzmik@free.fr>
-	<1459607213-15774-2-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.1604060549100.12238@axis700.grange>
-Date: Wed, 06 Apr 2016 08:43:15 +0200
-In-Reply-To: <Pine.LNX.4.64.1604060549100.12238@axis700.grange> (Guennadi
-	Liakhovetski's message of "Wed, 6 Apr 2016 05:53:36 +0200 (CEST)")
-Message-ID: <8760vvutj0.fsf@belgarion.home>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout.easymail.ca ([64.68.201.169]:50220 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751579AbcDEDgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2016 23:36:11 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	perex@perex.cz, tiwai@suse.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	jh1009.sung@samsung.com, ricard.wanderlof@axis.com,
+	julian@jusst.de, pierre-louis.bossart@linux.intel.com,
+	clemens@ladisch.de, dominic.sacre@gmx.de, takamichiho@gmail.com,
+	johan@oljud.se, geliangtang@163.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [RFC PATCH v2 0/5] Media Device Allocator API
+Date: Mon,  4 Apr 2016 21:35:55 -0600
+Message-Id: <cover.1459825702.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+There are known problems with media device life time management. When media
+device is released while an media ioctl is in progress, ioctls fail with
+use-after-free errors and kernel hangs in some cases.
 
-Hi Guennadi,
-> Not sure I understand, what should the purpose of this patch be?
-See in [1].
+Media Device can be in any the following states:
 
-> Why do you want to move some function(s) from one file to another?  And you
-> aren't even calling the new soc_mbus_build_fmts_xlate() function
-I'm calling it in pxa_camera_build_formats() in patch 2/2.
+- Allocated
+- Registered (could be tied to more than one driver)
+- Unregistered, not in use (media device file is not open)
+- Unregistered, in use (media device file is not open)
+- Released
 
-> and you aren't replacing the currently used analogous
-> soc_camera_init_user_formats() function.
-I'm doing that in patch 2/2.
+When media device belongs to  more than one driver, registrations should be
+tracked to avoid unregistering when one of the drivers does unregister. A new
+num_drivers field in the struct media_device covers this case. The media device
+should be unregistered only when the last unregister occurs with num_drivers
+count zero.
 
-> Or was this patch not-to-be-reviewed?
-Actually these 2 patches are designed to be discussion openers :)
-For me, their purpose is to expose the transition of pxa_camera out of
-soc_camera and see if the chosen path is good, or if there exists a better one.
+When a media device is in use when it is unregistered, it should not be
+released until the application exits when it detects the unregistered
+status. Media device that is in use when it is unregistered is moved to
+to_delete_list. When the last unregister occurs, media device is unregistered
+and becomes an unregistered, still allocated device. Unregister marks the
+device to be deleted.
 
-In other words, these patches show that :
- - in a first stage, soc_mediabus should be kept [1]
-   => at least for formats translation (soc_mbus_build_fmts_xlate())
-   => and for used formats by sensors
-   => this is why patch 1/1 exists
+When media device belongs to more than one driver, as both drivers could be
+unbound/bound, driver should not end up getting stale media device that is
+on its way out. Moving the unregistered media device to to_delete_list helps
+this case as well.
 
- - the conversion almost doesn't touch the pxa_camera_() core functions (IP
-   manipulation), which is good, and only touch the upper layer
+I ran bind/unbind loop tests on uvcvideo, au0828, and snd-usb-audio while
+running application that does ioctls. Didn't see any use-after-free errors
+on media device. A couple of known issues seen:
 
- - that soc_mediabus adherence removal will be another task
+1. When application exits, cdev_put() gets called after media device is
+   released. This is a known issue to resolve and Media Device Allocator
+   can't solve this one.
+2. When au0828 module is removed and then ioctls fail when cdev_get() looks
+   for the owning module as au0828 is very often the module that owns the
+   media devnode. This is a cdev related issue that needs to be resolved and
+   Media Device Allocator can't solve this one.
 
- - the amount of code which is shifted from soc_camera to pxa_camera
+Shuah Khan (5):
+  media: Add Media Device Allocator API
+  media: Add driver count to keep track of media device registrations
+  media: uvcvideo change to use Media Device Allocator API
+  media: au0828 change to use Media Device Allocator API
+  sound/usb: Use Media Controller API to share media resources
 
- - the functionalities that are lost through conversion which should be readded
-   later
-   => cropping is one
-   => pixel clock sensing is another one
-
-All in all, before submitting patch for real, ie. not in RFC mode, I wanted to
-be sure the proposed conversion is sound, and compare to other drivers
-conversion to see if we were going in the same direction.
-
-As to whether this patch should be reviewed or not, I'd say that I was just
-expecting to have an "that might be the way to go" or "NAK, wrong patch, let's
-do something else instead".
-
-Cheers.
+ drivers/media/Makefile                 |   3 +-
+ drivers/media/media-dev-allocator.c    | 154 ++++++++++++++++
+ drivers/media/media-device.c           |  49 ++++-
+ drivers/media/media-devnode.c          |  10 +-
+ drivers/media/usb/au0828/au0828-core.c |  40 +++--
+ drivers/media/usb/au0828/au0828.h      |   1 +
+ drivers/media/usb/uvc/uvc_driver.c     |  36 ++--
+ drivers/media/usb/uvc/uvcvideo.h       |   3 +-
+ include/media/media-dev-allocator.h    | 116 ++++++++++++
+ include/media/media-device.h           |  31 ++++
+ sound/usb/Kconfig                      |   4 +
+ sound/usb/Makefile                     |   2 +
+ sound/usb/card.c                       |  14 ++
+ sound/usb/card.h                       |   3 +
+ sound/usb/media.c                      | 320 +++++++++++++++++++++++++++++++++
+ sound/usb/media.h                      |  73 ++++++++
+ sound/usb/mixer.h                      |   3 +
+ sound/usb/pcm.c                        |  28 ++-
+ sound/usb/quirks-table.h               |   1 +
+ sound/usb/stream.c                     |   2 +
+ sound/usb/usbaudio.h                   |   6 +
+ 21 files changed, 862 insertions(+), 37 deletions(-)
+ create mode 100644 drivers/media/media-dev-allocator.c
+ create mode 100644 include/media/media-dev-allocator.h
+ create mode 100644 sound/usb/media.c
+ create mode 100644 sound/usb/media.h
 
 -- 
-Robert
+2.5.0
+
