@@ -1,91 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:39824 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752177AbcD0KcE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 06:32:04 -0400
-Date: Wed, 27 Apr 2016 07:31:59 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-	<linux-media@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
-Subject: Re: [patch] [media] tw686x: off by one bugs in tw686x_fields_map()
-Message-ID: <20160427073159.041490f8@recife.lan>
-In-Reply-To: <20160427080928.GC22469@mwanda>
-References: <20160427080928.GC22469@mwanda>
+Received: from mail.lysator.liu.se ([130.236.254.3]:42695 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752116AbcDEPiq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2016 11:38:46 -0400
+Message-ID: <5703DBFC.6030103@lysator.liu.se>
+Date: Tue, 05 Apr 2016 17:38:36 +0200
+From: Peter Rosin <peda@lysator.liu.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+CC: Peter Rosin <peda@axentia.se>, linux-i2c@vger.kernel.org
+Subject: Re: [PATCH] si2168: use i2c controlled mux interface
+References: <1452058920-9797-1-git-send-email-crope@iki.fi> <56F2CB4D.4030104@lysator.liu.se> <5703D0C3.7010201@iki.fi>
+In-Reply-To: <5703D0C3.7010201@iki.fi>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
-
-Em Wed, 27 Apr 2016 11:09:28 +0300
-Dan Carpenter <dan.carpenter@oracle.com> escreveu:
-
-> The > ARRAY_SIZE() should be >= ARRAY_SIZE(). 
-
-I actually did this fix when I produced the patch, just I forgot to fold
-it when merging. Anyway, this was fixed upstream by this patch:
-	https://git.linuxtv.org/media_tree.git/commit/?id=45c175c4ae9695d6d2f30a45ab7f3866cfac184b
-
-> Also this is a slightly
-> unrelated cleanup but I replaced the magic numbers 30 and 25 with
-> ARRAY_SIZE() - 1.
-
-I don't like magic numbers, but, in this very specific case, setting
-frames per second (fps) var to 25 or 30 makes much more sense. The
-rationale is that:
-
-The V4L2_STD_525_60 macro is for the Countries where the power line 
-uses 60Hz, and V4L2_STD_625_50 for the Countries where the power line
-is 50Hz.
-
-The broadcast TV sends frames in half of this frequency, so, for
-V4L2_STD_525_60, fps = 30, while, for V4L2_STD_625_50, fps = 25.
-
-So, in this very specific case, IMHO, it is better to see 25 or 30 there,
-instead of ARRAY_SIZE().
-
-That's said, I guess one improvement would be to get rid of those two
-arrays and replacing them by a formula, like:
-
-               	i = (max_fps / 2 + 15 * fps) / max_fps;
-                if (i > 14)
-                        i = 0;
-
-I'll propose such patch for evaluation.
-
-Regards,
-Mauro
-
+On 2016-04-05 16:50, Antti Palosaari wrote:
+> On 03/23/2016 06:58 PM, Peter Rosin wrote:
+>> On 2016-01-06 06:42, Antti Palosaari wrote:
+>>> Recent i2c mux locking update offers support for i2c controlled i2c
+>>> muxes. Use it and get the rid of homemade hackish i2c adapter
+>>> locking code.
+>>
+>> [actual patch elided]
+>>
+>> I had a 2nd look and it seems that the saa7164 driver has support for
+>> a HVR2055 card with dual si2168 chips. These two chips appear to sit
+>> on the same i2c-bus with different i2c-addresses (0x64 and 0x66) and
+>> with gates (implemented as muxes) to two identical tuners with the
+>> same i2c-address (0x60). Do I read it right?
 > 
-> Fixes: 363d79f1d5bd ('[media] tw686x: Don't go past array')
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> saa7164 has 3 different I2C adapters.
 > 
-> diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-> index d2a0147..7b87f27 100644
-> --- a/drivers/media/pci/tw686x/tw686x-video.c
-> +++ b/drivers/media/pci/tw686x/tw686x-video.c
-> @@ -64,12 +64,12 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
->  	unsigned int i;
->  
->  	if (std & V4L2_STD_525_60) {
-> -		if (fps > ARRAY_SIZE(std_525_60))
-> -			fps = 30;
-> +		if (fps >= ARRAY_SIZE(std_525_60))
-> +			fps = ARRAY_SIZE(std_525_60) - 1;
->  		i = std_525_60[fps];
->  	} else {
-> -		if (fps > ARRAY_SIZE(std_625_50))
-> -			fps = 25;
-> +		if (fps >= ARRAY_SIZE(std_625_50))
-> +			fps = ARRAY_SIZE(std_625_50) - 1;
->  		i = std_625_50[fps];
->  	}
->  
+> saa7164 I2C bus #0:
+> * eeprom
+> * Si2157 #1
+> 
+> saa7164 I2C bus #1:
+> * Si2157 #2
+> 
+> saa7164 I2C bus #2:
+> * Si2168 #1
+> * Si2168 #2
+> 
+> So both of the Si2157 tuners could have same addresses.
+> 
+> (It is Hauppauge WinTV-HVR2205, not HVR-2055).
 
+Ok, so I did read it right.
 
--- 
-Thanks,
-Mauro
+>> With the current i2c-mux-locking (parent-locked muxes), this works
+>> fine as an access to one of the tuners locks the root i2c adapter
+>> and thus the other tuner is also locked out. But with the upcoming
+>> i2c-mux-locking for i2c-controlled muxes (self-locked muxes), the
+>> root i2c adapter would no longer be locked for the full transaction
+>> when one of the tuners is accessed. This means that accesses to the
+>> two tuners may interleave and cause all kinds of trouble, should
+>> both gates be open at the same time. So, is it really correct and
+>> safe to change the si2168 driver to use a self-locked mux?
+>>
+>> Unless there is some other mechanism that prevents the two tuners
+>> from being accessed in parallel, I think not. But maybe there is such
+>> a mechanism?
+> 
+> Good point. Actually there is pretty often this kind of configuration used for those dual tuner devices and it will cause problems... Currently all of those implements hackish i2c_gate_ctrl() callback to switch mux.
+> 
+>  ____________           ____________           ____________
+> |I2C-adapter |         |  I2C-mux   |         | I2C-client |
+> |------------|         |------------|         |------------|
+> |            |         | addr 0x1c  |         | addr 0x60  |
+> |            |         |            |         |            |
+> |            |-+-I2C---|-----/ -----|---I2C---|            |
+> |____________| |       |____________|         |____________|
+>                |        ____________           ____________
+>                |       |  I2C-mux   |         | I2C-client |
+>                |       |------------|         |------------|
+>                |       | addr 0x1d  |         | addr 0x60  |
+>                |       |            |         |            |
+>                +-I2C---|-----/ -----|---I2C---|            |
+>                        |____________|         |____________|
+
+Right, so self-locked muxes (as in v5 [1]) can't do the job,
+but mux-locked muxes (as in v6 [2]) should be fine. The v6 mux-
+locked muxes grab a new mux_lock in the parent adapter where
+the v5 self-locked muxes grabbed a lock in the mux itself. Which
+means that sibling muxes will lock each other out with v6 when
+they go for the same lock, which is what we want.
+
+Cheers,
+Peter
+
+(v5 and v6 refer to the mux locking update patch series)
+
+[1] http://marc.info/?l=linux-i2c&m=145805103325611&w=2
+[2] http://marc.info/?l=linux-i2c&m=145967417924732&w=2
