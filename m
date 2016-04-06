@@ -1,28 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:36713 "EHLO
-	mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752067AbcD1P6d (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57017 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754084AbcDFLqW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2016 11:58:33 -0400
-Received: by mail-oi0-f67.google.com with SMTP id i2so15038726oib.3
-        for <linux-media@vger.kernel.org>; Thu, 28 Apr 2016 08:58:32 -0700 (PDT)
-MIME-Version: 1.0
-Reply-To: barr.martinwilliam@outlook.com
-Date: Thu, 28 Apr 2016 16:58:32 +0100
-Message-ID: <CADZRbbjEe5w3Mqp+Sd4Wotym30bO0Qc3XfS3npuOAqD3P447jg@mail.gmail.com>
-Subject: Hello Dear One
-From: martin william <martinwilliam373@gmail.com>
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset=UTF-8
+	Wed, 6 Apr 2016 07:46:22 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: m.chehab@osg.samsung.com
+Subject: [PATCH 0/2] videobuf2: Fix kernel memory overwriting
+Date: Wed,  6 Apr 2016 14:46:06 +0300
+Message-Id: <1459943168-18406-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My name is Barr. Martin William and i am writing to you about the death of
-my late client whom I believe to be one of your relatives and some
-fund($US9,500,000,00)he left behind before his death. And I want you to
-stand as his next of kin since you have the same surname with him and claim
-this money before the bank confiscates it.
+Hi all,
 
-Contact me for more information (barr.martinwilliam@outlook.com)
+In multi-planar API, the buffer length and m.planes fields are checked
+against the vb2 buffer before passing the buffer on to the core, but
+commit b0e0e1f83de31aa0428c38b692c590cc0ecd3f03 removed this check from
+VIDIOC_DQBUF path. This leads to kernel memory overwriting in certain
+cases.
 
-Barrister Martin William Esq.
+This affects only v4.4 and newer and a very few drivers which use the
+multi-planar API. Due to the very limited scope of the issue this is not
+seen to require special handling.
+
+The patches should be applied to the stable series, I'll add cc stable
+in the pull request.
+
+-- 
+Kind regards,
+Sakari
+
