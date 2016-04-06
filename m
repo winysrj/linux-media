@@ -1,73 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:33590 "EHLO
-	metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754044AbcDVIzD (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57016 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754082AbcDFLqW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 04:55:03 -0400
-Message-ID: <1461315288.4047.19.camel@pengutronix.de>
-Subject: Re: [PATCHv3 01/12] vb2: add a dev field to use for the default
- allocation context
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Florian Echtler <floe@butterbrot.org>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Benoit Parrot <bparrot@ti.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Date: Fri, 22 Apr 2016 10:54:48 +0200
-In-Reply-To: <1461314299-36126-2-git-send-email-hverkuil@xs4all.nl>
-References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl>
-	 <1461314299-36126-2-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 6 Apr 2016 07:46:22 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: m.chehab@osg.samsung.com
+Subject: [PATCH 1/2] videobuf2-core: Check user space planes array in dqbuf
+Date: Wed,  6 Apr 2016 14:46:07 +0300
+Message-Id: <1459943168-18406-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1459943168-18406-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1459943168-18406-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, den 22.04.2016, 10:38 +0200 schrieb Hans Verkuil:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The allocation context is nothing more than a per-plane device pointer
-> to use when allocating buffers. So just provide a dev pointer in vb2_queue
-> for that purpose and drivers can skip allocating/releasing/filling in
-> the allocation context unless they require different per-plane device
-> pointers as used by some Samsung SoCs.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Cc: Florian Echtler <floe@butterbrot.org>
-> Cc: Federico Vaga <federico.vaga@gmail.com>
-> Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-> Cc: Philipp Zabel <p.zabel@pengutronix.de>
-> Cc: Fabien Dessenne <fabien.dessenne@st.com>
-> Cc: Benoit Parrot <bparrot@ti.com>
-> Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Javier Martin <javier.martin@vista-silicon.com>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+The number of planes in videobuf2 is specific to a buffer. In order to
+verify that the planes array provided by the user is long enough, a new
+vb2_buf_op is required.
 
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+Call __verify_planes_array() when the dequeued buffer is known. Return an
+error to the caller if there was one, otherwise remove the buffer from the
+done list.
 
-regards
-Philipp
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
+ include/media/videobuf2-core.h           |  4 ++++
+ 2 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5d016f4..2169544 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1645,7 +1645,7 @@ static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
+  * Will sleep if required for nonblocking == false.
+  */
+ static int __vb2_get_done_vb(struct vb2_queue *q, struct vb2_buffer **vb,
+-				int nonblocking)
++			     void *pb, int nonblocking)
+ {
+ 	unsigned long flags;
+ 	int ret;
+@@ -1666,10 +1666,10 @@ static int __vb2_get_done_vb(struct vb2_queue *q, struct vb2_buffer **vb,
+ 	/*
+ 	 * Only remove the buffer from done_list if v4l2_buffer can handle all
+ 	 * the planes.
+-	 * Verifying planes is NOT necessary since it already has been checked
+-	 * before the buffer is queued/prepared. So it can never fail.
+ 	 */
+-	list_del(&(*vb)->done_entry);
++	ret = call_bufop(q, verify_planes_array, *vb, pb);
++	if (!ret)
++		list_del(&(*vb)->done_entry);
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
+ 
+ 	return ret;
+@@ -1748,7 +1748,7 @@ int vb2_core_dqbuf(struct vb2_queue *q, unsigned int *pindex, void *pb,
+ 	struct vb2_buffer *vb = NULL;
+ 	int ret;
+ 
+-	ret = __vb2_get_done_vb(q, &vb, nonblocking);
++	ret = __vb2_get_done_vb(q, &vb, pb, nonblocking);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 8a0f55b..e2b1773 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -375,6 +375,9 @@ struct vb2_ops {
+ /**
+  * struct vb2_ops - driver-specific callbacks
+  *
++ * @verify_planes_array:Verify that a given user space structure contains
++ *			enough planes for the buffer. This is called
++ *			for each dequeued buffer.
+  * @fill_user_buffer:	given a vb2_buffer fill in the userspace structure.
+  *			For V4L2 this is a struct v4l2_buffer.
+  * @fill_vb2_buffer:	given a userspace structure, fill in the vb2_buffer.
+@@ -384,6 +387,7 @@ struct vb2_ops {
+  *			the vb2_buffer struct.
+  */
+ struct vb2_buf_ops {
++	int (*verify_planes_array)(struct vb2_buffer *vb, const void *pb);
+ 	void (*fill_user_buffer)(struct vb2_buffer *vb, void *pb);
+ 	int (*fill_vb2_buffer)(struct vb2_buffer *vb, const void *pb,
+ 				struct vb2_plane *planes);
+-- 
+2.1.4
 
