@@ -1,159 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:33820 "EHLO
-	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752315AbcDVSz6 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42884 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753338AbcDFDbQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 14:55:58 -0400
-Received: by mail-lf0-f50.google.com with SMTP id j11so84476991lfb.1
-        for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 11:55:57 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Fri, 22 Apr 2016 20:55:54 +0200
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: Re: [PATCH 3/6] rcar-vin: support the source change event and fix
- s_std
-Message-ID: <20160422185554.GB23014@bigcity.dyn.berto.se>
-References: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl>
- <1461330222-34096-4-git-send-email-hverkuil@xs4all.nl>
+	Tue, 5 Apr 2016 23:31:16 -0400
+Received: from [10.199.27.220] (unknown [209.65.105.133])
+	by tschai.lan (Postfix) with ESMTPSA id 1CC7B180529
+	for <linux-media@vger.kernel.org>; Wed,  6 Apr 2016 05:31:04 +0200 (CEST)
+Subject: Re: cron job: media_tree daily build: ERRORS
+To: linux-media@vger.kernel.org
+References: <20160406030611.E0463180529@tschai.lan>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <570482F6.1070801@xs4all.nl>
+Date: Tue, 5 Apr 2016 20:31:02 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1461330222-34096-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <20160406030611.E0463180529@tschai.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Great patch,
 
-On 2016-04-22 15:03:39 +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The patch adds support for the source change event and it fixes
-> the s_std support: changing the standard will also change the
-> resolution, and that was never updated.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 48 +++++++++++++++++++++++++++--
->  1 file changed, 46 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 8ac6149..49058ea 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -421,8 +421,25 @@ static int rvin_s_std(struct file *file, void *priv, v4l2_std_id a)
->  {
->  	struct rvin_dev *vin = video_drvdata(file);
->  	struct v4l2_subdev *sd = vin_to_sd(vin);
-> +	struct v4l2_subdev_format fmt = {
-> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> +	};
-> +	struct v4l2_mbus_framefmt *mf = &fmt.format;
-> +	int ret = v4l2_subdev_call(sd, video, s_std, a);
-> +
-> +	if (ret < 0)
-> +		return ret;
->  
-> -	return v4l2_subdev_call(sd, video, s_std, a);
-> +	/* Changing the standard will change the width/height */
-> +	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
-> +	if (ret) {
-> +		vin_err(vin, "Failed to get initial format\n");
-> +		return ret;
-> +	}
-> +
-> +	vin->format.width = mf->width;
-> +	vin->format.height = mf->height;
+On 04/05/2016 08:06 PM, Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
+>
+> Results of the daily build of media_tree:
+>
+> date:		Wed Apr  6 04:00:18 CEST 2016
+> git branch:	test
+> git hash:	d3f5193019443ef8e556b64f3cd359773c4d377b
+> gcc version:	i686-linux-gcc (GCC) 5.3.0
+> sparse version:	v0.5.0-56-g7647c77
+> smatch version:	v0.5.0-3353-gcae47da
+> host hardware:	x86_64
+> host os:	4.4.0-164
+>
+> linux-git-arm-at91: OK
+> linux-git-arm-davinci: OK
+> linux-git-arm-exynos: OK
+> linux-git-arm-mx: OK
+> linux-git-arm-omap: OK
+> linux-git-arm-omap1: OK
+> linux-git-arm-pxa: OK
+> linux-git-blackfin-bf561: OK
+> linux-git-i686: OK
+> linux-git-m32r: OK
+> linux-git-mips: OK
+> linux-git-powerpc64: OK
+> linux-git-sh: OK
+> linux-git-x86_64: OK
+> linux-2.6.36.4-i686: OK
+> linux-2.6.37.6-i686: OK
+> linux-2.6.38.8-i686: OK
+> linux-2.6.39.4-i686: OK
+> linux-3.0.60-i686: OK
+> linux-3.1.10-i686: OK
+> linux-3.2.37-i686: OK
+> linux-3.3.8-i686: OK
+> linux-3.4.27-i686: OK
+> linux-3.5.7-i686: OK
+> linux-3.6.11-i686: OK
+> linux-3.7.4-i686: OK
+> linux-3.8-i686: OK
+> linux-3.9.2-i686: OK
+> linux-3.10.1-i686: OK
+> linux-3.11.1-i686: OK
+> linux-3.12.23-i686: OK
+> linux-3.13.11-i686: OK
+> linux-3.14.9-i686: OK
+> linux-3.15.2-i686: OK
+> linux-3.16.7-i686: OK
+> linux-3.17.8-i686: OK
+> linux-3.18.7-i686: OK
+> linux-3.19-i686: OK
+> linux-4.0-i686: OK
+> linux-4.1.1-i686: OK
+> linux-4.2-i686: OK
+> linux-4.3-i686: OK
+> linux-4.4-i686: OK
+> linux-4.5-i686: OK
+> linux-4.6-rc1-i686: OK
+> linux-2.6.36.4-x86_64: OK
+> linux-2.6.37.6-x86_64: OK
+> linux-2.6.38.8-x86_64: OK
+> linux-2.6.39.4-x86_64: OK
+> linux-3.0.60-x86_64: OK
+> linux-3.1.10-x86_64: OK
+> linux-3.2.37-x86_64: OK
+> linux-3.3.8-x86_64: OK
+> linux-3.4.27-x86_64: OK
+> linux-3.5.7-x86_64: OK
+> linux-3.6.11-x86_64: OK
+> linux-3.7.4-x86_64: OK
+> linux-3.8-x86_64: OK
+> linux-3.9.2-x86_64: OK
+> linux-3.10.1-x86_64: OK
+> linux-3.11.1-x86_64: OK
+> linux-3.12.23-x86_64: OK
+> linux-3.13.11-x86_64: OK
+> linux-3.14.9-x86_64: OK
+> linux-3.15.2-x86_64: OK
+> linux-3.16.7-x86_64: OK
+> linux-3.17.8-x86_64: OK
+> linux-3.18.7-x86_64: OK
+> linux-3.19-x86_64: OK
+> linux-4.0-x86_64: OK
+> linux-4.1.1-x86_64: OK
+> linux-4.2-x86_64: OK
+> linux-4.3-x86_64: OK
+> linux-4.4-x86_64: OK
+> linux-4.5-x86_64: OK
+> linux-4.6-rc1-x86_64: ERRORS
 
-I think you should reset the vin->crop and vin->compose v4l2_rect to 
-match the new size here.
+This is caused by the CONFIG_KCOV option suddenly being enabled, which requires support for a particular
+gcc option, which apparently my cross compiler doesn't have. I've temporarily disabled compiling this
+kernel until I am back and can take a closer look at this.
 
-On this note I feel the documentation at 
-https://linuxtv.org/downloads/v4l-dvb-apis/selection-api.html are a bit 
-unclear. In the section 'Configuration of video capture' one can read:
-
-"Each capture device has a default source rectangle, given by the 
-V4L2_SEL_TGT_CROP_DEFAULT target. This rectangle shall over what the 
-driver writer considers the complete picture. Drivers shall set the 
-active crop rectangle to the default when the driver is first loaded, 
-but not later."
-
-For the driver to change this rectangle in s_std is that not in the 'but 
-not later' category?
-
-On the same note, should the crop and compose rectangles be reset if the 
-user requests a resolution change with vidioc_s_fmt_vid_cap? 
-
-> +	return 0;
->  }
->  
->  static int rvin_g_std(struct file *file, void *priv, v4l2_std_id *a)
-> @@ -433,6 +450,16 @@ static int rvin_g_std(struct file *file, void *priv, v4l2_std_id *a)
->  	return v4l2_subdev_call(sd, video, g_std, a);
->  }
->  
-> +static int rvin_subscribe_event(struct v4l2_fh *fh,
-> +				const struct v4l2_event_subscription *sub)
-> +{
-> +	switch (sub->type) {
-> +	case V4L2_EVENT_SOURCE_CHANGE:
-> +		return v4l2_event_subscribe(fh, sub, 4, NULL);
-> +	}
-> +	return v4l2_ctrl_subscribe_event(fh, sub);
-> +}
-> +
->  static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->  	.vidioc_querycap		= rvin_querycap,
->  	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
-> @@ -464,7 +491,7 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->  	.vidioc_streamoff		= vb2_ioctl_streamoff,
->  
->  	.vidioc_log_status		= v4l2_ctrl_log_status,
-> -	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-> +	.vidioc_subscribe_event		= rvin_subscribe_event,
->  	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
->  };
->  
-> @@ -623,6 +650,21 @@ void rvin_v4l2_remove(struct rvin_dev *vin)
->  	video_unregister_device(&vin->vdev);
->  }
->  
-> +static void rvin_notify(struct v4l2_subdev *sd,
-> +			unsigned int notification, void *arg)
-> +{
-> +	struct rvin_dev *vin =
-> +		container_of(sd->v4l2_dev, struct rvin_dev, v4l2_dev);
-> +
-> +	switch (notification) {
-> +	case V4L2_DEVICE_NOTIFY_EVENT:
-> +		v4l2_event_queue(&vin->vdev, arg);
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +}
-> +
->  int rvin_v4l2_probe(struct rvin_dev *vin)
->  {
->  	struct v4l2_subdev_format fmt = {
-> @@ -635,6 +677,8 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
->  
->  	v4l2_set_subdev_hostdata(sd, vin);
->  
-> +	vin->v4l2_dev.notify = rvin_notify;
-> +
->  	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
->  	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
->  		return ret;
-> -- 
-> 2.8.0.rc3
-> 
-
--- 
 Regards,
-Niklas Söderlund
+
+	Hans
+
+
+> apps: OK
+> spec-git: OK
+> sparse: WARNINGS
+> smatch: ERRORS
+>
+> Detailed results are available here:
+>
+> http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+>
+> Full logs are available here:
+>
+> http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+>
+> The Media Infrastructure API from this daily build is here:
+>
+> http://www.xs4all.nl/~hverkuil/spec/media.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
