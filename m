@@ -1,69 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45140 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751430AbcDUBLW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2016 21:11:22 -0400
-Subject: Re: [PATCH v7 00/24] i2c mux cleanup and locking update
-To: Peter Rosin <peda@axentia.se>, linux-kernel@vger.kernel.org
-References: <1461165484-2314-1-git-send-email-peda@axentia.se>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Crestez Dan Leonard <leonard.crestez@intel.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <571828A3.7090007@iki.fi>
-Date: Thu, 21 Apr 2016 04:10:59 +0300
+Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:21184 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752060AbcDFGnV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Apr 2016 02:43:21 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RFC v2 1/2] media: platform: transfer format translations to soc_mediabus
+References: <1459607213-15774-1-git-send-email-robert.jarzmik@free.fr>
+	<1459607213-15774-2-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.1604060549100.12238@axis700.grange>
+Date: Wed, 06 Apr 2016 08:43:15 +0200
+In-Reply-To: <Pine.LNX.4.64.1604060549100.12238@axis700.grange> (Guennadi
+	Liakhovetski's message of "Wed, 6 Apr 2016 05:53:36 +0200 (CEST)")
+Message-ID: <8760vvutj0.fsf@belgarion.home>
 MIME-Version: 1.0
-In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/20/2016 06:17 PM, Peter Rosin wrote:
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Retested all the previously tested + now I tested also cx231xx with 
-Hauppauge 930C HD device having eeprom other mux port and demod on the 
-other port.
+Hi Guennadi,
+> Not sure I understand, what should the purpose of this patch be?
+See in [1].
 
->    [media] si2168: change the i2c gate to be mux-locked
->    [media] m88ds3103: convert to use an explicit i2c mux core
->    [media] rtl2830: convert to use an explicit i2c mux core
->    [media] rtl2832: convert to use an explicit i2c mux core
->    [media] si2168: convert to use an explicit i2c mux core
->    [media] cx231xx: convert to use an explicit i2c mux core
->    [media] rtl2832: change the i2c gate to be mux-locked
->    [media] rtl2832_sdr: get rid of empty regmap wrappers
->    [media] rtl2832: regmap is aware of lockdep, drop local locking hack
+> Why do you want to move some function(s) from one file to another?  And you
+> aren't even calling the new soc_mbus_build_fmts_xlate() function
+I'm calling it in pxa_camera_build_formats() in patch 2/2.
 
-I really hope that this whole patch series will arrive asap to mainline.
+> and you aren't replacing the currently used analogous
+> soc_camera_init_user_formats() function.
+I'm doing that in patch 2/2.
 
-regards
-Antti
+> Or was this patch not-to-be-reviewed?
+Actually these 2 patches are designed to be discussion openers :)
+For me, their purpose is to expose the transition of pxa_camera out of
+soc_camera and see if the chosen path is good, or if there exists a better one.
+
+In other words, these patches show that :
+ - in a first stage, soc_mediabus should be kept [1]
+   => at least for formats translation (soc_mbus_build_fmts_xlate())
+   => and for used formats by sensors
+   => this is why patch 1/1 exists
+
+ - the conversion almost doesn't touch the pxa_camera_() core functions (IP
+   manipulation), which is good, and only touch the upper layer
+
+ - that soc_mediabus adherence removal will be another task
+
+ - the amount of code which is shifted from soc_camera to pxa_camera
+
+ - the functionalities that are lost through conversion which should be readded
+   later
+   => cropping is one
+   => pixel clock sensing is another one
+
+All in all, before submitting patch for real, ie. not in RFC mode, I wanted to
+be sure the proposed conversion is sound, and compare to other drivers
+conversion to see if we were going in the same direction.
+
+As to whether this patch should be reviewed or not, I'd say that I was just
+expecting to have an "that might be the way to go" or "NAK, wrong patch, let's
+do something else instead".
+
+Cheers.
 
 -- 
-http://palosaari.fi/
+Robert
