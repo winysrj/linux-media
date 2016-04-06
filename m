@@ -1,82 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58719 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751724AbcDWJvo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37144 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753711AbcDFVRV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2016 05:51:44 -0400
-Subject: Re: [PATCH] [media] tvp686x: Don't go past array
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <d25dd8ca8edffc6cc8cee2dac9b907c333a0aa84.1461403421.git.mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <571B45A9.5020207@xs4all.nl>
-Date: Sat, 23 Apr 2016 11:51:37 +0200
+	Wed, 6 Apr 2016 17:17:21 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 8430E60096
+	for <linux-media@vger.kernel.org>; Thu,  7 Apr 2016 00:17:17 +0300 (EEST)
+Date: Thu, 7 Apr 2016 00:16:47 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.7] Fix videobuf2 plane validation
+Message-ID: <20160406211646.GO32125@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <d25dd8ca8edffc6cc8cee2dac9b907c333a0aa84.1461403421.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/23/2016 11:23 AM, Mauro Carvalho Chehab wrote:
-> Depending on the compiler version, currently it produces the
-> following warnings:
-> 	tw686x-video.c: In function 'tw686x_video_init':
-> 	tw686x-video.c:65:543: warning: array subscript is above array bounds [-Warray-bounds]
+Hi Mauro,
 
-I posted two patches fixing this and another issue:
+This pull request contains two patches to fix the videobuf2 plane validation
+issue introduced in v4.4 kernel. I've added cc stable to both of the
+patches.
 
-https://patchwork.linuxtv.org/patch/33942/
-https://patchwork.linuxtv.org/patch/33943/
+Please prioritise. Thanks!
 
-I noticed that I accidentally set them to 'Accepted', so that might be
-why you didn't see them.
 
-I was planning on making a pull request for these on Monday, but you can
-also take them now since Ezequiel already Acked them.
+The following changes since commit d3f5193019443ef8e556b64f3cd359773c4d377b:
 
-Regards,
+  Merge tag 'v4.6-rc1' into patchwork (2016-03-29 17:17:26 -0300)
 
-	Hans
+are available in the git repository at:
 
-> 
-> This is actually bogus with the current code, as it currently
-> hardcodes the framerate to 30 frames/sec, however a potential
-> use after the array size could happen when the driver adds support
-> for setting the framerate. So, fix it.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/pci/tw686x/tw686x-video.c | 15 +++++++++++++--
->  1 file changed, 13 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-> index 118e9fac9f28..1ff59084ce08 100644
-> --- a/drivers/media/pci/tw686x/tw686x-video.c
-> +++ b/drivers/media/pci/tw686x/tw686x-video.c
-> @@ -61,8 +61,19 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
->  		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
->  	};
->  
-> -	unsigned int i =
-> -		(std & V4L2_STD_625_50) ? std_625_50[fps] : std_525_60[fps];
-> +	unsigned int i;
-> +
-> +	if (std & V4L2_STD_625_50) {
-> +		if (unlikely(i > ARRAY_SIZE(std_625_50)))
-> +			i = 14;		/* 25 fps */
-> +		else
-> +			i = std_625_50[fps];
-> +	} else {
-> +		if (unlikely(i > ARRAY_SIZE(std_525_60)))
-> +			i = 0;		/* 30 fps */
-> +		else
-> +			i = std_525_60[fps];
-> +	}
->  
->  	return map[i];
->  }
-> 
+  ssh://linuxtv.org/git/sailus/media_tree.git vb2-overwrite-fix-error
 
+for you to fetch changes up to 05e337849107c2ae5484e2600acb0a86bcaf56fb:
+
+  videobuf2-v4l2: Verify planes array in buffer dequeueing (2016-04-07 00:00:45 +0300)
+
+----------------------------------------------------------------
+Sakari Ailus (2):
+      videobuf2-core: Check user space planes array in dqbuf
+      videobuf2-v4l2: Verify planes array in buffer dequeueing
+
+ drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
+ drivers/media/v4l2-core/videobuf2-v4l2.c |  6 ++++++
+ include/media/videobuf2-core.h           |  4 ++++
+ 3 files changed, 15 insertions(+), 5 deletions(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
