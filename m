@@ -1,51 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:52030 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932245AbcDYMZC (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57098 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751660AbcDFLuG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 08:25:02 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv15 05/15] cec/TODO: add TODO file so we know why this is still in staging
-Date: Mon, 25 Apr 2016 14:24:32 +0200
-Message-Id: <1461587082-48041-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 6 Apr 2016 07:50:06 -0400
+Date: Wed, 6 Apr 2016 14:50:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH 0/2] videobuf2: Fix kernel memory overwriting
+Message-ID: <20160406115002.GK32125@valkosipuli.retiisi.org.uk>
+References: <1459943168-18406-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1459943168-18406-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Fixing Mauro's e-mail address...
 
-Explain why cec.c is still in staging.
+On Wed, Apr 06, 2016 at 02:46:06PM +0300, Sakari Ailus wrote:
+> Hi all,
+> 
+> In multi-planar API, the buffer length and m.planes fields are checked
+> against the vb2 buffer before passing the buffer on to the core, but
+> commit b0e0e1f83de31aa0428c38b692c590cc0ecd3f03 removed this check from
+> VIDIOC_DQBUF path. This leads to kernel memory overwriting in certain
+> cases.
+> 
+> This affects only v4.4 and newer and a very few drivers which use the
+> multi-planar API. Due to the very limited scope of the issue this is not
+> seen to require special handling.
+> 
+> The patches should be applied to the stable series, I'll add cc stable
+> in the pull request.
+> 
+> -- 
+> Kind regards,
+> Sakari
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/cec/TODO | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
- create mode 100644 drivers/staging/media/cec/TODO
-
-diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
-new file mode 100644
-index 0000000..c0751ef
---- /dev/null
-+++ b/drivers/staging/media/cec/TODO
-@@ -0,0 +1,13 @@
-+The reason why cec.c is still in staging is that I would like
-+to have a bit more confidence in the uABI. The kABI is fine,
-+no problem there, but I would like to let the public API mature
-+a bit.
-+
-+Once I'm confident that I didn't miss anything then the cec.c source
-+can move to drivers/media and the linux/cec.h and linux/cec-funcs.h
-+headers can move to uapi/linux and added to uapi/linux/Kbuild to make
-+them public.
-+
-+Hopefully this will happen later in 2016.
-+
-+Hans Verkuil <hans.verkuil@cisco.com>
 -- 
-2.8.1
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
