@@ -1,273 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:32856 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752031AbcDVOTN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 10:19:13 -0400
-Received: by mail-lb0-f172.google.com with SMTP id be4so6504617lbc.0
-        for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 07:19:12 -0700 (PDT)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Fri, 22 Apr 2016 16:19:09 +0200
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Federico Vaga <federico.vaga@gmail.com>
-Subject: Re: [PATCH 1/6] adv7180: fix broken standards handling
-Message-ID: <20160422141909.GA23014@bigcity.dyn.berto.se>
-References: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl>
- <1461330222-34096-2-git-send-email-hverkuil@xs4all.nl>
+Received: from c313.tlh.ro ([77.81.165.13]:51738 "EHLO server.portalmedia.ro"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752353AbcDJLPJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Apr 2016 07:15:09 -0400
+To: kosenkova@minkult.omskportal.ru, likefoto64@yandex.ru,
+	maksimovna58@gmail.com, leo@leostars.ru,
+	l4861.html0.272931mail@ahtuba-magazin.ru, mail@bolshe-prodaj.com,
+	lev@medtool.ru, kasomoa45@aol.com, linux-media@vger.kernel.org,
+	mail@vozhatyi.ru, krecklie@horo.mail.ru, kmy45@tw9bqw9cnoyr.com,
+	lni@et.ru, luuw27@f3vaf7.ru, laptevk@volga-tv.ru,
+	lwvttytp@ywycrunf.com, lggugmlilyayy@gmail.com,
+	koteffdgvs145@pmnizxpgxdvv.com, lee.brewster@echarris.com,
+	kytepov36@mail.ru
+Subject: =?utf-8?B?0JLRiyDQtdGJ0LUg0LjRidC40YLQtSDQv9C+0LzQtdGJ0LXQvdC40LU/?=
+From: =?utf-8?B?0JLQvtGA0L7QvdGG0L7QstCwINCh0LLQtdGC0LvQsNC90LA=?=
+	<vorontsova.878@mail.ru>
+Subject: =?utf-8?B?0JLRiyDQtdGJ0LUg0LjRidC40YLQtSDQv9C+0LzQtdGJ0LXQvdC40LU/?=
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1461330222-34096-2-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8;
+Content-Transfer-Encoding: base64
+Message-Id: <E1aoaHW-0007K0-P9@server.portalmedia.ro>
+Date: Fri, 08 Apr 2016 21:33:18 +0400
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Tested-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+0JTQvtCx0YDRi9C5INC00LXQvdGMIQoK0JLRiyDQtdGJ0LUg0LjRidC10YIg0L7RhNGBPwoK0KXQvtGH0YMg0L/RgNC10LTQu9C+0LbQuNGC0Ywg0L/QvtC80LXRidC10L3QuNGPINCyINCw0YDQtdC90LTRgzog0L/Qu9C+0YnQsNC00YzRjiDQvtGCIDEyINC60LLQsNC00YDQsNGC0L3Ri9GFINC80LXRgtGA0L7QsiDQv9C+INGA0LXQsNC70YzQvdC+INC90LjQt9C60L7QuSDQsNGA0LXQvdC00L3QvtC5INGB0YLQsNCy0LrQtSAo0L7RgiDRgdC+0LHRgdGC0LLQtdC90L3QuNC60LApINCyINC90LDRiNC40YUg0LHQuNC30L3QtdGBLdGG0LXQvdGC0YDQsNGFLCDQvdC10LTQsNC70LXQutC+INC+0YIg0YHRgtCw0L3RhtC40Lkg0LzQtdGC0YDQvjoKIC0g0JrQuNGC0LDQuS3Qs9C+0YDQvtC0CiAtINCb0YPQsdGP0L3QutCwCiAtINCf0LvQvtGJ0LDQtNGMINGA0LXQstC+0LvRjtGG0LjQuAogLSDQndC+0LLRi9C1INCn0LXRgNC10LzRg9GI0LrQuAogLSDQn9GA0L7RhNGB0L7RjtC30L3QsNGPCiAtINCh0LLQuNCx0LvQvtCy0L4KIC0g0JHQvtGC0LDQvdC40YfQtdGB0LrQuNC5INGB0LDQtAogLSDQn9GA0LXQvtCx0YDQsNC20LXQvdGB0LrQsNGPINC/0LvQvtGJ0LDQtNGMCiAtINCR0YPQu9GM0LLQsNGAINCg0L7QutC+0YHRgdC+0LLRgdC60L7Qs9C+CiAtINCS0JTQndClCgrQndC+0LLRi9C8INC60LvQuNC10L3RgtCw0Lwg0LHRg9C00YPRgiDQv9GA0LXQtNC+0YHRgtCw0LLQu9C10L3RiyDQutCw0L3QuNC60YPQu9GLINC90LAg0LDRgNC10L3QtNGDLCDRjtGA0LjQtNC40YfQtdGB0LrQuNC5INCw0LTRgNC10YEg0Lgg0L/QsNGA0LrQvtCy0L7Rh9C90YvQtSDQvNC10YHRgtCwINCyINC/0L7QtNCw0YDQvtC6LgoK0J3QsNC/0LjRiNC40YLQtSDQv9C+0LbQsNC70YPQudGB0YLQsCAtINGA0Y/QtNC+0Lwg0YEg0LrQsNC60LjQvNC4INGB0YLQsNC90YbQuNGP0LzQuCDQvNC10YLRgNC+INCS0LDQvCDQsdGL0LvQviDQsdGLINC40L3RgtC10YDQtdGB0L3QviDRgNCw0YHRgdC80L7RgtGA0LXRgtGMINCw0YDQtdC90LTRiyDQv9C+0LzQtdGJ0LXQvdC40Y8gLSDQsiDQvtGC0LLQtdGCINGPINC/0YDQuNGI0LvRjiDQktCw0Lwg0LrQvtC90LrRgNC10YLQvdGL0LUg0LLQsNGA0LjQsNC90YLRiyDQvtGE0LjRgdC+0LIg0Lgg0YHRgtC+0LjQvNC+0YHRgtGMINCw0YDQtdC90LTRiyDQutCw0LbQtNC+0LPQvi4KCkMg0YPQstCw0LbQtdC90LjQtdC8LCDQktC+0YDQvtC90YbQvtCy0LAg0KHQstC10YLQu9Cw0L3QsC4=
 
-On 2016-04-22 15:03:37 +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The adv7180 attempts to autodetect the standard. Unfortunately this
-> is seriously broken.
-> 
-> This patch removes the autodetect completely. Only the querystd op
-> will detect the standard. Since the design of the adv7180 requires
-> that you switch to a special autodetect mode you cannot call querystd
-> when you are streaming.
-> 
-> So the s_stream op has been added so we know whether we are streaming
-> or not, and if we are, then querystd returns EBUSY.
-> 
-> After testing this with a signal generator is became obvious that
-> a sleep is needed between changing the standard to autodetect and
-> reading the status. So the autodetect can never have worked well.
-> 
-> The s_std call now just sets the new standard without any querying.
-> 
-> If the driver supports the interrupt, then when it detects a standard
-> change it will signal that by sending the V4L2_EVENT_SOURCE_CHANGE
-> event.
-> 
-> With these changes this driver now behaves like all other video
-> receivers.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Cc: Lars-Peter Clausen <lars@metafoo.de>
-> Cc: Federico Vaga <federico.vaga@gmail.com>
-> ---
->  drivers/media/i2c/adv7180.c | 118 ++++++++++++++++++++++++++++++--------------
->  1 file changed, 80 insertions(+), 38 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-> index 51a92b3..5a75a91 100644
-> --- a/drivers/media/i2c/adv7180.c
-> +++ b/drivers/media/i2c/adv7180.c
-> @@ -26,8 +26,9 @@
->  #include <linux/i2c.h>
->  #include <linux/slab.h>
->  #include <linux/of.h>
-> -#include <media/v4l2-ioctl.h>
->  #include <linux/videodev2.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-event.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ctrls.h>
->  #include <linux/mutex.h>
-> @@ -192,8 +193,8 @@ struct adv7180_state {
->  	struct mutex		mutex; /* mutual excl. when accessing chip */
->  	int			irq;
->  	v4l2_std_id		curr_norm;
-> -	bool			autodetect;
->  	bool			powered;
-> +	bool			streaming;
->  	u8			input;
->  
->  	struct i2c_client	*client;
-> @@ -338,12 +339,26 @@ static int adv7180_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
->  	if (err)
->  		return err;
->  
-> -	/* when we are interrupt driven we know the state */
-> -	if (!state->autodetect || state->irq > 0)
-> -		*std = state->curr_norm;
-> -	else
-> -		err = __adv7180_status(state, NULL, std);
-> +	if (state->streaming) {
-> +		err = -EBUSY;
-> +		goto unlock;
-> +	}
-> +
-> +	err = adv7180_set_video_standard(state,
-> +			ADV7180_STD_AD_PAL_BG_NTSC_J_SECAM);
-> +	if (err)
-> +		goto unlock;
->  
-> +	msleep(100);
-> +	__adv7180_status(state, NULL, std);
-> +
-> +	err = v4l2_std_to_adv7180(state->curr_norm);
-> +	if (err < 0)
-> +		goto unlock;
-> +
-> +	err = adv7180_set_video_standard(state, err);
-> +
-> +unlock:
->  	mutex_unlock(&state->mutex);
->  	return err;
->  }
-> @@ -387,23 +402,13 @@ static int adv7180_program_std(struct adv7180_state *state)
->  {
->  	int ret;
->  
-> -	if (state->autodetect) {
-> -		ret = adv7180_set_video_standard(state,
-> -			ADV7180_STD_AD_PAL_BG_NTSC_J_SECAM);
-> -		if (ret < 0)
-> -			return ret;
-> -
-> -		__adv7180_status(state, NULL, &state->curr_norm);
-> -	} else {
-> -		ret = v4l2_std_to_adv7180(state->curr_norm);
-> -		if (ret < 0)
-> -			return ret;
-> -
-> -		ret = adv7180_set_video_standard(state, ret);
-> -		if (ret < 0)
-> -			return ret;
-> -	}
-> +	ret = v4l2_std_to_adv7180(state->curr_norm);
-> +	if (ret < 0)
-> +		return ret;
->  
-> +	ret = adv7180_set_video_standard(state, ret);
-> +	if (ret < 0)
-> +		return ret;
->  	return 0;
->  }
->  
-> @@ -415,18 +420,12 @@ static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
->  	if (ret)
->  		return ret;
->  
-> -	/* all standards -> autodetect */
-> -	if (std == V4L2_STD_ALL) {
-> -		state->autodetect = true;
-> -	} else {
-> -		/* Make sure we can support this std */
-> -		ret = v4l2_std_to_adv7180(std);
-> -		if (ret < 0)
-> -			goto out;
-> +	/* Make sure we can support this std */
-> +	ret = v4l2_std_to_adv7180(std);
-> +	if (ret < 0)
-> +		goto out;
->  
-> -		state->curr_norm = std;
-> -		state->autodetect = false;
-> -	}
-> +	state->curr_norm = std;
->  
->  	ret = adv7180_program_std(state);
->  out:
-> @@ -747,6 +746,40 @@ static int adv7180_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
->  	return 0;
->  }
->  
-> +static int adv7180_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +	int ret;
-> +
-> +	/* It's always safe to stop streaming, no need to take the lock */
-> +	if (!enable) {
-> +		state->streaming = enable;
-> +		return 0;
-> +	}
-> +
-> +	/* Must wait until querystd released the lock */
-> +	ret = mutex_lock_interruptible(&state->mutex);
-> +	if (ret)
-> +		return ret;
-> +	state->streaming = enable;
-> +	mutex_unlock(&state->mutex);
-> +	return 0;
-> +}
-> +
-> +static int adv7180_subscribe_event(struct v4l2_subdev *sd,
-> +				   struct v4l2_fh *fh,
-> +				   struct v4l2_event_subscription *sub)
-> +{
-> +	switch (sub->type) {
-> +	case V4L2_EVENT_SOURCE_CHANGE:
-> +		return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
-> +	case V4L2_EVENT_CTRL:
-> +		return v4l2_ctrl_subdev_subscribe_event(sd, fh, sub);
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
->  static const struct v4l2_subdev_video_ops adv7180_video_ops = {
->  	.s_std = adv7180_s_std,
->  	.g_std = adv7180_g_std,
-> @@ -756,10 +789,13 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
->  	.g_mbus_config = adv7180_g_mbus_config,
->  	.cropcap = adv7180_cropcap,
->  	.g_tvnorms = adv7180_g_tvnorms,
-> +	.s_stream = adv7180_s_stream,
->  };
->  
->  static const struct v4l2_subdev_core_ops adv7180_core_ops = {
->  	.s_power = adv7180_s_power,
-> +	.subscribe_event = adv7180_subscribe_event,
-> +	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
->  };
->  
->  static const struct v4l2_subdev_pad_ops adv7180_pad_ops = {
-> @@ -784,8 +820,14 @@ static irqreturn_t adv7180_irq(int irq, void *devid)
->  	/* clear */
->  	adv7180_write(state, ADV7180_REG_ICR3, isr3);
->  
-> -	if (isr3 & ADV7180_IRQ3_AD_CHANGE && state->autodetect)
-> -		__adv7180_status(state, NULL, &state->curr_norm);
-> +	if (isr3 & ADV7180_IRQ3_AD_CHANGE) {
-> +		static const struct v4l2_event src_ch = {
-> +			.type = V4L2_EVENT_SOURCE_CHANGE,
-> +			.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
-> +		};
-> +
-> +		v4l2_subdev_notify_event(&state->sd, &src_ch);
-> +	}
->  	mutex_unlock(&state->mutex);
->  
->  	return IRQ_HANDLED;
-> @@ -1230,7 +1272,7 @@ static int adv7180_probe(struct i2c_client *client,
->  
->  	state->irq = client->irq;
->  	mutex_init(&state->mutex);
-> -	state->autodetect = true;
-> +	state->curr_norm = V4L2_STD_NTSC;
->  	if (state->chip_info->flags & ADV7180_FLAG_RESET_POWERED)
->  		state->powered = true;
->  	else
-> @@ -1238,7 +1280,7 @@ static int adv7180_probe(struct i2c_client *client,
->  	state->input = 0;
->  	sd = &state->sd;
->  	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
-> -	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
->  
->  	ret = adv7180_init_controls(state);
->  	if (ret)
-> -- 
-> 2.8.0.rc3
-> 
-
--- 
-Regards,
-Niklas Söderlund
