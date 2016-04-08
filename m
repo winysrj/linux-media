@@ -1,140 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52786 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754295AbcDJApd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Apr 2016 20:45:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [GIT PULL FOR v4.7] R-Car VSP driver changes
-Date: Sun, 10 Apr 2016 03:45:25 +0300
-Message-ID: <1616477.ZoNuy2sRM5@avalon>
+Received: from static.7.73.9.5.clients.your-server.de ([5.9.73.7]:49514 "EHLO
+	Ubuntu-1410-utopic-64-minimal" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754419AbcDHLUy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Apr 2016 07:20:54 -0400
+Date: Fri, 8 Apr 2016 11:18:49 +0300
+Message-Id: <201604080818.u388InlN013582@Ubuntu-1410-utopic-64-minimal>
+To: Korall-dent@mail.ru, kss@u-hold.ru, kosinskaya88@e-mail.ru,
+	margarito_neal@mikefinnin.com, kovalchyk_01@vail.ru,
+	lediNN2011@yandex.ru, linux-media@vger.kernel.org,
+	margaritacalvo@optoline.com, lmano-pkami@gluemanoidy.ru,
+	kulikovskaya@psu.karelia.ru, lhahm@ameros-sudan.ru,
+	lance@weblance.ru, kelly@askcorky.com, karuk@bild.ru,
+	lmhrqxnc@pwrpgrsk.com, klimenko_o@gw.tander.ru, ktivu@f-mailers.ru,
+	kirill@vertiporokh.ru, kosykh.k@merlion.ru, liishkliof@memori.ru
+Subject: =?utf-8?B?0J3QsNGB0YfQtdGCINGB0L7QstC10YLRgdC60L7QuSDRgtC10YXQvdC40LrQuCAo0L/RgNC40LHQvtGA0YssINCt0JLQnCwg0LDQvdCw0LvQvtCz0L7QstGL0LUg0JDQotChINCyINC70Y7QsdC+0Lwg0YHQvtGB0YLQvtGP0L3QuNC4KS4=?=
+From: =?utf-8?B?0JzQsNC60YHQuNC8ICjRgdC/0LXRhtC40LDQu9C40YHRgiDQv9C+INGD0YLQuNC70LjQt9Cw0YbQuNC4KQ==?=
+	<sergeev.713@mail.ru>
+Subject: =?utf-8?B?0J3QsNGB0YfQtdGCINGB0L7QstC10YLRgdC60L7QuSDRgtC10YXQvdC40LrQuCAo0L/RgNC40LHQvtGA0YssINCt0JLQnCwg0LDQvdCw0LvQvtCz0L7QstGL0LUg0JDQotChINCyINC70Y7QsdC+0Lwg0YHQvtGB0YLQvtGP0L3QuNC4KS4=?=
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8;
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-[
-The following changes since commit bc5ccdbc990debbcae4602214dddc8d5fd38b01d:
 
-  [media] au0828: Unregister notifiers (2016-04-06 05:44:38 -0700)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git vsp1/next
-
-for you to fetch changes up to 519e36b22f9d1f93fa2f08456975210fe066f6d3:
-
-  media: platform: rcar_jpu, vsp1: Use ARCH_RENESAS (2016-04-10 03:41:45 
-+0300)
-
-The changes include the pad config allocator patch that has been mentioned 
-during the last media workshop.
-
-----------------------------------------------------------------
-Laurent Pinchart (53):
-      media: Add obj_type field to struct media_entity
-      media: Rename is_media_entity_v4l2_io to 
-is_media_entity_v4l2_video_device
-      v4l: subdev: Add pad config allocator and init
-      v4l: vsp1: Fix vsp1_du_atomic_(begin|flush) declarations
-      v4l: vsp1: drm: Include correct header file
-      v4l: vsp1: video: Fix coding style
-      v4l: vsp1: VSPD instances have no LUT on Gen3
-      v4l: vsp1: Use pipeline display list to decide how to write to modules
-      v4l: vsp1: Always setup the display list
-      v4l: vsp1: Simplify frame end processing
-      v4l: vsp1: Split display list manager from display list
-      v4l: vsp1: Store the display list manager in the WPF
-      v4l: vsp1: bru: Don't program background color in control set handler
-      v4l: vsp1: rwpf: Don't program alpha value in control set handler
-      v4l: vsp1: sru: Don't program intensity in control set handler
-      v4l: vsp1: Don't setup control handler when starting streaming
-      v4l: vsp1: Enable display list support for the HS[IT], LUT, SRU and UDS
-      v4l: vsp1: Don't configure RPF memory buffers before calculating offsets
-      v4l: vsp1: Remove unneeded entity streaming flag
-      v4l: vsp1: Document calling context of vsp1_pipeline_propagate_alpha()
-      v4l: vsp1: Fix 80 characters per line violations
-      v4l: vsp1: Add header display list support
-      v4l: vsp1: Use display lists with the userspace API
-      v4l: vsp1: Move subdev initialization code to vsp1_entity_init()
-      v4l: vsp1: Consolidate entity ops in a struct vsp1_entity_operations
-      v4l: vsp1: Fix BRU try compose rectangle storage
-      v4l: vsp1: Add race condition FIXME comment
-      v4l: vsp1: Implement and use the subdev pad::init_cfg configuration
-      v4l: vsp1: Store active formats in a pad config structure
-      v4l: vsp1: Store active selection rectangles in a pad config structure
-      v4l: vsp1: Create a new configure operation to setup modules
-      v4l: vsp1: Merge RPF and WPF pad ops structures
-      v4l: vsp1: Use __vsp1_video_try_format to initialize format at init time
-      v4l: vsp1: Pass display list explicitly to configure functions
-      v4l: vsp1: Rename pipeline validate functions to pipeline build
-      v4l: vsp1: Pass pipe pointer to entity configure functions
-      v4l: vsp1: Store pipeline pointer in rwpf
-      v4l: vsp1: video: Reorder functions
-      v4l: vsp1: Allocate pipelines on demand
-      v4l: vsp1: RPF entities can't be target nodes
-      v4l: vsp1: Factorize get pad format code
-      v4l: vsp1: Factorize media bus codes enumeration code
-      v4l: vsp1: Factorize frame size enumeration code
-      v4l: vsp1: Fix LUT format setting
-      v4l: vsp1: dl: Make reg_count field unsigned
-      v4l: vsp1: dl: Fix race conditions
-      v4l: vsp1: dl: Add support for multi-body display lists
-      v4l: vsp1: lut: Use display list fragments to fill LUT
-      v4l: vsp1: Add support for the RPF alpha multiplier on Gen3
-      v4l: vsp1: Add Z-order support for DRM pipeline
-      v4l: vsp1: Add global alpha support for DRM pipeline
-      v4l: vsp1: Fix V4L2_PIX_FMT_XRGB444 format definition
-      v4l: vsp1: Update WPF and LIF maximum sizes for Gen3
-
-Simon Horman (1):
-      media: platform: rcar_jpu, vsp1: Use ARCH_RENESAS
-
- drivers/media/platform/Kconfig                  |   4 +-
- drivers/media/platform/exynos4-is/media-dev.c   |   4 +-
- drivers/media/platform/omap3isp/ispvideo.c      |   2 +-
- drivers/media/platform/vsp1/vsp1.h              |  14 +-
- drivers/media/platform/vsp1/vsp1_bru.c          | 359 +++++++++-----------
- drivers/media/platform/vsp1/vsp1_bru.h          |   3 +-
- drivers/media/platform/vsp1/vsp1_dl.c           | 567 +++++++++++++++++------
- drivers/media/platform/vsp1/vsp1_dl.h           |  49 +--
- drivers/media/platform/vsp1/vsp1_drm.c          | 234 +++++++------
- drivers/media/platform/vsp1/vsp1_drm.h          |  27 +-
- drivers/media/platform/vsp1/vsp1_drv.c          |  34 +-
- drivers/media/platform/vsp1/vsp1_entity.c       | 288 +++++++++++-----
- drivers/media/platform/vsp1/vsp1_entity.h       |  63 +++-
- drivers/media/platform/vsp1/vsp1_hsit.c         | 130 +++-----
- drivers/media/platform/vsp1/vsp1_lif.c          | 179 ++++------
- drivers/media/platform/vsp1/vsp1_lut.c          | 172 ++++------
- drivers/media/platform/vsp1/vsp1_lut.h          |   6 +-
- drivers/media/platform/vsp1/vsp1_pipe.c         |  71 ++--
- drivers/media/platform/vsp1/vsp1_pipe.h         |  19 +-
- drivers/media/platform/vsp1/vsp1_regs.h         |  10 +
- drivers/media/platform/vsp1/vsp1_rpf.c          | 275 +++++++---------
- drivers/media/platform/vsp1/vsp1_rwpf.c         | 171 +++++-----
- drivers/media/platform/vsp1/vsp1_rwpf.h         |  64 ++--
- drivers/media/platform/vsp1/vsp1_sru.c          | 214 +++++-------
- drivers/media/platform/vsp1/vsp1_sru.h          |   2 +
- drivers/media/platform/vsp1/vsp1_uds.c          | 223 ++++++-------
- drivers/media/platform/vsp1/vsp1_uds.h          |   3 +-
- drivers/media/platform/vsp1/vsp1_video.c        | 493 +++++++++++++----------
- drivers/media/platform/vsp1/vsp1_video.h        |   2 -
- drivers/media/platform/vsp1/vsp1_wpf.c          | 279 +++++++---------
- drivers/media/v4l2-core/v4l2-dev.c              |   1 +
- drivers/media/v4l2-core/v4l2-mc.c               |   2 +-
- drivers/media/v4l2-core/v4l2-subdev.c           |  40 ++-
- drivers/staging/media/davinci_vpfe/vpfe_video.c |   2 +-
- drivers/staging/media/omap4iss/iss_video.c      |   2 +-
- include/media/media-entity.h                    |  78 ++---
- include/media/v4l2-subdev.h                     |   8 +
- include/media/vsp1.h                            |  23 +-
- 38 files changed, 2184 insertions(+), 1933 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+0JfQtNGA0LDQstGB0YLQstGD0LnRgtC1IQoK0KHQutCw0LbQuNGC0LUsINC/0L7QttCw0LvRg9C50YHRgtCwLCDQuNC80LXRjtGC0YHRjyDQu9C4INGDINCS0LDRgSDQvdC10YDQsNCx0L7RgtCw0Y7RidC40LUsINGD0YHRgtCw0YDQtdCy0YjQuNC1INC40LvQuCDQv9GA0L7RgdGC0L4g0L3QtdC90YPQttC90YvQtSDQutC+0LzQv9GM0Y7RgtC10YDRiywg0LrQvtC80L/Qu9C10LrRgtGD0Y7RidC40LUsINC80L7QvdC40YLQvtGA0YssINGB0L7RgtC+0LLRi9C1INGC0LXQu9C10YTQvtC90YsgKNC60YDQvtC80LUg0LHRi9GC0L7QstC+0Lkg0YLQtdGF0L3QuNC60LgpPwoK0KLQsNC6INC20LUg0LjQvdGC0LXRgNC10YHRg9C10YIg0Y3Qu9C10LrRgtGA0L7QvdC90YvQuSDQu9C+0LwsINGA0LDQtNC40L7QtNC10YLQsNC70LgsINGB0YLQsNGA0YPRjiDRgdC+0LLQtdGC0YHQutGD0Y4g0YLQtdGF0L3QuNC60YMsINCt0JLQnCwg0LDQvdCw0LvQvtCz0L7QstGL0LUg0JDQotChINCyINC70Y7QsdC+0Lwg0YHQvtGB0YLQvtGP0L3QuNC4IQoK0KHQvtC+0LHRidC40YLQtSDQv9C+0LbQsNC70YPQudGB0YLQsCAtINGC0LXRhdC90LjQutGDINC4INCyINC60LDQutC+0Lwg0LrQvtC70LjRh9C10YHRgtCy0LUg0JLRiyDQs9C+0YLQvtCy0Ysg0LHRi9C70Lgg0LHRiyDRg9GC0LjQu9C40LfQuNGA0L7QstCw0YLRjCDQuCDRjyDRgdCy0Y/QttGD0YHRjCDRgSDQktCw0LzQuCDQtNC70Y8g0L7QsdGB0YPQttC00LXQvdC40!
+ Y8g0YPRgdC70L7QstC40Lkg0LLRi9C60YPQv9CwLgoK0JTQu9GPINC+0YDQs9Cw0L3QuNC30LDRhtC40Lkg0L/RgNC10LTQu9Cw0LPQsNC10Lwg0LLRi9Cz0L7QtNC90YPRjiDRg9GC0LjQu9C40LfQsNGG0LjRjiDQsiDRgdC+0L7RgtCy0LXRgtGB0YLQstC40Lgg0YEg0LfQsNC60L7QvdC+0Lwg0KDQpCDQuCDQv9GA0LXQtNC+0YHRgtCw0LLQu9C10L3QuNC10Lwg0LLRgdC10YUg0LTQvtC60YPQvNC10L3RgtC+0LIgLSDRgtC10YXQvdC40LrQsCDQsdC+0LvRjNGI0LUg0L3QtSDQsdGD0LTQtdGCINCy0LjRgdC10YLRjCDQvdCwINCx0LDQu9Cw0L3RgdC1INCS0LDRiNC10Lkg0YTQuNGA0LzRiy4KCtChINGD0LLQsNC20LXQvdC40LXQvCwg0JzQuNGC0YDQvtGE0LDQvdC+0LIg0JzQsNC60YHQuNC8
 
