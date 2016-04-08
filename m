@@ -1,117 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:20616 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751829AbcD2IqU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 04:46:20 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:57267 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751495AbcDHDDs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Apr 2016 23:03:48 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1C25A180529
+	for <linux-media@vger.kernel.org>; Fri,  8 Apr 2016 05:03:37 +0200 (CEST)
+Date: Fri, 08 Apr 2016 05:03:37 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl
-Subject: [PATCH 3/3] media: Refactor IOCTL handler calling
-Date: Fri, 29 Apr 2016 11:43:20 +0300
-Message-Id: <1461919400-2658-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1461919400-2658-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1461919400-2658-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160408030337.1C25A180529@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the switch by a nice array of supported IOCTLs, just like in V4L2.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c | 58 +++++++++++++++-----------------------------
- 1 file changed, 19 insertions(+), 39 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 4a66a2d5..8a4daf9 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -363,18 +363,22 @@ static long media_device_get_topology(struct media_device *mdev,
- 	return ret;
- }
- 
--#define MEDIA_IOC(__cmd) \
--	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
-+#define MEDIA_IOC(__cmd, func)						\
-+	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
-+		.cmd = MEDIA_IOC_##__cmd,				\
-+		.fn = (long (*)(struct media_device *, void *))func,	\
-+	}
- 
- /* the table is indexed by _IOC_NR(cmd) */
--static const struct {
-+static const struct media_ioctl_info {
- 	unsigned int cmd;
-+	long (*fn)(struct media_device *dev, void *arg);
- } media_ioctl_info[] = {
--	MEDIA_IOC(DEVICE_INFO),
--	MEDIA_IOC(ENUM_ENTITIES),
--	MEDIA_IOC(ENUM_LINKS),
--	MEDIA_IOC(SETUP_LINK),
--	MEDIA_IOC(G_TOPOLOGY),
-+	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
-+	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
-+	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
-+	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
-+	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
- };
- 
- static unsigned int media_ioctl_max_arg_size(void) {
-@@ -395,11 +399,15 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- {
- 	struct media_devnode *devnode = media_devnode_data(filp);
- 	struct media_device *dev = to_media_device(devnode);
-+	const struct media_ioctl_info *info;
- 	char karg[media_ioctl_max_arg_size()];
- 	long ret;
- 
--	if (_IOC_NR(cmd) >= ARRAY_SIZE(media_ioctl_info)
--	    || media_ioctl_info[_IOC_NR(cmd)].cmd != cmd)
-+	if (_IOC_NR(cmd) >= ARRAY_SIZE(media_ioctl_info))
-+		return -ENOIOCTLCMD;
-+
-+	info = &media_ioctl_info[_IOC_NR(cmd)];
-+	if (info->cmd != cmd)
- 		return -ENOIOCTLCMD;
- 
- 	/* All media IOCTLs are _IOWR() */
-@@ -407,35 +415,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 		return -EFAULT;
- 
- 	mutex_lock(&dev->graph_mutex);
--	switch (cmd) {
--	case MEDIA_IOC_DEVICE_INFO:
--		ret = media_device_get_info(dev,
--				(struct media_device_info *)karg);
--		break;
--
--	case MEDIA_IOC_ENUM_ENTITIES:
--		ret = media_device_enum_entities(dev,
--				(struct media_entity_desc *)karg);
--		break;
--
--	case MEDIA_IOC_ENUM_LINKS:
--		ret = media_device_enum_links(dev,
--				(struct media_links_enum *)karg);
--		break;
--
--	case MEDIA_IOC_SETUP_LINK:
--		ret = media_device_setup_link(dev,
--				(struct media_link_desc *)karg);
--		break;
--
--	case MEDIA_IOC_G_TOPOLOGY:
--		ret = media_device_get_topology(dev,
--				(struct media_v2_topology *)karg);
--		break;
--
--	default:
--		ret = -ENOIOCTLCMD;
--	}
-+	ret = info->fn(dev, karg);
- 	mutex_unlock(&dev->graph_mutex);
- 
- 	if (!ret && copy_to_user((void *)arg, karg, _IOC_SIZE(cmd)))
--- 
-1.9.1
+date:		Fri Apr  8 04:00:18 CEST 2016
+git branch:	test
+git hash:	bc5ccdbc990debbcae4602214dddc8d5fd38b01d
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3353-gcae47da
+host hardware:	x86_64
+host os:	4.4.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
