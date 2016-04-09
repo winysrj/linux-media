@@ -1,222 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:49483 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753232AbcDCI51 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:57:27 -0400
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v6 20/24] iio: imu: inv_mpu6050: change the i2c gate to be mux-locked
-Date: Sun,  3 Apr 2016 10:52:50 +0200
-Message-Id: <1459673574-11440-21-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
-References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:34131 "EHLO
+	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754460AbcDIB35 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2016 21:29:57 -0400
+Received: by mail-lf0-f41.google.com with SMTP id j11so96206346lfb.1
+        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2016 18:29:56 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <570851E4.30801@iki.fi>
+References: <57083b12.ec3ec20a.eed91.1ea1SMTPIN_ADDED_BROKEN@mx.google.com>
+	<CAO8Cc0qC79u_BBV3xaat3Cy6E2XB+GtJfJSf3aCJX==Q++BaXg@mail.gmail.com>
+	<570851E4.30801@iki.fi>
+Date: Sat, 9 Apr 2016 03:29:54 +0200
+Message-ID: <CAO8Cc0q28Z2LcBkLKE4TxOW3=jv1XY2TN4w-kqTii5nXHgoYaQ@mail.gmail.com>
+Subject: Re: AVerMedia HD Volar (A867) AF9035 + MXL5007T driver issues
+From: Alessandro Radicati <alessandro@radicati.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+Antti,
+AF9035 I2C write/read is fine with the patch I proposed, like your
+middle case.  This issue is not specific to MXL5007T; it's something I
+caught sniffing the I2C bus with a logic analyzer and stands on it's
+own.  I implemented it this way because the driver specifically
+implements that write/read command, and it has the least impact by
+trying to keep as much of the original behavior as possible.  BTW,
+this command does not issue a repeated start on the bus.  It doesn't
+work because the firmware ignores anything after the USB header for
+the read command, so address fields must be used.
 
-The root i2c adapter lock is then no longer held by the i2c mux during
-accesses behind the i2c gate, and such accesses need to take that lock
-just like any other ordinary i2c accesses do.
+I apologize if i didn't make this more clear, but the real issue is
+that after an I2C read (patch or unpatched - correct or incorrect),
+the mxl5007t locks up.  Again, I verified this via logic analyzer on
+the I2C bus.  So we need a way to avoid issuing reads to the mxl5007t,
+unless someone has other suggestions to find the root cause.  It seems
+that with your hardware this issue does not occur - but it does with
+mine, Jose and others.  Perhaps we can dump and compare the eeprom?
+However, it seems like a lot of work for just one printk.
 
-So, declare the i2c gate mux-locked, and zap the code that makes the
-unlocked i2c accesses and just use ordinary regmap_write accesses.
+Regards,
+Alessandro
 
-This also happens to fix the deadlock described in
-http://patchwork.ozlabs.org/patch/584776/ authored by
-Adriana Reus <adriana.reus@intel.com> and submitted by
-Daniel Baluta <daniel.baluta@intel.com>
-
-----------8<----------
-iio: imu: inv_mpu6050: Fix deadlock between i2c adapter lock and mpu lock
-
-This deadlock occurs if the accel/gyro and the sensor on the auxiliary
-I2C (in my setup it's an ak8975) are working at the same time.
-
-Scenario:
-
-      T1					T2
-     ====				       ====
-inv_mpu6050_read_fifo                  aux sensor op (eg. ak8975_read_raw)
-        |                                     |
-mutex_lock(&indio_dev->mlock)           i2c_transfer
-        |                                     |
-i2c transaction                         i2c adapter lock
-        |                                     |
-i2c adapter lock                        i2c_mux_master_xfer
-                                              |
-                                        inv_mpu6050_select_bypass
-                                              |
-                                        mutex_lock(&indio_dev->mlock)
-
-When we operate on an mpu sensor the order of locking is mpu lock
-followed by the i2c adapter lock. However, when we operate the auxiliary
-sensor the order of locking is the other way around.
-
-...
-----------8<----------
-
-The reason this patch fixes the deadlock is that T2 does not grab the
-i2c adapter lock until the very end (and grabs the newfangled i2c mux
-lock where it previously grabbed the i2c adapter lock).
-
-Signed-off-by: Peter Rosin <peda@axentia.se>
----
- Documentation/i2c/i2c-topology            |  2 +-
- drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c | 56 +++++++------------------------
- 2 files changed, 13 insertions(+), 45 deletions(-)
-
-diff --git a/Documentation/i2c/i2c-topology b/Documentation/i2c/i2c-topology
-index 7a10edd0874f..346623a80bd1 100644
---- a/Documentation/i2c/i2c-topology
-+++ b/Documentation/i2c/i2c-topology
-@@ -50,7 +50,7 @@ i2c-mux-pinctrl           Normally parent-locked, mux-locked iff
- i2c-mux-reg               Parent-locked
- 
- In drivers/iio/
--imu/inv_mpu6050/          Parent-locked
-+imu/inv_mpu6050/          Mux-locked
- 
- In drivers/media/
- dvb-frontends/m88ds3103   Parent-locked
-diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
-index 0d429d788106..71ad31a275c9 100644
---- a/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
-+++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
-@@ -24,45 +24,16 @@ static const struct regmap_config inv_mpu_regmap_config = {
- 	.val_bits = 8,
- };
- 
--/*
-- * The i2c read/write needs to happen in unlocked mode. As the parent
-- * adapter is common. If we use locked versions, it will fail as
-- * the mux adapter will lock the parent i2c adapter, while calling
-- * select/deselect functions.
-- */
--static int inv_mpu6050_write_reg_unlocked(struct i2c_client *client,
--					  u8 reg, u8 d)
--{
--	int ret;
--	u8 buf[2] = {reg, d};
--	struct i2c_msg msg[1] = {
--		{
--			.addr = client->addr,
--			.flags = 0,
--			.len = sizeof(buf),
--			.buf = buf,
--		}
--	};
--
--	ret = __i2c_transfer(client->adapter, msg, 1);
--	if (ret != 1)
--		return ret;
--
--	return 0;
--}
--
- static int inv_mpu6050_select_bypass(struct i2c_mux_core *muxc, u32 chan_id)
- {
--	struct i2c_client *client = i2c_mux_priv(muxc);
--	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
-+	struct iio_dev *indio_dev = i2c_mux_priv(muxc);
- 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
- 	int ret = 0;
- 
- 	/* Use the same mutex which was used everywhere to protect power-op */
- 	mutex_lock(&indio_dev->mlock);
- 	if (!st->powerup_count) {
--		ret = inv_mpu6050_write_reg_unlocked(client,
--						     st->reg->pwr_mgmt_1, 0);
-+		ret = regmap_write(st->map, st->reg->pwr_mgmt_1, 0);
- 		if (ret)
- 			goto write_error;
- 
-@@ -71,10 +42,9 @@ static int inv_mpu6050_select_bypass(struct i2c_mux_core *muxc, u32 chan_id)
- 	}
- 	if (!ret) {
- 		st->powerup_count++;
--		ret = inv_mpu6050_write_reg_unlocked(client,
--						     st->reg->int_pin_cfg,
--						     INV_MPU6050_INT_PIN_CFG |
--						     INV_MPU6050_BIT_BYPASS_EN);
-+		ret = regmap_write(st->map, st->reg->int_pin_cfg,
-+				   INV_MPU6050_INT_PIN_CFG |
-+				   INV_MPU6050_BIT_BYPASS_EN);
- 	}
- write_error:
- 	mutex_unlock(&indio_dev->mlock);
-@@ -84,18 +54,16 @@ write_error:
- 
- static int inv_mpu6050_deselect_bypass(struct i2c_mux_core *muxc, u32 chan_id)
- {
--	struct i2c_client *client = i2c_mux_priv(muxc);
--	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
-+	struct iio_dev *indio_dev = i2c_mux_priv(muxc);
- 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
- 
- 	mutex_lock(&indio_dev->mlock);
- 	/* It doesn't really mattter, if any of the calls fails */
--	inv_mpu6050_write_reg_unlocked(client, st->reg->int_pin_cfg,
--				       INV_MPU6050_INT_PIN_CFG);
-+	regmap_write(st->map, st->reg->int_pin_cfg, INV_MPU6050_INT_PIN_CFG);
- 	st->powerup_count--;
- 	if (!st->powerup_count)
--		inv_mpu6050_write_reg_unlocked(client, st->reg->pwr_mgmt_1,
--					       INV_MPU6050_BIT_SLEEP);
-+		regmap_write(st->map, st->reg->pwr_mgmt_1,
-+			     INV_MPU6050_BIT_SLEEP);
- 	mutex_unlock(&indio_dev->mlock);
- 
- 	return 0;
-@@ -133,15 +101,15 @@ static int inv_mpu_probe(struct i2c_client *client,
- 		return result;
- 
- 	st = iio_priv(dev_get_drvdata(&client->dev));
--	st->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0, 0,
--				       0, 0, 0,
-+	st->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0,
-+				       I2C_MUX_LOCKED, 0, 0, 0,
- 				       inv_mpu6050_select_bypass,
- 				       inv_mpu6050_deselect_bypass);
- 	if (IS_ERR(st->muxc)) {
- 		result = PTR_ERR(st->muxc);
- 		goto out_unreg_device;
- 	}
--	st->muxc->priv = client;
-+	st->muxc->priv = dev_get_drvdata(&client->dev);
- 
- 	result = inv_mpu_acpi_create_mux_client(client);
- 	if (result)
--- 
-2.1.4
-
+On Sat, Apr 9, 2016 at 2:50 AM, Antti Palosaari <crope@iki.fi> wrote:
+> uh, how it could be so hard?
+>
+> I just made few tests and found 3 ways to read it. OK, one is that
+> Alessandro already pointed out and I don't feel it correct. But those 2 are
+> one for look. CMD_I2C_WR / CMD_I2C_RD with 1st priority, then
+> CMD_GENERIC_I2C_WR / CMD_GENERIC_I2C_RD....
+>
+> {
+> u8 buf[MAX_XFER_SIZE];
+> struct usb_req req = {0, 0, 0, buf, 0, buf};
+> #if 0
+> req.cmd = CMD_GENERIC_I2C_WR;
+> req.wlen = 3 + 2;
+> req.rlen = 0;
+> buf[0] = 2; // write len
+> buf[1] = 0x02; /* I2C bus */ // NOK 3, 1, 0
+> buf[2] = 0x60 << 1; // I2C addr
+> buf[3] = 0xfb; /* reg addr MSB */
+> buf[4] = 0xd9; /* reg addr LSB */
+> ret = af9035_ctrl_msg(d, &req);
+> dev_dbg(&d->udev->dev, "1mxl5007t %02x\n", 0);
+>
+> req.cmd = CMD_GENERIC_I2C_RD;
+> req.wlen = 3;
+> req.rlen = 1;
+> buf[0] = 1; // read len
+> buf[1] = 0x02; /* I2C bus */ // NOK 3, 1, 0
+> buf[2] = 0x60 << 1; // I2C addr
+> ret = af9035_ctrl_msg(d, &req);
+> dev_dbg(&d->udev->dev, "1mxl5007t %02x\n", buf[0]);
+> #endif
+>
+> #if 0
+> req.cmd = CMD_I2C_RD;
+> req.wlen = 5;
+> req.rlen = 1;
+> buf[0] = 1; // read len
+> buf[1] = 0x60 << 1; // I2C addr
+> buf[2] = 2; /* reg addr len */
+> buf[3] = 0xfb; /* reg addr MSB */
+> buf[4] = 0xd9; /* reg addr LSB */
+> ret = af9035_ctrl_msg(d, &req);
+> dev_dbg(&d->udev->dev, "4mxl5007t %02x\n", buf[0]);
+> #endif
+>
+> #if 1
+> req.cmd = CMD_I2C_WR;
+> req.wlen = 7;
+> req.rlen = 0;
+> buf[0] = 2; // write len msg[0].len;
+> buf[1] = 0x60 << 1; // I2C addr
+> buf[2] = 0x00; /* reg addr len */
+> buf[3] = 0x00; /* reg addr MSB */
+> buf[4] = 0x00; /* reg addr LSB */
+> buf[5] = 0xfb;
+> buf[6] = 0xd9;
+> ret = af9035_ctrl_msg(d, &req);
+> dev_dbg(&d->udev->dev, "9mxl5007t %02x\n", buf[0]);
+>
+> req.cmd = CMD_I2C_RD;
+> req.wlen = 5;
+> req.rlen = 1;
+> buf[0] = 1; // read len
+> buf[1] = 0x60 << 1; // I2C addr
+> buf[2] = 0x00; /* reg addr len */
+> buf[3] = 0x00; /* reg addr MSB */
+> buf[4] = 0x00; /* reg addr LSB */
+> ret = af9035_ctrl_msg(d, &req);
+> dev_dbg(&d->udev->dev, "9mxl5007t %02x\n", buf[0]);
+> #endif
+>
+> }
+>
+>
+>
+>
+> On 04/09/2016 02:59 AM, Alessandro Radicati wrote:
+>>
+>> Jose, Antti,
+>> The no_probe option or similar is the only fix I could find (in fact i
+>> was going to propose a similar patch to what you have).  I've tried
+>> all combinations of firmware and also tried issuing the read command
+>> to the tuner in different states (e.g. sleep, just after soft/hard
+>> reset) to no avail.  I've modified AverMedia's linux driver to probe
+>> as well, and the same thing happens.  I found the following behavior
+>> in further testing:
+>>
+>> - I can arbitrarily read as many bytes as I want from any valid
+>> register and the tuner will continue responding until the af9035
+>> issues the expected NAK to signal the end of the read so that the
+>> mxl5007t can release the bus.  The bus doesn't get released and it
+>> stays stuck either high or low indefinitely so subsequent I2C commands
+>> fail.
+>> - Hard reset of the tuner by cycling af9035 GPIOH12 seems like the
+>> only way to recover.  So mxl5007t is probably at fault.  Perhaps I2C
+>> speed is too fast (SCL cycles at ~100KHz)?  Faulty hardware design of
+>> the usb stick?
+>> - Doesn't seem like the OEM drivers ever issue I2C read commands.
+>> Maybe it's a known issue to them.
+>>
+>> I'm pretty much out of ideas to test.  Suggestions are welcome.
+>> Otherwise I'll try to push through a patch for just "no_probe".
+>>
+>> Thanks,
+>> Alessandro
+>>
+>> On Sat, Apr 9, 2016 at 1:13 AM, Jose Alberto Reguero
+>> <jareguero@telefonica.net> wrote:
+>>>
+>>> I made a patch long time ago, but it was not accepted.
+>>>
+>>> https://patchwork.linuxtv.org/patch/16242/
+>>>
+>>> Jose Alberto
+>>>
+>>> El 06/04/2016 01:00, Alessandro Radicati <alessandro@radicati.net>
+>>> escribió:
+>>>>
+>>>>
+>>>> On Wed, Apr 6, 2016 at 12:33 AM, Antti Palosaari <crope@iki.fi> wrote:
+>>>>>
+>>>>> I found one stick having AF9035 + MXL5007T. It is HP branded A867, so
+>>>>> it
+>>>>> should be similar. It seems to work all three 12.13.15.0 6.20.15.0
+>>>>> firmwares:
+>>>>> http://palosaari.fi/linux/v4l-dvb/firmware/af9035/
+>>>>>
+>>>>> mxl5007t 5-0060: creating new instance
+>>>>> mxl5007t_get_chip_id: unknown rev (3f)
+>>>>> mxl5007t_get_chip_id: MxL5007T detected @ 5-0060
+>>>>>
+>>>>> That is what AF9035 reports (with debug) as a chip version:
+>>>>> dvb_usb_af9035: prechip_version=00 chip_version=03 chip_type=3802
+>>>>>
+>>>>>
+>>>>> Do you have different chip version?
+>>>>>
+>>>>
+>>>> I have a Sky Italy DVB stick with the same chip version.  I see that
+>>>> you get the 0x3f response as well... that should be fixed by the I2C
+>>>> patch I proposed.  However, your stick seems to handle the read
+>>>> properly and process subsequent I2C commands - something that doesn't
+>>>> happen with mine.  The vendor drivers in linux and windows never seem
+>>>> issue the USB I2C commands to read from the tuner.  I'll test with
+>>>> other firmware versions to see if something changes.
+>>>>
+>>>> Regards,
+>>>> Alessandro
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>>> in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+> --
+> http://palosaari.fi/
