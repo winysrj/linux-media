@@ -1,84 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:40728 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750916AbcDKIzI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2016 04:55:08 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1apXcf-0001sG-1M
-	for linux-media@vger.kernel.org; Mon, 11 Apr 2016 10:55:05 +0200
-Received: from hsi-kbw-078-043-066-244.hsi4.kabel-badenwuerttemberg.de ([78.43.66.244])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2016 10:55:05 +0200
-Received: from christian.steiner by hsi-kbw-078-043-066-244.hsi4.kabel-badenwuerttemberg.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 11 Apr 2016 10:55:05 +0200
-To: linux-media@vger.kernel.org
-From: Christian Steiner <christian.steiner@outlook.de>
-Subject: Re: [PATCH] em28xx: add support for Hauppauge WinTV-dualHD DVB tuner
-Date: Sun, 10 Apr 2016 17:23:25 +0200
-Message-ID: <570A6FED.4090700@outlook.de>
-References: <1459782772-21451-1-git-send-email-olli.salonen@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: olli.salonen@iki.fi
-In-Reply-To: <1459782772-21451-1-git-send-email-olli.salonen@iki.fi>
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:35655 "EHLO
+	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753809AbcDIBwd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2016 21:52:33 -0400
+Received: by mail-lf0-f54.google.com with SMTP id c126so96762986lfb.2
+        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2016 18:52:32 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <57085943.5010805@iki.fi>
+References: <57083b12.ec3ec20a.eed91.1ea1SMTPIN_ADDED_BROKEN@mx.google.com>
+	<CAO8Cc0qC79u_BBV3xaat3Cy6E2XB+GtJfJSf3aCJX==Q++BaXg@mail.gmail.com>
+	<570851E4.30801@iki.fi>
+	<57085943.5010805@iki.fi>
+Date: Sat, 9 Apr 2016 03:52:31 +0200
+Message-ID: <CAO8Cc0p2vw6g_qEVAL8BowU9394gpOJXYVcEbgbQo-e3mN3q0Q@mail.gmail.com>
+Subject: Re: AVerMedia HD Volar (A867) AF9035 + MXL5007T driver issues
+From: Alessandro Radicati <alessandro@radicati.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04.04.2016 17:12, Olli Salonen wrote:
-> Hauppauge WinTV-dualHD is a USB 2.0 dual DVB-T/T2/C tuner with
-> following components:
-> 
-> USB bridge: Empia EM28274 (chip id is the same as EM28174)
-> Demodulator: 2x Silicon Labs Si2168-B40
-> Tuner: 2x Silicon Labs Si2157-A30
-> 
-> This patch adds support only for the first tuner.
-> 
-> [...]
+On Sat, Apr 9, 2016 at 3:22 AM, Antti Palosaari <crope@iki.fi> wrote:
+> Here is patches to test:
+> http://git.linuxtv.org/anttip/media_tree.git/log/?h=af9035
+>
 
-Thank you very much!
-Works fine for me:
+I've done this already in my testing, and it works for getting a
+correct chip_id response, but only because it's avoiding the issue
+with the write/read case in the af9035 driver.  Don't have an
+af9015... perhaps there's a similar issue with that code or we are
+dealing with two separate issues since af9035 never does a repeated
+start?
 
-> [  419.413188] em28xx: New device HCW dualHD @ 480 Mbps (2040:0265, interface 0, class 0)
-> [  419.413195] em28xx: DVB interface 0 found: isoc
-> [  419.413265] em28xx: chip ID is em28174
-> [  420.529619] em28174 #0: EEPROM ID = 26 00 01 00, EEPROM hash = 0x7addc1c8
-> [  420.529626] em28174 #0: EEPROM info:
-> [  420.529630] em28174 #0:      microcode start address = 0x0004, boot configuration = 0x01
-> [  420.536077] em28174 #0:      AC97 audio (5 sample rates)
-> [  420.536084] em28174 #0:      500mA max power
-> [  420.536089] em28174 #0:      Table at offset 0x27, strings=0x0e6a, 0x1888, 0x087e
-> [  420.536188] em28174 #0: Identified as Hauppauge WinTV-dualHD DVB (card=98)
-> [  420.537974] tveeprom 8-0050: Hauppauge model 204109, rev B2I6, serial# 11XXXXXX
-> [  420.537981] tveeprom 8-0050: tuner model is SiLabs Si2157 (idx 186, type 4)
-> [  420.537986] tveeprom 8-0050: TV standards PAL(B/G) NTSC(M) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
-> [  420.537989] tveeprom 8-0050: audio processor is None (idx 0)
-> [  420.537993] tveeprom 8-0050: has no radio, has IR receiver, has no IR transmitter
-> [  420.537997] em28174 #0: dvb set to isoc mode.
-> [  420.538056] usbcore: registered new interface driver em28xx
-> [  420.541087] em28174 #0: Binding DVB extension
-> [  420.544008] i2c i2c-8: Added multiplexed i2c bus 9
-> [  420.544016] si2168 8-0064: Silicon Labs Si2168 successfully attached
-> [  420.548372] si2157 9-0060: Silicon Labs Si2147/2148/2157/2158 successfully attached
-> [  420.548389] DVB: registering new adapter (em28174 #0)
-> [  420.548396] usb 2-2: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
-> [  420.549737] em28174 #0: DVB extension successfully initialized
-> [  420.549743] em28xx: Registered (Em28xx dvb Extension) extension
-> [  435.418798] si2168 8-0064: found a 'Silicon Labs Si2168-B40'
-> [  435.418823] si2168 8-0064: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
-> [  435.617181] si2168 8-0064: firmware version: 4.0.11
-> [  435.619791] si2157 9-0060: found a 'Silicon Labs Si2157-A30'
-> [  435.642006] si2157 9-0060: firmware version: 3.0.5
+> After that both af9015+mxl5007t and af9035+mxl5007t started working. Earlier
+> both were returning bogus values for chip id read.
+>
+> Also I am interested to known which kind of communication there is actually
+> seen on I2C bus?
 
-(I have replaced the last digits of the serial number with X)
+With this or the patch I proposed, you see exactly what you expect on
+the I2C bus with repeated stops, as detailed in my previous mails.
 
-Is there any chance to add support for the second tuner, too?
-This would be awesome.
+>
+> If it starts working then have to find out way to fix it properly so that
+> any earlier device didn't broke.
+>
 
-Best,
-Christian
+I hope that by now I've made abundantly clear that my mxl5007t locks
+up after *any* read.  It doesn't matter if we are reading the correct
+register after any of the proposed patches.
 
+Thanks,
+Alessandro
