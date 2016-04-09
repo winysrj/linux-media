@@ -1,58 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:33521 "EHLO
-	mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751212AbcDBKoX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2016 06:44:23 -0400
-Received: by mail-lf0-f43.google.com with SMTP id p188so77808110lfd.0
-        for <linux-media@vger.kernel.org>; Sat, 02 Apr 2016 03:44:22 -0700 (PDT)
+Received: from mout.gmx.net ([212.227.15.15]:62735 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753411AbcDIWTN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Apr 2016 18:19:13 -0400
+Received: from axis700.grange ([89.0.109.86]) by mail.gmx.com (mrgmx002) with
+ ESMTPSA (Nemesis) id 0MOOpx-1auDkJ2Bzp-005nqy for
+ <linux-media@vger.kernel.org>; Sun, 10 Apr 2016 00:19:10 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id BC6A240BC6
+	for <linux-media@vger.kernel.org>; Sun, 10 Apr 2016 00:19:06 +0200 (CEST)
+Date: Sun, 10 Apr 2016 00:19:06 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera: first pull for 4.7
+Message-ID: <Pine.LNX.4.64.1604060626190.12238@axis700.grange>
 MIME-Version: 1.0
-Date: Sat, 2 Apr 2016 12:44:21 +0200
-Message-ID: <CAO8Cc0qvJxO2Z63HJd1_df+mY8HHB-UrUUZLPqBHQuoyD=TAkQ@mail.gmail.com>
-Subject: AVerMedia HD Volar (A867) AF9035 + MXL5007T driver issues
-From: Alessandro Radicati <alessandro@radicati.net>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-In trying to understand why my DVB USB tuner doesn't work with stock
-kernel drivers (4.2.0), I decided to pull out my logic analyser and
-sniff the I2C bus between the AF9035 and MXL5007T.  I seem to have
-uncovered a couple of issues:
+Hi Mauro,
 
-1) Attach fails because MXL5007T driver I2C soft reset fails.  This is
-due to the preceding chip id read request that seems to hang the I2C
-bus and cause subsequent I2C commands to fail.
+Please pull the following patches for soc-camera and one additional 
+cosmetic patch for au0828 - there has been no objections against it, but 
+we need to make sure there isn't a conflicting patch in your queue for 
+au0828, that begins to use that macro:
 
-2) AF9035 driver I2C master xfer incorrectly implements "Write read"
-case.  The FW expects register address fields to be used to send the
-I2C writes for register selection.  The current implementation ignores
-these fields and the result is that only an I2C read is issued.
-Therefore the "0x3f" returned by the MXL5007T chip id query is not
-from the expected register.  This is what is seen on the I2C bus:
+The following changes since commit d3f5193019443ef8e556b64f3cd359773c4d377b:
 
-S | Read 0x60 + ACK | 0x3F + NAK | ...
+  Merge tag 'v4.6-rc1' into patchwork (2016-03-29 17:17:26 -0300)
 
-After which SDA is held low for ~6sec; reason for subsequent commands failing.
+are available in the git repository at:
 
-3) After modifying the AF9035 driver to fix point 2 and use the
-register address field, the following is seen on the I2C bus:
 
-S | Write 0x60 + ACK | 0xFB + ACK | 0xD9 + ACK | P
-S | Read 0x60 + ACK | 0x14 + NAK | ...
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-4.7-1
 
-This time we get an expected response, but the I2C bus still hangs
-with SDA held low and no Stop sequence.  It seems that the MXL5007T is
-holding SDA low since the AF9035 happily cycles SCL trying to execute
-the subsequent writes.  Without a solution to this, it seems that
-avoiding the I2C read is the best way to have the driver work
-correctly.  There are no other tuner reads so point 2 above becomes
-moot for at least this device.
+for you to fetch changes up to 7e8dd0611abffcaf176fbaf4d0f0c03fc52046fb:
 
-Does anyone have any insight on the MXL5007T chip ID command and
-whether it should be issued in certain conditions?  Any suggestions on
-how to resolve this given the above?
+  soc_camera: rcar_vin: add device tree support for r8a7792 (2016-04-06 06:08:42 +0200)
 
-Regards,
-Alessandro Radicati
+----------------------------------------------------------------
+Guennadi Liakhovetski (1):
+      au0828: remove unused macro
+
+Simon Horman (3):
+      rcar_vin: Use ARCH_RENESAS
+      sh_mobile_ceu_camera: Remove dependency on SUPERH
+      soc_camera: rcar_vin: add device tree support for r8a7792
+
+Yoshihiro Kaneko (1):
+      soc_camera: rcar_vin: add R-Car Gen 2 and 3 fallback compatibility strings
+
+ Documentation/devicetree/bindings/media/rcar_vin.txt | 12 ++++++++++--
+ drivers/media/platform/soc_camera/Kconfig            |  4 ++--
+ drivers/media/platform/soc_camera/rcar_vin.c         |  2 ++
+ drivers/media/usb/au0828/au0828.h                    |  1 -
+ 4 files changed, 14 insertions(+), 5 deletions(-)
+
+Thanks
+Guennadi
