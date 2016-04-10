@@ -1,85 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35450 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752047AbcDHIvc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Apr 2016 04:51:32 -0400
-Subject: Re: USB xHCI regression after upgrading from kernel 3.19.0-51 to
- 4.2.0-34.
-To: Matthew Giassa <matthew@giassa.net>, linux-media@vger.kernel.org
-References: <20160407083643.fccade4f64c1f11ce2bc6da07fd9ab91.977bcc175f.wbe@email16.secureserver.net>
-Cc: Mathias Nyman <mathias.nyman@intel.com>, greg@kroah.com
-From: Hans de Goede <hdegoede@redhat.com>
-Message-ID: <5707710E.1000907@redhat.com>
-Date: Fri, 8 Apr 2016 10:51:26 +0200
+Received: from dub004-omc4s10.hotmail.com ([157.55.2.85]:51774 "EHLO
+	DUB004-OMC4S10.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753068AbcDJP27 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Apr 2016 11:28:59 -0400
+From: Christian Steiner <christian.steiner@outlook.de>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "olli.salonen@iki.fi" <olli.salonen@iki.fi>
+Subject: Re: [PATCH] em28xx: add support for Hauppauge WinTV-dualHD DVB tuner
+Date: Sun, 10 Apr 2016 15:23:49 +0000
+Message-ID: <AM2PR05MB0689ADF0BC65F4BAA4FD4DD091930@AM2PR05MB0689.eurprd05.prod.outlook.com>
+References: <1459782772-21451-1-git-send-email-olli.salonen@iki.fi>
+In-Reply-To: <1459782772-21451-1-git-send-email-olli.salonen@iki.fi>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-ID: <DCAA6FC2BCAA0F499034F36EF80A48E4@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-In-Reply-To: <20160407083643.fccade4f64c1f11ce2bc6da07fd9ab91.977bcc175f.wbe@email16.secureserver.net>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 04.04.2016 17:12, Olli Salonen wrote:
+> Hauppauge WinTV-dualHD is a USB 2.0 dual DVB-T/T2/C tuner with
+> following components:
+> 
+> USB bridge: Empia EM28274 (chip id is the same as EM28174)
+> Demodulator: 2x Silicon Labs Si2168-B40
+> Tuner: 2x Silicon Labs Si2157-A30
+> 
+> This patch adds support only for the first tuner.
+> 
+> [...]
 
-It is probably best to resend this mail to
-linux-usb <linux-usb@vger.kernel.org>
-since this is more of a usb problem then a v4l2 problem,
-and all the usb experts are subscribed to that list.
+Thank you very much!
+Works fine for me:
 
-Regards,
+> [  419.413188] em28xx: New device HCW dualHD @ 480 Mbps (2040:0265, interface 0, class 0)
+> [  419.413195] em28xx: DVB interface 0 found: isoc
+> [  419.413265] em28xx: chip ID is em28174
+> [  420.529619] em28174 #0: EEPROM ID = 26 00 01 00, EEPROM hash = 0x7addc1c8
+> [  420.529626] em28174 #0: EEPROM info:
+> [  420.529630] em28174 #0:      microcode start address = 0x0004, boot configuration = 0x01
+> [  420.536077] em28174 #0:      AC97 audio (5 sample rates)
+> [  420.536084] em28174 #0:      500mA max power
+> [  420.536089] em28174 #0:      Table at offset 0x27, strings=0x0e6a, 0x1888, 0x087e
+> [  420.536188] em28174 #0: Identified as Hauppauge WinTV-dualHD DVB (card=98)
+> [  420.537974] tveeprom 8-0050: Hauppauge model 204109, rev B2I6, serial# 11XXXXXX
+> [  420.537981] tveeprom 8-0050: tuner model is SiLabs Si2157 (idx 186, type 4)
+> [  420.537986] tveeprom 8-0050: TV standards PAL(B/G) NTSC(M) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
+> [  420.537989] tveeprom 8-0050: audio processor is None (idx 0)
+> [  420.537993] tveeprom 8-0050: has no radio, has IR receiver, has no IR transmitter
+> [  420.537997] em28174 #0: dvb set to isoc mode.
+> [  420.538056] usbcore: registered new interface driver em28xx
+> [  420.541087] em28174 #0: Binding DVB extension
+> [  420.544008] i2c i2c-8: Added multiplexed i2c bus 9
+> [  420.544016] si2168 8-0064: Silicon Labs Si2168 successfully attached
+> [  420.548372] si2157 9-0060: Silicon Labs Si2147/2148/2157/2158 successfully attached
+> [  420.548389] DVB: registering new adapter (em28174 #0)
+> [  420.548396] usb 2-2: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
+> [  420.549737] em28174 #0: DVB extension successfully initialized
+> [  420.549743] em28xx: Registered (Em28xx dvb Extension) extension
+> [  435.418798] si2168 8-0064: found a 'Silicon Labs Si2168-B40'
+> [  435.418823] si2168 8-0064: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
+> [  435.617181] si2168 8-0064: firmware version: 4.0.11
+> [  435.619791] si2157 9-0060: found a 'Silicon Labs Si2157-A30'
+> [  435.642006] si2157 9-0060: firmware version: 3.0.5
 
-Hans
+(I have replaced the last digits of the serial number with X)
 
+Is there any chance to add support for the second tuner, too?
+This would be awesome.
 
-
-On 07-04-16 17:36, Matthew Giassa wrote:
-> Good day,
->
-> I maintain an SDK for USB2.0 and USB3.0 U3V machine vision cameras, and
-> several of my customers have reported severe issues since upgrading from
-> kernel 3.19.0-51 (Ubuntu 14.04.3 LTS) to kernel 4.2.0-34 (Ubuntu 14.04.4
-> LTS). I've received helpful advice from members of the libusb and
-> linux-usb mailing list and development groups on how to generate useful
-> logs to help diagnose the issue, and have filed a bug to track this
-> issue at:
->
->    https://bugzilla.kernel.org/show_bug.cgi?id=115961
->
-> It seems that with kernels newer than the 3.19 series (I've tested on
-> 4.2.0-34, and just repeated the tests on the latest 4.5.0 release), the
-> cameras lock up, and cannot stream image data to the user application. I
-> am able to resolve the issue on 4.2.0-34 by disabling USB power
-> management by adding "usbcore.autosuspend=-1". On the 4.5 kernel, this
-> "trick" doesn't work at all, and I have no way to get the cameras to
-> stream data. I can do simple USB control requests to query things like
-> register values and serial numbers, but that's it. Asynchronous bulk
-> transfers never succeed.
->
-> Special Cases:
->   * The issue does not occur when using USB2.0 cameras on a USB2.0 port,
-> regardless of the kernel in use.
->   * The issues occur only on Intel 8 Series and Intel 9 Series USB3.0
-> host controllers with 4.x kernels.
->   * Intel 10 Series host controllers have not yet been tested.
->   * The issues never occur on Fresco or Renesas host controllers,
-> regardless of the kernel in use.
->   * From visual inspection of lsusb output, the issue only appears to
-> happen when the U1 and U2 options are available to the device.
->
-> I would like to request assistance with diagnosing and resolving the
-> issue, as it requires our customers to either not use Intel host
-> controllers, or sticking to older kernel releases.
->
-> Thank you for your time and assistance.
->
-> ============================================================
-> Matthew Giassa, MASc, BASc, EIT
-> Security and Embedded Systems Specialist
-> linkedin: https://ca.linkedin.com/in/giassa
-> e-mail:   matthew@giassa.net
-> website:  www.giassa.net
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Best,
+Christian
