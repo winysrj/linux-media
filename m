@@ -1,205 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:55786 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751453AbcDBO1U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Apr 2016 10:27:20 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+Received: from saturn.retrosnub.co.uk ([178.18.118.26]:44137 "EHLO
+	saturn.retrosnub.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753226AbcDJOMg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Apr 2016 10:12:36 -0400
+Subject: Re: [PATCH v6 08/24] iio: imu: inv_mpu6050: convert to use an
+ explicit i2c mux core
+To: Peter Rosin <peda@lysator.liu.se>, linux-kernel@vger.kernel.org
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+ <1459673574-11440-9-git-send-email-peda@lysator.liu.se>
+ <5700F594.9090105@kernel.org> <570103AE.1020707@lysator.liu.se>
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH RFC v2 1/2] media: platform: transfer format translations to soc_mediabus
-Date: Sat,  2 Apr 2016 16:26:52 +0200
-Message-Id: <1459607213-15774-2-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1459607213-15774-1-git-send-email-robert.jarzmik@free.fr>
-References: <1459607213-15774-1-git-send-email-robert.jarzmik@free.fr>
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+From: Jonathan Cameron <jic23@kernel.org>
+Message-ID: <570A5F4D.7040104@kernel.org>
+Date: Sun, 10 Apr 2016 15:12:29 +0100
+MIME-Version: 1.0
+In-Reply-To: <570103AE.1020707@lysator.liu.se>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Transfer the formats translations to soc_mediabus. Even is soc_camera
-was to be deprecated, soc_mediabus will survive, and should describe all
-that happens on the bus connecting the image processing unit of the SoC
-and the sensor.
+On 03/04/16 12:51, Peter Rosin wrote:
+> On 2016-04-03 12:51, Jonathan Cameron wrote:
+>> On 03/04/16 09:52, Peter Rosin wrote:
+>>> From: Peter Rosin <peda@axentia.se>
+>>>
+>>> Allocate an explicit i2c mux core to handle parent and child adapters
+>>> etc. Update the select/deselect ops to be in terms of the i2c mux core
+>>> instead of the child adapter.
+>>>
+>>> Signed-off-by: Peter Rosin <peda@axentia.se>
+>> I'm mostly fine with this (though one unrelated change seems to have snuck
+>> in).  However, I'm not set up to test it - hence other than fixing the change
+>> you can have my ack, but ideal would be a tested by from someone with
+>> relevant hardware...  However, it looks to be a fairly mechanical change so
+>> if no one is currently setup to test it, then don't let it hold up the
+>> series too long!
+>>
+>> Acked-by: Jonathan Cameron <jic23@kernel.org>
+> 
+> Thanks for your acks!
+> 
+>> Jonathan
+>>> ---
+>>>  drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c |  2 +-
+>>>  drivers/iio/imu/inv_mpu6050/inv_mpu_core.c |  1 -
+>>>  drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c  | 32 +++++++++++++-----------------
+>>>  drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h  |  3 ++-
+>>>  4 files changed, 17 insertions(+), 21 deletions(-)
+>>>
+>>> diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
+>>> index 2771106fd650..f62b8bd9ad7e 100644
+>>> --- a/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
+>>> +++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
+>>> @@ -183,7 +183,7 @@ int inv_mpu_acpi_create_mux_client(struct i2c_client *client)
+>>>  			} else
+>>>  				return 0; /* no secondary addr, which is OK */
+>>>  		}
+>>> -		st->mux_client = i2c_new_device(st->mux_adapter, &info);
+>>> +		st->mux_client = i2c_new_device(st->muxc->adapter[0], &info);
+>>>  		if (!st->mux_client)
+>>>  			return -ENODEV;
+>>>  	}
+>>> diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
+>>> index d192953e9a38..0c2bded2b5b7 100644
+>>> --- a/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
+>>> +++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
+>>> @@ -23,7 +23,6 @@
+>>>  #include <linux/kfifo.h>
+>>>  #include <linux/spinlock.h>
+>>>  #include <linux/iio/iio.h>
+>>> -#include <linux/i2c-mux.h>
+>>>  #include <linux/acpi.h>
+>>>  #include "inv_mpu_iio.h"
+>>>  
+>>> diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
+>>> index f581256d9d4c..0d429d788106 100644
+>>> --- a/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
+>>> +++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
+>>> @@ -15,7 +15,6 @@
+>>>  #include <linux/delay.h>
+>>>  #include <linux/err.h>
+>>>  #include <linux/i2c.h>
+>>> -#include <linux/i2c-mux.h>
+>>>  #include <linux/iio/iio.h>
+>>>  #include <linux/module.h>
+>>>  #include "inv_mpu_iio.h"
+>>> @@ -52,10 +51,9 @@ static int inv_mpu6050_write_reg_unlocked(struct i2c_client *client,
+>>>  	return 0;
+>>>  }
+>>>  
+>>> -static int inv_mpu6050_select_bypass(struct i2c_adapter *adap, void *mux_priv,
+>>> -				     u32 chan_id)
+>>> +static int inv_mpu6050_select_bypass(struct i2c_mux_core *muxc, u32 chan_id)
+>>>  {
+>>> -	struct i2c_client *client = mux_priv;
+>>> +	struct i2c_client *client = i2c_mux_priv(muxc);
+>>>  	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
+> 
+> Here, the existing code uses drv_get_drvdata to get from i2c_client to iio_dev...
+> 
+>>>  	struct inv_mpu6050_state *st = iio_priv(indio_dev);
+>>>  	int ret = 0;
+>>> @@ -84,10 +82,9 @@ write_error:
+>>>  	return ret;
+>>>  }
+>>>  
+>>> -static int inv_mpu6050_deselect_bypass(struct i2c_adapter *adap,
+>>> -				       void *mux_priv, u32 chan_id)
+>>> +static int inv_mpu6050_deselect_bypass(struct i2c_mux_core *muxc, u32 chan_id)
+>>>  {
+>>> -	struct i2c_client *client = mux_priv;
+>>> +	struct i2c_client *client = i2c_mux_priv(muxc);
+>>>  	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
+> 
+> ...and here too...
+> 
+>>>  	struct inv_mpu6050_state *st = iio_priv(indio_dev);
+>>>  
+>>> @@ -136,16 +133,15 @@ static int inv_mpu_probe(struct i2c_client *client,
+>>>  		return result;
+>>>  
+>>>  	st = iio_priv(dev_get_drvdata(&client->dev));
+>>> -	st->mux_adapter = i2c_add_mux_adapter(client->adapter,
+>>> -					      &client->dev,
+>>> -					      client,
+>>> -					      0, 0, 0,
+>>> -					      inv_mpu6050_select_bypass,
+>>> -					      inv_mpu6050_deselect_bypass);
+>>> -	if (!st->mux_adapter) {
+>>> -		result = -ENODEV;
+>>> +	st->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0, 0,
+>>> +				       0, 0, 0,
+>>> +				       inv_mpu6050_select_bypass,
+>>> +				       inv_mpu6050_deselect_bypass);
+>>> +	if (IS_ERR(st->muxc)) {
+>>> +		result = PTR_ERR(st->muxc);
+>>>  		goto out_unreg_device;
+>>>  	}
+>>> +	st->muxc->priv = client;
+>>>  
+>>>  	result = inv_mpu_acpi_create_mux_client(client);
+>>>  	if (result)
+>>> @@ -154,7 +150,7 @@ static int inv_mpu_probe(struct i2c_client *client,
+>>>  	return 0;
+>>>  
+>>>  out_del_mux:
+>>> -	i2c_del_mux_adapter(st->mux_adapter);
+>>> +	i2c_mux_del_adapters(st->muxc);
+>>>  out_unreg_device:
+>>>  	inv_mpu_core_remove(&client->dev);
+>>>  	return result;
+>>> @@ -162,11 +158,11 @@ out_unreg_device:
+>>>  
+>>>  static int inv_mpu_remove(struct i2c_client *client)
+>>>  {
+>>> -	struct iio_dev *indio_dev = i2c_get_clientdata(client);
+>>> +	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
+>> Why this change?  Seems unrelated.
+> 
+> ...which is why I made this change. Maybe a bad call, but the inconsistency
+> disturbed me and I was changing the function anyway. I could split it out
+> to its own commit I suppose, or should I just not bother at all?
+Funny thing is I'd say the i2c_get_clientdata option is the better of the two!
 
-The translation engine provides an easy way to compute the formats
-available in the v4l2 device, given any sensors format capabilities
-bound with known image processing transformations.
+I don't really care though either way.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/platform/soc_camera/soc_camera.c   |  7 +--
- drivers/media/platform/soc_camera/soc_mediabus.c | 65 ++++++++++++++++++++++++
- include/media/drv-intf/soc_mediabus.h            | 22 ++++++++
- include/media/soc_camera.h                       | 15 ------
- 4 files changed, 88 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 46c7186f7867..039524a20056 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -204,12 +204,7 @@ static void soc_camera_clock_stop(struct soc_camera_host *ici)
- const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
- 	struct soc_camera_device *icd, unsigned int fourcc)
- {
--	unsigned int i;
--
--	for (i = 0; i < icd->num_user_formats; i++)
--		if (icd->user_formats[i].host_fmt->fourcc == fourcc)
--			return icd->user_formats + i;
--	return NULL;
-+	return soc_mbus_xlate_by_fourcc(icd->user_formats, fourcc);
- }
- EXPORT_SYMBOL(soc_camera_xlate_by_fourcc);
- 
-diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-index e3e665e1c503..95c13055f50f 100644
---- a/drivers/media/platform/soc_camera/soc_mediabus.c
-+++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-@@ -10,6 +10,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/slab.h>
- 
- #include <media/v4l2-device.h>
- #include <media/v4l2-mediabus.h>
-@@ -512,6 +513,70 @@ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
- }
- EXPORT_SYMBOL(soc_mbus_config_compatible);
- 
-+struct soc_camera_format_xlate *soc_mbus_build_fmts_xlate(
-+	struct v4l2_device *v4l2_dev, struct v4l2_subdev *subdev,
-+	int (*get_formats)(struct v4l2_device *, unsigned int,
-+			   struct soc_camera_format_xlate *xlate))
-+{
-+	unsigned int i, fmts = 0, raw_fmts = 0;
-+	int ret;
-+	struct v4l2_subdev_mbus_code_enum code = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	struct soc_camera_format_xlate *user_formats;
-+
-+	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
-+		raw_fmts++;
-+		code.index++;
-+	}
-+
-+	/*
-+	 * First pass - only count formats this host-sensor
-+	 * configuration can provide
-+	 */
-+	for (i = 0; i < raw_fmts; i++) {
-+		ret = get_formats(v4l2_dev, i, NULL);
-+		if (ret < 0)
-+			return ERR_PTR(ret);
-+		fmts += ret;
-+	}
-+
-+	if (!fmts)
-+		return ERR_PTR(-ENXIO);
-+
-+	user_formats = kcalloc(fmts + 1, sizeof(*user_formats), GFP_KERNEL);
-+	if (!user_formats)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* Second pass - actually fill data formats */
-+	fmts = 0;
-+	for (i = 0; i < raw_fmts; i++) {
-+		ret = get_formats(v4l2_dev, i, user_formats + fmts);
-+		if (ret < 0)
-+			goto egfmt;
-+		fmts += ret;
-+	}
-+	user_formats[fmts].code = 0;
-+
-+	return user_formats;
-+egfmt:
-+	kfree(user_formats);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL(soc_mbus_build_fmts_xlate);
-+
-+const struct soc_camera_format_xlate *soc_mbus_xlate_by_fourcc(
-+	struct soc_camera_format_xlate *user_formats, unsigned int fourcc)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; user_formats[i].code; i++)
-+		if (user_formats[i].host_fmt->fourcc == fourcc)
-+			return user_formats + i;
-+	return NULL;
-+}
-+EXPORT_SYMBOL(soc_mbus_xlate_by_fourcc);
-+
- static int __init soc_mbus_init(void)
- {
- 	return 0;
-diff --git a/include/media/drv-intf/soc_mediabus.h b/include/media/drv-intf/soc_mediabus.h
-index 2ff773785fb6..08af52f6338c 100644
---- a/include/media/drv-intf/soc_mediabus.h
-+++ b/include/media/drv-intf/soc_mediabus.h
-@@ -95,6 +95,21 @@ struct soc_mbus_lookup {
- 	struct soc_mbus_pixelfmt	fmt;
- };
- 
-+/**
-+ * struct soc_camera_format_xlate - match between host and sensor formats
-+ * @code: code of a sensor provided format
-+ * @host_fmt: host format after host translation from code
-+ *
-+ * Host and sensor translation structure. Used in table of host and sensor
-+ * formats matchings in soc_camera_device. A host can override the generic list
-+ * generation by implementing get_formats(), and use it for format checks and
-+ * format setup.
-+ */
-+struct soc_camera_format_xlate {
-+	u32 code;
-+	const struct soc_mbus_pixelfmt *host_fmt;
-+};
-+
- const struct soc_mbus_pixelfmt *soc_mbus_find_fmtdesc(
- 	u32 code,
- 	const struct soc_mbus_lookup *lookup,
-@@ -108,5 +123,12 @@ int soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf,
- 			unsigned int *numerator, unsigned int *denominator);
- unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
- 					unsigned int flags);
-+struct soc_camera_format_xlate *soc_mbus_build_fmts_xlate(
-+	struct v4l2_device *v4l2_dev, struct v4l2_subdev *subdev,
-+	int (*get_formats)(struct v4l2_device *, unsigned int,
-+			   struct soc_camera_format_xlate *xlate));
-+const struct soc_camera_format_xlate *soc_mbus_xlate_by_fourcc(
-+	struct soc_camera_format_xlate *user_formats, unsigned int fourcc);
-+
- 
- #endif
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 97aa13314bfd..db6ea91d5cb0 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -285,21 +285,6 @@ void soc_camera_host_unregister(struct soc_camera_host *ici);
- const struct soc_camera_format_xlate *soc_camera_xlate_by_fourcc(
- 	struct soc_camera_device *icd, unsigned int fourcc);
- 
--/**
-- * struct soc_camera_format_xlate - match between host and sensor formats
-- * @code: code of a sensor provided format
-- * @host_fmt: host format after host translation from code
-- *
-- * Host and sensor translation structure. Used in table of host and sensor
-- * formats matchings in soc_camera_device. A host can override the generic list
-- * generation by implementing get_formats(), and use it for format checks and
-- * format setup.
-- */
--struct soc_camera_format_xlate {
--	u32 code;
--	const struct soc_mbus_pixelfmt *host_fmt;
--};
--
- #define SOCAM_SENSE_PCLK_CHANGED	(1 << 0)
- 
- /**
--- 
-2.1.4
+J
+> 
+> Cheers,
+> Peter
+> 
+>>>  	struct inv_mpu6050_state *st = iio_priv(indio_dev);
+>>>  
+>>>  	inv_mpu_acpi_delete_mux_client(client);
+>>> -	i2c_del_mux_adapter(st->mux_adapter);
+>>> +	i2c_mux_del_adapters(st->muxc);
+>>>  
+>>>  	return inv_mpu_core_remove(&client->dev);
+>>>  }
+>>> diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h b/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
+>>> index e302a49703bf..bb3cef6d7059 100644
+>>> --- a/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
+>>> +++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
+>>> @@ -11,6 +11,7 @@
+>>>  * GNU General Public License for more details.
+>>>  */
+>>>  #include <linux/i2c.h>
+>>> +#include <linux/i2c-mux.h>
+>>>  #include <linux/kfifo.h>
+>>>  #include <linux/spinlock.h>
+>>>  #include <linux/iio/iio.h>
+>>> @@ -127,7 +128,7 @@ struct inv_mpu6050_state {
+>>>  	const struct inv_mpu6050_hw *hw;
+>>>  	enum   inv_devices chip_type;
+>>>  	spinlock_t time_stamp_lock;
+>>> -	struct i2c_adapter *mux_adapter;
+>>> +	struct i2c_mux_core *muxc;
+>>>  	struct i2c_client *mux_client;
+>>>  	unsigned int powerup_count;
+>>>  	struct inv_mpu6050_platform_data plat_data;
+>>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
