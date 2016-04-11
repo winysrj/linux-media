@@ -1,59 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37676 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750971AbcDFVjM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Apr 2016 17:39:12 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id F3C2460096
-	for <linux-media@vger.kernel.org>; Thu,  7 Apr 2016 00:39:00 +0300 (EEST)
-Date: Thu, 7 Apr 2016 00:38:30 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT FIXES FOR v4.7] Fix videobuf2 plane validation
-Message-ID: <20160406213830.GP32125@valkosipuli.retiisi.org.uk>
+Received: from sauhun.de ([89.238.76.85]:57653 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754049AbcDKMkP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Apr 2016 08:40:15 -0400
+Date: Mon, 11 Apr 2016 14:39:59 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Peter Rosin <peda@lysator.liu.se>
+Cc: linux-kernel@vger.kernel.org, Peter Rosin <peda@axentia.se>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 00/24] i2c mux cleanup and locking update
+Message-ID: <20160411123959.GA4719@katana>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
 Content-Disposition: inline
+In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-(Resending the pull request, now rebased on fixes branch. It'd be nice to
-have this in v4.6...)
+--HcAYCG3uE/tztfnV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This pull request contains two patches to fix the videobuf2 plane validation
-issue introduced in v4.4 kernel. I've added cc stable to both of the
-patches.
+Hi Peter,
 
-Please prioritise. Thanks!
+> To summarize the series, there's some i2c-mux infrastructure cleanup work
+> first (I think that part stands by itself as desireable regardless), the
+> locking changes are in 16/24 and after with the real meat in 18/24. There
+> is some documentation added in 19/24 while 20/24 and after are cleanups to
+> existing drivers utilizing the new stuff.
+
+My idea is to review and pull in the infrastructure work for 4.7 and the
+locking changes to 4.8. This gives us one cycle to fix regressions (if
+any) in the infrastructure work first. Is that okay with you?
+
+Thanks,
+
+   Wolfram
 
 
-The following changes since commit 405ddbfa68177b6169d09bc2308a39196a8eb64a:
+--HcAYCG3uE/tztfnV
+Content-Type: application/pgp-signature; name="signature.asc"
 
-  [media] Revert "[media] media: au0828 change to use Managed Media Controller API" (2016-03-31 15:09:04 -0300)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-are available in the git repository at:
+iQIcBAEBAgAGBQJXC5sfAAoJEBQN5MwUoCm2kUAP/jQGfszmD3bynHq8tQGbqTIh
++jYVRM0/CXpQCPklXZgusOuo99Aq8PqHnuQz8FA4s8OJbdbJcYqlxUFzoFOWwRu2
+1OU4hQRfFKEgcbn8uDdH0nkV+Gzs9TLKQX1PJDOQEITi19kK7nncaOJanY1PWhc3
+5ySA/jXCjB43IGOicUNyOt9uJKv/+tL2UzZmYB6vR8HaFhlVSneBuVMERsDrDjBl
+8IZnUHxPrehmgQCRB/2mc7+8X2Urm1tayi0wslLrFxKr9++as3+UPK3cJ+7GT/Hu
+IvuuC20hlyjW2H5e/KhN60rP/sXmz10nZeZk662VpAkC2Y0euqBQbcnT7eO5VCKx
+Ovk5cs1VIYpMIn/0QR0ZAMM246v7M+Pjk+6Wi+v+TavG9Fxprd1iNcjD5dz9wi1L
+lz/5P3McULOS09SPbUTF4YhqcPPpma0JsMTjz5MqiEryXbqd0Zv/xx3PIzQ6czVA
+/PBHtZkkAp3Brmc0Xh7suVwuayxNBypCKHk61/Ka7dO1UYHQsK3kL+GFEbMeky00
+2J7jGXyW/HLvQRPHBAn1PJ8feFpNL0PqYY/i1M9HobHeb1PFOh3yndX3TXaBlVDA
+L2dASNJ4hfMqjkp2TqoO7LmFnR7ccQLBI9XezCSRQtrOQdQA3Ym3MvRKKsFAR6uE
++1TcE5VAF4XveeTtw0qp
+=D4yv
+-----END PGP SIGNATURE-----
 
-  ssh://linuxtv.org/git/sailus/media_tree.git vb2-overwrite-fix-error-on-fixes
-
-for you to fetch changes up to 2559c388cc87869b52f95f7d11ca4c7130a56c41:
-
-  videobuf2-v4l2: Verify planes array in buffer dequeueing (2016-04-07 00:34:14 +0300)
-
-----------------------------------------------------------------
-Sakari Ailus (2):
-      videobuf2-core: Check user space planes array in dqbuf
-      videobuf2-v4l2: Verify planes array in buffer dequeueing
-
- drivers/media/v4l2-core/videobuf2-core.c | 10 +++++-----
- drivers/media/v4l2-core/videobuf2-v4l2.c |  6 ++++++
- include/media/videobuf2-core.h           |  4 ++++
- 3 files changed, 15 insertions(+), 5 deletions(-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--HcAYCG3uE/tztfnV--
