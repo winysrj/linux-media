@@ -1,609 +1,371 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44336 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932337AbcDYMZL (ORCPT
+Received: from omr-a009e.mx.aol.com ([204.29.186.49]:64771 "EHLO
+	omr-a009e.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078AbcDKOMP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 08:25:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv15 10/15] cec: adv7842: add cec support
-Date: Mon, 25 Apr 2016 14:24:37 +0200
-Message-Id: <1461587082-48041-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 11 Apr 2016 10:12:15 -0400
+Subject: Re: [PATCH] [media] em28xx_dvb: add support for PLEX PX-BCUD (ISDB-S
+ usb dongle)
+To: linux-media@vger.kernel.org, tskd08@gmail.com
+References: <56DEDF7C.9010305@aim.com>
+From: Satoshi Nagahama <sattnag@aim.com>
+Message-ID: <570BAF5C.5080201@aim.com>
+Date: Mon, 11 Apr 2016 23:06:20 +0900
+MIME-Version: 1.0
+In-Reply-To: <56DEDF7C.9010305@aim.com>
+Content-Type: text/plain; charset=iso-2022-jp
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-Add CEC support to the adv7842 driver.
+You said the following to Budi Rachmanto:
+> No, you should not add your credits here. You're just adding some new board
+> definitions, not rewriting a significant amount of the driver. The credits
+> of your work will be preserved via the git log. A gold rule we use in
+> Kernel when adding credits info is when the changes touch more than 30% of
+> the driver's code.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/Kconfig   |   9 ++
- drivers/media/i2c/adv7604.c |  10 +-
- drivers/media/i2c/adv7842.c | 368 ++++++++++++++++++++++++++++++++++++--------
- 3 files changed, 319 insertions(+), 68 deletions(-)
+I did not know the above rule to add a credit.
+I also added my credits to the below patch I sent about one month ago
+though I should have not added them because I did not change much enough to 30%.
+To remove my credits, do I need just to re-post another patch without my credits
+or to revert my previous patch and re-post the new one?
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index cba1fc7..5168454 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -231,6 +231,7 @@ config VIDEO_ADV7842
- 	tristate "Analog Devices ADV7842 decoder"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
- 	select HDMI
-+	select MEDIA_CEC_EDID
- 	---help---
- 	  Support for the Analog Devices ADV7842 video decoder.
- 
-@@ -240,6 +241,14 @@ config VIDEO_ADV7842
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called adv7842.
- 
-+config VIDEO_ADV7842_CEC
-+	bool "Enable Analog Devices ADV7842 CEC support"
-+	depends on VIDEO_ADV7842 && MEDIA_CEC
-+	default y
-+	---help---
-+	  When selected the adv7842 will support the optional
-+	  HDMI CEC feature.
-+
- config VIDEO_BT819
- 	tristate "BT819A VideoStream decoder"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index d99f30a..cf9db86 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2641,6 +2641,11 @@ static const struct v4l2_subdev_ops adv76xx_ops = {
- 	.pad = &adv76xx_pad_ops,
- };
- 
-+static const struct v4l2_subdev_internal_ops adv76xx_int_ops = {
-+	.registered = adv76xx_registered,
-+	.unregistered = adv76xx_unregistered,
-+};
-+
- /* -------------------------- custom ctrls ---------------------------------- */
- 
- static const struct v4l2_ctrl_config adv7604_ctrl_analog_sampling_phase = {
-@@ -2676,11 +2681,6 @@ static const struct v4l2_ctrl_config adv76xx_ctrl_free_run_color = {
- 	.def = 0x0,
- };
- 
--static const struct v4l2_subdev_internal_ops adv76xx_int_ops = {
--	.registered = adv76xx_registered,
--	.unregistered = adv76xx_unregistered,
--};
--
- /* ----------------------------------------------------------------------- */
- 
- static int adv76xx_core_init(struct v4l2_subdev *sd)
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 7ccb85d..424bf87 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -39,6 +39,7 @@
- #include <linux/workqueue.h>
- #include <linux/v4l2-dv-timings.h>
- #include <linux/hdmi.h>
-+#include <media/cec.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-ctrls.h>
-@@ -79,6 +80,8 @@ MODULE_LICENSE("GPL");
- 
- #define ADV7842_OP_SWAP_CB_CR				(1 << 0)
- 
-+#define ADV7842_MAX_ADDRS (3)
-+
- /*
- **********************************************************************
- *
-@@ -142,6 +145,11 @@ struct adv7842_state {
- 	struct v4l2_ctrl *free_run_color_ctrl_manual;
- 	struct v4l2_ctrl *free_run_color_ctrl;
- 	struct v4l2_ctrl *rgb_quantization_range_ctrl;
-+
-+	struct cec_adapter *cec_adap;
-+	u8   cec_addr[ADV7842_MAX_ADDRS];
-+	u8   cec_valid_addrs;
-+	bool cec_enabled_adap;
- };
- 
- /* Unsupported timings. This device cannot support 720p30. */
-@@ -418,9 +426,9 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 	return adv_smbus_write_byte_data(state->i2c_cec, reg, val);
- }
- 
--static inline int cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
-+static inline int cec_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
- {
--	return cec_write(sd, reg, (cec_read(sd, reg) & mask) | val);
-+	return cec_write(sd, reg, (cec_read(sd, reg) & ~mask) | val);
- }
- 
- static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
-@@ -696,6 +704,18 @@ adv7842_get_dv_timings_cap(struct v4l2_subdev *sd)
- 
- /* ----------------------------------------------------------------------- */
- 
-+static u16 adv7842_read_cable_det(struct v4l2_subdev *sd)
-+{
-+	u8 reg = io_read(sd, 0x6f);
-+	u16 val = 0;
-+
-+	if (reg & 0x02)
-+		val |= 1; /* port A */
-+	if (reg & 0x01)
-+		val |= 2; /* port B */
-+	return val;
-+}
-+
- static void adv7842_delayed_work_enable_hotplug(struct work_struct *work)
- {
- 	struct delayed_work *dwork = to_delayed_work(work);
-@@ -762,50 +782,18 @@ static int edid_write_vga_segment(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
--static int edid_spa_location(const u8 *edid)
--{
--	u8 d;
--
--	/*
--	 * TODO, improve and update for other CEA extensions
--	 * currently only for 1 segment (256 bytes),
--	 * i.e. 1 extension block and CEA revision 3.
--	 */
--	if ((edid[0x7e] != 1) ||
--	    (edid[0x80] != 0x02) ||
--	    (edid[0x81] != 0x03)) {
--		return -EINVAL;
--	}
--	/*
--	 * search Vendor Specific Data Block (tag 3)
--	 */
--	d = edid[0x82] & 0x7f;
--	if (d > 4) {
--		int i = 0x84;
--		int end = 0x80 + d;
--		do {
--			u8 tag = edid[i]>>5;
--			u8 len = edid[i] & 0x1f;
--
--			if ((tag == 3) && (len >= 5))
--				return i + 4;
--			i += len + 1;
--		} while (i < end);
--	}
--	return -EINVAL;
--}
--
- static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct adv7842_state *state = to_state(sd);
--	const u8 *val = state->hdmi_edid.edid;
--	int spa_loc = edid_spa_location(val);
-+	const u8 *edid = state->hdmi_edid.edid;
-+	int spa_loc;
-+	u16 pa;
- 	int err = 0;
- 	int i;
- 
--	v4l2_dbg(2, debug, sd, "%s: write EDID on port %c (spa at 0x%x)\n",
--			__func__, (port == ADV7842_EDID_PORT_A) ? 'A' : 'B', spa_loc);
-+	v4l2_dbg(2, debug, sd, "%s: write EDID on port %c\n",
-+			__func__, (port == ADV7842_EDID_PORT_A) ? 'A' : 'B');
- 
- 	/* HPA disable on port A and B */
- 	io_write_and_or(sd, 0x20, 0xcf, 0x00);
-@@ -816,24 +804,33 @@ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
- 	if (!state->hdmi_edid.present)
- 		return 0;
- 
-+	pa = cec_get_edid_phys_addr(edid, 256, &spa_loc);
-+	err = cec_phys_addr_validate(pa, &pa, NULL);
-+	if (err)
-+		return err;
-+
-+	/*
-+	 * Return an error if no location of the source physical address
-+	 * was found.
-+	 */
-+	if (spa_loc == 0)
-+		return -EINVAL;
-+
- 	/* edid segment pointer '0' for HDMI ports */
- 	rep_write_and_or(sd, 0x77, 0xef, 0x00);
- 
- 	for (i = 0; !err && i < 256; i += I2C_SMBUS_BLOCK_MAX)
- 		err = adv_smbus_write_i2c_block_data(state->i2c_edid, i,
--						     I2C_SMBUS_BLOCK_MAX, val + i);
-+						     I2C_SMBUS_BLOCK_MAX, edid + i);
- 	if (err)
- 		return err;
- 
--	if (spa_loc < 0)
--		spa_loc = 0xc0; /* Default value [REF_02, p. 199] */
--
- 	if (port == ADV7842_EDID_PORT_A) {
--		rep_write(sd, 0x72, val[spa_loc]);
--		rep_write(sd, 0x73, val[spa_loc + 1]);
-+		rep_write(sd, 0x72, edid[spa_loc]);
-+		rep_write(sd, 0x73, edid[spa_loc + 1]);
- 	} else {
--		rep_write(sd, 0x74, val[spa_loc]);
--		rep_write(sd, 0x75, val[spa_loc + 1]);
-+		rep_write(sd, 0x74, edid[spa_loc]);
-+		rep_write(sd, 0x75, edid[spa_loc + 1]);
- 	}
- 	rep_write(sd, 0x76, spa_loc & 0xff);
- 	rep_write_and_or(sd, 0x77, 0xbf, (spa_loc >> 2) & 0x40);
-@@ -853,6 +850,7 @@ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
- 				(port == ADV7842_EDID_PORT_A) ? 'A' : 'B');
- 		return -EIO;
- 	}
-+	cec_s_phys_addr(state->cec_adap, pa, false);
- 
- 	/* enable hotplug after 200 ms */
- 	queue_delayed_work(state->work_queues,
-@@ -983,20 +981,11 @@ static int adv7842_s_register(struct v4l2_subdev *sd,
- static int adv7842_s_detect_tx_5v_ctrl(struct v4l2_subdev *sd)
- {
- 	struct adv7842_state *state = to_state(sd);
--	int prev = v4l2_ctrl_g_ctrl(state->detect_tx_5v_ctrl);
--	u8 reg_io_6f = io_read(sd, 0x6f);
--	int val = 0;
--
--	if (reg_io_6f & 0x02)
--		val |= 1; /* port A */
--	if (reg_io_6f & 0x01)
--		val |= 2; /* port B */
-+	u16 cable_det = adv7842_read_cable_det(sd);
- 
--	v4l2_dbg(1, debug, sd, "%s: 0x%x -> 0x%x\n", __func__, prev, val);
-+	v4l2_dbg(1, debug, sd, "%s: 0x%x\n", __func__, cable_det);
- 
--	if (val != prev)
--		return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, val);
--	return 0;
-+	return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, cable_det);
- }
- 
- static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
-@@ -2170,6 +2159,207 @@ static void adv7842_irq_enable(struct v4l2_subdev *sd, bool enable)
- 	}
- }
- 
-+#if IS_ENABLED(CONFIG_VIDEO_ADV7842_CEC)
-+static void adv7842_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+
-+	if ((cec_read(sd, 0x11) & 0x01) == 0) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
-+		return;
-+	}
-+
-+	if (tx_raw_status & 0x02) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n",
-+			 __func__);
-+		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_ARB_LOST,
-+				  1, 0, 0, 0);
-+		return;
-+	}
-+	if (tx_raw_status & 0x04) {
-+		u8 status;
-+		u8 nack_cnt;
-+		u8 low_drive_cnt;
-+
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
-+		/*
-+		 * We set this status bit since this hardware performs
-+		 * retransmissions.
-+		 */
-+		status = CEC_TX_STATUS_MAX_RETRIES;
-+		nack_cnt = cec_read(sd, 0x14) & 0xf;
-+		if (nack_cnt)
-+			status |= CEC_TX_STATUS_NACK;
-+		low_drive_cnt = cec_read(sd, 0x14) >> 4;
-+		if (low_drive_cnt)
-+			status |= CEC_TX_STATUS_LOW_DRIVE;
-+		cec_transmit_done(state->cec_adap, status,
-+				  0, nack_cnt, low_drive_cnt, 0);
-+		return;
-+	}
-+	if (tx_raw_status & 0x01) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
-+		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
-+		return;
-+	}
-+}
-+
-+static void adv7842_cec_isr(struct v4l2_subdev *sd, bool *handled)
-+{
-+	u8 cec_irq;
-+
-+	/* cec controller */
-+	cec_irq = io_read(sd, 0x93) & 0x0f;
-+	if (!cec_irq)
-+		return;
-+
-+	v4l2_dbg(1, debug, sd, "%s: cec: irq 0x%x\n", __func__, cec_irq);
-+	adv7842_cec_tx_raw_status(sd, cec_irq);
-+	if (cec_irq & 0x08) {
-+		struct adv7842_state *state = to_state(sd);
-+		struct cec_msg msg;
-+
-+		msg.len = cec_read(sd, 0x25) & 0x1f;
-+		if (msg.len > 16)
-+			msg.len = 16;
-+
-+		if (msg.len) {
-+			u8 i;
-+
-+			for (i = 0; i < msg.len; i++)
-+				msg.msg[i] = cec_read(sd, i + 0x15);
-+			cec_write(sd, 0x26, 0x01); /* re-enable rx */
-+			cec_received_msg(state->cec_adap, &msg);
-+		}
-+	}
-+
-+	io_write(sd, 0x94, cec_irq);
-+
-+	if (handled)
-+		*handled = true;
-+}
-+
-+static int adv7842_cec_adap_enable(struct cec_adapter *adap, bool enable)
-+{
-+	struct adv7842_state *state = adap->priv;
-+	struct v4l2_subdev *sd = &state->sd;
-+
-+	if (!state->cec_enabled_adap && enable) {
-+		cec_write_clr_set(sd, 0x2a, 0x01, 0x01);	/* power up cec */
-+		cec_write(sd, 0x2c, 0x01);	/* cec soft reset */
-+		cec_write_clr_set(sd, 0x11, 0x01, 0);  /* initially disable tx */
-+		/* enabled irqs: */
-+		/* tx: ready */
-+		/* tx: arbitration lost */
-+		/* tx: retry timeout */
-+		/* rx: ready */
-+		io_write_clr_set(sd, 0x96, 0x0f, 0x0f);
-+		cec_write(sd, 0x26, 0x01);            /* enable rx */
-+	} else if (state->cec_enabled_adap && !enable) {
-+		/* disable cec interrupts */
-+		io_write_clr_set(sd, 0x96, 0x0f, 0x00);
-+		/* disable address mask 1-3 */
-+		cec_write_clr_set(sd, 0x27, 0x70, 0x00);
-+		/* power down cec section */
-+		cec_write_clr_set(sd, 0x2a, 0x01, 0x00);
-+		state->cec_valid_addrs = 0;
-+	}
-+	state->cec_enabled_adap = enable;
-+	return 0;
-+}
-+
-+static int adv7842_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
-+{
-+	struct adv7842_state *state = adap->priv;
-+	struct v4l2_subdev *sd = &state->sd;
-+	unsigned i, free_idx = ADV7842_MAX_ADDRS;
-+
-+	if (!state->cec_enabled_adap)
-+		return -EIO;
-+
-+	if (addr == CEC_LOG_ADDR_INVALID) {
-+		cec_write_clr_set(sd, 0x27, 0x70, 0);
-+		state->cec_valid_addrs = 0;
-+		return 0;
-+	}
-+
-+	for (i = 0; i < ADV7842_MAX_ADDRS; i++) {
-+		bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+		if (free_idx == ADV7842_MAX_ADDRS && !is_valid)
-+			free_idx = i;
-+		if (is_valid && state->cec_addr[i] == addr)
-+			return 0;
-+	}
-+	if (i == ADV7842_MAX_ADDRS) {
-+		i = free_idx;
-+		if (i == ADV7842_MAX_ADDRS)
-+			return -ENXIO;
-+	}
-+	state->cec_addr[i] = addr;
-+	state->cec_valid_addrs |= 1 << i;
-+
-+	switch (i) {
-+	case 0:
-+		/* enable address mask 0 */
-+		cec_write_clr_set(sd, 0x27, 0x10, 0x10);
-+		/* set address for mask 0 */
-+		cec_write_clr_set(sd, 0x28, 0x0f, addr);
-+		break;
-+	case 1:
-+		/* enable address mask 1 */
-+		cec_write_clr_set(sd, 0x27, 0x20, 0x20);
-+		/* set address for mask 1 */
-+		cec_write_clr_set(sd, 0x28, 0xf0, addr << 4);
-+		break;
-+	case 2:
-+		/* enable address mask 2 */
-+		cec_write_clr_set(sd, 0x27, 0x40, 0x40);
-+		/* set address for mask 1 */
-+		cec_write_clr_set(sd, 0x29, 0x0f, addr);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static int adv7842_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-+				     u32 signal_free_time, struct cec_msg *msg)
-+{
-+	struct adv7842_state *state = adap->priv;
-+	struct v4l2_subdev *sd = &state->sd;
-+	u8 len = msg->len;
-+	unsigned i;
-+
-+	/*
-+	 * The number of retries is the number of attempts - 1, but retry
-+	 * at least once. It's not clear if a value of 0 is allowed, so
-+	 * let's do at least one retry.
-+	 */
-+	cec_write_clr_set(sd, 0x12, 0x70, max(1, attempts - 1) << 4);
-+
-+	if (len > 16) {
-+		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
-+		return -EINVAL;
-+	}
-+
-+	/* write data */
-+	for (i = 0; i < len; i++)
-+		cec_write(sd, i, msg->msg[i]);
-+
-+	/* set length (data + header) */
-+	cec_write(sd, 0x10, len);
-+	/* start transmit, enable tx */
-+	cec_write(sd, 0x11, 0x01);
-+	return 0;
-+}
-+
-+static const struct cec_adap_ops adv7842_cec_adap_ops = {
-+	.adap_enable = adv7842_cec_adap_enable,
-+	.adap_log_addr = adv7842_cec_adap_log_addr,
-+	.adap_transmit = adv7842_cec_adap_transmit,
-+};
-+#endif
-+
- static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- {
- 	struct adv7842_state *state = to_state(sd);
-@@ -2241,6 +2431,11 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- 			*handled = true;
- 	}
- 
-+#if IS_ENABLED(CONFIG_VIDEO_ADV7842_CEC)
-+	/* cec */
-+	adv7842_cec_isr(sd, handled);
-+#endif
-+
- 	/* tx 5v detect */
- 	if (irq_status[2] & 0x3) {
- 		v4l2_dbg(1, debug, sd, "%s: irq tx_5v\n", __func__);
-@@ -2321,10 +2516,12 @@ static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *e)
- 	case ADV7842_EDID_PORT_A:
- 	case ADV7842_EDID_PORT_B:
- 		memset(&state->hdmi_edid.edid, 0, 256);
--		if (e->blocks)
-+		if (e->blocks) {
- 			state->hdmi_edid.present |= 0x04 << e->pad;
--		else
-+		} else {
- 			state->hdmi_edid.present &= ~(0x04 << e->pad);
-+			adv7842_s_detect_tx_5v_ctrl(sd);
-+		}
- 		memcpy(&state->hdmi_edid.edid, e->edid, 128 * e->blocks);
- 		err = edid_write_hdmi_segment(sd, e->pad);
- 		break;
-@@ -2509,8 +2706,19 @@ static int adv7842_cp_log_status(struct v4l2_subdev *sd)
- 	v4l2_info(sd, "HPD A %s, B %s\n",
- 		  reg_io_0x21 & 0x02 ? "enabled" : "disabled",
- 		  reg_io_0x21 & 0x01 ? "enabled" : "disabled");
--	v4l2_info(sd, "CEC %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
-+	v4l2_info(sd, "CEC: %s\n", state->cec_enabled_adap ?
- 			"enabled" : "disabled");
-+	if (state->cec_enabled_adap) {
-+		int i;
-+
-+		for (i = 0; i < ADV7842_MAX_ADDRS; i++) {
-+			bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+			if (is_valid)
-+				v4l2_info(sd, "CEC Logical Address: 0x%x\n",
-+					  state->cec_addr[i]);
-+		}
-+	}
- 
- 	v4l2_info(sd, "-----Signal status-----\n");
- 	if (state->hdmi_port_a) {
-@@ -3031,6 +3239,24 @@ static int adv7842_subscribe_event(struct v4l2_subdev *sd,
- 	}
- }
- 
-+static int adv7842_registered(struct v4l2_subdev *sd)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+	int err;
-+
-+	err = cec_register_adapter(state->cec_adap);
-+	if (err)
-+		cec_delete_adapter(state->cec_adap);
-+	return err;
-+}
-+
-+static void adv7842_unregistered(struct v4l2_subdev *sd)
-+{
-+	struct adv7842_state *state = to_state(sd);
-+
-+	cec_unregister_adapter(state->cec_adap);
-+}
-+
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_ctrl_ops adv7842_ctrl_ops = {
-@@ -3077,6 +3303,11 @@ static const struct v4l2_subdev_ops adv7842_ops = {
- 	.pad = &adv7842_pad_ops,
- };
- 
-+static const struct v4l2_subdev_internal_ops adv7842_int_ops = {
-+	.registered = adv7842_registered,
-+	.unregistered = adv7842_unregistered,
-+};
-+
- /* -------------------------- custom ctrls ---------------------------------- */
- 
- static const struct v4l2_ctrl_config adv7842_ctrl_analog_sampling_phase = {
-@@ -3241,6 +3472,7 @@ static int adv7842_probe(struct i2c_client *client,
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &adv7842_ops);
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-+	sd->internal_ops = &adv7842_int_ops;
- 	state->mode = pdata->mode;
- 
- 	state->hdmi_port_a = pdata->input == ADV7842_SELECT_HDMI_PORT_A;
-@@ -3337,6 +3569,17 @@ static int adv7842_probe(struct i2c_client *client,
- 	if (err)
- 		goto err_entity;
- 
-+#if IS_ENABLED(CONFIG_VIDEO_ADV7842_CEC)
-+	state->cec_adap = cec_allocate_adapter(&adv7842_cec_adap_ops,
-+		state, dev_name(&client->dev),
-+		CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
-+		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, ADV7842_MAX_ADDRS,
-+		&client->dev);
-+	err = PTR_ERR_OR_ZERO(state->cec_adap);
-+	if (err)
-+		goto err_entity;
-+#endif
-+
- 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
- 		  client->addr << 1, client->adapter->name);
- 	return 0;
-@@ -3361,7 +3604,6 @@ static int adv7842_remove(struct i2c_client *client)
- 	struct adv7842_state *state = to_state(sd);
- 
- 	adv7842_irq_enable(sd, false);
--
- 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
- 	destroy_workqueue(state->work_queues);
- 	v4l2_device_unregister_subdev(sd);
--- 
-2.8.1
+Please advise.
+
+Thanks,
+Satoshi
+
+
+On 2016/03/08 23:19, Satoshi Nagahama wrote:
+> Hi Mauro, Akihiro,
+> 
+> I added em28xx_dvb to support for PLEX PX-BCUD (ISDB-S usb dongle).
+> Please move forward with this patch if there is no problem.
+> Or something wrong, please advise me what I should do.
+> 
+> PX-BCUD has the following components:
+>    USB interface: Empia EM28178
+>    Demodulator: Toshiba TC90532 (works by code for TC90522)
+>    Tuner: Next version of Sharp QM1D1C0042
+> 
+> em28xx_dvb_init(), add init code for PLEX PX-BCUD with calling
+> px_bcud_init() that does things like pin configuration.
+> 
+> qm1d1c0042_init(), support the next version of QM1D1C0042, change to
+> choose an appropriate array of initial registers by reading chip id.
+> 
+> 
+> Signed-off-by: Satoshi Nagahama <sattnag@aim.com>
+> ---
+>   drivers/media/tuners/qm1d1c0042.c       |  35 +++++++---
+>   drivers/media/usb/em28xx/Kconfig        |   2 +
+>   drivers/media/usb/em28xx/em28xx-cards.c |  27 ++++++++
+>   drivers/media/usb/em28xx/em28xx-dvb.c   | 117 ++++++++++++++++++++++++++++++++
+>   drivers/media/usb/em28xx/em28xx.h       |   1 +
+>   5 files changed, 171 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
+> index 18bc745..8fd91a2 100644
+> --- a/drivers/media/tuners/qm1d1c0042.c
+> +++ b/drivers/media/tuners/qm1d1c0042.c
+> @@ -2,6 +2,7 @@
+>    * Sharp QM1D1C0042 8PSK tuner driver
+>    *
+>    * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
+> + * Copyright (C) 2016 Satoshi Nagahama <sattnag@aim.com>
+>    *
+>    * This program is free software; you can redistribute it and/or
+>    * modify it under the terms of the GNU General Public License as
+> @@ -32,14 +33,23 @@
+>   #include "qm1d1c0042.h"
+> 
+>   #define QM1D1C0042_NUM_REGS 0x20
+> -
+> -static const u8 reg_initval[QM1D1C0042_NUM_REGS] = {
+> -	0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,
+> -	0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
+> -	0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,
+> -	0x8c, 0xcf, 0xb8, 0xf1, 0xa8, 0xf2, 0x89, 0x00
+> +#define QM1D1C0042_NUM_REG_ROWS 2
+> +
+> +static const u8 reg_initval[QM1D1C0042_NUM_REG_ROWS][QM1D1C0042_NUM_REGS] = { {
+> +		0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,
+> +		0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
+> +		0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,
+> +		0x8c, 0xcf, 0xb8, 0xf1, 0xa8, 0xf2, 0x89, 0x00
+> +	}, {
+> +		0x68, 0x1c, 0xc0, 0x10, 0xbc, 0xc1, 0x11, 0x33,
+> +		0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
+> +		0x00, 0xff, 0xf3, 0x00, 0x3f, 0x25, 0x5c, 0xd6,
+> +		0x55, 0xcf, 0x95, 0xf6, 0x36, 0xf2, 0x09, 0x00
+> +	}
+>   };
+> 
+> +static int reg_index;
+> +
+>   static const struct qm1d1c0042_config default_cfg = {
+>   	.xtal_freq = 16000,
+>   	.lpf = 1,
+> @@ -320,7 +330,6 @@ static int qm1d1c0042_init(struct dvb_frontend *fe)
+>   	int i, ret;
+> 
+>   	state = fe->tuner_priv;
+> -	memcpy(state->regs, reg_initval, sizeof(reg_initval));
+> 
+>   	reg_write(state, 0x01, 0x0c);
+>   	reg_write(state, 0x01, 0x0c);
+> @@ -330,15 +339,19 @@ static int qm1d1c0042_init(struct dvb_frontend *fe)
+>   		goto failed;
+>   	usleep_range(2000, 3000);
+> 
+> -	val = state->regs[0x01] | 0x10;
+> -	ret = reg_write(state, 0x01, val); /* soft reset off */
+> +	ret = reg_write(state, 0x01, 0x1c); /* soft reset off */
+>   	if (ret < 0)
+>   		goto failed;
+> 
+> -	/* check ID */
+> +	/* check ID and choose initial registers corresponding ID */
+>   	ret = reg_read(state, 0x00, &val);
+> -	if (ret < 0 || val != 0x48)
+> +	if (ret < 0)
+> +		goto failed;
+> +	for (reg_index = 0; reg_index < QM1D1C0042_NUM_REG_ROWS; reg_index++)
+> +		if (val == reg_initval[reg_index][0x00]) break;
+> +	if (reg_index >= QM1D1C0042_NUM_REG_ROWS)
+>   		goto failed;
+> +	memcpy(state->regs, reg_initval[reg_index], QM1D1C0042_NUM_REGS);
+>   	usleep_range(2000, 3000);
+> 
+>   	state->regs[0x0c] |= 0x40;
+> diff --git a/drivers/media/usb/em28xx/Kconfig b/drivers/media/usb/em28xx/Kconfig
+> index e382210..d917b0a 100644
+> --- a/drivers/media/usb/em28xx/Kconfig
+> +++ b/drivers/media/usb/em28xx/Kconfig
+> @@ -59,6 +59,8 @@ config VIDEO_EM28XX_DVB
+>   	select DVB_DRX39XYJ if MEDIA_SUBDRV_AUTOSELECT
+>   	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
+>   	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
+> +	select DVB_TC90522 if MEDIA_SUBDRV_AUTOSELECT
+> +	select MEDIA_TUNER_QM1D1C0042 if MEDIA_SUBDRV_AUTOSELECT
+>   	---help---
+>   	  This adds support for DVB cards based on the
+>   	  Empiatech em28xx chips.
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index 930e3e3..772a8f8 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -492,6 +492,20 @@ static struct em28xx_reg_seq terratec_t2_stick_hd[] = {
+>   	{-1,                             -1,   -1,     -1},
+>   };
+> 
+> +static struct em28xx_reg_seq plex_px_bcud[] = {
+> +	{EM2874_R80_GPIO_P0_CTRL,	0xff,	0xff,	0},
+> +	{0x0d,				0xff,	0xff,	0},
+> +	{EM2874_R50_IR_CONFIG,		0x01,	0xff,	0},
+> +	{EM28XX_R06_I2C_CLK,		0x40,	0xff,	0},
+> +	{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	100},
+> +	{EM28XX_R12_VINENABLE,		0x20,	0x20,	0},
+> +	{0x0d,				0x42,	0xff,	1000},
+> +	{EM2874_R80_GPIO_P0_CTRL,	0xfc,	0xff,	10},
+> +	{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	10},
+> +	{0x73,				0xfd,	0xff,	100},
+> +	{-1,				-1,	-1,	-1},
+> +};
+> +
+>   /*
+>    *  Button definitions
+>    */
+> @@ -2306,6 +2320,17 @@ struct em28xx_board em28xx_boards[] = {
+>   		.has_dvb       = 1,
+>   		.ir_codes      = RC_MAP_TERRATEC_SLIM_2,
+>   	},
+> +	/* 3275:0085 PLEX PX-BCUD.
+> +	 * Empia EM28178, TOSHIBA TC90532XBG, Sharp QM1D1C0042 */
+> +	[EM28178_BOARD_PLEX_PX_BCUD] = {
+> +		.name          = "PLEX PX-BCUD",
+> +		.xclk          = EM28XX_XCLK_FREQUENCY_4_3MHZ,
+> +		.def_i2c_bus   = 1,
+> +		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE,
+> +		.tuner_type    = TUNER_ABSENT,
+> +		.tuner_gpio    = plex_px_bcud,
+> +		.has_dvb       = 1,
+> +	},
+>   };
+>   EXPORT_SYMBOL_GPL(em28xx_boards);
+> 
+> @@ -2495,6 +2520,8 @@ struct usb_device_id em28xx_id_table[] = {
+>   			.driver_info = EM2861_BOARD_LEADTEK_VC100 },
+>   	{ USB_DEVICE(0xeb1a, 0x8179),
+>   			.driver_info = EM28178_BOARD_TERRATEC_T2_STICK_HD },
+> +	{ USB_DEVICE(0x3275, 0x0085),
+> +			.driver_info = EM28178_BOARD_PLEX_PX_BCUD },
+>   	{ },
+>   };
+>   MODULE_DEVICE_TABLE(usb, em28xx_id_table);
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index 5d209c7..5fa25bf 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -12,6 +12,8 @@
+> 
+>    (c) 2012 Frank Schafer <fschaefer.oss@googlemail.com>
+> 
+> + (c) 2016 Satoshi Nagahama <sattnag@aim.com>
+> +
+>    Based on cx88-dvb, saa7134-dvb and videobuf-dvb originally written by:
+>   	(c) 2004, 2005 Chris Pascoe <c.pascoe@itee.uq.edu.au>
+>   	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
+> @@ -58,6 +60,8 @@
+>   #include "ts2020.h"
+>   #include "si2168.h"
+>   #include "si2157.h"
+> +#include "tc90522.h"
+> +#include "qm1d1c0042.h"
+> 
+>   MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
+>   MODULE_LICENSE("GPL");
+> @@ -787,6 +791,65 @@ static int em28xx_mt352_terratec_xs_init(struct dvb_frontend *fe)
+>   	return 0;
+>   }
+> 
+> +static void px_bcud_init(struct em28xx *dev)
+> +{
+> +	int i;
+> +	struct {
+> +		unsigned char r[4];
+> +		int len;
+> +	} regs1[] = {
+> +		{{ 0x0e, 0x77 }, 2},
+> +		{{ 0x0f, 0x77 }, 2},
+> +		{{ 0x03, 0x90 }, 2},
+> +	}, regs2[] = {
+> +		{{ 0x07, 0x01 }, 2},
+> +		{{ 0x08, 0x10 }, 2},
+> +		{{ 0x13, 0x00 }, 2},
+> +		{{ 0x17, 0x00 }, 2},
+> +		{{ 0x03, 0x01 }, 2},
+> +		{{ 0x10, 0xb1 }, 2},
+> +		{{ 0x11, 0x40 }, 2},
+> +		{{ 0x85, 0x7a }, 2},
+> +		{{ 0x87, 0x04 }, 2},
+> +	};
+> +	static struct em28xx_reg_seq gpio[] = {
+> +		{EM28XX_R06_I2C_CLK,		0x40,	0xff,	300},
+> +		{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	60},
+> +		{EM28XX_R15_RGAIN,		0x20,	0xff,	0},
+> +		{EM28XX_R16_GGAIN,		0x20,	0xff,	0},
+> +		{EM28XX_R17_BGAIN,		0x20,	0xff,	0},
+> +		{EM28XX_R18_ROFFSET,		0x00,	0xff,	0},
+> +		{EM28XX_R19_GOFFSET,		0x00,	0xff,	0},
+> +		{EM28XX_R1A_BOFFSET,		0x00,	0xff,	0},
+> +		{EM28XX_R23_UOFFSET,		0x00,	0xff,	0},
+> +		{EM28XX_R24_VOFFSET,		0x00,	0xff,	0},
+> +		{EM28XX_R26_COMPR,		0x00,	0xff,	0},
+> +		{0x13,				0x08,	0xff,	0},
+> +		{EM28XX_R12_VINENABLE,		0x27,	0xff,	0},
+> +		{EM28XX_R0C_USBSUSP,		0x10,	0xff,	0},
+> +		{EM28XX_R27_OUTFMT,		0x00,	0xff,	0},
+> +		{EM28XX_R10_VINMODE,		0x00,	0xff,	0},
+> +		{EM28XX_R11_VINCTRL,		0x11,	0xff,	0},
+> +		{EM2874_R50_IR_CONFIG,		0x01,	0xff,	0},
+> +		{EM2874_R5F_TS_ENABLE,		0x80,	0xff,	0},
+> +		{EM28XX_R06_I2C_CLK,		0x46,	0xff,	0},
+> +	};
+> +	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x46);
+> +	/* sleeping ISDB-T */
+> +	dev->dvb->i2c_client_demod->addr = 0x14;
+> +	for (i = 0; i < ARRAY_SIZE(regs1); i++)
+> +		i2c_master_send(dev->dvb->i2c_client_demod, regs1[i].r, regs1[i].len);
+> +	/* sleeping ISDB-S */
+> +	dev->dvb->i2c_client_demod->addr = 0x15;
+> +	for (i = 0; i < ARRAY_SIZE(regs2); i++)
+> +		i2c_master_send(dev->dvb->i2c_client_demod, regs2[i].r, regs2[i].len);
+> +	for (i = 0; i < ARRAY_SIZE(gpio); i++) {
+> +		em28xx_write_reg_bits(dev, gpio[i].reg, gpio[i].val, gpio[i].mask);
+> +		if (gpio[i].sleep > 0)
+> +			msleep(gpio[i].sleep);
+> +	}
+> +};
+> +
+>   static struct mt352_config terratec_xs_mt352_cfg = {
+>   	.demod_address = (0x1e >> 1),
+>   	.no_tuner = 1,
+> @@ -1762,6 +1825,60 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>   			dvb->i2c_client_tuner = client;
+>   		}
+>   		break;
+> +	case EM28178_BOARD_PLEX_PX_BCUD:
+> +		{
+> +			struct i2c_client *client;
+> +			struct i2c_board_info info;
+> +			struct tc90522_config tc90522_config;
+> +                        struct qm1d1c0042_config qm1d1c0042_config;
+> +
+> +			/* attach demod */
+> +			memset(&tc90522_config, 0 ,sizeof(tc90522_config));
+> +			memset(&info, 0, sizeof(struct i2c_board_info));
+> +			strlcpy(info.type, "tc90522sat", I2C_NAME_SIZE);
+> +			info.addr = 0x15;
+> +			info.platform_data = &tc90522_config;
+> +			request_module("tc90522");
+> +			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
+> +			if (client == NULL || client->dev.driver == NULL) {
+> +				result = -ENODEV;
+> +				goto out_free;
+> +			}
+> +			dvb->i2c_client_demod = client;
+> +			if (!try_module_get(client->dev.driver->owner)) {
+> +				i2c_unregister_device(client);
+> +				result = -ENODEV;
+> +				goto out_free;
+> +			}
+> +
+> +			/* attach tuner */
+> +			memset(&qm1d1c0042_config, 0 ,sizeof(qm1d1c0042_config));
+> +			qm1d1c0042_config.fe = tc90522_config.fe;
+> +			qm1d1c0042_config.lpf = 1;
+> +			memset(&info, 0, sizeof(struct i2c_board_info));
+> +			strlcpy(info.type, "qm1d1c0042", I2C_NAME_SIZE);
+> +			info.addr = 0x61;
+> +                       	info.platform_data = &qm1d1c0042_config;
+> +                       	request_module(info.type);
+> +                       	client = i2c_new_device(tc90522_config.tuner_i2c, &info);
+> +                        if (client == NULL || client->dev.driver == NULL) {
+> +                                module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +                                i2c_unregister_device(dvb->i2c_client_demod);
+> +                                result = -ENODEV;
+> +                                goto out_free;
+> +                        }
+> +                        dvb->i2c_client_tuner = client;
+> +                        if (!try_module_get(client->dev.driver->owner)) {
+> +                                i2c_unregister_device(client);
+> +                                module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +                                i2c_unregister_device(dvb->i2c_client_demod);
+> +                                result = -ENODEV;
+> +                                goto out_free;
+> +                        }
+> +			dvb->fe[0] = tc90522_config.fe;
+> +			px_bcud_init(dev);
+> +		}
+> +		break;
+>   	default:
+>   		em28xx_errdev("/2: The frontend of your DVB/ATSC card"
+>   				" isn't supported yet\n");
+> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+> index 2674449..9ad1240 100644
+> --- a/drivers/media/usb/em28xx/em28xx.h
+> +++ b/drivers/media/usb/em28xx/em28xx.h
+> @@ -145,6 +145,7 @@
+>   #define EM2861_BOARD_LEADTEK_VC100                95
+>   #define EM28178_BOARD_TERRATEC_T2_STICK_HD        96
+>   #define EM2884_BOARD_ELGATO_EYETV_HYBRID_2008     97
+> +#define EM28178_BOARD_PLEX_PX_BCUD                98
+> 
+>   /* Limits minimum and default number of buffers */
+>   #define EM28XX_MIN_BUF 4
+> 
 
