@@ -1,108 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:39811 "EHLO mail.kernel.org"
+Received: from sauhun.de ([89.238.76.85]:58670 "EHLO pokefinder.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752639AbcD2AF5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2016 20:05:57 -0400
-Date: Fri, 29 Apr 2016 02:05:52 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
-	<ivo.g.dimitrov.75@gmail.com>
-Cc: pavel@ucw.cz, sakari.ailus@iki.fi, pali.rohar@gmail.com,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
-Message-ID: <20160429000551.GA29312@earth>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160427030850.GA17034@earth>
- <572048AC.7050700@gmail.com>
- <572062EF.7060502@gmail.com>
- <20160427164256.GA8156@earth>
- <1461777170.18568.2.camel@Nokia-N900>
+	id S1753160AbcDKP7V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Apr 2016 11:59:21 -0400
+Date: Mon, 11 Apr 2016 17:59:06 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Peter Rosin <peda@lysator.liu.se>
+Cc: linux-kernel@vger.kernel.org, Peter Rosin <peda@axentia.se>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v6 00/24] i2c mux cleanup and locking update
+Message-ID: <20160411155906.GA1532@katana>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+ <20160411123959.GA4719@katana>
+ <570BA845.1060309@lysator.liu.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="DocE+STaALJfprDB"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sdtB3X0nJg68CQEu"
 Content-Disposition: inline
-In-Reply-To: <1461777170.18568.2.camel@Nokia-N900>
+In-Reply-To: <570BA845.1060309@lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=utf-8
+--sdtB3X0nJg68CQEu
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi Ivo,
 
-On Wed, Apr 27, 2016 at 08:12:50PM +0300, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=D0=
-=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2 wrote:
-> > The zImage + initrd works with the steps you described below.
->=20
-> Great!
+> can obviously take forever. At the same time, many of the patches are kind
+> of mechanical, and feels rather safe.
 
-I also got it working with the previously referenced branch with the
-following built as modules:
+I agree about the mechanical stuff, thus my suggestion. We do what we
+can about testing and reviewing. And once it reaches linux-next
+(hopefully next week latest), test coverage will increase significantly
+and we can fix issues incrementally from there on. Same goes when it
+finally hits Linus' tree, coverage will increase more, but we should be
+really at a very sane level then ;)
 
-CONFIG_VIDEOBUF2_CORE=3Dm
-CONFIG_VIDEOBUF2_MEMOPS=3Dm
-CONFIG_VIDEOBUF2_DMA_CONTIG=3Dm
-CONFIG_VIDEO_OMAP3=3Dm
-CONFIG_VIDEO_BUS_SWITCH=3Dm
-CONFIG_VIDEO_SMIAPP_PLL=3Dm
-CONFIG_VIDEO_SMIAPP=3Dm
-CONFIG_VIDEO_SMIAREGS=3Dm
-CONFIG_VIDEO_ET8EK8=3Dm
+I will  also pick up patch 15 (the removal) for 4.8. So we have the full
+4.7 cycle to revert if something goes very wrong.
 
-> > I received a completly black image, but at least there are interrupts
-> > and yavta is happy (=3D> it does not hang).
->=20
-> The black image is because by default exposure and gain are set to 0 :).=
-=20
-> Use yavta to set the appropriate controls. You can
-> also enable test patterns from there.
+> Maybe we should give Antti some more time to re-add his tested-by tags
+> on 9-12 before they are merged into non-rewritable branches?
 
-The test patterns look ok for me, so it's definitively a sensor
-configuration problem :)
+Yes. That would be great. I need to sync with the media maintainers
+anyhow. I'd like to push all the patches via my tree.
 
-> > Can you try if your config still works if you configure
-> > CONFIG_VIDEO_OMAP3=3Dy, but leaving the sensors configured
-> > as modules? I will try the reverse process (using my config
-> > and moving config options to =3Dm).
-> >
->=20
-> Will try to find time later today.
-> =20
-> > > ~$ modprobe smiapp
-> >=20
-> > modprobing smiapp resulted in a kernel message about a missing
-> > symbol btw. I currently don't remember which one and it's no
-> > longer in dmesg due to ISP debug messages.
->=20
-> Never seen such missing symbols.
+Thanks,
 
-It did not appear with my kernel built either.
+   Wolfram
 
--- Sebastian
 
---DocE+STaALJfprDB
+--sdtB3X0nJg68CQEu
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBCgAGBQJXIqVdAAoJENju1/PIO/qaIrkP/1O1H8xtZ6f0gBebOGT3//SG
-ZdauoCCHCdBHSKocR1Kh8ZmSJ94IsZP6IwOfwReG5LeyE1d5TkfEyO/w6I6BP3/O
-nqoXZFAy42zZqoLd6tlzkSVG+yyCE8ieJUmvLv6/2Gd6Hsff7PCAgqfXeto166Ee
-i1gc61QEE7P6yFlrqPepQYER1CuNZjyyYdcHk5GohR4m/sgFzH5YX1LZVKbff1en
-UckRk044E5X4h8bWPWmZjv2WmPUVGNIq1mpZVZYs3VhGfeseec8rVEyza0WbnKMA
-vKVgZxpAdOQUYd6RRkMch/w7pG9/jzB5UBGkA1cwh+tSou76/UPRsyAPSxSgZf5q
-bcwq/Hcw3CxVYg6LDmIUF0FosMzQmb5t6Rv6jODgxT1RQUZ8NRZeTgCljdqXwOXm
-ZJyeWQXmfIMw6xslUXcJDARe/c8Z7ZT74k2yA7hp1bWn/dFBPVUphdnQSPb0qs7x
-xe+8w3R47QEyOmjFAV7e1stAvwO/iRKwlxzbO+GaSOKFfI6MsDGpdHzNtTjHLLgG
-gK5lr55+sX0RYk9ozSwRT/BXNi1wX2FPQEE/npjQtDOb930PpZC/Tn78NMdbzj+v
-t2W8tXegVjKkDW6xchWZ39zDbhkfJVvqRLZN8V14izGHjQhE7gJ5S8j36fI5qsIw
-8e23yjqFYxRajBYlOZIK
-=gUAD
+iQIcBAEBAgAGBQJXC8nKAAoJEBQN5MwUoCm2FhoP/0DAY/OPBBWUqB5QPDKZVfLt
+IGcL/mPQHHV7KoIvPr6lJU05+zF2ntB7jKMgDZ+MUlKsSR+VK09RR92dYCEX5oWq
+M35Sd6KHu/eMs+bBQFs03xpyMvO9mYEZJe3zIkJxn857BYCMHH2b0s7IzRHpdx4+
+B5nCTq0haWkGrUKMIcHT0dVVszd1AqHBguAHA+TcfzGCvo+FhV+3pud+EgB+cVfy
+TDUSP6NRm0uPQZLDq6cspxFuMKwQMIhkgzBoxlx/pCALtpC54vBM3TGtOobAaqnx
+bntA5HbSolpyGO5IS9WMaJ0zlnHoLZqpUfcEKdAfoe4I459vjyLUKlDfpznu0Dyj
++cgJpZz66shkbWKrIuhrQ/KVG4VntGfm3BoLzcRH0JSFK0QAZGZq7u9EtghdEHvy
+gDGRFG5yL5mFNV6RSm/Fu1cgoeN4E8sHjXJI1ckTczWPq2cWrdaWu05IoXKf6Lci
+GQcJ4i2wdUOQMlypF7eaFVMl4ZHVIohMC29prR/NRu5fysUCXfZ3DHlX3yCNeevf
+5BuHCTh4L9ZhW4BUpbgcXD2uOtWyjUexXG5XwRG+4uvwePqYdkVEkzPpJ378+iPs
+thCQA6+4V+QmcrtVjk8clVzJ05wMUiw5DejpALGu3mKDQ9L4qBBGPfiP7vg4FrN6
+B0+I8uxSf+1LLniLZvyB
+=4NJ9
 -----END PGP SIGNATURE-----
 
---DocE+STaALJfprDB--
+--sdtB3X0nJg68CQEu--
