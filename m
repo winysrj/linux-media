@@ -1,122 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:38447 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750985AbcDNCWi (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:45270 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965498AbcDLP5W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2016 22:22:38 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 9DE691846CB
-	for <linux-media@vger.kernel.org>; Thu, 14 Apr 2016 04:22:32 +0200 (CEST)
-Date: Thu, 14 Apr 2016 04:22:32 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160414022232.9DE691846CB@tschai.lan>
+	Tue, 12 Apr 2016 11:57:22 -0400
+Message-ID: <1460476636.2842.10.camel@collabora.com>
+Subject: Re: gstreamer: v4l2videodec plugin
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+	Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Rob Clark <robdclark@gmail.com>
+Date: Tue, 12 Apr 2016 11:57:16 -0400
+In-Reply-To: <570CB882.4090805@linaro.org>
+References: <570B9285.9000209@linaro.org> <570B9454.6020307@linaro.org>
+	 <1460391908.30296.12.camel@collabora.com> <570CB882.4090805@linaro.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-efOvIVlyATO+IsEEbnLj"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--=-efOvIVlyATO+IsEEbnLj
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-date:		Thu Apr 14 04:00:23 CEST 2016
-git branch:	test
-git hash:	ecb7b0183a89613c154d1bea48b494907efbf8f9
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3353-gcae47da
-host hardware:	x86_64
-host os:	4.4.0-164
+Le mardi 12 avril 2016 =C3=A0 11:57 +0300, Stanimir Varbanov a =C3=A9crit=
+=C2=A0:
+> > I'm very happy to see this report. So far, we only had report that
+> this
+> > element works on Freescale IMX.6 (CODA) and Exynos 4/5.
+>=20
+> In this context, I would be very happy to see v4l2videoenc merged
+> soon :)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-i686: ERRORS
-linux-4.6-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+That will happen when all review comments are resolved.
 
-Detailed results are available here:
+cheers,
+Nicolas
+--=-efOvIVlyATO+IsEEbnLj
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-Full logs are available here:
+iEYEABECAAYFAlcNGtwACgkQcVMCLawGqBzkDQCg0wio56vDFzITExxIrBdCo6WL
+mTkAoJJXbmsf2m8sAKAo6dXCPxpq6Bwy
+=955W
+-----END PGP SIGNATURE-----
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+--=-efOvIVlyATO+IsEEbnLj--
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
