@@ -1,68 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:55980 "EHLO mga04.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:49331 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753938AbcDEHL4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Apr 2016 03:11:56 -0400
-Subject: Re: [PATCH v2 4/7] scatterlist: add sg_alloc_table_from_buf() helper
-To: Boris Brezillon <boris.brezillon@free-electrons.com>,
-	Mark Brown <broonie@kernel.org>
-References: <1459352394-22810-1-git-send-email-boris.brezillon@free-electrons.com>
- <1459352394-22810-5-git-send-email-boris.brezillon@free-electrons.com>
- <20160330165143.GI2350@sirena.org.uk> <20160330201831.38e1d6bd@bbrezillon>
-Cc: David Woodhouse <dwmw2@infradead.org>,
-	Brian Norris <computersforpeace@gmail.com>,
-	linux-mtd@lists.infradead.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-spi@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Chen-Yu Tsai <wens@csie.org>, linux-sunxi@googlegroups.com,
-	Vinod Koul <vinod.koul@intel.com>,
-	Dan Williams <dan.j.williams@intel.com>,
-	dmaengine@vger.kernel.org,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+	id S1753318AbcDLWnY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2016 18:43:24 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>, devicetree@vger.kernel.org,
-	Richard Weinberger <richard@nod.at>
-From: Dave Gordon <david.s.gordon@intel.com>
-Message-ID: <57036534.7010800@intel.com>
-Date: Tue, 5 Apr 2016 08:11:48 +0100
-MIME-Version: 1.0
-In-Reply-To: <20160330201831.38e1d6bd@bbrezillon>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org,
+	Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [RFC PATCH v2 0/2] [media] tvp515p: Proposal for MC input connector support
+Date: Tue, 12 Apr 2016 18:42:51 -0400
+Message-Id: <1460500973-9066-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30/03/16 19:18, Boris Brezillon wrote:
-> On Wed, 30 Mar 2016 09:51:43 -0700
-> Mark Brown <broonie@kernel.org> wrote:
->
->> On Wed, Mar 30, 2016 at 05:39:51PM +0200, Boris Brezillon wrote:
->>> sg_alloc_table_from_buf() provides an easy solution to create an sg_table
->>> from a virtual address pointer. This function takes care of dealing with
->>> vmallocated buffers, buffer alignment, or DMA engine limitations (maximum
->>> DMA transfer size).
->>
->> This seems nice.  Should we also have a further helper on top of this
->> which will get constraints from a dmaengine, it seems like it'd be a
->> common need?
->
-> Yep, we could create a wrapper extracting dma_slave caps info,
-> converting it to sg_constraints and calling sg_alloc_table_from_buf().
-> But let's try to get this function accepted first, and I'll send another
-> patch providing this wrapper.
->
-> BTW, do you see other things that should be added in sg_constraints?
->
+Hello,
 
-You could compare with the things Solaris uses to describe the 
-restrictions on a DMA binding ...
+This is a second version of an RFC patch series that adds MC input connector
+support to the tvp5150 driver. The first RFC version was [0].
 
-http://docs.oracle.com/cd/E23824_01/html/821-1478/ddi-dma-attr-9s.html#REFMAN9Sddi-dma-attr-9s
+The patches are RFC because a previous version was merged and later reverted
+since the approach was found to be inadequate. So I preferred to post this
+approach as RFC to discuss it first.
 
-.Dave.
+The main difference with v1 is that a single sink pad is used for the tvp5150
+(instead of using a pad per each input pin) as suggested by Mauro and Hans.
+
+The mc_nextgen_test dot output after applying the series can be found at [1]
+and the graph png generated using the dot tool is at [2].
+
+I tested these patches on an IGEPv2 by capturing using both Composite inputs.
+
+[0]: https://www.mail-archive.com/linux-media@vger.kernel.org/msg95389.html
+[1]: http://hastebin.com/yiduhonome.tex
+[2]: http://i.imgur.com/EyFtVtJ.png?1
+
+Best regards,
+Javier
+
+Changes in v2:
+- Remove from the changelog a mention of devices that multiplex the
+  physical RCA connectors to be used for the S-Video Y and C signals
+  since it's a special case and it doesn't really work on the IGEPv2.
+- Use a single sink pad for the demod and map the connectors as entities
+  so the mux is made via links. Suggested by Mauro and Hans.
+
+Javier Martinez Canillas (2):
+  [media] tvp5150: Add input connectors DT bindings
+  [media] tvp5150: Replace connector support according to DT binding
+
+ .../devicetree/bindings/media/i2c/tvp5150.txt      |  59 ++++++++
+ drivers/media/i2c/tvp5150.c                        | 155 +++++++++++++++------
+ 2 files changed, 170 insertions(+), 44 deletions(-)
+
+-- 
+2.5.5
+
