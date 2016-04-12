@@ -1,72 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55662 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753566AbcD0VHw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 17:07:52 -0400
-Date: Wed, 27 Apr 2016 23:07:49 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
-Message-ID: <20160427210749.GB19070@amd>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160424215541.GA6338@amd>
- <571DBA2E.9020305@gmail.com>
- <20160425170905.GB10443@amd>
- <571E5201.4030609@gmail.com>
+Received: from sauhun.de ([89.238.76.85]:60217 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965013AbcDLWdD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Apr 2016 18:33:03 -0400
+Date: Wed, 13 Apr 2016 00:32:55 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: tvp5150 regression after commit 9f924169c035
+Message-ID: <20160412223254.GK1526@katana>
+References: <56B204CB.60602@osg.samsung.com>
+ <20160208105417.GD2220@tetsubishi>
+ <56BE57FC.3020407@osg.samsung.com>
+ <20160212221352.GY3500@atomide.com>
+ <56BE5C97.9070607@osg.samsung.com>
+ <20160212224018.GZ3500@atomide.com>
+ <56BE65F0.8040600@osg.samsung.com>
+ <20160212234623.GB3500@atomide.com>
+ <56BE993B.3010804@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="vbzKE9fGfpHIBC6T"
 Content-Disposition: inline
-In-Reply-To: <571E5201.4030609@gmail.com>
+In-Reply-To: <56BE993B.3010804@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
 
-> >>Try with:
-> >>
-> >>media-ctl -r
-> >>media-ctl -l '"et8ek8 3-003e":0 -> "video-bus-switch":1 [1]'
-> >>media-ctl -l '"video-bus-switch":0 -> "OMAP3 ISP CCP2":0 [1]'
-> >>media-ctl -l '"OMAP3 ISP CCP2":1 -> "OMAP3 ISP CCDC":0 [1]'
-> >>media-ctl -l '"OMAP3 ISP CCDC":2 -> "OMAP3 ISP preview":0 [1]'
-> >>media-ctl -l '"OMAP3 ISP preview":1 -> "OMAP3 ISP resizer":0 [1]'
-> >>media-ctl -l '"OMAP3 ISP resizer":1 -> "OMAP3 ISP resizer output":0 [1]'
-> >>
-> >>media-ctl -V '"et8ek8 3-003e":0 [SGRBG10 864x656]'
-> >>media-ctl -V '"OMAP3 ISP CCP2":0 [SGRBG10 864x656]'
-> >>media-ctl -V '"OMAP3 ISP CCP2":1 [SGRBG10 864x656]'
-> >>media-ctl -V '"OMAP3 ISP CCDC":2 [SGRBG10 864x656]'
-> >>media-ctl -V '"OMAP3 ISP preview":1 [UYVY 864x656]'
-> >>media-ctl -V '"OMAP3 ISP resizer":1 [UYVY 800x600]'
-> >>
-> >>
-> >>mplayer -tv driver=v4l2:width=800:height=600:outfmt=uyvy:device=/dev/video6
-> >>-vo xv -vf screenshot tv://
-> >
-> >It fails with:
-> >
-> >pavel@n900:/my/tui/ofone/camera$ sudo ./back.sh
-> >Unable to parse link: Device or resource busy (16)
-> 
-> That shouldn't happen, there is something else wrong.
-> 
-> >MPlayer svn r34540 (Debian), built with gcc-4.6 (C) 2000-2012 MPlayer
-> >Team
-> >
-> >...but as I'm using the original dts, it is expected...?
-> >
-> >Would you have dts suitable for the 5MPx camera?
-> 
-> Just change from strobe = <0>; to strobe = <1>; in isp node.
+--vbzKE9fGfpHIBC6T
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks, that got the trick. (With  drivers being compiled as modules).
 
-Best regards,
-									Pavel
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> I'll try to find some time next week to dig deeper on this. Just
+> thought that may be related to the issue you found but it seems
+> that's not the case.
+
+Any updates on this?
+
+Thanks,
+
+   Wolfram
+
+
+--vbzKE9fGfpHIBC6T
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXDXeWAAoJEBQN5MwUoCm2S6gP/0H6KskZC5CDKD/Bpgd+3ldi
+eKlqS0d2/wRakdsBxEgbVWiTvpXvBr44Ti8Bv3y6chFCLTKQcidd8C/BVV4X2NjK
+d+V7ULuxEOOTjaudDJUalfbA0YpN0/KzJbytihTqUDJBaViG04/Gn6k+ILdkv4y2
+QwJEkBWlC6lqIGkC8IHcOJyhZ/EuxX6z+UajZ2WVm69Wq3PnxNrz/d+jYojfQdK1
+mo3KWQxKaMJoyMvh0ARHgf+sxRqkHk0SB4rS/oTtC1EKj/4VBgKISOk6loqN3/ye
+GCiqfnVKbVyFp9aeDryPxNOEu4WHyD5BHlFnLyreiXagUICEPJr6NoANBoc/+zCB
+UlbLKBnn2jKP/8R5ERP+JxSitv8u6sJkkSU7YE6d1EIjgN74IO2DyG2lYmwRkLP3
+17hIj5bCWqFA8E0eQZWj3DRSiWrGO50xEhg2VJQyaGNtdlZ+KZ7dAgbP7xf2t1Cy
+4mFb4u2P642BGyqKuEDVSEII6fi+KIzUb7tXbfYfWKGWf8npXYCKDC4XJFG+han7
+sGpPFc9/BW5AqGJffJAyUToEkWTsNoQdMOZ0/HVKVf43N28VE+4v6sLB8x1khSDR
+qO4ItqtbzLQROwkj/yhkQggQjmgMUbvmGsyOOBWJbMXJEKsZuwNTwu/CoOqG7jzo
+LkF0xolR++1gaTy1Grya
+=TIdh
+-----END PGP SIGNATURE-----
+
+--vbzKE9fGfpHIBC6T--
