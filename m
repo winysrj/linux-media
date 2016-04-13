@@ -1,73 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35663 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753259AbcDXVKU (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:50922 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750886AbcDMUnd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Apr 2016 17:10:20 -0400
-Received: by mail-wm0-f66.google.com with SMTP id e201so17586865wme.2
-        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:19 -0700 (PDT)
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: sakari.ailus@iki.fi
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [RFC PATCH 06/24] smiapp: Add quirk control support
-Date: Mon, 25 Apr 2016 00:08:06 +0300
-Message-Id: <1461532104-24032-7-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Wed, 13 Apr 2016 16:43:33 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-renesas-soc@vger.kernel.org
+Subject: [PATCH] [media] vsp1: make vsp1_drm_frame_end static
+Date: Wed, 13 Apr 2016 17:42:24 -0300
+Message-Id: <5fb2107346cfc6d8fe62117a2cbf91fc1f92cc84.1460580142.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+As reported by smatch:
+	drivers/media/platform/vsp1/vsp1_drm.c:39:6: warning: no previous prototype for 'vsp1_drm_frame_end' [-Wmissing-prototypes]
+	 void vsp1_drm_frame_end(struct vsp1_pipeline *pipe)
 
-Quirk controls can be set up in the init quirk.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Fixes: ef9621bcd664 ("[media] v4l: vsp1: Store the display list manager in the WPF")
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c  | 6 ++++++
- drivers/media/i2c/smiapp/smiapp-quirk.h | 3 +++
- 2 files changed, 9 insertions(+)
+ drivers/media/platform/vsp1/vsp1_drm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 3dfe387..c6a897b 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -412,6 +412,12 @@ static int smiapp_set_ctrl(struct v4l2_ctrl *ctrl)
- 	int exposure;
- 	int rval;
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 22f67360b750..1f08da4b933b 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -36,7 +36,7 @@ void vsp1_drm_display_start(struct vsp1_device *vsp1)
+ 	vsp1_dlm_irq_display_start(vsp1->drm->pipe.output->dlm);
+ }
  
-+	rval = smiapp_call_quirk(sensor, s_ctrl, ctrl);
-+	if (rval < 0)
-+		return rval;
-+	if (rval > 0)
-+		return 0;
-+
- 	switch (ctrl->id) {
- 	case V4L2_CID_ANALOGUE_GAIN:
- 		return smiapp_write(
-diff --git a/drivers/media/i2c/smiapp/smiapp-quirk.h b/drivers/media/i2c/smiapp/smiapp-quirk.h
-index 209818f..504c16a 100644
---- a/drivers/media/i2c/smiapp/smiapp-quirk.h
-+++ b/drivers/media/i2c/smiapp/smiapp-quirk.h
-@@ -32,6 +32,8 @@ struct smiapp_sensor;
-  * @pll_flags: Return flags for the PLL calculator.
-  * @init: Quirk initialisation, called the last in probe(). This is
-  *	  also appropriate for adding sensor specific controls, for instance.
-+ * @s_ctrl: Set control quirk. Returns 0 if the control isn't
-+ *	    implemented by the quirk, > 0 if it is.
-  * @reg_access: Register access quirk. The quirk may divert the access
-  *		to another register, or no register at all.
-  *
-@@ -51,6 +53,7 @@ struct smiapp_quirk {
- 	int (*post_streamoff)(struct smiapp_sensor *sensor);
- 	unsigned long (*pll_flags)(struct smiapp_sensor *sensor);
- 	int (*init)(struct smiapp_sensor *sensor);
-+	int (*s_ctrl)(struct smiapp_sensor *sensor, struct v4l2_ctrl *ctrl);
- 	int (*reg_access)(struct smiapp_sensor *sensor, bool write, u32 *reg,
- 			  u32 *val);
- 	unsigned long flags;
+-void vsp1_drm_frame_end(struct vsp1_pipeline *pipe)
++static void vsp1_drm_frame_end(struct vsp1_pipeline *pipe)
+ {
+ 	vsp1_dlm_irq_frame_end(pipe->output->dlm);
+ }
 -- 
-1.9.1
+2.5.5
 
