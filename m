@@ -1,122 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:38303 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750973AbcDJDBi (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55928 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030829AbcDMOgv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Apr 2016 23:01:38 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 429F2182E89
-	for <linux-media@vger.kernel.org>; Sun, 10 Apr 2016 05:01:31 +0200 (CEST)
-Date: Sun, 10 Apr 2016 05:01:31 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160410030131.429F2182E89@tschai.lan>
+	Wed, 13 Apr 2016 10:36:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvc: Fix bytesperline calculation for planar YUV
+Date: Wed, 13 Apr 2016 17:36:58 +0300
+Message-ID: <4325164.Ph5FqXt1zq@avalon>
+In-Reply-To: <1452199428-3513-1-git-send-email-nicolas.dufresne@collabora.com>
+References: <1452199428-3513-1-git-send-email-nicolas.dufresne@collabora.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Nicolas,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:		Sun Apr 10 04:00:19 CEST 2016
-git branch:	test
-git hash:	bc5ccdbc990debbcae4602214dddc8d5fd38b01d
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3353-gcae47da
-host hardware:	x86_64
-host os:	4.4.0-164
+On Thursday 07 Jan 2016 15:43:48 Nicolas Dufresne wrote:
+> The formula used to calculate bytesperline only works for packed format.
+> So far, all planar format we support have their bytesperline equal to
+> the image width (stride of the Y plane or a line of Y for M420).
+> 
+> Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+> ---
+>  drivers/media/usb/uvc/uvc_v4l2.c | 18 ++++++++++++++++--
+>  1 file changed, 16 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> b/drivers/media/usb/uvc/uvc_v4l2.c index d7723ce..ceb1d1b 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -142,6 +142,20 @@ static __u32 uvc_try_frame_interval(struct uvc_frame
+> *frame, __u32 interval) return interval;
+>  }
+> 
+> +static __u32 uvc_v4l2_get_bytesperline(struct uvc_format *format,
+> +	struct uvc_frame *frame)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+I'd make the two parameters const.
 
-Detailed results are available here:
+> +{
+> +	switch (format->fcc) {
+> +	case V4L2_PIX_FMT_NV12:
+> +	case V4L2_PIX_FMT_YVU420:
+> +	case V4L2_PIX_FMT_YUV420:
+> +	case V4L2_PIX_FMT_M420:
+> +		return frame->wWidth;
+> +	default:
+> +		return format->bpp * frame->wWidth / 8;
+> +	}
+> +}
+> +
+>  static int uvc_v4l2_try_format(struct uvc_streaming *stream,
+>  	struct v4l2_format *fmt, struct uvc_streaming_control *probe,
+>  	struct uvc_format **uvc_format, struct uvc_frame **uvc_frame)
+> @@ -245,7 +259,7 @@ static int uvc_v4l2_try_format(struct uvc_streaming
+> *stream, fmt->fmt.pix.width = frame->wWidth;
+>  	fmt->fmt.pix.height = frame->wHeight;
+>  	fmt->fmt.pix.field = V4L2_FIELD_NONE;
+> -	fmt->fmt.pix.bytesperline = format->bpp * frame->wWidth / 8;
+> +	fmt->fmt.pix.bytesperline = uvc_v4l2_get_bytesperline(format, frame);
+>  	fmt->fmt.pix.sizeimage = probe->dwMaxVideoFrameSize;
+>  	fmt->fmt.pix.colorspace = format->colorspace;
+>  	fmt->fmt.pix.priv = 0;
+> @@ -282,7 +296,7 @@ static int uvc_v4l2_get_format(struct uvc_streaming
+> *stream, fmt->fmt.pix.width = frame->wWidth;
+>  	fmt->fmt.pix.height = frame->wHeight;
+>  	fmt->fmt.pix.field = V4L2_FIELD_NONE;
+> -	fmt->fmt.pix.bytesperline = format->bpp * frame->wWidth / 8;
+> +	fmt->fmt.pix.bytesperline = uvc_v4l2_get_bytesperline(format, frame);
+>  	fmt->fmt.pix.sizeimage = stream->ctrl.dwMaxVideoFrameSize;
+>  	fmt->fmt.pix.colorspace = format->colorspace;
+>  	fmt->fmt.pix.priv = 0;
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+This looks good to me otherwise.
 
-Full logs are available here:
+If it's fine with you I can fix the above issue while applying.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+-- 
+Regards,
 
-The Media Infrastructure API from this daily build is here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
