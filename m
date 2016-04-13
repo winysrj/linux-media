@@ -1,98 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52701 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753781AbcDVNRZ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:45845 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751594AbcDMUGE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 09:17:25 -0400
-Subject: Re: [PATCH 2/6] sta2x11_vip: fix s_std
-To: Federico Vaga <federico.vaga@gmail.com>
-References: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl>
- <1461330222-34096-3-git-send-email-hverkuil@xs4all.nl>
- <146136747.clRru94iZt@number-5>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <571A2460.7010203@xs4all.nl>
-Date: Fri, 22 Apr 2016 15:17:20 +0200
-MIME-Version: 1.0
-In-Reply-To: <146136747.clRru94iZt@number-5>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 13 Apr 2016 16:06:04 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Julia Lawall <Julia.Lawall@lip6.fr>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Insu Yun <wuninsu@gmail.com>
+Subject: [PATCH] [media] cx231xx: return proper error codes at cx231xx-417.c
+Date: Wed, 13 Apr 2016 17:04:51 -0300
+Message-Id: <ccc5429f7bf9c78d64f1bb03c578f1641ca72fe4.1460577884.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/22/2016 03:15 PM, Federico Vaga wrote:
-> Acked-by: Federico Vaga <federico.vaga@gmail.com>
-> 
-> It sounds fine to me (even the ADV7180 patch). Unfortunately I do not have the 
-> hardware to test it.
+Instead of returning -1, return valid error codes.
 
-Your Ack will have to suffice :-)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-417.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-Can you Ack the adv7180 patch as well? Would be nice.
-
-Regards,
-
-	Hans
-
-> 
-> On Friday, April 22, 2016 03:03:38 PM Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> The s_std ioctl was broken in this driver, partially due to the
->> changes to the adv7180 driver (this affected the handling of
->> V4L2_STD_ALL) and partially because the new standard was never
->> stored in vip->std.
->>
->> The handling of V4L2_STD_ALL has been rewritten to just call querystd
->> and the new standard is now stored correctly.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Federico Vaga <federico.vaga@gmail.com>
->> ---
->>  drivers/media/pci/sta2x11/sta2x11_vip.c | 26 ++++++++++----------------
->>  1 file changed, 10 insertions(+), 16 deletions(-)
->>
->> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c
->> b/drivers/media/pci/sta2x11/sta2x11_vip.c index 753411c..c79623c 100644
->> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
->> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
->> @@ -444,27 +444,21 @@ static int vidioc_querycap(struct file *file, void
->> *priv, static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id
->> std) {
->>  	struct sta2x11_vip *vip = video_drvdata(file);
->> -	v4l2_std_id oldstd = vip->std, newstd;
->> +	v4l2_std_id oldstd = vip->std;
->>  	int status;
->>
->> -	if (V4L2_STD_ALL == std) {
->> -		v4l2_subdev_call(vip->decoder, video, s_std, std);
->> -		ssleep(2);
->> -		v4l2_subdev_call(vip->decoder, video, querystd, &newstd);
->> -		v4l2_subdev_call(vip->decoder, video, g_input_status, &status);
->> -		if (status & V4L2_IN_ST_NO_SIGNAL)
->> +	/*
->> +	 * This is here for backwards compatibility only.
->> +	 * The use of V4L2_STD_ALL to trigger a querystd is non-standard.
->> +	 */
->> +	if (std == V4L2_STD_ALL) {
->> +		v4l2_subdev_call(vip->decoder, video, querystd, &std);
->> +		if (std == V4L2_STD_UNKNOWN)
->>  			return -EIO;
->> -		std = vip->std = newstd;
->> -		if (oldstd != std) {
->> -			if (V4L2_STD_525_60 & std)
->> -				vip->format = formats_60[0];
->> -			else
->> -				vip->format = formats_50[0];
->> -		}
->> -		return 0;
->>  	}
->>
->> -	if (oldstd != std) {
->> +	if (vip->std != std) {
->> +		vip->std = std;
->>  		if (V4L2_STD_525_60 & std)
->>  			vip->format = formats_60[0];
->>  		else
-> 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index 3636d8d0abd3..00da024b47a6 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -360,7 +360,7 @@ static int wait_for_mci_complete(struct cx231xx *dev)
+ 
+ 		if (count++ > 100) {
+ 			dprintk(3, "ERROR: Timeout - gpio=%x\n", gpio);
+-			return -1;
++			return -EIO;
+ 		}
+ 	}
+ 	return 0;
+@@ -856,7 +856,7 @@ static int cx231xx_find_mailbox(struct cx231xx *dev)
+ 		}
+ 	}
+ 	dprintk(3, "Mailbox signature values not found!\n");
+-	return -1;
++	return -EIO;
+ }
+ 
+ static void mci_write_memory_to_gpio(struct cx231xx *dev, u32 address, u32 value,
+@@ -960,14 +960,14 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 	p_fw = p_current_fw;
+ 	if (p_current_fw == NULL) {
+ 		dprintk(2, "FAIL!!!\n");
+-		return -1;
++		return -ENOMEM;
+ 	}
+ 
+ 	p_buffer = vmalloc(4096);
+ 	if (p_buffer == NULL) {
+ 		dprintk(2, "FAIL!!!\n");
+ 		vfree(p_current_fw);
+-		return -1;
++		return -ENOMEM;
+ 	}
+ 
+ 	dprintk(2, "%s()\n", __func__);
+@@ -992,7 +992,7 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 			"%s: Error with mc417_register_write\n", __func__);
+ 		vfree(p_current_fw);
+ 		vfree(p_buffer);
+-		return -1;
++		return retval;
+ 	}
+ 
+ 	retval = request_firmware(&firmware, CX231xx_FIRM_IMAGE_NAME,
+@@ -1006,7 +1006,7 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 			"Please fix your hotplug setup, the board will not work without firmware loaded!\n");
+ 		vfree(p_current_fw);
+ 		vfree(p_buffer);
+-		return -1;
++		return retval;
+ 	}
+ 
+ 	if (firmware->size != CX231xx_FIRM_IMAGE_SIZE) {
+@@ -1016,7 +1016,7 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 		release_firmware(firmware);
+ 		vfree(p_current_fw);
+ 		vfree(p_buffer);
+-		return -1;
++		return -EINVAL;
+ 	}
+ 
+ 	if (0 != memcmp(firmware->data, magic, 8)) {
+@@ -1025,7 +1025,7 @@ static int cx231xx_load_firmware(struct cx231xx *dev)
+ 		release_firmware(firmware);
+ 		vfree(p_current_fw);
+ 		vfree(p_buffer);
+-		return -1;
++		return -EINVAL;
+ 	}
+ 
+ 	initGPIO(dev);
+@@ -1140,21 +1140,21 @@ static int cx231xx_initialize_codec(struct cx231xx *dev)
+ 		if (retval < 0) {
+ 			dev_err(dev->dev, "%s: mailbox < 0, error\n",
+ 				__func__);
+-			return -1;
++			return retval;
+ 		}
+ 		dev->cx23417_mailbox = retval;
+ 		retval = cx231xx_api_cmd(dev, CX2341X_ENC_PING_FW, 0, 0);
+ 		if (retval < 0) {
+ 			dev_err(dev->dev,
+ 				"ERROR: cx23417 firmware ping failed!\n");
+-			return -1;
++			return retval;
+ 		}
+ 		retval = cx231xx_api_cmd(dev, CX2341X_ENC_GET_VERSION, 0, 1,
+ 			&version);
+ 		if (retval < 0) {
+ 			dev_err(dev->dev,
+ 				"ERROR: cx23417 firmware get encoder: version failed!\n");
+-			return -1;
++			return retval;
+ 		}
+ 		dprintk(1, "cx23417 firmware version is 0x%08x\n", version);
+ 		msleep(200);
+-- 
+2.5.5
 
