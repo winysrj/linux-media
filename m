@@ -1,43 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33187 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871AbcD0IaT (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34844 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932799AbcDNQSI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 04:30:19 -0400
-Date: Wed, 27 Apr 2016 10:30:14 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
-Message-ID: <20160427083014.GA26680@amd>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160425165848.GA10443@amd>
- <571E5134.10607@gmail.com>
- <20160425184016.GC10443@amd>
- <571E6D38.9050009@gmail.com>
- <20160425204110.GA2689@amd>
- <571E83B0.8020208@gmail.com>
- <20160425220751.GA26350@amd>
- <571EECE5.8060100@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <571EECE5.8060100@gmail.com>
+	Thu, 14 Apr 2016 12:18:08 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	Rob Taylor <rob.taylor@codethink.co.uk>
+Subject: [PATCH v3 4/7] media: rcar-vin: pad-aware driver initialisation
+Date: Thu, 14 Apr 2016 18:17:47 +0200
+Message-Id: <1460650670-20849-5-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1460650670-20849-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1460650670-20849-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Add detection of source pad number for drivers aware of the media controller
+API, so that rcar-vin can create device nodes to support modern drivers such
+as adv7604.c (for HDMI on Lager) and the converted adv7180.c (for composite)
+underneath.
 
-> After taking a nap, a question came to my mind - what is that device you're
-> using? As some early board versions use VAUX3 for cameras as well.
+Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
+line with requirements for building the drivers associated with it.
 
-I got used N900 from a friend. It had czech keyboard, originally, so I
-believe it should be regular version, not early one...
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+[uli: adapted to rcar-vin rewrite]
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 16 ++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
+ 2 files changed, 18 insertions(+)
 
-Best regards,
-									Pavel
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 43aec3c..d8d5f3a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -659,6 +659,9 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	struct v4l2_mbus_framefmt *mf = &fmt.format;
+ 	struct video_device *vdev = &vin->vdev;
+ 	struct v4l2_subdev *sd = vin_to_sd(vin);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	int pad_idx;
++#endif
+ 	int ret;
+ 
+ 	v4l2_set_subdev_hostdata(sd, vin);
+@@ -701,6 +704,19 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vdev->lock = &vin->lock;
+ 	vdev->ctrl_handler = &vin->ctrl_handler;
+ 
++	vin->src_pad_idx = 0;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
++		if (sd->entity.pads[pad_idx].flags
++				== MEDIA_PAD_FL_SOURCE)
++			break;
++	if (pad_idx >= sd->entity.num_pads)
++		return -EINVAL;
++
++	vin->src_pad_idx = pad_idx;
++#endif
++	fmt.pad = vin->src_pad_idx;
++
+ 	/* Try to improve our guess of a reasonable window format */
+ 	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+ 	if (ret) {
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 01c5086..959f5da 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -87,6 +87,7 @@ struct rvin_graph_entity {
+  *
+  * @vdev:		V4L2 video device associated with VIN
+  * @v4l2_dev:		V4L2 device
++ * @src_pad_idx:	source pad index for media controller drivers
+  * @ctrl_handler:	V4L2 control handler
+  * @notifier:		V4L2 asynchronous subdevs notifier
+  * @entity:		entity in the DT for subdevice
+@@ -118,6 +119,7 @@ struct rvin_dev {
+ 
+ 	struct video_device vdev;
+ 	struct v4l2_device v4l2_dev;
++	int src_pad_idx;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	struct v4l2_async_notifier notifier;
+ 	struct rvin_graph_entity entity;
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.7.4
+
