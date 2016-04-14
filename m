@@ -1,187 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:58029 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752419AbcDCI4J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:56:09 -0400
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v6 13/24] [media] cx231xx: convert to use an explicit i2c mux core
-Date: Sun,  3 Apr 2016 10:52:43 +0200
-Message-Id: <1459673574-11440-14-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
-References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34866 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932814AbcDNQSK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Apr 2016 12:18:10 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v3 5/7] media: rcar-vin: add DV timings support
+Date: Thu, 14 Apr 2016 18:17:48 +0200
+Message-Id: <1460650670-20849-6-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1460650670-20849-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1460650670-20849-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+Adds ioctls DV_TIMINGS_CAP, ENUM_DV_TIMINGS, G_DV_TIMINGS, S_DV_TIMINGS,
+and QUERY_DV_TIMINGS.
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select op to be in terms of the i2c mux core instead
-of the child adapter.
-
-Signed-off-by: Peter Rosin <peda@axentia.se>
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-core.c |  6 ++--
- drivers/media/usb/cx231xx/cx231xx-i2c.c  | 47 ++++++++++++++++----------------
- drivers/media/usb/cx231xx/cx231xx.h      |  4 ++-
- 3 files changed, 31 insertions(+), 26 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 69 +++++++++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index f497888d94bf..f7aac2abd783 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -1304,6 +1304,9 @@ int cx231xx_dev_init(struct cx231xx *dev)
- 	cx231xx_i2c_register(&dev->i2c_bus[1]);
- 	cx231xx_i2c_register(&dev->i2c_bus[2]);
- 
-+	errCode = cx231xx_i2c_mux_create(dev);
-+	if (errCode < 0)
-+		return errCode;
- 	cx231xx_i2c_mux_register(dev, 0);
- 	cx231xx_i2c_mux_register(dev, 1);
- 
-@@ -1426,8 +1429,7 @@ EXPORT_SYMBOL_GPL(cx231xx_dev_init);
- void cx231xx_dev_uninit(struct cx231xx *dev)
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index d8d5f3a..ba2ed4e 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -413,12 +413,17 @@ static int rvin_enum_input(struct file *file, void *priv,
+ 			   struct v4l2_input *i)
  {
- 	/* Un Initialize I2C bus */
--	cx231xx_i2c_mux_unregister(dev, 1);
--	cx231xx_i2c_mux_unregister(dev, 0);
-+	cx231xx_i2c_mux_unregister(dev);
- 	cx231xx_i2c_unregister(&dev->i2c_bus[2]);
- 	cx231xx_i2c_unregister(&dev->i2c_bus[1]);
- 	cx231xx_i2c_unregister(&dev->i2c_bus[0]);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-i2c.c b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-index a29c345b027d..eb22e05d4add 100644
---- a/drivers/media/usb/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-i2c.c
-@@ -557,40 +557,41 @@ int cx231xx_i2c_unregister(struct cx231xx_i2c *bus)
-  * cx231xx_i2c_mux_select()
-  * switch i2c master number 1 between port1 and port3
-  */
--static int cx231xx_i2c_mux_select(struct i2c_adapter *adap,
--			void *mux_priv, u32 chan_id)
-+static int cx231xx_i2c_mux_select(struct i2c_mux_core *muxc, u32 chan_id)
- {
--	struct cx231xx *dev = mux_priv;
-+	struct cx231xx *dev = i2c_mux_priv(muxc);
+ 	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
  
- 	return cx231xx_enable_i2c_port_3(dev, chan_id);
+ 	if (i->index != 0)
+ 		return -EINVAL;
+ 
+ 	i->type = V4L2_INPUT_TYPE_CAMERA;
+ 	i->std = vin->vdev.tvnorms;
++
++	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap))
++		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
++
+ 	strlcpy(i->name, "Camera", sizeof(i->name));
+ 
+ 	return 0;
+@@ -461,6 +466,64 @@ static int rvin_g_std(struct file *file, void *priv, v4l2_std_id *a)
+ 	return v4l2_subdev_call(sd, video, g_std, a);
  }
  
-+int cx231xx_i2c_mux_create(struct cx231xx *dev)
++static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
++				    struct v4l2_enum_dv_timings *timings)
 +{
-+	dev->muxc = i2c_mux_alloc(&dev->i2c_bus[1].i2c_adap, dev->dev, 0, 0,
-+				  cx231xx_i2c_mux_select, NULL);
-+	if (!dev->muxc)
-+		return -ENOMEM;
-+	dev->muxc->priv = dev;
-+	return 0;
++	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
++
++	timings->pad = 0;
++	return v4l2_subdev_call(sd,
++			pad, enum_dv_timings, timings);
 +}
 +
- int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no)
- {
--	struct i2c_adapter *i2c_parent = &dev->i2c_bus[1].i2c_adap;
--	/* what is the correct mux_dev? */
--	struct device *mux_dev = dev->dev;
--
--	dev->i2c_mux_adap[mux_no] = i2c_add_mux_adapter(i2c_parent,
--				mux_dev,
--				dev /* mux_priv */,
--				0,
--				mux_no /* chan_id */,
--				0 /* class */,
--				&cx231xx_i2c_mux_select,
--				NULL);
--
--	if (!dev->i2c_mux_adap[mux_no])
-+	int rc;
++static int rvin_s_dv_timings(struct file *file, void *priv_fh,
++				    struct v4l2_dv_timings *timings)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
++	int err;
 +
-+	rc = i2c_mux_add_adapter(dev->muxc,
-+				 0,
-+				 mux_no /* chan_id */,
-+				 0 /* class */);
-+	if (rc)
- 		dev_warn(dev->dev,
- 			 "i2c mux %d register FAILED\n", mux_no);
++	err = v4l2_subdev_call(sd,
++			video, s_dv_timings, timings);
++	if (!err) {
++		vin->sensor.width = timings->bt.width;
++		vin->sensor.height = timings->bt.height;
++	}
++	return err;
++}
++
++static int rvin_g_dv_timings(struct file *file, void *priv_fh,
++				    struct v4l2_dv_timings *timings)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
++
++	return v4l2_subdev_call(sd,
++			video, g_dv_timings, timings);
++}
++
++static int rvin_query_dv_timings(struct file *file, void *priv_fh,
++				    struct v4l2_dv_timings *timings)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
++
++	return v4l2_subdev_call(sd,
++			video, query_dv_timings, timings);
++}
++
++static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
++				    struct v4l2_dv_timings_cap *cap)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	struct v4l2_subdev *sd = vin_to_sd(vin);
++
++	cap->pad = 0;
++	return v4l2_subdev_call(sd,
++			pad, dv_timings_cap, cap);
++}
++
+ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_querycap		= rvin_querycap,
+ 	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
+@@ -477,6 +540,12 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_g_input			= rvin_g_input,
+ 	.vidioc_s_input			= rvin_s_input,
  
--	return 0;
-+	return rc;
- }
- 
--void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no)
-+void cx231xx_i2c_mux_unregister(struct cx231xx *dev)
- {
--	i2c_del_mux_adapter(dev->i2c_mux_adap[mux_no]);
--	dev->i2c_mux_adap[mux_no] = NULL;
-+	i2c_mux_del_adapters(dev->muxc);
- }
- 
- struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
-@@ -603,9 +604,9 @@ struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port)
- 	case I2C_2:
- 		return &dev->i2c_bus[2].i2c_adap;
- 	case I2C_1_MUX_1:
--		return dev->i2c_mux_adap[0];
-+		return dev->muxc->adapter[0];
- 	case I2C_1_MUX_3:
--		return dev->i2c_mux_adap[1];
-+		return dev->muxc->adapter[1];
- 	default:
- 		return NULL;
- 	}
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 69f6d20870f5..90c867683076 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -624,6 +624,7 @@ struct cx231xx {
- 
- 	/* I2C adapters: Master 1 & 2 (External) & Master 3 (Internal only) */
- 	struct cx231xx_i2c i2c_bus[3];
-+	struct i2c_mux_core *muxc;
- 	struct i2c_adapter *i2c_mux_adap[2];
- 
- 	unsigned int xc_fw_load_done:1;
-@@ -760,8 +761,9 @@ int cx231xx_reset_analog_tuner(struct cx231xx *dev);
- void cx231xx_do_i2c_scan(struct cx231xx *dev, int i2c_port);
- int cx231xx_i2c_register(struct cx231xx_i2c *bus);
- int cx231xx_i2c_unregister(struct cx231xx_i2c *bus);
-+int cx231xx_i2c_mux_create(struct cx231xx *dev);
- int cx231xx_i2c_mux_register(struct cx231xx *dev, int mux_no);
--void cx231xx_i2c_mux_unregister(struct cx231xx *dev, int mux_no);
-+void cx231xx_i2c_mux_unregister(struct cx231xx *dev);
- struct i2c_adapter *cx231xx_get_i2c_adap(struct cx231xx *dev, int i2c_port);
- 
- /* Internal block control functions */
++	.vidioc_dv_timings_cap		= rvin_dv_timings_cap,
++	.vidioc_enum_dv_timings		= rvin_enum_dv_timings,
++	.vidioc_g_dv_timings		= rvin_g_dv_timings,
++	.vidioc_s_dv_timings		= rvin_s_dv_timings,
++	.vidioc_query_dv_timings	= rvin_query_dv_timings,
++
+ 	.vidioc_querystd		= rvin_querystd,
+ 	.vidioc_g_std			= rvin_g_std,
+ 	.vidioc_s_std			= rvin_s_std,
 -- 
-2.1.4
+2.7.4
 
