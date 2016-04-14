@@ -1,152 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:47961 "EHLO smtp1.goneo.de"
+Received: from lists.s-osg.org ([54.187.51.154]:33695 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750849AbcDRJub convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2016 05:50:31 -0400
+	id S1752645AbcDNX7m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Apr 2016 19:59:42 -0400
+Subject: Re: tvp5150 regression after commit 9f924169c035
+To: Tony Lindgren <tony@atomide.com>
+References: <20160212224018.GZ3500@atomide.com>
+ <56BE65F0.8040600@osg.samsung.com> <20160212234623.GB3500@atomide.com>
+ <56BE993B.3010804@osg.samsung.com> <20160412223254.GK1526@katana>
+ <570ECAB0.4050107@osg.samsung.com> <20160414111257.GG1533@katana>
+ <570F9DF1.3070700@osg.samsung.com> <20160414141945.GA1539@katana>
+ <570FA8D6.5070308@osg.samsung.com> <20160414151244.GM5973@atomide.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>,
+	Enric Balletbo i Serra <eballetbo@gmail.com>,
+	=?UTF-8?Q?Agust=c3=ad_Fontquerni?= <af@iseebcn.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <57102EE3.3020707@osg.samsung.com>
+Date: Thu, 14 Apr 2016 19:59:31 -0400
+MIME-Version: 1.0
+In-Reply-To: <20160414151244.GM5973@atomide.com>
 Content-Type: text/plain; charset=windows-1252
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: Kernel docs: muddying the waters a bit
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160412094620.4fbf05c0@lwn.net>
-Date: Mon, 18 Apr 2016 11:49:07 +0200
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jani Nikula <jani.nikula@intel.com>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <2F8742C2-A90A-4CC3-BCE0-937E129D3D59@darmarit.de>
-References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com> <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan> <86egbrm9hw.fsf@hiro.keithp.com> <1457076530.13171.13.camel@winder.org.uk> <CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com> <87a8m9qoy8.fsf@intel.com> <20160308082948.4e2e0f82@recife.lan> <CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com> <20160308103922.48d87d9d@recife.lan> <20160308123921.6f2248ab@recife.lan> <20160309182709.7ab1e5db@recife.lan> <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net>
-To: Jonathan Corbet <corbet@lwn.net>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jonahtan,
+Hello Tony,
 
-Am 12.04.2016 um 17:46 schrieb Jonathan Corbet <corbet@lwn.net>:
-
-> On Fri, 8 Apr 2016 17:12:27 +0200
-> Markus Heiser <markus.heiser@darmarit.de> wrote:
+On 04/14/2016 11:12 AM, Tony Lindgren wrote:
+> Hi,
 > 
->> motivated by this MT, I implemented a toolchain to migrate the kernel’s 
->> DocBook XML documentation to reST markup. 
->> 
->> It converts 99% of the docs well ... to gain an impression how 
->> kernel-docs could benefit from, visit my sphkerneldoc project page
->> on github:
->> 
->>  http://return42.github.io/sphkerneldoc/
+> * Javier Martinez Canillas <javier@osg.samsung.com> [160414 07:28]:
+>> Hello Wofram,
+>>
+>> On 04/14/2016 10:19 AM, Wolfram Sang wrote:
+>>>
+>>>> Yes, I also wonder why I'm the only one facing this issue... maybe no one
+>>>> else is using the tvp5150 driver on an OMAP board with mainline?
+>>>
+>>> I wonder why it only affects tvp5150. I don't see the connection yet.
+>>>
+>>
+>> Yes, me neither. All other I2C devices are working properly on this board.
+>>
+>> The only thing I can think, is that the tvp5150 needs a reset sequence in
+>> order to be operative. It basically toggles two pins in the chip, this is
+>> done in tvp5150_init() [0] and is needed before accessing I2C registers.
+>>
+>> Maybe runtime pm has an effect on this and the chip is not reset correctly?
 > 
-> So I've obviously been pretty quiet on this recently.  Apologies...I've
-> been dealing with an extended death-in-the-family experience, and there is
-> still a fair amount of cleanup to be done.
-> 
-> Looking quickly at this work, it seems similar to the results I got.  But
-> there's a lot of code there that came from somewhere?
+> Is this with omap3 and does tvp5150 have a reset GPIO pin?
+>
 
->From me? ... except the kernel-doc script which is a fork from your 
-
-  git://git.lwn.net/linux.git doc/sphinx
-
-
->  I'd put together a
-> fairly simple conversion using pandoc and a couple of short sed scripts;
-> is there a reason for a more complex solution?
-
-It depends. If you have a simple DocBook with less various markup, maybe not.
-May you want to read my remarks about migration tools and especially pandoc:
-
-* https://return42.github.io/sphkerneldoc/articles/dbtools.html#remarks-on-pandoc
-
-A few more words about, what I have done:
-
-I wrote a lib of XML filters which might be also usefully in other
-migration projects (dbxml). 
-
-* https://github.com/return42/sphkerneldoc/blob/master/scripts/dbxml.py
-
-It uses a xml-parser, pandoc, pandoc-filters and regular expressions. Because
-I did not implemented a whole converter, I hacked around pandoc. Thats why
-conversion is done in several steps:
-
-1. copy xml file(s) to a cache space
-
-2. substitude unsolved internal and external entities
-
-3. filter all xml files
-
-   * run custom hooks on every node 
-
-   * apply filters on every node and inject reST into the XML-tree where pandoc fails.
-     https://github.com/return42/sphkerneldoc/blob/master/scripts/dbxml.py#L515
-
-4. convert intermediary XML result with pandoc to json (needed by pandoc filters)
-
-5. apply pandoc-filter and clean up the injected reST markup from step3
-
-6. convert filtered json to reST
-
-7. fix the produce reST with regular expression
-
-... the last step is similar to your sed scripts.
-
-
-And I wrote a commandline Interface to use this lib (see func db2rst):
-
-* https://github.com/return42/sphkerneldoc/blob/master/scripts/dbtools.py#L146
+Yes, it's a DM3730 (OMAP3) and yes the tvp5150 (actually it's a tvp5151) has
+a reset pin that has to be toggled, along with a power-down pin for the chip
+to be in an operative state before accessing the I2C registers. That is the
+power/reset sequence I mentioned before.
  
-With this db2rst all kernel DB-XML books could be migrated, except the linux-tv
-book, which has much more complexity. For this, there is a separated commandline
-called media2rst
+> If so, you could be hitting the GPIO errata where a glitch can happen
+> when restoring the GPIO state coming back from off mode in idle. This
+> happes for GPIO pins that are not in GPIO bank1 and have an external
+> pull down resistor on the line.
+>
 
-* https://github.com/return42/sphkerneldoc/blob/master/scripts/dbtools.py#L107
+The GPIO lines connected to these pins are:
 
-The media2rst needs several special handlings, which is implemented in 
-hooks (the dbxml interface method)
+GPIO126 (bank4 pin 30) -> tvp5150 power-down pin
+GPIO167 (bank6 pin 7)  -> tvp5150 reset pin
 
-* https://github.com/return42/sphkerneldoc/blob/master/scripts/media.py
+Neither are in GPIO bank1 so they could be affected by the errata you
+mention but there isn't external pull down (or up) resistors on these
+lines AFAICT by looking at the board schematics. I've added to the cc
+list to other people that are familiar with the board in case I missed
+something.
 
-Summarize, why should one prefer this tools over pandoc + sed?
+> The short term workaround is to mux the reset pin to use the internal
+> pulls by using PIN_INPUT_PULLUP | MUX_MODE7, or depending on the direction,
+> PIN_INPUT_PULLDOWN | MUX_MODE7.
+>
 
-* Pandoc coverage is less on reading and writing, this is where 
-  dbxml comes into play
+I guess you meant MUX_MODE4 here since the pin has to be in GPIO mode?
 
-  - reading DocBook: 
-    https://github.com/jgm/pandoc/blob/master/src/Text/Pandoc/Readers/DocBook.hs#L23
-  
-  - writing reST has many bugs and leaks 
-    (you fixed some of them with sed)
+Also, I wonder how the issue could be related to the GPIO controller
+since is when enabling runtime PM for the I2C controller that things
+fail. IOW, disabling runtime PM for the I2C adapter shouldn't make
+things to work if the problem was caused by the mentioned GPIO errata.
 
-* Pandoc does not support external entities (linux-tv), covered by dbxml
+In any case, I've tried to use the internal pulls as you suggested but
+that didn't solve the issue.
 
-* dbxml brings the ability to chunk one large XML book into small 
-  reST chunks e.g. kernel-hacking book:
-
-    https://github.com/return42/sphkerneldoc/tree/master/doc/books/kernel-hacking
-
-* dbxml lets you manipulate the XML source before you convert it to reST
-
-  this might helpfull e.g. if you have to convert single-column informal-tables 
-  to lists or other things ... in short; dbxml and it's hooks are the key to hack
-  everything you need in a full automated DocBook-->reST migration workflow.
-
-
---Markus--
-
-> Thanks for looking into this, anyway; I hope to be able to focus more on
-> it shortly.
+> The long term workaround is tho have gpio-omap.c do this dynamically
+> with pinctrl-single.c using gpio-ranges, but that's going to take a
+> while.. You can search for erratum 1.158 for more info.
 > 
-> jon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> 
+> Tony
+> 
+>> [0]: https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/drivers/media/i2c/tvp5150.c#n1311
 
+I'm really out of ideas on this, I don't think that Wolfram change has
+to be reverted since it seems I'm the only one facing this issue and
+also the DTS for the board I'm using is not even in mainline yet.
+
+I'm waiting for some discussions about the Media Controller input
+connectors DT bindings to settle before posting the board DTS patches.
+
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
