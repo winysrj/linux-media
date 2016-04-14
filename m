@@ -1,74 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:41881 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751775AbcDARld (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56914 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756157AbcDNORb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Apr 2016 13:41:33 -0400
-Subject: Re: [PATCH v2] [media] tpg: Export the tpg code from vivid as a
- module
-To: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	mchehab@osg.samsung.com
-References: <1459531093-7071-1-git-send-email-helen.koike@collabora.co.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <56FEB2C4.6060308@xs4all.nl>
-Date: Fri, 1 Apr 2016 10:41:24 -0700
+	Thu, 14 Apr 2016 10:17:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Songjun Wu <songjun.wu@atmel.com>
+Cc: g.liakhovetski@gmx.de, nicolas.ferre@atmel.com,
+	linux-arm-kernel@lists.infradead.org,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	devicetree@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Gerd Hoffmann <kraxel@redhat.com>,
+	Benoit Parrot <bparrot@ti.com>,
+	Kumar Gala <galak@codeaurora.org>,
+	linux-kernel@vger.kernel.org,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Richard =?ISO-8859-1?Q?R=F6jfors?= <richard@puffinpack.se>,
+	Mark Rutland <mark.rutland@arm.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/2] [media] atmel-isc: add driver for Atmel ISC
+Date: Thu, 14 Apr 2016 17:17:37 +0300
+Message-ID: <3857132.BKDS7IHZFq@avalon>
+In-Reply-To: <1460533460-32336-1-git-send-email-songjun.wu@atmel.com>
+References: <1460533460-32336-1-git-send-email-songjun.wu@atmel.com>
 MIME-Version: 1.0
-In-Reply-To: <1459531093-7071-1-git-send-email-helen.koike@collabora.co.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Helen,
+Hello Songjun,
 
-On 04/01/2016 10:18 AM, Helen Mae Koike Fornazier wrote:
-> The test pattern generator will be used by other drivers as the virtual
-> media controller (vimc)
->
-> Signed-off-by: Helen Mae Koike Fornazier <helen.koike@collabora.co.uk>
-> ---
->
-> The patch is based on 'media/master' branch and available at
->          https://github.com/helen-fornazier/opw-staging tpg/review/vivid
->
-> Changes since last version:
-> 	* module name: tpg -> video-tpg
-> 	* header ifdef/define:
-> 		_TPG_H_ -> _MEDIA_TPG_H_
-> 		_TPG_COLORS_H_ -> _MEDIA_TPG_COLORS_H_
->
->   drivers/media/platform/Kconfig                  |    2 +
->   drivers/media/platform/Makefile                 |    2 +
->   drivers/media/platform/tpg/Kconfig              |    5 +
->   drivers/media/platform/tpg/Makefile             |    3 +
->   drivers/media/platform/tpg/tpg-colors.c         | 1415 ++++++++++++++
->   drivers/media/platform/tpg/tpg-core.c           | 2334 +++++++++++++++++++++++
->   drivers/media/platform/vivid/Kconfig            |    1 +
->   drivers/media/platform/vivid/Makefile           |    2 +-
->   drivers/media/platform/vivid/vivid-core.h       |    2 +-
->   drivers/media/platform/vivid/vivid-tpg-colors.c | 1416 --------------
->   drivers/media/platform/vivid/vivid-tpg-colors.h |   68 -
->   drivers/media/platform/vivid/vivid-tpg.c        | 2314 ----------------------
->   drivers/media/platform/vivid/vivid-tpg.h        |  598 ------
->   include/media/tpg-colors.h                      |   68 +
->   include/media/tpg.h                             |  597 ++++++
->   15 files changed, 4429 insertions(+), 4398 deletions(-)
->   create mode 100644 drivers/media/platform/tpg/Kconfig
->   create mode 100644 drivers/media/platform/tpg/Makefile
->   create mode 100644 drivers/media/platform/tpg/tpg-colors.c
->   create mode 100644 drivers/media/platform/tpg/tpg-core.c
->   delete mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.c
->   delete mode 100644 drivers/media/platform/vivid/vivid-tpg-colors.h
->   delete mode 100644 drivers/media/platform/vivid/vivid-tpg.c
->   delete mode 100644 drivers/media/platform/vivid/vivid-tpg.h
->   create mode 100644 include/media/tpg-colors.h
->   create mode 100644 include/media/tpg.h
+On Wednesday 13 Apr 2016 15:44:18 Songjun Wu wrote:
+> The Image Sensor Controller driver includes two parts.
+> 1) Driver code to implement the ISC function.
+> 2) Device tree binding documentation, it describes how
+>    to add the ISC in device tree.
+> 
+> 
+> Songjun Wu (2):
+>   [media] atmel-isc: add the Image Sensor Controller code
+>   [media] atmel-isc: DT binding for Image Sensor Controller driver
 
-I think this is a good idea, but I would move the module to drivers/media/common and rename it v4l2-tpg.
+I can't see the second patch in the linux-media mailing list archives, could 
+you please resend it ?
 
-It is currently closely tied to V4L2, so v4l2-tpg seems a better choice than just plain tpg.
+>  .../devicetree/bindings/media/atmel-isc.txt        |   84 ++
+>  drivers/media/platform/Kconfig                     |    1 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/atmel/Kconfig               |    9 +
+>  drivers/media/platform/atmel/Makefile              |    3 +
+>  drivers/media/platform/atmel/atmel-isc-regs.h      |  280 ++++
+>  drivers/media/platform/atmel/atmel-isc.c           | 1537 ++++++++++++++++
+>  7 files changed, 1916 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
+>  create mode 100644 drivers/media/platform/atmel/Kconfig
+>  create mode 100644 drivers/media/platform/atmel/Makefile
+>  create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
+>  create mode 100644 drivers/media/platform/atmel/atmel-isc.c
 
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
