@@ -1,65 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:50059 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754470AbcDDFQg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Apr 2016 01:16:36 -0400
-Date: Mon, 4 Apr 2016 00:16:28 -0500
-From: Rob Herring <robh@kernel.org>
-To: Peter Rosin <peda@lysator.liu.se>
-Cc: linux-kernel@vger.kernel.org, Peter Rosin <peda@axentia.se>,
-	Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:10551 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753549AbcDNJFk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Apr 2016 05:05:40 -0400
+Subject: Re: [PATCH] [media] exynos-gsc: remove an always false condition
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <26a7ed9c18193dc7a3dfba33e3c711822f4bdd29.1460575950.git.mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kukjin Kim <kgene@kernel.org>,
 	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org
-Subject: Re: [PATCH v6 14/24] of/unittest: convert to use an explicit i2c mux
- core
-Message-ID: <20160404051628.GO17806@rob-hp-laptop>
-References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
- <1459673574-11440-15-git-send-email-peda@lysator.liu.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1459673574-11440-15-git-send-email-peda@lysator.liu.se>
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <570F5D4D.9040207@samsung.com>
+Date: Thu, 14 Apr 2016 11:05:17 +0200
+MIME-version: 1.0
+In-reply-to: <26a7ed9c18193dc7a3dfba33e3c711822f4bdd29.1460575950.git.mchehab@osg.samsung.com>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 03, 2016 at 10:52:44AM +0200, Peter Rosin wrote:
-> From: Peter Rosin <peda@axentia.se>
+On 04/13/2016 09:32 PM, Mauro Carvalho Chehab wrote:
+> As reported by smatch:
+> drivers/media/platform/exynos-gsc/gsc-core.c:1073 gsc_probe() warn: impossible condition '(gsc->id < 0) => (0-65535 < 0)'
+> drivers/media/platform/exynos-gsc/gsc-core.c: In function 'gsc_probe':
+> drivers/media/platform/exynos-gsc/gsc-core.c:1073:51: warning: comparison is always false due to limited range of data type [-Wtype-limits]
+>   if (gsc->id >= drv_data->num_entities || gsc->id < 0) {
+>                                                    ^
 > 
-> Allocate an explicit i2c mux core to handle parent and child adapters
-> etc. Update the select op to be in terms of the i2c mux core instead
-> of the child adapter.
+> gsc->id is an u16, so it can never be a negative number. So,
+> remove the always false condition.
 > 
-> Signed-off-by: Peter Rosin <peda@axentia.se>
-> ---
->  drivers/of/unittest.c | 40 +++++++++++++++-------------------------
->  1 file changed, 15 insertions(+), 25 deletions(-)
+> Fixes: c1ac057173ba "[media] exynos-gsc: remove non-device-tree init code"
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I assume you ran the unittest...
+Thanks for fixing this.
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Acked-by: Rob Herring <robh@kernel.org>
+-- 
+Regards,
+Sylwester
