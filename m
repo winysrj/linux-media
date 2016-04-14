@@ -1,87 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:58462 "EHLO
-	nasmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753567AbcDSKDA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2016 06:03:00 -0400
-Subject: Re: [PATCH 1/2] [media] atmel-isc: add the Image Sensor Controller
- code
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1460533460-32336-1-git-send-email-songjun.wu@atmel.com>
- <1460533460-32336-2-git-send-email-songjun.wu@atmel.com>
- <81160604.beJHM8QlLS@avalon>
-CC: <g.liakhovetski@gmx.de>, <nicolas.ferre@atmel.com>,
-	<linux-arm-kernel@lists.infradead.org>,
+Received: from lists.s-osg.org ([54.187.51.154]:57012 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755273AbcDNO1s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Apr 2016 10:27:48 -0400
+Subject: Re: tvp5150 regression after commit 9f924169c035
+To: Wolfram Sang <wsa@the-dreams.de>
+References: <20160212221352.GY3500@atomide.com>
+ <56BE5C97.9070607@osg.samsung.com> <20160212224018.GZ3500@atomide.com>
+ <56BE65F0.8040600@osg.samsung.com> <20160212234623.GB3500@atomide.com>
+ <56BE993B.3010804@osg.samsung.com> <20160412223254.GK1526@katana>
+ <570ECAB0.4050107@osg.samsung.com> <20160414111257.GG1533@katana>
+ <570F9DF1.3070700@osg.samsung.com> <20160414141945.GA1539@katana>
+Cc: Tony Lindgren <tony@atomide.com>, linux-i2c@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	"Benoit Parrot" <bparrot@ti.com>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-From: "Wu, Songjun" <songjun.wu@atmel.com>
-Message-ID: <57160246.2060804@atmel.com>
-Date: Tue, 19 Apr 2016 18:02:46 +0800
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <570FA8D6.5070308@osg.samsung.com>
+Date: Thu, 14 Apr 2016 10:27:34 -0400
 MIME-Version: 1.0
-In-Reply-To: <81160604.beJHM8QlLS@avalon>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+In-Reply-To: <20160414141945.GA1539@katana>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Wofram,
 
+On 04/14/2016 10:19 AM, Wolfram Sang wrote:
+> 
+>> Yes, I also wonder why I'm the only one facing this issue... maybe no one
+>> else is using the tvp5150 driver on an OMAP board with mainline?
+> 
+> I wonder why it only affects tvp5150. I don't see the connection yet.
+> 
 
-On 4/15/2016 00:21, Laurent Pinchart wrote:
->> >+		return -EINVAL;
->> >+
->> >+	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
->> >+	if (!parent_names)
->> >+		return -ENOMEM;
->> >+
->> >+	of_clk_parent_fill(np, parent_names, num_parents);
->> >+
->> >+	init.parent_names	= parent_names;
->> >+	init.num_parents	= num_parents;
->> >+	init.name		= clk_name;
->> >+	init.ops		= &isc_clk_ops;
->> >+	init.flags		= CLK_SET_RATE_GATE | CLK_SET_PARENT_GATE;
->> >+
->> >+	isc_clk = &isc->isc_clks[id];
->> >+	isc_clk->hw.init	= &init;
->> >+	isc_clk->regmap		= regmap;
->> >+	isc_clk->lock		= lock;
->> >+	isc_clk->id		= id;
->> >+
->> >+	isc_clk->clk = clk_register(NULL, &isc_clk->hw);
->> >+	if (!IS_ERR(isc_clk->clk))
->> >+		of_clk_add_provider(np, of_clk_src_simple_get, isc_clk->clk);
->> >+	else {
->> >+		dev_err(isc->dev, "%s: clock register fail\n", clk_name);
->> >+		ret = PTR_ERR(isc_clk->clk);
->> >+		goto free_parent_names;
->> >+	}
->> >+
->> >+free_parent_names:
->> >+	kfree(parent_names);
->> >+	return ret;
->> >+}
->> >+
->> >+static int isc_clk_init(struct isc_device *isc)
->> >+{
->> >+	struct device_node *np = of_get_child_by_name(isc->dev->of_node,
->> >+						      "clk_in_isc");
-> Do you really need the clk_in_isc DT node ? I would have assumed that the
-> clock topology inside the ISC is fixed, and that it would be enough to just
-> specify the three parent clocks in the ISC DT node and create the two internal
-> clocks in the driver without needing a DT description.
->
-Hi Laurent,
+Yes, me neither. All other I2C devices are working properly on this board.
 
-I think more, and the clk_in_isc DT node should be needed. The clock 
-topology inside the ISC is fixed, but isc will provide the clock to 
-sensor, we need create the corresponding clock node int DT file, then 
-the sensor will get this clock and set the clock rate in DT file.
+The only thing I can think, is that the tvp5150 needs a reset sequence in
+order to be operative. It basically toggles two pins in the chip, this is
+done in tvp5150_init() [0] and is needed before accessing I2C registers.
 
+Maybe runtime pm has an effect on this and the chip is not reset correctly?
+
+[0]: https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/drivers/media/i2c/tvp5150.c#n1311
+
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
