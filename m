@@ -1,141 +1,316 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:55636 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753241AbcDVQps (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41729 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751655AbcDOH6g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 12:45:48 -0400
-Subject: Re: [PATCH] media: vb2: Fix regression on poll() for RW mode
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <1461230116-6909-1-git-send-email-ricardo.ribalda@gmail.com>
- <5719EC8D.2000500@xs4all.nl> <20160422093141.7f9191bc@recife.lan>
- <571A1AF3.3040507@xs4all.nl> <20160422112136.06afe7c3@recife.lan>
- <571A35C0.8020900@xs4all.nl> <20160422114853.5bd48836@recife.lan>
- <571A3B80.7090402@xs4all.nl> <20160422122157.32f2e688@recife.lan>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Junghak Sung <jh1009.sung@samsung.com>, stable@vger.kernel.org
+	Fri, 15 Apr 2016 03:58:36 -0400
+Subject: Re: [PATCH 1/2] [media] media-device: get rid of the spinlock
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	no To-header on input <""@pop.xs4all.nl>
+References: <cf3f7fec1241c22f49cbe8205c2b1129eb4bb3d7.1459950922.git.mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <571A5535.4020704@xs4all.nl>
-Date: Fri, 22 Apr 2016 18:45:41 +0200
+Message-ID: <57109F20.8050104@xs4all.nl>
+Date: Fri, 15 Apr 2016 09:58:24 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160422122157.32f2e688@recife.lan>
+In-Reply-To: <cf3f7fec1241c22f49cbe8205c2b1129eb4bb3d7.1459950922.git.mchehab@osg.samsung.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/22/2016 05:21 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 22 Apr 2016 16:56:00 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 04/06/2016 03:55 PM, Mauro Carvalho Chehab wrote:
+> Right now, the lock schema for media_device struct is messy,
+> since sometimes, it is protected via a spin lock, while, for
+> media graph traversal, it is protected by a mutex.
 > 
->> On 04/22/2016 04:48 PM, Mauro Carvalho Chehab wrote:
->>> Em Fri, 22 Apr 2016 16:31:28 +0200
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>   
->>>> On 04/22/2016 04:21 PM, Mauro Carvalho Chehab wrote:  
->>>>> Em Fri, 22 Apr 2016 14:37:07 +0200
->>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>>>     
->>>>>> On 04/22/2016 02:31 PM, Mauro Carvalho Chehab wrote:    
->>>>>>> Em Fri, 22 Apr 2016 11:19:09 +0200
->>>>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>>>>>       
->>>>>>>> Hi Ricardo,
->>>>>>>>
->>>>>>>> On 04/21/2016 11:15 AM, Ricardo Ribalda Delgado wrote:      
->>>>>>>>> When using a device is read/write mode, vb2 does not handle properly the
->>>>>>>>> first select/poll operation. It allways return POLLERR.
->>>>>>>>>
->>>>>>>>> The reason for this is that when this code has been refactored, some of
->>>>>>>>> the operations have changed their order, and now fileio emulator is not
->>>>>>>>> started by poll, due to a previous check.
->>>>>>>>>
->>>>>>>>> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
->>>>>>>>> Cc: Junghak Sung <jh1009.sung@samsung.com>
->>>>>>>>> Cc: stable@vger.kernel.org
->>>>>>>>> Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
->>>>>>>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
->>>>>>>>> ---
->>>>>>>>>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++++++
->>>>>>>>>  drivers/media/v4l2-core/videobuf2-v4l2.c | 8 --------
->>>>>>>>>  2 files changed, 8 insertions(+), 8 deletions(-)
->>>>>>>>>
->>>>>>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->>>>>>>>> index 5d016f496e0e..199c65dbe330 100644
->>>>>>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>>>>>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>>>>>>>> @@ -2298,6 +2298,14 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
->>>>>>>>>  		return POLLERR;
->>>>>>>>>  
->>>>>>>>>  	/*
->>>>>>>>> +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
->>>>>>>>> +	 * return POLLERR as well. This only affects capture queues, output
->>>>>>>>> +	 * queues will always initialize waiting_for_buffers to false.
->>>>>>>>> +	 */
->>>>>>>>> +	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
->>>>>>>>> +		return POLLERR;        
->>>>>>>>
->>>>>>>> The problem I have with this is that this should be specific to V4L2. The only
->>>>>>>> reason we do this is that we had to stay backwards compatible with vb1.
->>>>>>>>
->>>>>>>> This is the reason this code was placed in videobuf2-v4l2.c. But you are correct
->>>>>>>> that this causes a regression, and I see no other choice but to put it in core.c.
->>>>>>>>
->>>>>>>> That said, I would still only honor this when called from v4l2, so I suggest that
->>>>>>>> a new flag 'check_waiting_for_buffers' is added that is only set in vb2_queue_init
->>>>>>>> in videobuf2-v4l2.c.
->>>>>>>>
->>>>>>>> So the test above becomes:
->>>>>>>>
->>>>>>>> 	if (q->check_waiting_for_buffers && q->waiting_for_buffers &&
->>>>>>>> 	    (req_events & (POLLIN | POLLRDNORM)))
->>>>>>>>
->>>>>>>> It's not ideal, but at least this keeps this v4l2 specific.      
->>>>>>>
->>>>>>> I don't like the above approach, for two reasons:
->>>>>>>
->>>>>>> 1) it is not obvious that this is V4L2 specific from the code;      
->>>>>>
->>>>>> s/check_waiting_for_buffers/v4l2_needs_to_wait_for_buffers/    
->>>>>
->>>>> Better, but still hell of a hack. Maybe we could add a quirks
->>>>> flag and add a flag like:
->>>>> 	VB2_FLAG_ENABLE_POLLERR_IF_WAITING_BUFFERS_AND_NO_QBUF
->>>>> (or some better naming, I'm not inspired today...)
->>>>>
->>>>> Of course, such quirk should be properly documented.    
->>>>
->>>> How about 'quirk_poll_must_check_waiting_for_buffers'? Something with 'quirk' in the
->>>> name is a good idea.  
->>>
->>> works for me, provided that we add the field as a flag. So it would be like:
->>>
->>> #define QUIRK_POLL_MUST_CHECK_WAITING_FOR_BUFFERS 0
->>>
->>>  	if (test_bit(q->quirk, QUIRK_POLL_MUST_CHECK_WAITING_FOR_BUFFERS) &&
->>> 	    q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))  
->>
->> Why should it be a flag? What is wrong with a bitfield?
->>
->> Just curious what the reasoning is for that. I don't see any obvious
->> advantage of a flag over a bitfield.
+> Solve this conflict by always using a mutex.
 > 
-> Huh? Flags are implemented as bitfields. See the above code: it is
-> using test_bit() for the new q->quirk flags/bitfield.
+> As a side effect, this prevents a bug when the media notifiers
+> is called at atomic context, while running the notifier callback:
+> 
+>  BUG: sleeping function called from invalid context at mm/slub.c:1289
+>  in_atomic(): 1, irqs_disabled(): 0, pid: 3479, name: modprobe
+>  4 locks held by modprobe/3479:
+>  #0:  (&dev->mutex){......}, at: [<ffffffff81ce8933>] __driver_attach+0xa3/0x160
+>  #1:  (&dev->mutex){......}, at: [<ffffffff81ce8941>] __driver_attach+0xb1/0x160
+>  #2:  (register_mutex#5){+.+.+.}, at: [<ffffffffa10596c7>] usb_audio_probe+0x257/0x1c90 [snd_usb_audio]
+>  #3:  (&(&mdev->lock)->rlock){+.+.+.}, at: [<ffffffffa0e6051b>] media_device_register_entity+0x1cb/0x700 [media]
+>  CPU: 2 PID: 3479 Comm: modprobe Not tainted 4.5.0-rc3+ #49
+>  Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+>  0000000000000000 ffff8803b3f6f288 ffffffff81933901 ffff8803c4bae000
+>  ffff8803c4bae5c8 ffff8803b3f6f2b0 ffffffff811c6af5 ffff8803c4bae000
+>  ffffffff8285d7f6 0000000000000509 ffff8803b3f6f2f0 ffffffff811c6ce5
+>  Call Trace:
+>  [<ffffffff81933901>] dump_stack+0x85/0xc4
+>  [<ffffffff811c6af5>] ___might_sleep+0x245/0x3a0
+>  [<ffffffff811c6ce5>] __might_sleep+0x95/0x1a0
+>  [<ffffffff8155aade>] kmem_cache_alloc_trace+0x20e/0x300
+>  [<ffffffffa0e66e3d>] ? media_add_link+0x4d/0x140 [media]
+>  [<ffffffffa0e66e3d>] media_add_link+0x4d/0x140 [media]
+>  [<ffffffffa0e69931>] media_create_pad_link+0xa1/0x600 [media]
+>  [<ffffffffa0fe11b3>] au0828_media_graph_notify+0x173/0x360 [au0828]
+>  [<ffffffffa0e68a6a>] ? media_gobj_create+0x1ba/0x480 [media]
+>  [<ffffffffa0e606fb>] media_device_register_entity+0x3ab/0x700 [media]
+> 
+> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-I mean C bitfields like this:
-
-        unsigned                        fileio_read_once:1;
-        unsigned                        fileio_write_immediately:1;
-        unsigned                        allow_zero_bytesused:1;
-
-This is already used in struct vb2_queue, so my proposal would be to add:
-
-	unsigned			quirk_poll_must_check_waiting_for_buffers:1;
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
 
 	Hans
+
+> ---
+>  drivers/media/media-device.c | 39 +++++++++++++--------------------------
+>  drivers/media/media-entity.c | 16 ++++++++--------
+>  include/media/media-device.h |  6 +-----
+>  3 files changed, 22 insertions(+), 39 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 6e43c95629ea..898a3cf814ba 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -90,18 +90,13 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+>  
+>  	id &= ~MEDIA_ENT_ID_FLAG_NEXT;
+>  
+> -	spin_lock(&mdev->lock);
+> -
+>  	media_device_for_each_entity(entity, mdev) {
+>  		if (((media_entity_id(entity) == id) && !next) ||
+>  		    ((media_entity_id(entity) > id) && next)) {
+> -			spin_unlock(&mdev->lock);
+>  			return entity;
+>  		}
+>  	}
+>  
+> -	spin_unlock(&mdev->lock);
+> -
+>  	return NULL;
+>  }
+>  
+> @@ -431,6 +426,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  	struct media_device *dev = to_media_device(devnode);
+>  	long ret;
+>  
+> +	mutex_lock(&dev->graph_mutex);
+>  	switch (cmd) {
+>  	case MEDIA_IOC_DEVICE_INFO:
+>  		ret = media_device_get_info(dev,
+> @@ -443,29 +439,24 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  		break;
+>  
+>  	case MEDIA_IOC_ENUM_LINKS:
+> -		mutex_lock(&dev->graph_mutex);
+>  		ret = media_device_enum_links(dev,
+>  				(struct media_links_enum __user *)arg);
+> -		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+>  	case MEDIA_IOC_SETUP_LINK:
+> -		mutex_lock(&dev->graph_mutex);
+>  		ret = media_device_setup_link(dev,
+>  				(struct media_link_desc __user *)arg);
+> -		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+>  	case MEDIA_IOC_G_TOPOLOGY:
+> -		mutex_lock(&dev->graph_mutex);
+>  		ret = media_device_get_topology(dev,
+>  				(struct media_v2_topology __user *)arg);
+> -		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+>  	default:
+>  		ret = -ENOIOCTLCMD;
+>  	}
+> +	mutex_unlock(&dev->graph_mutex);
+>  
+>  	return ret;
+>  }
+> @@ -590,12 +581,12 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+>  	if (!ida_pre_get(&mdev->entity_internal_idx, GFP_KERNEL))
+>  		return -ENOMEM;
+>  
+> -	spin_lock(&mdev->lock);
+> +	mutex_lock(&mdev->graph_mutex);
+>  
+>  	ret = ida_get_new_above(&mdev->entity_internal_idx, 1,
+>  				&entity->internal_idx);
+>  	if (ret < 0) {
+> -		spin_unlock(&mdev->lock);
+> +		mutex_unlock(&mdev->graph_mutex);
+>  		return ret;
+>  	}
+>  
+> @@ -615,9 +606,6 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+>  		(notify)->notify(entity, notify->notify_data);
+>  	}
+>  
+> -	spin_unlock(&mdev->lock);
+> -
+> -	mutex_lock(&mdev->graph_mutex);
+>  	if (mdev->entity_internal_idx_max
+>  	    >= mdev->pm_count_walk.ent_enum.idx_max) {
+>  		struct media_entity_graph new = { .top = 0 };
+> @@ -680,9 +668,9 @@ void media_device_unregister_entity(struct media_entity *entity)
+>  	if (mdev == NULL)
+>  		return;
+>  
+> -	spin_lock(&mdev->lock);
+> +	mutex_lock(&mdev->graph_mutex);
+>  	__media_device_unregister_entity(entity);
+> -	spin_unlock(&mdev->lock);
+> +	mutex_unlock(&mdev->graph_mutex);
+>  }
+>  EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+>  
+> @@ -703,7 +691,6 @@ void media_device_init(struct media_device *mdev)
+>  	INIT_LIST_HEAD(&mdev->pads);
+>  	INIT_LIST_HEAD(&mdev->links);
+>  	INIT_LIST_HEAD(&mdev->entity_notify);
+> -	spin_lock_init(&mdev->lock);
+>  	mutex_init(&mdev->graph_mutex);
+>  	ida_init(&mdev->entity_internal_idx);
+>  
+> @@ -752,9 +739,9 @@ EXPORT_SYMBOL_GPL(__media_device_register);
+>  int __must_check media_device_register_entity_notify(struct media_device *mdev,
+>  					struct media_entity_notify *nptr)
+>  {
+> -	spin_lock(&mdev->lock);
+> +	mutex_lock(&mdev->graph_mutex);
+>  	list_add_tail(&nptr->list, &mdev->entity_notify);
+> -	spin_unlock(&mdev->lock);
+> +	mutex_unlock(&mdev->graph_mutex);
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(media_device_register_entity_notify);
+> @@ -771,9 +758,9 @@ static void __media_device_unregister_entity_notify(struct media_device *mdev,
+>  void media_device_unregister_entity_notify(struct media_device *mdev,
+>  					struct media_entity_notify *nptr)
+>  {
+> -	spin_lock(&mdev->lock);
+> +	mutex_lock(&mdev->graph_mutex);
+>  	__media_device_unregister_entity_notify(mdev, nptr);
+> -	spin_unlock(&mdev->lock);
+> +	mutex_unlock(&mdev->graph_mutex);
+>  }
+>  EXPORT_SYMBOL_GPL(media_device_unregister_entity_notify);
+>  
+> @@ -787,11 +774,11 @@ void media_device_unregister(struct media_device *mdev)
+>  	if (mdev == NULL)
+>  		return;
+>  
+> -	spin_lock(&mdev->lock);
+> +	mutex_lock(&mdev->graph_mutex);
+>  
+>  	/* Check if mdev was ever registered at all */
+>  	if (!media_devnode_is_registered(&mdev->devnode)) {
+> -		spin_unlock(&mdev->lock);
+> +		mutex_unlock(&mdev->graph_mutex);
+>  		return;
+>  	}
+>  
+> @@ -811,7 +798,7 @@ void media_device_unregister(struct media_device *mdev)
+>  		kfree(intf);
+>  	}
+>  
+> -	spin_unlock(&mdev->lock);
+> +	mutex_unlock(&mdev->graph_mutex);
+>  
+>  	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+>  	media_devnode_unregister(&mdev->devnode);
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index e95070b3a3d4..c53c1d5589a0 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -219,7 +219,7 @@ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+>  	entity->pads = pads;
+>  
+>  	if (mdev)
+> -		spin_lock(&mdev->lock);
+> +		mutex_lock(&mdev->graph_mutex);
+>  
+>  	for (i = 0; i < num_pads; i++) {
+>  		pads[i].entity = entity;
+> @@ -230,7 +230,7 @@ int media_entity_pads_init(struct media_entity *entity, u16 num_pads,
+>  	}
+>  
+>  	if (mdev)
+> -		spin_unlock(&mdev->lock);
+> +		mutex_unlock(&mdev->graph_mutex);
+>  
+>  	return 0;
+>  }
+> @@ -747,9 +747,9 @@ void media_entity_remove_links(struct media_entity *entity)
+>  	if (mdev == NULL)
+>  		return;
+>  
+> -	spin_lock(&mdev->lock);
+> +	mutex_lock(&mdev->graph_mutex);
+>  	__media_entity_remove_links(entity);
+> -	spin_unlock(&mdev->lock);
+> +	mutex_unlock(&mdev->graph_mutex);
+>  }
+>  EXPORT_SYMBOL_GPL(media_entity_remove_links);
+>  
+> @@ -951,9 +951,9 @@ void media_remove_intf_link(struct media_link *link)
+>  	if (mdev == NULL)
+>  		return;
+>  
+> -	spin_lock(&mdev->lock);
+> +	mutex_lock(&mdev->graph_mutex);
+>  	__media_remove_intf_link(link);
+> -	spin_unlock(&mdev->lock);
+> +	mutex_unlock(&mdev->graph_mutex);
+>  }
+>  EXPORT_SYMBOL_GPL(media_remove_intf_link);
+>  
+> @@ -975,8 +975,8 @@ void media_remove_intf_links(struct media_interface *intf)
+>  	if (mdev == NULL)
+>  		return;
+>  
+> -	spin_lock(&mdev->lock);
+> +	mutex_lock(&mdev->graph_mutex);
+>  	__media_remove_intf_links(intf);
+> -	spin_unlock(&mdev->lock);
+> +	mutex_unlock(&mdev->graph_mutex);
+>  }
+>  EXPORT_SYMBOL_GPL(media_remove_intf_links);
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index 07809f698464..b21ef244ad3e 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -25,7 +25,6 @@
+>  
+>  #include <linux/list.h>
+>  #include <linux/mutex.h>
+> -#include <linux/spinlock.h>
+>  
+>  #include <media/media-devnode.h>
+>  #include <media/media-entity.h>
+> @@ -304,8 +303,7 @@ struct media_entity_notify {
+>   * @pads:	List of registered pads
+>   * @links:	List of registered links
+>   * @entity_notify: List of registered entity_notify callbacks
+> - * @lock:	Entities list lock
+> - * @graph_mutex: Entities graph operation lock
+> + * @graph_mutex: Protects access to struct media_device data
+>   * @pm_count_walk: Graph walk for power state walk. Access serialised using
+>   *		   graph_mutex.
+>   *
+> @@ -371,8 +369,6 @@ struct media_device {
+>  	/* notify callback list invoked when a new entity is registered */
+>  	struct list_head entity_notify;
+>  
+> -	/* Protects the graph objects creation/removal */
+> -	spinlock_t lock;
+>  	/* Serializes graph operations. */
+>  	struct mutex graph_mutex;
+>  	struct media_entity_graph pm_count_walk;
+> 
+
