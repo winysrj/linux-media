@@ -1,712 +1,556 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:52030 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932401AbcDYMZM (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53114 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751333AbcDONET (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 08:25:12 -0400
+	Fri, 15 Apr 2016 09:04:19 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hansverk@cisco.com>,
-	Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv15 11/15] cec: adv7511: add cec support.
-Date: Mon, 25 Apr 2016 14:24:38 +0200
-Message-Id: <1461587082-48041-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCHv2 08/12] media/platform: convert drivers to use the new vb2_queue dev field
+Date: Fri, 15 Apr 2016 15:03:52 +0200
+Message-Id: <1460725436-20045-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
+References: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add CEC support to the adv7511 driver.
+Stop using alloc_ctx and just fill in the device pointer.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-[k.debski@samsung.com: Merged changes from CEC Updates commit by Hans Verkuil]
-Signed-off-by: Kamil Debski <kamil@wypas.org>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 ---
- drivers/media/i2c/Kconfig   |   9 +
- drivers/media/i2c/adv7511.c | 401 +++++++++++++++++++++++++++++++++++++++++++-
- include/media/i2c/adv7511.h |   6 +-
- 3 files changed, 403 insertions(+), 13 deletions(-)
+ drivers/media/platform/m2m-deinterlace.c        | 15 ++-------------
+ drivers/media/platform/marvell-ccic/mcam-core.c | 24 +-----------------------
+ drivers/media/platform/marvell-ccic/mcam-core.h |  2 --
+ drivers/media/platform/mx2_emmaprp.c            | 17 +++--------------
+ drivers/media/platform/omap3isp/ispvideo.c      | 12 ++----------
+ drivers/media/platform/omap3isp/ispvideo.h      |  1 -
+ drivers/media/platform/rcar_jpu.c               | 22 ++++------------------
+ drivers/media/platform/sh_veu.c                 | 17 +++--------------
+ drivers/media/platform/sh_vou.c                 | 14 ++------------
+ 9 files changed, 17 insertions(+), 107 deletions(-)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 5168454..6c2acb6 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -465,6 +465,7 @@ config VIDEO_ADV7511
- 	tristate "Analog Devices ADV7511 encoder"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
- 	select HDMI
-+	select MEDIA_CEC_EDID
- 	---help---
- 	  Support for the Analog Devices ADV7511 video encoder.
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index 7383818..15110ea 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -136,7 +136,6 @@ struct deinterlace_dev {
+ 	struct dma_chan		*dma_chan;
  
-@@ -473,6 +474,14 @@ config VIDEO_ADV7511
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called adv7511.
- 
-+config VIDEO_ADV7511_CEC
-+	bool "Enable Analog Devices ADV7511 CEC support"
-+	depends on VIDEO_ADV7511 && MEDIA_CEC
-+	default y
-+	---help---
-+	  When selected the adv7511 will support the optional
-+	  HDMI CEC feature.
-+
- config VIDEO_AD9389B
- 	tristate "Analog Devices AD9389B encoder"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index bd822f0..38a1002 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -33,6 +33,7 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-dv-timings.h>
- #include <media/i2c/adv7511.h>
-+#include <media/cec.h>
- 
- static int debug;
- module_param(debug, int, 0644);
-@@ -59,6 +60,8 @@ MODULE_LICENSE("GPL v2");
- #define ADV7511_MIN_PIXELCLOCK 20000000
- #define ADV7511_MAX_PIXELCLOCK 225000000
- 
-+#define ADV7511_MAX_ADDRS (3)
-+
- /*
- **********************************************************************
- *
-@@ -90,12 +93,20 @@ struct adv7511_state {
- 	struct v4l2_ctrl_handler hdl;
- 	int chip_revision;
- 	u8 i2c_edid_addr;
--	u8 i2c_cec_addr;
- 	u8 i2c_pktmem_addr;
-+	u8 i2c_cec_addr;
-+
-+	struct i2c_client *i2c_cec;
-+	struct cec_adapter *cec_adap;
-+	u8   cec_addr[ADV7511_MAX_ADDRS];
-+	u8   cec_valid_addrs;
-+	bool cec_enabled_adap;
-+
- 	/* Is the adv7511 powered on? */
- 	bool power_on;
- 	/* Did we receive hotplug and rx-sense signals? */
- 	bool have_monitor;
-+	bool enabled_irq;
- 	/* timings from s_dv_timings */
- 	struct v4l2_dv_timings dv_timings;
- 	u32 fmt_code;
-@@ -227,7 +238,7 @@ static int adv_smbus_read_i2c_block_data(struct i2c_client *client,
- 	return ret;
- }
- 
--static inline void adv7511_edid_rd(struct v4l2_subdev *sd, u16 len, u8 *buf)
-+static void adv7511_edid_rd(struct v4l2_subdev *sd, uint16_t len, uint8_t *buf)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
- 	int i;
-@@ -242,6 +253,34 @@ static inline void adv7511_edid_rd(struct v4l2_subdev *sd, u16 len, u8 *buf)
- 		v4l2_err(sd, "%s: i2c read error\n", __func__);
- }
- 
-+static inline int adv7511_cec_read(struct v4l2_subdev *sd, u8 reg)
-+{
-+	struct adv7511_state *state = get_adv7511_state(sd);
-+
-+	return i2c_smbus_read_byte_data(state->i2c_cec, reg);
-+}
-+
-+static int adv7511_cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
-+{
-+	struct adv7511_state *state = get_adv7511_state(sd);
-+	int ret;
-+	int i;
-+
-+	for (i = 0; i < 3; i++) {
-+		ret = i2c_smbus_write_byte_data(state->i2c_cec, reg, val);
-+		if (ret == 0)
-+			return 0;
-+	}
-+	v4l2_err(sd, "%s: I2C Write Problem\n", __func__);
-+	return ret;
-+}
-+
-+static inline int adv7511_cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask,
-+				   u8 val)
-+{
-+	return adv7511_cec_write(sd, reg, (adv7511_cec_read(sd, reg) & mask) | val);
-+}
-+
- static int adv7511_pktmem_rd(struct v4l2_subdev *sd, u8 reg)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
-@@ -425,16 +464,28 @@ static const struct v4l2_ctrl_ops adv7511_ctrl_ops = {
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static void adv7511_inv_register(struct v4l2_subdev *sd)
- {
-+	struct adv7511_state *state = get_adv7511_state(sd);
-+
- 	v4l2_info(sd, "0x000-0x0ff: Main Map\n");
-+	if (state->i2c_cec)
-+		v4l2_info(sd, "0x100-0x1ff: CEC Map\n");
- }
- 
- static int adv7511_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg)
- {
-+	struct adv7511_state *state = get_adv7511_state(sd);
-+
- 	reg->size = 1;
- 	switch (reg->reg >> 8) {
- 	case 0:
- 		reg->val = adv7511_rd(sd, reg->reg & 0xff);
- 		break;
-+	case 1:
-+		if (state->i2c_cec) {
-+			reg->val = adv7511_cec_read(sd, reg->reg & 0xff);
-+			break;
-+		}
-+		/* fall through */
- 	default:
- 		v4l2_info(sd, "Register %03llx not supported\n", reg->reg);
- 		adv7511_inv_register(sd);
-@@ -445,10 +496,18 @@ static int adv7511_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *
- 
- static int adv7511_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg)
- {
-+	struct adv7511_state *state = get_adv7511_state(sd);
-+
- 	switch (reg->reg >> 8) {
- 	case 0:
- 		adv7511_wr(sd, reg->reg & 0xff, reg->val & 0xff);
- 		break;
-+	case 1:
-+		if (state->i2c_cec) {
-+			adv7511_cec_write(sd, reg->reg & 0xff, reg->val & 0xff);
-+			break;
-+		}
-+		/* fall through */
- 	default:
- 		v4l2_info(sd, "Register %03llx not supported\n", reg->reg);
- 		adv7511_inv_register(sd);
-@@ -536,6 +595,7 @@ static int adv7511_log_status(struct v4l2_subdev *sd)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
- 	struct adv7511_state_edid *edid = &state->edid;
-+	int i;
- 
- 	static const char * const states[] = {
- 		"in reset",
-@@ -605,7 +665,23 @@ static int adv7511_log_status(struct v4l2_subdev *sd)
- 	else
- 		v4l2_info(sd, "no timings set\n");
- 	v4l2_info(sd, "i2c edid addr: 0x%x\n", state->i2c_edid_addr);
-+
-+	if (state->i2c_cec == NULL)
-+		return 0;
-+
- 	v4l2_info(sd, "i2c cec addr: 0x%x\n", state->i2c_cec_addr);
-+
-+	v4l2_info(sd, "CEC: %s\n", state->cec_enabled_adap ?
-+			"enabled" : "disabled");
-+	if (state->cec_enabled_adap) {
-+		for (i = 0; i < ADV7511_MAX_ADDRS; i++) {
-+			bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+			if (is_valid)
-+				v4l2_info(sd, "CEC Logical Address: 0x%x\n",
-+					  state->cec_addr[i]);
-+		}
-+	}
- 	v4l2_info(sd, "i2c pktmem addr: 0x%x\n", state->i2c_pktmem_addr);
- 	return 0;
- }
-@@ -663,15 +739,197 @@ static int adv7511_s_power(struct v4l2_subdev *sd, int on)
- 	return true;
- }
- 
-+#if IS_ENABLED(CONFIG_VIDEO_ADV7511_CEC)
-+static int adv7511_cec_adap_enable(struct cec_adapter *adap, bool enable)
-+{
-+	struct adv7511_state *state = adap->priv;
-+	struct v4l2_subdev *sd = &state->sd;
-+
-+	if (state->i2c_cec == NULL)
-+		return -EIO;
-+
-+	if (!state->cec_enabled_adap && enable) {
-+		/* power up cec section */
-+		adv7511_cec_write_and_or(sd, 0x4e, 0xfc, 0x01);
-+		/* legacy mode and clear all rx buffers */
-+		adv7511_cec_write(sd, 0x4a, 0x07);
-+		adv7511_cec_write(sd, 0x4a, 0);
-+		adv7511_cec_write_and_or(sd, 0x11, 0xfe, 0); /* initially disable tx */
-+		/* enabled irqs: */
-+		/* tx: ready */
-+		/* tx: arbitration lost */
-+		/* tx: retry timeout */
-+		/* rx: ready 1 */
-+		if (state->enabled_irq)
-+			adv7511_wr_and_or(sd, 0x95, 0xc0, 0x39);
-+	} else if (state->cec_enabled_adap && !enable) {
-+		if (state->enabled_irq)
-+			adv7511_wr_and_or(sd, 0x95, 0xc0, 0x00);
-+		/* disable address mask 1-3 */
-+		adv7511_cec_write_and_or(sd, 0x4b, 0x8f, 0x00);
-+		/* power down cec section */
-+		adv7511_cec_write_and_or(sd, 0x4e, 0xfc, 0x00);
-+		state->cec_valid_addrs = 0;
-+	}
-+	state->cec_enabled_adap = enable;
-+	return 0;
-+}
-+
-+static int adv7511_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
-+{
-+	struct adv7511_state *state = adap->priv;
-+	struct v4l2_subdev *sd = &state->sd;
-+	unsigned i, free_idx = ADV7511_MAX_ADDRS;
-+
-+	if (!state->cec_enabled_adap)
-+		return -EIO;
-+
-+	if (addr == CEC_LOG_ADDR_INVALID) {
-+		adv7511_cec_write_and_or(sd, 0x4b, 0x8f, 0);
-+		state->cec_valid_addrs = 0;
-+		return 0;
-+	}
-+
-+	for (i = 0; i < ADV7511_MAX_ADDRS; i++) {
-+		bool is_valid = state->cec_valid_addrs & (1 << i);
-+
-+		if (free_idx == ADV7511_MAX_ADDRS && !is_valid)
-+			free_idx = i;
-+		if (is_valid && state->cec_addr[i] == addr)
-+			return 0;
-+	}
-+	if (i == ADV7511_MAX_ADDRS) {
-+		i = free_idx;
-+		if (i == ADV7511_MAX_ADDRS)
-+			return -ENXIO;
-+	}
-+	state->cec_addr[i] = addr;
-+	state->cec_valid_addrs |= 1 << i;
-+
-+	switch (i) {
-+	case 0:
-+		/* enable address mask 0 */
-+		adv7511_cec_write_and_or(sd, 0x4b, 0xef, 0x10);
-+		/* set address for mask 0 */
-+		adv7511_cec_write_and_or(sd, 0x4c, 0xf0, addr);
-+		break;
-+	case 1:
-+		/* enable address mask 1 */
-+		adv7511_cec_write_and_or(sd, 0x4b, 0xdf, 0x20);
-+		/* set address for mask 1 */
-+		adv7511_cec_write_and_or(sd, 0x4c, 0x0f, addr << 4);
-+		break;
-+	case 2:
-+		/* enable address mask 2 */
-+		adv7511_cec_write_and_or(sd, 0x4b, 0xbf, 0x40);
-+		/* set address for mask 1 */
-+		adv7511_cec_write_and_or(sd, 0x4d, 0xf0, addr);
-+		break;
-+	}
-+	return 0;
-+}
-+
-+static int adv7511_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
-+				     u32 signal_free_time, struct cec_msg *msg)
-+{
-+	struct adv7511_state *state = adap->priv;
-+	struct v4l2_subdev *sd = &state->sd;
-+	u8 len = msg->len;
-+	unsigned i;
-+
-+	v4l2_dbg(1, debug, sd, "%s: len %d\n", __func__, len);
-+
-+	if (len > 16) {
-+		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * The number of retries is the number of attempts - 1, but retry
-+	 * at least once. It's not clear if a value of 0 is allowed, so
-+	 * let's do at least one retry.
-+	 */
-+	adv7511_cec_write_and_or(sd, 0x12, ~0x70, max(1, attempts - 1) << 4);
-+
-+	/* blocking, clear cec tx irq status */
-+	adv7511_wr_and_or(sd, 0x97, 0xc7, 0x38);
-+
-+	/* write data */
-+	for (i = 0; i < len; i++)
-+		adv7511_cec_write(sd, i, msg->msg[i]);
-+
-+	/* set length (data + header) */
-+	adv7511_cec_write(sd, 0x10, len);
-+	/* start transmit, enable tx */
-+	adv7511_cec_write(sd, 0x11, 0x01);
-+	return 0;
-+}
-+
-+static void adv_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
-+{
-+	struct adv7511_state *state = get_adv7511_state(sd);
-+
-+	if ((adv7511_cec_read(sd, 0x11) & 0x01) == 0) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
-+		return;
-+	}
-+
-+	if (tx_raw_status & 0x10) {
-+		v4l2_dbg(1, debug, sd,
-+			 "%s: tx raw: arbitration lost\n", __func__);
-+		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_ARB_LOST,
-+				  1, 0, 0, 0);
-+		return;
-+	}
-+	if (tx_raw_status & 0x08) {
-+		u8 status;
-+		u8 nack_cnt;
-+		u8 low_drive_cnt;
-+
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
-+		/*
-+		 * We set this status bit since this hardware performs
-+		 * retransmissions.
-+		 */
-+		status = CEC_TX_STATUS_MAX_RETRIES;
-+		nack_cnt = adv7511_cec_read(sd, 0x14) & 0xf;
-+		if (nack_cnt)
-+			status |= CEC_TX_STATUS_NACK;
-+		low_drive_cnt = adv7511_cec_read(sd, 0x14) >> 4;
-+		if (low_drive_cnt)
-+			status |= CEC_TX_STATUS_LOW_DRIVE;
-+		cec_transmit_done(state->cec_adap, status,
-+				  0, nack_cnt, low_drive_cnt, 0);
-+		return;
-+	}
-+	if (tx_raw_status & 0x20) {
-+		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
-+		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
-+		return;
-+	}
-+}
-+
-+static const struct cec_adap_ops adv7511_cec_adap_ops = {
-+	.adap_enable = adv7511_cec_adap_enable,
-+	.adap_log_addr = adv7511_cec_adap_log_addr,
-+	.adap_transmit = adv7511_cec_adap_transmit,
-+};
-+#endif
-+
- /* Enable interrupts */
- static void adv7511_set_isr(struct v4l2_subdev *sd, bool enable)
- {
-+	struct adv7511_state *state = get_adv7511_state(sd);
- 	u8 irqs = MASK_ADV7511_HPD_INT | MASK_ADV7511_MSEN_INT;
- 	u8 irqs_rd;
- 	int retries = 100;
- 
- 	v4l2_dbg(2, debug, sd, "%s: %s\n", __func__, enable ? "enable" : "disable");
- 
-+	if (state->enabled_irq == enable)
-+		return;
-+	state->enabled_irq = enable;
-+
- 	/* The datasheet says that the EDID ready interrupt should be
- 	   disabled if there is no hotplug. */
- 	if (!enable)
-@@ -679,6 +937,9 @@ static void adv7511_set_isr(struct v4l2_subdev *sd, bool enable)
- 	else if (adv7511_have_hotplug(sd))
- 		irqs |= MASK_ADV7511_EDID_RDY_INT;
- 
-+	if (state->cec_enabled_adap)
-+		adv7511_wr_and_or(sd, 0x95, 0xc0, enable ? 0x39 : 0x00);
-+
- 	/*
- 	 * This i2c write can fail (approx. 1 in 1000 writes). But it
- 	 * is essential that this register is correct, so retry it
-@@ -701,20 +962,53 @@ static void adv7511_set_isr(struct v4l2_subdev *sd, bool enable)
- static int adv7511_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
- {
- 	u8 irq_status;
-+	u8 cec_irq;
- 
- 	/* disable interrupts to prevent a race condition */
- 	adv7511_set_isr(sd, false);
- 	irq_status = adv7511_rd(sd, 0x96);
-+	cec_irq = adv7511_rd(sd, 0x97);
- 	/* clear detected interrupts */
- 	adv7511_wr(sd, 0x96, irq_status);
-+	adv7511_wr(sd, 0x97, cec_irq);
- 
--	v4l2_dbg(1, debug, sd, "%s: irq 0x%x\n", __func__, irq_status);
-+	v4l2_dbg(1, debug, sd, "%s: irq 0x%x, cec-irq 0x%x\n", __func__,
-+		 irq_status, cec_irq);
- 
- 	if (irq_status & (MASK_ADV7511_HPD_INT | MASK_ADV7511_MSEN_INT))
- 		adv7511_check_monitor_present_status(sd);
- 	if (irq_status & MASK_ADV7511_EDID_RDY_INT)
- 		adv7511_check_edid_status(sd);
- 
-+#if IS_ENABLED(CONFIG_VIDEO_ADV7511_CEC)
-+	if (cec_irq & 0x38)
-+		adv_cec_tx_raw_status(sd, cec_irq);
-+
-+	if (cec_irq & 1) {
-+		struct adv7511_state *state = get_adv7511_state(sd);
-+		struct cec_msg msg;
-+
-+		msg.len = adv7511_cec_read(sd, 0x25) & 0x1f;
-+
-+		v4l2_dbg(1, debug, sd, "%s: cec msg len %d\n", __func__,
-+			 msg.len);
-+
-+		if (msg.len > 16)
-+			msg.len = 16;
-+
-+		if (msg.len) {
-+			u8 i;
-+
-+			for (i = 0; i < msg.len; i++)
-+				msg.msg[i] = adv7511_cec_read(sd, i + 0x15);
-+
-+			adv7511_cec_write(sd, 0x4a, 1); /* toggle to re-enable rx 1 */
-+			adv7511_cec_write(sd, 0x4a, 0);
-+			cec_received_msg(state->cec_adap, &msg);
-+		}
-+	}
-+#endif
-+
- 	/* enable interrupts */
- 	adv7511_set_isr(sd, true);
- 
-@@ -1183,6 +1477,8 @@ static void adv7511_notify_no_edid(struct v4l2_subdev *sd)
- 	/* We failed to read the EDID, so send an event for this. */
- 	ed.present = false;
- 	ed.segment = adv7511_rd(sd, 0xc4);
-+	ed.phys_addr = CEC_PHYS_ADDR_INVALID;
-+	cec_s_phys_addr(state->cec_adap, ed.phys_addr, false);
- 	v4l2_subdev_notify(sd, ADV7511_EDID_DETECT, (void *)&ed);
- 	v4l2_ctrl_s_ctrl(state->have_edid0_ctrl, 0x0);
- }
-@@ -1406,13 +1702,16 @@ static bool adv7511_check_edid_status(struct v4l2_subdev *sd)
- 
- 		v4l2_dbg(1, debug, sd, "%s: edid complete with %d segment(s)\n", __func__, state->edid.segments);
- 		state->edid.complete = true;
--
-+		ed.phys_addr = cec_get_edid_phys_addr(state->edid.data,
-+						      state->edid.segments * 256,
-+						      NULL);
- 		/* report when we have all segments
- 		   but report only for segment 0
- 		 */
- 		ed.present = true;
- 		ed.segment = 0;
- 		state->edid_detect_counter++;
-+		cec_s_phys_addr(state->cec_adap, ed.phys_addr, false);
- 		v4l2_subdev_notify(sd, ADV7511_EDID_DETECT, (void *)&ed);
- 		return ed.present;
- 	}
-@@ -1420,17 +1719,43 @@ static bool adv7511_check_edid_status(struct v4l2_subdev *sd)
- 	return false;
- }
- 
-+static int adv7511_registered(struct v4l2_subdev *sd)
-+{
-+	struct adv7511_state *state = get_adv7511_state(sd);
-+	int err;
-+
-+	err = cec_register_adapter(state->cec_adap);
-+	if (err)
-+		cec_delete_adapter(state->cec_adap);
-+	return err;
-+}
-+
-+static void adv7511_unregistered(struct v4l2_subdev *sd)
-+{
-+	struct adv7511_state *state = get_adv7511_state(sd);
-+
-+	cec_unregister_adapter(state->cec_adap);
-+}
-+
-+static const struct v4l2_subdev_internal_ops adv7511_int_ops = {
-+	.registered = adv7511_registered,
-+	.unregistered = adv7511_unregistered,
-+};
-+
- /* ----------------------------------------------------------------------- */
- /* Setup ADV7511 */
- static void adv7511_init_setup(struct v4l2_subdev *sd)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
- 	struct adv7511_state_edid *edid = &state->edid;
-+	u32 cec_clk = state->pdata.cec_clk;
-+	u8 ratio;
- 
- 	v4l2_dbg(1, debug, sd, "%s\n", __func__);
- 
- 	/* clear all interrupts */
- 	adv7511_wr(sd, 0x96, 0xff);
-+	adv7511_wr(sd, 0x97, 0xff);
- 	/*
- 	 * Stop HPD from resetting a lot of registers.
- 	 * It might leave the chip in a partly un-initialized state,
-@@ -1442,6 +1767,25 @@ static void adv7511_init_setup(struct v4l2_subdev *sd)
- 	adv7511_set_isr(sd, false);
- 	adv7511_s_stream(sd, false);
- 	adv7511_s_audio_stream(sd, false);
-+
-+	if (state->i2c_cec == NULL)
-+		return;
-+
-+	v4l2_dbg(1, debug, sd, "%s: cec_clk %d\n", __func__, cec_clk);
-+
-+	/* cec soft reset */
-+	adv7511_cec_write(sd, 0x50, 0x01);
-+	adv7511_cec_write(sd, 0x50, 0x00);
-+
-+	/* legacy mode */
-+	adv7511_cec_write(sd, 0x4a, 0x00);
-+
-+	if (cec_clk % 750000 != 0)
-+		v4l2_err(sd, "%s: cec_clk %d, not multiple of 750 Khz\n",
-+			 __func__, cec_clk);
-+
-+	ratio = (cec_clk / 750000) - 1;
-+	adv7511_cec_write(sd, 0x4e, ratio << 2);
- }
- 
- static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *id)
-@@ -1476,6 +1820,7 @@ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *
- 			 client->addr << 1);
- 
- 	v4l2_i2c_subdev_init(sd, client, &adv7511_ops);
-+	sd->internal_ops = &adv7511_int_ops;
- 
- 	hdl = &state->hdl;
- 	v4l2_ctrl_handler_init(hdl, 10);
-@@ -1522,26 +1867,47 @@ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *
- 	chip_id[0] = adv7511_rd(sd, 0xf5);
- 	chip_id[1] = adv7511_rd(sd, 0xf6);
- 	if (chip_id[0] != 0x75 || chip_id[1] != 0x11) {
--		v4l2_err(sd, "chip_id != 0x7511, read 0x%02x%02x\n", chip_id[0], chip_id[1]);
-+		v4l2_err(sd, "chip_id != 0x7511, read 0x%02x%02x\n", chip_id[0],
-+			 chip_id[1]);
- 		err = -EIO;
- 		goto err_entity;
- 	}
- 
--	state->i2c_edid = i2c_new_dummy(client->adapter, state->i2c_edid_addr >> 1);
-+	state->i2c_edid = i2c_new_dummy(client->adapter,
-+					state->i2c_edid_addr >> 1);
- 	if (state->i2c_edid == NULL) {
- 		v4l2_err(sd, "failed to register edid i2c client\n");
- 		err = -ENOMEM;
- 		goto err_entity;
- 	}
- 
-+	adv7511_wr(sd, 0xe1, state->i2c_cec_addr);
-+	if (state->pdata.cec_clk < 3000000 ||
-+	    state->pdata.cec_clk > 100000000) {
-+		v4l2_err(sd, "%s: cec_clk %u outside range, disabling cec\n",
-+				__func__, state->pdata.cec_clk);
-+		state->pdata.cec_clk = 0;
-+	}
-+
-+	if (state->pdata.cec_clk) {
-+		state->i2c_cec = i2c_new_dummy(client->adapter,
-+					       state->i2c_cec_addr >> 1);
-+		if (state->i2c_cec == NULL) {
-+			v4l2_err(sd, "failed to register cec i2c client\n");
-+			goto err_unreg_edid;
-+		}
-+		adv7511_wr(sd, 0xe2, 0x00); /* power up cec section */
-+	} else {
-+		adv7511_wr(sd, 0xe2, 0x01); /* power down cec section */
-+	}
-+
- 	state->i2c_pktmem = i2c_new_dummy(client->adapter, state->i2c_pktmem_addr >> 1);
- 	if (state->i2c_pktmem == NULL) {
- 		v4l2_err(sd, "failed to register pktmem i2c client\n");
- 		err = -ENOMEM;
--		goto err_unreg_edid;
-+		goto err_unreg_cec;
- 	}
- 
--	adv7511_wr(sd, 0xe2, 0x01); /* power down cec section */
- 	state->work_queue = create_singlethread_workqueue(sd->name);
- 	if (state->work_queue == NULL) {
- 		v4l2_err(sd, "could not create workqueue\n");
-@@ -1552,6 +1918,19 @@ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *
- 	INIT_DELAYED_WORK(&state->edid_handler, adv7511_edid_handler);
- 
- 	adv7511_init_setup(sd);
-+
-+#if IS_ENABLED(CONFIG_VIDEO_ADV7511_CEC)
-+	state->cec_adap = cec_allocate_adapter(&adv7511_cec_adap_ops,
-+		state, dev_name(&client->dev), CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
-+		CEC_CAP_PASSTHROUGH | CEC_CAP_RC,
-+		ADV7511_MAX_ADDRS, &client->dev);
-+	err = PTR_ERR_OR_ZERO(state->cec_adap);
-+	if (err) {
-+		destroy_workqueue(state->work_queue);
-+		goto err_unreg_pktmem;
-+	}
-+#endif
-+
- 	adv7511_set_isr(sd, true);
- 	adv7511_check_monitor_present_status(sd);
- 
-@@ -1561,6 +1940,9 @@ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *
- 
- err_unreg_pktmem:
- 	i2c_unregister_device(state->i2c_pktmem);
-+err_unreg_cec:
-+	if (state->i2c_cec)
-+		i2c_unregister_device(state->i2c_cec);
- err_unreg_edid:
- 	i2c_unregister_device(state->i2c_edid);
- err_entity:
-@@ -1582,9 +1964,12 @@ static int adv7511_remove(struct i2c_client *client)
- 	v4l2_dbg(1, debug, sd, "%s removed @ 0x%x (%s)\n", client->name,
- 		 client->addr << 1, client->adapter->name);
- 
-+	adv7511_set_isr(sd, false);
- 	adv7511_init_setup(sd);
- 	cancel_delayed_work(&state->edid_handler);
- 	i2c_unregister_device(state->i2c_edid);
-+	if (state->i2c_cec)
-+		i2c_unregister_device(state->i2c_cec);
- 	i2c_unregister_device(state->i2c_pktmem);
- 	destroy_workqueue(state->work_queue);
- 	v4l2_device_unregister_subdev(sd);
-diff --git a/include/media/i2c/adv7511.h b/include/media/i2c/adv7511.h
-index d83b91d..61c3d71 100644
---- a/include/media/i2c/adv7511.h
-+++ b/include/media/i2c/adv7511.h
-@@ -32,11 +32,7 @@ struct adv7511_monitor_detect {
- struct adv7511_edid_detect {
- 	int present;
- 	int segment;
--};
--
--struct adv7511_cec_arg {
--	void *arg;
--	u32 f_flags;
-+	uint16_t phys_addr;
+ 	struct v4l2_m2m_dev	*m2m_dev;
+-	struct vb2_alloc_ctx	*alloc_ctx;
  };
  
- struct adv7511_platform_data {
+ struct deinterlace_ctx {
+@@ -820,8 +819,6 @@ static int deinterlace_queue_setup(struct vb2_queue *vq,
+ 	*nbuffers = count;
+ 	sizes[0] = size;
+ 
+-	alloc_ctxs[0] = ctx->dev->alloc_ctx;
+-
+ 	dprintk(ctx->dev, "get %d buffer(s) of size %d each.\n", count, size);
+ 
+ 	return 0;
+@@ -874,6 +871,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->ops = &deinterlace_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	src_vq->dev = ctx->dev->v4l2_dev.dev;
+ 	q_data[V4L2_M2M_SRC].fmt = &formats[0];
+ 	q_data[V4L2_M2M_SRC].width = 640;
+ 	q_data[V4L2_M2M_SRC].height = 480;
+@@ -891,6 +889,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->ops = &deinterlace_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	dst_vq->dev = ctx->dev->v4l2_dev.dev;
+ 	q_data[V4L2_M2M_DST].fmt = &formats[0];
+ 	q_data[V4L2_M2M_DST].width = 640;
+ 	q_data[V4L2_M2M_DST].height = 480;
+@@ -1046,13 +1045,6 @@ static int deinterlace_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, pcdev);
+ 
+-	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(pcdev->alloc_ctx)) {
+-		v4l2_err(&pcdev->v4l2_dev, "Failed to alloc vb2 context\n");
+-		ret = PTR_ERR(pcdev->alloc_ctx);
+-		goto err_ctx;
+-	}
+-
+ 	pcdev->m2m_dev = v4l2_m2m_init(&m2m_ops);
+ 	if (IS_ERR(pcdev->m2m_dev)) {
+ 		v4l2_err(&pcdev->v4l2_dev, "Failed to init mem2mem device\n");
+@@ -1064,8 +1056,6 @@ static int deinterlace_probe(struct platform_device *pdev)
+ 
+ err_m2m:
+ 	video_unregister_device(&pcdev->vfd);
+-err_ctx:
+-	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ unreg_dev:
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+ rel_dma:
+@@ -1082,7 +1072,6 @@ static int deinterlace_remove(struct platform_device *pdev)
+ 	v4l2_m2m_release(pcdev->m2m_dev);
+ 	video_unregister_device(&pcdev->vfd);
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+-	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ 	dma_release_channel(pcdev->dma_chan);
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 9b878de..8a1f12d 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1059,10 +1059,6 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
+ 
+ 	if (*nbufs < minbufs)
+ 		*nbufs = minbufs;
+-	if (cam->buffer_mode == B_DMA_contig)
+-		alloc_ctxs[0] = cam->vb_alloc_ctx;
+-	else if (cam->buffer_mode == B_DMA_sg)
+-		alloc_ctxs[0] = cam->vb_alloc_ctx_sg;
+ 
+ 	if (*num_planes)
+ 		return sizes[0] < size ? -EINVAL : 0;
+@@ -1271,6 +1267,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
+ 	vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	vq->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
+ 	vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
++	vq->dev = cam->dev;
+ 	INIT_LIST_HEAD(&cam->buffers);
+ 	switch (cam->buffer_mode) {
+ 	case B_DMA_contig:
+@@ -1279,9 +1276,6 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
+ 		vq->mem_ops = &vb2_dma_contig_memops;
+ 		cam->dma_setup = mcam_ctlr_dma_contig;
+ 		cam->frame_complete = mcam_dma_contig_done;
+-		cam->vb_alloc_ctx = vb2_dma_contig_init_ctx(cam->dev);
+-		if (IS_ERR(cam->vb_alloc_ctx))
+-			return PTR_ERR(cam->vb_alloc_ctx);
+ #endif
+ 		break;
+ 	case B_DMA_sg:
+@@ -1290,9 +1284,6 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
+ 		vq->mem_ops = &vb2_dma_sg_memops;
+ 		cam->dma_setup = mcam_ctlr_dma_sg;
+ 		cam->frame_complete = mcam_dma_sg_done;
+-		cam->vb_alloc_ctx_sg = vb2_dma_sg_init_ctx(cam->dev);
+-		if (IS_ERR(cam->vb_alloc_ctx_sg))
+-			return PTR_ERR(cam->vb_alloc_ctx_sg);
+ #endif
+ 		break;
+ 	case B_vmalloc:
+@@ -1309,18 +1300,6 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
+ 	return vb2_queue_init(vq);
+ }
+ 
+-static void mcam_cleanup_vb2(struct mcam_camera *cam)
+-{
+-#ifdef MCAM_MODE_DMA_CONTIG
+-	if (cam->buffer_mode == B_DMA_contig)
+-		vb2_dma_contig_cleanup_ctx(cam->vb_alloc_ctx);
+-#endif
+-#ifdef MCAM_MODE_DMA_SG
+-	if (cam->buffer_mode == B_DMA_sg)
+-		vb2_dma_sg_cleanup_ctx(cam->vb_alloc_ctx_sg);
+-#endif
+-}
+-
+ 
+ /* ---------------------------------------------------------------------- */
+ /*
+@@ -1875,7 +1854,6 @@ void mccic_shutdown(struct mcam_camera *cam)
+ 		cam_warn(cam, "Removing a device with users!\n");
+ 		mcam_ctlr_power_down(cam);
+ 	}
+-	mcam_cleanup_vb2(cam);
+ 	if (cam->buffer_mode == B_vmalloc)
+ 		mcam_free_dma_bufs(cam);
+ 	video_unregister_device(&cam->vdev);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 35cd9e5..beb339f 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -176,8 +176,6 @@ struct mcam_camera {
+ 
+ 	/* DMA buffers - DMA modes */
+ 	struct mcam_vb_buffer *vb_bufs[MAX_DMA_BUFS];
+-	struct vb2_alloc_ctx *vb_alloc_ctx;
+-	struct vb2_alloc_ctx *vb_alloc_ctx_sg;
+ 
+ 	/* Mode-specific ops, set at open time */
+ 	void (*dma_setup)(struct mcam_camera *cam);
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 3c4012d..88b3d98 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -211,7 +211,6 @@ struct emmaprp_dev {
+ 	struct clk		*clk_emma_ahb, *clk_emma_ipg;
+ 
+ 	struct v4l2_m2m_dev	*m2m_dev;
+-	struct vb2_alloc_ctx	*alloc_ctx;
+ };
+ 
+ struct emmaprp_ctx {
+@@ -710,8 +709,6 @@ static int emmaprp_queue_setup(struct vb2_queue *vq,
+ 	*nbuffers = count;
+ 	sizes[0] = size;
+ 
+-	alloc_ctxs[0] = ctx->dev->alloc_ctx;
+-
+ 	dprintk(ctx->dev, "get %d buffer(s) of size %d each.\n", count, size);
+ 
+ 	return 0;
+@@ -765,6 +762,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->ops = &emmaprp_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	src_vq->dev = ctx->dev->v4l2_dev.dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -777,6 +775,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->ops = &emmaprp_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	dst_vq->dev = ctx->dev->v4l2_dev.dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -948,18 +947,11 @@ static int emmaprp_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto rel_vdev;
+ 
+-	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(pcdev->alloc_ctx)) {
+-		v4l2_err(&pcdev->v4l2_dev, "Failed to alloc vb2 context\n");
+-		ret = PTR_ERR(pcdev->alloc_ctx);
+-		goto rel_vdev;
+-	}
+-
+ 	pcdev->m2m_dev = v4l2_m2m_init(&m2m_ops);
+ 	if (IS_ERR(pcdev->m2m_dev)) {
+ 		v4l2_err(&pcdev->v4l2_dev, "Failed to init mem2mem device\n");
+ 		ret = PTR_ERR(pcdev->m2m_dev);
+-		goto rel_ctx;
++		goto rel_vdev;
+ 	}
+ 
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+@@ -973,8 +965,6 @@ static int emmaprp_probe(struct platform_device *pdev)
+ 
+ rel_m2m:
+ 	v4l2_m2m_release(pcdev->m2m_dev);
+-rel_ctx:
+-	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ rel_vdev:
+ 	video_device_release(vfd);
+ unreg_dev:
+@@ -993,7 +983,6 @@ static int emmaprp_remove(struct platform_device *pdev)
+ 
+ 	video_unregister_device(pcdev->vfd);
+ 	v4l2_m2m_release(pcdev->m2m_dev);
+-	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ 	v4l2_device_unregister(&pcdev->v4l2_dev);
+ 	mutex_destroy(&pcdev->dev_mutex);
+ 
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 1b1a95d..486b875 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -342,8 +342,6 @@ static int isp_video_queue_setup(struct vb2_queue *queue,
+ 	if (sizes[0] == 0)
+ 		return -EINVAL;
+ 
+-	alloc_ctxs[0] = video->alloc_ctx;
+-
+ 	*count = min(*count, video->capture_mem / PAGE_ALIGN(sizes[0]));
+ 
+ 	return 0;
+@@ -1308,6 +1306,7 @@ static int isp_video_open(struct file *file)
+ 	queue->mem_ops = &vb2_dma_contig_memops;
+ 	queue->buf_struct_size = sizeof(struct isp_buffer);
+ 	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	queue->dev = video->isp->dev;
+ 
+ 	ret = vb2_queue_init(&handle->queue);
+ 	if (ret < 0) {
+@@ -1414,15 +1413,9 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
+ 		return -EINVAL;
+ 	}
+ 
+-	video->alloc_ctx = vb2_dma_contig_init_ctx(video->isp->dev);
+-	if (IS_ERR(video->alloc_ctx))
+-		return PTR_ERR(video->alloc_ctx);
+-
+ 	ret = media_entity_pads_init(&video->video.entity, 1, &video->pad);
+-	if (ret < 0) {
+-		vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
++	if (ret < 0)
+ 		return ret;
+-	}
+ 
+ 	mutex_init(&video->mutex);
+ 	atomic_set(&video->active, 0);
+@@ -1451,7 +1444,6 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
+ 
+ void omap3isp_video_cleanup(struct isp_video *video)
+ {
+-	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+ 	media_entity_cleanup(&video->video.entity);
+ 	mutex_destroy(&video->queue_lock);
+ 	mutex_destroy(&video->stream_lock);
+diff --git a/drivers/media/platform/omap3isp/ispvideo.h b/drivers/media/platform/omap3isp/ispvideo.h
+index 6a48d58..f6a2082 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.h
++++ b/drivers/media/platform/omap3isp/ispvideo.h
+@@ -171,7 +171,6 @@ struct isp_video {
+ 	bool error;
+ 
+ 	/* Video buffers queue */
+-	void *alloc_ctx;
+ 	struct vb2_queue *queue;
+ 	struct mutex queue_lock;	/* protects the queue */
+ 	spinlock_t irqlock;		/* protects dmaqueue */
+diff --git a/drivers/media/platform/rcar_jpu.c b/drivers/media/platform/rcar_jpu.c
+index 552789a..d81c410 100644
+--- a/drivers/media/platform/rcar_jpu.c
++++ b/drivers/media/platform/rcar_jpu.c
+@@ -203,7 +203,6 @@
+  * @irq: JPEG IP irq
+  * @clk: JPEG IP clock
+  * @dev: JPEG IP struct device
+- * @alloc_ctx: videobuf2 memory allocator's context
+  * @ref_count: reference counter
+  */
+ struct jpu {
+@@ -220,7 +219,6 @@ struct jpu {
+ 	unsigned int		irq;
+ 	struct clk		*clk;
+ 	struct device		*dev;
+-	void			*alloc_ctx;
+ 	int			ref_count;
+ };
+ 
+@@ -1033,17 +1031,14 @@ static int jpu_queue_setup(struct vb2_queue *vq,
+ 
+ 			if (sizes[i] < q_size)
+ 				return -EINVAL;
+-			alloc_ctxs[i] = ctx->jpu->alloc_ctx;
+ 		}
+ 		return 0;
+ 	}
+ 
+ 	*nplanes = q_data->format.num_planes;
+ 
+-	for (i = 0; i < *nplanes; i++) {
++	for (i = 0; i < *nplanes; i++)
+ 		sizes[i] = q_data->format.plane_fmt[i].sizeimage;
+-		alloc_ctxs[i] = ctx->jpu->alloc_ctx;
+-	}
+ 
+ 	return 0;
+ }
+@@ -1214,6 +1209,7 @@ static int jpu_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->jpu->mutex;
++	src_vq->dev = ctx->jpu->v4l2_dev.dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -1228,6 +1224,7 @@ static int jpu_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &ctx->jpu->mutex;
++	dst_vq->dev = ctx->jpu->v4l2_dev.dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -1676,13 +1673,6 @@ static int jpu_probe(struct platform_device *pdev)
+ 		goto device_register_rollback;
+ 	}
+ 
+-	jpu->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(jpu->alloc_ctx)) {
+-		v4l2_err(&jpu->v4l2_dev, "Failed to init memory allocator\n");
+-		ret = PTR_ERR(jpu->alloc_ctx);
+-		goto m2m_init_rollback;
+-	}
+-
+ 	/* fill in qantization and Huffman tables for encoder */
+ 	for (i = 0; i < JPU_MAX_QUALITY; i++)
+ 		jpu_generate_hdr(i, (unsigned char *)jpeg_hdrs[i]);
+@@ -1699,7 +1689,7 @@ static int jpu_probe(struct platform_device *pdev)
+ 	ret = video_register_device(&jpu->vfd_encoder, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+ 		v4l2_err(&jpu->v4l2_dev, "Failed to register video device\n");
+-		goto vb2_allocator_rollback;
++		goto m2m_init_rollback;
+ 	}
+ 
+ 	video_set_drvdata(&jpu->vfd_encoder, jpu);
+@@ -1732,9 +1722,6 @@ static int jpu_probe(struct platform_device *pdev)
+ enc_vdev_register_rollback:
+ 	video_unregister_device(&jpu->vfd_encoder);
+ 
+-vb2_allocator_rollback:
+-	vb2_dma_contig_cleanup_ctx(jpu->alloc_ctx);
+-
+ m2m_init_rollback:
+ 	v4l2_m2m_release(jpu->m2m_dev);
+ 
+@@ -1750,7 +1737,6 @@ static int jpu_remove(struct platform_device *pdev)
+ 
+ 	video_unregister_device(&jpu->vfd_decoder);
+ 	video_unregister_device(&jpu->vfd_encoder);
+-	vb2_dma_contig_cleanup_ctx(jpu->alloc_ctx);
+ 	v4l2_m2m_release(jpu->m2m_dev);
+ 	v4l2_device_unregister(&jpu->v4l2_dev);
+ 
+diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
+index 82b5d69..afd21c9 100644
+--- a/drivers/media/platform/sh_veu.c
++++ b/drivers/media/platform/sh_veu.c
+@@ -118,7 +118,6 @@ struct sh_veu_dev {
+ 	struct sh_veu_file *output;
+ 	struct mutex fop_lock;
+ 	void __iomem *base;
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	spinlock_t lock;
+ 	bool is_2h;
+ 	unsigned int xaction;
+@@ -882,14 +881,11 @@ static int sh_veu_queue_setup(struct vb2_queue *vq,
+ 		*nbuffers = count;
+ 	}
+ 
+-	if (*nplanes) {
+-		alloc_ctxs[0] = veu->alloc_ctx;
++	if (*nplanes)
+ 		return sizes[0] < size ? -EINVAL : 0;
+-	}
+ 
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-	alloc_ctxs[0] = veu->alloc_ctx;
+ 
+ 	dev_dbg(veu->dev, "get %d buffer(s) of size %d each.\n", count, size);
+ 
+@@ -948,6 +944,7 @@ static int sh_veu_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->lock = &veu->fop_lock;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	src_vq->dev = veu->v4l2_dev.dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret < 0)
+@@ -962,6 +959,7 @@ static int sh_veu_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->lock = &veu->fop_lock;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	dst_vq->dev = veu->v4l2_dev.dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -1148,12 +1146,6 @@ static int sh_veu_probe(struct platform_device *pdev)
+ 
+ 	vdev = &veu->vdev;
+ 
+-	veu->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(veu->alloc_ctx)) {
+-		ret = PTR_ERR(veu->alloc_ctx);
+-		goto einitctx;
+-	}
+-
+ 	*vdev = sh_veu_videodev;
+ 	vdev->v4l2_dev = &veu->v4l2_dev;
+ 	spin_lock_init(&veu->lock);
+@@ -1187,8 +1179,6 @@ evidreg:
+ 	pm_runtime_disable(&pdev->dev);
+ 	v4l2_m2m_release(veu->m2m_dev);
+ em2minit:
+-	vb2_dma_contig_cleanup_ctx(veu->alloc_ctx);
+-einitctx:
+ 	v4l2_device_unregister(&veu->v4l2_dev);
+ 	return ret;
+ }
+@@ -1202,7 +1192,6 @@ static int sh_veu_remove(struct platform_device *pdev)
+ 	video_unregister_device(&veu->vdev);
+ 	pm_runtime_disable(&pdev->dev);
+ 	v4l2_m2m_release(veu->m2m_dev);
+-	vb2_dma_contig_cleanup_ctx(veu->alloc_ctx);
+ 	v4l2_device_unregister(&veu->v4l2_dev);
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 1157404..59830a4 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -86,7 +86,6 @@ struct sh_vou_device {
+ 	v4l2_std_id std;
+ 	int pix_idx;
+ 	struct vb2_queue queue;
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	struct sh_vou_buffer *active;
+ 	enum sh_vou_status status;
+ 	unsigned sequence;
+@@ -253,7 +252,6 @@ static int sh_vou_queue_setup(struct vb2_queue *vq,
+ 
+ 	dev_dbg(vou_dev->v4l2_dev.dev, "%s()\n", __func__);
+ 
+-	alloc_ctxs[0] = vou_dev->alloc_ctx;
+ 	if (*nplanes)
+ 		return sizes[0] < pix->height * bytes_per_line ? -EINVAL : 0;
+ 	*nplanes = 1;
+@@ -1304,16 +1302,11 @@ static int sh_vou_probe(struct platform_device *pdev)
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->min_buffers_needed = 2;
+ 	q->lock = &vou_dev->fop_lock;
++	q->dev = &pdev->dev;
+ 	ret = vb2_queue_init(q);
+ 	if (ret)
+-		goto einitctx;
++		goto ei2cgadap;
+ 
+-	vou_dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(vou_dev->alloc_ctx)) {
+-		dev_err(&pdev->dev, "Can't allocate buffer context");
+-		ret = PTR_ERR(vou_dev->alloc_ctx);
+-		goto einitctx;
+-	}
+ 	vdev->queue = q;
+ 	INIT_LIST_HEAD(&vou_dev->buf_list);
+ 
+@@ -1348,8 +1341,6 @@ ei2cnd:
+ ereset:
+ 	i2c_put_adapter(i2c_adap);
+ ei2cgadap:
+-	vb2_dma_contig_cleanup_ctx(vou_dev->alloc_ctx);
+-einitctx:
+ 	pm_runtime_disable(&pdev->dev);
+ 	v4l2_device_unregister(&vou_dev->v4l2_dev);
+ 	return ret;
+@@ -1367,7 +1358,6 @@ static int sh_vou_remove(struct platform_device *pdev)
+ 	pm_runtime_disable(&pdev->dev);
+ 	video_unregister_device(&vou_dev->vdev);
+ 	i2c_put_adapter(client->adapter);
+-	vb2_dma_contig_cleanup_ctx(vou_dev->alloc_ctx);
+ 	v4l2_device_unregister(&vou_dev->v4l2_dev);
+ 	return 0;
+ }
 -- 
-2.8.1
+2.8.0.rc3
 
