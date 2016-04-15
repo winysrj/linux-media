@@ -1,258 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43226 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754221AbcDVN6k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 09:58:40 -0400
-Date: Fri, 22 Apr 2016 10:58:34 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	<linux-media@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC 1/2] v4l: Add meta-data video device type
-Message-ID: <20160422105834.6c86c86c@recife.lan>
-In-Reply-To: <5719D6BC.1010000@xs4all.nl>
-References: <1461199227-22506-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<1461199227-22506-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<571875BF.8080500@xs4all.nl>
-	<27064764.ckB5ZcOUBB@avalon>
-	<5719D6BC.1010000@xs4all.nl>
+Received: from mail-yw0-f175.google.com ([209.85.161.175]:35462 "EHLO
+	mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750965AbcDOP61 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Apr 2016 11:58:27 -0400
+Received: by mail-yw0-f175.google.com with SMTP id i84so140807991ywc.2
+        for <linux-media@vger.kernel.org>; Fri, 15 Apr 2016 08:58:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <570CB882.4090805@linaro.org>
+References: <570B9285.9000209@linaro.org>
+	<570B9454.6020307@linaro.org>
+	<1460391908.30296.12.camel@collabora.com>
+	<570CB882.4090805@linaro.org>
+Date: Fri, 15 Apr 2016 11:58:21 -0400
+Message-ID: <CAF6AEGvjin7Ya4wAXF=5vAa=ky=yvUHnYSo8Of_cyd8TCc04UQ@mail.gmail.com>
+Subject: Re: gstreamer: v4l2videodec plugin
+From: Rob Clark <robdclark@gmail.com>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 22 Apr 2016 09:46:04 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Tue, Apr 12, 2016 at 4:57 AM, Stanimir Varbanov
+<stanimir.varbanov@linaro.org> wrote:
+> Hi Nicolas,
+>
+> On 04/11/2016 07:25 PM, Nicolas Dufresne wrote:
+>> Le lundi 11 avril 2016 à 15:11 +0300, Stanimir Varbanov a écrit :
+>>> adding gstreamer-devel
+>>>
+>>> On 04/11/2016 03:03 PM, Stanimir Varbanov wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> I'm working on QCOM v4l2 video decoder/encoder driver and in order
+>>>> to
+>>>> test its functionalities I'm using gstreamer v4l2videodec plugin. I
+>>>> am
+>>>> able to use the v4l2videodec plugin with MMAP, now I want to try
+>>>> the
+>>>> dmabuf export from v4l2 and import dmabuf buffers to glimagesink. I
+>>>> upgraded gst to 1.7.91 so that I have the dmabuf support in
+>>>> glimagesink.
+>>>> Mesa version is 11.1.2.
+>>
+>> I'm very happy to see this report. So far, we only had report that this
+>> element works on Freescale IMX.6 (CODA) and Exynos 4/5.
+>
+> In this context, I would be very happy to see v4l2videoenc merged soon :)
+>
+>>
+>>>>
+>>>> I'm using the following pipeline:
+>>>>
+>>>> GST_GL_PLATFORM=egl GST_GL_API=gles2 gst-launch-1.0 $GSTDEBUG
+>>>> $GSTFILESRC ! qtdemux name=m m.video_0 ! h264parse ! v4l2video32dec
+>>>> capture-io-mode=dmabuf ! glimagesink
+>>>>
+>>>> I stalled on this error:
+>>>>
+>>>> eglimagememory
+>>>> gsteglimagememory.c:473:gst_egl_image_memory_from_dmabuf:<eglimagea
+>>>> llocator0>
+>>>> eglCreateImage failed: EGL_BAD_MATCH
+>>>>
+>>>> which in Mesa is:
+>>>>
+>>>> libEGL debug: EGL user error 0x3009 (EGL_BAD_MATCH) in
+>>>> dri2_create_image_khr_texture
+>>>>
+>>>> Do someone know how the dmabuf import is tested when the support
+>>>> has
+>>>> been added to glimagesink? Or some pointers how to continue with
+>>>> debugging?
+>>
+>> So far the DMABuf support in glimagesink has been tested on Intel/Mesa
+>> and libMALI. There is work in progress in Gallium/Mesa, but until
+>> recently there was no support for offset in imported buffer, which
+>> would result in BAD_MATCH error. I cannot guaranty this is the exact
+>> reason here, BAD_MATCH is used for a very wide variety of reason in
+>> those extensions. The right place to dig into this issue would be
+>> through the Mesa list and/or Mesa code. Find out what is missing for
+>> you driver in Mesa and then I may help you further.
+>
+> I came down to these conditions
+>
+> https://cgit.freedesktop.org/mesa/mesa/tree/src/gallium/state_trackers/dri/dri2.c?h=11.2#n1063
+>
+> but I don't know how this is related. The gstreamer
+> (gst_egl_image_memory_from_dmabuf) doesn't set this "level" so it will
+> be zero.
+>
+>>
+>> For the reference, the importation strategy we use in GStreamer has
+>> been inspired of Kodi (xmbc). It consist of importing each YUV plane
+>> seperatly using R8 and RG88 textures and doing the color conversion
+>> using shaders. Though, if the frame is allocated as a single DMABuf,
+>> this requires using offset to access the frame data, and that support
+>
+> Yep that is my case, the driver capture buffers has one plain, hence one
+> dmabuf will be exported per buffer.
+>
+>> had only been recently added in Gallium base code and in Radeon driver
+>> recently. I don't know if Freedreno, VC4 have that, and I know nouveau
+>> don't.
+>
+> Rob, do we need to add something in Freedreno Gallium driver to handle
+> dmabuf import?
 
-> On 04/21/2016 09:15 PM, Laurent Pinchart wrote:
-> > Hi Hans,
-> > 
-> > Thank you for the review.
-> > 
-> > On Thursday 21 Apr 2016 08:39:59 Hans Verkuil wrote:  
-> >> Hi Laurent,
-> >>
-> >> Thanks for the patch!
-> >>
-> >> Some, mostly small, comments follow:
-> >>
-> >> On 04/21/2016 02:40 AM, Laurent Pinchart wrote:  
-> >>> The meta-data video device is used to transfer meta-data between
-> >>> userspace and kernelspace through a V4L2 buffers queue. It comes with a
-> >>> new meta-data capture capability, buffer type and format description.
-> >>>
-> >>> Signed-off-by: Laurent Pinchart
-> >>> <laurent.pinchart+renesas@ideasonboard.com>
-> >>> ---
-> >>>
-> >>>  Documentation/DocBook/media/v4l/dev-meta.xml  | 100 +++++++++++++++++++++
-> >>>  Documentation/DocBook/media/v4l/v4l2.xml      |   1 +
-> >>>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  19 +++++
-> >>>  drivers/media/v4l2-core/v4l2-dev.c            |  21 +++++-
-> >>>  drivers/media/v4l2-core/v4l2-ioctl.c          |  39 ++++++++++
-> >>>  drivers/media/v4l2-core/videobuf2-v4l2.c      |   3 +
-> >>>  include/media/v4l2-dev.h                      |   3 +-
-> >>>  include/media/v4l2-ioctl.h                    |   8 +++
-> >>>  include/uapi/linux/media.h                    |   2 +
-> >>>  include/uapi/linux/videodev2.h                |  14 ++++
-> >>>  10 files changed, 208 insertions(+), 2 deletions(-)
-> >>>  create mode 100644 Documentation/DocBook/media/v4l/dev-meta.xml
-> >>>
-> >>> diff --git a/Documentation/DocBook/media/v4l/dev-meta.xml
-> >>> b/Documentation/DocBook/media/v4l/dev-meta.xml new file mode 100644
-> >>> index 000000000000..ddc685186015
-> >>> --- /dev/null
-> >>> +++ b/Documentation/DocBook/media/v4l/dev-meta.xml
-> >>> @@ -0,0 +1,100 @@
-> >>> +  <title>Meta-Data Interface</title>
-> >>> +
-> >>> +  <note>
-> >>> +    <title>Experimental</title>
-> >>> +    <para>This is an <link linkend="experimental"> experimental </link>
-> >>> +    interface and may change in the future.</para>
-> >>> +  </note>
-> >>> +
-> >>> +  <para>
-> >>> +Meta-data refers to any non-image data that supplements video frames with
-> >>> +additional information. This may include statistics computed over the
-> >>> image +or frame capture parameters supplied by the image source. This
-> >>> interface is +intended for transfer of meta-data to userspace and control
-> >>> of that operation. +  </para>
-> >>> +
-> >>> +  <para>
-> >>> +Meta-data devices are accessed through character device special files
-> >>> named +<filename>/dev/v4l-meta0</filename> to
-> >>> <filename>/dev/v4l-meta255</filename> +with major number 81 and
-> >>> dynamically allocated minor numbers 0 to 255. +  </para>
-> >>> +
-> >>> +  <section>
-> >>> +    <title>Querying Capabilities</title>
-> >>> +
-> >>> +    <para>
-> >>> +Devices supporting the meta-data interface set the
-> >>> +<constant>V4L2_CAP_META_CAPTURE</constant> flag in the
-> >>> +<structfield>capabilities</structfield> field of &v4l2-capability;
-> >>> +returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device can
-> >>> capture +meta-data to memory.
-> >>> +    </para>
-> >>> +    <para>
-> >>> +At least one of the read/write, streaming or asynchronous I/O methods
-> >>> must  
-> >>
-> >> I think we can drop 'asynchronous I/O' since that's never been used. I
-> >> assume this is copy-and-pasted and we should probably just remove any
-> >> reference to async IO.  
-> > 
-> > Agreed. I'll fix it.
-> >   
-> >>> +be supported.
-> >>> +    </para>
-> >>> +  </section>
-> >>> +
-> >>> +  <section>
-> >>> +    <title>Data Format Negotiation</title>
-> >>> +
-> >>> +    <para>
-> >>> +The meta-data device uses the <link linkend="format">format</link> ioctls
-> >>> to +select the capture format. The meta-data buffer content format is
-> >>> bound to that +selectable format. In addition to the basic
-> >>> +<link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
-> >>> +must be supported as well.
-> >>> +    </para>
-> >>> +
-> >>> +    <para>
-> >>> +To use the <link linkend="format">format</link> ioctls applications set
-> >>> the +<structfield>type</structfield> field of a &v4l2-format; to
-> >>> +<constant>V4L2_BUF_TYPE_META_CAPTURE</constant> and use the
-> >>> &v4l2-meta-format; +<structfield>meta</structfield> member of the
-> >>> <structfield>fmt</structfield> +union as needed per the desired
-> >>> operation.
-> >>> +Currently there are two fields, <structfield>pixelformat</structfield>
-> >>> and  
-> >>
-> >> Shouldn't that be metaformat? Since there are no pixels here? It was a bit
-> >> dubious to call it pixelformat for SDR as well, but at least there you
-> >> still have discrete samples which might be called pixels with some
-> >> imagination. But certainly doesn't apply to meta data.  
-> > 
-> > How about dataformat ? Or just format ?  
-> 
-> Since the fourcc defines are called V4L2_META_FMT_ I think metaformat is a
-> good name. It's consistent with the other meta-related namings.
+The issue is probably the YUV format, which we cannot really deal with
+properly in gallium..  it's a similar issue to multi-planer even if it
+is in a single buffer.
 
-metaformat is OK.
+The best way to handle this would be to import the same dmabuf fd
+twice, with appropriate offsets, to create one GL_RED eglimage for Y
+and one GL_RG eglimage for UV, and then combine them in shader in a
+similar way to how you'd handle separate Y and UV planes..
 
-> 
-> >   
-> >>> +<structfield>buffersize</structfield>, of struct &v4l2-meta-format; that
-> >>> are +used. Content of the <structfield>pixelformat</structfield> is the
-> >>> V4L2 FourCC +code of the data format. The
-> >>> <structfield>buffersize</structfield> field is the +maximum buffer size
-> >>> in bytes required for data transfer, set by the driver in +order to
-> >>> inform applications.
-> >>> +    </para>
-> >>> +
-> >>> +    <table pgwide="1" frame="none" id="v4l2-meta-format">
-> >>> +      <title>struct <structname>v4l2_meta_format</structname></title>
-> >>> +      <tgroup cols="3">
-> >>> +        &cs-str;
-> >>> +        <tbody valign="top">
-> >>> +          <row>
-> >>> +            <entry>__u32</entry>
-> >>> +            <entry><structfield>pixelformat</structfield></entry>
-> >>> +            <entry>
-> >>> +The data format or type of compression, set by the application. This is a
-> >>> +little endian <link linkend="v4l2-fourcc">four character code</link>.
-> >>> +V4L2 defines meta-data formats in <xref linkend="meta-formats" />.
-> >>> +           </entry>
-> >>> +          </row>
-> >>> +          <row>
-> >>> +            <entry>__u32</entry>
-> >>> +            <entry><structfield>buffersize</structfield></entry>
-> >>> +            <entry>
-> >>> +Maximum size in bytes required for data. Value is set by the driver.
-> >>> +           </entry>
-> >>> +          </row>
-> >>> +          <row>
-> >>> +            <entry>__u8</entry>
-> >>> +            <entry><structfield>reserved[24]</structfield></entry>
-> >>> +            <entry>This array is reserved for future extensions.
-> >>> +Drivers and applications must set it to zero.</entry>
-> >>> +          </row>
-> >>> +        </tbody>
-> >>> +      </tgroup>
-> >>> +    </table>
-> >>> +
-> >>> +    <para>
-> >>> +A meta-data device may support <link linkend="rw">read/write</link>
-> >>> +and/or streaming (<link linkend="mmap">memory mapping</link>
-> >>> +or <link linkend="userp">user pointer</link>) I/O.  
-> >>
-> >> Add dma-buf to this as well, or just say "streaming I/O" without listing
-> >> the possibilities. If this is copied-and-pasted, then the same should be
-> >> done in the original.  
-> > 
-> > How about removing the paragraph completely ? This is already addressed in the 
-> > previous section ("Querying Capabilities").  
-> 
-> Let's remove this. I am considering to make a proposal to tighten this up.
-> I've never been happy with the way stream I/O capabilities are signaled (or
-> really the lack of any signaling).
+BR,
+-R
 
-Agreed.
-
-> >   
-> >>> +    </para>
-> >>> +
-> >>> +  </section>  
-> > 
-> > [snip]
-> >   
-> >>> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
-> >>> b/drivers/media/v4l2-core/v4l2-dev.c index 70b559d7ca80..d8cbf11eae4e
-> >>> 100644
-> >>> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> >>> +++ b/drivers/media/v4l2-core/v4l2-dev.c  
-> > 
-> > [snip]
-> >   
-> >>> @@ -845,6 +859,8 @@ static int video_register_media_controller(struct
-> >>> video_device *vdev, int type)> 
-> >>>   *	%VFL_TYPE_SUBDEV - A subdevice
-> >>>   *
-> >>>   *	%VFL_TYPE_SDR - Software Defined Radio
-> >>>
-> >>> + *
-> >>> + *	%VFL_TYPE_META - Meta-data (including statistics)  
-> >>
-> >> I would drop the '(including statistics)' part. It feels weird that
-> >> 'statistics' are singled out, it makes the reader wonder what is so special
-> >> about it that it needs to be mentioned explicitly.  
-> > 
-> > Done.
-
-It actually makes sense to put statistics as an example of such
-metadata, as this is the main(and currently only) usage for this
-devnode.
-
-> >   
-> >>>   */
-> >>>  
-> >>>  int __video_register_device(struct video_device *vdev, int type, int nr,
-> >>>  
-> >>>  		int warn_if_nr_in_use, struct module *owner)  
-> > 
-> > [snip]
-> >   
-> 
-> Regards,
-> 
-> 	Hans
-
-
--- 
-Thanks,
-Mauro
+> --
+> regards,
+> Stan
