@@ -1,156 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52614 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752555AbcDVMha (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 08:37:30 -0400
-Subject: Re: [PATCH v3 5/7] media: rcar-vin: add DV timings support
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-References: <1460650670-20849-1-git-send-email-ulrich.hecht+renesas@gmail.com>
- <1460650670-20849-6-git-send-email-ulrich.hecht+renesas@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <571A1B04.9040407@xs4all.nl>
-Date: Fri, 22 Apr 2016 14:37:24 +0200
-MIME-Version: 1.0
-In-Reply-To: <1460650670-20849-6-git-send-email-ulrich.hecht+renesas@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:34047 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753370AbcDOBA3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Apr 2016 21:00:29 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 2/2] [media] tvp5150: propagate I2C write error in .s_register callback
+Date: Thu, 14 Apr 2016 21:00:08 -0400
+Message-Id: <1460682008-17168-2-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1460682008-17168-1-git-send-email-javier@osg.samsung.com>
+References: <1460682008-17168-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New review of this code. Ignore the previous one.
+The tvp5150_write() function can fail so don't return 0 unconditionally
+in tvp5150_s_register() but propagate what's returned by tvp5150_write().
 
-On 04/14/2016 06:17 PM, Ulrich Hecht wrote:
-> Adds ioctls DV_TIMINGS_CAP, ENUM_DV_TIMINGS, G_DV_TIMINGS, S_DV_TIMINGS,
-> and QUERY_DV_TIMINGS.
-> 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 69 +++++++++++++++++++++++++++++
->  1 file changed, 69 insertions(+)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index d8d5f3a..ba2ed4e 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -413,12 +413,17 @@ static int rvin_enum_input(struct file *file, void *priv,
->  			   struct v4l2_input *i)
->  {
->  	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_sd(vin);
->  
->  	if (i->index != 0)
->  		return -EINVAL;
->  
->  	i->type = V4L2_INPUT_TYPE_CAMERA;
->  	i->std = vin->vdev.tvnorms;
-> +
-> +	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap))
-> +		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
-> +
->  	strlcpy(i->name, "Camera", sizeof(i->name));
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-I think it is better to use "HDMI" as the name.
+---
 
->  
->  	return 0;
-> @@ -461,6 +466,64 @@ static int rvin_g_std(struct file *file, void *priv, v4l2_std_id *a)
->  	return v4l2_subdev_call(sd, video, g_std, a);
->  }
->  
-> +static int rvin_enum_dv_timings(struct file *file, void *priv_fh,
-> +				    struct v4l2_enum_dv_timings *timings)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_sd(vin);
-> +
-> +	timings->pad = 0;
+ drivers/media/i2c/tvp5150.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-You should use vin->src_pad_idx here instead of 0.
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 4a2e851b6a3b..7be456d1b071 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1161,8 +1161,7 @@ static int tvp5150_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *
+ 
+ static int tvp5150_s_register(struct v4l2_subdev *sd, const struct v4l2_dbg_register *reg)
+ {
+-	tvp5150_write(sd, reg->reg & 0xff, reg->val & 0xff);
+-	return 0;
++	return tvp5150_write(sd, reg->reg & 0xff, reg->val & 0xff);
+ }
+ #endif
+ 
+-- 
+2.5.5
 
-> +	return v4l2_subdev_call(sd,
-> +			pad, enum_dv_timings, timings);
-
-The original pad value should be restored.
-
-> +}
-> +
-> +static int rvin_s_dv_timings(struct file *file, void *priv_fh,
-> +				    struct v4l2_dv_timings *timings)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_sd(vin);
-> +	int err;
-> +
-> +	err = v4l2_subdev_call(sd,
-> +			video, s_dv_timings, timings);
-> +	if (!err) {
-> +		vin->sensor.width = timings->bt.width;
-> +		vin->sensor.height = timings->bt.height;
-> +	}
-> +	return err;
-> +}
-> +
-> +static int rvin_g_dv_timings(struct file *file, void *priv_fh,
-> +				    struct v4l2_dv_timings *timings)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_sd(vin);
-> +
-> +	return v4l2_subdev_call(sd,
-> +			video, g_dv_timings, timings);
-> +}
-> +
-> +static int rvin_query_dv_timings(struct file *file, void *priv_fh,
-> +				    struct v4l2_dv_timings *timings)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_sd(vin);
-> +
-> +	return v4l2_subdev_call(sd,
-> +			video, query_dv_timings, timings);
-> +}
-> +
-> +static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
-> +				    struct v4l2_dv_timings_cap *cap)
-> +{
-> +	struct rvin_dev *vin = video_drvdata(file);
-> +	struct v4l2_subdev *sd = vin_to_sd(vin);
-> +
-> +	cap->pad = 0;
-> +	return v4l2_subdev_call(sd,
-> +			pad, dv_timings_cap, cap);
-
-The comments for enum_dv_timings apply here as well.
-
-> +}
-> +
->  static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->  	.vidioc_querycap		= rvin_querycap,
->  	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
-> @@ -477,6 +540,12 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->  	.vidioc_g_input			= rvin_g_input,
->  	.vidioc_s_input			= rvin_s_input,
->  
-> +	.vidioc_dv_timings_cap		= rvin_dv_timings_cap,
-> +	.vidioc_enum_dv_timings		= rvin_enum_dv_timings,
-> +	.vidioc_g_dv_timings		= rvin_g_dv_timings,
-> +	.vidioc_s_dv_timings		= rvin_s_dv_timings,
-> +	.vidioc_query_dv_timings	= rvin_query_dv_timings,
-> +
->  	.vidioc_querystd		= rvin_querystd,
->  	.vidioc_g_std			= rvin_g_std,
->  	.vidioc_s_std			= rvin_s_std,
-> 
-
-You also need to support the SOURCE_CHANGE event, but I will post a patch for
-that myself later.
-
-Regards,
-
-	Hans
