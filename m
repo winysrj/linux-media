@@ -1,60 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33714 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753710AbcDYGht (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 02:37:49 -0400
-From: Eric Engestrom <eric@engestrom.ch>
-To: linux-kernel@vger.kernel.org
-Cc: Eric Engestrom <eric@engestrom.ch>,
+Received: from lists.s-osg.org ([54.187.51.154]:38958 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751285AbcDOQtF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Apr 2016 12:49:05 -0400
+Subject: Re: tvp5150 regression after commit 9f924169c035
+To: Tony Lindgren <tony@atomide.com>
+References: <20160212234623.GB3500@atomide.com>
+ <56BE993B.3010804@osg.samsung.com> <20160412223254.GK1526@katana>
+ <570ECAB0.4050107@osg.samsung.com> <20160414111257.GG1533@katana>
+ <570F9DF1.3070700@osg.samsung.com> <20160414141945.GA1539@katana>
+ <570FA8D6.5070308@osg.samsung.com> <20160414151244.GM5973@atomide.com>
+ <57102EE3.3020707@osg.samsung.com> <20160415145828.GT5973@atomide.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 37/41] Documentation: video4linux: fix spelling mistakes
-Date: Mon, 25 Apr 2016 07:37:03 +0100
-Message-Id: <1461566229-4717-11-git-send-email-eric@engestrom.ch>
-In-Reply-To: <1461566229-4717-1-git-send-email-eric@engestrom.ch>
-References: <1461543878-3639-1-git-send-email-eric@engestrom.ch>
- <1461566229-4717-1-git-send-email-eric@engestrom.ch>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>,
+	Enric Balletbo i Serra <eballetbo@gmail.com>,
+	=?UTF-8?Q?Agust=c3=ad_Fontquerni?= <af@iseebcn.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <57111B76.8020106@osg.samsung.com>
+Date: Fri, 15 Apr 2016 12:48:54 -0400
+MIME-Version: 1.0
+In-Reply-To: <20160415145828.GT5973@atomide.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Eric Engestrom <eric@engestrom.ch>
----
- Documentation/video4linux/vivid.txt | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Hello Tony,
 
-diff --git a/Documentation/video4linux/vivid.txt b/Documentation/video4linux/vivid.txt
-index e35d376..8da5d2a 100644
---- a/Documentation/video4linux/vivid.txt
-+++ b/Documentation/video4linux/vivid.txt
-@@ -294,7 +294,7 @@ the result will be.
+On 04/15/2016 10:58 AM, Tony Lindgren wrote:
+>>
+>>> The short term workaround is to mux the reset pin to use the internal
+>>> pulls by using PIN_INPUT_PULLUP | MUX_MODE7, or depending on the direction,
+>>> PIN_INPUT_PULLDOWN | MUX_MODE7.
+>>
+>> I guess you meant MUX_MODE4 here since the pin has to be in GPIO mode?
+> 
+> No, the glitch affects the GPIO mode, so that's why direction + pull +
+> safe mode is needed.
+>
+
+Ah ok, thanks for the explanation and sorry for the confusion.
  
- These inputs support all combinations of the field setting. Special care has
- been taken to faithfully reproduce how fields are handled for the different
--TV standards. This is particularly noticable when generating a horizontally
-+TV standards. This is particularly noticeable when generating a horizontally
- moving image so the temporal effect of using interlaced formats becomes clearly
- visible. For 50 Hz standards the top field is the oldest and the bottom field
- is the newest in time. For 60 Hz standards that is reversed: the bottom field
-@@ -313,7 +313,7 @@ will be SMPTE-170M.
- The pixel aspect ratio will depend on the TV standard. The video aspect ratio
- can be selected through the 'Standard Aspect Ratio' Vivid control.
- Choices are '4x3', '16x9' which will give letterboxed widescreen video and
--'16x9 Anomorphic' which will give full screen squashed anamorphic widescreen
-+'16x9 Anamorphic' which will give full screen squashed anamorphic widescreen
- video that will need to be scaled accordingly.
+>> Also, I wonder how the issue could be related to the GPIO controller
+>> since is when enabling runtime PM for the I2C controller that things
+>> fail. IOW, disabling runtime PM for the I2C adapter shouldn't make
+>> things to work if the problem was caused by the mentioned GPIO errata.
+> 
+> If you block PM runtime for I2C, then it blocks deeper idle states
+> for the whole device. Note that you can disable off mode during idle
+
+Thanks again for this clarification.
+
+> and suspend with:
+> 
+> # echo 0 > /sys/kernel/debug/pm_debug/enable_off_mode
+>
+
+I see thought that enable_off_mode is 0 by default when booting the board:
+
+# cat /sys/kernel/debug/pm_debug/enable_off_mode 
+0
+
+So if I understood your explanation correctly, that means that the glitch
+should not happen for the GPIO pins since the machine doesn't enter into
+deeper idle states that could cause the glitch from erratum 1.158?
  
- The TV 'tuner' supports a frequency range of 44-958 MHz. Channels are available
-@@ -862,7 +862,7 @@ RDS Radio Text:
- RDS Stereo:
- RDS Artificial Head:
- RDS Compressed:
--RDS Dymanic PTY:
-+RDS Dynamic PTY:
- RDS Traffic Announcement:
- RDS Traffic Program:
- RDS Music: these are all controls that set the RDS data that is transmitted by
+>> In any case, I've tried to use the internal pulls as you suggested but
+>> that didn't solve the issue.
+> 
+> OK. Just to be sure.. Did you use the safe mode mux option instead
+> of the GPIO mux option?
+>
+
+No sorry, I tested with the GPIO mux mode before since I misunderstood
+your previous email. But now I've tested with safe mode mux and didn't
+make a difference (which was expected since off mode is disabled AFAIU). 
+ 
+> Note that in some cases the internal pull is not strong enough to
+> keep the reset line up if there's an external pull down resistor.
+>
+
+Yes, I got that from your previous email but as I mentioned, the lines
+in the board don't have external pull resistors.
+ 
+> Regards,
+> 
+> Tony
+> 
+
+Best regards,
 -- 
-2.8.0
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
