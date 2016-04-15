@@ -1,162 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:52828 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932324AbcDYMkG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 08:40:06 -0400
-Date: Mon, 25 Apr 2016 09:40:00 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: Re: [PATCH] [media] tvp686x: Don't go past array
-Message-ID: <20160425094000.1dc6db29@recife.lan>
-In-Reply-To: <571E0159.9050406@xs4all.nl>
-References: <d25dd8ca8edffc6cc8cee2dac9b907c333a0aa84.1461403421.git.mchehab@osg.samsung.com>
-	<571E0159.9050406@xs4all.nl>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:49114 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751791AbcDOItz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Apr 2016 04:49:55 -0400
+Subject: Re: Backport a Security Fix for CVE-2015-7833 to v4.1
+To: Vladis Dronov <vdronov@redhat.com>,
+	Yuki Machida <machida.yuki@jp.fujitsu.com>
+References: <570B33E6.40705@jp.fujitsu.com>
+ <573811194.2583282.1460376200290.JavaMail.zimbra@redhat.com>
+Cc: sasha levin <sasha.levin@oracle.com>, linux-media@vger.kernel.org,
+	stable@vger.kernel.org, oneukum@suse.com, mchehab@osg.samsung.com,
+	ralf@spenneberg.net
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5710AB2A.50702@xs4all.nl>
+Date: Fri, 15 Apr 2016 10:49:46 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <573811194.2583282.1460376200290.JavaMail.zimbra@redhat.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 25 Apr 2016 13:36:57 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Vladis,
 
-> Since my patch exchanges the sparse warning with a smatch warning, it's
-> OK to take this one, with a few corrections:
+On 04/11/2016 02:03 PM, Vladis Dronov wrote:
+> Hello,
 > 
-> Please update the subject line (it says tvp686x instead of tw686x).
+> I apologize for intercepting, but I believe commit 588afcc1 should
+> not be accepted and reverted in the trees where it was.
 
-Gah...
+Your patch requesting that commit to be reverted fell through the cracks.
 
-> 
-> On 04/23/2016 11:23 AM, Mauro Carvalho Chehab wrote:
-> > Depending on the compiler version, currently it produces the
-> > following warnings:
-> > 	tw686x-video.c: In function 'tw686x_video_init':
-> > 	tw686x-video.c:65:543: warning: array subscript is above array bounds [-Warray-bounds]
-> > 
-> > This is actually bogus with the current code, as it currently
-> > hardcodes the framerate to 30 frames/sec, however a potential
-> > use after the array size could happen when the driver adds support
-> > for setting the framerate. So, fix it.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > ---
-> >  drivers/media/pci/tw686x/tw686x-video.c | 15 +++++++++++++--
-> >  1 file changed, 13 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-> > index 118e9fac9f28..1ff59084ce08 100644
-> > --- a/drivers/media/pci/tw686x/tw686x-video.c
-> > +++ b/drivers/media/pci/tw686x/tw686x-video.c
-> > @@ -61,8 +61,19 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
-> >  		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
-> >  	};
-> >  
-> > -	unsigned int i =
-> > -		(std & V4L2_STD_625_50) ? std_625_50[fps] : std_525_60[fps];
-> > +	unsigned int i;
-> > +
-> > +	if (std & V4L2_STD_625_50) {  
-> 
-> Please test against 525_60 since that is the recommended test.
+Having looked at it I agree that it should be reverted and I will apply it.
 
-Both ways should work, but I'm OK with such change.
+The main reason is really the incorrect error return which should have been
+a goto. But as you say reverting it is easiest since your code does the
+right thing.
+
+Regards,
+
+	Hans
 
 > 
-> > +		if (unlikely(i > ARRAY_SIZE(std_625_50)))  
+> Reasons:
 > 
-> Please don't use 'unlikely'. It's pointless for code that is rarely used.
-
-OK.
-
+> https://patchwork.linuxtv.org/patch/32798/
+> or
+> https://www.spinics.net/lists/linux-media/msg96936.html
 > 
-> Actually, the code is wrong: i is uninitialized here.
 > 
-> It should be fps >= ARRAY_SIZE(std_625_50).
+> Best regards,
+> Vladis Dronov | Red Hat, Inc. | Product Security Engineer
 > 
-> In fact, I'd write it like this:
+> ----- Original Message -----
+> From: "Yuki Machida" <machida.yuki@jp.fujitsu.com>
+> To: "sasha levin" <sasha.levin@oracle.com>
+> Cc: linux-media@vger.kernel.org, stable@vger.kernel.org, hverkuil@xs4all.nl, oneukum@suse.com, vdronov@redhat.com, mchehab@osg.samsung.com, ralf@spenneberg.net
+> Sent: Monday, April 11, 2016 7:19:34 AM
+> Subject: Backport a Security Fix for CVE-2015-7833 to v4.1
 > 
-> 		i = std_625_50[(fps >= ARRAY_SIZE(std_625_50) ? 24 : fps];
-
-I really don't like the above, as it has an unexplained magic
-number on it. Also, "24" is wrong there.
-
-So, I would go to the following enclosed patch.
-
-Ezequiel,
-
-Btw, I'm not seeing support for fps != 25 (or 30 fps) on this driver.
-As the device seems to support setting the fps, you should be adding
-support on it for VIDIOC_S_PARM and VIDIOC_G_PARM.
-
-On both ioctls, the driver should return the actual framerate used.
-So, you'll need to add a code that would convert from the 15 possible
-framerate converter register settings to v4l2_fract.
-
+> Hi Sasha,
 > 
-> > +			i = 14;		/* 25 fps */
-> > +		else
-> > +			i = std_625_50[fps];
-> > +	} else {
-> > +		if (unlikely(i > ARRAY_SIZE(std_525_60)))
-> > +			i = 0;		/* 30 fps */
-> > +		else
-> > +			i = std_525_60[fps];
-> > +	}
-> >  
-> >  	return map[i];
-> >  }
-> >   
+> I conformed that these patches for CVE-2015-7833 not applied at v4.1.21.
+> 588afcc1c0e45358159090d95bf7b246fb67565
+> fa52bd506f274b7619955917abfde355e3d19ff
+> Could you please apply this CVE-2015-7833 fix for 4.1-stable ?
+> 
+> References:
+> https://security-tracker.debian.org/tracker/CVE-2015-7833
+> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=588afcc1c0e45358159090d95bf7b246fb67565f
+> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=fa52bd506f274b7619955917abfde355e3d19ffe
 > 
 > Regards,
+> Yuki Machida
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> 	Hans
-
-Thanks,
-Mauro
-
--
-
-[media] tw686x: Don't go past array
-
-Depending on the compiler version, currently it produces the
-following warnings:
-	tw686x-video.c: In function 'tw686x_video_init':
-	tw686x-video.c:65:543: warning: array subscript is above array bounds [-Warray-bounds]
-
-This is actually bogus with the current code, as it currently
-hardcodes the framerate to 30 frames/sec, however a potential
-use after the array size could happen when the driver adds support
-for setting the framerate. So, fix it.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-index 118e9fac9f28..9468fda69f3d 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -61,8 +61,17 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
- 		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
- 	};
- 
--	unsigned int i =
--		(std & V4L2_STD_625_50) ? std_625_50[fps] : std_525_60[fps];
-+	unsigned int i;
-+
-+	if (std & V4L2_STD_525_60) {
-+		if (fps > ARRAY_SIZE(std_525_60))
-+			fps = 30;
-+		i = std_525_60[fps];
-+	} else {
-+		if (fps > ARRAY_SIZE(std_625_50))
-+			fps = 25;
-+		i = std_625_50[fps];
-+	}
- 
- 	return map[i];
- }
-
 
