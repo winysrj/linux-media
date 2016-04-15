@@ -1,68 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36958 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932231AbcDYNdU (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41729 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751745AbcDOH6j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 09:33:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 03/13] v4l: vsp1: Implement runtime PM support
-Date: Mon, 25 Apr 2016 16:33:42 +0300
-Message-ID: <3495523.9cqiUnevx8@avalon>
-In-Reply-To: <CAMuHMdV9WKVCm_9Yj3FhkGQyvKaz2QorjZd=X1wFcb80bJhsoA@mail.gmail.com>
-References: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1461455400-28767-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdV9WKVCm_9Yj3FhkGQyvKaz2QorjZd=X1wFcb80bJhsoA@mail.gmail.com>
+	Fri, 15 Apr 2016 03:58:39 -0400
+Subject: Re: [PATCH 2/2] [media] media: Improve documentation for
+ link_setup/link_modify
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	no To-header on input <""@pop.xs4all.nl>
+References: <cf3f7fec1241c22f49cbe8205c2b1129eb4bb3d7.1459950922.git.mchehab@osg.samsung.com>
+ <f34de3fbb419ded00e16fd9c0538313e01cd0b2c.1459950922.git.mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <57109F29.4020706@xs4all.nl>
+Date: Fri, 15 Apr 2016 09:58:33 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <f34de3fbb419ded00e16fd9c0538313e01cd0b2c.1459950922.git.mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
-
-Thank you for the review.
-
-On Monday 25 Apr 2016 10:24:22 Geert Uytterhoeven wrote:
-> On Sun, Apr 24, 2016 at 1:49 AM, Laurent Pinchart
+On 04/06/2016 03:55 PM, Mauro Carvalho Chehab wrote:
+> Those callbacks are called with the media_device.graph_mutex hold.
 > 
-> <laurent.pinchart+renesas@ideasonboard.com> wrote:
-> > Replace the manual refcount and clock management code by runtime PM.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/platform/Kconfig          |   1 +
-> >  drivers/media/platform/vsp1/vsp1.h      |   3 -
-> >  drivers/media/platform/vsp1/vsp1_drv.c  | 101 ++++++++++++---------------
-> >  drivers/media/platform/vsp1/vsp1_pipe.c |   2 +-
-> >  4 files changed, 54 insertions(+), 53 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/Kconfig
-> > b/drivers/media/platform/Kconfig index f453910050be..28d0db102c0b 100644
-> > --- a/drivers/media/platform/Kconfig
-> > +++ b/drivers/media/platform/Kconfig
-> > @@ -264,6 +264,7 @@ config VIDEO_RENESAS_VSP1
-> >         tristate "Renesas VSP1 Video Processing Engine"
-> >         depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
-> >         depends on (ARCH_RENESAS && OF) || COMPILE_TEST
-> > +       depends on PM
+> Add a note about that, as the code called by those notifiers should
+> not be touching in the mutex.
 > 
-> PM is always enabled since commits 2ee98234b88174f2 ("arm64: renesas: Enable
-> PM and PM_GENERIC_DOMAINS for SoCs with PM Domains") and 71d076ceb245f0d9
-> ("ARM: shmobile: Enable PM and PM_GENERIC_DOMAINS for SoCs with PM
-> Domains").
-> 
-> Even before that, drivers/sh/pm_runtime.c would have taken care of
-> enabling the clocks for you.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-OK, I'll fix that. COMPILE_TEST should be handled by the pm_runtime.h stub 
-functions.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
--- 
 Regards,
 
-Laurent Pinchart
+Hans
+
+> ---
+>  include/media/media-device.h | 3 ++-
+>  include/media/media-entity.h | 3 +++
+>  2 files changed, 5 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index b21ef244ad3e..44563ec17d45 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -311,7 +311,8 @@ struct media_entity_notify {
+>   * @enable_source: Enable Source Handler function pointer
+>   * @disable_source: Disable Source Handler function pointer
+>   *
+> - * @link_notify: Link state change notification callback
+> + * @link_notify: Link state change notification callback. This callback is
+> + * Called with the graph_mutex hold.
+>   *
+>   * This structure represents an abstract high-level media device. It allows easy
+>   * access to entities and provides basic media device-level support. The
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 6dc9e4e8cbd4..0b16ebe36db7 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -179,6 +179,9 @@ struct media_pad {
+>   * @link_validate:	Return whether a link is valid from the entity point of
+>   *			view. The media_entity_pipeline_start() function
+>   *			validates all links by calling this operation. Optional.
+> + *
+> + * Note: Those ioctls should not touch the struct media_device.@graph_mutex
+> + * field, as they're called with it already hold.
+>   */
+>  struct media_entity_operations {
+>  	int (*link_setup)(struct media_entity *entity,
+> 
 
