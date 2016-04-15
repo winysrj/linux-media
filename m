@@ -1,94 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:49085 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751689AbcD0MX0 (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:36258 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753794AbcDOIiP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 08:23:26 -0400
-Subject: Re: [PATCH RESEND 1/2] media: vb2-dma-contig: add helper for setting
- dma max seg size
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-References: <1461758429-12913-1-git-send-email-m.szyprowski@samsung.com>
- <5720AC3C.8090101@xs4all.nl>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <5900d3fc-b17a-875b-e016-ae53442641b0@samsung.com>
-Date: Wed, 27 Apr 2016 14:23:22 +0200
-MIME-version: 1.0
-In-reply-to: <5720AC3C.8090101@xs4all.nl>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+	Fri, 15 Apr 2016 04:38:15 -0400
+Subject: Re: [PATCH] Add GS1662 driver (a SPI video serializer)
+To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>,
+	Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+References: <56FE9B7F.7060206@nexvision.fr> <56FEA192.9020303@nexvision.fr>
+ <CAH-u=83J0kJzaV5Mqz7Zt76JgfVz6M_v_nhzPEeqwcRCRKm8VQ@mail.gmail.com>
+ <57022D5A.5080704@nexvision.fr>
+ <CAH-u=82LeD9TWrHpntjOmV9g-6rBLuboGy6RUsasSWBBtpyQJw@mail.gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5710A872.6050509@xs4all.nl>
+Date: Fri, 15 Apr 2016 10:38:10 +0200
+MIME-Version: 1.0
+In-Reply-To: <CAH-u=82LeD9TWrHpntjOmV9g-6rBLuboGy6RUsasSWBBtpyQJw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-
-On 2016-04-27 14:10, Hans Verkuil wrote:
-> On 04/27/2016 02:00 PM, Marek Szyprowski wrote:
->> Add a helper function for device drivers to set DMA's max_seg_size.
->> Setting it to largest possible value lets DMA-mapping API always create
->> contiguous mappings in DMA address space. This is essential for all
->> devices, which use dma-contig videobuf2 memory allocator and shared
->> buffers.
+On 04/04/2016 02:35 PM, Jean-Michel Hautbois wrote:
+>>> Next, you should add a complete description to your commit. Just
+>>> having an object and a signed-off-by line is not enough.
+>> Oh, I'm sorry, I don't have any idea to explicit more details. I will
+>> find something for that.
+> 
+> Just get the description from the datasheet as a start ;-).
+> 
+>>> You also have to use the scripts/checkpatch.pl script to verify that
+>>> everything is ok with it.
+>> I have executed this script before to send it. And it noticed nothing about that.
 >>
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> ---
->> This patch was posted earlier as a part of
->> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
->> thread, but applying it is really needed to get all Exynos multimedia
->> drivers working with IOMMU enabled.
+>>> Last thing, I can't see anything related to V4L2 in your patch. It is
+>>> just used to initialize the chip and the spi bus, that's all.
+>>> Adding a subdev is a start, and some operations if it can do something
+>>> else than just serializing.
 >>
->> Best regards,
->> Marek Szyprowski
->> ---
->>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
->>   include/media/videobuf2-dma-contig.h           |  1 +
->>   2 files changed, 16 insertions(+)
+>> Maybe I'm in the wrong list for that in fact. I didn't know this list was about V4L2 and related topics.
+>> This driver is only to configure the component to manage the video stream in electronic card, it is not to capture video stream via V4L.
 >>
->> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> index 5361197..f611456 100644
->> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> @@ -753,6 +753,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
->>   }
->>   EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
->>   
->> +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
->> +{
->> +	if (!dev->dma_parms) {
->> +		dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
->> +					      GFP_KERNEL);
-> The v3 patch from December uses kzalloc here. Is this perhaps on old version?
+>> I should improve my driver to be configurable by userspace. But maybe I should submit my future patch in another ML.
+> 
+> Well, I am not really sure about that. I added Hans in cc as he may
+> have a better view.
+> From my point of view, it can be a V4L2 subdev, even a simple one, as
+> you can configure outputs, etc.
 
-Right, my fault. I will do another resend (and fix the typo in the 
-second patch).
+I think the media subsystem is definitely the right place for this.
 
->> +		if (!dev->dma_parms)
->> +			return -ENOMEM;
->> +	}
->> +	if (dma_get_max_seg_size(dev) < size)
->> +		return dma_set_max_seg_size(dev, size);
->> +
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
-> Admittedly I haven't looked closely at this, but is this something that you
-> want for all dma-contig devices? Or to rephrase this question: what type of
-> devices will need this?
+I would use the cs3308.c driver as a starting point. This is also a minimal driver
+(and you can remove the code under CONFIG_VIDEO_ADV_DEBUG for your driver), but it
+uses v4l2_subdev and that makes it ready to be extended in the future, which you
+will likely need to do eventually.
 
-This is needed for all devices using vb2-dc, iommu and user-ptr mode, 
-however
-in the previous discussions (see https://patchwork.linuxtv.org/patch/30870/
-) it has been suggested to make it via common helper instead of forcing it
-in vb2-dc.
+Regards,
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
-
+	Hans
