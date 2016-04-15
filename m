@@ -1,37 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52806 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752964AbcD2NWu (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:49209 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751321AbcDOPfp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 09:22:50 -0400
-Date: Fri, 29 Apr 2016 15:22:46 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 07/24] v4l: of: Call CSI2 bus csi2, not csi
-Message-ID: <20160429132246.GA21251@amd>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1461532104-24032-8-git-send-email-ivo.g.dimitrov.75@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1461532104-24032-8-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Fri, 15 Apr 2016 11:35:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/3] dib0090: fix smatch error
+Date: Fri, 15 Apr 2016 17:35:33 +0200
+Message-Id: <1460734533-34191-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1460734533-34191-1-git-send-email-hverkuil@xs4all.nl>
+References: <1460734533-34191-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 2016-04-25 00:08:07, Ivaylo Dimitrov wrote:
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> The function to parse CSI2 bus parameters was called
-> v4l2_of_parse_csi_bus(), rename it as v4l2_of_parse_csi2_bus() in
-> anticipation of CSI1/CCP2 support.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
+Fix this smatch error:
 
+dib0090.c:1124 dib0090_pwm_gain_reset() error: we previously assumed 'state->rf_ramp' could be null (see line 1086)
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/dvb-frontends/dib0090.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/dib0090.c b/drivers/media/dvb-frontends/dib0090.c
+index dc2d41e..d879dc0 100644
+--- a/drivers/media/dvb-frontends/dib0090.c
++++ b/drivers/media/dvb-frontends/dib0090.c
+@@ -1121,7 +1121,7 @@ void dib0090_pwm_gain_reset(struct dvb_frontend *fe)
+ 				(state->current_band == BAND_CBAND) ? "CBAND" : "NOT CBAND",
+ 				state->identity.version & 0x1f);
+ 
+-		if (rf_ramp && ((state->rf_ramp[0] == 0) ||
++		if (rf_ramp && ((state->rf_ramp && state->rf_ramp[0] == 0) ||
+ 		    (state->current_band == BAND_CBAND &&
+ 		    (state->identity.version & 0x1f) <= P1D_E_F))) {
+ 			dprintk("DE-Engage mux for direct gain reg control");
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.8.0.rc3
+
