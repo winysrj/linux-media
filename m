@@ -1,85 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f169.google.com ([209.85.223.169]:34328 "EHLO
-	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049AbcD0O3C convert rfc822-to-8bit (ORCPT
+Received: from mail-he1eur01on0096.outbound.protection.outlook.com ([104.47.0.96]:23037
+	"EHLO EUR01-HE1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751751AbcDOXJ7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 10:29:02 -0400
-Received: by mail-io0-f169.google.com with SMTP id 190so42200332iow.1
-        for <linux-media@vger.kernel.org>; Wed, 27 Apr 2016 07:29:01 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20160412094620.4fbf05c0@lwn.net>
-References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com>
- <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan>
- <86egbrm9hw.fsf@hiro.keithp.com> <1457076530.13171.13.camel@winder.org.uk>
- <CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
- <87a8m9qoy8.fsf@intel.com> <20160308082948.4e2e0f82@recife.lan>
- <CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
- <20160308103922.48d87d9d@recife.lan> <20160308123921.6f2248ab@recife.lan>
- <20160309182709.7ab1e5db@recife.lan> <87fuvypr2h.fsf@intel.com>
- <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
- <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net>
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Wed, 27 Apr 2016 15:28:41 +0100
-Message-ID: <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jani Nikula <jani.nikula@intel.com>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
+	Fri, 15 Apr 2016 19:09:59 -0400
+From: Peter Rosin <peda@axentia.se>
+To: Wolfram Sang <wsa@the-dreams.de>, Peter Rosin <peda@lysator.liu.se>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	"Peter Meerwald" <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	"Frank Rowand" <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	"Kalle Valo" <kvalo@codeaurora.org>, Joe Perches <joe@perches.com>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	"Matt Ranostay" <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	"linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>,
 	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
+	"linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Subject: Re: [PATCH v6 01/24] i2c-mux: add common data for every i2c-mux
+ instance
+Date: Fri, 15 Apr 2016 15:52:55 +0000
+Message-ID: <AM4PR02MB1299030956B02941183DF239BC680@AM4PR02MB1299.eurprd02.prod.outlook.com>
+Content-Language: sv-SE
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 12, 2016 at 4:46 PM, Jonathan Corbet <corbet@lwn.net> wrote:
-> On Fri, 8 Apr 2016 17:12:27 +0200
-> Markus Heiser <markus.heiser@darmarit.de> wrote:
->
->> motivated by this MT, I implemented a toolchain to migrate the kernel’s
->> DocBook XML documentation to reST markup.
->>
->> It converts 99% of the docs well ... to gain an impression how
->> kernel-docs could benefit from, visit my sphkerneldoc project page
->> on github:
->>
->>   http://return42.github.io/sphkerneldoc/
->
-> So I've obviously been pretty quiet on this recently.  Apologies...I've
-> been dealing with an extended death-in-the-family experience, and there is
-> still a fair amount of cleanup to be done.
->
-> Looking quickly at this work, it seems similar to the results I got.  But
-> there's a lot of code there that came from somewhere?  I'd put together a
-> fairly simple conversion using pandoc and a couple of short sed scripts;
-> is there a reason for a more complex solution?
->
-> Thanks for looking into this, anyway; I hope to be able to focus more on
-> it shortly.
+Wolfram Sang wrote:
+> > > wonder even more if we couldn't supply num_adapters to i2c_mux_alloc()
+> > > and reserve the memory statically. i2c busses are not
+> > > dynamic/hot-pluggable so that should be good enough?
+> > 
+> > Yes, that would work, but it would take some restructuring in some of
+> > the drivers that currently don't know how many child adapters they
+> > are going to need when they call i2c_mux_alloc.
+> 
+> Which ones?
 
-Hi Jon,
+If you look at i2c-mux-reg.c, it currently allocates its private
+struct regmux, then fills it with various platform things and then
+when it knows how many children it needs it allocates them. After
+v6 it first allocates a mux core and private struct regmux in one go
+using i2c_mux_alloc, then continues in much the same way as before.
 
-Thanks for digging into this. FWIW, here is my $0.02. I've been
-working on restarting the devicetree specification, and after looking
-at both reStructuredText and Asciidoc(tor) I thought I liked the
-Asciidoc markup better, so chose that. I then proceeded to spend weeks
-trying to get reasonable output from the toolchain. When I got fed up
-and gave Sphinx a try, I was up and running with reasonable PDF and
-HTML output in a day and a half.
+If the number of children is needed for the i2c_mux_alloc call, then
+this is certainly doable, and it would probably not be all that bad,
+but the simplest approach would probably be to allocate the private
+struct regmux first, then dig through the platform data, then allocate
+the mux core when the number of children is known. Which would still
+be two allocations separated by the platform data dig.
 
-Honestly, in the end I think we could make either tool do what is
-needed of it. However, my impression after trying to do a document
-that needs to have nice publishable output with both tools is that
-Sphinx is easier to work with, simpler to extend, better supported. My
-vote is firmly behind Sphinx/reStructuredText.
+So, your suggestion would basically move the mux core allocation
+from generally being done early together with other private data to
+later when the driver has figured out how many children it's going
+to create.
 
-g.
+The restructuring I thought about is needed if the intention of this
+was to reduce number of allocations, but maybe you just wanted
+what I described above? Because what I did in v6 and what you are
+suggesting is quite similar in complexity, but your version has the
+advantage of not having the need for realloc.
+
+So, I have made this change locally (and the adapters->num_adapters
+change) and I like it. I haven't even compile-tested it yet though,
+but I'll get back when I have done some testing.
+
+> > Because you thought about removing i2c_mux_reserve_adapters completely,
+> > and not provide any means of adding more adapters than specified in
+> > the i2c_mux_alloc call, right?
+> 
+> Yes. I assumed I2C to be static enough that such information is known in
+> advance.
+> 
+> > > Ignoring the 80 char limit here makes the code more readable.
+> > 
+> > That is only true if you actually have more than 80 characters, so I don't
+> > agree. Are you adamant about it? (I'm not)
+> 
+> No. Keep it if you prefer it.
+> 
+> > >> +EXPORT_SYMBOL_GPL(i2c_mux_one_adapter);
+> > > 
+> > > Are you sure the above function pays off? Its argument list is very
+> > > complex and it doesn't save a lot of code. Having seperate calls is
+> > > probably more understandable in drivers? Then again, I assume it makes
+> > > the conversion of existing drivers easier.
+> > 
+> > I added it in v4, you can check earlier versions if you like. Without
+> > it most gate-muxes (i.e. typically the muxes in drivers/media) grew
+> > since the i2c_add_mux_adapter call got replaced by two calls, i.e.
+> > i2c_mux_alloc followed by i2c_max_add_adapter, and coupled with
+> > error checks made it look more complex than before. So, this wasn't
+> > much of a cleanup from the point of those drivers.
+> 
+> Hmm, v3 didn't have the driver patches posted with it. Can you push it
+> to your branch? I am also not too strong with this one, but having a
+> look how it looks without would be nice.
+
+Although I'm not sure what you meant by "driver patches", I have pushed
+mux-core-and-locking-2 and mux-core-and-locking-3 to
+https://github.com/peda-r/i2c-mux/ (note that these are the branches as
+they where when I posted v2 and v3 to the list, i.e. w/o fixups)
+
+Those early versions updated all drivers with each change, making each
+patch big, so if that was what you meant by missing "driver patches" then
+there simply were no driver patches.
+
+If you meant the follow-up patches to relax locking in the media drivers
+etc, I only compile-tested them using throwaway branches back then (if I
+even had branches). So, I don't have anything ready to push, sorry.
+
+Cheers,
+Peter
