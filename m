@@ -1,271 +1,423 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34301 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041AbcDUTYd (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53114 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751333AbcDONEQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2016 15:24:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH/RFC 1/2] v4l: Add meta-data video device type
-Date: Thu, 21 Apr 2016 22:24:48 +0300
-Message-ID: <2327439.DCv8pRv1AH@avalon>
-In-Reply-To: <20160421084426.GA32125@valkosipuli.retiisi.org.uk>
-References: <1461199227-22506-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1461199227-22506-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20160421084426.GA32125@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 15 Apr 2016 09:04:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCHv2 06/12] media/platform: convert drivers to use the new vb2_queue dev field
+Date: Fri, 15 Apr 2016 15:03:50 +0200
+Message-Id: <1460725436-20045-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
+References: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the review.
+Stop using alloc_ctx and just fill in the device pointer.
 
-On Thursday 21 Apr 2016 11:44:26 Sakari Ailus wrote:
-> On Thu, Apr 21, 2016 at 03:40:26AM +0300, Laurent Pinchart wrote:
-> > The meta-data video device is used to transfer meta-data between
-> > userspace and kernelspace through a V4L2 buffers queue. It comes with a
-> > new meta-data capture capability, buffer type and format description.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  Documentation/DocBook/media/v4l/dev-meta.xml  | 100 +++++++++++++++++++++
-> >  Documentation/DocBook/media/v4l/v4l2.xml      |   1 +
-> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  19 +++++
-> >  drivers/media/v4l2-core/v4l2-dev.c            |  21 +++++-
-> >  drivers/media/v4l2-core/v4l2-ioctl.c          |  39 ++++++++++
-> >  drivers/media/v4l2-core/videobuf2-v4l2.c      |   3 +
-> >  include/media/v4l2-dev.h                      |   3 +-
-> >  include/media/v4l2-ioctl.h                    |   8 +++
-> >  include/uapi/linux/media.h                    |   2 +
-> >  include/uapi/linux/videodev2.h                |  14 ++++
-> >  10 files changed, 208 insertions(+), 2 deletions(-)
-> >  create mode 100644 Documentation/DocBook/media/v4l/dev-meta.xml
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/dev-meta.xml
-> > b/Documentation/DocBook/media/v4l/dev-meta.xml new file mode 100644
-> > index 000000000000..ddc685186015
-> > --- /dev/null
-> > +++ b/Documentation/DocBook/media/v4l/dev-meta.xml
-> > @@ -0,0 +1,100 @@
-> > +  <title>Meta-Data Interface</title>
-> 
-> I propose:
-> 
-> s/-/ /
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/am437x/am437x-vpfe.c    | 10 +---------
+ drivers/media/platform/am437x/am437x-vpfe.h    |  2 --
+ drivers/media/platform/blackfin/bfin_capture.c | 15 ++-------------
+ drivers/media/platform/coda/coda-common.c      | 16 ++--------------
+ drivers/media/platform/coda/coda.h             |  1 -
+ drivers/media/platform/davinci/vpbe_display.c  | 12 +-----------
+ drivers/media/platform/davinci/vpif_capture.c  | 11 +----------
+ drivers/media/platform/davinci/vpif_capture.h  |  2 --
+ drivers/media/platform/davinci/vpif_display.c  | 11 +----------
+ drivers/media/platform/davinci/vpif_display.h  |  2 --
+ include/media/davinci/vpbe_display.h           |  2 --
+ 11 files changed, 8 insertions(+), 76 deletions(-)
 
-How about metadata ? That's the spelling used by wikipedia
-
-> > +
-> > +  <note>
-> > +    <title>Experimental</title>
-> > +    <para>This is an <link linkend="experimental"> experimental </link>
-> > +    interface and may change in the future.</para>
-> > +  </note>
-> > +
-> > +  <para>
-> > +Meta-data refers to any non-image data that supplements video frames with
-> > +additional information. This may include statistics computed over the
-> > image +or frame capture parameters supplied by the image source. This
-> > interface is +intended for transfer of meta-data to userspace and control
-> > of that operation.
->
-> Ditto.
-> 
-> > +  </para>
-> > +
-> > +  <para>
-> > +Meta-data devices are accessed through character device special files
-> > named +<filename>/dev/v4l-meta0</filename> to
-> > <filename>/dev/v4l-meta255</filename> +with major number 81 and
-> > dynamically allocated minor numbers 0 to 255.
->
-> Where does 255 come from? At least in kernel the minor number space has got
-> 20 bits, not 8. Not that I prefer having that many meta data nodes, but
-> still that's a possibility.
-
-We have
-
-#define VIDEO_NUM_DEVICES       256
-
-in drivers/media/v4l2-core/v4l2-dev.c. If you want to take care of the code 
-I'll update the documentation :-)
-
-> > +  </para>
-> > +
-> > +  <section>
-> > +    <title>Querying Capabilities</title>
-> > +
-> > +    <para>
-> > +Devices supporting the meta-data interface set the
-> > +<constant>V4L2_CAP_META_CAPTURE</constant> flag in the
-> > +<structfield>capabilities</structfield> field of &v4l2-capability;
-> > +returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device can
-> > capture +meta-data to memory.
-> > +    </para>
-> > +    <para>
-> > +At least one of the read/write, streaming or asynchronous I/O methods
-> > must
-> > +be supported.
-> > +    </para>
-> > +  </section>
-> > +
-> > +  <section>
-> > +    <title>Data Format Negotiation</title>
-> > +
-> > +    <para>
-> > +The meta-data device uses the <link linkend="format">format</link> ioctls
-> > to +select the capture format. The meta-data buffer content format is
-> > bound to that +selectable format. In addition to the basic
-> > +<link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
-> > +must be supported as well.
-> > +    </para>
-> > +
-> > +    <para>
-> > +To use the <link linkend="format">format</link> ioctls applications set
-> > the +<structfield>type</structfield> field of a &v4l2-format; to
-> > +<constant>V4L2_BUF_TYPE_META_CAPTURE</constant> and use the
-> > &v4l2-meta-format; +<structfield>meta</structfield> member of the
-> > <structfield>fmt</structfield> +union as needed per the desired
-> > operation.
-> > +Currently there are two fields, <structfield>pixelformat</structfield>
-> > and
-> > +<structfield>buffersize</structfield>, of struct &v4l2-meta-format; that
-> > are +used. Content of the <structfield>pixelformat</structfield> is the
-> > V4L2 FourCC +code of the data format. The
-> > <structfield>buffersize</structfield> field is the +maximum buffer size
-> > in bytes required for data transfer, set by the driver in +order to
-> > inform applications.
-> > +    </para>
-> > +
-> > +    <table pgwide="1" frame="none" id="v4l2-meta-format">
-> > +      <title>struct <structname>v4l2_meta_format</structname></title>
-> > +      <tgroup cols="3">
-> > +        &cs-str;
-> > +        <tbody valign="top">
-> > +          <row>
-> > +            <entry>__u32</entry>
-> > +            <entry><structfield>pixelformat</structfield></entry>
-> > +            <entry>
-> > +The data format or type of compression, set by the application. This is a
-> > +little endian <link linkend="v4l2-fourcc">four character code</link>.
-> > +V4L2 defines meta-data formats in <xref linkend="meta-formats" />.
-> > +           </entry>
-> > +          </row>
-> > +          <row>
-> > +            <entry>__u32</entry>
-> > +            <entry><structfield>buffersize</structfield></entry>
-> > +            <entry>
-> > +Maximum size in bytes required for data. Value is set by the driver.
-> > +           </entry>
-> > +          </row>
-> > +          <row>
-> > +            <entry>__u8</entry>
-> > +            <entry><structfield>reserved[24]</structfield></entry>
-> > +            <entry>This array is reserved for future extensions.
-> > +Drivers and applications must set it to zero.</entry>
-> 
-> 200 bytes is reserved for this struct in all IOCTLs. How about using closer
-> to that amount? 24 bytes of reserved space isn't much. Albeit you could
-> argue that this struct could be changed later on as it does not affect IOCTL
-> argument size.
-
-Should we just get rid of the reserved field then ?
-
-> > +          </row>
-> > +        </tbody>
-> > +      </tgroup>
-> > +    </table>
-> > +
-> > +    <para>
-> > +A meta-data device may support <link linkend="rw">read/write</link>
-> > +and/or streaming (<link linkend="mmap">memory mapping</link>
-> > +or <link linkend="userp">user pointer</link>) I/O.
-> > +    </para>
-> > +
-> > +  </section>
-
-[snip]
-
-> > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index
-> > bacecbd68a6d..da2d836e8887 100644
-> > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > @@ -161,6 +161,20 @@ static inline int put_v4l2_sdr_format(struct
-> > v4l2_sdr_format *kp, struct v4l2_sd> 
-> >  	return 0;
-> >  
-> >  }
-> > 
-> > +static inline int get_v4l2_meta_format(struct v4l2_meta_format *kp,
-> > struct v4l2_meta_format __user *up)
->
-> I think I'd wrap this. Same below.
-
-I've followed the existing coding style of the file, I'm fine with wrapping 
-the lines if you think that's better.
-
-> > +{
-> > +	if (copy_from_user(kp, up, sizeof(struct v4l2_meta_format)))
-> > +		return -EFAULT;
-> > +	return 0;
-> > +}
-> > +
-> > +static inline int put_v4l2_meta_format(struct v4l2_meta_format *kp,
-> > struct v4l2_meta_format __user *up) +{
-> > +	if (copy_to_user(up, kp, sizeof(struct v4l2_meta_format)))
-> > +		return -EFAULT;
-> > +	return 0;
-> > +}
-> > +
-> >  struct v4l2_format32 {
-> >  	__u32	type;	/* enum v4l2_buf_type */
-> >  	union {
-
-[snip]
-
-> > diff --git a/include/uapi/linux/videodev2.h
-> > b/include/uapi/linux/videodev2.h index e895975c5b0e..5035295a0138 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-
-[snip]
-
-> > @@ -2007,6 +2009,17 @@ struct v4l2_sdr_format {
-> >  } __attribute__ ((packed));
-> >  
-> >  /**
-> > + * struct v4l2_meta_format - meta-data format definition
-> 
-> An empty line here would be nice.
-
-The kerneldoc style doesn't add an empty line after the first, and the 
-kerneldoc blocks in this file don't either.
-
-> > + * @pixelformat:	little endian four character code (fourcc)
-> > + * @buffersize:		maximum size in bytes required for data
-> > + */
-> > +struct v4l2_meta_format {
-> > +	__u32				pixelformat;
-> > +	__u32				buffersize;
-> > +	__u8				reserved[24];
-> > +} __attribute__ ((packed));
-> > +
-> > +/**
-> >   * struct v4l2_format - stream data format
-> >   * @type:	enum v4l2_buf_type; type of the data stream
-> >   * @pix:	definition of an image format
-
-[snip]
-
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+index e749eb7..d22b09d 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.c
++++ b/drivers/media/platform/am437x/am437x-vpfe.c
+@@ -1915,7 +1915,6 @@ static int vpfe_queue_setup(struct vb2_queue *vq,
+ 
+ 	if (vq->num_buffers + *nbuffers < 3)
+ 		*nbuffers = 3 - vq->num_buffers;
+-	alloc_ctxs[0] = vpfe->alloc_ctx;
+ 
+ 	if (*nplanes) {
+ 		if (sizes[0] < size)
+@@ -2364,13 +2363,6 @@ static int vpfe_probe_complete(struct vpfe_device *vpfe)
+ 		goto probe_out;
+ 
+ 	/* Initialize videobuf2 queue as per the buffer type */
+-	vpfe->alloc_ctx = vb2_dma_contig_init_ctx(vpfe->pdev);
+-	if (IS_ERR(vpfe->alloc_ctx)) {
+-		vpfe_err(vpfe, "Failed to get the context\n");
+-		err = PTR_ERR(vpfe->alloc_ctx);
+-		goto probe_out;
+-	}
+-
+ 	q = &vpfe->buffer_queue;
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
+@@ -2381,11 +2373,11 @@ static int vpfe_probe_complete(struct vpfe_device *vpfe)
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->lock = &vpfe->lock;
+ 	q->min_buffers_needed = 1;
++	q->dev = vpfe->pdev;
+ 
+ 	err = vb2_queue_init(q);
+ 	if (err) {
+ 		vpfe_err(vpfe, "vb2_queue_init() failed\n");
+-		vb2_dma_contig_cleanup_ctx(vpfe->alloc_ctx);
+ 		goto probe_out;
+ 	}
+ 
+diff --git a/drivers/media/platform/am437x/am437x-vpfe.h b/drivers/media/platform/am437x/am437x-vpfe.h
+index 777bf97..17d7aa4 100644
+--- a/drivers/media/platform/am437x/am437x-vpfe.h
++++ b/drivers/media/platform/am437x/am437x-vpfe.h
+@@ -264,8 +264,6 @@ struct vpfe_device {
+ 	struct v4l2_rect crop;
+ 	/* Buffer queue used in video-buf */
+ 	struct vb2_queue buffer_queue;
+-	/* Allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	/* Queue of filled frames */
+ 	struct list_head dma_queue;
+ 	/* IRQ lock for DMA queue */
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index d0092da..1e244287 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -91,8 +91,6 @@ struct bcap_device {
+ 	struct bcap_buffer *cur_frm;
+ 	/* buffer queue used in videobuf2 */
+ 	struct vb2_queue buffer_queue;
+-	/* allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	/* queue of filled frames */
+ 	struct list_head dma_queue;
+ 	/* used in videobuf2 callback */
+@@ -209,7 +207,6 @@ static int bcap_queue_setup(struct vb2_queue *vq,
+ 
+ 	if (vq->num_buffers + *nbuffers < 2)
+ 		*nbuffers = 2;
+-	alloc_ctxs[0] = bcap_dev->alloc_ctx;
+ 
+ 	if (*nplanes)
+ 		return sizes[0] < bcap_dev->fmt.sizeimage ? -EINVAL : 0;
+@@ -820,12 +817,6 @@ static int bcap_probe(struct platform_device *pdev)
+ 	}
+ 	bcap_dev->ppi->priv = bcap_dev;
+ 
+-	bcap_dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(bcap_dev->alloc_ctx)) {
+-		ret = PTR_ERR(bcap_dev->alloc_ctx);
+-		goto err_free_ppi;
+-	}
+-
+ 	vfd = &bcap_dev->video_dev;
+ 	/* initialize field of video device */
+ 	vfd->release            = video_device_release_empty;
+@@ -839,7 +830,7 @@ static int bcap_probe(struct platform_device *pdev)
+ 	if (ret) {
+ 		v4l2_err(pdev->dev.driver,
+ 				"Unable to register v4l2 device\n");
+-		goto err_cleanup_ctx;
++		goto err_free_ppi;
+ 	}
+ 	v4l2_info(&bcap_dev->v4l2_dev, "v4l2 device registered\n");
+ 
+@@ -863,6 +854,7 @@ static int bcap_probe(struct platform_device *pdev)
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->lock = &bcap_dev->mutex;
+ 	q->min_buffers_needed = 1;
++	q->dev = &pdev->dev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret)
+@@ -967,8 +959,6 @@ err_free_handler:
+ 	v4l2_ctrl_handler_free(&bcap_dev->ctrl_handler);
+ err_unreg_v4l2:
+ 	v4l2_device_unregister(&bcap_dev->v4l2_dev);
+-err_cleanup_ctx:
+-	vb2_dma_contig_cleanup_ctx(bcap_dev->alloc_ctx);
+ err_free_ppi:
+ 	ppi_delete_instance(bcap_dev->ppi);
+ err_free_dev:
+@@ -986,7 +976,6 @@ static int bcap_remove(struct platform_device *pdev)
+ 	video_unregister_device(&bcap_dev->video_dev);
+ 	v4l2_ctrl_handler_free(&bcap_dev->ctrl_handler);
+ 	v4l2_device_unregister(v4l2_dev);
+-	vb2_dma_contig_cleanup_ctx(bcap_dev->alloc_ctx);
+ 	ppi_delete_instance(bcap_dev->ppi);
+ 	kfree(bcap_dev);
+ 	return 0;
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 133ab9f..3d57c35 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -1151,9 +1151,6 @@ static int coda_queue_setup(struct vb2_queue *vq,
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+ 
+-	/* Set to vb2-dma-contig allocator context, ignored by vb2-vmalloc */
+-	alloc_ctxs[0] = ctx->dev->alloc_ctx;
+-
+ 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 		 "get %d buffer(s) of size %d each.\n", *nbuffers, size);
+ 
+@@ -1599,6 +1596,7 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
+ 	 * that videobuf2 will keep the value of bytesused intact.
+ 	 */
+ 	vq->allow_zero_bytesused = 1;
++	vq->dev = &ctx->dev->plat_dev->dev;
+ 
+ 	return vb2_queue_init(vq);
+ }
+@@ -2040,16 +2038,10 @@ static void coda_fw_callback(const struct firmware *fw, void *context)
+ 	if (ret < 0)
+ 		goto put_pm;
+ 
+-	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(dev->alloc_ctx)) {
+-		v4l2_err(&dev->v4l2_dev, "Failed to alloc vb2 context\n");
+-		goto put_pm;
+-	}
+-
+ 	dev->m2m_dev = v4l2_m2m_init(&coda_m2m_ops);
+ 	if (IS_ERR(dev->m2m_dev)) {
+ 		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
+-		goto rel_ctx;
++		goto put_pm;
+ 	}
+ 
+ 	for (i = 0; i < dev->devtype->num_vdevs; i++) {
+@@ -2072,8 +2064,6 @@ rel_vfd:
+ 	while (--i >= 0)
+ 		video_unregister_device(&dev->vfd[i]);
+ 	v4l2_m2m_release(dev->m2m_dev);
+-rel_ctx:
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ put_pm:
+ 	pm_runtime_put_sync(&pdev->dev);
+ }
+@@ -2324,8 +2314,6 @@ static int coda_remove(struct platform_device *pdev)
+ 	if (dev->m2m_dev)
+ 		v4l2_m2m_release(dev->m2m_dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	if (dev->alloc_ctx)
+-		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 	destroy_workqueue(dev->workqueue);
+ 	if (dev->iram.vaddr)
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index 8f2c71e..53f9666 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -92,7 +92,6 @@ struct coda_dev {
+ 	struct mutex		coda_mutex;
+ 	struct workqueue_struct	*workqueue;
+ 	struct v4l2_m2m_dev	*m2m_dev;
+-	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct list_head	instances;
+ 	unsigned long		instance_mask;
+ 	struct dentry		*debugfs_root;
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 0abcdfe..2a4c291 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -242,7 +242,6 @@ vpbe_buffer_queue_setup(struct vb2_queue *vq,
+ 	/* Store number of buffers allocated in numbuffer member */
+ 	if (vq->num_buffers + *nbuffers < VPBE_DEFAULT_NUM_BUFS)
+ 		*nbuffers = VPBE_DEFAULT_NUM_BUFS - vq->num_buffers;
+-	alloc_ctxs[0] = layer->alloc_ctx;
+ 
+ 	if (*nplanes)
+ 		return sizes[0] < layer->pix_fmt.sizeimage ? -EINVAL : 0;
+@@ -1451,20 +1450,13 @@ static int vpbe_display_probe(struct platform_device *pdev)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 1;
+ 		q->lock = &disp_dev->dev[i]->opslock;
++		q->dev = disp_dev->vpbe_dev->pdev;
+ 		err = vb2_queue_init(q);
+ 		if (err) {
+ 			v4l2_err(v4l2_dev, "vb2_queue_init() failed\n");
+ 			goto probe_out;
+ 		}
+ 
+-		disp_dev->dev[i]->alloc_ctx =
+-			vb2_dma_contig_init_ctx(disp_dev->vpbe_dev->pdev);
+-		if (IS_ERR(disp_dev->dev[i]->alloc_ctx)) {
+-			v4l2_err(v4l2_dev, "Failed to get the context\n");
+-			err = PTR_ERR(disp_dev->dev[i]->alloc_ctx);
+-			goto probe_out;
+-		}
+-
+ 		INIT_LIST_HEAD(&disp_dev->dev[i]->dma_queue);
+ 
+ 		if (register_device(disp_dev->dev[i], disp_dev, pdev)) {
+@@ -1482,7 +1474,6 @@ probe_out:
+ 	for (k = 0; k < VPBE_DISPLAY_MAX_DEVICES; k++) {
+ 		/* Unregister video device */
+ 		if (disp_dev->dev[k] != NULL) {
+-			vb2_dma_contig_cleanup_ctx(disp_dev->dev[k]->alloc_ctx);
+ 			video_unregister_device(&disp_dev->dev[k]->video_dev);
+ 			kfree(disp_dev->dev[k]);
+ 		}
+@@ -1510,7 +1501,6 @@ static int vpbe_display_remove(struct platform_device *pdev)
+ 	for (i = 0; i < VPBE_DISPLAY_MAX_DEVICES; i++) {
+ 		/* Get the pointer to the layer object */
+ 		vpbe_display_layer = disp_dev->dev[i];
+-		vb2_dma_contig_cleanup_ctx(vpbe_display_layer->alloc_ctx);
+ 		/* Unregister video device */
+ 		video_unregister_device(&vpbe_display_layer->video_dev);
+ 
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 08f7028..d5afab0 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -133,7 +133,6 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
+ 
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-	alloc_ctxs[0] = common->alloc_ctx;
+ 
+ 	/* Calculate the offset for Y and C data in the buffer */
+ 	vpif_calculate_offsets(ch);
+@@ -1371,6 +1370,7 @@ static int vpif_probe_complete(void)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 1;
+ 		q->lock = &common->lock;
++		q->dev = vpif_dev;
+ 
+ 		err = vb2_queue_init(q);
+ 		if (err) {
+@@ -1378,13 +1378,6 @@ static int vpif_probe_complete(void)
+ 			goto probe_out;
+ 		}
+ 
+-		common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
+-		if (IS_ERR(common->alloc_ctx)) {
+-			vpif_err("Failed to get the context\n");
+-			err = PTR_ERR(common->alloc_ctx);
+-			goto probe_out;
+-		}
+-
+ 		INIT_LIST_HEAD(&common->dma_queue);
+ 
+ 		/* Initialize the video_device structure */
+@@ -1412,7 +1405,6 @@ probe_out:
+ 		/* Get the pointer to the channel object */
+ 		ch = vpif_obj.dev[k];
+ 		common = &ch->common[k];
+-		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+ 		/* Unregister video device */
+ 		video_unregister_device(&ch->video_dev);
+ 	}
+@@ -1546,7 +1538,6 @@ static int vpif_remove(struct platform_device *device)
+ 		/* Get the pointer to the channel object */
+ 		ch = vpif_obj.dev[i];
+ 		common = &ch->common[VPIF_VIDEO_INDEX];
+-		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+ 		/* Unregister video device */
+ 		video_unregister_device(&ch->video_dev);
+ 		kfree(vpif_obj.dev[i]);
+diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
+index 4a76009..9e35b67 100644
+--- a/drivers/media/platform/davinci/vpif_capture.h
++++ b/drivers/media/platform/davinci/vpif_capture.h
+@@ -65,8 +65,6 @@ struct common_obj {
+ 	struct v4l2_format fmt;
+ 	/* Buffer queue used in video-buf */
+ 	struct vb2_queue buffer_queue;
+-	/* allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	/* Queue of filled frames */
+ 	struct list_head dma_queue;
+ 	/* Used in video-buf */
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index f40755c..5d77884 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -126,7 +126,6 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
+ 
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-	alloc_ctxs[0] = common->alloc_ctx;
+ 
+ 	/* Calculate the offset for Y and C data  in the buffer */
+ 	vpif_calculate_offsets(ch);
+@@ -1191,19 +1190,13 @@ static int vpif_probe_complete(void)
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 1;
+ 		q->lock = &common->lock;
++		q->dev = vpif_dev;
+ 		err = vb2_queue_init(q);
+ 		if (err) {
+ 			vpif_err("vpif_display: vb2_queue_init() failed\n");
+ 			goto probe_out;
+ 		}
+ 
+-		common->alloc_ctx = vb2_dma_contig_init_ctx(vpif_dev);
+-		if (IS_ERR(common->alloc_ctx)) {
+-			vpif_err("Failed to get the context\n");
+-			err = PTR_ERR(common->alloc_ctx);
+-			goto probe_out;
+-		}
+-
+ 		INIT_LIST_HEAD(&common->dma_queue);
+ 
+ 		/* register video device */
+@@ -1233,7 +1226,6 @@ probe_out:
+ 	for (k = 0; k < j; k++) {
+ 		ch = vpif_obj.dev[k];
+ 		common = &ch->common[k];
+-		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+ 		video_unregister_device(&ch->video_dev);
+ 	}
+ 	return err;
+@@ -1355,7 +1347,6 @@ static int vpif_remove(struct platform_device *device)
+ 		/* Get the pointer to the channel object */
+ 		ch = vpif_obj.dev[i];
+ 		common = &ch->common[VPIF_VIDEO_INDEX];
+-		vb2_dma_contig_cleanup_ctx(common->alloc_ctx);
+ 		/* Unregister video device */
+ 		video_unregister_device(&ch->video_dev);
+ 		kfree(vpif_obj.dev[i]);
+diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
+index e7a1723..af2765f 100644
+--- a/drivers/media/platform/davinci/vpif_display.h
++++ b/drivers/media/platform/davinci/vpif_display.h
+@@ -74,8 +74,6 @@ struct common_obj {
+ 	struct v4l2_format fmt;			/* Used to store the format */
+ 	struct vb2_queue buffer_queue;		/* Buffer queue used in
+ 						 * video-buf */
+-	/* allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 
+ 	struct list_head dma_queue;		/* Queue of filled frames */
+ 	spinlock_t irqlock;			/* Used in video-buf */
+diff --git a/include/media/davinci/vpbe_display.h b/include/media/davinci/vpbe_display.h
+index e14a937..12783fd 100644
+--- a/include/media/davinci/vpbe_display.h
++++ b/include/media/davinci/vpbe_display.h
+@@ -81,8 +81,6 @@ struct vpbe_layer {
+ 	 * Buffer queue used in video-buf
+ 	 */
+ 	struct vb2_queue buffer_queue;
+-	/* allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	/* Queue of filled frames */
+ 	struct list_head dma_queue;
+ 	/* Used in video-buf */
 -- 
-Regards,
-
-Laurent Pinchart
+2.8.0.rc3
 
