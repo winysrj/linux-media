@@ -1,68 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f44.google.com ([209.85.213.44]:35032 "EHLO
-	mail-vk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753774AbcDVIXy (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53114 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751126AbcDONEM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 04:23:54 -0400
-Received: by mail-vk0-f44.google.com with SMTP id t129so127374615vkg.2
-        for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 01:23:48 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5719DBE3.3040707@xs4all.nl>
-References: <5719DBE3.3040707@xs4all.nl>
-From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Date: Fri, 22 Apr 2016 10:23:28 +0200
-Message-ID: <CAH-u=82TugRcE1r=Rp=-YG9gVDV1i6bJixpZESBSqWPzhXZzsg@mail.gmail.com>
-Subject: Re: [RFC] Streaming I/O: proposal to expose MMAP/USERPTR/DMABUF
- capabilities with QUERYCAP
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+	Fri, 15 Apr 2016 09:04:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Florian Echtler <floe@butterbrot.org>
+Subject: [PATCHv2 03/12] sur40: set q->dev instead of allocating a context
+Date: Fri, 15 Apr 2016 15:03:47 +0200
+Message-Id: <1460725436-20045-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
+References: <1460725436-20045-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-2016-04-22 10:08 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> Hi all,
->
-> I have always been unhappy with the fact that it is so hard to tell whether
-> the USERPTR and/or DMABUF modes are available with Streaming I/O. QUERYCAP
-> only tells you if Streaming I/O is available, but not in which flavors.
->
-> So I propose the following:
->
-> #define V4L2_CAP_STREAMING_MMAP V4L2_CAP_STREAMING
-> #define V4L2_CAP_STREAMING_USERPTR 0x08000000
-> #define V4L2_CAP_STREAMING_DMABUF  0x10000000
->
-> All drivers that currently support CAP_STREAMING also support MMAP. For userptr
-> and dmabuf support we add new caps. These can be set by the core if the driver
-> uses vb2 since the core can query the io_modes field of vb2_queue.
+Stop using alloc_ctx and just fill in the device pointer.
 
-So, you want to make it mandatory for future drivers that they support
-MMAP. Fine with me.
-BTW, dmabuf is still marked as experimental, what would make it part
-of the API for good ?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Florian Echtler <floe@butterbrot.org>
+#
+#total: 0 errors, 0 warnings, 304 lines checked
+#
+#Your patch has no obvious style problems and is ready for submission.
+#
+#total: 0 errors, 0 warnings, 8 lines checked
+#
+#Your patch has no obvious style problems and is ready for submission.
+---
+ drivers/input/touchscreen/sur40.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-> For the drivers that do not yet support vb2 we can add it manually.
->
-> I was considering making it a requirement that the MMAP streaming mode is
-> always present, but I don't know if that works once we get drivers that operate
-> on secure memory. So I won't do that for now.
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 880c40b..cc4bd3e 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -151,7 +151,6 @@ struct sur40_state {
+ 	struct mutex lock;
+ 
+ 	struct vb2_queue queue;
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	struct list_head buf_list;
+ 	spinlock_t qlock;
+ 	int sequence;
+@@ -580,19 +579,13 @@ static int sur40_probe(struct usb_interface *interface,
+ 	sur40->queue = sur40_queue;
+ 	sur40->queue.drv_priv = sur40;
+ 	sur40->queue.lock = &sur40->lock;
++	sur40->queue.dev = sur40->dev;
+ 
+ 	/* initialize the queue */
+ 	error = vb2_queue_init(&sur40->queue);
+ 	if (error)
+ 		goto err_unreg_v4l2;
+ 
+-	sur40->alloc_ctx = vb2_dma_sg_init_ctx(sur40->dev);
+-	if (IS_ERR(sur40->alloc_ctx)) {
+-		dev_err(sur40->dev, "Can't allocate buffer context");
+-		error = PTR_ERR(sur40->alloc_ctx);
+-		goto err_unreg_v4l2;
+-	}
+-
+ 	sur40->vdev = sur40_video_device;
+ 	sur40->vdev.v4l2_dev = &sur40->v4l2;
+ 	sur40->vdev.lock = &sur40->lock;
+@@ -633,7 +626,6 @@ static void sur40_disconnect(struct usb_interface *interface)
+ 
+ 	video_unregister_device(&sur40->vdev);
+ 	v4l2_device_unregister(&sur40->v4l2);
+-	vb2_dma_sg_cleanup_ctx(sur40->alloc_ctx);
+ 
+ 	input_unregister_polled_device(sur40->input);
+ 	input_free_polled_device(sur40->input);
+@@ -655,11 +647,8 @@ static int sur40_queue_setup(struct vb2_queue *q,
+ 		       unsigned int *nbuffers, unsigned int *nplanes,
+ 		       unsigned int sizes[], void *alloc_ctxs[])
+ {
+-	struct sur40_state *sur40 = vb2_get_drv_priv(q);
+-
+ 	if (q->num_buffers + *nbuffers < 3)
+ 		*nbuffers = 3 - q->num_buffers;
+-	alloc_ctxs[0] = sur40->alloc_ctx;
+ 
+ 	if (*nplanes)
+ 		return sizes[0] < sur40_video_format.sizeimage ? -EINVAL : 0;
+-- 
+2.8.0.rc3
 
-By using "#define V4L2_CAP_STREAMING_MMAP V4L2_CAP_STREAMING" you make
-it mandatory... You would need a separate bit to indicate MMAP
-otherwise...
-
-> Since we are looking at device caps anyway: can we just drop V4L2_CAP_ASYNCIO?
-> It's never been implemented, nor is it likely in the future. And we don't have
-> all that many bits left before we need to use one of the reserved fields for
-> additional capabilities.
->
-> Regards,
->
->         Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
