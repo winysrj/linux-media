@@ -1,131 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:42458 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751866AbcD0TMu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 15:12:50 -0400
-Subject: Re: [RFC PATCH v2 1/2] [media] tvp5150: Add input connectors DT
- bindings
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1460500973-9066-1-git-send-email-javier@osg.samsung.com>
- <1460500973-9066-2-git-send-email-javier@osg.samsung.com>
- <2355815.rhlvKGshE1@avalon>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Message-ID: <744e5205-59e6-e135-3985-db097044aa11@osg.samsung.com>
-Date: Wed, 27 Apr 2016 15:12:40 -0400
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:48595 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751606AbcDOL6R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Apr 2016 07:58:17 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Thaissa Falbo <thaissa.falbo@gmail.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH for 4.6] davinci_vpfe: Revert "staging: media: davinci_vpfe:
+ remove,unnecessary ret variable"
+Message-ID: <5710D752.4040208@xs4all.nl>
+Date: Fri, 15 Apr 2016 13:58:10 +0200
 MIME-Version: 1.0
-In-Reply-To: <2355815.rhlvKGshE1@avalon>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent,
+This reverts commit afa5d19a2b5fbf0bbcce34f3613bce2bc9479bb7.
 
-Thanks a lot for your feedback.
+This patch is completely bogus and messed up the code big time.
 
-On 04/27/2016 10:29 AM, Laurent Pinchart wrote:
-> Hi Javier,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday 12 Apr 2016 18:42:52 Javier Martinez Canillas wrote:
->> The tvp5150 and tvp5151 decoders support different video input source
->> connections to their AIP1A and AIP1B pins. Either two Composite or a
->> S-Video input signals are supported.
->>
->> The possible configurations are as follows:
->>
->> - Analog Composite signal connected to AIP1A.
->> - Analog Composite signal connected to AIP1B.
->> - Analog S-Video Y (luminance) and C (chrominance)
->>   signals connected to AIP1A and AIP1B respectively.
->>
->> This patch extends the Device Tree binding documentation to describe
->> how the input connectors for these devices should be defined in a DT.
->>
->> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>
->> ---
->> Hello,
->>
->> The DT binding assumes that there is a 1:1 map between physical connectors
->> and connections, so there will be a connector described in the DT for each
->> connection.
->>
->> There is also the question about how the DT bindings will be extended to
->> support other attributes (color/position/group) using the properties API.
-> 
-> I foresee lots of bikeshedding on that particular topic, but I don't think it 
-> will be a blocker. We need a volunteer to quickstart a discussion on the 
-> devicetree (or possible devicetree-spec) mailing list :-)
->
+I'm not sure what was intended, but this isn't it.
 
-Yes, I plan to extend this binding once we have the properties API in mainline
-but that can be done as a follow-up since it should just be more properties on
-top of compatible, label and port that will be supported in the meantime.
- 
->> But I believe that can be done as a follow-up, once the properties API is
->> in mainline.
->>
->> Best regards,
->> Javier
->>
->> Changes in v2:
->> - Remove from the changelog a mention of devices that multiplex the
->>   physical RCA connectors to be used for the S-Video Y and C signals
->>   since it's a special case and it doesn't really work on the IGEPv2.
->>
->>  .../devicetree/bindings/media/i2c/tvp5150.txt      | 59 +++++++++++++++++++
->>  1 file changed, 59 insertions(+)
->> :
->> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
->> b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt index
->> 8c0fc1a26bf0..df555650b0b4 100644
->> --- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
->> +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
->> @@ -26,8 +26,46 @@ Required Endpoint Properties for parallel
->> synchronization: If none of hsync-active, vsync-active and
->> field-even-active is specified, the endpoint is assumed to use embedded
->> BT.656 synchronization.
->>
->> +-Optional nodes:
->> +- connectors: The list of tvp5150 input connectors available on a given
->> +  board. The node should contain a child 'port' node for each connector.
-> 
-> I had understood this as meaning that connectors should be fully described in 
-> the connectors subnode, until I read through the whole patch and saw that 
-> dedicated DT nodes are needed for the connectors. I thus believe the paragraph 
-> should be reworded to avoid the ambiguity.
->
+Cc: Thaissa Falbo <thaissa.falbo@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
 
-I see what you mean, OK I'll make it clear that this only is the list of ports
-and that connectors should be described somewhere else (i.e: the root node).
+Greg, this patch was never seen by us. Can you redirect patches for staging/media
+to the linux-media mailinglist? We'd like to stay on top of what is happening there.
 
-> This being said, why do you need a connectors subnode ? Can't we just add the 
-> port nodes for the input ports directly in the tvp5150 node (or possibly in a 
-> ports subnode, as defined in the OF graph bindings).
->
+Thanks!
 
-Yes we could, I went with a "connectors" subnode because the video decoders
-will have another port node to point to the bridge device node endpoint. So
-I thought it could be more clear to make a distinction between those ports.
+	Hans
 
-We can go with the "ports" subnode instead of "connectors" but then again it
-could be confusing to differentiate between bridge and connectors ports both
-for users writing/reading DTS and the drivers parsing the DT.
+---
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 54 ++++++++++++++++---------
+ 1 file changed, 34 insertions(+), 20 deletions(-)
 
-I used as an inspiration the regulators binding where regulators are usually
-described under a "regulators" subnode.
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index df4f298..ea3ddec 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -172,9 +172,11 @@ static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ static int vpfe_update_pipe_state(struct vpfe_video_device *video)
+ {
+ 	struct vpfe_pipeline *pipe = &video->pipe;
++	int ret;
 
-Best regards,
+-	if (vpfe_prepare_pipeline(video))
+-		return vpfe_prepare_pipeline(video);
++	ret = vpfe_prepare_pipeline(video);
++	if (ret)
++		return ret;
+
+ 	/*
+ 	 * Find out if there is any input video
+@@ -182,9 +184,10 @@ static int vpfe_update_pipe_state(struct vpfe_video_device *video)
+ 	 */
+ 	if (pipe->input_num == 0) {
+ 		pipe->state = VPFE_PIPELINE_STREAM_CONTINUOUS;
+-		if (vpfe_update_current_ext_subdev(video)) {
++		ret = vpfe_update_current_ext_subdev(video);
++		if (ret) {
+ 			pr_err("Invalid external subdev\n");
+-			return vpfe_update_current_ext_subdev(video);
++			return ret;
+ 		}
+ 	} else {
+ 		pipe->state = VPFE_PIPELINE_STREAM_SINGLESHOT;
+@@ -667,6 +670,7 @@ static int vpfe_enum_fmt(struct file *file, void  *priv,
+ 	struct v4l2_subdev *subdev;
+ 	struct v4l2_format format;
+ 	struct media_pad *remote;
++	int ret;
+
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_fmt\n");
+
+@@ -695,10 +699,11 @@ static int vpfe_enum_fmt(struct file *file, void  *priv,
+ 	sd_fmt.pad = remote->index;
+ 	sd_fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+ 	/* get output format of remote subdev */
+-	if (v4l2_subdev_call(subdev, pad, get_fmt, NULL, &sd_fmt)) {
++	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &sd_fmt);
++	if (ret) {
+ 		v4l2_err(&vpfe_dev->v4l2_dev,
+ 			 "invalid remote subdev for video node\n");
+-		return v4l2_subdev_call(subdev, pad, get_fmt, NULL, &sd_fmt);
++		return ret;
+ 	}
+ 	/* convert to pix format */
+ 	mbus.code = sd_fmt.format.code;
+@@ -725,6 +730,7 @@ static int vpfe_s_fmt(struct file *file, void *priv,
+ 	struct vpfe_video_device *video = video_drvdata(file);
+ 	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+ 	struct v4l2_format format;
++	int ret;
+
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_fmt\n");
+ 	/* If streaming is started, return error */
+@@ -733,8 +739,9 @@ static int vpfe_s_fmt(struct file *file, void *priv,
+ 		return -EBUSY;
+ 	}
+ 	/* get adjacent subdev's output pad format */
+-	if (__vpfe_video_get_format(video, &format))
+-		return __vpfe_video_get_format(video, &format);
++	ret = __vpfe_video_get_format(video, &format);
++	if (ret)
++		return ret;
+ 	*fmt = format;
+ 	video->fmt = *fmt;
+ 	return 0;
+@@ -757,11 +764,13 @@ static int vpfe_try_fmt(struct file *file, void *priv,
+ 	struct vpfe_video_device *video = video_drvdata(file);
+ 	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+ 	struct v4l2_format format;
++	int ret;
+
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_try_fmt\n");
+ 	/* get adjacent subdev's output pad format */
+-	if (__vpfe_video_get_format(video, &format))
+-		return __vpfe_video_get_format(video, &format);
++	ret = __vpfe_video_get_format(video, &format);
++	if (ret)
++		return ret;
+
+ 	*fmt = format;
+ 	return 0;
+@@ -838,8 +847,9 @@ static int vpfe_s_input(struct file *file, void *priv, unsigned int index)
+
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_input\n");
+
+-	if (mutex_lock_interruptible(&video->lock))
+-		return mutex_lock_interruptible(&video->lock);
++	ret = mutex_lock_interruptible(&video->lock);
++	if (ret)
++		return ret;
+ 	/*
+ 	 * If streaming is started return device busy
+ 	 * error
+@@ -940,8 +950,9 @@ static int vpfe_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_std\n");
+
+ 	/* Call decoder driver function to set the standard */
+-	if (mutex_lock_interruptible(&video->lock))
+-		return mutex_lock_interruptible(&video->lock);
++	ret = mutex_lock_interruptible(&video->lock);
++	if (ret)
++		return ret;
+ 	sdinfo = video->current_ext_subdev;
+ 	/* If streaming is started, return device busy error */
+ 	if (video->started) {
+@@ -1327,8 +1338,9 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+
+-	if (mutex_lock_interruptible(&video->lock))
+-		return mutex_lock_interruptible(&video->lock);
++	ret = mutex_lock_interruptible(&video->lock);
++	if (ret)
++		return ret;
+
+ 	if (video->io_usrs != 0) {
+ 		v4l2_err(&vpfe_dev->v4l2_dev, "Only one IO user allowed\n");
+@@ -1354,10 +1366,11 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+ 	q->buf_struct_size = sizeof(struct vpfe_cap_buffer);
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+
+-	if (vb2_queue_init(q)) {
++	ret = vb2_queue_init(q);
++	if (ret) {
+ 		v4l2_err(&vpfe_dev->v4l2_dev, "vb2_queue_init() failed\n");
+ 		vb2_dma_contig_cleanup_ctx(vpfe_dev->pdev);
+-		return vb2_queue_init(q);
++		return ret;
+ 	}
+
+ 	fh->io_allowed = 1;
+@@ -1533,8 +1546,9 @@ static int vpfe_streamoff(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+
+-	if (mutex_lock_interruptible(&video->lock))
+-		return mutex_lock_interruptible(&video->lock);
++	ret = mutex_lock_interruptible(&video->lock);
++	if (ret)
++		return ret;
+
+ 	vpfe_stop_capture(video);
+ 	ret = vb2_streamoff(&video->buffer_queue, buf_type);
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.8.0.rc3
+
