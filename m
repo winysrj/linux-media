@@ -1,51 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58758 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751995AbcDVIII (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.75]:50970 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750967AbcDPHE1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 04:08:08 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 4959E18021C
-	for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 10:08:03 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC] Streaming I/O: proposal to expose MMAP/USERPTR/DMABUF
- capabilities with QUERYCAP
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <5719DBE3.3040707@xs4all.nl>
-Date: Fri, 22 Apr 2016 10:08:03 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Sat, 16 Apr 2016 03:04:27 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Amitoj Kaur Chawla <amitoj1606@gmail.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] staging: media/omap1: assign resource before use
+Date: Sat, 16 Apr 2016 09:03:47 +0200
+Message-Id: <1460790246-3800892-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+A recent cleanup patch accidentally moved the initial assignment
+of the register resource after its first use, as shown by this
+gcc warning:
 
-I have always been unhappy with the fact that it is so hard to tell whether
-the USERPTR and/or DMABUF modes are available with Streaming I/O. QUERYCAP
-only tells you if Streaming I/O is available, but not in which flavors.
+drivers/staging/media/omap1/omap1_camera.c: In function 'omap1_cam_probe':
+include/linux/ioport.h:191:12: error: 'res' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+  return res->end - res->start + 1;
+         ~~~^~~~~
+drivers/staging/media/omap1/omap1_camera.c:1566:19: note: 'res' was declared here
+  struct resource *res;
+                   ^~~
 
-So I propose the following:
+This moves the line to immediately before the location that the variable
+is used in.
 
-#define V4L2_CAP_STREAMING_MMAP V4L2_CAP_STREAMING
-#define V4L2_CAP_STREAMING_USERPTR 0x08000000
-#define V4L2_CAP_STREAMING_DMABUF  0x10000000
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 76e543382bd4 ("staging: media: omap1: Switch to devm_ioremap_resource")
+---
+ drivers/staging/media/omap1/omap1_camera.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-All drivers that currently support CAP_STREAMING also support MMAP. For userptr
-and dmabuf support we add new caps. These can be set by the core if the driver
-uses vb2 since the core can query the io_modes field of vb2_queue.
+diff --git a/drivers/staging/media/omap1/omap1_camera.c b/drivers/staging/media/omap1/omap1_camera.c
+index 54b8dd2d2bba..078049481e8b 100644
+--- a/drivers/staging/media/omap1/omap1_camera.c
++++ b/drivers/staging/media/omap1/omap1_camera.c
+@@ -1579,6 +1579,7 @@ static int omap1_cam_probe(struct platform_device *pdev)
+ 	if (IS_ERR(clk))
+ 		return PTR_ERR(clk);
+ 
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	pcdev = devm_kzalloc(&pdev->dev, sizeof(*pcdev) + resource_size(res),
+ 			     GFP_KERNEL);
+ 	if (!pcdev)
+@@ -1614,7 +1615,6 @@ static int omap1_cam_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&pcdev->capture);
+ 	spin_lock_init(&pcdev->lock);
+ 
+-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	base = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(base))
+ 		return PTR_ERR(base);
+-- 
+2.7.0
 
-For the drivers that do not yet support vb2 we can add it manually.
-
-I was considering making it a requirement that the MMAP streaming mode is
-always present, but I don't know if that works once we get drivers that operate
-on secure memory. So I won't do that for now.
-
-Since we are looking at device caps anyway: can we just drop V4L2_CAP_ASYNCIO?
-It's never been implemented, nor is it likely in the future. And we don't have
-all that many bits left before we need to use one of the reserved fields for
-additional capabilities.
-
-Regards,
-
-	Hans
