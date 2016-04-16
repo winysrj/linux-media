@@ -1,104 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37359 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965213AbcDYVg2 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34933 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751100AbcDPIMi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 17:36:28 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, dri-devel@lists.freedesktop.org
-Subject: [PATCH v2 11/13] drm: rcar-du: Add alpha support for VSP planes
-Date: Tue, 26 Apr 2016 00:36:36 +0300
-Message-Id: <1461620198-13428-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Sat, 16 Apr 2016 04:12:38 -0400
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: sakari.ailus@iki.fi, mchehab@osg.samsung.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH] [media] smiapp: provide g_skip_top_lines method in sensor ops
+Date: Sat, 16 Apr 2016 11:12:20 +0300
+Message-Id: <1460794340-490-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make the global alpha multiplier of VSP planes configurable through the
-alpha property, exactly as for the native DU planes.
+Some sensors (like the one in Nokia N900) provide metadata in the first
+couple of lines. Make that information information available to the
+pipeline.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Acked-by: Dave Airlie <airlied@redhat.com>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 ---
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c | 38 +++++++++++++++++------------------
- 1 file changed, 19 insertions(+), 19 deletions(-)
+ drivers/media/i2c/smiapp/smiapp-core.c | 12 ++++++++++++
+ drivers/media/i2c/smiapp/smiapp.h      |  1 +
+ 2 files changed, 13 insertions(+)
 
-Cc: dri-devel@lists.freedesktop.org
-
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-index de7ef041182b..8c89a6401542 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-@@ -148,40 +148,41 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
- 	struct rcar_du_vsp_plane_state *state =
- 		to_rcar_vsp_plane_state(plane->plane.state);
- 	struct drm_framebuffer *fb = plane->plane.state->fb;
--	struct v4l2_rect src;
--	struct v4l2_rect dst;
--	dma_addr_t paddr[2] = { 0, };
--	u32 pixelformat = 0;
-+	struct vsp1_du_atomic_config cfg = {
-+		.pixelformat = 0,
-+		.pitch = fb->pitches[0],
-+		.alpha = state->alpha,
-+		.zpos = 0,
-+	};
- 	unsigned int i;
- 
--	src.left = state->state.src_x >> 16;
--	src.top = state->state.src_y >> 16;
--	src.width = state->state.src_w >> 16;
--	src.height = state->state.src_h >> 16;
-+	cfg.src.left = state->state.src_x >> 16;
-+	cfg.src.top = state->state.src_y >> 16;
-+	cfg.src.width = state->state.src_w >> 16;
-+	cfg.src.height = state->state.src_h >> 16;
- 
--	dst.left = state->state.crtc_x;
--	dst.top = state->state.crtc_y;
--	dst.width = state->state.crtc_w;
--	dst.height = state->state.crtc_h;
-+	cfg.dst.left = state->state.crtc_x;
-+	cfg.dst.top = state->state.crtc_y;
-+	cfg.dst.width = state->state.crtc_w;
-+	cfg.dst.height = state->state.crtc_h;
- 
- 	for (i = 0; i < state->format->planes; ++i) {
- 		struct drm_gem_cma_object *gem;
- 
- 		gem = drm_fb_cma_get_gem_obj(fb, i);
--		paddr[i] = gem->paddr + fb->offsets[i];
-+		cfg.mem[i] = gem->paddr + fb->offsets[i];
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index a215efe..3dfe387 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -188,6 +188,8 @@ static int smiapp_read_frame_fmt(struct smiapp_sensor *sensor)
+ 		embedded_end = 0;
  	}
  
- 	for (i = 0; i < ARRAY_SIZE(formats_kms); ++i) {
- 		if (formats_kms[i] == state->format->fourcc) {
--			pixelformat = formats_v4l2[i];
-+			cfg.pixelformat = formats_v4l2[i];
- 			break;
- 		}
- 	}
- 
--	WARN_ON(!pixelformat);
-+	WARN_ON(!cfg.pixelformat);
- 
--	vsp1_du_atomic_update(plane->vsp->vsp, plane->index, pixelformat,
--			      fb->pitches[0], paddr, &src, &dst);
-+	vsp1_du_atomic_update(plane->vsp->vsp, plane->index, &cfg);
++	sensor->image_start = image_start;
++
+ 	dev_dbg(&client->dev, "embedded data from lines %d to %d\n",
+ 		embedded_start, embedded_end);
+ 	dev_dbg(&client->dev, "image data starts at line %d\n", image_start);
+@@ -2280,6 +2282,15 @@ static int smiapp_get_skip_frames(struct v4l2_subdev *subdev, u32 *frames)
+ 	return 0;
  }
  
- static int rcar_du_vsp_plane_atomic_check(struct drm_plane *plane,
-@@ -220,8 +221,7 @@ static void rcar_du_vsp_plane_atomic_update(struct drm_plane *plane,
- 	if (plane->state->crtc)
- 		rcar_du_vsp_plane_setup(rplane);
- 	else
--		vsp1_du_atomic_update(rplane->vsp->vsp, rplane->index, 0, 0, 0,
--				      NULL, NULL);
-+		vsp1_du_atomic_update(rplane->vsp->vsp, rplane->index, NULL);
- }
++static int smiapp_get_skip_top_lines(struct v4l2_subdev *subdev, u32 *lines)
++{
++	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
++
++	*lines = sensor->image_start;
++
++	return 0;
++}
++
+ /* -----------------------------------------------------------------------------
+  * sysfs attributes
+  */
+@@ -2890,6 +2901,7 @@ static const struct v4l2_subdev_pad_ops smiapp_pad_ops = {
  
- static const struct drm_plane_helper_funcs rcar_du_vsp_plane_helper_funcs = {
+ static const struct v4l2_subdev_sensor_ops smiapp_sensor_ops = {
+ 	.g_skip_frames = smiapp_get_skip_frames,
++	.g_skip_top_lines = smiapp_get_skip_top_lines,
+ };
+ 
+ static const struct v4l2_subdev_ops smiapp_ops = {
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index f6af0cc..c8b4ca0 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -217,6 +217,7 @@ struct smiapp_sensor {
+ 
+ 	u8 hvflip_inv_mask; /* H/VFLIP inversion due to sensor orientation */
+ 	u8 frame_skip;
++	u32 image_start;	/* Offset to first line after metadata lines */
+ 
+ 	int power_count;
+ 
 -- 
-2.7.3
+1.9.1
 
