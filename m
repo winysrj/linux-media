@@ -1,51 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m50-138.163.com ([123.125.50.138]:40758 "EHLO m50-138.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751075AbcDNDZf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2016 23:25:35 -0400
-From: zengzhaoxiu@163.com
-To: linux-kernel@vger.kernel.org
-Cc: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH V3 13/29] media: use parity8 in vivid-vbi-gen.c
-Date: Thu, 14 Apr 2016 11:09:37 +0800
-Message-Id: <1460603377-5126-1-git-send-email-zengzhaoxiu@163.com>
-In-Reply-To: <1460601525-3822-1-git-send-email-zengzhaoxiu@163.com>
-References: <1460601525-3822-1-git-send-email-zengzhaoxiu@163.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45062 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751710AbcDPAA3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Apr 2016 20:00:29 -0400
+Date: Fri, 15 Apr 2016 17:00:25 -0700
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Thaissa Falbo <thaissa.falbo@gmail.com>
+Subject: Re: [PATCH for 4.6] davinci_vpfe: Revert "staging: media:
+ davinci_vpfe: remove,unnecessary ret variable"
+Message-ID: <20160416000025.GA17263@kroah.com>
+References: <5710D752.4040208@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5710D752.4040208@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+On Fri, Apr 15, 2016 at 01:58:10PM +0200, Hans Verkuil wrote:
+> This reverts commit afa5d19a2b5fbf0bbcce34f3613bce2bc9479bb7.
+> 
+> This patch is completely bogus and messed up the code big time.
+> 
+> I'm not sure what was intended, but this isn't it.
+> 
+> Cc: Thaissa Falbo <thaissa.falbo@gmail.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> ---
+> 
+> Greg, this patch was never seen by us. Can you redirect patches for staging/media
+> to the linux-media mailinglist? We'd like to stay on top of what is happening there.
 
-Signed-off-by: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
----
- drivers/media/platform/vivid/vivid-vbi-gen.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+Ugh, you are right, sorry about this.  I'll try to forward this stuff
+onward, my fault.
 
-diff --git a/drivers/media/platform/vivid/vivid-vbi-gen.c b/drivers/media/platform/vivid/vivid-vbi-gen.c
-index a2159de..d5ba0fc 100644
---- a/drivers/media/platform/vivid/vivid-vbi-gen.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-gen.c
-@@ -175,14 +175,9 @@ static const u8 vivid_cc_sequence2[30] = {
- 	0x14, 0x2f,	/* End of Caption */
- };
- 
--static u8 calc_parity(u8 val)
-+static inline u8 calc_parity(u8 val)
- {
--	unsigned i;
--	unsigned tot = 0;
--
--	for (i = 0; i < 7; i++)
--		tot += (val & (1 << i)) ? 1 : 0;
--	return val | ((tot & 1) ? 0 : 0x80);
-+	return (!parity8(val) << 7) | val;
- }
- 
- static void vivid_vbi_gen_set_time_of_day(u8 *packet)
--- 
-2.5.0
-
-
+greg k-h
