@@ -1,150 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41880 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752960AbcD2LVr (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:14767 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751335AbcDRFkw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 07:21:47 -0400
-Date: Fri, 29 Apr 2016 14:21:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2] media: vb2-dma-contig: configure DMA max segment size
- properly
-Message-ID: <20160429112110.GI32125@valkosipuli.retiisi.org.uk>
-References: <57220299.3000807@xs4all.nl>
- <1461849603-6313-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 18 Apr 2016 01:40:52 -0400
+Message-ID: <1460958046.7861.48.camel@mtksdaap41>
+Subject: Re: [PATCH 3/7] [Media] vcodec: mediatek: Add Mediatek V4L2 Video
+ Decoder Driver
+From: tiffany lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
+Date: Mon, 18 Apr 2016 13:40:46 +0800
+In-Reply-To: <5710FA3A.2030603@xs4all.nl>
+References: <1460548915-17536-1-git-send-email-tiffany.lin@mediatek.com>
+	 <1460548915-17536-2-git-send-email-tiffany.lin@mediatek.com>
+	 <1460548915-17536-3-git-send-email-tiffany.lin@mediatek.com>
+	 <1460548915-17536-4-git-send-email-tiffany.lin@mediatek.com>
+	 <5710FA3A.2030603@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1461849603-6313-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
 
-Thanks for the patch!
+snipped.
 
-On Thu, Apr 28, 2016 at 03:20:03PM +0200, Marek Szyprowski wrote:
-> This patch lets vb2-dma-contig memory allocator to configure DMA max
-> segment size properly for the client device. Setting it is needed to let
-> DMA-mapping subsystem to create a single, contiguous mapping in DMA
-> address space. This is essential for all devices, which use dma-contig
-> videobuf2 memory allocator and shared buffers (in USERPTR or DMAbuf modes
-> of operations).
+> > +
+> > +void mtk_vcodec_dec_set_default_params(struct mtk_vcodec_ctx *ctx)
+> > +{
+> > +	struct mtk_q_data *q_data;
+> > +
+> > +	ctx->m2m_ctx->q_lock = &ctx->dev->dev_mutex;
+> > +	ctx->fh.m2m_ctx = ctx->m2m_ctx;
+> > +	ctx->fh.ctrl_handler = &ctx->ctrl_hdl;
+> > +	INIT_WORK(&ctx->decode_work, mtk_vdec_worker);
+> > +
+> > +	q_data = &ctx->q_data[MTK_Q_DATA_SRC];
+> > +	memset(q_data, 0, sizeof(struct mtk_q_data));
+> > +	q_data->visible_width = DFT_CFG_WIDTH;
+> > +	q_data->visible_height = DFT_CFG_HEIGHT;
+> > +	q_data->fmt = &mtk_video_formats[OUT_FMT_IDX];
+> > +	q_data->colorspace = V4L2_COLORSPACE_REC709;
+> > +	q_data->field = V4L2_FIELD_NONE;
+> > +	ctx->q_data[MTK_Q_DATA_DST].sizeimage[0] =
+> > +		DFT_CFG_WIDTH * DFT_CFG_HEIGHT;
+> > +	ctx->q_data[MTK_Q_DATA_DST].bytesperline[0] = 0;
+> > +
+> > +
+> > +	q_data = &ctx->q_data[MTK_Q_DATA_DST];
+> > +	memset(q_data, 0, sizeof(struct mtk_q_data));
+> > +	q_data->visible_width = DFT_CFG_WIDTH;
+> > +	q_data->visible_height = DFT_CFG_HEIGHT;
+> > +	q_data->coded_width = DFT_CFG_WIDTH;
+> > +	q_data->coded_height = DFT_CFG_HEIGHT;
+> > +	q_data->colorspace = V4L2_COLORSPACE_REC709;
+> > +	q_data->field = V4L2_FIELD_NONE;
+> > +
+> > +	q_data->fmt = &mtk_video_formats[CAP_FMT_IDX];
+> > +
+> > +	v4l_bound_align_image(&q_data->coded_width,
+> > +					MTK_VDEC_MIN_W,
+> > +					MTK_VDEC_MAX_W, 4,
+> > +					&q_data->coded_height,
+> > +					MTK_VDEC_MIN_H,
+> > +					MTK_VDEC_MAX_H, 5, 6);
+> > +
+> > +	q_data->sizeimage[0] = q_data->coded_width * q_data->coded_height;
+> > +	q_data->bytesperline[0] = q_data->coded_width;
+> > +	q_data->sizeimage[1] = q_data->sizeimage[0] / 2;
+> > +	q_data->bytesperline[1] = q_data->coded_width;
+> > +
+> > +}
+> > +
+> > +static int vidioc_vdec_streamon(struct file *file, void *priv,
+> > +				enum v4l2_buf_type type)
+> > +{
+> > +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+> > +
+> > +	mtk_v4l2_debug(3, "[%d] (%d)", ctx->idx, type);
+> > +
+> > +	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
+> > +}
+> > +
+> > +static int vidioc_vdec_streamoff(struct file *file, void *priv,
+> > +				 enum v4l2_buf_type type)
+> > +{
+> > +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+> > +
+> > +	mtk_v4l2_debug(3, "[%d] (%d)", ctx->idx, type);
+> > +	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
+> > +}
+> > +
+> > +static int vidioc_vdec_reqbufs(struct file *file, void *priv,
+> > +			       struct v4l2_requestbuffers *reqbufs)
+> > +{
+> > +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+> > +	int ret;
+> > +
+> > +	mtk_v4l2_debug(3, "[%d] (%d) count=%d", ctx->idx,
+> > +			 reqbufs->type, reqbufs->count);
+> > +	ret = v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
+> > +
+> > +	return ret;
+> > +}
 > 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
-> Hello,
+> Please use the v4l2_m2m_ioctl_* helper functions were applicable.
 > 
-> This patch is a follow-up of my previous attempts to let Exynos
-> multimedia devices to work properly with shared buffers when IOMMU is
-> enabled:
-> 1. https://www.mail-archive.com/linux-media@vger.kernel.org/msg96946.html
-> 2. http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
-> 3. https://patchwork.linuxtv.org/patch/30870/
-> 
-> As sugested by Hans, configuring DMA max segment size should be done by
-> videobuf2-dma-contig module instead of requiring all device drivers to
-> do it on their own.
-> 
-> Here is some backgroud why this is done in videobuf2-dc not in the
-> respective generic bus code:
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html
-> 
-> Best regards,
-> Marek Szyprowski
-> 
-> changelog:
-> v2:
-> - fixes typos and other language issues in the comments
-> 
-> v1: http://article.gmane.org/gmane.linux.kernel.samsung-soc/53690
-> ---
->  drivers/media/v4l2-core/videobuf2-dma-contig.c | 39 ++++++++++++++++++++++++++
->  1 file changed, 39 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index 461ae55eaa98..d0382d62954d 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -443,6 +443,36 @@ static void vb2_dc_put_userptr(void *buf_priv)
->  }
->  
->  /*
-> + * To allow mapping the scatter-list into a single chunk in the DMA
-> + * address space, the device is required to have the DMA max segment
-> + * size parameter set to a value larger than the buffer size. Otherwise,
-> + * the DMA-mapping subsystem will split the mapping into max segment
-> + * size chunks. This function increases the DMA max segment size
-> + * parameter to let DMA-mapping map a buffer as a single chunk in DMA
-> + * address space.
-> + * This code assumes that the DMA-mapping subsystem will merge all
-> + * scatter-list segments if this is really possible (for example when
-> + * an IOMMU is available and enabled).
-> + * Ideally, this parameter should be set by the generic bus code, but it
-> + * is left with the default 64KiB value due to historical litmiations in
-> + * other subsystems (like limited USB host drivers) and there no good
-> + * place to set it to the proper value. It is done here to avoid fixing
-> + * all the vb2-dc client drivers.
-> + */
-> +static int vb2_dc_set_max_seg_size(struct device *dev, unsigned int size)
-> +{
-> +	if (!dev->dma_parms) {
-> +		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
 
-Doesn't this create a memory leak? Do consider that devices may be also
-removed from the system at runtime.
 
-Looks very nice otherwise.
 
-> +		if (!dev->dma_parms)
-> +			return -ENOMEM;
-> +	}
-> +	if (dma_get_max_seg_size(dev) < size)
-> +		return dma_set_max_seg_size(dev, size);
-> +
-> +	return 0;
-> +}
-> +
-> +/*
->   * For some kind of reserved memory there might be no struct page available,
->   * so all that can be done to support such 'pages' is to try to convert
->   * pfn to dma address or at the last resort just assume that
-> @@ -499,6 +529,10 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
->  		return ERR_PTR(-EINVAL);
->  	}
->  
-> +	ret = vb2_dc_set_max_seg_size(dev, PAGE_ALIGN(size + PAGE_SIZE));
-> +	if (!ret)
-> +		return ERR_PTR(ret);
-> +
->  	buf = kzalloc(sizeof *buf, GFP_KERNEL);
->  	if (!buf)
->  		return ERR_PTR(-ENOMEM);
-> @@ -675,10 +709,15 @@ static void *vb2_dc_attach_dmabuf(struct device *dev, struct dma_buf *dbuf,
->  {
->  	struct vb2_dc_buf *buf;
->  	struct dma_buf_attachment *dba;
-> +	int ret;
->  
->  	if (dbuf->size < size)
->  		return ERR_PTR(-EFAULT);
->  
-> +	ret = vb2_dc_set_max_seg_size(dev, PAGE_ALIGN(size));
-> +	if (!ret)
-> +		return ERR_PTR(ret);
-> +
->  	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
->  	if (!buf)
->  		return ERR_PTR(-ENOMEM);
+snipped.
+> > +static unsigned int fops_vcodec_poll(struct file *file,
+> > +				     struct poll_table_struct *wait)
+> > +{
+> > +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(file->private_data);
+> > +	struct mtk_vcodec_dev *dev = ctx->dev;
+> > +	int ret;
+> > +
+> > +	mutex_lock(&dev->dev_mutex);
+> > +	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
+> > +	mutex_unlock(&dev->dev_mutex);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static int fops_vcodec_mmap(struct file *file, struct vm_area_struct *vma)
+> > +{
+> > +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(file->private_data);
+> > +
+> > +	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
+> > +}
+> > +
+> > +static const struct v4l2_file_operations mtk_vcodec_fops = {
+> > +	.owner				= THIS_MODULE,
+> > +	.open				= fops_vcodec_open,
+> > +	.release			= fops_vcodec_release,
+> > +	.poll				= fops_vcodec_poll,
+> > +	.unlocked_ioctl			= video_ioctl2,
+> > +	.mmap				= fops_vcodec_mmap,
+> 
+> You should be able to use the v4l2_m2m_fop helper functions for poll and mmap.
+> 
 
--- 
-Kind regards,
+Hi Hans,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+We are plaining to remove m2m framework in th feature, although we think
+it is easy to use and could save a lot of code similar to what m2m
+framework implemented and reduce code size.
+The main reason is that in v4l2_m2m_try_schedule, it required that at
+least one output buffer and one capture buffer to run device_run.
+We want to start device_run without capture buffer queued.
+Is there any suggestion that we could use m2m framework but trigger
+device_run with only output buffer.
+Or we need to remove m2m and write our own implementation.
+
+
+
+snipped.
+
+
+best regards,
+Tiffany
+
