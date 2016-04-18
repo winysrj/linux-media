@@ -1,609 +1,672 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52207 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753099AbcD0TFh (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:59070 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752534AbcDRLQP convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 15:05:37 -0400
-Date: Wed, 27 Apr 2016 21:05:28 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
-	<ivo.g.dimitrov.75@gmail.com>
-Cc: Sebastian Reichel <sre@kernel.org>, sakari.ailus@iki.fi,
-	pali.rohar@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
-Message-ID: <20160427190528.GA32434@amd>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160427030850.GA17034@earth>
- <572048AC.7050700@gmail.com>
- <572062EF.7060502@gmail.com>
- <20160427164256.GA8156@earth>
- <1461777170.18568.2.camel@Nokia-N900>
+	Mon, 18 Apr 2016 07:16:15 -0400
+Date: Mon, 18 Apr 2016 08:16:05 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Markus Heiser <markus.heiser@darmarIT.de>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Jani Nikula <jani.nikula@intel.com>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org linux-media"
+	<linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160418081605.3fc5398b@recife.lan>
+In-Reply-To: <279E616C-B743-4395-9E2B-9B371132B3B8@darmarIT.de>
+References: <20160213145317.247c63c7@lwn.net>
+	<87y49zr74t.fsf@intel.com>
+	<20160303071305.247e30b1@lwn.net>
+	<20160303155037.705f33dd@recife.lan>
+	<86egbrm9hw.fsf@hiro.keithp.com>
+	<1457076530.13171.13.camel@winder.org.uk>
+	<CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
+	<87a8m9qoy8.fsf@intel.com>
+	<20160308082948.4e2e0f82@recife.lan>
+	<CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
+	<20160308103922.48d87d9d@recife.lan>
+	<20160308123921.6f2248ab@recife.lan>
+	<20160309182709.7ab1e5db@recife.lan>
+	<87fuvypr2h.fsf@intel.com>
+	<20160310122101.2fca3d79@recife.lan>
+	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
+	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
+	<20160412105850.50e02108@recife.lan>
+	<279E616C-B743-4395-9E2B-9B371132B3B8@darmarIT.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1461777170.18568.2.camel@Nokia-N900>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Em Mon, 18 Apr 2016 10:10:17 +0200
+Markus Heiser <markus.heiser@darmarIT.de> escreveu:
 
-> > On Wed, Apr 27, 2016 at 09:57:51AM +0300, Ivaylo Dimitrov wrote:
-> > > > > https://git.kernel.org/cgit/linux/kernel/git/sre/linux-n900.git/log/?h=n900-camera-ivo
-> > > > 
-> > > > Ok, going to diff with my tree to see what I have missed to send in
-> > > > the patchset
-> > > 
-> > > Now, that's getting weird.
+> Hi Mauro, hi kernel-doc authors, 
+> 
+> Am 12.04.2016 um 15:58 schrieb Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+> 
+> > Em Fri, 8 Apr 2016 17:12:27 +0200
+> > Markus Heiser <markus.heiser@darmarit.de> escreveu:
+> >   
+> >> Hi kernel-doc authors,
+> >> 
+> >> motivated by this MT, I implemented a toolchain to migrate the kernel’s 
+> >> DocBook XML documentation to reST markup. 
+> >> 
+> >> It converts 99% of the docs well ... to gain an impression how 
+> >> kernel-docs could benefit from, visit my sphkerneldoc project page
+> >> on github:
+> >> 
+> >> http://return42.github.io/sphkerneldoc/
+> >> 
+> >> The sources available at:
+> >> 
+> >> https://github.com/return42/sphkerneldoc
+> >> 
+> >> The work is underway, suggestions are welcome!
+> >> 
+> >> .. have a nice weekend ..  
 > > 
-> > [...]
-> > The zImage + initrd works with the steps you described below. I
+> > Hi Markus,
+> > 
+> > Thanks for your work. I'm basically worried about the media docbook,
+> > with has some complexities that I was not able to figure out a way to
+> > convert it to reST.
+> > 
+> > So, let me pinpoint some issues that I noticed there, on a quick
+> > look.
+> > 
+> > The first thing I noticed is that the index doesn't match what's
+> > there, when generated from DocBook:
+> > 	https://linuxtv.org/downloads/v4l-dvb-apis/v4l2spec.html
+> > 
+> > So, for instance, "Interfaces" is at the same level as "Input/Output".
+> > 
+> > This sounds like an something went wrong when dealing with the title
+> > indentation levels during the conversion.
+> >   
 > 
-> Great!
+> Yes, the hierarchical structure was broken by two causes. First was, that the
+> *chunking* was wrong and the other was, that my DocBook-XML-filter (dbxml) placed
+> all sections and sub(-sub)-sections at the same level (direct under chapter). This was
+> not only broken in the linux_tv book, in the other books also.
 > 
-> > received a completly black image, but at least there are interrupts
-> > and yavta is happy (=> it does not hang).
-> >
+> Thanks for pointing and sorry that I have overlooked this (I was so much focused on
+> on converting single elements to reST, that I not see the wood for the trees).
 > 
-> The black image is because by default exposure and gain are set to 0 :). 
-> Use yavta to set the appropriate controls. You can
-> also enable test patterns from there.
+> It is now fixed, may you give it a new try.
 
-Uff.. .there's a lot of controls to play with ;-).
+Thanks! It looks good now.
 
-So I did this...
+> > I would also like to see the titles numbered in chapters (and, if
+> > possible, in sections and items) and to be properly indented at the 
+> > index.  
+> 
+> BTW a few words about differences between DockBook and reST (Sphinx).
+> 
+> With DocBook you write *books*, the protocol (the DocBook application) has
+> no facility to *chunk* and interconnect several documents. The external ENTITY 
+> is a workaround on the SGML layer, not on XML nor on the DB-application layer.
+> Thats the reason, why so many XML-tools don't handle this entities and
+> many DocBook to (e.g.) reST tools are fail.
+> 
+> With **standard** reST it is nearly the same, except there is a "include"
+> directive on the application layer. But this directive is very simple,
+> comparable to the C preprocessor "#include" directive.
+> 
+> With the **superset** reST-markup of Sphinx-doc you get a the "toctree" directive,
+> which lets you control how a document-tree should be build.
+> 
+>  http://www.sphinx-doc.org/en/stable/markup/toctree.html
+> 
+> @Mauro: you mentioned a docutils (rst2*) experience in your mail 
+>       http://marc.info/?l=linux-doc&m=145735316012094&w=2
+> 
+>       Because the "toctree" directive -- and other directives
+>       we use -- are a part of a superset of the **standard** 
+>       reST, the standard docutils (like rst2*) will not work.
+> 
+> OK, back to your requirements: within the toctree directive you can
+> set options like "maxdepth" and "numbered". It is a decision, how
+> deep TOCs should go and if they should be numbered. IMO, in a
+> HTML rendered page, with a proper navigation bar on the side, deep 
+> TOCs in the running text have no pros, they only blow up the running
+> text and bring more scrolling with. In my sense numbering chapters
+> make only sense in books, not in HTML pages, where you have hyperlinks.
+> 
+> Just for demonstration, I added numbering in the linux-tv book:
+> 
+> https://github.com/return42/sphkerneldoc/commit/468ded71f62d497ac71aead1a6d50de7ef77c3c3
+> 
+> May be, I will drop it later, because all reST sources are generated
+> by a make target and I always commit the whole reST tree. As I said, 
+> it is a decision which might be made later, when the migration takes 
+> places.
 
-while true; do ./yavta --capture=1 --skip 0 --format UYVY --size
-656x488 /dev/video6 --file=/tmp/delme# && cat /tmp/delme000001 >
-/dev/fb0; done
+This is the uAPI spec DocBook, that we modify frequently, as we add
+more features to the Kernel, and as we make sure that all drivers will
+behave the same. So, from time to time, we need to clarify some topics
+at the documentation. By having a numeration, it is easier for us to
+discuss things like:
+	"1.2.10.14. V4L2_PIX_FMT_VYUY (‘VYUY’)" is not properly
+described and requires some sort of clarification.
 
-...and kernel certainly did not like that. After a while:
+Ok, one could also refer to it via a hyperlink, but several Kernel
+media maintainers prefer to generate a single big html file, as it
+makes easier to locate everything it is needed on it.
 
-[ 3468.118774] ---[ end trace 70aa4a6442fc6916 ]---
-[ 3468.137084] Address Hole seen by CAM  at address 0
-[ 3468.137084] ------------[ cut here ]------------
-[ 3468.137084] WARNING: CPU: 0 PID: 4974 at
-drivers/bus/omap_l3_smx.c:166 omap3_l3_app_irq+0xdc/0x124
-[ 3468.137207] Modules linked in: smiapp smiapp_pll ipv6
-isp1704_charger omap3_isp videobuf2_v4l2 videobuf2_dma_contig
-videobuf2_memops videobuf2_core et8ek8 smiaregs lis3lv02d_i2c
-lis3lv02d input_polldev ti_soc_thermal arc4 wl1251_spi wl1251 crc7
-mac80211 cfg80211 omap_ssi hsi bq2415x_charger si4713
-bq27xxx_battery_i2c bq27xxx_battery leds_lp5523 leds_lp55xx_common
-adp1653 v4l2_common tsl2563 smc91x mii rtc_twl twl4030_vibra
-ff_memless twl4030_wdt tsc2005 tsc200x_core omap_sham omap_wdt
-gpio_keys rx51_battery video_bus_switch videodev media
-[ 3468.137207] CPU: 0 PID: 4974 Comm: init Tainted: G        W
-4.6.0-rc4+ #1
-[ 3468.137207] Hardware name: Nokia RX-51 board
-[ 3468.137237] [<c010bc18>] (unwind_backtrace) from [<c0109f38>]
-(show_stack+0x10/0x14)
-[ 3468.137237] [<c0109f38>] (show_stack) from [<c01262dc>]
-(__warn+0xcc/0xf8)
-[ 3468.137268] [<c01262dc>] (__warn) from [<c0126324>]
-(warn_slowpath_null+0x1c/0x20)
-[ 3468.137298] [<c0126324>] (warn_slowpath_null) from [<c0331c6c>]
-(omap3_l3_app_irq+0xdc/0x124)
-[ 3468.137298] [<c0331c6c>] (omap3_l3_app_irq) from [<c01545bc>]
-(handle_irq_event_percpu+0x34/0x138)
-[ 3468.137329] [<c01545bc>] (handle_irq_event_percpu) from
-[<c015471c>] (handle_irq_event+0x5c/0x88)
-[ 3468.137329] [<c015471c>] (handle_irq_event) from [<c015768c>]
-(handle_level_irq+0xcc/0x130)
-[ 3468.137359] [<c015768c>] (handle_level_irq) from [<c0153f9c>]
-(generic_handle_irq+0x18/0x28)
-[ 3468.137359] [<c0153f9c>] (generic_handle_irq) from [<c01540bc>]
-(__handle_domain_irq+0x84/0xa8)
-[ 3468.137390] [<c01540bc>] (__handle_domain_irq) from [<c054da14>]
-(__irq_svc+0x54/0x90)
-[ 3468.137390] [<c054da14>] (__irq_svc) from [<c0129044>]
-(__do_softirq+0x5c/0x208)
-[ 3468.137420] [<c0129044>] (__do_softirq) from [<c0129448>]
-(irq_exit+0x80/0xe4)
-[ 3468.137451] [<c0129448>] (irq_exit) from [<c01540c0>]
-(__handle_domain_irq+0x88/0xa8)
-[ 3468.137451] [<c01540c0>] (__handle_domain_irq) from [<c054da14>]
-(__irq_svc+0x54/0x90)
-[ 3468.137481] [<c054da14>] (__irq_svc) from [<c0152d50>]
-(console_unlock+0x3f4/0x4fc)
-[ 3468.137481] [<c0152d50>] (console_unlock) from [<c038e2d4>]
-(do_con_write.part.10+0x1d80/0x1dac)
-[ 3468.137512] [<c038e2d4>] (do_con_write.part.10) from [<c038e374>]
-(con_write+0x30/0x48)
-[ 3468.137512] [<c038e374>] (con_write) from [<c037a014>]
-(do_output_char+0x9c/0x1e4)
-[ 3468.137542] [<c037a014>] (do_output_char) from [<c037b1d4>]
-(n_tty_write+0x2ac/0x430)
-[ 3468.137573] [<c037b1d4>] (n_tty_write) from [<c03775ec>]
-(tty_write+0x1b0/0x240)
-[ 3468.137573] [<c03775ec>] (tty_write) from [<c01db128>]
-(__vfs_write+0x2c/0xd4)
-[ 3468.137603] [<c01db128>] (__vfs_write) from [<c01dc710>]
-(vfs_write+0xa0/0x18c)
-[ 3468.137603] [<c01dc710>] (vfs_write) from [<c01dc9f4>]
-(SyS_write+0x3c/0x78)
-[ 3468.137603] [<c01dc9f4>] (SyS_write) from [<c0107160>]
-(ret_fast_syscall+0x0/0x3c)
-[ 3468.137634] ---[ end trace 70aa4a6442fc6917 ]---
-[ 3468.144317] omap3isp 480bc000.isp: CCP2 err:8010817
-[ 3468.144317] Address Hole seen by CAM  at address b00
-[ 3468.144317] ------------[ cut here ]------------
-[ 3468.144348] WARNING: CPU: 0 PID: 4973 at
-drivers/bus/omap_l3_smx.c:166 omap3_l3_app_irq+0xdc/0x124
-[ 3468.144439] Modules linked in: smiapp smiapp_pll ipv6
-isp1704_charger omap3_isp videobuf2_v4l2 videobuf2_dma_contig
-videobuf2_memops videobuf2_core et8ek8 smiaregs lis3lv02d_i2c
-lis3lv02d input_polldev ti_soc_thermal arc4 wl1251_spi wl1251 crc7
-mac80211 cfg80211 omap_ssi hsi bq2415x_charger si4713
-bq27xxx_battery_i2c bq27xxx_battery leds_lp5523 leds_lp55xx_common
-adp1653 v4l2_common tsl2563 smc91x mii rtc_twl twl4030_vibra
-ff_memless twl4030_wdt tsc2005 tsc200x_core omap_sham omap_wdt
-gpio_keys rx51_battery video_bus_switch videodev media
-[ 3468.144439] CPU: 0 PID: 4973 Comm: yavta Tainted: G        W
-4.6.0-rc4+ #1
-[ 3468.144470] Hardware name: Nokia RX-51 board
-[ 3468.144470] [<c010bc18>] (unwind_backtrace) from [<c0109f38>]
-(show_stack+0x10/0x14)
-[ 3468.144500] [<c0109f38>] (show_stack) from [<c01262dc>]
-(__warn+0xcc/0xf8)
-[ 3468.144500] [<c01262dc>] (__warn) from [<c0126324>]
-(warn_slowpath_null+0x1c/0x20)
-[ 3468.144531] [<c0126324>] (warn_slowpath_null) from [<c0331c6c>]
-(omap3_l3_app_irq+0xdc/0x124)
-[ 3468.144561] [<c0331c6c>] (omap3_l3_app_irq) from [<c01545bc>]
-(handle_irq_event_percpu+0x34/0x138)
-[ 3468.144561] [<c01545bc>] (handle_irq_event_percpu) from
-[<c015471c>] (handle_irq_event+0x5c/0x88)
-[ 3468.144592] [<c015471c>] (handle_irq_event) from [<c015768c>]
-(handle_level_irq+0xcc/0x130)
-[ 3468.144592] [<c015768c>] (handle_level_irq) from [<c0153f9c>]
-(generic_handle_irq+0x18/0x28)
-[ 3468.144622] [<c0153f9c>] (generic_handle_irq) from [<c01540bc>]
-(__handle_domain_irq+0x84/0xa8)
-[ 3468.144622] [<c01540bc>] (__handle_domain_irq) from [<c054da14>]
-(__irq_svc+0x54/0x90)
-[ 3468.144714] [<c054da14>] (__irq_svc) from [<bf20e9dc>]
-(omap3isp_ccdc_busy+0xc/0x14 [omap3_isp])
-[ 3468.144866] [<bf20e9dc>] (omap3isp_ccdc_busy [omap3_isp]) from
-[<bf205a9c>] (isp_pipeline_wait_ccdc+0x54/0x60 [omap3_isp])
-[ 3468.144989] [<bf205a9c>] (isp_pipeline_wait_ccdc [omap3_isp]) from
-[<bf205058>] (isp_pipeline_wait+0x28/0x4c [omap3_isp])
-[ 3468.145111] [<bf205058>] (isp_pipeline_wait [omap3_isp]) from
-[<bf2056d8>] (isp_pipeline_disable+0x154/0x224 [omap3_isp])
-[ 3468.145233] [<bf2056d8>] (isp_pipeline_disable [omap3_isp]) from
-[<bf2065a0>] (omap3isp_pipeline_set_stream+0x14/0x2c [omap3_isp])
-[ 3468.145355] [<bf2065a0>] (omap3isp_pipeline_set_stream [omap3_isp])
-from [<bf2092d0>] (isp_video_streamoff+0xcc/0x124 [omap3_isp])
-[ 3468.145477] [<bf2092d0>] (isp_video_streamoff [omap3_isp]) from
-[<bf209354>] (isp_video_release+0x2c/0x78 [omap3_isp])
-[ 3468.145690] [<bf209354>] (isp_video_release [omap3_isp]) from
-[<bf00d300>] (v4l2_release+0x30/0x6c [videodev])
-[ 3468.145812] [<bf00d300>] (v4l2_release [videodev]) from
-[<c01dd35c>] (__fput+0xd4/0x1f0)
-[ 3468.145843] [<c01dd35c>] (__fput) from [<c013e030>]
-(task_work_run+0x74/0x88)
-[ 3468.145843] [<c013e030>] (task_work_run) from [<c01283c8>]
-(do_exit+0x3e8/0x920)
-[ 3468.145874] [<c01283c8>] (do_exit) from [<c0128a50>]
-(do_group_exit+0xb8/0xfc)
-[ 3468.145874] [<c0128a50>] (do_group_exit) from [<c013274c>]
-(get_signal+0x604/0x680)
-[ 3468.145904] [<c013274c>] (get_signal) from [<c010de54>]
-(do_signal+0x84/0x5d0)
-[ 3468.145935] [<c010de54>] (do_signal) from [<c0109958>]
-(do_work_pending+0x48/0xb8)
-[ 3468.145935] [<c0109958>] (do_work_pending) from [<c01071b4>]
-(slow_work_pending+0xc/0x20)
-[ 3468.145935] ---[ end trace 70aa4a6442fc6918 ]---
-[ 3468.167877] Address Hole seen by CAM  at address 0
-[ 3468.167877] ------------[ cut here ]------------
-[ 3468.167907] WARNING: CPU: 0 PID: 4973 at
-drivers/bus/omap_l3_smx.c:166 omap3_l3_app_irq+0xdc/0x124
-[ 3468.167999] Modules linked in: smiapp smiapp_pll ipv6
-isp1704_charger omap3_isp videobuf2_v4l2 videobuf2_dma_contig
-videobuf2_memops videobuf2_core et8ek8 smiaregs lis3lv02d_i2c
-lis3lv02d input_polldev ti_soc_thermal arc4 wl1251_spi wl1251 crc7
-mac80211 cfg80211 omap_ssi hsi bq2415x_charger si4713
-bq27xxx_battery_i2c bq27xxx_battery leds_lp5523 leds_lp55xx_common
-adp1653 v4l2_common tsl2563 smc91x mii rtc_twl twl4030_vibra
-ff_memless twl4030_wdt tsc2005 tsc200x_core omap_sham omap_wdt
-gpio_keys rx51_battery video_bus_switch videodev media
-[ 3468.167999] CPU: 0 PID: 4973 Comm: yavta Tainted: G        W
-4.6.0-rc4+ #1
-[ 3468.168029] Hardware name: Nokia RX-51 board
-[ 3468.168029] [<c010bc18>] (unwind_backtrace) from [<c0109f38>]
-(show_stack+0x10/0x14)
-[ 3468.168060] [<c0109f38>] (show_stack) from [<c01262dc>]
-(__warn+0xcc/0xf8)
-[ 3468.168090] [<c01262dc>] (__warn) from [<c0126324>]
-(warn_slowpath_null+0x1c/0x20)
-[ 3468.168090] [<c0126324>] (warn_slowpath_null) from [<c0331c6c>]
-(omap3_l3_app_irq+0xdc/0x124)
-[ 3468.168121] [<c0331c6c>] (omap3_l3_app_irq) from [<c01545bc>]
-(handle_irq_event_percpu+0x34/0x138)
-[ 3468.168121] [<c01545bc>] (handle_irq_event_percpu) from
-[<c015471c>] (handle_irq_event+0x5c/0x88)
-[ 3468.168151] [<c015471c>] (handle_irq_event) from [<c015768c>]
-(handle_level_irq+0xcc/0x130)
-[ 3468.168182] [<c015768c>] (handle_level_irq) from [<c0153f9c>]
-(generic_handle_irq+0x18/0x28)
-[ 3468.168182] [<c0153f9c>] (generic_handle_irq) from [<c01540bc>]
-(__handle_domain_irq+0x84/0xa8)
-[ 3468.168212] [<c01540bc>] (__handle_domain_irq) from [<c054da14>]
-(__irq_svc+0x54/0x90)
-[ 3468.168273] [<c054da14>] (__irq_svc) from [<bf21530c>]
-(hist_busy+0xc/0x14 [omap3_isp])
-[ 3468.168426] [<bf21530c>] (hist_busy [omap3_isp]) from [<bf213dc4>]
-(omap3isp_stat_pcr_busy+0x10/0x14 [omap3_isp])
-[ 3468.168548] [<bf213dc4>] (omap3isp_stat_pcr_busy [omap3_isp]) from
-[<bf214198>] (omap3isp_stat_busy+0xc/0x2c [omap3_isp])
-[ 3468.168670] [<bf214198>] (omap3isp_stat_busy [omap3_isp]) from
-[<bf205a88>] (isp_pipeline_wait_ccdc+0x40/0x60 [omap3_isp])
-[ 3468.168792] [<bf205a88>] (isp_pipeline_wait_ccdc [omap3_isp]) from
-[<bf205058>] (isp_pipeline_wait+0x28/0x4c [omap3_isp])
-[ 3468.168914] [<bf205058>] (isp_pipeline_wait [omap3_isp]) from
-[<bf2056d8>] (isp_pipeline_disable+0x154/0x224 [omap3_isp])
-[ 3468.169036] [<bf2056d8>] (isp_pipeline_disable [omap3_isp]) from
-[<bf2065a0>] (omap3isp_pipeline_set_stream+0x14/0x2c [omap3_isp])
-[ 3468.169158] [<bf2065a0>] (omap3isp_pipeline_set_stream [omap3_isp])
-from [<bf2092d0>] (isp_video_streamoff+0xcc/0x124 [omap3_isp])
-[ 3468.169281] [<bf2092d0>] (isp_video_streamoff [omap3_isp]) from
-[<bf209354>] (isp_video_release+0x2c/0x78 [omap3_isp])
-[ 3468.169494] [<bf209354>] (isp_video_release [omap3_isp]) from
-[<bf00d300>] (v4l2_release+0x30/0x6c [videodev])
-[ 3468.169616] [<bf00d300>] (v4l2_release [videodev]) from
-[<c01dd35c>] (__fput+0xd4/0x1f0)
-[ 3468.169616] [<c01dd35c>] (__fput) from [<c013e030>]
-(task_work_run+0x74/0x88)
-[ 3468.169647] [<c013e030>] (task_work_run) from [<c01283c8>]
-(do_exit+0x3e8/0x920)
-[ 3468.169647] [<c01283c8>] (do_exit) from [<c0128a50>]
-(do_group_exit+0xb8/0xfc)
-[ 3468.169677] [<c0128a50>] (do_group_exit) from [<c013274c>]
-(get_signal+0x604/0x680)
-[ 3468.169708] [<c013274c>] (get_signal) from [<c010de54>]
-(do_signal+0x84/0x5d0)
-[ 3468.169708] [<c010de54>] (do_signal) from [<c0109958>]
-(do_work_pending+0x48/0xb8)
-[ 3468.169738] [<c0109958>] (do_work_pending) from [<c01071b4>]
-(slow_work_pending+0xc/0x20)
-[ 3468.169738] ---[ end trace 70aa4a6442fc6919 ]---
-[ 3468.188049] omap3isp 480bc000.isp: CCP2 err:8010817
-[ 3468.188110] Address Hole seen by CAM  at address b00
-[ 3468.188110] ------------[ cut here ]------------
-[ 3468.188140] WARNING: CPU: 0 PID: 4974 at
-drivers/bus/omap_l3_smx.c:166 omap3_l3_app_irq+0xdc/0x124
-[ 3468.188232] Modules linked in: smiapp smiapp_pll ipv6
-isp1704_charger omap3_isp videobuf2_v4l2 videobuf2_dma_contig
-videobuf2_memops videobuf2_core et8ek8 smiaregs lis3lv02d_i2c
-lis3lv02d input_polldev ti_soc_thermal arc4 wl1251_spi wl1251 crc7
-mac80211 cfg80211 omap_ssi hsi bq2415x_charger si4713
-bq27xxx_battery_i2c bq27xxx_battery leds_lp5523 leds_lp55xx_common
-adp1653 v4l2_common tsl2563 smc91x mii rtc_twl twl4030_vibra
-ff_memless twl4030_wdt tsc2005 tsc200x_core omap_sham omap_wdt
-gpio_keys rx51_battery video_bus_switch videodev media
-[ 3468.188232] CPU: 0 PID: 4974 Comm: init Tainted: G        W
-4.6.0-rc4+ #1
-[ 3468.188232] Hardware name: Nokia RX-51 board
-[ 3468.188262] [<c010bc18>] (unwind_backtrace) from [<c0109f38>]
-(show_stack+0x10/0x14)
-[ 3468.188293] [<c0109f38>] (show_stack) from [<c01262dc>]
-(__warn+0xcc/0xf8)
-[ 3468.188293] [<c01262dc>] (__warn) from [<c0126324>]
-(warn_slowpath_null+0x1c/0x20)
-[ 3468.188323] [<c0126324>] (warn_slowpath_null) from [<c0331c6c>]
-(omap3_l3_app_irq+0xdc/0x124)
-[ 3468.188323] [<c0331c6c>] (omap3_l3_app_irq) from [<c01545bc>]
-(handle_irq_event_percpu+0x34/0x138)
-[ 3468.188354] [<c01545bc>] (handle_irq_event_percpu) from
-[<c015471c>] (handle_irq_event+0x5c/0x88)
-[ 3468.188385] [<c015471c>] (handle_irq_event) from [<c015768c>]
-(handle_level_irq+0xcc/0x130)
-[ 3468.188385] [<c015768c>] (handle_level_irq) from [<c0153f9c>]
-(generic_handle_irq+0x18/0x28)
-[ 3468.188415] [<c0153f9c>] (generic_handle_irq) from [<c01540bc>]
-(__handle_domain_irq+0x84/0xa8)
-[ 3468.188415] [<c01540bc>] (__handle_domain_irq) from [<c054da14>]
-(__irq_svc+0x54/0x90)
-[ 3468.188446] [<c054da14>] (__irq_svc) from [<c0129044>]
-(__do_softirq+0x5c/0x208)
-[ 3468.188446] [<c0129044>] (__do_softirq) from [<c0129448>]
-(irq_exit+0x80/0xe4)
-[ 3468.188476] [<c0129448>] (irq_exit) from [<c01540c0>]
-(__handle_domain_irq+0x88/0xa8)
-[ 3468.188476] [<c01540c0>] (__handle_domain_irq) from [<c054da14>]
-(__irq_svc+0x54/0x90)
-[ 3468.188507] [<c054da14>] (__irq_svc) from [<c0152d50>]
-(console_unlock+0x3f4/0x4fc)
-[ 3468.188537] [<c0152d50>] (console_unlock) from [<c038e2d4>]
-(do_con_write.part.10+0x1d80/0x1dac)
-[ 3468.188537] [<c038e2d4>] (do_con_write.part.10) from [<c038e374>]
-(con_write+0x30/0x48)
-[ 3468.188568] [<c038e374>] (con_write) from [<c037a014>]
-(do_output_char+0x9c/0x1e4)
-[ 3468.188598] [<c037a014>] (do_output_char) from [<c037b1d4>]
-(n_tty_write+0x2ac/0x430)
-[ 3468.188598] [<c037b1d4>] (n_tty_write) from [<c03775ec>]
-(tty_write+0x1b0/0x240)
-[ 3468.188629] [<c03775ec>] (tty_write) from [<c01db128>]
-(__vfs_write+0x2c/0xd4)
-[ 3468.188629] [<c01db128>] (__vfs_write) from [<c01dc710>]
-(vfs_write+0xa0/0x18c)
-[ 3468.188659] [<c01dc710>] (vfs_write) from [<c01dc9f4>]
-(SyS_write+0x3c/0x78)
-[ 3468.188659] [<c01dc9f4>] (SyS_write) from [<c0107160>]
-(ret_fast_syscall+0x0/0x3c)
-[ 3468.188659] ---[ end trace 70aa4a6442fc691a ]---
-[ 3468.200592] Address Hole seen by CAM  at address 0
-[ 3468.200592] ------------[ cut here ]------------
-[ 3468.200592] WARNING: CPU: 0 PID: 4973 at
-drivers/bus/omap_l3_smx.c:166 omap3_l3_app_irq+0xdc/0x124
-[ 3468.200683] Modules linked in: smiapp smiapp_pll ipv6
-isp1704_charger omap3_isp videobuf2_v4l2 videobuf2_dma_contig
-videobuf2_memops videobuf2_core et8ek8 smiaregs lis3lv02d_i2c
-lis3lv02d input_polldev ti_soc_thermal arc4 wl1251_spi wl1251 crc7
-mac80211 cfg80211 omap_ssi hsi bq2415x_charger si4713
-bq27xxx_battery_i2c bq27xxx_battery leds_lp5523 leds_lp55xx_common
-adp1653 v4l2_common tsl2563 smc91x mii rtc_twl twl4030_vibra
-ff_memless twl4030_wdt tsc2005 tsc200x_core omap_sham omap_wdt
-gpio_keys rx51_battery video_bus_switch videodev media
-[ 3468.200714] CPU: 0 PID: 4973 Comm: yavta Tainted: G        W
-4.6.0-rc4+ #1
-[ 3468.200714] Hardware name: Nokia RX-51 board
-[ 3468.200744] [<c010bc18>] (unwind_backtrace) from [<c0109f38>]
-(show_stack+0x10/0x14)
-[ 3468.200744] [<c0109f38>] (show_stack) from [<c01262dc>]
-(__warn+0xcc/0xf8)
-[ 3468.200775] [<c01262dc>] (__warn) from [<c0126324>]
-(warn_slowpath_null+0x1c/0x20)
-[ 3468.200775] [<c0126324>] (warn_slowpath_null) from [<c0331c6c>]
-(omap3_l3_app_irq+0xdc/0x124)
-[ 3468.200805] [<c0331c6c>] (omap3_l3_app_irq) from [<c01545bc>]
-(handle_irq_event_percpu+0x34/0x138)
-[ 3468.200836] [<c01545bc>] (handle_irq_event_percpu) from
-[<c015471c>] (handle_irq_event+0x5c/0x88)
-[ 3468.200836] [<c015471c>] (handle_irq_event) from [<c015768c>]
-(handle_level_irq+0xcc/0x130)
-[ 3468.200866] [<c015768c>] (handle_level_irq) from [<c0153f9c>]
-(generic_handle_irq+0x18/0x28)
-[ 3468.200866] [<c0153f9c>] (generic_handle_irq) from [<c01540bc>]
-(__handle_domain_irq+0x84/0xa8)
-[ 3468.200897] [<c01540bc>] (__handle_domain_irq) from [<c054da14>]
-(__irq_svc+0x54/0x90)
-[ 3468.200988] [<c054da14>] (__irq_svc) from [<bf2141b4>]
-(omap3isp_stat_busy+0x28/0x2c [omap3_isp])
-[ 3468.201110] [<bf2141b4>] (omap3isp_stat_busy [omap3_isp]) from
-[<bf205a88>] (isp_pipeline_wait_ccdc+0x40/0x60 [omap3_isp])
-[ 3468.201232] [<bf205a88>] (isp_pipeline_wait_ccdc [omap3_isp]) from
-[<bf205058>] (isp_pipeline_wait+0x28/0x4c [omap3_isp])
-[ 3468.201354] [<bf205058>] (isp_pipeline_wait [omap3_isp]) from
-[<bf2056d8>] (isp_pipeline_disable+0x154/0x224 [omap3_isp])
-[ 3468.201477] [<bf2056d8>] (isp_pipeline_disable [omap3_isp]) from
-[<bf2065a0>] (omap3isp_pipeline_set_stream+0x14/0x2c [omap3_isp])
-[ 3468.201599] [<bf2065a0>] (omap3isp_pipeline_set_stream [omap3_isp])
-from [<bf2092d0>] (isp_video_streamoff+0xcc/0x124 [omap3_isp])
-[ 3468.201721] [<bf2092d0>] (isp_video_streamoff [omap3_isp]) from
-[<bf209354>] (isp_video_release+0x2c/0x78 [omap3_isp])
-[ 3468.201934] [<bf209354>] (isp_video_release [omap3_isp]) from
-[<bf00d300>] (v4l2_release+0x30/0x6c [videodev])
-[ 3468.202056] [<bf00d300>] (v4l2_release [videodev]) from
-[<c01dd35c>] (__fput+0xd4/0x1f0)
-[ 3468.202056] [<c01dd35c>] (__fput) from [<c013e030>]
-(task_work_run+0x74/0x88)
-[ 3468.202087] [<c013e030>] (task_work_run) from [<c01283c8>]
-(do_exit+0x3e8/0x920)
-[ 3468.202117] [<c01283c8>] (do_exit) from [<c0128a50>]
-(do_group_exit+0xb8/0xfc)
-[ 3468.202117] [<c0128a50>] (do_group_exit) from [<c013274c>]
-(get_signal+0x604/0x680)
-[ 3468.202148] [<c013274c>] (get_signal) from [<c010de54>]
-(do_signal+0x84/0x5d0)
-[ 3468.202148] [<c010de54>] (do_signal) from [<c0109958>]
-(do_work_pending+0x48/0xb8)
-[ 3468.202178] [<c0109958>] (do_work_pending) from [<c01071b4>]
-(slow_work_pending+0xc/0x20)
-[ 3468.202178] ---[ end trace 70aa4a6442fc691b ]---
-[ 3468.218109] omap3isp 480bc000.isp: CCP2 err:8010817
-[ 3468.218109] Address Hole seen by CAM  at address b00
-[ 3468.218109] ------------[ cut here ]------------
-[ 3468.218139] WARNING: CPU: 0 PID: 4974 at
-drivers/bus/omap_l3_smx.c:166 omap3_l3_app_irq+0xdc/0x124
-[ 3468.218231] Modules linked in: smiapp smiapp_pll ipv6
-isp1704_charger omap3_isp videobuf2_v4l2 videobuf2_dma_contig
-videobuf2_memops videobuf2_core et8ek8 smiaregs lis3lv02d_i2c
-lis3lv02d input_polldev ti_soc_thermal arc4 wl1251_spi wl1251 crc7
-mac80211 cfg80211 omap_ssi hsi bq2415x_charger si4713
-bq27xxx_battery_i2c bq27xxx_battery leds_lp5523 leds_lp55xx_common
-adp1653 v4l2_common tsl2563 smc91x mii rtc_twl twl4030_vibra
-ff_memless twl4030_wdt tsc2005 tsc200x_core omap_sham omap_wdt
-gpio_keys rx51_battery video_bus_switch videodev media
-[ 3468.218231] CPU: 0 PID: 4974 Comm: init Tainted: G        W
-4.6.0-rc4+ #1
-[ 3468.218231] Hardware name: Nokia RX-51 board
-[ 3468.218261] [<c010bc18>] (unwind_backtrace) from [<c0109f38>]
-(show_stack+0x10/0x14)
-[ 3468.218292] [<c0109f38>] (show_stack) from [<c01262dc>]
-(__warn+0xcc/0xf8)
-[ 3468.218292] [<c01262dc>] (__warn) from [<c0126324>]
-(warn_slowpath_null+0x1c/0x20)
-[ 3468.218322] [<c0126324>] (warn_slowpath_null) from [<c0331c6c>]
-(omap3_l3_app_irq+0xdc/0x124)
-[ 3468.218353] [<c0331c6c>] (omap3_l3_app_irq) from [<c01545bc>]
-(handle_irq_event_percpu+0x34/0x138)
-[ 3468.218353] [<c01545bc>] (handle_irq_event_percpu) from
-[<c015471c>] (handle_irq_event+0x5c/0x88)
-[ 3468.218383] [<c015471c>] (handle_irq_event) from [<c015768c>]
-(handle_level_irq+0xcc/0x130)
-[ 3468.218383] [<c015768c>] (handle_level_irq) from [<c0153f9c>]
-(generic_handle_irq+0x18/0x28)
-[ 3468.218414] [<c0153f9c>] (generic_handle_irq) from [<c01540bc>]
-(__handle_domain_irq+0x84/0xa8)
-[ 3468.218414] [<c01540bc>] (__handle_domain_irq) from [<c054da14>]
-(__irq_svc+0x54/0x90)
-[ 3468.218444] [<c054da14>] (__irq_svc) from [<c0152d50>]
-(console_unlock+0x3f4/0x4fc)
-[ 3468.218475] [<c0152d50>] (console_unlock) from [<c038e2d4>]
-(do_con_write.part.10+0x1d80/0x1dac)
-[ 3468.218475] [<c038e2d4>] (do_con_write.part.10) from [<c038e374>]
-(con_write+0x30/0x48)
-[ 3468.218505] [<c038e374>] (con_write) from [<c037a014>]
-(do_output_char+0x9c/0x1e4)
-[ 3468.218536] [<c037a014>] (do_output_char) from [<c037b1d4>]
-(n_tty_write+0x2ac/0x430)
-[ 3468.218536] [<c037b1d4>] (n_tty_write) from [<c03775ec>]
-(tty_write+0x1b0/0x240)
-[ 3468.218566] [<c03775ec>] (tty_write) from [<c01db128>]
-(__vfs_write+0x2c/0xd4)
-[ 3468.218566] [<c01db128>] (__vfs_write) from [<c01dc710>]
-(vfs_write+0xa0/0x18c)
-[ 3468.218566] [<c01dc710>] (vfs_write) from [<c01dc9f4>]
-(SyS_write+0x3c/0x78)
-[ 3468.218597] [<c01dc9f4>] (SyS_write) from [<c0107160>]
-(ret_fast_syscall+0x0/0x3c)
-[ 3468.218597] ---[ end trace 70aa4a6442fc691c ]---
-[ 3468.233276] Address Hole seen by CAM  at address 0
-[ 3468.233276] ------------[ cut here ]------------
-[ 3468.233306] WARNING: CPU: 0 PID: 4973 at
-drivers/bus/omap_l3_smx.c:166 omap3_l3_app_irq+0xdc/0x124
-[ 3468.233398] Modules linked in: smiapp smiapp_pll ipv6
-isp1704_charger omap3_isp videobuf2_v4l2 videobuf2_dma_contig
-videobuf2_memops videobuf2_core et8ek8 smiaregs lis3lv02d_i2c
-lis3lv02d input_polldev ti_soc_thermal arc4 wl1251_spi wl1251 crc7
-mac80211 cfg80211 omap_ssi hsi bq2415x_charger si4713
-bq27xxx_battery_i2c bq27xxx_battery leds_lp5523 leds_lp55xx_common
-adp1653 v4l2_common tsl2563 smc91x mii rtc_twl twl4030_vibra
-ff_memless twl4030_wdt tsc2005 tsc200x_core omap_sham omap_wdt
-gpio_keys rx51_battery video_bus_switch videodev media
-[ 3468.233398] CPU: 0 PID: 4973 Comm: yavta Tainted: G        W
-4.6.0-rc4+ #1
-[ 3468.233398] Hardware name: Nokia RX-51 board
-[ 3468.233428] [<c010bc18>] (unwind_backtrace) from [<c0109f38>]
-(show_stack+0x10/0x14)
-[ 3468.233459] [<c0109f38>] (show_stack) from [<c01262dc>]
-(__warn+0xcc/0xf8)
-[ 3468.233459] [<c01262dc>] (__warn) from [<c0126324>]
-(warn_slowpath_null+0x1c/0x20)
-[ 3468.233489] [<c0126324>] (warn_slowpath_null) from [<c0331c6c>]
-(omap3_l3_app_irq+0xdc/0x124)
-[ 3468.233520] [<c0331c6c>] (omap3_l3_app_irq) from [<c01545bc>]
-(handle_irq_event_percpu+0x34/0x138)
-[ 3468.233520] [<c01545bc>] (handle_irq_event_percpu) from
-[<c015471c>] (handle_irq_event+0x5c/0x88)
-[ 3468.233551] [<c015471c>] (handle_irq_event) from [<c015768c>]
-(handle_level_irq+0xcc/0x130)
-[ 3468.233551] [<c015768c>] (handle_level_irq) from [<c0153f9c>]
-(generic_handle_irq+0x18/0x28)
-[ 3468.233581] [<c0153f9c>] (generic_handle_irq) from [<c01540bc>]
-(__handle_domain_irq+0x84/0xa8)
-[ 3468.233581] [<c01540bc>] (__handle_domain_irq) from [<c054da14>]
-(__irq_svc+0x54/0x90)
-[ 3468.233673] [<c054da14>] (__irq_svc) from [<bf20e9dc>]
-(omap3isp_ccdc_busy+0xc/0x14 [omap3_isp])
-[ 3468.233795] [<bf20e9dc>] (omap3isp_ccdc_busy [omap3_isp]) from
-[<bf205a9c>] (isp_pipeline_wait_ccdc+0x54/0x60 [omap3_isp])
-[ 3468.233917] [<bf205a9c>] (isp_pipeline_wait_ccdc [omap3_isp]) from
-[<bf205058>] (isp_pipeline_wait+0x28/0x4c [omap3_isp])
-[ 3468.234039] [<bf205058>] (isp_pipeline_wait [omap3_isp]) from
-[<bf2056d8>] (isp_pipeline_disable+0x154/0x224 [omap3_isp])
-[ 3468.234191] [<bf2056d8>] (isp_pipeline_disable [omap3_isp]) from
-[<bf2065a0>] (omap3isp_pipeline_set_stream+0x14/0x2c [omap3_isp])
-[ 3468.234313] [<bf2065a0>] (omap3isp_pipeline_set_stream [omap3_isp])
-from [<bf2092d0>] (isp_video_streamoff+0xcc/0x124 [omap3_isp])
-[ 3468.234436] [<bf2092d0>] (isp_video_streamoff [omap3_isp]) from
-[<bf209354>] (isp_video_release+0x2c/0x78 [omap3_isp])
-[ 3468.234619] [<bf209354>] (isp_video_release [omap3_isp]) from
-[<bf00d300>] (v4l2_release+0x30/0x6c [videodev])
-[ 3468.234771] [<bf00d300>] (v4l2_release [videodev]) from
-[<c01dd35c>] (__fput+0xd4/0x1f0)
-[ 3468.234771] [<c01dd35c>] (__fput) from [<c013e030>]
-(task_work_run+0x74/0x88)
-[ 3468.234802] [<c013e030>] (task_work_run) from [<c01283c8>]
-(do_exit+0x3e8/0x920)
-[ 3468.234802] [<c01283c8>] (do_exit) from [<c0128a50>]
-(do_group_exit+0xb8/0xfc)
-[ 3468.234832] [<c0128a50>] (do_group_exit) from [<c013274c>]
-(get_signal+0x604/0x680)
-[ 3468.234832] [<c013274c>] (get_signal) from [<c010de54>]
-(do_signal+0x84/0x5d0)
-[ 3468.234863] [<c010de54>] (do_signal) from [<c0109958>]
-(do_work_pending+0x48/0xb8)
-[ 3468.234893] [<c0109958>] (do_work_pending) from [<c01071b4>]
-(slow_work_pending+0xc/0x20)
-[ 3468.234893] ---[ end trace 70aa4a6442fc691d ]---
-[ 3468.238891] omap3isp 480bc000.isp: Unable to stop OMAP3 ISP CCDC
-[ 3468.238922] Address Hole seen by CAM  at address b00
-[ 3468.238922] ------------[ cut here ]------------
-[ 3468.238952] WARNING: CPU: 0 PID: 4973 at
-drivers/bus/omap_l3_smx.c:166 omap3_l3_app_irq+0xdc/0x124
-[ 3468.239044] Modules linked in: smiapp smiapp_pll ipv6
-isp1704_charger omap3_isp videobuf2_v4l2 videobuf2_dma_contig
-videobuf2_memops videobuf2_core et8ek8 smiaregs lis3lv02d_i2c
-lis3lv02d input_polldev ti_soc_thermal arc4 wl1251_spi wl1251 crc7
-mac80211 cfg80211 omap_ssi hsi bq2415x_charger si4713
-bq27xxx_battery_i2c bq27xxx_battery leds_lp5523 leds_lp55xx_common
-adp1653 v4l2_common tsl2563 smc91x mii rtc_twl twl4030_vibra
-ff_memless twl4030_wdt tsc2005 tsc200x_core omap_sham omap_wdt
-gpio_keys rx51_battery video_bus_switch videodev media
-[ 3468.239044] CPU: 0 PID: 4973 Comm: yavta Tainted: G        W
-4.6.0-rc4+ #1
-[ 3468.239044] Hardware name: Nokia RX-51 board
-[ 3468.239074] [<c010bc18>] (unwind_backtrace) from [<c0109f38>]
-(show_stack+0x10/0x14)
-[ 3468.239105] [<c0109f38>] (show_stack) from [<c01262dc>]
-(__warn+0xcc/0xf8)
-[ 3468.239105] [<c01262dc>] (__warn) from [<c0126324>]
-(warn_slowpath_null+0x1c/0x20)
-[ 3468.239135] [<c0126324>] (warn_slowpath_null) from [<c0331c6c>]
-(omap3_l3_app_irq+0xdc/0x124)
-[ 3468.239166] [<c0331c6c>] (omap3_l3_app_irq) from [<c01545bc>]
-(handle_irq_event_percpu+0x34/0x138)
-[ 3468.239166] [<c01545bc>] (handle_irq_event_percpu) from
-[<c015471c>] (handle_irq_event+0x5c/0x88)
-[ 3468.239196] [<c015471c>] (handle_irq_event) from [<c015768c>]
-(handle_level_irq+0xcc/0x130)
-[ 3468.239196] [<c015768c>] (handle_level_irq) from [<c0153f9c>]
-(generic_handle_irq+0x18/0x28)
-[ 3468.239227] [<c0153f9c>] (generic_handle_irq) from [<c01540bc>]
-(__handle_domain_irq+0x84/0xa8)
-[ 3468.239227] [<c01540bc>] (__handle_domain_irq) from [<c054da14>]
-(__irq_svc+0x54/0x90)
-[ 3468.239257] [<c054da14>] (__irq_svc) from [<c0372430>]
-(regulator_disable+0x8/0x5c)
-[ 3468.239349] [<c0372430>] (regulator_disable) from [<bf20a120>]
-(ccp2_if_enable+0xf4/0xfc [omap3_isp])
-[ 3468.239471] [<bf20a120>] (ccp2_if_enable [omap3_isp]) from
-[<bf20a948>] (ccp2_s_stream+0x44c/0x4b0 [omap3_isp])
-[ 3468.239593] [<bf20a948>] (ccp2_s_stream [omap3_isp]) from
-[<bf205688>] (isp_pipeline_disable+0x104/0x224 [omap3_isp])
-[ 3468.239746] [<bf205688>] (isp_pipeline_disable [omap3_isp]) from
-[<bf2065a0>] (omap3isp_pipeline_set_stream+0x14/0x2c [omap3_isp])
-[ 3468.239868] [<bf2065a0>] (omap3isp_pipeline_set_stream [omap3_isp])
-from [<bf2092d0>] (isp_video_streamoff+0xcc/0x124 [omap3_isp])
-[ 3468.239990] [<bf2092d0>] (isp_video_streamoff [omap3_isp]) from
-[<bf209354>] (isp_video_release+0x2c/0x78 [omap3_isp])
-[ 3468.240173] [<bf209354>] (isp_video_release [omap3_isp]) from
-[<bf00d300>] (v4l2_release+0x30/0x6c [videodev])
-[ 3468.240295] [<bf00d300>] (v4l2_release [videodev]) from
-[<c01dd35c>] (__fput+0xd4/0x1f0)
-[ 3468.240325] [<c01dd35c>] (__fput) from [<c013e030>]
-(task_work_run+0x74/0x88)
-[ 3468.240325] [<c013e030>] (task_work_run) from [<c01283c8>]
-(do_exit+0x3e8/0x920)
-[ 3468.240356] [<c01283c8>] (do_exit) from [<c0128a50>]
-(do_group_exit+0xb8/0xfc)
-[ 3468.240356] [<c0128a50>] (do_group_exit) from [<c013274c>]
-(get_signal+0x604/0x680)
-[ 3468.240386] [<c013274c>] (get_signal) from [<c010de54>]
-(do_signal+0x84/0x5d0)
-[ 3468.240417] [<c010de54>] (do_signal) from [<c0109958>]
-(do_work_pending+0x48/0xb8)
-[ 3468.240417] [<c0109958>] (do_work_pending) from [<c01071b4>]
-(slow_work_pending+0xc/0x20)
-[ 3468.240417] ---[ end trace 70aa4a6442fc691e ]---
+So, with the item number, they can just seek for "1.2.10.14. " string
+to find the item that is under discussion.
 
-But it seems to produce _something_ so I guess its a improvement :-).
+> > Also, it seems that there's still a lot of work to do, as there are several
+> > tables that are missing conversion, like the table for "struct v4l2_pix_format":
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt.html
+> > 
+> > and the big tables at:
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-packed-rgb.html
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-packed-yuv.html
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/subdev-formats.html
+> >   
+> 
+> Yes, I marked them as TODO: 
+> 
+>  https://github.com/return42/sphkerneldoc/blob/master/scripts/media.py#L262
+> 
+> aspect *authoring tables* (see below)
+> 
+> > Also, some tables that are not so big like:
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-y41p.html
+> > 
+> > don't look nice, at least on my browser, as the "white" area is too small,
+> > and some cells seem to be broken in two, because of the color changes in the middle
+> > of the cell.  
+> 
+> aspect *layout* (see below)
 
-									Pavel
+Ok.
+
+> > On a side comment, I really think that editing those big tables using
+> > ASCIIart would be a real pain. It would be a way better to use some other
+> > table format at its source code.  
+> 
+> It is the same to me (aspect *authoring tables*). IMO, it is a pain in
+> every markup not only in ASCII art. Markup tables by hand is good enough
+> for small tables and reST brings some variation to markup:
+> 
+>  https://return42.github.io/sphkerneldoc/articles/table_concerns.html
+
+Writing complex tables is painful, no matter what format it is use, but
+doing ASCIIart would mean that, even a simple addition of a new column
+may end by the need of adding additional whitespaces to every other column
+in that table. That would be really painful for the developer, but not
+only for him: All reviewers and maintainers will have troubles to identify
+what are the relevant changes, and what changes are there just to make
+reST happy.
+
+Let me show you the big picture here: one thing that it is very common at
+this book is that we frequently add new rows to the existing tables, in order
+to add a new fourcc format, some new control, or some new colorspace format,
+like this one:
+	https://git.linuxtv.org/media_tree.git/commit/?id=7146a9cfa499ac3bfaea18555d67afb04cac40c3
+
+With has two new rows on one table:
+
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -540,6 +540,10 @@ colorspaces except for BT.2020 which uses limited range R'G'B' quantization.</pa
+            <entry>See <xref linkend="col-bt2020" />.</entry>
+          </row>
+          <row>
++           <entry><constant>V4L2_COLORSPACE_DCI_P3</constant></entry>
++           <entry>See <xref linkend="col-dcip3" />.</entry>
++         </row>
++         <row>
+            <entry><constant>V4L2_COLORSPACE_SMPTE240M</constant></entry>
+            <entry>See <xref linkend="col-smpte-240m" />.</entry>
+          </row>
+@@ -601,6 +605,10 @@ colorspaces except for BT.2020 which uses limited range R'G'B' quantization.</pa
+            <entry><constant>V4L2_XFER_FUNC_NONE</constant></entry>
+            <entry>Do not use a transfer function (i.e. use linear RGB values).</entry>
+          </row>
++         <row>
++           <entry><constant>V4L2_XFER_FUNC_DCI_P3</constant></entry>
++           <entry>Use the DCI-P3 transfer function.</entry>
++         </row>
+        </tbody>
+       </tgroup>
+     </table>
+
+We don't want to see any changes on the patch touching other rows in
+the table but the ones adding those new colorspace formats.
+
+On the other hand, we seldom add new columns to the existing tables.
+I can't remember any patch doing that on the last years. So, we
+accept the extra pain to review patches adding/removing columns.
+
+With that sense, the "List tables" format is also not good, as
+one row addition would generate several hunks (one for each column
+of the table), making harder to review the patch by just looking at
+the diff.
+
+The "CSV table" format seems to be the better one, as the produced
+patches when a new one new row is added will be the best, except
+that it currently reST CSV table format doesn't support cell span, 
+with is something that several of our tables use.
+
+> There are also work-arounds like raw-html tables, but I'am not happy with 
+> all this solutions.
+
+Yes, we might use raw-html tables, but that means that we'll never be
+able to generate pdf. Well, for pdf generation, we would need to have a
+tag at the markup language to tell to generate a "portrait" page for
+some big tables. We used to have that before merging the V4L2 DocBook
+upstream on some tables. Anyway, I would prefer to not add any
+output format specific solution here.
+
+So, I guess the best would be to extend reST language to do something
+better. On the tests I did with AsciiDoc, I found the way it describes
+tables good enough for the uses we have. Not sure if that approach
+could be added or extended to reST/Sphinx. 
+
+There, a table with cell spans[1] would look like:
+
+[width="100%",cols=",,,,",]
+|===========================================
+|start + 0: |Y'~00~ |Y'~01~ |Y'~02~ |Y'~03~
+|start + 4: |Y'~10~ |Y'~11~ |Y'~12~ |Y'~13~
+|start + 8: |Y'~20~ |Y'~21~ |Y'~22~ |Y'~23~
+|start + 12: |Y'~30~ |Y'~31~ |Y'~32~ |Y'~33~
+|start + 16: |Cr~00~ 3+|
+|start + 17: |Cb~00~ 3+|
+|===========================================
+
+[1] https://mchehab.fedorapeople.org/media-kabi-docs-test/asciidoc_tests/pixfmt-yuv410.adoc
+
+On the above, the 3+| means that the cell will merge 3 columns.
+Easy to write, easy to patch.
+
+Also, it allows adding lines on big cells, so the above could be
+written as:
+
+[width="100%",cols=",,,,",]
+|===========================================
+|start + 0:
+|Y'~00~ |Y'~01~ |Y'~02~ |Y'~03~
+|start + 4: |Y'~10~ |Y'~11~ |Y'~12~ |Y'~13~
+|start + 8: |Y'~20~ |Y'~21~ |Y'~22~ |Y'~23~
+|start + 12:
+|Y'~30~ |Y'~31~ |Y'~32~ |Y'~33~
+|start + 16: |Cr~00~ 3+|
+|start + 17: |Cb~00~ 3+|
+|===========================================
+
+And would produce the same output. That's actually a very good thing, as
+we don't like to have lines with more than 80 columns withing the Kernel.
+
+Another option would be to add some logic at the CSV to describe cell
+spans at the existing reST markup format and add support on the CSV
+format to break long lines (if not already supported). 
+
+A third approach would be to make sphinx to be able to fully understand
+HTML tables and convert them to PDF and other formats, but I guess this
+would be too much work (as, otherwise, someone would have done that
+already).
+
+> Authoring tables and the *layout aspect* are TOPICs I 
+> will review later. I hope you see that I'am working on, but let me first 
+> focus on other TOPICs like:
+> 
+> * man pages
+> * pdf
+> * kernel-doc reST output (done)
+> * etc ...
+
+Yeah, I know that there are many things to be addressed.
+
+Yet, for media maintainers, handling complex tables is a critical part for
+the media books to be converted upstream. So, I'm a little anxious on that,
+specially since I was unable to find a way to address with the current
+markup language used on reST (except for raw-html, but, as I said before,
+there are issues with that).
+
+> > 
+> > Still on tables, you took an interesting approach with the tables with
+> > cell spans, like the control ones:
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/controls.html
+> >   
+> 
+> marginal note: due to redesigned chunks, link has changed:
+> 
+>  https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/extended-controls.html
+> 
+
+Noted.
+
+> > Basically, you broke each control table (except for the first one) into a set
+> > of tables. Not sure if I liked it, but it is certainly a way of doing it.  
+> 
+> Tables like: "Table 1.2. Codec Control IDs"
+> 
+> * http://www.linuxtv.org/downloads/v4l-dvb-apis/extended-controls.html
+> 
+> are definition lists. Thats why I implemented handles for these tables
+> which made definition list from:
+> 
+> * https://github.com/return42/sphkerneldoc/blob/master/scripts/media.py#L432
+> * https://github.com/return42/sphkerneldoc/blob/master/scripts/media.py#L496
+> 
+> The "table" markup here is used to get and/or influence a specific layout.
+> I'am with you. As the time I wrote DocBooks, I also packed many things into
+> tables, but I had to realized, that not everything is a table. Please, be 
+> openness for to change, I will be open for your requirements, except they 
+> are IMHO wrong. Placing definition list into table is IMO wrong.
+
+Yeah, I see your point. I guess your strategy would work. We'll likely
+need to change a little bit the text for those "ex-tables" to make it
+look better.
+
+> 
+> > There are also some "simple" tables at the media controller side that are
+> > missing conversion, like "struct media_v2_entity" at:
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/media-ioc-g-topology.html  
+> 
+> marginal note: due to redesigned chunks, link has changed:
+> 
+> * https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/media-ioc-g-topology.html?highlight=media_v2_entity#struct-media-v2-entity
+
+Noted.
+
+> > I would expect this to be easy to be converted, as there's not much
+> > weirdness on that.  
+> 
+> Yes, no problem to convert them, but as I said, let me review all tables
+> later and focus first on the other TOPICs I mentioned above.
+
+Ok.
+
+> > There are also some things that didn't seem to be properly converted
+> > at:
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/fdl-appendix.html
+> >   
+> 
+> What's wrong with the license note? I can't remember tho old version, 
+> but the new version should be OK?
+> 
+> * http://www.linuxtv.org/downloads/v4l-dvb-apis/fdl.html
+> * https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/fdl-appendix.html
+
+I'm actually referring to this:
+	https://www.linuxtv.org/downloads/v4l-dvb-apis/fdl-section4.html
+
+The item numbering there on section 4 got weird on the conversion, as,
+instead of:
+
+". A.  Use in the Title Page (and on the covers, if any) a title distinct from that of the Document, and from those of previous versions (which should, if there were any, be listed in the History section of the Document). You may use the same title as a previous version if the original publisher of that version gives permission. "
+
+It became:
+
+". A.
+
+Use in the Title Page (and on the covers, if any) a title distinct from that of the Document, and from those of previous versions (which should, if there were any, be listed in the History section of the Document). You may use the same title as a previous version if the original publisher of that version gives permission."
+
+Not a big issue. Just something for the TODO list.
+
+> > Do you see a way to fix the above issues with reST markup language, or
+> > this is something that can't be fixed?  
+> 
+> In general: "Yes we can" ;-)
+> 
+> There will be points like tables we will have more discussions. With the
+> not yet covered points like pdf, man-pages and so force we will get more 
+> questions to answer.
+> 
+> As long as we not try to reimplement DocBook in reST and with a focus on 
+> productivity (which means, lets tend to pickup standards) we will find 
+> suitable solutions.
+> 
+> I hope I could build confidence in reST. Please stay tuned and communicate
+> your requirements  ...
+
+As I said, from my side, the big issue with reST is still tables format,
+as I was not able yet to see a solution that would fit well for our
+needs.
+
+> 
+> --Markus--
+> 
+> 
+> 
+> >> --M--
+> >> 
+> >> 
+> >> Am 13.03.2016 um 16:33 schrieb Markus Heiser <markus.heiser@darmarIT.de>:
+> >>   
+> >>> 
+> >>> Am 10.03.2016 um 16:21 schrieb Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+> >>>   
+> >>>> Em Thu, 10 Mar 2016 12:25:58 +0200
+> >>>> Jani Nikula <jani.nikula@intel.com> escreveu:
+> >>>>   
+> >>>>> TL;DR? Skip to the last paragraph.
+> >>>>> 
+> >>>>> On Wed, 09 Mar 2016, Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:    
+> >>>>>> I guess the conversion to asciidoc format is now in good shape,
+> >>>>>> at least to demonstrate that it is possible to use this format for the
+> >>>>>> media docbook. Still, there are lots of broken references.      
+> >>>>> 
+> >>>>> Getting references right with asciidoc is a big problem in the
+> >>>>> kernel-doc side. As I wrote before, the proofs of concept only worked
+> >>>>> because everything was processed as one big file (via includes). The
+> >>>>> Asciidoctor inter-document references won't help, because we won't know
+> >>>>> the target document name while processing kernel-doc.    
+> >>>> 
+> >>>> I was able to produce chunked htmls here with:
+> >>>> 
+> >>>> 	asciidoctor -b docbook45 media_api.adoc
+> >>>> 	xmlto -o html-dir html media_api.xml
+> >>>> 
+> >>>> The results are at:
+> >>>> 	https://mchehab.fedorapeople.org/media-kabi-docs-test/asciidoc_tests/chunked/
+> >>>> 
+> >>>> But yeah, all references seem to be broken there. It could be due to some
+> >>>> conversion issue (I didn't actually tried to check what's wrong there),
+> >>>> but I think that there's something not ok with docbook45
+> >>>> output for multi-part documents (on both AsciiDoc and Asciidoctor).
+> >>>>   
+> >>>>> Sphinx is massively better at handling cross references for
+> >>>>> kernel-doc. We can use domains (C language) and roles (e.g. functions,
+> >>>>> types, etc.) for the references, which provide kind of
+> >>>>> namespaces. Sphinx warns for referencing non-existing targets, but
+> >>>>> doesn't generate broken links in the result like Asciidoctor does.
+> >>>>> 
+> >>>>> For example, in the documentation for a function that has struct foo as
+> >>>>> parameter or return type, a cross reference to struct foo is added
+> >>>>> automagically, but only if documentation for struct foo actually
+> >>>>> exists. In Asciidoctor, we would have to blindly generate the references
+> >>>>> ourselves, and try to resolve broken links ourselves by somehow
+> >>>>> post-processing the result.
+> >>>>>   
+> >>>>>> Yet, from my side, if we're willing to get rid of DocBook, then
+> >>>>>> Asciidoctor seems to be the *only* alternative so far to parse the
+> >>>>>> complex media documents.      
+> >>>>> 
+> >>>>> I think you mean, "get rid of DocBook as source format", not altogether?
+> >>>>> I'm yet to be convinved we could rely on Asciidoctor's native formats.    
+> >>>> 
+> >>>> What I mean is that, right now, I see only two alternatives for the
+> >>>> media uAPI documentation:
+> >>>> 	1) keep using DocBook;
+> >>>> 	2) AsciiDoc/Asciidoctor.
+> >>>> 
+> >>>> Sphinx doesn't have what's needed to support the complexity of the
+> >>>> media books, specially since cell span seems to be possible only
+> >>>> by using asciiArt formats. Writing a big table using asciiArt is
+> >>>> something that is a *real pain*. Also, as tested, if the table is
+> >>>> too big, it fails to parse such asciiArt tables. So, while Sphinx
+> >>>> doesn't have a decent way to describe tables, we can't use it.    
+> >>> 
+> >>> 
+> >>> Huge tables and cell-spans are the *real pain* ;-) ... with sphinx-doc,
+> >>> (mostly) you have more then one choice .. e.g. import csv tables .. 
+> >>> but this should be discussed by example ...
+> >>> 
+> >>>   
+> >>>> If it starts implementing it, then we can check if the other
+> >>>> features used by the media documentation are also supported.
+> >>>> Probably, multi-part books would be another pain with Sphinx.
+> >>>> We have actually 4 books inside a common body. A few chapters
+> >>>> (like book licensing, bibliography, error codes) are shared
+> >>>> by all 4 documents.
+> >>>> 
+> >>>> But, so far, I can't see any way to port media books without
+> >>>> lots of lot of work to develop new features at the Sphinx code.    
+> >>> 
+> >>> 
+> >>> may I can help you ...
+> >>> 
+> >>>   
+> >>>>> The toolchain gets faster, easier to debug and simplified a lot with
+> >>>>> DocBook out of the equation completely. Sphinx itself is stable, widely
+> >>>>> available, and well documented. IMO there's sufficient native output
+> >>>>> format support. There are plenty of really nice extensions
+> >>>>> available. There's a possibility of doing kernel-doc as an extension in
+> >>>>> the future (either by calling current kernel-doc from the extension or
+> >>>>> by rewriting it).    
+> >>>> 
+> >>>> Well, if we go to Sphinx for kernel-doc, that means that we'll need
+> >>>> 2 different tools for the documentation:
+> >>>> 	- Sphinx for kernel-doc
+> >>>> 	- either DocBook or Asciidoctor/AsciiDoc for media.
+> >>>> 
+> >>>> IMHO, this is the worse scenario, as we'll keep depending on
+> >>>> DocBook plus requiring Sphinx, but it is up to Jon to decide.
+> >>>>   
+> >>> 
+> >>> The migration of kernel-doc is a long term project, not a
+> >>> one shot job. The scope of documents to migrate is not limited
+> >>> to the files with DocBook markup in, most documents have not
+> >>> a real markup.
+> >>> 
+> >>> Please take a look at my thoughts and efforts about migration.
+> >>> 
+> >>> * https://sphkerneldoc.readthedocs.org
+> >>> 
+> >>> * https://github.com/return42/sphkerneldoc.git
+> >>> 
+> >>> sphkerneldoc.git is a small project started this weekend, within
+> >>> this project I show you, how migration could be done and
+> >>> we can discuss concerns like "tables and cell-spans" by example. 
+> >>> 
+> >>> Believe me, most concerns discussed in this thread are a leak of
+> >>> knowledge. I'am working with sphinx-doc since 7 years, switched
+> >>> over from DocBook (escaped from a 8 years lasting XML hell).
+> >>> DocBook and sphinx-doc are complete different, so sphinx-doc
+> >>> might feels odd in the first time, but if you have switched 
+> >>> like me, you will never go back again.
+> >>>   
+> >>>>> Dan keeps bringing up the active community in Asciidoctor, and how
+> >>>>> they're fixing things up as we speak... which is great, but Sphinx is
+> >>>>> here now, packaged and shipping in distros ready to use. It seems that
+> >>>>> of the two, an Asciidoctor based toolchain is currently more in need of
+> >>>>> hacking and extending to meet our needs. Which brings us to the
+> >>>>> implementation language, Python vs. Ruby.
+> >>>>> 
+> >>>>> I won't make the mistake of comparing the relative merits of the
+> >>>>> languages, but I'll boldly claim the set of kernel developers who know
+> >>>>> Python is likely larger than the set of kernel developers who know Ruby
+> >>>>> [citation needed]. AFAICT there are no Ruby tools in the kernel tree,
+> >>>>> but there is a bunch of Python. My own very limited and subjective
+> >>>>> experience with other tools around the kernel is that Python is much
+> >>>>> more popular than Ruby. So my claim here is that we're in a better
+> >>>>> position to hack on Sphinx extensions ourselves than Asciidoctor.    
+> >>>> 
+> >>>> Sorry, but I don't buy it. Python is, IMHO, a mess: each new version
+> >>>> is incompatible with the previous one, and requires the source to
+> >>>> change, in order to use a newer version than the one used to write
+> >>>> the code. So, when talking about Python, we're actually talking about
+> >>>> several different dialects that don't talk well to each other.    
+> >>> 
+> >>> Sorry, you are complete wrong ... I'am 15 years python programmer,
+> >>> shipped out huge projects with my customers ... we never have seen
+> >>> these problems ... sorry ...
+> >>> 
+> >>>   
+> >>>> I don't know about Ruby. So far, I don't have anything against (or in
+> >>>> favor) of it. I bet most Kernel developers would actually prefer a
+> >>>> toolchain in C. If such tool doesn't exist, anything else seems
+> >>>> equally the same ;)    
+> >>> 
+> >>> Why we are talking about script languages? What needed is a 
+> >>> authoring system, which is as near as possible to the developers,
+> >>> which are the authors.
+> >>> 
+> >>> Sphinx-Doc is a standard authoring-tool versioned, maintained 
+> >>> and extended by thousands of developers ...
+> >>> 
+> >>>   
+> >>>>> My conclusion is that Sphinx covers the vast majority of the needs of
+> >>>>> our documentation producers and consumers, in an amazing way, out of the
+> >>>>> box, better than Asciidoctor.
+> >>>>> 
+> >>>>> Which brings us to the minority and the parts where Sphinx falls short,
+> >>>>> media documentation in particular. It's complex documentation, with very
+> >>>>> specific requirements on the output, especially that many things remain
+> >>>>> exactly as they are now. It also feels like the target is more to have
+> >>>>> standalone media documentation, and not so much to be aligned with and
+> >>>>> be part of the rest of the kernel documentation.
+> >>>>> 
+> >>>>> I want to question the need to have all kernel documentation use tools
+> >>>>> that meet the strict requirements of the outlier, when there's a better
+> >>>>> alternative for the vast majority of the documentation. Especially when
+> >>>>> Asciidoctor isn't a ready solution for media documentation either.
+> >>>>> 
+> >>>>> In summary, my proposal is to go with Sphinx, leave media docs as
+> >>>>> DocBook for now, and see if and how they can be converted to
+> >>>>> Sphinx/reStructuredText later on when we have everything else in
+> >>>>> place. It's not the perfect outcome, but IMHO it's the best overall
+> >>>>> choice.    
+> >>>> 
+> >>>> Well, this could be done. We don't have any good reason to move
+> >>>> the media docs out of DocBook.    
+> >>> 
+> >>> Sorry but again wrong: you lost many of the authors which are 
+> >>> frustrated by a XML markup and you lost many developers to improve
+> >>> the toolchain, frustrated by a complicated DocBook-XML XSLT
+> >>> toolchain with SGML markup from the middle of the last epoch.
+> >>>   
+> >>>> On the contrary, this means an extra
+> >>>> work. The only advantage is that it is a way simpler to write
+> >>>> documentation with a markup language, but converting from the PoC
+> >>>> to its integration at the Kernel tree still require lots of work,
+> >>>> specially due to the cross-refs "magic" scripts that we have under
+> >>>> Documentation/DocBook/media/Makefile.    
+> >>> 
+> >>> Yes, you are right, migration is a process not a one shot 
+> >>> job, as I mentioned before. You are a great programmer, your 
+> >>> documentation is also great, this invest should be preserved.
+> >>> So lets take a try. It would be a honor for me to show 
+> >>> you all theses steps by example on my repository (see above).
+> >>>   
+> >>>> As I said, the only big drawback is to keep depending on two
+> >>>> different tools for kernel-doc and for media documentation.    
+> >>> 
+> >>> -- Markus --  
+> > 
+> > -- 
+> > Thanks,
+> > Mauro  
+> 
+
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Thanks,
+Mauro
