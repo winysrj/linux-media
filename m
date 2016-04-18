@@ -1,57 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44279 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751040AbcDMTdr (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56491 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751189AbcDRKNK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2016 15:33:47 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Subject: [PATCH] [media] exynos-gsc: remove an always false condition
-Date: Wed, 13 Apr 2016 16:32:36 -0300
-Message-Id: <26a7ed9c18193dc7a3dfba33e3c711822f4bdd29.1460575950.git.mchehab@osg.samsung.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 18 Apr 2016 06:13:10 -0400
+Subject: Re: [PATCH v3 6/7] media: rcar-vin: initialize EDID data
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	niklas.soderlund@ragnatech.se
+References: <1460650670-20849-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1460650670-20849-7-git-send-email-ulrich.hecht+renesas@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5714B330.9050801@xs4all.nl>
+Date: Mon, 18 Apr 2016 12:13:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <1460650670-20849-7-git-send-email-ulrich.hecht+renesas@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by smatch:
-drivers/media/platform/exynos-gsc/gsc-core.c:1073 gsc_probe() warn: impossible condition '(gsc->id < 0) => (0-65535 < 0)'
-drivers/media/platform/exynos-gsc/gsc-core.c: In function 'gsc_probe':
-drivers/media/platform/exynos-gsc/gsc-core.c:1073:51: warning: comparison is always false due to limited range of data type [-Wtype-limits]
-  if (gsc->id >= drv_data->num_entities || gsc->id < 0) {
-                                                   ^
+On 04/14/2016 06:17 PM, Ulrich Hecht wrote:
+> Initializes the decoder subdevice with a fixed EDID blob.
+> 
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 46 +++++++++++++++++++++++++++++
+>  1 file changed, 46 insertions(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index ba2ed4e..5b32105 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -720,6 +720,41 @@ void rvin_v4l2_remove(struct rvin_dev *vin)
+>  	video_unregister_device(&vin->vdev);
+>  }
+>  
+> +static u8 edid[256] = {
+> +	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
+> +	0x48, 0xAE, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
+> +	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
+> +	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
+> +	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
+> +	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
+> +	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
+> +	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
+> +	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
+> +	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
+> +	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
+> +	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
+> +	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
+> +	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
+> +	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
+> +	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
+> +	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
+> +	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
+> +	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
+> +	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
+> +};
 
-gsc->id is an u16, so it can never be a negative number. So,
-remove the always false condition.
+Where does this EDID come from? I'm just wondering if it has been
+adjusted for the capabilities of the adv.
 
-Fixes: c1ac057173ba "[media] exynos-gsc: remove non-device-tree init code"
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+BTW, it is useful if userspace can read the EDID via VIDIOC_G_EDID.
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 032a423fb892..c595723f5031 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1070,7 +1070,7 @@ static int gsc_probe(struct platform_device *pdev)
- 		return -ENOMEM;
- 
- 	gsc->id = of_alias_get_id(pdev->dev.of_node, "gsc");
--	if (gsc->id >= drv_data->num_entities || gsc->id < 0) {
-+	if (gsc->id >= drv_data->num_entities) {
- 		dev_err(dev, "Invalid platform device id: %d\n", gsc->id);
- 		return -EINVAL;
- 	}
--- 
-2.5.5
+In general I am of two minds whether the EDID should be set in the driver
+or whether it should be left to userspace. The EDID contains vendor IDs
+and things like that, which are generally better left to userspace for
+embedded systems.
+
+Note that the v4l2-ctl utility has support to fill the edid to a standard HDMI
+EDID. See v4l2-ctl --help-edid.
+
+My feeling is that it is better to add G/S_EDID support to the r-car driver
+and not initialize the EDID at all.
+
+Regards,
+
+	Hans
+
+> +
+>  int rvin_v4l2_probe(struct rvin_dev *vin)
+>  {
+>  	struct v4l2_subdev_format fmt = {
+> @@ -821,5 +856,16 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+>  	v4l2_info(&vin->v4l2_dev, "Device registered as %s\n",
+>  		  video_device_node_name(&vin->vdev));
+>  
+> +	{
+> +		struct v4l2_subdev_edid rvin_edid = {
+> +			.pad = 0,
+> +			.start_block = 0,
+> +			.blocks = 2,
+> +			.edid = edid,
+> +		};
+> +		v4l2_subdev_call(sd, pad, set_edid,
+> +				&rvin_edid);
+> +	}
+> +
+>  	return ret;
+>  }
+> 
 
