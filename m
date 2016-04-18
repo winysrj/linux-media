@@ -1,110 +1,22 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:29683 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751712AbcDUJl3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2016 05:41:29 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>,
-	Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: [PATCH 5/8] Input: atmel_mxt_ts - add diagnostic data support for mXT1386
-Date: Thu, 21 Apr 2016 10:31:38 +0100
-Message-Id: <1461231101-1237-6-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
+Received: from smtp105.biz.mail.ne1.yahoo.com ([98.138.207.12]:27769 "EHLO
+	smtp105.biz.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752795AbcDRUTg convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Apr 2016 16:19:36 -0400
+Message-ID: <828729.35773.qm@smtp105.biz.mail.ne1.yahoo.com>
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Greetings!!!
+To: "Mr. Eric" <andreas122@elisaandreas.biz>
+From: andreas122@elisaandreas.biz
+Date: Mon, 18 Apr 2016 21:12:16 +0100
+Reply-To: J_ericdaniels111@outlook.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mXT1386 family of chips have a different architecture which splits
-the diagnostic data into 3 columns.
-
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 3dd312f..bac0aa0 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -137,6 +137,10 @@ struct t9_range {
- #define MXT_DIAGNOSTIC_DELTAS 0x10
- #define MXT_DIAGNOSTIC_SIZE    128
- 
-+#define MXT_FAMILY_1386			160
-+#define MXT1386_COLUMNS			3
-+#define MXT1386_PAGES_PER_COLUMN	8
-+
- struct t37_debug {
- 	u8 mode;
- 	u8 page;
-@@ -2135,13 +2139,27 @@ recheck:
- static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
- 			       unsigned int y)
- {
-+	struct mxt_info *info = &data->info;
- 	struct mxt_dbg *dbg = &data->dbg;
- 	unsigned int ofs, page;
-+	unsigned int col = 0;
-+	unsigned int col_width;
-+
-+	if (info->family_id == MXT_FAMILY_1386) {
-+		col_width = info->matrix_ysize / MXT1386_COLUMNS;
-+		col = y / col_width;
-+		y = y % col_width;
-+	} else {
-+		col_width = info->matrix_ysize;
-+	}
- 
--	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
-+	ofs = (y + (x * col_width)) * sizeof(u16);
- 	page = ofs / MXT_DIAGNOSTIC_SIZE;
- 	ofs %= MXT_DIAGNOSTIC_SIZE;
- 
-+	if (info->family_id == MXT_FAMILY_1386)
-+		page += col * MXT1386_PAGES_PER_COLUMN;
-+
- 	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
- }
- 
-@@ -2435,6 +2453,7 @@ static const struct video_device mxt_video_device = {
- 
- static void mxt_debug_init(struct mxt_data *data)
- {
-+	struct mxt_info *info = &data->info;
- 	struct mxt_dbg *dbg = &data->dbg;
- 	struct mxt_object *object;
- 	int error;
-@@ -2458,9 +2477,13 @@ static void mxt_debug_init(struct mxt_data *data)
- 
- 	/* Calculate size of data and allocate buffer */
- 	dbg->t37_nodes = data->xsize * data->ysize;
--	dbg->t37_pages = ((data->xsize * data->info.matrix_ysize)
--			  * sizeof(u16) / sizeof(dbg->t37_buf->data)) + 1;
- 
-+	if (info->family_id == MXT_FAMILY_1386)
-+		dbg->t37_pages = MXT1386_COLUMNS * MXT1386_PAGES_PER_COLUMN;
-+	else
-+		dbg->t37_pages = ((data->xsize * info->matrix_ysize)
-+				   * sizeof(u16) / sizeof(dbg->t37_buf->data))
-+				   + 1;
- 
- 	dbg->t37_buf = devm_kzalloc(&data->client->dev,
- 				     sizeof(struct t37_debug) * dbg->t37_pages,
--- 
-2.5.0
-
+Hi, how are you? My name is J Eric Denials, External Financial Auditor at Lloyds Banking Group plc., London. It is a pleasure to contact you at this time through this medium. I have a cool and legitimate deal to do with you as you're a foreigner, it will be mutually beneficial to both. If you’re interested, urgently, get back to me for more explanation about the deal.
+Regards
+Eric
