@@ -1,217 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:35171 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753131AbcDCIyf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:54:35 -0400
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v6 06/24] i2c: i2c-mux-pca954x: convert to use an explicit i2c mux core
-Date: Sun,  3 Apr 2016 10:52:36 +0200
-Message-Id: <1459673574-11440-7-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
-References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:35623 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053AbcDRQwi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Apr 2016 12:52:38 -0400
+Received: by mail-ob0-f179.google.com with SMTP id n10so36730085obb.2
+        for <linux-media@vger.kernel.org>; Mon, 18 Apr 2016 09:52:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1459550307-688-4-git-send-email-ezequiel@vanguardiasur.com.ar>
+References: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+	<1459550307-688-4-git-send-email-ezequiel@vanguardiasur.com.ar>
+Date: Mon, 18 Apr 2016 09:52:37 -0700
+Message-ID: <CAJ+vNU1=2YRMnYRys1cv4sH+MwZO-0aiMTUaKsoc-MJuV1Ajcw@mail.gmail.com>
+Subject: Re: [PATCH 3/7] tw686x: Add support for DMA contiguous interlaced
+ frame mode
+From: Tim Harvey <tharvey@gateworks.com>
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	=?UTF-8?Q?Krzysztof_Ha=C5=82asa?= <khalasa@piap.pl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+On Fri, Apr 1, 2016 at 3:38 PM, Ezequiel Garcia
+<ezequiel@vanguardiasur.com.ar> wrote:
+> Now that the driver has the infrastructure to support more
+> DMA modes, let's add the DMA contiguous interlaced frame mode.
+>
+> In this mode, the DMA P and B buffers are programmed with
+> the user-provided buffers. When a P (or B) frame is ready,
+> a new buffer is dequeued into P (or B).
+>
+> In addition to interlaced fields, the device can also be
+> programmed to deliver alternate fields. Only interlaced
+> mode is supported for now.
+>
+> Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+> ---
+>  drivers/media/pci/tw686x/Kconfig        |  1 +
+>  drivers/media/pci/tw686x/tw686x-core.c  |  4 +++
+>  drivers/media/pci/tw686x/tw686x-video.c | 50 +++++++++++++++++++++++++++++++++
+>  drivers/media/pci/tw686x/tw686x.h       |  1 +
+>  4 files changed, 56 insertions(+)
+>
+> diff --git a/drivers/media/pci/tw686x/Kconfig b/drivers/media/pci/tw686x/Kconfig
+> index fb8536974052..ef8ca85522f8 100644
+> --- a/drivers/media/pci/tw686x/Kconfig
+> +++ b/drivers/media/pci/tw686x/Kconfig
+> @@ -3,6 +3,7 @@ config VIDEO_TW686X
+>         depends on PCI && VIDEO_DEV && VIDEO_V4L2 && SND
+>         depends on HAS_DMA
+>         select VIDEOBUF2_VMALLOC
+> +       select VIDEOBUF2_DMA_CONTIG
+>         select SND_PCM
+>         help
+>           Support for Intersil/Techwell TW686x-based frame grabber cards.
+> diff --git a/drivers/media/pci/tw686x/tw686x-core.c b/drivers/media/pci/tw686x/tw686x-core.c
+> index 01c06bb59e78..9a7646c0f9f6 100644
+> --- a/drivers/media/pci/tw686x/tw686x-core.c
+> +++ b/drivers/media/pci/tw686x/tw686x-core.c
+> @@ -63,6 +63,8 @@ static const char *dma_mode_name(unsigned int mode)
+>         switch (mode) {
+>         case TW686X_DMA_MODE_MEMCPY:
+>                 return "memcpy";
+> +       case TW686X_DMA_MODE_CONTIG:
+> +               return "contig";
+>         default:
+>                 return "unknown";
+>         }
+> @@ -77,6 +79,8 @@ static int tw686x_dma_mode_set(const char *val, struct kernel_param *kp)
+>  {
+>         if (!strcasecmp(val, dma_mode_name(TW686X_DMA_MODE_MEMCPY)))
+>                 dma_mode = TW686X_DMA_MODE_MEMCPY;
+> +       else if (!strcasecmp(val, dma_mode_name(TW686X_DMA_MODE_CONTIG)))
+> +               dma_mode = TW686X_DMA_MODE_CONTIG;
+>         else
+>                 return -EINVAL;
+>         return 0;
+> diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+> index 82ae607b1d01..ed6abb4c41c2 100644
+> --- a/drivers/media/pci/tw686x/tw686x-video.c
+> +++ b/drivers/media/pci/tw686x/tw686x-video.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/slab.h>
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-event.h>
+> +#include <media/videobuf2-dma-contig.h>
+>  #include <media/videobuf2-vmalloc.h>
+>  #include "tw686x.h"
+>  #include "tw686x-regs.h"
+> @@ -148,6 +149,53 @@ const struct tw686x_dma_ops memcpy_dma_ops = {
+>         .field          = V4L2_FIELD_INTERLACED,
+>  };
+>
+> +static void tw686x_contig_buf_refill(struct tw686x_video_channel *vc,
+> +                                    unsigned int pb)
+> +{
+> +       struct tw686x_v4l2_buf *buf;
+> +
+> +       while (!list_empty(&vc->vidq_queued)) {
+> +               u32 reg = pb ? VDMA_B_ADDR[vc->ch] : VDMA_P_ADDR[vc->ch];
+> +               dma_addr_t phys;
+> +
+> +               buf = list_first_entry(&vc->vidq_queued,
+> +                       struct tw686x_v4l2_buf, list);
+> +               list_del(&buf->list);
+> +
+> +               phys = vb2_dma_contig_plane_dma_addr(&buf->vb.vb2_buf, 0);
+> +               reg_write(vc->dev, reg, phys);
+> +
+> +               buf->vb.vb2_buf.state = VB2_BUF_STATE_ACTIVE;
+> +               vc->curr_bufs[pb] = buf;
+> +               return;
+> +       }
+> +       vc->curr_bufs[pb] = NULL;
+> +}
+> +
+> +static void tw686x_contig_cleanup(struct tw686x_dev *dev)
+> +{
+> +       vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+> +}
+> +
+> +static int tw686x_contig_setup(struct tw686x_dev *dev)
+> +{
+> +       dev->alloc_ctx = vb2_dma_contig_init_ctx(&dev->pci_dev->dev);
+> +       if (IS_ERR(dev->alloc_ctx)) {
+> +               dev_err(&dev->pci_dev->dev, "unable to init DMA context\n");
+> +               return PTR_ERR(dev->alloc_ctx);
+> +       }
+> +       return 0;
+> +}
+> +
+> +const struct tw686x_dma_ops contig_dma_ops = {
+> +       .setup          = tw686x_contig_setup,
+> +       .cleanup        = tw686x_contig_cleanup,
+> +       .buf_refill     = tw686x_contig_buf_refill,
+> +       .mem_ops        = &vb2_dma_contig_memops,
+> +       .hw_dma_mode    = TW686X_FRAME_MODE,
+> +       .field          = V4L2_FIELD_INTERLACED,
+> +};
+> +
+>  static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
+>  {
+>         static const unsigned int map[15] = {
+> @@ -832,6 +880,8 @@ int tw686x_video_init(struct tw686x_dev *dev)
+>
+>         if (dev->dma_mode == TW686X_DMA_MODE_MEMCPY)
+>                 dev->dma_ops = &memcpy_dma_ops;
+> +       else if (dev->dma_mode == TW686X_DMA_MODE_CONTIG)
+> +               dev->dma_ops = &contig_dma_ops;
+>         else
+>                 return -EINVAL;
+>
+> diff --git a/drivers/media/pci/tw686x/tw686x.h b/drivers/media/pci/tw686x/tw686x.h
+> index 2b9884b709e0..938f16b2449a 100644
+> --- a/drivers/media/pci/tw686x/tw686x.h
+> +++ b/drivers/media/pci/tw686x/tw686x.h
+> @@ -33,6 +33,7 @@
+>  #define TW686X_AUDIO_PERIODS_MAX       TW686X_AUDIO_PAGE_MAX
+>
+>  #define TW686X_DMA_MODE_MEMCPY         0
+> +#define TW686X_DMA_MODE_CONTIG         1
+>
+>  struct tw686x_format {
+>         char *name;
+> --
+> 2.7.0
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select/deselect ops to be in terms of the i2c mux core
-instead of the child adapter.
+Ezequiel,
 
-Add a mask to handle the case where not all child adapters should
-cause a mux deselect to happen, now that there is a common deselect op
-for all child adapters.
+Thanks for adding this support, and thanks to Krzysztof for the
+orignal driver and efforts as well!
 
-Signed-off-by: Peter Rosin <peda@axentia.se>
----
- drivers/i2c/muxes/i2c-mux-pca954x.c | 64 +++++++++++++++++++------------------
- 1 file changed, 33 insertions(+), 31 deletions(-)
+I am able to use this on an IMX6 board with a MiniPCIe Advanced Micro
+avc8000 card with the TW6869. With this hardware configuration I can't
+use the TW686X_DMA_MODE_MEMCPY as the IMX6 has a limited 16MB iATU for
+PCI RX buffers and I can't get enough choherent_pool memory to support
+the buffers needed and TW686X_DMA_MODE_CONTIG solves this issue.
 
-diff --git a/drivers/i2c/muxes/i2c-mux-pca954x.c b/drivers/i2c/muxes/i2c-mux-pca954x.c
-index acfcef3d4068..1693d29c11a4 100644
---- a/drivers/i2c/muxes/i2c-mux-pca954x.c
-+++ b/drivers/i2c/muxes/i2c-mux-pca954x.c
-@@ -60,9 +60,10 @@ enum pca_type {
- 
- struct pca954x {
- 	enum pca_type type;
--	struct i2c_adapter *virt_adaps[PCA954X_MAX_NCHANS];
- 
- 	u8 last_chan;		/* last register value */
-+	u8 deselect;
-+	struct i2c_client *client;
- };
- 
- struct chip_desc {
-@@ -146,10 +147,10 @@ static int pca954x_reg_write(struct i2c_adapter *adap,
- 	return ret;
- }
- 
--static int pca954x_select_chan(struct i2c_adapter *adap,
--			       void *client, u32 chan)
-+static int pca954x_select_chan(struct i2c_mux_core *muxc, u32 chan)
- {
--	struct pca954x *data = i2c_get_clientdata(client);
-+	struct pca954x *data = i2c_mux_priv(muxc);
-+	struct i2c_client *client = data->client;
- 	const struct chip_desc *chip = &chips[data->type];
- 	u8 regval;
- 	int ret = 0;
-@@ -162,21 +163,24 @@ static int pca954x_select_chan(struct i2c_adapter *adap,
- 
- 	/* Only select the channel if its different from the last channel */
- 	if (data->last_chan != regval) {
--		ret = pca954x_reg_write(adap, client, regval);
-+		ret = pca954x_reg_write(muxc->parent, client, regval);
- 		data->last_chan = regval;
- 	}
- 
- 	return ret;
- }
- 
--static int pca954x_deselect_mux(struct i2c_adapter *adap,
--				void *client, u32 chan)
-+static int pca954x_deselect_mux(struct i2c_mux_core *muxc, u32 chan)
- {
--	struct pca954x *data = i2c_get_clientdata(client);
-+	struct pca954x *data = i2c_mux_priv(muxc);
-+	struct i2c_client *client = data->client;
-+
-+	if (!(data->deselect & (1 << chan)))
-+		return 0;
- 
- 	/* Deselect active channel */
- 	data->last_chan = 0;
--	return pca954x_reg_write(adap, client, data->last_chan);
-+	return pca954x_reg_write(muxc->parent, client, data->last_chan);
- }
- 
- /*
-@@ -191,17 +195,21 @@ static int pca954x_probe(struct i2c_client *client,
- 	bool idle_disconnect_dt;
- 	struct gpio_desc *gpio;
- 	int num, force, class;
-+	struct i2c_mux_core *muxc;
- 	struct pca954x *data;
- 	int ret;
- 
- 	if (!i2c_check_functionality(adap, I2C_FUNC_SMBUS_BYTE))
- 		return -ENODEV;
- 
--	data = devm_kzalloc(&client->dev, sizeof(struct pca954x), GFP_KERNEL);
--	if (!data)
-+	muxc = i2c_mux_alloc(adap, &client->dev, sizeof(*data), 0,
-+			     pca954x_select_chan, pca954x_deselect_mux);
-+	if (!muxc)
- 		return -ENOMEM;
-+	data = i2c_mux_priv(muxc);
- 
--	i2c_set_clientdata(client, data);
-+	i2c_set_clientdata(client, muxc);
-+	data->client = client;
- 
- 	/* Get the mux out of reset if a reset GPIO is specified. */
- 	gpio = devm_gpiod_get_optional(&client->dev, "reset", GPIOD_OUT_LOW);
-@@ -220,6 +228,10 @@ static int pca954x_probe(struct i2c_client *client,
- 	data->type = id->driver_data;
- 	data->last_chan = 0;		   /* force the first selection */
- 
-+	ret = i2c_mux_reserve_adapters(muxc, chips[data->type].nchans);
-+	if (ret)
-+		return ret;
-+
- 	idle_disconnect_dt = of_node &&
- 		of_property_read_bool(of_node, "i2c-mux-idle-disconnect");
- 
-@@ -238,16 +250,13 @@ static int pca954x_probe(struct i2c_client *client,
- 				/* discard unconfigured channels */
- 				break;
- 			idle_disconnect_pd = pdata->modes[num].deselect_on_exit;
-+			data->deselect |= (idle_disconnect_pd
-+					   || idle_disconnect_dt) << num;
- 		}
- 
--		data->virt_adaps[num] =
--			i2c_add_mux_adapter(adap, &client->dev, client,
--				force, num, class, pca954x_select_chan,
--				(idle_disconnect_pd || idle_disconnect_dt)
--					? pca954x_deselect_mux : NULL);
-+		ret = i2c_mux_add_adapter(muxc, force, num, class);
- 
--		if (data->virt_adaps[num] == NULL) {
--			ret = -ENODEV;
-+		if (ret) {
- 			dev_err(&client->dev,
- 				"failed to register multiplexed adapter"
- 				" %d as bus %d\n", num, force);
-@@ -263,23 +272,15 @@ static int pca954x_probe(struct i2c_client *client,
- 	return 0;
- 
- virt_reg_failed:
--	for (num--; num >= 0; num--)
--		i2c_del_mux_adapter(data->virt_adaps[num]);
-+	i2c_mux_del_adapters(muxc);
- 	return ret;
- }
- 
- static int pca954x_remove(struct i2c_client *client)
- {
--	struct pca954x *data = i2c_get_clientdata(client);
--	const struct chip_desc *chip = &chips[data->type];
--	int i;
--
--	for (i = 0; i < chip->nchans; ++i)
--		if (data->virt_adaps[i]) {
--			i2c_del_mux_adapter(data->virt_adaps[i]);
--			data->virt_adaps[i] = NULL;
--		}
-+	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
- 
-+	i2c_mux_del_adapters(muxc);
- 	return 0;
- }
- 
-@@ -287,7 +288,8 @@ static int pca954x_remove(struct i2c_client *client)
- static int pca954x_resume(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
--	struct pca954x *data = i2c_get_clientdata(client);
-+	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
-+	struct pca954x *data = i2c_mux_priv(muxc);
- 
- 	data->last_chan = 0;
- 	return i2c_smbus_write_byte(client, 0);
--- 
-2.1.4
-
+Tested-by: Tim Harvey <tharvey@gateworks.com>
