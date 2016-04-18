@@ -1,98 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35895 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751791AbcDWXtq (ORCPT
+Received: from smtp1.goneo.de ([85.220.129.30]:47961 "EHLO smtp1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750849AbcDRJub convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2016 19:49:46 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>
-Subject: [PATCH 00/13] R-Car VSP improvements for v4.7 - Round 2
-Date: Sun, 24 Apr 2016 02:49:47 +0300
-Message-Id: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 18 Apr 2016 05:50:31 -0400
+Content-Type: text/plain; charset=windows-1252
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: Kernel docs: muddying the waters a bit
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160412094620.4fbf05c0@lwn.net>
+Date: Mon, 18 Apr 2016 11:49:07 +0200
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jani Nikula <jani.nikula@intel.com>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org linux-media"
+	<linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <2F8742C2-A90A-4CC3-BCE0-937E129D3D59@darmarit.de>
+References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com> <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan> <86egbrm9hw.fsf@hiro.keithp.com> <1457076530.13171.13.camel@winder.org.uk> <CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com> <87a8m9qoy8.fsf@intel.com> <20160308082948.4e2e0f82@recife.lan> <CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com> <20160308103922.48d87d9d@recife.lan> <20160308123921.6f2248ab@recife.lan> <20160309182709.7ab1e5db@recife.lan> <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net>
+To: Jonathan Corbet <corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Jonahtan,
 
-This patch series is the second (and most probably last) round of vsp1 driver
-improvements for v4.7. In particular, it enables runtime PM support (03/13 and
-04/13), adds support for the FCP (01/13, 02/13 and 05/13), prepare for HGO
-(histogram) support (06/13 to 09/13) and update the API towards the DRM driver
-(10/13 to 13/13).
+Am 12.04.2016 um 17:46 schrieb Jonathan Corbet <corbet@lwn.net>:
 
-The FCP is a companion module of video processing modules in the Renesas R-Car
-Gen3 SoCs. It provides data compression and decompression, data caching, and
-conversion of AXI transaction in order to reduce the memory bandwidth. The FCP
-driver is not meant to be used standalone but provides an API to the video
-processing modules to control the FCP.
+> On Fri, 8 Apr 2016 17:12:27 +0200
+> Markus Heiser <markus.heiser@darmarit.de> wrote:
+> 
+>> motivated by this MT, I implemented a toolchain to migrate the kernel’s 
+>> DocBook XML documentation to reST markup. 
+>> 
+>> It converts 99% of the docs well ... to gain an impression how 
+>> kernel-docs could benefit from, visit my sphkerneldoc project page
+>> on github:
+>> 
+>>  http://return42.github.io/sphkerneldoc/
+> 
+> So I've obviously been pretty quiet on this recently.  Apologies...I've
+> been dealing with an extended death-in-the-family experience, and there is
+> still a fair amount of cleanup to be done.
+> 
+> Looking quickly at this work, it seems similar to the results I got.  But
+> there's a lot of code there that came from somewhere?
 
-The API towards the DRM driver is updated to store all configuration
-parameters in a structure in order to improve readability and make future
-updates easier. This series contain two R-Car DU DRM patches that update the
-DU DRM driver to the new API. They would normally be merged through Dave
-Airlie's tree, but due to dependencies on VSP1 patches queued up for v4.7 Dave
-agreed to get them merged through the linux-media tree (hence his Acked-by for
-the two patches). They should not conflict with any patch queued up for v4.7
-through Dave's tree.
+>From me? ... except the kernel-doc script which is a fork from your 
 
-Note that patch 10/13 adds some macro magic to make the API transition easier.
-Depending on your taste you will find the implementation beautiful or ugly,
-but in any case patch 13/13 removes the macros and inline wrapper.
+  git://git.lwn.net/linux.git doc/sphinx
 
-The code is based on top of the latest linux-media master branch. For
-convenience I've pushed the patches to the following git tree branch.
-patches on top of the latest Linux media master branch to
 
-        git://linuxtv.org/pinchartl/media.git vsp1/next
+>  I'd put together a
+> fairly simple conversion using pandoc and a couple of short sed scripts;
+> is there a reason for a more complex solution?
 
-Cc: devicetree@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: Dave Airlie <airlied@redhat.com>
+It depends. If you have a simple DocBook with less various markup, maybe not.
+May you want to read my remarks about migration tools and especially pandoc:
 
-Laurent Pinchart (13):
-  dt-bindings: Add Renesas R-Car FCP DT bindings
-  v4l: Add Renesas R-Car FCP driver
-  v4l: vsp1: Implement runtime PM support
-  v4l: vsp1: Don't handle clocks manually
-  v4l: vsp1: Add FCP support
-  v4l: vsp1: Add output node value to routing table
-  v4l: vsp1: Replace container_of() with dedicated macro
-  v4l: vsp1: Make vsp1_entity_get_pad_compose() more generic
-  v4l: vsp1: Move frame sequence number from video node to pipeline
-  v4l: vsp1: Group DRM RPF parameters in a structure
-  drm: rcar-du: Add alpha support for VSP planes
-  drm: rcar-du: Add Z-order support for VSP planes
-  v4l: vsp1: Remove deprecated DRM API
+* https://return42.github.io/sphkerneldoc/articles/dbtools.html#remarks-on-pandoc
 
- .../devicetree/bindings/media/renesas,fcp.txt      |  31 ++++
- .../devicetree/bindings/media/renesas,vsp1.txt     |   5 +
- MAINTAINERS                                        |  10 ++
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c              |  45 +++---
- drivers/gpu/drm/rcar-du/rcar_du_vsp.h              |   2 +
- drivers/media/platform/Kconfig                     |  15 ++
- drivers/media/platform/Makefile                    |   1 +
- drivers/media/platform/rcar-fcp.c                  | 176 +++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1.h                 |   6 +-
- drivers/media/platform/vsp1/vsp1_drm.c             |  68 ++++----
- drivers/media/platform/vsp1/vsp1_drv.c             | 119 +++++++-------
- drivers/media/platform/vsp1/vsp1_entity.c          |  86 +++++++---
- drivers/media/platform/vsp1/vsp1_entity.h          |  12 +-
- drivers/media/platform/vsp1/vsp1_pipe.c            |   4 +-
- drivers/media/platform/vsp1/vsp1_pipe.h            |   2 +
- drivers/media/platform/vsp1/vsp1_rpf.c             |   7 +-
- drivers/media/platform/vsp1/vsp1_video.c           |   4 +-
- drivers/media/platform/vsp1/vsp1_video.h           |   1 -
- include/media/rcar-fcp.h                           |  34 ++++
- include/media/vsp1.h                               |  29 ++--
- 20 files changed, 487 insertions(+), 170 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,fcp.txt
- create mode 100644 drivers/media/platform/rcar-fcp.c
- create mode 100644 include/media/rcar-fcp.h
+A few more words about, what I have done:
 
--- 
-Regards,
+I wrote a lib of XML filters which might be also usefully in other
+migration projects (dbxml). 
 
-Laurent Pinchart
+* https://github.com/return42/sphkerneldoc/blob/master/scripts/dbxml.py
+
+It uses a xml-parser, pandoc, pandoc-filters and regular expressions. Because
+I did not implemented a whole converter, I hacked around pandoc. Thats why
+conversion is done in several steps:
+
+1. copy xml file(s) to a cache space
+
+2. substitude unsolved internal and external entities
+
+3. filter all xml files
+
+   * run custom hooks on every node 
+
+   * apply filters on every node and inject reST into the XML-tree where pandoc fails.
+     https://github.com/return42/sphkerneldoc/blob/master/scripts/dbxml.py#L515
+
+4. convert intermediary XML result with pandoc to json (needed by pandoc filters)
+
+5. apply pandoc-filter and clean up the injected reST markup from step3
+
+6. convert filtered json to reST
+
+7. fix the produce reST with regular expression
+
+... the last step is similar to your sed scripts.
+
+
+And I wrote a commandline Interface to use this lib (see func db2rst):
+
+* https://github.com/return42/sphkerneldoc/blob/master/scripts/dbtools.py#L146
+ 
+With this db2rst all kernel DB-XML books could be migrated, except the linux-tv
+book, which has much more complexity. For this, there is a separated commandline
+called media2rst
+
+* https://github.com/return42/sphkerneldoc/blob/master/scripts/dbtools.py#L107
+
+The media2rst needs several special handlings, which is implemented in 
+hooks (the dbxml interface method)
+
+* https://github.com/return42/sphkerneldoc/blob/master/scripts/media.py
+
+Summarize, why should one prefer this tools over pandoc + sed?
+
+* Pandoc coverage is less on reading and writing, this is where 
+  dbxml comes into play
+
+  - reading DocBook: 
+    https://github.com/jgm/pandoc/blob/master/src/Text/Pandoc/Readers/DocBook.hs#L23
+  
+  - writing reST has many bugs and leaks 
+    (you fixed some of them with sed)
+
+* Pandoc does not support external entities (linux-tv), covered by dbxml
+
+* dbxml brings the ability to chunk one large XML book into small 
+  reST chunks e.g. kernel-hacking book:
+
+    https://github.com/return42/sphkerneldoc/tree/master/doc/books/kernel-hacking
+
+* dbxml lets you manipulate the XML source before you convert it to reST
+
+  this might helpfull e.g. if you have to convert single-column informal-tables 
+  to lists or other things ... in short; dbxml and it's hooks are the key to hack
+  everything you need in a full automated DocBook-->reST migration workflow.
+
+
+--Markus--
+
+> Thanks for looking into this, anyway; I hope to be able to focus more on
+> it shortly.
+> 
+> jon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
