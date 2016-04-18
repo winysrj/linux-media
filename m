@@ -1,60 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f195.google.com ([209.85.213.195]:36861 "EHLO
-	mail-ig0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753663AbcDYIYX (ORCPT
+Received: from mail-yw0-f171.google.com ([209.85.161.171]:34779 "EHLO
+	mail-yw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753271AbcDRQgh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 04:24:23 -0400
+	Mon, 18 Apr 2016 12:36:37 -0400
+Received: by mail-yw0-f171.google.com with SMTP id j74so30316435ywg.1
+        for <linux-media@vger.kernel.org>; Mon, 18 Apr 2016 09:36:37 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1461455400-28767-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-	<1461455400-28767-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Date: Mon, 25 Apr 2016 10:24:22 +0200
-Message-ID: <CAMuHMdV9WKVCm_9Yj3FhkGQyvKaz2QorjZd=X1wFcb80bJhsoA@mail.gmail.com>
-Subject: Re: [PATCH 03/13] v4l: vsp1: Implement runtime PM support
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-renesas-soc@vger.kernel.org
+In-Reply-To: <1460994401-25830-1-git-send-email-aletorrado@gmail.com>
+References: <1460994401-25830-1-git-send-email-aletorrado@gmail.com>
+From: Alejandro Torrado <aletorrado@gmail.com>
+Date: Mon, 18 Apr 2016 13:36:17 -0300
+Message-ID: <CAKdORb055qVVfe_DTuiKuyWKFpocpaoANeOsqnwn6+8DoMgwpg@mail.gmail.com>
+Subject: Re: [PATCH] USB_PID_DIBCOM_STK8096GP also comes with USB_VID_DIBCOM
+ vendor ID.
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 24, 2016 at 1:49 AM, Laurent Pinchart
-<laurent.pinchart+renesas@ideasonboard.com> wrote:
-> Replace the manual refcount and clock management code by runtime PM.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+This patch is incomplete. Sorry about that. New one coming soon.
+
+2016-04-18 12:46 GMT-03:00 Alejandro Torrado <aletorrado@gmail.com>:
+> Signed-off-by: Alejandro Torrado <aletorrado@gmail.com>
 > ---
->  drivers/media/platform/Kconfig          |   1 +
->  drivers/media/platform/vsp1/vsp1.h      |   3 -
->  drivers/media/platform/vsp1/vsp1_drv.c  | 101 ++++++++++++++++----------------
->  drivers/media/platform/vsp1/vsp1_pipe.c |   2 +-
->  4 files changed, 54 insertions(+), 53 deletions(-)
+>  drivers/media/usb/dvb-usb/dib0700_devices.c | 1 +
+>  1 file changed, 1 insertion(+)
 >
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index f453910050be..28d0db102c0b 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -264,6 +264,7 @@ config VIDEO_RENESAS_VSP1
->         tristate "Renesas VSP1 Video Processing Engine"
->         depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
->         depends on (ARCH_RENESAS && OF) || COMPILE_TEST
-> +       depends on PM
-
-PM is always enabled since commits 2ee98234b88174f2 ("arm64: renesas: Enable PM
-and PM_GENERIC_DOMAINS for SoCs with PM Domains") and 71d076ceb245f0d9 ("ARM:
-shmobile: Enable PM and PM_GENERIC_DOMAINS for SoCs with PM Domains").
-
-Even before that, drivers/sh/pm_runtime.c would have taken care of
-enabling the clocks for you.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> index ea0391e..ee7bafc 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700_devices.c
+> +++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> @@ -3814,6 +3814,7 @@ struct usb_device_id dib0700_usb_id_table[] = {
+>         { USB_DEVICE(USB_VID_PCTV,      USB_PID_PCTV_2002E) },
+>         { USB_DEVICE(USB_VID_PCTV,      USB_PID_PCTV_2002E_SE) },
+>         { USB_DEVICE(USB_VID_PCTV,      USB_PID_DIBCOM_STK8096PVR) },
+> +       { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK8096PVR) },
+>         { 0 }           /* Terminating entry */
+>  };
+>  MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+> --
+> 1.9.1
+>
