@@ -1,44 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:41828 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751571AbcDUJl0 (ORCPT
+Received: from nasmtp01.atmel.com ([192.199.1.245]:58462 "EHLO
+	nasmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753567AbcDSKDA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2016 05:41:26 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>
-Subject: [PATCH 0/8] Input: atmel_mxt_ts - output raw touch diagnostic data via V4L
-Date: Thu, 21 Apr 2016 10:31:33 +0100
-Message-Id: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
+	Tue, 19 Apr 2016 06:03:00 -0400
+Subject: Re: [PATCH 1/2] [media] atmel-isc: add the Image Sensor Controller
+ code
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1460533460-32336-1-git-send-email-songjun.wu@atmel.com>
+ <1460533460-32336-2-git-send-email-songjun.wu@atmel.com>
+ <81160604.beJHM8QlLS@avalon>
+CC: <g.liakhovetski@gmx.de>, <nicolas.ferre@atmel.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Peter Griffin <peter.griffin@linaro.org>,
+	"Benoit Parrot" <bparrot@ti.com>,
+	Gerd Hoffmann <kraxel@redhat.com>,
+	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+From: "Wu, Songjun" <songjun.wu@atmel.com>
+Message-ID: <57160246.2060804@atmel.com>
+Date: Tue, 19 Apr 2016 18:02:46 +0800
+MIME-Version: 1.0
+In-Reply-To: <81160604.beJHM8QlLS@avalon>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a series of patches to add diagnostic data support to the Atmel
-maXTouch driver. It's a rewrite of the previous implementation which output via
-debugfs: it now uses a V4L2 device in a similar way to the sur40 driver.
 
-There are significant performance advantages to putting this code into the
-driver. The algorithm for retrieving the data has been fairly consistent across
-a range of chips, with the exception of the mXT1386 series (see patch).
 
-We have a utility which can read the data and display it in a useful format:
-	https://github.com/ndyer/heatmap/commits/heatmap-v4l
+On 4/15/2016 00:21, Laurent Pinchart wrote:
+>> >+		return -EINVAL;
+>> >+
+>> >+	parent_names = kcalloc(num_parents, sizeof(char *), GFP_KERNEL);
+>> >+	if (!parent_names)
+>> >+		return -ENOMEM;
+>> >+
+>> >+	of_clk_parent_fill(np, parent_names, num_parents);
+>> >+
+>> >+	init.parent_names	= parent_names;
+>> >+	init.num_parents	= num_parents;
+>> >+	init.name		= clk_name;
+>> >+	init.ops		= &isc_clk_ops;
+>> >+	init.flags		= CLK_SET_RATE_GATE | CLK_SET_PARENT_GATE;
+>> >+
+>> >+	isc_clk = &isc->isc_clks[id];
+>> >+	isc_clk->hw.init	= &init;
+>> >+	isc_clk->regmap		= regmap;
+>> >+	isc_clk->lock		= lock;
+>> >+	isc_clk->id		= id;
+>> >+
+>> >+	isc_clk->clk = clk_register(NULL, &isc_clk->hw);
+>> >+	if (!IS_ERR(isc_clk->clk))
+>> >+		of_clk_add_provider(np, of_clk_src_simple_get, isc_clk->clk);
+>> >+	else {
+>> >+		dev_err(isc->dev, "%s: clock register fail\n", clk_name);
+>> >+		ret = PTR_ERR(isc_clk->clk);
+>> >+		goto free_parent_names;
+>> >+	}
+>> >+
+>> >+free_parent_names:
+>> >+	kfree(parent_names);
+>> >+	return ret;
+>> >+}
+>> >+
+>> >+static int isc_clk_init(struct isc_device *isc)
+>> >+{
+>> >+	struct device_node *np = of_get_child_by_name(isc->dev->of_node,
+>> >+						      "clk_in_isc");
+> Do you really need the clk_in_isc DT node ? I would have assumed that the
+> clock topology inside the ISC is fixed, and that it would be enough to just
+> specify the three parent clocks in the ISC DT node and create the two internal
+> clocks in the driver without needing a DT description.
+>
+Hi Laurent,
 
-These patches are also available from
-	https://github.com/ndyer/linux/commits/diagnostic-v4l
-
-Any feedback appreciated.
+I think more, and the clk_in_isc DT node should be needed. The clock 
+topology inside the ISC is fixed, but isc will provide the clock to 
+sensor, we need create the corresponding clock node int DT file, then 
+the sensor will get this clock and set the clock rate in DT file.
 
