@@ -1,90 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33313 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908AbcDZEWB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Apr 2016 00:22:01 -0400
-Received: by mail-wm0-f68.google.com with SMTP id r12so1081514wme.0
-        for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 21:22:00 -0700 (PDT)
-Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
-To: Pavel Machek <pavel@ucw.cz>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160425165848.GA10443@amd> <571E5134.10607@gmail.com>
- <20160425184016.GC10443@amd> <571E6D38.9050009@gmail.com>
- <20160425204110.GA2689@amd> <571E83B0.8020208@gmail.com>
- <20160425220751.GA26350@amd>
-Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
-	linux-media@vger.kernel.org
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <571EECE5.8060100@gmail.com>
-Date: Tue, 26 Apr 2016 07:21:57 +0300
+Received: from mga02.intel.com ([134.134.136.20]:25090 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932859AbcDSP7R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Apr 2016 11:59:17 -0400
+Subject: Re: [PATCH v6 08/24] iio: imu: inv_mpu6050: convert to use an
+ explicit i2c mux core
+To: Peter Rosin <peda@lysator.liu.se>, linux-kernel@vger.kernel.org
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+ <1459673574-11440-9-git-send-email-peda@lysator.liu.se>
+Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org
+From: Crestez Dan Leonard <leonard.crestez@intel.com>
+Message-ID: <57165593.4040700@intel.com>
+Date: Tue, 19 Apr 2016 18:58:11 +0300
 MIME-Version: 1.0
-In-Reply-To: <20160425220751.GA26350@amd>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+In-Reply-To: <1459673574-11440-9-git-send-email-peda@lysator.liu.se>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 04/03/2016 11:52 AM, Peter Rosin wrote:
+> From: Peter Rosin <peda@axentia.se>
+> 
+> Allocate an explicit i2c mux core to handle parent and child adapters
+> etc. Update the select/deselect ops to be in terms of the i2c mux core
+> instead of the child adapter.
+> 
+> --- a/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
+> +++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
+> @@ -136,16 +133,15 @@ static int inv_mpu_probe(struct i2c_client *client,
+>  		return result;
+>  
+>  	st = iio_priv(dev_get_drvdata(&client->dev));
+> -	st->mux_adapter = i2c_add_mux_adapter(client->adapter,
+> -					      &client->dev,
+> -					      client,
+> -					      0, 0, 0,
+> -					      inv_mpu6050_select_bypass,
+> -					      inv_mpu6050_deselect_bypass);
+> -	if (!st->mux_adapter) {
+> -		result = -ENODEV;
+> +	st->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0, 0,
+> +				       0, 0, 0,
+> +				       inv_mpu6050_select_bypass,
+> +				       inv_mpu6050_deselect_bypass);
+> +	if (IS_ERR(st->muxc)) {
+> +		result = PTR_ERR(st->muxc);
+>  		goto out_unreg_device;
+>  	}
+> +	st->muxc->priv = client;
 
-On 26.04.2016 01:07, Pavel Machek wrote:
-> Hi!
->
->>> Hi!
->>>
->>>> All my testing so far was performed using modules, though it shouldn't make
->>>> difference.
->>>>
->>>>> https://lkml.org/lkml/2016/4/16/14
->>>>> https://lkml.org/lkml/2016/4/16/33
->>>>>
->>>>
->>>> More stuff is needed, all those twl4030 regulator patches (already in
->>>> linux-next) + DTS initial-mode patch
->>>> (https://lkml.org/lkml/2016/4/17/78).
->>>
->>> Aha, that explains a lot. Dealing with -next would be tricky, I guess;
->>> can I just pull from your camera branch?
->>>
->>> https://github.com/freemangordon/linux-n900/tree/camera
->>
->> I guess yes, though I am not sure all the patches there are compatible with
->> userland different from maemo, so be careful. Also, the correct branch is
->> v4.6-rc4-n900-camera.
->
-> I tried v4.6-rc4-n900-camera, but got the same results: green mplayer
-> window, if I try to use front or back camera. Assuming
-> v4.6-rc4-n900-camera works for you, could I get your .config and list
-> of modules loaded during the test?
->
+I just tested this patch on mpu9150 (combo mpu6050+ak8975) and I got a
+crash on probe which looks sort of like this:
 
-.config is 'make rx51_defconfig' from v4.6-rc4-n900-camera branch, with 
-added:
+[    5.565374] RIP: 0010:[<ffffffff81481aed>] [<ffffffff81481aed>]
+mutex_lock+0xd/0x30
+[    5.565374] Call Trace:
+[    5.565374]  [<ffffffff813be34c>] inv_mpu6050_select_bypass+0x1c/0xa0
+...
+[    5.565374]  [<ffffffff81392141>] i2c_transfer+0x51/0x90
+...
+[    5.565374]  [<ffffffff81392cb5>] i2c_smbus_read_i2c_block_data+0x45/0xd0
+[    5.565374]  [<ffffffff813bec5a>] ak8975_probe+0x14a/0x5c0
+...
+[    5.565374]  [<ffffffff813933d8>] i2c_new_device+0x178/0x1e0
+[    5.565374]  [<ffffffff8139362d>] of_i2c_register_device+0xdd/0x1a0
+[    5.565374]  [<ffffffff8139372b>] of_i2c_register_devices+0x3b/0x60
+[    5.565374]  [<ffffffff81393e88>] i2c_register_adapter+0x178/0x410
+[    5.565374]  [<ffffffff81394203>] i2c_add_adapter+0x73/0x90
+[    5.565374]  [<ffffffff81395f3d>] i2c_mux_add_adapter+0x2ed/0x400
+[    5.565374]  [<ffffffff81396091>] i2c_mux_one_adapter+0x41/0x70
+[    5.565374]  [<ffffffff813be48a>] inv_mpu_probe+0xba/0x1a0
 
-CONFIG_VIDEO_BUS_SWITCH=m
-CONFIG_VIDEO_SMIAREGS=m
-CONFIG_VIDEO_ET8EK8=m
+This happens because muxc->priv is not initialized when probing devices
+behind the mux as described by devicetree. This can be easily fixed by
+using muxc->dev instead of muxc->priv, or perhaps by calling
+i2c_mux_alloc, initializing priv and later doing i2c_mux_add_adapter.
 
-For some reason I have to do 'modprobe smiapp' after every reboot, 
-before using cameras.
+These fixes are driver-specific and other drivers might experience
+similar issues. Perhaps i2c_mux_one_adapter should take void *priv just
+like old i2c_add_mux_adapter?
 
-After taking a nap, a question came to my mind - what is that device 
-you're using? As some early board versions use VAUX3 for cameras as well.
+After I fix this locally the deadlock when reading from both devices no
+longer happens.
 
-awk '{ printf "%s ",$1 }' /proc/modules results in:
-
-smiapp smiapp_pll sha256_generic hmac drbg ansi_cprng ctr ccm vfat fat 
-rfcomm sd_mod scsi_mod bnep bluetooth omaplfb pvrsrvkm ipv6 
-bq2415x_charger uinput radio_platform_si4713 joydev cmt_speech hsi_char 
-video_bus_switch arc4 wl1251_spi isp1704_charger wl1251 gpio_keys 
-mac80211 smc91x mii cfg80211 omap3_isp videobuf2_v4l2 omap_wdt 
-videobuf2_dma_contig omap_sham crc7 videobuf2_memops videobuf2_core 
-tsc2005 tsc200x_core leds_lp5523 bq27xxx_battery_i2c si4713 adp1653 
-tsl2563 bq27xxx_battery leds_lp55xx_common twl4030_wdt rtc_twl et8ek8 
-v4l2_common smiaregs videodev twl4030_vibra ff_memless lis3lv02d_i2c 
-lis3lv02d media input_polldev omap_ssi_port ti_soc_thermal nokia_modem 
-ssi_protocol omap_ssi hsi rx51_battery
-
+--
 Regards,
-Ivo
+Leonard
