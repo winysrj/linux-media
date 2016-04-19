@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:33875 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755751AbcDLC7r (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50552 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751962AbcDSDDF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2016 22:59:47 -0400
+	Mon, 18 Apr 2016 23:03:05 -0400
 Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0D2CC180894
-	for <linux-media@vger.kernel.org>; Tue, 12 Apr 2016 04:59:42 +0200 (CEST)
-Date: Tue, 12 Apr 2016 04:59:41 +0200
+	by tschai.lan (Postfix) with ESMTPSA id 0E299180647
+	for <linux-media@vger.kernel.org>; Tue, 19 Apr 2016 05:02:59 +0200 (CEST)
+Date: Tue, 19 Apr 2016 05:02:58 +0200
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: OK
-Message-Id: <20160412025942.0D2CC180894@tschai.lan>
+Message-Id: <20160419030259.0E299180647@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -20,12 +20,12 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Tue Apr 12 04:00:21 CEST 2016
+date:		Tue Apr 19 04:00:17 CEST 2016
 git branch:	test
-git hash:	bc5ccdbc990debbcae4602214dddc8d5fd38b01d
+git hash:	ecb7b0183a89613c154d1bea48b494907efbf8f9
 gcc version:	i686-linux-gcc (GCC) 5.3.0
 sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3353-gcae47da
+smatch version:	v0.5.0-3413-g618cd5c
 host hardware:	x86_64
 host os:	4.4.0-164
 
@@ -104,6 +104,7 @@ linux-4.2-x86_64: OK
 linux-4.3-x86_64: OK
 linux-4.4-x86_64: OK
 linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: OK
 apps: OK
 spec-git: OK
 sparse: WARNINGS
