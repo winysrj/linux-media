@@ -1,120 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgwym02.jp.fujitsu.com ([211.128.242.41]:42721 "EHLO
-	mgwym02.jp.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751296AbcDRJB1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2016 05:01:27 -0400
-Subject: Re: Backport a Security Fix for CVE-2015-7833 to v4.1
-To: sasha levin <sasha.levin@oracle.com>, gregkh@linuxfoundation.org
-References: <570B33E6.40705@jp.fujitsu.com>
- <573811194.2583282.1460376200290.JavaMail.zimbra@redhat.com>
- <5710A6D5.8000302@jp.fujitsu.com>
- <1369454336.4654676.1460714156331.JavaMail.zimbra@redhat.com>
-Cc: Vladis Dronov <vdronov@redhat.com>, linux-media@vger.kernel.org,
-	stable@vger.kernel.org, hverkuil@xs4all.nl, oneukum@suse.com,
-	mchehab@osg.samsung.com, ralf@spenneberg.net
-From: Yuki Machida <machida.yuki@jp.fujitsu.com>
-Message-ID: <5714A25F.2050500@jp.fujitsu.com>
-Date: Mon, 18 Apr 2016 18:01:19 +0900
+Received: from lists.s-osg.org ([54.187.51.154]:42321 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933066AbcDSTgp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Apr 2016 15:36:45 -0400
+Date: Tue, 19 Apr 2016 16:36:34 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Russel Winder <russel@winder.org.uk>
+Cc: DVB_Linux_Media <linux-media@vger.kernel.org>,
+	"Sebastian =?UTF-8?B?RHLDtmdl?=" <slomo@coaxion.net>
+Subject: Re: libdvbv5 licencing
+Message-ID: <20160419163634.5ee8de2c@recife.lan>
+In-Reply-To: <1460562055.28492.27.camel@winder.org.uk>
+References: <1458972788.3344.8.camel@winder.org.uk>
+	<20160412111945.22846572@recife.lan>
+	<1460562055.28492.27.camel@winder.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1369454336.4654676.1460714156331.JavaMail.zimbra@redhat.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/aQjGUv8VdzpgFm6suc4eAEY"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg and Sasha,
+--Sig_/aQjGUv8VdzpgFm6suc4eAEY
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Please do not accept patch of 588afcc to stable tree,
-because above patch has some problem.
-It reported by Vladis and Hans.
-https://patchwork.linuxtv.org/patch/32798/
-https://www.spinics.net/lists/linux-media/msg96936.html
-http://article.gmane.org/gmane.linux.kernel.stable/174202/match=cve+2015+7833
+Em Wed, 13 Apr 2016 16:40:55 +0100
+Russel Winder <russel@winder.org.uk> escreveu:
 
-Thank you for your help.
+> On Tue, 2016-04-12 at 11:19 -0300, Mauro Carvalho Chehab wrote:
+> [=E2=80=A6]
+>=20
+> > Yes. We had some discussions in the past to re-license it to LGPL,
+> > if this is going to be used by some other OSS project that would
+> > require that. Most of the code was written by me, and, in the past
+> > the other developers that worked on that also agreed on re-licensing
+> > as LGPL.
+> >=20
+> > So, basically, if gstreamer is willing to use libdvbv5, we'll
+> > relicense it to LGPL. =20
+>=20
+> I have volunteered to rewrite the DVB plugin for GStreamer and proposed
+> use of libdvbv5, a proposal which was stated as being entirely
+> acceptable, but only if libdvbv5 was LGPL. So if libdvbv5 becomes an
+> LGPL library, my rewrite of the GStreamer DVB plugin will certainly use
+> it. I will then put forward my rewrite for incorporation into the
+> GStreamer bad plugins (seriously misnamed library, but=E2=80=A6).
 
-Regards,
-Yuki Machida
+License changed.
 
-On 2016年04月15日 18:55, Vladis Dronov wrote:
-> Hello, Yuki, all,
->
-> My commit fa52bd506f resolves CVE-2015-7833, as mentioned in
-> https://www.spinics.net/lists/linux-media/msg96936.html
->
-> Please, note a message from Hans down this thread, who agrees
-> with my point.
->
-> Best regards,
-> Vladis Dronov | Red Hat, Inc. | Product Security Engineer
->
-> ----- Original Message -----
-> From: "Yuki Machida" <machida.yuki@jp.fujitsu.com>
-> To: "Vladis Dronov" <vdronov@redhat.com>
-> Cc: "sasha levin" <sasha.levin@oracle.com>, linux-media@vger.kernel.org, stable@vger.kernel.org, hverkuil@xs4all.nl, oneukum@suse.com, mchehab@osg.samsung.com, ralf@spenneberg.net
-> Sent: Friday, April 15, 2016 10:31:17 AM
-> Subject: Re: Backport a Security Fix for CVE-2015-7833 to v4.1
->
-> Hi Vladis,
->
->   > I apologize for intercepting, but I believe commit 588afcc1 should
->   > not be accepted and reverted in the trees where it was.
->   >
->   > Reasons:
->   >
->   > https://patchwork.linuxtv.org/patch/32798/
->   > or
->   > https://www.spinics.net/lists/linux-media/msg96936.html
-> Thank you for your reply.
->
-> If it revert commit 588afcc1 from the kernel,
-> It exists a Security Issue of CVE-2015-7833.
-> What do you think about it?
->
-> Best regards,
-> Yuki Machida
->
-> On 2016年04月11日 21:03, Vladis Dronov wrote:
->> Hello,
->>
->> I apologize for intercepting, but I believe commit 588afcc1 should
->> not be accepted and reverted in the trees where it was.
->>
->> Reasons:
->>
->> https://patchwork.linuxtv.org/patch/32798/
->> or
->> https://www.spinics.net/lists/linux-media/msg96936.html
->>
->>
->> Best regards,
->> Vladis Dronov | Red Hat, Inc. | Product Security Engineer
->>
->> ----- Original Message -----
->> From: "Yuki Machida" <machida.yuki@jp.fujitsu.com>
->> To: "sasha levin" <sasha.levin@oracle.com>
->> Cc: linux-media@vger.kernel.org, stable@vger.kernel.org, hverkuil@xs4all.nl, oneukum@suse.com, vdronov@redhat.com, mchehab@osg.samsung.com, ralf@spenneberg.net
->> Sent: Monday, April 11, 2016 7:19:34 AM
->> Subject: Backport a Security Fix for CVE-2015-7833 to v4.1
->>
->> Hi Sasha,
->>
->> I conformed that these patches for CVE-2015-7833 not applied at v4.1.21.
->> 588afcc1c0e45358159090d95bf7b246fb67565
->> fa52bd506f274b7619955917abfde355e3d19ff
->> Could you please apply this CVE-2015-7833 fix for 4.1-stable ?
->>
->> References:
->> https://security-tracker.debian.org/tracker/CVE-2015-7833
->> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=588afcc1c0e45358159090d95bf7b246fb67565f
->> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=fa52bd506f274b7619955917abfde355e3d19ffe
->>
->> Regards,
->> Yuki Machida
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe stable" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+--=20
+Thanks,
+Mauro
+
+--Sig_/aQjGUv8VdzpgFm6suc4eAEY
+Content-Type: application/pgp-signature
+Content-Description: Assinatura digital OpenPGP
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXFojCAAoJEAhfPr2O5OEVbCkQAIw+27hDquJfru2GzY9lESuM
+WTJtlWeniW9EEQEk7JbVRtTdo1tqUVbrmAiv2o2RQZz6Al1NMyynsJUJ197TO4AZ
+604iBR3JsBInrkq09tKc7gLoU4JV+YegJqW/D+dZD1LnI7qXTIIuhjPBNPeaY49b
+O2p6p5daqrl7rN5P7AmLqjcDVAM8bBTo0tAOXCgpuKIw8MKiuGDtaEgAdqrSmKi6
+UYSDhp+yc1xPsP8IqQFP/gBOxO5DxhPx//7eBhlJCFlqjGAbyhEGoi3vGeOUkZNb
+mUPQk6MxSbXjfU5kDH3gtwI6OzUWf935pMekO7M71FnvZcfmliNZxTBvv4XFYegk
+IsjooAosDH02K6nSmhfZPjwbIxpEjqJdmmpsrpyS7y7pYjdfWx9Rsy+9PGmxbQm+
+6eSaa1Wvt6QCC/VtK3RBATwBDqiIUJYziDFjmGVEz56ZZfN9B49lKvI7INb+sUQh
+hv9/F2u3IE9K64SJNRpyBQDo/+eXqBoNBuDuSAOHK5ZSIplckbBL7otV5QFfRItW
+25Zg9J+apIHzvWl0aASyWxDafabaZkSmJhpWa2Zi1yD37KAUcupNSJ9/3pqpUJxl
+tau7xTm7ODa8rkJUvJYp2PPuMZqgHBp6+XwDztEoosF7mNv4B0tYlpF/iYp+x547
+LZprTHKbH95UN4sRGp9a
+=ruqw
+-----END PGP SIGNATURE-----
+
+--Sig_/aQjGUv8VdzpgFm6suc4eAEY--
