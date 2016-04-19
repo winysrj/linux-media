@@ -1,104 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37356 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964973AbcDYVgU (ORCPT
+Received: from mail.lysator.liu.se ([130.236.254.3]:44003 "EHLO
+	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753377AbcDSQiE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 17:36:20 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>
-Subject: [PATCH v2 00/13] R-Car VSP improvements for v4.7 - Round 2
-Date: Tue, 26 Apr 2016 00:36:25 +0300
-Message-Id: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 19 Apr 2016 12:38:04 -0400
+In-Reply-To: <57165593.4040700@intel.com>
+References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se> <1459673574-11440-9-git-send-email-peda@lysator.liu.se> <57165593.4040700@intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=UTF-8
+Subject: Re: [PATCH v6 08/24] iio: imu: inv_mpu6050: convert to use an explicit i2c mux core
+From: Peter Rosin <peda@lysator.liu.se>
+Date: Tue, 19 Apr 2016 18:37:41 +0200
+To: Crestez Dan Leonard <leonard.crestez@intel.com>,
+	linux-kernel@vger.kernel.org
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Terry Heo <terryheo@google.com>, Hans@lysator.liu.se,
+	Verkuil@lysator.liu.se
+Message-Id: <20160419163748.9129940005@mail.lysator.liu.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+<hans.verkuil@cisco.com>,Arnd Bergmann <arnd@arndb.de>,Tommi Rantala <tt.rantala@gmail.com>,linux-i2c@vger.kernel.org,linux-doc@vger.kernel.org,linux-iio@vger.kernel.org,linux-media@vger.kernel.org,devicetree@vger.kernel.org
+Message-ID: <B09CD200-56D1-4BE0-B567-90CC23507ED5@lysator.liu.se>
 
-This patch series is the second version of the second (and most probably last)
-round of vsp1 driver improvements for v4.7. In particular, it enables runtime
-PM support (03/13 and 04/13), adds support for the FCP (01/13, 02/13 and
-05/13), prepare for HGO (histogram) support (06/13 to 09/13) and update the
-API towards the DRM driver (10/13 to 13/13).
+On April 19, 2016 5:58:11 PM CEST, Crestez Dan Leonard <leonard.crestez@intel.com> wrote:
+> On 04/03/2016 11:52 AM, Peter Rosin wrote:
+> > From: Peter Rosin <peda@axentia.se>
+> > 
+> > Allocate an explicit i2c mux core to handle parent and child
+> adapters
+> > etc. Update the select/deselect ops to be in terms of the i2c mux
+> core
+> > instead of the child adapter.
+> > 
+> > --- a/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
+> > +++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
+> > @@ -136,16 +133,15 @@ static int inv_mpu_probe(struct i2c_client
+> *client,
+> >  		return result;
+> >  
+> >  	st = iio_priv(dev_get_drvdata(&client->dev));
+> > -	st->mux_adapter = i2c_add_mux_adapter(client->adapter,
+> > -					      &client->dev,
+> > -					      client,
+> > -					      0, 0, 0,
+> > -					      inv_mpu6050_select_bypass,
+> > -					      inv_mpu6050_deselect_bypass);
+> > -	if (!st->mux_adapter) {
+> > -		result = -ENODEV;
+> > +	st->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0,
+> 0,
+> > +				       0, 0, 0,
+> > +				       inv_mpu6050_select_bypass,
+> > +				       inv_mpu6050_deselect_bypass);
+> > +	if (IS_ERR(st->muxc)) {
+> > +		result = PTR_ERR(st->muxc);
+> >  		goto out_unreg_device;
+> >  	}
+> > +	st->muxc->priv = client;
+> 
+> I just tested this patch on mpu9150 (combo mpu6050+ak8975) and I got a
+> crash on probe which looks sort of like this:
+> 
+> [    5.565374] RIP: 0010:[<ffffffff81481aed>] [<ffffffff81481aed>]
+> mutex_lock+0xd/0x30
+> [    5.565374] Call Trace:
+> [    5.565374]  [<ffffffff813be34c>]
+> inv_mpu6050_select_bypass+0x1c/0xa0
+> ...
+> [    5.565374]  [<ffffffff81392141>] i2c_transfer+0x51/0x90
+> ...
+> [    5.565374]  [<ffffffff81392cb5>]
+> i2c_smbus_read_i2c_block_data+0x45/0xd0
+> [    5.565374]  [<ffffffff813bec5a>] ak8975_probe+0x14a/0x5c0
+> ...
+> [    5.565374]  [<ffffffff813933d8>] i2c_new_device+0x178/0x1e0
+> [    5.565374]  [<ffffffff8139362d>] of_i2c_register_device+0xdd/0x1a0
+> [    5.565374]  [<ffffffff8139372b>] of_i2c_register_devices+0x3b/0x60
+> [    5.565374]  [<ffffffff81393e88>] i2c_register_adapter+0x178/0x410
+> [    5.565374]  [<ffffffff81394203>] i2c_add_adapter+0x73/0x90
+> [    5.565374]  [<ffffffff81395f3d>] i2c_mux_add_adapter+0x2ed/0x400
+> [    5.565374]  [<ffffffff81396091>] i2c_mux_one_adapter+0x41/0x70
+> [    5.565374]  [<ffffffff813be48a>] inv_mpu_probe+0xba/0x1a0
+> 
+> This happens because muxc->priv is not initialized when probing
+> devices
+> behind the mux as described by devicetree. This can be easily fixed by
+> using muxc->dev instead of muxc->priv, or perhaps by calling
+> i2c_mux_alloc, initializing priv and later doing i2c_mux_add_adapter.
+> 
+> These fixes are driver-specific and other drivers might experience
+> similar issues. Perhaps i2c_mux_one_adapter should take void *priv
+> just
+> like old i2c_add_mux_adapter?
+> 
+> After I fix this locally the deadlock when reading from both devices
+> no
+> longer happens.
+> 
+> --
+> Regards,
+> Leonard
 
-The FCP is a companion module of video processing modules in the Renesas R-Car
-Gen3 SoCs. It provides data compression and decompression, data caching, and
-conversion of AXI transaction in order to reduce the memory bandwidth. The FCP
-driver is not meant to be used standalone but provides an API to the video
-processing modules to control the FCP.
+Duh. Obvious now that you point it out. Thanks for catching this!
 
-The API towards the DRM driver is updated to store all configuration
-parameters in a structure in order to improve readability and make future
-updates easier. This series contain two R-Car DU DRM patches that update the
-DU DRM driver to the new API. They would normally be merged through Dave
-Airlie's tree, but due to dependencies on VSP1 patches queued up for v4.7 Dave
-agreed to get them merged through the linux-media tree (hence his Acked-by for
-the two patches). They should not conflict with any patch queued up for v4.7
-through Dave's tree.
+I will just remove the i2c_mux_one_adapter interface for v7 and
+have the affected drivers do i2c_mux_alloc as a separate step
+(which was one of your suggested paths forward...)
 
-Note that patch 10/13 adds some macro magic to make the API transition easier.
-Depending on your taste you will find the implementation beautiful or ugly,
-but in any case patch 13/13 removes the macros and inline wrapper.
+Thanks again, and sorry for the inconvenience,
+Peter
 
-The code is based on top of the latest linux-media master branch. For
-convenience I've pushed the patches to the following git tree branch.
-patches on top of the latest Linux media master branch to
-
-        git://linuxtv.org/pinchartl/media.git vsp1/next
-
-Changes since v1:
-
-- Fixed typos
-- Made rcar_fcp_enable() return a status
-- Dropped the unneeded dependency on PM for the VSP driver
-
-Cc: devicetree@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: Dave Airlie <airlied@redhat.com>
-
-Laurent Pinchart (13):
-  dt-bindings: Add Renesas R-Car FCP DT bindings
-  v4l: Add Renesas R-Car FCP driver
-  v4l: vsp1: Implement runtime PM support
-  v4l: vsp1: Don't handle clocks manually
-  v4l: vsp1: Add FCP support
-  v4l: vsp1: Add output node value to routing table
-  v4l: vsp1: Replace container_of() with dedicated macro
-  v4l: vsp1: Make vsp1_entity_get_pad_compose() more generic
-  v4l: vsp1: Move frame sequence number from video node to pipeline
-  v4l: vsp1: Group DRM RPF parameters in a structure
-  drm: rcar-du: Add alpha support for VSP planes
-  drm: rcar-du: Add Z-order support for VSP planes
-  v4l: vsp1: Remove deprecated DRM API
-
- .../devicetree/bindings/media/renesas,fcp.txt      |  31 ++++
- .../devicetree/bindings/media/renesas,vsp1.txt     |   5 +
- MAINTAINERS                                        |  10 ++
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c              |  45 ++---
- drivers/gpu/drm/rcar-du/rcar_du_vsp.h              |   2 +
- drivers/media/platform/Kconfig                     |  14 ++
- drivers/media/platform/Makefile                    |   1 +
- drivers/media/platform/rcar-fcp.c                  | 181 +++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1.h                 |   6 +-
- drivers/media/platform/vsp1/vsp1_drm.c             |  68 ++++----
- drivers/media/platform/vsp1/vsp1_drv.c             | 120 +++++++-------
- drivers/media/platform/vsp1/vsp1_entity.c          |  86 +++++++---
- drivers/media/platform/vsp1/vsp1_entity.h          |  12 +-
- drivers/media/platform/vsp1/vsp1_pipe.c            |   4 +-
- drivers/media/platform/vsp1/vsp1_pipe.h            |   2 +
- drivers/media/platform/vsp1/vsp1_rpf.c             |   7 +-
- drivers/media/platform/vsp1/vsp1_video.c           |   4 +-
- drivers/media/platform/vsp1/vsp1_video.h           |   1 -
- include/media/rcar-fcp.h                           |  37 +++++
- include/media/vsp1.h                               |  29 ++--
- 20 files changed, 494 insertions(+), 171 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,fcp.txt
- create mode 100644 drivers/media/platform/rcar-fcp.c
- create mode 100644 include/media/rcar-fcp.h
-
--- 
-Regards,
-
-Laurent Pinchart
+(Written on my phone, sorry for crappy formatting)
 
