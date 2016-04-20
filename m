@@ -1,61 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:38336 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752305AbcDEWXw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2016 18:23:52 -0400
-Received: by mail-wm0-f50.google.com with SMTP id u206so21978582wme.1
-        for <linux-media@vger.kernel.org>; Tue, 05 Apr 2016 15:23:50 -0700 (PDT)
-From: Alessandro Radicati <alessandro@radicati.net>
-To: crope@iki.fi
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] media: af9035 I2C combined write + read transaction fix
-Date: Wed,  6 Apr 2016 00:23:43 +0200
-Message-Id: <1459895023-9593-1-git-send-email-alessandro@radicati.net>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:33587 "EHLO
+	mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750815AbcDTQYJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2016 12:24:09 -0400
+Received: by mail-oi0-f67.google.com with SMTP id f63so5958062oig.0
+        for <linux-media@vger.kernel.org>; Wed, 20 Apr 2016 09:24:08 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5714AAFF.9050908@xs4all.nl>
+References: <5714AAFF.9050908@xs4all.nl>
+Date: Wed, 20 Apr 2016 18:24:08 +0200
+Message-ID: <CAO3366xqu5pmE24j6GwJVw9RnGiqVzztCs3utgjSXfj++N1D7g@mail.gmail.com>
+Subject: Re: [PATCH] r8a7791-koelsch.dts: add HDMI input
+From: Ulrich Hecht <ulrich.hecht@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?UTF-8?Q?Niklas_S=C3=B6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>,
+	Magnus Damm <magnus.damm@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch will modify the af9035 driver to use the register address
-fields of the I2C read command for the combined write/read transaction
-case.  Without this change, the firmware issues just a I2C read transaction
-without the preceding write transaction to select the register.
+On Mon, Apr 18, 2016 at 11:38 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Add support in the dts for the HDMI input. Based on the Lager dts
+> patch from Ultich Hecht.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> Ulrich, can you add this patch to your r-car HDMI patch series?
 
-Signed-off-by: Alessandro Radicati <alessandro@radicati.net>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+Can do.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 2638e32..09a549b 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -367,10 +367,25 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 				memcpy(&buf[3], msg[0].buf, msg[0].len);
- 			} else {
- 				buf[1] = msg[0].addr << 1;
--				buf[2] = 0x00; /* reg addr len */
- 				buf[3] = 0x00; /* reg addr MSB */
- 				buf[4] = 0x00; /* reg addr LSB */
--				memcpy(&buf[5], msg[0].buf, msg[0].len);
-+
-+				/* Keep prev behavior for write req len > 2*/
-+				if (msg[0].len > 2) {
-+					buf[2] = 0x00; /* reg addr len */
-+					memcpy(&buf[5], msg[0].buf, msg[0].len);
-+
-+				/* Use reg addr fields if write req len <= 2 */
-+				} else {
-+					req.wlen = 5;
-+					buf[2] = msg[0].len;
-+					if (msg[0].len == 2) {
-+						buf[3] = msg[0].buf[0];
-+						buf[4] = msg[0].buf[1];
-+					} else if (msg[0].len == 1) {
-+						buf[4] = msg[0].buf[0];
-+					}
-+				}
- 			}
- 			ret = af9035_ctrl_msg(d, &req);
- 		}
--- 
-2.5.0
-
+CU
+Uli
