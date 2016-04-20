@@ -1,371 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-a009e.mx.aol.com ([204.29.186.49]:64771 "EHLO
-	omr-a009e.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932078AbcDKOMP (ORCPT
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:36605 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751970AbcDTJNp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2016 10:12:15 -0400
-Subject: Re: [PATCH] [media] em28xx_dvb: add support for PLEX PX-BCUD (ISDB-S
- usb dongle)
-To: linux-media@vger.kernel.org, tskd08@gmail.com
-References: <56DEDF7C.9010305@aim.com>
-From: Satoshi Nagahama <sattnag@aim.com>
-Message-ID: <570BAF5C.5080201@aim.com>
-Date: Mon, 11 Apr 2016 23:06:20 +0900
+	Wed, 20 Apr 2016 05:13:45 -0400
+Received: by mail-lb0-f172.google.com with SMTP id ys16so5745156lbb.3
+        for <linux-media@vger.kernel.org>; Wed, 20 Apr 2016 02:13:44 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <56DEDF7C.9010305@aim.com>
-Content-Type: text/plain; charset=iso-2022-jp
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <5716B906.2090909@iki.fi>
+References: <1460734647-8941-1-git-send-email-alessandro@radicati.net>
+	<5716B906.2090909@iki.fi>
+Date: Wed, 20 Apr 2016 11:13:43 +0200
+Message-ID: <CAO8Cc0qbTpcbJ0PwhNksGedWcNDD-15xOd4E_oFL5symHaAi8Q@mail.gmail.com>
+Subject: Re: [PATCH] [media] af9035: fix for MXL5007T devices with I2C read issues
+From: Alex Rad <alessandro@radicati.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Angel reguero marrero <areguero@telefonica.net>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wed, Apr 20, 2016 at 1:02 AM, Antti Palosaari <crope@iki.fi> wrote:
+> Hello
+> I am not happy with that new module parameter as I cannot see real need for
+> it. So get rid of it.
 
-You said the following to Budi Rachmanto:
-> No, you should not add your credits here. You're just adding some new board
-> definitions, not rewriting a significant amount of the driver. The credits
-> of your work will be preserved via the git log. A gold rule we use in
-> Kernel when adding credits info is when the changes touch more than 30% of
-> the driver's code.
+My reasoning for this is:
+1) We know of just two devices which may have the issue, but there are
+probably more.  The module parameter allows a user to apply the
+workaround to other devices we did not consider or test.  Should we
+perhaps apply for all mxl5007t devices?
+2) Not all devices that match VID and PID have the issue, so it allows
+the user to disable the workaround.
 
-I did not know the above rule to add a credit.
-I also added my credits to the below patch I sent about one month ago
-though I should have not added them because I did not change much enough to 30%.
-To remove my credits, do I need just to re-post another patch without my credits
-or to revert my previous patch and re-post the new one?
+>
+> Better to compare both VID and PID when enabling that work-around. Driver
+> supports currently quite many different USB IDs and there is still small
+> risk duplicate PID will exists at some point enabling work-around for wrong
+> device.
+>
 
-Please advise.
+OK.  Will wait for comments on above before a v2.
 
 Thanks,
-Satoshi
+Alessandro
 
-
-On 2016/03/08 23:19, Satoshi Nagahama wrote:
-> Hi Mauro, Akihiro,
-> 
-> I added em28xx_dvb to support for PLEX PX-BCUD (ISDB-S usb dongle).
-> Please move forward with this patch if there is no problem.
-> Or something wrong, please advise me what I should do.
-> 
-> PX-BCUD has the following components:
->    USB interface: Empia EM28178
->    Demodulator: Toshiba TC90532 (works by code for TC90522)
->    Tuner: Next version of Sharp QM1D1C0042
-> 
-> em28xx_dvb_init(), add init code for PLEX PX-BCUD with calling
-> px_bcud_init() that does things like pin configuration.
-> 
-> qm1d1c0042_init(), support the next version of QM1D1C0042, change to
-> choose an appropriate array of initial registers by reading chip id.
-> 
-> 
-> Signed-off-by: Satoshi Nagahama <sattnag@aim.com>
-> ---
->   drivers/media/tuners/qm1d1c0042.c       |  35 +++++++---
->   drivers/media/usb/em28xx/Kconfig        |   2 +
->   drivers/media/usb/em28xx/em28xx-cards.c |  27 ++++++++
->   drivers/media/usb/em28xx/em28xx-dvb.c   | 117 ++++++++++++++++++++++++++++++++
->   drivers/media/usb/em28xx/em28xx.h       |   1 +
->   5 files changed, 171 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
-> index 18bc745..8fd91a2 100644
-> --- a/drivers/media/tuners/qm1d1c0042.c
-> +++ b/drivers/media/tuners/qm1d1c0042.c
-> @@ -2,6 +2,7 @@
->    * Sharp QM1D1C0042 8PSK tuner driver
->    *
->    * Copyright (C) 2014 Akihiro Tsukada <tskd08@gmail.com>
-> + * Copyright (C) 2016 Satoshi Nagahama <sattnag@aim.com>
->    *
->    * This program is free software; you can redistribute it and/or
->    * modify it under the terms of the GNU General Public License as
-> @@ -32,14 +33,23 @@
->   #include "qm1d1c0042.h"
-> 
->   #define QM1D1C0042_NUM_REGS 0x20
-> -
-> -static const u8 reg_initval[QM1D1C0042_NUM_REGS] = {
-> -	0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,
-> -	0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-> -	0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,
-> -	0x8c, 0xcf, 0xb8, 0xf1, 0xa8, 0xf2, 0x89, 0x00
-> +#define QM1D1C0042_NUM_REG_ROWS 2
-> +
-> +static const u8 reg_initval[QM1D1C0042_NUM_REG_ROWS][QM1D1C0042_NUM_REGS] = { {
-> +		0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,
-> +		0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-> +		0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,
-> +		0x8c, 0xcf, 0xb8, 0xf1, 0xa8, 0xf2, 0x89, 0x00
-> +	}, {
-> +		0x68, 0x1c, 0xc0, 0x10, 0xbc, 0xc1, 0x11, 0x33,
-> +		0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-> +		0x00, 0xff, 0xf3, 0x00, 0x3f, 0x25, 0x5c, 0xd6,
-> +		0x55, 0xcf, 0x95, 0xf6, 0x36, 0xf2, 0x09, 0x00
-> +	}
->   };
-> 
-> +static int reg_index;
-> +
->   static const struct qm1d1c0042_config default_cfg = {
->   	.xtal_freq = 16000,
->   	.lpf = 1,
-> @@ -320,7 +330,6 @@ static int qm1d1c0042_init(struct dvb_frontend *fe)
->   	int i, ret;
-> 
->   	state = fe->tuner_priv;
-> -	memcpy(state->regs, reg_initval, sizeof(reg_initval));
-> 
->   	reg_write(state, 0x01, 0x0c);
->   	reg_write(state, 0x01, 0x0c);
-> @@ -330,15 +339,19 @@ static int qm1d1c0042_init(struct dvb_frontend *fe)
->   		goto failed;
->   	usleep_range(2000, 3000);
-> 
-> -	val = state->regs[0x01] | 0x10;
-> -	ret = reg_write(state, 0x01, val); /* soft reset off */
-> +	ret = reg_write(state, 0x01, 0x1c); /* soft reset off */
->   	if (ret < 0)
->   		goto failed;
-> 
-> -	/* check ID */
-> +	/* check ID and choose initial registers corresponding ID */
->   	ret = reg_read(state, 0x00, &val);
-> -	if (ret < 0 || val != 0x48)
-> +	if (ret < 0)
-> +		goto failed;
-> +	for (reg_index = 0; reg_index < QM1D1C0042_NUM_REG_ROWS; reg_index++)
-> +		if (val == reg_initval[reg_index][0x00]) break;
-> +	if (reg_index >= QM1D1C0042_NUM_REG_ROWS)
->   		goto failed;
-> +	memcpy(state->regs, reg_initval[reg_index], QM1D1C0042_NUM_REGS);
->   	usleep_range(2000, 3000);
-> 
->   	state->regs[0x0c] |= 0x40;
-> diff --git a/drivers/media/usb/em28xx/Kconfig b/drivers/media/usb/em28xx/Kconfig
-> index e382210..d917b0a 100644
-> --- a/drivers/media/usb/em28xx/Kconfig
-> +++ b/drivers/media/usb/em28xx/Kconfig
-> @@ -59,6 +59,8 @@ config VIDEO_EM28XX_DVB
->   	select DVB_DRX39XYJ if MEDIA_SUBDRV_AUTOSELECT
->   	select DVB_SI2168 if MEDIA_SUBDRV_AUTOSELECT
->   	select MEDIA_TUNER_SI2157 if MEDIA_SUBDRV_AUTOSELECT
-> +	select DVB_TC90522 if MEDIA_SUBDRV_AUTOSELECT
-> +	select MEDIA_TUNER_QM1D1C0042 if MEDIA_SUBDRV_AUTOSELECT
->   	---help---
->   	  This adds support for DVB cards based on the
->   	  Empiatech em28xx chips.
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index 930e3e3..772a8f8 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -492,6 +492,20 @@ static struct em28xx_reg_seq terratec_t2_stick_hd[] = {
->   	{-1,                             -1,   -1,     -1},
->   };
-> 
-> +static struct em28xx_reg_seq plex_px_bcud[] = {
-> +	{EM2874_R80_GPIO_P0_CTRL,	0xff,	0xff,	0},
-> +	{0x0d,				0xff,	0xff,	0},
-> +	{EM2874_R50_IR_CONFIG,		0x01,	0xff,	0},
-> +	{EM28XX_R06_I2C_CLK,		0x40,	0xff,	0},
-> +	{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	100},
-> +	{EM28XX_R12_VINENABLE,		0x20,	0x20,	0},
-> +	{0x0d,				0x42,	0xff,	1000},
-> +	{EM2874_R80_GPIO_P0_CTRL,	0xfc,	0xff,	10},
-> +	{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	10},
-> +	{0x73,				0xfd,	0xff,	100},
-> +	{-1,				-1,	-1,	-1},
-> +};
-> +
->   /*
->    *  Button definitions
->    */
-> @@ -2306,6 +2320,17 @@ struct em28xx_board em28xx_boards[] = {
->   		.has_dvb       = 1,
->   		.ir_codes      = RC_MAP_TERRATEC_SLIM_2,
->   	},
-> +	/* 3275:0085 PLEX PX-BCUD.
-> +	 * Empia EM28178, TOSHIBA TC90532XBG, Sharp QM1D1C0042 */
-> +	[EM28178_BOARD_PLEX_PX_BCUD] = {
-> +		.name          = "PLEX PX-BCUD",
-> +		.xclk          = EM28XX_XCLK_FREQUENCY_4_3MHZ,
-> +		.def_i2c_bus   = 1,
-> +		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE,
-> +		.tuner_type    = TUNER_ABSENT,
-> +		.tuner_gpio    = plex_px_bcud,
-> +		.has_dvb       = 1,
-> +	},
->   };
->   EXPORT_SYMBOL_GPL(em28xx_boards);
-> 
-> @@ -2495,6 +2520,8 @@ struct usb_device_id em28xx_id_table[] = {
->   			.driver_info = EM2861_BOARD_LEADTEK_VC100 },
->   	{ USB_DEVICE(0xeb1a, 0x8179),
->   			.driver_info = EM28178_BOARD_TERRATEC_T2_STICK_HD },
-> +	{ USB_DEVICE(0x3275, 0x0085),
-> +			.driver_info = EM28178_BOARD_PLEX_PX_BCUD },
->   	{ },
->   };
->   MODULE_DEVICE_TABLE(usb, em28xx_id_table);
-> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-> index 5d209c7..5fa25bf 100644
-> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-> @@ -12,6 +12,8 @@
-> 
->    (c) 2012 Frank Schafer <fschaefer.oss@googlemail.com>
-> 
-> + (c) 2016 Satoshi Nagahama <sattnag@aim.com>
-> +
->    Based on cx88-dvb, saa7134-dvb and videobuf-dvb originally written by:
->   	(c) 2004, 2005 Chris Pascoe <c.pascoe@itee.uq.edu.au>
->   	(c) 2004 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
-> @@ -58,6 +60,8 @@
->   #include "ts2020.h"
->   #include "si2168.h"
->   #include "si2157.h"
-> +#include "tc90522.h"
-> +#include "qm1d1c0042.h"
-> 
->   MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
->   MODULE_LICENSE("GPL");
-> @@ -787,6 +791,65 @@ static int em28xx_mt352_terratec_xs_init(struct dvb_frontend *fe)
->   	return 0;
->   }
-> 
-> +static void px_bcud_init(struct em28xx *dev)
-> +{
-> +	int i;
-> +	struct {
-> +		unsigned char r[4];
-> +		int len;
-> +	} regs1[] = {
-> +		{{ 0x0e, 0x77 }, 2},
-> +		{{ 0x0f, 0x77 }, 2},
-> +		{{ 0x03, 0x90 }, 2},
-> +	}, regs2[] = {
-> +		{{ 0x07, 0x01 }, 2},
-> +		{{ 0x08, 0x10 }, 2},
-> +		{{ 0x13, 0x00 }, 2},
-> +		{{ 0x17, 0x00 }, 2},
-> +		{{ 0x03, 0x01 }, 2},
-> +		{{ 0x10, 0xb1 }, 2},
-> +		{{ 0x11, 0x40 }, 2},
-> +		{{ 0x85, 0x7a }, 2},
-> +		{{ 0x87, 0x04 }, 2},
-> +	};
-> +	static struct em28xx_reg_seq gpio[] = {
-> +		{EM28XX_R06_I2C_CLK,		0x40,	0xff,	300},
-> +		{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	60},
-> +		{EM28XX_R15_RGAIN,		0x20,	0xff,	0},
-> +		{EM28XX_R16_GGAIN,		0x20,	0xff,	0},
-> +		{EM28XX_R17_BGAIN,		0x20,	0xff,	0},
-> +		{EM28XX_R18_ROFFSET,		0x00,	0xff,	0},
-> +		{EM28XX_R19_GOFFSET,		0x00,	0xff,	0},
-> +		{EM28XX_R1A_BOFFSET,		0x00,	0xff,	0},
-> +		{EM28XX_R23_UOFFSET,		0x00,	0xff,	0},
-> +		{EM28XX_R24_VOFFSET,		0x00,	0xff,	0},
-> +		{EM28XX_R26_COMPR,		0x00,	0xff,	0},
-> +		{0x13,				0x08,	0xff,	0},
-> +		{EM28XX_R12_VINENABLE,		0x27,	0xff,	0},
-> +		{EM28XX_R0C_USBSUSP,		0x10,	0xff,	0},
-> +		{EM28XX_R27_OUTFMT,		0x00,	0xff,	0},
-> +		{EM28XX_R10_VINMODE,		0x00,	0xff,	0},
-> +		{EM28XX_R11_VINCTRL,		0x11,	0xff,	0},
-> +		{EM2874_R50_IR_CONFIG,		0x01,	0xff,	0},
-> +		{EM2874_R5F_TS_ENABLE,		0x80,	0xff,	0},
-> +		{EM28XX_R06_I2C_CLK,		0x46,	0xff,	0},
-> +	};
-> +	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x46);
-> +	/* sleeping ISDB-T */
-> +	dev->dvb->i2c_client_demod->addr = 0x14;
-> +	for (i = 0; i < ARRAY_SIZE(regs1); i++)
-> +		i2c_master_send(dev->dvb->i2c_client_demod, regs1[i].r, regs1[i].len);
-> +	/* sleeping ISDB-S */
-> +	dev->dvb->i2c_client_demod->addr = 0x15;
-> +	for (i = 0; i < ARRAY_SIZE(regs2); i++)
-> +		i2c_master_send(dev->dvb->i2c_client_demod, regs2[i].r, regs2[i].len);
-> +	for (i = 0; i < ARRAY_SIZE(gpio); i++) {
-> +		em28xx_write_reg_bits(dev, gpio[i].reg, gpio[i].val, gpio[i].mask);
-> +		if (gpio[i].sleep > 0)
-> +			msleep(gpio[i].sleep);
-> +	}
-> +};
-> +
->   static struct mt352_config terratec_xs_mt352_cfg = {
->   	.demod_address = (0x1e >> 1),
->   	.no_tuner = 1,
-> @@ -1762,6 +1825,60 @@ static int em28xx_dvb_init(struct em28xx *dev)
->   			dvb->i2c_client_tuner = client;
->   		}
->   		break;
-> +	case EM28178_BOARD_PLEX_PX_BCUD:
-> +		{
-> +			struct i2c_client *client;
-> +			struct i2c_board_info info;
-> +			struct tc90522_config tc90522_config;
-> +                        struct qm1d1c0042_config qm1d1c0042_config;
-> +
-> +			/* attach demod */
-> +			memset(&tc90522_config, 0 ,sizeof(tc90522_config));
-> +			memset(&info, 0, sizeof(struct i2c_board_info));
-> +			strlcpy(info.type, "tc90522sat", I2C_NAME_SIZE);
-> +			info.addr = 0x15;
-> +			info.platform_data = &tc90522_config;
-> +			request_module("tc90522");
-> +			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
-> +			if (client == NULL || client->dev.driver == NULL) {
-> +				result = -ENODEV;
-> +				goto out_free;
-> +			}
-> +			dvb->i2c_client_demod = client;
-> +			if (!try_module_get(client->dev.driver->owner)) {
-> +				i2c_unregister_device(client);
-> +				result = -ENODEV;
-> +				goto out_free;
-> +			}
-> +
-> +			/* attach tuner */
-> +			memset(&qm1d1c0042_config, 0 ,sizeof(qm1d1c0042_config));
-> +			qm1d1c0042_config.fe = tc90522_config.fe;
-> +			qm1d1c0042_config.lpf = 1;
-> +			memset(&info, 0, sizeof(struct i2c_board_info));
-> +			strlcpy(info.type, "qm1d1c0042", I2C_NAME_SIZE);
-> +			info.addr = 0x61;
-> +                       	info.platform_data = &qm1d1c0042_config;
-> +                       	request_module(info.type);
-> +                       	client = i2c_new_device(tc90522_config.tuner_i2c, &info);
-> +                        if (client == NULL || client->dev.driver == NULL) {
-> +                                module_put(dvb->i2c_client_demod->dev.driver->owner);
-> +                                i2c_unregister_device(dvb->i2c_client_demod);
-> +                                result = -ENODEV;
-> +                                goto out_free;
-> +                        }
-> +                        dvb->i2c_client_tuner = client;
-> +                        if (!try_module_get(client->dev.driver->owner)) {
-> +                                i2c_unregister_device(client);
-> +                                module_put(dvb->i2c_client_demod->dev.driver->owner);
-> +                                i2c_unregister_device(dvb->i2c_client_demod);
-> +                                result = -ENODEV;
-> +                                goto out_free;
-> +                        }
-> +			dvb->fe[0] = tc90522_config.fe;
-> +			px_bcud_init(dev);
-> +		}
-> +		break;
->   	default:
->   		em28xx_errdev("/2: The frontend of your DVB/ATSC card"
->   				" isn't supported yet\n");
-> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-> index 2674449..9ad1240 100644
-> --- a/drivers/media/usb/em28xx/em28xx.h
-> +++ b/drivers/media/usb/em28xx/em28xx.h
-> @@ -145,6 +145,7 @@
->   #define EM2861_BOARD_LEADTEK_VC100                95
->   #define EM28178_BOARD_TERRATEC_T2_STICK_HD        96
->   #define EM2884_BOARD_ELGATO_EYETV_HYBRID_2008     97
-> +#define EM28178_BOARD_PLEX_PX_BCUD                98
-> 
->   /* Limits minimum and default number of buffers */
->   #define EM28XX_MIN_BUF 4
-> 
-
+> regards
+> Antti
+>
+>
+>
+>
+> On 04/15/2016 06:37 PM, Alessandro Radicati wrote:
+>>
+>> The MXL5007T tuner will lock-up on some devices after an I2C read
+>> transaction.  This patch adds a kernel module parameter "no_read" to work
+>> around this issue by inhibiting such operations and emulating a 0x00
+>> response.  The workaround is applied automatically to USB product IDs
+>> known
+>> to exhibit this flaw, unless the kernel module parameter is specified.
+>>
+>> Signed-off-by: Alessandro Radicati <alessandro@radicati.net>
+>> ---
+>>   drivers/media/usb/dvb-usb-v2/af9035.c | 27 +++++++++++++++++++++++++++
+>>   drivers/media/usb/dvb-usb-v2/af9035.h |  1 +
+>>   2 files changed, 28 insertions(+)
+>>
+>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
+>> b/drivers/media/usb/dvb-usb-v2/af9035.c
+>> index 2638e32..8225403 100644
+>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+>> @@ -24,6 +24,10 @@
+>>   /* Max transfer size done by I2C transfer functions */
+>>   #define MAX_XFER_SIZE  64
+>>
+>> +static int dvb_usb_af9035_no_read = -1;
+>> +module_param_named(no_read, dvb_usb_af9035_no_read, int, 0644);
+>> +MODULE_PARM_DESC(no_read, "Emulate I2C reads for devices that do not
+>> support them.");
+>> +
+>>   DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>>
+>>   static u16 af9035_checksum(const u8 *buf, size_t len)
+>> @@ -348,6 +352,9 @@ static int af9035_i2c_master_xfer(struct i2c_adapter
+>> *adap,
+>>
+>>                         ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
+>>                                         msg[1].len);
+>> +               } else if (state->no_read) {
+>> +                       memset(msg[1].buf, 0, msg[1].len);
+>> +                       ret = 0;
+>>                 } else {
+>>                         /* I2C write + read */
+>>                         u8 buf[MAX_XFER_SIZE];
+>> @@ -421,6 +428,9 @@ static int af9035_i2c_master_xfer(struct i2c_adapter
+>> *adap,
+>>                 if (msg[0].len > 40) {
+>>                         /* TODO: correct limits > 40 */
+>>                         ret = -EOPNOTSUPP;
+>> +               } else if (state->no_read) {
+>> +                       memset(msg[0].buf, 0, msg[0].len);
+>> +                       ret = 0;
+>>                 } else {
+>>                         /* I2C read */
+>>                         u8 buf[5];
+>> @@ -962,6 +972,23 @@ skip_eeprom:
+>>                         state->af9033_config[i].clock =
+>> clock_lut_af9035[tmp];
+>>         }
+>>
+>> +       /* Some MXL5007T devices cannot properly handle tuner I2C read
+>> ops. */
+>> +       if (dvb_usb_af9035_no_read != -1) { /* Override with module param
+>> */
+>> +               state->no_read = dvb_usb_af9035_no_read == 0 ? false :
+>> true;
+>> +       } else {
+>> +               switch (le16_to_cpu(d->udev->descriptor.idProduct)) {
+>> +               case USB_PID_AVERMEDIA_A867:
+>> +               case USB_PID_AVERMEDIA_TWINSTAR:
+>> +                       dev_info(&d->udev->dev,
+>> +                               "%s: Device may have issues with I2C read
+>> operations. Enabling fix.\n",
+>> +                               KBUILD_MODNAME);
+>> +                       state->no_read = true;
+>> +                       break;
+>> +               default:
+>> +                       state->no_read = false;
+>> +               }
+>> +       }
+>> +
+>>         return 0;
+>>
+>>   err:
+>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h
+>> b/drivers/media/usb/dvb-usb-v2/af9035.h
+>> index df22001..a76dafa 100644
+>> --- a/drivers/media/usb/dvb-usb-v2/af9035.h
+>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+>> @@ -62,6 +62,7 @@ struct state {
+>>         u8 chip_version;
+>>         u16 chip_type;
+>>         u8 dual_mode:1;
+>> +       u8 no_read:1;
+>>         u16 eeprom_addr;
+>>         u8 af9033_i2c_addr[2];
+>>         struct af9033_config af9033_config[2];
+>>
+>
+> --
+> http://palosaari.fi/
