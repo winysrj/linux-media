@@ -1,12 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:36958 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753104AbcD1VsL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2016 17:48:11 -0400
-Date: Thu, 28 Apr 2016 23:47:58 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Peter Rosin <peda@axentia.se>
-Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+Received: from mail-db3on0146.outbound.protection.outlook.com ([157.55.234.146]:54816
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752082AbcDTPfS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2016 11:35:18 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
 	Peter Korsgaard <peter.korsgaard@barco.com>,
 	Guenter Roeck <linux@roeck-us.net>,
 	Jonathan Cameron <jic23@kernel.org>,
@@ -32,63 +33,111 @@ Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
 	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
 	Tommi Rantala <tt.rantala@gmail.com>,
 	Crestez Dan Leonard <leonard.crestez@intel.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: Re: [PATCH v7 22/24] [media] rtl2832: change the i2c gate to be
- mux-locked
-Message-ID: <20160428214758.GA4531@katana>
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v7 11/24] [media] rtl2832: convert to use an explicit i2c mux core
+Date: Wed, 20 Apr 2016 17:17:51 +0200
+Message-ID: <1461165484-2314-12-git-send-email-peda@axentia.se>
+In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
 References: <1461165484-2314-1-git-send-email-peda@axentia.se>
- <1461165484-2314-23-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
-Content-Disposition: inline
-In-Reply-To: <1461165484-2314-23-git-send-email-peda@axentia.se>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
---bg08WKrSYDhXBjb5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/dvb-frontends/rtl2832.c      | 25 ++++++++++++++-----------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  2 +-
+ 2 files changed, 15 insertions(+), 12 deletions(-)
 
-On Wed, Apr 20, 2016 at 05:18:02PM +0200, Peter Rosin wrote:
-> The root i2c adapter lock is then no longer held by the i2c mux during
-> accesses behind the i2c gate, and such accesses need to take that lock
-> just like any other ordinary i2c accesses do.
->=20
-> So, declare the i2c gate mux-locked, and zap the regmap overrides
-> that makes the i2c accesses unlocked and use plain old regmap
-> accesses. This also removes the need for the regmap wrappers used by
-> rtl2832_sdr, so deconvolute the code further and provide the regmap
-> handle directly instead of the wrapper functions.
->=20
-> Signed-off-by: Peter Rosin <peda@axentia.se>
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 7c96f7679669..1b23788797b5 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -847,9 +847,9 @@ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ }
+ 
+-static int rtl2832_select(struct i2c_adapter *adap, void *mux_priv, u32 chan_id)
++static int rtl2832_select(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct rtl2832_dev *dev = mux_priv;
++	struct rtl2832_dev *dev = i2c_mux_priv(muxc);
+ 	struct i2c_client *client = dev->client;
+ 	int ret;
+ 
+@@ -870,10 +870,9 @@ err:
+ 	return ret;
+ }
+ 
+-static int rtl2832_deselect(struct i2c_adapter *adap, void *mux_priv,
+-			    u32 chan_id)
++static int rtl2832_deselect(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct rtl2832_dev *dev = mux_priv;
++	struct rtl2832_dev *dev = i2c_mux_priv(muxc);
+ 
+ 	schedule_delayed_work(&dev->i2c_gate_work, usecs_to_jiffies(100));
+ 	return 0;
+@@ -1059,7 +1058,7 @@ static struct i2c_adapter *rtl2832_get_i2c_adapter(struct i2c_client *client)
+ 	struct rtl2832_dev *dev = i2c_get_clientdata(client);
+ 
+ 	dev_dbg(&client->dev, "\n");
+-	return dev->i2c_adapter_tuner;
++	return dev->muxc->adapter[0];
+ }
+ 
+ static int rtl2832_slave_ts_ctrl(struct i2c_client *client, bool enable)
+@@ -1242,12 +1241,16 @@ static int rtl2832_probe(struct i2c_client *client,
+ 		goto err_regmap_exit;
+ 
+ 	/* create muxed i2c adapter for demod tuner bus */
+-	dev->i2c_adapter_tuner = i2c_add_mux_adapter(i2c, &i2c->dev, dev,
+-			0, 0, 0, rtl2832_select, rtl2832_deselect);
+-	if (dev->i2c_adapter_tuner == NULL) {
+-		ret = -ENODEV;
++	dev->muxc = i2c_mux_alloc(i2c, &i2c->dev, 1, 0, 0,
++				  rtl2832_select, rtl2832_deselect);
++	if (!dev->muxc) {
++		ret = -ENOMEM;
+ 		goto err_regmap_exit;
+ 	}
++	dev->muxc->priv = dev;
++	ret = i2c_mux_add_adapter(dev->muxc, 0, 0, 0);
++	if (ret)
++		goto err_regmap_exit;
+ 
+ 	/* create dvb_frontend */
+ 	memcpy(&dev->fe.ops, &rtl2832_ops, sizeof(struct dvb_frontend_ops));
+@@ -1282,7 +1285,7 @@ static int rtl2832_remove(struct i2c_client *client)
+ 
+ 	cancel_delayed_work_sync(&dev->i2c_gate_work);
+ 
+-	i2c_del_mux_adapter(dev->i2c_adapter_tuner);
++	i2c_mux_del_adapters(dev->muxc);
+ 
+ 	regmap_exit(dev->regmap);
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index 6b875f462f8b..d8f97d14f6fd 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -36,7 +36,7 @@ struct rtl2832_dev {
+ 	struct mutex regmap_mutex;
+ 	struct regmap_config regmap_config;
+ 	struct regmap *regmap;
+-	struct i2c_adapter *i2c_adapter_tuner;
++	struct i2c_mux_core *muxc;
+ 	struct dvb_frontend fe;
+ 	enum fe_status fe_status;
+ 	u64 post_bit_error_prev; /* for old DVBv3 read_ber() calculation */
+-- 
+2.1.4
 
-Antti, I'd need some tag from you since this is not the i2c realm.
-
-
---bg08WKrSYDhXBjb5
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXIoUOAAoJEBQN5MwUoCm2jusP/j3ToNlZQahVV1UtMvPujy94
-AF3AWGq+Gn1OWavfKFBdJXxQHsqAydIuu5lsxX5+sZALJgR7KjOX3mGRdBS5Nle2
-xDVL5vQzm8QsXHHJ5r4CKL8nKTFxZaDZZ51i+CeuBuuOVVwR/nzUK8Kdgth0s1az
-leYSe8gc7znMcipW5+5JeaCsFOkUX/gHZHcORur5g5vXYHoHjhMvCxbO+KqhTrFc
-VHFhGAMN8ltRlayIHpFMvTW3s4chO5/cONVILcTS3uMpV1VftovuwV2fC9TKaUq5
-NqB2heSPeEAYboNk4cG6FC2LxOkpsl6ux11HrODI/YkMz2he2bbQG7qod6AT0RW2
-yTSPH2Wr0gxlJPBq0JOX4XQF+l0Arx7KY3iR//1H5cCNbBHVE1ABVM7wwTRMhJAF
-9mYON8A1OTmWHyaJ/QRVevdU/0jt2iCvrerctBCljkjRtQZGBSNQyhqwS23HIL+0
-RDSWK7H/L9Hv0lbzNEUPiUpupDxu5HLveu4oYivrTrt6RCN4HWnVr3sIsaa4x7TD
-o0p1LiUew+g2mx0SzGzAy8oXiGxZ6WwYP06GY7jrbqIYwvD180zr+VoFdoKARPzs
-GY7gUsgh87x4fQrQ4XYVRqarp4xMuyzhTUYOD8AAbGbaFCiLPEKK58ytDLqoRctO
-vGQQGn0rRRdpd3Zq8Fn+
-=3zSS
------END PGP SIGNATURE-----
-
---bg08WKrSYDhXBjb5--
