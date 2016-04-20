@@ -1,86 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:32611 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751084AbcDVEZj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 00:25:39 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+Received: from mail-db3on0126.outbound.protection.outlook.com ([157.55.234.126]:55378
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751811AbcDTPfZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2016 11:35:25 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v7 1/8] dt-bindings: Add a binding for Mediatek Video Processor
-Date: Fri, 22 Apr 2016 12:25:24 +0800
-Message-ID: <1461299131-57851-2-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1461299131-57851-1-git-send-email-tiffany.lin@mediatek.com>
-References: <1461299131-57851-1-git-send-email-tiffany.lin@mediatek.com>
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v7 14/24] of/unittest: convert to use an explicit i2c mux core
+Date: Wed, 20 Apr 2016 17:17:54 +0200
+Message-ID: <1461165484-2314-15-git-send-email-peda@axentia.se>
+In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
+References: <1461165484-2314-1-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select op to be in terms of the i2c mux core instead
+of the child adapter.
 
-Add a DT binding documentation of Video Processor Unit for the
-MT8173 SoC from Mediatek.
-
-Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
 Acked-by: Rob Herring <robh@kernel.org>
-
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- .../devicetree/bindings/media/mediatek-vpu.txt     |   31 ++++++++++++++++++++
- 1 file changed, 31 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-vpu.txt
+ drivers/of/unittest.c | 37 ++++++++++++-------------------------
+ 1 file changed, 12 insertions(+), 25 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-vpu.txt b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
-new file mode 100644
-index 0000000..2a5bac3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
-@@ -0,0 +1,31 @@
-+* Mediatek Video Processor Unit
-+
-+Video Processor Unit is a HW video controller. It controls HW Codec including
-+H.264/VP8/VP9 Decode, H.264/VP8 Encode and Image Processor (scale/rotate/color convert).
-+
-+Required properties:
-+  - compatible: "mediatek,mt8173-vpu"
-+  - reg: Must contain an entry for each entry in reg-names.
-+  - reg-names: Must include the following entries:
-+    "tcm": tcm base
-+    "cfg_reg": Main configuration registers base
-+  - interrupts: interrupt number to the cpu.
-+  - clocks : clock name from clock manager
-+  - clock-names: must be main. It is the main clock of VPU
-+
-+Optional properties:
-+  - memory-region: phandle to a node describing memory (see
-+    Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt)
-+    to be used for VPU extended memory; if not present, VPU may be located
-+    anywhere in the memory
-+
-+Example:
-+	vpu: vpu@10020000 {
-+		compatible = "mediatek,mt8173-vpu";
-+		reg = <0 0x10020000 0 0x30000>,
-+		      <0 0x10050000 0 0x100>;
-+		reg-names = "tcm", "cfg_reg";
-+		interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&topckgen TOP_SCP_SEL>;
-+		clock-names = "main";
-+	};
+diff --git a/drivers/of/unittest.c b/drivers/of/unittest.c
+index e986e6ee52e0..c1ebbfb79453 100644
+--- a/drivers/of/unittest.c
++++ b/drivers/of/unittest.c
+@@ -1692,13 +1692,7 @@ static struct i2c_driver unittest_i2c_dev_driver = {
+ 
+ #if IS_BUILTIN(CONFIG_I2C_MUX)
+ 
+-struct unittest_i2c_mux_data {
+-	int nchans;
+-	struct i2c_adapter *adap[];
+-};
+-
+-static int unittest_i2c_mux_select_chan(struct i2c_adapter *adap,
+-			       void *client, u32 chan)
++static int unittest_i2c_mux_select_chan(struct i2c_mux_core *muxc, u32 chan)
+ {
+ 	return 0;
+ }
+@@ -1706,11 +1700,11 @@ static int unittest_i2c_mux_select_chan(struct i2c_adapter *adap,
+ static int unittest_i2c_mux_probe(struct i2c_client *client,
+ 		const struct i2c_device_id *id)
+ {
+-	int ret, i, nchans, size;
++	int ret, i, nchans;
+ 	struct device *dev = &client->dev;
+ 	struct i2c_adapter *adap = to_i2c_adapter(dev->parent);
+ 	struct device_node *np = client->dev.of_node, *child;
+-	struct unittest_i2c_mux_data *stm;
++	struct i2c_mux_core *muxc;
+ 	u32 reg, max_reg;
+ 
+ 	dev_dbg(dev, "%s for node @%s\n", __func__, np->full_name);
+@@ -1734,25 +1728,20 @@ static int unittest_i2c_mux_probe(struct i2c_client *client,
+ 		return -EINVAL;
+ 	}
+ 
+-	size = offsetof(struct unittest_i2c_mux_data, adap[nchans]);
+-	stm = devm_kzalloc(dev, size, GFP_KERNEL);
+-	if (!stm) {
+-		dev_err(dev, "Out of memory\n");
++	muxc = i2c_mux_alloc(adap, dev, nchans, 0, 0,
++			     unittest_i2c_mux_select_chan, NULL);
++	if (!muxc)
+ 		return -ENOMEM;
+-	}
+-	stm->nchans = nchans;
+ 	for (i = 0; i < nchans; i++) {
+-		stm->adap[i] = i2c_add_mux_adapter(adap, dev, client,
+-				0, i, 0, unittest_i2c_mux_select_chan, NULL);
+-		if (!stm->adap[i]) {
++		ret = i2c_mux_add_adapter(muxc, 0, i, 0);
++		if (ret) {
+ 			dev_err(dev, "Failed to register mux #%d\n", i);
+-			for (i--; i >= 0; i--)
+-				i2c_del_mux_adapter(stm->adap[i]);
++			i2c_mux_del_adapters(muxc);
+ 			return -ENODEV;
+ 		}
+ 	}
+ 
+-	i2c_set_clientdata(client, stm);
++	i2c_set_clientdata(client, muxc);
+ 
+ 	return 0;
+ };
+@@ -1761,12 +1750,10 @@ static int unittest_i2c_mux_remove(struct i2c_client *client)
+ {
+ 	struct device *dev = &client->dev;
+ 	struct device_node *np = client->dev.of_node;
+-	struct unittest_i2c_mux_data *stm = i2c_get_clientdata(client);
+-	int i;
++	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
+ 
+ 	dev_dbg(dev, "%s for node @%s\n", __func__, np->full_name);
+-	for (i = stm->nchans - 1; i >= 0; i--)
+-		i2c_del_mux_adapter(stm->adap[i]);
++	i2c_mux_del_adapters(muxc);
+ 	return 0;
+ }
+ 
 -- 
-1.7.9.5
+2.1.4
 
