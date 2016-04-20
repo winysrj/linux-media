@@ -1,79 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m50-134.163.com ([123.125.50.134]:36126 "EHLO m50-134.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755347AbcDFJlu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Apr 2016 05:41:50 -0400
-From: zengzhaoxiu@163.com
-To: mchehab@osg.samsung.com, arnd@arndb.de, hans.verkuil@cisco.com,
-	k.kozlowski@samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
-Subject: [PATCH v2 15/30] media: use parity functions in saa7115
-Date: Wed,  6 Apr 2016 17:41:25 +0800
-Message-Id: <1459935685-7611-1-git-send-email-zengzhaoxiu@163.com>
-In-Reply-To: <57031D9D.801@gmail.com>
-References: <57031D9D.801@gmail.com>
+Received: from mail-db3on0134.outbound.protection.outlook.com ([157.55.234.134]:44038
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752082AbcDTPew (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2016 11:34:52 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v7 08/24] iio: imu: inv_mpu6050: convert to use an explicit i2c mux core
+Date: Wed, 20 Apr 2016 17:17:48 +0200
+Message-ID: <1461165484-2314-9-git-send-email-peda@axentia.se>
+In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
+References: <1461165484-2314-1-git-send-email-peda@axentia.se>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
-Signed-off-by: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+Acked-by: Jonathan Cameron <jic23@kernel.org>
+Signed-off-by: Peter Rosin <peda@axentia.se>
 ---
- drivers/media/i2c/saa7115.c | 17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+ drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c |  2 +-
+ drivers/iio/imu/inv_mpu6050/inv_mpu_core.c |  1 -
+ drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c  | 35 +++++++++++++++---------------
+ drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h  |  3 ++-
+ 4 files changed, 20 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index d2a1ce2..4c22df8 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -672,15 +672,6 @@ static const unsigned char saa7115_init_misc[] = {
- 	0x00, 0x00
- };
- 
--static int saa711x_odd_parity(u8 c)
--{
--	c ^= (c >> 4);
--	c ^= (c >> 2);
--	c ^= (c >> 1);
--
--	return c & 1;
--}
--
- static int saa711x_decode_vps(u8 *dst, u8 *p)
- {
- 	static const u8 biphase_tbl[] = {
-@@ -733,7 +724,6 @@ static int saa711x_decode_wss(u8 *p)
- 	static const int wss_bits[8] = {
- 		0, 0, 0, 1, 0, 1, 1, 1
- 	};
--	unsigned char parity;
- 	int wss = 0;
- 	int i;
- 
-@@ -745,11 +735,8 @@ static int saa711x_decode_wss(u8 *p)
- 			return -1;
- 		wss |= b2 << i;
+diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
+index 2771106fd650..f62b8bd9ad7e 100644
+--- a/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
++++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c
+@@ -183,7 +183,7 @@ int inv_mpu_acpi_create_mux_client(struct i2c_client *client)
+ 			} else
+ 				return 0; /* no secondary addr, which is OK */
+ 		}
+-		st->mux_client = i2c_new_device(st->mux_adapter, &info);
++		st->mux_client = i2c_new_device(st->muxc->adapter[0], &info);
+ 		if (!st->mux_client)
+ 			return -ENODEV;
  	}
--	parity = wss & 15;
--	parity ^= parity >> 2;
--	parity ^= parity >> 1;
+diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
+index d192953e9a38..0c2bded2b5b7 100644
+--- a/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
++++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_core.c
+@@ -23,7 +23,6 @@
+ #include <linux/kfifo.h>
+ #include <linux/spinlock.h>
+ #include <linux/iio/iio.h>
+-#include <linux/i2c-mux.h>
+ #include <linux/acpi.h>
+ #include "inv_mpu_iio.h"
  
--	if (!(parity & 1))
-+	if (!parity4(wss))
- 		return -1;
+diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
+index f581256d9d4c..664a45082d39 100644
+--- a/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
++++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
+@@ -15,7 +15,6 @@
+ #include <linux/delay.h>
+ #include <linux/err.h>
+ #include <linux/i2c.h>
+-#include <linux/i2c-mux.h>
+ #include <linux/iio/iio.h>
+ #include <linux/module.h>
+ #include "inv_mpu_iio.h"
+@@ -52,10 +51,9 @@ static int inv_mpu6050_write_reg_unlocked(struct i2c_client *client,
+ 	return 0;
+ }
  
- 	return wss;
-@@ -1235,7 +1222,7 @@ static int saa711x_decode_vbi_line(struct v4l2_subdev *sd, struct v4l2_decode_vb
- 		vbi->type = V4L2_SLICED_TELETEXT_B;
- 		break;
- 	case 4:
--		if (!saa711x_odd_parity(p[0]) || !saa711x_odd_parity(p[1]))
-+		if (!parity8(p[0]) || !parity8(p[1]))
- 			return 0;
- 		vbi->type = V4L2_SLICED_CAPTION_525;
- 		break;
+-static int inv_mpu6050_select_bypass(struct i2c_adapter *adap, void *mux_priv,
+-				     u32 chan_id)
++static int inv_mpu6050_select_bypass(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct i2c_client *client = mux_priv;
++	struct i2c_client *client = i2c_mux_priv(muxc);
+ 	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
+ 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
+ 	int ret = 0;
+@@ -84,10 +82,9 @@ write_error:
+ 	return ret;
+ }
+ 
+-static int inv_mpu6050_deselect_bypass(struct i2c_adapter *adap,
+-				       void *mux_priv, u32 chan_id)
++static int inv_mpu6050_deselect_bypass(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct i2c_client *client = mux_priv;
++	struct i2c_client *client = i2c_mux_priv(muxc);
+ 	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
+ 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
+ 
+@@ -136,16 +133,18 @@ static int inv_mpu_probe(struct i2c_client *client,
+ 		return result;
+ 
+ 	st = iio_priv(dev_get_drvdata(&client->dev));
+-	st->mux_adapter = i2c_add_mux_adapter(client->adapter,
+-					      &client->dev,
+-					      client,
+-					      0, 0, 0,
+-					      inv_mpu6050_select_bypass,
+-					      inv_mpu6050_deselect_bypass);
+-	if (!st->mux_adapter) {
+-		result = -ENODEV;
++	st->muxc = i2c_mux_alloc(client->adapter, &client->dev,
++				 1, 0, 0,
++				 inv_mpu6050_select_bypass,
++				 inv_mpu6050_deselect_bypass);
++	if (!st->muxc) {
++		result = -ENOMEM;
+ 		goto out_unreg_device;
+ 	}
++	st->muxc->priv = dev_get_drvdata(&client->dev);
++	result = i2c_mux_add_adapter(st->muxc, 0, 0, 0);
++	if (result)
++		goto out_unreg_device;
+ 
+ 	result = inv_mpu_acpi_create_mux_client(client);
+ 	if (result)
+@@ -154,7 +153,7 @@ static int inv_mpu_probe(struct i2c_client *client,
+ 	return 0;
+ 
+ out_del_mux:
+-	i2c_del_mux_adapter(st->mux_adapter);
++	i2c_mux_del_adapters(st->muxc);
+ out_unreg_device:
+ 	inv_mpu_core_remove(&client->dev);
+ 	return result;
+@@ -162,11 +161,11 @@ out_unreg_device:
+ 
+ static int inv_mpu_remove(struct i2c_client *client)
+ {
+-	struct iio_dev *indio_dev = i2c_get_clientdata(client);
++	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
+ 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
+ 
+ 	inv_mpu_acpi_delete_mux_client(client);
+-	i2c_del_mux_adapter(st->mux_adapter);
++	i2c_mux_del_adapters(st->muxc);
+ 
+ 	return inv_mpu_core_remove(&client->dev);
+ }
+diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h b/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
+index e302a49703bf..bb3cef6d7059 100644
+--- a/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
++++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_iio.h
+@@ -11,6 +11,7 @@
+ * GNU General Public License for more details.
+ */
+ #include <linux/i2c.h>
++#include <linux/i2c-mux.h>
+ #include <linux/kfifo.h>
+ #include <linux/spinlock.h>
+ #include <linux/iio/iio.h>
+@@ -127,7 +128,7 @@ struct inv_mpu6050_state {
+ 	const struct inv_mpu6050_hw *hw;
+ 	enum   inv_devices chip_type;
+ 	spinlock_t time_stamp_lock;
+-	struct i2c_adapter *mux_adapter;
++	struct i2c_mux_core *muxc;
+ 	struct i2c_client *mux_client;
+ 	unsigned int powerup_count;
+ 	struct inv_mpu6050_platform_data plat_data;
 -- 
-2.5.0
-
+2.1.4
 
