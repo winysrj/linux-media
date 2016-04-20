@@ -1,122 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:48279 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750985AbcDGDVw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Apr 2016 23:21:52 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 4DF961804A5
-	for <linux-media@vger.kernel.org>; Thu,  7 Apr 2016 05:21:41 +0200 (CEST)
-Date: Thu, 07 Apr 2016 05:21:41 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160407032141.4DF961804A5@tschai.lan>
+Received: from mail-db3on0146.outbound.protection.outlook.com ([157.55.234.146]:54816
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751899AbcDTPfQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2016 11:35:16 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	"Guenter Roeck" <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	"Hartmut Knaack" <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	"Peter Meerwald" <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	"Frank Rowand" <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Kalle Valo" <kvalo@codeaurora.org>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	"Crestez Dan Leonard" <leonard.crestez@intel.com>,
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v7 12/24] [media] si2168: convert to use an explicit i2c mux core
+Date: Wed, 20 Apr 2016 17:17:52 +0200
+Message-ID: <1461165484-2314-13-git-send-email-peda@axentia.se>
+In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
+References: <1461165484-2314-1-git-send-email-peda@axentia.se>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
-Results of the daily build of media_tree:
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/dvb-frontends/si2168.c      | 25 +++++++++++++++----------
+ drivers/media/dvb-frontends/si2168_priv.h |  2 +-
+ 2 files changed, 16 insertions(+), 11 deletions(-)
 
-date:		Thu Apr  7 04:00:17 CEST 2016
-git branch:	test
-git hash:	bc5ccdbc990debbcae4602214dddc8d5fd38b01d
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3353-gcae47da
-host hardware:	x86_64
-host os:	4.4.0-164
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 821a8f481507..5583827c386e 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -615,9 +615,9 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
+  * We must use unlocked I2C I/O because I2C adapter lock is already taken
+  * by the caller (usually tuner driver).
+  */
+-static int si2168_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
++static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct i2c_client *client = mux_priv;
++	struct i2c_client *client = i2c_mux_priv(muxc);
+ 	int ret;
+ 	struct si2168_cmd cmd;
+ 
+@@ -635,9 +635,9 @@ err:
+ 	return ret;
+ }
+ 
+-static int si2168_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
++static int si2168_deselect(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct i2c_client *client = mux_priv;
++	struct i2c_client *client = i2c_mux_priv(muxc);
+ 	int ret;
+ 	struct si2168_cmd cmd;
+ 
+@@ -709,17 +709,22 @@ static int si2168_probe(struct i2c_client *client,
+ 	}
+ 
+ 	/* create mux i2c adapter for tuner */
+-	dev->adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
+-			client, 0, 0, 0, si2168_select, si2168_deselect);
+-	if (dev->adapter == NULL) {
+-		ret = -ENODEV;
++	dev->muxc = i2c_mux_alloc(client->adapter, &client->dev,
++				  1, 0, 0,
++				  si2168_select, si2168_deselect);
++	if (!dev->muxc) {
++		ret = -ENOMEM;
+ 		goto err_kfree;
+ 	}
++	dev->muxc->priv = client;
++	ret = i2c_mux_add_adapter(dev->muxc, 0, 0, 0);
++	if (ret)
++		goto err_kfree;
+ 
+ 	/* create dvb_frontend */
+ 	memcpy(&dev->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
+ 	dev->fe.demodulator_priv = client;
+-	*config->i2c_adapter = dev->adapter;
++	*config->i2c_adapter = dev->muxc->adapter[0];
+ 	*config->fe = &dev->fe;
+ 	dev->ts_mode = config->ts_mode;
+ 	dev->ts_clock_inv = config->ts_clock_inv;
+@@ -743,7 +748,7 @@ static int si2168_remove(struct i2c_client *client)
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+-	i2c_del_mux_adapter(dev->adapter);
++	i2c_mux_del_adapters(dev->muxc);
+ 
+ 	dev->fe.ops.release = NULL;
+ 	dev->fe.demodulator_priv = NULL;
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index c07e6fe2cb10..165bf1412063 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -29,7 +29,7 @@
+ 
+ /* state struct */
+ struct si2168_dev {
+-	struct i2c_adapter *adapter;
++	struct i2c_mux_core *muxc;
+ 	struct dvb_frontend fe;
+ 	enum fe_delivery_system delivery_system;
+ 	enum fe_status fe_status;
+-- 
+2.1.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
