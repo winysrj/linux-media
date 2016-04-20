@@ -1,360 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:56464 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751282AbcDUJl1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2016 05:41:27 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>,
-	Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: [PATCH 2/8] Input: atmel_mxt_ts - output diagnostic debug via v4l2 device
-Date: Thu, 21 Apr 2016 10:31:35 +0100
-Message-Id: <1461231101-1237-3-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
+Received: from mail-db3on0125.outbound.protection.outlook.com ([157.55.234.125]:54592
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751814AbcDTPe7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2016 11:34:59 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v7 09/24] [media] m88ds3103: convert to use an explicit i2c mux core
+Date: Wed, 20 Apr 2016 17:17:49 +0200
+Message-ID: <1461165484-2314-10-git-send-email-peda@axentia.se>
+In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
+References: <1461165484-2314-1-git-send-email-peda@axentia.se>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 270 +++++++++++++++++++++++++++++++
- 1 file changed, 270 insertions(+)
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select op to be in terms of the i2c mux core instead
+of the child adapter.
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 0784a18..81eecf1 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -28,6 +28,10 @@
- #include <linux/of.h>
- #include <linux/slab.h>
- #include <asm/unaligned.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/videobuf2-v4l2.h>
-+#include <media/videobuf2-vmalloc.h>
- 
- /* Firmware files */
- #define MXT_FW_NAME		"maxtouch.fw"
-@@ -222,6 +226,23 @@ struct mxt_dbg {
- 	struct t37_debug *t37_buf;
- 	unsigned int t37_pages;
- 	unsigned int t37_nodes;
-+
-+	struct v4l2_device v4l2;
-+	struct v4l2_pix_format format;
-+	struct video_device vdev;
-+	struct vb2_queue queue;
-+	struct mutex lock;
-+	int input;
-+};
-+
-+static const struct v4l2_file_operations mxt_video_fops = {
-+	.owner = THIS_MODULE,
-+	.open = v4l2_fh_open,
-+	.release = vb2_fop_release,
-+	.unlocked_ioctl = video_ioctl2,
-+	.read = vb2_fop_read,
-+	.mmap = vb2_fop_mmap,
-+	.poll = vb2_fop_poll,
- };
- 
- /* Each client has this additional data */
-@@ -277,6 +298,11 @@ struct mxt_data {
- 	struct completion crc_completion;
- };
- 
-+struct mxt_vb2_buffer {
-+	struct vb2_buffer	vb;
-+	struct list_head	list;
-+};
-+
- static size_t mxt_obj_size(const struct mxt_object *obj)
- {
- 	return obj->size_minus_one + 1;
-@@ -1523,6 +1549,9 @@ static void mxt_free_input_device(struct mxt_data *data)
- 
- static void mxt_free_object_table(struct mxt_data *data)
- {
-+	video_unregister_device(&data->dbg.vdev);
-+	v4l2_device_unregister(&data->dbg.v4l2);
-+
- 	kfree(data->object_table);
- 	data->object_table = NULL;
- 	kfree(data->msg_buf);
-@@ -2154,10 +2183,215 @@ wait_cmd:
- 	return mxt_convert_debug_pages(data, outbuf);
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/dvb-frontends/m88ds3103.c      | 19 +++++++++++--------
+ drivers/media/dvb-frontends/m88ds3103_priv.h |  2 +-
+ 2 files changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/m88ds3103.c b/drivers/media/dvb-frontends/m88ds3103.c
+index 76883600ec6f..5557ef8fc704 100644
+--- a/drivers/media/dvb-frontends/m88ds3103.c
++++ b/drivers/media/dvb-frontends/m88ds3103.c
+@@ -1251,9 +1251,9 @@ static void m88ds3103_release(struct dvb_frontend *fe)
+ 	i2c_unregister_device(client);
  }
  
-+static int mxt_queue_setup(struct vb2_queue *q,
-+		       unsigned int *nbuffers, unsigned int *nplanes,
-+		       unsigned int sizes[], void *alloc_ctxs[])
-+{
-+	struct mxt_data *data = q->drv_priv;
-+
-+	*nbuffers = 1;
-+	*nplanes = 1;
-+	sizes[0] = data->dbg.t37_nodes * sizeof(u16);
-+
-+	return 0;
-+}
-+
-+static int mxt_buffer_prepare(struct vb2_buffer *vb)
-+{
-+	return 0;
-+}
-+
-+static void mxt_buffer_queue(struct vb2_buffer *vb)
-+{
-+	struct mxt_data *data = vb2_get_drv_priv(vb->vb2_queue);
-+	u16 *ptr;
-+	int ret;
-+
-+	ptr = vb2_plane_vaddr(vb, 0);
-+	if (!ptr) {
-+		dev_err(&data->client->dev, "Error acquiring frame ptr\n");
-+		goto fault;
-+	}
-+
-+	ret = mxt_read_diagnostic_debug(data, MXT_DIAGNOSTIC_DELTAS, ptr);
+-static int m88ds3103_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
++static int m88ds3103_select(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct m88ds3103_dev *dev = mux_priv;
++	struct m88ds3103_dev *dev = i2c_mux_priv(muxc);
+ 	struct i2c_client *client = dev->client;
+ 	int ret;
+ 	struct i2c_msg msg = {
+@@ -1374,7 +1374,7 @@ static struct i2c_adapter *m88ds3103_get_i2c_adapter(struct i2c_client *client)
+ 
+ 	dev_dbg(&client->dev, "\n");
+ 
+-	return dev->i2c_adapter;
++	return dev->muxc->adapter[0];
+ }
+ 
+ static int m88ds3103_probe(struct i2c_client *client,
+@@ -1467,13 +1467,16 @@ static int m88ds3103_probe(struct i2c_client *client,
+ 		goto err_kfree;
+ 
+ 	/* create mux i2c adapter for tuner */
+-	dev->i2c_adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
+-					       dev, 0, 0, 0, m88ds3103_select,
+-					       NULL);
+-	if (dev->i2c_adapter == NULL) {
++	dev->muxc = i2c_mux_alloc(client->adapter, &client->dev, 1, 0, 0,
++				  m88ds3103_select, NULL);
++	if (!dev->muxc) {
+ 		ret = -ENOMEM;
+ 		goto err_kfree;
+ 	}
++	dev->muxc->priv = dev;
++	ret = i2c_mux_add_adapter(dev->muxc, 0, 0, 0);
 +	if (ret)
-+		goto fault;
-+
-+	vb2_set_plane_payload(vb, 0, data->dbg.t37_nodes * sizeof(u16));
-+	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-+	return;
-+
-+fault:
-+	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
-+}
-+
-+/* V4L2 structures */
-+static const struct vb2_ops mxt_queue_ops = {
-+	.queue_setup		= mxt_queue_setup,
-+	.buf_prepare		= mxt_buffer_prepare,
-+	.buf_queue		= mxt_buffer_queue,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
-+};
-+
-+static const struct vb2_queue mxt_queue = {
-+	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
-+	.io_modes = VB2_MMAP,
-+	.buf_struct_size = sizeof(struct mxt_vb2_buffer),
-+	.ops = &mxt_queue_ops,
-+	.mem_ops = &vb2_vmalloc_memops,
-+	.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC,
-+	.min_buffers_needed = 1,
-+};
-+
-+static int mxt_vidioc_querycap(struct file *file, void *priv,
-+				 struct v4l2_capability *cap)
-+{
-+	struct mxt_data *data = video_drvdata(file);
-+
-+	strlcpy(cap->driver, "atmel_mxt_ts", sizeof(cap->driver));
-+	strlcpy(cap->card, "atmel_mxt_ts touch", sizeof(cap->card));
-+	strlcpy(cap->bus_info, data->phys, sizeof(cap->bus_info));
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
-+		V4L2_CAP_READWRITE |
-+		V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+
-+	return 0;
-+}
-+
-+static int mxt_vidioc_enum_input(struct file *file, void *priv,
-+				   struct v4l2_input *i)
-+{
-+	if (i->index > 0)
-+		return -EINVAL;
-+
-+	i->type = V4L2_INPUT_TYPE_CAMERA;
-+	i->std = V4L2_STD_UNKNOWN;
-+	i->capabilities = 0;
-+	strlcpy(i->name, "Mutual References", sizeof(i->name));
-+	return 0;
-+}
-+
-+static int mxt_set_input(struct mxt_data *data, unsigned int i)
-+{
-+	struct v4l2_pix_format *f = &data->dbg.format;
-+
-+	if (i > 0)
-+		return -EINVAL;
-+
-+	f->width = data->info.matrix_xsize;
-+	f->height = data->info.matrix_ysize;
-+	f->pixelformat = V4L2_PIX_FMT_Y16;
-+	f->field = V4L2_FIELD_NONE;
-+	f->colorspace = V4L2_COLORSPACE_SRGB;
-+	f->bytesperline = f->width * sizeof(u16);
-+	f->sizeimage = f->width * f->height * sizeof(u16);
-+
-+	data->dbg.input = i;
-+
-+	return 0;
-+}
-+
-+static int mxt_vidioc_s_input(struct file *file, void *priv, unsigned int i)
-+{
-+	return mxt_set_input(video_drvdata(file), i);
-+}
-+
-+static int mxt_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
-+{
-+	struct mxt_data *data = video_drvdata(file);
-+
-+	*i = data->dbg.input;
-+
-+	return 0;
-+}
-+
-+static int mxt_vidioc_fmt(struct file *file, void *priv, struct v4l2_format *f)
-+{
-+	struct mxt_data *data = video_drvdata(file);
-+
-+	f->fmt.pix = data->dbg.format;
-+
-+	return 0;
-+}
-+
-+static int mxt_vidioc_enum_fmt(struct file *file, void *priv,
-+				 struct v4l2_fmtdesc *fmt)
-+{
-+	if (fmt->index > 0 || fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	fmt->pixelformat = V4L2_PIX_FMT_Y16;
-+	strlcpy(fmt->description, "16-bit raw debug data",
-+		sizeof(fmt->description));
-+	fmt->flags = 0;
-+	return 0;
-+}
-+
-+static int mxt_vidioc_enum_framesizes(struct file *file, void *priv,
-+					struct v4l2_frmsizeenum *f)
-+{
-+	struct mxt_data *data = video_drvdata(file);
-+
-+	if (f->index > 0)
-+		return -EINVAL;
-+
-+	f->discrete.width = data->info.matrix_xsize;
-+	f->discrete.height = data->info.matrix_ysize;
-+	f->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+	return 0;
-+}
-+
-+static int mxt_vidioc_enum_frameintervals(struct file *file, void *priv,
-+					  struct v4l2_frmivalenum *f)
-+{
-+	if ((f->index > 0) || (f->pixel_format != V4L2_PIX_FMT_Y16))
-+		return -EINVAL;
-+
-+	f->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-+	f->discrete.denominator  = 10;
-+	f->discrete.numerator = 1;
-+	return 0;
-+}
-+
-+static const struct v4l2_ioctl_ops mxt_video_ioctl_ops = {
-+	.vidioc_querycap        = mxt_vidioc_querycap,
-+
-+	.vidioc_enum_fmt_vid_cap = mxt_vidioc_enum_fmt,
-+	.vidioc_s_fmt_vid_cap   = mxt_vidioc_fmt,
-+	.vidioc_g_fmt_vid_cap   = mxt_vidioc_fmt,
-+
-+	.vidioc_enum_framesizes = mxt_vidioc_enum_framesizes,
-+	.vidioc_enum_frameintervals = mxt_vidioc_enum_frameintervals,
-+
-+	.vidioc_enum_input      = mxt_vidioc_enum_input,
-+	.vidioc_g_input         = mxt_vidioc_g_input,
-+	.vidioc_s_input         = mxt_vidioc_s_input,
-+
-+	.vidioc_reqbufs         = vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs     = vb2_ioctl_create_bufs,
-+	.vidioc_querybuf        = vb2_ioctl_querybuf,
-+	.vidioc_qbuf            = vb2_ioctl_qbuf,
-+	.vidioc_dqbuf           = vb2_ioctl_dqbuf,
-+	.vidioc_expbuf          = vb2_ioctl_expbuf,
-+
-+	.vidioc_streamon        = vb2_ioctl_streamon,
-+	.vidioc_streamoff       = vb2_ioctl_streamoff,
-+};
-+
-+static const struct video_device mxt_video_device = {
-+	.name = "Atmel maxTouch",
-+	.fops = &mxt_video_fops,
-+	.ioctl_ops = &mxt_video_ioctl_ops,
-+	.release = video_device_release_empty,
-+};
-+
- static void mxt_debug_init(struct mxt_data *data)
- {
- 	struct mxt_dbg *dbg = &data->dbg;
- 	struct mxt_object *object;
-+	int error;
++		goto err_kfree;
  
- 	object = mxt_get_object(data, MXT_GEN_COMMAND_T6);
- 	if (!object)
-@@ -2187,8 +2421,44 @@ static void mxt_debug_init(struct mxt_data *data)
- 	if (!dbg->t37_buf)
- 		goto error;
+ 	/* create dvb_frontend */
+ 	memcpy(&dev->fe.ops, &m88ds3103_ops, sizeof(struct dvb_frontend_ops));
+@@ -1502,7 +1505,7 @@ static int m88ds3103_remove(struct i2c_client *client)
  
-+	/* init channel to zero */
-+	mxt_set_input(data, 0);
-+
-+	/* register video device */
-+	snprintf(dbg->v4l2.name, sizeof(dbg->v4l2.name), "%s", "atmel_mxt_ts");
-+	error = v4l2_device_register(&data->client->dev, &dbg->v4l2);
-+	if (error) {
-+		dev_err(&data->client->dev, "Unable to register video master device.");
-+		goto error;
-+	}
-+
-+	/* initialize the queue */
-+	mutex_init(&dbg->lock);
-+	dbg->queue = mxt_queue;
-+	dbg->queue.drv_priv = data;
-+	dbg->queue.lock = &dbg->lock;
-+
-+	error = vb2_queue_init(&dbg->queue);
-+	if (error)
-+		goto error_unreg_v4l2;
-+
-+	dbg->vdev = mxt_video_device;
-+	dbg->vdev.v4l2_dev = &dbg->v4l2;
-+	dbg->vdev.lock = &dbg->lock;
-+	dbg->vdev.queue = &dbg->queue;
-+	video_set_drvdata(&dbg->vdev, data);
-+
-+	error = video_register_device(&dbg->vdev, VFL_TYPE_GRABBER, -1);
-+	if (error) {
-+		dev_err(&data->client->dev,
-+				"Unable to register video subdevice.");
-+		goto error_unreg_v4l2;
-+	}
-+
- 	return;
+ 	dev_dbg(&client->dev, "\n");
  
-+error_unreg_v4l2:
-+	v4l2_device_unregister(&dbg->v4l2);
- error:
- 	dev_err(&data->client->dev, "Error initialising T37 diagnostic data\n");
- }
+-	i2c_del_mux_adapter(dev->i2c_adapter);
++	i2c_mux_del_adapters(dev->muxc);
+ 
+ 	kfree(dev);
+ 	return 0;
+diff --git a/drivers/media/dvb-frontends/m88ds3103_priv.h b/drivers/media/dvb-frontends/m88ds3103_priv.h
+index eee8c22c51ec..c5b4e177c6ea 100644
+--- a/drivers/media/dvb-frontends/m88ds3103_priv.h
++++ b/drivers/media/dvb-frontends/m88ds3103_priv.h
+@@ -42,7 +42,7 @@ struct m88ds3103_dev {
+ 	enum fe_status fe_status;
+ 	u32 dvbv3_ber; /* for old DVBv3 API read_ber */
+ 	bool warm; /* FW running */
+-	struct i2c_adapter *i2c_adapter;
++	struct i2c_mux_core *muxc;
+ 	/* auto detect chip id to do different config */
+ 	u8 chip_id;
+ 	/* main mclk is calculated for M88RS6000 dynamically */
 -- 
-2.5.0
+2.1.4
 
