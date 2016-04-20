@@ -1,70 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:42002 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752545AbcDNLNJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Apr 2016 07:13:09 -0400
-Date: Thu, 14 Apr 2016 13:12:58 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-i2c@vger.kernel.org,
+Received: from mail-db3on0110.outbound.protection.outlook.com ([157.55.234.110]:10416
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751899AbcDTPfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2016 11:35:06 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: tvp5150 regression after commit 9f924169c035
-Message-ID: <20160414111257.GG1533@katana>
-References: <20160208105417.GD2220@tetsubishi>
- <56BE57FC.3020407@osg.samsung.com>
- <20160212221352.GY3500@atomide.com>
- <56BE5C97.9070607@osg.samsung.com>
- <20160212224018.GZ3500@atomide.com>
- <56BE65F0.8040600@osg.samsung.com>
- <20160212234623.GB3500@atomide.com>
- <56BE993B.3010804@osg.samsung.com>
- <20160412223254.GK1526@katana>
- <570ECAB0.4050107@osg.samsung.com>
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v7 02/24] i2c: i2c-mux-gpio: convert to use an explicit i2c mux core
+Date: Wed, 20 Apr 2016 17:17:42 +0200
+Message-ID: <1461165484-2314-3-git-send-email-peda@axentia.se>
+In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
+References: <1461165484-2314-1-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="z9ECzHErBrwFF8sy"
-Content-Disposition: inline
-In-Reply-To: <570ECAB0.4050107@osg.samsung.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
---z9ECzHErBrwFF8sy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/i2c/muxes/i2c-mux-gpio.c | 55 ++++++++++++++++------------------------
+ 1 file changed, 22 insertions(+), 33 deletions(-)
 
+diff --git a/drivers/i2c/muxes/i2c-mux-gpio.c b/drivers/i2c/muxes/i2c-mux-gpio.c
+index b8e11c16d98c..f6270ee934f9 100644
+--- a/drivers/i2c/muxes/i2c-mux-gpio.c
++++ b/drivers/i2c/muxes/i2c-mux-gpio.c
+@@ -18,8 +18,6 @@
+ #include <linux/of_gpio.h>
+ 
+ struct gpiomux {
+-	struct i2c_adapter *parent;
+-	struct i2c_adapter **adap; /* child busses */
+ 	struct i2c_mux_gpio_platform_data data;
+ 	unsigned gpio_base;
+ };
+@@ -33,18 +31,18 @@ static void i2c_mux_gpio_set(const struct gpiomux *mux, unsigned val)
+ 					val & (1 << i));
+ }
+ 
+-static int i2c_mux_gpio_select(struct i2c_adapter *adap, void *data, u32 chan)
++static int i2c_mux_gpio_select(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct gpiomux *mux = data;
++	struct gpiomux *mux = i2c_mux_priv(muxc);
+ 
+ 	i2c_mux_gpio_set(mux, chan);
+ 
+ 	return 0;
+ }
+ 
+-static int i2c_mux_gpio_deselect(struct i2c_adapter *adap, void *data, u32 chan)
++static int i2c_mux_gpio_deselect(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct gpiomux *mux = data;
++	struct gpiomux *mux = i2c_mux_priv(muxc);
+ 
+ 	i2c_mux_gpio_set(mux, mux->data.idle);
+ 
+@@ -136,19 +134,15 @@ static int i2c_mux_gpio_probe_dt(struct gpiomux *mux,
+ 
+ static int i2c_mux_gpio_probe(struct platform_device *pdev)
+ {
++	struct i2c_mux_core *muxc;
+ 	struct gpiomux *mux;
+ 	struct i2c_adapter *parent;
+-	int (*deselect) (struct i2c_adapter *, void *, u32);
+ 	unsigned initial_state, gpio_base;
+ 	int i, ret;
+ 
+ 	mux = devm_kzalloc(&pdev->dev, sizeof(*mux), GFP_KERNEL);
+-	if (!mux) {
+-		dev_err(&pdev->dev, "Cannot allocate gpiomux structure");
++	if (!mux)
+ 		return -ENOMEM;
+-	}
+-
+-	platform_set_drvdata(pdev, mux);
+ 
+ 	if (!dev_get_platdata(&pdev->dev)) {
+ 		ret = i2c_mux_gpio_probe_dt(mux, pdev);
+@@ -180,24 +174,23 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
+ 	if (!parent)
+ 		return -EPROBE_DEFER;
+ 
+-	mux->parent = parent;
+-	mux->gpio_base = gpio_base;
+-
+-	mux->adap = devm_kzalloc(&pdev->dev,
+-				 sizeof(*mux->adap) * mux->data.n_values,
+-				 GFP_KERNEL);
+-	if (!mux->adap) {
+-		dev_err(&pdev->dev, "Cannot allocate i2c_adapter structure");
++	muxc = i2c_mux_alloc(parent, &pdev->dev, mux->data.n_values, 0, 0,
++			     i2c_mux_gpio_select, NULL);
++	if (!muxc) {
+ 		ret = -ENOMEM;
+ 		goto alloc_failed;
+ 	}
++	muxc->priv = mux;
++
++	platform_set_drvdata(pdev, muxc);
++
++	mux->gpio_base = gpio_base;
+ 
+ 	if (mux->data.idle != I2C_MUX_GPIO_NO_IDLE) {
+ 		initial_state = mux->data.idle;
+-		deselect = i2c_mux_gpio_deselect;
++		muxc->deselect = i2c_mux_gpio_deselect;
+ 	} else {
+ 		initial_state = mux->data.values[0];
+-		deselect = NULL;
+ 	}
+ 
+ 	for (i = 0; i < mux->data.n_gpios; i++) {
+@@ -223,11 +216,8 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
+ 		u32 nr = mux->data.base_nr ? (mux->data.base_nr + i) : 0;
+ 		unsigned int class = mux->data.classes ? mux->data.classes[i] : 0;
+ 
+-		mux->adap[i] = i2c_add_mux_adapter(parent, &pdev->dev, mux, nr,
+-						   mux->data.values[i], class,
+-						   i2c_mux_gpio_select, deselect);
+-		if (!mux->adap[i]) {
+-			ret = -ENODEV;
++		ret = i2c_mux_add_adapter(muxc, nr, mux->data.values[i], class);
++		if (ret) {
+ 			dev_err(&pdev->dev, "Failed to add adapter %d\n", i);
+ 			goto add_adapter_failed;
+ 		}
+@@ -239,8 +229,7 @@ static int i2c_mux_gpio_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ add_adapter_failed:
+-	for (; i > 0; i--)
+-		i2c_del_mux_adapter(mux->adap[i - 1]);
++	i2c_mux_del_adapters(muxc);
+ 	i = mux->data.n_gpios;
+ err_request_gpio:
+ 	for (; i > 0; i--)
+@@ -253,16 +242,16 @@ alloc_failed:
+ 
+ static int i2c_mux_gpio_remove(struct platform_device *pdev)
+ {
+-	struct gpiomux *mux = platform_get_drvdata(pdev);
++	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
++	struct gpiomux *mux = i2c_mux_priv(muxc);
+ 	int i;
+ 
+-	for (i = 0; i < mux->data.n_values; i++)
+-		i2c_del_mux_adapter(mux->adap[i]);
++	i2c_mux_del_adapters(muxc);
+ 
+ 	for (i = 0; i < mux->data.n_gpios; i++)
+ 		gpio_free(mux->gpio_base + mux->data.gpios[i]);
+ 
+-	i2c_put_adapter(mux->parent);
++	i2c_put_adapter(muxc->parent);
+ 
+ 	return 0;
+ }
+-- 
+2.1.4
 
-> I'll write what I found so far in case someone with better knowledge about
-> the runtime PM API and the OMAP I2C controller driver can have an idea of
-> what could be causing this.
-
-Thanks for the summary. I got no other reports like this, I wonder about
-that. That being said, can you try this patch if it makes a change?
-
-http://patchwork.ozlabs.org/patch/609280/
-
-
---z9ECzHErBrwFF8sy
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXD3s5AAoJEBQN5MwUoCm2SuEP/AjB3bOpk/EH93O6Hux6eC4E
-yUX5v5hGS8k7twi1pqt6BqkdWpQ0hYlZBWs7pJ3Ge7LurGteRFA9EZHHZFJaqOuU
-UX3F6Y0WcX8m2hSdIOWpLzLXhJT6zV14Gi46yxjHXPdyxqtgl7/RX5NNHPFkbTn+
-S0CIXNEEIvjhTG/6/kmaSBpvfc96NmgPYWyw9BkIRpZuUrAvOIkGbyGtQDRYTaqa
-3790dbT5der6C3CmSkzMQgmbi6Mu5bPiI8cUwdCiD0a0WwzXBdIJGRc/CFDN4hQR
-d+QYn4C36H57j8f7v3+/E3emQ4yHGF8ydDgGdgakVKxog70xmMMcIAYAsDsoQtFq
-F9+6rOFQWcgjyZMhaRESAcGJO0JLHMw4udw8kv4LSbdiXUN/wYzNTIeDLfrwMzsn
-XaEidWP8qII6QcHbp1M91b4J+dFbBFKVG4qSB47LBaoBN7PUPe9ZgdIRkSkjIwjZ
-73F+2dlA27EH8Hjr2YNnfNkuVkPiTJz1YdGXKFCWnr3x/y8qLZpwEFXeDq9igx2x
-tG/UBb2wQCv/Hv5IYhI+1QrQAnKMXuR38qQqIbR10BMJ8SzUdtFjFQ5HrK+diZQL
-jM6fvPDAlI5RRHT0sMeKMmvra16nReVNXkwnYvYh00m12QRP+hYW4Wuhd5xgkT/O
-oX5gL/0QqV3KtOe1Rbfk
-=Nwro
------END PGP SIGNATURE-----
-
---z9ECzHErBrwFF8sy--
