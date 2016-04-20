@@ -1,82 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:49114 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751791AbcDOItz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 04:49:55 -0400
-Subject: Re: Backport a Security Fix for CVE-2015-7833 to v4.1
-To: Vladis Dronov <vdronov@redhat.com>,
-	Yuki Machida <machida.yuki@jp.fujitsu.com>
-References: <570B33E6.40705@jp.fujitsu.com>
- <573811194.2583282.1460376200290.JavaMail.zimbra@redhat.com>
-Cc: sasha levin <sasha.levin@oracle.com>, linux-media@vger.kernel.org,
-	stable@vger.kernel.org, oneukum@suse.com, mchehab@osg.samsung.com,
-	ralf@spenneberg.net
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5710AB2A.50702@xs4all.nl>
-Date: Fri, 15 Apr 2016 10:49:46 +0200
+Received: from mail-db3on0134.outbound.protection.outlook.com ([157.55.234.134]:44038
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751899AbcDTPeu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2016 11:34:50 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	"Guenter Roeck" <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	"Hartmut Knaack" <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	"Peter Meerwald" <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	"Frank Rowand" <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"Kalle Valo" <kvalo@codeaurora.org>, Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	"Crestez Dan Leonard" <leonard.crestez@intel.com>,
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>, Peter Rosin <peda@lysator.liu.se>
+Subject: [PATCH v7 05/24] i2c: i2c-mux-pca9541: convert to use an explicit i2c mux core
+Date: Wed, 20 Apr 2016 17:17:45 +0200
+Message-ID: <1461165484-2314-6-git-send-email-peda@axentia.se>
+In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
+References: <1461165484-2314-1-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
-In-Reply-To: <573811194.2583282.1460376200290.JavaMail.zimbra@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vladis,
+Allocate an explicit i2c mux core to handle parent and child adapters
+etc. Update the select/deselect ops to be in terms of the i2c mux core
+instead of the child adapter.
 
-On 04/11/2016 02:03 PM, Vladis Dronov wrote:
-> Hello,
-> 
-> I apologize for intercepting, but I believe commit 588afcc1 should
-> not be accepted and reverted in the trees where it was.
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/i2c/muxes/i2c-mux-pca9541.c | 58 +++++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 31 deletions(-)
 
-Your patch requesting that commit to be reverted fell through the cracks.
-
-Having looked at it I agree that it should be reverted and I will apply it.
-
-The main reason is really the incorrect error return which should have been
-a goto. But as you say reverting it is easiest since your code does the
-right thing.
-
-Regards,
-
-	Hans
-
-> 
-> Reasons:
-> 
-> https://patchwork.linuxtv.org/patch/32798/
-> or
-> https://www.spinics.net/lists/linux-media/msg96936.html
-> 
-> 
-> Best regards,
-> Vladis Dronov | Red Hat, Inc. | Product Security Engineer
-> 
-> ----- Original Message -----
-> From: "Yuki Machida" <machida.yuki@jp.fujitsu.com>
-> To: "sasha levin" <sasha.levin@oracle.com>
-> Cc: linux-media@vger.kernel.org, stable@vger.kernel.org, hverkuil@xs4all.nl, oneukum@suse.com, vdronov@redhat.com, mchehab@osg.samsung.com, ralf@spenneberg.net
-> Sent: Monday, April 11, 2016 7:19:34 AM
-> Subject: Backport a Security Fix for CVE-2015-7833 to v4.1
-> 
-> Hi Sasha,
-> 
-> I conformed that these patches for CVE-2015-7833 not applied at v4.1.21.
-> 588afcc1c0e45358159090d95bf7b246fb67565
-> fa52bd506f274b7619955917abfde355e3d19ff
-> Could you please apply this CVE-2015-7833 fix for 4.1-stable ?
-> 
-> References:
-> https://security-tracker.debian.org/tracker/CVE-2015-7833
-> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=588afcc1c0e45358159090d95bf7b246fb67565f
-> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=fa52bd506f274b7619955917abfde355e3d19ffe
-> 
-> Regards,
-> Yuki Machida
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/i2c/muxes/i2c-mux-pca9541.c b/drivers/i2c/muxes/i2c-mux-pca9541.c
+index d0ba424adebc..3cb8af635db5 100644
+--- a/drivers/i2c/muxes/i2c-mux-pca9541.c
++++ b/drivers/i2c/muxes/i2c-mux-pca9541.c
+@@ -73,7 +73,7 @@
+ #define SELECT_DELAY_LONG	1000
+ 
+ struct pca9541 {
+-	struct i2c_adapter *mux_adap;
++	struct i2c_client *client;
+ 	unsigned long select_timeout;
+ 	unsigned long arb_timeout;
+ };
+@@ -217,7 +217,8 @@ static const u8 pca9541_control[16] = {
+  */
+ static int pca9541_arbitrate(struct i2c_client *client)
+ {
+-	struct pca9541 *data = i2c_get_clientdata(client);
++	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
++	struct pca9541 *data = i2c_mux_priv(muxc);
+ 	int reg;
+ 
+ 	reg = pca9541_reg_read(client, PCA9541_CONTROL);
+@@ -285,9 +286,10 @@ static int pca9541_arbitrate(struct i2c_client *client)
+ 	return 0;
+ }
+ 
+-static int pca9541_select_chan(struct i2c_adapter *adap, void *client, u32 chan)
++static int pca9541_select_chan(struct i2c_mux_core *muxc, u32 chan)
+ {
+-	struct pca9541 *data = i2c_get_clientdata(client);
++	struct pca9541 *data = i2c_mux_priv(muxc);
++	struct i2c_client *client = data->client;
+ 	int ret;
+ 	unsigned long timeout = jiffies + ARB2_TIMEOUT;
+ 		/* give up after this time */
+@@ -309,9 +311,11 @@ static int pca9541_select_chan(struct i2c_adapter *adap, void *client, u32 chan)
+ 	return -ETIMEDOUT;
+ }
+ 
+-static int pca9541_release_chan(struct i2c_adapter *adap,
+-				void *client, u32 chan)
++static int pca9541_release_chan(struct i2c_mux_core *muxc, u32 chan)
+ {
++	struct pca9541 *data = i2c_mux_priv(muxc);
++	struct i2c_client *client = data->client;
++
+ 	pca9541_release_bus(client);
+ 	return 0;
+ }
+@@ -324,20 +328,13 @@ static int pca9541_probe(struct i2c_client *client,
+ {
+ 	struct i2c_adapter *adap = client->adapter;
+ 	struct pca954x_platform_data *pdata = dev_get_platdata(&client->dev);
++	struct i2c_mux_core *muxc;
+ 	struct pca9541 *data;
+ 	int force;
+-	int ret = -ENODEV;
++	int ret;
+ 
+ 	if (!i2c_check_functionality(adap, I2C_FUNC_SMBUS_BYTE_DATA))
+-		goto err;
+-
+-	data = kzalloc(sizeof(struct pca9541), GFP_KERNEL);
+-	if (!data) {
+-		ret = -ENOMEM;
+-		goto err;
+-	}
+-
+-	i2c_set_clientdata(client, data);
++		return -ENODEV;
+ 
+ 	/*
+ 	 * I2C accesses are unprotected here.
+@@ -352,34 +349,33 @@ static int pca9541_probe(struct i2c_client *client,
+ 	force = 0;
+ 	if (pdata)
+ 		force = pdata->modes[0].adap_id;
+-	data->mux_adap = i2c_add_mux_adapter(adap, &client->dev, client,
+-					     force, 0, 0,
+-					     pca9541_select_chan,
+-					     pca9541_release_chan);
++	muxc = i2c_mux_alloc(adap, &client->dev, 1, sizeof(*data), 0,
++			     pca9541_select_chan, pca9541_release_chan);
++	if (!muxc)
++		return -ENOMEM;
+ 
+-	if (data->mux_adap == NULL) {
++	data = i2c_mux_priv(muxc);
++	data->client = client;
++
++	i2c_set_clientdata(client, muxc);
++
++	ret = i2c_mux_add_adapter(muxc, force, 0, 0);
++	if (ret) {
+ 		dev_err(&client->dev, "failed to register master selector\n");
+-		goto exit_free;
++		return ret;
+ 	}
+ 
+ 	dev_info(&client->dev, "registered master selector for I2C %s\n",
+ 		 client->name);
+ 
+ 	return 0;
+-
+-exit_free:
+-	kfree(data);
+-err:
+-	return ret;
+ }
+ 
+ static int pca9541_remove(struct i2c_client *client)
+ {
+-	struct pca9541 *data = i2c_get_clientdata(client);
+-
+-	i2c_del_mux_adapter(data->mux_adap);
++	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
+ 
+-	kfree(data);
++	i2c_mux_del_adapters(muxc);
+ 	return 0;
+ }
+ 
+-- 
+2.1.4
 
