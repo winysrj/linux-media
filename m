@@ -1,70 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f170.google.com ([209.85.192.170]:34128 "EHLO
-	mail-pf0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932511AbcDYP0r (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:56053 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751680AbcDTQm2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 11:26:47 -0400
-Received: by mail-pf0-f170.google.com with SMTP id y69so48084803pfb.1
-        for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 08:26:46 -0700 (PDT)
-Date: Mon, 25 Apr 2016 12:26:40 -0300
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Wed, 20 Apr 2016 12:42:28 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] [media] tvp686x: Don't go past array
-Message-ID: <20160425152640.GA24174@laptop.cereza>
-References: <d25dd8ca8edffc6cc8cee2dac9b907c333a0aa84.1461403421.git.mchehab@osg.samsung.com>
- <571E0159.9050406@xs4all.nl>
- <20160425094000.1dc6db29@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160425094000.1dc6db29@recife.lan>
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	=?UTF-8?q?Krzysztof=20Ha=C5=82asa?= <khalasa@piap.pl>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	devel@driverdev.osuosl.org
+Subject: [PATCH] [media] tw686x-kh: use the cached value
+Date: Wed, 20 Apr 2016 13:41:04 -0300
+Message-Id: <13431509a41889a70cc76b31180f63fd10d0a5b3.1461170447.git.mchehab@osg.samsung.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, Hans:
+the dma_requests field is cached, but cache is not used:
 
-Thanks for the fixes to this driver :-)
+drivers/staging/media/tw686x-kh/tw686x-kh-video.c: In function 'tw686x_video_irq':
+drivers/staging/media/tw686x-kh/tw686x-kh-video.c:622:6: warning: variable 'requests' set but not used [-Wunused-but-set-variable]
+  u32 requests;
+      ^
 
-On 25 Apr 09:40 AM, Mauro Carvalho Chehab wrote:
-> Ezequiel,
-> 
-> Btw, I'm not seeing support for fps != 25 (or 30 fps) on this driver.
-> As the device seems to support setting the fps, you should be adding
-> support on it for VIDIOC_S_PARM and VIDIOC_G_PARM.
-> 
-> On both ioctls, the driver should return the actual framerate used.
-> So, you'll need to add a code that would convert from the 15 possible
-> framerate converter register settings to v4l2_fract.
-> 
+Use the cache instead, as it seems reading it needs to be done
+with spin lock taken.
 
-OK, thanks for the information.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/staging/media/tw686x-kh/tw686x-kh-video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-In fact, framerate support is implemented in the driver that is in
-production.
-
-Support for s_parm, g_parm was in the original submission [1]
-but we removed it later [2] because we thought it was unused.
-I can't see how we came to that conclusion, since it is actually
-used to set the framerate!
-
-Anyway, since we are discussing this, I would like to know if
-having s_parm/g_parm is enough for framerate setting support.
-
-When I implemented this a year ago, the v4l2src gstreamer plugin
-seemed to require enum_frame_size and enum_frame_interval as well.
-It didn't make much sense, but I ended up implementing them
-to get it to work. Should that be required?
-
-(To be honest, v4lsrc is quite picky regarding parameters,
-so it wouldn't be that surprising if it needs some love).
-
-Thanks!
-
-[1] http://www.spinics.net/lists/linux-media/msg95953.html
-[2] http://www.spinics.net/lists/linux-media/msg96503.html
+diff --git a/drivers/staging/media/tw686x-kh/tw686x-kh-video.c b/drivers/staging/media/tw686x-kh/tw686x-kh-video.c
+index 2fbc3cbd9eb0..0650c29f78eb 100644
+--- a/drivers/staging/media/tw686x-kh/tw686x-kh-video.c
++++ b/drivers/staging/media/tw686x-kh/tw686x-kh-video.c
+@@ -625,7 +625,7 @@ int tw686x_video_irq(struct tw686x_dev *dev)
+ 	requests = dev->dma_requests;
+ 	spin_unlock_irqrestore(&dev->irq_lock, flags);
+ 
+-	if (dev->dma_requests & dev->video_active) {
++	if (requests & dev->video_active) {
+ 		wake_up_interruptible_all(&dev->video_thread_wait);
+ 		handled = 1;
+ 	}
 -- 
-Ezequiel Garcia, VanguardiaSur
-www.vanguardiasur.com.ar
+2.5.5
+
