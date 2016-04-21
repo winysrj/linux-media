@@ -1,63 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:5755 "EHLO
-	nasmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757234AbcDMHvd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2016 03:51:33 -0400
-From: Songjun Wu <songjun.wu@atmel.com>
-To: <g.liakhovetski@gmx.de>, <nicolas.ferre@atmel.com>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	Songjun Wu <songjun.wu@atmel.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	<devicetree@vger.kernel.org>,
-	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	"Benoit Parrot" <bparrot@ti.com>,
-	Kumar Gala <galak@codeaurora.org>,
-	<linux-kernel@vger.kernel.org>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard@puffinpack.se>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	<linux-media@vger.kernel.org>
-Subject: [PATCH 0/2] [media] atmel-isc: add driver for Atmel ISC
-Date: Wed, 13 Apr 2016 15:44:18 +0800
-Message-ID: <1460533460-32336-1-git-send-email-songjun.wu@atmel.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:54315 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751720AbcDUAND (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2016 20:13:03 -0400
+Subject: Re: [PATCH] [media] af9035: fix for MXL5007T devices with I2C read
+ issues
+To: Alex Rad <alessandro@radicati.net>
+References: <1460734647-8941-1-git-send-email-alessandro@radicati.net>
+ <5716B906.2090909@iki.fi>
+ <CAO8Cc0qbTpcbJ0PwhNksGedWcNDD-15xOd4E_oFL5symHaAi8Q@mail.gmail.com>
+Cc: Angel reguero marrero <areguero@telefonica.net>,
+	linux-media@vger.kernel.org
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <57181B0B.7060006@iki.fi>
+Date: Thu, 21 Apr 2016 03:12:59 +0300
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAO8Cc0qbTpcbJ0PwhNksGedWcNDD-15xOd4E_oFL5symHaAi8Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Image Sensor Controller driver includes two parts.
-1) Driver code to implement the ISC function.
-2) Device tree binding documentation, it describes how
-   to add the ISC in device tree.
+On 04/20/2016 12:13 PM, Alex Rad wrote:
+> On Wed, Apr 20, 2016 at 1:02 AM, Antti Palosaari <crope@iki.fi> wrote:
+>> Hello
+>> I am not happy with that new module parameter as I cannot see real need for
+>> it. So get rid of it.
+>
+> My reasoning for this is:
+> 1) We know of just two devices which may have the issue, but there are
+> probably more.  The module parameter allows a user to apply the
+> workaround to other devices we did not consider or test.  Should we
+> perhaps apply for all mxl5007t devices?
+
+So what. It is easier for me add just new IDs to driver when problematic 
+device is found than adding new module parameter which allows user to 
+work-around issues and I will likely newer even hear about those issues.
+
+> 2) Not all devices that match VID and PID have the issue, so it allows
+> the user to disable the workaround.
+
+Due to that better to add three checks
+1) it is Avermedia VID
+2) it is known problematic Avermedia device PID
+3) it has tuner MxL5007t
+
+It is not surprise it is just only Avermedia which has this kind of 
+problems. Not first time at all. I have added such Avermedia hacks for 
+af9015 driver too and if you look af9035 there is tuner id hack - which 
+was added also due to Avermedia.
+
+Worst case there could be is some mxl5007t device having reference 
+design ID. But even on that case returning fake values is pretty much OK.
 
 
-Songjun Wu (2):
-  [media] atmel-isc: add the Image Sensor Controller code
-  [media] atmel-isc: DT binding for Image Sensor Controller driver
+regards
+Antti
 
- .../devicetree/bindings/media/atmel-isc.txt        |   84 ++
- drivers/media/platform/Kconfig                     |    1 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/atmel/Kconfig               |    9 +
- drivers/media/platform/atmel/Makefile              |    3 +
- drivers/media/platform/atmel/atmel-isc-regs.h      |  280 ++++
- drivers/media/platform/atmel/atmel-isc.c           | 1537 ++++++++++++++++++++
- 7 files changed, 1916 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
- create mode 100644 drivers/media/platform/atmel/Kconfig
- create mode 100644 drivers/media/platform/atmel/Makefile
- create mode 100644 drivers/media/platform/atmel/atmel-isc-regs.h
- create mode 100644 drivers/media/platform/atmel/atmel-isc.c
+
+>> Better to compare both VID and PID when enabling that work-around. Driver
+>> supports currently quite many different USB IDs and there is still small
+>> risk duplicate PID will exists at some point enabling work-around for wrong
+>> device.
+>>
+>
+> OK.  Will wait for comments on above before a v2.
+>
+> Thanks,
+> Alessandro
+>
+>> regards
+>> Antti
+>>
+>>
+>>
+>>
+>> On 04/15/2016 06:37 PM, Alessandro Radicati wrote:
+>>>
+>>> The MXL5007T tuner will lock-up on some devices after an I2C read
+>>> transaction.  This patch adds a kernel module parameter "no_read" to work
+>>> around this issue by inhibiting such operations and emulating a 0x00
+>>> response.  The workaround is applied automatically to USB product IDs
+>>> known
+>>> to exhibit this flaw, unless the kernel module parameter is specified.
+>>>
+>>> Signed-off-by: Alessandro Radicati <alessandro@radicati.net>
+>>> ---
+>>>    drivers/media/usb/dvb-usb-v2/af9035.c | 27 +++++++++++++++++++++++++++
+>>>    drivers/media/usb/dvb-usb-v2/af9035.h |  1 +
+>>>    2 files changed, 28 insertions(+)
+>>>
+>>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> b/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> index 2638e32..8225403 100644
+>>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> @@ -24,6 +24,10 @@
+>>>    /* Max transfer size done by I2C transfer functions */
+>>>    #define MAX_XFER_SIZE  64
+>>>
+>>> +static int dvb_usb_af9035_no_read = -1;
+>>> +module_param_named(no_read, dvb_usb_af9035_no_read, int, 0644);
+>>> +MODULE_PARM_DESC(no_read, "Emulate I2C reads for devices that do not
+>>> support them.");
+>>> +
+>>>    DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>>>
+>>>    static u16 af9035_checksum(const u8 *buf, size_t len)
+>>> @@ -348,6 +352,9 @@ static int af9035_i2c_master_xfer(struct i2c_adapter
+>>> *adap,
+>>>
+>>>                          ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
+>>>                                          msg[1].len);
+>>> +               } else if (state->no_read) {
+>>> +                       memset(msg[1].buf, 0, msg[1].len);
+>>> +                       ret = 0;
+>>>                  } else {
+>>>                          /* I2C write + read */
+>>>                          u8 buf[MAX_XFER_SIZE];
+>>> @@ -421,6 +428,9 @@ static int af9035_i2c_master_xfer(struct i2c_adapter
+>>> *adap,
+>>>                  if (msg[0].len > 40) {
+>>>                          /* TODO: correct limits > 40 */
+>>>                          ret = -EOPNOTSUPP;
+>>> +               } else if (state->no_read) {
+>>> +                       memset(msg[0].buf, 0, msg[0].len);
+>>> +                       ret = 0;
+>>>                  } else {
+>>>                          /* I2C read */
+>>>                          u8 buf[5];
+>>> @@ -962,6 +972,23 @@ skip_eeprom:
+>>>                          state->af9033_config[i].clock =
+>>> clock_lut_af9035[tmp];
+>>>          }
+>>>
+>>> +       /* Some MXL5007T devices cannot properly handle tuner I2C read
+>>> ops. */
+>>> +       if (dvb_usb_af9035_no_read != -1) { /* Override with module param
+>>> */
+>>> +               state->no_read = dvb_usb_af9035_no_read == 0 ? false :
+>>> true;
+>>> +       } else {
+>>> +               switch (le16_to_cpu(d->udev->descriptor.idProduct)) {
+>>> +               case USB_PID_AVERMEDIA_A867:
+>>> +               case USB_PID_AVERMEDIA_TWINSTAR:
+>>> +                       dev_info(&d->udev->dev,
+>>> +                               "%s: Device may have issues with I2C read
+>>> operations. Enabling fix.\n",
+>>> +                               KBUILD_MODNAME);
+>>> +                       state->no_read = true;
+>>> +                       break;
+>>> +               default:
+>>> +                       state->no_read = false;
+>>> +               }
+>>> +       }
+>>> +
+>>>          return 0;
+>>>
+>>>    err:
+>>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h
+>>> b/drivers/media/usb/dvb-usb-v2/af9035.h
+>>> index df22001..a76dafa 100644
+>>> --- a/drivers/media/usb/dvb-usb-v2/af9035.h
+>>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+>>> @@ -62,6 +62,7 @@ struct state {
+>>>          u8 chip_version;
+>>>          u16 chip_type;
+>>>          u8 dual_mode:1;
+>>> +       u8 no_read:1;
+>>>          u16 eeprom_addr;
+>>>          u8 af9033_i2c_addr[2];
+>>>          struct af9033_config af9033_config[2];
+>>>
+>>
+>> --
+>> http://palosaari.fi/
 
 -- 
-2.7.4
-
+http://palosaari.fi/
