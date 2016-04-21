@@ -1,65 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33969 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753575AbcD1VTf (ORCPT
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:57909 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751614AbcDUJl1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2016 17:19:35 -0400
-Subject: Re: [PATCH 0/2] Fix ir-rx51 by using PWM pdata
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-References: <1461714709-10455-1-git-send-email-tony@atomide.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Aaro Koskinen <aaro.koskinen@iki.fi>,
-	Sebastian Reichel <sre@kernel.org>,
-	Pavel Machel <pavel@ucw.cz>,
-	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+	Thu, 21 Apr 2016 05:41:27 -0400
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
 	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Neil Armstrong <narmstrong@baylibre.com>
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <57227E63.4040907@gmail.com>
-Date: Fri, 29 Apr 2016 00:19:31 +0300
-MIME-Version: 1.0
-In-Reply-To: <1461714709-10455-1-git-send-email-tony@atomide.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>,
+	Nick Dyer <nick.dyer@itdev.co.uk>
+Subject: [PATCH 4/8] Input: atmel_mxt_ts - handle diagnostic data orientation
+Date: Thu, 21 Apr 2016 10:31:37 +0100
+Message-Id: <1461231101-1237-5-git-send-email-nick.dyer@itdev.co.uk>
+In-Reply-To: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
+References: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Invert the diagnostic data to match the orientation of the input device.
 
-On 27.04.2016 02:51, Tony Lindgren wrote:
-> Hi all,
->
-> Here are minimal fixes to get ir-rx51 going again. Then further
-> fixes can be done as noted in the second patch.
->
-> Regards,
->
-> Tony
->
->
-> Tony Lindgren (2):
->    ARM: OMAP2+: Add more functions to pwm pdata for ir-rx51
->    [media] ir-rx51: Fix build after multiarch changes broke it
->
->   arch/arm/mach-omap2/board-rx51-peripherals.c   | 35 ++++++++-
->   arch/arm/mach-omap2/pdata-quirks.c             | 33 ++++++++-
->   drivers/media/rc/Kconfig                       |  2 +-
->   drivers/media/rc/ir-rx51.c                     | 99 ++++++++++++++------------
->   include/linux/platform_data/media/ir-rx51.h    |  1 +
->   include/linux/platform_data/pwm_omap_dmtimer.h | 21 ++++++
->   6 files changed, 141 insertions(+), 50 deletions(-)
->
+Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 30 +++++++++++++++++++++++-------
+ 1 file changed, 23 insertions(+), 7 deletions(-)
 
-I didn't test legacy boot, as I don't really see any value of doing it 
-now the end of the legacy boot is near, the driver does not function 
-correctly, however the patchset at least allows for the driver to be 
-build and we have something to improve on. And I am going to send a 
-patch that fixes the problem with omap_dm_timer_request_specific(). So, 
-for both patches, you may add:
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index bcace51..3dd312f 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -125,6 +125,8 @@ struct t9_range {
+ 
+ /* MXT_TOUCH_MULTI_T9 orient */
+ #define MXT_T9_ORIENT_SWITCH	(1 << 0)
++#define MXT_T9_ORIENT_INVERTX	(1 << 1)
++#define MXT_T9_ORIENT_INVERTY	(1 << 2)
+ 
+ /* MXT_SPT_COMMSCONFIG_T18 */
+ #define MXT_COMMS_CTRL		0
+@@ -156,6 +158,8 @@ struct t37_debug {
+ #define MXT_T100_YRANGE		24
+ 
+ #define MXT_T100_CFG_SWITCHXY	BIT(5)
++#define MXT_T100_CFG_INVERTY	BIT(6)
++#define MXT_T100_CFG_INVERTX	BIT(7)
+ 
+ #define MXT_T100_TCHAUX_VECT	BIT(0)
+ #define MXT_T100_TCHAUX_AMPL	BIT(1)
+@@ -260,6 +264,8 @@ struct mxt_data {
+ 	unsigned int irq;
+ 	unsigned int max_x;
+ 	unsigned int max_y;
++	bool invertx;
++	bool inverty;
+ 	bool xy_switch;
+ 	u8 xsize;
+ 	u8 ysize;
+@@ -1743,6 +1749,8 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
+ 		return error;
+ 
+ 	data->xy_switch = orient & MXT_T9_ORIENT_SWITCH;
++	data->invertx = orient & MXT_T9_ORIENT_INVERTX;
++	data->inverty = orient & MXT_T9_ORIENT_INVERTY;
+ 
+ 	return 0;
+ }
+@@ -1797,6 +1805,8 @@ static int mxt_read_t100_config(struct mxt_data *data)
+ 		return error;
+ 
+ 	data->xy_switch = cfg & MXT_T100_CFG_SWITCHXY;
++	data->invertx = cfg & MXT_T100_CFG_INVERTX;
++	data->inverty = cfg & MXT_T100_CFG_INVERTY;
+ 
+ 	/* allocate aux bytes */
+ 	error =  __mxt_read_reg(client,
+@@ -2140,13 +2150,19 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	unsigned int x = 0;
+ 	unsigned int y = 0;
+-	unsigned int i;
++	unsigned int i, rx, ry;
+ 
+ 	for (i = 0; i < dbg->t37_nodes; i++) {
+-		outbuf[i] = mxt_get_debug_value(data, x, y);
++		/* Handle orientation */
++		rx = data->xy_switch ? y : x;
++		ry = data->xy_switch ? x : y;
++		rx = data->invertx ? (data->xsize - 1 - rx) : rx;
++		ry = data->inverty ? (data->ysize - 1 - ry) : ry;
++
++		outbuf[i] = mxt_get_debug_value(data, rx, ry);
+ 
+ 		/* Next value */
+-		if (++x >= data->xsize) {
++		if (++x >= (data->xy_switch ? data->ysize : data->xsize)) {
+ 			x = 0;
+ 			y++;
+ 		}
+@@ -2310,8 +2326,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
+ 	if (i > 0)
+ 		return -EINVAL;
+ 
+-	f->width = data->xsize;
+-	f->height = data->ysize;
++	f->width = data->xy_switch ? data->ysize : data->xsize;
++	f->height = data->xy_switch ? data->xsize : data->ysize;
+ 	f->pixelformat = V4L2_PIX_FMT_Y16;
+ 	f->field = V4L2_FIELD_NONE;
+ 	f->colorspace = V4L2_COLORSPACE_SRGB;
+@@ -2367,8 +2383,8 @@ static int mxt_vidioc_enum_framesizes(struct file *file, void *priv,
+ 	if (f->index > 0)
+ 		return -EINVAL;
+ 
+-	f->discrete.width = data->xsize;
+-	f->discrete.height = data->ysize;
++	f->discrete.width = data->xy_switch ? data->ysize : data->xsize;
++	f->discrete.height = data->xy_switch ? data->xsize : data->ysize;
+ 	f->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+ 	return 0;
+ }
+-- 
+2.5.0
 
-Tested-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-
-
-Thanks,
-Ivo
