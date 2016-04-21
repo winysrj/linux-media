@@ -1,75 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nasmtp01.atmel.com ([192.199.1.245]:22038 "EHLO
-	nasmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752973AbcDSI3R (ORCPT
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:33015 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752121AbcDUJP0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2016 04:29:17 -0400
-Subject: Re: [PATCH 1/2] [media] atmel-isc: add the Image Sensor Controller
- code
-To: Hans Verkuil <hverkuil@xs4all.nl>, <g.liakhovetski@gmx.de>,
-	<nicolas.ferre@atmel.com>
-References: <1460533460-32336-1-git-send-email-songjun.wu@atmel.com>
- <1460533460-32336-2-git-send-email-songjun.wu@atmel.com>
- <57148B9E.2000609@xs4all.nl>
-CC: <linux-arm-kernel@lists.infradead.org>,
+	Thu, 21 Apr 2016 05:15:26 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Peter Griffin <peter.griffin@linaro.org>,
-	"Benoit Parrot" <bparrot@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	=?UTF-8?Q?Richard_R=c3=b6jfors?= <richard@puffinpack.se>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-From: "Wu, Songjun" <songjun.wu@atmel.com>
-Message-ID: <5715EC50.5050500@atmel.com>
-Date: Tue, 19 Apr 2016 16:29:04 +0800
-MIME-Version: 1.0
-In-Reply-To: <57148B9E.2000609@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Junghak Sung <jh1009.sung@samsung.com>, stable@vger.kernel.org
+Subject: [PATCH] media: vb2: Fix regression on poll() for RW mode
+Date: Thu, 21 Apr 2016 11:15:16 +0200
+Message-Id: <1461230116-6909-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+When using a device is read/write mode, vb2 does not handle properly the
+first select/poll operation. It allways return POLLERR.
 
+The reason for this is that when this code has been refactored, some of
+the operations have changed their order, and now fileio emulator is not
+started by poll, due to a previous check.
 
-On 4/18/2016 15:24, Hans Verkuil wrote:
-> On 04/13/2016 09:44 AM, Songjun Wu wrote:
->> Add driver for the Image Sensor Controller. It manages
->> incoming data from a parallel based CMOS/CCD sensor.
->> It has an internal image processor, also integrates a
->> triple channel direct memory access controller master
->> interface.
->>
->> Signed-off-by: Songjun Wu <songjun.wu@atmel.com>
->
-> Hi Songjun,
->
-> Before this driver can be accepted it has to pass the v4l2-compliance test.
-> The v4l2-compliance utility is here:
->
-> git://linuxtv.org/v4l-utils.git
->
-> Compile the utility straight from this repository so you're up to date.
->
-> First fix any failures you get when running 'v4l2-compliance', then do the
-> same when running 'v4l2-compliance -s' (now it is streaming as well) and
-> finally when running 'v4l2-compliance -f' (streaming and testing all available
-> formats).
->
-> I would like to see the output of 'v4l2-compliance -f' as part of the cover
-> letter of the next patch series.
->
-> Looking at the code I see that it will definitely fail a few tests :-)
->
-> Certainly the VIDIOC_CREATE_BUFS support in the queue_setup function is missing.
-> Read the comments for queue_setup in videobuf2-core.h for more information.
->
-Thank you very much, I will pass the v4l2-compliance test before I send 
-the version 2 patch.
+Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+Cc: Junghak Sung <jh1009.sung@samsung.com>
+Cc: stable@vger.kernel.org
+Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 8 ++++++++
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 8 --------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-> Regards,
->
-> 	Hans
->
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5d016f496e0e..199c65dbe330 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2298,6 +2298,14 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
+ 		return POLLERR;
+ 
+ 	/*
++	 * For compatibility with vb1: if QBUF hasn't been called yet, then
++	 * return POLLERR as well. This only affects capture queues, output
++	 * queues will always initialize waiting_for_buffers to false.
++	 */
++	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
++		return POLLERR;
++
++	/*
+ 	 * For output streams you can call write() as long as there are fewer
+ 	 * buffers queued than there are buffers available.
+ 	 */
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 91f552124050..c9bad9ef2104 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -818,14 +818,6 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 			poll_wait(file, &fh->wait, wait);
+ 	}
+ 
+-	/*
+-	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+-	 * return POLLERR as well. This only affects capture queues, output
+-	 * queues will always initialize waiting_for_buffers to false.
+-	 */
+-	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
+-		return POLLERR;
+-
+ 	return res | vb2_core_poll(q, file, wait);
+ }
+ EXPORT_SYMBOL_GPL(vb2_poll);
+-- 
+2.8.0.rc3
+
