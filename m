@@ -1,80 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:57552 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751649AbcDSGqY (ORCPT
+Received: from mail-qk0-f181.google.com ([209.85.220.181]:34699 "EHLO
+	mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751871AbcDURtT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Apr 2016 02:46:24 -0400
-Message-ID: <1461048377.32652.19.camel@mtksdaap41>
-Subject: Re: [PATCH 3/7] [Media] vcodec: mediatek: Add Mediatek V4L2 Video
- Decoder Driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: <nicolas@ndufresne.ca>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, Pawel Osciak <pawel@osciak.com>,
-	"Hans Verkuil" <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Date: Tue, 19 Apr 2016 14:46:17 +0800
-In-Reply-To: <1461001697.2719.7.camel@gmail.com>
-References: <1460548915-17536-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1460548915-17536-2-git-send-email-tiffany.lin@mediatek.com>
-	 <1460548915-17536-3-git-send-email-tiffany.lin@mediatek.com>
-	 <1460548915-17536-4-git-send-email-tiffany.lin@mediatek.com>
-	 <5710FA3A.2030603@xs4all.nl> <1460958046.7861.48.camel@mtksdaap41>
-	 <57148D8E.9060601@xs4all.nl> <1460967754.7861.61.camel@mtksdaap41>
-	 <1461001697.2719.7.camel@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+	Thu, 21 Apr 2016 13:49:19 -0400
+Received: by mail-qk0-f181.google.com with SMTP id r184so28966443qkc.1
+        for <linux-media@vger.kernel.org>; Thu, 21 Apr 2016 10:49:18 -0700 (PDT)
+Date: Thu, 21 Apr 2016 14:49:14 -0300
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 2/2] tw686x-video: test for 60Hz instead of 50Hz
+Message-ID: <20160421174913.GB3696@laptop.cereza>
+References: <1461221420-45403-1-git-send-email-hverkuil@xs4all.nl>
+ <1461221420-45403-2-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1461221420-45403-2-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
-
-On Mon, 2016-04-18 at 13:48 -0400, Nicolas Dufresne wrote:
-> Le lundi 18 avril 2016 à 16:22 +0800, tiffany lin a écrit :
-> > > > We are plaining to remove m2m framework in th feature, although
-> > we think
-> > > 
-> > > Remove it for just the decoder driver or both encoder and decoder?
-> > > 
-> > Remove it from decoder driver.
+On 21 Apr 08:50 AM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Did you look at how CODA handle it (drivers/media/platform/coda/coda-
-> common.c) ? I don't know any detail, but they do have the same issue
-> and use both v4l2_m2m_fop_poll and v4l2_m2m_fop_mmap.
+> When determining if the standard is 50 or 60 Hz it is standard
+> practice to test for 60 Hz instead of 50 Hz.
 > 
-I check coda-common.c, it use v4l2_m2m_set_src_buffered to allow
-device_run be triggered without OUTPUT buffer.
+> This doesn't matter normally, except if the user specifies both
+> 60 and 50 Hz standards.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Double check the patch "[media] mem2mem: add support for hardware
-buffered queue".
-This patch make m2m framework could support that
-1. out-of-order frames, causing a few mem2mem device runs in the
-beginning, that don't produce any decompressed buffer at the v4l2
-capture side.
-2. the last few frames can be decoded from the bitstream with mem2mem
-device runs that don't need a new input buffer at the v4l2 output side.
+Acked-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
 
-This is similar our requirement that we want start decode without
-CAPTURE buffer.
-Is there any restriction that when v4l2_m2m_set_src_buffered can be
-used?
+Thanks for the fixes!
 
+> ---
+>  drivers/media/pci/tw686x/tw686x-video.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+> index 9a31de9..9cfee0a 100644
+> --- a/drivers/media/pci/tw686x/tw686x-video.c
+> +++ b/drivers/media/pci/tw686x/tw686x-video.c
+> @@ -25,7 +25,7 @@
+>  
+>  #define TW686X_INPUTS_PER_CH		4
+>  #define TW686X_VIDEO_WIDTH		720
+> -#define TW686X_VIDEO_HEIGHT(id)		((id & V4L2_STD_625_50) ? 576 : 480)
+> +#define TW686X_VIDEO_HEIGHT(id)		((id & V4L2_STD_525_60) ? 480 : 576)
+>  
+>  static const struct tw686x_format formats[] = {
+>  	{
+> @@ -518,10 +518,10 @@ static int tw686x_s_std(struct file *file, void *priv, v4l2_std_id id)
+>  	reg_write(vc->dev, SDT[vc->ch], val);
+>  
+>  	val = reg_read(vc->dev, VIDEO_CONTROL1);
+> -	if (id & V4L2_STD_625_50)
+> -		val |= (1 << (SYS_MODE_DMA_SHIFT + vc->ch));
+> -	else
+> +	if (id & V4L2_STD_525_60)
+>  		val &= ~(1 << (SYS_MODE_DMA_SHIFT + vc->ch));
+> +	else
+> +		val |= (1 << (SYS_MODE_DMA_SHIFT + vc->ch));
+>  	reg_write(vc->dev, VIDEO_CONTROL1, val);
+>  
+>  	/*
+> -- 
+> 2.8.0.rc3
+> 
 
-
-best regards,
-Tiffany
-
-> cheers,
-> Nicolas
-
-
+-- 
+Ezequiel Garcia, VanguardiaSur
+www.vanguardiasur.com.ar
