@@ -1,233 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db3on0111.outbound.protection.outlook.com ([157.55.234.111]:29312
-	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751899AbcDTPep (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2016 11:34:45 -0400
-From: Peter Rosin <peda@axentia.se>
-To: <linux-kernel@vger.kernel.org>
-CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Crestez Dan Leonard <leonard.crestez@intel.com>,
-	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v7 07/24] i2c: i2c-mux-reg: convert to use an explicit i2c mux core
-Date: Wed, 20 Apr 2016 17:17:47 +0200
-Message-ID: <1461165484-2314-8-git-send-email-peda@axentia.se>
-In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
-References: <1461165484-2314-1-git-send-email-peda@axentia.se>
+Received: from mail-qg0-f50.google.com ([209.85.192.50]:36031 "EHLO
+	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565AbcDUVFW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Apr 2016 17:05:22 -0400
+Received: by mail-qg0-f50.google.com with SMTP id d90so19910337qgd.3
+        for <linux-media@vger.kernel.org>; Thu, 21 Apr 2016 14:05:22 -0700 (PDT)
+Received: from ?IPv6:2001:4830:1600:505::2? (cl-1286.qas-01.us.sixxs.net. [2001:4830:1600:505::2])
+        by smtp.googlemail.com with ESMTPSA id 77sm1194914qgi.33.2016.04.21.14.05.20
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Thu, 21 Apr 2016 14:05:20 -0700 (PDT)
+To: linux-media@vger.kernel.org
+From: Dominic Chen <d.c.ddcc@gmail.com>
+Subject: [PATCH/RFC] dvb-core: drop stubs for llseek()
+Message-ID: <c9979b23-4aae-34bb-7423-1630c7df7cf7@gmail.com>
+Date: Thu, 21 Apr 2016 17:05:24 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select/deselect ops to be in terms of the i2c mux core
-instead of the child adapter.
+Since the default behavior in vfs_llseek() is now no_llseek(), and
+filp->f_pos / ppos are not actually used anywhere in dvb, drop the
+inconsistent llseek() stubs.
 
-Signed-off-by: Peter Rosin <peda@axentia.se>
+Signed-off-by: Dominic Chen <d.c.ddcc@gmail.com>
 ---
- drivers/i2c/muxes/i2c-mux-reg.c | 69 +++++++++++++++--------------------------
- 1 file changed, 25 insertions(+), 44 deletions(-)
+ drivers/media/dvb-core/dmxdev.c         | 2 --
+ drivers/media/dvb-core/dvb_ca_en50221.c | 1 -
+ drivers/media/dvb-core/dvb_frontend.c   | 1 -
+ drivers/media/dvb-core/dvb_net.c        | 1 -
+ drivers/media/dvb-core/dvbdev.c         | 1 -
+ 5 files changed, 6 deletions(-)
 
-diff --git a/drivers/i2c/muxes/i2c-mux-reg.c b/drivers/i2c/muxes/i2c-mux-reg.c
-index 5fbd5bd0878f..6773cadf7c9f 100644
---- a/drivers/i2c/muxes/i2c-mux-reg.c
-+++ b/drivers/i2c/muxes/i2c-mux-reg.c
-@@ -21,8 +21,6 @@
- #include <linux/slab.h>
- 
- struct regmux {
--	struct i2c_adapter *parent;
--	struct i2c_adapter **adap; /* child busses */
- 	struct i2c_mux_reg_platform_data data;
+diff --git a/drivers/media/dvb-core/dmxdev.c
+b/drivers/media/dvb-core/dmxdev.c
+index a168cbe..25494bf 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -1135,7 +1135,6 @@ static const struct file_operations dvb_demux_fops = {
+     .open = dvb_demux_open,
+     .release = dvb_demux_release,
+     .poll = dvb_demux_poll,
+-    .llseek = default_llseek,
  };
  
-@@ -64,18 +62,16 @@ static int i2c_mux_reg_set(const struct regmux *mux, unsigned int chan_id)
- 	return 0;
- }
+ static const struct dvb_device dvbdev_demux = {
+@@ -1211,7 +1210,6 @@ static const struct file_operations dvb_dvr_fops = {
+     .open = dvb_dvr_open,
+     .release = dvb_dvr_release,
+     .poll = dvb_dvr_poll,
+-    .llseek = default_llseek,
+ };
  
--static int i2c_mux_reg_select(struct i2c_adapter *adap, void *data,
--			      unsigned int chan)
-+static int i2c_mux_reg_select(struct i2c_mux_core *muxc, u32 chan)
+ static const struct dvb_device dvbdev_dvr = {
+diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c
+b/drivers/media/dvb-core/dvb_ca_en50221.c
+index f82cd1f..e736fb9 100644
+--- a/drivers/media/dvb-core/dvb_ca_en50221.c
++++ b/drivers/media/dvb-core/dvb_ca_en50221.c
+@@ -1636,7 +1636,6 @@ static const struct file_operations dvb_ca_fops = {
+     .open = dvb_ca_en50221_io_open,
+     .release = dvb_ca_en50221_io_release,
+     .poll = dvb_ca_en50221_io_poll,
+-    .llseek = noop_llseek,
+ };
+ 
+ static const struct dvb_device dvbdev_ca = {
+diff --git a/drivers/media/dvb-core/dvb_frontend.c
+b/drivers/media/dvb-core/dvb_frontend.c
+index c014261..e29543c 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2600,7 +2600,6 @@ static const struct file_operations
+dvb_frontend_fops = {
+     .poll        = dvb_frontend_poll,
+     .open        = dvb_frontend_open,
+     .release    = dvb_frontend_release,
+-    .llseek        = noop_llseek,
+ };
+ 
+ int dvb_frontend_suspend(struct dvb_frontend *fe)
+diff --git a/drivers/media/dvb-core/dvb_net.c
+b/drivers/media/dvb-core/dvb_net.c
+index ce6a711..d4af8d0 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -1457,7 +1457,6 @@ static const struct file_operations dvb_net_fops = {
+     .unlocked_ioctl = dvb_net_ioctl,
+     .open =    dvb_generic_open,
+     .release = dvb_net_close,
+-    .llseek = noop_llseek,
+ };
+ 
+ static const struct dvb_device dvbdev_net = {
+diff --git a/drivers/media/dvb-core/dvbdev.c
+b/drivers/media/dvb-core/dvbdev.c
+index e1684c5..bc8086d 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -101,7 +101,6 @@ static const struct file_operations dvb_device_fops =
  {
--	struct regmux *mux = data;
-+	struct regmux *mux = i2c_mux_priv(muxc);
+     .owner =    THIS_MODULE,
+     .open =        dvb_device_open,
+-    .llseek =    noop_llseek,
+ };
  
- 	return i2c_mux_reg_set(mux, chan);
- }
- 
--static int i2c_mux_reg_deselect(struct i2c_adapter *adap, void *data,
--				unsigned int chan)
-+static int i2c_mux_reg_deselect(struct i2c_mux_core *muxc, u32 chan)
- {
--	struct regmux *mux = data;
-+	struct regmux *mux = i2c_mux_priv(muxc);
- 
- 	if (mux->data.idle_in_use)
- 		return i2c_mux_reg_set(mux, mux->data.idle);
-@@ -85,7 +81,7 @@ static int i2c_mux_reg_deselect(struct i2c_adapter *adap, void *data,
- 
- #ifdef CONFIG_OF
- static int i2c_mux_reg_probe_dt(struct regmux *mux,
--					struct platform_device *pdev)
-+				struct platform_device *pdev)
- {
- 	struct device_node *np = pdev->dev.of_node;
- 	struct device_node *adapter_np, *child;
-@@ -107,7 +103,6 @@ static int i2c_mux_reg_probe_dt(struct regmux *mux,
- 	if (!adapter)
- 		return -EPROBE_DEFER;
- 
--	mux->parent = adapter;
- 	mux->data.parent = i2c_adapter_id(adapter);
- 	put_device(&adapter->dev);
- 
-@@ -161,7 +156,7 @@ static int i2c_mux_reg_probe_dt(struct regmux *mux,
- }
- #else
- static int i2c_mux_reg_probe_dt(struct regmux *mux,
--					struct platform_device *pdev)
-+				struct platform_device *pdev)
- {
- 	return 0;
- }
-@@ -169,10 +164,10 @@ static int i2c_mux_reg_probe_dt(struct regmux *mux,
- 
- static int i2c_mux_reg_probe(struct platform_device *pdev)
- {
-+	struct i2c_mux_core *muxc;
- 	struct regmux *mux;
- 	struct i2c_adapter *parent;
- 	struct resource *res;
--	int (*deselect)(struct i2c_adapter *, void *, u32);
- 	unsigned int class;
- 	int i, ret, nr;
- 
-@@ -180,17 +175,9 @@ static int i2c_mux_reg_probe(struct platform_device *pdev)
- 	if (!mux)
- 		return -ENOMEM;
- 
--	platform_set_drvdata(pdev, mux);
--
- 	if (dev_get_platdata(&pdev->dev)) {
- 		memcpy(&mux->data, dev_get_platdata(&pdev->dev),
- 			sizeof(mux->data));
--
--		parent = i2c_get_adapter(mux->data.parent);
--		if (!parent)
--			return -EPROBE_DEFER;
--
--		mux->parent = parent;
- 	} else {
- 		ret = i2c_mux_reg_probe_dt(mux, pdev);
- 		if (ret < 0) {
-@@ -199,6 +186,10 @@ static int i2c_mux_reg_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	parent = i2c_get_adapter(mux->data.parent);
-+	if (!parent)
-+		return -EPROBE_DEFER;
-+
- 	if (!mux->data.reg) {
- 		dev_info(&pdev->dev,
- 			"Register not set, using platform resource\n");
-@@ -215,55 +206,45 @@ static int i2c_mux_reg_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	mux->adap = devm_kzalloc(&pdev->dev,
--				 sizeof(*mux->adap) * mux->data.n_values,
--				 GFP_KERNEL);
--	if (!mux->adap) {
--		dev_err(&pdev->dev, "Cannot allocate i2c_adapter structure");
-+	muxc = i2c_mux_alloc(parent, &pdev->dev, mux->data.n_values, 0, 0,
-+			     i2c_mux_reg_select, NULL);
-+	if (!muxc)
- 		return -ENOMEM;
--	}
-+	muxc->priv = mux;
-+
-+	platform_set_drvdata(pdev, muxc);
- 
- 	if (mux->data.idle_in_use)
--		deselect = i2c_mux_reg_deselect;
--	else
--		deselect = NULL;
-+		muxc->deselect = i2c_mux_reg_deselect;
- 
- 	for (i = 0; i < mux->data.n_values; i++) {
- 		nr = mux->data.base_nr ? (mux->data.base_nr + i) : 0;
- 		class = mux->data.classes ? mux->data.classes[i] : 0;
- 
--		mux->adap[i] = i2c_add_mux_adapter(mux->parent, &pdev->dev, mux,
--						   nr, mux->data.values[i],
--						   class, i2c_mux_reg_select,
--						   deselect);
--		if (!mux->adap[i]) {
--			ret = -ENODEV;
-+		ret = i2c_mux_add_adapter(muxc, nr, mux->data.values[i], class);
-+		if (ret) {
- 			dev_err(&pdev->dev, "Failed to add adapter %d\n", i);
- 			goto add_adapter_failed;
- 		}
- 	}
- 
- 	dev_dbg(&pdev->dev, "%d port mux on %s adapter\n",
--		 mux->data.n_values, mux->parent->name);
-+		 mux->data.n_values, muxc->parent->name);
- 
- 	return 0;
- 
- add_adapter_failed:
--	for (; i > 0; i--)
--		i2c_del_mux_adapter(mux->adap[i - 1]);
-+	i2c_mux_del_adapters(muxc);
- 
- 	return ret;
- }
- 
- static int i2c_mux_reg_remove(struct platform_device *pdev)
- {
--	struct regmux *mux = platform_get_drvdata(pdev);
--	int i;
--
--	for (i = 0; i < mux->data.n_values; i++)
--		i2c_del_mux_adapter(mux->adap[i]);
-+	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
- 
--	i2c_put_adapter(mux->parent);
-+	i2c_mux_del_adapters(muxc);
-+	i2c_put_adapter(muxc->parent);
- 
- 	return 0;
- }
+ static struct cdev dvb_device_cdev;
 -- 
-2.1.4
+1.9.1
 
