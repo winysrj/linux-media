@@ -1,65 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44508 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932206AbcDYMZF (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:32773 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751237AbcDUGub (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 08:25:05 -0400
+	Thu, 21 Apr 2016 02:50:31 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv15 06/15] cec: add compat32 ioctl support
-Date: Mon, 25 Apr 2016 14:24:33 +0200
-Message-Id: <1461587082-48041-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
+Cc: ezequiel@vanguardiasur.com.ar,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/2] tw686x-video: test for 60Hz instead of 50Hz
+Date: Thu, 21 Apr 2016 08:50:20 +0200
+Message-Id: <1461221420-45403-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461221420-45403-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461221420-45403-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The CEC ioctls didn't have compat32 support, so they returned -ENOTTY
-when used in a 32 bit application on a 64 bit kernel.
+When determining if the standard is 50 or 60 Hz it is standard
+practice to test for 60 Hz instead of 50 Hz.
 
-Since all the CEC ioctls are 32-bit compatible adding support for this
-API is trivial.
+This doesn't matter normally, except if the user specifies both
+60 and 50 Hz standards.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- fs/compat_ioctl.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/media/pci/tw686x/tw686x-video.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
-index bd01b92..c1e9f29 100644
---- a/fs/compat_ioctl.c
-+++ b/fs/compat_ioctl.c
-@@ -57,6 +57,7 @@
- #include <linux/i2c-dev.h>
- #include <linux/atalk.h>
- #include <linux/gfp.h>
-+#include <linux/cec.h>
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index 9a31de9..9cfee0a 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -25,7 +25,7 @@
  
- #include "internal.h"
+ #define TW686X_INPUTS_PER_CH		4
+ #define TW686X_VIDEO_WIDTH		720
+-#define TW686X_VIDEO_HEIGHT(id)		((id & V4L2_STD_625_50) ? 576 : 480)
++#define TW686X_VIDEO_HEIGHT(id)		((id & V4L2_STD_525_60) ? 480 : 576)
  
-@@ -1377,6 +1378,17 @@ COMPATIBLE_IOCTL(VIDEO_GET_NAVI)
- COMPATIBLE_IOCTL(VIDEO_SET_ATTRIBUTES)
- COMPATIBLE_IOCTL(VIDEO_GET_SIZE)
- COMPATIBLE_IOCTL(VIDEO_GET_FRAME_RATE)
-+/* cec */
-+COMPATIBLE_IOCTL(CEC_ADAP_G_CAPS)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_LOG_ADDRS)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_LOG_ADDRS)
-+COMPATIBLE_IOCTL(CEC_ADAP_G_PHYS_ADDR)
-+COMPATIBLE_IOCTL(CEC_ADAP_S_PHYS_ADDR)
-+COMPATIBLE_IOCTL(CEC_G_MODE)
-+COMPATIBLE_IOCTL(CEC_S_MODE)
-+COMPATIBLE_IOCTL(CEC_TRANSMIT)
-+COMPATIBLE_IOCTL(CEC_RECEIVE)
-+COMPATIBLE_IOCTL(CEC_DQEVENT)
+ static const struct tw686x_format formats[] = {
+ 	{
+@@ -518,10 +518,10 @@ static int tw686x_s_std(struct file *file, void *priv, v4l2_std_id id)
+ 	reg_write(vc->dev, SDT[vc->ch], val);
  
- /* joystick */
- COMPATIBLE_IOCTL(JSIOCGVERSION)
+ 	val = reg_read(vc->dev, VIDEO_CONTROL1);
+-	if (id & V4L2_STD_625_50)
+-		val |= (1 << (SYS_MODE_DMA_SHIFT + vc->ch));
+-	else
++	if (id & V4L2_STD_525_60)
+ 		val &= ~(1 << (SYS_MODE_DMA_SHIFT + vc->ch));
++	else
++		val |= (1 << (SYS_MODE_DMA_SHIFT + vc->ch));
+ 	reg_write(vc->dev, VIDEO_CONTROL1, val);
+ 
+ 	/*
 -- 
-2.8.1
+2.8.0.rc3
 
