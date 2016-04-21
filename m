@@ -1,75 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dimen.winder.org.uk ([87.127.116.10]:49630 "EHLO
-	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752074AbcDVIZS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 04:25:18 -0400
-Message-ID: <1461313513.15101.23.camel@winder.org.uk>
-Subject: Re: libdvbv5 licencing
-From: Russel Winder <russel@winder.org.uk>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: DVB_Linux_Media <linux-media@vger.kernel.org>,
-	Sebastian =?ISO-8859-1?Q?Dr=F6ge?= <slomo@coaxion.net>
-Date: Fri, 22 Apr 2016 09:25:13 +0100
-In-Reply-To: <20160419163634.5ee8de2c@recife.lan>
-References: <1458972788.3344.8.camel@winder.org.uk>
-	 <20160412111945.22846572@recife.lan>
-	 <1460562055.28492.27.camel@winder.org.uk>
-	 <20160419163634.5ee8de2c@recife.lan>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-0+44YjkojBS/2Tkpv4b0"
-Mime-Version: 1.0
+Received: from mga04.intel.com ([192.55.52.120]:3703 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751783AbcDUMdg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Apr 2016 08:33:36 -0400
+From: Crestez Dan Leonard <leonard.crestez@intel.com>
+Subject: Re: [PATCH v7 00/24] i2c mux cleanup and locking update
+To: Peter Rosin <peda@axentia.se>, linux-kernel@vger.kernel.org
+References: <1461165484-2314-1-git-send-email-peda@axentia.se>
+Cc: Wolfram Sang <wsa@the-dreams.de>, Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Message-ID: <5718C896.9070302@intel.com>
+Date: Thu, 21 Apr 2016 15:33:26 +0300
+MIME-Version: 1.0
+In-Reply-To: <1461165484-2314-1-git-send-email-peda@axentia.se>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 04/20/2016 06:17 PM, Peter Rosin wrote:
+> v7 compared to v6:
+> - Removed i2c_mux_reserve_adapters, and all realloc attempts in
+>   i2c_mux_add_adapter. Supply a maximum number of adapters in i2c_mux_alloc
+>   instead.
+> - Removed i2c_mux_one_adapter since it is was hard to use correctly, which
+>   was evident from the crash in the mpu6050 driver (on a mpu9150 chip) reported
+>   by Crestez Dan Leonard. Also, it didn't make things all that much simpler
+>   anyway (even if used correctly).
+> - Rename i2c_mux_core:adapters into i2c_mux_core:num_adapters.
+> - Some grammar and spelling fixes.
 
---=-0+44YjkojBS/2Tkpv4b0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, 2016-04-19 at 16:36 -0300, Mauro Carvalho Chehab wrote:
-> [=E2=80=A6]
-> License changed.
-
-Thank you, this is great news.
-
-GStreamer dvbsrc rewrite now on the starting blocks: lots of code
-"replication" deletion first thing on the agenda.
-
---=20
-Russel.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
-et
-41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
-London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
-
-
---=-0+44YjkojBS/2Tkpv4b0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAABCgAGBQJXGd/pAAoJENS91dLOzae4UAYP/iv2JWp4+sYgnPEmArSpcY+6
-DYwl9DIVI5cDSlJVovnfGBh+snSRYaSCRPMyVOGhzIsC50eqJ8yynJHyzia1oeDa
-QsrD3NNKygXKw4nNhb80ZMwG5RQ78RO+/YjY+k0zZ7aVysi0Z3Z1AtdRtlayyNkk
-+DXgpw1uwbvBWWUm0CD/Cgt+4Wf++WqpQ+T298mrYTQ0uKMOwaxxUJeI8Lfh+A7W
-UkOvTar/jplihSWh9x+f9h5dpwW0OoCBic18QEl1s5GDQvci72eB/WBgQi0rtgHM
-PfemxTZ/NtPZog6lPZpOPVblVvOT/kHpoTo0sNxeTbPm5cFkklnWeZgDHP4G6Jpl
-wMCn1YfPHgvhRPCcA2iyixwBBpk/5E/QnV+SlzY8z8drBYgT3irnYqlsU4yxX67S
-rcg6TfbZYEgl5iMjJ28ym6JSQ0LjYV2PkMXSXhrjR8pMvR0C6RDPGmhKdW019LRw
-WjatyIc5B4BzkR+cbQMdxbpUi4C/3mafrMgElLwadQTEZ0+sfauTzCP6EXUzSIjo
-5nZr8WUwBCBz4jR3cXoJ/EoD99L4H9Ho9fiOhYGNTFBmU0hHMMNmw7wizBqd2AjB
-lmgzqtY2Z6EYIbURiEisgKo0rvMMGaRp+THhMNI9MB6Akq+3BSgey+e4/0hr54va
-kMsbgeaTse9BNdTLITU6
-=A3Hx
------END PGP SIGNATURE-----
-
---=-0+44YjkojBS/2Tkpv4b0--
-
+I tested this new version on mpu9150 and there are no more obvious
+deadlocks or crashes. The magnetometer and accel/gyro can be used at the
+same time without issues.
