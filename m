@@ -1,137 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41346 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751634AbcD2K7v (ORCPT
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:35234 "EHLO
+	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565AbcDUQK3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 06:59:51 -0400
-Date: Fri, 29 Apr 2016 13:59:44 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
-	sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-	patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org
-Subject: Re: v4l subdevs without big device was Re:
- drivers/media/i2c/adp1653.c: does not show as /dev/video* or v4l-subdev*
-Message-ID: <20160429105944.GH32125@valkosipuli.retiisi.org.uk>
-References: <20160428084546.GA9957@amd>
- <20160429071525.GA4823@amd>
- <57230DE7.3020701@xs4all.nl>
- <20160429075649.GG32125@valkosipuli.retiisi.org.uk>
- <20160429095002.GA22743@amd>
+	Thu, 21 Apr 2016 12:10:29 -0400
+Received: by mail-wm0-f42.google.com with SMTP id e201so92818118wme.0
+        for <linux-media@vger.kernel.org>; Thu, 21 Apr 2016 09:10:28 -0700 (PDT)
+Date: Thu, 21 Apr 2016 18:10:25 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] drm: rcar-du: Add Z-order support for VSP planes
+Message-ID: <20160421161025.GD2510@phenom.ffwll.local>
+References: <1461201253-12170-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1461201253-12170-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20160429095002.GA22743@amd>
+In-Reply-To: <1461201253-12170-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
-
-On Fri, Apr 29, 2016 at 11:50:02AM +0200, Pavel Machek wrote:
-> Hi!
+On Thu, Apr 21, 2016 at 04:14:12AM +0300, Laurent Pinchart wrote:
+> Make the Z-order of VSP planes configurable through the zpos property,
+> exactly as for the native DU planes.
 > 
-> > > > adp1653 registers itself as a subdev, but there's no device that
-> > > > register it as its part.
-> > > > 
-> > > > (ad5820 driver seems to have the same problem).
-> > > > 
-> > > > Is there example "dummy" device I could use, for sole purpose of
-> > > > having these devices appear in /dev? They are on i2c, so both can work
-> > > > on their own.
-> > > 
-> > > Ah, interesting. This was discussed a little bit during the Media Summit
-> > > a few weeks back:
-> > > 
-> > > http://linuxtv.org/news.php?entry=2016-04-20.mchehab
-> > > 
-> > > See section 5:
-> > > 
-> > > "5. DT Bindings for flash & lens controllers
-> > > 
-> > > There are drivers that create their MC topology using the device tree information,
-> > > which works great for entities that transport data, but how to detect entities
-> > > that don’t transport data such as flash devices, focusers, etc.? How can those be
-> > > deduced using the device tree?
-> > > 
-> > > Sensor DT node add phandle to focus controller: add generic v4l binding properties
-> > > to reference such devices."
-> > > 
-> > > This wasn't a problem with the original N900 since that didn't use DT AFAIK and
-> > > these devices were loaded explicitly through board code.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c | 16 ++++++++++++----
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.h |  2 ++
+>  2 files changed, 14 insertions(+), 4 deletions(-)
 > 
-> > > But now you run into the same problem that I have.
-> 
-> Actually... being able to do board-code solution for testing for now
-> would be nice...
-> 
-> > > 
-> > > The solution is that sensor devices have to provide phandles to those controller
-> > > devices. And to do that you need to define bindings which is always the hard part.
-> > > 
-> > > Look in Documentation/devicetree/bindings/media/video-interfaces.txt, section
-> > > "Optional endpoint properties".
-> > > 
-> > > Something like:
-> > > 
-> > > controllers: an array of phandles to controller devices associated with this
-> > > endpoint such as flash and lens controllers.
-> > > 
-> > > Warning: I'm no DT expert, so this is just a first attempt.
-> > > 
-> > > Platform drivers (omap3isp) will have to add these controller devices to the list
-> > > of subdevs to load asynchronously.
-> > 
-> > I seem to have patches I haven't had time to push back then:
-> > 
-> > <URL:http://salottisipuli.retiisi.org.uk/cgi-bin/gitweb.cgi?p=~sailus/linux.git;a=shortlog;h=refs/heads/leds-as3645a>
-> >
-> 
-> That gitweb is a bit confused about its own address, but I figured it
-> out. Let me check...
-> 
-> pavel@amd:/data/l/linux-n900$ git fetch
-> git://git.retiisi.org.uk/~sailus/linux.git leds-as3645a:leds-as3645a
-> fatal: unable to connect to git.retiisi.org.uk:
-> git.retiisi.org.uk: Name or service not known
-> 
-> pavel@amd:/data/l/linux-n900$ git fetch
-> git://salottisipuli.retiisi.org.uk/~sailus/linux.git
-> leds-as3645a:leds-as3645a
-> remote: Counting objects: 132, done.
-> remote: Compressing objects: 100% (46/46), done.
-> remote: Total 132 (delta 111), reused 107 (delta 86)
-> Receiving objects: 100% (132/132), 22.80 KiB | 0 bytes/s, done.
-> Resolving deltas: 100% (111/111), completed with 34 local objects.
-> From git://salottisipuli.retiisi.org.uk/~sailus/linux
->  * [new branch]      leds-as3645a -> leds-as3645a
-
-Yeah, that works, too. git alias has been added some three weeks ago so
-there seem to be something strange going on with DNS.
-
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> index de7ef041182b..62e9619eaea4 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+> @@ -180,8 +180,9 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
 >  
-> 
-> > This seems to be mostly in line with what has been discussed in the meeting,
-> > except that the patches add a device specific property. Please ignore the
-> > led patches in that tree for now (i.e. four patches on the top are the
-> > relevant ones here).
-> > 
-> 
-> I'm currently trying to apply them to v4.6, but am getting rather ugly
-> rejects :-(.
+>  	WARN_ON(!pixelformat);
+>  
+> -	vsp1_du_atomic_update(plane->vsp->vsp, plane->index, pixelformat,
+> -			      fb->pitches[0], paddr, &src, &dst);
+> +	vsp1_du_atomic_update_zpos(plane->vsp->vsp, plane->index, pixelformat,
+> +				   fb->pitches[0], paddr, &src, &dst,
+> +				   state->zpos);
+>  }
+>  
+>  static int rcar_du_vsp_plane_atomic_check(struct drm_plane *plane,
+> @@ -220,8 +221,8 @@ static void rcar_du_vsp_plane_atomic_update(struct drm_plane *plane,
+>  	if (plane->state->crtc)
+>  		rcar_du_vsp_plane_setup(rplane);
+>  	else
+> -		vsp1_du_atomic_update(rplane->vsp->vsp, rplane->index, 0, 0, 0,
+> -				      NULL, NULL);
+> +		vsp1_du_atomic_update_zpos(rplane->vsp->vsp, rplane->index,
+> +					   0, 0, 0, NULL, NULL, 0);
+>  }
+>  
+>  static const struct drm_plane_helper_funcs rcar_du_vsp_plane_helper_funcs = {
+> @@ -269,6 +270,7 @@ static void rcar_du_vsp_plane_reset(struct drm_plane *plane)
+>  		return;
+>  
+>  	state->alpha = 255;
+> +	state->zpos = plane->type == DRM_PLANE_TYPE_PRIMARY ? 0 : 1;
+>  
+>  	plane->state = &state->state;
+>  	plane->state->plane = plane;
+> @@ -283,6 +285,8 @@ static int rcar_du_vsp_plane_atomic_set_property(struct drm_plane *plane,
+>  
+>  	if (property == rcdu->props.alpha)
+>  		rstate->alpha = val;
+> +	else if (property == rcdu->props.zpos)
+> +		rstate->zpos = val;
+>  	else
+>  		return -EINVAL;
+>  
+> @@ -299,6 +303,8 @@ static int rcar_du_vsp_plane_atomic_get_property(struct drm_plane *plane,
+>  
+>  	if (property == rcdu->props.alpha)
+>  		*val = rstate->alpha;
+> +	else if (property == rcdu->props.zpos)
+> +		*val = rstate->zpos;
+>  	else
+>  		return -EINVAL;
+>  
+> @@ -378,6 +384,8 @@ int rcar_du_vsp_init(struct rcar_du_vsp *vsp)
+>  
+>  		drm_object_attach_property(&plane->plane.base,
+>  					   rcdu->props.alpha, 255);
+> +		drm_object_attach_property(&plane->plane.base,
+> +					   rcdu->props.zpos, 1);
+>  	}
+>  
+>  	return 0;
+> diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+> index df3bf3805c69..510dcc9c6816 100644
+> --- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+> +++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
+> @@ -44,6 +44,7 @@ static inline struct rcar_du_vsp_plane *to_rcar_vsp_plane(struct drm_plane *p)
+>   * @state: base DRM plane state
+>   * @format: information about the pixel format used by the plane
+>   * @alpha: value of the plane alpha property
+> + * @zpos: value of the plane zpos property
+>   */
+>  struct rcar_du_vsp_plane_state {
+>  	struct drm_plane_state state;
+> @@ -51,6 +52,7 @@ struct rcar_du_vsp_plane_state {
+>  	const struct rcar_du_format_info *format;
+>  
+>  	unsigned int alpha;
+> +	unsigned int zpos;
 
-:-\
+There's lots of effort by various people to create a generic zpos/blending
+set of properties. Care to jump onto that effort and making it finally
+happen for real? I kinda don't want to have a propliferation of slightly
+diffferent zpos/blending props across all the drivers ...
+-Daniel
 
-There have been patches applied to the omap3isp driver since that I suppose.
-These aren't overly complex, feel free to take the patches if they're still
-useful.
+>  };
+>  
+>  static inline struct rcar_du_vsp_plane_state *
+> -- 
+> 2.7.3
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
