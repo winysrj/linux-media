@@ -1,148 +1,360 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35318 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898AbcDWAN5 (ORCPT
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:56464 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751282AbcDUJl1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 20:13:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Thu, 21 Apr 2016 05:41:27 -0400
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
 	Florian Echtler <floe@butterbrot.org>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Benoit Parrot <bparrot@ti.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCHv3 01/12] vb2: add a dev field to use for the default allocation context
-Date: Sat, 23 Apr 2016 03:14:13 +0300
-Message-ID: <2941455.gjxYJiS6KM@avalon>
-In-Reply-To: <1461314299-36126-2-git-send-email-hverkuil@xs4all.nl>
-References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl> <1461314299-36126-2-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Nick Dyer <nick.dyer@itdev.co.uk>
+Subject: [PATCH 2/8] Input: atmel_mxt_ts - output diagnostic debug via v4l2 device
+Date: Thu, 21 Apr 2016 10:31:35 +0100
+Message-Id: <1461231101-1237-3-git-send-email-nick.dyer@itdev.co.uk>
+In-Reply-To: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
+References: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+---
+ drivers/input/touchscreen/atmel_mxt_ts.c | 270 +++++++++++++++++++++++++++++++
+ 1 file changed, 270 insertions(+)
 
-Thank you for the patch.
-
-On Friday 22 Apr 2016 10:38:08 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The allocation context is nothing more than a per-plane device pointer
-> to use when allocating buffers. So just provide a dev pointer in vb2_queue
-> for that purpose and drivers can skip allocating/releasing/filling in
-> the allocation context unless they require different per-plane device
-> pointers as used by some Samsung SoCs.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Cc: Florian Echtler <floe@butterbrot.org>
-> Cc: Federico Vaga <federico.vaga@gmail.com>
-> Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-> Cc: Philipp Zabel <p.zabel@pengutronix.de>
-> Cc: Fabien Dessenne <fabien.dessenne@st.com>
-> Cc: Benoit Parrot <bparrot@ti.com>
-> Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Javier Martin <javier.martin@vista-silicon.com>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 16 +++++++++-------
->  include/media/videobuf2-core.h           |  3 +++
->  2 files changed, 12 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index 5d016f4..88b5e48 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -206,8 +206,9 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
->  	for (plane = 0; plane < vb->num_planes; ++plane) {
->  		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
-> 
-> -		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
-> -				      size, dma_dir, q->gfp_flags);
-> +		mem_priv = call_ptr_memop(vb, alloc,
-> +				q->alloc_ctx[plane] ? : &q->dev,
-> +				size, dma_dir, q->gfp_flags);
-
-While the videobuf2-dma-sg allocation context indeed only contains a pointer 
-to the device, the videobuf2-dma-contig context also contains a dma_attrs. 
-This patch will break the videobuf2-dma-contig alloc implementation.
-
->  		if (IS_ERR_OR_NULL(mem_priv))
->  			goto free;
-> 
-> @@ -1131,9 +1132,10 @@ static int __qbuf_userptr(struct vb2_buffer *vb,
-> const void *pb) vb->planes[plane].data_offset = 0;
-> 
->  		/* Acquire each plane's memory */
-> -		mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
-> -				      planes[plane].m.userptr,
-> -				      planes[plane].length, dma_dir);
-> +		mem_priv = call_ptr_memop(vb, get_userptr,
-> +				q->alloc_ctx[plane] ? : &q->dev,
-> +				planes[plane].m.userptr,
-> +				planes[plane].length, dma_dir);
->  		if (IS_ERR_OR_NULL(mem_priv)) {
->  			dprintk(1, "failed acquiring userspace "
->  						"memory for plane %d\n", plane);
-> @@ -1256,8 +1258,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const
-> void *pb)
-> 
->  		/* Acquire each plane's memory */
->  		mem_priv = call_ptr_memop(vb, attach_dmabuf,
-> -			q->alloc_ctx[plane], dbuf, planes[plane].length,
-> -			dma_dir);
-> +				q->alloc_ctx[plane] ? : &q->dev,
-> +				dbuf, planes[plane].length, dma_dir);
->  		if (IS_ERR(mem_priv)) {
->  			dprintk(1, "failed to attach dmabuf\n");
->  			ret = PTR_ERR(mem_priv);
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 8a0f55b..0f8b97b 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -397,6 +397,8 @@ struct vb2_buf_ops {
->   *		caller. For example, for V4L2, it should match
->   *		the V4L2_BUF_TYPE_* in include/uapi/linux/videodev2.h
->   * @io_modes:	supported io methods (see vb2_io_modes enum)
-> + * @dev:	device to use for the default allocation context if the driver
-> + *		doesn't fill in the @alloc_ctx array.
->   * @fileio_read_once:		report EOF after reading the first buffer
->   * @fileio_write_immediately:	queue buffer after each write() call
->   * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
-> @@ -460,6 +462,7 @@ struct vb2_buf_ops {
->  struct vb2_queue {
->  	unsigned int			type;
->  	unsigned int			io_modes;
-> +	struct device			*dev;
->  	unsigned			fileio_read_once:1;
->  	unsigned			fileio_write_immediately:1;
->  	unsigned			allow_zero_bytesused:1;
-
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index 0784a18..81eecf1 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -28,6 +28,10 @@
+ #include <linux/of.h>
+ #include <linux/slab.h>
+ #include <asm/unaligned.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-v4l2.h>
++#include <media/videobuf2-vmalloc.h>
+ 
+ /* Firmware files */
+ #define MXT_FW_NAME		"maxtouch.fw"
+@@ -222,6 +226,23 @@ struct mxt_dbg {
+ 	struct t37_debug *t37_buf;
+ 	unsigned int t37_pages;
+ 	unsigned int t37_nodes;
++
++	struct v4l2_device v4l2;
++	struct v4l2_pix_format format;
++	struct video_device vdev;
++	struct vb2_queue queue;
++	struct mutex lock;
++	int input;
++};
++
++static const struct v4l2_file_operations mxt_video_fops = {
++	.owner = THIS_MODULE,
++	.open = v4l2_fh_open,
++	.release = vb2_fop_release,
++	.unlocked_ioctl = video_ioctl2,
++	.read = vb2_fop_read,
++	.mmap = vb2_fop_mmap,
++	.poll = vb2_fop_poll,
+ };
+ 
+ /* Each client has this additional data */
+@@ -277,6 +298,11 @@ struct mxt_data {
+ 	struct completion crc_completion;
+ };
+ 
++struct mxt_vb2_buffer {
++	struct vb2_buffer	vb;
++	struct list_head	list;
++};
++
+ static size_t mxt_obj_size(const struct mxt_object *obj)
+ {
+ 	return obj->size_minus_one + 1;
+@@ -1523,6 +1549,9 @@ static void mxt_free_input_device(struct mxt_data *data)
+ 
+ static void mxt_free_object_table(struct mxt_data *data)
+ {
++	video_unregister_device(&data->dbg.vdev);
++	v4l2_device_unregister(&data->dbg.v4l2);
++
+ 	kfree(data->object_table);
+ 	data->object_table = NULL;
+ 	kfree(data->msg_buf);
+@@ -2154,10 +2183,215 @@ wait_cmd:
+ 	return mxt_convert_debug_pages(data, outbuf);
+ }
+ 
++static int mxt_queue_setup(struct vb2_queue *q,
++		       unsigned int *nbuffers, unsigned int *nplanes,
++		       unsigned int sizes[], void *alloc_ctxs[])
++{
++	struct mxt_data *data = q->drv_priv;
++
++	*nbuffers = 1;
++	*nplanes = 1;
++	sizes[0] = data->dbg.t37_nodes * sizeof(u16);
++
++	return 0;
++}
++
++static int mxt_buffer_prepare(struct vb2_buffer *vb)
++{
++	return 0;
++}
++
++static void mxt_buffer_queue(struct vb2_buffer *vb)
++{
++	struct mxt_data *data = vb2_get_drv_priv(vb->vb2_queue);
++	u16 *ptr;
++	int ret;
++
++	ptr = vb2_plane_vaddr(vb, 0);
++	if (!ptr) {
++		dev_err(&data->client->dev, "Error acquiring frame ptr\n");
++		goto fault;
++	}
++
++	ret = mxt_read_diagnostic_debug(data, MXT_DIAGNOSTIC_DELTAS, ptr);
++	if (ret)
++		goto fault;
++
++	vb2_set_plane_payload(vb, 0, data->dbg.t37_nodes * sizeof(u16));
++	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
++	return;
++
++fault:
++	vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
++}
++
++/* V4L2 structures */
++static const struct vb2_ops mxt_queue_ops = {
++	.queue_setup		= mxt_queue_setup,
++	.buf_prepare		= mxt_buffer_prepare,
++	.buf_queue		= mxt_buffer_queue,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
++};
++
++static const struct vb2_queue mxt_queue = {
++	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
++	.io_modes = VB2_MMAP,
++	.buf_struct_size = sizeof(struct mxt_vb2_buffer),
++	.ops = &mxt_queue_ops,
++	.mem_ops = &vb2_vmalloc_memops,
++	.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC,
++	.min_buffers_needed = 1,
++};
++
++static int mxt_vidioc_querycap(struct file *file, void *priv,
++				 struct v4l2_capability *cap)
++{
++	struct mxt_data *data = video_drvdata(file);
++
++	strlcpy(cap->driver, "atmel_mxt_ts", sizeof(cap->driver));
++	strlcpy(cap->card, "atmel_mxt_ts touch", sizeof(cap->card));
++	strlcpy(cap->bus_info, data->phys, sizeof(cap->bus_info));
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
++		V4L2_CAP_READWRITE |
++		V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++
++	return 0;
++}
++
++static int mxt_vidioc_enum_input(struct file *file, void *priv,
++				   struct v4l2_input *i)
++{
++	if (i->index > 0)
++		return -EINVAL;
++
++	i->type = V4L2_INPUT_TYPE_CAMERA;
++	i->std = V4L2_STD_UNKNOWN;
++	i->capabilities = 0;
++	strlcpy(i->name, "Mutual References", sizeof(i->name));
++	return 0;
++}
++
++static int mxt_set_input(struct mxt_data *data, unsigned int i)
++{
++	struct v4l2_pix_format *f = &data->dbg.format;
++
++	if (i > 0)
++		return -EINVAL;
++
++	f->width = data->info.matrix_xsize;
++	f->height = data->info.matrix_ysize;
++	f->pixelformat = V4L2_PIX_FMT_Y16;
++	f->field = V4L2_FIELD_NONE;
++	f->colorspace = V4L2_COLORSPACE_SRGB;
++	f->bytesperline = f->width * sizeof(u16);
++	f->sizeimage = f->width * f->height * sizeof(u16);
++
++	data->dbg.input = i;
++
++	return 0;
++}
++
++static int mxt_vidioc_s_input(struct file *file, void *priv, unsigned int i)
++{
++	return mxt_set_input(video_drvdata(file), i);
++}
++
++static int mxt_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
++{
++	struct mxt_data *data = video_drvdata(file);
++
++	*i = data->dbg.input;
++
++	return 0;
++}
++
++static int mxt_vidioc_fmt(struct file *file, void *priv, struct v4l2_format *f)
++{
++	struct mxt_data *data = video_drvdata(file);
++
++	f->fmt.pix = data->dbg.format;
++
++	return 0;
++}
++
++static int mxt_vidioc_enum_fmt(struct file *file, void *priv,
++				 struct v4l2_fmtdesc *fmt)
++{
++	if (fmt->index > 0 || fmt->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	fmt->pixelformat = V4L2_PIX_FMT_Y16;
++	strlcpy(fmt->description, "16-bit raw debug data",
++		sizeof(fmt->description));
++	fmt->flags = 0;
++	return 0;
++}
++
++static int mxt_vidioc_enum_framesizes(struct file *file, void *priv,
++					struct v4l2_frmsizeenum *f)
++{
++	struct mxt_data *data = video_drvdata(file);
++
++	if (f->index > 0)
++		return -EINVAL;
++
++	f->discrete.width = data->info.matrix_xsize;
++	f->discrete.height = data->info.matrix_ysize;
++	f->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++	return 0;
++}
++
++static int mxt_vidioc_enum_frameintervals(struct file *file, void *priv,
++					  struct v4l2_frmivalenum *f)
++{
++	if ((f->index > 0) || (f->pixel_format != V4L2_PIX_FMT_Y16))
++		return -EINVAL;
++
++	f->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++	f->discrete.denominator  = 10;
++	f->discrete.numerator = 1;
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops mxt_video_ioctl_ops = {
++	.vidioc_querycap        = mxt_vidioc_querycap,
++
++	.vidioc_enum_fmt_vid_cap = mxt_vidioc_enum_fmt,
++	.vidioc_s_fmt_vid_cap   = mxt_vidioc_fmt,
++	.vidioc_g_fmt_vid_cap   = mxt_vidioc_fmt,
++
++	.vidioc_enum_framesizes = mxt_vidioc_enum_framesizes,
++	.vidioc_enum_frameintervals = mxt_vidioc_enum_frameintervals,
++
++	.vidioc_enum_input      = mxt_vidioc_enum_input,
++	.vidioc_g_input         = mxt_vidioc_g_input,
++	.vidioc_s_input         = mxt_vidioc_s_input,
++
++	.vidioc_reqbufs         = vb2_ioctl_reqbufs,
++	.vidioc_create_bufs     = vb2_ioctl_create_bufs,
++	.vidioc_querybuf        = vb2_ioctl_querybuf,
++	.vidioc_qbuf            = vb2_ioctl_qbuf,
++	.vidioc_dqbuf           = vb2_ioctl_dqbuf,
++	.vidioc_expbuf          = vb2_ioctl_expbuf,
++
++	.vidioc_streamon        = vb2_ioctl_streamon,
++	.vidioc_streamoff       = vb2_ioctl_streamoff,
++};
++
++static const struct video_device mxt_video_device = {
++	.name = "Atmel maxTouch",
++	.fops = &mxt_video_fops,
++	.ioctl_ops = &mxt_video_ioctl_ops,
++	.release = video_device_release_empty,
++};
++
+ static void mxt_debug_init(struct mxt_data *data)
+ {
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	struct mxt_object *object;
++	int error;
+ 
+ 	object = mxt_get_object(data, MXT_GEN_COMMAND_T6);
+ 	if (!object)
+@@ -2187,8 +2421,44 @@ static void mxt_debug_init(struct mxt_data *data)
+ 	if (!dbg->t37_buf)
+ 		goto error;
+ 
++	/* init channel to zero */
++	mxt_set_input(data, 0);
++
++	/* register video device */
++	snprintf(dbg->v4l2.name, sizeof(dbg->v4l2.name), "%s", "atmel_mxt_ts");
++	error = v4l2_device_register(&data->client->dev, &dbg->v4l2);
++	if (error) {
++		dev_err(&data->client->dev, "Unable to register video master device.");
++		goto error;
++	}
++
++	/* initialize the queue */
++	mutex_init(&dbg->lock);
++	dbg->queue = mxt_queue;
++	dbg->queue.drv_priv = data;
++	dbg->queue.lock = &dbg->lock;
++
++	error = vb2_queue_init(&dbg->queue);
++	if (error)
++		goto error_unreg_v4l2;
++
++	dbg->vdev = mxt_video_device;
++	dbg->vdev.v4l2_dev = &dbg->v4l2;
++	dbg->vdev.lock = &dbg->lock;
++	dbg->vdev.queue = &dbg->queue;
++	video_set_drvdata(&dbg->vdev, data);
++
++	error = video_register_device(&dbg->vdev, VFL_TYPE_GRABBER, -1);
++	if (error) {
++		dev_err(&data->client->dev,
++				"Unable to register video subdevice.");
++		goto error_unreg_v4l2;
++	}
++
+ 	return;
+ 
++error_unreg_v4l2:
++	v4l2_device_unregister(&dbg->v4l2);
+ error:
+ 	dev_err(&data->client->dev, "Error initialising T37 diagnostic data\n");
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+2.5.0
 
