@@ -1,231 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 20.mo4.mail-out.ovh.net ([46.105.33.73]:56616 "EHLO
-	20.mo4.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751175AbcDAQhk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2016 12:37:40 -0400
-Received: from mail699.ha.ovh.net (b6.ovh.net [213.186.33.56])
-	by mo4.mail-out.ovh.net (Postfix) with SMTP id 8D343111426C
-	for <linux-media@vger.kernel.org>; Fri,  1 Apr 2016 18:28:03 +0200 (CEST)
-Subject: [PATCH] Add GS1662 driver (a SPI video serializer)
-References: <56FE9B7F.7060206@nexvision.fr>
-To: linux-media@vger.kernel.org
-From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-Message-ID: <56FEA192.9020303@nexvision.fr>
-Date: Fri, 1 Apr 2016 18:28:02 +0200
-MIME-Version: 1.0
-In-Reply-To: <56FE9B7F.7060206@nexvision.fr>
-Content-Type: multipart/mixed;
- boundary="------------050704040506070907030402"
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33555 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751471AbcDUBOE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Apr 2016 21:14:04 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	David Airlie <airlied@linux.ie>
+Subject: [PATCH 0/2] Renesas R-Car Gen3 DU alpha and z-order support
+Date: Thu, 21 Apr 2016 04:14:11 +0300
+Message-Id: <1461201253-12170-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050704040506070907030402
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Hello,
 
+This patch series implement support for alpha and z-order configuration in the
+R-Car DU driver for the Gen3 SoCs family.
 
---------------050704040506070907030402
-Content-Type: text/x-patch;
- name="gs1662.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="gs1662.patch"
+The Gen3 SoCs delegate composition to an external IP core called VSP,
+supported by a V4L2 driver. The DU driver interfaces with the VSP driver using
+direct function calls. Alpha and z-order configuration is implemented in the
+VSP driver, the DU driver thus just needs to pass the values using the VSP
+API.
 
->From 65b48bf1c77801c210bf93c07bc7f513efdbcbb5 Mon Sep 17 00:00:00 2001
-From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-Date: Fri, 1 Apr 2016 17:19:26 +0200
-Subject: [PATCH] Add GS1662 driver (a SPI video serializer)
+This series depends on a large VSP series that has been merged in the Linux
+media git tree for v4.7. Dave, instead of merging the media tree in your tree
+to pull the dependency in, it would be easier to get those two patches
+upstream through the media tree. I don't expect any conflict related to the
+DU driver for v4.7. If you're fine with that, could you ack the patches ?
 
-Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
----
- drivers/media/Kconfig      |   1 +
- drivers/media/Makefile     |   2 +-
- drivers/media/spi/Kconfig  |   5 ++
- drivers/media/spi/Makefile |   1 +
- drivers/media/spi/gs1662.c | 128 +++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 136 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/spi/Kconfig
- create mode 100644 drivers/media/spi/Makefile
- create mode 100644 drivers/media/spi/gs1662.c
+Laurent Pinchart (2):
+  drm: rcar-du: Add Z-order support for VSP planes
+  drm: rcar-du: Add alpha support for VSP planes
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index a8518fb..d2fa6e7 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -215,5 +215,6 @@ config MEDIA_ATTACH
- source "drivers/media/i2c/Kconfig"
- source "drivers/media/tuners/Kconfig"
- source "drivers/media/dvb-frontends/Kconfig"
-+source "drivers/media/spi/Kconfig"
- 
- endif # MEDIA_SUPPORT
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index e608bbc..75bc82e 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -28,6 +28,6 @@ obj-y += rc/
- # Finally, merge the drivers that require the core
- #
- 
--obj-y += common/ platform/ pci/ usb/ mmc/ firewire/
-+obj-y += common/ platform/ pci/ usb/ mmc/ firewire/ spi/
- obj-$(CONFIG_VIDEO_DEV) += radio/
- 
-diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
-new file mode 100644
-index 0000000..d5e7b98
---- /dev/null
-+++ b/drivers/media/spi/Kconfig
-@@ -0,0 +1,5 @@
-+config VIDEO_GS1662
-+	tristate "Gennum Serializer 1662 video"
-+	depends on SPI
-+	---help---
-+	  Enable the GS1662 driver which serializes video streams.
-diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
-new file mode 100644
-index 0000000..ea64013
---- /dev/null
-+++ b/drivers/media/spi/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_GS1662) += gs1662.o
-diff --git a/drivers/media/spi/gs1662.c b/drivers/media/spi/gs1662.c
-new file mode 100644
-index 0000000..6698fbf
---- /dev/null
-+++ b/drivers/media/spi/gs1662.c
-@@ -0,0 +1,128 @@
-+/*
-+ * GS1662 device registration
-+ *
-+ * Copyright (C) 2015-2016 Nexvision
-+ * Author: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/spi/spi.h>
-+#include <linux/platform_device.h>
-+#include <linux/ctype.h>
-+#include <linux/err.h>
-+#include <linux/device.h>
-+
-+#define READ_FLAG		0x8000
-+#define WRITE_FLAG		0x0000
-+#define BURST_FLAG		0x1000
-+
-+#define ADDRESS_MASK	0x0FFF
-+
-+static int gs1662_read_register(struct spi_device *spi, u16 addr, u16 *value)
-+{
-+	int ret;
-+	u16 buf_addr =  (READ_FLAG | (ADDRESS_MASK & addr));
-+	u16 buf_value = 0;
-+	struct spi_message msg;
-+	struct spi_transfer tx[] = {
-+		{
-+			.tx_buf = &buf_addr,
-+			.len = 2,
-+			.delay_usecs = 1,
-+		}, {
-+			.rx_buf = &buf_value,
-+			.len = 2,
-+			.delay_usecs = 1,
-+		},
-+	};
-+
-+	spi_message_init(&msg);
-+	spi_message_add_tail(&tx[0], &msg);
-+	spi_message_add_tail(&tx[1], &msg);
-+	ret = spi_sync(spi, &msg);
-+
-+	*value = buf_value;
-+
-+	return ret;
-+}
-+
-+static int gs1662_write_register(struct spi_device *spi, u16 addr, u16 value)
-+{
-+	int ret;
-+	u16 buf_addr = (WRITE_FLAG | (ADDRESS_MASK & addr));
-+	u16 buf_value = value;
-+	struct spi_message msg;
-+	struct spi_transfer tx[] = {
-+		{
-+			.tx_buf = &buf_addr,
-+			.len = 2,
-+			.delay_usecs = 1,
-+		}, {
-+			.tx_buf = &buf_value,
-+			.len = 2,
-+			.delay_usecs = 1,
-+		},
-+	};
-+
-+	spi_message_init(&msg);
-+	spi_message_add_tail(&tx[0], &msg);
-+	spi_message_add_tail(&tx[1], &msg);
-+	ret = spi_sync(spi, &msg);
-+
-+	return ret;
-+}
-+
-+static int gs1662_probe(struct spi_device *spi)
-+{
-+	int ret;
-+
-+	spi->mode = SPI_MODE_0;
-+	spi->irq = -1;
-+	spi->max_speed_hz = 10000000;
-+	spi->bits_per_word = 16;
-+	ret = spi_setup(spi);
-+
-+	/* Set H_CONFIG to SMPTE timings */
-+	gs1662_write_register(spi, 0x0, 0x100);
-+
-+	return ret;
-+}
-+
-+static int gs1662_remove(struct spi_device *spi)
-+{
-+	return 0;
-+}
-+
-+static struct spi_driver gs1662_driver = {
-+	.driver = {
-+		.name		= "gs1662",
-+		.owner		= THIS_MODULE,
-+	},
-+
-+	.probe		= gs1662_probe,
-+	.remove		= gs1662_remove,
-+};
-+
-+static int __init gs1662_init(void)
-+{
-+	spi_register_driver(&gs1662_driver);
-+	return 0;
-+}
-+
-+static void __exit gs1662_exit(void)
-+{
-+	spi_unregister_driver(&gs1662_driver);
-+}
-+
-+module_init(gs1662_init);
-+module_exit(gs1662_exit);
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>");
-+MODULE_DESCRIPTION("GS1662 SPI driver");
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c | 16 ++++++++++++----
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.h |  2 ++
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+
 -- 
-2.5.5
+Regards,
 
+Laurent Pinchart
 
---------------050704040506070907030402--
