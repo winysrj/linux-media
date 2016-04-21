@@ -1,71 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:47192 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965870AbcDLPqW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2016 11:46:22 -0400
-Date: Tue, 12 Apr 2016 09:46:20 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Jani Nikula <jani.nikula@intel.com>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160412094620.4fbf05c0@lwn.net>
-In-Reply-To: <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
-References: <20160213145317.247c63c7@lwn.net>
-	<87y49zr74t.fsf@intel.com>
-	<20160303071305.247e30b1@lwn.net>
-	<20160303155037.705f33dd@recife.lan>
-	<86egbrm9hw.fsf@hiro.keithp.com>
-	<1457076530.13171.13.camel@winder.org.uk>
-	<CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
-	<87a8m9qoy8.fsf@intel.com>
-	<20160308082948.4e2e0f82@recife.lan>
-	<CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
-	<20160308103922.48d87d9d@recife.lan>
-	<20160308123921.6f2248ab@recife.lan>
-	<20160309182709.7ab1e5db@recife.lan>
-	<87fuvypr2h.fsf@intel.com>
-	<20160310122101.2fca3d79@recife.lan>
-	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
-	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46017 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751010AbcDUGu0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Apr 2016 02:50:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: ezequiel@vanguardiasur.com.ar,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] tw686x: fix sparse warning
+Date: Thu, 21 Apr 2016 08:50:19 +0200
+Message-Id: <1461221420-45403-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 8 Apr 2016 17:12:27 +0200
-Markus Heiser <markus.heiser@darmarit.de> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> motivated by this MT, I implemented a toolchain to migrate the kernel’s 
-> DocBook XML documentation to reST markup. 
-> 
-> It converts 99% of the docs well ... to gain an impression how 
-> kernel-docs could benefit from, visit my sphkerneldoc project page
-> on github:
-> 
->   http://return42.github.io/sphkerneldoc/
+tw686x-video.c: In function 'tw686x_video_init':
+tw686x-video.c:65:543: warning: array subscript is above array bounds [-Warray-bounds]
 
-So I've obviously been pretty quiet on this recently.  Apologies...I've
-been dealing with an extended death-in-the-family experience, and there is
-still a fair amount of cleanup to be done.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/tw686x/tw686x-video.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Looking quickly at this work, it seems similar to the results I got.  But
-there's a lot of code there that came from somewhere?  I'd put together a
-fairly simple conversion using pandoc and a couple of short sed scripts;
-is there a reason for a more complex solution?
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index 118e9fa..9a31de9 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -60,10 +60,11 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
+ 		0, 1, 1, 1, 2,  2,  3,  3,  4,  4,  5,  5,  6,  6, 7, 7,
+ 		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
+ 	};
++	unsigned int max_fps = (std & V4L2_STD_525_60) ? 30 : 25;
++	unsigned int i;
+ 
+-	unsigned int i =
+-		(std & V4L2_STD_625_50) ? std_625_50[fps] : std_525_60[fps];
+-
++	fps = fps > max_fps ? max_fps : fps;
++	i = (std & V4L2_STD_525_60) ? std_625_50[fps] : std_525_60[fps];
+ 	return map[i];
+ }
+ 
+-- 
+2.8.0.rc3
 
-Thanks for looking into this, anyway; I hope to be able to focus more on
-it shortly.
-
-jon
