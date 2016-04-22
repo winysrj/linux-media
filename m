@@ -1,69 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58950 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751330AbcDCRuQ (ORCPT
+Received: from mail-vk0-f44.google.com ([209.85.213.44]:35032 "EHLO
+	mail-vk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753774AbcDVIXy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Apr 2016 13:50:16 -0400
-Subject: Re: [PATCH 1/3] [media] adv7180: Add g_std operation
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	linux-renesas-soc@vger.kernel.org, lars@metafoo.de,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org
-References: <1459618940-8170-1-git-send-email-niklas.soderlund+renesas@ragnatech.se>
- <1459618940-8170-2-git-send-email-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <570157CF.8030400@xs4all.nl>
-Date: Sun, 3 Apr 2016 10:50:07 -0700
+	Fri, 22 Apr 2016 04:23:54 -0400
+Received: by mail-vk0-f44.google.com with SMTP id t129so127374615vkg.2
+        for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 01:23:48 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1459618940-8170-2-git-send-email-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <5719DBE3.3040707@xs4all.nl>
+References: <5719DBE3.3040707@xs4all.nl>
+From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
+Date: Fri, 22 Apr 2016 10:23:28 +0200
+Message-ID: <CAH-u=82TugRcE1r=Rp=-YG9gVDV1i6bJixpZESBSqWPzhXZzsg@mail.gmail.com>
+Subject: Re: [RFC] Streaming I/O: proposal to expose MMAP/USERPTR/DMABUF
+ capabilities with QUERYCAP
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-
-On 04/02/2016 10:42 AM, Niklas Söderlund wrote:
-> Add support to get the standard to the adv7180 driver.
+2016-04-22 10:08 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
+> Hi all,
 >
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thanks!
-
-	Hans
-
-> ---
->   drivers/media/i2c/adv7180.c | 10 ++++++++++
->   1 file changed, 10 insertions(+)
+> I have always been unhappy with the fact that it is so hard to tell whether
+> the USERPTR and/or DMABUF modes are available with Streaming I/O. QUERYCAP
+> only tells you if Streaming I/O is available, but not in which flavors.
 >
-> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-> index ff57c1d..d680d76 100644
-> --- a/drivers/media/i2c/adv7180.c
-> +++ b/drivers/media/i2c/adv7180.c
-> @@ -434,6 +434,15 @@ out:
->   	return ret;
->   }
+> So I propose the following:
 >
-> +static int adv7180_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	*norm = state->curr_norm;
-> +
-> +	return 0;
-> +}
-> +
->   static int adv7180_set_power(struct adv7180_state *state, bool on)
->   {
->   	u8 val;
-> @@ -719,6 +728,7 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+> #define V4L2_CAP_STREAMING_MMAP V4L2_CAP_STREAMING
+> #define V4L2_CAP_STREAMING_USERPTR 0x08000000
+> #define V4L2_CAP_STREAMING_DMABUF  0x10000000
 >
->   static const struct v4l2_subdev_video_ops adv7180_video_ops = {
->   	.s_std = adv7180_s_std,
-> +	.g_std = adv7180_g_std,
->   	.querystd = adv7180_querystd,
->   	.g_input_status = adv7180_g_input_status,
->   	.s_routing = adv7180_s_routing,
+> All drivers that currently support CAP_STREAMING also support MMAP. For userptr
+> and dmabuf support we add new caps. These can be set by the core if the driver
+> uses vb2 since the core can query the io_modes field of vb2_queue.
+
+So, you want to make it mandatory for future drivers that they support
+MMAP. Fine with me.
+BTW, dmabuf is still marked as experimental, what would make it part
+of the API for good ?
+
+> For the drivers that do not yet support vb2 we can add it manually.
 >
+> I was considering making it a requirement that the MMAP streaming mode is
+> always present, but I don't know if that works once we get drivers that operate
+> on secure memory. So I won't do that for now.
+
+By using "#define V4L2_CAP_STREAMING_MMAP V4L2_CAP_STREAMING" you make
+it mandatory... You would need a separate bit to indicate MMAP
+otherwise...
+
+> Since we are looking at device caps anyway: can we just drop V4L2_CAP_ASYNCIO?
+> It's never been implemented, nor is it likely in the future. And we don't have
+> all that many bits left before we need to use one of the reserved fields for
+> additional capabilities.
+>
+> Regards,
+>
+>         Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
