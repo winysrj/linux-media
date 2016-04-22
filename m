@@ -1,144 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:53231 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752086AbcDYJHj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 05:07:39 -0400
-Subject: Re: [PATCH] [media] v4l2-dv-timings.h: CEA-861-F 4K timings have
- positive sync polarities
-To: Martin Bugge <marbugge@cisco.com>, linux-media@vger.kernel.org
-References: <1461574264-1321-1-git-send-email-marbugge@cisco.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <571DDE55.5050609@xs4all.nl>
-Date: Mon, 25 Apr 2016 11:07:33 +0200
+Received: from lists.s-osg.org ([54.187.51.154]:44482 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754448AbcDVRqx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Apr 2016 13:46:53 -0400
+Date: Fri, 22 Apr 2016 14:46:45 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	<stable@vger.kernel.org>
+Subject: Re: [PATCH] media: vb2: Fix regression on poll() for RW mode
+Message-ID: <20160422144645.71ca69ef@recife.lan>
+In-Reply-To: <571A5535.4020704@xs4all.nl>
+References: <1461230116-6909-1-git-send-email-ricardo.ribalda@gmail.com>
+	<5719EC8D.2000500@xs4all.nl>
+	<20160422093141.7f9191bc@recife.lan>
+	<571A1AF3.3040507@xs4all.nl>
+	<20160422112136.06afe7c3@recife.lan>
+	<571A35C0.8020900@xs4all.nl>
+	<20160422114853.5bd48836@recife.lan>
+	<571A3B80.7090402@xs4all.nl>
+	<20160422122157.32f2e688@recife.lan>
+	<571A5535.4020704@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1461574264-1321-1-git-send-email-marbugge@cisco.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/25/2016 10:51 AM, Martin Bugge wrote:
-> Corrected sync polarities for CEA-861-F timings
-> 3840x2160p24/25/30/50/60 and 4096x2160p24/25/30/50/60.
+Em Fri, 22 Apr 2016 18:45:41 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-I posted this fix on Friday:
+> On 04/22/2016 05:21 PM, Mauro Carvalho Chehab wrote:
+> > Em Fri, 22 Apr 2016 16:56:00 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> On 04/22/2016 04:48 PM, Mauro Carvalho Chehab wrote:  
+> >>> Em Fri, 22 Apr 2016 16:31:28 +0200
+> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >>>     
+> >>>> On 04/22/2016 04:21 PM, Mauro Carvalho Chehab wrote:    
+> >>>>> Em Fri, 22 Apr 2016 14:37:07 +0200
+> >>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >>>>>       
+> >>>>>> On 04/22/2016 02:31 PM, Mauro Carvalho Chehab wrote:      
+> >>>>>>> Em Fri, 22 Apr 2016 11:19:09 +0200
+> >>>>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >>>>>>>         
+> >>>>>>>> Hi Ricardo,
+> >>>>>>>>
+> >>>>>>>> On 04/21/2016 11:15 AM, Ricardo Ribalda Delgado wrote:        
+> >>>>>>>>> When using a device is read/write mode, vb2 does not handle properly the
+> >>>>>>>>> first select/poll operation. It allways return POLLERR.
+> >>>>>>>>>
+> >>>>>>>>> The reason for this is that when this code has been refactored, some of
+> >>>>>>>>> the operations have changed their order, and now fileio emulator is not
+> >>>>>>>>> started by poll, due to a previous check.
+> >>>>>>>>>
+> >>>>>>>>> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+> >>>>>>>>> Cc: Junghak Sung <jh1009.sung@samsung.com>
+> >>>>>>>>> Cc: stable@vger.kernel.org
+> >>>>>>>>> Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
+> >>>>>>>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> >>>>>>>>> ---
+> >>>>>>>>>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++++++
+> >>>>>>>>>  drivers/media/v4l2-core/videobuf2-v4l2.c | 8 --------
+> >>>>>>>>>  2 files changed, 8 insertions(+), 8 deletions(-)
+> >>>>>>>>>
+> >>>>>>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> >>>>>>>>> index 5d016f496e0e..199c65dbe330 100644
+> >>>>>>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> >>>>>>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> >>>>>>>>> @@ -2298,6 +2298,14 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
+> >>>>>>>>>  		return POLLERR;
+> >>>>>>>>>  
+> >>>>>>>>>  	/*
+> >>>>>>>>> +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+> >>>>>>>>> +	 * return POLLERR as well. This only affects capture queues, output
+> >>>>>>>>> +	 * queues will always initialize waiting_for_buffers to false.
+> >>>>>>>>> +	 */
+> >>>>>>>>> +	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
+> >>>>>>>>> +		return POLLERR;          
+> >>>>>>>>
+> >>>>>>>> The problem I have with this is that this should be specific to V4L2. The only
+> >>>>>>>> reason we do this is that we had to stay backwards compatible with vb1.
+> >>>>>>>>
+> >>>>>>>> This is the reason this code was placed in videobuf2-v4l2.c. But you are correct
+> >>>>>>>> that this causes a regression, and I see no other choice but to put it in core.c.
+> >>>>>>>>
+> >>>>>>>> That said, I would still only honor this when called from v4l2, so I suggest that
+> >>>>>>>> a new flag 'check_waiting_for_buffers' is added that is only set in vb2_queue_init
+> >>>>>>>> in videobuf2-v4l2.c.
+> >>>>>>>>
+> >>>>>>>> So the test above becomes:
+> >>>>>>>>
+> >>>>>>>> 	if (q->check_waiting_for_buffers && q->waiting_for_buffers &&
+> >>>>>>>> 	    (req_events & (POLLIN | POLLRDNORM)))
+> >>>>>>>>
+> >>>>>>>> It's not ideal, but at least this keeps this v4l2 specific.        
+> >>>>>>>
+> >>>>>>> I don't like the above approach, for two reasons:
+> >>>>>>>
+> >>>>>>> 1) it is not obvious that this is V4L2 specific from the code;        
+> >>>>>>
+> >>>>>> s/check_waiting_for_buffers/v4l2_needs_to_wait_for_buffers/      
+> >>>>>
+> >>>>> Better, but still hell of a hack. Maybe we could add a quirks
+> >>>>> flag and add a flag like:
+> >>>>> 	VB2_FLAG_ENABLE_POLLERR_IF_WAITING_BUFFERS_AND_NO_QBUF
+> >>>>> (or some better naming, I'm not inspired today...)
+> >>>>>
+> >>>>> Of course, such quirk should be properly documented.      
+> >>>>
+> >>>> How about 'quirk_poll_must_check_waiting_for_buffers'? Something with 'quirk' in the
+> >>>> name is a good idea.    
+> >>>
+> >>> works for me, provided that we add the field as a flag. So it would be like:
+> >>>
+> >>> #define QUIRK_POLL_MUST_CHECK_WAITING_FOR_BUFFERS 0
+> >>>
+> >>>  	if (test_bit(q->quirk, QUIRK_POLL_MUST_CHECK_WAITING_FOR_BUFFERS) &&
+> >>> 	    q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))    
+> >>
+> >> Why should it be a flag? What is wrong with a bitfield?
+> >>
+> >> Just curious what the reasoning is for that. I don't see any obvious
+> >> advantage of a flag over a bitfield.  
+> > 
+> > Huh? Flags are implemented as bitfields. See the above code: it is
+> > using test_bit() for the new q->quirk flags/bitfield.  
+> 
+> I mean C bitfields like this:
+> 
+>         unsigned                        fileio_read_once:1;
+>         unsigned                        fileio_write_immediately:1;
+>         unsigned                        allow_zero_bytesused:1;
+> 
+> This is already used in struct vb2_queue, so my proposal would be to add:
+> 
+> 	unsigned			quirk_poll_must_check_waiting_for_buffers:1;
 
-https://patchwork.linuxtv.org/patch/33963/
-
-If you don't mind I'll go with that one.
+Works for me.
 
 Regards,
-
-	Hans
-
-> 
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Martin Bugge <marbugge@cisco.com>
-> ---
->  include/uapi/linux/v4l2-dv-timings.h | 30 ++++++++++++++++++++----------
->  1 file changed, 20 insertions(+), 10 deletions(-)
-> 
-> diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
-> index c039f1d..086168e 100644
-> --- a/include/uapi/linux/v4l2-dv-timings.h
-> +++ b/include/uapi/linux/v4l2-dv-timings.h
-> @@ -183,7 +183,8 @@
->  
->  #define V4L2_DV_BT_CEA_3840X2160P24 { \
->  	.type = V4L2_DV_BT_656_1120, \
-> -	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-> +	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
-> +		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
->  		297000000, 1276, 88, 296, 8, 10, 72, 0, 0, 0, \
->  		V4L2_DV_BT_STD_CEA861, \
->  		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
-> @@ -191,14 +192,16 @@
->  
->  #define V4L2_DV_BT_CEA_3840X2160P25 { \
->  	.type = V4L2_DV_BT_656_1120, \
-> -	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-> +	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
-> +		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
->  		297000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
->  		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
->  }
->  
->  #define V4L2_DV_BT_CEA_3840X2160P30 { \
->  	.type = V4L2_DV_BT_656_1120, \
-> -	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-> +	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
-> +		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
->  		297000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
->  		V4L2_DV_BT_STD_CEA861, \
->  		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
-> @@ -206,14 +209,16 @@
->  
->  #define V4L2_DV_BT_CEA_3840X2160P50 { \
->  	.type = V4L2_DV_BT_656_1120, \
-> -	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-> +	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
-> +		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
->  		594000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
->  		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
->  }
->  
->  #define V4L2_DV_BT_CEA_3840X2160P60 { \
->  	.type = V4L2_DV_BT_656_1120, \
-> -	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-> +	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
-> +		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
->  		594000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
->  		V4L2_DV_BT_STD_CEA861, \
->  		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
-> @@ -221,7 +226,8 @@
->  
->  #define V4L2_DV_BT_CEA_4096X2160P24 { \
->  	.type = V4L2_DV_BT_656_1120, \
-> -	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-> +	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
-> +		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
->  		297000000, 1020, 88, 296, 8, 10, 72, 0, 0, 0, \
->  		V4L2_DV_BT_STD_CEA861, \
->  		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
-> @@ -229,14 +235,16 @@
->  
->  #define V4L2_DV_BT_CEA_4096X2160P25 { \
->  	.type = V4L2_DV_BT_656_1120, \
-> -	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-> +	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
-> +		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
->  		297000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
->  		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
->  }
->  
->  #define V4L2_DV_BT_CEA_4096X2160P30 { \
->  	.type = V4L2_DV_BT_656_1120, \
-> -	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-> +	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
-> +		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
->  		297000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
->  		V4L2_DV_BT_STD_CEA861, \
->  		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
-> @@ -244,14 +252,16 @@
->  
->  #define V4L2_DV_BT_CEA_4096X2160P50 { \
->  	.type = V4L2_DV_BT_656_1120, \
-> -	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-> +	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
-> +		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
->  		594000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
->  		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
->  }
->  
->  #define V4L2_DV_BT_CEA_4096X2160P60 { \
->  	.type = V4L2_DV_BT_656_1120, \
-> -	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-> +	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
-> +		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
->  		594000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
->  		V4L2_DV_BT_STD_CEA861, \
->  		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
-> 
-
+Mauro.
