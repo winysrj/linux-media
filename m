@@ -1,59 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:33596 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754292AbcDDSPb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2016 14:15:31 -0400
-Received: by mail-pa0-f42.google.com with SMTP id zm5so149190809pac.0
-        for <linux-media@vger.kernel.org>; Mon, 04 Apr 2016 11:15:31 -0700 (PDT)
+Received: from dimen.winder.org.uk ([87.127.116.10]:49630 "EHLO
+	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752074AbcDVIZS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Apr 2016 04:25:18 -0400
+Message-ID: <1461313513.15101.23.camel@winder.org.uk>
+Subject: Re: libdvbv5 licencing
+From: Russel Winder <russel@winder.org.uk>
 To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Laura Abbott <labbott@redhat.com>
-Subject: Incorrect use of blocking ops in lirc_dev_fop_read
-Message-ID: <5702AF37.7070100@redhat.com>
-Date: Mon, 4 Apr 2016 11:15:19 -0700
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: DVB_Linux_Media <linux-media@vger.kernel.org>,
+	Sebastian =?ISO-8859-1?Q?Dr=F6ge?= <slomo@coaxion.net>
+Date: Fri, 22 Apr 2016 09:25:13 +0100
+In-Reply-To: <20160419163634.5ee8de2c@recife.lan>
+References: <1458972788.3344.8.camel@winder.org.uk>
+	 <20160412111945.22846572@recife.lan>
+	 <1460562055.28492.27.camel@winder.org.uk>
+	 <20160419163634.5ee8de2c@recife.lan>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-0+44YjkojBS/2Tkpv4b0"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-We received a bug report 
-(https://bugzilla.redhat.com/show_bug.cgi?id=1323440)
+--=-0+44YjkojBS/2Tkpv4b0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-WARNING: CPU: 3 PID: 765 at kernel/sched/core.c:7557 
-__might_sleep+0x75/0x80()
-do not call blocking ops when !TASK_RUNNING; state=1 set at
-[<ffffffffa03b2d31>] lirc_dev_fop_read+0x1e1/0x590 [lirc_dev]
-CPU: 3 PID: 765 Comm: lircd Not tainted 4.4.5-300.fc23.x86_64+debug #1
-Hardware name:                  /NUC5PPYB, BIOS
-PYBSWCEL.86A.0031.2015.0601.1712 06/01/2015
-  0000000000000286 00000000d9104369 ffff8801742bfc90 ffffffff8142b543
-  ffff8801742bfcd8 ffffffff81c893ec ffff8801742bfcc8 ffffffff810aef42
-  ffffffffa03b4428 00000000000002dc 0000000000000000 ffff88007640d380
-Call Trace:
-  [<ffffffff8142b543>] dump_stack+0x85/0xc2
-  [<ffffffff810aef42>] warn_slowpath_common+0x82/0xc0
-  [<ffffffff810aefdc>] warn_slowpath_fmt+0x5c/0x80
-  [<ffffffff81885186>] ? _raw_spin_unlock_irqrestore+0x36/0x60
-  [<ffffffffa03b2d31>] ? lirc_dev_fop_read+0x1e1/0x590 [lirc_dev]
-  [<ffffffffa03b2d31>] ? lirc_dev_fop_read+0x1e1/0x590 [lirc_dev]
-  [<ffffffff810dc475>] __might_sleep+0x75/0x80
-  [<ffffffff8121bcd3>] __might_fault+0x43/0xa0
-  [<ffffffffa03b2fe1>] lirc_dev_fop_read+0x491/0x590 [lirc_dev]
-  [<ffffffff8110a38d>] ? trace_hardirqs_on+0xd/0x10
-  [<ffffffff810e20f0>] ? wake_up_q+0x70/0x70
-  [<ffffffff81276dc7>] __vfs_read+0x37/0x100
-  [<ffffffff813a0963>] ? security_file_permission+0xa3/0xc0
-  [<ffffffff812778d9>] vfs_read+0x89/0x130
-  [<ffffffff81278658>] SyS_read+0x58/0xd0
-  [<ffffffff81885b72>] entry_SYSCALL_64_fastpath+0x12/0x76
+On Tue, 2016-04-19 at 16:36 -0300, Mauro Carvalho Chehab wrote:
+> [=E2=80=A6]
+> License changed.
 
- From looking at the code, it looks like the issue is that copy_to_user
-may be called within the block of TASK_INTERRUPTIBLE. I don't know
-the code well enough to try and propose a patch to fix this (I broke
-code last time I tried to fix something like this)
+Thank you, this is great news.
 
-Thanks,
-Laura
+GStreamer dvbsrc rewrite now on the starting blocks: lots of code
+"replication" deletion first thing on the agenda.
+
+--=20
+Russel.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
+et
+41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
+London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
+
+
+--=-0+44YjkojBS/2Tkpv4b0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAABCgAGBQJXGd/pAAoJENS91dLOzae4UAYP/iv2JWp4+sYgnPEmArSpcY+6
+DYwl9DIVI5cDSlJVovnfGBh+snSRYaSCRPMyVOGhzIsC50eqJ8yynJHyzia1oeDa
+QsrD3NNKygXKw4nNhb80ZMwG5RQ78RO+/YjY+k0zZ7aVysi0Z3Z1AtdRtlayyNkk
++DXgpw1uwbvBWWUm0CD/Cgt+4Wf++WqpQ+T298mrYTQ0uKMOwaxxUJeI8Lfh+A7W
+UkOvTar/jplihSWh9x+f9h5dpwW0OoCBic18QEl1s5GDQvci72eB/WBgQi0rtgHM
+PfemxTZ/NtPZog6lPZpOPVblVvOT/kHpoTo0sNxeTbPm5cFkklnWeZgDHP4G6Jpl
+wMCn1YfPHgvhRPCcA2iyixwBBpk/5E/QnV+SlzY8z8drBYgT3irnYqlsU4yxX67S
+rcg6TfbZYEgl5iMjJ28ym6JSQ0LjYV2PkMXSXhrjR8pMvR0C6RDPGmhKdW019LRw
+WjatyIc5B4BzkR+cbQMdxbpUi4C/3mafrMgElLwadQTEZ0+sfauTzCP6EXUzSIjo
+5nZr8WUwBCBz4jR3cXoJ/EoD99L4H9Ho9fiOhYGNTFBmU0hHMMNmw7wizBqd2AjB
+lmgzqtY2Z6EYIbURiEisgKo0rvMMGaRp+THhMNI9MB6Akq+3BSgey+e4/0hr54va
+kMsbgeaTse9BNdTLITU6
+=A3Hx
+-----END PGP SIGNATURE-----
+
+--=-0+44YjkojBS/2Tkpv4b0--
+
