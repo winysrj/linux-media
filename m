@@ -1,572 +1,495 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:15866 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752660AbcDZI6v (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44512 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753846AbcDVJHK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Apr 2016 04:58:51 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v9 0/8] Add MT8173 Video Encoder Driver and VPU Driver
-Date: Tue, 26 Apr 2016 16:58:29 +0800
-Message-ID: <1461661117-4657-1-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Fri, 22 Apr 2016 05:07:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/2] DocBook media: drop 'experimental' annotations
+Date: Fri, 22 Apr 2016 11:06:59 +0200
+Message-Id: <1461316019-2497-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461316019-2497-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461316019-2497-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-==============
- Introduction
-==============
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
-Mediatek Video Codec is able to handle video encoding of in a range of formats.
+Drop the 'experimental' annotations. The only remaining part of the API
+that is still marked 'experimental' are the debug ioctls/structs, and
+that is intentional. Only the v4l2-dbg application should use those.
 
-This patch series also include VPU driver. Mediatek Video Codec driver rely on VPU driver to load,
-communicate with VPU.
+All others have been around for years, so it is time to drop the
+'experimental' designation.
 
-Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/compat.xml         | 38 ----------------------
+ Documentation/DocBook/media/v4l/controls.xml       | 31 ------------------
+ Documentation/DocBook/media/v4l/dev-sdr.xml        |  6 ----
+ Documentation/DocBook/media/v4l/dev-subdev.xml     |  6 ----
+ Documentation/DocBook/media/v4l/io.xml             |  6 ----
+ Documentation/DocBook/media/v4l/selection-api.xml  |  9 +----
+ Documentation/DocBook/media/v4l/subdev-formats.xml |  6 ----
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       |  6 ----
+ .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    |  6 ----
+ .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   |  6 ----
+ .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |  6 ----
+ Documentation/DocBook/media/v4l/vidioc-expbuf.xml  |  6 ----
+ .../DocBook/media/v4l/vidioc-g-selection.xml       |  6 ----
+ .../DocBook/media/v4l/vidioc-prepare-buf.xml       |  6 ----
+ .../DocBook/media/v4l/vidioc-query-dv-timings.xml  |  6 ----
+ .../v4l/vidioc-subdev-enum-frame-interval.xml      |  6 ----
+ .../media/v4l/vidioc-subdev-enum-frame-size.xml    |  6 ----
+ .../media/v4l/vidioc-subdev-enum-mbus-code.xml     |  6 ----
+ .../DocBook/media/v4l/vidioc-subdev-g-fmt.xml      |  6 ----
+ .../media/v4l/vidioc-subdev-g-frame-interval.xml   |  6 ----
+ .../media/v4l/vidioc-subdev-g-selection.xml        |  6 ----
+ 21 files changed, 1 insertion(+), 185 deletions(-)
 
-==================
- Device interface
-==================
-
-In principle the driver bases on v4l2 memory-to-memory framework:
-it provides a single video node and each opened file handle gets its own private context with separate
-buffer queues. Each context consist of 2 buffer queues: OUTPUT (for source buffers, i.e. raw video
-frames) and CAPTURE (for destination buffers, i.e. encoded video frames).
-
-==============================
- VPU (Video Processor Unit)
-==============================
-The VPU driver for hw video codec embedded in Mediatek's MT8173 SOCs.
-It is able to handle video decoding/encoding in a range of formats.
-The driver provides with VPU firmware download, memory management and the communication interface between CPU and VPU.
-For VPU initialization, it will create virtual memory for CPU access and physical address for VPU hw device access. 
-When a decode/encode instance opens a device node, vpu driver will download vpu firmware to the device.
-A decode/encode instant will decode/encode a frame using VPU interface to interrupt vpu to handle decoding/encoding jobs.
-
-Please have a look at the code and comments will be very much appreciated.
-
-Change in v9:
-1. Rename idx in mtk_vcodec_ctx to id and curr_max_idx in mtk_vcodec_dev to id_counter.
-2. Refine fops_vcodec_open
-
-VPU part
-Merge Julia Lawall's fixes[1][2] to "[PATCH v9 2/8] [media] VPU: mediatek: support Mediatek VPU"
-[1][PATCH] VPU: mediatek: fix simple_open.cocci warnings 
-[2][PATCH] VPU: mediatek: fix platform_no_drv_owner.cocci warnings
-
-Change in v8:
-1. Refine indentation
-2. Refine colorspace information process vidioc_try_fmt_vid_out_mplane
-3. Remove instance_mask in mtk_vcodec_dev, use curr_max_idx for instance index
-4. Use kzalloc to allocate ctx
-5. Refine fops_vcodec_open
-
-VPU Part
-1. Refine vpu_load_firmware
-
-Change in v7:
-1. Rebase against the master branch of git://linuxtv.org/media_tree.git
-2. Add ycbcr_enc, quantization and xfer_func in try_fmt, g_fmt, s_fmt
-3. Merge h264_enc and vp8_enc to venc directory
-
-Change in v6:
-1. Add synchronization access protect between irq handler and work thread
-2. Add DMA_ATTR_ALLOC_SINGLE_PAGES support
-3. S_FMT will return coded_width, coded_height, so user space could allocate correct size memory that HW required
-4. merge h264/vp8 enc ap and md32 ipi msg
-5. separate h264/vp8 enc gop_size and intra_period handle
-6. remove sizeimage relative code in work buffer function
-7. Refine makefile to build as an module
-8. Code clean up
-
-VPU Part
-1. export symbols for building VPU as an module
-2. change function from "wait_event_interruptible_timeout" to "wait_event_timeout" since
-   CPU needs to wait for ACK from VPU even if it was interrupted by a signal
-
-v4l2-compliance test output:
-localhost Encode # ./v4l2-compliance -d /dev/video1
-Driver Info:
-        Driver name   : mtk-vcodec-enc
-        Card type     : platform:mt8173
-        Bus info      : platform:mt8173
-        Driver version: 4.4.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video1 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERYCTRL/MENU: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 12 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-Total: 38, Succeeded: 38, Failed: 0, Warnings: 0
-
-
-v4l2-compliance test output:
-localhost ~ # /usr/bin/v4l2-compliance -d /dev/video1
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 5399e89..82fa328 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2686,50 +2686,12 @@ and may change in the future.</para>
  
-Change in v5:
-Vcodec Part
-1. Pass checkpatch and v4l2-compliance test
-2. Remove unused g/s_selection for now
-3. add vidioc_g_parm support
-4. add vidioc_create_bufs and vidioc_prepare_buf support
-5. Remove instance check in fops_vcodec_open
-6. Fix comments for data structure and code
-7. Refine venc, venc_lt clock source name in devicetree and binding document
-8. Fix Author information and copyright information
-9. Refine code according to review comments
-
-VPU Part
-
-v4l2-compliance test output:
-localhost ~ # /usr/bin/v4l2-compliance -d /dev/video1
-Driver Info:
-        Driver name   : mtk-vcodec-enc
-        Card type     : platform:mt8173
-        Bus info      : platform:mt8173
-        Driver version: 4.4.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video1 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERYCTRL/MENU: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 12 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-
-Total: 38, Succeeded: 38, Failed: 0, Warnings: 0
-
-
-Change in v4:
-Vcodec Part
-1. Remove MTK_ENCODE_PARAM_SKIP_FRAME support
-2. Remove MTK_ENCODE_PARAM_FRAME_TYPE and change to use V4L2_CID_MPEG_VIDEO_FORCE_KEY_FRAME[3]
-3. Refine Encoder HW clock source
-4. Refine debug log
-5. Add watchdog support
-6. With patch "media: v4l2-compat-ioctl32: fix missing length copy in put_v4l2_buffer32"[4],
-v4l2-compliance test passed[5] in v4.4-rc5 
-
-VPU Part
-1. These two patches were Acked-by: Rob Herring <robh <at> kernel.org> in v3
-   [PATCH v3 1/8] dt-bindings: Add a binding for Mediatek Video Processor
-   [PATCH v3 3/8] arm64: dts: mediatek: Add node for Mediatek Video Processor Unit
-   Because we were wrong about how the hardware works, there is no connection between VPU and IOMMU HW
-   We remove VPU attaching to IOMMU
-2. Support VPU running on 4GB DRAM system
-3. Support VPU watchdog reset
-4. Refine for coding style 
-
-[3]https://patchwork.linuxtv.org/patch/32670/
-[4] https://patchwork.linuxtv.org/patch/32631/
-[5]localhost ~ # /usr/bin/v4l2-compliance -d /dev/video1
-Driver Info:
-        Driver name   : mtk-vcodec-en
-        Card type     : platform:mt817
-        Bus info      : platform:mt817
-        Driver version: 4.4.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video1 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERYCTRL/MENU: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 12 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                warn: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(475):
-VIDIOC_CREATE_BUFS not supported
-                warn: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(475):
-VIDIOC_CREATE_BUFS not supported
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Total: 38, Succeeded: 38, Failed: 0, Warnings: 2
-
-Change in v3:
-1.Refine code to pass v4l2-compliance test, now it still has 2 issues 2.Refine code according to latest MTK
-IOMMU patches[1] 3.Remove MFC51 specific CIDs and add MTK specific CIDs for for keyframe and
-  skip I-frame
-4.Refine code according to review comments
-
-Below is the v1.6 version v4l2-compliance report for the mt8173 encoder driver.
-Now there are still 2 test fail in v1.6.
-For VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF, we directly use v4l2_m2m_ioctl_* functions, but it still
-fail. It pass in kernel 3.18 but fail in kernel 4.4.
-We will try v1.8 in next version.
-VIDIOC_EXPBUF is becuase we support all three memory types VB2_DMABUF, VB2_MMAP and VB2_USERPTR.
-VIDIOC_EXPBUF only allowed when only VB2_MMAP supported.
-localhost ~ # /usr/bin/v4l2-compliance -d /dev/video1 Driver Info:
-        Driver name   : mtk-vcodec-en
-        Card type     : platform:mt817
-        Bus info      : platform:mt817
-        Driver version: 4.4.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video1 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERYCTRL/MENU: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 11 Private Controls: 2
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(266): vp->length
-== 0
-                fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(335):
-buf.check(Unqueued, i)
-                fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(420):
-testQueryBuf(node, i, q.g_buffers())
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
-                fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(500): q.has_expbuf(node)
-                test VIDIOC_EXPBUF: FAIL
-Total: 38, Succeeded: 36, Failed: 2, Warnings: 0
-
-Change in v2:
-Vcodec Part
-1.Remove common and include directory in mtk-vcodec 2.Refine vb2ops_venc_start_streaming and
-vb2ops_venc_stop_streaming and state machine 3.Remove venc_if_init and venc_if_deinit 4.Refine
-debug message 5.Refine lab and vpu decription in mediatek-vcodec.txt
-
-VPU Part
-1. Modify VPU Kconfig
-2. Move encoder header files to other patch sets 3. Remove marcos for extended virtual/iova address 4.
-Change register and variable names 5. Add a reference counter for VPU watchdog 6. Remove one busy waiting
-in function vpu_ipi_send 7. Operate VPU clock in VPU driver (not called by encoder drivers) 8. Refine
-memory mapping, firmware download and extended memory allocation/free functions 9. Release more
-allocated resources in driver remove function
-
-
-Andrew-CT Chen (3):
-  dt-bindings: Add a binding for Mediatek Video Processor
-  [media] VPU: mediatek: support Mediatek VPU
-  arm64: dts: mediatek: Add node for Mediatek Video Processor Unit
-
-Tiffany Lin (5):
-  dt-bindings: Add a binding for Mediatek Video Encoder
-  [media] vcodec: mediatek: Add Mediatek V4L2 Video Encoder Driver
-  [media] vcodec: mediatek: Add Mediatek VP8 Video Encoder Driver
-  [media] vcodec: mediatek: Add Mediatek H264 Video Encoder Driver
-  arm64: dts: mediatek: Add Video Encoder for MT8173
-
- .../devicetree/bindings/media/mediatek-vcodec.txt  |   59 +
- .../devicetree/bindings/media/mediatek-vpu.txt     |   31 +
- arch/arm64/boot/dts/mediatek/mt8173.dtsi           |   62 +
- drivers/media/platform/Kconfig                     |   29 +
- drivers/media/platform/Makefile                    |    4 +
- drivers/media/platform/mtk-vcodec/Makefile         |   19 +
- drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h |  338 +++++
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c | 1301 ++++++++++++++++++++
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h |   58 +
- .../media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c |  453 +++++++
- .../media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c  |  137 +++
- .../media/platform/mtk-vcodec/mtk_vcodec_enc_pm.h  |   26 +
- .../media/platform/mtk-vcodec/mtk_vcodec_intr.c    |   55 +
- .../media/platform/mtk-vcodec/mtk_vcodec_intr.h    |   27 +
- .../media/platform/mtk-vcodec/mtk_vcodec_util.c    |   94 ++
- .../media/platform/mtk-vcodec/mtk_vcodec_util.h    |   87 ++
- .../media/platform/mtk-vcodec/venc/venc_h264_if.c  |  677 ++++++++++
- .../media/platform/mtk-vcodec/venc/venc_vp8_if.c   |  479 +++++++
- drivers/media/platform/mtk-vcodec/venc_drv_base.h  |   62 +
- drivers/media/platform/mtk-vcodec/venc_drv_if.c    |  113 ++
- drivers/media/platform/mtk-vcodec/venc_drv_if.h    |  163 +++
- drivers/media/platform/mtk-vcodec/venc_ipi_msg.h   |  210 ++++
- drivers/media/platform/mtk-vcodec/venc_vpu_if.c    |  237 ++++
- drivers/media/platform/mtk-vcodec/venc_vpu_if.h    |   61 +
- drivers/media/platform/mtk-vpu/Makefile            |    3 +
- drivers/media/platform/mtk-vpu/mtk_vpu.c           |  942 ++++++++++++++
- drivers/media/platform/mtk-vpu/mtk_vpu.h           |  162 +++
- 27 files changed, 5889 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-vcodec.txt
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-vpu.txt
- create mode 100644 drivers/media/platform/mtk-vcodec/Makefile
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_drv.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_enc_pm.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_intr.h
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c
- create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_util.h
- create mode 100644 drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
- create mode 100644 drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
- create mode 100644 drivers/media/platform/mtk-vcodec/venc_drv_base.h
- create mode 100644 drivers/media/platform/mtk-vcodec/venc_drv_if.c
- create mode 100644 drivers/media/platform/mtk-vcodec/venc_drv_if.h
- create mode 100644 drivers/media/platform/mtk-vcodec/venc_ipi_msg.h
- create mode 100644 drivers/media/platform/mtk-vcodec/venc_vpu_if.c
- create mode 100644 drivers/media/platform/mtk-vcodec/venc_vpu_if.h
- create mode 100644 drivers/media/platform/mtk-vpu/Makefile
- create mode 100755 drivers/media/platform/mtk-vpu/mtk_vpu.c
- create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu.h
-
+       <itemizedlist>
+         <listitem>
+-	  <para>Video Output Overlay (OSD) Interface, <xref
+-	    linkend="osd" />.</para>
+-        </listitem>
+-        <listitem>
+ 	  <para>&VIDIOC-DBG-G-REGISTER; and &VIDIOC-DBG-S-REGISTER;
+ ioctls.</para>
+         </listitem>
+         <listitem>
+ 	  <para>&VIDIOC-DBG-G-CHIP-INFO; ioctl.</para>
+         </listitem>
+-        <listitem>
+-	  <para>&VIDIOC-ENUM-DV-TIMINGS;, &VIDIOC-QUERY-DV-TIMINGS; and
+-	  &VIDIOC-DV-TIMINGS-CAP; ioctls.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>Flash API. <xref linkend="flash-controls" /></para>
+-        </listitem>
+-        <listitem>
+-	  <para>&VIDIOC-CREATE-BUFS; and &VIDIOC-PREPARE-BUF; ioctls.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>Selection API. <xref linkend="selection-api" /></para>
+-        </listitem>
+-        <listitem>
+-	  <para>Sub-device selection API: &VIDIOC-SUBDEV-G-SELECTION;
+-	  and &VIDIOC-SUBDEV-S-SELECTION; ioctls.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>Support for frequency band enumeration: &VIDIOC-ENUM-FREQ-BANDS; ioctl.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>Vendor and device specific media bus pixel formats.
+-	    <xref linkend="v4l2-mbus-vendor-spec-fmts" />.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>Importing DMABUF file descriptors as a new IO method described
+-	  in <xref linkend="dmabuf" />.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>Exporting DMABUF files using &VIDIOC-EXPBUF; ioctl.</para>
+-        </listitem>
+-        <listitem>
+-	  <para>Software Defined Radio (SDR) Interface, <xref linkend="sdr" />.</para>
+-        </listitem>
+       </itemizedlist>
+     </section>
+ 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 361040e..81efa88 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4272,13 +4272,6 @@ manually or automatically if set to zero. Unit, range and step are driver-specif
+     <section id="flash-controls">
+       <title>Flash Control Reference</title>
+ 
+-      <note>
+-	<title>Experimental</title>
+-
+-	<para>This is an <link linkend="experimental">experimental</link>
+-interface and may change in the future.</para>
+-      </note>
+-
+       <para>
+ 	The V4L2 flash controls are intended to provide generic access
+ 	to flash controller devices. Flash controller devices are
+@@ -4743,14 +4736,6 @@ interface and may change in the future.</para>
+     <section id="image-source-controls">
+       <title>Image Source Control Reference</title>
+ 
+-      <note>
+-	<title>Experimental</title>
+-
+-	<para>This is an <link
+-	linkend="experimental">experimental</link> interface and may
+-	change in the future.</para>
+-      </note>
+-
+       <para>
+ 	The Image Source control class is intended for low-level
+ 	control of image source devices such as image sensors. The
+@@ -4862,14 +4847,6 @@ interface and may change in the future.</para>
+     <section id="image-process-controls">
+       <title>Image Process Control Reference</title>
+ 
+-      <note>
+-	<title>Experimental</title>
+-
+-	<para>This is an <link
+-	linkend="experimental">experimental</link> interface and may
+-	change in the future.</para>
+-      </note>
+-
+       <para>
+ 	The Image Process control class is intended for low-level control of
+ 	image processing functions. Unlike
+@@ -4955,14 +4932,6 @@ interface and may change in the future.</para>
+     <section id="dv-controls">
+       <title>Digital Video Control Reference</title>
+ 
+-      <note>
+-	<title>Experimental</title>
+-
+-	<para>This is an <link
+-	linkend="experimental">experimental</link> interface and may
+-	change in the future.</para>
+-      </note>
+-
+       <para>
+ 	The Digital Video control class is intended to control receivers
+ 	and transmitters for <ulink url="http://en.wikipedia.org/wiki/Vga">VGA</ulink>,
+diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
+index a659771..6da1157 100644
+--- a/Documentation/DocBook/media/v4l/dev-sdr.xml
++++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
+@@ -1,11 +1,5 @@
+   <title>Software Defined Radio Interface (SDR)</title>
+ 
+-  <note>
+-    <title>Experimental</title>
+-    <para>This is an <link linkend="experimental"> experimental </link>
+-    interface and may change in the future.</para>
+-  </note>
+-
+   <para>
+ SDR is an abbreviation of Software Defined Radio, the radio device
+ which uses application software for modulation or demodulation. This interface
+diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
+index 4f0ba58..f4bc27a 100644
+--- a/Documentation/DocBook/media/v4l/dev-subdev.xml
++++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+@@ -1,11 +1,5 @@
+   <title>Sub-device Interface</title>
+ 
+-  <note>
+-    <title>Experimental</title>
+-    <para>This is an <link linkend="experimental">experimental</link>
+-    interface and may change in the future.</para>
+-  </note>
+-
+   <para>The complex nature of V4L2 devices, where hardware is often made of
+   several integrated circuits that need to interact with each other in a
+   controlled way, leads to complex V4L2 drivers. The drivers usually reflect
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 144158b..e09025d 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -475,12 +475,6 @@ rest should be evident.</para>
+   <section id="dmabuf">
+     <title>Streaming I/O (DMA buffer importing)</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental">experimental</link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+ <para>The DMABUF framework provides a generic method for sharing buffers
+ between multiple devices. Device drivers that support DMABUF can export a DMA
+ buffer to userspace as a file descriptor (known as the exporter role), import a
+diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
+index 28cbded..b764cba 100644
+--- a/Documentation/DocBook/media/v4l/selection-api.xml
++++ b/Documentation/DocBook/media/v4l/selection-api.xml
+@@ -1,13 +1,6 @@
+ <section id="selection-api">
+ 
+-  <title>Experimental API for cropping, composing and scaling</title>
+-
+-      <note>
+-	<title>Experimental</title>
+-
+-	<para>This is an <link linkend="experimental">experimental</link>
+-interface and may change in the future.</para>
+-      </note>
++  <title>API for cropping, composing and scaling</title>
+ 
+   <section>
+     <title>Introduction</title>
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 4e73345..199c84e 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -4002,12 +4002,6 @@ see <xref linkend="colorspaces" />.</entry>
+     <section id="v4l2-mbus-vendor-spec-fmts">
+       <title>Vendor and Device Specific Formats</title>
+ 
+-      <note>
+-	<title>Experimental</title>
+-	<para>This is an <link linkend="experimental">experimental</link>
+-interface and may change in the future.</para>
+-      </note>
+-
+       <para>This section lists complex data formats that are either vendor or
+ 	device specific.
+       </para>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+index d81fa0d..6528e97 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -49,12 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental"> experimental </link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>This ioctl is used to create buffers for <link linkend="mmap">memory
+ mapped</link> or <link linkend="userp">user pointer</link> or <link
+ linkend="dmabuf">DMA buffer</link> I/O. It can be used as an alternative or in
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
+index b6f47a6..ca9ffce 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
+@@ -49,12 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental"> experimental </link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>To query the capabilities of the DV receiver/transmitter applications initialize the
+ <structfield>pad</structfield> field to 0, zero the reserved array of &v4l2-dv-timings-cap;
+ and call the <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl on a video node
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
+index 70ca76d..9b3d420 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
+@@ -49,12 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental"> experimental </link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>While some DV receivers or transmitters support a wide range of timings, others
+ support only a limited number of timings. With this ioctl applications can enumerate a list
+ of known supported timings. Call &VIDIOC-DV-TIMINGS-CAP; to check if it also supports other
+diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+index 4e8ea65..a0608ab 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
+@@ -49,12 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental"> experimental </link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>Enumerates the frequency bands that a tuner or modulator supports.
+ To do this applications initialize the <structfield>tuner</structfield>,
+ <structfield>type</structfield> and <structfield>index</structfield> fields,
+diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+index 0ae0b6a..a6558a6 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+@@ -49,12 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental"> experimental </link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+ <para>This ioctl is an extension to the <link linkend="mmap">memory
+ mapping</link> I/O method, therefore it is available only for
+ <constant>V4L2_MEMORY_MMAP</constant> buffers.  It can be used to export a
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+index 7865351..9523bc5 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+@@ -50,12 +50,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental"> experimental </link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>The ioctls are used to query and configure selection rectangles.</para>
+ 
+ <para>To query the cropping (composing) rectangle set &v4l2-selection;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+index fa7ad7e..7bde698 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
+@@ -48,12 +48,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental"> experimental </link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>Applications can optionally call the
+ <constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
+ to the driver before actually enqueuing it, using the
+diff --git a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
+index 0c93677..d41bf47 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
+@@ -50,12 +50,6 @@ input</refpurpose>
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental"> experimental </link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>The hardware may be able to detect the current DV timings
+ automatically, similar to sensing the video standard. To do so, applications
+ call <constant>VIDIOC_QUERY_DV_TIMINGS</constant> with a pointer to a
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
+index cff59f5..9d0251a 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
+@@ -49,12 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental">experimental</link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>This ioctl lets applications enumerate available frame intervals on a
+     given sub-device pad. Frame intervals only makes sense for sub-devices that
+     can control the frame period on their own. This includes, for instance,
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
+index abd545e..9b91b83 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
+@@ -49,12 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental">experimental</link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>This ioctl allows applications to enumerate all frame sizes
+     supported by a sub-device on the given pad for the given media bus format.
+     Supported formats can be retrieved with the &VIDIOC-SUBDEV-ENUM-MBUS-CODE;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
+index 0bcb278..c67256a 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
+@@ -49,12 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental">experimental</link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>To enumerate media bus formats available at a given sub-device pad
+     applications initialize the <structfield>pad</structfield>, <structfield>which</structfield>
+     and <structfield>index</structfield> fields of &v4l2-subdev-mbus-code-enum; and
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
+index a67cde6..781089c 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
+@@ -50,12 +50,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental">experimental</link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>These ioctls are used to negotiate the frame format at specific
+     subdev pads in the image pipeline.</para>
+ 
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-frame-interval.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-frame-interval.xml
+index 0bc3ea22..848ec78 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-frame-interval.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-frame-interval.xml
+@@ -50,12 +50,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental">experimental</link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>These ioctls are used to get and set the frame interval at specific
+     subdev pads in the image pipeline. The frame interval only makes sense for
+     sub-devices that can control the frame period on their own. This includes,
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+index c62a736..8346b2e 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+@@ -49,12 +49,6 @@
+   <refsect1>
+     <title>Description</title>
+ 
+-    <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental">experimental</link>
+-      interface and may change in the future.</para>
+-    </note>
+-
+     <para>The selections are used to configure various image
+     processing functionality performed by the subdevs which affect the
+     image size. This currently includes cropping, scaling and
 -- 
-1.7.9.5
+2.8.0.rc3
 
