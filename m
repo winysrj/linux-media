@@ -1,82 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:18035 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750826AbcD0MAr (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58354 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751972AbcDVHqL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 08:00:47 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH RESEND 1/2] media: vb2-dma-contig: add helper for setting dma
- max seg size
-Date: Wed, 27 Apr 2016 14:00:28 +0200
-Message-id: <1461758429-12913-1-git-send-email-m.szyprowski@samsung.com>
+	Fri, 22 Apr 2016 03:46:11 -0400
+Subject: Re: [PATCH/RFC 1/2] v4l: Add meta-data video device type
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1461199227-22506-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1461199227-22506-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <571875BF.8080500@xs4all.nl> <27064764.ckB5ZcOUBB@avalon>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5719D6BC.1010000@xs4all.nl>
+Date: Fri, 22 Apr 2016 09:46:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <27064764.ckB5ZcOUBB@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a helper function for device drivers to set DMA's max_seg_size.
-Setting it to largest possible value lets DMA-mapping API always create
-contiguous mappings in DMA address space. This is essential for all
-devices, which use dma-contig videobuf2 memory allocator and shared
-buffers.
+On 04/21/2016 09:15 PM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the review.
+> 
+> On Thursday 21 Apr 2016 08:39:59 Hans Verkuil wrote:
+>> Hi Laurent,
+>>
+>> Thanks for the patch!
+>>
+>> Some, mostly small, comments follow:
+>>
+>> On 04/21/2016 02:40 AM, Laurent Pinchart wrote:
+>>> The meta-data video device is used to transfer meta-data between
+>>> userspace and kernelspace through a V4L2 buffers queue. It comes with a
+>>> new meta-data capture capability, buffer type and format description.
+>>>
+>>> Signed-off-by: Laurent Pinchart
+>>> <laurent.pinchart+renesas@ideasonboard.com>
+>>> ---
+>>>
+>>>  Documentation/DocBook/media/v4l/dev-meta.xml  | 100 +++++++++++++++++++++
+>>>  Documentation/DocBook/media/v4l/v4l2.xml      |   1 +
+>>>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  19 +++++
+>>>  drivers/media/v4l2-core/v4l2-dev.c            |  21 +++++-
+>>>  drivers/media/v4l2-core/v4l2-ioctl.c          |  39 ++++++++++
+>>>  drivers/media/v4l2-core/videobuf2-v4l2.c      |   3 +
+>>>  include/media/v4l2-dev.h                      |   3 +-
+>>>  include/media/v4l2-ioctl.h                    |   8 +++
+>>>  include/uapi/linux/media.h                    |   2 +
+>>>  include/uapi/linux/videodev2.h                |  14 ++++
+>>>  10 files changed, 208 insertions(+), 2 deletions(-)
+>>>  create mode 100644 Documentation/DocBook/media/v4l/dev-meta.xml
+>>>
+>>> diff --git a/Documentation/DocBook/media/v4l/dev-meta.xml
+>>> b/Documentation/DocBook/media/v4l/dev-meta.xml new file mode 100644
+>>> index 000000000000..ddc685186015
+>>> --- /dev/null
+>>> +++ b/Documentation/DocBook/media/v4l/dev-meta.xml
+>>> @@ -0,0 +1,100 @@
+>>> +  <title>Meta-Data Interface</title>
+>>> +
+>>> +  <note>
+>>> +    <title>Experimental</title>
+>>> +    <para>This is an <link linkend="experimental"> experimental </link>
+>>> +    interface and may change in the future.</para>
+>>> +  </note>
+>>> +
+>>> +  <para>
+>>> +Meta-data refers to any non-image data that supplements video frames with
+>>> +additional information. This may include statistics computed over the
+>>> image +or frame capture parameters supplied by the image source. This
+>>> interface is +intended for transfer of meta-data to userspace and control
+>>> of that operation. +  </para>
+>>> +
+>>> +  <para>
+>>> +Meta-data devices are accessed through character device special files
+>>> named +<filename>/dev/v4l-meta0</filename> to
+>>> <filename>/dev/v4l-meta255</filename> +with major number 81 and
+>>> dynamically allocated minor numbers 0 to 255. +  </para>
+>>> +
+>>> +  <section>
+>>> +    <title>Querying Capabilities</title>
+>>> +
+>>> +    <para>
+>>> +Devices supporting the meta-data interface set the
+>>> +<constant>V4L2_CAP_META_CAPTURE</constant> flag in the
+>>> +<structfield>capabilities</structfield> field of &v4l2-capability;
+>>> +returned by the &VIDIOC-QUERYCAP; ioctl. That flag means the device can
+>>> capture +meta-data to memory.
+>>> +    </para>
+>>> +    <para>
+>>> +At least one of the read/write, streaming or asynchronous I/O methods
+>>> must
+>>
+>> I think we can drop 'asynchronous I/O' since that's never been used. I
+>> assume this is copy-and-pasted and we should probably just remove any
+>> reference to async IO.
+> 
+> Agreed. I'll fix it.
+> 
+>>> +be supported.
+>>> +    </para>
+>>> +  </section>
+>>> +
+>>> +  <section>
+>>> +    <title>Data Format Negotiation</title>
+>>> +
+>>> +    <para>
+>>> +The meta-data device uses the <link linkend="format">format</link> ioctls
+>>> to +select the capture format. The meta-data buffer content format is
+>>> bound to that +selectable format. In addition to the basic
+>>> +<link linkend="format">format</link> ioctls, the &VIDIOC-ENUM-FMT; ioctl
+>>> +must be supported as well.
+>>> +    </para>
+>>> +
+>>> +    <para>
+>>> +To use the <link linkend="format">format</link> ioctls applications set
+>>> the +<structfield>type</structfield> field of a &v4l2-format; to
+>>> +<constant>V4L2_BUF_TYPE_META_CAPTURE</constant> and use the
+>>> &v4l2-meta-format; +<structfield>meta</structfield> member of the
+>>> <structfield>fmt</structfield> +union as needed per the desired
+>>> operation.
+>>> +Currently there are two fields, <structfield>pixelformat</structfield>
+>>> and
+>>
+>> Shouldn't that be metaformat? Since there are no pixels here? It was a bit
+>> dubious to call it pixelformat for SDR as well, but at least there you
+>> still have discrete samples which might be called pixels with some
+>> imagination. But certainly doesn't apply to meta data.
+> 
+> How about dataformat ? Or just format ?
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
-This patch was posted earlier as a part of
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
-thread, but applying it is really needed to get all Exynos multimedia
-drivers working with IOMMU enabled.
+Since the fourcc defines are called V4L2_META_FMT_ I think metaformat is a
+good name. It's consistent with the other meta-related namings.
 
-Best regards,
-Marek Szyprowski
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
- include/media/videobuf2-dma-contig.h           |  1 +
- 2 files changed, 16 insertions(+)
+> 
+>>> +<structfield>buffersize</structfield>, of struct &v4l2-meta-format; that
+>>> are +used. Content of the <structfield>pixelformat</structfield> is the
+>>> V4L2 FourCC +code of the data format. The
+>>> <structfield>buffersize</structfield> field is the +maximum buffer size
+>>> in bytes required for data transfer, set by the driver in +order to
+>>> inform applications.
+>>> +    </para>
+>>> +
+>>> +    <table pgwide="1" frame="none" id="v4l2-meta-format">
+>>> +      <title>struct <structname>v4l2_meta_format</structname></title>
+>>> +      <tgroup cols="3">
+>>> +        &cs-str;
+>>> +        <tbody valign="top">
+>>> +          <row>
+>>> +            <entry>__u32</entry>
+>>> +            <entry><structfield>pixelformat</structfield></entry>
+>>> +            <entry>
+>>> +The data format or type of compression, set by the application. This is a
+>>> +little endian <link linkend="v4l2-fourcc">four character code</link>.
+>>> +V4L2 defines meta-data formats in <xref linkend="meta-formats" />.
+>>> +           </entry>
+>>> +          </row>
+>>> +          <row>
+>>> +            <entry>__u32</entry>
+>>> +            <entry><structfield>buffersize</structfield></entry>
+>>> +            <entry>
+>>> +Maximum size in bytes required for data. Value is set by the driver.
+>>> +           </entry>
+>>> +          </row>
+>>> +          <row>
+>>> +            <entry>__u8</entry>
+>>> +            <entry><structfield>reserved[24]</structfield></entry>
+>>> +            <entry>This array is reserved for future extensions.
+>>> +Drivers and applications must set it to zero.</entry>
+>>> +          </row>
+>>> +        </tbody>
+>>> +      </tgroup>
+>>> +    </table>
+>>> +
+>>> +    <para>
+>>> +A meta-data device may support <link linkend="rw">read/write</link>
+>>> +and/or streaming (<link linkend="mmap">memory mapping</link>
+>>> +or <link linkend="userp">user pointer</link>) I/O.
+>>
+>> Add dma-buf to this as well, or just say "streaming I/O" without listing
+>> the possibilities. If this is copied-and-pasted, then the same should be
+>> done in the original.
+> 
+> How about removing the paragraph completely ? This is already addressed in the 
+> previous section ("Querying Capabilities").
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 5361197..f611456 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -753,6 +753,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
- }
- EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
- 
-+int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
-+{
-+	if (!dev->dma_parms) {
-+		dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
-+					      GFP_KERNEL);
-+		if (!dev->dma_parms)
-+			return -ENOMEM;
-+	}
-+	if (dma_get_max_seg_size(dev) < size)
-+		return dma_set_max_seg_size(dev, size);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
-+
- MODULE_DESCRIPTION("DMA-contig memory handling routines for videobuf2");
- MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
- MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
-index 2087c9a..98857b5 100644
---- a/include/media/videobuf2-dma-contig.h
-+++ b/include/media/videobuf2-dma-contig.h
-@@ -35,6 +35,7 @@ static inline void *vb2_dma_contig_init_ctx(struct device *dev)
- }
- 
- void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
-+int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size);
- 
- extern const struct vb2_mem_ops vb2_dma_contig_memops;
- 
--- 
-1.9.2
+Let's remove this. I am considering to make a proposal to tighten this up.
+I've never been happy with the way stream I/O capabilities are signaled (or
+really the lack of any signaling).
 
+> 
+>>> +    </para>
+>>> +
+>>> +  </section>
+> 
+> [snip]
+> 
+>>> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
+>>> b/drivers/media/v4l2-core/v4l2-dev.c index 70b559d7ca80..d8cbf11eae4e
+>>> 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-dev.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> 
+> [snip]
+> 
+>>> @@ -845,6 +859,8 @@ static int video_register_media_controller(struct
+>>> video_device *vdev, int type)> 
+>>>   *	%VFL_TYPE_SUBDEV - A subdevice
+>>>   *
+>>>   *	%VFL_TYPE_SDR - Software Defined Radio
+>>>
+>>> + *
+>>> + *	%VFL_TYPE_META - Meta-data (including statistics)
+>>
+>> I would drop the '(including statistics)' part. It feels weird that
+>> 'statistics' are singled out, it makes the reader wonder what is so special
+>> about it that it needs to be mentioned explicitly.
+> 
+> Done.
+> 
+>>>   */
+>>>  
+>>>  int __video_register_device(struct video_device *vdev, int type, int nr,
+>>>  
+>>>  		int warn_if_nr_in_use, struct module *owner)
+> 
+> [snip]
+> 
+
+Regards,
+
+	Hans
