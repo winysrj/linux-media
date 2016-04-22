@@ -1,94 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37360 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964994AbcDYVgY (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52701 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753781AbcDVNRZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 17:36:24 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 04/13] v4l: vsp1: Don't handle clocks manually
-Date: Tue, 26 Apr 2016 00:36:29 +0300
-Message-Id: <1461620198-13428-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 22 Apr 2016 09:17:25 -0400
+Subject: Re: [PATCH 2/6] sta2x11_vip: fix s_std
+To: Federico Vaga <federico.vaga@gmail.com>
+References: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl>
+ <1461330222-34096-3-git-send-email-hverkuil@xs4all.nl>
+ <146136747.clRru94iZt@number-5>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <571A2460.7010203@xs4all.nl>
+Date: Fri, 22 Apr 2016 15:17:20 +0200
+MIME-Version: 1.0
+In-Reply-To: <146136747.clRru94iZt@number-5>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The power domain performs functional clock handling when using runtime
-PM, there's no need to enable and disable the clock manually.
+On 04/22/2016 03:15 PM, Federico Vaga wrote:
+> Acked-by: Federico Vaga <federico.vaga@gmail.com>
+> 
+> It sounds fine to me (even the ADV7180 patch). Unfortunately I do not have the 
+> hardware to test it.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1.h     |  1 -
- drivers/media/platform/vsp1/vsp1_drv.c | 20 ++------------------
- 2 files changed, 2 insertions(+), 19 deletions(-)
+Your Ack will have to suffice :-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 9e09bce43cf3..37cc05e34de0 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -62,7 +62,6 @@ struct vsp1_device {
- 	const struct vsp1_device_info *info;
- 
- 	void __iomem *mmio;
--	struct clk *clock;
- 
- 	struct vsp1_bru *bru;
- 	struct vsp1_hsit *hsi;
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index d6abc7f1216a..13907d4f08af 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -514,10 +514,6 @@ static int vsp1_pm_resume(struct device *dev)
- 
- static int vsp1_pm_runtime_suspend(struct device *dev)
- {
--	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
--
--	clk_disable_unprepare(vsp1->clock);
--
- 	return 0;
- }
- 
-@@ -526,16 +522,10 @@ static int vsp1_pm_runtime_resume(struct device *dev)
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 	int ret;
- 
--	ret = clk_prepare_enable(vsp1->clock);
--	if (ret < 0)
--		return ret;
--
- 	if (vsp1->info) {
- 		ret = vsp1_device_init(vsp1);
--		if (ret < 0) {
--			clk_disable_unprepare(vsp1->clock);
-+		if (ret < 0)
- 			return ret;
--		}
- 	}
- 
- 	return 0;
-@@ -640,18 +630,12 @@ static int vsp1_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, vsp1);
- 
--	/* I/O, IRQ and clock resources */
-+	/* I/O and IRQ resources (clock managed by the clock PM domain) */
- 	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	vsp1->mmio = devm_ioremap_resource(&pdev->dev, io);
- 	if (IS_ERR(vsp1->mmio))
- 		return PTR_ERR(vsp1->mmio);
- 
--	vsp1->clock = devm_clk_get(&pdev->dev, NULL);
--	if (IS_ERR(vsp1->clock)) {
--		dev_err(&pdev->dev, "failed to get clock\n");
--		return PTR_ERR(vsp1->clock);
--	}
--
- 	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (!irq) {
- 		dev_err(&pdev->dev, "missing IRQ\n");
--- 
-2.7.3
+Can you Ack the adv7180 patch as well? Would be nice.
+
+Regards,
+
+	Hans
+
+> 
+> On Friday, April 22, 2016 03:03:38 PM Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The s_std ioctl was broken in this driver, partially due to the
+>> changes to the adv7180 driver (this affected the handling of
+>> V4L2_STD_ALL) and partially because the new standard was never
+>> stored in vip->std.
+>>
+>> The handling of V4L2_STD_ALL has been rewritten to just call querystd
+>> and the new standard is now stored correctly.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Federico Vaga <federico.vaga@gmail.com>
+>> ---
+>>  drivers/media/pci/sta2x11/sta2x11_vip.c | 26 ++++++++++----------------
+>>  1 file changed, 10 insertions(+), 16 deletions(-)
+>>
+>> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c
+>> b/drivers/media/pci/sta2x11/sta2x11_vip.c index 753411c..c79623c 100644
+>> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
+>> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+>> @@ -444,27 +444,21 @@ static int vidioc_querycap(struct file *file, void
+>> *priv, static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id
+>> std) {
+>>  	struct sta2x11_vip *vip = video_drvdata(file);
+>> -	v4l2_std_id oldstd = vip->std, newstd;
+>> +	v4l2_std_id oldstd = vip->std;
+>>  	int status;
+>>
+>> -	if (V4L2_STD_ALL == std) {
+>> -		v4l2_subdev_call(vip->decoder, video, s_std, std);
+>> -		ssleep(2);
+>> -		v4l2_subdev_call(vip->decoder, video, querystd, &newstd);
+>> -		v4l2_subdev_call(vip->decoder, video, g_input_status, &status);
+>> -		if (status & V4L2_IN_ST_NO_SIGNAL)
+>> +	/*
+>> +	 * This is here for backwards compatibility only.
+>> +	 * The use of V4L2_STD_ALL to trigger a querystd is non-standard.
+>> +	 */
+>> +	if (std == V4L2_STD_ALL) {
+>> +		v4l2_subdev_call(vip->decoder, video, querystd, &std);
+>> +		if (std == V4L2_STD_UNKNOWN)
+>>  			return -EIO;
+>> -		std = vip->std = newstd;
+>> -		if (oldstd != std) {
+>> -			if (V4L2_STD_525_60 & std)
+>> -				vip->format = formats_60[0];
+>> -			else
+>> -				vip->format = formats_50[0];
+>> -		}
+>> -		return 0;
+>>  	}
+>>
+>> -	if (oldstd != std) {
+>> +	if (vip->std != std) {
+>> +		vip->std = std;
+>>  		if (V4L2_STD_525_60 & std)
+>>  			vip->format = formats_60[0];
+>>  		else
+> 
 
