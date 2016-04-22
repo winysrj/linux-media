@@ -1,265 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:33253 "EHLO
-	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752809AbcDDPNB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Apr 2016 11:13:01 -0400
-Received: by mail-lf0-f52.google.com with SMTP id p188so148194445lfd.0
-        for <linux-media@vger.kernel.org>; Mon, 04 Apr 2016 08:13:00 -0700 (PDT)
-From: Olli Salonen <olli.salonen@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH] em28xx: add support for Hauppauge WinTV-dualHD DVB tuner
-Date: Mon,  4 Apr 2016 18:12:52 +0300
-Message-Id: <1459782772-21451-1-git-send-email-olli.salonen@iki.fi>
+Received: from mail.ispras.ru ([83.149.199.45]:49118 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751979AbcDVWHD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Apr 2016 18:07:03 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@linuxtesting.org
+Subject: [PATCH] [media] au0828: fix double free in au0828_usb_probe()
+Date: Sat, 23 Apr 2016 01:05:07 +0300
+Message-Id: <1461362707-6883-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hauppauge WinTV-dualHD is a USB 2.0 dual DVB-T/T2/C tuner with
-following components:
+In case of failure au0828_v4l2_device_register() deallocates dev
+and returns error code to au0828_usb_probe(), which also
+calls kfree(dev) on a failure path.
 
-USB bridge: Empia EM28274 (chip id is the same as EM28174)
-Demodulator: 2x Silicon Labs Si2168-B40
-Tuner: 2x Silicon Labs Si2157-A30
+The patch removes duplicated code from au0828_v4l2_device_register().
 
-This patch adds support only for the first tuner.
+Found by Linux Driver Verification project (linuxtesting.org).
 
-The demodulator needs firmware, available for example here:
-http://palosaari.fi/linux/v4l-dvb/firmware/Si2168/Si2168-B40/4.0.11/
-
-The demodulators sit on the same I2C bus and their addresses
-are 0x64 and 0x67. The tuners are behind the demodulators and
-their addresses are 0x60 and 0x63.
-
-Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 ---
- Documentation/video4linux/CARDLIST.em28xx |  1 +
- drivers/media/usb/em28xx/em28xx-cards.c   | 54 ++++++++++++++++++++++++++
- drivers/media/usb/em28xx/em28xx-dvb.c     | 64 +++++++++++++++++++++++++++++++
- drivers/media/usb/em28xx/em28xx-reg.h     | 13 +++++++
- drivers/media/usb/em28xx/em28xx.h         |  2 +
- 5 files changed, 134 insertions(+)
+ drivers/media/usb/au0828/au0828-video.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-diff --git a/Documentation/video4linux/CARDLIST.em28xx b/Documentation/video4linux/CARDLIST.em28xx
-index 6720999..09ff940 100644
---- a/Documentation/video4linux/CARDLIST.em28xx
-+++ b/Documentation/video4linux/CARDLIST.em28xx
-@@ -96,3 +96,4 @@
-  95 -> Leadtek VC100                            (em2861)        [0413:6f07]
-  96 -> Terratec Cinergy T2 Stick HD             (em28178)
-  97 -> Elgato EyeTV Hybrid 2008 INT             (em2884)        [0fd9:0018]
-+ 98 -> Hauppauge WinTV-dualHD DVB               (em28174)       [2040:0265]
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 930e3e3..5a57f75 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -492,6 +492,29 @@ static struct em28xx_reg_seq terratec_t2_stick_hd[] = {
- 	{-1,                             -1,   -1,     -1},
- };
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 32d7db96479c..7d0ec4cb248c 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -679,8 +679,6 @@ int au0828_v4l2_device_register(struct usb_interface *interface,
+ 	if (retval) {
+ 		pr_err("%s() v4l2_device_register failed\n",
+ 		       __func__);
+-		mutex_unlock(&dev->lock);
+-		kfree(dev);
+ 		return retval;
+ 	}
  
-+/* 2040:0265 Hauppauge WinTV-dualHD DVB
-+ * reg 0x80/0x84:
-+ * GPIO_0: Yellow LED tuner 1, 0=on, 1=off
-+ * GPIO_1: Green LED tuner 1, 0=on, 1=off
-+ * GPIO_2: Yellow LED tuner 2, 0=on, 1=off
-+ * GPIO_3: Green LED tuner 2, 0=on, 1=off
-+ * GPIO_5: Reset #2, 0=active
-+ * GPIO_6: Reset #1, 0=active
-+ */
-+static struct em28xx_reg_seq hauppauge_dualhd_dvb[] = {
-+	{EM2874_R80_GPIO_P0_CTRL,      0xff, 0xff,      0},
-+	{0x0d,                         0xff, 0xff,    200},
-+	{0x50,                         0x04, 0xff,    300},
-+	{EM2874_R80_GPIO_P0_CTRL,      0xbf, 0xff,    100}, /* demod 1 reset */
-+	{EM2874_R80_GPIO_P0_CTRL,      0xff, 0xff,    100},
-+	{EM2874_R80_GPIO_P0_CTRL,      0xdf, 0xff,    100}, /* demod 2 reset */
-+	{EM2874_R80_GPIO_P0_CTRL,      0xff, 0xff,    100},
-+	{EM2874_R5F_TS_ENABLE,         0x44, 0xff,     50},
-+	{EM2874_R5D_TS1_PKT_SIZE,      0x05, 0xff,     50},
-+	{EM2874_R5E_TS2_PKT_SIZE,      0x05, 0xff,     50},
-+	{-1,                             -1,   -1,     -1},
-+};
-+
- /*
-  *  Button definitions
-  */
-@@ -571,6 +594,22 @@ static struct em28xx_led terratec_grabby_leds[] = {
- 	{-1, 0, 0, 0},
- };
- 
-+static struct em28xx_led hauppauge_dualhd_leds[] = {
-+	{
-+		.role      = EM28XX_LED_DIGITAL_CAPTURING,
-+		.gpio_reg  = EM2874_R80_GPIO_P0_CTRL,
-+		.gpio_mask = EM_GPIO_1,
-+		.inverted  = 1,
-+	},
-+	{
-+		.role      = EM28XX_LED_DIGITAL_CAPTURING_TS2,
-+		.gpio_reg  = EM2874_R80_GPIO_P0_CTRL,
-+		.gpio_mask = EM_GPIO_3,
-+		.inverted  = 1,
-+	},
-+	{-1, 0, 0, 0},
-+};
-+
- /*
-  *  Board definitions
-  */
-@@ -2306,6 +2345,18 @@ struct em28xx_board em28xx_boards[] = {
- 		.has_dvb       = 1,
- 		.ir_codes      = RC_MAP_TERRATEC_SLIM_2,
- 	},
-+	/* 2040:0265 Hauppauge WinTV-dualHD (DVB version).
-+	 * Empia EM28274, 2x Silicon Labs Si2168, 2x Silicon Labs Si2157 */
-+	[EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB] = {
-+		.name          = "Hauppauge WinTV-dualHD DVB",
-+		.def_i2c_bus   = 1,
-+		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE | EM28XX_I2C_FREQ_400_KHZ,
-+		.tuner_type    = TUNER_ABSENT,
-+		.tuner_gpio    = hauppauge_dualhd_dvb,
-+		.has_dvb       = 1,
-+		.ir_codes      = RC_MAP_HAUPPAUGE,
-+		.leds          = hauppauge_dualhd_leds,
-+	},
- };
- EXPORT_SYMBOL_GPL(em28xx_boards);
- 
-@@ -2429,6 +2480,8 @@ struct usb_device_id em28xx_id_table[] = {
- 			.driver_info = EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950 },
- 	{ USB_DEVICE(0x2040, 0x651f),
- 			.driver_info = EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850 },
-+	{ USB_DEVICE(0x2040, 0x0265),
-+			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB },
- 	{ USB_DEVICE(0x0438, 0xb002),
- 			.driver_info = EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600 },
- 	{ USB_DEVICE(0x2001, 0xf112),
-@@ -2861,6 +2914,7 @@ static void em28xx_card_setup(struct em28xx *dev)
- 	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850:
- 	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
- 	case EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C:
-+	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB:
- 	{
- 		struct tveeprom tv;
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 5d209c7..94b88f1 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -1762,6 +1762,70 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 			dvb->i2c_client_tuner = client;
- 		}
- 		break;
-+	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB:
-+		{
-+			struct i2c_adapter *adapter;
-+			struct i2c_client *client;
-+			struct i2c_board_info info;
-+			struct si2168_config si2168_config;
-+			struct si2157_config si2157_config;
-+
-+			/* attach demod */
-+			memset(&si2168_config, 0, sizeof(si2168_config));
-+			si2168_config.i2c_adapter = &adapter;
-+			si2168_config.fe = &dvb->fe[0];
-+			si2168_config.ts_mode = SI2168_TS_SERIAL;
-+			memset(&info, 0, sizeof(struct i2c_board_info));
-+			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
-+			info.addr = 0x64;
-+			info.platform_data = &si2168_config;
-+			request_module(info.type);
-+			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
-+			if (client == NULL || client->dev.driver == NULL) {
-+				result = -ENODEV;
-+				goto out_free;
-+			}
-+
-+			if (!try_module_get(client->dev.driver->owner)) {
-+				i2c_unregister_device(client);
-+				result = -ENODEV;
-+				goto out_free;
-+			}
-+
-+			dvb->i2c_client_demod = client;
-+
-+			/* attach tuner */
-+			memset(&si2157_config, 0, sizeof(si2157_config));
-+			si2157_config.fe = dvb->fe[0];
-+			si2157_config.if_port = 1;
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+			si2157_config.mdev = dev->media_dev;
-+#endif
-+			memset(&info, 0, sizeof(struct i2c_board_info));
-+			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
-+			info.addr = 0x60;
-+			info.platform_data = &si2157_config;
-+			request_module(info.type);
-+			client = i2c_new_device(adapter, &info);
-+			if (client == NULL || client->dev.driver == NULL) {
-+				module_put(dvb->i2c_client_demod->dev.driver->owner);
-+				i2c_unregister_device(dvb->i2c_client_demod);
-+				result = -ENODEV;
-+				goto out_free;
-+			}
-+
-+			if (!try_module_get(client->dev.driver->owner)) {
-+				i2c_unregister_device(client);
-+				module_put(dvb->i2c_client_demod->dev.driver->owner);
-+				i2c_unregister_device(dvb->i2c_client_demod);
-+				result = -ENODEV;
-+				goto out_free;
-+			}
-+
-+			dvb->i2c_client_tuner = client;
-+
-+		}
-+		break;
- 	default:
- 		em28xx_errdev("/2: The frontend of your DVB/ATSC card"
- 				" isn't supported yet\n");
-diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-index 13cbb7f..afe7a66 100644
---- a/drivers/media/usb/em28xx/em28xx-reg.h
-+++ b/drivers/media/usb/em28xx/em28xx-reg.h
-@@ -193,6 +193,19 @@
- /* em2874 registers */
- #define EM2874_R50_IR_CONFIG    0x50
- #define EM2874_R51_IR           0x51
-+#define EM2874_R5D_TS1_PKT_SIZE 0x5d
-+#define EM2874_R5E_TS2_PKT_SIZE 0x5e
-+	/*
-+	 * For both TS1 and TS2, In isochronous mode:
-+	 *  0x01  188 bytes
-+	 *  0x02  376 bytes
-+	 *  0x03  564 bytes
-+	 *  0x04  752 bytes
-+	 *  0x05  940 bytes
-+	 * In bulk mode:
-+	 *  0x01..0xff  total packet count in 188-byte
-+	 */
-+
- #define EM2874_R5F_TS_ENABLE    0x5f
- 
- /* em2874/174/84, em25xx, em276x/7x/8x GPIO registers */
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 2674449..61f6e6d 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -145,6 +145,7 @@
- #define EM2861_BOARD_LEADTEK_VC100                95
- #define EM28178_BOARD_TERRATEC_T2_STICK_HD        96
- #define EM2884_BOARD_ELGATO_EYETV_HYBRID_2008     97
-+#define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  98
- 
- /* Limits minimum and default number of buffers */
- #define EM28XX_MIN_BUF 4
-@@ -406,6 +407,7 @@ enum em28xx_adecoder {
- enum em28xx_led_role {
- 	EM28XX_LED_ANALOG_CAPTURING = 0,
- 	EM28XX_LED_DIGITAL_CAPTURING,
-+	EM28XX_LED_DIGITAL_CAPTURING_TS2,
- 	EM28XX_LED_ILLUMINATION,
- 	EM28XX_NUM_LED_ROLES, /* must be the last */
- };
+@@ -691,8 +689,6 @@ int au0828_v4l2_device_register(struct usb_interface *interface,
+ 	if (retval) {
+ 		pr_err("%s() v4l2_ctrl_handler_init failed\n",
+ 		       __func__);
+-		mutex_unlock(&dev->lock);
+-		kfree(dev);
+ 		return retval;
+ 	}
+ 	dev->v4l2_dev.ctrl_handler = &dev->v4l2_ctrl_hdl;
 -- 
 1.9.1
 
