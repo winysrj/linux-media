@@ -1,123 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51827 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750802AbcDPDFi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 23:05:38 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1724F180B75
-	for <linux-media@vger.kernel.org>; Sat, 16 Apr 2016 05:05:32 +0200 (CEST)
-Date: Sat, 16 Apr 2016 05:05:32 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160416030532.1724F180B75@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:42772 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751172AbcDVMbs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Apr 2016 08:31:48 -0400
+Date: Fri, 22 Apr 2016 09:31:41 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	<stable@vger.kernel.org>
+Subject: Re: [PATCH] media: vb2: Fix regression on poll() for RW mode
+Message-ID: <20160422093141.7f9191bc@recife.lan>
+In-Reply-To: <5719EC8D.2000500@xs4all.nl>
+References: <1461230116-6909-1-git-send-email-ricardo.ribalda@gmail.com>
+	<5719EC8D.2000500@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Fri, 22 Apr 2016 11:19:09 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Results of the daily build of media_tree:
+> Hi Ricardo,
+> 
+> On 04/21/2016 11:15 AM, Ricardo Ribalda Delgado wrote:
+> > When using a device is read/write mode, vb2 does not handle properly the
+> > first select/poll operation. It allways return POLLERR.
+> > 
+> > The reason for this is that when this code has been refactored, some of
+> > the operations have changed their order, and now fileio emulator is not
+> > started by poll, due to a previous check.
+> > 
+> > Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+> > Cc: Junghak Sung <jh1009.sung@samsung.com>
+> > Cc: stable@vger.kernel.org
+> > Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
+> > Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> > ---
+> >  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++++++
+> >  drivers/media/v4l2-core/videobuf2-v4l2.c | 8 --------
+> >  2 files changed, 8 insertions(+), 8 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> > index 5d016f496e0e..199c65dbe330 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > @@ -2298,6 +2298,14 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
+> >  		return POLLERR;
+> >  
+> >  	/*
+> > +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+> > +	 * return POLLERR as well. This only affects capture queues, output
+> > +	 * queues will always initialize waiting_for_buffers to false.
+> > +	 */
+> > +	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
+> > +		return POLLERR;  
+> 
+> The problem I have with this is that this should be specific to V4L2. The only
+> reason we do this is that we had to stay backwards compatible with vb1.
+> 
+> This is the reason this code was placed in videobuf2-v4l2.c. But you are correct
+> that this causes a regression, and I see no other choice but to put it in core.c.
+> 
+> That said, I would still only honor this when called from v4l2, so I suggest that
+> a new flag 'check_waiting_for_buffers' is added that is only set in vb2_queue_init
+> in videobuf2-v4l2.c.
+> 
+> So the test above becomes:
+> 
+> 	if (q->check_waiting_for_buffers && q->waiting_for_buffers &&
+> 	    (req_events & (POLLIN | POLLRDNORM)))
+> 
+> It's not ideal, but at least this keeps this v4l2 specific.
 
-date:		Sat Apr 16 04:00:25 CEST 2016
-git branch:	test
-git hash:	ecb7b0183a89613c154d1bea48b494907efbf8f9
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3413-g618cd5c
-host hardware:	x86_64
-host os:	4.4.0-164
+I don't like the above approach, for two reasons:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+1) it is not obvious that this is V4L2 specific from the code;
 
-Detailed results are available here:
+2) we should not mess the core due to some V4L2 mess.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Full logs are available here:
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > +
+> > +	/*
+> >  	 * For output streams you can call write() as long as there are fewer
+> >  	 * buffers queued than there are buffers available.
+> >  	 */
+> > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > index 91f552124050..c9bad9ef2104 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > @@ -818,14 +818,6 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+> >  			poll_wait(file, &fh->wait, wait);
+> >  	}
+> >  
+> > -	/*
+> > -	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+> > -	 * return POLLERR as well. This only affects capture queues, output
+> > -	 * queues will always initialize waiting_for_buffers to false.
+> > -	 */
+> > -	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
+> > -		return POLLERR;
+> > -
+> >  	return res | vb2_core_poll(q, file, wait);
+> >  }
+> >  EXPORT_SYMBOL_GPL(vb2_poll);
+> >   
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Thanks,
+Mauro
