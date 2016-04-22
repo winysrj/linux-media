@@ -1,123 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54888 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751781AbcDYDBO (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47289 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751984AbcDVJHJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Apr 2016 23:01:14 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id EB3191808B4
-	for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 05:01:03 +0200 (CEST)
-Date: Mon, 25 Apr 2016 05:01:03 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 22 Apr 2016 05:07:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160425030103.EB3191808B4@tschai.lan>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] videodev2.h: remove 'experimental' annotations.
+Date: Fri, 22 Apr 2016 11:06:58 +0200
+Message-Id: <1461316019-2497-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461316019-2497-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461316019-2497-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Most of what is marked as 'experimental' has been around for years. Time
+to drop that annotation.
 
-date:		Mon Apr 25 04:00:15 CEST 2016
-git branch:	test
-git hash:	e07d46e7e0da86c146f199dae76f879096bc436a
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3413-g618cd5c
-host hardware:	x86_64
-host os:	4.5.0-164
+The only remaining 'experimental' bits of the API are the debug ioctls
+and structs: these should remain experimental since the only application
+that should use this is v4l2-dbg.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: WARNINGS
-linux-4.6-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: WARNINGS
-linux-4.6-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/videodev2.h | 38 ++++++++++----------------------------
+ 1 file changed, 10 insertions(+), 28 deletions(-)
 
-Detailed results are available here:
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index e895975..8f95191 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -138,10 +138,7 @@ enum v4l2_buf_type {
+ 	V4L2_BUF_TYPE_VBI_OUTPUT           = 5,
+ 	V4L2_BUF_TYPE_SLICED_VBI_CAPTURE   = 6,
+ 	V4L2_BUF_TYPE_SLICED_VBI_OUTPUT    = 7,
+-#if 1
+-	/* Experimental */
+ 	V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
+-#endif
+ 	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
+ 	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
+ 	V4L2_BUF_TYPE_SDR_CAPTURE          = 11,
+@@ -657,8 +654,7 @@ struct v4l2_fmtdesc {
+ #define V4L2_FMT_FLAG_COMPRESSED 0x0001
+ #define V4L2_FMT_FLAG_EMULATED   0x0002
+ 
+-#if 1
+-	/* Experimental Frame Size and frame rate enumeration */
++	/* Frame Size and frame rate enumeration */
+ /*
+  *	F R A M E   S I Z E   E N U M E R A T I O N
+  */
+@@ -724,7 +720,6 @@ struct v4l2_frmivalenum {
+ 
+ 	__u32	reserved[2];			/* Reserved space for future use */
+ };
+-#endif
+ 
+ /*
+  *	T I M E C O D E
+@@ -1728,8 +1723,6 @@ struct v4l2_audioout {
+ 
+ /*
+  *	M P E G   S E R V I C E S
+- *
+- *	NOTE: EXPERIMENTAL API
+  */
+ #if 1
+ #define V4L2_ENC_IDX_FRAME_I    (0)
+@@ -2259,46 +2252,35 @@ struct v4l2_create_buffers {
+ #define VIDIOC_ENCODER_CMD      _IOWR('V', 77, struct v4l2_encoder_cmd)
+ #define VIDIOC_TRY_ENCODER_CMD  _IOWR('V', 78, struct v4l2_encoder_cmd)
+ 
+-/* Experimental, meant for debugging, testing and internal use.
+-   Only implemented if CONFIG_VIDEO_ADV_DEBUG is defined.
+-   You must be root to use these ioctls. Never use these in applications! */
++/*
++ * Experimental, meant for debugging, testing and internal use.
++ * Only implemented if CONFIG_VIDEO_ADV_DEBUG is defined.
++ * You must be root to use these ioctls. Never use these in applications!
++ */
+ #define	VIDIOC_DBG_S_REGISTER 	 _IOW('V', 79, struct v4l2_dbg_register)
+ #define	VIDIOC_DBG_G_REGISTER 	_IOWR('V', 80, struct v4l2_dbg_register)
+ 
+ #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
+-
+ #define	VIDIOC_S_DV_TIMINGS	_IOWR('V', 87, struct v4l2_dv_timings)
+ #define	VIDIOC_G_DV_TIMINGS	_IOWR('V', 88, struct v4l2_dv_timings)
+ #define	VIDIOC_DQEVENT		 _IOR('V', 89, struct v4l2_event)
+ #define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
+ #define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+-
+-/* Experimental, the below two ioctls may change over the next couple of kernel
+-   versions */
+ #define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
+ #define VIDIOC_PREPARE_BUF	_IOWR('V', 93, struct v4l2_buffer)
+-
+-/* Experimental selection API */
+ #define VIDIOC_G_SELECTION	_IOWR('V', 94, struct v4l2_selection)
+ #define VIDIOC_S_SELECTION	_IOWR('V', 95, struct v4l2_selection)
+-
+-/* Experimental, these two ioctls may change over the next couple of kernel
+-   versions. */
+ #define VIDIOC_DECODER_CMD	_IOWR('V', 96, struct v4l2_decoder_cmd)
+ #define VIDIOC_TRY_DECODER_CMD	_IOWR('V', 97, struct v4l2_decoder_cmd)
+-
+-/* Experimental, these three ioctls may change over the next couple of kernel
+-   versions. */
+ #define VIDIOC_ENUM_DV_TIMINGS  _IOWR('V', 98, struct v4l2_enum_dv_timings)
+ #define VIDIOC_QUERY_DV_TIMINGS  _IOR('V', 99, struct v4l2_dv_timings)
+ #define VIDIOC_DV_TIMINGS_CAP   _IOWR('V', 100, struct v4l2_dv_timings_cap)
+-
+-/* Experimental, this ioctl may change over the next couple of kernel
+-   versions. */
+ #define VIDIOC_ENUM_FREQ_BANDS	_IOWR('V', 101, struct v4l2_frequency_band)
+ 
+-/* Experimental, meant for debugging, testing and internal use.
+-   Never use these in applications! */
++/*
++ * Experimental, meant for debugging, testing and internal use.
++ * Never use this in applications!
++ */
+ #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+ 
+ #define VIDIOC_QUERY_EXT_CTRL	_IOWR('V', 103, struct v4l2_query_ext_ctrl)
+-- 
+2.8.0.rc3
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
