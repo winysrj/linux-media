@@ -1,78 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46077 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866AbcD0LB0 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:41208 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752066AbcDVNDt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 07:01:26 -0400
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH] tw686x: use a formula instead of two tables for div
-Date: Wed, 27 Apr 2016 08:01:19 -0300
-Message-Id: <8344040026ad0985c3c3981e8ec4251fd563258f.1461754812.git.mchehab@osg.samsung.com>
-In-Reply-To: <20160427074055.091a90c8@recife.lan>
-References: <20160427074055.091a90c8@recife.lan>
+	Fri, 22 Apr 2016 09:03:49 -0400
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 3131C18021C
+	for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 15:03:43 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/6] Various rcar-vin and adv* fixes
+Date: Fri, 22 Apr 2016 15:03:36 +0200
+Message-Id: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using two tables to estimate the temporal decimation
-factor, use a formula. This allows to get the closest fps, with
-sounds better than the current tables.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Compile-tested only.
+While testing Niklas' new rcar-vin driver I found various problems
+that is fixed in this patch series.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- drivers/media/pci/tw686x/tw686x-video.c | 34 ++++++++++++---------------------
- 1 file changed, 12 insertions(+), 22 deletions(-)
+The main problem is the adv7180 driver which was simply broken when
+it comes to detecting standards. This should now be fixed (at least
+it works for me now).
 
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-index 253e10823ba3..0210fa304e4c 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -50,28 +50,18 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
- 		0x01041041, 0x01104411, 0x01111111, 0x04444445, 0x04511445,
- 		0x05145145, 0x05151515, 0x05515455, 0x05551555, 0x05555555
- 	};
--
--	static const unsigned int std_625_50[26] = {
--		0, 1, 1, 2,  3,  3,  4,  4,  5,  5,  6,  7,  7,
--		   8, 8, 9, 10, 10, 11, 11, 12, 13, 13, 14, 14, 0
--	};
--
--	static const unsigned int std_525_60[31] = {
--		0, 1, 1, 1, 2,  2,  3,  3,  4,  4,  5,  5,  6,  6, 7, 7,
--		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
--	};
--
--	unsigned int i;
--
--	if (std & V4L2_STD_525_60) {
--		if (fps >= ARRAY_SIZE(std_525_60))
--			fps = 30;
--		i = std_525_60[fps];
--	} else {
--		if (fps >= ARRAY_SIZE(std_625_50))
--			fps = 25;
--		i = std_625_50[fps];
--	}
-+	unsigned int i, max_fps;
-+
-+	if (std & V4L2_STD_525_60)
-+		max_fps = 30;
-+	else
-+		max_fps = 25;
-+
-+	i = DIV_ROUND_CLOSEST(15 * fps, max_fps);
-+	if (!i)
-+		i = 1;	/* Min possible fps */
-+	else if (i > 14)
-+		i = 0;	/* fps = max_fps */
- 
- 	return map[i];
- }
+As a result the sta2x11_vip driver needed to be changed as well.
+
+The new rcar-vin driver driver didn't support the source change event.
+While not relevant for the adv7180 driver (at least on the Koelsch
+board the irq from that chip isn't hooked up), it certainly is needed
+for the adv7612 driver. It doesn't hurt to add it here.
+
+Niklas, just fold it in your patch.
+
+The v4l2-compliance test complained about a missing V4L2_CID_DV_RX_POWER_PRESENT
+control. This was because that control was marked private. The reality
+is that that makes no sense and the control should just be inherited by
+the rcar-vin driver. In practice making this private is just annoying.
+
+The last patch is an rcar-vin bug fix. Niklas, just fold it in your
+patch for the v8.
+
+Niklas, Federico, can you both check the adv7180 changes?
+
+Regards,
+
+	Hans
+
+Hans Verkuil (6):
+  adv7180: fix broken standards handling
+  sta2x11_vip: fix s_std
+  rcar-vin: support the source change event and fix s_std
+  tc358743: drop bogus comment
+  media/i2c/adv*: make controls inheritable instead of private
+  rcar-vin: failed start_streaming didn't call s_stream(0)
+
+ drivers/media/i2c/ad9389b.c                 |   8 --
+ drivers/media/i2c/adv7180.c                 | 118 +++++++++++++++++++---------
+ drivers/media/i2c/adv7511.c                 |   6 --
+ drivers/media/i2c/adv7604.c                 |   8 --
+ drivers/media/i2c/adv7842.c                 |   6 --
+ drivers/media/i2c/tc358743.c                |   1 -
+ drivers/media/pci/sta2x11/sta2x11_vip.c     |  26 +++---
+ drivers/media/platform/rcar-vin/rcar-dma.c  |   4 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  48 ++++++++++-
+ 9 files changed, 139 insertions(+), 86 deletions(-)
+
 -- 
-2.5.5
+2.8.0.rc3
 
