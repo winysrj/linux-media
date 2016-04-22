@@ -1,154 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:36605 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970AbcDTJNp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Apr 2016 05:13:45 -0400
-Received: by mail-lb0-f172.google.com with SMTP id ys16so5745156lbb.3
-        for <linux-media@vger.kernel.org>; Wed, 20 Apr 2016 02:13:44 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:43347 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753417AbcDVOVn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Apr 2016 10:21:43 -0400
+Date: Fri, 22 Apr 2016 11:21:36 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	<stable@vger.kernel.org>
+Subject: Re: [PATCH] media: vb2: Fix regression on poll() for RW mode
+Message-ID: <20160422112136.06afe7c3@recife.lan>
+In-Reply-To: <571A1AF3.3040507@xs4all.nl>
+References: <1461230116-6909-1-git-send-email-ricardo.ribalda@gmail.com>
+	<5719EC8D.2000500@xs4all.nl>
+	<20160422093141.7f9191bc@recife.lan>
+	<571A1AF3.3040507@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <5716B906.2090909@iki.fi>
-References: <1460734647-8941-1-git-send-email-alessandro@radicati.net>
-	<5716B906.2090909@iki.fi>
-Date: Wed, 20 Apr 2016 11:13:43 +0200
-Message-ID: <CAO8Cc0qbTpcbJ0PwhNksGedWcNDD-15xOd4E_oFL5symHaAi8Q@mail.gmail.com>
-Subject: Re: [PATCH] [media] af9035: fix for MXL5007T devices with I2C read issues
-From: Alex Rad <alessandro@radicati.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Angel reguero marrero <areguero@telefonica.net>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 20, 2016 at 1:02 AM, Antti Palosaari <crope@iki.fi> wrote:
-> Hello
-> I am not happy with that new module parameter as I cannot see real need for
-> it. So get rid of it.
+Em Fri, 22 Apr 2016 14:37:07 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-My reasoning for this is:
-1) We know of just two devices which may have the issue, but there are
-probably more.  The module parameter allows a user to apply the
-workaround to other devices we did not consider or test.  Should we
-perhaps apply for all mxl5007t devices?
-2) Not all devices that match VID and PID have the issue, so it allows
-the user to disable the workaround.
+> On 04/22/2016 02:31 PM, Mauro Carvalho Chehab wrote:
+> > Em Fri, 22 Apr 2016 11:19:09 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> Hi Ricardo,
+> >>
+> >> On 04/21/2016 11:15 AM, Ricardo Ribalda Delgado wrote:  
+> >>> When using a device is read/write mode, vb2 does not handle properly the
+> >>> first select/poll operation. It allways return POLLERR.
+> >>>
+> >>> The reason for this is that when this code has been refactored, some of
+> >>> the operations have changed their order, and now fileio emulator is not
+> >>> started by poll, due to a previous check.
+> >>>
+> >>> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+> >>> Cc: Junghak Sung <jh1009.sung@samsung.com>
+> >>> Cc: stable@vger.kernel.org
+> >>> Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
+> >>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> >>> ---
+> >>>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++++++
+> >>>  drivers/media/v4l2-core/videobuf2-v4l2.c | 8 --------
+> >>>  2 files changed, 8 insertions(+), 8 deletions(-)
+> >>>
+> >>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> >>> index 5d016f496e0e..199c65dbe330 100644
+> >>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> >>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> >>> @@ -2298,6 +2298,14 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
+> >>>  		return POLLERR;
+> >>>  
+> >>>  	/*
+> >>> +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+> >>> +	 * return POLLERR as well. This only affects capture queues, output
+> >>> +	 * queues will always initialize waiting_for_buffers to false.
+> >>> +	 */
+> >>> +	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
+> >>> +		return POLLERR;    
+> >>
+> >> The problem I have with this is that this should be specific to V4L2. The only
+> >> reason we do this is that we had to stay backwards compatible with vb1.
+> >>
+> >> This is the reason this code was placed in videobuf2-v4l2.c. But you are correct
+> >> that this causes a regression, and I see no other choice but to put it in core.c.
+> >>
+> >> That said, I would still only honor this when called from v4l2, so I suggest that
+> >> a new flag 'check_waiting_for_buffers' is added that is only set in vb2_queue_init
+> >> in videobuf2-v4l2.c.
+> >>
+> >> So the test above becomes:
+> >>
+> >> 	if (q->check_waiting_for_buffers && q->waiting_for_buffers &&
+> >> 	    (req_events & (POLLIN | POLLRDNORM)))
+> >>
+> >> It's not ideal, but at least this keeps this v4l2 specific.  
+> > 
+> > I don't like the above approach, for two reasons:
+> > 
+> > 1) it is not obvious that this is V4L2 specific from the code;  
+> 
+> s/check_waiting_for_buffers/v4l2_needs_to_wait_for_buffers/
 
->
-> Better to compare both VID and PID when enabling that work-around. Driver
-> supports currently quite many different USB IDs and there is still small
-> risk duplicate PID will exists at some point enabling work-around for wrong
-> device.
->
+Better, but still hell of a hack. Maybe we could add a quirks
+flag and add a flag like:
+	VB2_FLAG_ENABLE_POLLERR_IF_WAITING_BUFFERS_AND_NO_QBUF
+(or some better naming, I'm not inspired today...)
 
-OK.  Will wait for comments on above before a v2.
+Of course, such quirk should be properly documented.
 
+> > 
+> > 2) we should not mess the core due to some V4L2 mess.  
+> 
+> Well, the only other alternative I see is to split vb2_core_poll() into two
+> since the check has to happen in the middle. The v4l2 code would call core_poll1(),
+> then do the check and afterwards call core_poll2(). And that would really be ugly.
+
+Actually, the first callback would be better called as
+vb2_core_poll_check() - or something with similar name.
+
+IMHO, this is the cleaner solution, although it adds an extra cost.
+
+
+> I would probably NACK that.
+> 
+> Better ideas are welcome.
+> 
+> Regards,
+> 
+> 	Hans
+
+
+-- 
 Thanks,
-Alessandro
-
-> regards
-> Antti
->
->
->
->
-> On 04/15/2016 06:37 PM, Alessandro Radicati wrote:
->>
->> The MXL5007T tuner will lock-up on some devices after an I2C read
->> transaction.  This patch adds a kernel module parameter "no_read" to work
->> around this issue by inhibiting such operations and emulating a 0x00
->> response.  The workaround is applied automatically to USB product IDs
->> known
->> to exhibit this flaw, unless the kernel module parameter is specified.
->>
->> Signed-off-by: Alessandro Radicati <alessandro@radicati.net>
->> ---
->>   drivers/media/usb/dvb-usb-v2/af9035.c | 27 +++++++++++++++++++++++++++
->>   drivers/media/usb/dvb-usb-v2/af9035.h |  1 +
->>   2 files changed, 28 insertions(+)
->>
->> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
->> b/drivers/media/usb/dvb-usb-v2/af9035.c
->> index 2638e32..8225403 100644
->> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
->> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
->> @@ -24,6 +24,10 @@
->>   /* Max transfer size done by I2C transfer functions */
->>   #define MAX_XFER_SIZE  64
->>
->> +static int dvb_usb_af9035_no_read = -1;
->> +module_param_named(no_read, dvb_usb_af9035_no_read, int, 0644);
->> +MODULE_PARM_DESC(no_read, "Emulate I2C reads for devices that do not
->> support them.");
->> +
->>   DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
->>
->>   static u16 af9035_checksum(const u8 *buf, size_t len)
->> @@ -348,6 +352,9 @@ static int af9035_i2c_master_xfer(struct i2c_adapter
->> *adap,
->>
->>                         ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
->>                                         msg[1].len);
->> +               } else if (state->no_read) {
->> +                       memset(msg[1].buf, 0, msg[1].len);
->> +                       ret = 0;
->>                 } else {
->>                         /* I2C write + read */
->>                         u8 buf[MAX_XFER_SIZE];
->> @@ -421,6 +428,9 @@ static int af9035_i2c_master_xfer(struct i2c_adapter
->> *adap,
->>                 if (msg[0].len > 40) {
->>                         /* TODO: correct limits > 40 */
->>                         ret = -EOPNOTSUPP;
->> +               } else if (state->no_read) {
->> +                       memset(msg[0].buf, 0, msg[0].len);
->> +                       ret = 0;
->>                 } else {
->>                         /* I2C read */
->>                         u8 buf[5];
->> @@ -962,6 +972,23 @@ skip_eeprom:
->>                         state->af9033_config[i].clock =
->> clock_lut_af9035[tmp];
->>         }
->>
->> +       /* Some MXL5007T devices cannot properly handle tuner I2C read
->> ops. */
->> +       if (dvb_usb_af9035_no_read != -1) { /* Override with module param
->> */
->> +               state->no_read = dvb_usb_af9035_no_read == 0 ? false :
->> true;
->> +       } else {
->> +               switch (le16_to_cpu(d->udev->descriptor.idProduct)) {
->> +               case USB_PID_AVERMEDIA_A867:
->> +               case USB_PID_AVERMEDIA_TWINSTAR:
->> +                       dev_info(&d->udev->dev,
->> +                               "%s: Device may have issues with I2C read
->> operations. Enabling fix.\n",
->> +                               KBUILD_MODNAME);
->> +                       state->no_read = true;
->> +                       break;
->> +               default:
->> +                       state->no_read = false;
->> +               }
->> +       }
->> +
->>         return 0;
->>
->>   err:
->> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h
->> b/drivers/media/usb/dvb-usb-v2/af9035.h
->> index df22001..a76dafa 100644
->> --- a/drivers/media/usb/dvb-usb-v2/af9035.h
->> +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
->> @@ -62,6 +62,7 @@ struct state {
->>         u8 chip_version;
->>         u16 chip_type;
->>         u8 dual_mode:1;
->> +       u8 no_read:1;
->>         u16 eeprom_addr;
->>         u8 af9033_i2c_addr[2];
->>         struct af9033_config af9033_config[2];
->>
->
-> --
-> http://palosaari.fi/
+Mauro
