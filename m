@@ -1,95 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36888 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752262AbcD0M66 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 08:58:58 -0400
-Subject: Re: [PATCH RESEND 1/2] media: vb2-dma-contig: add helper for setting
- dma max seg size
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1461758429-12913-1-git-send-email-m.szyprowski@samsung.com>
- <5720AC3C.8090101@xs4all.nl>
- <5900d3fc-b17a-875b-e016-ae53442641b0@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5720B78B.2080806@xs4all.nl>
-Date: Wed, 27 Apr 2016 14:58:51 +0200
+Received: from lists.s-osg.org ([54.187.51.154]:43703 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754179AbcDVPWE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Apr 2016 11:22:04 -0400
+Date: Fri, 22 Apr 2016 12:21:57 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	Junghak Sung <jh1009.sung@samsung.com>,
+	<stable@vger.kernel.org>
+Subject: Re: [PATCH] media: vb2: Fix regression on poll() for RW mode
+Message-ID: <20160422122157.32f2e688@recife.lan>
+In-Reply-To: <571A3B80.7090402@xs4all.nl>
+References: <1461230116-6909-1-git-send-email-ricardo.ribalda@gmail.com>
+	<5719EC8D.2000500@xs4all.nl>
+	<20160422093141.7f9191bc@recife.lan>
+	<571A1AF3.3040507@xs4all.nl>
+	<20160422112136.06afe7c3@recife.lan>
+	<571A35C0.8020900@xs4all.nl>
+	<20160422114853.5bd48836@recife.lan>
+	<571A3B80.7090402@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <5900d3fc-b17a-875b-e016-ae53442641b0@samsung.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/27/2016 02:23 PM, Marek Szyprowski wrote:
-> Hello,
-> 
-> 
-> On 2016-04-27 14:10, Hans Verkuil wrote:
->> On 04/27/2016 02:00 PM, Marek Szyprowski wrote:
->>> Add a helper function for device drivers to set DMA's max_seg_size.
->>> Setting it to largest possible value lets DMA-mapping API always create
->>> contiguous mappings in DMA address space. This is essential for all
->>> devices, which use dma-contig videobuf2 memory allocator and shared
->>> buffers.
->>>
->>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>> ---
->>> This patch was posted earlier as a part of
->>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
->>> thread, but applying it is really needed to get all Exynos multimedia
->>> drivers working with IOMMU enabled.
->>>
->>> Best regards,
->>> Marek Szyprowski
->>> ---
->>>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
->>>   include/media/videobuf2-dma-contig.h           |  1 +
->>>   2 files changed, 16 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>> index 5361197..f611456 100644
->>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>> @@ -753,6 +753,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
->>>   }
->>>   EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
->>>   +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
->>> +{
->>> +    if (!dev->dma_parms) {
->>> +        dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
->>> +                          GFP_KERNEL);
->> The v3 patch from December uses kzalloc here. Is this perhaps on old version?
-> 
-> Right, my fault. I will do another resend (and fix the typo in the second patch).
-> 
->>> +        if (!dev->dma_parms)
->>> +            return -ENOMEM;
->>> +    }
->>> +    if (dma_get_max_seg_size(dev) < size)
->>> +        return dma_set_max_seg_size(dev, size);
->>> +
->>> +    return 0;
->>> +}
->>> +EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
->> Admittedly I haven't looked closely at this, but is this something that you
->> want for all dma-contig devices? Or to rephrase this question: what type of
->> devices will need this?
-> 
-> This is needed for all devices using vb2-dc, iommu and user-ptr mode, however
-> in the previous discussions (see https://patchwork.linuxtv.org/patch/30870/
-> ) it has been suggested to make it via common helper instead of forcing it
-> in vb2-dc.
+Em Fri, 22 Apr 2016 16:56:00 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-This certainly will need to be carefully documented in videobuf2-dma-contig.h.
+> On 04/22/2016 04:48 PM, Mauro Carvalho Chehab wrote:
+> > Em Fri, 22 Apr 2016 16:31:28 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> On 04/22/2016 04:21 PM, Mauro Carvalho Chehab wrote:  
+> >>> Em Fri, 22 Apr 2016 14:37:07 +0200
+> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >>>     
+> >>>> On 04/22/2016 02:31 PM, Mauro Carvalho Chehab wrote:    
+> >>>>> Em Fri, 22 Apr 2016 11:19:09 +0200
+> >>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >>>>>       
+> >>>>>> Hi Ricardo,
+> >>>>>>
+> >>>>>> On 04/21/2016 11:15 AM, Ricardo Ribalda Delgado wrote:      
+> >>>>>>> When using a device is read/write mode, vb2 does not handle properly the
+> >>>>>>> first select/poll operation. It allways return POLLERR.
+> >>>>>>>
+> >>>>>>> The reason for this is that when this code has been refactored, some of
+> >>>>>>> the operations have changed their order, and now fileio emulator is not
+> >>>>>>> started by poll, due to a previous check.
+> >>>>>>>
+> >>>>>>> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+> >>>>>>> Cc: Junghak Sung <jh1009.sung@samsung.com>
+> >>>>>>> Cc: stable@vger.kernel.org
+> >>>>>>> Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
+> >>>>>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+> >>>>>>> ---
+> >>>>>>>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++++++
+> >>>>>>>  drivers/media/v4l2-core/videobuf2-v4l2.c | 8 --------
+> >>>>>>>  2 files changed, 8 insertions(+), 8 deletions(-)
+> >>>>>>>
+> >>>>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> >>>>>>> index 5d016f496e0e..199c65dbe330 100644
+> >>>>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> >>>>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> >>>>>>> @@ -2298,6 +2298,14 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
+> >>>>>>>  		return POLLERR;
+> >>>>>>>  
+> >>>>>>>  	/*
+> >>>>>>> +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+> >>>>>>> +	 * return POLLERR as well. This only affects capture queues, output
+> >>>>>>> +	 * queues will always initialize waiting_for_buffers to false.
+> >>>>>>> +	 */
+> >>>>>>> +	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
+> >>>>>>> +		return POLLERR;        
+> >>>>>>
+> >>>>>> The problem I have with this is that this should be specific to V4L2. The only
+> >>>>>> reason we do this is that we had to stay backwards compatible with vb1.
+> >>>>>>
+> >>>>>> This is the reason this code was placed in videobuf2-v4l2.c. But you are correct
+> >>>>>> that this causes a regression, and I see no other choice but to put it in core.c.
+> >>>>>>
+> >>>>>> That said, I would still only honor this when called from v4l2, so I suggest that
+> >>>>>> a new flag 'check_waiting_for_buffers' is added that is only set in vb2_queue_init
+> >>>>>> in videobuf2-v4l2.c.
+> >>>>>>
+> >>>>>> So the test above becomes:
+> >>>>>>
+> >>>>>> 	if (q->check_waiting_for_buffers && q->waiting_for_buffers &&
+> >>>>>> 	    (req_events & (POLLIN | POLLRDNORM)))
+> >>>>>>
+> >>>>>> It's not ideal, but at least this keeps this v4l2 specific.      
+> >>>>>
+> >>>>> I don't like the above approach, for two reasons:
+> >>>>>
+> >>>>> 1) it is not obvious that this is V4L2 specific from the code;      
+> >>>>
+> >>>> s/check_waiting_for_buffers/v4l2_needs_to_wait_for_buffers/    
+> >>>
+> >>> Better, but still hell of a hack. Maybe we could add a quirks
+> >>> flag and add a flag like:
+> >>> 	VB2_FLAG_ENABLE_POLLERR_IF_WAITING_BUFFERS_AND_NO_QBUF
+> >>> (or some better naming, I'm not inspired today...)
+> >>>
+> >>> Of course, such quirk should be properly documented.    
+> >>
+> >> How about 'quirk_poll_must_check_waiting_for_buffers'? Something with 'quirk' in the
+> >> name is a good idea.  
+> > 
+> > works for me, provided that we add the field as a flag. So it would be like:
+> > 
+> > #define QUIRK_POLL_MUST_CHECK_WAITING_FOR_BUFFERS 0
+> > 
+> >  	if (test_bit(q->quirk, QUIRK_POLL_MUST_CHECK_WAITING_FOR_BUFFERS) &&
+> > 	    q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))  
+> 
+> Why should it be a flag? What is wrong with a bitfield?
+> 
+> Just curious what the reasoning is for that. I don't see any obvious
+> advantage of a flag over a bitfield.
 
-What happens if it is called when you don't have an iommu? Does something break?
+Huh? Flags are implemented as bitfields. See the above code: it is
+using test_bit() for the new q->quirk flags/bitfield.
 
 Regards,
-
-	Hans
+Mauro
