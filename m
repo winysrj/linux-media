@@ -1,87 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-am1on0133.outbound.protection.outlook.com ([157.56.112.133]:31432
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753505AbcD1VIk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Apr 2016 17:08:40 -0400
-Subject: Re: [PATCH v7 16/24] i2c: allow adapter drivers to override the
- adapter locking
-To: Wolfram Sang <wsa@the-dreams.de>
-References: <1461165484-2314-1-git-send-email-peda@axentia.se>
- <1461165484-2314-17-git-send-email-peda@axentia.se>
- <20160428205018.GA3553@katana>
-CC: <linux-kernel@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Crestez Dan Leonard <leonard.crestez@intel.com>,
-	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>, Peter Rosin <peda@lysator.liu.se>
-From: Peter Rosin <peda@axentia.se>
-Message-ID: <470abe38-ab5f-2d0a-305b-e1a3253ce5a9@axentia.se>
-Date: Thu, 28 Apr 2016 23:08:26 +0200
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59550 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752055AbcDVO4I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Apr 2016 10:56:08 -0400
+Subject: Re: [PATCH] media: vb2: Fix regression on poll() for RW mode
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1461230116-6909-1-git-send-email-ricardo.ribalda@gmail.com>
+ <5719EC8D.2000500@xs4all.nl> <20160422093141.7f9191bc@recife.lan>
+ <571A1AF3.3040507@xs4all.nl> <20160422112136.06afe7c3@recife.lan>
+ <571A35C0.8020900@xs4all.nl> <20160422114853.5bd48836@recife.lan>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Junghak Sung <jh1009.sung@samsung.com>, stable@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <571A3B80.7090402@xs4all.nl>
+Date: Fri, 22 Apr 2016 16:56:00 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160428205018.GA3553@katana>
-Content-Type: text/plain; charset="windows-1252"
+In-Reply-To: <20160422114853.5bd48836@recife.lan>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 2016-04-28 22:50, Wolfram Sang wrote:
-> On Wed, Apr 20, 2016 at 05:17:56PM +0200, Peter Rosin wrote:
->> Add i2c_lock_bus() and i2c_unlock_bus(), which call the new lock_bus and
->> unlock_bus ops in the adapter. These funcs/ops take an additional flags
->> argument that indicates for what purpose the adapter is locked.
+On 04/22/2016 04:48 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 22 Apr 2016 16:31:28 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+>> On 04/22/2016 04:21 PM, Mauro Carvalho Chehab wrote:
+>>> Em Fri, 22 Apr 2016 14:37:07 +0200
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>   
+>>>> On 04/22/2016 02:31 PM, Mauro Carvalho Chehab wrote:  
+>>>>> Em Fri, 22 Apr 2016 11:19:09 +0200
+>>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>>>     
+>>>>>> Hi Ricardo,
+>>>>>>
+>>>>>> On 04/21/2016 11:15 AM, Ricardo Ribalda Delgado wrote:    
+>>>>>>> When using a device is read/write mode, vb2 does not handle properly the
+>>>>>>> first select/poll operation. It allways return POLLERR.
+>>>>>>>
+>>>>>>> The reason for this is that when this code has been refactored, some of
+>>>>>>> the operations have changed their order, and now fileio emulator is not
+>>>>>>> started by poll, due to a previous check.
+>>>>>>>
+>>>>>>> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+>>>>>>> Cc: Junghak Sung <jh1009.sung@samsung.com>
+>>>>>>> Cc: stable@vger.kernel.org
+>>>>>>> Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
+>>>>>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+>>>>>>> ---
+>>>>>>>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++++++
+>>>>>>>  drivers/media/v4l2-core/videobuf2-v4l2.c | 8 --------
+>>>>>>>  2 files changed, 8 insertions(+), 8 deletions(-)
+>>>>>>>
+>>>>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>>>>>>> index 5d016f496e0e..199c65dbe330 100644
+>>>>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>>>>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>>>>>>> @@ -2298,6 +2298,14 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
+>>>>>>>  		return POLLERR;
+>>>>>>>  
+>>>>>>>  	/*
+>>>>>>> +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+>>>>>>> +	 * return POLLERR as well. This only affects capture queues, output
+>>>>>>> +	 * queues will always initialize waiting_for_buffers to false.
+>>>>>>> +	 */
+>>>>>>> +	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
+>>>>>>> +		return POLLERR;      
+>>>>>>
+>>>>>> The problem I have with this is that this should be specific to V4L2. The only
+>>>>>> reason we do this is that we had to stay backwards compatible with vb1.
+>>>>>>
+>>>>>> This is the reason this code was placed in videobuf2-v4l2.c. But you are correct
+>>>>>> that this causes a regression, and I see no other choice but to put it in core.c.
+>>>>>>
+>>>>>> That said, I would still only honor this when called from v4l2, so I suggest that
+>>>>>> a new flag 'check_waiting_for_buffers' is added that is only set in vb2_queue_init
+>>>>>> in videobuf2-v4l2.c.
+>>>>>>
+>>>>>> So the test above becomes:
+>>>>>>
+>>>>>> 	if (q->check_waiting_for_buffers && q->waiting_for_buffers &&
+>>>>>> 	    (req_events & (POLLIN | POLLRDNORM)))
+>>>>>>
+>>>>>> It's not ideal, but at least this keeps this v4l2 specific.    
+>>>>>
+>>>>> I don't like the above approach, for two reasons:
+>>>>>
+>>>>> 1) it is not obvious that this is V4L2 specific from the code;    
+>>>>
+>>>> s/check_waiting_for_buffers/v4l2_needs_to_wait_for_buffers/  
+>>>
+>>> Better, but still hell of a hack. Maybe we could add a quirks
+>>> flag and add a flag like:
+>>> 	VB2_FLAG_ENABLE_POLLERR_IF_WAITING_BUFFERS_AND_NO_QBUF
+>>> (or some better naming, I'm not inspired today...)
+>>>
+>>> Of course, such quirk should be properly documented.  
 >>
->> There are two flags, I2C_LOCK_ADAPTER and I2C_LOCK_SEGMENT, but they are
->> both implemented the same. For now. Locking the adapter means that the
->> whole bus is locked, locking the segment means that only the current bus
->> segment is locked (i.e. i2c traffic on the parent side of mux is still
->> allowed even if the child side of the mux is locked.
->>
->> Also support a trylock_bus op (but no function to call it, as it is not
->> expected to be needed outside of the i2c core).
->>
->> Implement i2c_lock_adapter/i2c_unlock_adapter in terms of the new locking
->> scheme (i.e. lock with the I2C_LOCK_ADAPTER flag).
->>
->> Annotate some of the locking with explicit I2C_LOCK_SEGMENT flags.
->>
->> Signed-off-by: Peter Rosin <peda@axentia.se>
-> Letting you know that I start reviewing the 2nd part of your series. Did
-> the first glimpse today. Will hopefully do the in-depth part this
-> weekend. One thing already:
->
->> +static void i2c_adapter_lock_bus(struct i2c_adapter *adapter, int flags)
-> Shouldn't flags be unsigned?
->
+>> How about 'quirk_poll_must_check_waiting_for_buffers'? Something with 'quirk' in the
+>> name is a good idea.
+> 
+> works for me, provided that we add the field as a flag. So it would be like:
+> 
+> #define QUIRK_POLL_MUST_CHECK_WAITING_FOR_BUFFERS 0
+> 
+>  	if (test_bit(q->quirk, QUIRK_POLL_MUST_CHECK_WAITING_FOR_BUFFERS) &&
+> 	    q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
 
-Yes, obviously... I'll make that change locally and wait for the rest.
+Why should it be a flag? What is wrong with a bitfield?
 
-Cheers,
-Peter
+Just curious what the reasoning is for that. I don't see any obvious
+advantage of a flag over a bitfield.
 
+Regards,
+
+	Hans
