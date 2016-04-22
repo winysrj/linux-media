@@ -1,101 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34175 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753268AbcDXVKW (ORCPT
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:34231 "EHLO
+	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751582AbcDVS5a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Apr 2016 17:10:22 -0400
-Received: by mail-wm0-f67.google.com with SMTP id n3so20028028wmn.1
-        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:21 -0700 (PDT)
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: sakari.ailus@iki.fi
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org
-Subject: [RFC PATCH 08/24] v4l: of: Obtain data bus type from bus-type property
-Date: Mon, 25 Apr 2016 00:08:08 +0300
-Message-Id: <1461532104-24032-9-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Fri, 22 Apr 2016 14:57:30 -0400
+Received: by mail-lf0-f41.google.com with SMTP id j11so84498491lfb.1
+        for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 11:57:29 -0700 (PDT)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Fri, 22 Apr 2016 20:57:27 +0200
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 6/6] rcar-vin: failed start_streaming didn't call
+ s_stream(0)
+Message-ID: <20160422185726.GC23014@bigcity.dyn.berto.se>
+References: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl>
+ <1461330222-34096-7-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1461330222-34096-7-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Hi Hans,
 
-Only try parsing bus specific properties in this case.
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/v4l2-core/v4l2-of.c | 42 +++++++++++++++++++++++++++++----------
- 1 file changed, 32 insertions(+), 10 deletions(-)
+On 2016-04-22 15:03:42 +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This can leave adv7180 in an inconsistent state
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index 644ec9b..087c30c 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -1058,8 +1058,10 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  	ret = rvin_capture_start(vin);
+>  out:
+>  	/* Return all buffers if something went wrong */
+> -	if (ret)
+> +	if (ret) {
+>  		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
+> +		v4l2_subdev_call(sd, video, s_stream, 0);
+> +	}
+>  
+>  	spin_unlock_irqrestore(&vin->qlock, flags);
+>  
+> -- 
+> 2.8.0.rc3
+> 
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index f2618fd..5304137 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -20,6 +20,11 @@
- 
- #include <media/v4l2-of.h>
- 
-+enum v4l2_of_bus_type {
-+	V4L2_OF_BUS_TYPE_CSI2 = 0,
-+	V4L2_OF_BUS_TYPE_PARALLEL,
-+};
-+
- static int v4l2_of_parse_csi2_bus(const struct device_node *node,
- 				 struct v4l2_of_endpoint *endpoint)
- {
-@@ -151,6 +156,7 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- int v4l2_of_parse_endpoint(const struct device_node *node,
- 			   struct v4l2_of_endpoint *endpoint)
- {
-+	u32 bus_type;
- 	int rval;
- 
- 	of_graph_parse_endpoint(node, &endpoint->base);
-@@ -158,17 +164,33 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
- 	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
- 	       offsetof(typeof(*endpoint), bus_type));
- 
--	rval = v4l2_of_parse_csi2_bus(node, endpoint);
--	if (rval)
--		return rval;
--	/*
--	 * Parse the parallel video bus properties only if none
--	 * of the MIPI CSI-2 specific properties were found.
--	 */
--	if (endpoint->bus.mipi_csi2.flags == 0)
--		v4l2_of_parse_parallel_bus(node, endpoint);
-+	rval = of_property_read_u32(node, "bus-type", &bus_type);
-+	if (rval < 0) {
-+		endpoint->bus_type = 0;
-+		rval = v4l2_of_parse_csi2_bus(node, endpoint);
-+		if (rval)
-+			return rval;
-+		/*
-+		 * Parse the parallel video bus properties only if none
-+		 * of the MIPI CSI-2 specific properties were found.
-+		 */
-+		if (endpoint->bus.mipi_csi2.flags == 0)
-+			v4l2_of_parse_parallel_bus(node, endpoint);
-+
-+		return 0;
-+	}
- 
--	return 0;
-+	switch (bus_type) {
-+	case V4L2_OF_BUS_TYPE_CSI2:
-+		return v4l2_of_parse_csi2_bus(node, endpoint);
-+	case V4L2_OF_BUS_TYPE_PARALLEL:
-+		v4l2_of_parse_parallel_bus(node, endpoint);
-+		return 0;
-+	default:
-+		pr_warn("bad bus-type %u, device_node \"%s\"\n",
-+			bus_type, node->full_name);
-+		return -EINVAL;
-+	}
- }
- EXPORT_SYMBOL(v4l2_of_parse_endpoint);
- 
 -- 
-1.9.1
-
+Regards,
+Niklas Söderlund
