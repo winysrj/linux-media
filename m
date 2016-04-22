@@ -1,495 +1,420 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44512 "EHLO
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33581 "EHLO
 	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753846AbcDVJHK (ORCPT
+	by vger.kernel.org with ESMTP id S1751995AbcDVIij (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 05:07:10 -0400
+	Fri, 22 Apr 2016 04:38:39 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] DocBook media: drop 'experimental' annotations
-Date: Fri, 22 Apr 2016 11:06:59 +0200
-Message-Id: <1461316019-2497-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461316019-2497-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461316019-2497-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Benoit Parrot <bparrot@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv3 07/12] media/platform: convert drivers to use the new vb2_queue dev field
+Date: Fri, 22 Apr 2016 10:38:14 +0200
+Message-Id: <1461314299-36126-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Drop the 'experimental' annotations. The only remaining part of the API
-that is still marked 'experimental' are the debug ioctls/structs, and
-that is intentional. Only the v4l2-dbg application should use those.
-
-All others have been around for years, so it is time to drop the
-'experimental' designation.
+Stop using alloc_ctx and just fill in the device pointer.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Fabien Dessenne <fabien.dessenne@st.com>
+Cc: Benoit Parrot <bparrot@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+#
+#total: 0 errors, 0 warnings, 10 lines checked
+#
+#Your patch has no obvious style problems and is ready for submission.
 ---
- Documentation/DocBook/media/v4l/compat.xml         | 38 ----------------------
- Documentation/DocBook/media/v4l/controls.xml       | 31 ------------------
- Documentation/DocBook/media/v4l/dev-sdr.xml        |  6 ----
- Documentation/DocBook/media/v4l/dev-subdev.xml     |  6 ----
- Documentation/DocBook/media/v4l/io.xml             |  6 ----
- Documentation/DocBook/media/v4l/selection-api.xml  |  9 +----
- Documentation/DocBook/media/v4l/subdev-formats.xml |  6 ----
- .../DocBook/media/v4l/vidioc-create-bufs.xml       |  6 ----
- .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    |  6 ----
- .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   |  6 ----
- .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |  6 ----
- Documentation/DocBook/media/v4l/vidioc-expbuf.xml  |  6 ----
- .../DocBook/media/v4l/vidioc-g-selection.xml       |  6 ----
- .../DocBook/media/v4l/vidioc-prepare-buf.xml       |  6 ----
- .../DocBook/media/v4l/vidioc-query-dv-timings.xml  |  6 ----
- .../v4l/vidioc-subdev-enum-frame-interval.xml      |  6 ----
- .../media/v4l/vidioc-subdev-enum-frame-size.xml    |  6 ----
- .../media/v4l/vidioc-subdev-enum-mbus-code.xml     |  6 ----
- .../DocBook/media/v4l/vidioc-subdev-g-fmt.xml      |  6 ----
- .../media/v4l/vidioc-subdev-g-frame-interval.xml   |  6 ----
- .../media/v4l/vidioc-subdev-g-selection.xml        |  6 ----
- 21 files changed, 1 insertion(+), 185 deletions(-)
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 18 ++++--------------
+ drivers/media/platform/sti/bdisp/bdisp.h      |  2 --
+ drivers/media/platform/ti-vpe/cal.c           | 15 +--------------
+ drivers/media/platform/ti-vpe/vpe.c           | 20 ++++----------------
+ drivers/media/platform/vsp1/vsp1_video.c      | 18 +++---------------
+ drivers/media/platform/vsp1/vsp1_video.h      |  1 -
+ drivers/media/platform/xilinx/xilinx-dma.c    | 11 +----------
+ drivers/media/platform/xilinx/xilinx-dma.h    |  2 --
+ 8 files changed, 13 insertions(+), 74 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 5399e89..82fa328 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2686,50 +2686,12 @@ and may change in the future.</para>
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+index d12a419..b3e8b5a 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+@@ -439,7 +439,7 @@ static void bdisp_ctrls_delete(struct bdisp_ctx *ctx)
  
-       <itemizedlist>
-         <listitem>
--	  <para>Video Output Overlay (OSD) Interface, <xref
--	    linkend="osd" />.</para>
--        </listitem>
--        <listitem>
- 	  <para>&VIDIOC-DBG-G-REGISTER; and &VIDIOC-DBG-S-REGISTER;
- ioctls.</para>
-         </listitem>
-         <listitem>
- 	  <para>&VIDIOC-DBG-G-CHIP-INFO; ioctl.</para>
-         </listitem>
--        <listitem>
--	  <para>&VIDIOC-ENUM-DV-TIMINGS;, &VIDIOC-QUERY-DV-TIMINGS; and
--	  &VIDIOC-DV-TIMINGS-CAP; ioctls.</para>
--        </listitem>
--        <listitem>
--	  <para>Flash API. <xref linkend="flash-controls" /></para>
--        </listitem>
--        <listitem>
--	  <para>&VIDIOC-CREATE-BUFS; and &VIDIOC-PREPARE-BUF; ioctls.</para>
--        </listitem>
--        <listitem>
--	  <para>Selection API. <xref linkend="selection-api" /></para>
--        </listitem>
--        <listitem>
--	  <para>Sub-device selection API: &VIDIOC-SUBDEV-G-SELECTION;
--	  and &VIDIOC-SUBDEV-S-SELECTION; ioctls.</para>
--        </listitem>
--        <listitem>
--	  <para>Support for frequency band enumeration: &VIDIOC-ENUM-FREQ-BANDS; ioctl.</para>
--        </listitem>
--        <listitem>
--	  <para>Vendor and device specific media bus pixel formats.
--	    <xref linkend="v4l2-mbus-vendor-spec-fmts" />.</para>
--        </listitem>
--        <listitem>
--	  <para>Importing DMABUF file descriptors as a new IO method described
--	  in <xref linkend="dmabuf" />.</para>
--        </listitem>
--        <listitem>
--	  <para>Exporting DMABUF files using &VIDIOC-EXPBUF; ioctl.</para>
--        </listitem>
--        <listitem>
--	  <para>Software Defined Radio (SDR) Interface, <xref linkend="sdr" />.</para>
--        </listitem>
-       </itemizedlist>
-     </section>
+ static int bdisp_queue_setup(struct vb2_queue *vq,
+ 			     unsigned int *nb_buf, unsigned int *nb_planes,
+-			     unsigned int sizes[], void *allocators[])
++			     unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct bdisp_ctx *ctx = vb2_get_drv_priv(vq);
+ 	struct bdisp_frame *frame = ctx_get_frame(ctx, vq->type);
+@@ -453,7 +453,6 @@ static int bdisp_queue_setup(struct vb2_queue *vq,
+ 		dev_err(ctx->bdisp_dev->dev, "Invalid format\n");
+ 		return -EINVAL;
+ 	}
+-	allocators[0] = ctx->bdisp_dev->alloc_ctx;
  
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 361040e..81efa88 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4272,13 +4272,6 @@ manually or automatically if set to zero. Unit, range and step are driver-specif
-     <section id="flash-controls">
-       <title>Flash Control Reference</title>
+ 	if (*nb_planes)
+ 		return sizes[0] < frame->sizeimage ? -EINVAL : 0;
+@@ -553,6 +552,7 @@ static int queue_init(void *priv,
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &ctx->bdisp_dev->lock;
++	src_vq->dev = ctx->bdisp_dev->v4l2_dev.dev;
  
--      <note>
--	<title>Experimental</title>
--
--	<para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--      </note>
--
-       <para>
- 	The V4L2 flash controls are intended to provide generic access
- 	to flash controller devices. Flash controller devices are
-@@ -4743,14 +4736,6 @@ interface and may change in the future.</para>
-     <section id="image-source-controls">
-       <title>Image Source Control Reference</title>
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -567,6 +567,7 @@ static int queue_init(void *priv,
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &ctx->bdisp_dev->lock;
++	dst_vq->dev = ctx->bdisp_dev->v4l2_dev.dev;
  
--      <note>
--	<title>Experimental</title>
--
--	<para>This is an <link
--	linkend="experimental">experimental</link> interface and may
--	change in the future.</para>
--      </note>
--
-       <para>
- 	The Image Source control class is intended for low-level
- 	control of image source devices such as image sensors. The
-@@ -4862,14 +4847,6 @@ interface and may change in the future.</para>
-     <section id="image-process-controls">
-       <title>Image Process Control Reference</title>
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -1269,8 +1270,6 @@ static int bdisp_remove(struct platform_device *pdev)
  
--      <note>
--	<title>Experimental</title>
--
--	<para>This is an <link
--	linkend="experimental">experimental</link> interface and may
--	change in the future.</para>
--      </note>
--
-       <para>
- 	The Image Process control class is intended for low-level control of
- 	image processing functions. Unlike
-@@ -4955,14 +4932,6 @@ interface and may change in the future.</para>
-     <section id="dv-controls">
-       <title>Digital Video Control Reference</title>
+ 	bdisp_hw_free_filters(bdisp->dev);
  
--      <note>
--	<title>Experimental</title>
+-	vb2_dma_contig_cleanup_ctx(bdisp->alloc_ctx);
 -
--	<para>This is an <link
--	linkend="experimental">experimental</link> interface and may
--	change in the future.</para>
--      </note>
+ 	pm_runtime_disable(&pdev->dev);
+ 
+ 	bdisp_debugfs_remove(bdisp);
+@@ -1371,18 +1370,11 @@ static int bdisp_probe(struct platform_device *pdev)
+ 		goto err_dbg;
+ 	}
+ 
+-	/* Continuous memory allocator */
+-	bdisp->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+-	if (IS_ERR(bdisp->alloc_ctx)) {
+-		ret = PTR_ERR(bdisp->alloc_ctx);
+-		goto err_pm;
+-	}
 -
-       <para>
- 	The Digital Video control class is intended to control receivers
- 	and transmitters for <ulink url="http://en.wikipedia.org/wiki/Vga">VGA</ulink>,
-diff --git a/Documentation/DocBook/media/v4l/dev-sdr.xml b/Documentation/DocBook/media/v4l/dev-sdr.xml
-index a659771..6da1157 100644
---- a/Documentation/DocBook/media/v4l/dev-sdr.xml
-+++ b/Documentation/DocBook/media/v4l/dev-sdr.xml
-@@ -1,11 +1,5 @@
-   <title>Software Defined Radio Interface (SDR)</title>
+ 	/* Filters */
+ 	if (bdisp_hw_alloc_filters(bdisp->dev)) {
+ 		dev_err(bdisp->dev, "no memory for filters\n");
+ 		ret = -ENOMEM;
+-		goto err_vb2_dma;
++		goto err_pm;
+ 	}
  
--  <note>
--    <title>Experimental</title>
--    <para>This is an <link linkend="experimental"> experimental </link>
--    interface and may change in the future.</para>
--  </note>
+ 	/* Register */
+@@ -1401,8 +1393,6 @@ static int bdisp_probe(struct platform_device *pdev)
+ 
+ err_filter:
+ 	bdisp_hw_free_filters(bdisp->dev);
+-err_vb2_dma:
+-	vb2_dma_contig_cleanup_ctx(bdisp->alloc_ctx);
+ err_pm:
+ 	pm_runtime_put(dev);
+ err_dbg:
+diff --git a/drivers/media/platform/sti/bdisp/bdisp.h b/drivers/media/platform/sti/bdisp/bdisp.h
+index 0cf9857..b3fbf99 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp.h
++++ b/drivers/media/platform/sti/bdisp/bdisp.h
+@@ -175,7 +175,6 @@ struct bdisp_dbg {
+  * @id:         device index
+  * @m2m:        memory-to-memory V4L2 device information
+  * @state:      flags used to synchronize m2m and capture mode operation
+- * @alloc_ctx:  videobuf2 memory allocator context
+  * @clock:      IP clock
+  * @regs:       registers
+  * @irq_queue:  interrupt handler waitqueue
+@@ -193,7 +192,6 @@ struct bdisp_dev {
+ 	u16                     id;
+ 	struct bdisp_m2m_device m2m;
+ 	unsigned long           state;
+-	struct vb2_alloc_ctx    *alloc_ctx;
+ 	struct clk              *clock;
+ 	void __iomem            *regs;
+ 	wait_queue_head_t       irq_queue;
+diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+index 82001e6..51ebf32 100644
+--- a/drivers/media/platform/ti-vpe/cal.c
++++ b/drivers/media/platform/ti-vpe/cal.c
+@@ -287,7 +287,6 @@ struct cal_ctx {
+ 	/* Several counters */
+ 	unsigned long		jiffies;
+ 
+-	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct cal_dmaqueue	vidq;
+ 
+ 	/* Input Number */
+@@ -1233,7 +1232,6 @@ static int cal_queue_setup(struct vb2_queue *vq,
+ 
+ 	if (vq->num_buffers + *nbuffers < 3)
+ 		*nbuffers = 3 - vq->num_buffers;
+-	alloc_ctxs[0] = ctx->alloc_ctx;
+ 
+ 	if (*nplanes) {
+ 		if (sizes[0] < size)
+@@ -1551,6 +1549,7 @@ static int cal_complete_ctx(struct cal_ctx *ctx)
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->lock = &ctx->mutex;
+ 	q->min_buffers_needed = 3;
++	q->dev = ctx->v4l2_dev.dev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret)
+@@ -1578,18 +1577,7 @@ static int cal_complete_ctx(struct cal_ctx *ctx)
+ 	v4l2_info(&ctx->v4l2_dev, "V4L2 device registered as %s\n",
+ 		  video_device_node_name(vfd));
+ 
+-	ctx->alloc_ctx = vb2_dma_contig_init_ctx(vfd->v4l2_dev->dev);
+-	if (IS_ERR(ctx->alloc_ctx)) {
+-		ctx_err(ctx, "Failed to alloc vb2 context\n");
+-		ret = PTR_ERR(ctx->alloc_ctx);
+-		goto vdev_unreg;
+-	}
 -
-   <para>
- SDR is an abbreviation of Software Defined Radio, the radio device
- which uses application software for modulation or demodulation. This interface
-diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-index 4f0ba58..f4bc27a 100644
---- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-@@ -1,11 +1,5 @@
-   <title>Sub-device Interface</title>
- 
--  <note>
--    <title>Experimental</title>
--    <para>This is an <link linkend="experimental">experimental</link>
--    interface and may change in the future.</para>
--  </note>
+ 	return 0;
 -
-   <para>The complex nature of V4L2 devices, where hardware is often made of
-   several integrated circuits that need to interact with each other in a
-   controlled way, leads to complex V4L2 drivers. The drivers usually reflect
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 144158b..e09025d 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -475,12 +475,6 @@ rest should be evident.</para>
-   <section id="dmabuf">
-     <title>Streaming I/O (DMA buffer importing)</title>
+-vdev_unreg:
+-	video_unregister_device(vfd);
+-	return ret;
+ }
  
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental">experimental</link>
--      interface and may change in the future.</para>
--    </note>
+ static struct device_node *
+@@ -1914,7 +1902,6 @@ static int cal_remove(struct platform_device *pdev)
+ 				video_device_node_name(&ctx->vdev));
+ 			camerarx_phy_disable(ctx);
+ 			v4l2_async_notifier_unregister(&ctx->notifier);
+-			vb2_dma_contig_cleanup_ctx(ctx->alloc_ctx);
+ 			v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+ 			v4l2_device_unregister(&ctx->v4l2_dev);
+ 			video_unregister_device(&ctx->vdev);
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 1fa00c2..3fefd8a 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -362,7 +362,6 @@ struct vpe_dev {
+ 	void __iomem		*base;
+ 	struct resource		*res;
+ 
+-	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct vpdma_data	*vpdma;		/* vpdma data handle */
+ 	struct sc_data		*sc;		/* scaler data handle */
+ 	struct csc_data		*csc;		/* csc data handle */
+@@ -1807,10 +1806,8 @@ static int vpe_queue_setup(struct vb2_queue *vq,
+ 
+ 	*nplanes = q_data->fmt->coplanar ? 2 : 1;
+ 
+-	for (i = 0; i < *nplanes; i++) {
++	for (i = 0; i < *nplanes; i++)
+ 		sizes[i] = q_data->sizeimage[i];
+-		alloc_ctxs[i] = ctx->dev->alloc_ctx;
+-	}
+ 
+ 	vpe_dbg(ctx->dev, "get %d buffer(s) of size %d", *nbuffers,
+ 		sizes[VPE_LUMA]);
+@@ -1907,6 +1904,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	src_vq->lock = &dev->dev_mutex;
++	src_vq->dev = dev->v4l2_dev.dev;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -1921,6 +1919,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	dst_vq->lock = &dev->dev_mutex;
++	dst_vq->dev = dev->v4l2_dev.dev;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -2161,7 +2160,6 @@ static void vpe_fw_cb(struct platform_device *pdev)
+ 		vpe_runtime_put(pdev);
+ 		pm_runtime_disable(&pdev->dev);
+ 		v4l2_m2m_release(dev->m2m_dev);
+-		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ 		v4l2_device_unregister(&dev->v4l2_dev);
+ 
+ 		return;
+@@ -2213,18 +2211,11 @@ static int vpe_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, dev);
+ 
+-	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(dev->alloc_ctx)) {
+-		vpe_err(dev, "Failed to alloc vb2 context\n");
+-		ret = PTR_ERR(dev->alloc_ctx);
+-		goto v4l2_dev_unreg;
+-	}
 -
- <para>The DMABUF framework provides a generic method for sharing buffers
- between multiple devices. Device drivers that support DMABUF can export a DMA
- buffer to userspace as a file descriptor (known as the exporter role), import a
-diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
-index 28cbded..b764cba 100644
---- a/Documentation/DocBook/media/v4l/selection-api.xml
-+++ b/Documentation/DocBook/media/v4l/selection-api.xml
-@@ -1,13 +1,6 @@
- <section id="selection-api">
+ 	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
+ 	if (IS_ERR(dev->m2m_dev)) {
+ 		vpe_err(dev, "Failed to init mem2mem device\n");
+ 		ret = PTR_ERR(dev->m2m_dev);
+-		goto rel_ctx;
++		goto v4l2_dev_unreg;
+ 	}
  
--  <title>Experimental API for cropping, composing and scaling</title>
+ 	pm_runtime_enable(&pdev->dev);
+@@ -2269,8 +2260,6 @@ runtime_put:
+ rel_m2m:
+ 	pm_runtime_disable(&pdev->dev);
+ 	v4l2_m2m_release(dev->m2m_dev);
+-rel_ctx:
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ v4l2_dev_unreg:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 
+@@ -2286,7 +2275,6 @@ static int vpe_remove(struct platform_device *pdev)
+ 	v4l2_m2m_release(dev->m2m_dev);
+ 	video_unregister_device(&dev->vfd);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+-	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+ 
+ 	vpe_set_clock_enable(dev, 0);
+ 	vpe_runtime_put(pdev);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index a9aec5c..2504bae 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -530,20 +530,16 @@ vsp1_video_queue_setup(struct vb2_queue *vq,
+ 		if (*nplanes != format->num_planes)
+ 			return -EINVAL;
+ 
+-		for (i = 0; i < *nplanes; i++) {
++		for (i = 0; i < *nplanes; i++)
+ 			if (sizes[i] < format->plane_fmt[i].sizeimage)
+ 				return -EINVAL;
+-			alloc_ctxs[i] = video->alloc_ctx;
+-		}
+ 		return 0;
+ 	}
+ 
+ 	*nplanes = format->num_planes;
+ 
+-	for (i = 0; i < format->num_planes; ++i) {
++	for (i = 0; i < format->num_planes; ++i)
+ 		sizes[i] = format->plane_fmt[i].sizeimage;
+-		alloc_ctxs[i] = video->alloc_ctx;
+-	}
+ 
+ 	return 0;
+ }
+@@ -982,13 +978,6 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
+ 
+ 	video_set_drvdata(&video->video, video);
+ 
+-	/* ... and the buffers queue... */
+-	video->alloc_ctx = vb2_dma_contig_init_ctx(video->vsp1->dev);
+-	if (IS_ERR(video->alloc_ctx)) {
+-		ret = PTR_ERR(video->alloc_ctx);
+-		goto error;
+-	}
 -
--      <note>
--	<title>Experimental</title>
+ 	video->queue.type = video->type;
+ 	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+ 	video->queue.lock = &video->lock;
+@@ -997,6 +986,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
+ 	video->queue.ops = &vsp1_video_queue_qops;
+ 	video->queue.mem_ops = &vb2_dma_contig_memops;
+ 	video->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	video->queue.dev = video->vsp1->dev;
+ 	ret = vb2_queue_init(&video->queue);
+ 	if (ret < 0) {
+ 		dev_err(video->vsp1->dev, "failed to initialize vb2 queue\n");
+@@ -1014,7 +1004,6 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device *vsp1,
+ 	return video;
+ 
+ error:
+-	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+ 	vsp1_video_cleanup(video);
+ 	return ERR_PTR(ret);
+ }
+@@ -1024,6 +1013,5 @@ void vsp1_video_cleanup(struct vsp1_video *video)
+ 	if (video_is_registered(&video->video))
+ 		video_unregister_device(&video->video);
+ 
+-	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+ 	media_entity_cleanup(&video->video.entity);
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
+index 867b008..4487dc8 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.h
++++ b/drivers/media/platform/vsp1/vsp1_video.h
+@@ -46,7 +46,6 @@ struct vsp1_video {
+ 	unsigned int pipe_index;
+ 
+ 	struct vb2_queue queue;
+-	void *alloc_ctx;
+ 	spinlock_t irqlock;
+ 	struct list_head irqqueue;
+ 	unsigned int sequence;
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 7f6898b..3838e11 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -322,7 +322,6 @@ xvip_dma_queue_setup(struct vb2_queue *vq,
+ {
+ 	struct xvip_dma *dma = vb2_get_drv_priv(vq);
+ 
+-	alloc_ctxs[0] = dma->alloc_ctx;
+ 	/* Make sure the image size is large enough. */
+ 	if (*nplanes)
+ 		return sizes[0] < dma->format.sizeimage ? -EINVAL : 0;
+@@ -706,12 +705,6 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+ 	video_set_drvdata(&dma->video, dma);
+ 
+ 	/* ... and the buffers queue... */
+-	dma->alloc_ctx = vb2_dma_contig_init_ctx(dma->xdev->dev);
+-	if (IS_ERR(dma->alloc_ctx)) {
+-		ret = PTR_ERR(dma->alloc_ctx);
+-		goto error;
+-	}
 -
--	<para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--      </note>
-+  <title>API for cropping, composing and scaling</title>
+ 	/* Don't enable VB2_READ and VB2_WRITE, as using the read() and write()
+ 	 * V4L2 APIs would be inefficient. Testing on the command line with a
+ 	 * 'cat /dev/video?' thus won't be possible, but given that the driver
+@@ -728,6 +721,7 @@ int xvip_dma_init(struct xvip_composite_device *xdev, struct xvip_dma *dma,
+ 	dma->queue.mem_ops = &vb2_dma_contig_memops;
+ 	dma->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
+ 				   | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
++	dma->queue.dev = dma->xdev->dev;
+ 	ret = vb2_queue_init(&dma->queue);
+ 	if (ret < 0) {
+ 		dev_err(dma->xdev->dev, "failed to initialize VB2 queue\n");
+@@ -766,9 +760,6 @@ void xvip_dma_cleanup(struct xvip_dma *dma)
+ 	if (dma->dma)
+ 		dma_release_channel(dma->dma);
  
-   <section>
-     <title>Introduction</title>
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 4e73345..199c84e 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -4002,12 +4002,6 @@ see <xref linkend="colorspaces" />.</entry>
-     <section id="v4l2-mbus-vendor-spec-fmts">
-       <title>Vendor and Device Specific Formats</title>
- 
--      <note>
--	<title>Experimental</title>
--	<para>This is an <link linkend="experimental">experimental</link>
--interface and may change in the future.</para>
--      </note>
+-	if (!IS_ERR_OR_NULL(dma->alloc_ctx))
+-		vb2_dma_contig_cleanup_ctx(dma->alloc_ctx);
 -
-       <para>This section lists complex data formats that are either vendor or
- 	device specific.
-       </para>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-index d81fa0d..6528e97 100644
---- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-@@ -49,12 +49,6 @@
-   <refsect1>
-     <title>Description</title>
+ 	media_entity_cleanup(&dma->video.entity);
  
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental"> experimental </link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>This ioctl is used to create buffers for <link linkend="mmap">memory
- mapped</link> or <link linkend="userp">user pointer</link> or <link
- linkend="dmabuf">DMA buffer</link> I/O. It can be used as an alternative or in
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-index b6f47a6..ca9ffce 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-@@ -49,12 +49,6 @@
-   <refsect1>
-     <title>Description</title>
+ 	mutex_destroy(&dma->lock);
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.h b/drivers/media/platform/xilinx/xilinx-dma.h
+index 7a1621a..e95d136 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.h
++++ b/drivers/media/platform/xilinx/xilinx-dma.h
+@@ -65,7 +65,6 @@ static inline struct xvip_pipeline *to_xvip_pipeline(struct media_entity *e)
+  * @format: active V4L2 pixel format
+  * @fmtinfo: format information corresponding to the active @format
+  * @queue: vb2 buffers queue
+- * @alloc_ctx: allocation context for the vb2 @queue
+  * @sequence: V4L2 buffers sequence number
+  * @queued_bufs: list of queued buffers
+  * @queued_lock: protects the buf_queued list
+@@ -88,7 +87,6 @@ struct xvip_dma {
+ 	const struct xvip_video_format *fmtinfo;
  
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental"> experimental </link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>To query the capabilities of the DV receiver/transmitter applications initialize the
- <structfield>pad</structfield> field to 0, zero the reserved array of &v4l2-dv-timings-cap;
- and call the <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl on a video node
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-index 70ca76d..9b3d420 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-@@ -49,12 +49,6 @@
-   <refsect1>
-     <title>Description</title>
+ 	struct vb2_queue queue;
+-	void *alloc_ctx;
+ 	unsigned int sequence;
  
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental"> experimental </link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>While some DV receivers or transmitters support a wide range of timings, others
- support only a limited number of timings. With this ioctl applications can enumerate a list
- of known supported timings. Call &VIDIOC-DV-TIMINGS-CAP; to check if it also supports other
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-index 4e8ea65..a0608ab 100644
---- a/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-freq-bands.xml
-@@ -49,12 +49,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental"> experimental </link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>Enumerates the frequency bands that a tuner or modulator supports.
- To do this applications initialize the <structfield>tuner</structfield>,
- <structfield>type</structfield> and <structfield>index</structfield> fields,
-diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-index 0ae0b6a..a6558a6 100644
---- a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-@@ -49,12 +49,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental"> experimental </link>
--      interface and may change in the future.</para>
--    </note>
--
- <para>This ioctl is an extension to the <link linkend="mmap">memory
- mapping</link> I/O method, therefore it is available only for
- <constant>V4L2_MEMORY_MMAP</constant> buffers.  It can be used to export a
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-index 7865351..9523bc5 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-@@ -50,12 +50,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental"> experimental </link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>The ioctls are used to query and configure selection rectangles.</para>
- 
- <para>To query the cropping (composing) rectangle set &v4l2-selection;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-index fa7ad7e..7bde698 100644
---- a/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml
-@@ -48,12 +48,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental"> experimental </link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>Applications can optionally call the
- <constant>VIDIOC_PREPARE_BUF</constant> ioctl to pass ownership of the buffer
- to the driver before actually enqueuing it, using the
-diff --git a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-index 0c93677..d41bf47 100644
---- a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-@@ -50,12 +50,6 @@ input</refpurpose>
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental"> experimental </link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>The hardware may be able to detect the current DV timings
- automatically, similar to sensing the video standard. To do so, applications
- call <constant>VIDIOC_QUERY_DV_TIMINGS</constant> with a pointer to a
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-index cff59f5..9d0251a 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-interval.xml
-@@ -49,12 +49,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental">experimental</link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>This ioctl lets applications enumerate available frame intervals on a
-     given sub-device pad. Frame intervals only makes sense for sub-devices that
-     can control the frame period on their own. This includes, for instance,
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-index abd545e..9b91b83 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-frame-size.xml
-@@ -49,12 +49,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental">experimental</link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>This ioctl allows applications to enumerate all frame sizes
-     supported by a sub-device on the given pad for the given media bus format.
-     Supported formats can be retrieved with the &VIDIOC-SUBDEV-ENUM-MBUS-CODE;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-index 0bcb278..c67256a 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-enum-mbus-code.xml
-@@ -49,12 +49,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental">experimental</link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>To enumerate media bus formats available at a given sub-device pad
-     applications initialize the <structfield>pad</structfield>, <structfield>which</structfield>
-     and <structfield>index</structfield> fields of &v4l2-subdev-mbus-code-enum; and
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
-index a67cde6..781089c 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
-@@ -50,12 +50,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental">experimental</link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>These ioctls are used to negotiate the frame format at specific
-     subdev pads in the image pipeline.</para>
- 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-frame-interval.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-frame-interval.xml
-index 0bc3ea22..848ec78 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-frame-interval.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-frame-interval.xml
-@@ -50,12 +50,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental">experimental</link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>These ioctls are used to get and set the frame interval at specific
-     subdev pads in the image pipeline. The frame interval only makes sense for
-     sub-devices that can control the frame period on their own. This includes,
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index c62a736..8346b2e 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -49,12 +49,6 @@
-   <refsect1>
-     <title>Description</title>
- 
--    <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental">experimental</link>
--      interface and may change in the future.</para>
--    </note>
--
-     <para>The selections are used to configure various image
-     processing functionality performed by the subdevs which affect the
-     image size. This currently includes cropping, scaling and
+ 	struct list_head queued_bufs;
 -- 
 2.8.0.rc3
 
