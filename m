@@ -1,95 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:33264 "EHLO
-	mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750763AbcDYEGi (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:55659 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751465AbcDVIiY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 00:06:38 -0400
-Received: by mail-io0-f196.google.com with SMTP id x35so10225950ioi.0
-        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 21:06:37 -0700 (PDT)
-Received: from berrier.lan (75-162-111-89.slkc.qwest.net. [75.162.111.89])
-        by smtp.googlemail.com with ESMTPSA id fm1sm8152990igb.1.2016.04.24.21.06.35
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Sun, 24 Apr 2016 21:06:36 -0700 (PDT)
-Date: Sun, 24 Apr 2016 22:06:33 -0600
-From: Wade Berrier <wberrier@gmail.com>
+	Fri, 22 Apr 2016 04:38:24 -0400
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DD64F18021C
+	for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 10:38:19 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: mceusb xhci issue?
-Message-ID: <20160425040632.GD15140@berrier.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Subject: [PATCHv3 00/12] vb2: replace allocation context by device pointer
+Date: Fri, 22 Apr 2016 10:38:07 +0200
+Message-Id: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I have a mceusb compatible transceiver that only seems to work with
-certain computers.  I'm testing this on centos7 (3.10.0) and fedora23
-(4.4.7).
+The opaque allocation context that allocators use and drivers have to fill
+in is really nothing more than a device pointer wrapped in an kmalloc()ed
+struct.
 
-The only difference I can see is that the working computer shows
-"using uhci_hcd" and the non working shows "using xhci_hcd".
+This patch series adds a new 'struct device *dev' field that contains the
+default device pointer to use if the driver doesn't set alloc_ctxs. This
+simplifies many drivers since there are only two Samsung drivers that need
+different devices for different planes. All others use the same device for
+everything.
 
-Here's the dmesg output of the non-working version:
+So instead of having to allocate a context (and free it, which not all
+drivers did) you just set a dev pointer once.
 
----------------------
+The last patch removes the allocation context code altogether and replaces
+it with proper struct device pointers instead of the untyped void pointer.
 
-[  217.951079] usb 1-5: new full-speed USB device number 10 using xhci_hcd
-[  218.104087] usb 1-5: device descriptor read/64, error -71
-[  218.371010] usb 1-5: config 1 interface 0 altsetting 0 endpoint 0x1 has an invalid bInterval 0, changing to 32
-[  218.371019] usb 1-5: config 1 interface 0 altsetting 0 endpoint 0x81 has an invalid bInterval 0, changing to 32
-[  218.373591] usb 1-5: New USB device found, idVendor=1784, idProduct=0006
-[  218.373600] usb 1-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[  218.373605] usb 1-5: Product: eHome Infrared Transceiver
-[  218.373608] usb 1-5: Manufacturer: TopSeed Technology Corp.
-[  218.373611] usb 1-5: SerialNumber: TS004RrP
-[  218.376082] Registered IR keymap rc-rc6-mce
-[  218.376277] input: Media Center Ed. eHome Infrared Remote Transceiver (1784:0006) as /devices/pci0000:00/0000:00:14.0/usb1/1-5/1-5:1.0/rc/rc0/input13
-[  218.376387] rc0: Media Center Ed. eHome Infrared Remote Transceiver (1784:0006) as /devices/pci0000:00/0000:00:14.0/usb1/1-5/1-5:1.0/rc/rc0
-[  218.377439] input: MCE IR Keyboard/Mouse (mceusb) as /devices/virtual/input/input14
-[  218.377733] rc rc0: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-[  218.508970] mceusb 1-5:1.0: Registered TopSeed Technology Corp. eHome Infrared Transceiver with mce emulator interface version 1
-[  218.508976] mceusb 1-5:1.0: 2 tx ports (0x0 cabled) and 2 rx sensors (0x0 active)
+Note: one idea I toyed with was to have an array of devs instead of a
+single dev field in vb2_queue, but that was actually awkward to use.
 
----------------------
+A single dev turned out to be much easier to use.
 
-and the working version:
+If there are no comments, then I intend to post a pull request on
+Monday.
 
----------------------
+Regards,
 
-[  407.226018] usb 2-2: new full-speed USB device number 3 using uhci_hcd
-[  412.329019] usb 2-2: device descriptor read/64, error -110
-[  412.578054] usb 2-2: config 1 interface 0 altsetting 0 endpoint 0x1 has an invalid bInterval 0, changing to 32
-[  412.578540] usb 2-2: config 1 interface 0 altsetting 0 endpoint 0x81 has an invalid bInterval 0, changing to 32
-[  412.613053] usb 2-2: New USB device found, idVendor=1784, idProduct=0006
-[  412.613542] usb 2-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[  412.614172] usb 2-2: Product: eHome Infrared Transceiver
-[  412.615060] usb 2-2: Manufacturer: TopSeed Technology Corp.
-[  412.615930] usb 2-2: SerialNumber: TS004RrP
-[  412.624068] Registered IR keymap rc-rc6-mce
-[  412.624672] input: Media Center Ed. eHome Infrared Remote Transceiver (1784:0006) as /devices/pci0000:00/0000:00:1d.0/usb2/2-2/2-2:1.0/rc/rc0/input22
-[  412.625404] rc0: Media Center Ed. eHome Infrared Remote Transceiver (1784:0006) as /devices/pci0000:00/0000:00:1d.0/usb2/2-2/2-2:1.0/rc/rc0
-[  412.626251] input: MCE IR Keyboard/Mouse (mceusb) as /devices/virtual/input/input23
-[  412.627627] rc rc0: lirc_dev: driver ir-lirc-codec (mceusb) registered at minor = 0
-[  412.782038] mceusb 2-2:1.0: Registered TopSeed Technology Corp. eHome Infrared Transceiver with mce emulator interface version 1
-[  412.782594] mceusb 2-2:1.0: 2 tx ports (0x0 cabled) and 2 rx sensors (0x1 active)
+        Hans
 
----------------------
+Changes since v2:
+- rebased against latest linuxtv master and converted the tw686x
+  drivers.
 
-It seems like there's been some similar history with this driver:
+Changes since v1:
+- rebased against latest linuxtv master
+- add dma_attrs field to vb2_queue to specify non-standard DMA attributes
+  for both dma-contig. This feature was added to v4.6.
 
-https://patchwork.linuxtv.org/patch/21648/
+Hans Verkuil (12):
+  vb2: add a dev field to use for the default allocation context
+  v4l2-pci-skeleton: set q->dev instead of allocating a context
+  sur40: set q->dev instead of allocating a context
+  media/pci: convert drivers to use the new vb2_queue dev field
+  staging/media: convert drivers to use the new vb2_queue dev field
+  media/platform: convert drivers to use the new vb2_queue dev field
+  media/platform: convert drivers to use the new vb2_queue dev field
+  media/platform: convert drivers to use the new vb2_queue dev field
+  media/.../soc-camera: convert drivers to use the new vb2_queue dev
+    field
+  media/platform: convert drivers to use the new vb2_queue dev field
+  media/platform: convert drivers to use the new vb2_queue dev field
+  vb2: replace void *alloc_ctxs by struct device *alloc_devs
 
-Any suggestions?  Where to go from here? Any tips or workarounds would
-be appreciated.
+ Documentation/video4linux/v4l2-pci-skeleton.c      | 17 ++------
+ drivers/input/touchscreen/sur40.c                  | 15 +------
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |  2 +-
+ drivers/media/pci/cobalt/cobalt-driver.c           |  9 ----
+ drivers/media/pci/cobalt/cobalt-driver.h           |  1 -
+ drivers/media/pci/cobalt/cobalt-v4l2.c             |  4 +-
+ drivers/media/pci/cx23885/cx23885-417.c            |  3 +-
+ drivers/media/pci/cx23885/cx23885-core.c           | 10 +----
+ drivers/media/pci/cx23885/cx23885-dvb.c            |  4 +-
+ drivers/media/pci/cx23885/cx23885-vbi.c            |  3 +-
+ drivers/media/pci/cx23885/cx23885-video.c          |  5 ++-
+ drivers/media/pci/cx23885/cx23885.h                |  1 -
+ drivers/media/pci/cx25821/cx25821-core.c           | 10 +----
+ drivers/media/pci/cx25821/cx25821-video.c          |  5 +--
+ drivers/media/pci/cx25821/cx25821.h                |  1 -
+ drivers/media/pci/cx88/cx88-blackbird.c            |  4 +-
+ drivers/media/pci/cx88/cx88-dvb.c                  |  4 +-
+ drivers/media/pci/cx88/cx88-mpeg.c                 | 10 +----
+ drivers/media/pci/cx88/cx88-vbi.c                  |  3 +-
+ drivers/media/pci/cx88/cx88-video.c                | 13 ++----
+ drivers/media/pci/cx88/cx88.h                      |  2 -
+ drivers/media/pci/dt3155/dt3155.c                  | 15 ++-----
+ drivers/media/pci/dt3155/dt3155.h                  |  2 -
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  2 +-
+ drivers/media/pci/saa7134/saa7134-core.c           | 22 ++++------
+ drivers/media/pci/saa7134/saa7134-ts.c             |  3 +-
+ drivers/media/pci/saa7134/saa7134-vbi.c            |  3 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |  5 ++-
+ drivers/media/pci/saa7134/saa7134.h                |  3 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     | 13 +-----
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c         | 12 +-----
+ drivers/media/pci/solo6x10/solo6x10.h              |  2 -
+ drivers/media/pci/sta2x11/sta2x11_vip.c            | 20 ++-------
+ drivers/media/pci/tw68/tw68-core.c                 | 15 ++-----
+ drivers/media/pci/tw68/tw68-video.c                |  4 +-
+ drivers/media/pci/tw68/tw68.h                      |  1 -
+ drivers/media/pci/tw686x/tw686x-video.c            |  2 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        | 14 ++-----
+ drivers/media/platform/am437x/am437x-vpfe.h        |  2 -
+ drivers/media/platform/blackfin/bfin_capture.c     | 17 ++------
+ drivers/media/platform/coda/coda-common.c          | 18 ++------
+ drivers/media/platform/coda/coda.h                 |  1 -
+ drivers/media/platform/davinci/vpbe_display.c      | 14 +------
+ drivers/media/platform/davinci/vpif_capture.c      | 15 ++-----
+ drivers/media/platform/davinci/vpif_capture.h      |  2 -
+ drivers/media/platform/davinci/vpif_display.c      | 15 ++-----
+ drivers/media/platform/davinci/vpif_display.h      |  2 -
+ drivers/media/platform/exynos-gsc/gsc-core.c       | 11 +----
+ drivers/media/platform/exynos-gsc/gsc-core.h       |  2 -
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |  8 ++--
+ drivers/media/platform/exynos4-is/fimc-capture.c   |  9 ++--
+ drivers/media/platform/exynos4-is/fimc-core.c      | 11 -----
+ drivers/media/platform/exynos4-is/fimc-core.h      |  3 --
+ drivers/media/platform/exynos4-is/fimc-is.c        | 13 +-----
+ drivers/media/platform/exynos4-is/fimc-is.h        |  2 -
+ drivers/media/platform/exynos4-is/fimc-isp-video.c | 11 ++---
+ drivers/media/platform/exynos4-is/fimc-isp.h       |  2 -
+ drivers/media/platform/exynos4-is/fimc-lite.c      | 21 ++--------
+ drivers/media/platform/exynos4-is/fimc-lite.h      |  2 -
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |  8 ++--
+ drivers/media/platform/m2m-deinterlace.c           | 17 ++------
+ drivers/media/platform/marvell-ccic/mcam-core.c    | 26 +-----------
+ drivers/media/platform/marvell-ccic/mcam-core.h    |  2 -
+ drivers/media/platform/mx2_emmaprp.c               | 19 ++-------
+ drivers/media/platform/omap3isp/ispvideo.c         | 14 ++-----
+ drivers/media/platform/omap3isp/ispvideo.h         |  1 -
+ drivers/media/platform/rcar_jpu.c                  | 24 +++--------
+ drivers/media/platform/s3c-camif/camif-capture.c   |  5 +--
+ drivers/media/platform/s3c-camif/camif-core.c      | 11 +----
+ drivers/media/platform/s3c-camif/camif-core.h      |  2 -
+ drivers/media/platform/s5p-g2d/g2d.c               | 16 ++-----
+ drivers/media/platform/s5p-g2d/g2d.h               |  1 -
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        | 20 +++------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h        |  2 -
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           | 19 +--------
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  2 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 12 +++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 16 +++----
+ drivers/media/platform/s5p-tv/mixer.h              |  2 -
+ drivers/media/platform/s5p-tv/mixer_video.c        | 18 ++------
+ drivers/media/platform/sh_veu.c                    | 19 ++-------
+ drivers/media/platform/sh_vou.c                    | 16 ++-----
+ drivers/media/platform/soc_camera/atmel-isi.c      | 15 +------
+ drivers/media/platform/soc_camera/rcar_vin.c       | 14 +------
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     | 17 ++------
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      | 18 ++------
+ drivers/media/platform/sti/bdisp/bdisp.h           |  2 -
+ drivers/media/platform/ti-vpe/cal.c                | 17 +-------
+ drivers/media/platform/ti-vpe/vpe.c                | 22 +++-------
+ drivers/media/platform/vim2m.c                     |  7 +---
+ drivers/media/platform/vivid/vivid-sdr-cap.c       |  2 +-
+ drivers/media/platform/vivid/vivid-vbi-cap.c       |  2 +-
+ drivers/media/platform/vivid/vivid-vbi-out.c       |  2 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c       |  7 +---
+ drivers/media/platform/vivid/vivid-vid-out.c       |  7 +---
+ drivers/media/platform/vsp1/vsp1_video.c           | 22 +++-------
+ drivers/media/platform/vsp1/vsp1_video.h           |  1 -
+ drivers/media/platform/xilinx/xilinx-dma.c         | 13 +-----
+ drivers/media/platform/xilinx/xilinx-dma.h         |  2 -
+ drivers/media/usb/airspy/airspy.c                  |  2 +-
+ drivers/media/usb/au0828/au0828-vbi.c              |  2 +-
+ drivers/media/usb/au0828/au0828-video.c            |  2 +-
+ drivers/media/usb/em28xx/em28xx-vbi.c              |  2 +-
+ drivers/media/usb/em28xx/em28xx-video.c            |  2 +-
+ drivers/media/usb/go7007/go7007-v4l2.c             |  2 +-
+ drivers/media/usb/hackrf/hackrf.c                  |  2 +-
+ drivers/media/usb/msi2500/msi2500.c                |  2 +-
+ drivers/media/usb/pwc/pwc-if.c                     |  2 +-
+ drivers/media/usb/s2255/s2255drv.c                 |  2 +-
+ drivers/media/usb/stk1160/stk1160-v4l.c            |  2 +-
+ drivers/media/usb/usbtv/usbtv-video.c              |  2 +-
+ drivers/media/usb/uvc/uvc_queue.c                  |  2 +-
+ drivers/media/v4l2-core/videobuf2-core.c           | 28 +++++++------
+ drivers/media/v4l2-core/videobuf2-dma-contig.c     | 49 ++++------------------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c         | 45 ++++----------------
+ drivers/media/v4l2-core/videobuf2-vmalloc.c        |  9 ++--
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    | 14 ++-----
+ drivers/staging/media/davinci_vpfe/vpfe_video.h    |  2 -
+ drivers/staging/media/mx2/mx2_camera.c             | 19 ++-------
+ drivers/staging/media/mx3/mx3_camera.c             | 18 ++------
+ drivers/staging/media/omap4iss/iss_video.c         | 12 +-----
+ drivers/staging/media/omap4iss/iss_video.h         |  1 -
+ drivers/staging/media/tw686x-kh/tw686x-kh-video.c  | 12 +-----
+ drivers/staging/media/tw686x-kh/tw686x-kh.h        |  1 -
+ drivers/usb/gadget/function/uvc_queue.c            |  2 +-
+ include/media/davinci/vpbe_display.h               |  2 -
+ include/media/videobuf2-core.h                     | 24 ++++++-----
+ include/media/videobuf2-dma-contig.h               | 10 -----
+ include/media/videobuf2-dma-sg.h                   |  3 --
+ 129 files changed, 258 insertions(+), 906 deletions(-)
 
-Thanks,
+-- 
+2.8.0.rc3
 
-Wade
-
-P.S. some notes about leading up to this was posted on the lirc
-mailing list:
-
-https://sourceforge.net/p/lirc/mailman/message/35036744/
-https://sourceforge.net/p/lirc/mailman/message/35038602/
