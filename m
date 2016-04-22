@@ -1,60 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www381.your-server.de ([78.46.137.84]:37539 "EHLO
-	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637AbcDXPNo (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:32611 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751084AbcDVEZj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Apr 2016 11:13:44 -0400
-Subject: Re: [PATCH 1/6] adv7180: fix broken standards handling
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl>
- <1461330222-34096-2-git-send-email-hverkuil@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>,
-	Federico Vaga <federico.vaga@gmail.com>
-From: Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <571CDEED.9010700@metafoo.de>
-Date: Sun, 24 Apr 2016 16:57:49 +0200
+	Fri, 22 Apr 2016 00:25:39 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
+	<Tiffany.lin@mediatek.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v7 1/8] dt-bindings: Add a binding for Mediatek Video Processor
+Date: Fri, 22 Apr 2016 12:25:24 +0800
+Message-ID: <1461299131-57851-2-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1461299131-57851-1-git-send-email-tiffany.lin@mediatek.com>
+References: <1461299131-57851-1-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <1461330222-34096-2-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/22/2016 03:03 PM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The adv7180 attempts to autodetect the standard. Unfortunately this
-> is seriously broken.
-> 
-> This patch removes the autodetect completely. Only the querystd op
-> will detect the standard. Since the design of the adv7180 requires
-> that you switch to a special autodetect mode you cannot call querystd
-> when you are streaming.
-> 
-> So the s_stream op has been added so we know whether we are streaming
-> or not, and if we are, then querystd returns EBUSY.
-> 
-> After testing this with a signal generator is became obvious that
-> a sleep is needed between changing the standard to autodetect and
-> reading the status. So the autodetect can never have worked well.
-> 
-> The s_std call now just sets the new standard without any querying.
-> 
-> If the driver supports the interrupt, then when it detects a standard
-> change it will signal that by sending the V4L2_EVENT_SOURCE_CHANGE
-> event.
-> 
-> With these changes this driver now behaves like all other video
-> receivers.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> Cc: Lars-Peter Clausen <lars@metafoo.de>
-> Cc: Federico Vaga <federico.vaga@gmail.com>
+From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 
-Thanks for cleaning this up.
+Add a DT binding documentation of Video Processor Unit for the
+MT8173 SoC from Mediatek.
 
-Acked-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Acked-by: Rob Herring <robh@kernel.org>
+
+---
+ .../devicetree/bindings/media/mediatek-vpu.txt     |   31 ++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-vpu.txt
+
+diff --git a/Documentation/devicetree/bindings/media/mediatek-vpu.txt b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
+new file mode 100644
+index 0000000..2a5bac3
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
+@@ -0,0 +1,31 @@
++* Mediatek Video Processor Unit
++
++Video Processor Unit is a HW video controller. It controls HW Codec including
++H.264/VP8/VP9 Decode, H.264/VP8 Encode and Image Processor (scale/rotate/color convert).
++
++Required properties:
++  - compatible: "mediatek,mt8173-vpu"
++  - reg: Must contain an entry for each entry in reg-names.
++  - reg-names: Must include the following entries:
++    "tcm": tcm base
++    "cfg_reg": Main configuration registers base
++  - interrupts: interrupt number to the cpu.
++  - clocks : clock name from clock manager
++  - clock-names: must be main. It is the main clock of VPU
++
++Optional properties:
++  - memory-region: phandle to a node describing memory (see
++    Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt)
++    to be used for VPU extended memory; if not present, VPU may be located
++    anywhere in the memory
++
++Example:
++	vpu: vpu@10020000 {
++		compatible = "mediatek,mt8173-vpu";
++		reg = <0 0x10020000 0 0x30000>,
++		      <0 0x10050000 0 0x100>;
++		reg-names = "tcm", "cfg_reg";
++		interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&topckgen TOP_SCP_SEL>;
++		clock-names = "main";
++	};
+-- 
+1.7.9.5
 
