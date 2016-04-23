@@ -1,136 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:56843 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752419AbcDCIzw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:55:52 -0400
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v6 12/24] [media] si2168: convert to use an explicit i2c mux core
-Date: Sun,  3 Apr 2016 10:52:42 +0200
-Message-Id: <1459673574-11440-13-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
-References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:37983 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751084AbcDWLD7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Apr 2016 07:03:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Subject: [PATCHv4 01/13] vb2: move dma_attrs to vb2_queue
+Date: Sat, 23 Apr 2016 13:03:37 +0200
+Message-Id: <1461409429-24995-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select/deselect ops to be in terms of the i2c mux core
-instead of the child adapter.
+Make the dma attributes struct part of vb2_queue. This greatly simplifies
+the remainder of the patch series since the dma_contig alloc context is
+now (as before) just a struct device pointer.
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-Signed-off-by: Peter Rosin <peda@axentia.se>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/dvb-frontends/si2168.c      | 22 ++++++++++++----------
- drivers/media/dvb-frontends/si2168_priv.h |  2 +-
- 2 files changed, 13 insertions(+), 11 deletions(-)
+ drivers/media/v4l2-core/videobuf2-core.c       |  2 +-
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 16 +++++++---------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     |  5 +++--
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    |  5 +++--
+ include/media/videobuf2-core.h                 |  7 ++++---
+ include/media/videobuf2-dma-contig.h           |  9 +--------
+ 6 files changed, 19 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index 821a8f481507..ca455d01c71d 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -615,9 +615,9 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
-  * We must use unlocked I2C I/O because I2C adapter lock is already taken
-  * by the caller (usually tuner driver).
-  */
--static int si2168_select(struct i2c_adapter *adap, void *mux_priv, u32 chan)
-+static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
- {
--	struct i2c_client *client = mux_priv;
-+	struct i2c_client *client = i2c_mux_priv(muxc);
- 	int ret;
- 	struct si2168_cmd cmd;
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5d016f4..234e71b 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -207,7 +207,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
  
-@@ -635,9 +635,9 @@ err:
- 	return ret;
+ 		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
+-				      size, dma_dir, q->gfp_flags);
++				q->dma_attrs, size, dma_dir, q->gfp_flags);
+ 		if (IS_ERR_OR_NULL(mem_priv))
+ 			goto free;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 5361197..0a0befe 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -23,7 +23,6 @@
+ 
+ struct vb2_dc_conf {
+ 	struct device		*dev;
+-	struct dma_attrs	attrs;
+ };
+ 
+ struct vb2_dc_buf {
+@@ -140,8 +139,9 @@ static void vb2_dc_put(void *buf_priv)
+ 	kfree(buf);
  }
  
--static int si2168_deselect(struct i2c_adapter *adap, void *mux_priv, u32 chan)
-+static int si2168_deselect(struct i2c_mux_core *muxc, u32 chan)
+-static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
+-			  enum dma_data_direction dma_dir, gfp_t gfp_flags)
++static void *vb2_dc_alloc(void *alloc_ctx, const struct dma_attrs *attrs,
++			  unsigned long size, enum dma_data_direction dma_dir,
++			  gfp_t gfp_flags)
  {
--	struct i2c_client *client = mux_priv;
-+	struct i2c_client *client = i2c_mux_priv(muxc);
- 	int ret;
- 	struct si2168_cmd cmd;
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct device *dev = conf->dev;
+@@ -151,7 +151,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size,
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
  
-@@ -709,17 +709,19 @@ static int si2168_probe(struct i2c_client *client,
- 	}
+-	buf->attrs = conf->attrs;
++	if (attrs)
++		buf->attrs = *attrs;
+ 	buf->cookie = dma_alloc_attrs(dev, size, &buf->dma_addr,
+ 					GFP_KERNEL | gfp_flags, &buf->attrs);
+ 	if (!buf->cookie) {
+@@ -729,8 +730,7 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
  
- 	/* create mux i2c adapter for tuner */
--	dev->adapter = i2c_add_mux_adapter(client->adapter, &client->dev,
--			client, 0, 0, 0, si2168_select, si2168_deselect);
--	if (dev->adapter == NULL) {
--		ret = -ENODEV;
-+	dev->muxc = i2c_mux_one_adapter(client->adapter, &client->dev, 0, 0,
-+					0, 0, 0,
-+					si2168_select, si2168_deselect);
-+	if (IS_ERR(dev->muxc)) {
-+		ret = PTR_ERR(dev->muxc);
- 		goto err_kfree;
- 	}
-+	dev->muxc->priv = client;
+-void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
+-				    struct dma_attrs *attrs)
++void *vb2_dma_contig_init_ctx(struct device *dev)
+ {
+ 	struct vb2_dc_conf *conf;
  
- 	/* create dvb_frontend */
- 	memcpy(&dev->fe.ops, &si2168_ops, sizeof(struct dvb_frontend_ops));
- 	dev->fe.demodulator_priv = client;
--	*config->i2c_adapter = dev->adapter;
-+	*config->i2c_adapter = dev->muxc->adapter[0];
- 	*config->fe = &dev->fe;
- 	dev->ts_mode = config->ts_mode;
- 	dev->ts_clock_inv = config->ts_clock_inv;
-@@ -743,7 +745,7 @@ static int si2168_remove(struct i2c_client *client)
+@@ -739,12 +739,10 @@ void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
+ 		return ERR_PTR(-ENOMEM);
  
- 	dev_dbg(&client->dev, "\n");
+ 	conf->dev = dev;
+-	if (attrs)
+-		conf->attrs = *attrs;
  
--	i2c_del_mux_adapter(dev->adapter);
-+	i2c_mux_del_adapters(dev->muxc);
+ 	return conf;
+ }
+-EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx_attrs);
++EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
  
- 	dev->fe.ops.release = NULL;
- 	dev->fe.demodulator_priv = NULL;
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index c07e6fe2cb10..165bf1412063 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -29,7 +29,7 @@
+ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+ {
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 9985c89..e7153f7 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -99,8 +99,9 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
+ 	return 0;
+ }
  
- /* state struct */
- struct si2168_dev {
--	struct i2c_adapter *adapter;
-+	struct i2c_mux_core *muxc;
- 	struct dvb_frontend fe;
- 	enum fe_delivery_system delivery_system;
- 	enum fe_status fe_status;
+-static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size,
+-			      enum dma_data_direction dma_dir, gfp_t gfp_flags)
++static void *vb2_dma_sg_alloc(void *alloc_ctx, const struct dma_attrs *dma_attrs,
++			      unsigned long size, enum dma_data_direction dma_dir,
++			      gfp_t gfp_flags)
+ {
+ 	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 1c30274..fb94c80 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -33,8 +33,9 @@ struct vb2_vmalloc_buf {
+ 
+ static void vb2_vmalloc_put(void *buf_priv);
+ 
+-static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size,
+-			       enum dma_data_direction dma_dir, gfp_t gfp_flags)
++static void *vb2_vmalloc_alloc(void *alloc_ctx, const struct dma_attrs *attrs,
++			       unsigned long size, enum dma_data_direction dma_dir,
++			       gfp_t gfp_flags)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 8a0f55b..48c489d 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -27,7 +27,6 @@ enum vb2_memory {
+ 	VB2_MEMORY_DMABUF	= 4,
+ };
+ 
+-struct vb2_alloc_ctx;
+ struct vb2_fileio_data;
+ struct vb2_threadio_data;
+ 
+@@ -93,8 +92,8 @@ struct vb2_threadio_data;
+  *				  unmap_dmabuf.
+  */
+ struct vb2_mem_ops {
+-	void		*(*alloc)(void *alloc_ctx, unsigned long size,
+-				  enum dma_data_direction dma_dir,
++	void		*(*alloc)(void *alloc_ctx, const struct dma_attrs *attrs,
++				  unsigned long size, enum dma_data_direction dma_dir,
+ 				  gfp_t gfp_flags);
+ 	void		(*put)(void *buf_priv);
+ 	struct dma_buf *(*get_dmabuf)(void *buf_priv, unsigned long flags);
+@@ -397,6 +396,7 @@ struct vb2_buf_ops {
+  *		caller. For example, for V4L2, it should match
+  *		the V4L2_BUF_TYPE_* in include/uapi/linux/videodev2.h
+  * @io_modes:	supported io methods (see vb2_io_modes enum)
++ * @dma_attrs:	DMA attributes to use for the DMA. May be NULL.
+  * @fileio_read_once:		report EOF after reading the first buffer
+  * @fileio_write_immediately:	queue buffer after each write() call
+  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
+@@ -460,6 +460,7 @@ struct vb2_buf_ops {
+ struct vb2_queue {
+ 	unsigned int			type;
+ 	unsigned int			io_modes;
++	const struct dma_attrs		*dma_attrs;
+ 	unsigned			fileio_read_once:1;
+ 	unsigned			fileio_write_immediately:1;
+ 	unsigned			allow_zero_bytesused:1;
+diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
+index 2087c9a..a9e6d74 100644
+--- a/include/media/videobuf2-dma-contig.h
++++ b/include/media/videobuf2-dma-contig.h
+@@ -26,14 +26,7 @@ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
+ 	return *addr;
+ }
+ 
+-void *vb2_dma_contig_init_ctx_attrs(struct device *dev,
+-				    struct dma_attrs *attrs);
+-
+-static inline void *vb2_dma_contig_init_ctx(struct device *dev)
+-{
+-	return vb2_dma_contig_init_ctx_attrs(dev, NULL);
+-}
+-
++void *vb2_dma_contig_init_ctx(struct device *dev);
+ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
+ 
+ extern const struct vb2_mem_ops vb2_dma_contig_memops;
 -- 
-2.1.4
+2.8.0.rc3
 
