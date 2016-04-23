@@ -1,184 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:55979 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752962AbcDCIyN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:54:13 -0400
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35318 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750898AbcDWAN5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Apr 2016 20:13:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v6 04/24] i2c: i2c-arb-gpio-challenge: convert to use an explicit i2c mux core
-Date: Sun,  3 Apr 2016 10:52:34 +0200
-Message-Id: <1459673574-11440-5-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
-References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+	Florian Echtler <floe@butterbrot.org>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Benoit Parrot <bparrot@ti.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCHv3 01/12] vb2: add a dev field to use for the default allocation context
+Date: Sat, 23 Apr 2016 03:14:13 +0300
+Message-ID: <2941455.gjxYJiS6KM@avalon>
+In-Reply-To: <1461314299-36126-2-git-send-email-hverkuil@xs4all.nl>
+References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl> <1461314299-36126-2-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+Hi Hans,
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select/deselect ops to be in terms of the i2c mux core
-instead of the child adapter.
+Thank you for the patch.
 
-Signed-off-by: Peter Rosin <peda@axentia.se>
----
- drivers/i2c/muxes/i2c-arb-gpio-challenge.c | 47 +++++++++++++-----------------
- 1 file changed, 20 insertions(+), 27 deletions(-)
+On Friday 22 Apr 2016 10:38:08 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The allocation context is nothing more than a per-plane device pointer
+> to use when allocating buffers. So just provide a dev pointer in vb2_queue
+> for that purpose and drivers can skip allocating/releasing/filling in
+> the allocation context unless they require different per-plane device
+> pointers as used by some Samsung SoCs.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Cc: Florian Echtler <floe@butterbrot.org>
+> Cc: Federico Vaga <federico.vaga@gmail.com>
+> Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> Cc: Fabien Dessenne <fabien.dessenne@st.com>
+> Cc: Benoit Parrot <bparrot@ti.com>
+> Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Javier Martin <javier.martin@vista-silicon.com>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
+> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 16 +++++++++-------
+>  include/media/videobuf2-core.h           |  3 +++
+>  2 files changed, 12 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 5d016f4..88b5e48 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -206,8 +206,9 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>  	for (plane = 0; plane < vb->num_planes; ++plane) {
+>  		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
+> 
+> -		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
+> -				      size, dma_dir, q->gfp_flags);
+> +		mem_priv = call_ptr_memop(vb, alloc,
+> +				q->alloc_ctx[plane] ? : &q->dev,
+> +				size, dma_dir, q->gfp_flags);
 
-diff --git a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
-index 402e3a6c671a..a42827b3c672 100644
---- a/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
-+++ b/drivers/i2c/muxes/i2c-arb-gpio-challenge.c
-@@ -28,8 +28,6 @@
- /**
-  * struct i2c_arbitrator_data - Driver data for I2C arbitrator
-  *
-- * @parent: Parent adapter
-- * @child: Child bus
-  * @our_gpio: GPIO we'll use to claim.
-  * @our_gpio_release: 0 if active high; 1 if active low; AKA if the GPIO ==
-  *   this then consider it released.
-@@ -42,8 +40,6 @@
-  */
- 
- struct i2c_arbitrator_data {
--	struct i2c_adapter *parent;
--	struct i2c_adapter *child;
- 	int our_gpio;
- 	int our_gpio_release;
- 	int their_gpio;
-@@ -59,9 +55,9 @@ struct i2c_arbitrator_data {
-  *
-  * Use the GPIO-based signalling protocol; return -EBUSY if we fail.
-  */
--static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
-+static int i2c_arbitrator_select(struct i2c_mux_core *muxc, u32 chan)
- {
--	const struct i2c_arbitrator_data *arb = data;
-+	const struct i2c_arbitrator_data *arb = i2c_mux_priv(muxc);
- 	unsigned long stop_retry, stop_time;
- 
- 	/* Start a round of trying to claim the bus */
-@@ -93,7 +89,7 @@ static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
- 	/* Give up, release our claim */
- 	gpio_set_value(arb->our_gpio, arb->our_gpio_release);
- 	udelay(arb->slew_delay_us);
--	dev_err(&adap->dev, "Could not claim bus, timeout\n");
-+	dev_err(muxc->dev, "Could not claim bus, timeout\n");
- 	return -EBUSY;
- }
- 
-@@ -102,10 +98,9 @@ static int i2c_arbitrator_select(struct i2c_adapter *adap, void *data, u32 chan)
-  *
-  * Release the I2C bus using the GPIO-based signalling protocol.
-  */
--static int i2c_arbitrator_deselect(struct i2c_adapter *adap, void *data,
--				   u32 chan)
-+static int i2c_arbitrator_deselect(struct i2c_mux_core *muxc, u32 chan)
- {
--	const struct i2c_arbitrator_data *arb = data;
-+	const struct i2c_arbitrator_data *arb = i2c_mux_priv(muxc);
- 
- 	/* Release the bus and wait for the other master to notice */
- 	gpio_set_value(arb->our_gpio, arb->our_gpio_release);
-@@ -119,6 +114,7 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	struct device_node *np = dev->of_node;
- 	struct device_node *parent_np;
-+	struct i2c_mux_core *muxc;
- 	struct i2c_arbitrator_data *arb;
- 	enum of_gpio_flags gpio_flags;
- 	unsigned long out_init;
-@@ -134,12 +130,13 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
--	arb = devm_kzalloc(dev, sizeof(*arb), GFP_KERNEL);
--	if (!arb) {
--		dev_err(dev, "Cannot allocate i2c_arbitrator_data\n");
-+	muxc = i2c_mux_alloc(NULL, dev, sizeof(*arb), 0,
-+			     i2c_arbitrator_select, i2c_arbitrator_deselect);
-+	if (!muxc)
- 		return -ENOMEM;
--	}
--	platform_set_drvdata(pdev, arb);
-+	arb = i2c_mux_priv(muxc);
-+
-+	platform_set_drvdata(pdev, muxc);
- 
- 	/* Request GPIOs */
- 	ret = of_get_named_gpio_flags(np, "our-claim-gpio", 0, &gpio_flags);
-@@ -196,21 +193,18 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
- 		dev_err(dev, "Cannot parse i2c-parent\n");
- 		return -EINVAL;
- 	}
--	arb->parent = of_get_i2c_adapter_by_node(parent_np);
-+	muxc->parent = of_get_i2c_adapter_by_node(parent_np);
- 	of_node_put(parent_np);
--	if (!arb->parent) {
-+	if (!muxc->parent) {
- 		dev_err(dev, "Cannot find parent bus\n");
- 		return -EPROBE_DEFER;
- 	}
- 
- 	/* Actually add the mux adapter */
--	arb->child = i2c_add_mux_adapter(arb->parent, dev, arb, 0, 0, 0,
--					 i2c_arbitrator_select,
--					 i2c_arbitrator_deselect);
--	if (!arb->child) {
-+	ret = i2c_mux_add_adapter(muxc, 0, 0, 0);
-+	if (ret) {
- 		dev_err(dev, "Failed to add adapter\n");
--		ret = -ENODEV;
--		i2c_put_adapter(arb->parent);
-+		i2c_put_adapter(muxc->parent);
- 	}
- 
- 	return ret;
-@@ -218,11 +212,10 @@ static int i2c_arbitrator_probe(struct platform_device *pdev)
- 
- static int i2c_arbitrator_remove(struct platform_device *pdev)
- {
--	struct i2c_arbitrator_data *arb = platform_get_drvdata(pdev);
--
--	i2c_del_mux_adapter(arb->child);
--	i2c_put_adapter(arb->parent);
-+	struct i2c_mux_core *muxc = platform_get_drvdata(pdev);
- 
-+	i2c_mux_del_adapters(muxc);
-+	i2c_put_adapter(muxc->parent);
- 	return 0;
- }
- 
+While the videobuf2-dma-sg allocation context indeed only contains a pointer 
+to the device, the videobuf2-dma-contig context also contains a dma_attrs. 
+This patch will break the videobuf2-dma-contig alloc implementation.
+
+>  		if (IS_ERR_OR_NULL(mem_priv))
+>  			goto free;
+> 
+> @@ -1131,9 +1132,10 @@ static int __qbuf_userptr(struct vb2_buffer *vb,
+> const void *pb) vb->planes[plane].data_offset = 0;
+> 
+>  		/* Acquire each plane's memory */
+> -		mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
+> -				      planes[plane].m.userptr,
+> -				      planes[plane].length, dma_dir);
+> +		mem_priv = call_ptr_memop(vb, get_userptr,
+> +				q->alloc_ctx[plane] ? : &q->dev,
+> +				planes[plane].m.userptr,
+> +				planes[plane].length, dma_dir);
+>  		if (IS_ERR_OR_NULL(mem_priv)) {
+>  			dprintk(1, "failed acquiring userspace "
+>  						"memory for plane %d\n", plane);
+> @@ -1256,8 +1258,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const
+> void *pb)
+> 
+>  		/* Acquire each plane's memory */
+>  		mem_priv = call_ptr_memop(vb, attach_dmabuf,
+> -			q->alloc_ctx[plane], dbuf, planes[plane].length,
+> -			dma_dir);
+> +				q->alloc_ctx[plane] ? : &q->dev,
+> +				dbuf, planes[plane].length, dma_dir);
+>  		if (IS_ERR(mem_priv)) {
+>  			dprintk(1, "failed to attach dmabuf\n");
+>  			ret = PTR_ERR(mem_priv);
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 8a0f55b..0f8b97b 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -397,6 +397,8 @@ struct vb2_buf_ops {
+>   *		caller. For example, for V4L2, it should match
+>   *		the V4L2_BUF_TYPE_* in include/uapi/linux/videodev2.h
+>   * @io_modes:	supported io methods (see vb2_io_modes enum)
+> + * @dev:	device to use for the default allocation context if the driver
+> + *		doesn't fill in the @alloc_ctx array.
+>   * @fileio_read_once:		report EOF after reading the first buffer
+>   * @fileio_write_immediately:	queue buffer after each write() call
+>   * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
+> @@ -460,6 +462,7 @@ struct vb2_buf_ops {
+>  struct vb2_queue {
+>  	unsigned int			type;
+>  	unsigned int			io_modes;
+> +	struct device			*dev;
+>  	unsigned			fileio_read_once:1;
+>  	unsigned			fileio_write_immediately:1;
+>  	unsigned			allow_zero_bytesused:1;
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
