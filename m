@@ -1,158 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43823 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754276AbcDVPof (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 11:44:35 -0400
-Date: Fri, 22 Apr 2016 12:44:25 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Nick Dyer <nick.dyer@itdev.co.uk>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>
-Subject: Re: [PATCH 0/8] Input: atmel_mxt_ts - output raw touch diagnostic
- data via V4L
-Message-ID: <20160422124425.39ac140f@recife.lan>
-In-Reply-To: <571A40C0.90208@xs4all.nl>
-References: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
-	<5719E03D.2010201@xs4all.nl>
-	<20160422114517.0e7430bd@recife.lan>
-	<571A3E3E.60601@itdev.co.uk>
-	<571A40C0.90208@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42143 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751084AbcDWLDz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Apr 2016 07:03:55 -0400
+Received: from tschai.fritz.box (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 7B52418021C
+	for <linux-media@vger.kernel.org>; Sat, 23 Apr 2016 13:03:49 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv4 00/13] vb2: replace allocation context by device pointer
+Date: Sat, 23 Apr 2016 13:03:36 +0200
+Message-Id: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 22 Apr 2016 17:18:24 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On 04/22/2016 05:07 PM, Nick Dyer wrote:
-> > On 22/04/2016 15:45, Mauro Carvalho Chehab wrote:  
-> >> Em Fri, 22 Apr 2016 10:26:37 +0200
-> >> Hans Verkuil <hverkuil@xs4all.nl> escreveu:  
-> >>> On 04/21/2016 11:31 AM, Nick Dyer wrote:  
-> >>>> This is a series of patches to add diagnostic data support to the Atmel
-> >>>> maXTouch driver. It's a rewrite of the previous implementation which output via
-> >>>> debugfs: it now uses a V4L2 device in a similar way to the sur40 driver.
-> >>>>
-> >>>> There are significant performance advantages to putting this code into the
-> >>>> driver. The algorithm for retrieving the data has been fairly consistent across
-> >>>> a range of chips, with the exception of the mXT1386 series (see patch).
-> >>>>
-> >>>> We have a utility which can read the data and display it in a useful format:
-> >>>> 	https://github.com/ndyer/heatmap/commits/heatmap-v4l
-> >>>>
-> >>>> These patches are also available from
-> >>>> 	https://github.com/ndyer/linux/commits/diagnostic-v4l
-> >>>>
-> >>>> Any feedback appreciated.    
-> >>>
-> >>> FYI: we're working on a new buffer type for meta data:
-> >>>
-> >>> https://patchwork.linuxtv.org/patch/33938/
-> >>> https://patchwork.linuxtv.org/patch/33939/  
-> >>
-> >> One of the things I missed on your patchset is the content of the
-> >> new format you added (V4L2_PIX_FMT_YS16). You should be patching
-> >> the V4L2 docbook too, in order to add it there.  
-> > 
-> > OK, will do. I also see that I forgot Kconfig changes for CONFIG_VIDEO_V4L2
-> > etc.
-> >   
-> >> That's said, if the output is really an image, I don't think it
-> >> should be mapped via the new V4L2_BUF_TYPE_META_CAPTURE. This type of
-> >> buffer is meant to be used on non-image metadata, like image statistics
-> >> to feed auto whitebalance and other similar AAA algorithms.  
-> > 
-> > The output is raw touch data - i.e. a rectangular grid of nodes each having
-> > an integer value. I think it is an image in some senses, although perhaps
-> > it's a matter of opinion!
-> > 
-> > You can see an example of a Atmel MXT capacitive touch device here (using
-> > this patchset):
-> > https://www.youtube.com/watch?v=Uj4T6fUCySw
-> > 
-> > There are touch devices which can deliver much higher resolution/framerate.
-> > For example here's the data coming from a SUR40 which is an optical touch
-> > sensor but uses V4L in a similar way:
-> > https://www.youtube.com/watch?v=e-JNqTY_3b0
-> >   
-> >> It could still make sense to use the new device type (VFL_TYPE_META) for
-> >> such drivers, as we don't want applications to identify those devices as
-> >> if they are a webcam.  
-> > 
-> > I agree it may be a little confusing if things like Skype start picking up
-> > these devices. Could we #define V4L2_INPUT_TYPE_TOUCH_SENSOR to solve that
-> > problem?
-> >   
-> 
-> That might be an idea. I have to admit that I didn't look at the patches in
-> detail. It mentioned diagnostics, so I didn't realize that it is a image
-> with a width and height, even though it is not a regular video input.
-> 
-> Adding a new input type won't prevent anyone from picking it up, since
-> nobody tests that field :-)
+The opaque allocation context that allocators use and drivers have to fill
+in is really nothing more than a device pointer wrapped in an kmalloc()ed
+struct.
 
-Yeah, I agree.
+This patch series adds a new 'struct device *dev' field that contains the
+default device pointer to use if the driver doesn't set alloc_ctxs. This
+simplifies many drivers since there are only two Samsung drivers that need
+different devices for different planes. All others use the same device for
+everything.
 
-> On the other hand, it would be a good place to tell the user that it
-> is from a touch sensor.
-> 
-> Using the upcoming metadata feature wouldn't work since there is no width
-> and height in the metadata format.
-> 
-> I wonder what others think about adding a new type value.
+So instead of having to allocate a context (and free it, which not all
+drivers did) you just set a dev pointer once.
 
-IMO, two things should be done here:
+The last patch removes the allocation context code altogether and replaces
+it with proper struct device pointers instead of the untyped void pointer.
 
-1) Add some caps flag to help userspace to identify what's there
-   on those devices;
+Note: one idea I toyed with was to have an array of devs instead of a
+single dev field in vb2_queue, but that was actually awkward to use.
 
-2) Make sure that udev/systemd won't be naming the devnodes as
-   "/dev/video";
+A single dev turned out to be much easier to use.
 
-
-The latter one could be solved with either the new dev meta or
-with another VFL_TYPE for input systems (like VFL_TYPE_TOUCH_SENSOR)
-and use this code snippet:
-
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index d8e5994cccf1..4d3e574eba49 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -887,6 +887,9 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
-                /* Use device name 'swradio' because 'sdr' was already taken. */
-                name_base = "swradio";
-                break;
-+       case VFL_TYPE_TOUCH_SENSOR:
-+               name_base = "v4l-touch";
-+               break;
-        default:
-                printk(KERN_ERR "%s called with unknown type: %d\n",
-                       __func__, type);
-
-
-Such change would cause __video_register_device() to pass a different
-name_base to:
-	dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
-
-This way, udev/systemd will use a different name (by default, 
-/dev/v4l-touch0), and existing apps won't identify this as a
-webcam.
+If there are no comments, then I intend to post a pull request on
+Monday.
 
 Regards,
-Mauro
+
+        Hans
+
+Changes since v3:
+- move dma_attrs out of struct vb2_dc_conf as the first patch. This
+  was originally done in the last patch, but that would actually break
+  dma-contig for the patches before that. Thanks to Laurent for noticing.
+  It is also better to have this as a separate patch anyway.
+- fixed up vsp1_video.c as per Laurent's requests.
+
+Changes since v2:
+- rebased against latest linuxtv master and converted the tw686x
+  drivers.
+
+Changes since v1:
+- rebased against latest linuxtv master
+- add dma_attrs field to vb2_queue to specify non-standard DMA attributes
+  for both dma-contig. This feature was added to v4.6.
+
+Hans Verkuil (13):
+  vb2: move dma_attrs to vb2_queue
+  vb2: add a dev field to use for the default allocation context
+  v4l2-pci-skeleton: set q->dev instead of allocating a context
+  sur40: set q->dev instead of allocating a context
+  media/pci: convert drivers to use the new vb2_queue dev field
+  staging/media: convert drivers to use the new vb2_queue dev field
+  media/platform: convert drivers to use the new vb2_queue dev field
+  media/platform: convert drivers to use the new vb2_queue dev field
+  media/platform: convert drivers to use the new vb2_queue dev field
+  media/.../soc-camera: convert drivers to use the new vb2_queue dev
+    field
+  media/platform: convert drivers to use the new vb2_queue dev field
+  media/platform: convert drivers to use the new vb2_queue dev field
+  vb2: replace void *alloc_ctxs by struct device *alloc_devs
+
+ Documentation/video4linux/v4l2-pci-skeleton.c      | 17 ++------
+ drivers/input/touchscreen/sur40.c                  | 15 +------
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |  2 +-
+ drivers/media/pci/cobalt/cobalt-driver.c           |  9 ----
+ drivers/media/pci/cobalt/cobalt-driver.h           |  1 -
+ drivers/media/pci/cobalt/cobalt-v4l2.c             |  4 +-
+ drivers/media/pci/cx23885/cx23885-417.c            |  3 +-
+ drivers/media/pci/cx23885/cx23885-core.c           | 10 +----
+ drivers/media/pci/cx23885/cx23885-dvb.c            |  4 +-
+ drivers/media/pci/cx23885/cx23885-vbi.c            |  3 +-
+ drivers/media/pci/cx23885/cx23885-video.c          |  5 ++-
+ drivers/media/pci/cx23885/cx23885.h                |  1 -
+ drivers/media/pci/cx25821/cx25821-core.c           | 10 +----
+ drivers/media/pci/cx25821/cx25821-video.c          |  5 +--
+ drivers/media/pci/cx25821/cx25821.h                |  1 -
+ drivers/media/pci/cx88/cx88-blackbird.c            |  4 +-
+ drivers/media/pci/cx88/cx88-dvb.c                  |  4 +-
+ drivers/media/pci/cx88/cx88-mpeg.c                 | 10 +----
+ drivers/media/pci/cx88/cx88-vbi.c                  |  3 +-
+ drivers/media/pci/cx88/cx88-video.c                | 13 ++----
+ drivers/media/pci/cx88/cx88.h                      |  2 -
+ drivers/media/pci/dt3155/dt3155.c                  | 15 ++-----
+ drivers/media/pci/dt3155/dt3155.h                  |  2 -
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c |  2 +-
+ drivers/media/pci/saa7134/saa7134-core.c           | 22 ++++------
+ drivers/media/pci/saa7134/saa7134-ts.c             |  3 +-
+ drivers/media/pci/saa7134/saa7134-vbi.c            |  3 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |  5 ++-
+ drivers/media/pci/saa7134/saa7134.h                |  3 +-
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c     | 13 +-----
+ drivers/media/pci/solo6x10/solo6x10-v4l2.c         | 12 +-----
+ drivers/media/pci/solo6x10/solo6x10.h              |  2 -
+ drivers/media/pci/sta2x11/sta2x11_vip.c            | 20 ++-------
+ drivers/media/pci/tw68/tw68-core.c                 | 15 ++-----
+ drivers/media/pci/tw68/tw68-video.c                |  4 +-
+ drivers/media/pci/tw68/tw68.h                      |  1 -
+ drivers/media/pci/tw686x/tw686x-video.c            |  2 +-
+ drivers/media/platform/am437x/am437x-vpfe.c        | 14 ++-----
+ drivers/media/platform/am437x/am437x-vpfe.h        |  2 -
+ drivers/media/platform/blackfin/bfin_capture.c     | 17 ++------
+ drivers/media/platform/coda/coda-common.c          | 18 ++------
+ drivers/media/platform/coda/coda.h                 |  1 -
+ drivers/media/platform/davinci/vpbe_display.c      | 14 +------
+ drivers/media/platform/davinci/vpif_capture.c      | 15 ++-----
+ drivers/media/platform/davinci/vpif_capture.h      |  2 -
+ drivers/media/platform/davinci/vpif_display.c      | 15 ++-----
+ drivers/media/platform/davinci/vpif_display.h      |  2 -
+ drivers/media/platform/exynos-gsc/gsc-core.c       | 11 +----
+ drivers/media/platform/exynos-gsc/gsc-core.h       |  2 -
+ drivers/media/platform/exynos-gsc/gsc-m2m.c        |  8 ++--
+ drivers/media/platform/exynos4-is/fimc-capture.c   |  9 ++--
+ drivers/media/platform/exynos4-is/fimc-core.c      | 11 -----
+ drivers/media/platform/exynos4-is/fimc-core.h      |  3 --
+ drivers/media/platform/exynos4-is/fimc-is.c        | 13 +-----
+ drivers/media/platform/exynos4-is/fimc-is.h        |  2 -
+ drivers/media/platform/exynos4-is/fimc-isp-video.c | 11 ++---
+ drivers/media/platform/exynos4-is/fimc-isp.h       |  2 -
+ drivers/media/platform/exynos4-is/fimc-lite.c      | 21 ++--------
+ drivers/media/platform/exynos4-is/fimc-lite.h      |  2 -
+ drivers/media/platform/exynos4-is/fimc-m2m.c       |  8 ++--
+ drivers/media/platform/m2m-deinterlace.c           | 17 ++------
+ drivers/media/platform/marvell-ccic/mcam-core.c    | 26 +-----------
+ drivers/media/platform/marvell-ccic/mcam-core.h    |  2 -
+ drivers/media/platform/mx2_emmaprp.c               | 19 ++-------
+ drivers/media/platform/omap3isp/ispvideo.c         | 14 ++-----
+ drivers/media/platform/omap3isp/ispvideo.h         |  1 -
+ drivers/media/platform/rcar_jpu.c                  | 24 +++--------
+ drivers/media/platform/s3c-camif/camif-capture.c   |  5 +--
+ drivers/media/platform/s3c-camif/camif-core.c      | 11 +----
+ drivers/media/platform/s3c-camif/camif-core.h      |  2 -
+ drivers/media/platform/s5p-g2d/g2d.c               | 16 ++-----
+ drivers/media/platform/s5p-g2d/g2d.h               |  1 -
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        | 20 +++------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h        |  2 -
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           | 19 +--------
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  2 -
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 12 +++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 16 +++----
+ drivers/media/platform/s5p-tv/mixer.h              |  2 -
+ drivers/media/platform/s5p-tv/mixer_video.c        | 18 ++------
+ drivers/media/platform/sh_veu.c                    | 19 ++-------
+ drivers/media/platform/sh_vou.c                    | 16 ++-----
+ drivers/media/platform/soc_camera/atmel-isi.c      | 15 +------
+ drivers/media/platform/soc_camera/rcar_vin.c       | 14 +------
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     | 17 ++------
+ drivers/media/platform/sti/bdisp/bdisp-v4l2.c      | 18 ++------
+ drivers/media/platform/sti/bdisp/bdisp.h           |  2 -
+ drivers/media/platform/ti-vpe/cal.c                | 17 +-------
+ drivers/media/platform/ti-vpe/vpe.c                | 22 +++-------
+ drivers/media/platform/vim2m.c                     |  7 +---
+ drivers/media/platform/vivid/vivid-sdr-cap.c       |  2 +-
+ drivers/media/platform/vivid/vivid-vbi-cap.c       |  2 +-
+ drivers/media/platform/vivid/vivid-vbi-out.c       |  2 +-
+ drivers/media/platform/vivid/vivid-vid-cap.c       |  7 +---
+ drivers/media/platform/vivid/vivid-vid-out.c       |  7 +---
+ drivers/media/platform/vsp1/vsp1_video.c           | 22 +++-------
+ drivers/media/platform/vsp1/vsp1_video.h           |  1 -
+ drivers/media/platform/xilinx/xilinx-dma.c         | 13 +-----
+ drivers/media/platform/xilinx/xilinx-dma.h         |  2 -
+ drivers/media/usb/airspy/airspy.c                  |  2 +-
+ drivers/media/usb/au0828/au0828-vbi.c              |  2 +-
+ drivers/media/usb/au0828/au0828-video.c            |  2 +-
+ drivers/media/usb/em28xx/em28xx-vbi.c              |  2 +-
+ drivers/media/usb/em28xx/em28xx-video.c            |  2 +-
+ drivers/media/usb/go7007/go7007-v4l2.c             |  2 +-
+ drivers/media/usb/hackrf/hackrf.c                  |  2 +-
+ drivers/media/usb/msi2500/msi2500.c                |  2 +-
+ drivers/media/usb/pwc/pwc-if.c                     |  2 +-
+ drivers/media/usb/s2255/s2255drv.c                 |  2 +-
+ drivers/media/usb/stk1160/stk1160-v4l.c            |  2 +-
+ drivers/media/usb/usbtv/usbtv-video.c              |  2 +-
+ drivers/media/usb/uvc/uvc_queue.c                  |  2 +-
+ drivers/media/v4l2-core/videobuf2-core.c           | 28 +++++++------
+ drivers/media/v4l2-core/videobuf2-dma-contig.c     | 49 ++++------------------
+ drivers/media/v4l2-core/videobuf2-dma-sg.c         | 45 ++++----------------
+ drivers/media/v4l2-core/videobuf2-vmalloc.c        |  9 ++--
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    | 14 ++-----
+ drivers/staging/media/davinci_vpfe/vpfe_video.h    |  2 -
+ drivers/staging/media/mx2/mx2_camera.c             | 19 ++-------
+ drivers/staging/media/mx3/mx3_camera.c             | 18 ++------
+ drivers/staging/media/omap4iss/iss_video.c         | 12 +-----
+ drivers/staging/media/omap4iss/iss_video.h         |  1 -
+ drivers/staging/media/tw686x-kh/tw686x-kh-video.c  | 12 +-----
+ drivers/staging/media/tw686x-kh/tw686x-kh.h        |  1 -
+ drivers/usb/gadget/function/uvc_queue.c            |  2 +-
+ include/media/davinci/vpbe_display.h               |  2 -
+ include/media/videobuf2-core.h                     | 24 ++++++-----
+ include/media/videobuf2-dma-contig.h               | 10 -----
+ include/media/videobuf2-dma-sg.h                   |  3 --
+ 129 files changed, 258 insertions(+), 906 deletions(-)
+
+-- 
+2.8.0.rc3
+
