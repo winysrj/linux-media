@@ -1,86 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:36471 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752436AbcDZI6r (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47195 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751084AbcDWKhS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Apr 2016 04:58:47 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Sat, 23 Apr 2016 06:37:18 -0400
+Subject: Re: [PATCHv3 01/12] vb2: add a dev field to use for the default
+ allocation context
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl>
+ <1461314299-36126-2-git-send-email-hverkuil@xs4all.nl>
+ <2941455.gjxYJiS6KM@avalon>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v9 1/8] dt-bindings: Add a binding for Mediatek Video Processor
-Date: Tue, 26 Apr 2016 16:58:30 +0800
-Message-ID: <1461661117-4657-2-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1461661117-4657-1-git-send-email-tiffany.lin@mediatek.com>
-References: <1461661117-4657-1-git-send-email-tiffany.lin@mediatek.com>
+	Florian Echtler <floe@butterbrot.org>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Benoit Parrot <bparrot@ti.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <571B5056.9030508@xs4all.nl>
+Date: Sat, 23 Apr 2016 12:37:10 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <2941455.gjxYJiS6KM@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+On 04/23/2016 02:14 AM, Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On Friday 22 Apr 2016 10:38:08 Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> The allocation context is nothing more than a per-plane device pointer
+>> to use when allocating buffers. So just provide a dev pointer in vb2_queue
+>> for that purpose and drivers can skip allocating/releasing/filling in
+>> the allocation context unless they require different per-plane device
+>> pointers as used by some Samsung SoCs.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>> Cc: Florian Echtler <floe@butterbrot.org>
+>> Cc: Federico Vaga <federico.vaga@gmail.com>
+>> Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+>> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+>> Cc: Fabien Dessenne <fabien.dessenne@st.com>
+>> Cc: Benoit Parrot <bparrot@ti.com>
+>> Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Javier Martin <javier.martin@vista-silicon.com>
+>> Cc: Jonathan Corbet <corbet@lwn.net>
+>> Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
+>> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-core.c | 16 +++++++++-------
+>>  include/media/videobuf2-core.h           |  3 +++
+>>  2 files changed, 12 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+>> b/drivers/media/v4l2-core/videobuf2-core.c index 5d016f4..88b5e48 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -206,8 +206,9 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>>  	for (plane = 0; plane < vb->num_planes; ++plane) {
+>>  		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
+>>
+>> -		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
+>> -				      size, dma_dir, q->gfp_flags);
+>> +		mem_priv = call_ptr_memop(vb, alloc,
+>> +				q->alloc_ctx[plane] ? : &q->dev,
+>> +				size, dma_dir, q->gfp_flags);
+> 
+> While the videobuf2-dma-sg allocation context indeed only contains a pointer 
+> to the device, the videobuf2-dma-contig context also contains a dma_attrs. 
+> This patch will break the videobuf2-dma-contig alloc implementation.
+> 
 
-Add a DT binding documentation of Video Processor Unit for the
-MT8173 SoC from Mediatek.
+Good point. I fixed this in the last patch, but that would mean dma-contig would
+be broken for the patches in between.
 
-Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-Acked-by: Rob Herring <robh@kernel.org>
+I'm moving dma_attrs to struct vb2_queue as the first patch, then the rest will
+work fine.
 
----
- .../devicetree/bindings/media/mediatek-vpu.txt     |   31 ++++++++++++++++++++
- 1 file changed, 31 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-vpu.txt
+I've also taken care of the vsp1_video comments.
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-vpu.txt b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
-new file mode 100644
-index 0000000..2a5bac3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
-@@ -0,0 +1,31 @@
-+* Mediatek Video Processor Unit
-+
-+Video Processor Unit is a HW video controller. It controls HW Codec including
-+H.264/VP8/VP9 Decode, H.264/VP8 Encode and Image Processor (scale/rotate/color convert).
-+
-+Required properties:
-+  - compatible: "mediatek,mt8173-vpu"
-+  - reg: Must contain an entry for each entry in reg-names.
-+  - reg-names: Must include the following entries:
-+    "tcm": tcm base
-+    "cfg_reg": Main configuration registers base
-+  - interrupts: interrupt number to the cpu.
-+  - clocks : clock name from clock manager
-+  - clock-names: must be main. It is the main clock of VPU
-+
-+Optional properties:
-+  - memory-region: phandle to a node describing memory (see
-+    Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt)
-+    to be used for VPU extended memory; if not present, VPU may be located
-+    anywhere in the memory
-+
-+Example:
-+	vpu: vpu@10020000 {
-+		compatible = "mediatek,mt8173-vpu";
-+		reg = <0 0x10020000 0 0x30000>,
-+		      <0 0x10050000 0 0x100>;
-+		reg-names = "tcm", "cfg_reg";
-+		interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&topckgen TOP_SCP_SEL>;
-+		clock-names = "main";
-+	};
--- 
-1.7.9.5
+Regards,
 
+	Hans
