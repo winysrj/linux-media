@@ -1,131 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45522 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753367AbcD2N4g (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35897 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752514AbcDWXtu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 09:56:36 -0400
-Date: Fri, 29 Apr 2016 16:56:01 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2] media: vb2-dma-contig: configure DMA max segment size
- properly
-Message-ID: <20160429135601.GA26360@valkosipuli.retiisi.org.uk>
-References: <57220299.3000807@xs4all.nl>
- <1461849603-6313-1-git-send-email-m.szyprowski@samsung.com>
- <20160429112110.GI32125@valkosipuli.retiisi.org.uk>
- <2318434a-176b-82c6-c55a-115778354201@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2318434a-176b-82c6-c55a-115778354201@samsung.com>
+	Sat, 23 Apr 2016 19:49:50 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 05/13] v4l: vsp1: Add FCP support
+Date: Sun, 24 Apr 2016 02:49:52 +0300
+Message-Id: <1461455400-28767-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+On some platforms the VSP performs memory accesses through an FCP. When
+that's the case get a reference to the FCP from the VSP DT node and
+enable/disable it at runtime as needed.
 
-On Fri, Apr 29, 2016 at 01:39:43PM +0200, Marek Szyprowski wrote:
-> Hi Sakari,
-> 
-> 
-> On 2016-04-29 13:21, Sakari Ailus wrote:
-> >Hi Marek,
-> >
-> >Thanks for the patch!
-> >
-> >On Thu, Apr 28, 2016 at 03:20:03PM +0200, Marek Szyprowski wrote:
-> >>This patch lets vb2-dma-contig memory allocator to configure DMA max
-> >>segment size properly for the client device. Setting it is needed to let
-> >>DMA-mapping subsystem to create a single, contiguous mapping in DMA
-> >>address space. This is essential for all devices, which use dma-contig
-> >>videobuf2 memory allocator and shared buffers (in USERPTR or DMAbuf modes
-> >>of operations).
-> >>
-> >>Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> >>---
-> >>Hello,
-> >>
-> >>This patch is a follow-up of my previous attempts to let Exynos
-> >>multimedia devices to work properly with shared buffers when IOMMU is
-> >>enabled:
-> >>1. https://www.mail-archive.com/linux-media@vger.kernel.org/msg96946.html
-> >>2. http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
-> >>3. https://patchwork.linuxtv.org/patch/30870/
-> >>
-> >>As sugested by Hans, configuring DMA max segment size should be done by
-> >>videobuf2-dma-contig module instead of requiring all device drivers to
-> >>do it on their own.
-> >>
-> >>Here is some backgroud why this is done in videobuf2-dc not in the
-> >>respective generic bus code:
-> >>http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html
-> >>
-> >>Best regards,
-> >>Marek Szyprowski
-> >>
-> >>changelog:
-> >>v2:
-> >>- fixes typos and other language issues in the comments
-> >>
-> >>v1: http://article.gmane.org/gmane.linux.kernel.samsung-soc/53690
-> >>---
-> >>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 39 ++++++++++++++++++++++++++
-> >>  1 file changed, 39 insertions(+)
-> >>
-> >>diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> >>index 461ae55eaa98..d0382d62954d 100644
-> >>--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> >>+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> >>@@ -443,6 +443,36 @@ static void vb2_dc_put_userptr(void *buf_priv)
-> >>  }
-> >>  /*
-> >>+ * To allow mapping the scatter-list into a single chunk in the DMA
-> >>+ * address space, the device is required to have the DMA max segment
-> >>+ * size parameter set to a value larger than the buffer size. Otherwise,
-> >>+ * the DMA-mapping subsystem will split the mapping into max segment
-> >>+ * size chunks. This function increases the DMA max segment size
-> >>+ * parameter to let DMA-mapping map a buffer as a single chunk in DMA
-> >>+ * address space.
-> >>+ * This code assumes that the DMA-mapping subsystem will merge all
-> >>+ * scatter-list segments if this is really possible (for example when
-> >>+ * an IOMMU is available and enabled).
-> >>+ * Ideally, this parameter should be set by the generic bus code, but it
-> >>+ * is left with the default 64KiB value due to historical litmiations in
-> >>+ * other subsystems (like limited USB host drivers) and there no good
-> >>+ * place to set it to the proper value. It is done here to avoid fixing
-> >>+ * all the vb2-dc client drivers.
-> >>+ */
-> >>+static int vb2_dc_set_max_seg_size(struct device *dev, unsigned int size)
-> >>+{
-> >>+	if (!dev->dma_parms) {
-> >>+		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
-> >Doesn't this create a memory leak? Do consider that devices may be also
-> >removed from the system at runtime.
-> >
-> >Looks very nice otherwise.
-> 
-> Yes it does, but there is completely no way to determine when to do that
-> (dma_params might have been already allocated by the bus code). The whole
-> dma_params idea and its handling is a bit messy. IMHO we can leave this
-> for now until dma_params gets cleaned up (I remember someone said that he
-> has this on his todo list, but I don't remember now who it was...).
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+Changes since v1:
 
-You could fix this in a V4L2-specific way by storing the information whether
-you've allocated the dma-params e.g. in struct video_device. That's probably
-not worth the trouble, especially if someone's about to have a better
-solution.
+- Depend on VIDEO_RENESAS_FCP on ARM64
+---
+ .../devicetree/bindings/media/renesas,vsp1.txt       |  5 +++++
+ drivers/media/platform/Kconfig                       |  1 +
+ drivers/media/platform/vsp1/vsp1.h                   |  2 ++
+ drivers/media/platform/vsp1/vsp1_drv.c               | 20 ++++++++++++++++++++
+ 4 files changed, 28 insertions(+)
 
-I'd add a "FIXME: ..." comment so we won't forget about it.
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/Documentation/devicetree/bindings/media/renesas,vsp1.txt b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+index 627405abd144..9b695bcbf219 100644
+--- a/Documentation/devicetree/bindings/media/renesas,vsp1.txt
++++ b/Documentation/devicetree/bindings/media/renesas,vsp1.txt
+@@ -14,6 +14,11 @@ Required properties:
+   - interrupts: VSP interrupt specifier.
+   - clocks: A phandle + clock-specifier pair for the VSP functional clock.
+ 
++Optional properties:
++
++  - renesas,fcp: A phandle referencing the FCP that handles memory accesses
++                 for the VSP. Not needed on Gen2, mandatory on Gen3.
++
+ 
+ Example: R8A7790 (R-Car H2) VSP1-S node
+ 
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 28d0db102c0b..a62e0a5c7521 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -264,6 +264,7 @@ config VIDEO_RENESAS_VSP1
+ 	tristate "Renesas VSP1 Video Processing Engine"
+ 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
+ 	depends on (ARCH_RENESAS && OF) || COMPILE_TEST
++	depends on !ARM64 || VIDEO_RENESAS_FCP
+ 	depends on PM
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	---help---
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 37cc05e34de0..7cb0f5e428df 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -25,6 +25,7 @@
+ 
+ struct clk;
+ struct device;
++struct rcar_fcp_device;
+ 
+ struct vsp1_drm;
+ struct vsp1_entity;
+@@ -62,6 +63,7 @@ struct vsp1_device {
+ 	const struct vsp1_device_info *info;
+ 
+ 	void __iomem *mmio;
++	struct rcar_fcp_device *fcp;
+ 
+ 	struct vsp1_bru *bru;
+ 	struct vsp1_hsit *hsi;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 13907d4f08af..2786dc263bdb 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -22,6 +22,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/videodev2.h>
+ 
++#include <media/rcar-fcp.h>
+ #include <media/v4l2-subdev.h>
+ 
+ #include "vsp1.h"
+@@ -514,6 +515,10 @@ static int vsp1_pm_resume(struct device *dev)
+ 
+ static int vsp1_pm_runtime_suspend(struct device *dev)
+ {
++	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
++
++	rcar_fcp_disable(vsp1->fcp);
++
+ 	return 0;
+ }
+ 
+@@ -528,6 +533,7 @@ static int vsp1_pm_runtime_resume(struct device *dev)
+ 			return ret;
+ 	}
+ 
++	rcar_fcp_enable(vsp1->fcp);
+ 	return 0;
+ }
+ 
+@@ -614,6 +620,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ static int vsp1_probe(struct platform_device *pdev)
+ {
+ 	struct vsp1_device *vsp1;
++	struct device_node *fcp_node;
+ 	struct resource *irq;
+ 	struct resource *io;
+ 	unsigned int i;
+@@ -649,6 +656,18 @@ static int vsp1_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	/* FCP (optional) */
++	fcp_node = of_parse_phandle(pdev->dev.of_node, "renesas,fcp", 0);
++	if (fcp_node) {
++		vsp1->fcp = rcar_fcp_get(fcp_node);
++		of_node_put(fcp_node);
++		if (IS_ERR(vsp1->fcp)) {
++			dev_dbg(&pdev->dev, "FCP not found (%ld)\n",
++				PTR_ERR(vsp1->fcp));
++			return PTR_ERR(vsp1->fcp);
++		}
++	}
++
+ 	/* Configure device parameters based on the version register. */
+ 	pm_runtime_enable(&pdev->dev);
+ 
+@@ -694,6 +713,7 @@ static int vsp1_remove(struct platform_device *pdev)
+ 	struct vsp1_device *vsp1 = platform_get_drvdata(pdev);
+ 
+ 	vsp1_destroy_entities(vsp1);
++	rcar_fcp_put(vsp1->fcp);
+ 
+ 	pm_runtime_disable(&pdev->dev);
+ 
 -- 
-Kind regards,
+2.7.3
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
