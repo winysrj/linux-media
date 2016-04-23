@@ -1,58 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:45270 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965498AbcDLP5W (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:37983 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751884AbcDWLEF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2016 11:57:22 -0400
-Message-ID: <1460476636.2842.10.camel@collabora.com>
-Subject: Re: gstreamer: v4l2videodec plugin
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-	Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Rob Clark <robdclark@gmail.com>
-Date: Tue, 12 Apr 2016 11:57:16 -0400
-In-Reply-To: <570CB882.4090805@linaro.org>
-References: <570B9285.9000209@linaro.org> <570B9454.6020307@linaro.org>
-	 <1460391908.30296.12.camel@collabora.com> <570CB882.4090805@linaro.org>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-efOvIVlyATO+IsEEbnLj"
-Mime-Version: 1.0
+	Sat, 23 Apr 2016 07:04:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCHv4 06/13] staging/media: convert drivers to use the new vb2_queue dev field
+Date: Sat, 23 Apr 2016 13:03:42 +0200
+Message-Id: <1461409429-24995-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---=-efOvIVlyATO+IsEEbnLj
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Stop using alloc_ctx and just fill in the device pointer.
 
-Le mardi 12 avril 2016 =C3=A0 11:57 +0300, Stanimir Varbanov a =C3=A9crit=
-=C2=A0:
-> > I'm very happy to see this report. So far, we only had report that
-> this
-> > element works on Freescale IMX.6 (CODA) and Exynos 4/5.
->=20
-> In this context, I would be very happy to see v4l2videoenc merged
-> soon :)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/staging/media/davinci_vpfe/vpfe_video.c | 10 +---------
+ drivers/staging/media/davinci_vpfe/vpfe_video.h |  2 --
+ drivers/staging/media/omap4iss/iss_video.c      | 10 +---------
+ drivers/staging/media/omap4iss/iss_video.h      |  1 -
+ 4 files changed, 2 insertions(+), 21 deletions(-)
 
-That will happen when all review comments are resolved.
-
-cheers,
-Nicolas
---=-efOvIVlyATO+IsEEbnLj
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAlcNGtwACgkQcVMCLawGqBzkDQCg0wio56vDFzITExxIrBdCo6WL
-mTkAoJJXbmsf2m8sAKAo6dXCPxpq6Bwy
-=955W
------END PGP SIGNATURE-----
-
---=-efOvIVlyATO+IsEEbnLj--
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index ea3ddec..77e66e7 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -542,7 +542,6 @@ static int vpfe_release(struct file *file)
+ 		video->io_usrs = 0;
+ 		/* Free buffers allocated */
+ 		vb2_queue_release(&video->buffer_queue);
+-		vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+ 	}
+ 	/* Decrement device users counter */
+ 	video->usrs--;
+@@ -1115,7 +1114,6 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq,
+ 
+ 	*nplanes = 1;
+ 	sizes[0] = size;
+-	alloc_ctxs[0] = video->alloc_ctx;
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+ 		 "nbuffers=%d, size=%lu\n", *nbuffers, size);
+ 	return 0;
+@@ -1350,12 +1348,6 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+ 	video->memory = req_buf->memory;
+ 
+ 	/* Initialize videobuf2 queue as per the buffer type */
+-	video->alloc_ctx = vb2_dma_contig_init_ctx(vpfe_dev->pdev);
+-	if (IS_ERR(video->alloc_ctx)) {
+-		v4l2_err(&vpfe_dev->v4l2_dev, "Failed to get the context\n");
+-		return PTR_ERR(video->alloc_ctx);
+-	}
+-
+ 	q = &video->buffer_queue;
+ 	q->type = req_buf->type;
+ 	q->io_modes = VB2_MMAP | VB2_USERPTR;
+@@ -1365,11 +1357,11 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->buf_struct_size = sizeof(struct vpfe_cap_buffer);
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->dev = vpfe_dev->pdev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+ 		v4l2_err(&vpfe_dev->v4l2_dev, "vb2_queue_init() failed\n");
+-		vb2_dma_contig_cleanup_ctx(vpfe_dev->pdev);
+ 		return ret;
+ 	}
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+index 653334d..aaec440 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+@@ -123,8 +123,6 @@ struct vpfe_video_device {
+ 	/* Used to store pixel format */
+ 	struct v4l2_format			fmt;
+ 	struct vb2_queue			buffer_queue;
+-	/* allocator-specific contexts for each plane */
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	/* Queue of filled frames */
+ 	struct list_head			dma_queue;
+ 	spinlock_t				irqlock;
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index cf8da23..3c077e3 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -310,8 +310,6 @@ static int iss_video_queue_setup(struct vb2_queue *vq,
+ 	if (sizes[0] == 0)
+ 		return -EINVAL;
+ 
+-	alloc_ctxs[0] = video->alloc_ctx;
+-
+ 	*count = min(*count, video->capture_mem / PAGE_ALIGN(sizes[0]));
+ 
+ 	return 0;
+@@ -1017,13 +1015,6 @@ static int iss_video_open(struct file *file)
+ 		goto done;
+ 	}
+ 
+-	video->alloc_ctx = vb2_dma_contig_init_ctx(video->iss->dev);
+-	if (IS_ERR(video->alloc_ctx)) {
+-		ret = PTR_ERR(video->alloc_ctx);
+-		omap4iss_put(video->iss);
+-		goto done;
+-	}
+-
+ 	q = &handle->queue;
+ 
+ 	q->type = video->type;
+@@ -1033,6 +1024,7 @@ static int iss_video_open(struct file *file)
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->buf_struct_size = sizeof(struct iss_buffer);
+ 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->dev = video->iss->dev;
+ 
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+index c8bd295..d7e05d0 100644
+--- a/drivers/staging/media/omap4iss/iss_video.h
++++ b/drivers/staging/media/omap4iss/iss_video.h
+@@ -170,7 +170,6 @@ struct iss_video {
+ 	spinlock_t qlock;		/* protects dmaqueue and error */
+ 	struct list_head dmaqueue;
+ 	enum iss_video_dmaqueue_flags dmaqueue_flags;
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 
+ 	const struct iss_video_operations *ops;
+ };
+-- 
+2.8.0.rc3
 
