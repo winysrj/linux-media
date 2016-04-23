@@ -1,53 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iodev.co.uk ([82.211.30.53]:33958 "EHLO iodev.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752300AbcD3DXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 23:23:46 -0400
-From: Ismael Luceno <ismael@iodev.co.uk>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ismael Luceno <ismael@iodev.co.uk>
-Subject: [PATCH 1/2] solo6x10: Set FRAME_BUF_SIZE to 200KB
-Date: Sat, 30 Apr 2016 00:17:08 -0300
-Message-Id: <1461986229-11949-1-git-send-email-ismael@iodev.co.uk>
+Received: from bombadil.infradead.org ([198.137.202.9]:37155 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751681AbcDWJZ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Apr 2016 05:25:57 -0400
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: [PATCH] [media] tvp686x: Don't go past array
+Date: Sat, 23 Apr 2016 06:23:43 -0300
+Message-Id: <d25dd8ca8edffc6cc8cee2dac9b907c333a0aa84.1461403421.git.mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Such frame size is met in practice. Also report oversized frames.
+Depending on the compiler version, currently it produces the
+following warnings:
+	tw686x-video.c: In function 'tw686x_video_init':
+	tw686x-video.c:65:543: warning: array subscript is above array bounds [-Warray-bounds]
 
-Based on patches by Andrey Utkin <andrey.utkin@corp.bluecherry.net>.
+This is actually bogus with the current code, as it currently
+hardcodes the framerate to 30 frames/sec, however a potential
+use after the array size could happen when the driver adds support
+for setting the framerate. So, fix it.
 
-Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/media/pci/tw686x/tw686x-video.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-index 67a14c4..f98017b 100644
---- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-@@ -33,7 +33,7 @@
- #include "solo6x10-jpeg.h"
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index 118e9fac9f28..1ff59084ce08 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -61,8 +61,19 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
+ 		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
+ 	};
  
- #define MIN_VID_BUFFERS		2
--#define FRAME_BUF_SIZE		(196 * 1024)
-+#define FRAME_BUF_SIZE		(200 * 1024)
- #define MP4_QS			16
- #define DMA_ALIGN		4096
- 
-@@ -323,8 +323,11 @@ static int solo_send_desc(struct solo_enc_dev *solo_enc, int skip,
- 	int i;
- 	int ret;
- 
--	if (WARN_ON_ONCE(size > FRAME_BUF_SIZE))
-+	if (WARN_ON_ONCE(size > FRAME_BUF_SIZE)) {
-+		dev_warn(&solo_dev->pdev->dev,
-+			 "oversized frame (%d bytes)\n", size);
- 		return -EINVAL;
+-	unsigned int i =
+-		(std & V4L2_STD_625_50) ? std_625_50[fps] : std_525_60[fps];
++	unsigned int i;
++
++	if (std & V4L2_STD_625_50) {
++		if (unlikely(i > ARRAY_SIZE(std_625_50)))
++			i = 14;		/* 25 fps */
++		else
++			i = std_625_50[fps];
++	} else {
++		if (unlikely(i > ARRAY_SIZE(std_525_60)))
++			i = 0;		/* 30 fps */
++		else
++			i = std_525_60[fps];
 +	}
  
- 	solo_enc->desc_count = 1;
- 
+ 	return map[i];
+ }
 -- 
-2.8.0
+2.5.5
 
