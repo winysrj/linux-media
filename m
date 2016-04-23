@@ -1,177 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:47633 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932328AbcDYMmm (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35325 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751271AbcDWAQx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 08:42:42 -0400
-Subject: Re: [PATCH] [media] tvp686x: Don't go past array
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <d25dd8ca8edffc6cc8cee2dac9b907c333a0aa84.1461403421.git.mchehab@osg.samsung.com>
- <571E0159.9050406@xs4all.nl> <20160425094000.1dc6db29@recife.lan>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <571E10B7.4060607@xs4all.nl>
-Date: Mon, 25 Apr 2016 14:42:31 +0200
+	Fri, 22 Apr 2016 20:16:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCHv3 05/12] staging/media: convert drivers to use the new vb2_queue dev field
+Date: Sat, 23 Apr 2016 03:17:11 +0300
+Message-ID: <4483803.AG7J000loR@avalon>
+In-Reply-To: <1461314299-36126-6-git-send-email-hverkuil@xs4all.nl>
+References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl> <1461314299-36126-6-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20160425094000.1dc6db29@recife.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/25/2016 02:40 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 25 Apr 2016 13:36:57 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> Since my patch exchanges the sparse warning with a smatch warning, it's
->> OK to take this one, with a few corrections:
->>
->> Please update the subject line (it says tvp686x instead of tw686x).
-> 
-> Gah...
-> 
->>
->> On 04/23/2016 11:23 AM, Mauro Carvalho Chehab wrote:
->>> Depending on the compiler version, currently it produces the
->>> following warnings:
->>> 	tw686x-video.c: In function 'tw686x_video_init':
->>> 	tw686x-video.c:65:543: warning: array subscript is above array bounds [-Warray-bounds]
->>>
->>> This is actually bogus with the current code, as it currently
->>> hardcodes the framerate to 30 frames/sec, however a potential
->>> use after the array size could happen when the driver adds support
->>> for setting the framerate. So, fix it.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>> ---
->>>  drivers/media/pci/tw686x/tw686x-video.c | 15 +++++++++++++--
->>>  1 file changed, 13 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
->>> index 118e9fac9f28..1ff59084ce08 100644
->>> --- a/drivers/media/pci/tw686x/tw686x-video.c
->>> +++ b/drivers/media/pci/tw686x/tw686x-video.c
->>> @@ -61,8 +61,19 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
->>>  		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
->>>  	};
->>>  
->>> -	unsigned int i =
->>> -		(std & V4L2_STD_625_50) ? std_625_50[fps] : std_525_60[fps];
->>> +	unsigned int i;
->>> +
->>> +	if (std & V4L2_STD_625_50) {  
->>
->> Please test against 525_60 since that is the recommended test.
-> 
-> Both ways should work, but I'm OK with such change.
-> 
->>
->>> +		if (unlikely(i > ARRAY_SIZE(std_625_50)))  
->>
->> Please don't use 'unlikely'. It's pointless for code that is rarely used.
-> 
-> OK.
-> 
->>
->> Actually, the code is wrong: i is uninitialized here.
->>
->> It should be fps >= ARRAY_SIZE(std_625_50).
->>
->> In fact, I'd write it like this:
->>
->> 		i = std_625_50[(fps >= ARRAY_SIZE(std_625_50) ? 24 : fps];
-> 
-> I really don't like the above, as it has an unexplained magic
-> number on it. Also, "24" is wrong there.
-> 
-> So, I would go to the following enclosed patch.
+Hi Hans,
 
-Looks good to me. Acked below. Amazing how many bugs one can make in one
-simple patch...
+Thank you for the patch.
 
+On Friday 22 Apr 2016 10:38:12 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Ezequiel,
+> Stop using alloc_ctx and just fill in the device pointer.
 > 
-> Btw, I'm not seeing support for fps != 25 (or 30 fps) on this driver.
-> As the device seems to support setting the fps, you should be adding
-> support on it for VIDIOC_S_PARM and VIDIOC_G_PARM.
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Pending a fix for the problem I mentioned in a reply to patch 01/12,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c | 10 +---------
+>  drivers/staging/media/davinci_vpfe/vpfe_video.h |  2 --
+>  drivers/staging/media/omap4iss/iss_video.c      | 10 +---------
+>  drivers/staging/media/omap4iss/iss_video.h      |  1 -
+>  4 files changed, 2 insertions(+), 21 deletions(-)
 > 
-> On both ioctls, the driver should return the actual framerate used.
-> So, you'll need to add a code that would convert from the 15 possible
-> framerate converter register settings to v4l2_fract.
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index ea3ddec..77e66e7
+> 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -542,7 +542,6 @@ static int vpfe_release(struct file *file)
+>  		video->io_usrs = 0;
+>  		/* Free buffers allocated */
+>  		vb2_queue_release(&video->buffer_queue);
+> -		vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+>  	}
+>  	/* Decrement device users counter */
+>  	video->usrs--;
+> @@ -1115,7 +1114,6 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq,
 > 
->>
->>> +			i = 14;		/* 25 fps */
->>> +		else
->>> +			i = std_625_50[fps];
->>> +	} else {
->>> +		if (unlikely(i > ARRAY_SIZE(std_525_60)))
->>> +			i = 0;		/* 30 fps */
->>> +		else
->>> +			i = std_525_60[fps];
->>> +	}
->>>  
->>>  	return map[i];
->>>  }
->>>   
->>
->> Regards,
->>
->> 	Hans
+>  	*nplanes = 1;
+>  	sizes[0] = size;
+> -	alloc_ctxs[0] = video->alloc_ctx;
+>  	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+>  		 "nbuffers=%d, size=%lu\n", *nbuffers, size);
+>  	return 0;
+> @@ -1350,12 +1348,6 @@ static int vpfe_reqbufs(struct file *file, void
+> *priv, video->memory = req_buf->memory;
 > 
-> Thanks,
-> Mauro
-> 
+>  	/* Initialize videobuf2 queue as per the buffer type */
+> -	video->alloc_ctx = vb2_dma_contig_init_ctx(vpfe_dev->pdev);
+> -	if (IS_ERR(video->alloc_ctx)) {
+> -		v4l2_err(&vpfe_dev->v4l2_dev, "Failed to get the context\n");
+> -		return PTR_ERR(video->alloc_ctx);
+> -	}
 > -
+>  	q = &video->buffer_queue;
+>  	q->type = req_buf->type;
+>  	q->io_modes = VB2_MMAP | VB2_USERPTR;
+> @@ -1365,11 +1357,11 @@ static int vpfe_reqbufs(struct file *file, void
+> *priv, q->mem_ops = &vb2_dma_contig_memops;
+>  	q->buf_struct_size = sizeof(struct vpfe_cap_buffer);
+>  	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +	q->dev = vpfe_dev->pdev;
 > 
-> [media] tw686x: Don't go past array
+>  	ret = vb2_queue_init(q);
+>  	if (ret) {
+>  		v4l2_err(&vpfe_dev->v4l2_dev, "vb2_queue_init() failed\n");
+> -		vb2_dma_contig_cleanup_ctx(vpfe_dev->pdev);
+>  		return ret;
+>  	}
 > 
-> Depending on the compiler version, currently it produces the
-> following warnings:
-> 	tw686x-video.c: In function 'tw686x_video_init':
-> 	tw686x-video.c:65:543: warning: array subscript is above array bounds [-Warray-bounds]
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h
+> b/drivers/staging/media/davinci_vpfe/vpfe_video.h index 653334d..aaec440
+> 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+> @@ -123,8 +123,6 @@ struct vpfe_video_device {
+>  	/* Used to store pixel format */
+>  	struct v4l2_format			fmt;
+>  	struct vb2_queue			buffer_queue;
+> -	/* allocator-specific contexts for each plane */
+> -	struct vb2_alloc_ctx *alloc_ctx;
+>  	/* Queue of filled frames */
+>  	struct list_head			dma_queue;
+>  	spinlock_t				irqlock;
+> diff --git a/drivers/staging/media/omap4iss/iss_video.c
+> b/drivers/staging/media/omap4iss/iss_video.c index cf8da23..3c077e3 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.c
+> +++ b/drivers/staging/media/omap4iss/iss_video.c
+> @@ -310,8 +310,6 @@ static int iss_video_queue_setup(struct vb2_queue *vq,
+>  	if (sizes[0] == 0)
+>  		return -EINVAL;
 > 
-> This is actually bogus with the current code, as it currently
-> hardcodes the framerate to 30 frames/sec, however a potential
-> use after the array size could happen when the driver adds support
-> for setting the framerate. So, fix it.
+> -	alloc_ctxs[0] = video->alloc_ctx;
+> -
+>  	*count = min(*count, video->capture_mem / PAGE_ALIGN(sizes[0]));
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>  	return 0;
+> @@ -1017,13 +1015,6 @@ static int iss_video_open(struct file *file)
+>  		goto done;
+>  	}
+> 
+> -	video->alloc_ctx = vb2_dma_contig_init_ctx(video->iss->dev);
+> -	if (IS_ERR(video->alloc_ctx)) {
+> -		ret = PTR_ERR(video->alloc_ctx);
+> -		omap4iss_put(video->iss);
+> -		goto done;
+> -	}
+> -
+>  	q = &handle->queue;
+> 
+>  	q->type = video->type;
+> @@ -1033,6 +1024,7 @@ static int iss_video_open(struct file *file)
+>  	q->mem_ops = &vb2_dma_contig_memops;
+>  	q->buf_struct_size = sizeof(struct iss_buffer);
+>  	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +	q->dev = video->iss->dev;
+> 
+>  	ret = vb2_queue_init(q);
+>  	if (ret) {
+> diff --git a/drivers/staging/media/omap4iss/iss_video.h
+> b/drivers/staging/media/omap4iss/iss_video.h index c8bd295..d7e05d0 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.h
+> +++ b/drivers/staging/media/omap4iss/iss_video.h
+> @@ -170,7 +170,6 @@ struct iss_video {
+>  	spinlock_t qlock;		/* protects dmaqueue and error */
+>  	struct list_head dmaqueue;
+>  	enum iss_video_dmaqueue_flags dmaqueue_flags;
+> -	struct vb2_alloc_ctx *alloc_ctx;
+> 
+>  	const struct iss_video_operations *ops;
+>  };
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+-- 
+Regards,
 
-> 
-> diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-> index 118e9fac9f28..9468fda69f3d 100644
-> --- a/drivers/media/pci/tw686x/tw686x-video.c
-> +++ b/drivers/media/pci/tw686x/tw686x-video.c
-> @@ -61,8 +61,17 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
->  		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
->  	};
->  
-> -	unsigned int i =
-> -		(std & V4L2_STD_625_50) ? std_625_50[fps] : std_525_60[fps];
-> +	unsigned int i;
-> +
-> +	if (std & V4L2_STD_525_60) {
-> +		if (fps > ARRAY_SIZE(std_525_60))
-> +			fps = 30;
-> +		i = std_525_60[fps];
-> +	} else {
-> +		if (fps > ARRAY_SIZE(std_625_50))
-> +			fps = 25;
-> +		i = std_625_50[fps];
-> +	}
->  
->  	return map[i];
->  }
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Laurent Pinchart
 
