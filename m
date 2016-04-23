@@ -1,233 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:22914 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751658AbcDUJl3 (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42143 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751850AbcDWLEC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2016 05:41:29 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>,
-	Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: [PATCH 1/8] Input: atmel_mxt_ts - add support for T37 diagnostic data
-Date: Thu, 21 Apr 2016 10:31:34 +0100
-Message-Id: <1461231101-1237-2-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
+	Sat, 23 Apr 2016 07:04:02 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Florian Echtler <floe@butterbrot.org>
+Subject: [PATCHv4 04/13] sur40: set q->dev instead of allocating a context
+Date: Sat, 23 Apr 2016 13:03:40 +0200
+Message-Id: <1461409429-24995-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add function to retrieve raw references data from the diagnostic data
-object
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+Stop using alloc_ctx and just fill in the device pointer.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Florian Echtler <floe@butterbrot.org>
 ---
- drivers/input/touchscreen/atmel_mxt_ts.c | 152 +++++++++++++++++++++++++++++++
- 1 file changed, 152 insertions(+)
+ drivers/input/touchscreen/sur40.c | 13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 2160512..0784a18 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -124,6 +124,17 @@ struct t9_range {
- #define MXT_COMMS_CTRL		0
- #define MXT_COMMS_CMD		1
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 880c40b..cc4bd3e 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -151,7 +151,6 @@ struct sur40_state {
+ 	struct mutex lock;
  
-+/* MXT_DEBUG_DIAGNOSTIC_T37 */
-+#define MXT_DIAGNOSTIC_PAGEUP 0x01
-+#define MXT_DIAGNOSTIC_DELTAS 0x10
-+#define MXT_DIAGNOSTIC_SIZE    128
-+
-+struct t37_debug {
-+	u8 mode;
-+	u8 page;
-+	u8 data[MXT_DIAGNOSTIC_SIZE];
-+};
-+
- /* Define for MXT_GEN_COMMAND_T6 */
- #define MXT_BOOT_VALUE		0xa5
- #define MXT_RESET_VALUE		0x01
-@@ -205,6 +216,14 @@ struct mxt_object {
- 	u8 num_report_ids;
- } __packed;
+ 	struct vb2_queue queue;
+-	struct vb2_alloc_ctx *alloc_ctx;
+ 	struct list_head buf_list;
+ 	spinlock_t qlock;
+ 	int sequence;
+@@ -580,19 +579,13 @@ static int sur40_probe(struct usb_interface *interface,
+ 	sur40->queue = sur40_queue;
+ 	sur40->queue.drv_priv = sur40;
+ 	sur40->queue.lock = &sur40->lock;
++	sur40->queue.dev = sur40->dev;
  
-+struct mxt_dbg {
-+	u16 t37_address;
-+	u16 diag_cmd_address;
-+	struct t37_debug *t37_buf;
-+	unsigned int t37_pages;
-+	unsigned int t37_nodes;
-+};
-+
- /* Each client has this additional data */
- struct mxt_data {
- 	struct i2c_client *client;
-@@ -233,6 +252,7 @@ struct mxt_data {
- 	u8 num_touchids;
- 	u8 multitouch;
- 	struct t7_config t7_cfg;
-+	struct mxt_dbg dbg;
+ 	/* initialize the queue */
+ 	error = vb2_queue_init(&sur40->queue);
+ 	if (error)
+ 		goto err_unreg_v4l2;
  
- 	/* Cached parameters from object table */
- 	u16 T5_address;
-@@ -2043,6 +2063,136 @@ recheck:
- 	return 0;
- }
+-	sur40->alloc_ctx = vb2_dma_sg_init_ctx(sur40->dev);
+-	if (IS_ERR(sur40->alloc_ctx)) {
+-		dev_err(sur40->dev, "Can't allocate buffer context");
+-		error = PTR_ERR(sur40->alloc_ctx);
+-		goto err_unreg_v4l2;
+-	}
+-
+ 	sur40->vdev = sur40_video_device;
+ 	sur40->vdev.v4l2_dev = &sur40->v4l2;
+ 	sur40->vdev.lock = &sur40->lock;
+@@ -633,7 +626,6 @@ static void sur40_disconnect(struct usb_interface *interface)
  
-+static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
-+			       unsigned int y)
-+{
-+	struct mxt_dbg *dbg = &data->dbg;
-+	unsigned int ofs, page;
-+
-+	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
-+	page = ofs / MXT_DIAGNOSTIC_SIZE;
-+	ofs %= MXT_DIAGNOSTIC_SIZE;
-+
-+	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
-+}
-+
-+static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
-+{
-+	struct mxt_dbg *dbg = &data->dbg;
-+	unsigned int x = 0;
-+	unsigned int y = 0;
-+	unsigned int i;
-+
-+	for (i = 0; i < dbg->t37_nodes; i++) {
-+		outbuf[i] = mxt_get_debug_value(data, x, y);
-+
-+		/* Next value */
-+		if (++x >= data->info.matrix_xsize) {
-+			x = 0;
-+			y++;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int mxt_read_diagnostic_debug(struct mxt_data *data, u8 mode,
-+				     u16 *outbuf)
-+{
-+	struct mxt_dbg *dbg = &data->dbg;
-+	int retries = 0;
-+	int page;
-+	int ret;
-+	u8 cmd = mode;
-+	struct t37_debug *p;
-+	u8 cmd_poll;
-+
-+	for (page = 0; page < dbg->t37_pages; page++) {
-+		p = dbg->t37_buf + page;
-+
-+		ret = mxt_write_reg(data->client, dbg->diag_cmd_address,
-+				    cmd);
-+		if (ret)
-+			return ret;
-+
-+		retries = 0;
-+		msleep(20);
-+wait_cmd:
-+		/* Read back command byte */
-+		ret = __mxt_read_reg(data->client, dbg->diag_cmd_address,
-+				     sizeof(cmd_poll), &cmd_poll);
-+		if (ret)
-+			return ret;
-+
-+		/* Field is cleared once the command has been processed */
-+		if (cmd_poll) {
-+			if (retries++ > 100)
-+				return -EINVAL;
-+
-+			msleep(20);
-+			goto wait_cmd;
-+		}
-+
-+		/* Read T37 page */
-+		ret = __mxt_read_reg(data->client, dbg->t37_address,
-+				sizeof(struct t37_debug), p);
-+		if (ret)
-+			return ret;
-+
-+		if ((p->mode != mode) || (p->page != page)) {
-+			dev_err(&data->client->dev, "T37 page mismatch\n");
-+			return -EINVAL;
-+		}
-+
-+		dev_dbg(&data->client->dev, "%s page:%d retries:%d\n",
-+			__func__, page, retries);
-+
-+		/* For remaining pages, write PAGEUP rather than mode */
-+		cmd = MXT_DIAGNOSTIC_PAGEUP;
-+	}
-+
-+	return mxt_convert_debug_pages(data, outbuf);
-+}
-+
-+static void mxt_debug_init(struct mxt_data *data)
-+{
-+	struct mxt_dbg *dbg = &data->dbg;
-+	struct mxt_object *object;
-+
-+	object = mxt_get_object(data, MXT_GEN_COMMAND_T6);
-+	if (!object)
-+		return;
-+
-+	dbg->diag_cmd_address = object->start_address + MXT_COMMAND_DIAGNOSTIC;
-+
-+	object = mxt_get_object(data, MXT_DEBUG_DIAGNOSTIC_T37);
-+	if (!object)
-+		return;
-+
-+	if (mxt_obj_size(object) != sizeof(struct t37_debug)) {
-+		dev_warn(&data->client->dev, "Bad T37 size");
-+		return;
-+	}
-+
-+	dbg->t37_address = object->start_address;
-+
-+	/* Calculate size of data and allocate buffer */
-+	dbg->t37_nodes = data->info.matrix_xsize * data->info.matrix_ysize;
-+	dbg->t37_pages = dbg->t37_nodes * sizeof(u16)
-+					/ sizeof(dbg->t37_buf->data) + 1;
-+
-+	dbg->t37_buf = devm_kzalloc(&data->client->dev,
-+				     sizeof(struct t37_debug) * dbg->t37_pages,
-+				     GFP_KERNEL);
-+	if (!dbg->t37_buf)
-+		goto error;
-+
-+	return;
-+
-+error:
-+	dev_err(&data->client->dev, "Error initialising T37 diagnostic data\n");
-+}
-+
- static int mxt_configure_objects(struct mxt_data *data,
- 				 const struct firmware *cfg)
+ 	video_unregister_device(&sur40->vdev);
+ 	v4l2_device_unregister(&sur40->v4l2);
+-	vb2_dma_sg_cleanup_ctx(sur40->alloc_ctx);
+ 
+ 	input_unregister_polled_device(sur40->input);
+ 	input_free_polled_device(sur40->input);
+@@ -655,11 +647,8 @@ static int sur40_queue_setup(struct vb2_queue *q,
+ 		       unsigned int *nbuffers, unsigned int *nplanes,
+ 		       unsigned int sizes[], void *alloc_ctxs[])
  {
-@@ -2070,6 +2220,8 @@ static int mxt_configure_objects(struct mxt_data *data,
- 		dev_warn(dev, "No touch object detected\n");
- 	}
+-	struct sur40_state *sur40 = vb2_get_drv_priv(q);
+-
+ 	if (q->num_buffers + *nbuffers < 3)
+ 		*nbuffers = 3 - q->num_buffers;
+-	alloc_ctxs[0] = sur40->alloc_ctx;
  
-+	mxt_debug_init(data);
-+
- 	dev_info(dev,
- 		 "Family: %u Variant: %u Firmware V%u.%u.%02X Objects: %u\n",
- 		 info->family_id, info->variant_id, info->version >> 4,
+ 	if (*nplanes)
+ 		return sizes[0] < sur40_video_format.sizeimage ? -EINVAL : 0;
 -- 
-2.5.0
+2.8.0.rc3
 
