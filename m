@@ -1,81 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m50-134.163.com ([123.125.50.134]:41094 "EHLO m50-134.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752980AbcDNDKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2016 23:10:06 -0400
-From: zengzhaoxiu@163.com
-To: linux-kernel@vger.kernel.org
-Cc: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
-Subject: [PATCH V3 14/29] media: use parity functions in saa7115
-Date: Thu, 14 Apr 2016 11:09:50 +0800
-Message-Id: <1460603392-5171-1-git-send-email-zengzhaoxiu@163.com>
-In-Reply-To: <1460601525-3822-1-git-send-email-zengzhaoxiu@163.com>
-References: <1460601525-3822-1-git-send-email-zengzhaoxiu@163.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:57991 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751798AbcDWLEC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Apr 2016 07:04:02 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv4 03/13] v4l2-pci-skeleton: set q->dev instead of allocating a context
+Date: Sat, 23 Apr 2016 13:03:39 +0200
+Message-Id: <1461409429-24995-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+Stop using alloc_ctx as that is now no longer needed.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/saa7115.c | 17 ++---------------
- 1 file changed, 2 insertions(+), 15 deletions(-)
+ Documentation/video4linux/v4l2-pci-skeleton.c | 15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index d2a1ce2..4c22df8 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -672,15 +672,6 @@ static const unsigned char saa7115_init_misc[] = {
- 	0x00, 0x00
- };
+diff --git a/Documentation/video4linux/v4l2-pci-skeleton.c b/Documentation/video4linux/v4l2-pci-skeleton.c
+index a55cf94..5f91d76 100644
+--- a/Documentation/video4linux/v4l2-pci-skeleton.c
++++ b/Documentation/video4linux/v4l2-pci-skeleton.c
+@@ -56,7 +56,6 @@ MODULE_LICENSE("GPL v2");
+  * @format: current pix format
+  * @input: current video input (0 = SDTV, 1 = HDTV)
+  * @queue: vb2 video capture queue
+- * @alloc_ctx: vb2 contiguous DMA context
+  * @qlock: spinlock controlling access to buf_list and sequence
+  * @buf_list: list of buffers queued for DMA
+  * @sequence: frame sequence counter
+@@ -73,7 +72,6 @@ struct skeleton {
+ 	unsigned input;
  
--static int saa711x_odd_parity(u8 c)
--{
--	c ^= (c >> 4);
--	c ^= (c >> 2);
--	c ^= (c >> 1);
--
--	return c & 1;
--}
--
- static int saa711x_decode_vps(u8 *dst, u8 *p)
- {
- 	static const u8 biphase_tbl[] = {
-@@ -733,7 +724,6 @@ static int saa711x_decode_wss(u8 *p)
- 	static const int wss_bits[8] = {
- 		0, 0, 0, 1, 0, 1, 1, 1
- 	};
--	unsigned char parity;
- 	int wss = 0;
- 	int i;
+ 	struct vb2_queue queue;
+-	struct vb2_alloc_ctx *alloc_ctx;
  
-@@ -745,11 +735,8 @@ static int saa711x_decode_wss(u8 *p)
- 			return -1;
- 		wss |= b2 << i;
- 	}
--	parity = wss & 15;
--	parity ^= parity >> 2;
--	parity ^= parity >> 1;
+ 	spinlock_t qlock;
+ 	struct list_head buf_list;
+@@ -182,7 +180,6 @@ static int queue_setup(struct vb2_queue *vq,
  
--	if (!(parity & 1))
-+	if (!parity4(wss))
- 		return -1;
+ 	if (vq->num_buffers + *nbuffers < 3)
+ 		*nbuffers = 3 - vq->num_buffers;
+-	alloc_ctxs[0] = skel->alloc_ctx;
  
- 	return wss;
-@@ -1235,7 +1222,7 @@ static int saa711x_decode_vbi_line(struct v4l2_subdev *sd, struct v4l2_decode_vb
- 		vbi->type = V4L2_SLICED_TELETEXT_B;
- 		break;
- 	case 4:
--		if (!saa711x_odd_parity(p[0]) || !saa711x_odd_parity(p[1]))
-+		if (!parity8(p[0]) || !parity8(p[1]))
- 			return 0;
- 		vbi->type = V4L2_SLICED_CAPTION_525;
- 		break;
+ 	if (*nplanes)
+ 		return sizes[0] < skel->format.sizeimage ? -EINVAL : 0;
+@@ -820,6 +817,7 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	q = &skel->queue;
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	q->io_modes = VB2_MMAP | VB2_DMABUF | VB2_READ;
++	q->dev = &pdev->dev;
+ 	q->drv_priv = skel;
+ 	q->buf_struct_size = sizeof(struct skel_buffer);
+ 	q->ops = &skel_qops;
+@@ -850,12 +848,6 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	if (ret)
+ 		goto free_hdl;
+ 
+-	skel->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(skel->alloc_ctx)) {
+-		dev_err(&pdev->dev, "Can't allocate buffer context");
+-		ret = PTR_ERR(skel->alloc_ctx);
+-		goto free_hdl;
+-	}
+ 	INIT_LIST_HEAD(&skel->buf_list);
+ 	spin_lock_init(&skel->qlock);
+ 
+@@ -885,13 +877,11 @@ static int skeleton_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 
+ 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret)
+-		goto free_ctx;
++		goto free_hdl;
+ 
+ 	dev_info(&pdev->dev, "V4L2 PCI Skeleton Driver loaded\n");
+ 	return 0;
+ 
+-free_ctx:
+-	vb2_dma_contig_cleanup_ctx(skel->alloc_ctx);
+ free_hdl:
+ 	v4l2_ctrl_handler_free(&skel->ctrl_handler);
+ 	v4l2_device_unregister(&skel->v4l2_dev);
+@@ -907,7 +897,6 @@ static void skeleton_remove(struct pci_dev *pdev)
+ 
+ 	video_unregister_device(&skel->vdev);
+ 	v4l2_ctrl_handler_free(&skel->ctrl_handler);
+-	vb2_dma_contig_cleanup_ctx(skel->alloc_ctx);
+ 	v4l2_device_unregister(&skel->v4l2_dev);
+ 	pci_disable_device(skel->pdev);
+ }
 -- 
-2.5.0
-
+2.8.0.rc3
 
