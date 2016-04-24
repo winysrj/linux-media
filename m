@@ -1,74 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41729 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751745AbcDOH6j (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36660 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753338AbcDXVKg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 03:58:39 -0400
-Subject: Re: [PATCH 2/2] [media] media: Improve documentation for
- link_setup/link_modify
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	no To-header on input <""@pop.xs4all.nl>
-References: <cf3f7fec1241c22f49cbe8205c2b1129eb4bb3d7.1459950922.git.mchehab@osg.samsung.com>
- <f34de3fbb419ded00e16fd9c0538313e01cd0b2c.1459950922.git.mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57109F29.4020706@xs4all.nl>
-Date: Fri, 15 Apr 2016 09:58:33 +0200
-MIME-Version: 1.0
-In-Reply-To: <f34de3fbb419ded00e16fd9c0538313e01cd0b2c.1459950922.git.mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 24 Apr 2016 17:10:36 -0400
+Received: by mail-wm0-f68.google.com with SMTP id w143so16620920wmw.3
+        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:35 -0700 (PDT)
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	linux-media@vger.kernel.org,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [RFC PATCH 22/24] [media] omap3isp: Correctly set IO_OUT_SEL and VP_CLK_POL for CCP2 mode
+Date: Mon, 25 Apr 2016 00:08:22 +0300
+Message-Id: <1461532104-24032-23-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/06/2016 03:55 PM, Mauro Carvalho Chehab wrote:
-> Those callbacks are called with the media_device.graph_mutex hold.
-> 
-> Add a note about that, as the code called by those notifiers should
-> not be touching in the mutex.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+ISP CSI1 module needs all the bits correctly set to work.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ drivers/media/platform/omap3isp/isp.c      | 2 ++
+ drivers/media/platform/omap3isp/ispccp2.c  | 7 +++++--
+ drivers/media/platform/omap3isp/ispreg.h   | 4 ++++
+ drivers/media/platform/omap3isp/omap3isp.h | 1 +
+ 4 files changed, 12 insertions(+), 2 deletions(-)
 
-Regards,
-
-Hans
-
-> ---
->  include/media/media-device.h | 3 ++-
->  include/media/media-entity.h | 3 +++
->  2 files changed, 5 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index b21ef244ad3e..44563ec17d45 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -311,7 +311,8 @@ struct media_entity_notify {
->   * @enable_source: Enable Source Handler function pointer
->   * @disable_source: Disable Source Handler function pointer
->   *
-> - * @link_notify: Link state change notification callback
-> + * @link_notify: Link state change notification callback. This callback is
-> + * Called with the graph_mutex hold.
->   *
->   * This structure represents an abstract high-level media device. It allows easy
->   * access to entities and provides basic media device-level support. The
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 6dc9e4e8cbd4..0b16ebe36db7 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -179,6 +179,9 @@ struct media_pad {
->   * @link_validate:	Return whether a link is valid from the entity point of
->   *			view. The media_entity_pipeline_start() function
->   *			validates all links by calling this operation. Optional.
-> + *
-> + * Note: Those ioctls should not touch the struct media_device.@graph_mutex
-> + * field, as they're called with it already hold.
->   */
->  struct media_entity_operations {
->  	int (*link_setup)(struct media_entity *entity,
-> 
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index e51a1f9..6361fde 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2056,6 +2056,8 @@ static void isp_of_parse_node_csi1(struct device *dev,
+ 	 * sensor. Frame descriptors, perhaps?
+ 	 */
+ 	buscfg->bus.ccp2.crc = 1;
++
++	buscfg->bus.ccp2.vp_clk_pol = 1;
+ }
+ 
+ static void isp_of_parse_node_csi2(struct device *dev,
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index ca09523..7bb7feb 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -213,14 +213,17 @@ static int ccp2_phyif_config(struct isp_ccp2_device *ccp2,
+ 	struct isp_device *isp = to_isp_device(ccp2);
+ 	u32 val;
+ 
+-	/* CCP2B mode */
+ 	val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL) |
+-			    ISPCCP2_CTRL_IO_OUT_SEL | ISPCCP2_CTRL_MODE;
++	      ISPCCP2_CTRL_MODE;
+ 	/* Data/strobe physical layer */
+ 	BIT_SET(val, ISPCCP2_CTRL_PHY_SEL_SHIFT, ISPCCP2_CTRL_PHY_SEL_MASK,
+ 		buscfg->phy_layer);
++	BIT_SET(val, ISPCCP2_CTRL_IO_OUT_SEL_SHIFT,
++		ISPCCP2_CTRL_IO_OUT_SEL_MASK, buscfg->ccp2_mode);
+ 	BIT_SET(val, ISPCCP2_CTRL_INV_SHIFT, ISPCCP2_CTRL_INV_MASK,
+ 		buscfg->strobe_clk_pol);
++	BIT_SET(val, ISPCCP2_CTRL_VP_CLK_POL_SHIFT,
++		ISPCCP2_CTRL_VP_CLK_POL_MASK, buscfg->vp_clk_pol);
+ 	isp_reg_writel(isp, val, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
+ 
+ 	val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCP2, ISPCCP2_CTRL);
+diff --git a/drivers/media/platform/omap3isp/ispreg.h b/drivers/media/platform/omap3isp/ispreg.h
+index b5ea8da..d084839 100644
+--- a/drivers/media/platform/omap3isp/ispreg.h
++++ b/drivers/media/platform/omap3isp/ispreg.h
+@@ -87,6 +87,8 @@
+ #define ISPCCP2_CTRL_PHY_SEL_MASK	0x1
+ #define ISPCCP2_CTRL_PHY_SEL_SHIFT	1
+ #define ISPCCP2_CTRL_IO_OUT_SEL		(1 << 2)
++#define ISPCCP2_CTRL_IO_OUT_SEL_MASK	0x1
++#define ISPCCP2_CTRL_IO_OUT_SEL_SHIFT	2
+ #define ISPCCP2_CTRL_MODE		(1 << 4)
+ #define ISPCCP2_CTRL_VP_CLK_FORCE_ON	(1 << 9)
+ #define ISPCCP2_CTRL_INV		(1 << 10)
+@@ -94,6 +96,8 @@
+ #define ISPCCP2_CTRL_INV_SHIFT		10
+ #define ISPCCP2_CTRL_VP_ONLY_EN		(1 << 11)
+ #define ISPCCP2_CTRL_VP_CLK_POL		(1 << 12)
++#define ISPCCP2_CTRL_VP_CLK_POL_MASK	0x1
++#define ISPCCP2_CTRL_VP_CLK_POL_SHIFT	12
+ #define ISPCCP2_CTRL_VPCLK_DIV_SHIFT	15
+ #define ISPCCP2_CTRL_VPCLK_DIV_MASK	0x1ffff /* [31:15] */
+ #define ISPCCP2_CTRL_VP_OUT_CTRL_SHIFT	8 /* 3430 bits */
+diff --git a/drivers/media/platform/omap3isp/omap3isp.h b/drivers/media/platform/omap3isp/omap3isp.h
+index 443e8f7..f6d1d0d 100644
+--- a/drivers/media/platform/omap3isp/omap3isp.h
++++ b/drivers/media/platform/omap3isp/omap3isp.h
+@@ -108,6 +108,7 @@ struct isp_ccp2_cfg {
+ 	unsigned int ccp2_mode:1;
+ 	unsigned int phy_layer:1;
+ 	unsigned int vpclk_div:2;
++	unsigned int vp_clk_pol:1;
+ 	struct isp_csiphy_lanes_cfg lanecfg;
+ };
+ 
+-- 
+1.9.1
 
