@@ -1,70 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:35061 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752317AbcD3C5g (ORCPT
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:35034 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751170AbcDXU7t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 22:57:36 -0400
-Received: by mail-pf0-f194.google.com with SMTP id r187so16597530pfr.2
-        for <linux-media@vger.kernel.org>; Fri, 29 Apr 2016 19:57:36 -0700 (PDT)
-Subject: Re: [PATCH] [media] em28xx_dvb: add support for PLEX PX-BCUD (ISDB-S
- usb dongle)
-To: Satoshi Nagahama <sattnag@aim.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-References: <a0564a33-161b-3e2e-d4d3-c6ed896a7b89@aim.com>
-From: Akihiro TSUKADA <tskd08@gmail.com>
-Message-ID: <e1c557f3-c110-f330-3270-bd168f8508f1@gmail.com>
-Date: Sat, 30 Apr 2016 11:57:31 +0900
+	Sun, 24 Apr 2016 16:59:49 -0400
+Received: by mail-wm0-f45.google.com with SMTP id e201so66850377wme.0
+        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 13:59:48 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <a0564a33-161b-3e2e-d4d3-c6ed896a7b89@aim.com>
-Content-Type: text/plain; charset=iso-2022-jp
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1461314299-36126-6-git-send-email-hverkuil@xs4all.nl>
+References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl> <1461314299-36126-6-git-send-email-hverkuil@xs4all.nl>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Sun, 24 Apr 2016 21:59:17 +0100
+Message-ID: <CA+V-a8u+VzW4nH02DC=cp8Wj=2mH-boF4wTR=fO-VPNnEBvVwA@mail.gmail.com>
+Subject: Re: [PATCHv3 05/12] staging/media: convert drivers to use the new
+ vb2_queue dev field
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Satoshi,
+Hi Hans,
 
-just some small comments about tuners/qm1d1c0042...
+Thanks for the patch.
 
-> --- a/drivers/media/tuners/qm1d1c0042.c
-> +++ b/drivers/media/tuners/qm1d1c0042.c
-> @@ -32,14 +32,23 @@
->  #include "qm1d1c0042.h"
-> 
->  #define QM1D1C0042_NUM_REGS 0x20
+On Fri, Apr 22, 2016 at 9:38 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Stop using alloc_ctx and just fill in the device pointer.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c | 10 +---------
+>  drivers/staging/media/davinci_vpfe/vpfe_video.h |  2 --
+
+For the above
+
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Cheers,
+--Prabhakar Lad
+
+>  drivers/staging/media/omap4iss/iss_video.c      | 10 +---------
+>  drivers/staging/media/omap4iss/iss_video.h      |  1 -
+>  4 files changed, 2 insertions(+), 21 deletions(-)
+>
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> index ea3ddec..77e66e7 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -542,7 +542,6 @@ static int vpfe_release(struct file *file)
+>                 video->io_usrs = 0;
+>                 /* Free buffers allocated */
+>                 vb2_queue_release(&video->buffer_queue);
+> -               vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
+>         }
+>         /* Decrement device users counter */
+>         video->usrs--;
+> @@ -1115,7 +1114,6 @@ vpfe_buffer_queue_setup(struct vb2_queue *vq,
+>
+>         *nplanes = 1;
+>         sizes[0] = size;
+> -       alloc_ctxs[0] = video->alloc_ctx;
+>         v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+>                  "nbuffers=%d, size=%lu\n", *nbuffers, size);
+>         return 0;
+> @@ -1350,12 +1348,6 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+>         video->memory = req_buf->memory;
+>
+>         /* Initialize videobuf2 queue as per the buffer type */
+> -       video->alloc_ctx = vb2_dma_contig_init_ctx(vpfe_dev->pdev);
+> -       if (IS_ERR(video->alloc_ctx)) {
+> -               v4l2_err(&vpfe_dev->v4l2_dev, "Failed to get the context\n");
+> -               return PTR_ERR(video->alloc_ctx);
+> -       }
 > -
-> -static const u8 reg_initval[QM1D1C0042_NUM_REGS] = {
-> -    0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,
-> -    0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-> -    0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,
-> -    0x8c, 0xcf, 0xb8, 0xf1, 0xa8, 0xf2, 0x89, 0x00
-> +#define QM1D1C0042_NUM_REG_ROWS 2
-> +
-> +static const u8
-> reg_initval[QM1D1C0042_NUM_REG_ROWS][QM1D1C0042_NUM_REGS] = { {
-> +        0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,
-> +        0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-> +        0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,
-> +        0x8c, 0xcf, 0xb8, 0xf1, 0xa8, 0xf2, 0x89, 0x00
-> +    }, {
-> +        0x68, 0x1c, 0xc0, 0x10, 0xbc, 0xc1, 0x11, 0x33,
-> +        0x03, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-> +        0x00, 0xff, 0xf3, 0x00, 0x3f, 0x25, 0x5c, 0xd6,
-> +        0x55, 0xcf, 0x95, 0xf6, 0x36, 0xf2, 0x09, 0x00
-> +    }
+>         q = &video->buffer_queue;
+>         q->type = req_buf->type;
+>         q->io_modes = VB2_MMAP | VB2_USERPTR;
+> @@ -1365,11 +1357,11 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+>         q->mem_ops = &vb2_dma_contig_memops;
+>         q->buf_struct_size = sizeof(struct vpfe_cap_buffer);
+>         q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +       q->dev = vpfe_dev->pdev;
+>
+>         ret = vb2_queue_init(q);
+>         if (ret) {
+>                 v4l2_err(&vpfe_dev->v4l2_dev, "vb2_queue_init() failed\n");
+> -               vb2_dma_contig_cleanup_ctx(vpfe_dev->pdev);
+>                 return ret;
+>         }
+>
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+> index 653334d..aaec440 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+> @@ -123,8 +123,6 @@ struct vpfe_video_device {
+>         /* Used to store pixel format */
+>         struct v4l2_format                      fmt;
+>         struct vb2_queue                        buffer_queue;
+> -       /* allocator-specific contexts for each plane */
+> -       struct vb2_alloc_ctx *alloc_ctx;
+>         /* Queue of filled frames */
+>         struct list_head                        dma_queue;
+>         spinlock_t                              irqlock;
+> diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+> index cf8da23..3c077e3 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.c
+> +++ b/drivers/staging/media/omap4iss/iss_video.c
+> @@ -310,8 +310,6 @@ static int iss_video_queue_setup(struct vb2_queue *vq,
+>         if (sizes[0] == 0)
+>                 return -EINVAL;
+>
+> -       alloc_ctxs[0] = video->alloc_ctx;
+> -
+>         *count = min(*count, video->capture_mem / PAGE_ALIGN(sizes[0]));
+>
+>         return 0;
+> @@ -1017,13 +1015,6 @@ static int iss_video_open(struct file *file)
+>                 goto done;
+>         }
+>
+> -       video->alloc_ctx = vb2_dma_contig_init_ctx(video->iss->dev);
+> -       if (IS_ERR(video->alloc_ctx)) {
+> -               ret = PTR_ERR(video->alloc_ctx);
+> -               omap4iss_put(video->iss);
+> -               goto done;
+> -       }
+> -
+>         q = &handle->queue;
+>
+>         q->type = video->type;
+> @@ -1033,6 +1024,7 @@ static int iss_video_open(struct file *file)
+>         q->mem_ops = &vb2_dma_contig_memops;
+>         q->buf_struct_size = sizeof(struct iss_buffer);
+>         q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +       q->dev = video->iss->dev;
+>
+>         ret = vb2_queue_init(q);
+>         if (ret) {
+> diff --git a/drivers/staging/media/omap4iss/iss_video.h b/drivers/staging/media/omap4iss/iss_video.h
+> index c8bd295..d7e05d0 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.h
+> +++ b/drivers/staging/media/omap4iss/iss_video.h
+> @@ -170,7 +170,6 @@ struct iss_video {
+>         spinlock_t qlock;               /* protects dmaqueue and error */
+>         struct list_head dmaqueue;
+>         enum iss_video_dmaqueue_flags dmaqueue_flags;
+> -       struct vb2_alloc_ctx *alloc_ctx;
+>
+>         const struct iss_video_operations *ops;
 >  };
-> 
-> +static int reg_index;
-> +
-
-* The names of _REG_ROWS / reg_index might be a bit vague to others.
-  I would prefer _CHIP_IDS / chip_id  or something like that.
-
-* reg_index should not be static as it is per device property.
-  Instead, it shouldj be defined in qm1d1c0042_init() locally, or
-  in struct qm1d1c0042_state, if "reg_index" can be used elsewhere.
-
-Thre rest looks OK to me.
-
-regards,
-akihiro
+> --
+> 2.8.0.rc3
+>
