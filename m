@@ -1,116 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgwym02.jp.fujitsu.com ([211.128.242.41]:35223 "EHLO
-	mgwym02.jp.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751726AbcDRIcV (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35704 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753284AbcDXVK0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2016 04:32:21 -0400
-Subject: Re: Backport a Security Fix for CVE-2015-7833 to v4.1
-To: Vladis Dronov <vdronov@redhat.com>
-References: <570B33E6.40705@jp.fujitsu.com>
- <573811194.2583282.1460376200290.JavaMail.zimbra@redhat.com>
- <5710A6D5.8000302@jp.fujitsu.com>
- <1369454336.4654676.1460714156331.JavaMail.zimbra@redhat.com>
-Cc: sasha levin <sasha.levin@oracle.com>, linux-media@vger.kernel.org,
-	stable@vger.kernel.org, hverkuil@xs4all.nl, oneukum@suse.com,
-	mchehab@osg.samsung.com, ralf@spenneberg.net
-From: Yuki Machida <machida.yuki@jp.fujitsu.com>
-Message-ID: <57149B8C.8010900@jp.fujitsu.com>
-Date: Mon, 18 Apr 2016 17:32:12 +0900
-MIME-Version: 1.0
-In-Reply-To: <1369454336.4654676.1460714156331.JavaMail.zimbra@redhat.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Sun, 24 Apr 2016 17:10:26 -0400
+Received: by mail-wm0-f66.google.com with SMTP id e201so17587325wme.2
+        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:25 -0700 (PDT)
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	linux-media@vger.kernel.org
+Subject: [RFC PATCH 12/24] dt: bindings: Add CSI1/CCP2 related properties to video-interfaces.txt
+Date: Mon, 25 Apr 2016 00:08:12 +0300
+Message-Id: <1461532104-24032-13-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vladis,
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-On 2016年04月15日 18:55, Vladis Dronov wrote:
-> Hello, Yuki, all,
->
-> My commit fa52bd506f resolves CVE-2015-7833, as mentioned in
-> https://www.spinics.net/lists/linux-media/msg96936.html
-I understand that commit fa52bd506f resolved security issue of CVE-2015-7833
-and commit 588afcc1 is not needed for fixing of CVE-2015-7833.
+Document the CSI1/CCP2 properties strobe_clk_inv and strobe_clock
+properties. The former tells whether the strobe/clock signal is inverted,
+while the latter signifies the clock or strobe mode.
 
-> Please, note a message from Hans down this thread, who agrees
-> with my point.
-I understand the opinion of Vladis and Hans.
-Why "usbvision: revert commit 588afcc1" is not accepted in linux-media ?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/devicetree/bindings/media/video-interfaces.txt | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
->
-> Best regards,
-> Vladis Dronov | Red Hat, Inc. | Product Security Engineer
->
-> ----- Original Message -----
-> From: "Yuki Machida" <machida.yuki@jp.fujitsu.com>
-> To: "Vladis Dronov" <vdronov@redhat.com>
-> Cc: "sasha levin" <sasha.levin@oracle.com>, linux-media@vger.kernel.org, stable@vger.kernel.org, hverkuil@xs4all.nl, oneukum@suse.com, mchehab@osg.samsung.com, ralf@spenneberg.net
-> Sent: Friday, April 15, 2016 10:31:17 AM
-> Subject: Re: Backport a Security Fix for CVE-2015-7833 to v4.1
->
-> Hi Vladis,
->
->   > I apologize for intercepting, but I believe commit 588afcc1 should
->   > not be accepted and reverted in the trees where it was.
->   >
->   > Reasons:
->   >
->   > https://patchwork.linuxtv.org/patch/32798/
->   > or
->   > https://www.spinics.net/lists/linux-media/msg96936.html
-> Thank you for your reply.
->
-> If it revert commit 588afcc1 from the kernel,
-> It exists a Security Issue of CVE-2015-7833.
-> What do you think about it?
->
-> Best regards,
-> Yuki Machida
->
-> On 2016年04月11日 21:03, Vladis Dronov wrote:
->> Hello,
->>
->> I apologize for intercepting, but I believe commit 588afcc1 should
->> not be accepted and reverted in the trees where it was.
->>
->> Reasons:
->>
->> https://patchwork.linuxtv.org/patch/32798/
->> or
->> https://www.spinics.net/lists/linux-media/msg96936.html
->>
->>
->> Best regards,
->> Vladis Dronov | Red Hat, Inc. | Product Security Engineer
->>
->> ----- Original Message -----
->> From: "Yuki Machida" <machida.yuki@jp.fujitsu.com>
->> To: "sasha levin" <sasha.levin@oracle.com>
->> Cc: linux-media@vger.kernel.org, stable@vger.kernel.org, hverkuil@xs4all.nl, oneukum@suse.com, vdronov@redhat.com, mchehab@osg.samsung.com, ralf@spenneberg.net
->> Sent: Monday, April 11, 2016 7:19:34 AM
->> Subject: Backport a Security Fix for CVE-2015-7833 to v4.1
->>
->> Hi Sasha,
->>
->> I conformed that these patches for CVE-2015-7833 not applied at v4.1.21.
->> 588afcc1c0e45358159090d95bf7b246fb67565
->> fa52bd506f274b7619955917abfde355e3d19ff
->> Could you please apply this CVE-2015-7833 fix for 4.1-stable ?
->>
->> References:
->> https://security-tracker.debian.org/tracker/CVE-2015-7833
->> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=588afcc1c0e45358159090d95bf7b246fb67565f
->> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=fa52bd506f274b7619955917abfde355e3d19ffe
->>
->> Regards,
->> Yuki Machida
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe stable" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index f5b61bd..f0523f7 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -114,9 +114,10 @@ Optional endpoint properties
+   lane and followed by the data lanes in the same order as in data-lanes.
+   Valid values are 0 (normal) and 1 (inverted). The length of the array
+   should be the combined length of data-lanes and clock-lanes properties.
+-  If the lane-polarities property is omitted, the value must be interpreted
+-  as 0 (normal). This property is valid for serial busses only.
+-
++- clock-inv: Clock or strobe signal inversion.
++  Possible values: 0 -- not inverted; 1 -- inverted
++- strobe: Whether the clock signal is used as clock or strobe. Used
++  with CCP2, for instance.
+ 
+ Example
+ -------
+-- 
+1.9.1
 
-Regards,
-Yuki Machida
