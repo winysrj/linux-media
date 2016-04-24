@@ -1,95 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:33382 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751691AbcDKVBa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2016 17:01:30 -0400
-Date: Mon, 11 Apr 2016 22:59:48 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Peter Rosin <peda@lysator.liu.se>
-Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>,
-	Peter Rosin <peda@axentia.se>,
-	Rob Herring <robh+dt@kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Nicholas Mc Guire <hofrat@osadl.org>,
-	Olli Salonen <olli.salonen@iki.fi>, linux-i2c@vger.kernel.org,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/8] i2c-mux: add common core data for every mux
- instance
-Message-ID: <20160411205948.GB10401@katana>
-References: <1452009438-27347-1-git-send-email-peda@lysator.liu.se>
- <1452009438-27347-2-git-send-email-peda@lysator.liu.se>
- <56F3B86E.4050002@mentor.com>
- <56F3CA0E.60906@lysator.liu.se>
- <56F3F89F.8000805@mentor.com>
- <56F43919.1020501@lysator.liu.se>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5/uDoXvLw7AC5HRs"
-Content-Disposition: inline
-In-Reply-To: <56F43919.1020501@lysator.liu.se>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33171 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753247AbcDXVKY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Apr 2016 17:10:24 -0400
+Received: by mail-wm0-f65.google.com with SMTP id r12so17688381wme.0
+        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:23 -0700 (PDT)
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	linux-media@vger.kernel.org
+Subject: [RFC PATCH 10/24] v4l: of: Separate lane parsing from CSI-2 bus parameter parsing
+Date: Mon, 25 Apr 2016 00:08:10 +0300
+Message-Id: <1461532104-24032-11-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
---5/uDoXvLw7AC5HRs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The CSI-1 will need these as well, separate them into a different function.
 
-Hi Vladimir,
+have_clk_lane and num_data_lanes arguments may be NULL; the CSI-1 bus will
+have no use for them.
 
-> > I'll try to find some time to review the whole changeset carefully,
-> > in fact I briefly reviewed it two months ago, but I didn't find
-> > anything obviously wrong that time.
->=20
-> Please put that on hold until I have rebased ontop of v4.6-rc1 and
-> changed a couple of other things. I'd hate for you to waste your
-> time on outdated patches.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/v4l2-core/v4l2-of.c | 60 +++++++++++++++++++++++++++++----------
+ 1 file changed, 45 insertions(+), 15 deletions(-)
 
-v6 is out now. Any help with reviewing/testing is much appreciated!
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index 5304137..60bbc5f 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -25,53 +25,83 @@ enum v4l2_of_bus_type {
+ 	V4L2_OF_BUS_TYPE_PARALLEL,
+ };
+ 
+-static int v4l2_of_parse_csi2_bus(const struct device_node *node,
+-				 struct v4l2_of_endpoint *endpoint)
++static int v4l2_of_parse_lanes(const struct device_node *node,
++			       unsigned char *clock_lane,
++			       bool *have_clk_lane,
++			       unsigned char *data_lanes,
++			       bool *lane_polarities,
++			       unsigned short *__num_data_lanes,
++			       unsigned int max_data_lanes)
+ {
+-	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
+ 	struct property *prop;
+-	bool have_clk_lane = false;
+-	unsigned int flags = 0;
++	unsigned short num_data_lanes = 0;
+ 	u32 v;
+ 
+ 	prop = of_find_property(node, "data-lanes", NULL);
+ 	if (prop) {
+ 		const __be32 *lane = NULL;
+-		unsigned int i;
+ 
+-		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
++		for (num_data_lanes = 0; num_data_lanes < max_data_lanes;
++		     num_data_lanes++) {
+ 			lane = of_prop_next_u32(prop, lane, &v);
+ 			if (!lane)
+ 				break;
+-			bus->data_lanes[i] = v;
++			data_lanes[num_data_lanes] = v;
+ 		}
+-		bus->num_data_lanes = i;
+ 	}
++	if (__num_data_lanes)
++		*__num_data_lanes = num_data_lanes;
+ 
+ 	prop = of_find_property(node, "lane-polarities", NULL);
+ 	if (prop) {
+ 		const __be32 *polarity = NULL;
+ 		unsigned int i;
+ 
+-		for (i = 0; i < ARRAY_SIZE(bus->lane_polarities); i++) {
++		for (i = 0; i < 1 + max_data_lanes; i++) {
+ 			polarity = of_prop_next_u32(prop, polarity, &v);
+ 			if (!polarity)
+ 				break;
+-			bus->lane_polarities[i] = v;
++			lane_polarities[i] = v;
+ 		}
+ 
+-		if (i < 1 + bus->num_data_lanes /* clock + data */) {
++		if (i < 1 + num_data_lanes /* clock + data */) {
+ 			pr_warn("%s: too few lane-polarities entries (need %u, got %u)\n",
+-				node->full_name, 1 + bus->num_data_lanes, i);
++				node->full_name, 1 + num_data_lanes, i);
+ 			return -EINVAL;
+ 		}
+ 	}
+ 
++	if (have_clk_lane)
++		*have_clk_lane = false;
++
+ 	if (!of_property_read_u32(node, "clock-lanes", &v)) {
+-		bus->clock_lane = v;
+-		have_clk_lane = true;
++		*clock_lane = v;
++		if (have_clk_lane)
++			*have_clk_lane = true;
+ 	}
+ 
++	return 0;
++}
++
++static int v4l2_of_parse_csi2_bus(const struct device_node *node,
++				 struct v4l2_of_endpoint *endpoint)
++{
++	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
++	bool have_clk_lane = false;
++	unsigned int flags = 0;
++	int rval;
++	u32 v;
++
++	rval = v4l2_of_parse_lanes(node, &bus->clock_lane, &have_clk_lane,
++				   bus->data_lanes, bus->lane_polarities,
++				   &bus->num_data_lanes,
++				   ARRAY_SIZE(bus->data_lanes));
++	if (rval)
++		return rval;
++
++	BUILD_BUG_ON(1 + ARRAY_SIZE(bus->data_lanes)
++		       != ARRAY_SIZE(bus->lane_polarities));
++
+ 	if (of_get_property(node, "clock-noncontinuous", &v))
+ 		flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+ 	else if (have_clk_lane || bus->num_data_lanes > 0)
+-- 
+1.9.1
 
-Thanks,
-
-   Wolfram
-
-
---5/uDoXvLw7AC5HRs
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXDBBEAAoJEBQN5MwUoCm224UP/0zp4vRM9skuIiLNsfaIxv7E
-sjLJjKIJ4h9k8Uv9NZstWCWDqWtizGgcdNQddDaftAPQCDO6TDKGDr5Ctg9T6Mdc
-Pk3CBATV3XOKpxUm9ixxFf8ageGkBfYTilStJFci4r8PJe1QLjCbGfrvooc8IKCl
-Encm78IvcUVQ4TnAD8VmZ6+7XMGl+pGIVO/dwi4frQ9LlFK60MqyPsUBaLqI1P8C
-Q1Qh24DKPnsnX84GcwsiZBj0lsEFHIUKxpZIm+/5zGEI8UmsAkd/xD/Y7BUBYvIN
-3rSeYOPoiE1lCfHyo8WZ20zJIlH7YhIv2AhSz0Lk9SbcU1ifhOhCcM//0TiLrhae
-8678sa/H2NKE4m3QQMdy01PGVTL13FLpTlye+mvhyJt/Ou/mdiZpsu7GOxf+Mqzt
-NPTpr2n8YlWgA9cRhaygve/qLQAO2pE3UsKTv/ZsoEympX7nNAPdiUcr3tJfGfLP
-CZYj53MeP4t/ClBJA+T47lBknp+YDkclov0A3xTZyhLAsoCSRwuJyAQALJSD5W3K
-FSnLdviraSebkKBa3EGkwkjHVFGy138kT6zSIigUaPoSV3lLr+YUegXeGt4L0dF8
-6zEgBxSrJ9MyOWdf4dQQlKZocyq1K7LAbubVVumxvoG5t5Zbl5LCdnSfgFTZJ/KD
-pcmufHEh5X7R3jbdB61u
-=pWzM
------END PGP SIGNATURE-----
-
---5/uDoXvLw7AC5HRs--
