@@ -1,123 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:50552 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751962AbcDSDDF (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42289 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753124AbcDXWF1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2016 23:03:05 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0E299180647
-	for <linux-media@vger.kernel.org>; Tue, 19 Apr 2016 05:02:59 +0200 (CEST)
-Date: Tue, 19 Apr 2016 05:02:58 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160419030259.0E299180647@tschai.lan>
+	Sun, 24 Apr 2016 18:05:27 -0400
+Date: Mon, 25 Apr 2016 00:05:24 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
+	linux-media@vger.kernel.org,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+Subject: Re: [RFC PATCH 01/24] V4L fixes
+Message-ID: <20160424220524.GB6338@amd>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon 2016-04-25 00:08:01, Ivaylo Dimitrov wrote:
+> From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+> 
+> Squashed from the following upstream commits:
+> 
+> V4L: Create control class for sensor mode
+> V4L: add ad5820 focus specific custom controls
+> V4L: add V4L2_CID_TEST_PATTERN
+> V4L: Add V4L2_CID_MODE_OPSYSCLOCK for reading output system clock
+> 
+> Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+> Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
 
-Results of the daily build of media_tree:
+I guess you need to append your Signed-off-by: here.
 
-date:		Tue Apr 19 04:00:17 CEST 2016
-git branch:	test
-git hash:	ecb7b0183a89613c154d1bea48b494907efbf8f9
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3413-g618cd5c
-host hardware:	x86_64
-host os:	4.4.0-164
+Otherwise it looks good, so
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Acked-by: Pavel Machek <pavel@ucw.cz>
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+(And thanks for all the work).
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
