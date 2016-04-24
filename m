@@ -1,65 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:51904 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970AbcDOQKB (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35726 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753308AbcDXVK3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 12:10:01 -0400
-Message-ID: <1460736595.973.5.camel@ndufresne.ca>
-Subject: Re: gstreamer: v4l2videodec plugin
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-Reply-To: nicolas@ndufresne.ca
-To: Rob Clark <robdclark@gmail.com>,
-	Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Fri, 15 Apr 2016 12:09:55 -0400
-In-Reply-To: <CAF6AEGvjin7Ya4wAXF=5vAa=ky=yvUHnYSo8Of_cyd8TCc04UQ@mail.gmail.com>
-References: <570B9285.9000209@linaro.org> <570B9454.6020307@linaro.org>
-	 <1460391908.30296.12.camel@collabora.com> <570CB882.4090805@linaro.org>
-	 <CAF6AEGvjin7Ya4wAXF=5vAa=ky=yvUHnYSo8Of_cyd8TCc04UQ@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-GvIembwNX/u7lFuscRSY"
-Mime-Version: 1.0
+	Sun, 24 Apr 2016 17:10:29 -0400
+Received: by mail-wm0-f66.google.com with SMTP id e201so17587521wme.2
+        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:28 -0700 (PDT)
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	linux-media@vger.kernel.org
+Subject: [RFC PATCH 15/24] media: add subdev type for bus switch
+Date: Mon, 25 Apr 2016 00:08:15 +0300
+Message-Id: <1461532104-24032-16-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Sebastian Reichel <sre@kernel.org>
 
---=-GvIembwNX/u7lFuscRSY
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+---
+ include/uapi/linux/media.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-Le vendredi 15 avril 2016 =C3=A0 11:58 -0400, Rob Clark a =C3=A9crit=C2=A0:
-> The issue is probably the YUV format, which we cannot really deal
-> with
-> properly in gallium..=C2=A0 it's a similar issue to multi-planer even if
-> it
-> is in a single buffer.
->=20
-> The best way to handle this would be to import the same dmabuf fd
-> twice, with appropriate offsets, to create one GL_RED eglimage for Y
-> and one GL_RG eglimage for UV, and then combine them in shader in a
-> similar way to how you'd handle separate Y and UV planes..
-
-That's the strategy we use in GStreamer, as very few GL stack support
-implicit color conversions. For that to work you need to implement the
-"offset" field in winsys_handle, that was added recently, and make sure
-you have R8 and RG88 support (usually this is just mapping).
-
-cheers,
-Nicolas
---=-GvIembwNX/u7lFuscRSY
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAlcRElMACgkQcVMCLawGqBz77gCeLNwTe4cigUd0/s01Ex3z1a+V
-BngAmwb/PF6sOubagqT2jqCS8jLb5qT5
-=rzQ4
------END PGP SIGNATURE-----
-
---=-GvIembwNX/u7lFuscRSY--
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index df59ede..244bea1 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -137,6 +137,7 @@ struct media_device_info {
+  * MEDIA_ENT_F_IF_VID_DECODER and/or MEDIA_ENT_F_IF_AUD_DECODER.
+  */
+ #define MEDIA_ENT_F_TUNER		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 5)
++#define MEDIA_ENT_F_SWITCH		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 6)
+ 
+ #define MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN	MEDIA_ENT_F_OLD_SUBDEV_BASE
+ 
+-- 
+1.9.1
 
