@@ -1,55 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:49118 "EHLO mail.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751979AbcDVWHD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 18:07:03 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@linuxtesting.org
-Subject: [PATCH] [media] au0828: fix double free in au0828_usb_probe()
-Date: Sat, 23 Apr 2016 01:05:07 +0300
-Message-Id: <1461362707-6883-1-git-send-email-khoroshilov@ispras.ru>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33152 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753264AbcDXVKV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Apr 2016 17:10:21 -0400
+Received: by mail-wm0-f66.google.com with SMTP id r12so17688203wme.0
+        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:20 -0700 (PDT)
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	linux-media@vger.kernel.org
+Subject: [RFC PATCH 07/24] v4l: of: Call CSI2 bus csi2, not csi
+Date: Mon, 25 Apr 2016 00:08:07 +0300
+Message-Id: <1461532104-24032-8-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In case of failure au0828_v4l2_device_register() deallocates dev
-and returns error code to au0828_usb_probe(), which also
-calls kfree(dev) on a failure path.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-The patch removes duplicated code from au0828_v4l2_device_register().
+The function to parse CSI2 bus parameters was called
+v4l2_of_parse_csi_bus(), rename it as v4l2_of_parse_csi2_bus() in
+anticipation of CSI1/CCP2 support.
 
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/usb/au0828/au0828-video.c | 4 ----
- 1 file changed, 4 deletions(-)
+ drivers/media/v4l2-core/v4l2-of.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 32d7db96479c..7d0ec4cb248c 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -679,8 +679,6 @@ int au0828_v4l2_device_register(struct usb_interface *interface,
- 	if (retval) {
- 		pr_err("%s() v4l2_device_register failed\n",
- 		       __func__);
--		mutex_unlock(&dev->lock);
--		kfree(dev);
- 		return retval;
- 	}
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index 93b3368..f2618fd 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -20,7 +20,7 @@
  
-@@ -691,8 +689,6 @@ int au0828_v4l2_device_register(struct usb_interface *interface,
- 	if (retval) {
- 		pr_err("%s() v4l2_ctrl_handler_init failed\n",
- 		       __func__);
--		mutex_unlock(&dev->lock);
--		kfree(dev);
- 		return retval;
- 	}
- 	dev->v4l2_dev.ctrl_handler = &dev->v4l2_ctrl_hdl;
+ #include <media/v4l2-of.h>
+ 
+-static int v4l2_of_parse_csi_bus(const struct device_node *node,
++static int v4l2_of_parse_csi2_bus(const struct device_node *node,
+ 				 struct v4l2_of_endpoint *endpoint)
+ {
+ 	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
+@@ -158,7 +158,7 @@ int v4l2_of_parse_endpoint(const struct device_node *node,
+ 	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
+ 	       offsetof(typeof(*endpoint), bus_type));
+ 
+-	rval = v4l2_of_parse_csi_bus(node, endpoint);
++	rval = v4l2_of_parse_csi2_bus(node, endpoint);
+ 	if (rval)
+ 		return rval;
+ 	/*
 -- 
 1.9.1
 
