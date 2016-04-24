@@ -1,94 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:35510 "EHLO
-	mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751456AbcDYX04 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34116 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753198AbcDXVKP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 19:26:56 -0400
-Received: by mail-qk0-f169.google.com with SMTP id q76so52776506qke.2
-        for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 16:26:55 -0700 (PDT)
-From: Dominic Chen <d.c.ddcc@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@osg.samsung.com, Dominic Chen <d.c.ddcc@gmail.com>
-Subject: [PATCH/RFC] dmxdev: Add support for the FIONREAD ioctl
-Date: Mon, 25 Apr 2016 19:26:43 -0400
-Message-Id: <1461626803-78620-1-git-send-email-d.c.ddcc@gmail.com>
+	Sun, 24 Apr 2016 17:10:15 -0400
+Received: by mail-wm0-f66.google.com with SMTP id n3so20027442wmn.1
+        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:14 -0700 (PDT)
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: sakari.ailus@iki.fi
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	linux-media@vger.kernel.org,
+	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+Subject: [RFC PATCH 01/24] V4L fixes
+Date: Mon, 25 Apr 2016 00:08:01 +0300
+Message-Id: <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a standard ioctl supported by file descriptors, sockets (as
-SIOCINQ), and ttys (as TIOCOUTQ) to get the size of the available
-read buffer. It provides userspace with a feedback mechanism to
-avoid overflow of the kernel ringbuffer, and is used by e.g.
-libevent.
+From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
 
-Signed-off-by: Dominic Chen <d.c.ddcc@gmail.com>
+Squashed from the following upstream commits:
+
+V4L: Create control class for sensor mode
+V4L: add ad5820 focus specific custom controls
+V4L: add V4L2_CID_TEST_PATTERN
+V4L: Add V4L2_CID_MODE_OPSYSCLOCK for reading output system clock
+
+Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
 ---
- drivers/media/dvb-core/dmxdev.c | 31 +++++++++++++++++++++++++++++++
- 1 file changed, 31 insertions(+)
+ include/uapi/linux/v4l2-controls.h | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index a168cbe..668c8d2 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -28,6 +28,7 @@
- #include <linux/poll.h>
- #include <linux/ioctl.h>
- #include <linux/wait.h>
-+#include <asm/ioctls.h>
- #include <asm/uaccess.h>
- #include "dmxdev.h"
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index b6a357a..23011cc 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -62,6 +62,7 @@
+ #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
+ #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
+ #define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
++#define V4L2_CTRL_CLASS_MODE		0x00a40000	/* Sensor mode information */
  
-@@ -57,6 +58,22 @@ static int dvb_dmxdev_buffer_write(struct dvb_ringbuffer *buf,
- 	return dvb_ringbuffer_write(buf, src, len);
- }
+ /* User-class control IDs */
  
-+static int dvb_dmxdev_get_buffer_avail(struct dvb_ringbuffer *src,
-+				       u32 *len)
-+{
-+	if (!src->data) {
-+		*len = 0;
-+		return 0;
-+	}
-+
-+	if (src->error)
-+		return src->error;
-+
-+	*len = dvb_ringbuffer_avail(src);
-+
-+	return 0;
-+}
-+
- static ssize_t dvb_dmxdev_buffer_read(struct dvb_ringbuffer *src,
- 				      int non_blocking, char __user *buf,
- 				      size_t count, loff_t *ppos)
-@@ -965,6 +982,16 @@ static int dvb_demux_do_ioctl(struct file *file,
- 		return -ERESTARTSYS;
+@@ -974,4 +975,20 @@ enum v4l2_detect_md_mode {
+ #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+ #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
  
- 	switch (cmd) {
-+	case FIONREAD:
-+		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-+			mutex_unlock(&dmxdev->mutex);
-+			return -ERESTARTSYS;
-+		}
-+		ret = dvb_dmxdev_get_buffer_avail(&dmxdevfilter->buffer, parg);
-+		mutex_unlock(&dmxdevfilter->mutex);
++/* SMIA-type sensor information */
++#define V4L2_CID_MODE_CLASS_BASE		(V4L2_CTRL_CLASS_MODE | 0x900)
++#define V4L2_CID_MODE_CLASS			(V4L2_CTRL_CLASS_MODE | 1)
++#define V4L2_CID_MODE_FRAME_WIDTH		(V4L2_CID_MODE_CLASS_BASE+1)
++#define V4L2_CID_MODE_FRAME_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+2)
++#define V4L2_CID_MODE_VISIBLE_WIDTH		(V4L2_CID_MODE_CLASS_BASE+3)
++#define V4L2_CID_MODE_VISIBLE_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+4)
++#define V4L2_CID_MODE_PIXELCLOCK		(V4L2_CID_MODE_CLASS_BASE+5)
++#define V4L2_CID_MODE_SENSITIVITY		(V4L2_CID_MODE_CLASS_BASE+6)
++#define V4L2_CID_MODE_OPSYSCLOCK		(V4L2_CID_MODE_CLASS_BASE+7)
 +
-+		break;
++/* Control IDs specific to the AD5820 driver as defined by V4L2 */
++#define V4L2_CID_FOCUS_AD5820_BASE 		(V4L2_CTRL_CLASS_CAMERA | 0x10af)
++#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_FOCUS_AD5820_BASE+0)
++#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
 +
- 	case DMX_START:
- 		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
- 			mutex_unlock(&dmxdev->mutex);
-@@ -1160,6 +1187,10 @@ static int dvb_dvr_do_ioctl(struct file *file,
- 		return -ERESTARTSYS;
- 
- 	switch (cmd) {
-+	case FIONREAD:
-+		ret = dvb_dmxdev_get_buffer_avail(&dmxdev->dvr_buffer, parg);
-+		break;
-+
- 	case DMX_SET_BUFFER_SIZE:
- 		ret = dvb_dvr_set_buffer_size(dmxdev, arg);
- 		break;
+ #endif
 -- 
-2.7.4
+1.9.1
 
