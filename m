@@ -1,94 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:37280 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752317AbcD2JcQ (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:37265 "EHLO
+	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751170AbcDXVDf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 05:32:16 -0400
-Received: by mail-wm0-f46.google.com with SMTP id a17so26462640wme.0
-        for <linux-media@vger.kernel.org>; Fri, 29 Apr 2016 02:32:16 -0700 (PDT)
-Subject: Re: gstreamer: v4l2videodec plugin
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-	nicolas@ndufresne.ca, Rob Clark <robdclark@gmail.com>
-References: <570B9285.9000209@linaro.org> <570B9454.6020307@linaro.org>
- <1460391908.30296.12.camel@collabora.com> <570CB882.4090805@linaro.org>
- <CAF6AEGvjin7Ya4wAXF=5vAa=ky=yvUHnYSo8Of_cyd8TCc04UQ@mail.gmail.com>
- <1460736595.973.5.camel@ndufresne.ca> <5721F4FC.30001@linaro.org>
-Cc: Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"mesa-dev@lists.freedesktop.org" <mesa-dev@lists.freedesktop.org>
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <57232A19.5060107@linaro.org>
-Date: Fri, 29 Apr 2016 12:32:09 +0300
+	Sun, 24 Apr 2016 17:03:35 -0400
 MIME-Version: 1.0
-In-Reply-To: <5721F4FC.30001@linaro.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1460682008-17168-1-git-send-email-javier@osg.samsung.com>
+References: <1460682008-17168-1-git-send-email-javier@osg.samsung.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Sun, 24 Apr 2016 22:03:04 +0100
+Message-ID: <CA+V-a8vzCktpXVWq44bZHJiYRe3zPpFhhgVSkk4-tZAxek4gXg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] [media] tvp5150: return I2C write operation failure
+ to callers
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-cc: mesa-dev ML
+On Fri, Apr 15, 2016 at 2:00 AM, Javier Martinez Canillas
+<javier@osg.samsung.com> wrote:
+> The tvp5150_write() function calls i2c_smbus_write_byte_data() that
+> can fail but does not propagate the error to the caller. Instead it
+> just prints a debug, so callers can't know if the operation failed.
+>
+> So change the function to return the error code to the caller so it
+> knows that the write failed and also print an error instead of just
+> printing a debug information.
+>
+> While being there remove the inline keyword from tvp5150_write() to
+> make it consistent with tvp5150_read() and also because it's called
+> in a lot of places, so making inline is in fact counter productive
+> since it makes the kernel image size to be much bigger (~16 KiB).
+>
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-On 04/28/2016 02:33 PM, Stanimir Varbanov wrote:
-> On 04/15/2016 07:09 PM, Nicolas Dufresne wrote:
->> Le vendredi 15 avril 2016 à 11:58 -0400, Rob Clark a écrit :
->>> The issue is probably the YUV format, which we cannot really deal
->>> with
->>> properly in gallium..  it's a similar issue to multi-planer even if
->>> it
->>> is in a single buffer.
->>>
->>> The best way to handle this would be to import the same dmabuf fd
->>> twice, with appropriate offsets, to create one GL_RED eglimage for Y
->>> and one GL_RG eglimage for UV, and then combine them in shader in a
->>> similar way to how you'd handle separate Y and UV planes..
->>
->> That's the strategy we use in GStreamer, as very few GL stack support
->> implicit color conversions. For that to work you need to implement the
->> "offset" field in winsys_handle, that was added recently, and make sure
->> you have R8 and RG88 support (usually this is just mapping).
-> 
-> Thanks,
-> 
-> OK, I have made the relevant changes in Mesa and now I have image but
-> the U and V components are swapped (the format is NV12, the UV plane is
-> at the same buffer but at offset). Digging further and tracing gstreamer
-> with apitrace I'm observing something weird.
-> 
-> The gst import dmabuf with following call:
-> 
-> eglCreateImageKHR(dpy = 0x7fa8013030, ctx = NULL, target =
-> EGL_LINUX_DMA_BUF_EXT, buffer = NULL, attrib_list = {EGL_WIDTH, 640,
-> EGL_HEIGHT, 360, EGL_LINUX_DRM_FOURCC_EXT, 943215175,
-> EGL_DMA_BUF_PLANE0_FD_EXT, 29, EGL_DMA_BUF_PLANE0_OFFSET_EXT, 942080,
-> EGL_DMA_BUF_PLANE0_PITCH_EXT, 1280, EGL_NONE}) = 0x7f980027d0
-> 
-> the fourcc format is DRM_FORMAT_GR88 (943215175 decimal).
-> 
-> after that:
-> 
-> glTexImage2D(target = GL_TEXTURE_2D, level = 0, internalformat = GL_RG8,
-> width = 640, height = 360, border = 0, format = GL_RG, type =
-> GL_UNSIGNED_BYTE, pixels = NULL)
-> 
-> and finally on the fragment shader we have:
-> 
-> yuv.x=texture2D(Ytex, texcoord * tex_scale0).r;
-> yuv.yz=texture2D(UVtex, texcoord * tex_scale1).rg;
-> 
-> I was expecting to see DRM_FORMAT_RG88 / GL_RG and shader sampling
-> y <- r
-> z <- g
-> 
-> or DRM_FORMAT_GR88 / GL_RG and shader sampling
-> y <- g
-> z <- r
-> 
-> Also, browsing the code in Mesa for Intel i965 dri driver I found where
-> the __DRI_IMAGE_FORMAT_GR88 becomes MESA_FORMAT_R8G8_UNORM [1].
-> 
-> So I'm wondering is that intensional?
-> 
-> Depending on the answer I should make the same in the Gallium dri2 in
-> dri2_from_dma_bufs().
-> 
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Cheers,
+--Prabhakar Lad
+
+> ---
+>
+>  drivers/media/i2c/tvp5150.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index e5003d94f262..4a2e851b6a3b 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -83,7 +83,7 @@ static int tvp5150_read(struct v4l2_subdev *sd, unsigned char addr)
+>         return rc;
+>  }
+>
+> -static inline void tvp5150_write(struct v4l2_subdev *sd, unsigned char addr,
+> +static int tvp5150_write(struct v4l2_subdev *sd, unsigned char addr,
+>                                  unsigned char value)
+>  {
+>         struct i2c_client *c = v4l2_get_subdevdata(sd);
+> @@ -92,7 +92,9 @@ static inline void tvp5150_write(struct v4l2_subdev *sd, unsigned char addr,
+>         v4l2_dbg(2, debug, sd, "tvp5150: writing 0x%02x 0x%02x\n", addr, value);
+>         rc = i2c_smbus_write_byte_data(c, addr, value);
+>         if (rc < 0)
+> -               v4l2_dbg(0, debug, sd, "i2c i/o error: rc == %d\n", rc);
+> +               v4l2_err(sd, "i2c i/o error: rc == %d\n", rc);
+> +
+> +       return rc;
+>  }
+>
+>  static void dump_reg_range(struct v4l2_subdev *sd, char *s, u8 init,
+> --
+> 2.5.5
+>
