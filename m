@@ -1,42 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:40067 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751933AbcDVND5 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37359 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965213AbcDYVg2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 09:03:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 25 Apr 2016 17:36:28 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 4/6] tc358743: drop bogus comment
-Date: Fri, 22 Apr 2016 15:03:40 +0200
-Message-Id: <1461330222-34096-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl>
+Cc: linux-renesas-soc@vger.kernel.org, dri-devel@lists.freedesktop.org
+Subject: [PATCH v2 11/13] drm: rcar-du: Add alpha support for VSP planes
+Date: Tue, 26 Apr 2016 00:36:36 +0300
+Message-Id: <1461620198-13428-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Make the global alpha multiplier of VSP planes configurable through the
+alpha property, exactly as for the native DU planes.
 
-The control in question is not a private control, so drop that
-comment. Copy-and-paste left-over.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Dave Airlie <airlied@redhat.com>
 ---
- drivers/media/i2c/tc358743.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c | 38 +++++++++++++++++------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-index 73e0cef..6cf6d06 100644
---- a/drivers/media/i2c/tc358743.c
-+++ b/drivers/media/i2c/tc358743.c
-@@ -1863,7 +1863,6 @@ static int tc358743_probe(struct i2c_client *client,
- 	/* control handlers */
- 	v4l2_ctrl_handler_init(&state->hdl, 3);
+Cc: dri-devel@lists.freedesktop.org
+
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+index de7ef041182b..8c89a6401542 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+@@ -148,40 +148,41 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
+ 	struct rcar_du_vsp_plane_state *state =
+ 		to_rcar_vsp_plane_state(plane->plane.state);
+ 	struct drm_framebuffer *fb = plane->plane.state->fb;
+-	struct v4l2_rect src;
+-	struct v4l2_rect dst;
+-	dma_addr_t paddr[2] = { 0, };
+-	u32 pixelformat = 0;
++	struct vsp1_du_atomic_config cfg = {
++		.pixelformat = 0,
++		.pitch = fb->pitches[0],
++		.alpha = state->alpha,
++		.zpos = 0,
++	};
+ 	unsigned int i;
  
--	/* private controls */
- 	state->detect_tx_5v_ctrl = v4l2_ctrl_new_std(&state->hdl, NULL,
- 			V4L2_CID_DV_RX_POWER_PRESENT, 0, 1, 0, 0);
+-	src.left = state->state.src_x >> 16;
+-	src.top = state->state.src_y >> 16;
+-	src.width = state->state.src_w >> 16;
+-	src.height = state->state.src_h >> 16;
++	cfg.src.left = state->state.src_x >> 16;
++	cfg.src.top = state->state.src_y >> 16;
++	cfg.src.width = state->state.src_w >> 16;
++	cfg.src.height = state->state.src_h >> 16;
  
+-	dst.left = state->state.crtc_x;
+-	dst.top = state->state.crtc_y;
+-	dst.width = state->state.crtc_w;
+-	dst.height = state->state.crtc_h;
++	cfg.dst.left = state->state.crtc_x;
++	cfg.dst.top = state->state.crtc_y;
++	cfg.dst.width = state->state.crtc_w;
++	cfg.dst.height = state->state.crtc_h;
+ 
+ 	for (i = 0; i < state->format->planes; ++i) {
+ 		struct drm_gem_cma_object *gem;
+ 
+ 		gem = drm_fb_cma_get_gem_obj(fb, i);
+-		paddr[i] = gem->paddr + fb->offsets[i];
++		cfg.mem[i] = gem->paddr + fb->offsets[i];
+ 	}
+ 
+ 	for (i = 0; i < ARRAY_SIZE(formats_kms); ++i) {
+ 		if (formats_kms[i] == state->format->fourcc) {
+-			pixelformat = formats_v4l2[i];
++			cfg.pixelformat = formats_v4l2[i];
+ 			break;
+ 		}
+ 	}
+ 
+-	WARN_ON(!pixelformat);
++	WARN_ON(!cfg.pixelformat);
+ 
+-	vsp1_du_atomic_update(plane->vsp->vsp, plane->index, pixelformat,
+-			      fb->pitches[0], paddr, &src, &dst);
++	vsp1_du_atomic_update(plane->vsp->vsp, plane->index, &cfg);
+ }
+ 
+ static int rcar_du_vsp_plane_atomic_check(struct drm_plane *plane,
+@@ -220,8 +221,7 @@ static void rcar_du_vsp_plane_atomic_update(struct drm_plane *plane,
+ 	if (plane->state->crtc)
+ 		rcar_du_vsp_plane_setup(rplane);
+ 	else
+-		vsp1_du_atomic_update(rplane->vsp->vsp, rplane->index, 0, 0, 0,
+-				      NULL, NULL);
++		vsp1_du_atomic_update(rplane->vsp->vsp, rplane->index, NULL);
+ }
+ 
+ static const struct drm_plane_helper_funcs rcar_du_vsp_plane_helper_funcs = {
 -- 
-2.8.0.rc3
+2.7.3
 
