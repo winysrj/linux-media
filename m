@@ -1,51 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:38952 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753627AbcDYJc0 (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40823 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932245AbcDYMY4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 05:32:26 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 88BA51804B5
-	for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 11:32:21 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+	Mon, 25 Apr 2016 08:24:56 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.6] One bug fix, one regression
-Message-ID: <571DE425.2020205@xs4all.nl>
-Date: Mon, 25 Apr 2016 11:32:21 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 02/15] HID: add HDMI CEC specific keycodes
+Date: Mon, 25 Apr 2016 14:24:29 +0200
+Message-Id: <1461587082-48041-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Two fixes for 4.6: one vb2 regression and one bug fix for 4k timings that
-was wrong since the beginning.
+From: Kamil Debski <kamil@wypas.org>
 
-Regards,
+Add HDMI CEC specific keycodes to the keycodes definition.
 
-	Hans
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ include/uapi/linux/input-event-codes.h | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-The following changes since commit e07d46e7e0da86c146f199dae76f879096bc436a:
+diff --git a/include/uapi/linux/input-event-codes.h b/include/uapi/linux/input-event-codes.h
+index 87cf351..02b7b3a 100644
+--- a/include/uapi/linux/input-event-codes.h
++++ b/include/uapi/linux/input-event-codes.h
+@@ -611,6 +611,36 @@
+ #define KEY_KBDINPUTASSIST_ACCEPT		0x264
+ #define KEY_KBDINPUTASSIST_CANCEL		0x265
+ 
++/* Diagonal movement keys */
++#define KEY_RIGHT_UP			0x266
++#define KEY_RIGHT_DOWN			0x267
++#define KEY_LEFT_UP			0x268
++#define KEY_LEFT_DOWN			0x269
++
++#define KEY_ROOT_MENU			0x26a /* Show Device's Root Menu */
++#define KEY_MEDIA_TOP_MENU		0x26b /* Show Top Menu of the Media (e.g. DVD) */
++#define KEY_NUMERIC_11			0x26c
++#define KEY_NUMERIC_12			0x26d
++/*
++ * Toggle Audio Description: refers to an audio service that helps blind and
++ * visually impaired consumers understand the action in a program. Note: in
++ * some countries this is referred to as "Video Description".
++ */
++#define KEY_AUDIO_DESC			0x26e
++#define KEY_3D_MODE			0x26f
++#define KEY_NEXT_FAVORITE		0x270
++#define KEY_STOP_RECORD			0x271
++#define KEY_PAUSE_RECORD		0x272
++#define KEY_VOD				0x273 /* Video on Demand */
++#define KEY_UNMUTE			0x274
++#define KEY_FASTREVERSE			0x275
++#define KEY_SLOWREVERSE			0x276
++/*
++ * Control a data application associated with the currently viewed channel,
++ * e.g. teletext or data broadcast application (MHEG, MHP, HbbTV, etc.)
++ */
++#define KEY_DATA			0x275
++
+ #define BTN_TRIGGER_HAPPY		0x2c0
+ #define BTN_TRIGGER_HAPPY1		0x2c0
+ #define BTN_TRIGGER_HAPPY2		0x2c1
+-- 
+2.8.1
 
-  [media] tpg: Export the tpg code from vivid as a module (2016-04-20 16:14:39 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.6b
-
-for you to fetch changes up to 94f40244bb886a9f4245a7123f1af9572c7cf82f:
-
-  media: vb2: Fix regression on poll() for RW mode (2016-04-25 11:21:22 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      v4l2-dv-timings.h: fix polarity for 4k formats
-
-Ricardo Ribalda Delgado (1):
-      media: vb2: Fix regression on poll() for RW mode
-
- drivers/media/v4l2-core/videobuf2-core.c | 10 ++++++++++
- drivers/media/v4l2-core/videobuf2-v4l2.c | 14 ++++++--------
- include/media/videobuf2-core.h           |  4 ++++
- include/uapi/linux/v4l2-dv-timings.h     | 30 ++++++++++++++++++++----------
- 4 files changed, 40 insertions(+), 18 deletions(-)
