@@ -1,139 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33171 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753247AbcDXVKY (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37360 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964994AbcDYVgY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Apr 2016 17:10:24 -0400
-Received: by mail-wm0-f65.google.com with SMTP id r12so17688381wme.0
-        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:23 -0700 (PDT)
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: sakari.ailus@iki.fi
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org
-Subject: [RFC PATCH 10/24] v4l: of: Separate lane parsing from CSI-2 bus parameter parsing
-Date: Mon, 25 Apr 2016 00:08:10 +0300
-Message-Id: <1461532104-24032-11-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Mon, 25 Apr 2016 17:36:24 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 04/13] v4l: vsp1: Don't handle clocks manually
+Date: Tue, 26 Apr 2016 00:36:29 +0300
+Message-Id: <1461620198-13428-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+The power domain performs functional clock handling when using runtime
+PM, there's no need to enable and disable the clock manually.
 
-The CSI-1 will need these as well, separate them into a different function.
-
-have_clk_lane and num_data_lanes arguments may be NULL; the CSI-1 bus will
-have no use for them.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/v4l2-core/v4l2-of.c | 60 +++++++++++++++++++++++++++++----------
- 1 file changed, 45 insertions(+), 15 deletions(-)
+ drivers/media/platform/vsp1/vsp1.h     |  1 -
+ drivers/media/platform/vsp1/vsp1_drv.c | 20 ++------------------
+ 2 files changed, 2 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index 5304137..60bbc5f 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -25,53 +25,83 @@ enum v4l2_of_bus_type {
- 	V4L2_OF_BUS_TYPE_PARALLEL,
- };
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 9e09bce43cf3..37cc05e34de0 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -62,7 +62,6 @@ struct vsp1_device {
+ 	const struct vsp1_device_info *info;
  
--static int v4l2_of_parse_csi2_bus(const struct device_node *node,
--				 struct v4l2_of_endpoint *endpoint)
-+static int v4l2_of_parse_lanes(const struct device_node *node,
-+			       unsigned char *clock_lane,
-+			       bool *have_clk_lane,
-+			       unsigned char *data_lanes,
-+			       bool *lane_polarities,
-+			       unsigned short *__num_data_lanes,
-+			       unsigned int max_data_lanes)
+ 	void __iomem *mmio;
+-	struct clk *clock;
+ 
+ 	struct vsp1_bru *bru;
+ 	struct vsp1_hsit *hsi;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index d6abc7f1216a..13907d4f08af 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -514,10 +514,6 @@ static int vsp1_pm_resume(struct device *dev)
+ 
+ static int vsp1_pm_runtime_suspend(struct device *dev)
  {
--	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
- 	struct property *prop;
--	bool have_clk_lane = false;
--	unsigned int flags = 0;
-+	unsigned short num_data_lanes = 0;
- 	u32 v;
+-	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+-
+-	clk_disable_unprepare(vsp1->clock);
+-
+ 	return 0;
+ }
  
- 	prop = of_find_property(node, "data-lanes", NULL);
- 	if (prop) {
- 		const __be32 *lane = NULL;
--		unsigned int i;
+@@ -526,16 +522,10 @@ static int vsp1_pm_runtime_resume(struct device *dev)
+ 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+ 	int ret;
  
--		for (i = 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
-+		for (num_data_lanes = 0; num_data_lanes < max_data_lanes;
-+		     num_data_lanes++) {
- 			lane = of_prop_next_u32(prop, lane, &v);
- 			if (!lane)
- 				break;
--			bus->data_lanes[i] = v;
-+			data_lanes[num_data_lanes] = v;
- 		}
--		bus->num_data_lanes = i;
- 	}
-+	if (__num_data_lanes)
-+		*__num_data_lanes = num_data_lanes;
- 
- 	prop = of_find_property(node, "lane-polarities", NULL);
- 	if (prop) {
- 		const __be32 *polarity = NULL;
- 		unsigned int i;
- 
--		for (i = 0; i < ARRAY_SIZE(bus->lane_polarities); i++) {
-+		for (i = 0; i < 1 + max_data_lanes; i++) {
- 			polarity = of_prop_next_u32(prop, polarity, &v);
- 			if (!polarity)
- 				break;
--			bus->lane_polarities[i] = v;
-+			lane_polarities[i] = v;
- 		}
- 
--		if (i < 1 + bus->num_data_lanes /* clock + data */) {
-+		if (i < 1 + num_data_lanes /* clock + data */) {
- 			pr_warn("%s: too few lane-polarities entries (need %u, got %u)\n",
--				node->full_name, 1 + bus->num_data_lanes, i);
-+				node->full_name, 1 + num_data_lanes, i);
- 			return -EINVAL;
- 		}
+-	ret = clk_prepare_enable(vsp1->clock);
+-	if (ret < 0)
+-		return ret;
+-
+ 	if (vsp1->info) {
+ 		ret = vsp1_device_init(vsp1);
+-		if (ret < 0) {
+-			clk_disable_unprepare(vsp1->clock);
++		if (ret < 0)
+ 			return ret;
+-		}
  	}
  
-+	if (have_clk_lane)
-+		*have_clk_lane = false;
-+
- 	if (!of_property_read_u32(node, "clock-lanes", &v)) {
--		bus->clock_lane = v;
--		have_clk_lane = true;
-+		*clock_lane = v;
-+		if (have_clk_lane)
-+			*have_clk_lane = true;
- 	}
+ 	return 0;
+@@ -640,18 +630,12 @@ static int vsp1_probe(struct platform_device *pdev)
  
-+	return 0;
-+}
-+
-+static int v4l2_of_parse_csi2_bus(const struct device_node *node,
-+				 struct v4l2_of_endpoint *endpoint)
-+{
-+	struct v4l2_of_bus_mipi_csi2 *bus = &endpoint->bus.mipi_csi2;
-+	bool have_clk_lane = false;
-+	unsigned int flags = 0;
-+	int rval;
-+	u32 v;
-+
-+	rval = v4l2_of_parse_lanes(node, &bus->clock_lane, &have_clk_lane,
-+				   bus->data_lanes, bus->lane_polarities,
-+				   &bus->num_data_lanes,
-+				   ARRAY_SIZE(bus->data_lanes));
-+	if (rval)
-+		return rval;
-+
-+	BUILD_BUG_ON(1 + ARRAY_SIZE(bus->data_lanes)
-+		       != ARRAY_SIZE(bus->lane_polarities));
-+
- 	if (of_get_property(node, "clock-noncontinuous", &v))
- 		flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
- 	else if (have_clk_lane || bus->num_data_lanes > 0)
+ 	platform_set_drvdata(pdev, vsp1);
+ 
+-	/* I/O, IRQ and clock resources */
++	/* I/O and IRQ resources (clock managed by the clock PM domain) */
+ 	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	vsp1->mmio = devm_ioremap_resource(&pdev->dev, io);
+ 	if (IS_ERR(vsp1->mmio))
+ 		return PTR_ERR(vsp1->mmio);
+ 
+-	vsp1->clock = devm_clk_get(&pdev->dev, NULL);
+-	if (IS_ERR(vsp1->clock)) {
+-		dev_err(&pdev->dev, "failed to get clock\n");
+-		return PTR_ERR(vsp1->clock);
+-	}
+-
+ 	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (!irq) {
+ 		dev_err(&pdev->dev, "missing IRQ\n");
 -- 
-1.9.1
+2.7.3
 
