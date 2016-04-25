@@ -1,82 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:53031 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751176AbcDOPfk (ORCPT
+Received: from mail-ig0-f195.google.com ([209.85.213.195]:35423 "EHLO
+	mail-ig0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753709AbcDYHcF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 11:35:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/3] vivid: fix smatch errors
-Date: Fri, 15 Apr 2016 17:35:31 +0200
-Message-Id: <1460734533-34191-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 25 Apr 2016 03:32:05 -0400
+MIME-Version: 1.0
+In-Reply-To: <1461455400-28767-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	<1461455400-28767-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Date: Mon, 25 Apr 2016 09:32:04 +0200
+Message-ID: <CAMuHMdVaoD7gU0_WvSN0mFSCRyeWntZ1PHtkZ5ccFzCS-H-HUg@mail.gmail.com>
+Subject: Re: [PATCH 01/13] dt-bindings: Add Renesas R-Car FCP DT bindings
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-renesas-soc@vger.kernel.org,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-The smatch utility got really confused about the grp % 22 code. Rewrote
-it so it now understands that there really isn't a buffer overwrite.
+On Sun, Apr 24, 2016 at 1:49 AM, Laurent Pinchart
+<laurent.pinchart+renesas@ideasonboard.com> wrote:
+> The FCP is a companion module of video processing modules in the Renesas
+> R-Car Gen3 SoCs. It provides data compression and decompression, data
+> caching, and conversion of AXI transaction in order to reduce the memory
 
-vivid-rds-gen.c:82 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 43
-vivid-rds-gen.c:83 vivid_rds_generate() error: buffer overflow 'rds->psname' 9 <= 42
-vivid-rds-gen.c:89 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 84
-vivid-rds-gen.c:90 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 85
-vivid-rds-gen.c:92 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 86
-vivid-rds-gen.c:93 vivid_rds_generate() error: buffer overflow 'rds->radiotext' 65 <= 87
+transactions
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/vivid/vivid-rds-gen.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+> bandwidth.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  .../devicetree/bindings/media/renesas,fcp.txt      | 31 ++++++++++++++++++++++
+>  1 file changed, 31 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/renesas,fcp.txt
+>
+> Cc: devicetree@vger.kernel.org
+>
+> diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> new file mode 100644
+> index 000000000000..46beec97d625
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> @@ -0,0 +1,31 @@
+> +Renesas R-Car Frame Compression Processor (FCP)
+> +-----------------------------------------------
+> +
+> +The FCP is a companion module of video processing modules in the Renesas R-Car
+> +Gen3 SoCs. It provides data compression and decompression, data caching, and
+> +conversion of AXI transaction in order to reduce the memory bandwidth.
 
-diff --git a/drivers/media/platform/vivid/vivid-rds-gen.c b/drivers/media/platform/vivid/vivid-rds-gen.c
-index c382343..53c7777 100644
---- a/drivers/media/platform/vivid/vivid-rds-gen.c
-+++ b/drivers/media/platform/vivid/vivid-rds-gen.c
-@@ -55,6 +55,7 @@ void vivid_rds_generate(struct vivid_rds_gen *rds)
- {
- 	struct v4l2_rds_data *data = rds->data;
- 	unsigned grp;
-+	unsigned idx;
- 	struct tm tm;
- 	unsigned date;
- 	unsigned time;
-@@ -73,24 +74,26 @@ void vivid_rds_generate(struct vivid_rds_gen *rds)
- 		case 0 ... 3:
- 		case 22 ... 25:
- 		case 44 ... 47: /* Group 0B */
-+			idx = (grp % 22) % 4;
- 			data[1].lsb |= (rds->ta << 4) | (rds->ms << 3);
--			data[1].lsb |= vivid_get_di(rds, grp % 22);
-+			data[1].lsb |= vivid_get_di(rds, idx);
- 			data[1].msb |= 1 << 3;
- 			data[2].lsb = rds->picode & 0xff;
- 			data[2].msb = rds->picode >> 8;
- 			data[2].block = V4L2_RDS_BLOCK_C_ALT | (V4L2_RDS_BLOCK_C_ALT << 3);
--			data[3].lsb = rds->psname[2 * (grp % 22) + 1];
--			data[3].msb = rds->psname[2 * (grp % 22)];
-+			data[3].lsb = rds->psname[2 * idx + 1];
-+			data[3].msb = rds->psname[2 * idx];
- 			break;
- 		case 4 ... 19:
- 		case 26 ... 41: /* Group 2A */
--			data[1].lsb |= (grp - 4) % 22;
-+			idx = ((grp - 4) % 22) % 16;
-+			data[1].lsb |= idx;
- 			data[1].msb |= 4 << 3;
--			data[2].msb = rds->radiotext[4 * ((grp - 4) % 22)];
--			data[2].lsb = rds->radiotext[4 * ((grp - 4) % 22) + 1];
-+			data[2].msb = rds->radiotext[4 * idx];
-+			data[2].lsb = rds->radiotext[4 * idx + 1];
- 			data[2].block = V4L2_RDS_BLOCK_C | (V4L2_RDS_BLOCK_C << 3);
--			data[3].msb = rds->radiotext[4 * ((grp - 4) % 22) + 2];
--			data[3].lsb = rds->radiotext[4 * ((grp - 4) % 22) + 3];
-+			data[3].msb = rds->radiotext[4 * idx + 2];
-+			data[3].lsb = rds->radiotext[4 * idx + 3];
- 			break;
- 		case 56:
- 			/*
--- 
-2.8.0.rc3
+transactions
 
+> +There are three types of FCP whose configuration and behaviour highly depend
+> +on the module they are paired with.
+>
++ - compatible: Must be one or more of the following
++
++   - "renesas,r8a7795-fcpv" for R8A7795 (R-Car H3) compatible 'FCP for VSP'
++   - "renesas,fcpv" for generic compatible 'FCP for VSP'
+
+As you list only one compatible value, I guess the type is determined
+automatically at run-time?
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
