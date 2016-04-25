@@ -1,46 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:35626 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754092AbcDKUJT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Apr 2016 16:09:19 -0400
-Date: Mon, 11 Apr 2016 13:09:11 -0700
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Luis de Bethencourt <luisbg@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [RESEND] fence: add missing descriptions for fence
-Message-ID: <20160411200911.GA11780@joana>
-References: <1460375335-20188-1-git-send-email-luisbg@osg.samsung.com>
+Received: from lists.s-osg.org ([54.187.51.154]:53241 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751737AbcDYOUv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Apr 2016 10:20:51 -0400
+Subject: Re: [PATCH] [media] au0828: fix double free in au0828_usb_probe()
+To: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <1461362707-6883-1-git-send-email-khoroshilov@ispras.ru>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@linuxtesting.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <571E27C1.8020907@osg.samsung.com>
+Date: Mon, 25 Apr 2016 08:20:49 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1460375335-20188-1-git-send-email-luisbg@osg.samsung.com>
+In-Reply-To: <1461362707-6883-1-git-send-email-khoroshilov@ispras.ru>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Luis,
-
-2016-04-11 Luis de Bethencourt <luisbg@osg.samsung.com>:
-
-> The members child_list and active_list were added to the fence struct
-> without descriptions for the Documentation. Adding these.
+On 04/22/2016 04:05 PM, Alexey Khoroshilov wrote:
+> In case of failure au0828_v4l2_device_register() deallocates dev
+> and returns error code to au0828_usb_probe(), which also
+> calls kfree(dev) on a failure path.
 > 
-> Fixes: b55b54b5db33 ("staging/android: remove struct sync_pt")
-> Signed-off-by: Luis de Bethencourt <luisbg@osg.samsung.com>
-> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> The patch removes duplicated code from au0828_v4l2_device_register().
+> 
+> Found by Linux Driver Verification project (linuxtesting.org).
+> 
+> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+
+I sent a fix in for this a few weeks ago:
+
+https://lkml.org/lkml/2016/3/28/453
+
+thanks,
+-- Shuah
+
 > ---
-> Hi,
+>  drivers/media/usb/au0828/au0828-video.c | 4 ----
+>  1 file changed, 4 deletions(-)
 > 
-> Just resending this patch since it hasn't had any reviews in since
-> March 21st.
+> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+> index 32d7db96479c..7d0ec4cb248c 100644
+> --- a/drivers/media/usb/au0828/au0828-video.c
+> +++ b/drivers/media/usb/au0828/au0828-video.c
+> @@ -679,8 +679,6 @@ int au0828_v4l2_device_register(struct usb_interface *interface,
+>  	if (retval) {
+>  		pr_err("%s() v4l2_device_register failed\n",
+>  		       __func__);
+> -		mutex_unlock(&dev->lock);
+> -		kfree(dev);
+>  		return retval;
+>  	}
+>  
+> @@ -691,8 +689,6 @@ int au0828_v4l2_device_register(struct usb_interface *interface,
+>  	if (retval) {
+>  		pr_err("%s() v4l2_ctrl_handler_init failed\n",
+>  		       __func__);
+> -		mutex_unlock(&dev->lock);
+> -		kfree(dev);
+>  		return retval;
+>  	}
+>  	dev->v4l2_dev.ctrl_handler = &dev->v4l2_ctrl_hdl;
 > 
-> Thanks,
-> Luis
-> 
->  include/linux/fence.h | 2 ++
->  1 file changed, 2 insertions(+)
 
-Reviewed-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
-
-	Gustavo
