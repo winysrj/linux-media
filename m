@@ -1,49 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33128 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753257AbcDXVKS (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37360 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965053AbcDYVgW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Apr 2016 17:10:18 -0400
-Received: by mail-wm0-f66.google.com with SMTP id r12so17687915wme.0
-        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:18 -0700 (PDT)
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: sakari.ailus@iki.fi
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org
-Subject: [RFC PATCH 04/24] smiapp-pll: Take existing divisor into account in minimum divisor check
-Date: Mon, 25 Apr 2016 00:08:04 +0300
-Message-Id: <1461532104-24032-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Mon, 25 Apr 2016 17:36:22 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 03/13] v4l: vsp1: Implement runtime PM support
+Date: Tue, 26 Apr 2016 00:36:28 +0300
+Message-Id: <1461620198-13428-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Replace the manual refcount and clock management code by runtime PM.
 
-Required added multiplier (and divisor) calculation did not take into
-account the existing divisor when checking the values against the minimum
-divisor. Do just that.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/i2c/smiapp-pll.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/platform/vsp1/vsp1.h      |   3 -
+ drivers/media/platform/vsp1/vsp1_drv.c  | 101 ++++++++++++++++----------------
+ drivers/media/platform/vsp1/vsp1_pipe.c |   2 +-
+ 3 files changed, 53 insertions(+), 53 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index e3348db..5ad1edb 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -227,7 +227,8 @@ static int __smiapp_pll_calculate(
+diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
+index 46738b6c5f72..9e09bce43cf3 100644
+--- a/drivers/media/platform/vsp1/vsp1.h
++++ b/drivers/media/platform/vsp1/vsp1.h
+@@ -64,9 +64,6 @@ struct vsp1_device {
+ 	void __iomem *mmio;
+ 	struct clk *clock;
  
- 	more_mul_factor = lcm(div, pll->pre_pll_clk_div) / div;
- 	dev_dbg(dev, "more_mul_factor: %u\n", more_mul_factor);
--	more_mul_factor = lcm(more_mul_factor, op_limits->min_sys_clk_div);
-+	more_mul_factor = lcm(more_mul_factor,
-+			      DIV_ROUND_UP(op_limits->min_sys_clk_div, div));
- 	dev_dbg(dev, "more_mul_factor: min_op_sys_clk_div: %d\n",
- 		more_mul_factor);
- 	i = roundup(more_mul_min, more_mul_factor);
+-	struct mutex lock;
+-	int ref_count;
+-
+ 	struct vsp1_bru *bru;
+ 	struct vsp1_hsit *hsi;
+ 	struct vsp1_hsit *hst;
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index e2d779fac0eb..d6abc7f1216a 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -19,6 +19,7 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
+ #include <linux/videodev2.h>
+ 
+ #include <media/v4l2-subdev.h>
+@@ -462,35 +463,16 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
+ /*
+  * vsp1_device_get - Acquire the VSP1 device
+  *
+- * Increment the VSP1 reference count and initialize the device if the first
+- * reference is taken.
++ * Make sure the device is not suspended and initialize it if needed.
+  *
+  * Return 0 on success or a negative error code otherwise.
+  */
+ int vsp1_device_get(struct vsp1_device *vsp1)
+ {
+-	int ret = 0;
+-
+-	mutex_lock(&vsp1->lock);
+-	if (vsp1->ref_count > 0)
+-		goto done;
+-
+-	ret = clk_prepare_enable(vsp1->clock);
+-	if (ret < 0)
+-		goto done;
+-
+-	ret = vsp1_device_init(vsp1);
+-	if (ret < 0) {
+-		clk_disable_unprepare(vsp1->clock);
+-		goto done;
+-	}
+-
+-done:
+-	if (!ret)
+-		vsp1->ref_count++;
++	int ret;
+ 
+-	mutex_unlock(&vsp1->lock);
+-	return ret;
++	ret = pm_runtime_get_sync(vsp1->dev);
++	return ret < 0 ? ret : 0;
+ }
+ 
+ /*
+@@ -501,12 +483,7 @@ done:
+  */
+ void vsp1_device_put(struct vsp1_device *vsp1)
+ {
+-	mutex_lock(&vsp1->lock);
+-
+-	if (--vsp1->ref_count == 0)
+-		clk_disable_unprepare(vsp1->clock);
+-
+-	mutex_unlock(&vsp1->lock);
++	pm_runtime_put_sync(vsp1->dev);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -518,37 +495,55 @@ static int vsp1_pm_suspend(struct device *dev)
+ {
+ 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+ 
+-	WARN_ON(mutex_is_locked(&vsp1->lock));
++	vsp1_pipelines_suspend(vsp1);
++	pm_runtime_force_suspend(vsp1->dev);
+ 
+-	if (vsp1->ref_count == 0)
+-		return 0;
++	return 0;
++}
+ 
+-	vsp1_pipelines_suspend(vsp1);
++static int vsp1_pm_resume(struct device *dev)
++{
++	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+ 
+-	clk_disable_unprepare(vsp1->clock);
++	pm_runtime_force_resume(vsp1->dev);
++	vsp1_pipelines_resume(vsp1);
+ 
+ 	return 0;
+ }
++#endif
+ 
+-static int vsp1_pm_resume(struct device *dev)
++static int vsp1_pm_runtime_suspend(struct device *dev)
+ {
+ 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+ 
+-	WARN_ON(mutex_is_locked(&vsp1->lock));
++	clk_disable_unprepare(vsp1->clock);
+ 
+-	if (vsp1->ref_count == 0)
+-		return 0;
++	return 0;
++}
+ 
+-	clk_prepare_enable(vsp1->clock);
++static int vsp1_pm_runtime_resume(struct device *dev)
++{
++	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
++	int ret;
+ 
+-	vsp1_pipelines_resume(vsp1);
++	ret = clk_prepare_enable(vsp1->clock);
++	if (ret < 0)
++		return ret;
++
++	if (vsp1->info) {
++		ret = vsp1_device_init(vsp1);
++		if (ret < 0) {
++			clk_disable_unprepare(vsp1->clock);
++			return ret;
++		}
++	}
+ 
+ 	return 0;
+ }
+-#endif
+ 
+ static const struct dev_pm_ops vsp1_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(vsp1_pm_suspend, vsp1_pm_resume)
++	SET_RUNTIME_PM_OPS(vsp1_pm_runtime_suspend, vsp1_pm_runtime_resume, NULL)
+ };
+ 
+ /* -----------------------------------------------------------------------------
+@@ -640,10 +635,11 @@ static int vsp1_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	vsp1->dev = &pdev->dev;
+-	mutex_init(&vsp1->lock);
+ 	INIT_LIST_HEAD(&vsp1->entities);
+ 	INIT_LIST_HEAD(&vsp1->videos);
+ 
++	platform_set_drvdata(pdev, vsp1);
++
+ 	/* I/O, IRQ and clock resources */
+ 	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	vsp1->mmio = devm_ioremap_resource(&pdev->dev, io);
+@@ -670,12 +666,14 @@ static int vsp1_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	/* Configure device parameters based on the version register. */
+-	ret = clk_prepare_enable(vsp1->clock);
++	pm_runtime_enable(&pdev->dev);
++
++	ret = pm_runtime_get_sync(&pdev->dev);
+ 	if (ret < 0)
+-		return ret;
++		goto done;
+ 
+ 	version = vsp1_read(vsp1, VI6_IP_VERSION);
+-	clk_disable_unprepare(vsp1->clock);
++	pm_runtime_put_sync(&pdev->dev);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(vsp1_device_infos); ++i) {
+ 		if ((version & VI6_IP_VERSION_MODEL_MASK) ==
+@@ -687,7 +685,8 @@ static int vsp1_probe(struct platform_device *pdev)
+ 
+ 	if (!vsp1->info) {
+ 		dev_err(&pdev->dev, "unsupported IP version 0x%08x\n", version);
+-		return -ENXIO;
++		ret = -ENXIO;
++		goto done;
+ 	}
+ 
+ 	dev_dbg(&pdev->dev, "IP version 0x%08x\n", version);
+@@ -696,12 +695,14 @@ static int vsp1_probe(struct platform_device *pdev)
+ 	ret = vsp1_create_entities(vsp1);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "failed to create entities\n");
+-		return ret;
++		goto done;
+ 	}
+ 
+-	platform_set_drvdata(pdev, vsp1);
++done:
++	if (ret)
++		pm_runtime_disable(&pdev->dev);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static int vsp1_remove(struct platform_device *pdev)
+@@ -710,6 +711,8 @@ static int vsp1_remove(struct platform_device *pdev)
+ 
+ 	vsp1_destroy_entities(vsp1);
+ 
++	pm_runtime_disable(&pdev->dev);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 4f3b4a1d028a..0c1dc80eb304 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -383,7 +383,7 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
+ {
+ 	unsigned int i;
+ 
+-	/* Resume pipeline all running pipelines. */
++	/* Resume all running pipelines. */
+ 	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+ 		struct vsp1_rwpf *wpf = vsp1->wpf[i];
+ 		struct vsp1_pipeline *pipe;
 -- 
-1.9.1
+2.7.3
 
