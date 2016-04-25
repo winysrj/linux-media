@@ -1,84 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42143 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751850AbcDWLEC (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:36711 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751708AbcDYOJW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2016 07:04:02 -0400
+	Mon, 25 Apr 2016 10:09:22 -0400
+Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
+To: Pavel Machek <pavel@ucw.cz>,
+	=?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+References: <571DBA2E.9020305@gmail.com>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160425104037.GA20362@pali> <20160425140612.GA19175@amd>
+Cc: linux-media@vger.kernel.org,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	sakari.ailus@iki.fi, sre@kernel.org
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Florian Echtler <floe@butterbrot.org>
-Subject: [PATCHv4 04/13] sur40: set q->dev instead of allocating a context
-Date: Sat, 23 Apr 2016 13:03:40 +0200
-Message-Id: <1461409429-24995-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <571E250D.6080702@xs4all.nl>
+Date: Mon, 25 Apr 2016 16:09:17 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160425140612.GA19175@amd>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 04/25/2016 04:06 PM, Pavel Machek wrote:
+> Hi!
+> 
+>> On Monday 25 April 2016 00:08:00 Ivaylo Dimitrov wrote:
+>>> The needed pipeline could be made with:
+>>>
+>>> media-ctl -r
+>>> media-ctl -l '"vs6555 binner 2-0010":1 -> "video-bus-switch":2
+> ...
+>> On Monday 25 April 2016 09:33:18 Ivaylo Dimitrov wrote:
+>>> Try with:
+>>>
+>>> media-ctl -r
+>>> media-ctl -l '"et8ek8 3-003e":0 -> "video-bus-switch":1 [1]'
+> ...
+>>> mplayer -tv driver=v4l2:width=800:height=600:outfmt=uyvy:device=/dev/video6 -vo xv -vf screenshot tv://
+>>
+>> Hey!!! That is crazy! Who created such retard API?? In both cases you
+>> are going to show video from /dev/video6 device. But in real I have two
+>> independent camera devices: front and back.
+> 
+> Because Nokia, and because the hardware is complex, I'm afraid. First
+> we need to get it to work, than we can improve v4l... 
+> 
+> Anyway, does anyone know where to get the media-ctl tool? It does not
+> seem to be in debian 7 or debian 8...
 
-Stop using alloc_ctx and just fill in the device pointer.
+It's part of the v4l-utils git repo:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Florian Echtler <floe@butterbrot.org>
----
- drivers/input/touchscreen/sur40.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+https://git.linuxtv.org/v4l-utils.git/
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index 880c40b..cc4bd3e 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -151,7 +151,6 @@ struct sur40_state {
- 	struct mutex lock;
- 
- 	struct vb2_queue queue;
--	struct vb2_alloc_ctx *alloc_ctx;
- 	struct list_head buf_list;
- 	spinlock_t qlock;
- 	int sequence;
-@@ -580,19 +579,13 @@ static int sur40_probe(struct usb_interface *interface,
- 	sur40->queue = sur40_queue;
- 	sur40->queue.drv_priv = sur40;
- 	sur40->queue.lock = &sur40->lock;
-+	sur40->queue.dev = sur40->dev;
- 
- 	/* initialize the queue */
- 	error = vb2_queue_init(&sur40->queue);
- 	if (error)
- 		goto err_unreg_v4l2;
- 
--	sur40->alloc_ctx = vb2_dma_sg_init_ctx(sur40->dev);
--	if (IS_ERR(sur40->alloc_ctx)) {
--		dev_err(sur40->dev, "Can't allocate buffer context");
--		error = PTR_ERR(sur40->alloc_ctx);
--		goto err_unreg_v4l2;
--	}
--
- 	sur40->vdev = sur40_video_device;
- 	sur40->vdev.v4l2_dev = &sur40->v4l2;
- 	sur40->vdev.lock = &sur40->lock;
-@@ -633,7 +626,6 @@ static void sur40_disconnect(struct usb_interface *interface)
- 
- 	video_unregister_device(&sur40->vdev);
- 	v4l2_device_unregister(&sur40->v4l2);
--	vb2_dma_sg_cleanup_ctx(sur40->alloc_ctx);
- 
- 	input_unregister_polled_device(sur40->input);
- 	input_free_polled_device(sur40->input);
-@@ -655,11 +647,8 @@ static int sur40_queue_setup(struct vb2_queue *q,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
- 		       unsigned int sizes[], void *alloc_ctxs[])
- {
--	struct sur40_state *sur40 = vb2_get_drv_priv(q);
--
- 	if (q->num_buffers + *nbuffers < 3)
- 		*nbuffers = 3 - q->num_buffers;
--	alloc_ctxs[0] = sur40->alloc_ctx;
- 
- 	if (*nplanes)
- 		return sizes[0] < sur40_video_format.sizeimage ? -EINVAL : 0;
--- 
-2.8.0.rc3
+Regards,
 
+	Hans
