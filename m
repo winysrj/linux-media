@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41952 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752269AbcD2LXi (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33117 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964889AbcDYUxI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 07:23:38 -0400
-Date: Fri, 29 Apr 2016 14:23:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hverkuil@xs4all.nl>,
-	sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-	patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org
-Subject: Re: v4l subdevs without big device was Re:
- drivers/media/i2c/adp1653.c: does not show as /dev/video* or v4l-subdev*
-Message-ID: <20160429112304.GJ32125@valkosipuli.retiisi.org.uk>
-References: <20160428084546.GA9957@amd>
- <20160429071525.GA4823@amd>
- <57230DE7.3020701@xs4all.nl>
- <20160429075649.GG32125@valkosipuli.retiisi.org.uk>
- <20160429095002.GA22743@amd>
- <20160429105944.GH32125@valkosipuli.retiisi.org.uk>
- <20160429110546.GU12528@pali>
+	Mon, 25 Apr 2016 16:53:08 -0400
+Received: by mail-wm0-f65.google.com with SMTP id r12so24867929wme.0
+        for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 13:53:07 -0700 (PDT)
+Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
+To: Pavel Machek <pavel@ucw.cz>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160425165848.GA10443@amd> <571E5134.10607@gmail.com>
+ <20160425184016.GC10443@amd> <571E6D38.9050009@gmail.com>
+ <20160425204110.GA2689@amd>
+Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
+	linux-media@vger.kernel.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <571E83B0.8020208@gmail.com>
+Date: Mon, 25 Apr 2016 23:53:04 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20160429110546.GU12528@pali>
+In-Reply-To: <20160425204110.GA2689@amd>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 29, 2016 at 01:05:46PM +0200, Pali Rohár wrote:
-> On Friday 29 April 2016 13:59:44 Sakari Ailus wrote:
-> > > pavel@amd:/data/l/linux-n900$ git fetch
-> > > git://git.retiisi.org.uk/~sailus/linux.git leds-as3645a:leds-as3645a
-> > > fatal: unable to connect to git.retiisi.org.uk:
-> > > git.retiisi.org.uk: Name or service not known
-> > > 
-> > > pavel@amd:/data/l/linux-n900$ git fetch
-> > > git://salottisipuli.retiisi.org.uk/~sailus/linux.git
-> > > leds-as3645a:leds-as3645a
-> > > remote: Counting objects: 132, done.
-> > > remote: Compressing objects: 100% (46/46), done.
-> > > remote: Total 132 (delta 111), reused 107 (delta 86)
-> > > Receiving objects: 100% (132/132), 22.80 KiB | 0 bytes/s, done.
-> > > Resolving deltas: 100% (111/111), completed with 34 local objects.
-> > > From git://salottisipuli.retiisi.org.uk/~sailus/linux
-> > >  * [new branch]      leds-as3645a -> leds-as3645a
-> > 
-> > Yeah, that works, too. git alias has been added some three weeks ago so
-> > there seem to be something strange going on with DNS.
-> 
-> Maybe update SOA record?
+Hi,
 
-The host has been added before that. It looks like the slaves are performing
-the zone transfer nicely but for some reason they don't seem to correctly
-respond when the newly added name is queried.
+On 25.04.2016 23:41, Pavel Machek wrote:
+> Hi!
+>
+>> All my testing so far was performed using modules, though it shouldn't make
+>> difference.
+>>
+>>> https://lkml.org/lkml/2016/4/16/14
+>>> https://lkml.org/lkml/2016/4/16/33
+>>>
+>>
+>> More stuff is needed, all those twl4030 regulator patches (already in
+>> linux-next) + DTS initial-mode patch
+>> (https://lkml.org/lkml/2016/4/17/78).
+>
+> Aha, that explains a lot. Dealing with -next would be tricky, I guess;
+> can I just pull from your camera branch?
+>
+> https://github.com/freemangordon/linux-n900/tree/camera
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+I guess yes, though I am not sure all the patches there are compatible 
+with userland different from maemo, so be careful. Also, the correct 
+branch is v4.6-rc4-n900-camera.
+
+Ivo
