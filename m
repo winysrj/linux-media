@@ -1,63 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35897 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37360 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380AbcDWXtv (ORCPT
+	with ESMTP id S965207AbcDYVg1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2016 19:49:51 -0400
+	Mon, 25 Apr 2016 17:36:27 -0400
 From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
 Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 07/13] v4l: vsp1: Replace container_of() with dedicated macro
-Date: Sun, 24 Apr 2016 02:49:54 +0300
-Message-Id: <1461455400-28767-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1461455400-28767-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v2 08/13] v4l: vsp1: Make vsp1_entity_get_pad_compose() more generic
+Date: Tue, 26 Apr 2016 00:36:33 +0300
+Message-Id: <1461620198-13428-9-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a macro to cast from a struct media_entity to a struct vsp1_entity
-to replace the manual implementations.
+Turn the helper into a function that can retrieve crop and compose
+selection rectangles.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/platform/vsp1/vsp1_entity.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ drivers/media/platform/vsp1/vsp1_entity.c | 24 ++++++++++++++++++++----
+ drivers/media/platform/vsp1/vsp1_entity.h |  6 +++---
+ drivers/media/platform/vsp1/vsp1_rpf.c    |  7 ++++---
+ 3 files changed, 27 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 6a96ea77de69..f60d7926d53f 100644
+index f60d7926d53f..8c49a74381a1 100644
 --- a/drivers/media/platform/vsp1/vsp1_entity.c
 +++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -22,6 +22,12 @@
- #include "vsp1_dl.h"
- #include "vsp1_entity.h"
- 
-+static inline struct vsp1_entity *
-+media_entity_to_vsp1_entity(struct media_entity *entity)
-+{
-+	return container_of(entity, struct vsp1_entity, subdev.entity);
-+}
-+
- void vsp1_entity_route_setup(struct vsp1_entity *source,
- 			     struct vsp1_dl_list *dl)
- {
-@@ -30,7 +36,7 @@ void vsp1_entity_route_setup(struct vsp1_entity *source,
- 	if (source->route->reg == 0)
- 		return;
- 
--	sink = container_of(source->sink, struct vsp1_entity, subdev.entity);
-+	sink = media_entity_to_vsp1_entity(source->sink);
- 	vsp1_dl_list_write(dl, source->route->reg,
- 			   sink->route->inputs[source->sink_pad]);
+@@ -87,12 +87,28 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
+ 	return v4l2_subdev_get_try_format(&entity->subdev, cfg, pad);
  }
-@@ -252,7 +258,7 @@ int vsp1_entity_link_setup(struct media_entity *entity,
- 	if (!(local->flags & MEDIA_PAD_FL_SOURCE))
- 		return 0;
  
--	source = container_of(local->entity, struct vsp1_entity, subdev.entity);
-+	source = media_entity_to_vsp1_entity(local->entity);
++/**
++ * vsp1_entity_get_pad_selection - Get a pad selection from storage for entity
++ * @entity: the entity
++ * @cfg: the configuration storage
++ * @pad: the pad number
++ * @target: the selection target
++ *
++ * Return the selection rectangle stored in the given configuration for an
++ * entity's pad. The configuration can be an ACTIVE or TRY configuration. The
++ * selection target can be COMPOSE or CROP.
++ */
+ struct v4l2_rect *
+-vsp1_entity_get_pad_compose(struct vsp1_entity *entity,
+-			    struct v4l2_subdev_pad_config *cfg,
+-			    unsigned int pad)
++vsp1_entity_get_pad_selection(struct vsp1_entity *entity,
++			      struct v4l2_subdev_pad_config *cfg,
++			      unsigned int pad, unsigned int target)
+ {
+-	return v4l2_subdev_get_try_compose(&entity->subdev, cfg, pad);
++	if (target == V4L2_SEL_TGT_COMPOSE)
++		return v4l2_subdev_get_try_compose(&entity->subdev, cfg, pad);
++	else if (target == V4L2_SEL_TGT_CROP)
++		return v4l2_subdev_get_try_crop(&entity->subdev, cfg, pad);
++	else
++		return NULL;
+ }
  
- 	if (!source->route)
- 		return 0;
+ /*
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index aaab05f4952c..a240fc1c59a6 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -122,9 +122,9 @@ vsp1_entity_get_pad_format(struct vsp1_entity *entity,
+ 			   struct v4l2_subdev_pad_config *cfg,
+ 			   unsigned int pad);
+ struct v4l2_rect *
+-vsp1_entity_get_pad_compose(struct vsp1_entity *entity,
+-			    struct v4l2_subdev_pad_config *cfg,
+-			    unsigned int pad);
++vsp1_entity_get_pad_selection(struct vsp1_entity *entity,
++			      struct v4l2_subdev_pad_config *cfg,
++			      unsigned int pad, unsigned int target);
+ int vsp1_entity_init_cfg(struct v4l2_subdev *subdev,
+ 			 struct v4l2_subdev_pad_config *cfg);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 49168db3f529..64dfbddf2aba 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -130,9 +130,10 @@ static void rpf_configure(struct vsp1_entity *entity,
+ 	if (pipe->bru) {
+ 		const struct v4l2_rect *compose;
+ 
+-		compose = vsp1_entity_get_pad_compose(pipe->bru,
+-						      pipe->bru->config,
+-						      rpf->bru_input);
++		compose = vsp1_entity_get_pad_selection(pipe->bru,
++							pipe->bru->config,
++							rpf->bru_input,
++							V4L2_SEL_TGT_COMPOSE);
+ 		left = compose->left;
+ 		top = compose->top;
+ 	}
 -- 
 2.7.3
 
