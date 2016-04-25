@@ -1,50 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:33696 "EHLO
-	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751320AbcDEXAL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2016 19:00:11 -0400
-Received: by mail-lf0-f52.google.com with SMTP id e190so19513043lfe.0
-        for <linux-media@vger.kernel.org>; Tue, 05 Apr 2016 16:00:10 -0700 (PDT)
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36397 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753467AbcDYGdW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Apr 2016 02:33:22 -0400
+Received: by mail-wm0-f65.google.com with SMTP id w143so18377300wmw.3
+        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 23:33:21 -0700 (PDT)
+Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
+To: Pavel Machek <pavel@ucw.cz>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160424215541.GA6338@amd>
+Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
+	linux-media@vger.kernel.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <571DBA2E.9020305@gmail.com>
+Date: Mon, 25 Apr 2016 09:33:18 +0300
 MIME-Version: 1.0
-In-Reply-To: <57043D56.2020708@iki.fi>
-References: <CAO8Cc0qvJxO2Z63HJd1_df+mY8HHB-UrUUZLPqBHQuoyD=TAkQ@mail.gmail.com>
-	<570400DE.9040306@iki.fi>
-	<CAO8Cc0oHFwaRHAZaY5BZUAyYwCWRoD7s_97gr0vLF5YLgGAntA@mail.gmail.com>
-	<57043D56.2020708@iki.fi>
-Date: Wed, 6 Apr 2016 01:00:09 +0200
-Message-ID: <CAO8Cc0qj-=y2E6Ur+UW+_sz8sOt4RtVS82hhEQR7WT9zZ350Mg@mail.gmail.com>
-Subject: Re: AVerMedia HD Volar (A867) AF9035 + MXL5007T driver issues
-From: Alessandro Radicati <alessandro@radicati.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20160424215541.GA6338@amd>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 6, 2016 at 12:33 AM, Antti Palosaari <crope@iki.fi> wrote:
-> I found one stick having AF9035 + MXL5007T. It is HP branded A867, so it
-> should be similar. It seems to work all three 12.13.15.0 6.20.15.0
-> firmwares:
-> http://palosaari.fi/linux/v4l-dvb/firmware/af9035/
+
+
+On 25.04.2016 00:55, Pavel Machek wrote:
+> Hi!
 >
-> mxl5007t 5-0060: creating new instance
-> mxl5007t_get_chip_id: unknown rev (3f)
-> mxl5007t_get_chip_id: MxL5007T detected @ 5-0060
+>> Those patch series make cameras on Nokia N900 partially working.
+>> Some more patches are needed, but I've already sent them for
+>> upstreaming so they are not part of the series:
+>>
+>> https://lkml.org/lkml/2016/4/16/14
+>> https://lkml.org/lkml/2016/4/16/33
+>>
+>> As omap3isp driver supports only one endpoint on ccp2 interface,
+>> but cameras on N900 require different strobe settings, so far
+>> it is not possible to have both cameras correctly working with
+>> the same board DTS. DTS patch in the series has the correct
+>> settings for the front camera. This is a problem still to be
+>> solved.
+>>
+>> The needed pipeline could be made with:
 >
-> That is what AF9035 reports (with debug) as a chip version:
-> dvb_usb_af9035: prechip_version=00 chip_version=03 chip_type=3802
->
->
-> Do you have different chip version?
+> Would you have similar pipeline for the back camera? Autofocus and
+> 5MPx makes it more interesting. I understand that different dts will
+> be needed.
 >
 
-I have a Sky Italy DVB stick with the same chip version.  I see that
-you get the 0x3f response as well... that should be fixed by the I2C
-patch I proposed.  However, your stick seems to handle the read
-properly and process subsequent I2C commands - something that doesn't
-happen with mine.  The vendor drivers in linux and windows never seem
-issue the USB I2C commands to read from the tuner.  I'll test with
-other firmware versions to see if something changes.
+Try with:
+
+media-ctl -r
+media-ctl -l '"et8ek8 3-003e":0 -> "video-bus-switch":1 [1]'
+media-ctl -l '"video-bus-switch":0 -> "OMAP3 ISP CCP2":0 [1]'
+media-ctl -l '"OMAP3 ISP CCP2":1 -> "OMAP3 ISP CCDC":0 [1]'
+media-ctl -l '"OMAP3 ISP CCDC":2 -> "OMAP3 ISP preview":0 [1]'
+media-ctl -l '"OMAP3 ISP preview":1 -> "OMAP3 ISP resizer":0 [1]'
+media-ctl -l '"OMAP3 ISP resizer":1 -> "OMAP3 ISP resizer output":0 [1]'
+
+media-ctl -V '"et8ek8 3-003e":0 [SGRBG10 864x656]'
+media-ctl -V '"OMAP3 ISP CCP2":0 [SGRBG10 864x656]'
+media-ctl -V '"OMAP3 ISP CCP2":1 [SGRBG10 864x656]'
+media-ctl -V '"OMAP3 ISP CCDC":2 [SGRBG10 864x656]'
+media-ctl -V '"OMAP3 ISP preview":1 [UYVY 864x656]'
+media-ctl -V '"OMAP3 ISP resizer":1 [UYVY 800x600]'
+
+
+mplayer -tv 
+driver=v4l2:width=800:height=600:outfmt=uyvy:device=/dev/video6 -vo xv 
+-vf screenshot tv://
+
 
 Regards,
-Alessandro
+Ivo
