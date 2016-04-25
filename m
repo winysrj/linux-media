@@ -1,49 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42289 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753124AbcDXWF1 (ORCPT
+Received: from mail-qk0-f169.google.com ([209.85.220.169]:35510 "EHLO
+	mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751456AbcDYX04 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Apr 2016 18:05:27 -0400
-Date: Mon, 25 Apr 2016 00:05:24 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
-	linux-media@vger.kernel.org,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
-Subject: Re: [RFC PATCH 01/24] V4L fixes
-Message-ID: <20160424220524.GB6338@amd>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Mon, 25 Apr 2016 19:26:56 -0400
+Received: by mail-qk0-f169.google.com with SMTP id q76so52776506qke.2
+        for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 16:26:55 -0700 (PDT)
+From: Dominic Chen <d.c.ddcc@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, Dominic Chen <d.c.ddcc@gmail.com>
+Subject: [PATCH/RFC] dmxdev: Add support for the FIONREAD ioctl
+Date: Mon, 25 Apr 2016 19:26:43 -0400
+Message-Id: <1461626803-78620-1-git-send-email-d.c.ddcc@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 2016-04-25 00:08:01, Ivaylo Dimitrov wrote:
-> From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
-> 
-> Squashed from the following upstream commits:
-> 
-> V4L: Create control class for sensor mode
-> V4L: add ad5820 focus specific custom controls
-> V4L: add V4L2_CID_TEST_PATTERN
-> V4L: Add V4L2_CID_MODE_OPSYSCLOCK for reading output system clock
-> 
-> Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-> Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
+This is a standard ioctl supported by file descriptors, sockets (as
+SIOCINQ), and ttys (as TIOCOUTQ) to get the size of the available
+read buffer. It provides userspace with a feedback mechanism to
+avoid overflow of the kernel ringbuffer, and is used by e.g.
+libevent.
 
-I guess you need to append your Signed-off-by: here.
+Signed-off-by: Dominic Chen <d.c.ddcc@gmail.com>
+---
+ drivers/media/dvb-core/dmxdev.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-Otherwise it looks good, so
-
-Acked-by: Pavel Machek <pavel@ucw.cz>
-
-(And thanks for all the work).
-									Pavel
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index a168cbe..668c8d2 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -28,6 +28,7 @@
+ #include <linux/poll.h>
+ #include <linux/ioctl.h>
+ #include <linux/wait.h>
++#include <asm/ioctls.h>
+ #include <asm/uaccess.h>
+ #include "dmxdev.h"
+ 
+@@ -57,6 +58,22 @@ static int dvb_dmxdev_buffer_write(struct dvb_ringbuffer *buf,
+ 	return dvb_ringbuffer_write(buf, src, len);
+ }
+ 
++static int dvb_dmxdev_get_buffer_avail(struct dvb_ringbuffer *src,
++				       u32 *len)
++{
++	if (!src->data) {
++		*len = 0;
++		return 0;
++	}
++
++	if (src->error)
++		return src->error;
++
++	*len = dvb_ringbuffer_avail(src);
++
++	return 0;
++}
++
+ static ssize_t dvb_dmxdev_buffer_read(struct dvb_ringbuffer *src,
+ 				      int non_blocking, char __user *buf,
+ 				      size_t count, loff_t *ppos)
+@@ -965,6 +982,16 @@ static int dvb_demux_do_ioctl(struct file *file,
+ 		return -ERESTARTSYS;
+ 
+ 	switch (cmd) {
++	case FIONREAD:
++		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
++			mutex_unlock(&dmxdev->mutex);
++			return -ERESTARTSYS;
++		}
++		ret = dvb_dmxdev_get_buffer_avail(&dmxdevfilter->buffer, parg);
++		mutex_unlock(&dmxdevfilter->mutex);
++
++		break;
++
+ 	case DMX_START:
+ 		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
+ 			mutex_unlock(&dmxdev->mutex);
+@@ -1160,6 +1187,10 @@ static int dvb_dvr_do_ioctl(struct file *file,
+ 		return -ERESTARTSYS;
+ 
+ 	switch (cmd) {
++	case FIONREAD:
++		ret = dvb_dmxdev_get_buffer_avail(&dmxdev->dvr_buffer, parg);
++		break;
++
+ 	case DMX_SET_BUFFER_SIZE:
+ 		ret = dvb_dvr_set_buffer_size(dmxdev, arg);
+ 		break;
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.7.4
+
