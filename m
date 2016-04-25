@@ -1,166 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33250 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753336AbcDXVKf (ORCPT
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:33237 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753512AbcDYH7R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Apr 2016 17:10:35 -0400
-Received: by mail-wm0-f65.google.com with SMTP id r12so17689153wme.0
-        for <linux-media@vger.kernel.org>; Sun, 24 Apr 2016 14:10:34 -0700 (PDT)
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: sakari.ailus@iki.fi
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org
-Subject: [RFC PATCH 21/24] omap3isp: dt: Add support for CSI1/CCP2 busses
-Date: Mon, 25 Apr 2016 00:08:21 +0300
-Message-Id: <1461532104-24032-22-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Mon, 25 Apr 2016 03:59:17 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Junghak Sung <jh1009.sung@samsung.com>, stable@vger.kernel.org
+Subject: [PATCH v2] media: vb2: Fix regression on poll() for RW mode
+Date: Mon, 25 Apr 2016 09:59:11 +0200
+Message-Id: <1461571151-25848-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+When using a device is read/write mode, vb2 does not handle properly the
+first select/poll operation.
 
-Obtain the CSI1/CCP2 bus parameters from the OF node.
+The reason for this, is that when this code has been refactored, some of
+the operations have changed their order, and now fileio emulator is not
+started.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+The reintroduced check to the core is enabled by a quirk flag, that
+avoids this check by other subsystems like DVB.
+
+Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+Cc: Junghak Sung <jh1009.sung@samsung.com>
+Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
+Cc: stable@vger.kernel.org
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/media/platform/omap3isp/isp.c | 110 ++++++++++++++++++++++++----------
- 1 file changed, 77 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 5d54e2c..e51a1f9 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2020,12 +2020,84 @@ enum isp_of_phy {
- 	ISP_OF_PHY_CSIPHY2,
- };
+v2: By  Hans Verkuil <hverkuil@xs4all.nl> and
+ 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+
+	Add a quirk bit to enable this behaviour on the core.
+ drivers/media/v4l2-core/videobuf2-core.c | 9 +++++++++
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 9 +--------
+ include/media/videobuf2-core.h           | 4 ++++
+ 3 files changed, 14 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5d016f496e0e..58eb9be13510 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2298,6 +2298,15 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
+ 		return POLLERR;
  
-+static void isp_of_parse_node_csi1(struct device *dev,
-+				   struct isp_bus_cfg *buscfg,
-+				   struct v4l2_of_endpoint *vep)
-+{
-+	if (vep->base.port == ISP_OF_PHY_CSIPHY1)
-+		buscfg->interface = ISP_INTERFACE_CCP2B_PHY1;
-+	else
-+		buscfg->interface = ISP_INTERFACE_CCP2B_PHY2;
-+	buscfg->bus.ccp2.lanecfg.clk.pos = vep->bus.mipi_csi1.clock_lane;
-+	buscfg->bus.ccp2.lanecfg.clk.pol =
-+		vep->bus.mipi_csi1.lane_polarity[0];
-+	dev_dbg(dev, "clock lane polarity %u, pos %u\n",
-+		buscfg->bus.ccp2.lanecfg.clk.pol,
-+		buscfg->bus.ccp2.lanecfg.clk.pos);
-+
-+	buscfg->bus.ccp2.lanecfg.data[0].pos = vep->bus.mipi_csi2.data_lanes[0];
-+	buscfg->bus.ccp2.lanecfg.data[0].pol =
-+		vep->bus.mipi_csi2.lane_polarities[1];
-+	dev_dbg(dev, "data lane polarity %u, pos %u\n",
-+		buscfg->bus.ccp2.lanecfg.data[0].pol,
-+		buscfg->bus.ccp2.lanecfg.data[0].pos);
-+
-+	buscfg->bus.ccp2.strobe_clk_pol = vep->bus.mipi_csi1.clock_inv;
-+	buscfg->bus.ccp2.phy_layer = vep->bus.mipi_csi1.strobe;
-+	buscfg->bus.ccp2.ccp2_mode = vep->bus_type == V4L2_MBUS_CCP2;
-+
-+	dev_dbg(dev, "clock_inv %u strobe %u ccp2 %u\n",
-+		buscfg->bus.ccp2.strobe_clk_pol,
-+		buscfg->bus.ccp2.phy_layer,
-+		buscfg->bus.ccp2.ccp2_mode);
-+	/*
-+	 * FIXME: now we assume the CRC is always there.
-+	 * Implement a way to obtain this information from the
-+	 * sensor. Frame descriptors, perhaps?
+ 	/*
++	 * For compatibility with vb1: if QBUF hasn't been called yet, then
++	 * return POLLERR as well. This only affects capture queues, output
++	 * queues will always initialize waiting_for_buffers to false.
 +	 */
-+	buscfg->bus.ccp2.crc = 1;
-+}
-+
-+static void isp_of_parse_node_csi2(struct device *dev,
-+				   struct isp_bus_cfg *buscfg,
-+				   struct v4l2_of_endpoint *vep)
-+{
-+	unsigned int i;
-+
-+	if (vep->base.port == ISP_OF_PHY_CSIPHY1)
-+		buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
-+	else
-+		buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
-+	buscfg->bus.csi2.lanecfg.clk.pos = vep->bus.mipi_csi2.clock_lane;
-+	buscfg->bus.csi2.lanecfg.clk.pol =
-+			vep->bus.mipi_csi2.lane_polarities[0];
-+	dev_dbg(dev, "clock lane polarity %u, pos %u\n",
-+		buscfg->bus.csi2.lanecfg.clk.pol,
-+		buscfg->bus.csi2.lanecfg.clk.pos);
-+
-+	for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
-+		buscfg->bus.csi2.lanecfg.data[i].pos =
-+			vep->bus.mipi_csi2.data_lanes[i];
-+		buscfg->bus.csi2.lanecfg.data[i].pol =
-+			vep->bus.mipi_csi2.lane_polarities[i + 1];
-+		dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
-+			buscfg->bus.csi2.lanecfg.data[i].pol,
-+				buscfg->bus.csi2.lanecfg.data[i].pos);
-+	}
++	if (q->quirk_poll_must_check_waiting_for_buffers &&
++	    q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
++		return POLLERR;
 +
 +	/*
-+	 * FIXME: now we assume the CRC is always there.
-+	 * Implement a way to obtain this information from the
-+	 * sensor. Frame descriptors, perhaps?
-+	 */
-+	buscfg->bus.csi2.crc = 1;
-+}
-+
- static int isp_of_parse_node(struct device *dev, struct device_node *node,
- 			     struct isp_async_subdev *isd)
- {
- 	struct isp_bus_cfg *buscfg = &isd->bus;
- 	struct v4l2_of_endpoint vep;
--	unsigned int i;
- 	int ret;
+ 	 * For output streams you can call write() as long as there are fewer
+ 	 * buffers queued than there are buffers available.
+ 	 */
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 91f552124050..3e649adf85ef 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -765,6 +765,7 @@ int vb2_queue_init(struct vb2_queue *q)
+ 	q->is_output = V4L2_TYPE_IS_OUTPUT(q->type);
+ 	q->copy_timestamp = (q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK)
+ 			== V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	q->quirk_poll_must_check_waiting_for_buffers = true;
  
- 	ret = v4l2_of_parse_endpoint(node, &vep);
-@@ -2055,38 +2127,10 @@ static int isp_of_parse_node(struct device *dev, struct device_node *node,
+ 	return vb2_core_queue_init(q);
+ }
+@@ -818,14 +819,6 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 			poll_wait(file, &fh->wait, wait);
+ 	}
  
- 	case ISP_OF_PHY_CSIPHY1:
- 	case ISP_OF_PHY_CSIPHY2:
--		/* FIXME: always assume CSI-2 for now. */
--		switch (vep.base.port) {
--		case ISP_OF_PHY_CSIPHY1:
--			buscfg->interface = ISP_INTERFACE_CSI2C_PHY1;
--			break;
--		case ISP_OF_PHY_CSIPHY2:
--			buscfg->interface = ISP_INTERFACE_CSI2A_PHY2;
--			break;
--		}
--		buscfg->bus.csi2.lanecfg.clk.pos = vep.bus.mipi_csi2.clock_lane;
--		buscfg->bus.csi2.lanecfg.clk.pol =
--			vep.bus.mipi_csi2.lane_polarities[0];
--		dev_dbg(dev, "clock lane polarity %u, pos %u\n",
--			buscfg->bus.csi2.lanecfg.clk.pol,
--			buscfg->bus.csi2.lanecfg.clk.pos);
+-	/*
+-	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+-	 * return POLLERR as well. This only affects capture queues, output
+-	 * queues will always initialize waiting_for_buffers to false.
+-	 */
+-	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
+-		return POLLERR;
 -
--		for (i = 0; i < ISP_CSIPHY2_NUM_DATA_LANES; i++) {
--			buscfg->bus.csi2.lanecfg.data[i].pos =
--				vep.bus.mipi_csi2.data_lanes[i];
--			buscfg->bus.csi2.lanecfg.data[i].pol =
--				vep.bus.mipi_csi2.lane_polarities[i + 1];
--			dev_dbg(dev, "data lane %u polarity %u, pos %u\n", i,
--				buscfg->bus.csi2.lanecfg.data[i].pol,
--				buscfg->bus.csi2.lanecfg.data[i].pos);
--		}
--
--		/*
--		 * FIXME: now we assume the CRC is always there.
--		 * Implement a way to obtain this information from the
--		 * sensor. Frame descriptors, perhaps?
--		 */
--		buscfg->bus.csi2.crc = 1;
-+		if (vep.bus_type == V4L2_MBUS_CSI2)
-+			isp_of_parse_node_csi2(dev, buscfg, &vep);
-+		else
-+			isp_of_parse_node_csi1(dev, buscfg, &vep);
- 		break;
+ 	return res | vb2_core_poll(q, file, wait);
+ }
+ EXPORT_SYMBOL_GPL(vb2_poll);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 8a0f55b6c2ba..3a1620946068 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -400,6 +400,9 @@ struct vb2_buf_ops {
+  * @fileio_read_once:		report EOF after reading the first buffer
+  * @fileio_write_immediately:	queue buffer after each write() call
+  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
++ * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
++ *              has not been called. This is a vb1 idiom that has been adopted
++ *              also by vb2.
+  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+  *		driver can set this to a mutex to let the v4l2 core serialize
+  *		the queuing ioctls. If the driver wants to handle locking
+@@ -463,6 +466,7 @@ struct vb2_queue {
+ 	unsigned			fileio_read_once:1;
+ 	unsigned			fileio_write_immediately:1;
+ 	unsigned			allow_zero_bytesused:1;
++	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
  
- 	default:
+ 	struct mutex			*lock;
+ 	void				*owner;
 -- 
-1.9.1
+2.8.0.rc3
 
