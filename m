@@ -1,91 +1,310 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:51020 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750745AbcDOO6e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 10:58:34 -0400
-Date: Fri, 15 Apr 2016 07:58:29 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	=?utf-8?Q?Agust=C3=AD?= Fontquerni <af@iseebcn.com>
-Subject: Re: tvp5150 regression after commit 9f924169c035
-Message-ID: <20160415145828.GT5973@atomide.com>
-References: <20160212234623.GB3500@atomide.com>
- <56BE993B.3010804@osg.samsung.com>
- <20160412223254.GK1526@katana>
- <570ECAB0.4050107@osg.samsung.com>
- <20160414111257.GG1533@katana>
- <570F9DF1.3070700@osg.samsung.com>
- <20160414141945.GA1539@katana>
- <570FA8D6.5070308@osg.samsung.com>
- <20160414151244.GM5973@atomide.com>
- <57102EE3.3020707@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <57102EE3.3020707@osg.samsung.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:58682 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932104AbcDYMZG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Apr 2016 08:25:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Hans Verkuil <hansverk@cisco.com>,
+	Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 07/15] cec.txt: add CEC framework documentation
+Date: Mon, 25 Apr 2016 14:24:34 +0200
+Message-Id: <1461587082-48041-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Javier Martinez Canillas <javier@osg.samsung.com> [160414 17:00]:
-> On 04/14/2016 11:12 AM, Tony Lindgren wrote:
-> > Is this with omap3 and does tvp5150 have a reset GPIO pin?
-> 
-> Yes, it's a DM3730 (OMAP3) and yes the tvp5150 (actually it's a tvp5151) has
-> a reset pin that has to be toggled, along with a power-down pin for the chip
-> to be in an operative state before accessing the I2C registers. That is the
-> power/reset sequence I mentioned before.
->  
-> > If so, you could be hitting the GPIO errata where a glitch can happen
-> > when restoring the GPIO state coming back from off mode in idle. This
-> > happes for GPIO pins that are not in GPIO bank1 and have an external
-> > pull down resistor on the line.
-> >
-> 
-> The GPIO lines connected to these pins are:
-> 
-> GPIO126 (bank4 pin 30) -> tvp5150 power-down pin
-> GPIO167 (bank6 pin 7)  -> tvp5150 reset pin
-> 
-> Neither are in GPIO bank1 so they could be affected by the errata you
-> mention but there isn't external pull down (or up) resistors on these
-> lines AFAICT by looking at the board schematics. I've added to the cc
-> list to other people that are familiar with the board in case I missed
-> something.
-> 
-> > The short term workaround is to mux the reset pin to use the internal
-> > pulls by using PIN_INPUT_PULLUP | MUX_MODE7, or depending on the direction,
-> > PIN_INPUT_PULLDOWN | MUX_MODE7.
-> 
-> I guess you meant MUX_MODE4 here since the pin has to be in GPIO mode?
+From: Hans Verkuil <hansverk@cisco.com>
 
-No, the glitch affects the GPIO mode, so that's why direction + pull +
-safe mode is needed.
+Document the new HDMI CEC framework.
 
-> Also, I wonder how the issue could be related to the GPIO controller
-> since is when enabling runtime PM for the I2C controller that things
-> fail. IOW, disabling runtime PM for the I2C adapter shouldn't make
-> things to work if the problem was caused by the mentioned GPIO errata.
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+[k.debski@samsung.com: add DocBook documentation by Hans Verkuil, with
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/cec.txt | 267 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 267 insertions(+)
+ create mode 100644 Documentation/cec.txt
 
-If you block PM runtime for I2C, then it blocks deeper idle states
-for the whole device. Note that you can disable off mode during idle
-and suspend with:
+diff --git a/Documentation/cec.txt b/Documentation/cec.txt
+new file mode 100644
+index 0000000..75155fe
+--- /dev/null
++++ b/Documentation/cec.txt
+@@ -0,0 +1,267 @@
++CEC Kernel Support
++==================
++
++The CEC framework provides a unified kernel interface for use with HDMI CEC
++hardware. It is designed to handle a multiple types of hardware (receivers,
++transmitters, USB dongles). The framework also gives the option to decide
++what to do in the kernel driver and what should be handled by userspace
++applications. In addition it integrates the remote control passthrough
++feature into the kernel's remote control framework.
++
++
++The CEC Protocol
++----------------
++
++The CEC protocol enables consumer electronic devices to communicate with each
++other through the HDMI connection. The protocol uses logical addresses in the
++communication. The logical address is strictly connected with the functionality
++provided by the device. The TV acting as the communication hub is always
++assigned address 0. The physical address is determined by the physical
++connection between devices.
++
++The CEC framework described here is up to date with the CEC 2.0 specification.
++It is documented in the HDMI 1.4 specification with the new 2.0 bits documented
++in the HDMI 2.0 specification. But for most of the features the freely available
++HDMI 1.3a specification is sufficient:
++
++http://www.microprocessor.org/HDMISpecification13a.pdf
++
++
++The Kernel Interface
++====================
++
++CEC Adapter
++-----------
++
++The struct cec_adapter represents the CEC adapter hardware. It is created by
++calling cec_allocate_adapter() and deleted by calling cec_delete_adapter():
++
++struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
++	       void *priv, const char *name, u32 caps, u8 available_las,
++	       struct device *parent);
++void cec_delete_adapter(struct cec_adapter *adap);
++
++To create an adapter you need to pass the following information:
++
++ops: adapter operations which are called by the CEC framework and that you
++have to implement.
++
++priv: will be stored in adap->priv and can be used by the adapter ops.
++
++name: the name of the CEC adapter. Note: this name will be copied.
++
++caps: capabilities of the CEC adapter. These capabilities determine the
++	capabilities of the hardware and which parts are to be handled
++	by userspace and which parts are handled by kernelspace. The
++	capabilities are returned by CEC_ADAP_G_CAPS.
++
++available_las: the number of simultaneous logical addresses that this
++	adapter can handle. Must be 1 <= available_las <= CEC_MAX_LOG_ADDRS.
++
++parent: the parent device.
++
++
++To register the /dev/cecX device node and the remote control device (if
++CEC_CAP_RC is set) you call:
++
++int cec_register_adapter(struct cec_adapter *adap);
++
++To unregister the devices call:
++
++void cec_unregister_adapter(struct cec_adapter *adap);
++
++Note: if cec_register_adapter() fails, then call cec_delete_adapter() to
++clean up. But if cec_register_adapter() succeeded, then only call
++cec_unregister_adapter() to clean up, never cec_delete_adapter(). The
++unregister function will delete the adapter automatically once the last user
++of that /dev/cecX device has closed its file handle.
++
++
++Implementing the Low-Level CEC Adapter
++--------------------------------------
++
++The following low-level adapter operations have to be implemented in
++your driver:
++
++struct cec_adap_ops {
++	/* Low-level callbacks */
++	int (*adap_enable)(struct cec_adapter *adap, bool enable);
++	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
++	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
++	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
++			     u32 signal_free_time, struct cec_msg *msg);
++	void (*adap_log_status)(struct cec_adapter *adap);
++
++	/* High-level callbacks */
++	...
++};
++
++The three low-level ops deal with various aspects of controlling the CEC adapter
++hardware:
++
++
++To enable/disable the hardware:
++
++	int (*adap_enable)(struct cec_adapter *adap, bool enable);
++
++This callback enables or disables the CEC hardware. Enabling the CEC hardware
++means powering it up in a state where no logical addresses are claimed. This
++op assumes that the physical address (adap->phys_addr) is valid when enable is
++true and will not change while the CEC adapter remains enabled. The initial
++state of the CEC adapter after calling cec_allocate_adapter() is disabled.
++
++Note that adap_enable must return 0 if enable is false.
++
++
++To enable/disable the 'monitor all' mode:
++
++	int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
++
++If enabled, then the adapter should be put in a mode to also monitor messages
++that not for us. Not all hardware supports this and this function is only
++called if the CEC_CAP_MONITOR_ALL capability is set. This callback is optional
++(some hardware may always be in 'monitor all' mode).
++
++Note that adap_monitor_all_enable must return 0 if enable is false.
++
++
++To program a new logical address:
++
++	int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
++
++If logical_addr == CEC_LOG_ADDR_INVALID then all programmed logical addresses
++are to be erased. Otherwise the given logical address should be programmed.
++If the maximum number of available logical addresses is exceeded, then it
++should return -ENXIO. Once a logical address is programmed the CEC hardware
++can receive directed messages to that address.
++
++Note that adap_log_addr must return 0 if logical_addr is CEC_LOG_ADDR_INVALID.
++
++
++To transmit a new message:
++
++	int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
++			     u32 signal_free_time, struct cec_msg *msg);
++
++This transmits a new message. The attempts argument is the suggested number of
++attempts for the transmit.
++
++The signal_free_time is the number of data bit periods that the adapter should
++wait when the line is free before attempting to send a message. This value
++depends on whether this transmit is a retry, a message from a new initiator or
++a new message for the same initiator. Most hardware will handle this
++automatically, but in some cases this information is needed.
++
++The CEC_FREE_TIME_TO_USEC macro can be used to convert signal_free_time to
++microseconds (one data bit period is 2.4 ms).
++
++
++To log the current CEC hardware status:
++
++	void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
++
++This optional callback can be used to show the status of the CEC hardware.
++The status is available through debugfs: cat /sys/kernel/debug/cec/cecX/status
++
++
++Your adapter driver will also have to react to events (typically interrupt
++driven) by calling into the framework in the following situations:
++
++When a transmit finished (successfully or otherwise):
++
++void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
++		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
++
++The status can be one of:
++
++CEC_TX_STATUS_OK: the transmit was successful.
++CEC_TX_STATUS_ARB_LOST: arbitration was lost: another CEC initiator
++took control of the CEC line and you lost the arbitration.
++CEC_TX_STATUS_NACK: the message was nacked (for a directed message) or
++acked (for a broadcast message). A retransmission is needed.
++CEC_TX_STATUS_LOW_DRIVE: low drive was detected on the CEC bus. This
++indicates that a follower detected an error on the bus and requested a
++retransmission.
++CEC_TX_STATUS_ERROR: some unspecified error occurred: this can be one of
++the previous two if the hardware cannot differentiate or something else
++entirely.
++CEC_TX_STATUS_MAX_RETRIES: could not transmit the message after
++trying multiple times. Should only be set by the driver if it has hardware
++support for retrying messages. If set, then the framework assumes that it
++doesn't have to make another attempt to transmit the message since the
++hardware did that already.
++
++The *_cnt arguments are the number of error conditions that were seen.
++This may be 0 if no information is available. Drivers that do not support
++hardware retry can just set the counter corresponding to the transmit error
++to 1, if the hardware does support retry then either set these counters to
++0 if the hardware provides no feedback of which errors occurred and how many
++times, or fill in the correct values as reported by the hardware.
++
++When a CEC message was received:
++
++void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
++
++Speaks for itself.
++
++Implementing the High-Level CEC Adapter
++---------------------------------------
++
++The low-level operations drive the hardware, the high-level operations are
++CEC protocol driven. The following high-level callbacks are available:
++
++struct cec_adap_ops {
++	/* Low-level callbacks */
++	...
++
++	/* High-level CEC message callback */
++	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
++};
++
++The received() callback allows the driver to optionally handle a newly
++received CEC message
++
++	int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
++
++If the driver wants to process a CEC message, then it can implement this
++callback. If it doesn't want to handle this message, then it should return
++-ENOMSG, otherwise the CEC framework assumes it processed this message and
++it will not no anything with it.
++
++
++CEC framework functions
++-----------------------
++
++CEC Adapter drivers can call the following CEC framework functions:
++
++int cec_transmit_msg(struct cec_adapter *adap, struct cec_msg *msg,
++		     bool block);
++
++Transmit a CEC message. If block is true, then wait until the message has been
++transmitted, otherwise just queue it and return.
++
++void cec_s_phys_addr(struct cec_adapter *adap, u16 phys_addr, bool block);
++
++Change the physical address. This function will set adap->phys_addr and
++send an event if it has changed. If cec_s_log_addrs() has been called and
++the physical address has become valid, then the CEC framework will start
++claiming the logical addresses. If block is true, then this function won't
++return until this process has finished.
++
++When the physical address is set to a valid value the CEC adapter will
++be enabled (see the adap_enable op). When it is set to CEC_PHYS_ADDR_INVALID,
++then the CEC adapter will be disabled. If you change a valid physical address
++to another valid physical address, then this function will first set the
++address to CEC_PHYS_ADDR_INVALID before enabling the new physical address.
++
++int cec_s_log_addrs(struct cec_adapter *adap,
++		    struct cec_log_addrs *log_addrs, bool block);
++
++Claim the CEC logical addresses. Should never be called if CEC_CAP_LOG_ADDRS
++is set. If block is true, then wait until the logical addresses have been
++claimed, otherwise just queue it and return. To unconfigure all logical
++addresses call this function with log_addrs set to NULL or with
++log_addrs->num_log_addrs set to 0. The block argument is ignored when
++unconfiguring. This function will just return if the physical address is
++invalid. Once the physical address becomes valid, then the framework will
++attempt to claim these logical addresses.
+-- 
+2.8.1
 
-# echo 0 > /sys/kernel/debug/pm_debug/enable_off_mode
-
-> In any case, I've tried to use the internal pulls as you suggested but
-> that didn't solve the issue.
-
-OK. Just to be sure.. Did you use the safe mode mux option instead
-of the GPIO mux option?
-
-Note that in some cases the internal pull is not strong enough to
-keep the reset line up if there's an external pull down resistor.
-
-Regards,
-
-Tony
