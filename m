@@ -1,104 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41144 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932872AbcDYSkT (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:35883 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754392AbcDYKVg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 14:40:19 -0400
-Date: Mon, 25 Apr 2016 20:40:16 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
-Message-ID: <20160425184016.GC10443@amd>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160425165848.GA10443@amd>
- <571E5134.10607@gmail.com>
+	Mon, 25 Apr 2016 06:21:36 -0400
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 588421804B5
+	for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 12:21:31 +0200 (CEST)
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.6] One bug fix, two regression fixes
+Message-ID: <571DEFAB.2050305@xs4all.nl>
+Date: Mon, 25 Apr 2016 12:21:31 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <571E5134.10607@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Three fixes for 4.6: two vb2 regressions and one bug fix for 4k timings that
+was wrong since the beginning.
 
-> >I can't do -vo xv ... fails for me, probably due to X
-> >configuration. Does it work with -vo x11 for you?
-> >
-> yes, -vo x11 works under maemo.
+Regards,
 
-Ok, good.
+	Hans
 
-> In linux-n900 branch we have a patch that reserves memory for omapfb - see https://github.com/freemangordon/linux-n900/commit/60f85dcb6a663efe687f58208861545d65210b55
-> 
-> also, because of a change in 4.6, https://github.com/freemangordon/linux-n900/commit/60f85dcb6a663efe687f58208861545d65210b55#diff-072444ea67d2aca6b402458f50d20edeR125
-> needs a change to DMA_MEMORY_IO and the if bellow needs the relevant change
-> as well.
+The following changes since commit e07d46e7e0da86c146f199dae76f879096bc436a:
 
-> This is needed for -vo xv (and any omapfb video playback) to reliably work
-> under maemo.
+  [media] tpg: Export the tpg code from vivid as a module (2016-04-20 16:14:39 -0300)
 
-I don't have that kind of acceleration working.
+are available in the git repository at:
 
-> >For me it shows window with green interior. And complains about v4l2:
-> >select timeouts. (I enabled these in .config):
-> >
-> >+CONFIG_VIDEO_BUS_SWITCH=y
-> >+CONFIG_VIDEO_SMIAREGS=y
-> >+CONFIG_VIDEO_ET8EK8=y
-> >+CONFIG_VIDEOBUF2_CORE=y
-> >+CONFIG_VIDEOBUF2_MEMOPS=y
-> >+CONFIG_VIDEOBUF2_DMA_CONTIG=y
-> >+CONFIG_VIDEO_OMAP3=y
-> >+CONFIG_VIDEO_SMIAPP_PLL=y
-> >+CONFIG_VIDEO_SMIAPP=y
-> >
-> >Any ideas?
-> >									Pavel
-> >
-> 
-> Try to build those as modules. Also, do you have all the needed patches
-> besides those in the patchset?
-> 
-> See https://github.com/freemangordon/linux-n900/commits/v4.6-rc4-n900-camera
-> 
-> Also, is there anything related in dmesg log?
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.6b
 
-Modules are tricky. I hate modules. I did patch with
+for you to fetch changes up to 5630e38582d970604daff4bb261734fe204e2791:
 
-https://lkml.org/lkml/2016/4/16/14
-https://lkml.org/lkml/2016/4/16/33
+  vb2-memops: Fix over allocation of frame vectors (2016-04-25 12:19:30 +0200)
 
-+ the series. And yes, there seems to be explanation in the dmesg:
+----------------------------------------------------------------
+Hans Verkuil (1):
+      v4l2-dv-timings.h: fix polarity for 4k formats
 
-[ 6134.261993] DISPC: channel 0 xres 800 yres 480
-[ 6134.262023] DISPC: pck 24000000
-[ 6134.262023] DISPC: hsw 4 hfp 28 hbp 24 vsw 3 vfp 3 vbp 4
-[ 6134.262023] DISPC: vsync_level 0 hsync_level 0 data_pclk_edge 1
-de_level 1 sync_pclk_edge 1
-[ 6134.262023] DISPC: hsync 28037Hz, vsync 57Hz
-[ 6134.262054] DISPC: lck = 72000000 (1)
-[ 6134.262054] DISPC: pck = 24000000 (3)
-[ 6190.075103] omap3isp 480bc000.isp: Unable to stop OMAP3 ISP resizer
-[ 6192.075347] omap3isp 480bc000.isp: CCDC stop timeout!
-[ 6192.075408] omap3isp 480bc000.isp: Unable to stop OMAP3 ISP CCDC
-[ 6292.293670] DISPC: dispc_runtime_put
-[ 6292.293701] DISPC: dispc_save_context
-[ 6292.293762] DISPC: context saved
-[ 6292.294342] DSS: dss_save_context
-[ 6292.294372] DSS: context saved
-[ 6297.056976] DISPC: dispc_runtime_get
-[ 6297.057067] DSS: dss_restore_context
-[ 6297.057067] DSS: context restored
-[ 6297.057159] DSS: set fck to 72000000
-[ 6297.057159] DISPC: lck = 72000000 (1)
-[ 6297.057159] DISPC: pck = 24000000 (3)
+Ricardo Ribalda Delgado (2):
+      media: vb2: Fix regression on poll() for RW mode
+      vb2-memops: Fix over allocation of frame vectors
 
-Let me check the github...
-									Pavel
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+ drivers/media/v4l2-core/videobuf2-core.c   | 10 ++++++++++
+ drivers/media/v4l2-core/videobuf2-memops.c |  2 +-
+ drivers/media/v4l2-core/videobuf2-v4l2.c   | 14 ++++++--------
+ include/media/videobuf2-core.h             |  4 ++++
+ include/uapi/linux/v4l2-dv-timings.h       | 30 ++++++++++++++++++++----------
+ 5 files changed, 41 insertions(+), 19 deletions(-)
