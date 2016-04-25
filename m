@@ -1,161 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:59198 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752176AbcD2Ljr (ORCPT
+Received: from lists.s-osg.org ([54.187.51.154]:53710 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751197AbcDYQKT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 07:39:47 -0400
-Subject: Re: [PATCH v2] media: vb2-dma-contig: configure DMA max segment size
- properly
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <57220299.3000807@xs4all.nl>
- <1461849603-6313-1-git-send-email-m.szyprowski@samsung.com>
- <20160429112110.GI32125@valkosipuli.retiisi.org.uk>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <2318434a-176b-82c6-c55a-115778354201@samsung.com>
-Date: Fri, 29 Apr 2016 13:39:43 +0200
-MIME-version: 1.0
-In-reply-to: <20160429112110.GI32125@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+	Mon, 25 Apr 2016 12:10:19 -0400
+Date: Mon, 25 Apr 2016 13:10:13 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] [media] tvp686x: Don't go past array
+Message-ID: <20160425131013.141d5b4f@recife.lan>
+In-Reply-To: <20160425152640.GA24174@laptop.cereza>
+References: <d25dd8ca8edffc6cc8cee2dac9b907c333a0aa84.1461403421.git.mchehab@osg.samsung.com>
+	<571E0159.9050406@xs4all.nl>
+	<20160425094000.1dc6db29@recife.lan>
+	<20160425152640.GA24174@laptop.cereza>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em Mon, 25 Apr 2016 12:26:40 -0300
+Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> escreveu:
+
+> Hi Mauro, Hans:
+> 
+> Thanks for the fixes to this driver :-)
+> 
+> On 25 Apr 09:40 AM, Mauro Carvalho Chehab wrote:
+> > Ezequiel,
+> > 
+> > Btw, I'm not seeing support for fps != 25 (or 30 fps) on this driver.
+> > As the device seems to support setting the fps, you should be adding
+> > support on it for VIDIOC_S_PARM and VIDIOC_G_PARM.
+> > 
+> > On both ioctls, the driver should return the actual framerate used.
+> > So, you'll need to add a code that would convert from the 15 possible
+> > framerate converter register settings to v4l2_fract.
+> >   
+> 
+> OK, thanks for the information.
+> 
+> In fact, framerate support is implemented in the driver that is in
+> production.
+> 
+> Support for s_parm, g_parm was in the original submission [1]
+> but we removed it later [2] because we thought it was unused.
+
+hmm... from [1], the support were provided by:
+
++static void tw686x_set_framerate(struct tw686x_video_channel *vc,
++				 unsigned int fps)
++{
++	unsigned int map;
++
++	if (vc->fps == fps)
++		return;
++
++	map = tw686x_fields_map(vc->video_standard, fps) << 1;
++	map |= map << 1;
++	if (map > 0)
++		map |= BIT(31);
++	reg_write(vc->dev, VIDEO_FIELD_CTRL[vc->ch], map);
++	vc->fps = fps;
++}
+
++static int tw686x_g_parm(struct file *file, void *priv,
++			 struct v4l2_streamparm *sp)
++{
++	struct tw686x_video_channel *vc = video_drvdata(file);
++	struct v4l2_captureparm *cp = &sp->parm.capture;
++
++	if (sp->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++	sp->parm.capture.readbuffers = 3;
++
++	cp->capability = V4L2_CAP_TIMEPERFRAME;
++	cp->timeperframe.numerator = 1;
++	cp->timeperframe.denominator = vc->fps;
++	return 0;
++}
+
++static int tw686x_s_parm(struct file *file, void *priv,
++			 struct v4l2_streamparm *sp)
++{
++	struct tw686x_video_channel *vc = video_drvdata(file);
++	struct v4l2_captureparm *cp = &sp->parm.capture;
++	unsigned int denominator = cp->timeperframe.denominator;
++	unsigned int numerator = cp->timeperframe.numerator;
++	unsigned int fps;
++
++	if (vb2_is_busy(&vc->vidq))
++		return -EBUSY;
++
++	fps = (!numerator || !denominator) ? 0 : denominator / numerator;
++	if (vc->video_standard & V4L2_STD_625_50)
++		fps = (!fps || fps > 25) ? 25 : fps;
++	else
++		fps = (!fps || fps > 30) ? 30 : fps;
++	tw686x_set_framerate(vc, fps);
++
++	return tw686x_g_parm(file, priv, sp);
++}
+
+Basically, s_parm just stores the fps received from the user and
+g_parm just returns 1/fps. The only validation it does is to avoid
+fps == 0 or fps > max_fps. This is not what the API docbook states.
+It should, instead, return the actual framerate that it was
+programmed on the hardware.
+
+Looking at the code, it is not returning the actual framerate, as
+the framerate seems to have only 15 possible values,
+from 0 (meaning no temporal decimation - e. g. just use the
+standard default) to 14:
+
+static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
+{
+	static const unsigned int map[15] = {
+		0x00000000, 0x00000001, 0x00004001, 0x00104001, 0x00404041,
+		0x01041041, 0x01104411, 0x01111111, 0x04444445, 0x04511445,
+		0x05145145, 0x05151515, 0x05515455, 0x05551555, 0x05555555
+	};
+
+	static const unsigned int std_625_50[26] = {
+		0, 1, 1, 2,  3,  3,  4,  4,  5,  5,  6,  7,  7,
+		   8, 8, 9, 10, 10, 11, 11, 12, 13, 13, 14, 14, 0
+	};
+
+	static const unsigned int std_525_60[31] = {
+		0, 1, 1, 1, 2,  2,  3,  3,  4,  4,  5,  5,  6,  6, 7, 7,
+		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
+	};
+
+	unsigned int i;
+
+	if (std & V4L2_STD_525_60) {
+		if (fps > ARRAY_SIZE(std_525_60))
+			fps = 30;
+		i = std_525_60[fps];
+	} else {
+		if (fps > ARRAY_SIZE(std_625_50))
+			fps = 25;
+		i = std_625_50[fps];
+	}
+
+	return map[i];
+}
+
+>From the above, clearly it uses the same frame rate if "fps" var is
+set to 1 to 2 (on 60Hz) and 1 to 3 (on 50 Hz).
+
+What *I* suspect from the above is that the code setting a
+temporal decimation register to zero (i = 0 -> map = 0x00000000)
+in order to disable the temporal decimation;
+
+And when "i" var is between 1 to 14, the temporal decimation block is
+enabled and the real frame rate is given by:
+
+	vc->real_fps = (fps * i) / 15
+
+So, the driver should actually store the value of "i" and use it
+when setting the framerate.
+
+Btw, in the 60 Hz case, usually the fps is not 30 Hz, but,
+instead, 30000/1001.
+
+So, I guess the code at s_parm should be doing something like:
+
+	if (std & V4L2_STD_525_60) {
+		cp->timeperframe.numerator = 1001;
+		cp->timeperframe.denominator = vc->real_fps * 1000;
+	} else {
+		cp->timeperframe.numerator = 1;
+		cp->timeperframe.denominator = vc->real_fps;
+	}
 
 
-On 2016-04-29 13:21, Sakari Ailus wrote:
-> Hi Marek,
->
-> Thanks for the patch!
->
-> On Thu, Apr 28, 2016 at 03:20:03PM +0200, Marek Szyprowski wrote:
->> This patch lets vb2-dma-contig memory allocator to configure DMA max
->> segment size properly for the client device. Setting it is needed to let
->> DMA-mapping subsystem to create a single, contiguous mapping in DMA
->> address space. This is essential for all devices, which use dma-contig
->> videobuf2 memory allocator and shared buffers (in USERPTR or DMAbuf modes
->> of operations).
->>
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> ---
->> Hello,
->>
->> This patch is a follow-up of my previous attempts to let Exynos
->> multimedia devices to work properly with shared buffers when IOMMU is
->> enabled:
->> 1. https://www.mail-archive.com/linux-media@vger.kernel.org/msg96946.html
->> 2. http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
->> 3. https://patchwork.linuxtv.org/patch/30870/
->>
->> As sugested by Hans, configuring DMA max segment size should be done by
->> videobuf2-dma-contig module instead of requiring all device drivers to
->> do it on their own.
->>
->> Here is some backgroud why this is done in videobuf2-dc not in the
->> respective generic bus code:
->> http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html
->>
->> Best regards,
->> Marek Szyprowski
->>
->> changelog:
->> v2:
->> - fixes typos and other language issues in the comments
->>
->> v1: http://article.gmane.org/gmane.linux.kernel.samsung-soc/53690
->> ---
->>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 39 ++++++++++++++++++++++++++
->>   1 file changed, 39 insertions(+)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> index 461ae55eaa98..d0382d62954d 100644
->> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> @@ -443,6 +443,36 @@ static void vb2_dc_put_userptr(void *buf_priv)
->>   }
->>   
->>   /*
->> + * To allow mapping the scatter-list into a single chunk in the DMA
->> + * address space, the device is required to have the DMA max segment
->> + * size parameter set to a value larger than the buffer size. Otherwise,
->> + * the DMA-mapping subsystem will split the mapping into max segment
->> + * size chunks. This function increases the DMA max segment size
->> + * parameter to let DMA-mapping map a buffer as a single chunk in DMA
->> + * address space.
->> + * This code assumes that the DMA-mapping subsystem will merge all
->> + * scatter-list segments if this is really possible (for example when
->> + * an IOMMU is available and enabled).
->> + * Ideally, this parameter should be set by the generic bus code, but it
->> + * is left with the default 64KiB value due to historical litmiations in
->> + * other subsystems (like limited USB host drivers) and there no good
->> + * place to set it to the proper value. It is done here to avoid fixing
->> + * all the vb2-dc client drivers.
->> + */
->> +static int vb2_dc_set_max_seg_size(struct device *dev, unsigned int size)
->> +{
->> +	if (!dev->dma_parms) {
->> +		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
-> Doesn't this create a memory leak? Do consider that devices may be also
-> removed from the system at runtime.
->
-> Looks very nice otherwise.
+> I can't see how we came to that conclusion, since it is actually
+> used to set the framerate!
+> 
+> Anyway, since we are discussing this, I would like to know if
+> having s_parm/g_parm is enough for framerate setting support.
 
-Yes it does, but there is completely no way to determine when to do that
-(dma_params might have been already allocated by the bus code). The whole
-dma_params idea and its handling is a bit messy. IMHO we can leave this
-for now until dma_params gets cleaned up (I remember someone said that he
-has this on his todo list, but I don't remember now who it was...).
+Yes.
 
->
->> +		if (!dev->dma_parms)
->> +			return -ENOMEM;
->> +	}
->> +	if (dma_get_max_seg_size(dev) < size)
->> +		return dma_set_max_seg_size(dev, size);
->> +
->> +	return 0;
->> +}
->> +
->> +/*
->>    * For some kind of reserved memory there might be no struct page available,
->>    * so all that can be done to support such 'pages' is to try to convert
->>    * pfn to dma address or at the last resort just assume that
->> @@ -499,6 +529,10 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
->>   		return ERR_PTR(-EINVAL);
->>   	}
->>   
->> +	ret = vb2_dc_set_max_seg_size(dev, PAGE_ALIGN(size + PAGE_SIZE));
->> +	if (!ret)
->> +		return ERR_PTR(ret);
->> +
->>   	buf = kzalloc(sizeof *buf, GFP_KERNEL);
->>   	if (!buf)
->>   		return ERR_PTR(-ENOMEM);
->> @@ -675,10 +709,15 @@ static void *vb2_dc_attach_dmabuf(struct device *dev, struct dma_buf *dbuf,
->>   {
->>   	struct vb2_dc_buf *buf;
->>   	struct dma_buf_attachment *dba;
->> +	int ret;
->>   
->>   	if (dbuf->size < size)
->>   		return ERR_PTR(-EFAULT);
->>   
->> +	ret = vb2_dc_set_max_seg_size(dev, PAGE_ALIGN(size));
->> +	if (!ret)
->> +		return ERR_PTR(ret);
->> +
->>   	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
->>   	if (!buf)
->>   		return ERR_PTR(-ENOMEM);
+> When I implemented this a year ago, the v4l2src gstreamer plugin
+> seemed to require enum_frame_size and enum_frame_interval as well.
+> It didn't make much sense, but I ended up implementing them
+> to get it to work. Should that be required?
+> 
+> (To be honest, v4lsrc is quite picky regarding parameters,
+> so it wouldn't be that surprising if it needs some love).
 
-Best regards
--- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+That sounds like a problem at v4l2src. You should talk with
+gst developers if this is still an issue there.
 
+I don't mind if you implement those two ioctls as well.
+
+Regards,
+Mauro
