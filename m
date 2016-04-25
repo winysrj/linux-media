@@ -1,178 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:41566 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753057AbcDCIyY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:54:24 -0400
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v6 05/24] i2c: i2c-mux-pca9541: convert to use an explicit i2c mux core
-Date: Sun,  3 Apr 2016 10:52:35 +0200
-Message-Id: <1459673574-11440-6-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
-References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+Received: from lists.s-osg.org ([54.187.51.154]:52828 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932324AbcDYMkG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Apr 2016 08:40:06 -0400
+Date: Mon, 25 Apr 2016 09:40:00 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH] [media] tvp686x: Don't go past array
+Message-ID: <20160425094000.1dc6db29@recife.lan>
+In-Reply-To: <571E0159.9050406@xs4all.nl>
+References: <d25dd8ca8edffc6cc8cee2dac9b907c333a0aa84.1461403421.git.mchehab@osg.samsung.com>
+	<571E0159.9050406@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+Em Mon, 25 Apr 2016 13:36:57 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select/deselect ops to be in terms of the i2c mux core
-instead of the child adapter.
+> Since my patch exchanges the sparse warning with a smatch warning, it's
+> OK to take this one, with a few corrections:
+> 
+> Please update the subject line (it says tvp686x instead of tw686x).
 
-Signed-off-by: Peter Rosin <peda@axentia.se>
----
- drivers/i2c/muxes/i2c-mux-pca9541.c | 55 ++++++++++++++++---------------------
- 1 file changed, 23 insertions(+), 32 deletions(-)
+Gah...
 
-diff --git a/drivers/i2c/muxes/i2c-mux-pca9541.c b/drivers/i2c/muxes/i2c-mux-pca9541.c
-index d0ba424adebc..93bea073ed13 100644
---- a/drivers/i2c/muxes/i2c-mux-pca9541.c
-+++ b/drivers/i2c/muxes/i2c-mux-pca9541.c
-@@ -73,7 +73,7 @@
- #define SELECT_DELAY_LONG	1000
+> 
+> On 04/23/2016 11:23 AM, Mauro Carvalho Chehab wrote:
+> > Depending on the compiler version, currently it produces the
+> > following warnings:
+> > 	tw686x-video.c: In function 'tw686x_video_init':
+> > 	tw686x-video.c:65:543: warning: array subscript is above array bounds [-Warray-bounds]
+> > 
+> > This is actually bogus with the current code, as it currently
+> > hardcodes the framerate to 30 frames/sec, however a potential
+> > use after the array size could happen when the driver adds support
+> > for setting the framerate. So, fix it.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> > ---
+> >  drivers/media/pci/tw686x/tw686x-video.c | 15 +++++++++++++--
+> >  1 file changed, 13 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+> > index 118e9fac9f28..1ff59084ce08 100644
+> > --- a/drivers/media/pci/tw686x/tw686x-video.c
+> > +++ b/drivers/media/pci/tw686x/tw686x-video.c
+> > @@ -61,8 +61,19 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
+> >  		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
+> >  	};
+> >  
+> > -	unsigned int i =
+> > -		(std & V4L2_STD_625_50) ? std_625_50[fps] : std_525_60[fps];
+> > +	unsigned int i;
+> > +
+> > +	if (std & V4L2_STD_625_50) {  
+> 
+> Please test against 525_60 since that is the recommended test.
+
+Both ways should work, but I'm OK with such change.
+
+> 
+> > +		if (unlikely(i > ARRAY_SIZE(std_625_50)))  
+> 
+> Please don't use 'unlikely'. It's pointless for code that is rarely used.
+
+OK.
+
+> 
+> Actually, the code is wrong: i is uninitialized here.
+> 
+> It should be fps >= ARRAY_SIZE(std_625_50).
+> 
+> In fact, I'd write it like this:
+> 
+> 		i = std_625_50[(fps >= ARRAY_SIZE(std_625_50) ? 24 : fps];
+
+I really don't like the above, as it has an unexplained magic
+number on it. Also, "24" is wrong there.
+
+So, I would go to the following enclosed patch.
+
+Ezequiel,
+
+Btw, I'm not seeing support for fps != 25 (or 30 fps) on this driver.
+As the device seems to support setting the fps, you should be adding
+support on it for VIDIOC_S_PARM and VIDIOC_G_PARM.
+
+On both ioctls, the driver should return the actual framerate used.
+So, you'll need to add a code that would convert from the 15 possible
+framerate converter register settings to v4l2_fract.
+
+> 
+> > +			i = 14;		/* 25 fps */
+> > +		else
+> > +			i = std_625_50[fps];
+> > +	} else {
+> > +		if (unlikely(i > ARRAY_SIZE(std_525_60)))
+> > +			i = 0;		/* 30 fps */
+> > +		else
+> > +			i = std_525_60[fps];
+> > +	}
+> >  
+> >  	return map[i];
+> >  }
+> >   
+> 
+> Regards,
+> 
+> 	Hans
+
+Thanks,
+Mauro
+
+-
+
+[media] tw686x: Don't go past array
+
+Depending on the compiler version, currently it produces the
+following warnings:
+	tw686x-video.c: In function 'tw686x_video_init':
+	tw686x-video.c:65:543: warning: array subscript is above array bounds [-Warray-bounds]
+
+This is actually bogus with the current code, as it currently
+hardcodes the framerate to 30 frames/sec, however a potential
+use after the array size could happen when the driver adds support
+for setting the framerate. So, fix it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+index 118e9fac9f28..9468fda69f3d 100644
+--- a/drivers/media/pci/tw686x/tw686x-video.c
++++ b/drivers/media/pci/tw686x/tw686x-video.c
+@@ -61,8 +61,17 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
+ 		   8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 0, 0
+ 	};
  
- struct pca9541 {
--	struct i2c_adapter *mux_adap;
-+	struct i2c_client *client;
- 	unsigned long select_timeout;
- 	unsigned long arb_timeout;
- };
-@@ -217,7 +217,8 @@ static const u8 pca9541_control[16] = {
-  */
- static int pca9541_arbitrate(struct i2c_client *client)
- {
--	struct pca9541 *data = i2c_get_clientdata(client);
-+	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
-+	struct pca9541 *data = i2c_mux_priv(muxc);
- 	int reg;
- 
- 	reg = pca9541_reg_read(client, PCA9541_CONTROL);
-@@ -285,9 +286,10 @@ static int pca9541_arbitrate(struct i2c_client *client)
- 	return 0;
- }
- 
--static int pca9541_select_chan(struct i2c_adapter *adap, void *client, u32 chan)
-+static int pca9541_select_chan(struct i2c_mux_core *muxc, u32 chan)
- {
--	struct pca9541 *data = i2c_get_clientdata(client);
-+	struct pca9541 *data = i2c_mux_priv(muxc);
-+	struct i2c_client *client = data->client;
- 	int ret;
- 	unsigned long timeout = jiffies + ARB2_TIMEOUT;
- 		/* give up after this time */
-@@ -309,9 +311,11 @@ static int pca9541_select_chan(struct i2c_adapter *adap, void *client, u32 chan)
- 	return -ETIMEDOUT;
- }
- 
--static int pca9541_release_chan(struct i2c_adapter *adap,
--				void *client, u32 chan)
-+static int pca9541_release_chan(struct i2c_mux_core *muxc, u32 chan)
- {
-+	struct pca9541 *data = i2c_mux_priv(muxc);
-+	struct i2c_client *client = data->client;
+-	unsigned int i =
+-		(std & V4L2_STD_625_50) ? std_625_50[fps] : std_525_60[fps];
++	unsigned int i;
 +
- 	pca9541_release_bus(client);
- 	return 0;
++	if (std & V4L2_STD_525_60) {
++		if (fps > ARRAY_SIZE(std_525_60))
++			fps = 30;
++		i = std_525_60[fps];
++	} else {
++		if (fps > ARRAY_SIZE(std_625_50))
++			fps = 25;
++		i = std_625_50[fps];
++	}
+ 
+ 	return map[i];
  }
-@@ -324,20 +328,12 @@ static int pca9541_probe(struct i2c_client *client,
- {
- 	struct i2c_adapter *adap = client->adapter;
- 	struct pca954x_platform_data *pdata = dev_get_platdata(&client->dev);
-+	struct i2c_mux_core *muxc;
- 	struct pca9541 *data;
- 	int force;
--	int ret = -ENODEV;
- 
- 	if (!i2c_check_functionality(adap, I2C_FUNC_SMBUS_BYTE_DATA))
--		goto err;
--
--	data = kzalloc(sizeof(struct pca9541), GFP_KERNEL);
--	if (!data) {
--		ret = -ENOMEM;
--		goto err;
--	}
--
--	i2c_set_clientdata(client, data);
-+		return -ENODEV;
- 
- 	/*
- 	 * I2C accesses are unprotected here.
-@@ -352,34 +348,29 @@ static int pca9541_probe(struct i2c_client *client,
- 	force = 0;
- 	if (pdata)
- 		force = pdata->modes[0].adap_id;
--	data->mux_adap = i2c_add_mux_adapter(adap, &client->dev, client,
--					     force, 0, 0,
--					     pca9541_select_chan,
--					     pca9541_release_chan);
--
--	if (data->mux_adap == NULL) {
-+	muxc = i2c_mux_one_adapter(adap, &client->dev, sizeof(*data), 0,
-+				   force, 0, 0,
-+				   pca9541_select_chan, pca9541_release_chan);
-+	if (IS_ERR(muxc)) {
- 		dev_err(&client->dev, "failed to register master selector\n");
--		goto exit_free;
-+		return PTR_ERR(muxc);
- 	}
-+	data = i2c_mux_priv(muxc);
-+	data->client = client;
-+
-+	i2c_set_clientdata(client, muxc);
- 
- 	dev_info(&client->dev, "registered master selector for I2C %s\n",
- 		 client->name);
- 
- 	return 0;
--
--exit_free:
--	kfree(data);
--err:
--	return ret;
- }
- 
- static int pca9541_remove(struct i2c_client *client)
- {
--	struct pca9541 *data = i2c_get_clientdata(client);
--
--	i2c_del_mux_adapter(data->mux_adap);
-+	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
- 
--	kfree(data);
-+	i2c_mux_del_adapters(muxc);
- 	return 0;
- }
- 
--- 
-2.1.4
+
 
