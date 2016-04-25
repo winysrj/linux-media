@@ -1,92 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40723 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751945AbcDVIie (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37359 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965205AbcDYVga (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 04:38:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 25 Apr 2016 17:36:30 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Florian Echtler <floe@butterbrot.org>
-Subject: [PATCHv3 03/12] sur40: set q->dev instead of allocating a context
-Date: Fri, 22 Apr 2016 10:38:10 +0200
-Message-Id: <1461314299-36126-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl>
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 13/13] v4l: vsp1: Remove deprecated DRM API
+Date: Tue, 26 Apr 2016 00:36:38 +0300
+Message-Id: <1461620198-13428-14-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The DRM driver has switched to the new API, remove the deprecated macros
+and inline wrapper.
 
-Stop using alloc_ctx and just fill in the device pointer.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Florian Echtler <floe@butterbrot.org>
-#
-#total: 0 errors, 0 warnings, 304 lines checked
-#
-#Your patch has no obvious style problems and is ready for submission.
-#
-#total: 0 errors, 0 warnings, 8 lines checked
-#
-#Your patch has no obvious style problems and is ready for submission.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/input/touchscreen/sur40.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/media/platform/vsp1/vsp1_drm.c |  6 +++---
+ include/media/vsp1.h                   | 28 ++--------------------------
+ 2 files changed, 5 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index 880c40b..cc4bd3e 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -151,7 +151,6 @@ struct sur40_state {
- 	struct mutex lock;
- 
- 	struct vb2_queue queue;
--	struct vb2_alloc_ctx *alloc_ctx;
- 	struct list_head buf_list;
- 	spinlock_t qlock;
- 	int sequence;
-@@ -580,19 +579,13 @@ static int sur40_probe(struct usb_interface *interface,
- 	sur40->queue = sur40_queue;
- 	sur40->queue.drv_priv = sur40;
- 	sur40->queue.lock = &sur40->lock;
-+	sur40->queue.dev = sur40->dev;
- 
- 	/* initialize the queue */
- 	error = vb2_queue_init(&sur40->queue);
- 	if (error)
- 		goto err_unreg_v4l2;
- 
--	sur40->alloc_ctx = vb2_dma_sg_init_ctx(sur40->dev);
--	if (IS_ERR(sur40->alloc_ctx)) {
--		dev_err(sur40->dev, "Can't allocate buffer context");
--		error = PTR_ERR(sur40->alloc_ctx);
--		goto err_unreg_v4l2;
--	}
--
- 	sur40->vdev = sur40_video_device;
- 	sur40->vdev.v4l2_dev = &sur40->v4l2;
- 	sur40->vdev.lock = &sur40->lock;
-@@ -633,7 +626,6 @@ static void sur40_disconnect(struct usb_interface *interface)
- 
- 	video_unregister_device(&sur40->vdev);
- 	v4l2_device_unregister(&sur40->v4l2);
--	vb2_dma_sg_cleanup_ctx(sur40->alloc_ctx);
- 
- 	input_unregister_polled_device(sur40->input);
- 	input_free_polled_device(sur40->input);
-@@ -655,11 +647,8 @@ static int sur40_queue_setup(struct vb2_queue *q,
- 		       unsigned int *nbuffers, unsigned int *nplanes,
- 		       unsigned int sizes[], void *alloc_ctxs[])
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index fef53ecefe25..14730119687f 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -255,8 +255,8 @@ EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
+  *
+  * Return 0 on success or a negative error code on failure.
+  */
+-int __vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
+-			    const struct vsp1_du_atomic_config *cfg)
++int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
++			  const struct vsp1_du_atomic_config *cfg)
  {
--	struct sur40_state *sur40 = vb2_get_drv_priv(q);
--
- 	if (q->num_buffers + *nbuffers < 3)
- 		*nbuffers = 3 - q->num_buffers;
--	alloc_ctxs[0] = sur40->alloc_ctx;
+ 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+ 	const struct vsp1_format_info *fmtinfo;
+@@ -310,7 +310,7 @@ int __vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
  
- 	if (*nplanes)
- 		return sizes[0] < sur40_video_format.sizeimage ? -EINVAL : 0;
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(__vsp1_du_atomic_update);
++EXPORT_SYMBOL_GPL(vsp1_du_atomic_update);
+ 
+ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
+ 				  struct vsp1_rwpf *rpf, unsigned int bru_input)
+diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+index ea8ad7537057..9322d9775fb7 100644
+--- a/include/media/vsp1.h
++++ b/include/media/vsp1.h
+@@ -34,32 +34,8 @@ struct vsp1_du_atomic_config {
+ };
+ 
+ void vsp1_du_atomic_begin(struct device *dev);
+-int __vsp1_du_atomic_update(struct device *dev, unsigned int rpf,
+-			    const struct vsp1_du_atomic_config *cfg);
++int vsp1_du_atomic_update(struct device *dev, unsigned int rpf,
++			  const struct vsp1_du_atomic_config *cfg);
+ void vsp1_du_atomic_flush(struct device *dev);
+ 
+-static inline int vsp1_du_atomic_update_old(struct device *dev,
+-	unsigned int rpf, u32 pixelformat, unsigned int pitch,
+-	dma_addr_t mem[2], const struct v4l2_rect *src,
+-	const struct v4l2_rect *dst)
+-{
+-	struct vsp1_du_atomic_config cfg = {
+-		.pixelformat = pixelformat,
+-		.pitch = pitch,
+-		.mem[0] = mem[0],
+-		.mem[1] = mem[1],
+-		.src = *src,
+-		.dst = *dst,
+-		.alpha = 255,
+-		.zpos = 0,
+-	};
+-
+-	return __vsp1_du_atomic_update(dev, rpf, &cfg);
+-}
+-
+-#define _vsp1_du_atomic_update(_1, _2, _3, _4, _5, _6, _7, f, ...) f
+-#define vsp1_du_atomic_update(...) \
+-	_vsp1_du_atomic_update(__VA_ARGS__, vsp1_du_atomic_update_old, 0, 0, \
+-			       0, __vsp1_du_atomic_update)(__VA_ARGS__)
+-
+ #endif /* __MEDIA_VSP1_H__ */
 -- 
-2.8.0.rc3
+2.7.3
 
