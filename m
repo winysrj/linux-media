@@ -1,74 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:41208 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752066AbcDVNDt (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37360 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965205AbcDYVgZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 09:03:49 -0400
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 3131C18021C
-	for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 15:03:43 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 25 Apr 2016 17:36:25 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/6] Various rcar-vin and adv* fixes
-Date: Fri, 22 Apr 2016 15:03:36 +0200
-Message-Id: <1461330222-34096-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH v2 06/13] v4l: vsp1: Add output node value to routing table
+Date: Tue, 26 Apr 2016 00:36:31 +0300
+Message-Id: <1461620198-13428-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The output node value indicates the value to be used in a sampling point
+register to use the node as the source of histogram data.
 
-While testing Niklas' new rcar-vin driver I found various problems
-that is fixed in this patch series.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_entity.c | 52 ++++++++++++++++++++-----------
+ drivers/media/platform/vsp1/vsp1_entity.h |  6 +++-
+ 2 files changed, 39 insertions(+), 19 deletions(-)
 
-The main problem is the adv7180 driver which was simply broken when
-it comes to detecting standards. This should now be fixed (at least
-it works for me now).
-
-As a result the sta2x11_vip driver needed to be changed as well.
-
-The new rcar-vin driver driver didn't support the source change event.
-While not relevant for the adv7180 driver (at least on the Koelsch
-board the irq from that chip isn't hooked up), it certainly is needed
-for the adv7612 driver. It doesn't hurt to add it here.
-
-Niklas, just fold it in your patch.
-
-The v4l2-compliance test complained about a missing V4L2_CID_DV_RX_POWER_PRESENT
-control. This was because that control was marked private. The reality
-is that that makes no sense and the control should just be inherited by
-the rcar-vin driver. In practice making this private is just annoying.
-
-The last patch is an rcar-vin bug fix. Niklas, just fold it in your
-patch for the v8.
-
-Niklas, Federico, can you both check the adv7180 changes?
-
-Regards,
-
-	Hans
-
-Hans Verkuil (6):
-  adv7180: fix broken standards handling
-  sta2x11_vip: fix s_std
-  rcar-vin: support the source change event and fix s_std
-  tc358743: drop bogus comment
-  media/i2c/adv*: make controls inheritable instead of private
-  rcar-vin: failed start_streaming didn't call s_stream(0)
-
- drivers/media/i2c/ad9389b.c                 |   8 --
- drivers/media/i2c/adv7180.c                 | 118 +++++++++++++++++++---------
- drivers/media/i2c/adv7511.c                 |   6 --
- drivers/media/i2c/adv7604.c                 |   8 --
- drivers/media/i2c/adv7842.c                 |   6 --
- drivers/media/i2c/tc358743.c                |   1 -
- drivers/media/pci/sta2x11/sta2x11_vip.c     |  26 +++---
- drivers/media/platform/rcar-vin/rcar-dma.c  |   4 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  48 ++++++++++-
- 9 files changed, 139 insertions(+), 86 deletions(-)
-
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 3d070bcc6053..6a96ea77de69 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -274,28 +274,44 @@ int vsp1_entity_link_setup(struct media_entity *entity,
+  * Initialization
+  */
+ 
++#define VSP1_ENTITY_ROUTE(ent)						\
++	{ VSP1_ENTITY_##ent, 0, VI6_DPR_##ent##_ROUTE,			\
++	  { VI6_DPR_NODE_##ent }, VI6_DPR_NODE_##ent }
++
++#define VSP1_ENTITY_ROUTE_RPF(idx)					\
++	{ VSP1_ENTITY_RPF, idx, VI6_DPR_RPF_ROUTE(idx),			\
++	  { 0, }, VI6_DPR_NODE_RPF(idx) }
++
++#define VSP1_ENTITY_ROUTE_UDS(idx)					\
++	{ VSP1_ENTITY_UDS, idx, VI6_DPR_UDS_ROUTE(idx),			\
++	  { VI6_DPR_NODE_UDS(idx) }, VI6_DPR_NODE_UDS(idx) }
++
++#define VSP1_ENTITY_ROUTE_WPF(idx)					\
++	{ VSP1_ENTITY_WPF, idx, 0,					\
++	  { VI6_DPR_NODE_WPF(idx) }, VI6_DPR_NODE_WPF(idx) }
++
+ static const struct vsp1_route vsp1_routes[] = {
+ 	{ VSP1_ENTITY_BRU, 0, VI6_DPR_BRU_ROUTE,
+ 	  { VI6_DPR_NODE_BRU_IN(0), VI6_DPR_NODE_BRU_IN(1),
+ 	    VI6_DPR_NODE_BRU_IN(2), VI6_DPR_NODE_BRU_IN(3),
+-	    VI6_DPR_NODE_BRU_IN(4) } },
+-	{ VSP1_ENTITY_HSI, 0, VI6_DPR_HSI_ROUTE, { VI6_DPR_NODE_HSI, } },
+-	{ VSP1_ENTITY_HST, 0, VI6_DPR_HST_ROUTE, { VI6_DPR_NODE_HST, } },
+-	{ VSP1_ENTITY_LIF, 0, 0, { VI6_DPR_NODE_LIF, } },
+-	{ VSP1_ENTITY_LUT, 0, VI6_DPR_LUT_ROUTE, { VI6_DPR_NODE_LUT, } },
+-	{ VSP1_ENTITY_RPF, 0, VI6_DPR_RPF_ROUTE(0), { 0, } },
+-	{ VSP1_ENTITY_RPF, 1, VI6_DPR_RPF_ROUTE(1), { 0, } },
+-	{ VSP1_ENTITY_RPF, 2, VI6_DPR_RPF_ROUTE(2), { 0, } },
+-	{ VSP1_ENTITY_RPF, 3, VI6_DPR_RPF_ROUTE(3), { 0, } },
+-	{ VSP1_ENTITY_RPF, 4, VI6_DPR_RPF_ROUTE(4), { 0, } },
+-	{ VSP1_ENTITY_SRU, 0, VI6_DPR_SRU_ROUTE, { VI6_DPR_NODE_SRU, } },
+-	{ VSP1_ENTITY_UDS, 0, VI6_DPR_UDS_ROUTE(0), { VI6_DPR_NODE_UDS(0), } },
+-	{ VSP1_ENTITY_UDS, 1, VI6_DPR_UDS_ROUTE(1), { VI6_DPR_NODE_UDS(1), } },
+-	{ VSP1_ENTITY_UDS, 2, VI6_DPR_UDS_ROUTE(2), { VI6_DPR_NODE_UDS(2), } },
+-	{ VSP1_ENTITY_WPF, 0, 0, { VI6_DPR_NODE_WPF(0), } },
+-	{ VSP1_ENTITY_WPF, 1, 0, { VI6_DPR_NODE_WPF(1), } },
+-	{ VSP1_ENTITY_WPF, 2, 0, { VI6_DPR_NODE_WPF(2), } },
+-	{ VSP1_ENTITY_WPF, 3, 0, { VI6_DPR_NODE_WPF(3), } },
++	    VI6_DPR_NODE_BRU_IN(4) }, VI6_DPR_NODE_BRU_OUT },
++	VSP1_ENTITY_ROUTE(HSI),
++	VSP1_ENTITY_ROUTE(HST),
++	{ VSP1_ENTITY_LIF, 0, 0, { VI6_DPR_NODE_LIF, }, VI6_DPR_NODE_LIF },
++	VSP1_ENTITY_ROUTE(LUT),
++	VSP1_ENTITY_ROUTE_RPF(0),
++	VSP1_ENTITY_ROUTE_RPF(1),
++	VSP1_ENTITY_ROUTE_RPF(2),
++	VSP1_ENTITY_ROUTE_RPF(3),
++	VSP1_ENTITY_ROUTE_RPF(4),
++	VSP1_ENTITY_ROUTE(SRU),
++	VSP1_ENTITY_ROUTE_UDS(0),
++	VSP1_ENTITY_ROUTE_UDS(1),
++	VSP1_ENTITY_ROUTE_UDS(2),
++	VSP1_ENTITY_ROUTE_WPF(0),
++	VSP1_ENTITY_ROUTE_WPF(1),
++	VSP1_ENTITY_ROUTE_WPF(2),
++	VSP1_ENTITY_ROUTE_WPF(3),
+ };
+ 
+ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index 69eff4e17350..aaab05f4952c 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -42,17 +42,21 @@ enum vsp1_entity_type {
+  * @index: Entity index this routing entry is associated with
+  * @reg: Output routing configuration register
+  * @inputs: Target node value for each input
++ * @output: Target node value for entity output
+  *
+  * Each $vsp1_route entry describes routing configuration for the entity
+  * specified by the entry's @type and @index. @reg indicates the register that
+  * holds output routing configuration for the entity, and the @inputs array
+- * store the target node value for each input of the entity.
++ * store the target node value for each input of the entity. The @output field
++ * stores the target node value of the entity output when used as a source for
++ * histogram generation.
+  */
+ struct vsp1_route {
+ 	enum vsp1_entity_type type;
+ 	unsigned int index;
+ 	unsigned int reg;
+ 	unsigned int inputs[VSP1_ENTITY_MAX_INPUTS];
++	unsigned int output;
+ };
+ 
+ /**
 -- 
-2.8.0.rc3
+2.7.3
 
