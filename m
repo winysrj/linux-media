@@ -1,123 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:35294 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754238AbcDEC5v (ORCPT
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:36619 "EHLO
+	mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754142AbcDYItK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Apr 2016 22:57:51 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 52D221804BE
-	for <linux-media@vger.kernel.org>; Tue,  5 Apr 2016 04:57:45 +0200 (CEST)
-Date: Tue, 05 Apr 2016 04:57:45 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160405025745.52D221804BE@tschai.lan>
+	Mon, 25 Apr 2016 04:49:10 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Junghak Sung <jh1009.sung@samsung.com>, stable@vger.kernel.org
+Subject: [PATCH v3] media: vb2: Fix regression on poll() for RW mode
+Date: Mon, 25 Apr 2016 10:49:05 +0200
+Message-Id: <1461574145-27260-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+When using a device is read/write mode, vb2 does not handle properly the
+first select/poll operation.
 
-Results of the daily build of media_tree:
+The reason for this, is that when this code has been refactored, some of
+the operations have changed their order, and now fileio emulator is not
+started.
 
-date:		Tue Apr  5 04:00:16 CEST 2016
-git branch:	test
-git hash:	d3f5193019443ef8e556b64f3cd359773c4d377b
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3353-gcae47da
-host hardware:	x86_64
-host os:	4.4.0-164
+The reintroduced check to the core is enabled by a quirk flag, that
+avoids this check by other subsystems like DVB.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
+Cc: Junghak Sung <jh1009.sung@samsung.com>
+Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
+Cc: stable@vger.kernel.org
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
 
-Detailed results are available here:
+v3: By 	Hans Verkuil <hverkuil@xs4all.nl>
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+    Reorder comment.
 
-Full logs are available here:
+ drivers/media/v4l2-core/videobuf2-core.c |  4 ++++
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 15 +++++++--------
+ include/media/videobuf2-core.h           |  4 ++++
+ 3 files changed, 15 insertions(+), 8 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 5d016f496e0e..05ad744504ce 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2297,6 +2297,10 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
+ 	if (!vb2_is_streaming(q) || q->error)
+ 		return POLLERR;
+ 
++	if (q->quirk_poll_must_check_waiting_for_buffers &&
++	    q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
++		return POLLERR;
++
+ 	/*
+ 	 * For output streams you can call write() as long as there are fewer
+ 	 * buffers queued than there are buffers available.
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 91f552124050..e46754b5610e 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -765,6 +765,13 @@ int vb2_queue_init(struct vb2_queue *q)
+ 	q->is_output = V4L2_TYPE_IS_OUTPUT(q->type);
+ 	q->copy_timestamp = (q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK)
+ 			== V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	/*
++	 * If this quirk is set and QBUF hasn't been called yet then
++	 * return POLLERR as well. This only affects capture queues, output
++	 * queues will always initialize waiting_for_buffers to false.
++	 * This quirk is set by V4L2 for backwards compatibility reasons.
++	 */
++	q->quirk_poll_must_check_waiting_for_buffers = true;
+ 
+ 	return vb2_core_queue_init(q);
+ }
+@@ -818,14 +825,6 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 			poll_wait(file, &fh->wait, wait);
+ 	}
+ 
+-	/*
+-	 * For compatibility with vb1: if QBUF hasn't been called yet, then
+-	 * return POLLERR as well. This only affects capture queues, output
+-	 * queues will always initialize waiting_for_buffers to false.
+-	 */
+-	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
+-		return POLLERR;
+-
+ 	return res | vb2_core_poll(q, file, wait);
+ }
+ EXPORT_SYMBOL_GPL(vb2_poll);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 8a0f55b6c2ba..3a1620946068 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -400,6 +400,9 @@ struct vb2_buf_ops {
+  * @fileio_read_once:		report EOF after reading the first buffer
+  * @fileio_write_immediately:	queue buffer after each write() call
+  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
++ * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
++ *              has not been called. This is a vb1 idiom that has been adopted
++ *              also by vb2.
+  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+  *		driver can set this to a mutex to let the v4l2 core serialize
+  *		the queuing ioctls. If the driver wants to handle locking
+@@ -463,6 +466,7 @@ struct vb2_queue {
+ 	unsigned			fileio_read_once:1;
+ 	unsigned			fileio_write_immediately:1;
+ 	unsigned			allow_zero_bytesused:1;
++	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
+ 
+ 	struct mutex			*lock;
+ 	void				*owner;
+-- 
+2.8.0.rc3
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
