@@ -1,68 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52363 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751978AbcDVI0p (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55078 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932675AbcDYNZ4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 04:26:45 -0400
-Subject: Re: [PATCH 0/8] Input: atmel_mxt_ts - output raw touch diagnostic
- data via V4L
-To: Nick Dyer <nick.dyer@itdev.co.uk>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5719E03D.2010201@xs4all.nl>
-Date: Fri, 22 Apr 2016 10:26:37 +0200
+	Mon, 25 Apr 2016 09:25:56 -0400
+Date: Mon, 25 Apr 2016 16:25:49 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 01/24] V4L fixes
+Message-ID: <20160425132549.GE32125@valkosipuli.retiisi.org.uk>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nick,
+Hi Ivaylo,
 
-On 04/21/2016 11:31 AM, Nick Dyer wrote:
-> This is a series of patches to add diagnostic data support to the Atmel
-> maXTouch driver. It's a rewrite of the previous implementation which output via
-> debugfs: it now uses a V4L2 device in a similar way to the sur40 driver.
+Thanks for the set!
+
+On Mon, Apr 25, 2016 at 12:08:01AM +0300, Ivaylo Dimitrov wrote:
+> From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
 > 
-> There are significant performance advantages to putting this code into the
-> driver. The algorithm for retrieving the data has been fairly consistent across
-> a range of chips, with the exception of the mXT1386 series (see patch).
+> Squashed from the following upstream commits:
 > 
-> We have a utility which can read the data and display it in a useful format:
-> 	https://github.com/ndyer/heatmap/commits/heatmap-v4l
+> V4L: Create control class for sensor mode
+> V4L: add ad5820 focus specific custom controls
+> V4L: add V4L2_CID_TEST_PATTERN
+> V4L: Add V4L2_CID_MODE_OPSYSCLOCK for reading output system clock
 > 
-> These patches are also available from
-> 	https://github.com/ndyer/linux/commits/diagnostic-v4l
+> Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+> Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
+> ---
+>  include/uapi/linux/v4l2-controls.h | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
 > 
-> Any feedback appreciated.
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index b6a357a..23011cc 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -62,6 +62,7 @@
+>  #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
+>  #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
+>  #define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
+> +#define V4L2_CTRL_CLASS_MODE		0x00a40000	/* Sensor mode information */
+>  
+>  /* User-class control IDs */
+>  
+> @@ -974,4 +975,20 @@ enum v4l2_detect_md_mode {
+>  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+>  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
+>  
+> +/* SMIA-type sensor information */
+> +#define V4L2_CID_MODE_CLASS_BASE		(V4L2_CTRL_CLASS_MODE | 0x900)
+> +#define V4L2_CID_MODE_CLASS			(V4L2_CTRL_CLASS_MODE | 1)
+> +#define V4L2_CID_MODE_FRAME_WIDTH		(V4L2_CID_MODE_CLASS_BASE+1)
+> +#define V4L2_CID_MODE_FRAME_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+2)
+> +#define V4L2_CID_MODE_VISIBLE_WIDTH		(V4L2_CID_MODE_CLASS_BASE+3)
+> +#define V4L2_CID_MODE_VISIBLE_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+4)
 
-FYI: we're working on a new buffer type for meta data:
+The interface here pre-dates the selection API. The frame width and height
+is today conveyed to the bridge driver by the smiapp driver in the scaler
+(or binner in case of the lack of the scaler) sub-device's source pad
+format.
 
-https://patchwork.linuxtv.org/patch/33938/
-https://patchwork.linuxtv.org/patch/33939/
+(While that's the current interface, I'm not entirely happy with it; it
+requires more sub-devices to be created for the same I2C device). I think in
+this case you'd need one more to properly control the sensor.
 
-This would be an excellent fit for you. I expect that this new feature would be
-merged soon (for 4.7 or 4.8 at the latest) since it looks all pretty good to me.
+> +#define V4L2_CID_MODE_PIXELCLOCK		(V4L2_CID_MODE_CLASS_BASE+5)
+> +#define V4L2_CID_MODE_SENSITIVITY		(V4L2_CID_MODE_CLASS_BASE+6)
+> +#define V4L2_CID_MODE_OPSYSCLOCK		(V4L2_CID_MODE_CLASS_BASE+7)
 
-So let's wait for this to be merged and then you can migrate to the new buffer
-type.
+While I don't remember quite what the sensitivity value was about (it could
+be e.g. binning summing / averaging), the other two values are passed to
+(and also controlled by) the user space using controls. There are
+V4L2_CID_PIXEL_RATE and V4L2_CID_LINK_FREQ or such.
 
-Regards,
+> +
+> +/* Control IDs specific to the AD5820 driver as defined by V4L2 */
+> +#define V4L2_CID_FOCUS_AD5820_BASE 		(V4L2_CTRL_CLASS_CAMERA | 0x10af)
+> +#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_FOCUS_AD5820_BASE+0)
+> +#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
 
-	Hans
+The ad5820 driver isn't in upstream at the moment. It should be investigated
+whether there is a possibility to have standard V4L2 controls for lens
+devices, or whether device specific controls should be implemented instead.
+Device specific controls are a safe choice in this case, but they should be
+in a separate patch, possibly one that would also include the lens driver
+itself.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
