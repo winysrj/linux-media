@@ -1,49 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m50-133.163.com ([123.125.50.133]:34003 "EHLO m50-133.163.com"
+Received: from gofer.mess.org ([80.229.237.210]:39189 "EHLO gofer.mess.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933798AbcDFJ4i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Apr 2016 05:56:38 -0400
-From: zengzhaoxiu@163.com
-To: hverkuil@xs4all.nl, mchehab@osg.samsung.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
-Subject: [PATCH v2 14/30] media: use parity8 in vivid-vbi-gen.c
-Date: Wed,  6 Apr 2016 17:39:05 +0800
-Message-Id: <1459935545-7522-1-git-send-email-zengzhaoxiu@163.com>
-In-Reply-To: <57031D9D.801@gmail.com>
-References: <57031D9D.801@gmail.com>
+	id S932130AbcDYRPJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Apr 2016 13:15:09 -0400
+Date: Mon, 25 Apr 2016 18:15:06 +0100
+From: Sean Young <sean@mess.org>
+To: Wade Berrier <wberrier@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: mceusb xhci issue?
+Message-ID: <20160425171506.GA25277@gofer.mess.org>
+References: <20160425040632.GD15140@berrier.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160425040632.GD15140@berrier.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+On Sun, Apr 24, 2016 at 10:06:33PM -0600, Wade Berrier wrote:
+> Hello,
+> 
+> I have a mceusb compatible transceiver that only seems to work with
+> certain computers.  I'm testing this on centos7 (3.10.0) and fedora23
+> (4.4.7).
+> 
+> The only difference I can see is that the working computer shows
+> "using uhci_hcd" and the non working shows "using xhci_hcd".
+> 
+> Here's the dmesg output of the non-working version:
+> 
+> ---------------------
+> 
+> [  217.951079] usb 1-5: new full-speed USB device number 10 using xhci_hcd
+> [  218.104087] usb 1-5: device descriptor read/64, error -71
+> [  218.371010] usb 1-5: config 1 interface 0 altsetting 0 endpoint 0x1 has an invalid bInterval 0, changing to 32
+> [  218.371019] usb 1-5: config 1 interface 0 altsetting 0 endpoint 0x81 has an invalid bInterval 0, changing to 32
 
-Signed-off-by: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
----
- drivers/media/platform/vivid/vivid-vbi-gen.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+That's odd. Can you post a "lsusb -vvv" of the device please?
 
-diff --git a/drivers/media/platform/vivid/vivid-vbi-gen.c b/drivers/media/platform/vivid/vivid-vbi-gen.c
-index a2159de..d5ba0fc 100644
---- a/drivers/media/platform/vivid/vivid-vbi-gen.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-gen.c
-@@ -175,14 +175,9 @@ static const u8 vivid_cc_sequence2[30] = {
- 	0x14, 0x2f,	/* End of Caption */
- };
- 
--static u8 calc_parity(u8 val)
-+static inline u8 calc_parity(u8 val)
- {
--	unsigned i;
--	unsigned tot = 0;
--
--	for (i = 0; i < 7; i++)
--		tot += (val & (1 << i)) ? 1 : 0;
--	return val | ((tot & 1) ? 0 : 0x80);
-+	return (!parity8(val) << 7) | val;
- }
- 
- static void vivid_vbi_gen_set_time_of_day(u8 *packet)
--- 
-2.5.0
+Thanks,
 
-
+Sean
