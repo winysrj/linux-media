@@ -1,73 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:34165 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751317AbcDZPr4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Apr 2016 11:47:56 -0400
-Subject: Re: [RFC PATCH v2 0/2] [media] tvp515p: Proposal for MC input
- connector support
-To: linux-kernel@vger.kernel.org
-References: <1460500973-9066-1-git-send-email-javier@osg.samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41144 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932872AbcDYSkT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Apr 2016 14:40:19 -0400
+Date: Mon, 25 Apr 2016 20:40:16 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
 	linux-media@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <6da21733-8350-0dfd-68b7-f6385e283c9c@osg.samsung.com>
-Date: Tue, 26 Apr 2016 11:47:46 -0400
+Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
+Message-ID: <20160425184016.GC10443@amd>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160425165848.GA10443@amd>
+ <571E5134.10607@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1460500973-9066-1-git-send-email-javier@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <571E5134.10607@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/12/2016 06:42 PM, Javier Martinez Canillas wrote:
-> Hello,
-> 
-> This is a second version of an RFC patch series that adds MC input connector
-> support to the tvp5150 driver. The first RFC version was [0].
-> 
-> The patches are RFC because a previous version was merged and later reverted
-> since the approach was found to be inadequate. So I preferred to post this
-> approach as RFC to discuss it first.
-> 
-> The main difference with v1 is that a single sink pad is used for the tvp5150
-> (instead of using a pad per each input pin) as suggested by Mauro and Hans.
-> 
-> The mc_nextgen_test dot output after applying the series can be found at [1]
-> and the graph png generated using the dot tool is at [2].
-> 
-> I tested these patches on an IGEPv2 by capturing using both Composite inputs.
-> 
-> [0]: https://www.mail-archive.com/linux-media@vger.kernel.org/msg95389.html
-> [1]: http://hastebin.com/yiduhonome.tex
-> [2]: http://i.imgur.com/EyFtVtJ.png?1
-> 
-> Best regards,
-> Javier
-> 
-> Changes in v2:
-> - Remove from the changelog a mention of devices that multiplex the
->   physical RCA connectors to be used for the S-Video Y and C signals
->   since it's a special case and it doesn't really work on the IGEPv2.
-> - Use a single sink pad for the demod and map the connectors as entities
->   so the mux is made via links. Suggested by Mauro and Hans.
-> 
-> Javier Martinez Canillas (2):
->   [media] tvp5150: Add input connectors DT bindings
->   [media] tvp5150: Replace connector support according to DT binding
-> 
->  .../devicetree/bindings/media/i2c/tvp5150.txt      |  59 ++++++++
->  drivers/media/i2c/tvp5150.c                        | 155 +++++++++++++++------
->  2 files changed, 170 insertions(+), 44 deletions(-)
-> 
+Hi!
 
-Any comments about this series?
+> >I can't do -vo xv ... fails for me, probably due to X
+> >configuration. Does it work with -vo x11 for you?
+> >
+> yes, -vo x11 works under maemo.
 
-Best regards,
+Ok, good.
+
+> In linux-n900 branch we have a patch that reserves memory for omapfb - see https://github.com/freemangordon/linux-n900/commit/60f85dcb6a663efe687f58208861545d65210b55
+> 
+> also, because of a change in 4.6, https://github.com/freemangordon/linux-n900/commit/60f85dcb6a663efe687f58208861545d65210b55#diff-072444ea67d2aca6b402458f50d20edeR125
+> needs a change to DMA_MEMORY_IO and the if bellow needs the relevant change
+> as well.
+
+> This is needed for -vo xv (and any omapfb video playback) to reliably work
+> under maemo.
+
+I don't have that kind of acceleration working.
+
+> >For me it shows window with green interior. And complains about v4l2:
+> >select timeouts. (I enabled these in .config):
+> >
+> >+CONFIG_VIDEO_BUS_SWITCH=y
+> >+CONFIG_VIDEO_SMIAREGS=y
+> >+CONFIG_VIDEO_ET8EK8=y
+> >+CONFIG_VIDEOBUF2_CORE=y
+> >+CONFIG_VIDEOBUF2_MEMOPS=y
+> >+CONFIG_VIDEOBUF2_DMA_CONTIG=y
+> >+CONFIG_VIDEO_OMAP3=y
+> >+CONFIG_VIDEO_SMIAPP_PLL=y
+> >+CONFIG_VIDEO_SMIAPP=y
+> >
+> >Any ideas?
+> >									Pavel
+> >
+> 
+> Try to build those as modules. Also, do you have all the needed patches
+> besides those in the patchset?
+> 
+> See https://github.com/freemangordon/linux-n900/commits/v4.6-rc4-n900-camera
+> 
+> Also, is there anything related in dmesg log?
+
+Modules are tricky. I hate modules. I did patch with
+
+https://lkml.org/lkml/2016/4/16/14
+https://lkml.org/lkml/2016/4/16/33
+
++ the series. And yes, there seems to be explanation in the dmesg:
+
+[ 6134.261993] DISPC: channel 0 xres 800 yres 480
+[ 6134.262023] DISPC: pck 24000000
+[ 6134.262023] DISPC: hsw 4 hfp 28 hbp 24 vsw 3 vfp 3 vbp 4
+[ 6134.262023] DISPC: vsync_level 0 hsync_level 0 data_pclk_edge 1
+de_level 1 sync_pclk_edge 1
+[ 6134.262023] DISPC: hsync 28037Hz, vsync 57Hz
+[ 6134.262054] DISPC: lck = 72000000 (1)
+[ 6134.262054] DISPC: pck = 24000000 (3)
+[ 6190.075103] omap3isp 480bc000.isp: Unable to stop OMAP3 ISP resizer
+[ 6192.075347] omap3isp 480bc000.isp: CCDC stop timeout!
+[ 6192.075408] omap3isp 480bc000.isp: Unable to stop OMAP3 ISP CCDC
+[ 6292.293670] DISPC: dispc_runtime_put
+[ 6292.293701] DISPC: dispc_save_context
+[ 6292.293762] DISPC: context saved
+[ 6292.294342] DSS: dss_save_context
+[ 6292.294372] DSS: context saved
+[ 6297.056976] DISPC: dispc_runtime_get
+[ 6297.057067] DSS: dss_restore_context
+[ 6297.057067] DSS: context restored
+[ 6297.057159] DSS: set fck to 72000000
+[ 6297.057159] DISPC: lck = 72000000 (1)
+[ 6297.057159] DISPC: pck = 24000000 (3)
+
+Let me check the github...
+									Pavel
+
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
