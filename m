@@ -1,113 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:42273 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751043AbcD2RqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 13:46:08 -0400
-Date: Fri, 29 Apr 2016 19:45:59 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
-	<ivo.g.dimitrov.75@gmail.com>
-Cc: pavel@ucw.cz, sakari.ailus@iki.fi, pali.rohar@gmail.com,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
-Message-ID: <20160429174559.GA6431@earth>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160427030850.GA17034@earth>
- <572048AC.7050700@gmail.com>
- <572062EF.7060502@gmail.com>
- <20160427164256.GA8156@earth>
- <1461777170.18568.2.camel@Nokia-N900>
- <20160429000551.GA29312@earth>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36995 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751708AbcDYODA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Apr 2016 10:03:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Florian Echtler <floe@butterbrot.org>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Fabien Dessenne <fabien.dessenne@st.com>,
+	Benoit Parrot <bparrot@ti.com>,
+	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Ludovic Desroches <ludovic.desroches@atmel.com>,
+	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCHv3 01/12] vb2: add a dev field to use for the default allocation context
+Date: Mon, 25 Apr 2016 17:03:21 +0300
+Message-ID: <2233231.mOPctrYVgM@avalon>
+In-Reply-To: <571DC685.1040901@xs4all.nl>
+References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl> <2315180.nFEM82KaAP@avalon> <571DC685.1040901@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
-Content-Disposition: inline
-In-Reply-To: <20160429000551.GA29312@earth>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---VbJkn9YxBvnuCH5J
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Monday 25 Apr 2016 09:25:57 Hans Verkuil wrote:
+> On 04/24/2016 11:51 PM, Laurent Pinchart wrote:
+> > On Saturday 23 Apr 2016 12:37:10 Hans Verkuil wrote:
+> >> On 04/23/2016 02:14 AM, Laurent Pinchart wrote:
+> >>> On Friday 22 Apr 2016 10:38:08 Hans Verkuil wrote:
+> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> 
+> >>>> The allocation context is nothing more than a per-plane device pointer
+> >>>> to use when allocating buffers. So just provide a dev pointer in
+> >>>> vb2_queue for that purpose and drivers can skip
+> >>>> allocating/releasing/filling in the allocation context unless they
+> >>>> require different per-plane device pointers as used by some Samsung
+> >>>> SoCs.
+> >>>> 
+> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
+> >>>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> >>>> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >>>> Cc: Florian Echtler <floe@butterbrot.org>
+> >>>> Cc: Federico Vaga <federico.vaga@gmail.com>
+> >>>> Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> >>>> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+> >>>> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> >>>> Cc: Fabien Dessenne <fabien.dessenne@st.com>
+> >>>> Cc: Benoit Parrot <bparrot@ti.com>
+> >>>> Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
+> >>>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >>>> Cc: Javier Martin <javier.martin@vista-silicon.com>
+> >>>> Cc: Jonathan Corbet <corbet@lwn.net>
+> >>>> Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
+> >>>> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> >>>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> >>>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >>>> ---
+> >>>> 
+> >>>>  drivers/media/v4l2-core/videobuf2-core.c | 16 +++++++++-------
+> >>>>  include/media/videobuf2-core.h           |  3 +++
+> >>>>  2 files changed, 12 insertions(+), 7 deletions(-)
+> >>>> 
+> >>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> >>>> b/drivers/media/v4l2-core/videobuf2-core.c index 5d016f4..88b5e48
+> >>>> 100644
+> >>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> >>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> >>>> @@ -206,8 +206,9 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer
+> >>>> *vb)
+> >>>> 
+> >>>>  	for (plane = 0; plane < vb->num_planes; ++plane) {
+> >>>>  	
+> >>>>  		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
+> >>>> 
+> >>>> -		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
+> >>>> -				      size, dma_dir, q->gfp_flags);
+> >>>> +		mem_priv = call_ptr_memop(vb, alloc,
+> >>>> +				q->alloc_ctx[plane] ? : &q->dev,
+> >>>> +				size, dma_dir, q->gfp_flags);
+> >>> 
+> >>> While the videobuf2-dma-sg allocation context indeed only contains a
+> >>> pointer to the device, the videobuf2-dma-contig context also contains a
+> >>> dma_attrs. This patch will break the videobuf2-dma-contig alloc
+> >>> implementation.
+> >> 
+> >> Good point. I fixed this in the last patch, but that would mean
+> >> dma-contig would be broken for the patches in between.
+> >> 
+> >> I'm moving dma_attrs to struct vb2_queue as the first patch, then the
+> >> rest will work fine.
+> > 
+> > Couldn't a driver require different dma attributes per plane ? Would it
+> > make sense to keep the allocation context structure, and use the struct
+> > device and dma attributes stored in the queue when no allocation context
+> > is provided ?
+>
+> I kept the dma_attrs part simple for two reasons:
+> 
+> 1) No driver in the kernel uses it.
+> 2) I really can't think of any scenario where you get different DMA attrs
+> per plane. Perhaps if we make it possible to have a variable number of
+> planes, but all that is in the future and I rather take care of it when we
+> actually know what we need.
+> 
+> The 'allocation context' idea was simply a bad one: you're stuck with void
+> pointers (I hate those) and always having to check for ENOMEM when
+> allocating them. When all you need in almost all cases is just a device
+> pointer.
 
-Hi,
+Fair enough, we can add support for different DMA attributes later if we end 
+up needed that.
 
-On Fri, Apr 29, 2016 at 02:05:52AM +0200, Sebastian Reichel wrote:
-> On Wed, Apr 27, 2016 at 08:12:50PM +0300, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=
-=D0=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2 wrote:
-> > > The zImage + initrd works with the steps you described below.
-> >=20
-> > Great!
->=20
-> I also got it working with the previously referenced branch with the
-> following built as modules:
->=20
-> CONFIG_VIDEOBUF2_CORE=3Dm
-> CONFIG_VIDEOBUF2_MEMOPS=3Dm
-> CONFIG_VIDEOBUF2_DMA_CONTIG=3Dm
-> CONFIG_VIDEO_OMAP3=3Dm
-> CONFIG_VIDEO_BUS_SWITCH=3Dm
-> CONFIG_VIDEO_SMIAPP_PLL=3Dm
-> CONFIG_VIDEO_SMIAPP=3Dm
-> CONFIG_VIDEO_SMIAREGS=3Dm
-> CONFIG_VIDEO_ET8EK8=3Dm
+-- 
+Regards,
 
-Ok, I found the problem. CONFIG_VIDEO_OMAP3=3Dy does not work,
-due to missing -EPROBE_DEFER handling for vdds_csib. I added
-it and just got a test image with builtin CONFIG_VIDEO_OMAP3.
-The below patch fixes the problem.
+Laurent Pinchart
 
-commit 9d8333b29207de3a9b6ac99db2dfd91e2f8c0216
-Author: Sebastian Reichel <sre@kernel.org>
-Date:   Fri Apr 29 19:23:02 2016 +0200
-
-    omap3isp: handle -EPROBE_DEFER for vdds_csib
-   =20
-    omap3isp may be initialized before the regulator's driver has been
-    loaded resulting in vdds_csib=3DNULL. Fix this by handling -EPROBE_DEFER
-    for vdds_csib.
-   =20
-    Signed-Off-By: Sebastian Reichel <sre@kernel.org>
-
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/plat=
-form/omap3isp/ispccp2.c
-index 833eed411886..2d1463a72d6a 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -1167,6 +1167,8 @@ int omap3isp_ccp2_init(struct isp_device *isp)
- 	if (isp->revision =3D=3D ISP_REVISION_2_0) {
- 		ccp2->vdds_csib =3D devm_regulator_get(isp->dev, "vdds_csib");
- 		if (IS_ERR(ccp2->vdds_csib)) {
-+			if (PTR_ERR(ccp2->vdds_csib) =3D=3D -EPROBE_DEFER)
-+				return -EPROBE_DEFER;
- 			dev_dbg(isp->dev,
- 				"Could not get regulator vdds_csib\n");
- 			ccp2->vdds_csib =3D NULL;
-
--- Sebastian
-
---VbJkn9YxBvnuCH5J
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJXI53UAAoJENju1/PIO/qaIKYQAJkB02X6T1Hxfbq2tHl7rPin
-Wz/rzlIkGK1DSOW5xRiTRvqbQX1TAants13YisR9avcb4nnE7kubsjBrTqgWtLAQ
-1VhZzANzXuVDvQpyG77x4PuA+XNs/zK9//s3+h/mQ3MbX2Nkie1KGHs4JbSgukro
-0XrfityWIITVDoGQO9IzX3IaXHT3smENAcdJcR58aSEXaEDxwvE7ZB/9+saD1mab
-Fni1CCvbDCW90RQ0h1CwRXaBBICTISBGLbqvQHLuPsbx5G+Sfk9C8e5BujIWKXb6
-RHPEl2Krcb63zwce91rYH2QorAjsemaoi5L50nJ25Om0G+z+TPbCFAIXpZzhj0ul
-gBTDiZ6Jo07OMb0s8L7zWFVpioKVBk0dE2SAUw35zCL68VKKIgwmWj6jgw4P+8v+
-lGYFE1uXILhkYugwDLndSsdHC6PhRRjXLGsaHemzYRPgeuW2nINxIQJbNbRsejqd
-vgrGc4PaW/X9tti9djTObFXfDCiZi7yHMU4FWooxOdilB95+4+sMQYJmAgWFTaHY
-aduARuA70nJl/hjd5CnK88dk6EeOkOw3Xi+3ju6DKogal39o+MFp9R3LFPlOgSIn
-WO0aIt3S5GAmmGe8iOLsZIkLUXg1ub/0U9xrTTHb5BzgwFjgjt7zrUKwS5C3CpAi
-nd5Y+W3YZa3HMql6XGtZ
-=f2A5
------END PGP SIGNATURE-----
-
---VbJkn9YxBvnuCH5J--
