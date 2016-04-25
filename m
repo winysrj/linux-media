@@ -1,72 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55122 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751583AbcD2Knl (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:15426 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753675AbcDYJWK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 06:43:41 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.7] Add new rcar-vin driver
-Message-ID: <57233AD8.1030800@xs4all.nl>
-Date: Fri, 29 Apr 2016 12:43:36 +0200
+	Mon, 25 Apr 2016 05:22:10 -0400
+Message-ID: <1461576123.15167.3.camel@mtksdaap41>
+Subject: Re: [PATCH v7 2/8] [media] VPU: mediatek: support Mediatek VPU
+From: andrew-ct chen <andrew-ct.chen@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Tiffany Lin <tiffany.lin@mediatek.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>,
+	Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
+Date: Mon, 25 Apr 2016 17:22:03 +0800
+In-Reply-To: <571DCA04.8000703@xs4all.nl>
+References: <1461299131-57851-1-git-send-email-tiffany.lin@mediatek.com>
+	 <1461299131-57851-2-git-send-email-tiffany.lin@mediatek.com>
+	 <1461299131-57851-3-git-send-email-tiffany.lin@mediatek.com>
+	 <571DCA04.8000703@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Mon, 2016-04-25 at 09:40 +0200, Hans Verkuil wrote:
+> On 04/22/2016 06:25 AM, Tiffany Lin wrote:
+> > From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+> > 
+> > The VPU driver for hw video codec embedded in Mediatek's MT8173 SOCs.
+> > It is able to handle video decoding/encoding of in a range of formats.
+> > The driver provides with VPU firmware download, memory management and
+> > the communication interface between CPU and VPU.
+> > For VPU initialization, it will create virtual memory for CPU access and
+> > IOMMU address for vcodec hw device access. When a decode/encode instance
+> > opens a device node, vpu driver will download vpu firmware to the device.
+> > A decode/encode instant will decode/encode a frame using VPU
+> > interface to interrupt vpu to handle decoding/encoding jobs.
+> > 
+> > Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> > 
+> > ---
+> >  drivers/media/platform/Kconfig           |   13 +
+> >  drivers/media/platform/Makefile          |    2 +
+> >  drivers/media/platform/mtk-vpu/Makefile  |    3 +
+> >  drivers/media/platform/mtk-vpu/mtk_vpu.c |  950 ++++++++++++++++++++++++++++++
+> >  drivers/media/platform/mtk-vpu/mtk_vpu.h |  162 +++++
+> >  5 files changed, 1130 insertions(+)
+> >  create mode 100644 drivers/media/platform/mtk-vpu/Makefile
+> >  create mode 100755 drivers/media/platform/mtk-vpu/mtk_vpu.c
+> >  create mode 100644 drivers/media/platform/mtk-vpu/mtk_vpu.h
+> > 
+> 
+> 
+> > +int vpu_load_firmware(struct platform_device *pdev)
+> > +{
+> > +	struct mtk_vpu *vpu = platform_get_drvdata(pdev);
+> > +	struct device *dev = &pdev->dev;
+> > +	struct vpu_run *run = &vpu->run;
+> > +	const struct firmware *vpu_fw;
+> > +	int ret;
+> > +
+> > +	if (!pdev) {
+> > +		dev_err(dev, "VPU platform device is invalid\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	ret = vpu_clock_enable(vpu);
+> > +	if (ret) {
+> > +		dev_err(dev, "enable clock failed %d\n", ret);
+> > +		return ret;
+> > +	}
+> > +
+> > +	mutex_lock(&vpu->vpu_mutex);
+> > +
+> > +	if (vpu_running(vpu)) {
+> > +		mutex_unlock(&vpu->vpu_mutex);
+> > +		vpu_clock_disable(vpu);
+> > +		dev_warn(dev, "vpu is running already\n");
+> 
+> This warning should be dropped. Currently vpu_load_firmware is called
+> every time the video device is opened and no one else has the video device
+> open. So calling this multiple times is perfectly normal and the log shouldn't
+> be spammed with warnings.
+> 
+> I would recommend adding a fw_loaded bool to struct mtk_vpu and just
+> check that at the beginning of this function and just return 0 if it is true.
+> 
+> Then you don't need to enable the vpu clock either.
+> 
+> I hope I understand the hw correctly, though.
+> 
+> Assuming you can do this, then this code from the v4l driver needs an
+> additional comment:
 
-This adds the new non-soc-camera rcar-vin driver, deprecating the older driver.
+We will change this in next version.
 
-Tested with my Koelsch board.
+> 
+> >>> +	if (v4l2_fh_is_singular(&ctx->fh)) {
+> 
+> Add a comment here that says that vpu_load_firmware checks if it was
+> loaded already and does nothing in that case.
 
-This patch just marks the old driver as DEPRECATED.
+We will change this in next version. Thanks
 
-I am unsure what is better:
+> 
+> >>> +		ret = vpu_load_firmware(dev->vpu_plat_dev);
+> >>> +		if (ret < 0) {
+> >>> +			/*
+> >>> +			  * Return 0 if downloading firmware successfully,
+> >>> +			  * otherwise it is failed
+> >>> +			  */
+> >>> +			mtk_v4l2_err("vpu_load_firmware failed!");
+> >>> +			goto err_load_fw;
+> >>> +		}
+> 
+> That makes it clear to the reader (i.e. me :-) ) that you can safely call
+> vpu_load_firmware multiple times.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > +		return 0;
+> > +	}
+> > +
+> > +	run->signaled = false;
+> > +	dev_dbg(vpu->dev, "firmware request\n");
+> > +	/* Downloading program firmware to device*/
+> > +	ret = load_requested_vpu(vpu, vpu_fw, P_FW);
+> > +	if (ret < 0) {
+> > +		dev_err(dev, "Failed to request %s, %d\n", VPU_P_FW, ret);
+> > +		goto OUT_LOAD_FW;
+> > +	}
+> > +
+> > +	/* Downloading data firmware to device */
+> > +	ret = load_requested_vpu(vpu, vpu_fw, D_FW);
+> > +	if (ret < 0) {
+> > +		dev_err(dev, "Failed to request %s, %d\n", VPU_D_FW, ret);
+> > +		goto OUT_LOAD_FW;
+> > +	}
+> > +
+> > +	/* boot up vpu */
+> > +	vpu_cfg_writel(vpu, 0x1, VPU_RESET);
+> > +
+> > +	ret = wait_event_interruptible_timeout(run->wq,
+> > +					       run->signaled,
+> > +					       msecs_to_jiffies(INIT_TIMEOUT_MS)
+> > +					       );
+> > +	if (ret == 0) {
+> > +		ret = -ETIME;
+> > +		dev_err(dev, "wait vpu initialization timout!\n");
+> > +		goto OUT_LOAD_FW;
+> > +	} else if (-ERESTARTSYS == ret) {
+> > +		dev_err(dev, "wait vpu interrupted by a signal!\n");
+> > +		goto OUT_LOAD_FW;
+> > +	}
+> > +
+> > +	ret = 0;
+> > +	dev_info(dev, "vpu is ready. Fw version %s\n", run->fw_ver);
+> > +
+> > +OUT_LOAD_FW:
+> > +	mutex_unlock(&vpu->vpu_mutex);
+> > +	vpu_clock_disable(vpu);
+> > +
+> > +	return ret;
+> > +}
+> > +EXPORT_SYMBOL_GPL(vpu_load_firmware);
+> 
 
-1) just mark as DEPRECATED and remove it in the next kernel
-2) move it to drivers/staging/media and remove it in the next kernel
-3) just remove it now
 
-I have no strong preference myself.
-
-Regards,
-
-	Hans
-
-The following changes since commit 45c175c4ae9695d6d2f30a45ab7f3866cfac184b:
-
-  [media] tw686x: avoid going past array (2016-04-26 06:38:53 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git rcar
-
-for you to fetch changes up to dd34ebe6deb4162993efb5de12b0418354ee5173:
-
-  rcar-vin: add Renesas R-Car VIN driver (2016-04-29 12:13:16 +0200)
-
-----------------------------------------------------------------
-Niklas Söderlund (1):
-      rcar-vin: add Renesas R-Car VIN driver
-
- drivers/media/platform/Kconfig              |    1 +
- drivers/media/platform/Makefile             |    2 +
- drivers/media/platform/rcar-vin/Kconfig     |   11 +
- drivers/media/platform/rcar-vin/Makefile    |    3 +
- drivers/media/platform/rcar-vin/rcar-core.c |  337 ++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-dma.c  | 1196 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  768 +++++++++++++++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h  |  163 ++++++++
- drivers/media/platform/soc_camera/Kconfig   |    4 +-
- drivers/media/platform/soc_camera/Makefile  |    2 +-
- 10 files changed, 2484 insertions(+), 3 deletions(-)
- create mode 100644 drivers/media/platform/rcar-vin/Kconfig
- create mode 100644 drivers/media/platform/rcar-vin/Makefile
- create mode 100644 drivers/media/platform/rcar-vin/rcar-core.c
- create mode 100644 drivers/media/platform/rcar-vin/rcar-dma.c
- create mode 100644 drivers/media/platform/rcar-vin/rcar-v4l2.c
- create mode 100644 drivers/media/platform/rcar-vin/rcar-vin.h
