@@ -1,50 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:58706 "EHLO mail.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753300AbcDHXK3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Apr 2016 19:10:29 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@linuxtesting.org
-Subject: [PATCH] [media] bt8xx: remove needless module refcounting
-Date: Sat,  9 Apr 2016 02:09:49 +0300
-Message-Id: <1460156989-14404-1-git-send-email-khoroshilov@ispras.ru>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36198 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218AbcDYAaK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Apr 2016 20:30:10 -0400
+From: Eric Engestrom <eric@engestrom.ch>
+To: linux-kernel@vger.kernel.org
+Cc: Eric Engestrom <eric@engestrom.ch>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 23/41] Documentation: DocBook: fix spelling mistake
+Date: Mon, 25 Apr 2016 01:24:20 +0100
+Message-Id: <1461543878-3639-24-git-send-email-eric@engestrom.ch>
+In-Reply-To: <1461543878-3639-1-git-send-email-eric@engestrom.ch>
+References: <1461543878-3639-1-git-send-email-eric@engestrom.ch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is responsibility of a caller of fops->open(),
-to make sure an owner of the fops is available until file is closed.
-So, there is no need to lock THIS_MODULE explicitly.
-
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Signed-off-by: Eric Engestrom <eric@engestrom.ch>
 ---
- drivers/media/pci/bt8xx/dst_ca.c | 2 --
- 1 file changed, 2 deletions(-)
+ Documentation/DocBook/media/dvb/net.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
-index da8b414fd824..8681b9143a35 100644
---- a/drivers/media/pci/bt8xx/dst_ca.c
-+++ b/drivers/media/pci/bt8xx/dst_ca.c
-@@ -655,7 +655,6 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
- static int dst_ca_open(struct inode *inode, struct file *file)
- {
- 	dprintk(verbose, DST_CA_DEBUG, 1, " Device opened [%p] ", file);
--	try_module_get(THIS_MODULE);
- 
- 	return 0;
- }
-@@ -663,7 +662,6 @@ static int dst_ca_open(struct inode *inode, struct file *file)
- static int dst_ca_release(struct inode *inode, struct file *file)
- {
- 	dprintk(verbose, DST_CA_DEBUG, 1, " Device closed.");
--	module_put(THIS_MODULE);
- 
- 	return 0;
- }
+diff --git a/Documentation/DocBook/media/dvb/net.xml b/Documentation/DocBook/media/dvb/net.xml
+index d2e44b7..da095ed 100644
+--- a/Documentation/DocBook/media/dvb/net.xml
++++ b/Documentation/DocBook/media/dvb/net.xml
+@@ -15,7 +15,7 @@
+     that are present on the transport stream. This is done through
+     <constant>/dev/dvb/adapter?/net?</constant> device node.
+     The data will be available via virtual <constant>dvb?_?</constant>
+-    network interfaces, and will be controled/routed via the standard
++    network interfaces, and will be controlled/routed via the standard
+     ip tools (like ip, route, netstat, ifconfig, etc).</para>
+ <para> Data types and and ioctl definitions are defined via
+     <constant>linux/dvb/net.h</constant> header.</para>
 -- 
-1.9.1
+2.8.0
 
