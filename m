@@ -1,343 +1,537 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f53.google.com ([209.85.192.53]:33158 "EHLO
-	mail-qg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753797AbcDAWit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2016 18:38:49 -0400
-Received: by mail-qg0-f53.google.com with SMTP id j35so108280284qge.0
-        for <linux-media@vger.kernel.org>; Fri, 01 Apr 2016 15:38:49 -0700 (PDT)
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 4/7] tw686x: Add support for DMA scatter-gather mode
-Date: Fri,  1 Apr 2016 19:38:24 -0300
-Message-Id: <1459550307-688-5-git-send-email-ezequiel@vanguardiasur.com.ar>
-In-Reply-To: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-References: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:54907 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754484AbcDYMaR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Apr 2016 08:30:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 14/15] pulse8-cec: add new driver
+Date: Mon, 25 Apr 2016 14:24:41 +0200
+Message-Id: <1461587082-48041-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the driver has the infrastructure to support more
-DMA modes, let's add the DMA scatter-gather mode.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-In this mode, the device delivers sequential top-bottom
-frames.
+Alpha quality only at the moment.
 
-Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/tw686x/Kconfig        |   1 +
- drivers/media/pci/tw686x/tw686x-core.c  |   4 +
- drivers/media/pci/tw686x/tw686x-video.c | 188 ++++++++++++++++++++++++++++++++
- drivers/media/pci/tw686x/tw686x.h       |  14 +++
- 4 files changed, 207 insertions(+)
+ MAINTAINERS                           |   7 +
+ drivers/media/usb/Kconfig             |   5 +
+ drivers/media/usb/Makefile            |   1 +
+ drivers/media/usb/pulse8/Kconfig      |  10 +
+ drivers/media/usb/pulse8/Makefile     |   1 +
+ drivers/media/usb/pulse8/pulse8-cec.c | 412 ++++++++++++++++++++++++++++++++++
+ include/uapi/linux/serio.h            |   1 +
+ 7 files changed, 437 insertions(+)
+ create mode 100644 drivers/media/usb/pulse8/Kconfig
+ create mode 100644 drivers/media/usb/pulse8/Makefile
+ create mode 100644 drivers/media/usb/pulse8/pulse8-cec.c
 
-diff --git a/drivers/media/pci/tw686x/Kconfig b/drivers/media/pci/tw686x/Kconfig
-index ef8ca85522f8..34ff37712313 100644
---- a/drivers/media/pci/tw686x/Kconfig
-+++ b/drivers/media/pci/tw686x/Kconfig
-@@ -4,6 +4,7 @@ config VIDEO_TW686X
- 	depends on HAS_DMA
- 	select VIDEOBUF2_VMALLOC
- 	select VIDEOBUF2_DMA_CONTIG
-+	select VIDEOBUF2_DMA_SG
- 	select SND_PCM
- 	help
- 	  Support for Intersil/Techwell TW686x-based frame grabber cards.
-diff --git a/drivers/media/pci/tw686x/tw686x-core.c b/drivers/media/pci/tw686x/tw686x-core.c
-index 9a7646c0f9f6..586bc6723c93 100644
---- a/drivers/media/pci/tw686x/tw686x-core.c
-+++ b/drivers/media/pci/tw686x/tw686x-core.c
-@@ -65,6 +65,8 @@ static const char *dma_mode_name(unsigned int mode)
- 		return "memcpy";
- 	case TW686X_DMA_MODE_CONTIG:
- 		return "contig";
-+	case TW686X_DMA_MODE_SG:
-+		return "sg";
- 	default:
- 		return "unknown";
- 	}
-@@ -81,6 +83,8 @@ static int tw686x_dma_mode_set(const char *val, struct kernel_param *kp)
- 		dma_mode = TW686X_DMA_MODE_MEMCPY;
- 	else if (!strcasecmp(val, dma_mode_name(TW686X_DMA_MODE_CONTIG)))
- 		dma_mode = TW686X_DMA_MODE_CONTIG;
-+	else if (!strcasecmp(val, dma_mode_name(TW686X_DMA_MODE_SG)))
-+		dma_mode = TW686X_DMA_MODE_SG;
- 	else
- 		return -EINVAL;
- 	return 0;
-diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
-index ed6abb4c41c2..16228c559f9a 100644
---- a/drivers/media/pci/tw686x/tw686x-video.c
-+++ b/drivers/media/pci/tw686x/tw686x-video.c
-@@ -20,6 +20,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-event.h>
- #include <media/videobuf2-dma-contig.h>
-+#include <media/videobuf2-dma-sg.h>
- #include <media/videobuf2-vmalloc.h>
- #include "tw686x.h"
- #include "tw686x-regs.h"
-@@ -28,6 +29,10 @@
- #define TW686X_VIDEO_WIDTH		720
- #define TW686X_VIDEO_HEIGHT(id)		((id & V4L2_STD_625_50) ? 576 : 480)
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0e43b30..734d177 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8962,6 +8962,13 @@ F:	include/linux/tracehook.h
+ F:	include/uapi/linux/ptrace.h
+ F:	kernel/ptrace.c
  
-+#define TW686X_MAX_SG_ENTRY_SIZE	4096
-+#define TW686X_MAX_SG_DESC_COUNT	256 /* PAL 720x576 needs 203 4-KB pages */
-+#define TW686X_SG_TABLE_SIZE		(TW686X_MAX_SG_DESC_COUNT * sizeof(struct tw686x_sg_desc))
++PULSE8-CEC DRIVER
++M:	Hans Verkuil <hverkuil@xs4all.nl>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/usb/pulse8
 +
- static const struct tw686x_format formats[] = {
- 	{
- 		.fourcc = V4L2_PIX_FMT_UYVY,
-@@ -196,6 +201,174 @@ const struct tw686x_dma_ops contig_dma_ops = {
- 	.field		= V4L2_FIELD_INTERLACED,
- };
+ PVRUSB2 VIDEO4LINUX DRIVER
+ M:	Mike Isely <isely@pobox.com>
+ L:	pvrusb2@isely.net	(subscribers-only)
+diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
+index 7496f33..9301961 100644
+--- a/drivers/media/usb/Kconfig
++++ b/drivers/media/usb/Kconfig
+@@ -60,5 +60,10 @@ source "drivers/media/usb/hackrf/Kconfig"
+ source "drivers/media/usb/msi2500/Kconfig"
+ endif
  
-+static int tw686x_sg_desc_fill(struct tw686x_sg_desc *descs,
-+			       struct tw686x_v4l2_buf *buf,
-+			       unsigned int buf_len)
++if MEDIA_CEC
++	comment "HDMI CEC USB devices"
++source "drivers/media/usb/pulse8/Kconfig"
++endif
++
+ endif #MEDIA_USB_SUPPORT
+ endif #USB
+diff --git a/drivers/media/usb/Makefile b/drivers/media/usb/Makefile
+index 8874ba7..468e541 100644
+--- a/drivers/media/usb/Makefile
++++ b/drivers/media/usb/Makefile
+@@ -12,6 +12,7 @@ obj-$(CONFIG_USB_PWC)           += pwc/
+ obj-$(CONFIG_USB_AIRSPY)        += airspy/
+ obj-$(CONFIG_USB_HACKRF)        += hackrf/
+ obj-$(CONFIG_USB_MSI2500)       += msi2500/
++obj-$(CONFIG_USB_PULSE8_CEC)    += pulse8/
+ obj-$(CONFIG_VIDEO_CPIA2) += cpia2/
+ obj-$(CONFIG_VIDEO_AU0828) += au0828/
+ obj-$(CONFIG_VIDEO_HDPVR)	+= hdpvr/
+diff --git a/drivers/media/usb/pulse8/Kconfig b/drivers/media/usb/pulse8/Kconfig
+new file mode 100644
+index 0000000..c6aa2d1
+--- /dev/null
++++ b/drivers/media/usb/pulse8/Kconfig
+@@ -0,0 +1,10 @@
++config USB_PULSE8_CEC
++	tristate "Pulse Eight HDMI CEC"
++	depends on USB_ACM && MEDIA_CEC
++	select SERIO
++	select SERIO_SERPORT
++	---help---
++	  This is a cec driver for the Pulse Eight HDMI CEC device.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called pulse8-cec.
+diff --git a/drivers/media/usb/pulse8/Makefile b/drivers/media/usb/pulse8/Makefile
+new file mode 100644
+index 0000000..dd52d42
+--- /dev/null
++++ b/drivers/media/usb/pulse8/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_USB_PULSE8_CEC)              += pulse8-cec.o
+diff --git a/drivers/media/usb/pulse8/pulse8-cec.c b/drivers/media/usb/pulse8/pulse8-cec.c
+new file mode 100644
+index 0000000..d02e5df
+--- /dev/null
++++ b/drivers/media/usb/pulse8/pulse8-cec.c
+@@ -0,0 +1,412 @@
++/*
++ * Pulse Eight HDMI CEC driver
++ *
++ * Copyright 2016 Hans Verkuil <hverkuil@xs4all.nl
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version of 2 of the License, or (at your
++ * option) any later version. See the file COPYING in the main directory of
++ * this archive for more details.
++ */
++
++#include <linux/completion.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/workqueue.h>
++#include <linux/serio.h>
++#include <linux/slab.h>
++#include <linux/time.h>
++
++#include <media/cec.h>
++
++MODULE_AUTHOR("Hans Verkuil <hverkuil@xs4all.nl>");
++MODULE_DESCRIPTION("Pulse Eight HDMI CEC driver");
++MODULE_LICENSE("GPL");
++
++enum pulse8_msgcodes
 +{
-+	struct sg_table *vbuf = vb2_dma_sg_plane_desc(&buf->vb.vb2_buf, 0);
-+	unsigned int len, entry_len;
-+	struct scatterlist *sg;
-+	int i, count;
++	MSGCODE_NOTHING = 0,
++	MSGCODE_PING,
++	MSGCODE_TIMEOUT_ERROR,
++	MSGCODE_HIGH_ERROR,
++	MSGCODE_LOW_ERROR,
++	MSGCODE_FRAME_START,
++	MSGCODE_FRAME_DATA,
++	MSGCODE_RECEIVE_FAILED,
++	MSGCODE_COMMAND_ACCEPTED,	/* 0x08 */
++	MSGCODE_COMMAND_REJECTED,
++	MSGCODE_SET_ACK_MASK,
++	MSGCODE_TRANSMIT,
++	MSGCODE_TRANSMIT_EOM,
++	MSGCODE_TRANSMIT_IDLETIME,
++	MSGCODE_TRANSMIT_ACK_POLARITY,
++	MSGCODE_TRANSMIT_LINE_TIMEOUT,
++	MSGCODE_TRANSMIT_SUCCEEDED,	/* 0x10 */
++	MSGCODE_TRANSMIT_FAILED_LINE,
++	MSGCODE_TRANSMIT_FAILED_ACK,
++	MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA,
++	MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE,
++	MSGCODE_FIRMWARE_VERSION,
++	MSGCODE_START_BOOTLOADER,
++	MSGCODE_GET_BUILDDATE,
++	MSGCODE_SET_CONTROLLED,		/* 0x18 */
++	MSGCODE_GET_AUTO_ENABLED,
++	MSGCODE_SET_AUTO_ENABLED,
++	MSGCODE_GET_DEFAULT_LOGICAL_ADDRESS,
++	MSGCODE_SET_DEFAULT_LOGICAL_ADDRESS,
++	MSGCODE_GET_LOGICAL_ADDRESS_MASK,
++	MSGCODE_SET_LOGICAL_ADDRESS_MASK,
++	MSGCODE_GET_PHYSICAL_ADDRESS,
++	MSGCODE_SET_PHYSICAL_ADDRESS,	/* 0x20 */
++	MSGCODE_GET_DEVICE_TYPE,
++	MSGCODE_SET_DEVICE_TYPE,
++	MSGCODE_GET_HDMI_VERSION,
++	MSGCODE_SET_HDMI_VERSION,
++	MSGCODE_GET_OSD_NAME,
++	MSGCODE_SET_OSD_NAME,
++	MSGCODE_WRITE_EEPROM,
++	MSGCODE_GET_ADAPTER_TYPE,	/* 0x28 */
++	MSGCODE_SET_ACTIVE_SOURCE,
 +
-+	/* Clear the scatter-gather table */
-+	memset(descs, 0, TW686X_SG_TABLE_SIZE);
++	MSGCODE_FRAME_EOM = 0x80,
++	MSGCODE_FRAME_ACK = 0x40,
++};
 +
-+	count = 0;
-+	for_each_sg(vbuf->sgl, sg, vbuf->nents, i) {
-+		dma_addr_t phys = sg_dma_address(sg);
-+		len = sg_dma_len(sg);
++#define DATA_SIZE 256
 +
-+		while (len && buf_len) {
++struct pulse8 {
++	struct device *dev;
++	struct serio *serio;
++	struct cec_adapter *adap;
++	struct completion cmd_done;
++	struct work_struct work;
++	struct cec_msg rx_msg;
++	u8 data[DATA_SIZE];
++	unsigned int len;
++	u8 buf[DATA_SIZE];
++	unsigned int idx;
++	bool escape;
++	bool started;
++};
 +
-+			if (count == TW686X_MAX_SG_DESC_COUNT)
-+				return -ENOMEM;
++void pulse8_irq_work_handler(struct work_struct *work)
++{
++	struct pulse8 *pulse8 =
++		container_of(work, struct pulse8, work);
 +
-+			entry_len = min_t(unsigned int, len,
-+					  TW686X_MAX_SG_ENTRY_SIZE);
-+			entry_len = min_t(unsigned int, entry_len, buf_len);
-+			descs[count].phys = cpu_to_le32(phys);
-+			descs[count++].flags_length =
-+					cpu_to_le32(BIT(30) | entry_len);
-+			phys += entry_len;
-+			len -= entry_len;
-+			buf_len -= entry_len;
++	switch (pulse8->data[0]) {
++	case MSGCODE_FRAME_START:
++		break;
++	case MSGCODE_FRAME_DATA:
++		break;
++	case MSGCODE_TRANSMIT_SUCCEEDED:
++		cec_transmit_done(pulse8->adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
++		break;
++	case MSGCODE_TRANSMIT_FAILED_LINE:
++		cec_transmit_done(pulse8->adap, CEC_TX_STATUS_ARB_LOST, 1, 0, 0, 0);
++		break;
++	case MSGCODE_TRANSMIT_FAILED_ACK:
++		cec_transmit_done(pulse8->adap, CEC_TX_STATUS_NACK, 0, 1, 0, 0);
++		break;
++	case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
++	case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
++		cec_transmit_done(pulse8->adap, CEC_TX_STATUS_ERROR, 0, 0, 0, 1);
++		break;
++	}
++}
++
++static irqreturn_t pulse8_interrupt(struct serio *serio, unsigned char data,
++				   unsigned int flags)
++{
++	struct pulse8 *pulse8 = serio_get_drvdata(serio);
++
++	if (!pulse8->started && data != 0xff)
++		return IRQ_HANDLED;
++	if (data == 0xfd) {
++		pulse8->escape = true;
++		return IRQ_HANDLED;
++	}
++	if (pulse8->escape) {
++		data += 0xfd;
++		pulse8->escape = false;
++	} else if (data == 0xfe) {
++		if (pulse8->idx) {
++			dev_info(pulse8->dev, "received: %*ph\n", pulse8->idx, pulse8->buf);
++			memcpy(pulse8->data, pulse8->buf, pulse8->idx);
++			pulse8->len = pulse8->idx;
++			complete(&pulse8->cmd_done);
 +		}
++		pulse8->idx = 0;
++		pulse8->started = false;
++		switch (pulse8->data[0]) {
++		case MSGCODE_FRAME_START:
++		case MSGCODE_FRAME_DATA:
++		case MSGCODE_TRANSMIT_SUCCEEDED:
++		case MSGCODE_TRANSMIT_FAILED_LINE:
++		case MSGCODE_TRANSMIT_FAILED_ACK:
++		case MSGCODE_TRANSMIT_FAILED_TIMEOUT_DATA:
++		case MSGCODE_TRANSMIT_FAILED_TIMEOUT_LINE:
++			schedule_work(&pulse8->work);
++			break;
++		case MSGCODE_COMMAND_ACCEPTED:
++		case MSGCODE_COMMAND_REJECTED:
++		default:
++			break;
++		}
++		return IRQ_HANDLED;
++	} else if (data == 0xff) {
++		pulse8->idx = 0;
++		pulse8->started = true;
++		return IRQ_HANDLED;
++	}
 +
-+		if (!buf_len)
++	if (pulse8->idx >= DATA_SIZE) {
++		dev_dbg(pulse8->dev,
++			"throwing away %d bytes of garbage\n", pulse8->idx);
++		pulse8->idx = 0;
++	}
++	pulse8->buf[pulse8->idx++] = data;
++	return IRQ_HANDLED;
++}
++
++static void pulse8_disconnect(struct serio *serio)
++{
++	struct pulse8 *pulse8 = serio_get_drvdata(serio);
++
++	cec_unregister_adapter(pulse8->adap);
++	dev_info(&serio->dev, "disconnected\n");
++	serio_close(serio);
++	serio_set_drvdata(serio, NULL);
++	kfree(pulse8);
++}
++
++static int pulse8_send(struct serio *serio, const u8 *command, u8 cmd_len)
++{
++	int err = 0;
++
++	err = serio_write(serio, 0xff);
++	if (err)
++		return err;
++	for (; !err && cmd_len; command++, cmd_len--) {
++		if (*command >= 0xfd) {
++			err = serio_write(serio, 0xfd);
++			if (!err)
++				err = serio_write(serio, *command - 0xfd);
++		} else {
++			err = serio_write(serio, *command);
++		}
++	}
++	if (!err)
++		err = serio_write(serio, 0xfe);
++
++	return err;
++}
++
++static int pulse8_send_and_wait(struct pulse8 *pulse8,
++				 const u8 *cmd, u8 cmd_len, u8 response, u8 size)
++{
++	int err;
++
++	init_completion(&pulse8->cmd_done);
++
++	err = pulse8_send(pulse8->serio, cmd, cmd_len);
++	if (err)
++		return err;
++
++	if (!wait_for_completion_timeout(&pulse8->cmd_done, HZ))
++		return -ETIMEDOUT;
++	if (response && ((pulse8->data[0] & 0x3f) != response || pulse8->len < size + 1))
++		return -EIO;
++	return 0;
++}
++
++static int pulse8_setup(struct pulse8 *pulse8, struct serio *serio)
++{
++	u8 *data = pulse8->data + 1;
++	unsigned int vers = 0;
++	u8 cmd[2];
++	int err;
++
++	cmd[0] = MSGCODE_PING;
++	err = pulse8_send_and_wait(pulse8, cmd, 1,
++				   MSGCODE_COMMAND_ACCEPTED, 0);
++	cmd[0] = MSGCODE_FIRMWARE_VERSION;
++	if (!err)
++		err = pulse8_send_and_wait(pulse8, cmd, 1, cmd[0], 2);
++	if (!err) {
++		vers = (data[0] << 8) | data[1];
++
++		dev_info(pulse8->dev, "Firmware version %04x\n", vers);
++		if (vers < 2)
 +			return 0;
 +	}
-+
-+	return -ENOMEM;
-+}
-+
-+static void tw686x_sg_buf_refill(struct tw686x_video_channel *vc,
-+				 unsigned int pb)
-+{
-+	struct tw686x_dev *dev = vc->dev;
-+	struct tw686x_v4l2_buf *buf;
-+
-+	while (!list_empty(&vc->vidq_queued)) {
-+		unsigned int buf_len;
-+
-+		buf = list_first_entry(&vc->vidq_queued,
-+			struct tw686x_v4l2_buf, list);
-+		list_del(&buf->list);
-+
-+		buf_len = (vc->width * vc->height * vc->format->depth) >> 3;
-+		if (tw686x_sg_desc_fill(vc->sg_descs[pb], buf, buf_len)) {
-+			v4l2_err(&dev->v4l2_dev,
-+				 "dma%d: unable to fill %s-buffer\n",
-+				 vc->ch, pb ? "B" : "P");
-+			vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
-+			continue;
-+		}
-+
-+		buf->vb.vb2_buf.state = VB2_BUF_STATE_ACTIVE;
-+		vc->curr_bufs[pb] = buf;
-+		return;
++	if (vers >= 2) {
++		cmd[0] = MSGCODE_SET_CONTROLLED;
++		cmd[1] = 1;
++		if (!err)
++			err = pulse8_send_and_wait(pulse8, cmd, 2,
++						   MSGCODE_COMMAND_ACCEPTED, 1);
 +	}
 +
-+	vc->curr_bufs[pb] = NULL;
++	cmd[0] = MSGCODE_GET_BUILDDATE;
++	if (!err)
++		err = pulse8_send_and_wait(pulse8, cmd, 1, cmd[0], 4);
++	if (!err) {
++		time_t date = (data[0] << 24) | (data[1] << 16) |
++			(data[2] << 8) | data[3];
++		struct tm tm;
++
++		time_to_tm(date, 0, &tm);
++
++		dev_info(pulse8->dev, "Firmware build date %04ld.%02d.%02d %02d:%02d:%02d\n",
++			 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
++			 tm.tm_hour, tm.tm_min, tm.tm_sec);
++	}
++	return err;
 +}
 +
-+static void tw686x_sg_dma_free(struct tw686x_video_channel *vc,
-+			       unsigned int pb)
++static int pulse8_cec_adap_enable(struct cec_adapter *adap, bool enable)
 +{
-+	struct tw686x_dma_desc *desc = &vc->dma_descs[pb];
-+	struct tw686x_dev *dev = vc->dev;
-+
-+	if (desc->size) {
-+		pci_free_consistent(dev->pci_dev, desc->size,
-+				    desc->virt, desc->phys);
-+		desc->virt = NULL;
-+	}
-+
-+	vc->sg_descs[pb] = NULL;
-+}
-+
-+static int tw686x_sg_dma_alloc(struct tw686x_video_channel *vc,
-+			       unsigned int pb)
-+{
-+	struct tw686x_dma_desc *desc = &vc->dma_descs[pb];
-+	struct tw686x_dev *dev = vc->dev;
-+	u32 reg = pb ? DMA_PAGE_TABLE1_ADDR[vc->ch] :
-+		       DMA_PAGE_TABLE0_ADDR[vc->ch];
-+	void *virt;
-+
-+	if (desc->size) {
-+
-+		virt = pci_alloc_consistent(dev->pci_dev, desc->size,
-+					    &desc->phys);
-+		if (!virt) {
-+			v4l2_err(&dev->v4l2_dev,
-+				 "dma%d: unable to allocate %s-buffer\n",
-+				 vc->ch, pb ? "B" : "P");
-+			return -ENOMEM;
-+		}
-+		desc->virt = virt;
-+		reg_write(dev, reg, desc->phys);
-+	} else {
-+		virt = dev->video_channels[0].dma_descs[pb].virt +
-+		       vc->ch * TW686X_SG_TABLE_SIZE;
-+	}
-+
-+	vc->sg_descs[pb] = virt;
 +	return 0;
 +}
 +
-+static void tw686x_sg_cleanup(struct tw686x_dev *dev)
++static int pulse8_cec_adap_log_addr(struct cec_adapter *adap, u8 log_addr)
 +{
-+	vb2_dma_sg_cleanup_ctx(dev->alloc_ctx);
++	struct pulse8 *pulse8 = adap->priv;
++	u16 mask = 0;
++	u8 cmd[3];
++	int err;
++
++	if (log_addr != CEC_LOG_ADDR_INVALID)
++		mask = 1 << log_addr;
++	cmd[0] = MSGCODE_SET_ACK_MASK;
++	cmd[1] = mask >> 8;
++	cmd[2] = mask & 0xff;
++	err = pulse8_send_and_wait(pulse8, cmd, 3,
++				   MSGCODE_COMMAND_ACCEPTED, 0);
++	if (mask == 0)
++		return 0;
++	return err;
 +}
 +
-+static int tw686x_sg_setup(struct tw686x_dev *dev)
++static int pulse8_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
++				   u32 signal_free_time, struct cec_msg *msg)
 +{
-+	unsigned int sg_table_size, pb, ch, channels;
++	struct pulse8 *pulse8 = adap->priv;
++	u8 cmd[2];
++	unsigned int i;
++	int err;
 +
-+	dev->alloc_ctx = vb2_dma_sg_init_ctx(&dev->pci_dev->dev);
-+	if (IS_ERR(dev->alloc_ctx)) {
-+		dev_err(&dev->pci_dev->dev, "unable to init DMA context\n");
-+		return PTR_ERR(dev->alloc_ctx);
++	cmd[0] = MSGCODE_TRANSMIT_ACK_POLARITY;
++	cmd[1] = cec_msg_is_broadcast(msg);
++	err = pulse8_send_and_wait(pulse8, cmd, 2,
++				   MSGCODE_COMMAND_ACCEPTED, 1);
++	cmd[0] = msg->len == 0 ? MSGCODE_TRANSMIT_EOM : MSGCODE_TRANSMIT;
++	cmd[1] = msg->msg[0];
++	if (!err)
++		err = pulse8_send_and_wait(pulse8, cmd, 2,
++					   MSGCODE_COMMAND_ACCEPTED, 1);
++	if (!err && msg->len) {
++		cmd[0] = msg->len == 1 ? MSGCODE_TRANSMIT_EOM : MSGCODE_TRANSMIT;
++		cmd[1] = msg->msg[1];
++		err = pulse8_send_and_wait(pulse8, cmd, 2,
++					   MSGCODE_COMMAND_ACCEPTED, 1);
++		for (i = 0; !err && i + 2 < msg->len; i++) {
++			cmd[0] = (i + 2 == msg->len - 1) ?
++				MSGCODE_TRANSMIT_EOM : MSGCODE_TRANSMIT;
++			cmd[1] = msg->msg[i + 2];
++			err = pulse8_send_and_wait(pulse8, cmd, 2,
++						   MSGCODE_COMMAND_ACCEPTED, 1);
++		}
 +	}
 +
-+	if (is_second_gen(dev)) {
-+		/*
-+		 * TW6865/TW6869: each channel needs a pair of
-+		 * P-B descriptor tables.
-+		 */
-+		channels = max_channels(dev);
-+		sg_table_size = TW686X_SG_TABLE_SIZE;
-+	} else {
-+		/*
-+		 * TW6864/TW6868: we need to allocate a pair of
-+		 * P-B descriptor tables, common for all channels.
-+		 * Each table will be bigger than 4 KB.
-+		 */
-+		channels = 1;
-+		sg_table_size = max_channels(dev) * TW686X_SG_TABLE_SIZE;
-+	}
++	return err;
++}
 +
-+	for (ch = 0; ch < channels; ch++) {
-+		struct tw686x_video_channel *vc = &dev->video_channels[ch];
++static int pulse8_received(struct cec_adapter *adap, struct cec_msg *msg)
++{
++	return -ENOMSG;
++}
 +
-+		for (pb = 0; pb < 2; pb++)
-+			vc->dma_descs[pb].size = sg_table_size;
-+	}
++const struct cec_adap_ops pulse8_cec_adap_ops = {
++	.adap_enable = pulse8_cec_adap_enable,
++	.adap_log_addr = pulse8_cec_adap_log_addr,
++	.adap_transmit = pulse8_cec_adap_transmit,
++	.received = pulse8_received,
++};
 +
++static int pulse8_connect(struct serio *serio, struct serio_driver *drv)
++{
++	u32 caps = CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS | CEC_CAP_PHYS_ADDR |
++		CEC_CAP_PASSTHROUGH | CEC_CAP_RC | CEC_CAP_MONITOR_ALL;
++	struct pulse8 *pulse8;
++	int err = -ENOMEM;
++
++	pulse8 = kzalloc(sizeof(struct pulse8), GFP_KERNEL);
++
++	if (!pulse8)
++		return -ENOMEM;
++
++	pulse8->serio = serio;
++	pulse8->adap = cec_allocate_adapter(&pulse8_cec_adap_ops, pulse8,
++		"HDMI CEC", caps, 1, &serio->dev);
++	err = PTR_ERR_OR_ZERO(pulse8->adap);
++	if (err < 0)
++		goto free_device;
++
++	pulse8->dev = &serio->dev;
++	serio_set_drvdata(serio, pulse8);
++	INIT_WORK(&pulse8->work, pulse8_irq_work_handler);
++
++	err = serio_open(serio, drv);
++	if (err)
++		goto delete_adap;
++
++	err = pulse8_setup(pulse8, serio);
++	if (err)
++		goto close_serio;
++
++	err = cec_register_adapter(pulse8->adap);
++	if (err < 0)
++		goto close_serio;
++
++	pulse8->dev = &pulse8->adap->devnode.dev;
 +	return 0;
++
++close_serio:
++	serio_close(serio);
++delete_adap:
++	cec_delete_adapter(pulse8->adap);
++	serio_set_drvdata(serio, NULL);
++free_device:
++	kfree(pulse8);
++	return err;
 +}
 +
-+const struct tw686x_dma_ops sg_dma_ops = {
-+	.setup		= tw686x_sg_setup,
-+	.cleanup	= tw686x_sg_cleanup,
-+	.alloc		= tw686x_sg_dma_alloc,
-+	.free		= tw686x_sg_dma_free,
-+	.buf_refill	= tw686x_sg_buf_refill,
-+	.mem_ops	= &vb2_dma_sg_memops,
-+	.hw_dma_mode	= TW686X_SG_MODE,
-+	.field		= V4L2_FIELD_SEQ_TB,
++static struct serio_device_id pulse8_serio_ids[] = {
++	{
++		.type	= SERIO_RS232,
++		.proto	= SERIO_PULSE8_CEC,
++		.id	= SERIO_ANY,
++		.extra	= SERIO_ANY,
++	},
++	{ 0 }
 +};
 +
- static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
- {
- 	static const unsigned int map[15] = {
-@@ -545,6 +718,19 @@ static int tw686x_s_fmt_vid_cap(struct file *file, void *priv,
- 	else
- 		val &= ~BIT(24);
- 
-+	val &= ~0x7ffff;
++MODULE_DEVICE_TABLE(serio, pulse8_serio_ids);
 +
-+	/* Program the DMA scatter-gather */
-+	if (dev->dma_mode == TW686X_DMA_MODE_SG) {
-+		u32 start_idx, end_idx;
-+
-+		start_idx = is_second_gen(dev) ?
-+				0 : vc->ch * TW686X_MAX_SG_DESC_COUNT;
-+		end_idx = start_idx + TW686X_MAX_SG_DESC_COUNT - 1;
-+
-+		val |= (end_idx << 10) | start_idx;
-+	}
-+
- 	val &= ~(0x7 << 20);
- 	val |= vc->format->mode << 20;
- 	reg_write(vc->dev, VDMA_CHANNEL_CONFIG[vc->ch], val);
-@@ -882,6 +1068,8 @@ int tw686x_video_init(struct tw686x_dev *dev)
- 		dev->dma_ops = &memcpy_dma_ops;
- 	else if (dev->dma_mode == TW686X_DMA_MODE_CONTIG)
- 		dev->dma_ops = &contig_dma_ops;
-+	else if (dev->dma_mode == TW686X_DMA_MODE_SG)
-+		dev->dma_ops = &sg_dma_ops;
- 	else
- 		return -EINVAL;
- 
-diff --git a/drivers/media/pci/tw686x/tw686x.h b/drivers/media/pci/tw686x/tw686x.h
-index 938f16b2449a..fe848a40f9d0 100644
---- a/drivers/media/pci/tw686x/tw686x.h
-+++ b/drivers/media/pci/tw686x/tw686x.h
-@@ -34,6 +34,7 @@
- 
- #define TW686X_DMA_MODE_MEMCPY		0
- #define TW686X_DMA_MODE_CONTIG		1
-+#define TW686X_DMA_MODE_SG		2
- 
- struct tw686x_format {
- 	char *name;
-@@ -48,6 +49,12 @@ struct tw686x_dma_desc {
- 	unsigned size;
- };
- 
-+struct tw686x_sg_desc {
-+	/* 3 MSBits for flags, 13 LSBits for length */
-+	__le32 flags_length;
-+	__le32 phys;
++static struct serio_driver pulse8_drv = {
++	.driver		= {
++		.name	= "pulse8-cec",
++	},
++	.description	= "Pulse Eight HDMI CEC driver",
++	.id_table	= pulse8_serio_ids,
++	.interrupt	= pulse8_interrupt,
++	.connect	= pulse8_connect,
++	.disconnect	= pulse8_disconnect,
 +};
 +
- struct tw686x_audio_buf {
- 	dma_addr_t dma;
- 	void *virt;
-@@ -80,6 +87,7 @@ struct tw686x_video_channel {
- 	struct video_device *device;
- 	struct tw686x_v4l2_buf *curr_bufs[2];
- 	struct tw686x_dma_desc dma_descs[2];
-+	struct tw686x_sg_desc *sg_descs[2];
++module_serio_driver(pulse8_drv);
+diff --git a/include/uapi/linux/serio.h b/include/uapi/linux/serio.h
+index c2ea169..f2447a8 100644
+--- a/include/uapi/linux/serio.h
++++ b/include/uapi/linux/serio.h
+@@ -78,5 +78,6 @@
+ #define SERIO_TSC40	0x3d
+ #define SERIO_WACOM_IV	0x3e
+ #define SERIO_EGALAX	0x3f
++#define SERIO_PULSE8_CEC	0x40
  
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	const struct tw686x_format *format;
-@@ -154,6 +162,12 @@ static inline unsigned max_channels(struct tw686x_dev *dev)
- 	return dev->type & TYPE_MAX_CHANNELS; /* 4 or 8 channels */
- }
- 
-+static inline unsigned is_second_gen(struct tw686x_dev *dev)
-+{
-+	/* each channel has its own DMA SG table */
-+	return dev->type & TYPE_SECOND_GEN;
-+}
-+
- void tw686x_enable_channel(struct tw686x_dev *dev, unsigned int channel);
- void tw686x_disable_channel(struct tw686x_dev *dev, unsigned int channel);
- 
+ #endif /* _UAPI_SERIO_H */
 -- 
-2.7.0
+2.8.1
 
