@@ -1,62 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f194.google.com ([209.85.213.194]:35796 "EHLO
-	mail-ig0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754082AbcDCQOQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 12:14:16 -0400
-Received: by mail-ig0-f194.google.com with SMTP id ya17so9693192igc.2
-        for <linux-media@vger.kernel.org>; Sun, 03 Apr 2016 09:14:15 -0700 (PDT)
-MIME-Version: 1.0
-Reply-To: temawilliams26@yahoo.com
-Date: Sun, 3 Apr 2016 18:14:14 +0200
-Message-ID: <CA+hOsCvD3C4OmnF77sXHYmo_TOmxOYZx0ndPSdjPY=VrvrzoOQ@mail.gmail.com>
-Subject: WE NEED YOUR HELP URGENTLY.
-From: Tema williams <temawilliams22@gmail.com>
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset=UTF-8
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:44508 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932206AbcDYMZF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Apr 2016 08:25:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 06/15] cec: add compat32 ioctl support
+Date: Mon, 25 Apr 2016 14:24:33 +0200
+Message-Id: <1461587082-48041-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Sir/madam,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-With due respect and to the glory of Almighty God whom we worship I
-call upon you to assist my family.
-Please Permit me to inform you of my desire of going into business
-relationship with you.
+The CEC ioctls didn't have compat32 support, so they returned -ENOTTY
+when used in a 32 bit application on a 64 bit kernel.
 
-My name is Tema Williams,The only Son of late Chief PATRICK WILLIAMS.
-My father was a very wealthy cocoa merchant in Abidjan but we are from
-Sierra Leone
-After my Father death I and my Family move to South Africa as refugee.
+Since all the CEC ioctls are 32-bit compatible adding support for this
+API is trivial.
 
-My father was poisoned to death by his business associates on one of
-their outings on a business trip.
-Before his death in a private hospital in Abidjan he secretly called
-me on his bed side and told me that
-he has the sum of ($12.000,000 MILLION US DOLLAR) kept with a security
-and finance company in South Africa,
-He also explained to me that it was because of this wealth that he was
-poisoned by his business associates,
-that I should seek for a beneficiary in any country of my choice where
-I will transfer this money and use it for investment.
-I am honorably seeking for your assistance to transfer our fund out of
-South Africa.
-Upon the successful transfer of this fund,we shall make arrangement
-for me,my mother and younger sister to come
-over to your country to further our Education and invest in a
-profitable business that you may suggest.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ fs/compat_ioctl.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-More over,I am willing to offer you 20% of the total sum as
-compensation for your effort/input after the successful
-transfer of this fund into your nominated bank account overseas.
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index bd01b92..c1e9f29 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -57,6 +57,7 @@
+ #include <linux/i2c-dev.h>
+ #include <linux/atalk.h>
+ #include <linux/gfp.h>
++#include <linux/cec.h>
+ 
+ #include "internal.h"
+ 
+@@ -1377,6 +1378,17 @@ COMPATIBLE_IOCTL(VIDEO_GET_NAVI)
+ COMPATIBLE_IOCTL(VIDEO_SET_ATTRIBUTES)
+ COMPATIBLE_IOCTL(VIDEO_GET_SIZE)
+ COMPATIBLE_IOCTL(VIDEO_GET_FRAME_RATE)
++/* cec */
++COMPATIBLE_IOCTL(CEC_ADAP_G_CAPS)
++COMPATIBLE_IOCTL(CEC_ADAP_G_LOG_ADDRS)
++COMPATIBLE_IOCTL(CEC_ADAP_S_LOG_ADDRS)
++COMPATIBLE_IOCTL(CEC_ADAP_G_PHYS_ADDR)
++COMPATIBLE_IOCTL(CEC_ADAP_S_PHYS_ADDR)
++COMPATIBLE_IOCTL(CEC_G_MODE)
++COMPATIBLE_IOCTL(CEC_S_MODE)
++COMPATIBLE_IOCTL(CEC_TRANSMIT)
++COMPATIBLE_IOCTL(CEC_RECEIVE)
++COMPATIBLE_IOCTL(CEC_DQEVENT)
+ 
+ /* joystick */
+ COMPATIBLE_IOCTL(JSIOCGVERSION)
+-- 
+2.8.1
 
-As we depend on God, and with God all things are possible.
-Anticipating to hear from you today.
-
-Thanks and God bless.
-PLEASE CALL ME +27787597591
-
-
-Best regards,
-
-Tema Williams
-(for the family)
