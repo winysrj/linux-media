@@ -1,367 +1,609 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40723 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751920AbcDVIim (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:44336 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932337AbcDYMZL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 04:38:42 -0400
+	Mon, 25 Apr 2016 08:25:11 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: [PATCHv3 09/12] media/.../soc-camera: convert drivers to use the new vb2_queue dev field
-Date: Fri, 22 Apr 2016 10:38:16 +0200
-Message-Id: <1461314299-36126-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl>
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv15 10/15] cec: adv7842: add cec support
+Date: Mon, 25 Apr 2016 14:24:37 +0200
+Message-Id: <1461587082-48041-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461587082-48041-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Stop using alloc_ctx and just fill in the device pointer.
+Add CEC support to the adv7842 driver.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 ---
- drivers/media/platform/soc_camera/atmel-isi.c           | 13 +------------
- drivers/media/platform/soc_camera/rcar_vin.c            | 12 +-----------
- .../media/platform/soc_camera/sh_mobile_ceu_camera.c    | 15 ++-------------
- drivers/staging/media/mx2/mx2_camera.c                  | 17 +++--------------
- drivers/staging/media/mx3/mx3_camera.c                  | 16 ++--------------
- 5 files changed, 9 insertions(+), 64 deletions(-)
+ drivers/media/i2c/Kconfig   |   9 ++
+ drivers/media/i2c/adv7604.c |  10 +-
+ drivers/media/i2c/adv7842.c | 368 ++++++++++++++++++++++++++++++++++++--------
+ 3 files changed, 319 insertions(+), 68 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index ab2d9b9..899b93a 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -72,8 +72,6 @@ struct atmel_isi {
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index cba1fc7..5168454 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -231,6 +231,7 @@ config VIDEO_ADV7842
+ 	tristate "Analog Devices ADV7842 decoder"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+ 	select HDMI
++	select MEDIA_CEC_EDID
+ 	---help---
+ 	  Support for the Analog Devices ADV7842 video decoder.
  
- 	int				sequence;
+@@ -240,6 +241,14 @@ config VIDEO_ADV7842
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called adv7842.
  
--	struct vb2_alloc_ctx		*alloc_ctx;
--
- 	/* Allocate descriptors for dma buffer use */
- 	struct fbd			*p_fb_descriptors;
- 	dma_addr_t			fb_descriptors_phys;
-@@ -322,7 +320,6 @@ static int queue_setup(struct vb2_queue *vq,
- 
- 	*nplanes = 1;
- 	sizes[0] = size;
--	alloc_ctxs[0] = isi->alloc_ctx;
- 
- 	isi->sequence = 0;
- 	isi->active = NULL;
-@@ -567,6 +564,7 @@ static int isi_camera_init_videobuf(struct vb2_queue *q,
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->lock = &ici->host_lock;
-+	q->dev = ici->v4l2_dev.dev;
- 
- 	return vb2_queue_init(q);
- }
-@@ -963,7 +961,6 @@ static int atmel_isi_remove(struct platform_device *pdev)
- 					struct atmel_isi, soc_host);
- 
- 	soc_camera_host_unregister(soc_host);
--	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
- 	dma_free_coherent(&pdev->dev,
- 			sizeof(struct fbd) * MAX_BUFFER_NUM,
- 			isi->p_fb_descriptors,
-@@ -1067,12 +1064,6 @@ static int atmel_isi_probe(struct platform_device *pdev)
- 		list_add(&isi->dma_desc[i].list, &isi->dma_desc_head);
- 	}
- 
--	isi->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(isi->alloc_ctx)) {
--		ret = PTR_ERR(isi->alloc_ctx);
--		goto err_alloc_ctx;
--	}
--
- 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	isi->regs = devm_ioremap_resource(&pdev->dev, regs);
- 	if (IS_ERR(isi->regs)) {
-@@ -1119,8 +1110,6 @@ err_register_soc_camera_host:
- 	pm_runtime_disable(&pdev->dev);
- err_req_irq:
- err_ioremap:
--	vb2_dma_contig_cleanup_ctx(isi->alloc_ctx);
--err_alloc_ctx:
- 	dma_free_coherent(&pdev->dev,
- 			sizeof(struct fbd) * MAX_BUFFER_NUM,
- 			isi->p_fb_descriptors,
-diff --git a/drivers/media/platform/soc_camera/rcar_vin.c b/drivers/media/platform/soc_camera/rcar_vin.c
-index 3f9c1b8..dadc5b3 100644
---- a/drivers/media/platform/soc_camera/rcar_vin.c
-+++ b/drivers/media/platform/soc_camera/rcar_vin.c
-@@ -484,7 +484,6 @@ struct rcar_vin_priv {
- 	struct list_head		capture;
- #define MAX_BUFFER_NUM			3
- 	struct vb2_v4l2_buffer		*queue_buf[MAX_BUFFER_NUM];
--	struct vb2_alloc_ctx		*alloc_ctx;
- 	enum v4l2_field			field;
- 	unsigned int			pdata_flags;
- 	unsigned int			vb_count;
-@@ -540,8 +539,6 @@ static int rcar_vin_videobuf_setup(struct vb2_queue *vq,
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct rcar_vin_priv *priv = ici->priv;
- 
--	alloc_ctxs[0] = priv->alloc_ctx;
--
- 	if (!vq->num_buffers)
- 		priv->sequence = 0;
- 
-@@ -1816,6 +1813,7 @@ static int rcar_vin_init_videobuf2(struct vb2_queue *vq,
- 	vq->buf_struct_size = sizeof(struct rcar_vin_buffer);
- 	vq->timestamp_flags  = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	vq->lock = &ici->host_lock;
-+	vq->dev = ici->v4l2_dev.dev;
- 
- 	return vb2_queue_init(vq);
- }
-@@ -1912,10 +1910,6 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	priv->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(priv->alloc_ctx))
--		return PTR_ERR(priv->alloc_ctx);
--
- 	priv->ici.priv = priv;
- 	priv->ici.v4l2_dev.dev = &pdev->dev;
- 	priv->ici.drv_name = dev_name(&pdev->dev);
-@@ -1946,7 +1940,6 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 
- cleanup:
- 	pm_runtime_disable(&pdev->dev);
--	vb2_dma_contig_cleanup_ctx(priv->alloc_ctx);
- 
- 	return ret;
- }
-@@ -1954,12 +1947,9 @@ cleanup:
- static int rcar_vin_remove(struct platform_device *pdev)
- {
- 	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
--	struct rcar_vin_priv *priv = container_of(soc_host,
--						  struct rcar_vin_priv, ici);
- 
- 	soc_camera_host_unregister(soc_host);
- 	pm_runtime_disable(&pdev->dev);
--	vb2_dma_contig_cleanup_ctx(priv->alloc_ctx);
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index b9f369c..8f87fbe 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -113,7 +113,6 @@ struct sh_mobile_ceu_dev {
- 	spinlock_t lock;		/* Protects video buffer lists */
- 	struct list_head capture;
- 	struct vb2_v4l2_buffer *active;
--	struct vb2_alloc_ctx *alloc_ctx;
- 
- 	struct sh_mobile_ceu_info *pdata;
- 	struct completion complete;
-@@ -217,8 +216,6 @@ static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 
--	alloc_ctxs[0] = pcdev->alloc_ctx;
--
- 	if (!vq->num_buffers)
- 		pcdev->sequence = 0;
- 
-@@ -1670,6 +1667,7 @@ static int sh_mobile_ceu_init_videobuf(struct vb2_queue *q,
- 	q->buf_struct_size = sizeof(struct sh_mobile_ceu_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->lock = &ici->host_lock;
-+	q->dev = ici->v4l2_dev.dev;
- 
- 	return vb2_queue_init(q);
- }
-@@ -1822,12 +1820,6 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
- 	pcdev->ici.ops = &sh_mobile_ceu_host_ops;
- 	pcdev->ici.capabilities = SOCAM_HOST_CAP_STRIDE;
- 
--	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(pcdev->alloc_ctx)) {
--		err = PTR_ERR(pcdev->alloc_ctx);
--		goto exit_free_clk;
--	}
--
- 	if (pcdev->pdata && pcdev->pdata->asd_sizes) {
- 		struct v4l2_async_subdev **asd;
- 		char name[] = "sh-mobile-csi2";
-@@ -1872,7 +1864,7 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
- 
- 		if (!csi2_pdev) {
- 			err = -ENOMEM;
--			goto exit_free_ctx;
-+			goto exit_free_clk;
- 		}
- 
- 		pcdev->csi2_pdev		= csi2_pdev;
-@@ -1955,8 +1947,6 @@ exit_pdev_put:
- 		pcdev->csi2_pdev->resource = NULL;
- 		platform_device_put(pcdev->csi2_pdev);
- 	}
--exit_free_ctx:
--	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- exit_free_clk:
- 	pm_runtime_disable(&pdev->dev);
- exit_release_mem:
-@@ -1976,7 +1966,6 @@ static int sh_mobile_ceu_remove(struct platform_device *pdev)
- 	pm_runtime_disable(&pdev->dev);
- 	if (platform_get_resource(pdev, IORESOURCE_MEM, 1))
- 		dma_release_declared_memory(&pdev->dev);
--	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
- 	if (csi2_pdev && csi2_pdev->dev.driver) {
- 		struct module *csi2_drv = csi2_pdev->dev.driver->owner;
- 		platform_device_del(csi2_pdev);
-diff --git a/drivers/staging/media/mx2/mx2_camera.c b/drivers/staging/media/mx2/mx2_camera.c
-index 48dd5b7..b5d0e60 100644
---- a/drivers/staging/media/mx2/mx2_camera.c
-+++ b/drivers/staging/media/mx2/mx2_camera.c
-@@ -266,7 +266,6 @@ struct mx2_camera_dev {
- 	struct emma_prp_resize	resizing[2];
- 	unsigned int		s_width, s_height;
- 	u32			frame_count;
--	struct vb2_alloc_ctx	*alloc_ctx;
++config VIDEO_ADV7842_CEC
++	bool "Enable Analog Devices ADV7842 CEC support"
++	depends on VIDEO_ADV7842 && MEDIA_CEC
++	default y
++	---help---
++	  When selected the adv7842 will support the optional
++	  HDMI CEC feature.
++
+ config VIDEO_BT819
+ 	tristate "BT819A VideoStream decoder"
+ 	depends on VIDEO_V4L2 && I2C
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index d99f30a..cf9db86 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -2641,6 +2641,11 @@ static const struct v4l2_subdev_ops adv76xx_ops = {
+ 	.pad = &adv76xx_pad_ops,
  };
  
- static struct platform_device_id mx2_camera_devtype[] = {
-@@ -473,13 +472,9 @@ static int mx2_videobuf_setup(struct vb2_queue *vq,
- 			unsigned int sizes[], void *alloc_ctxs[])
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
--	struct mx2_camera_dev *pcdev = ici->priv;
- 
- 	dev_dbg(icd->parent, "count=%d, size=%d\n", *count, sizes[0]);
- 
--	alloc_ctxs[0] = pcdev->alloc_ctx;
--
- 	sizes[0] = icd->sizeimage;
- 
- 	if (0 == *count)
-@@ -780,6 +775,8 @@ static struct vb2_ops mx2_videobuf_ops = {
- static int mx2_camera_init_videobuf(struct vb2_queue *q,
- 			      struct soc_camera_device *icd)
- {
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++static const struct v4l2_subdev_internal_ops adv76xx_int_ops = {
++	.registered = adv76xx_registered,
++	.unregistered = adv76xx_unregistered,
++};
 +
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	q->io_modes = VB2_MMAP | VB2_USERPTR;
- 	q->drv_priv = icd;
-@@ -787,6 +784,7 @@ static int mx2_camera_init_videobuf(struct vb2_queue *q,
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->buf_struct_size = sizeof(struct mx2_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->dev = ici->v4l2_dev.dev;
+ /* -------------------------- custom ctrls ---------------------------------- */
  
- 	return vb2_queue_init(q);
+ static const struct v4l2_ctrl_config adv7604_ctrl_analog_sampling_phase = {
+@@ -2676,11 +2681,6 @@ static const struct v4l2_ctrl_config adv76xx_ctrl_free_run_color = {
+ 	.def = 0x0,
+ };
+ 
+-static const struct v4l2_subdev_internal_ops adv76xx_int_ops = {
+-	.registered = adv76xx_registered,
+-	.unregistered = adv76xx_unregistered,
+-};
+-
+ /* ----------------------------------------------------------------------- */
+ 
+ static int adv76xx_core_init(struct v4l2_subdev *sd)
+diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
+index 7ccb85d..424bf87 100644
+--- a/drivers/media/i2c/adv7842.c
++++ b/drivers/media/i2c/adv7842.c
+@@ -39,6 +39,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/v4l2-dv-timings.h>
+ #include <linux/hdmi.h>
++#include <media/cec.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-ctrls.h>
+@@ -79,6 +80,8 @@ MODULE_LICENSE("GPL");
+ 
+ #define ADV7842_OP_SWAP_CB_CR				(1 << 0)
+ 
++#define ADV7842_MAX_ADDRS (3)
++
+ /*
+ **********************************************************************
+ *
+@@ -142,6 +145,11 @@ struct adv7842_state {
+ 	struct v4l2_ctrl *free_run_color_ctrl_manual;
+ 	struct v4l2_ctrl *free_run_color_ctrl;
+ 	struct v4l2_ctrl *rgb_quantization_range_ctrl;
++
++	struct cec_adapter *cec_adap;
++	u8   cec_addr[ADV7842_MAX_ADDRS];
++	u8   cec_valid_addrs;
++	bool cec_enabled_adap;
+ };
+ 
+ /* Unsupported timings. This device cannot support 720p30. */
+@@ -418,9 +426,9 @@ static inline int cec_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+ 	return adv_smbus_write_byte_data(state->i2c_cec, reg, val);
  }
-@@ -1579,11 +1577,6 @@ static int mx2_camera_probe(struct platform_device *pdev)
- 	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
- 	pcdev->soc_host.nr		= pdev->id;
  
--	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(pcdev->alloc_ctx)) {
--		err = PTR_ERR(pcdev->alloc_ctx);
--		goto eallocctx;
+-static inline int cec_write_and_or(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
++static inline int cec_write_clr_set(struct v4l2_subdev *sd, u8 reg, u8 mask, u8 val)
+ {
+-	return cec_write(sd, reg, (cec_read(sd, reg) & mask) | val);
++	return cec_write(sd, reg, (cec_read(sd, reg) & ~mask) | val);
+ }
+ 
+ static inline int infoframe_read(struct v4l2_subdev *sd, u8 reg)
+@@ -696,6 +704,18 @@ adv7842_get_dv_timings_cap(struct v4l2_subdev *sd)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
++static u16 adv7842_read_cable_det(struct v4l2_subdev *sd)
++{
++	u8 reg = io_read(sd, 0x6f);
++	u16 val = 0;
++
++	if (reg & 0x02)
++		val |= 1; /* port A */
++	if (reg & 0x01)
++		val |= 2; /* port B */
++	return val;
++}
++
+ static void adv7842_delayed_work_enable_hotplug(struct work_struct *work)
+ {
+ 	struct delayed_work *dwork = to_delayed_work(work);
+@@ -762,50 +782,18 @@ static int edid_write_vga_segment(struct v4l2_subdev *sd)
+ 	return 0;
+ }
+ 
+-static int edid_spa_location(const u8 *edid)
+-{
+-	u8 d;
+-
+-	/*
+-	 * TODO, improve and update for other CEA extensions
+-	 * currently only for 1 segment (256 bytes),
+-	 * i.e. 1 extension block and CEA revision 3.
+-	 */
+-	if ((edid[0x7e] != 1) ||
+-	    (edid[0x80] != 0x02) ||
+-	    (edid[0x81] != 0x03)) {
+-		return -EINVAL;
 -	}
- 	err = soc_camera_host_register(&pcdev->soc_host);
- 	if (err)
- 		goto exit_free_emma;
-@@ -1594,8 +1587,6 @@ static int mx2_camera_probe(struct platform_device *pdev)
- 	return 0;
- 
- exit_free_emma:
--	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
--eallocctx:
- 	clk_disable_unprepare(pcdev->clk_emma_ipg);
- 	clk_disable_unprepare(pcdev->clk_emma_ahb);
- exit:
-@@ -1610,8 +1601,6 @@ static int mx2_camera_remove(struct platform_device *pdev)
- 
- 	soc_camera_host_unregister(&pcdev->soc_host);
- 
--	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+-	/*
+-	 * search Vendor Specific Data Block (tag 3)
+-	 */
+-	d = edid[0x82] & 0x7f;
+-	if (d > 4) {
+-		int i = 0x84;
+-		int end = 0x80 + d;
+-		do {
+-			u8 tag = edid[i]>>5;
+-			u8 len = edid[i] & 0x1f;
 -
- 	clk_disable_unprepare(pcdev->clk_emma_ipg);
- 	clk_disable_unprepare(pcdev->clk_emma_ahb);
- 
-diff --git a/drivers/staging/media/mx3/mx3_camera.c b/drivers/staging/media/mx3/mx3_camera.c
-index aa39e95..9f5343c 100644
---- a/drivers/staging/media/mx3/mx3_camera.c
-+++ b/drivers/staging/media/mx3/mx3_camera.c
-@@ -108,7 +108,6 @@ struct mx3_camera_dev {
- 	spinlock_t		lock;		/* Protects video buffer lists */
- 	struct mx3_camera_buffer *active;
- 	size_t			buf_total;
--	struct vb2_alloc_ctx	*alloc_ctx;
- 	enum v4l2_field		field;
- 	int			sequence;
- 
-@@ -195,8 +194,6 @@ static int mx3_videobuf_setup(struct vb2_queue *vq,
- 	if (!mx3_cam->idmac_channel[0])
- 		return -EINVAL;
- 
--	alloc_ctxs[0] = mx3_cam->alloc_ctx;
+-			if ((tag == 3) && (len >= 5))
+-				return i + 4;
+-			i += len + 1;
+-		} while (i < end);
+-	}
+-	return -EINVAL;
+-}
 -
- 	if (!vq->num_buffers)
- 		mx3_cam->sequence = 0;
+ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct adv7842_state *state = to_state(sd);
+-	const u8 *val = state->hdmi_edid.edid;
+-	int spa_loc = edid_spa_location(val);
++	const u8 *edid = state->hdmi_edid.edid;
++	int spa_loc;
++	u16 pa;
+ 	int err = 0;
+ 	int i;
  
-@@ -433,6 +430,7 @@ static int mx3_camera_init_videobuf(struct vb2_queue *q,
- 	q->buf_struct_size = sizeof(struct mx3_camera_buffer);
- 	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->lock = &ici->host_lock;
-+	q->dev = ici->v4l2_dev.dev;
+-	v4l2_dbg(2, debug, sd, "%s: write EDID on port %c (spa at 0x%x)\n",
+-			__func__, (port == ADV7842_EDID_PORT_A) ? 'A' : 'B', spa_loc);
++	v4l2_dbg(2, debug, sd, "%s: write EDID on port %c\n",
++			__func__, (port == ADV7842_EDID_PORT_A) ? 'A' : 'B');
  
- 	return vb2_queue_init(q);
- }
-@@ -1202,10 +1200,6 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 	soc_host->v4l2_dev.dev	= &pdev->dev;
- 	soc_host->nr		= pdev->id;
+ 	/* HPA disable on port A and B */
+ 	io_write_and_or(sd, 0x20, 0xcf, 0x00);
+@@ -816,24 +804,33 @@ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
+ 	if (!state->hdmi_edid.present)
+ 		return 0;
  
--	mx3_cam->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(mx3_cam->alloc_ctx))
--		return PTR_ERR(mx3_cam->alloc_ctx);
--
- 	if (pdata->asd_sizes) {
- 		soc_host->asd = pdata->asd;
- 		soc_host->asd_sizes = pdata->asd_sizes;
-@@ -1213,16 +1207,12 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 
- 	err = soc_camera_host_register(soc_host);
- 	if (err)
--		goto ecamhostreg;
++	pa = cec_get_edid_phys_addr(edid, 256, &spa_loc);
++	err = cec_phys_addr_validate(pa, &pa, NULL);
++	if (err)
 +		return err;
++
++	/*
++	 * Return an error if no location of the source physical address
++	 * was found.
++	 */
++	if (spa_loc == 0)
++		return -EINVAL;
++
+ 	/* edid segment pointer '0' for HDMI ports */
+ 	rep_write_and_or(sd, 0x77, 0xef, 0x00);
  
- 	/* IDMAC interface */
- 	dmaengine_get();
+ 	for (i = 0; !err && i < 256; i += I2C_SMBUS_BLOCK_MAX)
+ 		err = adv_smbus_write_i2c_block_data(state->i2c_edid, i,
+-						     I2C_SMBUS_BLOCK_MAX, val + i);
++						     I2C_SMBUS_BLOCK_MAX, edid + i);
+ 	if (err)
+ 		return err;
  
- 	return 0;
+-	if (spa_loc < 0)
+-		spa_loc = 0xc0; /* Default value [REF_02, p. 199] */
 -
--ecamhostreg:
--	vb2_dma_contig_cleanup_ctx(mx3_cam->alloc_ctx);
--	return err;
+ 	if (port == ADV7842_EDID_PORT_A) {
+-		rep_write(sd, 0x72, val[spa_loc]);
+-		rep_write(sd, 0x73, val[spa_loc + 1]);
++		rep_write(sd, 0x72, edid[spa_loc]);
++		rep_write(sd, 0x73, edid[spa_loc + 1]);
+ 	} else {
+-		rep_write(sd, 0x74, val[spa_loc]);
+-		rep_write(sd, 0x75, val[spa_loc + 1]);
++		rep_write(sd, 0x74, edid[spa_loc]);
++		rep_write(sd, 0x75, edid[spa_loc + 1]);
+ 	}
+ 	rep_write(sd, 0x76, spa_loc & 0xff);
+ 	rep_write_and_or(sd, 0x77, 0xbf, (spa_loc >> 2) & 0x40);
+@@ -853,6 +850,7 @@ static int edid_write_hdmi_segment(struct v4l2_subdev *sd, u8 port)
+ 				(port == ADV7842_EDID_PORT_A) ? 'A' : 'B');
+ 		return -EIO;
+ 	}
++	cec_s_phys_addr(state->cec_adap, pa, false);
+ 
+ 	/* enable hotplug after 200 ms */
+ 	queue_delayed_work(state->work_queues,
+@@ -983,20 +981,11 @@ static int adv7842_s_register(struct v4l2_subdev *sd,
+ static int adv7842_s_detect_tx_5v_ctrl(struct v4l2_subdev *sd)
+ {
+ 	struct adv7842_state *state = to_state(sd);
+-	int prev = v4l2_ctrl_g_ctrl(state->detect_tx_5v_ctrl);
+-	u8 reg_io_6f = io_read(sd, 0x6f);
+-	int val = 0;
+-
+-	if (reg_io_6f & 0x02)
+-		val |= 1; /* port A */
+-	if (reg_io_6f & 0x01)
+-		val |= 2; /* port B */
++	u16 cable_det = adv7842_read_cable_det(sd);
+ 
+-	v4l2_dbg(1, debug, sd, "%s: 0x%x -> 0x%x\n", __func__, prev, val);
++	v4l2_dbg(1, debug, sd, "%s: 0x%x\n", __func__, cable_det);
+ 
+-	if (val != prev)
+-		return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, val);
+-	return 0;
++	return v4l2_ctrl_s_ctrl(state->detect_tx_5v_ctrl, cable_det);
  }
  
- static int mx3_camera_remove(struct platform_device *pdev)
-@@ -1240,8 +1230,6 @@ static int mx3_camera_remove(struct platform_device *pdev)
- 	if (WARN_ON(mx3_cam->idmac_channel[0]))
- 		dma_release_channel(&mx3_cam->idmac_channel[0]->dma_chan);
+ static int find_and_set_predefined_video_timings(struct v4l2_subdev *sd,
+@@ -2170,6 +2159,207 @@ static void adv7842_irq_enable(struct v4l2_subdev *sd, bool enable)
+ 	}
+ }
  
--	vb2_dma_contig_cleanup_ctx(mx3_cam->alloc_ctx);
--
- 	dmaengine_put();
++#if IS_ENABLED(CONFIG_VIDEO_ADV7842_CEC)
++static void adv7842_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
++{
++	struct adv7842_state *state = to_state(sd);
++
++	if ((cec_read(sd, 0x11) & 0x01) == 0) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: tx disabled\n", __func__);
++		return;
++	}
++
++	if (tx_raw_status & 0x02) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: arbitration lost\n",
++			 __func__);
++		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_ARB_LOST,
++				  1, 0, 0, 0);
++		return;
++	}
++	if (tx_raw_status & 0x04) {
++		u8 status;
++		u8 nack_cnt;
++		u8 low_drive_cnt;
++
++		v4l2_dbg(1, debug, sd, "%s: tx raw: retry failed\n", __func__);
++		/*
++		 * We set this status bit since this hardware performs
++		 * retransmissions.
++		 */
++		status = CEC_TX_STATUS_MAX_RETRIES;
++		nack_cnt = cec_read(sd, 0x14) & 0xf;
++		if (nack_cnt)
++			status |= CEC_TX_STATUS_NACK;
++		low_drive_cnt = cec_read(sd, 0x14) >> 4;
++		if (low_drive_cnt)
++			status |= CEC_TX_STATUS_LOW_DRIVE;
++		cec_transmit_done(state->cec_adap, status,
++				  0, nack_cnt, low_drive_cnt, 0);
++		return;
++	}
++	if (tx_raw_status & 0x01) {
++		v4l2_dbg(1, debug, sd, "%s: tx raw: ready ok\n", __func__);
++		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_OK, 0, 0, 0, 0);
++		return;
++	}
++}
++
++static void adv7842_cec_isr(struct v4l2_subdev *sd, bool *handled)
++{
++	u8 cec_irq;
++
++	/* cec controller */
++	cec_irq = io_read(sd, 0x93) & 0x0f;
++	if (!cec_irq)
++		return;
++
++	v4l2_dbg(1, debug, sd, "%s: cec: irq 0x%x\n", __func__, cec_irq);
++	adv7842_cec_tx_raw_status(sd, cec_irq);
++	if (cec_irq & 0x08) {
++		struct adv7842_state *state = to_state(sd);
++		struct cec_msg msg;
++
++		msg.len = cec_read(sd, 0x25) & 0x1f;
++		if (msg.len > 16)
++			msg.len = 16;
++
++		if (msg.len) {
++			u8 i;
++
++			for (i = 0; i < msg.len; i++)
++				msg.msg[i] = cec_read(sd, i + 0x15);
++			cec_write(sd, 0x26, 0x01); /* re-enable rx */
++			cec_received_msg(state->cec_adap, &msg);
++		}
++	}
++
++	io_write(sd, 0x94, cec_irq);
++
++	if (handled)
++		*handled = true;
++}
++
++static int adv7842_cec_adap_enable(struct cec_adapter *adap, bool enable)
++{
++	struct adv7842_state *state = adap->priv;
++	struct v4l2_subdev *sd = &state->sd;
++
++	if (!state->cec_enabled_adap && enable) {
++		cec_write_clr_set(sd, 0x2a, 0x01, 0x01);	/* power up cec */
++		cec_write(sd, 0x2c, 0x01);	/* cec soft reset */
++		cec_write_clr_set(sd, 0x11, 0x01, 0);  /* initially disable tx */
++		/* enabled irqs: */
++		/* tx: ready */
++		/* tx: arbitration lost */
++		/* tx: retry timeout */
++		/* rx: ready */
++		io_write_clr_set(sd, 0x96, 0x0f, 0x0f);
++		cec_write(sd, 0x26, 0x01);            /* enable rx */
++	} else if (state->cec_enabled_adap && !enable) {
++		/* disable cec interrupts */
++		io_write_clr_set(sd, 0x96, 0x0f, 0x00);
++		/* disable address mask 1-3 */
++		cec_write_clr_set(sd, 0x27, 0x70, 0x00);
++		/* power down cec section */
++		cec_write_clr_set(sd, 0x2a, 0x01, 0x00);
++		state->cec_valid_addrs = 0;
++	}
++	state->cec_enabled_adap = enable;
++	return 0;
++}
++
++static int adv7842_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
++{
++	struct adv7842_state *state = adap->priv;
++	struct v4l2_subdev *sd = &state->sd;
++	unsigned i, free_idx = ADV7842_MAX_ADDRS;
++
++	if (!state->cec_enabled_adap)
++		return -EIO;
++
++	if (addr == CEC_LOG_ADDR_INVALID) {
++		cec_write_clr_set(sd, 0x27, 0x70, 0);
++		state->cec_valid_addrs = 0;
++		return 0;
++	}
++
++	for (i = 0; i < ADV7842_MAX_ADDRS; i++) {
++		bool is_valid = state->cec_valid_addrs & (1 << i);
++
++		if (free_idx == ADV7842_MAX_ADDRS && !is_valid)
++			free_idx = i;
++		if (is_valid && state->cec_addr[i] == addr)
++			return 0;
++	}
++	if (i == ADV7842_MAX_ADDRS) {
++		i = free_idx;
++		if (i == ADV7842_MAX_ADDRS)
++			return -ENXIO;
++	}
++	state->cec_addr[i] = addr;
++	state->cec_valid_addrs |= 1 << i;
++
++	switch (i) {
++	case 0:
++		/* enable address mask 0 */
++		cec_write_clr_set(sd, 0x27, 0x10, 0x10);
++		/* set address for mask 0 */
++		cec_write_clr_set(sd, 0x28, 0x0f, addr);
++		break;
++	case 1:
++		/* enable address mask 1 */
++		cec_write_clr_set(sd, 0x27, 0x20, 0x20);
++		/* set address for mask 1 */
++		cec_write_clr_set(sd, 0x28, 0xf0, addr << 4);
++		break;
++	case 2:
++		/* enable address mask 2 */
++		cec_write_clr_set(sd, 0x27, 0x40, 0x40);
++		/* set address for mask 1 */
++		cec_write_clr_set(sd, 0x29, 0x0f, addr);
++		break;
++	}
++	return 0;
++}
++
++static int adv7842_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
++				     u32 signal_free_time, struct cec_msg *msg)
++{
++	struct adv7842_state *state = adap->priv;
++	struct v4l2_subdev *sd = &state->sd;
++	u8 len = msg->len;
++	unsigned i;
++
++	/*
++	 * The number of retries is the number of attempts - 1, but retry
++	 * at least once. It's not clear if a value of 0 is allowed, so
++	 * let's do at least one retry.
++	 */
++	cec_write_clr_set(sd, 0x12, 0x70, max(1, attempts - 1) << 4);
++
++	if (len > 16) {
++		v4l2_err(sd, "%s: len exceeded 16 (%d)\n", __func__, len);
++		return -EINVAL;
++	}
++
++	/* write data */
++	for (i = 0; i < len; i++)
++		cec_write(sd, i, msg->msg[i]);
++
++	/* set length (data + header) */
++	cec_write(sd, 0x10, len);
++	/* start transmit, enable tx */
++	cec_write(sd, 0x11, 0x01);
++	return 0;
++}
++
++static const struct cec_adap_ops adv7842_cec_adap_ops = {
++	.adap_enable = adv7842_cec_adap_enable,
++	.adap_log_addr = adv7842_cec_adap_log_addr,
++	.adap_transmit = adv7842_cec_adap_transmit,
++};
++#endif
++
+ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ {
+ 	struct adv7842_state *state = to_state(sd);
+@@ -2241,6 +2431,11 @@ static int adv7842_isr(struct v4l2_subdev *sd, u32 status, bool *handled)
+ 			*handled = true;
+ 	}
  
++#if IS_ENABLED(CONFIG_VIDEO_ADV7842_CEC)
++	/* cec */
++	adv7842_cec_isr(sd, handled);
++#endif
++
+ 	/* tx 5v detect */
+ 	if (irq_status[2] & 0x3) {
+ 		v4l2_dbg(1, debug, sd, "%s: irq tx_5v\n", __func__);
+@@ -2321,10 +2516,12 @@ static int adv7842_set_edid(struct v4l2_subdev *sd, struct v4l2_edid *e)
+ 	case ADV7842_EDID_PORT_A:
+ 	case ADV7842_EDID_PORT_B:
+ 		memset(&state->hdmi_edid.edid, 0, 256);
+-		if (e->blocks)
++		if (e->blocks) {
+ 			state->hdmi_edid.present |= 0x04 << e->pad;
+-		else
++		} else {
+ 			state->hdmi_edid.present &= ~(0x04 << e->pad);
++			adv7842_s_detect_tx_5v_ctrl(sd);
++		}
+ 		memcpy(&state->hdmi_edid.edid, e->edid, 128 * e->blocks);
+ 		err = edid_write_hdmi_segment(sd, e->pad);
+ 		break;
+@@ -2509,8 +2706,19 @@ static int adv7842_cp_log_status(struct v4l2_subdev *sd)
+ 	v4l2_info(sd, "HPD A %s, B %s\n",
+ 		  reg_io_0x21 & 0x02 ? "enabled" : "disabled",
+ 		  reg_io_0x21 & 0x01 ? "enabled" : "disabled");
+-	v4l2_info(sd, "CEC %s\n", !!(cec_read(sd, 0x2a) & 0x01) ?
++	v4l2_info(sd, "CEC: %s\n", state->cec_enabled_adap ?
+ 			"enabled" : "disabled");
++	if (state->cec_enabled_adap) {
++		int i;
++
++		for (i = 0; i < ADV7842_MAX_ADDRS; i++) {
++			bool is_valid = state->cec_valid_addrs & (1 << i);
++
++			if (is_valid)
++				v4l2_info(sd, "CEC Logical Address: 0x%x\n",
++					  state->cec_addr[i]);
++		}
++	}
+ 
+ 	v4l2_info(sd, "-----Signal status-----\n");
+ 	if (state->hdmi_port_a) {
+@@ -3031,6 +3239,24 @@ static int adv7842_subscribe_event(struct v4l2_subdev *sd,
+ 	}
+ }
+ 
++static int adv7842_registered(struct v4l2_subdev *sd)
++{
++	struct adv7842_state *state = to_state(sd);
++	int err;
++
++	err = cec_register_adapter(state->cec_adap);
++	if (err)
++		cec_delete_adapter(state->cec_adap);
++	return err;
++}
++
++static void adv7842_unregistered(struct v4l2_subdev *sd)
++{
++	struct adv7842_state *state = to_state(sd);
++
++	cec_unregister_adapter(state->cec_adap);
++}
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_ctrl_ops adv7842_ctrl_ops = {
+@@ -3077,6 +3303,11 @@ static const struct v4l2_subdev_ops adv7842_ops = {
+ 	.pad = &adv7842_pad_ops,
+ };
+ 
++static const struct v4l2_subdev_internal_ops adv7842_int_ops = {
++	.registered = adv7842_registered,
++	.unregistered = adv7842_unregistered,
++};
++
+ /* -------------------------- custom ctrls ---------------------------------- */
+ 
+ static const struct v4l2_ctrl_config adv7842_ctrl_analog_sampling_phase = {
+@@ -3241,6 +3472,7 @@ static int adv7842_probe(struct i2c_client *client,
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &adv7842_ops);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
++	sd->internal_ops = &adv7842_int_ops;
+ 	state->mode = pdata->mode;
+ 
+ 	state->hdmi_port_a = pdata->input == ADV7842_SELECT_HDMI_PORT_A;
+@@ -3337,6 +3569,17 @@ static int adv7842_probe(struct i2c_client *client,
+ 	if (err)
+ 		goto err_entity;
+ 
++#if IS_ENABLED(CONFIG_VIDEO_ADV7842_CEC)
++	state->cec_adap = cec_allocate_adapter(&adv7842_cec_adap_ops,
++		state, dev_name(&client->dev),
++		CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
++		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, ADV7842_MAX_ADDRS,
++		&client->dev);
++	err = PTR_ERR_OR_ZERO(state->cec_adap);
++	if (err)
++		goto err_entity;
++#endif
++
+ 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
+ 		  client->addr << 1, client->adapter->name);
  	return 0;
+@@ -3361,7 +3604,6 @@ static int adv7842_remove(struct i2c_client *client)
+ 	struct adv7842_state *state = to_state(sd);
+ 
+ 	adv7842_irq_enable(sd, false);
+-
+ 	cancel_delayed_work(&state->delayed_work_enable_hotplug);
+ 	destroy_workqueue(state->work_queues);
+ 	v4l2_device_unregister_subdev(sd);
 -- 
-2.8.0.rc3
+2.8.1
 
