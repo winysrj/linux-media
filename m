@@ -1,281 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:47795 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753550AbcD2Nwo (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33313 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750908AbcDZEWB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Apr 2016 09:52:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	linux-input@vger.kernel.org, lars@opdenkamp.eu,
-	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv16 03/13] rc: Add HDMI CEC protocol handling
-Date: Fri, 29 Apr 2016 15:52:18 +0200
-Message-Id: <1461937948-22936-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 26 Apr 2016 00:22:01 -0400
+Received: by mail-wm0-f68.google.com with SMTP id r12so1081514wme.0
+        for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 21:22:00 -0700 (PDT)
+Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
+To: Pavel Machek <pavel@ucw.cz>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160425165848.GA10443@amd> <571E5134.10607@gmail.com>
+ <20160425184016.GC10443@amd> <571E6D38.9050009@gmail.com>
+ <20160425204110.GA2689@amd> <571E83B0.8020208@gmail.com>
+ <20160425220751.GA26350@amd>
+Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
+	linux-media@vger.kernel.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <571EECE5.8060100@gmail.com>
+Date: Tue, 26 Apr 2016 07:21:57 +0300
+MIME-Version: 1.0
+In-Reply-To: <20160425220751.GA26350@amd>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kamil Debski <kamil@wypas.org>
+Hi,
 
-Add handling of remote control events coming from the HDMI CEC bus.
-This patch includes a new keymap that maps values found in the CEC
-messages to the keys pressed and released. Also, a new protocol has
-been added to the core.
+On 26.04.2016 01:07, Pavel Machek wrote:
+> Hi!
+>
+>>> Hi!
+>>>
+>>>> All my testing so far was performed using modules, though it shouldn't make
+>>>> difference.
+>>>>
+>>>>> https://lkml.org/lkml/2016/4/16/14
+>>>>> https://lkml.org/lkml/2016/4/16/33
+>>>>>
+>>>>
+>>>> More stuff is needed, all those twl4030 regulator patches (already in
+>>>> linux-next) + DTS initial-mode patch
+>>>> (https://lkml.org/lkml/2016/4/17/78).
+>>>
+>>> Aha, that explains a lot. Dealing with -next would be tricky, I guess;
+>>> can I just pull from your camera branch?
+>>>
+>>> https://github.com/freemangordon/linux-n900/tree/camera
+>>
+>> I guess yes, though I am not sure all the patches there are compatible with
+>> userland different from maemo, so be careful. Also, the correct branch is
+>> v4.6-rc4-n900-camera.
+>
+> I tried v4.6-rc4-n900-camera, but got the same results: green mplayer
+> window, if I try to use front or back camera. Assuming
+> v4.6-rc4-n900-camera works for you, could I get your .config and list
+> of modules loaded during the test?
+>
 
-Signed-off-by: Kamil Debski <kamil@wypas.org>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/rc/keymaps/Makefile |   1 +
- drivers/media/rc/keymaps/rc-cec.c | 174 ++++++++++++++++++++++++++++++++++++++
- drivers/media/rc/rc-main.c        |   1 +
- include/media/rc-map.h            |   5 +-
- 4 files changed, 180 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/rc/keymaps/rc-cec.c
+.config is 'make rx51_defconfig' from v4.6-rc4-n900-camera branch, with 
+added:
 
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index fbbd3bb..9cffcc6 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -18,6 +18,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-behold.o \
- 			rc-behold-columbus.o \
- 			rc-budget-ci-old.o \
-+			rc-cec.o \
- 			rc-cinergy-1400.o \
- 			rc-cinergy.o \
- 			rc-delock-61959.o \
-diff --git a/drivers/media/rc/keymaps/rc-cec.c b/drivers/media/rc/keymaps/rc-cec.c
-new file mode 100644
-index 0000000..193cdca
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-cec.c
-@@ -0,0 +1,174 @@
-+/* Keytable for the CEC remote control
-+ *
-+ * Copyright (c) 2015 by Kamil Debski
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/rc-map.h>
-+#include <linux/module.h>
-+
-+/* CEC Spec "High-Definition Multimedia Interface Specification" can be obtained
-+ * here: http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
-+ * The list of control codes is listed in Table 27: User Control Codes p. 95 */
-+
-+static struct rc_map_table cec[] = {
-+	{ 0x00, KEY_OK },
-+	{ 0x01, KEY_UP },
-+	{ 0x02, KEY_DOWN },
-+	{ 0x03, KEY_LEFT },
-+	{ 0x04, KEY_RIGHT },
-+	{ 0x05, KEY_RIGHT_UP },
-+	{ 0x06, KEY_RIGHT_DOWN },
-+	{ 0x07, KEY_LEFT_UP },
-+	{ 0x08, KEY_LEFT_DOWN },
-+	{ 0x09, KEY_ROOT_MENU }, /* CEC Spec: Device Root Menu - see Note 2 */
-+	/* Note 2: This is the initial display that a device shows. It is
-+	 * device-dependent and can be, for example, a contents menu, setup
-+	 * menu, favorite menu or other menu. The actual menu displayed
-+	 * may also depend on the device's current state. */
-+	{ 0x0a, KEY_SETUP },
-+	{ 0x0b, KEY_MENU }, /* CEC Spec: Contents Menu */
-+	{ 0x0c, KEY_FAVORITES }, /* CEC Spec: Favorite Menu */
-+	{ 0x0d, KEY_EXIT },
-+	/* 0x0e-0x0f: Reserved */
-+	{ 0x10, KEY_MEDIA_TOP_MENU },
-+	{ 0x11, KEY_CONTEXT_MENU },
-+	/* 0x12-0x1c: Reserved */
-+	{ 0x1d, KEY_DIGITS }, /* CEC Spec: select/toggle a Number Entry Mode */
-+	{ 0x1e, KEY_NUMERIC_11 },
-+	{ 0x1f, KEY_NUMERIC_12 },
-+	/* 0x20-0x29: Keys 0 to 9 */
-+	{ 0x20, KEY_NUMERIC_0 },
-+	{ 0x21, KEY_NUMERIC_1 },
-+	{ 0x22, KEY_NUMERIC_2 },
-+	{ 0x23, KEY_NUMERIC_3 },
-+	{ 0x24, KEY_NUMERIC_4 },
-+	{ 0x25, KEY_NUMERIC_5 },
-+	{ 0x26, KEY_NUMERIC_6 },
-+	{ 0x27, KEY_NUMERIC_7 },
-+	{ 0x28, KEY_NUMERIC_8 },
-+	{ 0x29, KEY_NUMERIC_9 },
-+	{ 0x2a, KEY_DOT },
-+	{ 0x2b, KEY_ENTER },
-+	{ 0x2c, KEY_CLEAR },
-+	/* 0x2d-0x2e: Reserved */
-+	{ 0x2f, KEY_NEXT_FAVORITE }, /* CEC Spec: Next Favorite */
-+	{ 0x30, KEY_CHANNELUP },
-+	{ 0x31, KEY_CHANNELDOWN },
-+	{ 0x32, KEY_PREVIOUS }, /* CEC Spec: Previous Channel */
-+	{ 0x33, KEY_SOUND }, /* CEC Spec: Sound Select */
-+	{ 0x34, KEY_VIDEO }, /* 0x34: CEC Spec: Input Select */
-+	{ 0x35, KEY_INFO }, /* CEC Spec: Display Information */
-+	{ 0x36, KEY_HELP },
-+	{ 0x37, KEY_PAGEUP },
-+	{ 0x38, KEY_PAGEDOWN },
-+	/* 0x39-0x3f: Reserved */
-+	{ 0x40, KEY_POWER },
-+	{ 0x41, KEY_VOLUMEUP },
-+	{ 0x42, KEY_VOLUMEDOWN },
-+	{ 0x43, KEY_MUTE },
-+	{ 0x44, KEY_PLAYCD },
-+	{ 0x45, KEY_STOPCD },
-+	{ 0x46, KEY_PAUSECD },
-+	{ 0x47, KEY_RECORD },
-+	{ 0x48, KEY_REWIND },
-+	{ 0x49, KEY_FASTFORWARD },
-+	{ 0x4a, KEY_EJECTCD }, /* CEC Spec: Eject */
-+	{ 0x4b, KEY_FORWARD },
-+	{ 0x4c, KEY_BACK },
-+	{ 0x4d, KEY_STOP_RECORD }, /* CEC Spec: Stop-Record */
-+	{ 0x4e, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record */
-+	/* 0x4f: Reserved */
-+	{ 0x50, KEY_ANGLE },
-+	{ 0x51, KEY_TV2 },
-+	{ 0x52, KEY_VOD }, /* CEC Spec: Video on Demand */
-+	{ 0x53, KEY_EPG },
-+	{ 0x54, KEY_TIME }, /* CEC Spec: Timer */
-+	{ 0x55, KEY_CONFIG },
-+	/* The following codes are hard to implement at this moment, as they
-+	 * carry an additional additional argument. Most likely changes to RC
-+	 * framework are necessary.
-+	 * For now they are interpreted by the CEC framework as non keycodes
-+	 * and are passed as messages enabling user application to parse them.
-+	 * */
-+	/* 0x56: CEC Spec: Select Broadcast Type */
-+	/* 0x57: CEC Spec: Select Sound presentation */
-+	{ 0x58, KEY_AUDIO_DESC }, /* CEC 2.0 and up */
-+	{ 0x59, KEY_WWW }, /* CEC 2.0 and up */
-+	{ 0x5a, KEY_3D_MODE }, /* CEC 2.0 and up */
-+	/* 0x5b-0x5f: Reserved */
-+	{ 0x60, KEY_PLAYCD }, /* CEC Spec: Play Function */
-+	{ 0x6005, KEY_FASTFORWARD },
-+	{ 0x6006, KEY_FASTFORWARD },
-+	{ 0x6007, KEY_FASTFORWARD },
-+	{ 0x6015, KEY_SLOW },
-+	{ 0x6016, KEY_SLOW },
-+	{ 0x6017, KEY_SLOW },
-+	{ 0x6009, KEY_FASTREVERSE },
-+	{ 0x600a, KEY_FASTREVERSE },
-+	{ 0x600b, KEY_FASTREVERSE },
-+	{ 0x6019, KEY_SLOWREVERSE },
-+	{ 0x601a, KEY_SLOWREVERSE },
-+	{ 0x601b, KEY_SLOWREVERSE },
-+	{ 0x6020, KEY_REWIND },
-+	{ 0x6024, KEY_PLAYCD },
-+	{ 0x6025, KEY_PAUSECD },
-+	{ 0x61, KEY_PLAYPAUSE }, /* CEC Spec: Pause-Play Function */
-+	{ 0x62, KEY_RECORD }, /* Spec: Record Function */
-+	{ 0x63, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record Function */
-+	{ 0x64, KEY_STOPCD }, /* CEC Spec: Stop Function */
-+	{ 0x65, KEY_MUTE }, /* CEC Spec: Mute Function */
-+	{ 0x66, KEY_UNMUTE }, /* CEC Spec: Restore the volume */
-+	/* The following codes are hard to implement at this moment, as they
-+	 * carry an additional additional argument. Most likely changes to RC
-+	 * framework are necessary.
-+	 * For now they are interpreted by the CEC framework as non keycodes
-+	 * and are passed as messages enabling user application to parse them.
-+	 * */
-+	/* 0x67: CEC Spec: Tune Function */
-+	/* 0x68: CEC Spec: Seleect Media Function */
-+	/* 0x69: CEC Spec: Select A/V Input Function */
-+	/* 0x6a: CEC Spec: Select Audio Input Function */
-+	{ 0x6b, KEY_POWER }, /* CEC Spec: Power Toggle Function */
-+	{ 0x6c, KEY_SLEEP }, /* CEC Spec: Power Off Function */
-+	{ 0x6d, KEY_WAKEUP }, /* CEC Spec: Power On Function */
-+	/* 0x6e-0x70: Reserved */
-+	{ 0x71, KEY_BLUE }, /* CEC Spec: F1 (Blue) */
-+	{ 0x72, KEY_RED }, /* CEC Spec: F2 (Red) */
-+	{ 0x73, KEY_GREEN }, /* CEC Spec: F3 (Green) */
-+	{ 0x74, KEY_YELLOW }, /* CEC Spec: F4 (Yellow) */
-+	{ 0x75, KEY_F5 },
-+	{ 0x76, KEY_DATA }, /* CEC Spec: Data - see Note 3 */
-+	/* Note 3: This is used, for example, to enter or leave a digital TV
-+	 * data broadcast application. */
-+	/* 0x77-0xff: Reserved */
-+};
-+
-+static struct rc_map_list cec_map = {
-+	.map = {
-+		.scan		= cec,
-+		.size		= ARRAY_SIZE(cec),
-+		.rc_type	= RC_TYPE_CEC,
-+		.name		= RC_MAP_CEC,
-+	}
-+};
-+
-+static int __init init_rc_map_cec(void)
-+{
-+	return rc_map_register(&cec_map);
-+}
-+
-+static void __exit exit_rc_map_cec(void)
-+{
-+	rc_map_unregister(&cec_map);
-+}
-+
-+module_init(init_rc_map_cec);
-+module_exit(exit_rc_map_cec);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Kamil Debski");
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 4e9bbe7..85c364a 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -804,6 +804,7 @@ static const struct {
- 	{ RC_BIT_SHARP,		"sharp",	"ir-sharp-decoder"	},
- 	{ RC_BIT_MCE_KBD,	"mce_kbd",	"ir-mce_kbd-decoder"	},
- 	{ RC_BIT_XMP,		"xmp",		"ir-xmp-decoder"	},
-+	{ RC_BIT_CEC,		"cec",		NULL			},
- };
- 
- /**
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index 7844e98..6e6557d 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -31,6 +31,7 @@ enum rc_type {
- 	RC_TYPE_RC6_MCE		= 16,	/* MCE (Philips RC6-6A-32 subtype) protocol */
- 	RC_TYPE_SHARP		= 17,	/* Sharp protocol */
- 	RC_TYPE_XMP		= 18,	/* XMP protocol */
-+	RC_TYPE_CEC		= 19,	/* CEC protocol */
- };
- 
- #define RC_BIT_NONE		0ULL
-@@ -53,6 +54,7 @@ enum rc_type {
- #define RC_BIT_RC6_MCE		(1ULL << RC_TYPE_RC6_MCE)
- #define RC_BIT_SHARP		(1ULL << RC_TYPE_SHARP)
- #define RC_BIT_XMP		(1ULL << RC_TYPE_XMP)
-+#define RC_BIT_CEC		(1ULL << RC_TYPE_CEC)
- 
- #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
- 			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
-@@ -61,7 +63,7 @@ enum rc_type {
- 			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
- 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
- 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
--			 RC_BIT_XMP)
-+			 RC_BIT_XMP | RC_BIT_CEC)
- 
- 
- #define RC_SCANCODE_UNKNOWN(x)			(x)
-@@ -123,6 +125,7 @@ void rc_map_init(void);
- #define RC_MAP_BEHOLD_COLUMBUS           "rc-behold-columbus"
- #define RC_MAP_BEHOLD                    "rc-behold"
- #define RC_MAP_BUDGET_CI_OLD             "rc-budget-ci-old"
-+#define RC_MAP_CEC                       "rc-cec"
- #define RC_MAP_CINERGY_1400              "rc-cinergy-1400"
- #define RC_MAP_CINERGY                   "rc-cinergy"
- #define RC_MAP_DELOCK_61959              "rc-delock-61959"
--- 
-2.8.1
+CONFIG_VIDEO_BUS_SWITCH=m
+CONFIG_VIDEO_SMIAREGS=m
+CONFIG_VIDEO_ET8EK8=m
 
+For some reason I have to do 'modprobe smiapp' after every reboot, 
+before using cameras.
+
+After taking a nap, a question came to my mind - what is that device 
+you're using? As some early board versions use VAUX3 for cameras as well.
+
+awk '{ printf "%s ",$1 }' /proc/modules results in:
+
+smiapp smiapp_pll sha256_generic hmac drbg ansi_cprng ctr ccm vfat fat 
+rfcomm sd_mod scsi_mod bnep bluetooth omaplfb pvrsrvkm ipv6 
+bq2415x_charger uinput radio_platform_si4713 joydev cmt_speech hsi_char 
+video_bus_switch arc4 wl1251_spi isp1704_charger wl1251 gpio_keys 
+mac80211 smc91x mii cfg80211 omap3_isp videobuf2_v4l2 omap_wdt 
+videobuf2_dma_contig omap_sham crc7 videobuf2_memops videobuf2_core 
+tsc2005 tsc200x_core leds_lp5523 bq27xxx_battery_i2c si4713 adp1653 
+tsl2563 bq27xxx_battery leds_lp55xx_common twl4030_wdt rtc_twl et8ek8 
+v4l2_common smiaregs videodev twl4030_vibra ff_memless lis3lv02d_i2c 
+lis3lv02d media input_polldev omap_ssi_port ti_soc_thermal nokia_modem 
+ssi_protocol omap_ssi hsi rx51_battery
+
+Regards,
+Ivo
