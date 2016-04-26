@@ -1,118 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:11610 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S934598AbcDMMCF (ORCPT
+Received: from mail-io0-f196.google.com ([209.85.223.196]:34630 "EHLO
+	mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751146AbcDZDQz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Apr 2016 08:02:05 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH 2/7] dt-bindings: Add a binding for Mediatek Video Decoder
-Date: Wed, 13 Apr 2016 20:01:50 +0800
-Message-ID: <1460548915-17536-3-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1460548915-17536-2-git-send-email-tiffany.lin@mediatek.com>
-References: <1460548915-17536-1-git-send-email-tiffany.lin@mediatek.com>
- <1460548915-17536-2-git-send-email-tiffany.lin@mediatek.com>
+	Mon, 25 Apr 2016 23:16:55 -0400
+Received: by mail-io0-f196.google.com with SMTP id d62so563400iof.1
+        for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 20:16:55 -0700 (PDT)
+Date: Mon, 25 Apr 2016 21:16:51 -0600
+From: Wade Berrier <wberrier@gmail.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: mceusb xhci issue?
+Message-ID: <20160426031650.GA13700@berrier.lan>
+References: <20160425040632.GD15140@berrier.lan>
+ <20160425171506.GA25277@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160425171506.GA25277@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a DT binding documentation of Video Decoder for the
-MT8173 SoC from Mediatek.
+On Apr 25 18:15, Sean Young wrote:
+> On Sun, Apr 24, 2016 at 10:06:33PM -0600, Wade Berrier wrote:
+> > Hello,
+> > 
+> > I have a mceusb compatible transceiver that only seems to work with
+> > certain computers.  I'm testing this on centos7 (3.10.0) and fedora23
+> > (4.4.7).
+> > 
+> > The only difference I can see is that the working computer shows
+> > "using uhci_hcd" and the non working shows "using xhci_hcd".
+> > 
+> > Here's the dmesg output of the non-working version:
+> > 
+> > ---------------------
+> > 
+> > [  217.951079] usb 1-5: new full-speed USB device number 10 using xhci_hcd
+> > [  218.104087] usb 1-5: device descriptor read/64, error -71
+> > [  218.371010] usb 1-5: config 1 interface 0 altsetting 0 endpoint 0x1 has an invalid bInterval 0, changing to 32
+> > [  218.371019] usb 1-5: config 1 interface 0 altsetting 0 endpoint 0x81 has an invalid bInterval 0, changing to 32
+> 
+> That's odd. Can you post a "lsusb -vvv" of the device please?
+> 
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- .../devicetree/bindings/media/mediatek-vcodec.txt  |   50 ++++++++++++++++++--
- 1 file changed, 46 insertions(+), 4 deletions(-)
+Sure.
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-index 59a47a5..9aa8848 100644
---- a/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-+++ b/Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-@@ -1,25 +1,67 @@
- Mediatek Video Codec
- 
- Mediatek Video Codec is the video codec hw present in Mediatek SoCs which
--supports high resolution encoding functionalities.
-+supports high resolution encoding and decoding functionalities.
- 
- Required properties:
- - compatible : "mediatek,mt8173-vcodec-enc" for encoder
-+  "mediatek,mt8173-vcodec-dec" for decoder.
- - reg : Physical base address of the video codec registers and length of
-   memory mapped region.
- - interrupts : interrupt number to the cpu.
- - mediatek,larb : must contain the local arbiters in the current Socs.
- - clocks : list of clock specifiers, corresponding to entries in
-   the clock-names property.
--- clock-names: encoder must contain "venc_sel_src", "venc_sel",
--- "venc_lt_sel_src", "venc_lt_sel".
-+- clock-names: encoder must contain "venc_sel_src", "venc_sel",,
-+  "venc_lt_sel_src", "venc_lt_sel", decoder must contain "vcodecpll",
-+  "univpll_d2", "clk_cci400_sel", "vdec_sel", "vdecpll".
- - iommus : should point to the respective IOMMU block with master port as
-   argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
-   for details.
- - mediatek,vpu : the node of video processor unit
- 
-+
- Example:
--vcodec_enc: vcodec@0x18002000 {
-+
-+vcodec_dec: vcodec@16000000 {
-+    compatible = "mediatek,mt8173-vcodec-dec";
-+    reg = <0 0x16000000 0 0x100>,   /*VDEC_SYS*/
-+          <0 0x16020000 0 0x1000>,  /*VDEC_MISC*/
-+          <0 0x16021000 0 0x800>,   /*VDEC_LD*/
-+          <0 0x16021800 0 0x800>,   /*VDEC_TOP*/
-+          <0 0x16022000 0 0x1000>,  /*VDEC_CM*/
-+          <0 0x16023000 0 0x1000>,  /*VDEC_AD*/
-+          <0 0x16024000 0 0x1000>,  /*VDEC_AV*/
-+          <0 0x16025000 0 0x1000>,  /*VDEC_PP*/
-+          <0 0x16026800 0 0x800>,   /*VP8_VD*/
-+          <0 0x16027000 0 0x800>,   /*VP6_VD*/
-+          <0 0x16027800 0 0x800>,   /*VP8_VL*/
-+          <0 0x16028400 0 0x400>;   /*VP9_VD*/
-+    interrupts = <GIC_SPI 204 IRQ_TYPE_LEVEL_LOW>;
-+    mediatek,larb = <&larb1>;
-+    iommus = <&iommu M4U_PORT_HW_VDEC_MC_EXT>,
-+             <&iommu M4U_PORT_HW_VDEC_PP_EXT>,
-+             <&iommu M4U_PORT_HW_VDEC_AVC_MV_EXT>,
-+             <&iommu M4U_PORT_HW_VDEC_PRED_RD_EXT>,
-+             <&iommu M4U_PORT_HW_VDEC_PRED_WR_EXT>,
-+             <&iommu M4U_PORT_HW_VDEC_UFO_EXT>,
-+             <&iommu M4U_PORT_HW_VDEC_VLD_EXT>,
-+             <&iommu M4U_PORT_HW_VDEC_VLD2_EXT>;
-+    mediatek,vpu = <&vpu>;
-+    power-domains = <&scpsys MT8173_POWER_DOMAIN_VDEC>;
-+    clocks = <&apmixedsys CLK_APMIXED_VCODECPLL>,
-+             <&topckgen CLK_TOP_UNIVPLL_D2>,
-+             <&topckgen CLK_TOP_CCI400_SEL>,  
-+             <&topckgen CLK_TOP_VDEC_SEL>,
-+             <&topckgen CLK_TOP_VCODECPLL>;
-+    clock-names = "vcodecpll",
-+                  "univpll_d2",
-+                  "clk_cci400_sel",   
-+                  "vdec_sel",  
-+                  "vdecpll";
-+  };
-+
-+  vcodec_enc: vcodec@0x18002000 {
-     compatible = "mediatek,mt8173-vcodec-enc";
-     reg = <0 0x18002000 0 0x1000>,    /*VENC_SYS*/
-           <0 0x19002000 0 0x1000>;    /*VENC_LT_SYS*/
--- 
-1.7.9.5
+-------------------
 
+Bus 002 Device 009: ID 1784:0006 TopSeed Technology Corp. eHome Infrared Transceiver
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0         8
+  idVendor           0x1784 TopSeed Technology Corp.
+  idProduct          0x0006 eHome Infrared Transceiver
+  bcdDevice            1.02
+  iManufacturer           1 TopSeed Technology Corp.
+  iProduct                2 eHome Infrared Transceiver
+  iSerial                 3 TS004RrP
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           32
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0xa0
+      (Bus Powered)
+      Remote Wakeup
+    MaxPower              100mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           2
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x01  EP 1 OUT
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0020  1x 32 bytes
+        bInterval               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0020  1x 32 bytes
+        bInterval               0
+Device Status:     0x0001
+  Self Powered
+
+-------------------
+
+Also, here's a link to a response on the lirc list:
+
+https://sourceforge.net/p/lirc/mailman/message/35039126/
+
+Wade
