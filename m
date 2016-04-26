@@ -1,106 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:52411 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832AbcD0NO6 (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:36471 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752436AbcDZI6r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Apr 2016 09:14:58 -0400
-Subject: Re: [PATCH RESEND 1/2] media: vb2-dma-contig: add helper for setting
- dma max seg size
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org
-References: <1461758429-12913-1-git-send-email-m.szyprowski@samsung.com>
- <5720AC3C.8090101@xs4all.nl>
- <5900d3fc-b17a-875b-e016-ae53442641b0@samsung.com> <5720B78B.2080806@xs4all.nl>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <eff85b26-e29e-567d-6e1e-9d77e29e32b9@samsung.com>
-Date: Wed, 27 Apr 2016 15:14:54 +0200
-MIME-version: 1.0
-In-reply-to: <5720B78B.2080806@xs4all.nl>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+	Tue, 26 Apr 2016 04:58:47 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
+	<Tiffany.lin@mediatek.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v9 1/8] dt-bindings: Add a binding for Mediatek Video Processor
+Date: Tue, 26 Apr 2016 16:58:30 +0800
+Message-ID: <1461661117-4657-2-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1461661117-4657-1-git-send-email-tiffany.lin@mediatek.com>
+References: <1461661117-4657-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 
+Add a DT binding documentation of Video Processor Unit for the
+MT8173 SoC from Mediatek.
 
-On 2016-04-27 14:58, Hans Verkuil wrote:
-> On 04/27/2016 02:23 PM, Marek Szyprowski wrote:
->> Hello,
->>
->>
->> On 2016-04-27 14:10, Hans Verkuil wrote:
->>> On 04/27/2016 02:00 PM, Marek Szyprowski wrote:
->>>> Add a helper function for device drivers to set DMA's max_seg_size.
->>>> Setting it to largest possible value lets DMA-mapping API always create
->>>> contiguous mappings in DMA address space. This is essential for all
->>>> devices, which use dma-contig videobuf2 memory allocator and shared
->>>> buffers.
->>>>
->>>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>>> ---
->>>> This patch was posted earlier as a part of
->>>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
->>>> thread, but applying it is really needed to get all Exynos multimedia
->>>> drivers working with IOMMU enabled.
->>>>
->>>> Best regards,
->>>> Marek Szyprowski
->>>> ---
->>>>    drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
->>>>    include/media/videobuf2-dma-contig.h           |  1 +
->>>>    2 files changed, 16 insertions(+)
->>>>
->>>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>>> index 5361197..f611456 100644
->>>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>>> @@ -753,6 +753,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
->>>>    }
->>>>    EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
->>>>    +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
->>>> +{
->>>> +    if (!dev->dma_parms) {
->>>> +        dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
->>>> +                          GFP_KERNEL);
->>> The v3 patch from December uses kzalloc here. Is this perhaps on old version?
->> Right, my fault. I will do another resend (and fix the typo in the second patch).
->>
->>>> +        if (!dev->dma_parms)
->>>> +            return -ENOMEM;
->>>> +    }
->>>> +    if (dma_get_max_seg_size(dev) < size)
->>>> +        return dma_set_max_seg_size(dev, size);
->>>> +
->>>> +    return 0;
->>>> +}
->>>> +EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
->>> Admittedly I haven't looked closely at this, but is this something that you
->>> want for all dma-contig devices? Or to rephrase this question: what type of
->>> devices will need this?
->> This is needed for all devices using vb2-dc, iommu and user-ptr mode, however
->> in the previous discussions (see https://patchwork.linuxtv.org/patch/30870/
->> ) it has been suggested to make it via common helper instead of forcing it
->> in vb2-dc.
-> This certainly will need to be carefully documented in videobuf2-dma-contig.h.
->
-> What happens if it is called when you don't have an iommu? Does something break?
+Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Acked-by: Rob Herring <robh@kernel.org>
 
-Nope, nothing breaks in such case. When no iommu is available this 
-parameter is
-ignored by dma-mapping layer. Due to some other issues, it cannot be set by
-generic platform init code:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html 
+---
+ .../devicetree/bindings/media/mediatek-vpu.txt     |   31 ++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-vpu.txt
 
-
-Best regards
-
+diff --git a/Documentation/devicetree/bindings/media/mediatek-vpu.txt b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
+new file mode 100644
+index 0000000..2a5bac3
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
+@@ -0,0 +1,31 @@
++* Mediatek Video Processor Unit
++
++Video Processor Unit is a HW video controller. It controls HW Codec including
++H.264/VP8/VP9 Decode, H.264/VP8 Encode and Image Processor (scale/rotate/color convert).
++
++Required properties:
++  - compatible: "mediatek,mt8173-vpu"
++  - reg: Must contain an entry for each entry in reg-names.
++  - reg-names: Must include the following entries:
++    "tcm": tcm base
++    "cfg_reg": Main configuration registers base
++  - interrupts: interrupt number to the cpu.
++  - clocks : clock name from clock manager
++  - clock-names: must be main. It is the main clock of VPU
++
++Optional properties:
++  - memory-region: phandle to a node describing memory (see
++    Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt)
++    to be used for VPU extended memory; if not present, VPU may be located
++    anywhere in the memory
++
++Example:
++	vpu: vpu@10020000 {
++		compatible = "mediatek,mt8173-vpu";
++		reg = <0 0x10020000 0 0x30000>,
++		      <0 0x10050000 0 0x100>;
++		reg-names = "tcm", "cfg_reg";
++		interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&topckgen TOP_SCP_SEL>;
++		clock-names = "main";
++	};
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+1.7.9.5
 
