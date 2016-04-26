@@ -1,94 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f50.google.com ([209.85.192.50]:36203 "EHLO
-	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754372AbcDAWiv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Apr 2016 18:38:51 -0400
-Received: by mail-qg0-f50.google.com with SMTP id f52so11796939qga.3
-        for <linux-media@vger.kernel.org>; Fri, 01 Apr 2016 15:38:51 -0700 (PDT)
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-To: <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Subject: [PATCH 5/7] tw686x: audio: Implement non-memcpy capture
-Date: Fri,  1 Apr 2016 19:38:25 -0300
-Message-Id: <1459550307-688-6-git-send-email-ezequiel@vanguardiasur.com.ar>
-In-Reply-To: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
-References: <1459550307-688-1-git-send-email-ezequiel@vanguardiasur.com.ar>
+Received: from muru.com ([72.249.23.125]:52336 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754448AbcDZXv5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Apr 2016 19:51:57 -0400
+From: Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	Sebastian Reichel <sre@kernel.org>,
+	Pavel Machel <pavel@ucw.cz>,
+	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Neil Armstrong <narmstrong@baylibre.com>
+Subject: [PATCH 0/2] Fix ir-rx51 by using PWM pdata
+Date: Tue, 26 Apr 2016 16:51:47 -0700
+Message-Id: <1461714709-10455-1-git-send-email-tony@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we've introduced the dma_mode parameter to pick the
-DMA operation, let's use it to also select the audio DMA
-operation.
+Hi all,
 
-When dma_mode != memcpy, the driver will avoid using memcpy
-in the audio capture path, and the DMA hardware operation
-will act directly on the ALSA buffers.
+Here are minimal fixes to get ir-rx51 going again. Then further
+fixes can be done as noted in the second patch.
 
-Signed-off-by: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
----
- drivers/media/pci/tw686x/tw686x-audio.c | 32 ++++++++++++++++++++++++++++----
- 1 file changed, 28 insertions(+), 4 deletions(-)
+Regards,
 
-diff --git a/drivers/media/pci/tw686x/tw686x-audio.c b/drivers/media/pci/tw686x/tw686x-audio.c
-index 91459ab715b2..a14d1b07edec 100644
---- a/drivers/media/pci/tw686x/tw686x-audio.c
-+++ b/drivers/media/pci/tw686x/tw686x-audio.c
-@@ -62,12 +62,22 @@ void tw686x_audio_irq(struct tw686x_dev *dev, unsigned long requests,
- 		}
- 		spin_unlock_irqrestore(&ac->lock, flags);
- 
-+		if (!done || !next)
-+			continue;
-+		/*
-+		 * Checking for a non-nil dma_desc[pb]->virt buffer is
-+		 * the same as checking for memcpy DMA mode.
-+		 */
- 		desc = &ac->dma_descs[pb];
--		if (done && next && desc->virt) {
--			memcpy(done->virt, desc->virt, desc->size);
--			ac->ptr = done->dma - ac->buf[0].dma;
--			snd_pcm_period_elapsed(ac->ss);
-+		if (desc->virt) {
-+			memcpy(done->virt, desc->virt,
-+			       desc->size);
-+		} else {
-+			u32 reg = pb ? ADMA_B_ADDR[ch] : ADMA_P_ADDR[ch];
-+			reg_write(dev, reg, next->dma);
- 		}
-+		ac->ptr = done->dma - ac->buf[0].dma;
-+		snd_pcm_period_elapsed(ac->ss);
- 	}
- }
- 
-@@ -181,6 +191,12 @@ static int tw686x_pcm_prepare(struct snd_pcm_substream *ss)
- 	ac->curr_bufs[0] = p_buf;
- 	ac->curr_bufs[1] = b_buf;
- 	ac->ptr = 0;
-+
-+	if (dev->dma_mode != TW686X_DMA_MODE_MEMCPY) {
-+		reg_write(dev, ADMA_P_ADDR[ac->ch], p_buf->dma);
-+		reg_write(dev, ADMA_B_ADDR[ac->ch], b_buf->dma);
-+	}
-+
- 	spin_unlock_irqrestore(&ac->lock, flags);
- 
- 	return 0;
-@@ -290,6 +306,14 @@ static int tw686x_audio_dma_alloc(struct tw686x_dev *dev,
- {
- 	int pb;
- 
-+	/*
-+	 * In the memcpy DMA mode we allocate a consistent buffer
-+	 * and use it for the DMA capture. Otherwise, DMA
-+	 * acts on the ALSA buffers as received in pcm_prepare.
-+	 */
-+	if (dev->dma_mode != TW686X_DMA_MODE_MEMCPY)
-+		return 0;
-+
- 	for (pb = 0; pb < 2; pb++) {
- 		u32 reg = pb ? ADMA_B_ADDR[ac->ch] : ADMA_P_ADDR[ac->ch];
- 		void *virt;
+Tony
+
+
+Tony Lindgren (2):
+  ARM: OMAP2+: Add more functions to pwm pdata for ir-rx51
+  [media] ir-rx51: Fix build after multiarch changes broke it
+
+ arch/arm/mach-omap2/board-rx51-peripherals.c   | 35 ++++++++-
+ arch/arm/mach-omap2/pdata-quirks.c             | 33 ++++++++-
+ drivers/media/rc/Kconfig                       |  2 +-
+ drivers/media/rc/ir-rx51.c                     | 99 ++++++++++++++------------
+ include/linux/platform_data/media/ir-rx51.h    |  1 +
+ include/linux/platform_data/pwm_omap_dmtimer.h | 21 ++++++
+ 6 files changed, 141 insertions(+), 50 deletions(-)
+
 -- 
-2.7.0
+2.8.1
 
