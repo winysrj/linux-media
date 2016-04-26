@@ -1,112 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57018 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753756AbcDNQcd convert rfc822-to-8bit (ORCPT
+Received: from mailgate.bgcomp.co.uk ([81.187.35.205]:33139 "EHLO
+	mailgate.bgcomp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610AbcDZLkI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Apr 2016 12:32:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] uvc: Fix bytesperline calculation for planar YUV
-Date: Thu, 14 Apr 2016 19:32:41 +0300
-Message-ID: <1654515.2cgsybPvTh@avalon>
-In-Reply-To: <1460563054.18956.4.camel@collabora.com>
-References: <1452199428-3513-1-git-send-email-nicolas.dufresne@collabora.com> <4325164.Ph5FqXt1zq@avalon> <1460563054.18956.4.camel@collabora.com>
+	Tue, 26 Apr 2016 07:40:08 -0400
+Received: from eth7.localnet (mailgate.bgcomp.co.uk [IPv6:2001:8b0:ca:2::fd])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	(Authenticated sender: b)
+	by mailgate.bgcomp.co.uk (Postfix) with ESMTPSA id B1E6A23ADD
+	for <linux-media@vger.kernel.org>; Tue, 26 Apr 2016 12:34:29 +0100 (BST)
+From: Bob Goddard <linuxtv@1.linuxtv.bgcomp.co.uk>
+To: linux-media@vger.kernel.org
+Subject: Errors in scan file
+Date: Tue, 26 Apr 2016 12:34:29 +0100
+Message-ID: <1468342.S21sjePQjL@eth7>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+I posted an email with a patch back on 04/02/2016 17:32 only to find that nothing has been done.
 
-On Wednesday 13 Apr 2016 11:57:34 Nicolas Dufresne wrote:
-> Le mercredi 13 avril 2016 à 17:36 +0300, Laurent Pinchart a écrit :
-> > Hi Nicolas,
-> > 
-> > Thank you for the patch.
-> > 
-> > On Thursday 07 Jan 2016 15:43:48 Nicolas Dufresne wrote:
-> > > The formula used to calculate bytesperline only works for packed
-> > > format.
-> > > So far, all planar format we support have their bytesperline equal
-> > > to
-> > > the image width (stride of the Y plane or a line of Y for M420).
-> > > 
-> > > Signed-off-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> > > ---
-> > >  drivers/media/usb/uvc/uvc_v4l2.c | 18 ++++++++++++++++--
-> > >  1 file changed, 16 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> > > b/drivers/media/usb/uvc/uvc_v4l2.c index d7723ce..ceb1d1b 100644
-> > > --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> > > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> > > @@ -142,6 +142,20 @@ static __u32 uvc_try_frame_interval(struct
-> > > uvc_frame
-> > > *frame, __u32 interval) return interval;
-> > >  }
-> > > 
-> > > +static __u32 uvc_v4l2_get_bytesperline(struct uvc_format *format,
-> > > +	struct uvc_frame *frame)
-> > 
-> > I'd make the two parameters const.
-> 
-> I agree.
-> 
-> > > +{
-> > > +	switch (format->fcc) {
-> > > +	case V4L2_PIX_FMT_NV12:
-> > > +	case V4L2_PIX_FMT_YVU420:
-> > > +	case V4L2_PIX_FMT_YUV420:
-> > > +	case V4L2_PIX_FMT_M420:
-> > > +		return frame->wWidth;
-> > > +	default:
-> > > +		return format->bpp * frame->wWidth / 8;
-> > > +	}
-> > > +}
-> > > +
-> > >  static int uvc_v4l2_try_format(struct uvc_streaming *stream,
-> > >  	struct v4l2_format *fmt, struct uvc_streaming_control
-> > > *probe,
-> > >  	struct uvc_format **uvc_format, struct uvc_frame
-> > > **uvc_frame)
-> > > @@ -245,7 +259,7 @@ static int uvc_v4l2_try_format(struct
-> > > uvc_streaming
-> > > *stream, fmt->fmt.pix.width = frame->wWidth;
-> > >  	fmt->fmt.pix.height = frame->wHeight;
-> > >  	fmt->fmt.pix.field = V4L2_FIELD_NONE;
-> > > -	fmt->fmt.pix.bytesperline = format->bpp * frame->wWidth /
-> > > 8;
-> > > +	fmt->fmt.pix.bytesperline =
-> > > uvc_v4l2_get_bytesperline(format, frame);
-> > >  	fmt->fmt.pix.sizeimage = probe->dwMaxVideoFrameSize;
-> > >  	fmt->fmt.pix.colorspace = format->colorspace;
-> > >  	fmt->fmt.pix.priv = 0;
-> > > @@ -282,7 +296,7 @@ static int uvc_v4l2_get_format(struct
-> > > uvc_streaming
-> > > *stream, fmt->fmt.pix.width = frame->wWidth;
-> > >  	fmt->fmt.pix.height = frame->wHeight;
-> > >  	fmt->fmt.pix.field = V4L2_FIELD_NONE;
-> > > -	fmt->fmt.pix.bytesperline = format->bpp * frame->wWidth /
-> > > 8;
-> > > +	fmt->fmt.pix.bytesperline =
-> > > uvc_v4l2_get_bytesperline(format, frame);
-> > >  	fmt->fmt.pix.sizeimage = stream->ctrl.dwMaxVideoFrameSize;
-> > >  	fmt->fmt.pix.colorspace = format->colorspace;
-> > >  	fmt->fmt.pix.priv = 0;
-> > 
-> > This looks good to me otherwise.
-> > 
-> > If it's fine with you I can fix the above issue while applying.
-> 
-> That would be really nice.
+This patch, reproduced below adds 2 new transponders to Astra 28.2E and removes a trailing space. This trailing spaces causes dvbv5-scan to segfault.
 
-Applied to my tree with the above changes, thank you.
+Why has this not been actioned and why was my email address banned? Is this a close community that tells people to f-off?
 
--- 
-Regards,
 
-Laurent Pinchart
 
+dvb-s/Astra-28.2E | 27 ++++++++++++++++++++++++---
+1 file changed, 24 insertions(+), 3 deletions(-)
+
+diff --git a/dvb-s/Astra-28.2E b/dvb-s/Astra-28.2E
+index ea06c56..42168f6 100644
+--- a/dvb-s/Astra-28.2E
++++ b/dvb-s/Astra-28.2E
+@@ -264,6 +264,17 @@
+        MODULATION = QPSK
+        INVERSION = AUTO
+ 
++## Astra 2E
++# Transponder 31
++[CHANNEL]
++       DELIVERY_SYSTEM = DVBS
++       FREQUENCY = 12304000
++       POLARIZATION = HORIZONTAL
++       SYMBOL_RATE = 27500000
++       INNER_FEC = 2/3
++       MODULATION = QPSK
++       INVERSION = AUTO
++
+ # Transponder 32
+ [CHANNEL]
+        DELIVERY_SYSTEM = DVBS2
+@@ -572,7 +583,7 @@
+ [CHANNEL]
+        DELIVERY_SYSTEM = DVBS
+        FREQUENCY = 11170750
+-       POLARIZATION = HORIZONTAL 
++       POLARIZATION = HORIZONTAL
+        SYMBOL_RATE = 22000000
+        INNER_FEC = 5/6
+        MODULATION = QPSK
+@@ -611,8 +622,8 @@
+ # Transponder 93
+ [CHANNEL]
+        DELIVERY_SYSTEM = DVBS
+-       FREQUENCY = 11508500
+-       POLARIZATION = VERTICAL
++       FREQUENCY = 11523500
++       POLARIZATION = HORIZONTAL
+        SYMBOL_RATE = 22000000
+        INNER_FEC = 5/6
+        MODULATION = QPSK
+@@ -678,6 +689,16 @@
+        MODULATION = PSK/8
+        INVERSION = AUTO
+ 
++# Transponder 102
++[CHANNEL]
++       DELIVERY_SYSTEM = DVBS
++       FREQUENCY = 11656000
++       POLARIZATION = VERTICAL
++       SYMBOL_RATE = 22000000
++       INNER_FEC = 5/6
++       MODULATION = QPSK
++       INVERSION = AUTO
++
+ # Transponder 103
+ [CHANNEL]
+        DELIVERY_SYSTEM = DVBS
