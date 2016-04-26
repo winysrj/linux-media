@@ -1,231 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37360 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965128AbcDYVg2 (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35474 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751927AbcDZDOr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 17:36:28 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 25 Apr 2016 23:14:47 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 8C8B11804B5
+	for <linux-media@vger.kernel.org>; Tue, 26 Apr 2016 05:14:41 +0200 (CEST)
+Date: Tue, 26 Apr 2016 05:14:41 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH v2 10/13] v4l: vsp1: Group DRM RPF parameters in a structure
-Date: Tue, 26 Apr 2016 00:36:35 +0300
-Message-Id: <1461620198-13428-11-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160426031441.8C8B11804B5@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsp1_du_atomic_update_ext() function takes 7 RPF configuration
-parameters, and more will likely be added later. This makes the code
-difficult to read and error-prone as multiple parameters have the same
-type.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Make the API safer and easier to extend in the future by grouping all
-parameters in a structure. Use macro magic to ease the transition to the
-new function by allowing the old and new functions to be called using
-the same name. The macros and static inline wrapper will be removed as
-soon as the caller is updated.
+Results of the daily build of media_tree:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c | 68 +++++++++++++++-------------------
- include/media/vsp1.h                   | 47 ++++++++++++++++-------
- 2 files changed, 64 insertions(+), 51 deletions(-)
+date:		Tue Apr 26 04:00:21 CEST 2016
+git branch:	test
+git hash:	363d79f1d5bd09158cc28db543ca18549a5d7e52
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3413-g618cd5c
+host hardware:	x86_64
+host os:	4.5.0-164
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index fc4bbc401e67..fef53ecefe25 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -230,42 +230,33 @@ EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
-  * vsp1_du_atomic_update - Setup one RPF input of the VSP pipeline
-  * @dev: the VSP device
-  * @rpf_index: index of the RPF to setup (0-based)
-- * @pixelformat: V4L2 pixel format for the RPF memory input
-- * @pitch: number of bytes per line in the image stored in memory
-- * @mem: DMA addresses of the memory buffers (one per plane)
-- * @src: the source crop rectangle for the RPF
-- * @dst: the destination compose rectangle for the BRU input
-- * @alpha: global alpha value for the input
-- * @zpos: the Z-order position of the input
-+ * @cfg: the RPF configuration
-  *
-- * Configure the VSP to perform composition of the image referenced by @mem
-- * through RPF @rpf_index, using the @src crop rectangle and the @dst
-+ * Configure the VSP to perform image composition through RPF @rpf_index as
-+ * described by the @cfg configuration. The image to compose is referenced by
-+ * @cfg.mem and composed using the @cfg.src crop rectangle and the @cfg.dst
-  * composition rectangle. The Z-order is configurable with higher @zpos values
-  * displayed on top.
-  *
-- * Image format as stored in memory is expressed as a V4L2 @pixelformat value.
-- * As a special case, setting the pixel format to 0 will disable the RPF. The
-- * @pitch, @mem, @src and @dst parameters are ignored in that case. Calling the
-+ * If the @cfg configuration is NULL, the RPF will be disabled. Calling the
-  * function on a disabled RPF is allowed.
-  *
-- * The memory pitch is configurable to allow for padding at end of lines, or
-- * simple for images that extend beyond the crop rectangle boundaries. The
-- * @pitch value is expressed in bytes and applies to all planes for multiplanar
-- * formats.
-+ * Image format as stored in memory is expressed as a V4L2 @cfg.pixelformat
-+ * value. The memory pitch is configurable to allow for padding at end of lines,
-+ * or simply for images that extend beyond the crop rectangle boundaries. The
-+ * @cfg.pitch value is expressed in bytes and applies to all planes for
-+ * multiplanar formats.
-  *
-  * The source memory buffer is referenced by the DMA address of its planes in
-- * the @mem array. Up to two planes are supported. The second plane DMA address
-- * is ignored for formats using a single plane.
-+ * the @cfg.mem array. Up to two planes are supported. The second plane DMA
-+ * address is ignored for formats using a single plane.
-  *
-  * This function isn't reentrant, the caller needs to serialize calls.
-  *
-  * Return 0 on success or a negative error code on failure.
-  */
--int vsp1_du_atomic_update_ext(struct device *dev, unsigned int rpf_index,
--			      u32 pixelformat, unsigned int pitch,
--			      dma_addr_t mem[2], const struct v4l2_rect *src,
--			      const struct v4l2_rect *dst, unsigned int alpha,
--			      unsigned int zpos)
-+int __vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
-+			    const struct vsp1_du_atomic_config *cfg)
- {
- 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
- 	const struct vsp1_format_info *fmtinfo;
-@@ -276,7 +267,7 @@ int vsp1_du_atomic_update_ext(struct device *dev, unsigned int rpf_index,
- 
- 	rpf = vsp1->rpf[rpf_index];
- 
--	if (pixelformat == 0) {
-+	if (!cfg) {
- 		dev_dbg(vsp1->dev, "%s: RPF%u: disable requested\n", __func__,
- 			rpf_index);
- 
-@@ -287,38 +278,39 @@ int vsp1_du_atomic_update_ext(struct device *dev, unsigned int rpf_index,
- 	dev_dbg(vsp1->dev,
- 		"%s: RPF%u: (%u,%u)/%ux%u -> (%u,%u)/%ux%u (%08x), pitch %u dma { %pad, %pad } zpos %u\n",
- 		__func__, rpf_index,
--		src->left, src->top, src->width, src->height,
--		dst->left, dst->top, dst->width, dst->height,
--		pixelformat, pitch, &mem[0], &mem[1], zpos);
-+		cfg->src.left, cfg->src.top, cfg->src.width, cfg->src.height,
-+		cfg->dst.left, cfg->dst.top, cfg->dst.width, cfg->dst.height,
-+		cfg->pixelformat, cfg->pitch, &cfg->mem[0], &cfg->mem[1],
-+		cfg->zpos);
- 
- 	/* Store the format, stride, memory buffer address, crop and compose
- 	 * rectangles and Z-order position and for the input.
- 	 */
--	fmtinfo = vsp1_get_format_info(pixelformat);
-+	fmtinfo = vsp1_get_format_info(cfg->pixelformat);
- 	if (!fmtinfo) {
- 		dev_dbg(vsp1->dev, "Unsupport pixel format %08x for RPF\n",
--			pixelformat);
-+			cfg->pixelformat);
- 		return -EINVAL;
- 	}
- 
- 	rpf->fmtinfo = fmtinfo;
- 	rpf->format.num_planes = fmtinfo->planes;
--	rpf->format.plane_fmt[0].bytesperline = pitch;
--	rpf->format.plane_fmt[1].bytesperline = pitch;
--	rpf->alpha = alpha;
-+	rpf->format.plane_fmt[0].bytesperline = cfg->pitch;
-+	rpf->format.plane_fmt[1].bytesperline = cfg->pitch;
-+	rpf->alpha = cfg->alpha;
- 
--	rpf->mem.addr[0] = mem[0];
--	rpf->mem.addr[1] = mem[1];
-+	rpf->mem.addr[0] = cfg->mem[0];
-+	rpf->mem.addr[1] = cfg->mem[1];
- 	rpf->mem.addr[2] = 0;
- 
--	vsp1->drm->inputs[rpf_index].crop = *src;
--	vsp1->drm->inputs[rpf_index].compose = *dst;
--	vsp1->drm->inputs[rpf_index].zpos = zpos;
-+	vsp1->drm->inputs[rpf_index].crop = cfg->src;
-+	vsp1->drm->inputs[rpf_index].compose = cfg->dst;
-+	vsp1->drm->inputs[rpf_index].zpos = cfg->zpos;
- 	vsp1->drm->inputs[rpf_index].enabled = true;
- 
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(vsp1_du_atomic_update_ext);
-+EXPORT_SYMBOL_GPL(__vsp1_du_atomic_update);
- 
- static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
- 				  struct vsp1_rwpf *rpf, unsigned int bru_input)
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index 3e654a0455bd..ea8ad7537057 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -14,31 +14,52 @@
- #define __MEDIA_VSP1_H__
- 
- #include <linux/types.h>
-+#include <linux/videodev2.h>
- 
- struct device;
--struct v4l2_rect;
- 
- int vsp1_du_init(struct device *dev);
- 
- int vsp1_du_setup_lif(struct device *dev, unsigned int width,
- 		      unsigned int height);
- 
-+struct vsp1_du_atomic_config {
-+	u32 pixelformat;
-+	unsigned int pitch;
-+	dma_addr_t mem[2];
-+	struct v4l2_rect src;
-+	struct v4l2_rect dst;
-+	unsigned int alpha;
-+	unsigned int zpos;
-+};
-+
- void vsp1_du_atomic_begin(struct device *dev);
--int vsp1_du_atomic_update_ext(struct device *dev, unsigned int rpf,
--			      u32 pixelformat, unsigned int pitch,
--			      dma_addr_t mem[2], const struct v4l2_rect *src,
--			      const struct v4l2_rect *dst, unsigned int alpha,
--			      unsigned int zpos);
-+int __vsp1_du_atomic_update(struct device *dev, unsigned int rpf,
-+			    const struct vsp1_du_atomic_config *cfg);
- void vsp1_du_atomic_flush(struct device *dev);
- 
--static inline int vsp1_du_atomic_update(struct device *dev,
--					unsigned int rpf_index, u32 pixelformat,
--					unsigned int pitch, dma_addr_t mem[2],
--					const struct v4l2_rect *src,
--					const struct v4l2_rect *dst)
-+static inline int vsp1_du_atomic_update_old(struct device *dev,
-+	unsigned int rpf, u32 pixelformat, unsigned int pitch,
-+	dma_addr_t mem[2], const struct v4l2_rect *src,
-+	const struct v4l2_rect *dst)
- {
--	return vsp1_du_atomic_update_ext(dev, rpf_index, pixelformat, pitch,
--					 mem, src, dst, 255, 0);
-+	struct vsp1_du_atomic_config cfg = {
-+		.pixelformat = pixelformat,
-+		.pitch = pitch,
-+		.mem[0] = mem[0],
-+		.mem[1] = mem[1],
-+		.src = *src,
-+		.dst = *dst,
-+		.alpha = 255,
-+		.zpos = 0,
-+	};
-+
-+	return __vsp1_du_atomic_update(dev, rpf, &cfg);
- }
- 
-+#define _vsp1_du_atomic_update(_1, _2, _3, _4, _5, _6, _7, f, ...) f
-+#define vsp1_du_atomic_update(...) \
-+	_vsp1_du_atomic_update(__VA_ARGS__, vsp1_du_atomic_update_old, 0, 0, \
-+			       0, __vsp1_du_atomic_update)(__VA_ARGS__)
-+
- #endif /* __MEDIA_VSP1_H__ */
--- 
-2.7.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
