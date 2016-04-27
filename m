@@ -1,451 +1,494 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35331 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323AbcDWAUZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 20:20:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Benoit Parrot <bparrot@ti.com>
-Subject: Re: [PATCHv3 07/12] media/platform: convert drivers to use the new vb2_queue dev field
-Date: Sat, 23 Apr 2016 03:20:43 +0300
-Message-ID: <2615331.bqAAs04mdn@avalon>
-In-Reply-To: <1461314299-36126-8-git-send-email-hverkuil@xs4all.nl>
-References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl> <1461314299-36126-8-git-send-email-hverkuil@xs4all.nl>
+Received: from lists.s-osg.org ([54.187.51.154]:43443 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752258AbcD0WU7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Apr 2016 18:20:59 -0400
+Reply-To: shuah.kh@samsung.com
+Subject: Re: [PATCH 4/4] [meida] media-device: dynamically allocate struct
+ media_devnode
+References: <cover.1458760750.git.mchehab@osg.samsung.com>
+ <0e1737bc1fd4fb4c114cd1f4823767a35b5c5b77.1458760750.git.mchehab@osg.samsung.com>
+ <4033448.cTfoZapJ5n@avalon> <20160324083710.24d0d57e@recife.lan>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	=?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
+	<chehabrafael@gmail.com>, linux-media@vger.kernel.org,
+	Lars-Peter Clausen <lars@metafoo.de>
+From: Shuah Khan <shuah.kh@samsung.com>
+Message-ID: <57213B48.50109@samsung.com>
+Date: Wed, 27 Apr 2016 16:20:56 -0600
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20160324083710.24d0d57e@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 03/24/2016 05:37 AM, Mauro Carvalho Chehab wrote:
+> Em Thu, 24 Mar 2016 10:24:44 +0200
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+> 
+>> On Wednesday 23 Mar 2016 16:27:46 Mauro Carvalho Chehab wrote:
+>>> struct media_devnode is currently embedded at struct media_device.
+>>>
+>>> While this works fine during normal usage, it leads to a race
+>>> condition during devnode unregister. the problem is that drivers
+>>> assume that, after calling media_device_unregister(), the struct
+>>> that contains media_device can be freed. This is not true, as it
+>>> can't be freed until userspace closes all opened /dev/media devnodes.
+>>>
+>>> In other words, if the media devnode is still open, and media_device
+>>> gets freed, any call to an ioctl will make the core to try to access
+>>> struct media_device, with will cause an use-after-free and even GPF.
+>>>
+>>> Fix this by dynamically allocating the struct media_devnode and only
+>>> freeing it when it is safe.  
 
-Thank you for the patch.
+Hi Mauro,
 
-On Friday 22 Apr 2016 10:38:14 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Stop using alloc_ctx and just fill in the device pointer.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Fabien Dessenne <fabien.dessenne@st.com>
-> Cc: Benoit Parrot <bparrot@ti.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> #
-> #total: 0 errors, 0 warnings, 10 lines checked
-> #
-> #Your patch has no obvious style problems and is ready for submission.
+I think this is the patch you were referring to in response to the patch
+I sent out. Looks like this is still under review and some outstanding
+issues. This patch itself doesn't ensure media_devnode sticks around
+until the last app. closes the cdev. More work is needed such as adding
+cdev parent and providing kobject release function that can be called
+from cdev-core which will free media_devnode when the last cdev ref
+is gone.
 
-This shouldn't be part of the commit message.
+Anyway, since you asked me to do the fix on top of your patch, I am asking
+to see if this patch is in a good shape for me to apply. As such, we no
+longer have sound/us/media.c in the mix. Hence this patch needs work before
+I can base my work on it.
 
-(And please see below for two additional comments)
+Lars gave a few comments on the patch I sent out in the code that makes
+devnode dynamic which are relevant to be folded into your patch. Added
+Lars to this thread.
 
-> ---
->  drivers/media/platform/sti/bdisp/bdisp-v4l2.c | 18 ++++--------------
->  drivers/media/platform/sti/bdisp/bdisp.h      |  2 --
->  drivers/media/platform/ti-vpe/cal.c           | 15 +--------------
->  drivers/media/platform/ti-vpe/vpe.c           | 20 ++++----------------
->  drivers/media/platform/vsp1/vsp1_video.c      | 18 +++---------------
->  drivers/media/platform/vsp1/vsp1_video.h      |  1 -
->  drivers/media/platform/xilinx/xilinx-dma.c    | 11 +----------
->  drivers/media/platform/xilinx/xilinx-dma.h    |  2 --
->  8 files changed, 13 insertions(+), 74 deletions(-)
-> 
-> diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-> b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c index d12a419..b3e8b5a
-> 100644
-> --- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-> +++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-> @@ -439,7 +439,7 @@ static void bdisp_ctrls_delete(struct bdisp_ctx *ctx)
-> 
->  static int bdisp_queue_setup(struct vb2_queue *vq,
->  			     unsigned int *nb_buf, unsigned int *nb_planes,
-> -			     unsigned int sizes[], void *allocators[])
-> +			     unsigned int sizes[], void *alloc_ctxs[])
->  {
->  	struct bdisp_ctx *ctx = vb2_get_drv_priv(vq);
->  	struct bdisp_frame *frame = ctx_get_frame(ctx, vq->type);
-> @@ -453,7 +453,6 @@ static int bdisp_queue_setup(struct vb2_queue *vq,
->  		dev_err(ctx->bdisp_dev->dev, "Invalid format\n");
->  		return -EINVAL;
->  	}
-> -	allocators[0] = ctx->bdisp_dev->alloc_ctx;
-> 
->  	if (*nb_planes)
->  		return sizes[0] < frame->sizeimage ? -EINVAL : 0;
-> @@ -553,6 +552,7 @@ static int queue_init(void *priv,
->  	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->  	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  	src_vq->lock = &ctx->bdisp_dev->lock;
-> +	src_vq->dev = ctx->bdisp_dev->v4l2_dev.dev;
-> 
->  	ret = vb2_queue_init(src_vq);
->  	if (ret)
-> @@ -567,6 +567,7 @@ static int queue_init(void *priv,
->  	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->  	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  	dst_vq->lock = &ctx->bdisp_dev->lock;
-> +	dst_vq->dev = ctx->bdisp_dev->v4l2_dev.dev;
-> 
->  	return vb2_queue_init(dst_vq);
->  }
-> @@ -1269,8 +1270,6 @@ static int bdisp_remove(struct platform_device *pdev)
-> 
->  	bdisp_hw_free_filters(bdisp->dev);
-> 
-> -	vb2_dma_contig_cleanup_ctx(bdisp->alloc_ctx);
-> -
->  	pm_runtime_disable(&pdev->dev);
-> 
->  	bdisp_debugfs_remove(bdisp);
-> @@ -1371,18 +1370,11 @@ static int bdisp_probe(struct platform_device *pdev)
-> goto err_dbg;
->  	}
-> 
-> -	/* Continuous memory allocator */
-> -	bdisp->alloc_ctx = vb2_dma_contig_init_ctx(dev);
-> -	if (IS_ERR(bdisp->alloc_ctx)) {
-> -		ret = PTR_ERR(bdisp->alloc_ctx);
-> -		goto err_pm;
-> -	}
-> -
->  	/* Filters */
->  	if (bdisp_hw_alloc_filters(bdisp->dev)) {
->  		dev_err(bdisp->dev, "no memory for filters\n");
->  		ret = -ENOMEM;
-> -		goto err_vb2_dma;
-> +		goto err_pm;
->  	}
-> 
->  	/* Register */
-> @@ -1401,8 +1393,6 @@ static int bdisp_probe(struct platform_device *pdev)
-> 
->  err_filter:
->  	bdisp_hw_free_filters(bdisp->dev);
-> -err_vb2_dma:
-> -	vb2_dma_contig_cleanup_ctx(bdisp->alloc_ctx);
->  err_pm:
->  	pm_runtime_put(dev);
->  err_dbg:
-> diff --git a/drivers/media/platform/sti/bdisp/bdisp.h
-> b/drivers/media/platform/sti/bdisp/bdisp.h index 0cf9857..b3fbf99 100644
-> --- a/drivers/media/platform/sti/bdisp/bdisp.h
-> +++ b/drivers/media/platform/sti/bdisp/bdisp.h
-> @@ -175,7 +175,6 @@ struct bdisp_dbg {
->   * @id:         device index
->   * @m2m:        memory-to-memory V4L2 device information
->   * @state:      flags used to synchronize m2m and capture mode operation
-> - * @alloc_ctx:  videobuf2 memory allocator context
->   * @clock:      IP clock
->   * @regs:       registers
->   * @irq_queue:  interrupt handler waitqueue
-> @@ -193,7 +192,6 @@ struct bdisp_dev {
->  	u16                     id;
->  	struct bdisp_m2m_device m2m;
->  	unsigned long           state;
-> -	struct vb2_alloc_ctx    *alloc_ctx;
->  	struct clk              *clock;
->  	void __iomem            *regs;
->  	wait_queue_head_t       irq_queue;
-> diff --git a/drivers/media/platform/ti-vpe/cal.c
-> b/drivers/media/platform/ti-vpe/cal.c index 82001e6..51ebf32 100644
-> --- a/drivers/media/platform/ti-vpe/cal.c
-> +++ b/drivers/media/platform/ti-vpe/cal.c
-> @@ -287,7 +287,6 @@ struct cal_ctx {
->  	/* Several counters */
->  	unsigned long		jiffies;
-> 
-> -	struct vb2_alloc_ctx	*alloc_ctx;
->  	struct cal_dmaqueue	vidq;
-> 
->  	/* Input Number */
-> @@ -1233,7 +1232,6 @@ static int cal_queue_setup(struct vb2_queue *vq,
-> 
->  	if (vq->num_buffers + *nbuffers < 3)
->  		*nbuffers = 3 - vq->num_buffers;
-> -	alloc_ctxs[0] = ctx->alloc_ctx;
-> 
->  	if (*nplanes) {
->  		if (sizes[0] < size)
-> @@ -1551,6 +1549,7 @@ static int cal_complete_ctx(struct cal_ctx *ctx)
->  	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->  	q->lock = &ctx->mutex;
->  	q->min_buffers_needed = 3;
-> +	q->dev = ctx->v4l2_dev.dev;
-> 
->  	ret = vb2_queue_init(q);
->  	if (ret)
-> @@ -1578,18 +1577,7 @@ static int cal_complete_ctx(struct cal_ctx *ctx)
->  	v4l2_info(&ctx->v4l2_dev, "V4L2 device registered as %s\n",
->  		  video_device_node_name(vfd));
-> 
-> -	ctx->alloc_ctx = vb2_dma_contig_init_ctx(vfd->v4l2_dev->dev);
-> -	if (IS_ERR(ctx->alloc_ctx)) {
-> -		ctx_err(ctx, "Failed to alloc vb2 context\n");
-> -		ret = PTR_ERR(ctx->alloc_ctx);
-> -		goto vdev_unreg;
-> -	}
-> -
->  	return 0;
-> -
-> -vdev_unreg:
-> -	video_unregister_device(vfd);
-> -	return ret;
->  }
-> 
->  static struct device_node *
-> @@ -1914,7 +1902,6 @@ static int cal_remove(struct platform_device *pdev)
->  				video_device_node_name(&ctx->vdev));
->  			camerarx_phy_disable(ctx);
->  			v4l2_async_notifier_unregister(&ctx->notifier);
-> -			vb2_dma_contig_cleanup_ctx(ctx->alloc_ctx);
->  			v4l2_ctrl_handler_free(&ctx->ctrl_handler);
->  			v4l2_device_unregister(&ctx->v4l2_dev);
->  			video_unregister_device(&ctx->vdev);
-> diff --git a/drivers/media/platform/ti-vpe/vpe.c
-> b/drivers/media/platform/ti-vpe/vpe.c index 1fa00c2..3fefd8a 100644
-> --- a/drivers/media/platform/ti-vpe/vpe.c
-> +++ b/drivers/media/platform/ti-vpe/vpe.c
-> @@ -362,7 +362,6 @@ struct vpe_dev {
->  	void __iomem		*base;
->  	struct resource		*res;
-> 
-> -	struct vb2_alloc_ctx	*alloc_ctx;
->  	struct vpdma_data	*vpdma;		/* vpdma data handle */
->  	struct sc_data		*sc;		/* scaler data handle */
->  	struct csc_data		*csc;		/* csc data handle */
-> @@ -1807,10 +1806,8 @@ static int vpe_queue_setup(struct vb2_queue *vq,
-> 
->  	*nplanes = q_data->fmt->coplanar ? 2 : 1;
-> 
-> -	for (i = 0; i < *nplanes; i++) {
-> +	for (i = 0; i < *nplanes; i++)
->  		sizes[i] = q_data->sizeimage[i];
-> -		alloc_ctxs[i] = ctx->dev->alloc_ctx;
-> -	}
-> 
->  	vpe_dbg(ctx->dev, "get %d buffer(s) of size %d", *nbuffers,
->  		sizes[VPE_LUMA]);
-> @@ -1907,6 +1904,7 @@ static int queue_init(void *priv, struct vb2_queue
-> *src_vq, src_vq->mem_ops = &vb2_dma_contig_memops;
->  	src_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  	src_vq->lock = &dev->dev_mutex;
-> +	src_vq->dev = dev->v4l2_dev.dev;
-> 
->  	ret = vb2_queue_init(src_vq);
->  	if (ret)
-> @@ -1921,6 +1919,7 @@ static int queue_init(void *priv, struct vb2_queue
-> *src_vq, dst_vq->mem_ops = &vb2_dma_contig_memops;
->  	dst_vq->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  	dst_vq->lock = &dev->dev_mutex;
-> +	dst_vq->dev = dev->v4l2_dev.dev;
-> 
->  	return vb2_queue_init(dst_vq);
->  }
-> @@ -2161,7 +2160,6 @@ static void vpe_fw_cb(struct platform_device *pdev)
->  		vpe_runtime_put(pdev);
->  		pm_runtime_disable(&pdev->dev);
->  		v4l2_m2m_release(dev->m2m_dev);
-> -		vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
->  		v4l2_device_unregister(&dev->v4l2_dev);
-> 
->  		return;
-> @@ -2213,18 +2211,11 @@ static int vpe_probe(struct platform_device *pdev)
-> 
->  	platform_set_drvdata(pdev, dev);
-> 
-> -	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-> -	if (IS_ERR(dev->alloc_ctx)) {
-> -		vpe_err(dev, "Failed to alloc vb2 context\n");
-> -		ret = PTR_ERR(dev->alloc_ctx);
-> -		goto v4l2_dev_unreg;
-> -	}
-> -
->  	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
->  	if (IS_ERR(dev->m2m_dev)) {
->  		vpe_err(dev, "Failed to init mem2mem device\n");
->  		ret = PTR_ERR(dev->m2m_dev);
-> -		goto rel_ctx;
-> +		goto v4l2_dev_unreg;
->  	}
-> 
->  	pm_runtime_enable(&pdev->dev);
-> @@ -2269,8 +2260,6 @@ runtime_put:
->  rel_m2m:
->  	pm_runtime_disable(&pdev->dev);
->  	v4l2_m2m_release(dev->m2m_dev);
-> -rel_ctx:
-> -	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
->  v4l2_dev_unreg:
->  	v4l2_device_unregister(&dev->v4l2_dev);
-> 
-> @@ -2286,7 +2275,6 @@ static int vpe_remove(struct platform_device *pdev)
->  	v4l2_m2m_release(dev->m2m_dev);
->  	video_unregister_device(&dev->vfd);
->  	v4l2_device_unregister(&dev->v4l2_dev);
-> -	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
-> 
->  	vpe_set_clock_enable(dev, 0);
->  	vpe_runtime_put(pdev);
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index a9aec5c..2504bae 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -530,20 +530,16 @@ vsp1_video_queue_setup(struct vb2_queue *vq,
->  		if (*nplanes != format->num_planes)
->  			return -EINVAL;
-> 
-> -		for (i = 0; i < *nplanes; i++) {
-> +		for (i = 0; i < *nplanes; i++)
->  			if (sizes[i] < format->plane_fmt[i].sizeimage)
->  				return -EINVAL;
-> -			alloc_ctxs[i] = video->alloc_ctx;
-> -		}
+P.S: removed alsa folks and alsa list and added linux-media
 
-Could you please keep the braces ?
+thanks,
+-- Shuah
+>>
+>> We have the exact same issue with video_device, and there we've solved the 
+>> problem by passing the release call all the way up to the driver. I'm open to 
+>> discuss what the best solution is, but I don't think we should special-case 
+>> media_device unless there are compelling arguments regarding why different 
+>> solutions are needed for media_device and video_device.
+> 
+> The relationship between a video driver and  video_device/v4l2_dev is
+> different. On V4L2 we have:
+> 	- One driver using video_device resources;
+> 	- multiple video_device devnodes.
+> 
+> For media devices, the relationship is the opposite:
+> 	- multiple independent drivers using media_devnode.
+> 	- One media device node;
+> 
+> On media devices, when multiple drivers are sharing the same devnode, the
+> .probe() order can be different than the .release() order.
+> 
+> So, we don't need to use the same solution as we did for video_device
+> on media controller. Actually, the V4L2 solution won't work.
+> 
+> On V4L2, a video device is typically initialized with:
+> 
+>         video-dev->release = video_device_release;
+>         err = video_register_device(video_dev,VFL_TYPE_GRABBER,
+>                                     video_nr[dev->nr]);
+> 
+> And video_device_release is simply a kfree:
+> 
+> void video_device_release(struct video_device *vdev)
+> {
+>         kfree(vdev);
+> }
+> 
+> The caller driver may opt to use its own code to free the resources
+> instead of the core one, but it needs to free vdev in the end
+> (or some struct that embedds it).
+> 
+> In the specific case of media, drivers don't need to touch or even
+> be aware of media_devnode, as the creation of the media devnode is
+> handled internally by the core. Also, there's no good reason to
+> make the caller drivers to be aware of that.
+> 
+> So, the approach taken by this patch is actually simpler, as the
+> kfree() is internal to the core, and it doesn't require
+> any callbacks. This patch provides all that it is needed to make devnode
+> destroy safe. 
+> 
+> On the common case where one driver allocates one /dev/media devnode,
+> using the standard media_device_register()/media_device_unregister(),
+> grants that a media_devnode instance will only be freed after all uses
+> have gone, including open() descriptors. It also grants that the caller
+> can free its own resources after media_device_unregister(), because
+> media_devnode won't use media_device anymore.
+> 
+> This happens because media_devnode_is_registered() will return
+> false after media_device_unregister(), and the media_ioctl logic
+> will return an error in this case:
+> __media_ioctl(struct file *filp, unsigned int cmd, unsigned long arg,
+> 	      long (*ioctl_func)(struct file *filp, unsigned int cmd,
+> 				 unsigned long arg))
+> {
+> 	struct media_devnode *devnode = media_devnode_data(filp);
+> 
+> 	if (!ioctl_func)
+> 		return -ENOTTY;
+> 
+> 	if (!media_devnode_is_registered(devnode))
+> 		return -EIO;
+> 		/* IMHO, it should be -ENODEV here */
+> 
+> 	return ioctl_func(filp, cmd, arg);
+> }
+> 
+> all other syscalls have a similar test.
+> 
+> When more than one driver shares the same media devnode - e. g. the
+> case that it is currently using media_device_*_devres(), the V4L2
+> solution of exposing the .release() callback to the caller driver
+> won't work, as the unbind order can be different than the binding
+> one. So, it is not possible to have .release() callbacks.
+> 
+> On the multiple drivers scenario, a kref is used to identify when
+> all drivers called media_device_unregister_devres(). Only when the
+> last driver called it, it will do the actual media_device cleanups
+> and will wait for userspace to close all opened file descriptors,
+> calling kfree(media_devnode) only after that. It is also safe for
+> a device driver to cleanup its own resources after
+> media_device_release_devres(), as, if the driver is not the last
+> one, media_device and media_devnode will still be allocated, and,
+> if it is the last one, this will fallback on the case of a single
+> driver.
+> 
+> I can't think on any other race-free solution than the one implemented
+> by this patch, and still being simple.
+> 
+>> I also suspect we will need to consider dynamic pipeline management sooner 
+>> than later to solve the problem properly if we don't want to create code today 
+>> that will need to be completely reworked tomorrow.
+> 
+> On the stress testing we're doing, we're removing/recreating part of the
+> graph, by unbinding/rebinding one one of the drivers, while keep calling
+> G_TOPOLOGY on an endless loop.
+> 
+> It is working quite well. The change from semaphore->mutex, suggested
+> by Sakari seemed to solve all the locking issues we had before.
+> 
+> Ok, I didn't test SETUP_LINK, but, as it is now protected by the same
+> mutex, except for some hidden bug, I guess it will work just fine.
+> 
+> So, I don't see any need to change the locking schema at the core,
+> to avoid race issues.
+> 
+>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>>> ---
+>>>  drivers/media/media-device.c           | 38 +++++++++++++++++++------------
+>>>  drivers/media/media-devnode.c          |  7 ++++++-
+>>>  drivers/media/usb/au0828/au0828-core.c |  4 ++--
+>>>  drivers/media/usb/uvc/uvc_driver.c     |  2 +-
+>>>  include/media/media-device.h           |  5 +----
+>>>  include/media/media-devnode.h          | 15 ++++++++++++--
+>>>  sound/usb/media.c                      |  8 +++----
+>>>  7 files changed, 52 insertions(+), 27 deletions(-)
+>>>
+>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+>>> index 10cc4766de10..d10dc615e7a8 100644
+>>> --- a/drivers/media/media-device.c
+>>> +++ b/drivers/media/media-device.c
+>>> @@ -428,7 +428,7 @@ static long media_device_ioctl(struct file *filp,
+>>> unsigned int cmd, unsigned long arg)
+>>>  {
+>>>  	struct media_devnode *devnode = media_devnode_data(filp);
+>>> -	struct media_device *dev = to_media_device(devnode);
+>>> +	struct media_device *dev = devnode->media_dev;
+>>>  	long ret;
+>>>
+>>>  	switch (cmd) {
+>>> @@ -504,7 +504,7 @@ static long media_device_compat_ioctl(struct file *filp,
+>>> unsigned int cmd, unsigned long arg)
+>>>  {
+>>>  	struct media_devnode *devnode = media_devnode_data(filp);
+>>> -	struct media_device *dev = to_media_device(devnode);
+>>> +	struct media_device *dev = devnode->media_dev;
+>>>  	long ret;
+>>>
+>>>  	switch (cmd) {
+>>> @@ -540,7 +540,8 @@ static const struct media_file_operations
+>>> media_device_fops = { static ssize_t show_model(struct device *cd,
+>>>  			  struct device_attribute *attr, char *buf)
+>>>  {
+>>> -	struct media_device *mdev = to_media_device(to_media_devnode(cd));
+>>> +	struct media_devnode *devnode = to_media_devnode(cd);
+>>> +	struct media_device *mdev = devnode->media_dev;
+>>>
+>>>  	return sprintf(buf, "%.*s\n", (int)sizeof(mdev->model), mdev->model);
+>>>  }
+>>> @@ -718,25 +719,36 @@ EXPORT_SYMBOL_GPL(media_device_cleanup);
+>>>  int __must_check __media_device_register(struct media_device *mdev,
+>>>  					 struct module *owner)
+>>>  {
+>>> +	struct media_devnode *devnode;
+>>>  	int ret;
+>>>
+>>>  	mutex_lock(&mdev->graph_mutex);
+>>>
+>>> +	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
+>>> +	if (!devnode)
+>>> +		return -ENOMEM;
+>>> +
+>>>  	/* Register the device node. */
+>>> -	mdev->devnode.fops = &media_device_fops;
+>>> -	mdev->devnode.parent = mdev->dev;
+>>> -	mdev->devnode.release = media_device_release;
+>>> +	mdev->devnode = devnode;
+>>> +	devnode->fops = &media_device_fops;
+>>> +	devnode->parent = mdev->dev;
+>>> +	devnode->release = media_device_release;
+>>>
+>>>  	/* Set version 0 to indicate user-space that the graph is static */
+>>>  	mdev->topology_version = 0;
+>>>
+>>> -	ret = media_devnode_register(&mdev->devnode, owner);
+>>> -	if (ret < 0)
+>>> +	ret = media_devnode_register(mdev, devnode, owner);
+>>> +	if (ret < 0) {
+>>> +		mdev->devnode = NULL;
+>>> +		kfree(devnode);
+>>>  		goto err;
+>>> +	}
+>>>
+>>> -	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
+>>> +	ret = device_create_file(&devnode->dev, &dev_attr_model);
+>>>  	if (ret < 0) {
+>>> -		media_devnode_unregister(&mdev->devnode);
+>>> +		mdev->devnode = NULL;
+>>> +		media_devnode_unregister(devnode);
+>>> +		kfree(devnode);
+>>>  		goto err;
+>>>  	}
+>>>
+>>> @@ -800,9 +812,9 @@ static void __media_device_unregister(struct
+>>> media_device *mdev) }
+>>>
+>>>  	/* Check if mdev devnode was registered */
+>>> -	if (media_devnode_is_registered(&mdev->devnode)) {
+>>> -		device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+>>> -		media_devnode_unregister(&mdev->devnode);
+>>> +	if (media_devnode_is_registered(mdev->devnode)) {
+>>> +		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+>>> +		media_devnode_unregister(mdev->devnode);
+>>>  	}
+>>>
+>>>  	dev_dbg(mdev->dev, "Media device unregistered\n");
+>>> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+>>> index ae2bc0b7a368..db47063d8801 100644
+>>> --- a/drivers/media/media-devnode.c
+>>> +++ b/drivers/media/media-devnode.c
+>>> @@ -44,6 +44,7 @@
+>>>  #include <linux/uaccess.h>
+>>>
+>>>  #include <media/media-devnode.h>
+>>> +#include <media/media-device.h>
+>>>
+>>>  #define MEDIA_NUM_DEVICES	256
+>>>  #define MEDIA_NAME		"media"
+>>> @@ -74,6 +75,8 @@ static void media_devnode_release(struct device *cd)
+>>>  	/* Release media_devnode and perform other cleanups as needed. */
+>>>  	if (devnode->release)
+>>>  		devnode->release(devnode);
+>>> +
+>>> +	kfree(devnode);
+>>>  }
+>>>
+>>>  static struct bus_type media_bus_type = {
+>>> @@ -218,7 +221,8 @@ static const struct file_operations media_devnode_fops =
+>>> { .llseek = no_llseek,
+>>>  };
+>>>
+>>> -int __must_check media_devnode_register(struct media_devnode *devnode,
+>>> +int __must_check media_devnode_register(struct media_device *mdev,
+>>> +					struct media_devnode *devnode,
+>>>  					struct module *owner)
+>>>  {
+>>>  	int minor;
+>>> @@ -237,6 +241,7 @@ int __must_check media_devnode_register(struct
+>>> media_devnode *devnode, mutex_unlock(&media_devnode_lock);
+>>>
+>>>  	devnode->minor = minor;
+>>> +	devnode->media_dev = mdev;
+>>>
+>>>  	/* Part 2: Initialize and register the character device */
+>>>  	cdev_init(&devnode->cdev, &media_devnode_fops);
+>>> diff --git a/drivers/media/usb/au0828/au0828-core.c
+>>> b/drivers/media/usb/au0828/au0828-core.c index 85c13ca5178f..598a85388d77
+>>> 100644
+>>> --- a/drivers/media/usb/au0828/au0828-core.c
+>>> +++ b/drivers/media/usb/au0828/au0828-core.c
+>>> @@ -142,7 +142,7 @@ static void au0828_unregister_media_device(struct
+>>> au0828_dev *dev) struct media_device *mdev = dev->media_dev;
+>>>  	struct media_entity_notify *notify, *nextp;
+>>>
+>>> -	if (!mdev || !media_devnode_is_registered(&mdev->devnode))
+>>> +	if (!mdev || !media_devnode_is_registered(mdev->devnode))
+>>>  		return;
+>>>
+>>>  	/* Remove au0828 entity_notify callbacks */
+>>> @@ -480,7 +480,7 @@ static int au0828_media_device_register(struct
+>>> au0828_dev *dev, if (!dev->media_dev)
+>>>  		return 0;
+>>>
+>>> -	if (!media_devnode_is_registered(&dev->media_dev->devnode)) {
+>>> +	if (!media_devnode_is_registered(dev->media_dev->devnode)) {
+>>>
+>>>  		/* register media device */
+>>>  		ret = media_device_register(dev->media_dev);
+>>> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+>>> b/drivers/media/usb/uvc/uvc_driver.c index 451e84e962e2..302e284a95eb
+>>> 100644
+>>> --- a/drivers/media/usb/uvc/uvc_driver.c
+>>> +++ b/drivers/media/usb/uvc/uvc_driver.c
+>>> @@ -1674,7 +1674,7 @@ static void uvc_delete(struct uvc_device *dev)
+>>>  	if (dev->vdev.dev)
+>>>  		v4l2_device_unregister(&dev->vdev);
+>>>  #ifdef CONFIG_MEDIA_CONTROLLER
+>>> -	if (media_devnode_is_registered(&dev->mdev.devnode))
+>>> +	if (media_devnode_is_registered(dev->mdev.devnode))
+>>>  		media_device_unregister(&dev->mdev);
+>>>  	media_device_cleanup(&dev->mdev);
+>>>  #endif
+>>> diff --git a/include/media/media-device.h b/include/media/media-device.h
+>>> index e59772ed8494..b04cfa907350 100644
+>>> --- a/include/media/media-device.h
+>>> +++ b/include/media/media-device.h
+>>> @@ -347,7 +347,7 @@ struct media_entity_notify {
+>>>  struct media_device {
+>>>  	/* dev->driver_data points to this struct. */
+>>>  	struct device *dev;
+>>> -	struct media_devnode devnode;
+>>> +	struct media_devnode *devnode;
+>>>
+>>>  	char model[32];
+>>>  	char driver_name[32];
+>>> @@ -403,9 +403,6 @@ struct usb_device;
+>>>  #define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
+>>>  #define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
+>>>
+>>> -/* media_devnode to media_device */
+>>> -#define to_media_device(node) container_of(node, struct media_device,
+>>> devnode) -
+>>>  /**
+>>>   * media_entity_enum_init - Initialise an entity enumeration
+>>>   *
+>>> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+>>> index e1d5af077adb..cc2b3155593c 100644
+>>> --- a/include/media/media-devnode.h
+>>> +++ b/include/media/media-devnode.h
+>>> @@ -33,6 +33,8 @@
+>>>  #include <linux/device.h>
+>>>  #include <linux/cdev.h>
+>>>
+>>> +struct media_device;
+>>> +
+>>>  /*
+>>>   * Flag to mark the media_devnode struct as registered. Drivers must not
+>>> touch * this flag directly, it will be set and cleared by
+>>> media_devnode_register and @@ -81,6 +83,8 @@ struct media_file_operations {
+>>>   * before registering the node.
+>>>   */
+>>>  struct media_devnode {
+>>> +	struct media_device *media_dev;
+>>> +
+>>>  	/* device ops */
+>>>  	const struct media_file_operations *fops;
+>>>
+>>> @@ -103,7 +107,8 @@ struct media_devnode {
+>>>  /**
+>>>   * media_devnode_register - register a media device node
+>>>   *
+>>> - * @devnode: media device node structure we want to register
+>>> + * @media_dev: struct media_device we want to register a device node
+>>> + * @devnode: the device node to unregister
+>>>   * @owner: should be filled with %THIS_MODULE
+>>>   *
+>>>   * The registration code assigns minor numbers and registers the new device
+>>> node @@ -116,7 +121,8 @@ struct media_devnode {
+>>>   * the media_devnode structure is *not* called, so the caller is
+>>> responsible for * freeing any data.
+>>>   */
+>>> -int __must_check media_devnode_register(struct media_devnode *devnode,
+>>> +int __must_check media_devnode_register(struct media_device *mdev,
+>>> +					struct media_devnode *devnode,
+>>>  					struct module *owner);
+>>>
+>>>  /**
+>>> @@ -146,9 +152,14 @@ static inline struct media_devnode
+>>> *media_devnode_data(struct file *filp) *	false otherwise.
+>>>   *
+>>>   * @devnode: pointer to struct &media_devnode.
+>>> + *
+>>> + * Note: If mdev is NULL, it also returns false.
+>>>   */
+>>>  static inline int media_devnode_is_registered(struct media_devnode
+>>> *devnode) {
+>>> +	if (!devnode)
+>>> +		return false;
+>>> +
+>>>  	return test_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+>>>  }
+>>>
+>>> diff --git a/sound/usb/media.c b/sound/usb/media.c
+>>> index 6db4878045e5..8fed0adec9e1 100644
+>>> --- a/sound/usb/media.c
+>>> +++ b/sound/usb/media.c
+>>> @@ -136,7 +136,7 @@ void media_snd_stream_delete(struct snd_usb_substream
+>>> *subs) struct media_device *mdev;
+>>>
+>>>  		mdev = mctl->media_dev;
+>>> -		if (mdev && media_devnode_is_registered(&mdev->devnode)) {
+>>> +		if (mdev && media_devnode_is_registered(mdev->devnode)) {
+>>>  			media_devnode_remove(mctl->intf_devnode);
+>>>  			media_device_unregister_entity(&mctl->media_entity);
+>>>  			media_entity_cleanup(&mctl->media_entity);
+>>> @@ -241,14 +241,14 @@ static void media_snd_mixer_delete(struct
+>>> snd_usb_audio *chip) if (!mixer->media_mixer_ctl)
+>>>  			continue;
+>>>
+>>> -		if (media_devnode_is_registered(&mdev->devnode)) {
+>>> +		if (media_devnode_is_registered(mdev->devnode)) {
+>>>  			media_device_unregister_entity(&mctl->media_entity);
+>>>  			media_entity_cleanup(&mctl->media_entity);
+>>>  		}
+>>>  		kfree(mctl);
+>>>  		mixer->media_mixer_ctl = NULL;
+>>>  	}
+>>> -	if (media_devnode_is_registered(&mdev->devnode))
+>>> +	if (media_devnode_is_registered(mdev->devnode))
+>>>  		media_devnode_remove(chip->ctl_intf_media_devnode);
+>>>  	chip->ctl_intf_media_devnode = NULL;
+>>>  }
+>>> @@ -268,7 +268,7 @@ int media_snd_device_create(struct snd_usb_audio *chip,
+>>>  	if (!mdev->dev)
+>>>  		media_device_usb_init(mdev, usbdev, NULL);
+>>>
+>>> -	if (!media_devnode_is_registered(&mdev->devnode)) {
+>>> +	if (!media_devnode_is_registered(mdev->devnode)) {
+>>>  		ret = media_device_register(mdev);
+>>>  		if (ret) {
+>>>  			dev_err(&usbdev->dev,  
+>>
+> 
+> 
 
->  		return 0;
->  	}
-> 
->  	*nplanes = format->num_planes;
-> 
-> -	for (i = 0; i < format->num_planes; ++i) {
-> +	for (i = 0; i < format->num_planes; ++i)
->  		sizes[i] = format->plane_fmt[i].sizeimage;
-> -		alloc_ctxs[i] = video->alloc_ctx;
-> -	}
-> 
->  	return 0;
->  }
-> @@ -982,13 +978,6 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device
-> *vsp1,
-> 
->  	video_set_drvdata(&video->video, video);
-> 
-> -	/* ... and the buffers queue... */
-
-Could you please keep this line ?
-
-Apart from that, pending a fix for the problem I mentioned in a reply to patch 
-01/12,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> -	video->alloc_ctx = vb2_dma_contig_init_ctx(video->vsp1->dev);
-> -	if (IS_ERR(video->alloc_ctx)) {
-> -		ret = PTR_ERR(video->alloc_ctx);
-> -		goto error;
-> -	}
-> -
->  	video->queue.type = video->type;
->  	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
->  	video->queue.lock = &video->lock;
-> @@ -997,6 +986,7 @@ struct vsp1_video *vsp1_video_create(struct vsp1_device
-> *vsp1, video->queue.ops = &vsp1_video_queue_qops;
->  	video->queue.mem_ops = &vb2_dma_contig_memops;
->  	video->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +	video->queue.dev = video->vsp1->dev;
->  	ret = vb2_queue_init(&video->queue);
->  	if (ret < 0) {
->  		dev_err(video->vsp1->dev, "failed to initialize vb2 queue\n");
-> @@ -1014,7 +1004,6 @@ struct vsp1_video *vsp1_video_create(struct
-> vsp1_device *vsp1, return video;
-> 
->  error:
-> -	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
->  	vsp1_video_cleanup(video);
->  	return ERR_PTR(ret);
->  }
-> @@ -1024,6 +1013,5 @@ void vsp1_video_cleanup(struct vsp1_video *video)
->  	if (video_is_registered(&video->video))
->  		video_unregister_device(&video->video);
-> 
-> -	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
->  	media_entity_cleanup(&video->video.entity);
->  }
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.h
-> b/drivers/media/platform/vsp1/vsp1_video.h index 867b008..4487dc8 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.h
-> +++ b/drivers/media/platform/vsp1/vsp1_video.h
-> @@ -46,7 +46,6 @@ struct vsp1_video {
->  	unsigned int pipe_index;
-> 
->  	struct vb2_queue queue;
-> -	void *alloc_ctx;
->  	spinlock_t irqlock;
->  	struct list_head irqqueue;
->  	unsigned int sequence;
-> diff --git a/drivers/media/platform/xilinx/xilinx-dma.c
-> b/drivers/media/platform/xilinx/xilinx-dma.c index 7f6898b..3838e11 100644
-> --- a/drivers/media/platform/xilinx/xilinx-dma.c
-> +++ b/drivers/media/platform/xilinx/xilinx-dma.c
-> @@ -322,7 +322,6 @@ xvip_dma_queue_setup(struct vb2_queue *vq,
->  {
->  	struct xvip_dma *dma = vb2_get_drv_priv(vq);
-> 
-> -	alloc_ctxs[0] = dma->alloc_ctx;
->  	/* Make sure the image size is large enough. */
->  	if (*nplanes)
->  		return sizes[0] < dma->format.sizeimage ? -EINVAL : 0;
-> @@ -706,12 +705,6 @@ int xvip_dma_init(struct xvip_composite_device *xdev,
-> struct xvip_dma *dma, video_set_drvdata(&dma->video, dma);
-> 
->  	/* ... and the buffers queue... */
-> -	dma->alloc_ctx = vb2_dma_contig_init_ctx(dma->xdev->dev);
-> -	if (IS_ERR(dma->alloc_ctx)) {
-> -		ret = PTR_ERR(dma->alloc_ctx);
-> -		goto error;
-> -	}
-> -
->  	/* Don't enable VB2_READ and VB2_WRITE, as using the read() and write()
->  	 * V4L2 APIs would be inefficient. Testing on the command line with a
->  	 * 'cat /dev/video?' thus won't be possible, but given that the driver
-> @@ -728,6 +721,7 @@ int xvip_dma_init(struct xvip_composite_device *xdev,
-> struct xvip_dma *dma, dma->queue.mem_ops = &vb2_dma_contig_memops;
->  	dma->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
-> 
->  				   | V4L2_BUF_FLAG_TSTAMP_SRC_EOF;
-> 
-> +	dma->queue.dev = dma->xdev->dev;
->  	ret = vb2_queue_init(&dma->queue);
->  	if (ret < 0) {
->  		dev_err(dma->xdev->dev, "failed to initialize VB2 queue\n");
-> @@ -766,9 +760,6 @@ void xvip_dma_cleanup(struct xvip_dma *dma)
->  	if (dma->dma)
->  		dma_release_channel(dma->dma);
-> 
-> -	if (!IS_ERR_OR_NULL(dma->alloc_ctx))
-> -		vb2_dma_contig_cleanup_ctx(dma->alloc_ctx);
-> -
->  	media_entity_cleanup(&dma->video.entity);
-> 
->  	mutex_destroy(&dma->lock);
-> diff --git a/drivers/media/platform/xilinx/xilinx-dma.h
-> b/drivers/media/platform/xilinx/xilinx-dma.h index 7a1621a..e95d136 100644
-> --- a/drivers/media/platform/xilinx/xilinx-dma.h
-> +++ b/drivers/media/platform/xilinx/xilinx-dma.h
-> @@ -65,7 +65,6 @@ static inline struct xvip_pipeline
-> *to_xvip_pipeline(struct media_entity *e) * @format: active V4L2 pixel
-> format
->   * @fmtinfo: format information corresponding to the active @format
->   * @queue: vb2 buffers queue
-> - * @alloc_ctx: allocation context for the vb2 @queue
->   * @sequence: V4L2 buffers sequence number
->   * @queued_bufs: list of queued buffers
->   * @queued_lock: protects the buf_queued list
-> @@ -88,7 +87,6 @@ struct xvip_dma {
->  	const struct xvip_video_format *fmtinfo;
-> 
->  	struct vb2_queue queue;
-> -	void *alloc_ctx;
->  	unsigned int sequence;
-> 
->  	struct list_head queued_bufs;
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America(Silicon Valley)
+shuah.kh@samsung.com | (970) 217-8978
