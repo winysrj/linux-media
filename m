@@ -1,75 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:37243 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754670AbcDYOOp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 10:14:45 -0400
-Received: by mail-wm0-f50.google.com with SMTP id n3so130126661wmn.0
-        for <linux-media@vger.kernel.org>; Mon, 25 Apr 2016 07:14:44 -0700 (PDT)
-Date: Mon, 25 Apr 2016 16:14:41 +0200
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-media@vger.kernel.org,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	sakari.ailus@iki.fi, sre@kernel.org
-Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
-Message-ID: <20160425141441.GE25465@pali>
-References: <571DBA2E.9020305@gmail.com>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160425104037.GA20362@pali>
- <20160425140612.GA19175@amd>
+Received: from lists.s-osg.org ([54.187.51.154]:39824 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752177AbcD0KcE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Apr 2016 06:32:04 -0400
+Date: Wed, 27 Apr 2016 07:31:59 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+	<linux-media@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
+Subject: Re: [patch] [media] tw686x: off by one bugs in tw686x_fields_map()
+Message-ID: <20160427073159.041490f8@recife.lan>
+In-Reply-To: <20160427080928.GC22469@mwanda>
+References: <20160427080928.GC22469@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20160425140612.GA19175@amd>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 25 April 2016 16:06:12 Pavel Machek wrote:
-> Hi!
+Hi Dan,
+
+Em Wed, 27 Apr 2016 11:09:28 +0300
+Dan Carpenter <dan.carpenter@oracle.com> escreveu:
+
+> The > ARRAY_SIZE() should be >= ARRAY_SIZE(). 
+
+I actually did this fix when I produced the patch, just I forgot to fold
+it when merging. Anyway, this was fixed upstream by this patch:
+	https://git.linuxtv.org/media_tree.git/commit/?id=45c175c4ae9695d6d2f30a45ab7f3866cfac184b
+
+> Also this is a slightly
+> unrelated cleanup but I replaced the magic numbers 30 and 25 with
+> ARRAY_SIZE() - 1.
+
+I don't like magic numbers, but, in this very specific case, setting
+frames per second (fps) var to 25 or 30 makes much more sense. The
+rationale is that:
+
+The V4L2_STD_525_60 macro is for the Countries where the power line 
+uses 60Hz, and V4L2_STD_625_50 for the Countries where the power line
+is 50Hz.
+
+The broadcast TV sends frames in half of this frequency, so, for
+V4L2_STD_525_60, fps = 30, while, for V4L2_STD_625_50, fps = 25.
+
+So, in this very specific case, IMHO, it is better to see 25 or 30 there,
+instead of ARRAY_SIZE().
+
+That's said, I guess one improvement would be to get rid of those two
+arrays and replacing them by a formula, like:
+
+               	i = (max_fps / 2 + 15 * fps) / max_fps;
+                if (i > 14)
+                        i = 0;
+
+I'll propose such patch for evaluation.
+
+Regards,
+Mauro
+
 > 
-> > On Monday 25 April 2016 00:08:00 Ivaylo Dimitrov wrote:
-> > > The needed pipeline could be made with:
-> > > 
-> > > media-ctl -r
-> > > media-ctl -l '"vs6555 binner 2-0010":1 -> "video-bus-switch":2
-> ...
-> > On Monday 25 April 2016 09:33:18 Ivaylo Dimitrov wrote:
-> > > Try with:
-> > > 
-> > > media-ctl -r
-> > > media-ctl -l '"et8ek8 3-003e":0 -> "video-bus-switch":1 [1]'
-> ...
-> > > mplayer -tv driver=v4l2:width=800:height=600:outfmt=uyvy:device=/dev/video6 -vo xv -vf screenshot tv://
-> > 
-> > Hey!!! That is crazy! Who created such retard API?? In both cases you
-> > are going to show video from /dev/video6 device. But in real I have two
-> > independent camera devices: front and back.
+> Fixes: 363d79f1d5bd ('[media] tw686x: Don't go past array')
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 > 
-> Because Nokia, and because the hardware is complex, I'm afraid.
+> diff --git a/drivers/media/pci/tw686x/tw686x-video.c b/drivers/media/pci/tw686x/tw686x-video.c
+> index d2a0147..7b87f27 100644
+> --- a/drivers/media/pci/tw686x/tw686x-video.c
+> +++ b/drivers/media/pci/tw686x/tw686x-video.c
+> @@ -64,12 +64,12 @@ static unsigned int tw686x_fields_map(v4l2_std_id std, unsigned int fps)
+>  	unsigned int i;
+>  
+>  	if (std & V4L2_STD_525_60) {
+> -		if (fps > ARRAY_SIZE(std_525_60))
+> -			fps = 30;
+> +		if (fps >= ARRAY_SIZE(std_525_60))
+> +			fps = ARRAY_SIZE(std_525_60) - 1;
+>  		i = std_525_60[fps];
+>  	} else {
+> -		if (fps > ARRAY_SIZE(std_625_50))
+> -			fps = 25;
+> +		if (fps >= ARRAY_SIZE(std_625_50))
+> +			fps = ARRAY_SIZE(std_625_50) - 1;
+>  		i = std_625_50[fps];
+>  	}
+>  
 
-In Nokia kernel, there are just /dev/video0 and /dev/video1. When I open
-first I see back camera, second front camera. No media-ctl nor any other
-reconfiguration is needed. So not Nokia nor hw complexity is reason...
-
-> First we need to get it to work, than we can improve v4l... 
-
-Ok, I agree. But I really would like to see just two video devices and
-all those route configuration in kernel...
-
-> Anyway, does anyone know where to get the media-ctl tool?
-
-Looks like it is part of v4l-utils package. At least in git:
-https://git.linuxtv.org/v4l-utils.git/tree/utils/media-ctl
-
-> It does not seem to be in debian 7 or debian 8...
-
-I do not see it in debian too, but there is some version in ubuntu:
-http://packages.ubuntu.com/trusty/media-ctl
-
-So you can compile ubuntu dsc package, should work on debian.
 
 -- 
-Pali Rohár
-pali.rohar@gmail.com
+Thanks,
+Mauro
