@@ -1,53 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:51229 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750813AbcDROaq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2016 10:30:46 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 4D741180054
-	for <linux-media@vger.kernel.org>; Mon, 18 Apr 2016 16:30:40 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.6] Two revert patches
-Message-ID: <5714EF90.4040605@xs4all.nl>
-Date: Mon, 18 Apr 2016 16:30:40 +0200
+Received: from lists.s-osg.org ([54.187.51.154]:43312 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752188AbcD0V4g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Apr 2016 17:56:36 -0400
+Subject: Re: [PATCH] media: fix media_ioctl use-after-free when driver unbinds
+To: Lars-Peter Clausen <lars@metafoo.de>, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, sakari.ailus@iki.fi
+References: <1461726512-9828-1-git-send-email-shuahkh@osg.samsung.com>
+ <5720EC1A.8060101@metafoo.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <57213591.3000109@osg.samsung.com>
+Date: Wed, 27 Apr 2016 15:56:33 -0600
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <5720EC1A.8060101@metafoo.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 04/27/2016 10:43 AM, Lars-Peter Clausen wrote:
+> Looks mostly good, a few comments.
+> 
+> On 04/27/2016 05:08 AM, Shuah Khan wrote:
+> [...]
+>> @@ -428,7 +428,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>>  			       unsigned long arg)
+>>  {
+>>  	struct media_devnode *devnode = media_devnode_data(filp);
+>> -	struct media_device *dev = to_media_device(devnode);
+> 
+> Can we keep the helper macro, means we don't need to touch this code.
 
-These two patches should go to 4.6.
+Yeah. I have been thinking about that as well. It avoids changes
+and abstracts it.
 
-Note that the usbvision patch is also part of a 4.7 pull request of mine, but
-I realized that it should go to 4.6, not 4.7.
+> 
+>> +	struct media_device *dev = devnode->media_dev;
+> 
+> You need a lock to protect this from running concurrently with
+> media_device_unregister() otherwise the struct might be freed while still in
+> use.
+> 
 
-Regards,
+Right. This needs to be protected.
 
-	Hans
+>>  	long ret;
+>>  
+>>  	switch (cmd) {
+> [...]
+>> @@ -725,21 +726,26 @@ int __must_check __media_device_register(struct media_device *mdev,
+>>  {
+>>  	int ret;
+>>  
+>> +	mdev->devnode = kzalloc(sizeof(struct media_devnode), GFP_KERNEL);
+> 
+> sizeof(*mdev->devnode) is preferred kernel style,
 
-The following changes since commit ecb7b0183a89613c154d1bea48b494907efbf8f9:
+Yeah. Force of habit, I keep forgetting it.
 
-  [media] m88ds3103: fix undefined division (2016-04-13 19:17:39 -0300)
+> 
+>> +	if (!mdev->devnode)
+>> +		return -ENOMEM;
+>> +
+>>  	/* Register the device node. */
+>> -	mdev->devnode.fops = &media_device_fops;
+>> -	mdev->devnode.parent = mdev->dev;
+>> -	mdev->devnode.release = media_device_release;
+>> +	mdev->devnode->fops = &media_device_fops;
+>> +	mdev->devnode->parent = mdev->dev;
+>> +	mdev->devnode->media_dev = mdev;
+>> +	mdev->devnode->release = media_device_release;
+> 
+> This should no longer be necessary. Just drop the release callback altogether.
 
-are available in the git repository at:
+It does nothing at the moment. I believe the intent is for this routine
+to invoke any driver hooks if any at media_device level. It gets called
+from media_devnode_release() which is the media_devnode->dev.release.
+I will look into if it can be removed.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.6a
+> 
+>>  
+>>  	/* Set version 0 to indicate user-space that the graph is static */
+>>  	mdev->topology_version = 0;
+>>  
+> [...]
+>> @@ -813,8 +819,10 @@ void media_device_unregister(struct media_device *mdev)
+>>  
+>>  	spin_unlock(&mdev->lock);
+>>  
+>> -	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+>> -	media_devnode_unregister(&mdev->devnode);
+>> +	device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+>> +	media_devnode_unregister(mdev->devnode);
+>> +	/* kfree devnode is done via kobject_put() handler */
+>> +	mdev->devnode = NULL;
+> 
+> mdev->devnode->media_dev needs to be set to NULL.
 
-for you to fetch changes up to 9990a56c2ed064abfd72e074182800c56a876ae9:
+Yes. Thanks for catching it.
 
-  davinci_vpfe: Revert "staging: media: davinci_vpfe: remove,unnecessary ret variable" (2016-04-18 16:17:31 +0200)
+> 
+>>  
+>>  	dev_dbg(mdev->dev, "Media device unregistered\n");
+>>  }
+>> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+>> index 29409f4..9af9ba1 100644
+>> --- a/drivers/media/media-devnode.c
+>> +++ b/drivers/media/media-devnode.c
+>> @@ -171,6 +171,9 @@ static int media_open(struct inode *inode, struct file *filp)
+>>  		mutex_unlock(&media_devnode_lock);
+>>  		return -ENXIO;
+>>  	}
+>> +
+>> +	kobject_get(&mdev->kobj);
+> 
+> This is not necessary, and if it was it would be prone to race condition as
+> the last reference could be dropped before this line. But assigning the cdev
+> parent makes sure that we always have a reference to the object while the
+> open() callback is running.
 
-----------------------------------------------------------------
-Hans Verkuil (1):
-      davinci_vpfe: Revert "staging: media: davinci_vpfe: remove,unnecessary ret variable"
+I don't see cdev parent kobj get in cdev_get() which does kobject_get()
+on cdev->kobj. Is that enough to get the reference?
 
-Vladis Dronov (1):
-      usbvision: revert commit 588afcc1
+cdev_add() gets the cdev parent kobj and cdev_del() puts it back. That is
+the reason why I added a get here and put in media_release().
 
- drivers/media/usb/usbvision/usbvision-video.c   |  7 -------
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 54 +++++++++++++++++++++++++++++++++--------------------
- 2 files changed, 34 insertions(+), 27 deletions(-)
+I can remove the get and put and test. Looks like I am not checking
+kobject_get() return value which isn't good?
+
+> 
+>> +
+>>  	/* and increase the device refcount */
+>>  	get_device(&mdev->dev);
+>>  	mutex_unlock(&media_devnode_lock);
+>>  /*
+> [...]
+>> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+>> index fe42f08..ba4bdaa 100644
+>> --- a/include/media/media-devnode.h
+>> +++ b/include/media/media-devnode.h
+>> @@ -70,7 +70,9 @@ struct media_file_operations {
+>>   * @fops:	pointer to struct &media_file_operations with media device ops
+>>   * @dev:	struct device pointer for the media controller device
+>>   * @cdev:	struct cdev pointer character device
+>> + * @kobj:	struct kobject
+>>   * @parent:	parent device
+>> + * @media_dev:	media device
+>>   * @minor:	device node minor number
+>>   * @flags:	flags, combination of the MEDIA_FLAG_* constants
+>>   * @release:	release callback called at the end of media_devnode_release()
+>> @@ -87,7 +89,9 @@ struct media_devnode {
+>>  	/* sysfs */
+>>  	struct device dev;		/* media device */
+>>  	struct cdev cdev;		/* character device */
+>> +	struct kobject kobj;		/* set as cdev parent kobj */
+> 
+> You don't need a extra kobj. Just use the struct dev kobj.
+
+Yeah I can use that as long as I can override the default release
+function with media_devnode_free(). media_devnode should stick around
+until the last app closes /dev/mediaX even if the media_device is no
+longer registered. i.e media_ioctl should be able to check if devnode
+is registered or not. I think I am missing something and don't understand
+how struct dev kobj can be used. 
+
+> 
+>>  	struct device *parent;		/* device parent */
+>> +	struct media_device *media_dev; /* media device for the devnode */
+>>  
+>>  	/* device info */
+>>  	int minor;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
