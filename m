@@ -1,30 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static.7.73.9.5.clients.your-server.de ([5.9.73.7]:49514 "EHLO
-	Ubuntu-1410-utopic-64-minimal" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754419AbcDHLUy (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55680 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752241AbcD0VJa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Apr 2016 07:20:54 -0400
-Date: Fri, 8 Apr 2016 11:18:49 +0300
-Message-Id: <201604080818.u388InlN013582@Ubuntu-1410-utopic-64-minimal>
-To: Korall-dent@mail.ru, kss@u-hold.ru, kosinskaya88@e-mail.ru,
-	margarito_neal@mikefinnin.com, kovalchyk_01@vail.ru,
-	lediNN2011@yandex.ru, linux-media@vger.kernel.org,
-	margaritacalvo@optoline.com, lmano-pkami@gluemanoidy.ru,
-	kulikovskaya@psu.karelia.ru, lhahm@ameros-sudan.ru,
-	lance@weblance.ru, kelly@askcorky.com, karuk@bild.ru,
-	lmhrqxnc@pwrpgrsk.com, klimenko_o@gw.tander.ru, ktivu@f-mailers.ru,
-	kirill@vertiporokh.ru, kosykh.k@merlion.ru, liishkliof@memori.ru
-Subject: =?utf-8?B?0J3QsNGB0YfQtdGCINGB0L7QstC10YLRgdC60L7QuSDRgtC10YXQvdC40LrQuCAo0L/RgNC40LHQvtGA0YssINCt0JLQnCwg0LDQvdCw0LvQvtCz0L7QstGL0LUg0JDQotChINCyINC70Y7QsdC+0Lwg0YHQvtGB0YLQvtGP0L3QuNC4KS4=?=
-From: =?utf-8?B?0JzQsNC60YHQuNC8ICjRgdC/0LXRhtC40LDQu9C40YHRgiDQv9C+INGD0YLQuNC70LjQt9Cw0YbQuNC4KQ==?=
-	<sergeev.713@mail.ru>
-Subject: =?utf-8?B?0J3QsNGB0YfQtdGCINGB0L7QstC10YLRgdC60L7QuSDRgtC10YXQvdC40LrQuCAo0L/RgNC40LHQvtGA0YssINCt0JLQnCwg0LDQvdCw0LvQvtCz0L7QstGL0LUg0JDQotChINCyINC70Y7QsdC+0Lwg0YHQvtGB0YLQvtGP0L3QuNC4KS4=?=
+	Wed, 27 Apr 2016 17:09:30 -0400
+Date: Wed, 27 Apr 2016 23:09:28 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+	sakari.ailus@iki.fi, sre@kernel.org
+Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
+Message-ID: <20160427210928.GC19070@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201604251914.52944@pali>
+ <571E250D.6080702@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi!
 
-0JfQtNGA0LDQstGB0YLQstGD0LnRgtC1IQoK0KHQutCw0LbQuNGC0LUsINC/0L7QttCw0LvRg9C50YHRgtCwLCDQuNC80LXRjtGC0YHRjyDQu9C4INGDINCS0LDRgSDQvdC10YDQsNCx0L7RgtCw0Y7RidC40LUsINGD0YHRgtCw0YDQtdCy0YjQuNC1INC40LvQuCDQv9GA0L7RgdGC0L4g0L3QtdC90YPQttC90YvQtSDQutC+0LzQv9GM0Y7RgtC10YDRiywg0LrQvtC80L/Qu9C10LrRgtGD0Y7RidC40LUsINC80L7QvdC40YLQvtGA0YssINGB0L7RgtC+0LLRi9C1INGC0LXQu9C10YTQvtC90YsgKNC60YDQvtC80LUg0LHRi9GC0L7QstC+0Lkg0YLQtdGF0L3QuNC60LgpPwoK0KLQsNC6INC20LUg0LjQvdGC0LXRgNC10YHRg9C10YIg0Y3Qu9C10LrRgtGA0L7QvdC90YvQuSDQu9C+0LwsINGA0LDQtNC40L7QtNC10YLQsNC70LgsINGB0YLQsNGA0YPRjiDRgdC+0LLQtdGC0YHQutGD0Y4g0YLQtdGF0L3QuNC60YMsINCt0JLQnCwg0LDQvdCw0LvQvtCz0L7QstGL0LUg0JDQotChINCyINC70Y7QsdC+0Lwg0YHQvtGB0YLQvtGP0L3QuNC4IQoK0KHQvtC+0LHRidC40YLQtSDQv9C+0LbQsNC70YPQudGB0YLQsCAtINGC0LXRhdC90LjQutGDINC4INCyINC60LDQutC+0Lwg0LrQvtC70LjRh9C10YHRgtCy0LUg0JLRiyDQs9C+0YLQvtCy0Ysg0LHRi9C70Lgg0LHRiyDRg9GC0LjQu9C40LfQuNGA0L7QstCw0YLRjCDQuCDRjyDRgdCy0Y/QttGD0YHRjCDRgSDQktCw0LzQuCDQtNC70Y8g0L7QsdGB0YPQttC00LXQvdC40!
- Y8g0YPRgdC70L7QstC40Lkg0LLRi9C60YPQv9CwLgoK0JTQu9GPINC+0YDQs9Cw0L3QuNC30LDRhtC40Lkg0L/RgNC10LTQu9Cw0LPQsNC10Lwg0LLRi9Cz0L7QtNC90YPRjiDRg9GC0LjQu9C40LfQsNGG0LjRjiDQsiDRgdC+0L7RgtCy0LXRgtGB0YLQstC40Lgg0YEg0LfQsNC60L7QvdC+0Lwg0KDQpCDQuCDQv9GA0LXQtNC+0YHRgtCw0LLQu9C10L3QuNC10Lwg0LLRgdC10YUg0LTQvtC60YPQvNC10L3RgtC+0LIgLSDRgtC10YXQvdC40LrQsCDQsdC+0LvRjNGI0LUg0L3QtSDQsdGD0LTQtdGCINCy0LjRgdC10YLRjCDQvdCwINCx0LDQu9Cw0L3RgdC1INCS0LDRiNC10Lkg0YTQuNGA0LzRiy4KCtChINGD0LLQsNC20LXQvdC40LXQvCwg0JzQuNGC0YDQvtGE0LDQvdC+0LIg0JzQsNC60YHQuNC8
+> It's part of the v4l-utils git repo:
+> 
+> https://git.linuxtv.org/v4l-utils.git/
+...
 
+> > > Anyway, does anyone know where to get the media-ctl tool?
+> > 
+> > Looks like it is part of v4l-utils package. At least in git:
+> > https://git.linuxtv.org/v4l-utils.git/tree/utils/media-ctl
+> > 
+> > > It does not seem to be in debian 7 or debian 8...
+> > 
+> > I do not see it in debian too, but there is some version in ubuntu:
+> > http://packages.ubuntu.com/trusty/media-ctl
+> > 
+> > So you can compile ubuntu dsc package, should work on debian.
+> 
+> Finally, it is also in debian, see:
+> 
+> https://packages.debian.org/search?suite=sid&arch=any&mode=path&searchon=contents&keywords=media-ctl
+> https://packages.debian.org/sid/amd64/v4l-utils/filelist
+
+Thanks for the pointers. It seems that new debian contains media-ctl,
+but I'm using older one, so I compiled it from source. Could not find
+yavta, either, but that was very easy to pull from git and compile.
+
+Best regards,
+									Pavel
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
