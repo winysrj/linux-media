@@ -1,105 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35772 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932281AbcDNQSC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Apr 2016 12:18:02 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Laurent Pinchart <laurent.pinchart@linaro.org>
-Subject: [PATCH v3 1/7] v4l: subdev: Add pad config allocator and init
-Date: Thu, 14 Apr 2016 18:17:44 +0200
-Message-Id: <1460650670-20849-2-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1460650670-20849-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1460650670-20849-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from lists.s-osg.org ([54.187.51.154]:40262 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753059AbcD0MAz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Apr 2016 08:00:55 -0400
+Date: Wed, 27 Apr 2016 09:00:49 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Subject: Re: [PATCH] tw686x: use a formula instead of two tables for div
+Message-ID: <20160427090049.6add3527@recife.lan>
+In-Reply-To: <8344040026ad0985c3c3981e8ec4251fd563258f.1461754812.git.mchehab@osg.samsung.com>
+References: <20160427074055.091a90c8@recife.lan>
+	<8344040026ad0985c3c3981e8ec4251fd563258f.1461754812.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@linaro.org>
+Hmm....
 
-Add a new subdev operation to initialize a subdev pad config array, and
-a helper function to allocate and initialize the array. This can be used
-by bridge drivers to implement try format based on subdev pad
-operations.
+Em Wed, 27 Apr 2016 08:01:19 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@linaro.org>
-Acked-by: Vaibhav Hiremath <vaibhav.hiremath@linaro.org>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Instead of using two tables to estimate the temporal decimation
+> factor, use a formula. This allows to get the closest fps, with
+> sounds better than the current tables.
+> 
+> Compile-tested only.
+
+Please discard this patch. It is wrong.
+
+I found the datasheet for this device at:
+	http://www.starterkit.ru/html/doc/tw6869-ds.pdf
+
+Based on what it is said on page 50, it seems that it doesn't use a
+decimation filter, but, instead, it just discards some fields in
+a way that the average fps will be reduced.
+
+So, the actual frame rate is given by the number of enabled bits
+that are written to VIDEO_FIELD_CTRL[vc->ch] and are at the
+valid bitmask range, e. g:
+
+index  0, map = 0x00000000, 30 fps (60Hz), 25 fps (50Hz), output all fields
+index  1, map = 0x80000006, 2 fps (60Hz), 2 fps (50Hz)
+index  2, map = 0x80018006, 4 fps (60Hz), 4 fps (50Hz)
+index  3, map = 0x80618006, 6 fps (60Hz), 6 fps (50Hz)
+index  4, map = 0x81818186, 8 fps (60Hz), 8 fps (50Hz)
+index  5, map = 0x86186186, 10 fps (60Hz), 8 fps (50Hz)
+index  6, map = 0x86619866, 12 fps (60Hz), 10 fps (50Hz)
+index  7, map = 0x86666666, 14 fps (60Hz), 12 fps (50Hz)
+index  8, map = 0x9999999e, 16 fps (60Hz), 14 fps (50Hz)
+index  9, map = 0x99e6799e, 18 fps (60Hz), 16 fps (50Hz)
+index 10, map = 0x9e79e79e, 20 fps (60Hz), 16 fps (50Hz)
+index 11, map = 0x9e7e7e7e, 22 fps (60Hz), 18 fps (50Hz)
+index 12, map = 0x9fe7f9fe, 24 fps (60Hz), 20 fps (50Hz)
+index 13, map = 0x9ffe7ffe, 26 fps (60Hz), 22 fps (50Hz)
+index 14, map = 0x9ffffffe, 28 fps (60Hz), 24 fps (50Hz)
+
+This was done by using the enclosed program.
+
 ---
- drivers/media/v4l2-core/v4l2-subdev.c | 19 ++++++++++++++++++-
- include/media/v4l2-subdev.h           | 10 ++++++++++
- 2 files changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index d630838..f32ac0d 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -35,7 +35,7 @@
- static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
-+	fh->pad = v4l2_subdev_alloc_pad_config(sd);
- 	if (fh->pad == NULL)
- 		return -ENOMEM;
- #endif
-@@ -569,6 +569,23 @@ int v4l2_subdev_link_validate(struct media_link *link)
- 		sink, link, &source_fmt, &sink_fmt);
- }
- EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
-+
-+struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+
-+	if (!sd->entity.num_pads)
-+		return NULL;
-+
-+	cfg = kcalloc(sd->entity.num_pads, sizeof(*cfg), GFP_KERNEL);
-+	if (!cfg)
-+		return NULL;
-+
-+	v4l2_subdev_call(sd, pad, init_cfg, cfg);
-+
-+	return cfg;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_subdev_alloc_pad_config);
- #endif /* CONFIG_MEDIA_CONTROLLER */
- 
- void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 11e2dfe..6c47cdd 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -607,6 +607,8 @@ struct v4l2_subdev_pad_config {
-  *                  may be adjusted by the subdev driver to device capabilities.
-  */
- struct v4l2_subdev_pad_ops {
-+	void (*init_cfg)(struct v4l2_subdev *sd,
-+			 struct v4l2_subdev_pad_config *cfg);
- 	int (*enum_mbus_code)(struct v4l2_subdev *sd,
- 			      struct v4l2_subdev_pad_config *cfg,
- 			      struct v4l2_subdev_mbus_code_enum *code);
-@@ -801,7 +803,15 @@ int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
- 				      struct v4l2_subdev_format *source_fmt,
- 				      struct v4l2_subdev_format *sink_fmt);
- int v4l2_subdev_link_validate(struct media_link *link);
-+
-+struct v4l2_subdev_pad_config *v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
-+
-+static inline void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg)
-+{
-+	kfree(cfg);
-+}
- #endif /* CONFIG_MEDIA_CONTROLLER */
-+
- void v4l2_subdev_init(struct v4l2_subdev *sd,
- 		      const struct v4l2_subdev_ops *ops);
- 
--- 
-2.7.4
+#include <stdio.h>
 
+static const unsigned int map[15] = {
+                0x00000000, 0x00000001, 0x00004001, 0x00104001, 0x00404041,
+               	0x01041041, 0x01104411, 0x01111111, 0x04444445, 0x04511445,
+                0x05145145, 0x05151515, 0x05515455, 0x05551555, 0x05555555
+};
+
+unsigned int count_bits(unsigned int bits, unsigned int max)
+{
+	unsigned int i, c= 0;
+
+	for (i = 0; i < max; i++)
+		if ((1 << i) & bits)
+			c++;
+
+	return c;
+}
+
+void calc_map(unsigned int i)
+{
+	unsigned int m, fps_30, fps_25;
+
+	m = map[i] << 1;
+	m |= m << 1;
+
+	fps_30 = count_bits(m, 30);
+	fps_25 = count_bits(m, 25);
+
+	if (m)
+		m |= 1 << 31;
+	else {
+		fps_30 = 30;
+		fps_25 = 25;
+	}
+
+	printf("index %2i, map = 0x%08x, %d fps (60Hz), %d fps (50Hz)%s\n",
+		i, m, fps_30, fps_25,
+		i == 0 ? ", output all fields" : ""
+		);
+}
+
+int main(void)
+{
+	unsigned int i;
+
+	printf ("\nmap:\n");
+	for (i = 0; i < 15; i++)
+		calc_map(i);
+
+	return 0;
+}
