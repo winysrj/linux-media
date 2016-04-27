@@ -1,114 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qg0-f50.google.com ([209.85.192.50]:36031 "EHLO
-	mail-qg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565AbcDUVFW (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:52411 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752832AbcD0NO6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2016 17:05:22 -0400
-Received: by mail-qg0-f50.google.com with SMTP id d90so19910337qgd.3
-        for <linux-media@vger.kernel.org>; Thu, 21 Apr 2016 14:05:22 -0700 (PDT)
-Received: from ?IPv6:2001:4830:1600:505::2? (cl-1286.qas-01.us.sixxs.net. [2001:4830:1600:505::2])
-        by smtp.googlemail.com with ESMTPSA id 77sm1194914qgi.33.2016.04.21.14.05.20
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Thu, 21 Apr 2016 14:05:20 -0700 (PDT)
-To: linux-media@vger.kernel.org
-From: Dominic Chen <d.c.ddcc@gmail.com>
-Subject: [PATCH/RFC] dvb-core: drop stubs for llseek()
-Message-ID: <c9979b23-4aae-34bb-7423-1630c7df7cf7@gmail.com>
-Date: Thu, 21 Apr 2016 17:05:24 -0400
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Wed, 27 Apr 2016 09:14:58 -0400
+Subject: Re: [PATCH RESEND 1/2] media: vb2-dma-contig: add helper for setting
+ dma max seg size
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+References: <1461758429-12913-1-git-send-email-m.szyprowski@samsung.com>
+ <5720AC3C.8090101@xs4all.nl>
+ <5900d3fc-b17a-875b-e016-ae53442641b0@samsung.com> <5720B78B.2080806@xs4all.nl>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <eff85b26-e29e-567d-6e1e-9d77e29e32b9@samsung.com>
+Date: Wed, 27 Apr 2016 15:14:54 +0200
+MIME-version: 1.0
+In-reply-to: <5720B78B.2080806@xs4all.nl>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since the default behavior in vfs_llseek() is now no_llseek(), and
-filp->f_pos / ppos are not actually used anywhere in dvb, drop the
-inconsistent llseek() stubs.
+Hello,
 
-Signed-off-by: Dominic Chen <d.c.ddcc@gmail.com>
----
- drivers/media/dvb-core/dmxdev.c         | 2 --
- drivers/media/dvb-core/dvb_ca_en50221.c | 1 -
- drivers/media/dvb-core/dvb_frontend.c   | 1 -
- drivers/media/dvb-core/dvb_net.c        | 1 -
- drivers/media/dvb-core/dvbdev.c         | 1 -
- 5 files changed, 6 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dmxdev.c
-b/drivers/media/dvb-core/dmxdev.c
-index a168cbe..25494bf 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -1135,7 +1135,6 @@ static const struct file_operations dvb_demux_fops = {
-     .open = dvb_demux_open,
-     .release = dvb_demux_release,
-     .poll = dvb_demux_poll,
--    .llseek = default_llseek,
- };
- 
- static const struct dvb_device dvbdev_demux = {
-@@ -1211,7 +1210,6 @@ static const struct file_operations dvb_dvr_fops = {
-     .open = dvb_dvr_open,
-     .release = dvb_dvr_release,
-     .poll = dvb_dvr_poll,
--    .llseek = default_llseek,
- };
- 
- static const struct dvb_device dvbdev_dvr = {
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c
-b/drivers/media/dvb-core/dvb_ca_en50221.c
-index f82cd1f..e736fb9 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -1636,7 +1636,6 @@ static const struct file_operations dvb_ca_fops = {
-     .open = dvb_ca_en50221_io_open,
-     .release = dvb_ca_en50221_io_release,
-     .poll = dvb_ca_en50221_io_poll,
--    .llseek = noop_llseek,
- };
- 
- static const struct dvb_device dvbdev_ca = {
-diff --git a/drivers/media/dvb-core/dvb_frontend.c
-b/drivers/media/dvb-core/dvb_frontend.c
-index c014261..e29543c 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2600,7 +2600,6 @@ static const struct file_operations
-dvb_frontend_fops = {
-     .poll        = dvb_frontend_poll,
-     .open        = dvb_frontend_open,
-     .release    = dvb_frontend_release,
--    .llseek        = noop_llseek,
- };
- 
- int dvb_frontend_suspend(struct dvb_frontend *fe)
-diff --git a/drivers/media/dvb-core/dvb_net.c
-b/drivers/media/dvb-core/dvb_net.c
-index ce6a711..d4af8d0 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -1457,7 +1457,6 @@ static const struct file_operations dvb_net_fops = {
-     .unlocked_ioctl = dvb_net_ioctl,
-     .open =    dvb_generic_open,
-     .release = dvb_net_close,
--    .llseek = noop_llseek,
- };
- 
- static const struct dvb_device dvbdev_net = {
-diff --git a/drivers/media/dvb-core/dvbdev.c
-b/drivers/media/dvb-core/dvbdev.c
-index e1684c5..bc8086d 100644
---- a/drivers/media/dvb-core/dvbdev.c
-+++ b/drivers/media/dvb-core/dvbdev.c
-@@ -101,7 +101,6 @@ static const struct file_operations dvb_device_fops =
- {
-     .owner =    THIS_MODULE,
-     .open =        dvb_device_open,
--    .llseek =    noop_llseek,
- };
- 
- static struct cdev dvb_device_cdev;
+On 2016-04-27 14:58, Hans Verkuil wrote:
+> On 04/27/2016 02:23 PM, Marek Szyprowski wrote:
+>> Hello,
+>>
+>>
+>> On 2016-04-27 14:10, Hans Verkuil wrote:
+>>> On 04/27/2016 02:00 PM, Marek Szyprowski wrote:
+>>>> Add a helper function for device drivers to set DMA's max_seg_size.
+>>>> Setting it to largest possible value lets DMA-mapping API always create
+>>>> contiguous mappings in DMA address space. This is essential for all
+>>>> devices, which use dma-contig videobuf2 memory allocator and shared
+>>>> buffers.
+>>>>
+>>>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>>> ---
+>>>> This patch was posted earlier as a part of
+>>>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
+>>>> thread, but applying it is really needed to get all Exynos multimedia
+>>>> drivers working with IOMMU enabled.
+>>>>
+>>>> Best regards,
+>>>> Marek Szyprowski
+>>>> ---
+>>>>    drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
+>>>>    include/media/videobuf2-dma-contig.h           |  1 +
+>>>>    2 files changed, 16 insertions(+)
+>>>>
+>>>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>>>> index 5361197..f611456 100644
+>>>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>>>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>>>> @@ -753,6 +753,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+>>>>    }
+>>>>    EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
+>>>>    +int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
+>>>> +{
+>>>> +    if (!dev->dma_parms) {
+>>>> +        dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
+>>>> +                          GFP_KERNEL);
+>>> The v3 patch from December uses kzalloc here. Is this perhaps on old version?
+>> Right, my fault. I will do another resend (and fix the typo in the second patch).
+>>
+>>>> +        if (!dev->dma_parms)
+>>>> +            return -ENOMEM;
+>>>> +    }
+>>>> +    if (dma_get_max_seg_size(dev) < size)
+>>>> +        return dma_set_max_seg_size(dev, size);
+>>>> +
+>>>> +    return 0;
+>>>> +}
+>>>> +EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
+>>> Admittedly I haven't looked closely at this, but is this something that you
+>>> want for all dma-contig devices? Or to rephrase this question: what type of
+>>> devices will need this?
+>> This is needed for all devices using vb2-dc, iommu and user-ptr mode, however
+>> in the previous discussions (see https://patchwork.linuxtv.org/patch/30870/
+>> ) it has been suggested to make it via common helper instead of forcing it
+>> in vb2-dc.
+> This certainly will need to be carefully documented in videobuf2-dma-contig.h.
+>
+> What happens if it is called when you don't have an iommu? Does something break?
+
+Nope, nothing breaks in such case. When no iommu is available this 
+parameter is
+ignored by dma-mapping layer. Due to some other issues, it cannot be set by
+generic platform init code:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html 
+
+
+Best regards
+
 -- 
-1.9.1
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
