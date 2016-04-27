@@ -1,104 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55078 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932675AbcDYNZ4 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:18035 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750826AbcD0MAr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 09:25:56 -0400
-Date: Mon, 25 Apr 2016 16:25:49 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 01/24] V4L fixes
-Message-ID: <20160425132549.GE32125@valkosipuli.retiisi.org.uk>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Wed, 27 Apr 2016 08:00:47 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH RESEND 1/2] media: vb2-dma-contig: add helper for setting dma
+ max seg size
+Date: Wed, 27 Apr 2016 14:00:28 +0200
+Message-id: <1461758429-12913-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ivaylo,
+Add a helper function for device drivers to set DMA's max_seg_size.
+Setting it to largest possible value lets DMA-mapping API always create
+contiguous mappings in DMA address space. This is essential for all
+devices, which use dma-contig videobuf2 memory allocator and shared
+buffers.
 
-Thanks for the set!
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+This patch was posted earlier as a part of
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
+thread, but applying it is really needed to get all Exynos multimedia
+drivers working with IOMMU enabled.
 
-On Mon, Apr 25, 2016 at 12:08:01AM +0300, Ivaylo Dimitrov wrote:
-> From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
-> 
-> Squashed from the following upstream commits:
-> 
-> V4L: Create control class for sensor mode
-> V4L: add ad5820 focus specific custom controls
-> V4L: add V4L2_CID_TEST_PATTERN
-> V4L: Add V4L2_CID_MODE_OPSYSCLOCK for reading output system clock
-> 
-> Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-> Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
-> ---
->  include/uapi/linux/v4l2-controls.h | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
-> 
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index b6a357a..23011cc 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -62,6 +62,7 @@
->  #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
->  #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
->  #define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
-> +#define V4L2_CTRL_CLASS_MODE		0x00a40000	/* Sensor mode information */
->  
->  /* User-class control IDs */
->  
-> @@ -974,4 +975,20 @@ enum v4l2_detect_md_mode {
->  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
->  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
->  
-> +/* SMIA-type sensor information */
-> +#define V4L2_CID_MODE_CLASS_BASE		(V4L2_CTRL_CLASS_MODE | 0x900)
-> +#define V4L2_CID_MODE_CLASS			(V4L2_CTRL_CLASS_MODE | 1)
-> +#define V4L2_CID_MODE_FRAME_WIDTH		(V4L2_CID_MODE_CLASS_BASE+1)
-> +#define V4L2_CID_MODE_FRAME_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+2)
-> +#define V4L2_CID_MODE_VISIBLE_WIDTH		(V4L2_CID_MODE_CLASS_BASE+3)
-> +#define V4L2_CID_MODE_VISIBLE_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+4)
+Best regards,
+Marek Szyprowski
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 15 +++++++++++++++
+ include/media/videobuf2-dma-contig.h           |  1 +
+ 2 files changed, 16 insertions(+)
 
-The interface here pre-dates the selection API. The frame width and height
-is today conveyed to the bridge driver by the smiapp driver in the scaler
-(or binner in case of the lack of the scaler) sub-device's source pad
-format.
-
-(While that's the current interface, I'm not entirely happy with it; it
-requires more sub-devices to be created for the same I2C device). I think in
-this case you'd need one more to properly control the sensor.
-
-> +#define V4L2_CID_MODE_PIXELCLOCK		(V4L2_CID_MODE_CLASS_BASE+5)
-> +#define V4L2_CID_MODE_SENSITIVITY		(V4L2_CID_MODE_CLASS_BASE+6)
-> +#define V4L2_CID_MODE_OPSYSCLOCK		(V4L2_CID_MODE_CLASS_BASE+7)
-
-While I don't remember quite what the sensitivity value was about (it could
-be e.g. binning summing / averaging), the other two values are passed to
-(and also controlled by) the user space using controls. There are
-V4L2_CID_PIXEL_RATE and V4L2_CID_LINK_FREQ or such.
-
-> +
-> +/* Control IDs specific to the AD5820 driver as defined by V4L2 */
-> +#define V4L2_CID_FOCUS_AD5820_BASE 		(V4L2_CTRL_CLASS_CAMERA | 0x10af)
-> +#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_FOCUS_AD5820_BASE+0)
-> +#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
-
-The ad5820 driver isn't in upstream at the moment. It should be investigated
-whether there is a possibility to have standard V4L2 controls for lens
-devices, or whether device specific controls should be implemented instead.
-Device specific controls are a safe choice in this case, but they should be
-in a separate patch, possibly one that would also include the lens driver
-itself.
-
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 5361197..f611456 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -753,6 +753,21 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+ }
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
+ 
++int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
++{
++	if (!dev->dma_parms) {
++		dev->dma_parms = devm_kzalloc(dev, sizeof(dev->dma_parms),
++					      GFP_KERNEL);
++		if (!dev->dma_parms)
++			return -ENOMEM;
++	}
++	if (dma_get_max_seg_size(dev) < size)
++		return dma_set_max_seg_size(dev, size);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
++
+ MODULE_DESCRIPTION("DMA-contig memory handling routines for videobuf2");
+ MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
+ MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
+index 2087c9a..98857b5 100644
+--- a/include/media/videobuf2-dma-contig.h
++++ b/include/media/videobuf2-dma-contig.h
+@@ -35,6 +35,7 @@ static inline void *vb2_dma_contig_init_ctx(struct device *dev)
+ }
+ 
+ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
++int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size);
+ 
+ extern const struct vb2_mem_ops vb2_dma_contig_memops;
+ 
 -- 
-Kind regards,
+1.9.2
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
