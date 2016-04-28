@@ -1,58 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:44512 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753846AbcDVJHF (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34750 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752388AbcD1UnL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 05:07:05 -0400
-Received: from tschai.fritz.box (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 0B96818021C
-	for <linux-media@vger.kernel.org>; Fri, 22 Apr 2016 11:07:00 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/2] Drop obsolete 'experimental' annotations
-Date: Fri, 22 Apr 2016 11:06:57 +0200
-Message-Id: <1461316019-2497-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 28 Apr 2016 16:43:11 -0400
+Subject: Re: [PATCH 2/2] [media] ir-rx51: Fix build after multiarch changes
+ broke it
+To: Tony Lindgren <tony@atomide.com>
+References: <1461714709-10455-1-git-send-email-tony@atomide.com>
+ <1461714709-10455-3-git-send-email-tony@atomide.com>
+ <572266AF.9020601@gmail.com> <20160428202248.GG5995@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Sebastian Reichel <sre@kernel.org>,
+	Pavel Machel <pavel@ucw.cz>,
+	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Neil Armstrong <narmstrong@baylibre.com>,
+	linux-media@vger.kernel.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <572275DB.8090300@gmail.com>
+Date: Thu, 28 Apr 2016 23:43:07 +0300
+MIME-Version: 1.0
+In-Reply-To: <20160428202248.GG5995@atomide.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Хи,
 
-Both in videodev2.h and in the documentation there are a lot of features
-marked 'experimental' that have been around for years. Remove these
-annotations since it was pure laziness that we didn't do that before.
+On 28.04.2016 23:22, Tony Lindgren wrote:
+> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160428 12:39]:
+>> On 27.04.2016 02:51, Tony Lindgren wrote:
+>>
+>> omap_dm_timer_request_specific always fails with message "Please use
+>> omap_dm_timer_request_by_cap/node()" with DT boot.
+>>
+>> I hacked the code to use omap_dm_timer_request_by_cap(OMAP_TIMER_HAS_PWM)
+>> and it seems to use the correct timer (IR LED blinks, checked with the
+>> camera of Samsung S4 mini), but it doesn't actually control either of the TV
+>> sets here. The same SW(pierogi) controls them when device is booted to stock
+>> kernel. However, this seems another problem not related to the patch.
+>
+> OK thanks for testing, I'll apply the pdata patch then.
+>
+> I assume you'll post a separate fix for the request_by_cap
+> driver change?
+>
 
-Regards,
+Well, it was a hack, it just happens that the first matched timer is 
+GPT9, I think we should aim for a proper solution (request_by_node()).
 
-	Hans
+Shall I prepare a patch that gets the timer from the DT?
 
-Hans Verkuil (2):
-  videodev2.h: remove 'experimental' annotations.
-  DocBook media: drop 'experimental' annotations
-
- Documentation/DocBook/media/v4l/compat.xml         | 38 ----------------------
- Documentation/DocBook/media/v4l/controls.xml       | 31 ------------------
- Documentation/DocBook/media/v4l/dev-sdr.xml        |  6 ----
- Documentation/DocBook/media/v4l/dev-subdev.xml     |  6 ----
- Documentation/DocBook/media/v4l/io.xml             |  6 ----
- Documentation/DocBook/media/v4l/selection-api.xml  |  9 +----
- Documentation/DocBook/media/v4l/subdev-formats.xml |  6 ----
- .../DocBook/media/v4l/vidioc-create-bufs.xml       |  6 ----
- .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    |  6 ----
- .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   |  6 ----
- .../DocBook/media/v4l/vidioc-enum-freq-bands.xml   |  6 ----
- Documentation/DocBook/media/v4l/vidioc-expbuf.xml  |  6 ----
- .../DocBook/media/v4l/vidioc-g-selection.xml       |  6 ----
- .../DocBook/media/v4l/vidioc-prepare-buf.xml       |  6 ----
- .../DocBook/media/v4l/vidioc-query-dv-timings.xml  |  6 ----
- .../v4l/vidioc-subdev-enum-frame-interval.xml      |  6 ----
- .../media/v4l/vidioc-subdev-enum-frame-size.xml    |  6 ----
- .../media/v4l/vidioc-subdev-enum-mbus-code.xml     |  6 ----
- .../DocBook/media/v4l/vidioc-subdev-g-fmt.xml      |  6 ----
- .../media/v4l/vidioc-subdev-g-frame-interval.xml   |  6 ----
- .../media/v4l/vidioc-subdev-g-selection.xml        |  6 ----
- include/uapi/linux/videodev2.h                     | 38 ++++++----------------
- 22 files changed, 11 insertions(+), 213 deletions(-)
-
--- 
-2.8.0.rc3
-
+Ivo
