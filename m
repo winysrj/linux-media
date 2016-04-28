@@ -1,45 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:60556 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751737AbcDUNVn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2016 09:21:43 -0400
-Subject: Re: [RFT PATCH v2] [media] exynos4-is: Fix
- fimc_is_parse_sensor_config() nodes handling
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-References: <1458780100-8865-1-git-send-email-javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	=?UTF-8?Q?Andreas_F=c3=a4rber?= <afaerber@suse.de>,
-	linux-media@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <5718D3DC.20004@osg.samsung.com>
-Date: Thu, 21 Apr 2016 09:21:32 -0400
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39683 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751513AbcD1Gfq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2016 02:35:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Rob Herring <robh@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 01/13] dt-bindings: Add Renesas R-Car FCP DT bindings
+Date: Thu, 28 Apr 2016 09:36:08 +0300
+Message-ID: <7242073.I0M81bb6ct@avalon>
+In-Reply-To: <20160428025429.GA11679@rob-hp-laptop>
+References: <1461620198-13428-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1461620198-13428-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20160428025429.GA11679@rob-hp-laptop>
 MIME-Version: 1.0
-In-Reply-To: <1458780100-8865-1-git-send-email-javier@osg.samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sylwester,
+Hi Rob,
 
-On 03/23/2016 08:41 PM, Javier Martinez Canillas wrote:
-> The same struct device_node * is used for looking up the I2C sensor, OF
-> graph endpoint and port. So the reference count is incremented but not
-> decremented for the endpoint and port nodes.
+On Wednesday 27 Apr 2016 21:54:29 Rob Herring wrote:
+> On Tue, Apr 26, 2016 at 12:36:26AM +0300, Laurent Pinchart wrote:
+> > The FCP is a companion module of video processing modules in the Renesas
+> > R-Car Gen3 SoCs. It provides data compression and decompression, data
+> > caching, and conversion of AXI transactions in order to reduce the
+> > memory bandwidth.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  .../devicetree/bindings/media/renesas,fcp.txt      | 31
+> >  ++++++++++++++++++++++ 1 file changed, 31 insertions(+)
+> >  create mode 100644
+> >  Documentation/devicetree/bindings/media/renesas,fcp.txt
+> > 
+> > Cc: devicetree@vger.kernel.org
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> > b/Documentation/devicetree/bindings/media/renesas,fcp.txt new file mode
+> > 100644
+> > index 000000000000..0c72ca24379f
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
+> > @@ -0,0 +1,31 @@
+> > +Renesas R-Car Frame Compression Processor (FCP)
+> > +-----------------------------------------------
+> > +
+> > +The FCP is a companion module of video processing modules in the Renesas
+> > R-Car +Gen3 SoCs. It provides data compression and decompression, data
+> > caching, and +conversion of AXI transactions in order to reduce the
+> > memory bandwidth. +
+> > +There are three types of FCP whose configuration and behaviour highly
+> > depend +on the module they are paired with.
 > 
-> Fix this by having separate pointers for each node looked up.
-> 
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->
+> 3 types?, but I only see one compatible and no relationship with said
+> module described.
 
-Any comments about this patch?
+The bindings currently support a single type, as that's all the driver 
+currently supports and I'm not comfortable merging bindings without at least 
+one test implementation. Should I clarify that with something as "These DT 
+bindings currently support the "FCP for Video" type only" ?
 
-Best regards,
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+Regards,
+
+Laurent Pinchart
+
