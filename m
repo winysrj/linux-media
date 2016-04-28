@@ -1,123 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:40311 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753804AbcDACfj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Mar 2016 22:35:39 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id E88DC180557
-	for <linux-media@vger.kernel.org>; Fri,  1 Apr 2016 04:35:28 +0200 (CEST)
-Date: Fri, 01 Apr 2016 04:35:28 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160401023528.E88DC180557@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:48988 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752201AbcD1Qnm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2016 12:43:42 -0400
+Date: Thu, 28 Apr 2016 13:43:29 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>,
+	Shuah Khan <shuah.kh@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Rafael =?UTF-8?B?TG91cmVuw6dv?= de Lima Chehab
+	<chehabrafael@gmail.com>
+Subject: Re: [PATCH 4/4] [meida] media-device: dynamically allocate struct
+ media_devnode
+Message-ID: <20160428134329.5e60ec3e@recife.lan>
+In-Reply-To: <572238EE.2090303@osg.samsung.com>
+References: <cover.1458760750.git.mchehab@osg.samsung.com>
+	<0e1737bc1fd4fb4c114cd1f4823767a35b5c5b77.1458760750.git.mchehab@osg.samsung.com>
+	<4033448.cTfoZapJ5n@avalon>
+	<20160324083710.24d0d57e@recife.lan>
+	<57213B48.50109@samsung.com>
+	<20160428084155.65c812b1@recife.lan>
+	<57222353.6090107@osg.samsung.com>
+	<20160428120453.40889d4b@recife.lan>
+	<572238EE.2090303@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Shuah,
 
-Results of the daily build of media_tree:
+Em Thu, 28 Apr 2016 10:23:10 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-date:		Fri Apr  1 04:00:17 CEST 2016
-git branch:	test
-git hash:	d3f5193019443ef8e556b64f3cd359773c4d377b
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3353-gcae47da
-host hardware:	x86_64
-host os:	4.4.0-164
+> >>> I'm running it today with the stress test. So far (~100 unbind loops, with 5
+> >>> concurrent accesses via mc_nextgen_test), the only issue it got so
+> >>> far seems to be at V4L2 cdev stuff (not at the media side, but at the
+> >>> V4L2 API side):    
+> >>
+> >> Are you planning to debug this further to isolate the problem?  
+> > 
+> > Not now. I didn't actually check the code, but, after thinking
+> > a little bit more, this is very likely the media cdev issue.
+> > your cdev patch setting the parent should fix it.  
+> 
+> Looks like you still have some comments from Lars that aren't
+> addressed - looking at the
+> 
+> https://git.linuxtv.org/mchehab/experimental.git/commit/?h=au0828-unbind-fixes-v5&id=0ab1eadf69c73e66860d2ee3ed8d7ceebac222d5
+> 
+> Please see inline on what needs fixing:
+> 
+> > + struct media_device *dev = devnode->media_dev;  
+> 
+> You need a lock to protect this from running concurrently with
+> media_device_unregister() otherwise the struct might be freed while still in
+> use.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: ERRORS
+Let's not try to solve multiple multiple different issues in the
+same patch. The rule is one patch per logical change.
 
-Detailed results are available here:
+This one deals *only* with the dynamic allocation of media_devnode.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+So, adding other locks, using krefs, cdevs, etc should be done on
+separate patches.
 
-Full logs are available here:
+> Not sure if this follwoing comment is relevant for your patch.
+> It was for mine.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+It is relevant: accessing mdev from devnode should be protected,
+e. g. we cannot let the driver free media_dev() while the pointer
+is being used.
 
-The Media Infrastructure API from this daily build is here:
+I guess this could easily be fixed by locking any changes to
+devnode->media_dev using the media devnode static lock.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> mdev->devnode->media_dev needs to be set to NULL.
+
+I guess my patch already does that.
+
+> 
+> Please let me know once you have these addressed. Are you planning to
+> send the patch out for review once these comments are addressed?
+> 
+> thanks,
+> -- Shuah
