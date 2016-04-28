@@ -1,56 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f54.google.com ([209.85.215.54]:35655 "EHLO
-	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753809AbcDIBwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2016 21:52:33 -0400
-Received: by mail-lf0-f54.google.com with SMTP id c126so96762986lfb.2
-        for <linux-media@vger.kernel.org>; Fri, 08 Apr 2016 18:52:32 -0700 (PDT)
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:33783 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049AbcD1LdV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2016 07:33:21 -0400
+Received: by mail-wm0-f54.google.com with SMTP id g17so4113467wme.0
+        for <linux-media@vger.kernel.org>; Thu, 28 Apr 2016 04:33:20 -0700 (PDT)
+Subject: Re: gstreamer: v4l2videodec plugin
+To: nicolas@ndufresne.ca, Rob Clark <robdclark@gmail.com>,
+	Stanimir Varbanov <stanimir.varbanov@linaro.org>
+References: <570B9285.9000209@linaro.org> <570B9454.6020307@linaro.org>
+ <1460391908.30296.12.camel@collabora.com> <570CB882.4090805@linaro.org>
+ <CAF6AEGvjin7Ya4wAXF=5vAa=ky=yvUHnYSo8Of_cyd8TCc04UQ@mail.gmail.com>
+ <1460736595.973.5.camel@ndufresne.ca>
+Cc: Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <5721F4FC.30001@linaro.org>
+Date: Thu, 28 Apr 2016 14:33:16 +0300
 MIME-Version: 1.0
-In-Reply-To: <57085943.5010805@iki.fi>
-References: <57083b12.ec3ec20a.eed91.1ea1SMTPIN_ADDED_BROKEN@mx.google.com>
-	<CAO8Cc0qC79u_BBV3xaat3Cy6E2XB+GtJfJSf3aCJX==Q++BaXg@mail.gmail.com>
-	<570851E4.30801@iki.fi>
-	<57085943.5010805@iki.fi>
-Date: Sat, 9 Apr 2016 03:52:31 +0200
-Message-ID: <CAO8Cc0p2vw6g_qEVAL8BowU9394gpOJXYVcEbgbQo-e3mN3q0Q@mail.gmail.com>
-Subject: Re: AVerMedia HD Volar (A867) AF9035 + MXL5007T driver issues
-From: Alessandro Radicati <alessandro@radicati.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1460736595.973.5.camel@ndufresne.ca>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 9, 2016 at 3:22 AM, Antti Palosaari <crope@iki.fi> wrote:
-> Here is patches to test:
-> http://git.linuxtv.org/anttip/media_tree.git/log/?h=af9035
->
-
-I've done this already in my testing, and it works for getting a
-correct chip_id response, but only because it's avoiding the issue
-with the write/read case in the af9035 driver.  Don't have an
-af9015... perhaps there's a similar issue with that code or we are
-dealing with two separate issues since af9035 never does a repeated
-start?
-
-> After that both af9015+mxl5007t and af9035+mxl5007t started working. Earlier
-> both were returning bogus values for chip id read.
->
-> Also I am interested to known which kind of communication there is actually
-> seen on I2C bus?
-
-With this or the patch I proposed, you see exactly what you expect on
-the I2C bus with repeated stops, as detailed in my previous mails.
-
->
-> If it starts working then have to find out way to fix it properly so that
-> any earlier device didn't broke.
->
-
-I hope that by now I've made abundantly clear that my mxl5007t locks
-up after *any* read.  It doesn't matter if we are reading the correct
-register after any of the proposed patches.
+On 04/15/2016 07:09 PM, Nicolas Dufresne wrote:
+> Le vendredi 15 avril 2016 à 11:58 -0400, Rob Clark a écrit :
+>> The issue is probably the YUV format, which we cannot really deal
+>> with
+>> properly in gallium..  it's a similar issue to multi-planer even if
+>> it
+>> is in a single buffer.
+>>
+>> The best way to handle this would be to import the same dmabuf fd
+>> twice, with appropriate offsets, to create one GL_RED eglimage for Y
+>> and one GL_RG eglimage for UV, and then combine them in shader in a
+>> similar way to how you'd handle separate Y and UV planes..
+> 
+> That's the strategy we use in GStreamer, as very few GL stack support
+> implicit color conversions. For that to work you need to implement the
+> "offset" field in winsys_handle, that was added recently, and make sure
+> you have R8 and RG88 support (usually this is just mapping).
 
 Thanks,
-Alessandro
+
+OK, I have made the relevant changes in Mesa and now I have image but
+the U and V components are swapped (the format is NV12, the UV plane is
+at the same buffer but at offset). Digging further and tracing gstreamer
+with apitrace I'm observing something weird.
+
+The gst import dmabuf with following call:
+
+eglCreateImageKHR(dpy = 0x7fa8013030, ctx = NULL, target =
+EGL_LINUX_DMA_BUF_EXT, buffer = NULL, attrib_list = {EGL_WIDTH, 640,
+EGL_HEIGHT, 360, EGL_LINUX_DRM_FOURCC_EXT, 943215175,
+EGL_DMA_BUF_PLANE0_FD_EXT, 29, EGL_DMA_BUF_PLANE0_OFFSET_EXT, 942080,
+EGL_DMA_BUF_PLANE0_PITCH_EXT, 1280, EGL_NONE}) = 0x7f980027d0
+
+the fourcc format is DRM_FORMAT_GR88 (943215175 decimal).
+
+after that:
+
+glTexImage2D(target = GL_TEXTURE_2D, level = 0, internalformat = GL_RG8,
+width = 640, height = 360, border = 0, format = GL_RG, type =
+GL_UNSIGNED_BYTE, pixels = NULL)
+
+and finally on the fragment shader we have:
+
+yuv.x=texture2D(Ytex, texcoord * tex_scale0).r;
+yuv.yz=texture2D(UVtex, texcoord * tex_scale1).rg;
+
+I was expecting to see DRM_FORMAT_RG88 / GL_RG and shader sampling
+y <- r
+z <- g
+
+or DRM_FORMAT_GR88 / GL_RG and shader sampling
+y <- g
+z <- r
+
+Also, browsing the code in Mesa for Intel i965 dri driver I found where
+the __DRI_IMAGE_FORMAT_GR88 becomes MESA_FORMAT_R8G8_UNORM [1].
+
+So I'm wondering is that intensional?
+
+Depending on the answer I should make the same in the Gallium dri2 in
+dri2_from_dma_bufs().
+
+-- 
+regards,
+Stan
+
+[1]
+https://cgit.freedesktop.org/mesa/mesa/tree/src/mesa/drivers/dri/common/dri_util.c#n878
+
