@@ -1,89 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:44566 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750806AbcDVEZi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 00:25:38 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+Received: from muru.com ([72.249.23.125]:52668 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753274AbcD1U4B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2016 16:56:01 -0400
+Date: Thu, 28 Apr 2016 13:55:57 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Sebastian Reichel <sre@kernel.org>,
+	Pavel Machel <pavel@ucw.cz>,
+	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v7 3/8] arm64: dts: mediatek: Add node for Mediatek Video Processor Unit
-Date: Fri, 22 Apr 2016 12:25:26 +0800
-Message-ID: <1461299131-57851-4-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1461299131-57851-3-git-send-email-tiffany.lin@mediatek.com>
-References: <1461299131-57851-1-git-send-email-tiffany.lin@mediatek.com>
- <1461299131-57851-2-git-send-email-tiffany.lin@mediatek.com>
- <1461299131-57851-3-git-send-email-tiffany.lin@mediatek.com>
+	Neil Armstrong <narmstrong@baylibre.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] [media] ir-rx51: Fix build after multiarch changes
+ broke it
+Message-ID: <20160428205557.GH5995@atomide.com>
+References: <1461714709-10455-1-git-send-email-tony@atomide.com>
+ <1461714709-10455-3-git-send-email-tony@atomide.com>
+ <572266AF.9020601@gmail.com>
+ <20160428202248.GG5995@atomide.com>
+ <572275DB.8090300@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <572275DB.8090300@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160428 13:44]:
+> Хи,
+> 
+> On 28.04.2016 23:22, Tony Lindgren wrote:
+> >* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160428 12:39]:
+> >>On 27.04.2016 02:51, Tony Lindgren wrote:
+> >>
+> >>omap_dm_timer_request_specific always fails with message "Please use
+> >>omap_dm_timer_request_by_cap/node()" with DT boot.
+> >>
+> >>I hacked the code to use omap_dm_timer_request_by_cap(OMAP_TIMER_HAS_PWM)
+> >>and it seems to use the correct timer (IR LED blinks, checked with the
+> >>camera of Samsung S4 mini), but it doesn't actually control either of the TV
+> >>sets here. The same SW(pierogi) controls them when device is booted to stock
+> >>kernel. However, this seems another problem not related to the patch.
+> >
+> >OK thanks for testing, I'll apply the pdata patch then.
+> >
+> >I assume you'll post a separate fix for the request_by_cap
+> >driver change?
+> >
+> 
+> Well, it was a hack, it just happens that the first matched timer is GPT9, I
+> think we should aim for a proper solution (request_by_node()).
+> 
+> Shall I prepare a patch that gets the timer from the DT?
 
-Add VPU drivers for MT8173
+Sounds good to me!
 
-Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-
----
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
-
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index eab7efc..ae147bb 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -125,6 +125,18 @@
- 		clock-output-names = "cpum_ck";
- 	};
- 
-+	reserved-memory {
-+		#address-cells = <2>;
-+		#size-cells = <2>;
-+		ranges;
-+		vpu_dma_reserved: vpu_dma_mem_region {
-+			compatible = "shared-dma-pool";
-+			reg = <0 0xb7000000 0 0x500000>;
-+			alignment = <0x1000>;
-+			no-map;
-+		};
-+	};
-+
- 	timer {
- 		compatible = "arm,armv8-timer";
- 		interrupt-parent = <&gic>;
-@@ -269,6 +281,17 @@
- 			clock-names = "spi", "wrap";
- 		};
- 
-+		vpu: vpu@10020000 {
-+			compatible = "mediatek,mt8173-vpu";
-+			reg = <0 0x10020000 0 0x30000>,
-+			      <0 0x10050000 0 0x100>;
-+			reg-names = "tcm", "cfg_reg";
-+			interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&topckgen CLK_TOP_SCP_SEL>;
-+			clock-names = "main";
-+			memory-region = <&vpu_dma_reserved>;
-+		};
-+
- 		sysirq: intpol-controller@10200620 {
- 			compatible = "mediatek,mt8173-sysirq",
- 				     "mediatek,mt6577-sysirq";
--- 
-1.7.9.5
-
+Tony
