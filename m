@@ -1,77 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51936 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758885AbcDHTgT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Apr 2016 15:36:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: javier@osg.samsung.com, sakari.ailus@iki.fi
-Subject: [PATCH 1/3] Add support for NV16 and NV61 formats
-Date: Fri,  8 Apr 2016 22:36:12 +0300
-Message-Id: <1460144174-25569-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1460144174-25569-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1460144174-25569-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from www381.your-server.de ([78.46.137.84]:49726 "EHLO
+	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810AbcD1HTz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2016 03:19:55 -0400
+Subject: Re: [PATCH] media: fix media_ioctl use-after-free when driver unbinds
+To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, sakari.ailus@iki.fi
+References: <1461726512-9828-1-git-send-email-shuahkh@osg.samsung.com>
+ <5720EC1A.8060101@metafoo.de> <57213591.3000109@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Lars-Peter Clausen <lars@metafoo.de>
+Message-ID: <5721B994.4030202@metafoo.de>
+Date: Thu, 28 Apr 2016 09:19:48 +0200
+MIME-Version: 1.0
+In-Reply-To: <57213591.3000109@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- raw2rgbpnm.c | 35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+On 04/27/2016 11:56 PM, Shuah Khan wrote:
+>>>  	dev_dbg(mdev->dev, "Media device unregistered\n");
+>>>  }
+>>> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+>>> index 29409f4..9af9ba1 100644
+>>> --- a/drivers/media/media-devnode.c
+>>> +++ b/drivers/media/media-devnode.c
+>>> @@ -171,6 +171,9 @@ static int media_open(struct inode *inode, struct file *filp)
+>>>  		mutex_unlock(&media_devnode_lock);
+>>>  		return -ENXIO;
+>>>  	}
+>>> +
+>>> +	kobject_get(&mdev->kobj);
+>>
+>> This is not necessary, and if it was it would be prone to race condition as
+>> the last reference could be dropped before this line. But assigning the cdev
+>> parent makes sure that we always have a reference to the object while the
+>> open() callback is running.
+> 
+> I don't see cdev parent kobj get in cdev_get() which does kobject_get()
+> on cdev->kobj. Is that enough to get the reference?
+> 
+> cdev_add() gets the cdev parent kobj and cdev_del() puts it back. That is
+> the reason why I added a get here and put in media_release().
+> 
 
-diff --git a/raw2rgbpnm.c b/raw2rgbpnm.c
-index 96835c3591f5..aa4127330ebe 100644
---- a/raw2rgbpnm.c
-+++ b/raw2rgbpnm.c
-@@ -81,6 +81,8 @@ static const struct format_info {
- 	{ V4L2_PIX_FMT_Y41P,     12,  "Y41P (12  YUV 4:1:1)", 0, 0 },
- 	{ V4L2_PIX_FMT_NV12,     12,  "NV12 (12  Y/CbCr 4:2:0)", 0, 0 },
- 	{ V4L2_PIX_FMT_NV21,     12,  "NV21 (12  Y/CrCb 4:2:0)", 0, 0 },
-+	{ V4L2_PIX_FMT_NV16,     16,  "NV16 (16  Y/CbCr 4:2:2)", 0, 0 },
-+	{ V4L2_PIX_FMT_NV61,     16,  "NV61 (16  Y/CrCb 4:2:2)", 0, 1 },
- 	{ V4L2_PIX_FMT_YUV410,   -1,  "YUV410 (9  YUV 4:1:0)", 0, 0 },
- 	{ V4L2_PIX_FMT_YUV420,   12,  "YUV420 (12  YUV 4:2:0)", 0, 0 },
- 	{ V4L2_PIX_FMT_YYUV,     12,  "YYUV (16  YUV 4:2:2)", 0, 0 },
-@@ -289,6 +291,39 @@ static void raw_to_rgb(const struct format_info *info,
- 		}
- 		break;
- 
-+	case V4L2_PIX_FMT_NV16:
-+	case V4L2_PIX_FMT_NV61:
-+		src_luma = src;
-+		src_chroma = &src[src_size[0] * src_size[1]];
-+		src_stride = src_stride * 8 / 16;
-+
-+		cb_pos = info->cb_pos;
-+		cr_pos = 1 - info->cb_pos;
-+
-+		for (src_y = 0, dst_y = 0; dst_y < src_size[1]; src_y++, dst_y++) {
-+			for (dst_x = 0, src_x = 0; dst_x < src_size[0]; ) {
-+				cb = src_chroma[dst_y*src_stride + dst_x + cb_pos];
-+				cr = src_chroma[dst_y*src_stride + dst_x + cr_pos];
-+
-+				a  = src_luma[dst_y*src_stride + dst_x];
-+				yuv_to_rgb(a,cb,cr, &r, &g, &b);
-+				rgb[src_y*rgb_stride+3*src_x+0] = swaprb ? b : r;
-+				rgb[src_y*rgb_stride+3*src_x+1] = g;
-+				rgb[src_y*rgb_stride+3*src_x+2] = swaprb ? r : b;
-+				src_x++;
-+				dst_x++;
-+
-+				a  = src_luma[dst_y*src_stride + dst_x];
-+				yuv_to_rgb(a,cb,cr, &r, &g, &b);
-+				rgb[src_y*rgb_stride+3*src_x+0] = swaprb ? b : r;
-+				rgb[src_y*rgb_stride+3*src_x+1] = g;
-+				rgb[src_y*rgb_stride+3*src_x+2] = swaprb ? r : b;
-+				src_x++;
-+				dst_x++;
-+			}
-+		}
-+		break;
-+
- 	case V4L2_PIX_FMT_Y12:
- 		shift += 2;
- 	case V4L2_PIX_FMT_Y10:
--- 
-2.7.3
+The cdev takes the parent reference when created and only drops it once it
+is released. So as long as the cdev exists there is a reference to the
+parent. While cdev_del() puts one reference to the cdev there is also one
+reference for each open file. So as long as there is a open file there is a
+reference to the parent as well.
 
+> I can remove the get and put and test. Looks like I am not checking
+> kobject_get() return value which isn't good?
+
+kobject_get() can't fail.
+
+> 
+>>
+>>> +
+>>>  	/* and increase the device refcount */
+>>>  	get_device(&mdev->dev);
+>>>  	mutex_unlock(&media_devnode_lock);
+>>>  /*
+>> [...]
+>>> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+>>> index fe42f08..ba4bdaa 100644
+>>> --- a/include/media/media-devnode.h
+>>> +++ b/include/media/media-devnode.h
+>>> @@ -70,7 +70,9 @@ struct media_file_operations {
+>>>   * @fops:	pointer to struct &media_file_operations with media device ops
+>>>   * @dev:	struct device pointer for the media controller device
+>>>   * @cdev:	struct cdev pointer character device
+>>> + * @kobj:	struct kobject
+>>>   * @parent:	parent device
+>>> + * @media_dev:	media device
+>>>   * @minor:	device node minor number
+>>>   * @flags:	flags, combination of the MEDIA_FLAG_* constants
+>>>   * @release:	release callback called at the end of media_devnode_release()
+>>> @@ -87,7 +89,9 @@ struct media_devnode {
+>>>  	/* sysfs */
+>>>  	struct device dev;		/* media device */
+>>>  	struct cdev cdev;		/* character device */
+>>> +	struct kobject kobj;		/* set as cdev parent kobj */
+>>
+>> You don't need a extra kobj. Just use the struct dev kobj.
+> 
+> Yeah I can use that as long as I can override the default release
+> function with media_devnode_free(). media_devnode should stick around
+> until the last app closes /dev/mediaX even if the media_device is no
+> longer registered. i.e media_ioctl should be able to check if devnode
+> is registered or not. I think I am missing something and don't understand
+> how struct dev kobj can be used.
+
+The struct dev that is embedded into th media_devnode as the same live time
+as the media_devnode itself. In addition to that struct device is a
+reference counted object. This means a structure that embeds struct device
+must not be freed until the last reference is dropped.
+
+What you do here is introduce a independent reference counting mechanism for
+the same structure. Which means if there is a reference to struct device,
+but not to the new kobj you end up with a use-after-free again.
+
+The solution is to only use one reference counting mechanism (the struct
+device) and intialize the cdev kobj parent to the device kobj and whenever
+you did kobj_{get,put}() replace that with {get,put}_device(). And in the
+device release callback free the struct media_devnode.
