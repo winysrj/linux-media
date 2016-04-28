@@ -1,143 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lysator.liu.se ([130.236.254.3]:55607 "EHLO
-	mail.lysator.liu.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752419AbcDCI4U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Apr 2016 04:56:20 -0400
-From: Peter Rosin <peda@lysator.liu.se>
-To: linux-kernel@vger.kernel.org
-Cc: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Joe Perches <joe@perches.com>, Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Terry Heo <terryheo@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: [PATCH v6 14/24] of/unittest: convert to use an explicit i2c mux core
-Date: Sun,  3 Apr 2016 10:52:44 +0200
-Message-Id: <1459673574-11440-15-git-send-email-peda@lysator.liu.se>
-In-Reply-To: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
-References: <1459673574-11440-1-git-send-email-peda@lysator.liu.se>
+Received: from lists.s-osg.org ([54.187.51.154]:47414 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751435AbcD1Lrc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2016 07:47:32 -0400
+Date: Thu, 28 Apr 2016 08:47:25 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>,
+	<laurent.pinchart@ideasonboard.com>, <hans.verkuil@cisco.com>,
+	<chehabrafael@gmail.com>, <sakari.ailus@iki.fi>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: fix media_ioctl use-after-free when driver
+ unbinds
+Message-ID: <20160428084725.1ee5d85c@recife.lan>
+In-Reply-To: <57213591.3000109@osg.samsung.com>
+References: <1461726512-9828-1-git-send-email-shuahkh@osg.samsung.com>
+	<5720EC1A.8060101@metafoo.de>
+	<57213591.3000109@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Rosin <peda@axentia.se>
+Em Wed, 27 Apr 2016 15:56:33 -0600
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-Allocate an explicit i2c mux core to handle parent and child adapters
-etc. Update the select op to be in terms of the i2c mux core instead
-of the child adapter.
+> On 04/27/2016 10:43 AM, Lars-Peter Clausen wrote:
+> > Looks mostly good, a few comments.
+> > 
+> > On 04/27/2016 05:08 AM, Shuah Khan wrote:
+> > [...]  
+> >> @@ -428,7 +428,7 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> >>  			       unsigned long arg)
+> >>  {
+> >>  	struct media_devnode *devnode = media_devnode_data(filp);
+> >> -	struct media_device *dev = to_media_device(devnode);  
+> > 
+> > Can we keep the helper macro, means we don't need to touch this code.  
+> 
+> Yeah. I have been thinking about that as well. It avoids changes
+> and abstracts it.
 
-Signed-off-by: Peter Rosin <peda@axentia.se>
----
- drivers/of/unittest.c | 40 +++++++++++++++-------------------------
- 1 file changed, 15 insertions(+), 25 deletions(-)
+I don't like the idea of keeping the macro. It is used only on
+two cases:
 
-diff --git a/drivers/of/unittest.c b/drivers/of/unittest.c
-index e986e6ee52e0..84a65b711e8c 100644
---- a/drivers/of/unittest.c
-+++ b/drivers/of/unittest.c
-@@ -1692,13 +1692,7 @@ static struct i2c_driver unittest_i2c_dev_driver = {
- 
- #if IS_BUILTIN(CONFIG_I2C_MUX)
- 
--struct unittest_i2c_mux_data {
--	int nchans;
--	struct i2c_adapter *adap[];
--};
--
--static int unittest_i2c_mux_select_chan(struct i2c_adapter *adap,
--			       void *client, u32 chan)
-+static int unittest_i2c_mux_select_chan(struct i2c_mux_core *muxc, u32 chan)
- {
- 	return 0;
- }
-@@ -1706,11 +1700,11 @@ static int unittest_i2c_mux_select_chan(struct i2c_adapter *adap,
- static int unittest_i2c_mux_probe(struct i2c_client *client,
- 		const struct i2c_device_id *id)
- {
--	int ret, i, nchans, size;
-+	int ret, i, nchans;
- 	struct device *dev = &client->dev;
- 	struct i2c_adapter *adap = to_i2c_adapter(dev->parent);
- 	struct device_node *np = client->dev.of_node, *child;
--	struct unittest_i2c_mux_data *stm;
-+	struct i2c_mux_core *muxc;
- 	u32 reg, max_reg;
- 
- 	dev_dbg(dev, "%s for node @%s\n", __func__, np->full_name);
-@@ -1734,25 +1728,23 @@ static int unittest_i2c_mux_probe(struct i2c_client *client,
- 		return -EINVAL;
- 	}
- 
--	size = offsetof(struct unittest_i2c_mux_data, adap[nchans]);
--	stm = devm_kzalloc(dev, size, GFP_KERNEL);
--	if (!stm) {
--		dev_err(dev, "Out of memory\n");
-+	muxc = i2c_mux_alloc(adap, dev, 0, 0,
-+			     unittest_i2c_mux_select_chan, NULL);
-+	if (!muxc)
- 		return -ENOMEM;
--	}
--	stm->nchans = nchans;
-+	ret = i2c_mux_reserve_adapters(muxc, nchans);
-+	if (ret)
-+		return ret;
- 	for (i = 0; i < nchans; i++) {
--		stm->adap[i] = i2c_add_mux_adapter(adap, dev, client,
--				0, i, 0, unittest_i2c_mux_select_chan, NULL);
--		if (!stm->adap[i]) {
-+		ret = i2c_mux_add_adapter(muxc, 0, i, 0);
-+		if (ret) {
- 			dev_err(dev, "Failed to register mux #%d\n", i);
--			for (i--; i >= 0; i--)
--				i2c_del_mux_adapter(stm->adap[i]);
-+			i2c_mux_del_adapters(muxc);
- 			return -ENODEV;
- 		}
- 	}
- 
--	i2c_set_clientdata(client, stm);
-+	i2c_set_clientdata(client, muxc);
- 
- 	return 0;
- };
-@@ -1761,12 +1753,10 @@ static int unittest_i2c_mux_remove(struct i2c_client *client)
- {
- 	struct device *dev = &client->dev;
- 	struct device_node *np = client->dev.of_node;
--	struct unittest_i2c_mux_data *stm = i2c_get_clientdata(client);
--	int i;
-+	struct i2c_mux_core *muxc = i2c_get_clientdata(client);
- 
- 	dev_dbg(dev, "%s for node @%s\n", __func__, np->full_name);
--	for (i = stm->nchans - 1; i >= 0; i--)
--		i2c_del_mux_adapter(stm->adap[i]);
-+	i2c_mux_del_adapters(muxc);
- 	return 0;
- }
- 
+1) inside the core;
+2) on two drivers that check if the media device is registered.
+
+On the first case, if something changes, we want to be aware
+about that. On the second case, IMHO, the best would be to have
+a macro that would take struct media_device as argument, keeping
+media_devnode hidden from drivers. 
+
+> 
+> >   
+> >> +	struct media_device *dev = devnode->media_dev;  
+> > 
+> > You need a lock to protect this from running concurrently with
+> > media_device_unregister() otherwise the struct might be freed while still in
+> > use.
+> >   
+> 
+> Right. This needs to be protected.
+> 
+> >>  	long ret;
+> >>  
+> >>  	switch (cmd) {  
+> > [...]  
+> >> @@ -725,21 +726,26 @@ int __must_check __media_device_register(struct media_device *mdev,
+> >>  {
+> >>  	int ret;
+> >>  
+> >> +	mdev->devnode = kzalloc(sizeof(struct media_devnode), GFP_KERNEL);  
+> > 
+> > sizeof(*mdev->devnode) is preferred kernel style,  
+> 
+> Yeah. Force of habit, I keep forgetting it.
+> 
+> >   
+> >> +	if (!mdev->devnode)
+> >> +		return -ENOMEM;
+> >> +
+> >>  	/* Register the device node. */
+> >> -	mdev->devnode.fops = &media_device_fops;
+> >> -	mdev->devnode.parent = mdev->dev;
+> >> -	mdev->devnode.release = media_device_release;
+> >> +	mdev->devnode->fops = &media_device_fops;
+> >> +	mdev->devnode->parent = mdev->dev;
+> >> +	mdev->devnode->media_dev = mdev;
+> >> +	mdev->devnode->release = media_device_release;  
+> > 
+> > This should no longer be necessary. Just drop the release callback altogether.  
+> 
+> It does nothing at the moment. I believe the intent is for this routine
+> to invoke any driver hooks if any at media_device level. It gets called
+> from media_devnode_release() which is the media_devnode->dev.release.
+> I will look into if it can be removed.
+
+Right now, media_device_release callback is not used, except
+to print that the device got removed, if debug enabled. Yet,
+this is a separate change. Better to send such as a separate
+patch.
+
+> 
+> >   
+> >>  
+> >>  	/* Set version 0 to indicate user-space that the graph is static */
+> >>  	mdev->topology_version = 0;
+> >>    
+> > [...]  
+> >> @@ -813,8 +819,10 @@ void media_device_unregister(struct media_device *mdev)
+> >>  
+> >>  	spin_unlock(&mdev->lock);
+> >>  
+> >> -	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> >> -	media_devnode_unregister(&mdev->devnode);
+> >> +	device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+> >> +	media_devnode_unregister(mdev->devnode);
+> >> +	/* kfree devnode is done via kobject_put() handler */
+> >> +	mdev->devnode = NULL;  
+> > 
+> > mdev->devnode->media_dev needs to be set to NULL.  
+> 
+> Yes. Thanks for catching it.
+> 
+> >   
+> >>  
+> >>  	dev_dbg(mdev->dev, "Media device unregistered\n");
+> >>  }
+> >> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+> >> index 29409f4..9af9ba1 100644
+> >> --- a/drivers/media/media-devnode.c
+> >> +++ b/drivers/media/media-devnode.c
+> >> @@ -171,6 +171,9 @@ static int media_open(struct inode *inode, struct file *filp)
+> >>  		mutex_unlock(&media_devnode_lock);
+> >>  		return -ENXIO;
+> >>  	}
+> >> +
+> >> +	kobject_get(&mdev->kobj);  
+> > 
+> > This is not necessary, and if it was it would be prone to race condition as
+> > the last reference could be dropped before this line. But assigning the cdev
+> > parent makes sure that we always have a reference to the object while the
+> > open() callback is running.  
+> 
+> I don't see cdev parent kobj get in cdev_get() which does kobject_get()
+> on cdev->kobj. Is that enough to get the reference?
+> 
+> cdev_add() gets the cdev parent kobj and cdev_del() puts it back. That is
+> the reason why I added a get here and put in media_release().
+> 
+> I can remove the get and put and test. Looks like I am not checking
+> kobject_get() return value which isn't good?
+> 
+> >   
+> >> +
+> >>  	/* and increase the device refcount */
+> >>  	get_device(&mdev->dev);
+> >>  	mutex_unlock(&media_devnode_lock);
+> >>  /*  
+> > [...]  
+> >> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+> >> index fe42f08..ba4bdaa 100644
+> >> --- a/include/media/media-devnode.h
+> >> +++ b/include/media/media-devnode.h
+> >> @@ -70,7 +70,9 @@ struct media_file_operations {
+> >>   * @fops:	pointer to struct &media_file_operations with media device ops
+> >>   * @dev:	struct device pointer for the media controller device
+> >>   * @cdev:	struct cdev pointer character device
+> >> + * @kobj:	struct kobject
+> >>   * @parent:	parent device
+> >> + * @media_dev:	media device
+> >>   * @minor:	device node minor number
+> >>   * @flags:	flags, combination of the MEDIA_FLAG_* constants
+> >>   * @release:	release callback called at the end of media_devnode_release()
+> >> @@ -87,7 +89,9 @@ struct media_devnode {
+> >>  	/* sysfs */
+> >>  	struct device dev;		/* media device */
+> >>  	struct cdev cdev;		/* character device */
+> >> +	struct kobject kobj;		/* set as cdev parent kobj */  
+> > 
+> > You don't need a extra kobj. Just use the struct dev kobj.  
+> 
+> Yeah I can use that as long as I can override the default release
+> function with media_devnode_free(). media_devnode should stick around
+> until the last app closes /dev/mediaX even if the media_device is no
+> longer registered. i.e media_ioctl should be able to check if devnode
+> is registered or not. I think I am missing something and don't understand
+> how struct dev kobj can be used. 
+> 
+> >   
+> >>  	struct device *parent;		/* device parent */
+> >> +	struct media_device *media_dev; /* media device for the devnode */
+> >>  
+> >>  	/* device info */
+> >>  	int minor;  
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >   
+> 
+
+
 -- 
-2.1.4
-
+Thanks,
+Mauro
