@@ -1,70 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:60217 "EHLO pokefinder.org"
+Received: from muru.com ([72.249.23.125]:52660 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965013AbcDLWdD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Apr 2016 18:33:03 -0400
-Date: Wed, 13 Apr 2016 00:32:55 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-i2c@vger.kernel.org,
+	id S1752522AbcD1UWx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Apr 2016 16:22:53 -0400
+Date: Thu, 28 Apr 2016 13:22:49 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Aaro Koskinen <aaro.koskinen@iki.fi>,
+	Sebastian Reichel <sre@kernel.org>,
+	Pavel Machel <pavel@ucw.cz>,
+	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: tvp5150 regression after commit 9f924169c035
-Message-ID: <20160412223254.GK1526@katana>
-References: <56B204CB.60602@osg.samsung.com>
- <20160208105417.GD2220@tetsubishi>
- <56BE57FC.3020407@osg.samsung.com>
- <20160212221352.GY3500@atomide.com>
- <56BE5C97.9070607@osg.samsung.com>
- <20160212224018.GZ3500@atomide.com>
- <56BE65F0.8040600@osg.samsung.com>
- <20160212234623.GB3500@atomide.com>
- <56BE993B.3010804@osg.samsung.com>
+	Neil Armstrong <narmstrong@baylibre.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] [media] ir-rx51: Fix build after multiarch changes
+ broke it
+Message-ID: <20160428202248.GG5995@atomide.com>
+References: <1461714709-10455-1-git-send-email-tony@atomide.com>
+ <1461714709-10455-3-git-send-email-tony@atomide.com>
+ <572266AF.9020601@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vbzKE9fGfpHIBC6T"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <56BE993B.3010804@osg.samsung.com>
+In-Reply-To: <572266AF.9020601@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160428 12:39]:
+> On 27.04.2016 02:51, Tony Lindgren wrote:
+> 
+> omap_dm_timer_request_specific always fails with message "Please use
+> omap_dm_timer_request_by_cap/node()" with DT boot.
+> 
+> I hacked the code to use omap_dm_timer_request_by_cap(OMAP_TIMER_HAS_PWM)
+> and it seems to use the correct timer (IR LED blinks, checked with the
+> camera of Samsung S4 mini), but it doesn't actually control either of the TV
+> sets here. The same SW(pierogi) controls them when device is booted to stock
+> kernel. However, this seems another problem not related to the patch.
 
---vbzKE9fGfpHIBC6T
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+OK thanks for testing, I'll apply the pdata patch then.
 
+I assume you'll post a separate fix for the request_by_cap
+driver change?
 
-> I'll try to find some time next week to dig deeper on this. Just
-> thought that may be related to the issue you found but it seems
-> that's not the case.
+Regards,
 
-Any updates on this?
-
-Thanks,
-
-   Wolfram
-
-
---vbzKE9fGfpHIBC6T
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJXDXeWAAoJEBQN5MwUoCm2S6gP/0H6KskZC5CDKD/Bpgd+3ldi
-eKlqS0d2/wRakdsBxEgbVWiTvpXvBr44Ti8Bv3y6chFCLTKQcidd8C/BVV4X2NjK
-d+V7ULuxEOOTjaudDJUalfbA0YpN0/KzJbytihTqUDJBaViG04/Gn6k+ILdkv4y2
-QwJEkBWlC6lqIGkC8IHcOJyhZ/EuxX6z+UajZ2WVm69Wq3PnxNrz/d+jYojfQdK1
-mo3KWQxKaMJoyMvh0ARHgf+sxRqkHk0SB4rS/oTtC1EKj/4VBgKISOk6loqN3/ye
-GCiqfnVKbVyFp9aeDryPxNOEu4WHyD5BHlFnLyreiXagUICEPJr6NoANBoc/+zCB
-UlbLKBnn2jKP/8R5ERP+JxSitv8u6sJkkSU7YE6d1EIjgN74IO2DyG2lYmwRkLP3
-17hIj5bCWqFA8E0eQZWj3DRSiWrGO50xEhg2VJQyaGNtdlZ+KZ7dAgbP7xf2t1Cy
-4mFb4u2P642BGyqKuEDVSEII6fi+KIzUb7tXbfYfWKGWf8npXYCKDC4XJFG+han7
-sGpPFc9/BW5AqGJffJAyUToEkWTsNoQdMOZ0/HVKVf43N28VE+4v6sLB8x1khSDR
-qO4ItqtbzLQROwkj/yhkQggQjmgMUbvmGsyOOBWJbMXJEKsZuwNTwu/CoOqG7jzo
-LkF0xolR++1gaTy1Grya
-=TIdh
------END PGP SIGNATURE-----
-
---vbzKE9fGfpHIBC6T--
+Tony
