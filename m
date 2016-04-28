@@ -1,89 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:59750 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751771AbcDYHaC (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:45469 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751710AbcD1DIL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 03:30:02 -0400
-Subject: Re: [RFC PATCH 01/24] V4L fixes
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sakari.ailus@iki.fi
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <571DC774.7050404@xs4all.nl>
-Date: Mon, 25 Apr 2016 09:29:56 +0200
-MIME-Version: 1.0
-In-Reply-To: <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+	Wed, 27 Apr 2016 23:08:11 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id DDE80180655
+	for <linux-media@vger.kernel.org>; Thu, 28 Apr 2016 05:08:05 +0200 (CEST)
+Date: Thu, 28 Apr 2016 05:08:05 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160428030805.DDE80180655@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/24/2016 11:08 PM, Ivaylo Dimitrov wrote:
-> From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
-> 
-> Squashed from the following upstream commits:
-> 
-> V4L: Create control class for sensor mode
-> V4L: add ad5820 focus specific custom controls
-> V4L: add V4L2_CID_TEST_PATTERN
-> V4L: Add V4L2_CID_MODE_OPSYSCLOCK for reading output system clock
-> 
-> Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-> Signed-off-by: Pali Rohár <pali.rohar@gmail.com>
-> ---
->  include/uapi/linux/v4l2-controls.h | 17 +++++++++++++++++
->  1 file changed, 17 insertions(+)
-> 
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index b6a357a..23011cc 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -62,6 +62,7 @@
->  #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
->  #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
->  #define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
-> +#define V4L2_CTRL_CLASS_MODE		0x00a40000	/* Sensor mode information */
->  
->  /* User-class control IDs */
->  
-> @@ -974,4 +975,20 @@ enum v4l2_detect_md_mode {
->  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
->  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
->  
-> +/* SMIA-type sensor information */
-> +#define V4L2_CID_MODE_CLASS_BASE		(V4L2_CTRL_CLASS_MODE | 0x900)
-> +#define V4L2_CID_MODE_CLASS			(V4L2_CTRL_CLASS_MODE | 1)
-> +#define V4L2_CID_MODE_FRAME_WIDTH		(V4L2_CID_MODE_CLASS_BASE+1)
-> +#define V4L2_CID_MODE_FRAME_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+2)
-> +#define V4L2_CID_MODE_VISIBLE_WIDTH		(V4L2_CID_MODE_CLASS_BASE+3)
-> +#define V4L2_CID_MODE_VISIBLE_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+4)
-> +#define V4L2_CID_MODE_PIXELCLOCK		(V4L2_CID_MODE_CLASS_BASE+5)
-> +#define V4L2_CID_MODE_SENSITIVITY		(V4L2_CID_MODE_CLASS_BASE+6)
-> +#define V4L2_CID_MODE_OPSYSCLOCK		(V4L2_CID_MODE_CLASS_BASE+7)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The new controls need to be added to v4l2-ctrls.c and documented in DocBook.
-But I would take a look at the existing Image Source and Image Process controls:
+Results of the daily build of media_tree:
 
-https://hverkuil.home.xs4all.nl/spec/media.html#image-source-controls
+date:		Thu Apr 28 04:00:21 CEST 2016
+git branch:	test
+git hash:	45c175c4ae9695d6d2f30a45ab7f3866cfac184b
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3413-g618cd5c
+host hardware:	x86_64
+host os:	4.5.0-164
 
-I think these controls belong there and that there is overlap anyway.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-Sakari would probably know best what should be done with these controls.
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-	Hans
+Full logs are available here:
 
-> +
-> +/* Control IDs specific to the AD5820 driver as defined by V4L2 */
-> +#define V4L2_CID_FOCUS_AD5820_BASE 		(V4L2_CTRL_CLASS_CAMERA | 0x10af)
-> +#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_FOCUS_AD5820_BASE+0)
-> +#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
-> +
->  #endif
-> 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
