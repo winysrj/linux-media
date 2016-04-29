@@ -1,127 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:53686 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751084AbcDWLEA (ORCPT
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:38776 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752135AbcD2LFt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Apr 2016 07:04:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Florian Echtler <floe@butterbrot.org>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Benoit Parrot <bparrot@ti.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCHv4 02/13] vb2: add a dev field to use for the default allocation context
-Date: Sat, 23 Apr 2016 13:03:38 +0200
-Message-Id: <1461409429-24995-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
-References: <1461409429-24995-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 29 Apr 2016 07:05:49 -0400
+Date: Fri, 29 Apr 2016 13:05:46 +0200
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Pavel Machek <pavel@ucw.cz>, Hans Verkuil <hverkuil@xs4all.nl>,
+	sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+	patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com,
+	mchehab@osg.samsung.com, linux-media@vger.kernel.org
+Subject: Re: v4l subdevs without big device was Re:
+ drivers/media/i2c/adp1653.c: does not show as /dev/video* or v4l-subdev*
+Message-ID: <20160429110546.GU12528@pali>
+References: <20160428084546.GA9957@amd>
+ <20160429071525.GA4823@amd>
+ <57230DE7.3020701@xs4all.nl>
+ <20160429075649.GG32125@valkosipuli.retiisi.org.uk>
+ <20160429095002.GA22743@amd>
+ <20160429105944.GH32125@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20160429105944.GH32125@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Friday 29 April 2016 13:59:44 Sakari Ailus wrote:
+> > pavel@amd:/data/l/linux-n900$ git fetch
+> > git://git.retiisi.org.uk/~sailus/linux.git leds-as3645a:leds-as3645a
+> > fatal: unable to connect to git.retiisi.org.uk:
+> > git.retiisi.org.uk: Name or service not known
+> > 
+> > pavel@amd:/data/l/linux-n900$ git fetch
+> > git://salottisipuli.retiisi.org.uk/~sailus/linux.git
+> > leds-as3645a:leds-as3645a
+> > remote: Counting objects: 132, done.
+> > remote: Compressing objects: 100% (46/46), done.
+> > remote: Total 132 (delta 111), reused 107 (delta 86)
+> > Receiving objects: 100% (132/132), 22.80 KiB | 0 bytes/s, done.
+> > Resolving deltas: 100% (111/111), completed with 34 local objects.
+> > From git://salottisipuli.retiisi.org.uk/~sailus/linux
+> >  * [new branch]      leds-as3645a -> leds-as3645a
+> 
+> Yeah, that works, too. git alias has been added some three weeks ago so
+> there seem to be something strange going on with DNS.
 
-The allocation context is nothing more than a per-plane device pointer
-to use when allocating buffers. So just provide a dev pointer in vb2_queue
-for that purpose and drivers can skip allocating/releasing/filling in
-the allocation context unless they require different per-plane device
-pointers as used by some Samsung SoCs.
+Maybe update SOA record?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Florian Echtler <floe@butterbrot.org>
-Cc: Federico Vaga <federico.vaga@gmail.com>
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Fabien Dessenne <fabien.dessenne@st.com>
-Cc: Benoit Parrot <bparrot@ti.com>
-Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 14 ++++++++------
- include/media/videobuf2-core.h           |  3 +++
- 2 files changed, 11 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 234e71b..2f50a91 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -206,7 +206,8 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- 	for (plane = 0; plane < vb->num_planes; ++plane) {
- 		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
- 
--		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
-+		mem_priv = call_ptr_memop(vb, alloc,
-+				q->alloc_ctx[plane] ? : &q->dev,
- 				q->dma_attrs, size, dma_dir, q->gfp_flags);
- 		if (IS_ERR_OR_NULL(mem_priv))
- 			goto free;
-@@ -1131,9 +1132,10 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- 		vb->planes[plane].data_offset = 0;
- 
- 		/* Acquire each plane's memory */
--		mem_priv = call_ptr_memop(vb, get_userptr, q->alloc_ctx[plane],
--				      planes[plane].m.userptr,
--				      planes[plane].length, dma_dir);
-+		mem_priv = call_ptr_memop(vb, get_userptr,
-+				q->alloc_ctx[plane] ? : &q->dev,
-+				planes[plane].m.userptr,
-+				planes[plane].length, dma_dir);
- 		if (IS_ERR_OR_NULL(mem_priv)) {
- 			dprintk(1, "failed acquiring userspace "
- 						"memory for plane %d\n", plane);
-@@ -1256,8 +1258,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
- 
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, attach_dmabuf,
--			q->alloc_ctx[plane], dbuf, planes[plane].length,
--			dma_dir);
-+				q->alloc_ctx[plane] ? : &q->dev,
-+				dbuf, planes[plane].length, dma_dir);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed to attach dmabuf\n");
- 			ret = PTR_ERR(mem_priv);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 48c489d..bf24c7f 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -396,6 +396,8 @@ struct vb2_buf_ops {
-  *		caller. For example, for V4L2, it should match
-  *		the V4L2_BUF_TYPE_* in include/uapi/linux/videodev2.h
-  * @io_modes:	supported io methods (see vb2_io_modes enum)
-+ * @dev:	device to use for the default allocation context if the driver
-+ *		doesn't fill in the @alloc_ctx array.
-  * @dma_attrs:	DMA attributes to use for the DMA. May be NULL.
-  * @fileio_read_once:		report EOF after reading the first buffer
-  * @fileio_write_immediately:	queue buffer after each write() call
-@@ -460,6 +462,7 @@ struct vb2_buf_ops {
- struct vb2_queue {
- 	unsigned int			type;
- 	unsigned int			io_modes;
-+	struct device			*dev;
- 	const struct dma_attrs		*dma_attrs;
- 	unsigned			fileio_read_once:1;
- 	unsigned			fileio_write_immediately:1;
 -- 
-2.8.0.rc3
-
+Pali Rohár
+pali.rohar@gmail.com
