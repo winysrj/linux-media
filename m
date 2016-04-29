@@ -1,93 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47224 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750989AbcDUJyS (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:37495 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752492AbcD2WOC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Apr 2016 05:54:18 -0400
-Date: Thu, 21 Apr 2016 12:54:09 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Sebastian Reichel <sre@kernel.org>,
-	Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH] [media] smiapp: provide g_skip_top_lines method in
- sensor ops
-Message-ID: <20160421095409.GC32125@valkosipuli.retiisi.org.uk>
-References: <1460794340-490-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160417214447.GV32125@valkosipuli.retiisi.org.uk>
- <57147E69.8060506@gmail.com>
+	Fri, 29 Apr 2016 18:14:02 -0400
+Date: Sat, 30 Apr 2016 00:13:59 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+	patrikbachan@gmail.com, serge@hallyn.com, sakari.ailus@iki.fi,
+	tuukkat76@gmail.com, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org
+Subject: camera application for testing (was Re: v4l subdevs without big
+ device)
+Message-ID: <20160429221359.GA29297@amd>
+References: <20160428084546.GA9957@amd>
+ <20160429071525.GA4823@amd>
+ <57230DE7.3020701@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <57147E69.8060506@gmail.com>
+In-Reply-To: <57230DE7.3020701@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ivaylo,
+Hi!
 
-On Mon, Apr 18, 2016 at 09:27:53AM +0300, Ivaylo Dimitrov wrote:
-> Hi,
-> 
-> On 18.04.2016 00:44, Sakari Ailus wrote:
-> >Hi Ivaylo,
-> >
-> >On Sat, Apr 16, 2016 at 11:12:20AM +0300, Ivaylo Dimitrov wrote:
-> >>Some sensors (like the one in Nokia N900) provide metadata in the first
-> >>couple of lines. Make that information information available to the
-> >>pipeline.
-> >>
-> >>Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> >>---
-> >>  drivers/media/i2c/smiapp/smiapp-core.c | 12 ++++++++++++
-> >>  drivers/media/i2c/smiapp/smiapp.h      |  1 +
-> >>  2 files changed, 13 insertions(+)
-> >>
-> ...
-> >
-> >I'm afraid I think this is not exactly the best way to approach the issue.
-> >It'd work, somehow, yes, but ---
-> >
-> >1. A compliant sensor (at least in theory) is able to tell this information
-> >itself. The number of metadata lines is present in the sensor frame format
-> >descriptors.
-> >
-> 
-> Right. And this is where that number is taken from in the patch and made
-> available to whoever wants to use it. See http://lxr.free-electrons.com/source/drivers/media/i2c/smiapp/smiapp-core.c#L177
-> . I don't really understand your point here. Maybe the patch description is
-> fuzzy? Could you elaborate?
+What is reasonable camera application for testing?
 
-I missed just that part, apologies for that. I'll apply this into my tree.
+N900 looks like a low-end digital camera. I have now have the hardware
+working (can set focus to X cm using command line), but that's not
+going to be useful for taking photos.
 
-> 
-> >2. The more generic problem of describing the frame layout should be solved.
-> >Sensor metadata is just a special case of this. I've proposed frame
-> >descriptors (see an old RFC
-> ><URL:http://www.spinics.net/lists/linux-media/msg67295.html>), but this is
-> >just a partial solution as well; the APIs would need to be extended to
-> >support metadata capture (I think Laurent has been working on that).
-> >
-> 
-> Could be, however what we have right now is http://lxr.free-electrons.com/source/drivers/media/platform/omap3isp/ispccp2.c#L369.
-> Also, the patch is not trying to solve the problem with frame format
-> description(or anything in general), but a mere way to pass an already
-> available information in the sensor which is needed by omap3isp, by using an
-> already existing API. I don't see how's that related to the way v4l API
-> going to evolve in some (distant?) future. Not to say that once those frame
-> format descriptors are available, it should be relatively easy to simply
-> remove g_skip_top_lines form v4l2_subdev_sensor_ops and fix the drivers to
-> use the new API.
-> 
-> BTW if you have any idea on how to pass (or set) the number of lines to be
-> skipped at the start of the frame to omap3isp driver in some other way, I am
-> fine with dropping the $subject patch and sending another one implementing
-> your proposal.
+In particular, who is going to do computation neccessary for
+autofocus, whitebalance and exposure/gain?
 
-Hopefully we'll have a better solution in not so distant future. Metadata is
-just a special case for frame descriptors.
+There's http://fcam.garage.maemo.org/gettingStarted.html that should
+work on maemo, but a) it is not in Debian, b) it has non-trivial
+dependencies and c) will be a lot of fun to get working...
 
+(and d), will not be too useful, anyway, due to 1sec shutter lag:
+
+Fast resolution switching (less shutter lag)
+FCam is built on top of V4L2, which doesn't handle rapidly varying
+resolutions. When a Shot with a different resolution to the previous
+one comes down the pipeline, FCam currently flushes the entire V4L2
+pipeline, shuts down and restarts the whole camera subsystem, then
+starts streaming at the new resolution. This takes a long time (nearly
+a second), and is the cause of the horrible shutter lag on the N900. A
+brave kernel hacker may be able to reduce this time by fiddling with
+the FCam ISP kernel modules and the guts of the FCam library source
+(primarily Daemon.cpp).
+Anyone who solves this one will have our undying gratitude. An ideal
+solution would be able to insert a 5MP capture into a stream of
+640x480 frames running at 30fps, without skipping more than the frame
+time of the 5MP capture. That is, the viewfinder would effectively
+stay live while taking a photograph.
+
+)
+
+Any other application I should look at? Thanks,
+									Pavel
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
