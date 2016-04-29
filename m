@@ -1,68 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38422 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751176AbcDOPfo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 11:35:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/3] pvrusb2: fix smatch errors
-Date: Fri, 15 Apr 2016 17:35:32 +0200
-Message-Id: <1460734533-34191-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1460734533-34191-1-git-send-email-hverkuil@xs4all.nl>
-References: <1460734533-34191-1-git-send-email-hverkuil@xs4all.nl>
+Received: from sauhun.de ([89.238.76.85]:40019 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750925AbcD2HQQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2016 03:16:16 -0400
+Date: Fri, 29 Apr 2016 09:16:04 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Peter Rosin <peda@axentia.se>
+Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: Re: [PATCH v7 16/24] i2c: allow adapter drivers to override the
+ adapter locking
+Message-ID: <20160429071604.GB1870@katana>
+References: <1461165484-2314-1-git-send-email-peda@axentia.se>
+ <1461165484-2314-17-git-send-email-peda@axentia.se>
+ <20160428205018.GA3553@katana>
+ <470abe38-ab5f-2d0a-305b-e1a3253ce5a9@axentia.se>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UHN/qo2QbUvPLonB"
+Content-Disposition: inline
+In-Reply-To: <470abe38-ab5f-2d0a-305b-e1a3253ce5a9@axentia.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-These are false positives, but still easy to fix.
+--UHN/qo2QbUvPLonB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-pvrusb2-hdw.c:3676 pvr2_send_request_ex() error: we previously assumed 'write_data' could be null (see line 3648)
-pvrusb2-hdw.c:3829 pvr2_send_request_ex() error: we previously assumed 'read_data' could be null (see line 3649)
+> Yes, obviously... I'll make that change locally and wait for the rest.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+Another nit: You could use '--strict' with checkpatch and see if you
+want to fix the issues reported. I am not keen on those (except for
+'space around operators'), it's a matter of taste I guess, but maybe you
+like some of the suggestions.
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-index 1a093e5..83e9a3e 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-@@ -3672,11 +3672,10 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
- 
- 
- 	hdw->cmd_debug_state = 1;
--	if (write_len) {
-+	if (write_len && write_data)
- 		hdw->cmd_debug_code = ((unsigned char *)write_data)[0];
--	} else {
-+	else
- 		hdw->cmd_debug_code = 0;
--	}
- 	hdw->cmd_debug_write_len = write_len;
- 	hdw->cmd_debug_read_len = read_len;
- 
-@@ -3688,7 +3687,7 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
- 	setup_timer(&timer, pvr2_ctl_timeout, (unsigned long)hdw);
- 	timer.expires = jiffies + timeout;
- 
--	if (write_len) {
-+	if (write_len && write_data) {
- 		hdw->cmd_debug_state = 2;
- 		/* Transfer write data to internal buffer */
- 		for (idx = 0; idx < write_len; idx++) {
-@@ -3795,7 +3794,7 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
- 			goto done;
- 		}
- 	}
--	if (read_len) {
-+	if (read_len && read_data) {
- 		/* Validate results of read request */
- 		if ((hdw->ctl_read_urb->status != 0) &&
- 		    (hdw->ctl_read_urb->status != -ENOENT) &&
--- 
-2.8.0.rc3
+Thanks,
 
+   Wolfram
+
+
+--UHN/qo2QbUvPLonB
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXIwo0AAoJEBQN5MwUoCm2xygP/R5oDbvLxlS7QtNDFqs9YQsb
+ue1CKWIAtDwxVfWhTN4Ux5CvI5qPlwR8XKphfQA2zuZxx0jdndtyLs1rsPMyHXXq
+DHOZES/Sh3KQw2BS6VCIiO845STigGd59qEuRkWIsNPk5ZCoE4ysPsVHVzNb91Uy
+JERiKobdGC4oPL/8OHkq9AKsRlDgq4ljCdHafc4TZktM8fl6R6x0yBJlh1OxcX4z
+93pYx6Z/wRd0c4sMDUYOlEZgwmqVK15BhxkWRiYggdvI7vde3bX5SB25sjpYbNV0
+NBA2pDEj7CqMth6Y+QkxxHaSqsWFe9Zf6mK69RJ11S/61FfBDAh6NKZOEWakZm0R
+hk89WmtwSgyGtQdjadOCZxZykDidlT3wyRjk1bZ7LuK6aon8IIOkWMux3Pa96Dxp
+PwVGpMaSXz24aWKu0FWENYoISP8dKY+pcGoMV2Hah9/21ciengW/Gd1PG/h4aDjO
+87Lqo9JusJ+UI5/mmViL7ev2M6u26jG1UgfPVWyKwWtxFqV4IIU7iVuwxmn17CYn
+OJ6fRQi5R0ImNL/0BF6DY9mqovephJTtMiO7Oc7OXHtM6VtIUGIdSddYBkRgQlFj
+p8g6WMpcH/aO+Ta35w1k1UiTNvA3HS6N1NjcHS/1TBop/ck3SeZWK8pQ26LBJev8
+j9ihkxWB4rcskib6i911
+=Nlmg
+-----END PGP SIGNATURE-----
+
+--UHN/qo2QbUvPLonB--
