@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:51080 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752710AbcDORIJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 13:08:09 -0400
-Date: Fri, 15 Apr 2016 10:08:04 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>,
-	Enric Balletbo i Serra <eballetbo@gmail.com>,
-	=?utf-8?Q?Agust=C3=AD?= Fontquerni <af@iseebcn.com>
-Subject: Re: tvp5150 regression after commit 9f924169c035
-Message-ID: <20160415170804.GW5973@atomide.com>
-References: <20160412223254.GK1526@katana>
- <570ECAB0.4050107@osg.samsung.com>
- <20160414111257.GG1533@katana>
- <570F9DF1.3070700@osg.samsung.com>
- <20160414141945.GA1539@katana>
- <570FA8D6.5070308@osg.samsung.com>
- <20160414151244.GM5973@atomide.com>
- <57102EE3.3020707@osg.samsung.com>
- <20160415145828.GT5973@atomide.com>
- <57111B76.8020106@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <57111B76.8020106@osg.samsung.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:57446 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751583AbcD2JjP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2016 05:39:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, dri-devel@lists.freedesktop.org
+Subject: [RFC PATCH 1/3] drm/omap: fix OMAP4 hdmi_core_powerdown_disable()
+Date: Fri, 29 Apr 2016 11:39:04 +0200
+Message-Id: <1461922746-17521-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461922746-17521-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461922746-17521-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Javier Martinez Canillas <javier@osg.samsung.com> [160415 09:50]:
-> On 04/15/2016 10:58 AM, Tony Lindgren wrote:
-> > If you block PM runtime for I2C, then it blocks deeper idle states
-> > for the whole device. Note that you can disable off mode during idle
-> 
-> Thanks again for this clarification.
-> 
-> > and suspend with:
-> > 
-> > # echo 0 > /sys/kernel/debug/pm_debug/enable_off_mode
-> >
-> 
-> I see thought that enable_off_mode is 0 by default when booting the board:
-> 
-> # cat /sys/kernel/debug/pm_debug/enable_off_mode 
-> 0
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 
-OK so you're not hitting off mode then.
+hdmi_core_powerdown_disable() is supposed to disable HDMI core's
+power-down mode. However, the function sets the power-down bit to 0,
+which means "enable power-down".
 
-> So if I understood your explanation correctly, that means that the glitch
-> should not happen for the GPIO pins since the machine doesn't enter into
-> deeper idle states that could cause the glitch from erratum 1.158?
+This hasn't caused any issues as the PD seems to affect only interrupts
+from HDMI core, and none of those interrupts are used at the moment. CEC
+functionality requires core interrupts, and the PD mode needs to be
+fixed.
 
-Correct. But you could still have a dependency to some other
-device driver that stays active if I2C keeps the whole system
-from hitting retention mode during idle.
+This patch fixes hdmi_core_powerdown_disable() to actually disable the
+PD mode.
 
-Regards,
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/gpu/drm/omapdrm/dss/hdmi4_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Tony
+diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
+index fa72e73..ef3afe9 100644
+--- a/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
++++ b/drivers/gpu/drm/omapdrm/dss/hdmi4_core.c
+@@ -211,7 +211,7 @@ static void hdmi_core_init(struct hdmi_core_video_config *video_cfg)
+ static void hdmi_core_powerdown_disable(struct hdmi_core_data *core)
+ {
+ 	DSSDBG("Enter hdmi_core_powerdown_disable\n");
+-	REG_FLD_MOD(core->base, HDMI_CORE_SYS_SYS_CTRL1, 0x0, 0, 0);
++	REG_FLD_MOD(core->base, HDMI_CORE_SYS_SYS_CTRL1, 0x1, 0, 0);
+ }
+ 
+ static void hdmi_core_swreset_release(struct hdmi_core_data *core)
+-- 
+2.8.1
 
