@@ -1,75 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f180.google.com ([209.85.192.180]:32967 "EHLO
-	mail-pf0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753674AbcDEQO0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Apr 2016 12:14:26 -0400
-From: info@are.ma
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?=D0=91=D1=83=D0=B4=D0=B8=20=D0=A0=D0=BE=D0=BC=D0=B0=D0=BD=D1=82=D0=BE=2C=20AreMa=20Inc?=
-	<knightrider@are.ma>, linux-kernel@vger.kernel.org, crope@iki.fi,
-	m.chehab@samsung.com, mchehab@osg.samsung.com, hdegoede@redhat.com,
-	laurent.pinchart@ideasonboard.com, mkrufky@linuxtv.org,
-	sylvester.nawrocki@gmail.com, g.liakhovetski@gmx.de,
-	peter.senna@gmail.com
-Subject: [media 1/5] Raise adapter number limit
-Date: Wed,  6 Apr 2016 01:14:10 +0900
-Message-Id: <f73dc33bab1621d88f06a969752f6ed281110a7b.1459872226.git.knightrider@are.ma>
-In-Reply-To: <cover.1459872226.git.knightrider@are.ma>
-References: <cover.1459872226.git.knightrider@are.ma>
-In-Reply-To: <cover.1459872226.git.knightrider@are.ma>
-References: <cover.1459872226.git.knightrider@are.ma>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37684 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752630AbcD2Hm1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2016 03:42:27 -0400
+Date: Fri, 29 Apr 2016 10:41:52 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 01/24] V4L fixes
+Message-ID: <20160429074151.GF32125@valkosipuli.retiisi.org.uk>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1461532104-24032-2-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160425132549.GE32125@valkosipuli.retiisi.org.uk>
+ <571E46B2.7060300@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <571E46B2.7060300@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Буди Романто, AreMa Inc <knightrider@are.ma>
+Hi Ivaylo,
 
-The current limit is too low for latest cards with 8+ tuners on a single slot.
-IMHO, the most appropriate minimum default is 16.
+On Mon, Apr 25, 2016 at 07:32:50PM +0300, Ivaylo Dimitrov wrote:
+> Hi,
+> 
+> On 25.04.2016 16:25, Sakari Ailus wrote:
+> >Hi Ivaylo,
+> >
+> >Thanks for the set!
+> >
+> >On Mon, Apr 25, 2016 at 12:08:01AM +0300, Ivaylo Dimitrov wrote:
+> >>From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+> >>
+> >>Squashed from the following upstream commits:
+> >>
+> >>V4L: Create control class for sensor mode
+> >>V4L: add ad5820 focus specific custom controls
+> >>V4L: add V4L2_CID_TEST_PATTERN
+> >>V4L: Add V4L2_CID_MODE_OPSYSCLOCK for reading output system clock
+> >>
+> >>Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+> >>Signed-off-by: Pali Roh�r <pali.rohar@gmail.com>
+> >>---
+> >>  include/uapi/linux/v4l2-controls.h | 17 +++++++++++++++++
+> >>  1 file changed, 17 insertions(+)
+> >>
+> >>diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> >>index b6a357a..23011cc 100644
+> >>--- a/include/uapi/linux/v4l2-controls.h
+> >>+++ b/include/uapi/linux/v4l2-controls.h
+> >>@@ -62,6 +62,7 @@
+> >>  #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
+> >>  #define V4L2_CTRL_CLASS_RF_TUNER	0x00a20000	/* RF tuner controls */
+> >>  #define V4L2_CTRL_CLASS_DETECT		0x00a30000	/* Detection controls */
+> >>+#define V4L2_CTRL_CLASS_MODE		0x00a40000	/* Sensor mode information */
+> >>
+> >>  /* User-class control IDs */
+> >>
+> >>@@ -974,4 +975,20 @@ enum v4l2_detect_md_mode {
+> >>  #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+> >>  #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
+> >>
+> >>+/* SMIA-type sensor information */
+> >>+#define V4L2_CID_MODE_CLASS_BASE		(V4L2_CTRL_CLASS_MODE | 0x900)
+> >>+#define V4L2_CID_MODE_CLASS			(V4L2_CTRL_CLASS_MODE | 1)
+> >>+#define V4L2_CID_MODE_FRAME_WIDTH		(V4L2_CID_MODE_CLASS_BASE+1)
+> >>+#define V4L2_CID_MODE_FRAME_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+2)
+> >>+#define V4L2_CID_MODE_VISIBLE_WIDTH		(V4L2_CID_MODE_CLASS_BASE+3)
+> >>+#define V4L2_CID_MODE_VISIBLE_HEIGHT		(V4L2_CID_MODE_CLASS_BASE+4)
+> >
+> >The interface here pre-dates the selection API. The frame width and height
+> >is today conveyed to the bridge driver by the smiapp driver in the scaler
+> >(or binner in case of the lack of the scaler) sub-device's source pad
+> >format.
+> >
+> >(While that's the current interface, I'm not entirely happy with it; it
+> >requires more sub-devices to be created for the same I2C device). I think in
+> >this case you'd need one more to properly control the sensor.
+> >
+> 
+> By looking at the code, it seems those are read-only, so I don't think it
+> make sense to add a binner sub-device with read-only controls.
 
-Signed-off-by: Буди Романто, AreMa Inc <knightrider@are.ma>
----
- drivers/media/dvb-core/Kconfig  | 4 ++--
- drivers/media/dvb-core/dvbdev.h | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+Well, I can't disagree with that. However, I think a number of other drivers
+would benefit from doing this properly --- the V4L2 selection API which
+defines a strict order for the processing steps does not suit to this use
+case very well. You could use the crop selection rectangle for now, albeit
+that doesn't fully express what the sensor does, or use private controls. We
+could then later replace this with something better.
 
-diff --git a/drivers/media/dvb-core/Kconfig b/drivers/media/dvb-core/Kconfig
-index fa7a249..91732a9 100644
---- a/drivers/media/dvb-core/Kconfig
-+++ b/drivers/media/dvb-core/Kconfig
-@@ -5,7 +5,7 @@
- config DVB_MAX_ADAPTERS
- 	int "maximum number of DVB/ATSC adapters"
- 	depends on DVB_CORE
--	default 8
-+	default 16
- 	range 1 255
- 	help
- 	  Maximum number of DVB/ATSC adapters. Increasing this number
-@@ -13,7 +13,7 @@ config DVB_MAX_ADAPTERS
- 	  if a much lower number of DVB/ATSC adapters is present.
- 	  Only values in the range 4-32 are tested.
- 
--	  If you are unsure about this, use the default value 8
-+	  If you are unsure about this, use the default value 16
- 
- config DVB_DYNAMIC_MINORS
- 	bool "Dynamic DVB minor allocation"
-diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
-index 4aff7bd..ae4e0a2 100644
---- a/drivers/media/dvb-core/dvbdev.h
-+++ b/drivers/media/dvb-core/dvbdev.h
-@@ -34,7 +34,7 @@
- #if defined(CONFIG_DVB_MAX_ADAPTERS) && CONFIG_DVB_MAX_ADAPTERS > 0
-   #define DVB_MAX_ADAPTERS CONFIG_DVB_MAX_ADAPTERS
- #else
--  #define DVB_MAX_ADAPTERS 8
-+  #define DVB_MAX_ADAPTERS 16
- #endif
- 
- #define DVB_UNSET (-1)
+> 
+> >>+#define V4L2_CID_MODE_PIXELCLOCK		(V4L2_CID_MODE_CLASS_BASE+5)
+> >>+#define V4L2_CID_MODE_SENSITIVITY		(V4L2_CID_MODE_CLASS_BASE+6)
+> >>+#define V4L2_CID_MODE_OPSYSCLOCK		(V4L2_CID_MODE_CLASS_BASE+7)
+> >
+> >While I don't remember quite what the sensitivity value was about (it could
+> >be e.g. binning summing / averaging), the other two values are passed to
+> >(and also controlled by) the user space using controls. There are
+> >V4L2_CID_PIXEL_RATE and V4L2_CID_LINK_FREQ or such.
+> >
+> 
+> I've already made a change so V4L2_CID_PIXEL_RATE is used in et8ek8 driver (https://github.com/freemangordon/linux-n900/commit/54433e50451b4ed6cc6e3b25d149c5cacd97e438),
+> but V4L2_CID_MODE_PIXELCLOCK is used in smiapp driver, which seems to expose
+> its own controls. Not sure those are needed though. And if, what for. I hope
+> you know better than me.
+
+It's needed to tell the sensor timings to the user space. The camera control
+algorithms need that information.
+
+> 
+> I guess V4L2_CID_MODE_OPSYSCLOCK can be easily transformed to
+> V4L2_CID_LINK_FREQ in the same way as V4L2_CID_MODE_PIXELCLOCK.
+
+Yes.
+
+> 
+> >>+
+> >>+/* Control IDs specific to the AD5820 driver as defined by V4L2 */
+> >>+#define V4L2_CID_FOCUS_AD5820_BASE 		(V4L2_CTRL_CLASS_CAMERA | 0x10af)
+> >>+#define V4L2_CID_FOCUS_AD5820_RAMP_TIME		(V4L2_CID_FOCUS_AD5820_BASE+0)
+> >>+#define V4L2_CID_FOCUS_AD5820_RAMP_MODE		(V4L2_CID_FOCUS_AD5820_BASE+1)
+> >
+> >The ad5820 driver isn't in upstream at the moment. It should be investigated
+> >whether there is a possibility to have standard V4L2 controls for lens
+> >devices, or whether device specific controls should be implemented instead.
+> >Device specific controls are a safe choice in this case, but they should be
+> >in a separate patch, possibly one that would also include the lens driver
+> >itself.
+> >
+> 
+> Yeah, I sent the whole patch for the sake of not losing the history too
+> much.
+
+There's still work to be done but I'm very happy to see that you and a few
+others are contributing. :-)
+
 -- 
-2.7.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
