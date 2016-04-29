@@ -1,204 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:10942 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751490AbcDRIWj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Apr 2016 04:22:39 -0400
-Message-ID: <1460967754.7861.61.camel@mtksdaap41>
-Subject: Re: [PATCH 3/7] [Media] vcodec: mediatek: Add Mediatek V4L2 Video
- Decoder Driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Pawel Osciak <pawel@osciak.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	"Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	"Yingjoe Chen" <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Date: Mon, 18 Apr 2016 16:22:34 +0800
-In-Reply-To: <57148D8E.9060601@xs4all.nl>
-References: <1460548915-17536-1-git-send-email-tiffany.lin@mediatek.com>
-	 <1460548915-17536-2-git-send-email-tiffany.lin@mediatek.com>
-	 <1460548915-17536-3-git-send-email-tiffany.lin@mediatek.com>
-	 <1460548915-17536-4-git-send-email-tiffany.lin@mediatek.com>
-	 <5710FA3A.2030603@xs4all.nl> <1460958046.7861.48.camel@mtksdaap41>
-	 <57148D8E.9060601@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail.kernel.org ([198.145.29.136]:42273 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751043AbcD2RqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2016 13:46:08 -0400
+Date: Fri, 29 Apr 2016 19:45:59 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: =?utf-8?B?0JjQstCw0LnQu9C+INCU0LjQvNC40YLRgNC+0LI=?=
+	<ivo.g.dimitrov.75@gmail.com>
+Cc: pavel@ucw.cz, sakari.ailus@iki.fi, pali.rohar@gmail.com,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH 00/24] Make Nokia N900 cameras working
+Message-ID: <20160429174559.GA6431@earth>
+References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
+ <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160427030850.GA17034@earth>
+ <572048AC.7050700@gmail.com>
+ <572062EF.7060502@gmail.com>
+ <20160427164256.GA8156@earth>
+ <1461777170.18568.2.camel@Nokia-N900>
+ <20160429000551.GA29312@earth>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
+Content-Disposition: inline
+In-Reply-To: <20160429000551.GA29312@earth>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Mon, 2016-04-18 at 09:32 +0200, Hans Verkuil wrote:
-> On 04/18/2016 07:40 AM, tiffany lin wrote:
-> > 
-> > snipped.
-> > 
-> >>> +
-> >>> +void mtk_vcodec_dec_set_default_params(struct mtk_vcodec_ctx *ctx)
-> >>> +{
-> >>> +	struct mtk_q_data *q_data;
-> >>> +
-> >>> +	ctx->m2m_ctx->q_lock = &ctx->dev->dev_mutex;
-> >>> +	ctx->fh.m2m_ctx = ctx->m2m_ctx;
-> >>> +	ctx->fh.ctrl_handler = &ctx->ctrl_hdl;
-> >>> +	INIT_WORK(&ctx->decode_work, mtk_vdec_worker);
-> >>> +
-> >>> +	q_data = &ctx->q_data[MTK_Q_DATA_SRC];
-> >>> +	memset(q_data, 0, sizeof(struct mtk_q_data));
-> >>> +	q_data->visible_width = DFT_CFG_WIDTH;
-> >>> +	q_data->visible_height = DFT_CFG_HEIGHT;
-> >>> +	q_data->fmt = &mtk_video_formats[OUT_FMT_IDX];
-> >>> +	q_data->colorspace = V4L2_COLORSPACE_REC709;
-> >>> +	q_data->field = V4L2_FIELD_NONE;
-> >>> +	ctx->q_data[MTK_Q_DATA_DST].sizeimage[0] =
-> >>> +		DFT_CFG_WIDTH * DFT_CFG_HEIGHT;
-> >>> +	ctx->q_data[MTK_Q_DATA_DST].bytesperline[0] = 0;
-> >>> +
-> >>> +
-> >>> +	q_data = &ctx->q_data[MTK_Q_DATA_DST];
-> >>> +	memset(q_data, 0, sizeof(struct mtk_q_data));
-> >>> +	q_data->visible_width = DFT_CFG_WIDTH;
-> >>> +	q_data->visible_height = DFT_CFG_HEIGHT;
-> >>> +	q_data->coded_width = DFT_CFG_WIDTH;
-> >>> +	q_data->coded_height = DFT_CFG_HEIGHT;
-> >>> +	q_data->colorspace = V4L2_COLORSPACE_REC709;
-> >>> +	q_data->field = V4L2_FIELD_NONE;
-> >>> +
-> >>> +	q_data->fmt = &mtk_video_formats[CAP_FMT_IDX];
-> >>> +
-> >>> +	v4l_bound_align_image(&q_data->coded_width,
-> >>> +					MTK_VDEC_MIN_W,
-> >>> +					MTK_VDEC_MAX_W, 4,
-> >>> +					&q_data->coded_height,
-> >>> +					MTK_VDEC_MIN_H,
-> >>> +					MTK_VDEC_MAX_H, 5, 6);
-> >>> +
-> >>> +	q_data->sizeimage[0] = q_data->coded_width * q_data->coded_height;
-> >>> +	q_data->bytesperline[0] = q_data->coded_width;
-> >>> +	q_data->sizeimage[1] = q_data->sizeimage[0] / 2;
-> >>> +	q_data->bytesperline[1] = q_data->coded_width;
-> >>> +
-> >>> +}
-> >>> +
-> >>> +static int vidioc_vdec_streamon(struct file *file, void *priv,
-> >>> +				enum v4l2_buf_type type)
-> >>> +{
-> >>> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-> >>> +
-> >>> +	mtk_v4l2_debug(3, "[%d] (%d)", ctx->idx, type);
-> >>> +
-> >>> +	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
-> >>> +}
-> >>> +
-> >>> +static int vidioc_vdec_streamoff(struct file *file, void *priv,
-> >>> +				 enum v4l2_buf_type type)
-> >>> +{
-> >>> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-> >>> +
-> >>> +	mtk_v4l2_debug(3, "[%d] (%d)", ctx->idx, type);
-> >>> +	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
-> >>> +}
-> >>> +
-> >>> +static int vidioc_vdec_reqbufs(struct file *file, void *priv,
-> >>> +			       struct v4l2_requestbuffers *reqbufs)
-> >>> +{
-> >>> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
-> >>> +	int ret;
-> >>> +
-> >>> +	mtk_v4l2_debug(3, "[%d] (%d) count=%d", ctx->idx,
-> >>> +			 reqbufs->type, reqbufs->count);
-> >>> +	ret = v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
-> >>> +
-> >>> +	return ret;
-> >>> +}
-> >>
-> >> Please use the v4l2_m2m_ioctl_* helper functions were applicable.
-> >>
-> > 
-> > 
-> > 
-> > snipped.
-> >>> +static unsigned int fops_vcodec_poll(struct file *file,
-> >>> +				     struct poll_table_struct *wait)
-> >>> +{
-> >>> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(file->private_data);
-> >>> +	struct mtk_vcodec_dev *dev = ctx->dev;
-> >>> +	int ret;
-> >>> +
-> >>> +	mutex_lock(&dev->dev_mutex);
-> >>> +	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-> >>> +	mutex_unlock(&dev->dev_mutex);
-> >>> +
-> >>> +	return ret;
-> >>> +}
-> >>> +
-> >>> +static int fops_vcodec_mmap(struct file *file, struct vm_area_struct *vma)
-> >>> +{
-> >>> +	struct mtk_vcodec_ctx *ctx = fh_to_ctx(file->private_data);
-> >>> +
-> >>> +	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-> >>> +}
-> >>> +
-> >>> +static const struct v4l2_file_operations mtk_vcodec_fops = {
-> >>> +	.owner				= THIS_MODULE,
-> >>> +	.open				= fops_vcodec_open,
-> >>> +	.release			= fops_vcodec_release,
-> >>> +	.poll				= fops_vcodec_poll,
-> >>> +	.unlocked_ioctl			= video_ioctl2,
-> >>> +	.mmap				= fops_vcodec_mmap,
-> >>
-> >> You should be able to use the v4l2_m2m_fop helper functions for poll and mmap.
-> >>
-> > 
-> > Hi Hans,
-> > 
-> > We are plaining to remove m2m framework in th feature, although we think
-> 
-> Remove it for just the decoder driver or both encoder and decoder?
-> 
-Remove it from decoder driver.
+--VbJkn9YxBvnuCH5J
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > it is easy to use and could save a lot of code similar to what m2m
-> > framework implemented and reduce code size.
-> > The main reason is that in v4l2_m2m_try_schedule, it required that at
-> > least one output buffer and one capture buffer to run device_run.
-> > We want to start device_run without capture buffer queued.
-> 
-> I assume the reason is that you need to get the resolution etc. information
-> from the encoded stream? Without a capture buffer you can't actually decode
-> a frame, but that's probably not what this is about.
-Yes, it could start parsing without waiting CAPTURE ready and get
-CAPTURE buffer from vb2 when it really need it.
+Hi,
 
+On Fri, Apr 29, 2016 at 02:05:52AM +0200, Sebastian Reichel wrote:
+> On Wed, Apr 27, 2016 at 08:12:50PM +0300, =D0=98=D0=B2=D0=B0=D0=B9=D0=BB=
+=D0=BE =D0=94=D0=B8=D0=BC=D0=B8=D1=82=D1=80=D0=BE=D0=B2 wrote:
+> > > The zImage + initrd works with the steps you described below.
+> >=20
+> > Great!
+>=20
+> I also got it working with the previously referenced branch with the
+> following built as modules:
+>=20
+> CONFIG_VIDEOBUF2_CORE=3Dm
+> CONFIG_VIDEOBUF2_MEMOPS=3Dm
+> CONFIG_VIDEOBUF2_DMA_CONTIG=3Dm
+> CONFIG_VIDEO_OMAP3=3Dm
+> CONFIG_VIDEO_BUS_SWITCH=3Dm
+> CONFIG_VIDEO_SMIAPP_PLL=3Dm
+> CONFIG_VIDEO_SMIAPP=3Dm
+> CONFIG_VIDEO_SMIAREGS=3Dm
+> CONFIG_VIDEO_ET8EK8=3Dm
 
-> > Is there any suggestion that we could use m2m framework but trigger
-> > device_run with only output buffer.
-> > Or we need to remove m2m and write our own implementation.
-> 
-> I am assuming that not using the m2m framework is for the decoder only and
-> that its purpose is to obtain data about the encoded stream early.
-> 
-yes. it's for decode only.
+Ok, I found the problem. CONFIG_VIDEO_OMAP3=3Dy does not work,
+due to missing -EPROBE_DEFER handling for vdds_csib. I added
+it and just got a test image with builtin CONFIG_VIDEO_OMAP3.
+The below patch fixes the problem.
 
+commit 9d8333b29207de3a9b6ac99db2dfd91e2f8c0216
+Author: Sebastian Reichel <sre@kernel.org>
+Date:   Fri Apr 29 19:23:02 2016 +0200
 
-> This is something that was discussed with Pawel in the past. I don't have a
-> problem if you do it yourself (without the m2m framework), but it might also
-> be an idea to adapt the framework for this.
-> 
-> Pawel, do you have any thoughts on that?
-> 
-> Regards,
-> 
-> 	Hans
+    omap3isp: handle -EPROBE_DEFER for vdds_csib
+   =20
+    omap3isp may be initialized before the regulator's driver has been
+    loaded resulting in vdds_csib=3DNULL. Fix this by handling -EPROBE_DEFER
+    for vdds_csib.
+   =20
+    Signed-Off-By: Sebastian Reichel <sre@kernel.org>
 
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/plat=
+form/omap3isp/ispccp2.c
+index 833eed411886..2d1463a72d6a 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -1167,6 +1167,8 @@ int omap3isp_ccp2_init(struct isp_device *isp)
+ 	if (isp->revision =3D=3D ISP_REVISION_2_0) {
+ 		ccp2->vdds_csib =3D devm_regulator_get(isp->dev, "vdds_csib");
+ 		if (IS_ERR(ccp2->vdds_csib)) {
++			if (PTR_ERR(ccp2->vdds_csib) =3D=3D -EPROBE_DEFER)
++				return -EPROBE_DEFER;
+ 			dev_dbg(isp->dev,
+ 				"Could not get regulator vdds_csib\n");
+ 			ccp2->vdds_csib =3D NULL;
 
+-- Sebastian
+
+--VbJkn9YxBvnuCH5J
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJXI53UAAoJENju1/PIO/qaIKYQAJkB02X6T1Hxfbq2tHl7rPin
+Wz/rzlIkGK1DSOW5xRiTRvqbQX1TAants13YisR9avcb4nnE7kubsjBrTqgWtLAQ
+1VhZzANzXuVDvQpyG77x4PuA+XNs/zK9//s3+h/mQ3MbX2Nkie1KGHs4JbSgukro
+0XrfityWIITVDoGQO9IzX3IaXHT3smENAcdJcR58aSEXaEDxwvE7ZB/9+saD1mab
+Fni1CCvbDCW90RQ0h1CwRXaBBICTISBGLbqvQHLuPsbx5G+Sfk9C8e5BujIWKXb6
+RHPEl2Krcb63zwce91rYH2QorAjsemaoi5L50nJ25Om0G+z+TPbCFAIXpZzhj0ul
+gBTDiZ6Jo07OMb0s8L7zWFVpioKVBk0dE2SAUw35zCL68VKKIgwmWj6jgw4P+8v+
+lGYFE1uXILhkYugwDLndSsdHC6PhRRjXLGsaHemzYRPgeuW2nINxIQJbNbRsejqd
+vgrGc4PaW/X9tti9djTObFXfDCiZi7yHMU4FWooxOdilB95+4+sMQYJmAgWFTaHY
+aduARuA70nJl/hjd5CnK88dk6EeOkOw3Xi+3ju6DKogal39o+MFp9R3LFPlOgSIn
+WO0aIt3S5GAmmGe8iOLsZIkLUXg1ub/0U9xrTTHb5BzgwFjgjt7zrUKwS5C3CpAi
+nd5Y+W3YZa3HMql6XGtZ
+=f2A5
+-----END PGP SIGNATURE-----
+
+--VbJkn9YxBvnuCH5J--
