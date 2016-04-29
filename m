@@ -1,141 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43523 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751761AbcDVOtA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 10:49:00 -0400
-Date: Fri, 22 Apr 2016 11:48:53 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Junghak Sung <jh1009.sung@samsung.com>,
-	<stable@vger.kernel.org>
-Subject: Re: [PATCH] media: vb2: Fix regression on poll() for RW mode
-Message-ID: <20160422114853.5bd48836@recife.lan>
-In-Reply-To: <571A35C0.8020900@xs4all.nl>
-References: <1461230116-6909-1-git-send-email-ricardo.ribalda@gmail.com>
-	<5719EC8D.2000500@xs4all.nl>
-	<20160422093141.7f9191bc@recife.lan>
-	<571A1AF3.3040507@xs4all.nl>
-	<20160422112136.06afe7c3@recife.lan>
-	<571A35C0.8020900@xs4all.nl>
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:37280 "EHLO
+	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752317AbcD2JcQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2016 05:32:16 -0400
+Received: by mail-wm0-f46.google.com with SMTP id a17so26462640wme.0
+        for <linux-media@vger.kernel.org>; Fri, 29 Apr 2016 02:32:16 -0700 (PDT)
+Subject: Re: gstreamer: v4l2videodec plugin
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+	nicolas@ndufresne.ca, Rob Clark <robdclark@gmail.com>
+References: <570B9285.9000209@linaro.org> <570B9454.6020307@linaro.org>
+ <1460391908.30296.12.camel@collabora.com> <570CB882.4090805@linaro.org>
+ <CAF6AEGvjin7Ya4wAXF=5vAa=ky=yvUHnYSo8Of_cyd8TCc04UQ@mail.gmail.com>
+ <1460736595.973.5.camel@ndufresne.ca> <5721F4FC.30001@linaro.org>
+Cc: Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"mesa-dev@lists.freedesktop.org" <mesa-dev@lists.freedesktop.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <57232A19.5060107@linaro.org>
+Date: Fri, 29 Apr 2016 12:32:09 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <5721F4FC.30001@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 22 Apr 2016 16:31:28 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+cc: mesa-dev ML
 
-> On 04/22/2016 04:21 PM, Mauro Carvalho Chehab wrote:
-> > Em Fri, 22 Apr 2016 14:37:07 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >   
-> >> On 04/22/2016 02:31 PM, Mauro Carvalho Chehab wrote:  
-> >>> Em Fri, 22 Apr 2016 11:19:09 +0200
-> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>>     
-> >>>> Hi Ricardo,
-> >>>>
-> >>>> On 04/21/2016 11:15 AM, Ricardo Ribalda Delgado wrote:    
-> >>>>> When using a device is read/write mode, vb2 does not handle properly the
-> >>>>> first select/poll operation. It allways return POLLERR.
-> >>>>>
-> >>>>> The reason for this is that when this code has been refactored, some of
-> >>>>> the operations have changed their order, and now fileio emulator is not
-> >>>>> started by poll, due to a previous check.
-> >>>>>
-> >>>>> Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
-> >>>>> Cc: Junghak Sung <jh1009.sung@samsung.com>
-> >>>>> Cc: stable@vger.kernel.org
-> >>>>> Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
-> >>>>> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-> >>>>> ---
-> >>>>>  drivers/media/v4l2-core/videobuf2-core.c | 8 ++++++++
-> >>>>>  drivers/media/v4l2-core/videobuf2-v4l2.c | 8 --------
-> >>>>>  2 files changed, 8 insertions(+), 8 deletions(-)
-> >>>>>
-> >>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> >>>>> index 5d016f496e0e..199c65dbe330 100644
-> >>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> >>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> >>>>> @@ -2298,6 +2298,14 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
-> >>>>>  		return POLLERR;
-> >>>>>  
-> >>>>>  	/*
-> >>>>> +	 * For compatibility with vb1: if QBUF hasn't been called yet, then
-> >>>>> +	 * return POLLERR as well. This only affects capture queues, output
-> >>>>> +	 * queues will always initialize waiting_for_buffers to false.
-> >>>>> +	 */
-> >>>>> +	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
-> >>>>> +		return POLLERR;      
-> >>>>
-> >>>> The problem I have with this is that this should be specific to V4L2. The only
-> >>>> reason we do this is that we had to stay backwards compatible with vb1.
-> >>>>
-> >>>> This is the reason this code was placed in videobuf2-v4l2.c. But you are correct
-> >>>> that this causes a regression, and I see no other choice but to put it in core.c.
-> >>>>
-> >>>> That said, I would still only honor this when called from v4l2, so I suggest that
-> >>>> a new flag 'check_waiting_for_buffers' is added that is only set in vb2_queue_init
-> >>>> in videobuf2-v4l2.c.
-> >>>>
-> >>>> So the test above becomes:
-> >>>>
-> >>>> 	if (q->check_waiting_for_buffers && q->waiting_for_buffers &&
-> >>>> 	    (req_events & (POLLIN | POLLRDNORM)))
-> >>>>
-> >>>> It's not ideal, but at least this keeps this v4l2 specific.    
-> >>>
-> >>> I don't like the above approach, for two reasons:
-> >>>
-> >>> 1) it is not obvious that this is V4L2 specific from the code;    
-> >>
-> >> s/check_waiting_for_buffers/v4l2_needs_to_wait_for_buffers/  
-> > 
-> > Better, but still hell of a hack. Maybe we could add a quirks
-> > flag and add a flag like:
-> > 	VB2_FLAG_ENABLE_POLLERR_IF_WAITING_BUFFERS_AND_NO_QBUF
-> > (or some better naming, I'm not inspired today...)
-> > 
-> > Of course, such quirk should be properly documented.  
+On 04/28/2016 02:33 PM, Stanimir Varbanov wrote:
+> On 04/15/2016 07:09 PM, Nicolas Dufresne wrote:
+>> Le vendredi 15 avril 2016 à 11:58 -0400, Rob Clark a écrit :
+>>> The issue is probably the YUV format, which we cannot really deal
+>>> with
+>>> properly in gallium..  it's a similar issue to multi-planer even if
+>>> it
+>>> is in a single buffer.
+>>>
+>>> The best way to handle this would be to import the same dmabuf fd
+>>> twice, with appropriate offsets, to create one GL_RED eglimage for Y
+>>> and one GL_RG eglimage for UV, and then combine them in shader in a
+>>> similar way to how you'd handle separate Y and UV planes..
+>>
+>> That's the strategy we use in GStreamer, as very few GL stack support
+>> implicit color conversions. For that to work you need to implement the
+>> "offset" field in winsys_handle, that was added recently, and make sure
+>> you have R8 and RG88 support (usually this is just mapping).
 > 
-> How about 'quirk_poll_must_check_waiting_for_buffers'? Something with 'quirk' in the
-> name is a good idea.
-
-works for me, provided that we add the field as a flag. So it would be like:
-
-#define QUIRK_POLL_MUST_CHECK_WAITING_FOR_BUFFERS 0
-
- 	if (test_bit(q->quirk, QUIRK_POLL_MUST_CHECK_WAITING_FOR_BUFFERS) &&
-	    q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
-
+> Thanks,
 > 
-> >   
-> >>>
-> >>> 2) we should not mess the core due to some V4L2 mess.    
-> >>
-> >> Well, the only other alternative I see is to split vb2_core_poll() into two
-> >> since the check has to happen in the middle. The v4l2 code would call core_poll1(),
-> >> then do the check and afterwards call core_poll2(). And that would really be ugly.  
-> > 
-> > Actually, the first callback would be better called as
-> > vb2_core_poll_check() - or something with similar name.
-> > 
-> > IMHO, this is the cleaner solution, although it adds an extra cost.  
+> OK, I have made the relevant changes in Mesa and now I have image but
+> the U and V components are swapped (the format is NV12, the UV plane is
+> at the same buffer but at offset). Digging further and tracing gstreamer
+> with apitrace I'm observing something weird.
 > 
-> I really don't like this. This has a much larger impact on vb2 core then adding
-> a simple quirk flag.
+> The gst import dmabuf with following call:
 > 
-> Regards,
+> eglCreateImageKHR(dpy = 0x7fa8013030, ctx = NULL, target =
+> EGL_LINUX_DMA_BUF_EXT, buffer = NULL, attrib_list = {EGL_WIDTH, 640,
+> EGL_HEIGHT, 360, EGL_LINUX_DRM_FOURCC_EXT, 943215175,
+> EGL_DMA_BUF_PLANE0_FD_EXT, 29, EGL_DMA_BUF_PLANE0_OFFSET_EXT, 942080,
+> EGL_DMA_BUF_PLANE0_PITCH_EXT, 1280, EGL_NONE}) = 0x7f980027d0
 > 
-> 	Hans
-
-
--- 
-Thanks,
-Mauro
+> the fourcc format is DRM_FORMAT_GR88 (943215175 decimal).
+> 
+> after that:
+> 
+> glTexImage2D(target = GL_TEXTURE_2D, level = 0, internalformat = GL_RG8,
+> width = 640, height = 360, border = 0, format = GL_RG, type =
+> GL_UNSIGNED_BYTE, pixels = NULL)
+> 
+> and finally on the fragment shader we have:
+> 
+> yuv.x=texture2D(Ytex, texcoord * tex_scale0).r;
+> yuv.yz=texture2D(UVtex, texcoord * tex_scale1).rg;
+> 
+> I was expecting to see DRM_FORMAT_RG88 / GL_RG and shader sampling
+> y <- r
+> z <- g
+> 
+> or DRM_FORMAT_GR88 / GL_RG and shader sampling
+> y <- g
+> z <- r
+> 
+> Also, browsing the code in Mesa for Intel i965 dri driver I found where
+> the __DRI_IMAGE_FORMAT_GR88 becomes MESA_FORMAT_R8G8_UNORM [1].
+> 
+> So I'm wondering is that intensional?
+> 
+> Depending on the answer I should make the same in the Gallium dri2 in
+> dri2_from_dma_bufs().
+> 
