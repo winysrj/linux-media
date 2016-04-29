@@ -1,133 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36995 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751708AbcDYODA (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42456 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751303AbcD2HP3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 10:03:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Florian Echtler <floe@butterbrot.org>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Fabien Dessenne <fabien.dessenne@st.com>,
-	Benoit Parrot <bparrot@ti.com>,
-	Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Ludovic Desroches <ludovic.desroches@atmel.com>,
-	Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCHv3 01/12] vb2: add a dev field to use for the default allocation context
-Date: Mon, 25 Apr 2016 17:03:21 +0300
-Message-ID: <2233231.mOPctrYVgM@avalon>
-In-Reply-To: <571DC685.1040901@xs4all.nl>
-References: <1461314299-36126-1-git-send-email-hverkuil@xs4all.nl> <2315180.nFEM82KaAP@avalon> <571DC685.1040901@xs4all.nl>
+	Fri, 29 Apr 2016 03:15:29 -0400
+Date: Fri, 29 Apr 2016 09:15:26 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+	patrikbachan@gmail.com, serge@hallyn.com, sakari.ailus@iki.fi,
+	tuukkat76@gmail.com
+Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org
+Subject: v4l subdevs without big device was Re: drivers/media/i2c/adp1653.c:
+ does not show as /dev/video* or v4l-subdev*
+Message-ID: <20160429071525.GA4823@amd>
+References: <20160428084546.GA9957@amd>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160428084546.GA9957@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi!
 
-On Monday 25 Apr 2016 09:25:57 Hans Verkuil wrote:
-> On 04/24/2016 11:51 PM, Laurent Pinchart wrote:
-> > On Saturday 23 Apr 2016 12:37:10 Hans Verkuil wrote:
-> >> On 04/23/2016 02:14 AM, Laurent Pinchart wrote:
-> >>> On Friday 22 Apr 2016 10:38:08 Hans Verkuil wrote:
-> >>>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> 
-> >>>> The allocation context is nothing more than a per-plane device pointer
-> >>>> to use when allocating buffers. So just provide a dev pointer in
-> >>>> vb2_queue for that purpose and drivers can skip
-> >>>> allocating/releasing/filling in the allocation context unless they
-> >>>> require different per-plane device pointers as used by some Samsung
-> >>>> SoCs.
-> >>>> 
-> >>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>> Cc: Laurent Pinchart <Laurent.pinchart@ideasonboard.com>
-> >>>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> >>>> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> >>>> Cc: Florian Echtler <floe@butterbrot.org>
-> >>>> Cc: Federico Vaga <federico.vaga@gmail.com>
-> >>>> Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> >>>> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-> >>>> Cc: Philipp Zabel <p.zabel@pengutronix.de>
-> >>>> Cc: Fabien Dessenne <fabien.dessenne@st.com>
-> >>>> Cc: Benoit Parrot <bparrot@ti.com>
-> >>>> Cc: Mikhail Ulyanov <mikhail.ulyanov@cogentembedded.com>
-> >>>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >>>> Cc: Javier Martin <javier.martin@vista-silicon.com>
-> >>>> Cc: Jonathan Corbet <corbet@lwn.net>
-> >>>> Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-> >>>> Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> >>>> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> >>>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >>>> ---
-> >>>> 
-> >>>>  drivers/media/v4l2-core/videobuf2-core.c | 16 +++++++++-------
-> >>>>  include/media/videobuf2-core.h           |  3 +++
-> >>>>  2 files changed, 12 insertions(+), 7 deletions(-)
-> >>>> 
-> >>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> >>>> b/drivers/media/v4l2-core/videobuf2-core.c index 5d016f4..88b5e48
-> >>>> 100644
-> >>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> >>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> >>>> @@ -206,8 +206,9 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer
-> >>>> *vb)
-> >>>> 
-> >>>>  	for (plane = 0; plane < vb->num_planes; ++plane) {
-> >>>>  	
-> >>>>  		unsigned long size = PAGE_ALIGN(vb->planes[plane].length);
-> >>>> 
-> >>>> -		mem_priv = call_ptr_memop(vb, alloc, q->alloc_ctx[plane],
-> >>>> -				      size, dma_dir, q->gfp_flags);
-> >>>> +		mem_priv = call_ptr_memop(vb, alloc,
-> >>>> +				q->alloc_ctx[plane] ? : &q->dev,
-> >>>> +				size, dma_dir, q->gfp_flags);
-> >>> 
-> >>> While the videobuf2-dma-sg allocation context indeed only contains a
-> >>> pointer to the device, the videobuf2-dma-contig context also contains a
-> >>> dma_attrs. This patch will break the videobuf2-dma-contig alloc
-> >>> implementation.
-> >> 
-> >> Good point. I fixed this in the last patch, but that would mean
-> >> dma-contig would be broken for the patches in between.
-> >> 
-> >> I'm moving dma_attrs to struct vb2_queue as the first patch, then the
-> >> rest will work fine.
-> > 
-> > Couldn't a driver require different dma attributes per plane ? Would it
-> > make sense to keep the allocation context structure, and use the struct
-> > device and dma attributes stored in the queue when no allocation context
-> > is provided ?
->
-> I kept the dma_attrs part simple for two reasons:
+> On n900, probe finishes ok (verified by adding printks), and the
+> device shows up in /sys, but I  don't get /dev/video* or
+> /dev/v4l-subdev*.
 > 
-> 1) No driver in the kernel uses it.
-> 2) I really can't think of any scenario where you get different DMA attrs
-> per plane. Perhaps if we make it possible to have a variable number of
-> planes, but all that is in the future and I rather take care of it when we
-> actually know what we need.
-> 
-> The 'allocation context' idea was simply a bad one: you're stuck with void
-> pointers (I hate those) and always having to check for ENOMEM when
-> allocating them. When all you need in almost all cases is just a device
-> pointer.
+> Other drivers (back and front camera) load ok, and actually work. Any
+> idea what could be wrong?
 
-Fair enough, we can add support for different DMA attributes later if we end 
-up needed that.
+Ok, so I guess I realized what is the problem:
 
+adp1653 registers itself as a subdev, but there's no device that
+register it as its part.
+
+(ad5820 driver seems to have the same problem).
+
+Is there example "dummy" device I could use, for sole purpose of
+having these devices appear in /dev? They are on i2c, so both can work
+on their own.
+
+Thanks,
+									Pavel
 -- 
-Regards,
-
-Laurent Pinchart
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
