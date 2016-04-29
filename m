@@ -1,139 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:21546 "EHLO
-	eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754109AbcDOJXw (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:47795 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753550AbcD2Nwo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 05:23:52 -0400
-Date: Fri, 15 Apr 2016 11:22:46 +0200
-From: Ludovic Desroches <ludovic.desroches@atmel.com>
-To: Songjun Wu <songjun.wu@atmel.com>
-CC: <g.liakhovetski@gmx.de>, <nicolas.ferre@atmel.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	<devicetree@vger.kernel.org>, Pawel Moll <pawel.moll@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	<linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>,
-	Kumar Gala <galak@codeaurora.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 2/2] [media] atmel-isc: DT binding for Image Sensor
- Controller driver
-Message-ID: <20160415092246.GC3544@odux.rfo.atmel.com>
-References: <1460533460-32336-1-git-send-email-songjun.wu@atmel.com>
- <1460533460-32336-3-git-send-email-songjun.wu@atmel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <1460533460-32336-3-git-send-email-songjun.wu@atmel.com>
+	Fri, 29 Apr 2016 09:52:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	linux-input@vger.kernel.org, lars@opdenkamp.eu,
+	linux@arm.linux.org.uk, Kamil Debski <kamil@wypas.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv16 03/13] rc: Add HDMI CEC protocol handling
+Date: Fri, 29 Apr 2016 15:52:18 +0200
+Message-Id: <1461937948-22936-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
+References: <1461937948-22936-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-+ linux-media@vger.kernel.org
+From: Kamil Debski <kamil@wypas.org>
 
-On Wed, Apr 13, 2016 at 03:44:20PM +0800, Songjun Wu wrote:
-> DT binding documentation for ISC driver.
-> 
-> Signed-off-by: Songjun Wu <songjun.wu@atmel.com>
-> ---
-> 
->  .../devicetree/bindings/media/atmel-isc.txt        | 84 ++++++++++++++++++++++
->  1 file changed, 84 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/atmel-isc.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/atmel-isc.txt b/Documentation/devicetree/bindings/media/atmel-isc.txt
-> new file mode 100644
-> index 0000000..449f05f
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/atmel-isc.txt
-> @@ -0,0 +1,84 @@
-> +Atmel Image Sensor Controller (ISC)
-> +----------------------------------------------
-> +
-> +Required properties:
-> +- compatible
-> +	Must be "atmel,sama5d2-isc"
-> +- reg
-> +	Physical base address and length of the registers set for the device;
-> +- interrupts
-> +  Should contain IRQ line for the ISI;
-> +- clocks
-> +	List of clock specifiers, corresponding to entries in
-> +	the clock-names property;
-> +	Please refer to clock-bindings.txt.
-> +- clock-names
-> +	Required elements: "hclock", "ispck".
-> +- pinctrl-names, pinctrl-0
-> +	Please refer to pinctrl-bindings.txt.
-> +- clk_in_isc
-> +	ISC internal clock node, it includes the isc_ispck and isc_mck.
-> +	Please refer to clock-bindings.txt.
-> +- atmel,sensor-preferred
-> +	Sensor is preferred to process image (1-preferred, 0-not).
-> +	The default value is 1.
-> +
-> +ISC supports a single port node with parallel bus. It should contain one
-> +'port' child node with child 'endpoint' node. Please refer to the bindings
-> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +isc: isc@f0008000 {
-> +	compatible = "atmel,sama5d2-isc";
-> +	reg = <0xf0008000 0x4000>;
-> +	interrupts = <46 IRQ_TYPE_LEVEL_HIGH 5>;
-> +	clocks = <&isc_clk>, <&isc_ispck>;
-> +	clock-names = "hclock", "ispck";
-> +	atmel,sensor-preferred = <1>;
-> +
-> +	port {
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		isc_0: endpoint@0 {
-> +			remote-endpoint = <&ov7740_0>;
-> +			hsync-active = <1>;
-> +			vsync-active = <0>;
-> +			pclk-sample = <1>;
-> +		};
-> +	};
-> +
-> +	clk_in_isc {
-> +		#address-cells = <1>;
-> +		#size-cells = <0>;
-> +
-> +		isc_ispck: isc_ispck {
-> +			#clock-cells = <0>;
-> +			reg = <0>;
-> +			clocks = <&isc_clk>, <&iscck>;
-> +		};
-> +
-> +		isc_mck: isc_mck {
-> +			#clock-cells = <0>;
-> +			reg = <1>;
-> +			clocks = <&isc_clk>, <&iscck>, <&isc_gclk>;
-> +		};
-> +	};
-> +};
-> +
-> +i2c1: i2c@fc028000 {
-> +	ov7740: camera@0x21 {
-> +	compatible = "ovti,ov7740";
-> +	reg = <0x21>;
-> +
-> +	clocks = <&isc_mck>;
-> +	clock-names = "xvclk";
-> +	assigned-clocks = <&isc_mck>;
-> +	assigned-clock-rates = <24000000>;
-> +
-> +	port {
-> +		ov7740_0: endpoint {
-> +			remote-endpoint = <&isc_0>;
-> +		};
-> +	};
-> +};
-> -- 
-> 2.7.4
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Add handling of remote control events coming from the HDMI CEC bus.
+This patch includes a new keymap that maps values found in the CEC
+messages to the keys pressed and released. Also, a new protocol has
+been added to the core.
+
+Signed-off-by: Kamil Debski <kamil@wypas.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/rc/keymaps/Makefile |   1 +
+ drivers/media/rc/keymaps/rc-cec.c | 174 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/rc-main.c        |   1 +
+ include/media/rc-map.h            |   5 +-
+ 4 files changed, 180 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/rc/keymaps/rc-cec.c
+
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index fbbd3bb..9cffcc6 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -18,6 +18,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-behold.o \
+ 			rc-behold-columbus.o \
+ 			rc-budget-ci-old.o \
++			rc-cec.o \
+ 			rc-cinergy-1400.o \
+ 			rc-cinergy.o \
+ 			rc-delock-61959.o \
+diff --git a/drivers/media/rc/keymaps/rc-cec.c b/drivers/media/rc/keymaps/rc-cec.c
+new file mode 100644
+index 0000000..193cdca
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-cec.c
+@@ -0,0 +1,174 @@
++/* Keytable for the CEC remote control
++ *
++ * Copyright (c) 2015 by Kamil Debski
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <media/rc-map.h>
++#include <linux/module.h>
++
++/* CEC Spec "High-Definition Multimedia Interface Specification" can be obtained
++ * here: http://xtreamerdev.googlecode.com/files/CEC_Specs.pdf
++ * The list of control codes is listed in Table 27: User Control Codes p. 95 */
++
++static struct rc_map_table cec[] = {
++	{ 0x00, KEY_OK },
++	{ 0x01, KEY_UP },
++	{ 0x02, KEY_DOWN },
++	{ 0x03, KEY_LEFT },
++	{ 0x04, KEY_RIGHT },
++	{ 0x05, KEY_RIGHT_UP },
++	{ 0x06, KEY_RIGHT_DOWN },
++	{ 0x07, KEY_LEFT_UP },
++	{ 0x08, KEY_LEFT_DOWN },
++	{ 0x09, KEY_ROOT_MENU }, /* CEC Spec: Device Root Menu - see Note 2 */
++	/* Note 2: This is the initial display that a device shows. It is
++	 * device-dependent and can be, for example, a contents menu, setup
++	 * menu, favorite menu or other menu. The actual menu displayed
++	 * may also depend on the device's current state. */
++	{ 0x0a, KEY_SETUP },
++	{ 0x0b, KEY_MENU }, /* CEC Spec: Contents Menu */
++	{ 0x0c, KEY_FAVORITES }, /* CEC Spec: Favorite Menu */
++	{ 0x0d, KEY_EXIT },
++	/* 0x0e-0x0f: Reserved */
++	{ 0x10, KEY_MEDIA_TOP_MENU },
++	{ 0x11, KEY_CONTEXT_MENU },
++	/* 0x12-0x1c: Reserved */
++	{ 0x1d, KEY_DIGITS }, /* CEC Spec: select/toggle a Number Entry Mode */
++	{ 0x1e, KEY_NUMERIC_11 },
++	{ 0x1f, KEY_NUMERIC_12 },
++	/* 0x20-0x29: Keys 0 to 9 */
++	{ 0x20, KEY_NUMERIC_0 },
++	{ 0x21, KEY_NUMERIC_1 },
++	{ 0x22, KEY_NUMERIC_2 },
++	{ 0x23, KEY_NUMERIC_3 },
++	{ 0x24, KEY_NUMERIC_4 },
++	{ 0x25, KEY_NUMERIC_5 },
++	{ 0x26, KEY_NUMERIC_6 },
++	{ 0x27, KEY_NUMERIC_7 },
++	{ 0x28, KEY_NUMERIC_8 },
++	{ 0x29, KEY_NUMERIC_9 },
++	{ 0x2a, KEY_DOT },
++	{ 0x2b, KEY_ENTER },
++	{ 0x2c, KEY_CLEAR },
++	/* 0x2d-0x2e: Reserved */
++	{ 0x2f, KEY_NEXT_FAVORITE }, /* CEC Spec: Next Favorite */
++	{ 0x30, KEY_CHANNELUP },
++	{ 0x31, KEY_CHANNELDOWN },
++	{ 0x32, KEY_PREVIOUS }, /* CEC Spec: Previous Channel */
++	{ 0x33, KEY_SOUND }, /* CEC Spec: Sound Select */
++	{ 0x34, KEY_VIDEO }, /* 0x34: CEC Spec: Input Select */
++	{ 0x35, KEY_INFO }, /* CEC Spec: Display Information */
++	{ 0x36, KEY_HELP },
++	{ 0x37, KEY_PAGEUP },
++	{ 0x38, KEY_PAGEDOWN },
++	/* 0x39-0x3f: Reserved */
++	{ 0x40, KEY_POWER },
++	{ 0x41, KEY_VOLUMEUP },
++	{ 0x42, KEY_VOLUMEDOWN },
++	{ 0x43, KEY_MUTE },
++	{ 0x44, KEY_PLAYCD },
++	{ 0x45, KEY_STOPCD },
++	{ 0x46, KEY_PAUSECD },
++	{ 0x47, KEY_RECORD },
++	{ 0x48, KEY_REWIND },
++	{ 0x49, KEY_FASTFORWARD },
++	{ 0x4a, KEY_EJECTCD }, /* CEC Spec: Eject */
++	{ 0x4b, KEY_FORWARD },
++	{ 0x4c, KEY_BACK },
++	{ 0x4d, KEY_STOP_RECORD }, /* CEC Spec: Stop-Record */
++	{ 0x4e, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record */
++	/* 0x4f: Reserved */
++	{ 0x50, KEY_ANGLE },
++	{ 0x51, KEY_TV2 },
++	{ 0x52, KEY_VOD }, /* CEC Spec: Video on Demand */
++	{ 0x53, KEY_EPG },
++	{ 0x54, KEY_TIME }, /* CEC Spec: Timer */
++	{ 0x55, KEY_CONFIG },
++	/* The following codes are hard to implement at this moment, as they
++	 * carry an additional additional argument. Most likely changes to RC
++	 * framework are necessary.
++	 * For now they are interpreted by the CEC framework as non keycodes
++	 * and are passed as messages enabling user application to parse them.
++	 * */
++	/* 0x56: CEC Spec: Select Broadcast Type */
++	/* 0x57: CEC Spec: Select Sound presentation */
++	{ 0x58, KEY_AUDIO_DESC }, /* CEC 2.0 and up */
++	{ 0x59, KEY_WWW }, /* CEC 2.0 and up */
++	{ 0x5a, KEY_3D_MODE }, /* CEC 2.0 and up */
++	/* 0x5b-0x5f: Reserved */
++	{ 0x60, KEY_PLAYCD }, /* CEC Spec: Play Function */
++	{ 0x6005, KEY_FASTFORWARD },
++	{ 0x6006, KEY_FASTFORWARD },
++	{ 0x6007, KEY_FASTFORWARD },
++	{ 0x6015, KEY_SLOW },
++	{ 0x6016, KEY_SLOW },
++	{ 0x6017, KEY_SLOW },
++	{ 0x6009, KEY_FASTREVERSE },
++	{ 0x600a, KEY_FASTREVERSE },
++	{ 0x600b, KEY_FASTREVERSE },
++	{ 0x6019, KEY_SLOWREVERSE },
++	{ 0x601a, KEY_SLOWREVERSE },
++	{ 0x601b, KEY_SLOWREVERSE },
++	{ 0x6020, KEY_REWIND },
++	{ 0x6024, KEY_PLAYCD },
++	{ 0x6025, KEY_PAUSECD },
++	{ 0x61, KEY_PLAYPAUSE }, /* CEC Spec: Pause-Play Function */
++	{ 0x62, KEY_RECORD }, /* Spec: Record Function */
++	{ 0x63, KEY_PAUSE_RECORD }, /* CEC Spec: Pause-Record Function */
++	{ 0x64, KEY_STOPCD }, /* CEC Spec: Stop Function */
++	{ 0x65, KEY_MUTE }, /* CEC Spec: Mute Function */
++	{ 0x66, KEY_UNMUTE }, /* CEC Spec: Restore the volume */
++	/* The following codes are hard to implement at this moment, as they
++	 * carry an additional additional argument. Most likely changes to RC
++	 * framework are necessary.
++	 * For now they are interpreted by the CEC framework as non keycodes
++	 * and are passed as messages enabling user application to parse them.
++	 * */
++	/* 0x67: CEC Spec: Tune Function */
++	/* 0x68: CEC Spec: Seleect Media Function */
++	/* 0x69: CEC Spec: Select A/V Input Function */
++	/* 0x6a: CEC Spec: Select Audio Input Function */
++	{ 0x6b, KEY_POWER }, /* CEC Spec: Power Toggle Function */
++	{ 0x6c, KEY_SLEEP }, /* CEC Spec: Power Off Function */
++	{ 0x6d, KEY_WAKEUP }, /* CEC Spec: Power On Function */
++	/* 0x6e-0x70: Reserved */
++	{ 0x71, KEY_BLUE }, /* CEC Spec: F1 (Blue) */
++	{ 0x72, KEY_RED }, /* CEC Spec: F2 (Red) */
++	{ 0x73, KEY_GREEN }, /* CEC Spec: F3 (Green) */
++	{ 0x74, KEY_YELLOW }, /* CEC Spec: F4 (Yellow) */
++	{ 0x75, KEY_F5 },
++	{ 0x76, KEY_DATA }, /* CEC Spec: Data - see Note 3 */
++	/* Note 3: This is used, for example, to enter or leave a digital TV
++	 * data broadcast application. */
++	/* 0x77-0xff: Reserved */
++};
++
++static struct rc_map_list cec_map = {
++	.map = {
++		.scan		= cec,
++		.size		= ARRAY_SIZE(cec),
++		.rc_type	= RC_TYPE_CEC,
++		.name		= RC_MAP_CEC,
++	}
++};
++
++static int __init init_rc_map_cec(void)
++{
++	return rc_map_register(&cec_map);
++}
++
++static void __exit exit_rc_map_cec(void)
++{
++	rc_map_unregister(&cec_map);
++}
++
++module_init(init_rc_map_cec);
++module_exit(exit_rc_map_cec);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Kamil Debski");
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 4e9bbe7..85c364a 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -804,6 +804,7 @@ static const struct {
+ 	{ RC_BIT_SHARP,		"sharp",	"ir-sharp-decoder"	},
+ 	{ RC_BIT_MCE_KBD,	"mce_kbd",	"ir-mce_kbd-decoder"	},
+ 	{ RC_BIT_XMP,		"xmp",		"ir-xmp-decoder"	},
++	{ RC_BIT_CEC,		"cec",		NULL			},
+ };
+ 
+ /**
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 7844e98..6e6557d 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -31,6 +31,7 @@ enum rc_type {
+ 	RC_TYPE_RC6_MCE		= 16,	/* MCE (Philips RC6-6A-32 subtype) protocol */
+ 	RC_TYPE_SHARP		= 17,	/* Sharp protocol */
+ 	RC_TYPE_XMP		= 18,	/* XMP protocol */
++	RC_TYPE_CEC		= 19,	/* CEC protocol */
+ };
+ 
+ #define RC_BIT_NONE		0ULL
+@@ -53,6 +54,7 @@ enum rc_type {
+ #define RC_BIT_RC6_MCE		(1ULL << RC_TYPE_RC6_MCE)
+ #define RC_BIT_SHARP		(1ULL << RC_TYPE_SHARP)
+ #define RC_BIT_XMP		(1ULL << RC_TYPE_XMP)
++#define RC_BIT_CEC		(1ULL << RC_TYPE_CEC)
+ 
+ #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
+ 			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
+@@ -61,7 +63,7 @@ enum rc_type {
+ 			 RC_BIT_NEC | RC_BIT_SANYO | RC_BIT_MCE_KBD | \
+ 			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
+ 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
+-			 RC_BIT_XMP)
++			 RC_BIT_XMP | RC_BIT_CEC)
+ 
+ 
+ #define RC_SCANCODE_UNKNOWN(x)			(x)
+@@ -123,6 +125,7 @@ void rc_map_init(void);
+ #define RC_MAP_BEHOLD_COLUMBUS           "rc-behold-columbus"
+ #define RC_MAP_BEHOLD                    "rc-behold"
+ #define RC_MAP_BUDGET_CI_OLD             "rc-budget-ci-old"
++#define RC_MAP_CEC                       "rc-cec"
+ #define RC_MAP_CINERGY_1400              "rc-cinergy-1400"
+ #define RC_MAP_CINERGY                   "rc-cinergy"
+ #define RC_MAP_DELOCK_61959              "rc-delock-61959"
+-- 
+2.8.1
+
