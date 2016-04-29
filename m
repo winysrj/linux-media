@@ -1,146 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42884 "EHLO
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:55122 "EHLO
 	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753338AbcDFDbQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751583AbcD2Knl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Apr 2016 23:31:16 -0400
-Received: from [10.199.27.220] (unknown [209.65.105.133])
-	by tschai.lan (Postfix) with ESMTPSA id 1CC7B180529
-	for <linux-media@vger.kernel.org>; Wed,  6 Apr 2016 05:31:04 +0200 (CEST)
-Subject: Re: cron job: media_tree daily build: ERRORS
-To: linux-media@vger.kernel.org
-References: <20160406030611.E0463180529@tschai.lan>
+	Fri, 29 Apr 2016 06:43:41 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+	<niklas.soderlund+renesas@ragnatech.se>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <570482F6.1070801@xs4all.nl>
-Date: Tue, 5 Apr 2016 20:31:02 -0700
+Subject: [GIT PULL FOR v4.7] Add new rcar-vin driver
+Message-ID: <57233AD8.1030800@xs4all.nl>
+Date: Fri, 29 Apr 2016 12:43:36 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160406030611.E0463180529@tschai.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
+This adds the new non-soc-camera rcar-vin driver, deprecating the older driver.
 
-On 04/05/2016 08:06 PM, Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds media_tree for
-> the kernels and architectures in the list below.
->
-> Results of the daily build of media_tree:
->
-> date:		Wed Apr  6 04:00:18 CEST 2016
-> git branch:	test
-> git hash:	d3f5193019443ef8e556b64f3cd359773c4d377b
-> gcc version:	i686-linux-gcc (GCC) 5.3.0
-> sparse version:	v0.5.0-56-g7647c77
-> smatch version:	v0.5.0-3353-gcae47da
-> host hardware:	x86_64
-> host os:	4.4.0-164
->
-> linux-git-arm-at91: OK
-> linux-git-arm-davinci: OK
-> linux-git-arm-exynos: OK
-> linux-git-arm-mx: OK
-> linux-git-arm-omap: OK
-> linux-git-arm-omap1: OK
-> linux-git-arm-pxa: OK
-> linux-git-blackfin-bf561: OK
-> linux-git-i686: OK
-> linux-git-m32r: OK
-> linux-git-mips: OK
-> linux-git-powerpc64: OK
-> linux-git-sh: OK
-> linux-git-x86_64: OK
-> linux-2.6.36.4-i686: OK
-> linux-2.6.37.6-i686: OK
-> linux-2.6.38.8-i686: OK
-> linux-2.6.39.4-i686: OK
-> linux-3.0.60-i686: OK
-> linux-3.1.10-i686: OK
-> linux-3.2.37-i686: OK
-> linux-3.3.8-i686: OK
-> linux-3.4.27-i686: OK
-> linux-3.5.7-i686: OK
-> linux-3.6.11-i686: OK
-> linux-3.7.4-i686: OK
-> linux-3.8-i686: OK
-> linux-3.9.2-i686: OK
-> linux-3.10.1-i686: OK
-> linux-3.11.1-i686: OK
-> linux-3.12.23-i686: OK
-> linux-3.13.11-i686: OK
-> linux-3.14.9-i686: OK
-> linux-3.15.2-i686: OK
-> linux-3.16.7-i686: OK
-> linux-3.17.8-i686: OK
-> linux-3.18.7-i686: OK
-> linux-3.19-i686: OK
-> linux-4.0-i686: OK
-> linux-4.1.1-i686: OK
-> linux-4.2-i686: OK
-> linux-4.3-i686: OK
-> linux-4.4-i686: OK
-> linux-4.5-i686: OK
-> linux-4.6-rc1-i686: OK
-> linux-2.6.36.4-x86_64: OK
-> linux-2.6.37.6-x86_64: OK
-> linux-2.6.38.8-x86_64: OK
-> linux-2.6.39.4-x86_64: OK
-> linux-3.0.60-x86_64: OK
-> linux-3.1.10-x86_64: OK
-> linux-3.2.37-x86_64: OK
-> linux-3.3.8-x86_64: OK
-> linux-3.4.27-x86_64: OK
-> linux-3.5.7-x86_64: OK
-> linux-3.6.11-x86_64: OK
-> linux-3.7.4-x86_64: OK
-> linux-3.8-x86_64: OK
-> linux-3.9.2-x86_64: OK
-> linux-3.10.1-x86_64: OK
-> linux-3.11.1-x86_64: OK
-> linux-3.12.23-x86_64: OK
-> linux-3.13.11-x86_64: OK
-> linux-3.14.9-x86_64: OK
-> linux-3.15.2-x86_64: OK
-> linux-3.16.7-x86_64: OK
-> linux-3.17.8-x86_64: OK
-> linux-3.18.7-x86_64: OK
-> linux-3.19-x86_64: OK
-> linux-4.0-x86_64: OK
-> linux-4.1.1-x86_64: OK
-> linux-4.2-x86_64: OK
-> linux-4.3-x86_64: OK
-> linux-4.4-x86_64: OK
-> linux-4.5-x86_64: OK
-> linux-4.6-rc1-x86_64: ERRORS
+Tested with my Koelsch board.
 
-This is caused by the CONFIG_KCOV option suddenly being enabled, which requires support for a particular
-gcc option, which apparently my cross compiler doesn't have. I've temporarily disabled compiling this
-kernel until I am back and can take a closer look at this.
+This patch just marks the old driver as DEPRECATED.
+
+I am unsure what is better:
+
+1) just mark as DEPRECATED and remove it in the next kernel
+2) move it to drivers/staging/media and remove it in the next kernel
+3) just remove it now
+
+I have no strong preference myself.
 
 Regards,
 
 	Hans
 
+The following changes since commit 45c175c4ae9695d6d2f30a45ab7f3866cfac184b:
 
-> apps: OK
-> spec-git: OK
-> sparse: WARNINGS
-> smatch: ERRORS
->
-> Detailed results are available here:
->
-> http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
->
-> Full logs are available here:
->
-> http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
->
-> The Media Infrastructure API from this daily build is here:
->
-> http://www.xs4all.nl/~hverkuil/spec/media.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+  [media] tw686x: avoid going past array (2016-04-26 06:38:53 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git rcar
+
+for you to fetch changes up to dd34ebe6deb4162993efb5de12b0418354ee5173:
+
+  rcar-vin: add Renesas R-Car VIN driver (2016-04-29 12:13:16 +0200)
+
+----------------------------------------------------------------
+Niklas Söderlund (1):
+      rcar-vin: add Renesas R-Car VIN driver
+
+ drivers/media/platform/Kconfig              |    1 +
+ drivers/media/platform/Makefile             |    2 +
+ drivers/media/platform/rcar-vin/Kconfig     |   11 +
+ drivers/media/platform/rcar-vin/Makefile    |    3 +
+ drivers/media/platform/rcar-vin/rcar-core.c |  337 ++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 1196 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  768 +++++++++++++++++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  163 ++++++++
+ drivers/media/platform/soc_camera/Kconfig   |    4 +-
+ drivers/media/platform/soc_camera/Makefile  |    2 +-
+ 10 files changed, 2484 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/media/platform/rcar-vin/Kconfig
+ create mode 100644 drivers/media/platform/rcar-vin/Makefile
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-core.c
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-dma.c
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-v4l2.c
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-vin.h
