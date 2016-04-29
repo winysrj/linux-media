@@ -1,94 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34887 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755463AbcDNQSL (ORCPT
+Received: from zencphosting06.zen.co.uk ([82.71.204.9]:59406 "EHLO
+	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753114AbcD2MOT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Apr 2016 12:18:11 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v3 6/7] media: rcar-vin: initialize EDID data
-Date: Thu, 14 Apr 2016 18:17:49 +0200
-Message-Id: <1460650670-20849-7-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1460650670-20849-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1460650670-20849-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Fri, 29 Apr 2016 08:14:19 -0400
+Subject: Re: [PATCH 0/8] Input: atmel_mxt_ts - output raw touch diagnostic
+ data via V4L
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <1461231101-1237-1-git-send-email-nick.dyer@itdev.co.uk>
+ <5719E03D.2010201@xs4all.nl> <20160422114517.0e7430bd@recife.lan>
+ <571A3E3E.60601@itdev.co.uk> <571A40C0.90208@xs4all.nl>
+ <20160422124425.39ac140f@recife.lan>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+Message-ID: <57235014.8060304@itdev.co.uk>
+Date: Fri, 29 Apr 2016 13:14:12 +0100
+MIME-Version: 1.0
+In-Reply-To: <20160422124425.39ac140f@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initializes the decoder subdevice with a fixed EDID blob.
+On 22/04/2016 16:44, Mauro Carvalho Chehab wrote:
+>> On the other hand, it would be a good place to tell the user that it
+>> is from a touch sensor.
+>>
+>> Using the upcoming metadata feature wouldn't work since there is no width
+>> and height in the metadata format.
+>>
+>> I wonder what others think about adding a new type value.
+> 
+> IMO, two things should be done here:
+> 
+> 1) Add some caps flag to help userspace to identify what's there
+>    on those devices;
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 46 +++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+In the patches I have written so far, I have used inputs to select between
+different types of data, so I believe there's no real need for this yet.
+Did you have anything else in mind?
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index ba2ed4e..5b32105 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -720,6 +720,41 @@ void rvin_v4l2_remove(struct rvin_dev *vin)
- 	video_unregister_device(&vin->vdev);
- }
- 
-+static u8 edid[256] = {
-+	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
-+	0x48, 0xAE, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
-+	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
-+	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
-+	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
-+	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
-+	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
-+	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
-+	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
-+	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
-+	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
-+	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
-+	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-+	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
-+	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
-+	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
-+	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
-+	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
-+	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
-+	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
-+};
-+
- int rvin_v4l2_probe(struct rvin_dev *vin)
- {
- 	struct v4l2_subdev_format fmt = {
-@@ -821,5 +856,16 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	v4l2_info(&vin->v4l2_dev, "Device registered as %s\n",
- 		  video_device_node_name(&vin->vdev));
- 
-+	{
-+		struct v4l2_subdev_edid rvin_edid = {
-+			.pad = 0,
-+			.start_block = 0,
-+			.blocks = 2,
-+			.edid = edid,
-+		};
-+		v4l2_subdev_call(sd, pad, set_edid,
-+				&rvin_edid);
-+	}
-+
- 	return ret;
- }
--- 
-2.7.4
+> 2) Make sure that udev/systemd won't be naming the devnodes as
+>    "/dev/video";
+> 
+> 
+> The latter one could be solved with either the new dev meta or
+> with another VFL_TYPE for input systems (like VFL_TYPE_TOUCH_SENSOR)
+> and use this code snippet:
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index d8e5994cccf1..4d3e574eba49 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -887,6 +887,9 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+>                 /* Use device name 'swradio' because 'sdr' was already taken. */
+>                 name_base = "swradio";
+>                 break;
+> +       case VFL_TYPE_TOUCH_SENSOR:
+> +               name_base = "v4l-touch";
+> +               break;
+>         default:
+>                 printk(KERN_ERR "%s called with unknown type: %d\n",
+>                        __func__, type);
+> 
+> 
+> Such change would cause __video_register_device() to pass a different
+> name_base to:
+> 	dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
+> 
+> This way, udev/systemd will use a different name (by default, 
+> /dev/v4l-touch0), and existing apps won't identify this as a
+> webcam.
 
+Thanks - this sounds like a good approach to me. I will update.
