@@ -1,90 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49171 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753848AbcDVIfJ (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46958 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751814AbcD2JuG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Apr 2016 04:35:09 -0400
-Subject: Re: [RFC] Streaming I/O: proposal to expose MMAP/USERPTR/DMABUF
- capabilities with QUERYCAP
-To: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-References: <5719DBE3.3040707@xs4all.nl>
- <CAH-u=82TugRcE1r=Rp=-YG9gVDV1i6bJixpZESBSqWPzhXZzsg@mail.gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5719E233.5090307@xs4all.nl>
-Date: Fri, 22 Apr 2016 10:34:59 +0200
+	Fri, 29 Apr 2016 05:50:06 -0400
+Date: Fri, 29 Apr 2016 11:50:02 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
+	sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+	patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com,
+	mchehab@osg.samsung.com, linux-media@vger.kernel.org
+Subject: Re: v4l subdevs without big device was Re:
+ drivers/media/i2c/adp1653.c: does not show as /dev/video* or v4l-subdev*
+Message-ID: <20160429095002.GA22743@amd>
+References: <20160428084546.GA9957@amd>
+ <20160429071525.GA4823@amd>
+ <57230DE7.3020701@xs4all.nl>
+ <20160429075649.GG32125@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <CAH-u=82TugRcE1r=Rp=-YG9gVDV1i6bJixpZESBSqWPzhXZzsg@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20160429075649.GG32125@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/22/2016 10:23 AM, Jean-Michel Hautbois wrote:
-> Hi Hans,
+Hi!
+
+> > > adp1653 registers itself as a subdev, but there's no device that
+> > > register it as its part.
+> > > 
+> > > (ad5820 driver seems to have the same problem).
+> > > 
+> > > Is there example "dummy" device I could use, for sole purpose of
+> > > having these devices appear in /dev? They are on i2c, so both can work
+> > > on their own.
+> > 
+> > Ah, interesting. This was discussed a little bit during the Media Summit
+> > a few weeks back:
+> > 
+> > http://linuxtv.org/news.php?entry=2016-04-20.mchehab
+> > 
+> > See section 5:
+> > 
+> > "5. DT Bindings for flash & lens controllers
+> > 
+> > There are drivers that create their MC topology using the device tree information,
+> > which works great for entities that transport data, but how to detect entities
+> > that don’t transport data such as flash devices, focusers, etc.? How can those be
+> > deduced using the device tree?
+> > 
+> > Sensor DT node add phandle to focus controller: add generic v4l binding properties
+> > to reference such devices."
+> > 
+> > This wasn't a problem with the original N900 since that didn't use DT AFAIK and
+> > these devices were loaded explicitly through board code.
+
+> > But now you run into the same problem that I have.
+
+Actually... being able to do board-code solution for testing for now
+would be nice...
+
+> > 
+> > The solution is that sensor devices have to provide phandles to those controller
+> > devices. And to do that you need to define bindings which is always the hard part.
+> > 
+> > Look in Documentation/devicetree/bindings/media/video-interfaces.txt, section
+> > "Optional endpoint properties".
+> > 
+> > Something like:
+> > 
+> > controllers: an array of phandles to controller devices associated with this
+> > endpoint such as flash and lens controllers.
+> > 
+> > Warning: I'm no DT expert, so this is just a first attempt.
+> > 
+> > Platform drivers (omap3isp) will have to add these controller devices to the list
+> > of subdevs to load asynchronously.
 > 
-> 2016-04-22 10:08 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
->> Hi all,
->>
->> I have always been unhappy with the fact that it is so hard to tell whether
->> the USERPTR and/or DMABUF modes are available with Streaming I/O. QUERYCAP
->> only tells you if Streaming I/O is available, but not in which flavors.
->>
->> So I propose the following:
->>
->> #define V4L2_CAP_STREAMING_MMAP V4L2_CAP_STREAMING
->> #define V4L2_CAP_STREAMING_USERPTR 0x08000000
->> #define V4L2_CAP_STREAMING_DMABUF  0x10000000
->>
->> All drivers that currently support CAP_STREAMING also support MMAP. For userptr
->> and dmabuf support we add new caps. These can be set by the core if the driver
->> uses vb2 since the core can query the io_modes field of vb2_queue.
+> I seem to have patches I haven't had time to push back then:
 > 
-> So, you want to make it mandatory for future drivers that they support
-> MMAP. Fine with me.
-> BTW, dmabuf is still marked as experimental, what would make it part
-> of the API for good ?
+> <URL:http://salottisipuli.retiisi.org.uk/cgi-bin/gitweb.cgi?p=~sailus/linux.git;a=shortlog;h=refs/heads/leds-as3645a>
+>
 
-Just laziness on our part. I think I should go through the docs and update these
-things. Most things marked experimental can probably drop that designation.
+That gitweb is a bit confused about its own address, but I figured it
+out. Let me check...
 
-> 
->> For the drivers that do not yet support vb2 we can add it manually.
->>
->> I was considering making it a requirement that the MMAP streaming mode is
->> always present, but I don't know if that works once we get drivers that operate
->> on secure memory. So I won't do that for now.
-> 
-> By using "#define V4L2_CAP_STREAMING_MMAP V4L2_CAP_STREAMING" you make
-> it mandatory... You would need a separate bit to indicate MMAP
-> otherwise...
+pavel@amd:/data/l/linux-n900$ git fetch
+git://git.retiisi.org.uk/~sailus/linux.git leds-as3645a:leds-as3645a
+fatal: unable to connect to git.retiisi.org.uk:
+git.retiisi.org.uk: Name or service not known
 
-No: all *current* drivers marked CAP_STREAMING support MMAP. But future devices
-that might not support MMAP would not set this cap.
+pavel@amd:/data/l/linux-n900$ git fetch
+git://salottisipuli.retiisi.org.uk/~sailus/linux.git
+leds-as3645a:leds-as3645a
+remote: Counting objects: 132, done.
+remote: Compressing objects: 100% (46/46), done.
+remote: Total 132 (delta 111), reused 107 (delta 86)
+Receiving objects: 100% (132/132), 22.80 KiB | 0 bytes/s, done.
+Resolving deltas: 100% (111/111), completed with 34 local objects.
+>From git://salottisipuli.retiisi.org.uk/~sailus/linux
+ * [new branch]      leds-as3645a -> leds-as3645a
+ 
 
-So it is possible that in the future you'd get a driver that has just STREAMING_DMABUF
-set. Which is something I can imagine for drivers operating on secure memory.
-
-Regards,
-
-	Hans
-
-> 
->> Since we are looking at device caps anyway: can we just drop V4L2_CAP_ASYNCIO?
->> It's never been implemented, nor is it likely in the future. And we don't have
->> all that many bits left before we need to use one of the reserved fields for
->> additional capabilities.
->>
->> Regards,
->>
->>         Hans
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This seems to be mostly in line with what has been discussed in the meeting,
+> except that the patches add a device specific property. Please ignore the
+> led patches in that tree for now (i.e. four patches on the top are the
+> relevant ones here).
 > 
 
+I'm currently trying to apply them to v4.6, but am getting rather ugly
+rejects :-(.
+
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
