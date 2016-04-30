@@ -1,126 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f45.google.com ([209.85.215.45]:35348 "EHLO
-	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbcDYJEu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Apr 2016 05:04:50 -0400
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Junghak Sung <jh1009.sung@samsung.com>, stable@vger.kernel.org
-Subject: [PATCH v4] media: vb2: Fix regression on poll() for RW mode
-Date: Mon, 25 Apr 2016 11:04:45 +0200
-Message-Id: <1461575085-27821-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from iodev.co.uk ([82.211.30.53]:33958 "EHLO iodev.co.uk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752300AbcD3DXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Apr 2016 23:23:46 -0400
+From: Ismael Luceno <ismael@iodev.co.uk>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ismael Luceno <ismael@iodev.co.uk>
+Subject: [PATCH 1/2] solo6x10: Set FRAME_BUF_SIZE to 200KB
+Date: Sat, 30 Apr 2016 00:17:08 -0300
+Message-Id: <1461986229-11949-1-git-send-email-ismael@iodev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When using a device is read/write mode, vb2 does not handle properly the
-first select/poll operation.
+Such frame size is met in practice. Also report oversized frames.
 
-The reason for this, is that when this code has been refactored, some of
-the operations have changed their order, and now fileio emulator is not
-started.
+Based on patches by Andrey Utkin <andrey.utkin@corp.bluecherry.net>.
 
-The reintroduced check to the core is enabled by a quirk flag, that
-avoids this check by other subsystems like DVB.
-
-Reported-by: Dimitrios Katsaros <patcherwork@gmail.com>
-Cc: Junghak Sung <jh1009.sung@samsung.com>
-Fixes: 49d8ab9feaf2 ("media] media: videobuf2: Separate vb2_poll()")
-Cc: stable@vger.kernel.org
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
 ---
+ drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-v4: Reported by Hans
-   Rewrite comments
-    Thanks!
-
-
- drivers/media/v4l2-core/videobuf2-core.c | 10 ++++++++++
- drivers/media/v4l2-core/videobuf2-v4l2.c | 14 ++++++--------
- include/media/videobuf2-core.h           |  4 ++++
- 3 files changed, 20 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 5d016f496e0e..6b3a81504a7a 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2298,6 +2298,16 @@ unsigned int vb2_core_poll(struct vb2_queue *q, struct file *file,
- 		return POLLERR;
+diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+index 67a14c4..f98017b 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+@@ -33,7 +33,7 @@
+ #include "solo6x10-jpeg.h"
  
- 	/*
-+	 * If this quirk is set and QBUF hasn't been called yet then
-+	 * return POLLERR as well. This only affects capture queues, output
-+	 * queues will always initialize waiting_for_buffers to false.
-+	 * This quirk is set by V4L2 for backwards compatibility reasons.
-+	 */
-+	if (q->quirk_poll_must_check_waiting_for_buffers &&
-+	    q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
-+		return POLLERR;
-+
-+	/*
- 	 * For output streams you can call write() as long as there are fewer
- 	 * buffers queued than there are buffers available.
- 	 */
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 91f552124050..0b1b8c7b6ce5 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -765,6 +765,12 @@ int vb2_queue_init(struct vb2_queue *q)
- 	q->is_output = V4L2_TYPE_IS_OUTPUT(q->type);
- 	q->copy_timestamp = (q->timestamp_flags & V4L2_BUF_FLAG_TIMESTAMP_MASK)
- 			== V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	/*
-+	 * For compatibility with vb1: if QBUF hasn't been called yet, then
-+	 * return POLLERR as well. This only affects capture queues, output
-+	 * queues will always initialize waiting_for_buffers to false.
-+	 */
-+	q->quirk_poll_must_check_waiting_for_buffers = true;
+ #define MIN_VID_BUFFERS		2
+-#define FRAME_BUF_SIZE		(196 * 1024)
++#define FRAME_BUF_SIZE		(200 * 1024)
+ #define MP4_QS			16
+ #define DMA_ALIGN		4096
  
- 	return vb2_core_queue_init(q);
- }
-@@ -818,14 +824,6 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 			poll_wait(file, &fh->wait, wait);
- 	}
+@@ -323,8 +323,11 @@ static int solo_send_desc(struct solo_enc_dev *solo_enc, int skip,
+ 	int i;
+ 	int ret;
  
--	/*
--	 * For compatibility with vb1: if QBUF hasn't been called yet, then
--	 * return POLLERR as well. This only affects capture queues, output
--	 * queues will always initialize waiting_for_buffers to false.
--	 */
--	if (q->waiting_for_buffers && (req_events & (POLLIN | POLLRDNORM)))
--		return POLLERR;
--
- 	return res | vb2_core_poll(q, file, wait);
- }
- EXPORT_SYMBOL_GPL(vb2_poll);
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 8a0f55b6c2ba..3a1620946068 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -400,6 +400,9 @@ struct vb2_buf_ops {
-  * @fileio_read_once:		report EOF after reading the first buffer
-  * @fileio_write_immediately:	queue buffer after each write() call
-  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
-+ * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
-+ *              has not been called. This is a vb1 idiom that has been adopted
-+ *              also by vb2.
-  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
-  *		driver can set this to a mutex to let the v4l2 core serialize
-  *		the queuing ioctls. If the driver wants to handle locking
-@@ -463,6 +466,7 @@ struct vb2_queue {
- 	unsigned			fileio_read_once:1;
- 	unsigned			fileio_write_immediately:1;
- 	unsigned			allow_zero_bytesused:1;
-+	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
+-	if (WARN_ON_ONCE(size > FRAME_BUF_SIZE))
++	if (WARN_ON_ONCE(size > FRAME_BUF_SIZE)) {
++		dev_warn(&solo_dev->pdev->dev,
++			 "oversized frame (%d bytes)\n", size);
+ 		return -EINVAL;
++	}
  
- 	struct mutex			*lock;
- 	void				*owner;
+ 	solo_enc->desc_count = 1;
+ 
 -- 
-2.8.0.rc3
+2.8.0
 
