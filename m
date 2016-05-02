@@ -1,73 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49322 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605AbcEKMgl (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:54660 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753759AbcEBLAe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 08:36:41 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
-	Rob Herring <robh@kernel.org>,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH v2.1] dt-bindings: Add Renesas R-Car FCP DT bindings
-Date: Wed, 11 May 2016 15:36:30 +0300
-Message-Id: <1462970190-588-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1461620198-13428-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1461620198-13428-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 2 May 2016 07:00:34 -0400
+Subject: Re: [PATCH 1/2] media: exynos4-is: fix deadlock on driver probe
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <1461839104-29135-1-git-send-email-m.szyprowski@samsung.com>
+ <57267C5C.2000403@linux.intel.com> <20160502075235.6772fc3a@recife.lan>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <57273345.7070104@xs4all.nl>
+Date: Mon, 2 May 2016 13:00:21 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160502075235.6772fc3a@recife.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The FCP is a companion module of video processing modules in the Renesas
-R-Car Gen3 SoCs. It provides data compression and decompression, data
-caching, and conversion of AXI transactions in order to reduce the
-memory bandwidth.
+On 05/02/16 12:52, Mauro Carvalho Chehab wrote:
+> Em Mon, 2 May 2016 00:59:56 +0300
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+>> Hi Marek,
+>>
+>> Marek Szyprowski wrote:
+>>> Commit 0c426c472b5585ed6e59160359c979506d45ae49 ("[media] media: Always
+>>> keep a graph walk large enough around") changed
+>>> media_device_register_entity() function to take mdev->graph_mutex. This
+>>> causes deadlock in driver probe, which calls (indirectly) this function
+>>> with ->graph_mutex taken. This patch removes taking ->graph_mutex in
+>>> driver probe to avoid deadlock. Other drivers don't take ->graph_mutex
+>>> for entity registration, so this change should be safe.
+>>>
+>>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>  
+>>
+>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>
+>> You could also add:
+>>
+>> Fixes: 0c426c472b55 ("[media] media: Always keep a graph walk large 
+>> enough around")
+>>
+>> I guess these should go to fixes, the patches in question are already 
+>> heading for v4.6. Cc Mauro.
+> 
+> The patches from Sakari for v4.6 were merged already at -rc6. Just merged
+> them back at the master branch.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- .../devicetree/bindings/media/renesas,fcp.txt      | 32 ++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,fcp.txt
+I'm confused. The two patches from Marek fixing driver probe deadlock are not
+in the master tree (just pulled from it, it's now rc6), so the deadlock still
+happens in kernel 4.6.
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
-new file mode 100644
-index 000000000000..6a12960609d8
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
-@@ -0,0 +1,32 @@
-+Renesas R-Car Frame Compression Processor (FCP)
-+-----------------------------------------------
-+
-+The FCP is a companion module of video processing modules in the Renesas R-Car
-+Gen3 SoCs. It provides data compression and decompression, data caching, and
-+conversion of AXI transactions in order to reduce the memory bandwidth.
-+
-+There are three types of FCP: FCP for Codec (FCPC), FCP for VSP (FCPV) and FCP
-+for FDP (FCPF). Their configuration and behaviour depend on the module they
-+are paired with. These DT bindings currently support the FCPV only.
-+
-+ - compatible: Must be one or more of the following
-+
-+   - "renesas,r8a7795-fcpv" for R8A7795 (R-Car H3) compatible 'FCP for VSP'
-+   - "renesas,fcpv" for generic compatible 'FCP for VSP'
-+
-+   When compatible with the generic version, nodes must list the
-+   SoC-specific version corresponding to the platform first, followed by the
-+   family-specific and/or generic versions.
-+
-+ - reg: the register base and size for the device registers
-+ - clocks: Reference to the functional clock
-+
-+
-+Device node example
-+-------------------
-+
-+	fcpvd1: fcp@fea2f000 {
-+		compatible = "renesas,r8a7795-fcpv", "renesas,fcpv";
-+		reg = <0 0xfea2f000 0 0x200>;
-+		clocks = <&cpg CPG_MOD 602>;
-+	};
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
