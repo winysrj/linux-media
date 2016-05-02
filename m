@@ -1,77 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:34274 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752377AbcEAWQ3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 May 2016 18:16:29 -0400
-Subject: Re: [PATCH 1/2] media: exynos4-is: fix deadlock on driver probe
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1461839104-29135-1-git-send-email-m.szyprowski@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
+Received: from lists.s-osg.org ([54.187.51.154]:49919 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754023AbcEBR2Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2016 13:28:24 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57267EB2.3050909@xs4all.nl>
-Date: Mon, 2 May 2016 00:09:54 +0200
-MIME-Version: 1.0
-In-Reply-To: <1461839104-29135-1-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH] s5p-mfc: Don't try to put pm->clock if lookup failed
+Date: Mon,  2 May 2016 13:27:54 -0400
+Message-Id: <1462210075-5320-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/28/2016 12:25 PM, Marek Szyprowski wrote:
-> Commit 0c426c472b5585ed6e59160359c979506d45ae49 ("[media] media: Always
-> keep a graph walk large enough around") changed
-> media_device_register_entity() function to take mdev->graph_mutex. This
-> causes deadlock in driver probe, which calls (indirectly) this function
-> with ->graph_mutex taken. This patch removes taking ->graph_mutex in
-> driver probe to avoid deadlock. Other drivers don't take ->graph_mutex
-> for entity registration, so this change should be safe.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Failing to get the struct s5p_mfc_pm .clock is a non-fatal error so the
+clock field can have a errno pointer value. But s5p_mfc_final_pm() only
+checks if .clock is not NULL before attempting to unprepare and put it.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+This leads to the following warning in clk_put() due s5p_mfc_final_pm():
 
-Thanks!
+WARNING: CPU: 3 PID: 1023 at drivers/clk/clk.c:2814 s5p_mfc_final_pm+0x48/0x74 [s5p_mfc]
+CPU: 3 PID: 1023 Comm: rmmod Tainted: G        W       4.6.0-rc6-next-20160502-00005-g5a15a49106bc #9
+Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+[<c010e1bc>] (unwind_backtrace) from [<c010af28>] (show_stack+0x10/0x14)
+[<c010af28>] (show_stack) from [<c032485c>] (dump_stack+0x88/0x9c)
+[<c032485c>] (dump_stack) from [<c011b8e8>] (__warn+0xe8/0x100)
+[<c011b8e8>] (__warn) from [<c011b9b0>] (warn_slowpath_null+0x20/0x28)
+[<c011b9b0>] (warn_slowpath_null) from [<bf16004c>] (s5p_mfc_final_pm+0x48/0x74 [s5p_mfc])
+[<bf16004c>] (s5p_mfc_final_pm [s5p_mfc]) from [<bf157414>] (s5p_mfc_remove+0x8c/0x94 [s5p_mfc])
+[<bf157414>] (s5p_mfc_remove [s5p_mfc]) from [<c03fe1f8>] (platform_drv_remove+0x24/0x3c)
+[<c03fe1f8>] (platform_drv_remove) from [<c03fcc70>] (__device_release_driver+0x84/0x110)
+[<c03fcc70>] (__device_release_driver) from [<c03fcdd8>] (driver_detach+0xac/0xb0)
+[<c03fcdd8>] (driver_detach) from [<c03fbff8>] (bus_remove_driver+0x4c/0xa0)
+[<c03fbff8>] (bus_remove_driver) from [<c01886a8>] (SyS_delete_module+0x174/0x1b8)
+[<c01886a8>] (SyS_delete_module) from [<c01078c0>] (ret_fast_syscall+0x0/0x3c)
 
-	Hans
+So check if the pointer is not an errno value before calling clk_put().
 
-> ---
->  drivers/media/platform/exynos4-is/media-dev.c | 13 ++-----------
->  1 file changed, 2 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index 04348b502232..891625e77ef5 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -1448,22 +1448,13 @@ static int fimc_md_probe(struct platform_device *pdev)
->  
->  	platform_set_drvdata(pdev, fmd);
->  
-> -	/* Protect the media graph while we're registering entities */
-> -	mutex_lock(&fmd->media_dev.graph_mutex);
-> -
->  	ret = fimc_md_register_platform_entities(fmd, dev->of_node);
-> -	if (ret) {
-> -		mutex_unlock(&fmd->media_dev.graph_mutex);
-> +	if (ret)
->  		goto err_clk;
-> -	}
->  
->  	ret = fimc_md_register_sensor_entities(fmd);
-> -	if (ret) {
-> -		mutex_unlock(&fmd->media_dev.graph_mutex);
-> +	if (ret)
->  		goto err_m_ent;
-> -	}
-> -
-> -	mutex_unlock(&fmd->media_dev.graph_mutex);
->  
->  	ret = device_create_file(&pdev->dev, &dev_attr_subdev_conf_mode);
->  	if (ret)
-> 
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+---
+
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+index 5f97a3398c11..d011f30be265 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+@@ -85,7 +85,7 @@ err_g_ip_clk:
+ void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
+ {
+ 	if (dev->variant->version != MFC_VERSION_V6 &&
+-	    pm->clock) {
++	    !IS_ERR_OR_NULL(pm->clock)) {
+ 		clk_disable_unprepare(pm->clock);
+ 		clk_put(pm->clock);
+ 	}
+-- 
+2.5.5
+
