@@ -1,98 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-m008e.mx.aol.com ([204.29.186.7]:49395 "EHLO
-	omr-m008e.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753547AbcEBOKH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2016 10:10:07 -0400
-Subject: Re: [PATCH] [media] em28xx_dvb: add support for PLEX PX-BCUD (ISDB-S
- usb dongle)
-To: Akihiro TSUKADA <tskd08@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-References: <a0564a33-161b-3e2e-d4d3-c6ed896a7b89@aim.com>
- <e1c557f3-c110-f330-3270-bd168f8508f1@gmail.com>
-From: Satoshi Nagahama <sattnag@aim.com>
-Message-ID: <4be8d312-e549-1de2-cdc1-829ceece70f9@aim.com>
-Date: Mon, 2 May 2016 23:10:00 +0900
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49916 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752658AbcEBNg4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2016 09:36:56 -0400
+Subject: Re: [PATCH 2/2] media: s3c-camif: fix deadlock on driver probe()
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <1461839104-29135-1-git-send-email-m.szyprowski@samsung.com>
+ <1461839104-29135-2-git-send-email-m.szyprowski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Jacek Anaszewski <j.anaszewski@samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <572757F0.8000904@xs4all.nl>
+Date: Mon, 2 May 2016 15:36:48 +0200
 MIME-Version: 1.0
-In-Reply-To: <e1c557f3-c110-f330-3270-bd168f8508f1@gmail.com>
-Content-Type: text/plain; charset=iso-2022-jp; format=flowed; delsp=yes
+In-Reply-To: <1461839104-29135-2-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Akihiro,
+On 04/28/16 12:25, Marek Szyprowski wrote:
+> Commit 0c426c472b5585ed6e59160359c979506d45ae49 ("[media] media: Always
+> keep a graph walk large enough around") changed
+> media_device_register_entity() function to take mdev->graph_mutex. This
+> causes deadlock in driver probe, which calls (indirectly) this function
+> with ->graph_mutex taken. This patch removes taking ->graph_mutex in
+> driver probe to avoid deadlock. Other drivers don't take ->graph_mutex
+> for entity registration, so this change should be safe.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Thank you for your review and comments.
-I did two changes as you commented.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
- > * The names of _REG_ROWS / reg_index might be a bit vague to others.
- >   I would prefer _CHIP_IDS / chip_id  or something like that.
- >
- > * reg_index should not be static as it is per device property.
- >   Instead, it shouldj be defined in qm1d1c0042_init() locally, or
- >   in struct qm1d1c0042_state, if "reg_index" can be used elsewhere.
- >
- > Thre rest looks OK to me.
- >
- > regards,
- > akihiro
+Thanks!
 
+	Hans
 
-Changed the definition name to QM1D1C0042_NUM_CHIP_IDS from QM1D1C0042_NUM_REG_ROWS
-Changed the variable reg_index into local from static.
-
-Signed-off-by: Satoshi Nagahama <sattnag@aim.com>
----
-  drivers/media/tuners/qm1d1c0042.c | 12 +++++-------
-  1 file changed, 5 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/tuners/qm1d1c0042.c b/drivers/media/tuners/qm1d1c0042.c
-index bc2fb74..132af21 100644
---- a/drivers/media/tuners/qm1d1c0042.c
-+++ b/drivers/media/tuners/qm1d1c0042.c
-@@ -32,9 +32,9 @@
-  #include "qm1d1c0042.h"
-
-  #define QM1D1C0042_NUM_REGS 0x20
--#define QM1D1C0042_NUM_REG_ROWS 2
-+#define QM1D1C0042_NUM_CHIP_IDS 2
-
--static const u8 reg_initval[QM1D1C0042_NUM_REG_ROWS][QM1D1C0042_NUM_REGS] = { {
-+static const u8 reg_initval[QM1D1C0042_NUM_CHIP_IDS][QM1D1C0042_NUM_REGS] = { {
-  		0x48, 0x1c, 0xa0, 0x10, 0xbc, 0xc5, 0x20, 0x33,
-  		0x06, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00,
-  		0x00, 0xff, 0xf3, 0x00, 0x2a, 0x64, 0xa6, 0x86,
-@@ -47,8 +47,6 @@ static const u8 reg_initval[QM1D1C0042_NUM_REG_ROWS][QM1D1C0042_NUM_REGS] = { {
-  	}
-  };
-
--static int reg_index;
--
-  static const struct qm1d1c0042_config default_cfg = {
-  	.xtal_freq = 16000,
-  	.lpf = 1,
-@@ -326,7 +324,7 @@ static int qm1d1c0042_init(struct dvb_frontend *fe)
-  {
-  	struct qm1d1c0042_state *state;
-  	u8 val;
--	int i, ret;
-+	int i, ret, reg_index;
-
-  	state = fe->tuner_priv;
-
-@@ -346,9 +344,9 @@ static int qm1d1c0042_init(struct dvb_frontend *fe)
-  	ret = reg_read(state, 0x00, &val);
-  	if (ret < 0)
-  		goto failed;
--	for (reg_index = 0; reg_index < QM1D1C0042_NUM_REG_ROWS; reg_index++)
-+	for (reg_index = 0; reg_index < QM1D1C0042_NUM_CHIP_IDS; reg_index++)
-  		if (val == reg_initval[reg_index][0x00]) break;
--	if (reg_index >= QM1D1C0042_NUM_REG_ROWS)
-+	if (reg_index >= QM1D1C0042_NUM_CHIP_IDS)
-  		goto failed;
-  	memcpy(state->regs, reg_initval[reg_index], QM1D1C0042_NUM_REGS);
-  	usleep_range(2000, 3000);
--- 
-2.8.0
-
-
+> ---
+>  drivers/media/platform/s3c-camif/camif-core.c | 12 +++---------
+>  1 file changed, 3 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s3c-camif/camif-core.c b/drivers/media/platform/s3c-camif/camif-core.c
+> index 0b44b9accf50..af237af204e2 100644
+> --- a/drivers/media/platform/s3c-camif/camif-core.c
+> +++ b/drivers/media/platform/s3c-camif/camif-core.c
+> @@ -493,21 +493,17 @@ static int s3c_camif_probe(struct platform_device *pdev)
+>  	if (ret < 0)
+>  		goto err_sens;
+>  
+> -	mutex_lock(&camif->media_dev.graph_mutex);
+> -
+>  	ret = v4l2_device_register_subdev_nodes(&camif->v4l2_dev);
+>  	if (ret < 0)
+> -		goto err_unlock;
+> +		goto err_sens;
+>  
+>  	ret = camif_register_video_nodes(camif);
+>  	if (ret < 0)
+> -		goto err_unlock;
+> +		goto err_sens;
+>  
+>  	ret = camif_create_media_links(camif);
+>  	if (ret < 0)
+> -		goto err_unlock;
+> -
+> -	mutex_unlock(&camif->media_dev.graph_mutex);
+> +		goto err_sens;
+>  
+>  	ret = media_device_register(&camif->media_dev);
+>  	if (ret < 0)
+> @@ -516,8 +512,6 @@ static int s3c_camif_probe(struct platform_device *pdev)
+>  	pm_runtime_put(dev);
+>  	return 0;
+>  
+> -err_unlock:
+> -	mutex_unlock(&camif->media_dev.graph_mutex);
+>  err_sens:
+>  	v4l2_device_unregister(&camif->v4l2_dev);
+>  	media_device_unregister(&camif->media_dev);
+> 
