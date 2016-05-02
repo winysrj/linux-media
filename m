@@ -1,73 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14228 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758152AbcEFK4m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 May 2016 06:56:42 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com
-Subject: [RFC 16/22] media: Add poll support
-Date: Fri,  6 May 2016 13:53:25 +0300
-Message-Id: <1462532011-15527-17-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58757 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752317AbcEBIL5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2016 04:11:57 -0400
+To: stable@vger.kernel.org
+Cc: linux-media <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l2-dv-timings.h: fix polarity for 4k formats
+Message-ID: <57270BC5.2010709@xs4all.nl>
+Date: Mon, 2 May 2016 10:11:49 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement poll for events. POLLPRI is used to notify users on incoming
-events.
+Backport to 3.16-4.0 of mainline commit 3020ca711871fdaf0c15c8bab677a6bc302e28fe
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+The VSync polarity was negative instead of positive for the 4k CEA formats.
+I probably copy-and-pasted these from the DMT 4k format, which does have a
+negative VSync polarity.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Martin Bugge <marbugge@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/media-device.c | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ include/uapi/linux/v4l2-dv-timings.h | 30 ++++++++++++++++++++----------
+ 1 file changed, 20 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 0b1ab88..2a9bf80 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -956,6 +956,32 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 		ioctl_info, ARRAY_SIZE(ioctl_info));
+--- linux-4.0/include/uapi/linux/v4l2-dv-timings.h.orig	2015-04-13 00:12:50.000000000 +0200
++++ linux-4.0/include/uapi/linux/v4l2-dv-timings.h	2016-05-02 10:04:06.594531813 +0200
+@@ -175,70 +175,80 @@
+
+ #define V4L2_DV_BT_CEA_3840X2160P24 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+-	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
++	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
++		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 1276, 88, 296, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
  }
- 
-+unsigned int media_device_poll(struct file *filp, struct poll_table_struct *wait)
-+{
-+	struct media_device_fh *fh = media_device_fh(filp);
-+	unsigned int poll_events = poll_requested_events(wait);
-+	int ret = 0;
-+
-+	if (poll_events & (POLLIN | POLLOUT))
-+		return POLLERR;
-+
-+	if (poll_events & POLLPRI) {
-+		unsigned long flags;
-+		bool empty;
-+
-+		spin_lock_irqsave(&fh->kevents.lock, flags);
-+		empty = list_empty(&fh->kevents.head);
-+		spin_unlock_irqrestore(&fh->kevents.lock, flags);
-+
-+		if (empty)
-+			poll_wait(filp, &fh->kevents.wait, wait);
-+		else
-+			ret |= POLLPRI;
-+	}
-+
-+	return ret;
-+}
-+
- #ifdef CONFIG_COMPAT
- 
- struct media_links_enum32 {
-@@ -1010,6 +1036,7 @@ static const struct media_file_operations media_device_fops = {
- 	.owner = THIS_MODULE,
- 	.open = media_device_open,
- 	.ioctl = media_device_ioctl,
-+	.poll = media_device_poll,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl = media_device_compat_ioctl,
- #endif /* CONFIG_COMPAT */
--- 
-1.9.1
 
+ #define V4L2_DV_BT_CEA_3840X2160P25 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+-	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
++	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
++		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, 0) \
+ }
+
+ #define V4L2_DV_BT_CEA_3840X2160P30 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+-	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
++	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
++		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
+ }
+
+ #define V4L2_DV_BT_CEA_3840X2160P50 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+-	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
++	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
++		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		594000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, 0) \
+ }
+
+ #define V4L2_DV_BT_CEA_3840X2160P60 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+-	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
++	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
++		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		594000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
+ }
+
+ #define V4L2_DV_BT_CEA_4096X2160P24 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+-	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
++	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
++		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 1020, 88, 296, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
+ }
+
+ #define V4L2_DV_BT_CEA_4096X2160P25 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+-	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
++	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
++		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, 0) \
+ }
+
+ #define V4L2_DV_BT_CEA_4096X2160P30 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+-	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
++	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
++		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
+ }
+
+ #define V4L2_DV_BT_CEA_4096X2160P50 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+-	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
++	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
++		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		594000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, 0) \
+ }
+
+ #define V4L2_DV_BT_CEA_4096X2160P60 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+-	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
++	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
++		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		594000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
+ }
