@@ -1,123 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56157 "EHLO
-	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932593AbcE3C6q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 May 2016 22:58:46 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C5B7B1800D2
-	for <linux-media@vger.kernel.org>; Mon, 30 May 2016 04:58:40 +0200 (CEST)
-Date: Mon, 30 May 2016 04:58:40 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160530025840.C5B7B1800D2@tschai.lan>
+Received: from www381.your-server.de ([78.46.137.84]:56958 "EHLO
+	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753057AbcEBKQz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 May 2016 06:16:55 -0400
+Subject: Re: [PATCH] media: fix use-after-free in cdev_put() when app exits
+ after driver unbind
+To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+References: <1461969452-9276-1-git-send-email-shuahkh@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Lars-Peter Clausen <lars@metafoo.de>
+Message-ID: <57272910.8090500@metafoo.de>
+Date: Mon, 2 May 2016 12:16:48 +0200
+MIME-Version: 1.0
+In-Reply-To: <1461969452-9276-1-git-send-email-shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 04/30/2016 12:37 AM, Shuah Khan wrote:
+[...]
+> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+> index 5bb3b0e..ce9b051 100644
+> --- a/include/media/media-devnode.h
+> +++ b/include/media/media-devnode.h
+> @@ -72,6 +72,7 @@ struct media_file_operations {
+>   * @fops:	pointer to struct &media_file_operations with media device ops
+>   * @dev:	struct device pointer for the media controller device
+>   * @cdev:	struct cdev pointer character device
+> + * @kobj:	struct kobject
+>   * @parent:	parent device
+>   * @minor:	device node minor number
+>   * @flags:	flags, combination of the MEDIA_FLAG_* constants
+> @@ -91,6 +92,7 @@ struct media_devnode {
+>  	/* sysfs */
+>  	struct device dev;		/* media device */
+>  	struct cdev cdev;		/* character device */
+> +	struct kobject kobj;		/* set as cdev parent kobj */
 
-Results of the daily build of media_tree:
+As said during the previous review, the struct device should be used for
+reference counting. Otherwise a use-after-free can still occur since you now
+have two reference counted data structures with independent counters in the
+same structure. For one of them the counter goes to zero before the other
+and then you have the use-after-free.
 
-date:		Mon May 30 04:00:22 CEST 2016
-git branch:	test
-git hash:	bc2b80ee3490651904f121eac1c8fb7652d48253
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-264
+>  	struct device *parent;		/* device parent */
+>  
+>  	/* device info */
+> 
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
