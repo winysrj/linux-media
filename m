@@ -1,100 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:46172 "EHLO pokefinder.org"
+Received: from lists.s-osg.org ([54.187.51.154]:50469 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753848AbcEDQik (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 12:38:40 -0400
-Date: Wed, 4 May 2016 18:38:25 +0200
-From: Wolfram Sang <wsa@the-dreams.de>
-To: Peter Rosin <peda@axentia.se>
-Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Adriana Reus <adriana.reus@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
+	id S1754885AbcEBTOm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2016 15:14:42 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
 	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Crestez Dan Leonard <leonard.crestez@intel.com>,
-	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
-	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
-Subject: Re: [PATCH v7 16/24] i2c: allow adapter drivers to override the
- adapter locking
-Message-ID: <20160504163825.GA1516@katana>
-References: <1461165484-2314-1-git-send-email-peda@axentia.se>
- <1461165484-2314-17-git-send-email-peda@axentia.se>
- <20160428205018.GA3553@katana>
- <470abe38-ab5f-2d0a-305b-e1a3253ce5a9@axentia.se>
- <20160429071604.GB1870@katana>
- <357e6fda-73b3-fb7f-c341-97f09af1943f@axentia.se>
- <20160503213908.GC2018@tetsubishi>
- <87de4033-3b58-3ef6-d22b-b90901885b39@axentia.se>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
-Content-Disposition: inline
-In-Reply-To: <87de4033-3b58-3ef6-d22b-b90901885b39@axentia.se>
+	Arnd Bergmann <arnd@arndb.de>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH v2] s5p-mfc: Don't try to put pm->clock if lookup failed
+Date: Mon,  2 May 2016 15:14:22 -0400
+Message-Id: <1462216462-32665-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Failing to get the struct s5p_mfc_pm .clock is a non-fatal error so the
+clock field can have a errno pointer value. But s5p_mfc_final_pm() only
+checks if .clock is not NULL before attempting to unprepare and put it.
 
---7AUc2qLy4jB3hD7Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This leads to the following warning in clk_put() due s5p_mfc_final_pm():
 
+WARNING: CPU: 3 PID: 1023 at drivers/clk/clk.c:2814 s5p_mfc_final_pm+0x48/0x74 [s5p_mfc]
+CPU: 3 PID: 1023 Comm: rmmod Tainted: G        W       4.6.0-rc6-next-20160502-00005-g5a15a49106bc #9
+Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+[<c010e1bc>] (unwind_backtrace) from [<c010af28>] (show_stack+0x10/0x14)
+[<c010af28>] (show_stack) from [<c032485c>] (dump_stack+0x88/0x9c)
+[<c032485c>] (dump_stack) from [<c011b8e8>] (__warn+0xe8/0x100)
+[<c011b8e8>] (__warn) from [<c011b9b0>] (warn_slowpath_null+0x20/0x28)
+[<c011b9b0>] (warn_slowpath_null) from [<bf16004c>] (s5p_mfc_final_pm+0x48/0x74 [s5p_mfc])
+[<bf16004c>] (s5p_mfc_final_pm [s5p_mfc]) from [<bf157414>] (s5p_mfc_remove+0x8c/0x94 [s5p_mfc])
+[<bf157414>] (s5p_mfc_remove [s5p_mfc]) from [<c03fe1f8>] (platform_drv_remove+0x24/0x3c)
+[<c03fe1f8>] (platform_drv_remove) from [<c03fcc70>] (__device_release_driver+0x84/0x110)
+[<c03fcc70>] (__device_release_driver) from [<c03fcdd8>] (driver_detach+0xac/0xb0)
+[<c03fcdd8>] (driver_detach) from [<c03fbff8>] (bus_remove_driver+0x4c/0xa0)
+[<c03fbff8>] (bus_remove_driver) from [<c01886a8>] (SyS_delete_module+0x174/0x1b8)
+[<c01886a8>] (SyS_delete_module) from [<c01078c0>] (ret_fast_syscall+0x0/0x3c)
 
-> A question on best practices here... I already did a v8 (but only as
-> a branch) so I think this will be v9, bit that's a minor detail. The
-> real question is what I should do about patches 1-15 that are already
-> in next? Send them too? If not, should I send 16-24 with the same old
-> patch numbers or should they be numbered 1-9 now? And should such a
-> shortened series be rebased on 1-15 in next?
->=20
-> Or does it not really matter?
+Assign the pointer to NULL in case of a lookup failure to fix the issue.
 
-Easiest for me is:
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Send as v9, only the patches not yet applied, numbered from 1-9, based
-on my for-next.
+---
 
+Changes in v2:
+- Set the clock pointer to NULL instead of checking for !IS_ERR_OR_NULL().
+  Suggested by Arnd Bergmann.
 
---7AUc2qLy4jB3hD7Z
-Content-Type: application/pgp-signature; name="signature.asc"
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 1 +
+ 1 file changed, 1 insertion(+)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+index 5f97a3398c11..9f7522104333 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+@@ -54,6 +54,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+ 		pm->clock = clk_get(&dev->plat_dev->dev, MFC_SCLK_NAME);
+ 		if (IS_ERR(pm->clock)) {
+ 			mfc_info("Failed to get MFC special clock control\n");
++			pm->clock = NULL;
+ 		} else {
+ 			clk_set_rate(pm->clock, MFC_SCLK_RATE);
+ 			ret = clk_prepare_enable(pm->clock);
+-- 
+2.5.5
 
-iQIcBAEBAgAGBQJXKiWBAAoJEBQN5MwUoCm2JRwP/3pJfeAOonaG99Z+aFHFcxKb
-nV2lgIKSHRzgLxEFInIhnvW1m6gvm9AqJL0IO3ZYOJkmly7bf896FGGMVWSG3wHg
-5EepSrn8HuDPIlCf23EDgzTqSvp+J2GChbC/0x7AtQ7PnGw3CmKqGJPz2ecxRUMg
-iMGVVo3eNoBaboYB0lAmawHgS3Ui2zyn5t9GHPeZNmD8uFG8CrGK1wPD1KkK298X
-2KSKDX3K8G1us81/iVs4Z67E21O+9ls5zZCpBmZi1YSDWA5vzf3Rh8BIYPUj3BaT
-K6Dq/RnBt5aVOzG5wWdaonLZca6ozQgF1kgrPcNj+6mPWyv8+nzNSMDDqaqYDXt1
-IL6crz1aGIMhz6chlRFQm6HhMVnGp83CCwIjeaUNEnzG6VeFux0UJPMVyWVDc4pQ
-qDVs8izEnVbAw46JwbJxCxpqSgRDqDyAnsMdh1/x8XT/SbuPaNHWVFGz7/8G+1FG
-7QzlNcX0WGdapK7ZR3dZ4ob2z4tkL3EKiVbiN7jePpqk0C6Uppa61xNj9LdFKAJe
-WXSArGjwUzWisLzPZ37w0ko0a+uMVGrQxv2YQGAUixaXpqtaXx75Boj7lIiozflS
-ryO/VniaGcVTsHJiAHZo5fpt7XOqPwmfq4cs4qEn38PXkhScKwlfyRwraYcrjtJx
-K6HVk05ZVfaPU8CRrIvE
-=XLBz
------END PGP SIGNATURE-----
-
---7AUc2qLy4jB3hD7Z--
