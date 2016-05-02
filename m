@@ -1,47 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f175.google.com ([209.85.213.175]:36780 "EHLO
-	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752424AbcEDOWP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 10:22:15 -0400
-Received: by mail-ig0-f175.google.com with SMTP id u10so148918658igr.1
-        for <linux-media@vger.kernel.org>; Wed, 04 May 2016 07:22:14 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:54221 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932086AbcEBTUl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2016 15:20:41 -0400
+Subject: Re: [PATCH v7 16/24] i2c: allow adapter drivers to override the
+ adapter locking
+To: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>
+References: <1461165484-2314-1-git-send-email-peda@axentia.se>
+ <1461165484-2314-17-git-send-email-peda@axentia.se>
+ <20160428205018.GA3553@katana>
+ <470abe38-ab5f-2d0a-305b-e1a3253ce5a9@axentia.se>
+ <20160429071604.GB1870@katana>
+ <357e6fda-73b3-fb7f-c341-97f09af1943f@axentia.se>
+Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <5727A873.4080400@iki.fi>
+Date: Mon, 2 May 2016 22:20:19 +0300
 MIME-Version: 1.0
-In-Reply-To: <572A0155.3030507@xs4all.nl>
-References: <1461986229-11949-1-git-send-email-ismael@iodev.co.uk>
-	<20160504133408.GA18570@acer>
-	<572A0155.3030507@xs4all.nl>
-Date: Wed, 4 May 2016 17:22:13 +0300
-Message-ID: <CAM_ZknWELGNLnwFR66WbSEtDRHE2cEnkSOAOjAtd=aRXBgqgxw@mail.gmail.com>
-Subject: Re: [PATCH 1/2] solo6x10: Set FRAME_BUF_SIZE to 200KB
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andrey Utkin <andrey_utkin@fastmail.com>,
-	Ismael Luceno <ismael@iodev.co.uk>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Curtis Hall <chall@corp.bluecherry.net>,
-	Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <357e6fda-73b3-fb7f-c341-97f09af1943f@axentia.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 4, 2016 at 5:04 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> BTW, looking at the MAINTAINERS file I see two email addresses for Andrey,
-> neither of which is the fastmail.com address this email came from.
+On 04/29/2016 12:16 PM, Peter Rosin wrote:
+> On 2016-04-29 09:16, Wolfram Sang wrote:
+>>> Yes, obviously... I'll make that change locally and wait for the rest.
+>> Another nit: You could use '--strict' with checkpatch and see if you
+>> want to fix the issues reported. I am not keen on those (except for
+>> 'space around operators'), it's a matter of taste I guess, but maybe you
+>> like some of the suggestions.
+>>
+> Yes, they look like reasonable complaints.
+>
+> So, I fixed all of them locally except the complaint about lack of comment
+> on the new struct mutex member in struct si2168_dev (patch 21/24),
+> because that patch is Anttis and he's the maintainer of that driver...
+>
+> Antti, if you want that fixed as part of this series, send a suitable comment
+> for the mutex this way and I'll incorporate it.
 
-Now I'm replying from corporate email.
+Ah, I never ran checkpatch with --strict option...
 
-> Andrey, it might be a good idea to post such fixes to the mailinglist sooner,
-> both to prevent situations like this and to keep the diffs between mainline
-> and your internal code as small as possible.
+CHECK: struct mutex definition without comment
+#202: FILE: drivers/media/dvb-frontends/si2168_priv.h:32:
++	struct mutex i2c_mutex;
 
-In a word - we would do what is possible to achieve that, but there's
-little time
-and little incentive for that.
-The codebases have already diverged a lot, having unique sets of runtime bugs.
-And this exact issue alone is not resolved yet in a good way and is
-not actually critical.
-Merging would require a lot of working time. And it is complicated by
-the fact that
-there's not going to be any new manufacturing orders (the minimal order quantity
-is too high for Bluecherry), and that we have picked tw5864 as
-reachable for retail orders.
+If you wish you could add some comment for it, but for me it is still 
+pretty much self explaining. It is lock to protect firmware command 
+execution. Command is executed always with I2C write and then poll reply 
+using I2C read until it timeouts or answers with "ready" status.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
