@@ -1,44 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:58451 "EHLO
-	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336AbcEGFOt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 May 2016 01:14:49 -0400
-From: ayaka <ayaka@soulik.info>
+Received: from lists.s-osg.org ([54.187.51.154]:59984 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756496AbcECU2P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 May 2016 16:28:15 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
 To: linux-kernel@vger.kernel.org
-Cc: m.szyprowski@samsung.com, nicolas.dufresne@collabora.com,
-	shuahkh@osg.samsung.com, javier@osg.samsung.com,
-	mchehab@osg.samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, kyungmin.park@samsung.com,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	ayaka <ayaka@soulik.info>
-Subject: [PATCH 3/3] [media] s5p-mfc: fix a typo in s5p_mfc_dec
-Date: Sat,  7 May 2016 13:05:26 +0800
-Message-Id: <1462597526-31559-4-git-send-email-ayaka@soulik.info>
-In-Reply-To: <1462597526-31559-1-git-send-email-ayaka@soulik.info>
-References: <1462597526-31559-1-git-send-email-ayaka@soulik.info>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	stable@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH 0/3] [media] s5p-mfc: Fixes for issues when module is removed
+Date: Tue,  3 May 2016 16:27:15 -0400
+Message-Id: <1462307238-21815-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is a cosmetic commit.
+Hello,
 
-Signed-off-by: ayaka <ayaka@soulik.info>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This patch series fixes some issues that I noticed when trying to remove
+the s5p-mfc driver when built as a module.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index f2d6376..391ed9c 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -573,7 +573,7 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
- 
- 	if (reqbufs->memory != V4L2_MEMORY_MMAP) {
--		mfc_err("Only V4L2_MEMORY_MAP is supported\n");
-+		mfc_err("Only V4L2_MEMORY_MMAP is supported\n");
- 		return -EINVAL;
- 	}
- 
+Some of these issues will be fixed once Marek's patches to convert the
+custom memory region reservation code is replaced by a generic one that
+supports named memory region reservation [0]. But the fixes are trivial
+so we can fix the current code until his rework patch lands.
+
+[0]: https://patchwork.linuxtv.org/patch/32287/
+
+Best regards,
+Javier
+
+
+Javier Martinez Canillas (3):
+  [media] s5p-mfc: Set device name for reserved memory region devs
+  [media] s5p-mfc: Add release callback for memory region devs
+  [media] s5p-mfc: Fix race between s5p_mfc_probe() and s5p_mfc_open()
+
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 50 ++++++++++++++++++++------------
+ 1 file changed, 32 insertions(+), 18 deletions(-)
+
 -- 
 2.5.5
 
