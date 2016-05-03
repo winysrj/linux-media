@@ -1,123 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:43498 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752092AbcEGM66 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 May 2016 08:58:58 -0400
-Date: Sat, 7 May 2016 09:58:51 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: hans.verkuil@cisco.com, chehabrafael@gmail.com,
-	javier@osg.samsung.com, inki.dae@samsung.com,
-	jh1009.sung@samsung.com, sakari.ailus@linux.intel.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 2/4] media: v4l2-mc add v4l_change_media_source() to
- invoke change_source
-Message-ID: <20160507095851.37a4fb19@recife.lan>
-In-Reply-To: <1457633868-4861-1-git-send-email-shuahkh@osg.samsung.com>
-References: <1457633868-4861-1-git-send-email-shuahkh@osg.samsung.com>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:52351 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755508AbcECKLg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2016 06:11:36 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
+	<Tiffany.lin@mediatek.com>,
+	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v10 1/8] dt-bindings: Add a binding for Mediatek Video Processor
+Date: Tue, 3 May 2016 18:11:20 +0800
+Message-ID: <1462270287-11374-2-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1462270287-11374-1-git-send-email-tiffany.lin@mediatek.com>
+References: <1462270287-11374-1-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 10 Mar 2016 11:17:48 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 
-> Add a common routine to invoke media device change_source handler.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Add a DT binding documentation of Video Processor Unit for the
+MT8173 SoC from Mediatek.
 
-Shuah,
+Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Acked-by: Rob Herring <robh@kernel.org>
 
-I'm marking this series of patches as superseded at patchwork, as I
-intend that you'll be submitting it somewhere in the future,
-together with a new version of the snd-usb-audio MC support (when ready
-for upstream merge), and if this is still needed.
+---
+ .../devicetree/bindings/media/mediatek-vpu.txt     |   31 ++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-vpu.txt
 
-Regards,
-Mauro
-
-> ---
-> 
-> Changes since v1:
-> - Fixed !CONFIG_MEDIA_CONTROLLER compile error for v4l_change_media_source()
-> 
->  drivers/media/v4l2-core/v4l2-mc.c | 14 ++++++++++++++
->  include/media/v4l2-mc.h           | 25 ++++++++++++++++++++++++-
->  2 files changed, 38 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-> index ae661ac..478b2768 100644
-> --- a/drivers/media/v4l2-core/v4l2-mc.c
-> +++ b/drivers/media/v4l2-core/v4l2-mc.c
-> @@ -217,6 +217,20 @@ void v4l_disable_media_source(struct video_device *vdev)
->  }
->  EXPORT_SYMBOL_GPL(v4l_disable_media_source);
->  
-> +int v4l_change_media_source(struct video_device *vdev)
-> +{
-> +	struct media_device *mdev = vdev->entity.graph_obj.mdev;
-> +	int ret;
-> +
-> +	if (!mdev || !mdev->change_source)
-> +		return 0;
-> +	ret = mdev->change_source(&vdev->entity, &vdev->pipe);
-> +	if (ret)
-> +		return -EBUSY;
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l_change_media_source);
-> +
->  int v4l_vb2q_enable_media_source(struct vb2_queue *q)
->  {
->  	struct v4l2_fh *fh = q->owner;
-> diff --git a/include/media/v4l2-mc.h b/include/media/v4l2-mc.h
-> index 98a938a..50b9348 100644
-> --- a/include/media/v4l2-mc.h
-> +++ b/include/media/v4l2-mc.h
-> @@ -154,8 +154,26 @@ int v4l_enable_media_source(struct video_device *vdev);
->   */
->  void v4l_disable_media_source(struct video_device *vdev);
->  
-> +/**
-> + * v4l_change_media_source() -	Hold media source for exclusive use
-> + *				if free
-> + *
-> + * @vdev:	pointer to struct video_device
-> + *
-> + * This interface calls change_source handler to change
-> + * the current source it is holding. The change_source
-> + * disables the current source and starts pipeline to
-> + * the new source. This interface should be used when
-> + * user changes source using s_input handler to keep
-> + * the previously granted permission for exclusive use
-> + * with a new input source.
-> + *
-> + * Return: returns zero on success or a negative error code.
-> + */
-> +int v4l_change_media_source(struct video_device *vdev);
-> +
->  /*
-> - * v4l_vb2q_enable_media_tuner -  Hold media source for exclusive use
-> + * v4l_vb2q_enable_media_source - Hold media source for exclusive use
->   *				  if free.
->   * @q - pointer to struct vb2_queue
->   *
-> @@ -219,6 +237,11 @@ static inline int v4l_enable_media_source(struct video_device *vdev)
->  	return 0;
->  }
->  
-> +static inline int v4l_change_media_source(struct video_device *vdev)
-> +{
-> +	return 0;
-> +}
-> +
->  static inline void v4l_disable_media_source(struct video_device *vdev)
->  {
->  }
-
-
+diff --git a/Documentation/devicetree/bindings/media/mediatek-vpu.txt b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
+new file mode 100644
+index 0000000..2a5bac3
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mediatek-vpu.txt
+@@ -0,0 +1,31 @@
++* Mediatek Video Processor Unit
++
++Video Processor Unit is a HW video controller. It controls HW Codec including
++H.264/VP8/VP9 Decode, H.264/VP8 Encode and Image Processor (scale/rotate/color convert).
++
++Required properties:
++  - compatible: "mediatek,mt8173-vpu"
++  - reg: Must contain an entry for each entry in reg-names.
++  - reg-names: Must include the following entries:
++    "tcm": tcm base
++    "cfg_reg": Main configuration registers base
++  - interrupts: interrupt number to the cpu.
++  - clocks : clock name from clock manager
++  - clock-names: must be main. It is the main clock of VPU
++
++Optional properties:
++  - memory-region: phandle to a node describing memory (see
++    Documentation/devicetree/bindings/reserved-memory/reserved-memory.txt)
++    to be used for VPU extended memory; if not present, VPU may be located
++    anywhere in the memory
++
++Example:
++	vpu: vpu@10020000 {
++		compatible = "mediatek,mt8173-vpu";
++		reg = <0 0x10020000 0 0x30000>,
++		      <0 0x10050000 0 0x100>;
++		reg-names = "tcm", "cfg_reg";
++		interrupts = <GIC_SPI 166 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&topckgen TOP_SCP_SEL>;
++		clock-names = "main";
++	};
 -- 
-Thanks,
-Mauro
+1.7.9.5
+
