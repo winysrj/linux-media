@@ -1,84 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33864 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752561AbcE3KJP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 May 2016 06:09:15 -0400
-Received: by mail-wm0-f67.google.com with SMTP id n129so21036435wmn.1
-        for <linux-media@vger.kernel.org>; Mon, 30 May 2016 03:09:14 -0700 (PDT)
-Subject: Re: [PATCH 3/4] dt-bindings: Document Renesas R-Car FCP power-domains
- usage
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-References: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
- <1464369565-12259-5-git-send-email-kieran@bingham.xyz>
- <CAMuHMdUvRN2ysYJ9g0daOD8sD7O5XcrZkKbWr0X_L7mG25Ocww@mail.gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-renesas-soc@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-From: Kieran Bingham <kieran@ksquared.org.uk>
-Message-ID: <574C1148.5070708@bingham.xyz>
-Date: Mon, 30 May 2016 11:09:12 +0100
-MIME-Version: 1.0
-In-Reply-To: <CAMuHMdUvRN2ysYJ9g0daOD8sD7O5XcrZkKbWr0X_L7mG25Ocww@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from lists.s-osg.org ([54.187.51.154]:60006 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756497AbcECU22 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 May 2016 16:28:28 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH 3/3] [media] s5p-mfc: Fix race between s5p_mfc_probe() and s5p_mfc_open()
+Date: Tue,  3 May 2016 16:27:18 -0400
+Message-Id: <1462307238-21815-4-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1462307238-21815-1-git-send-email-javier@osg.samsung.com>
+References: <1462307238-21815-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+The s5p_mfc_probe() function registers the video devices before all the
+resources needed by s5p_mfc_open() are correctly initalized.
 
-On 28/05/16 20:03, Geert Uytterhoeven wrote:
-> Hi Kieran,
-> 
-> On Fri, May 27, 2016 at 7:19 PM, Kieran Bingham <kieran@ksquared.org.uk> wrote:
->> The example misses the power-domains usage, and documentation that the
->> property is used by the node.
->>
->> Signed-off-by: Kieran Bingham <kieran@bingham.xyz>
-> 
-> Thanks for your patch!
-> 
->> ---
->>  Documentation/devicetree/bindings/media/renesas,fcp.txt | 3 +++
->>  1 file changed, 3 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/media/renesas,fcp.txt b/Documentation/devicetree/bindings/media/renesas,fcp.txt
->> index 1c0718b501ef..464bb7ae4b92 100644
->> --- a/Documentation/devicetree/bindings/media/renesas,fcp.txt
->> +++ b/Documentation/devicetree/bindings/media/renesas,fcp.txt
->> @@ -21,6 +21,8 @@ are paired with. These DT bindings currently support the FCPV and FCPF.
->>
->>   - reg: the register base and size for the device registers
->>   - clocks: Reference to the functional clock
->> + - power-domains : power-domain property defined with a phandle
->> +                           to respective power domain.
-> 
-> I'd write "power domain specifier" instead of "phandle". While SYSC on R-Car
-> Gen3 uses #power-domain-cells = 0, the FCP module may show up on another
-> SoC that uses a different value, needing more than just a phandle.
-> 
-> In fact I'm inclined to leave out the power-domains property completely:
-> it's not a feature of the FCP, but of the SoC the FCP is part of.
-> power-domains properties may appear in any device node where needed.
+So if s5p_mfc_open() function is called before s5p_mfc_probe() finishes
+(since the video dev is already registered), a NULL pointer dereference
+will happen due s5p_mfc_open() accessing uninitialized vars such as the
+struct s5p_mfc_dev .watchdog_timer and .mfc_ops fields.
 
-I'm happy to just drop this part. It was mainly the addition to the
-example I was after, as I had followed the example, and thus missed the
-power-domain setting.
+An example is following BUG caused by add_timer() getting a NULL pointer:
 
->>  Device node example
->> @@ -30,4 +32,5 @@ Device node example
->>                 compatible = "renesas,r8a7795-fcpv", "renesas,fcpv";
->>                 reg = <0 0xfea2f000 0 0x200>;
->>                 clocks = <&cpg CPG_MOD 602>;
->> +               power-domains = <&sysc R8A7795_PD_A3VP>;
-> 
-> Adding it to the example doesn't hurt, though.
+[   45.765374] kernel BUG at kernel/time/timer.c:790!
+[   45.765381] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP ARM
+...
+[   45.766149] [<c016fdf4>] (mod_timer) from [<bf181d18>] (s5p_mfc_open+0x274/0x4d4 [s5p_mfc])
+[   45.766416] [<bf181d18>] (s5p_mfc_open [s5p_mfc]) from [<bf0214a0>] (v4l2_open+0x9c/0x100 [videodev])
+[   45.766547] [<bf0214a0>] (v4l2_open [videodev]) from [<c01e355c>] (chrdev_open+0x9c/0x178)
+[   45.766575] [<c01e355c>] (chrdev_open) from [<c01dceb4>] (do_dentry_open+0x1e0/0x300)
+[   45.766595] [<c01dceb4>] (do_dentry_open) from [<c01ec2f0>] (path_openat+0x800/0x10d4)
+[   45.766610] [<c01ec2f0>] (path_openat) from [<c01ed8b8>] (do_filp_open+0x5c/0xc0)
+[   45.766624] [<c01ed8b8>] (do_filp_open) from [<c01de218>] (do_sys_open+0x10c/0x1bc)
+[   45.766642] [<c01de218>] (do_sys_open) from [<c01078c0>] (ret_fast_syscall+0x0/0x3c)
+[   45.766655] Code: eaffffe3 e3a00001 e28dd008 e8bd81f0 (e7f001f2)
 
-Ok, I'll adjust and just keep the example in v2.
+Fix it by registering the video devs as the last step in s5p_mfc_probe().
 
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+---
+
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 39 +++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index beb4fd5bd326..501d822cad6b 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1212,14 +1212,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	vfd->vfl_dir	= VFL_DIR_M2M;
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s", S5P_MFC_DEC_NAME);
+ 	dev->vfd_dec	= vfd;
+-	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+-	if (ret) {
+-		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
+-		video_device_release(vfd);
+-		goto err_dec_reg;
+-	}
+-	v4l2_info(&dev->v4l2_dev,
+-		  "decoder registered as /dev/video%d\n", vfd->num);
+ 	video_set_drvdata(vfd, dev);
+ 
+ 	/* encoder */
+@@ -1237,14 +1229,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	vfd->vfl_dir	= VFL_DIR_M2M;
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s", S5P_MFC_ENC_NAME);
+ 	dev->vfd_enc	= vfd;
+-	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+-	if (ret) {
+-		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
+-		video_device_release(vfd);
+-		goto err_enc_reg;
+-	}
+-	v4l2_info(&dev->v4l2_dev,
+-		  "encoder registered as /dev/video%d\n", vfd->num);
+ 	video_set_drvdata(vfd, dev);
+ 	platform_set_drvdata(pdev, dev);
+ 
+@@ -1261,15 +1245,34 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	s5p_mfc_init_hw_cmds(dev);
+ 	s5p_mfc_init_regs(dev);
+ 
++	/* Register decoder and encoder */
++	ret = video_register_device(dev->vfd_dec, VFL_TYPE_GRABBER, 0);
++	if (ret) {
++		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
++		video_device_release(dev->vfd_dec);
++		goto err_dec_reg;
++	}
++	v4l2_info(&dev->v4l2_dev,
++		  "decoder registered as /dev/video%d\n", dev->vfd_dec->num);
++
++	ret = video_register_device(dev->vfd_enc, VFL_TYPE_GRABBER, 0);
++	if (ret) {
++		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
++		video_device_release(dev->vfd_enc);
++		goto err_enc_reg;
++	}
++	v4l2_info(&dev->v4l2_dev,
++		  "encoder registered as /dev/video%d\n", dev->vfd_enc->num);
++
+ 	pr_debug("%s--\n", __func__);
+ 	return 0;
+ 
+ /* Deinit MFC if probe had failed */
+ err_enc_reg:
+-	video_device_release(dev->vfd_enc);
+-err_enc_alloc:
+ 	video_unregister_device(dev->vfd_dec);
+ err_dec_reg:
++	video_device_release(dev->vfd_enc);
++err_enc_alloc:
+ 	video_device_release(dev->vfd_dec);
+ err_dec_alloc:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
 -- 
-Regards
+2.5.5
 
-Kieran Bingham
