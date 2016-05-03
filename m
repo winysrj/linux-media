@@ -1,44 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:17260 "EHLO mga03.intel.com"
+Received: from lists.s-osg.org ([54.187.51.154]:56559 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753248AbcEDPpK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 11:45:10 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media\@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-In-Reply-To: <20160504085713.3b81856d@lwn.net>
-References: <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net> <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com> <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com> <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de> <874maef8km.fsf@intel.com> <13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de> <20160504134346.GY14148@phenom.ffwll.local> <CAKMK7uG9hNkG6KxFLQeaCbtPFY7qLiz6s5+qDy9-DcdywkDqrA@mail.gmail.com> <20160504085713.3b81856d@lwn.net>
-Date: Wed, 04 May 2016 18:44:22 +0300
-Message-ID: <87pot1n7zd.fsf@intel.com>
+	id S1755919AbcECPG3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 May 2016 11:06:29 -0400
+Subject: Re: [PATCH] media: fix use-after-free in cdev_put() when app exits
+ after driver unbind
+To: Lars-Peter Clausen <lars@metafoo.de>, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+References: <1461969452-9276-1-git-send-email-shuahkh@osg.samsung.com>
+ <57272910.8090500@metafoo.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <5728BE73.7020505@osg.samsung.com>
+Date: Tue, 3 May 2016 09:06:27 -0600
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <57272910.8090500@metafoo.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 04 May 2016, Jonathan Corbet <corbet@lwn.net> wrote:
-> The sphinx/rst approach does seem, to me, to be the right one, with the
-> existing DocBook structure remaining in place for those who want/need
-> it.  I'm inclined toward my stuff as a base to work with, obviously :) But
-> it's hackish at best and needs a lot of cleaning up.  It's a proof of
-> concept, but it's hardly finished (one might say it's barely begun...)
+On 05/02/2016 04:16 AM, Lars-Peter Clausen wrote:
+> On 04/30/2016 12:37 AM, Shuah Khan wrote:
+> [...]
+>> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+>> index 5bb3b0e..ce9b051 100644
+>> --- a/include/media/media-devnode.h
+>> +++ b/include/media/media-devnode.h
+>> @@ -72,6 +72,7 @@ struct media_file_operations {
+>>   * @fops:	pointer to struct &media_file_operations with media device ops
+>>   * @dev:	struct device pointer for the media controller device
+>>   * @cdev:	struct cdev pointer character device
+>> + * @kobj:	struct kobject
+>>   * @parent:	parent device
+>>   * @minor:	device node minor number
+>>   * @flags:	flags, combination of the MEDIA_FLAG_* constants
+>> @@ -91,6 +92,7 @@ struct media_devnode {
+>>  	/* sysfs */
+>>  	struct device dev;		/* media device */
+>>  	struct cdev cdev;		/* character device */
+>> +	struct kobject kobj;		/* set as cdev parent kobj */
+> 
+> As said during the previous review, the struct device should be used for
+> reference counting. Otherwise a use-after-free can still occur since you now
+> have two reference counted data structures with independent counters in the
+> same structure. For one of them the counter goes to zero before the other
+> and then you have the use-after-free.
+> 
 
-Thanks. I'll start looking at how to make it less hackish and more
-upstreamable.
+struct device is embedded in the media_devnode and media_devnode
+will not be released until cdev releases the kobject since it is
+set as cdeev kobj.parent. I am not seeing any use-fater-free with
+this scheme. That said, I understand your concern about two ref
+counted objects in the same structure. Using struct device for ref
+counting will require a few changes to media_devnode_register()
+to do device_initialize() before cdev_add(). I am testing that now
+and will send the updated patch soon.
 
-BR,
-Jani.
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+thanks,
+-- Shuah
