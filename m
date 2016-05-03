@@ -1,59 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:34848 "EHLO
-	mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750779AbcE0XYs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2016 19:24:48 -0400
-MIME-Version: 1.0
-In-Reply-To: <1464384685-347275-1-git-send-email-arnd@arndb.de>
-References: <1464384685-347275-1-git-send-email-arnd@arndb.de>
-Date: Fri, 27 May 2016 16:24:47 -0700
-Message-ID: <CA+55aFw_SZ7nydXMQKcaQJmYy1=pCg7S6mUgHJGyfGvNoRgoRg@mail.gmail.com>
-Subject: Re: [PATCH] remove lots of IS_ERR_VALUE abuses
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
+Received: from sauhun.de ([89.238.76.85]:40771 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756527AbcECVjZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 May 2016 17:39:25 -0400
+Date: Tue, 3 May 2016 23:39:08 +0200
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Peter Rosin <peda@axentia.se>
+Cc: linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
 	Andrew Morton <akpm@linux-foundation.org>,
-	"Rafael J. Wysocki" <rjw@rjwysocki.net>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	David Airlie <airlied@linux.ie>,
-	Robin Murphy <robin.murphy@arm.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Adrian Hunter <adrian.hunter@intel.com>,
-	Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-	Russell King <linux@armlinux.org.uk>,
-	Bob Peterson <rpeterso@redhat.com>,
-	Linux ACPI <linux-acpi@vger.kernel.org>,
-	"open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Network Development <netdev@vger.kernel.org>,
-	Linux Wireless List <linux-wireless@vger.kernel.org>,
-	V9FS Developers <v9fs-developer@lists.sourceforge.net>
-Content-Type: text/plain; charset=UTF-8
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Adriana Reus <adriana.reus@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	linux-i2c@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-media@vger.kernel.org,
+	devicetree@vger.kernel.org, Peter Rosin <peda@lysator.liu.se>
+Subject: Re: [PATCH v7 16/24] i2c: allow adapter drivers to override the
+ adapter locking
+Message-ID: <20160503213908.GC2018@tetsubishi>
+References: <1461165484-2314-1-git-send-email-peda@axentia.se>
+ <1461165484-2314-17-git-send-email-peda@axentia.se>
+ <20160428205018.GA3553@katana>
+ <470abe38-ab5f-2d0a-305b-e1a3253ce5a9@axentia.se>
+ <20160429071604.GB1870@katana>
+ <357e6fda-73b3-fb7f-c341-97f09af1943f@axentia.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <357e6fda-73b3-fb7f-c341-97f09af1943f@axentia.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 27, 2016 at 2:23 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->
-> This patch changes all users of IS_ERR_VALUE() that I could find
-> on 32-bit ARM randconfig builds and x86 allmodconfig. For the
-> moment, this doesn't change the definition of IS_ERR_VALUE()
-> because there are probably still architecture specific users
-> elsewhere.
+> Yes, they look like reasonable complaints.
 
-Patch applied with the fixups from Al Viro edited in.
+Thanks for fixing them. I just sent out my latest comments and when you
+fix those and send V8, I'll apply that right away. I think we are safe
+to fix the rest incrementally if needed. Note that I didn't review the
+IIO and media patches, I trust the reviewers on those.
 
-I also ended up removing a few other users (due to the vm_brk()
-interface), and then made IS_ERR_VALUE() do the "void *" cast so that
-integer use of a non-pointer size should now complain.
+Thanks for your work on this! I need a break now, this is
+mind-boggling...
 
-It works for me and has no new warnings in my allmodconfig build, and
-with your ARM work that is presumably clean too. But other
-architectures may see new warnings.
-
-People who got affected by this should check their subsystem code for
-the changes.
-
-              Linus
