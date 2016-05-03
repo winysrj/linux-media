@@ -1,132 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41100 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632AbcERIaw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2016 04:30:52 -0400
-Date: Wed, 18 May 2016 10:30:48 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Marcus Folkesson <marcus.folkesson@gmail.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-	patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	sakari.ailus@iki.fi
-Subject: Re: [PATCH] support for AD5820 camera auto-focus coil
-Message-ID: <20160518083048.GA30870@amd>
-References: <20160517181927.GA28741@amd>
- <20160517183340.GA10358@gmail.com>
+Received: from www381.your-server.de ([78.46.137.84]:44820 "EHLO
+	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933775AbcECQCm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2016 12:02:42 -0400
+Subject: Re: [PATCH] media: fix use-after-free in cdev_put() when app exits
+ after driver unbind
+To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+References: <1461969452-9276-1-git-send-email-shuahkh@osg.samsung.com>
+ <57272910.8090500@metafoo.de> <5728BE73.7020505@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Lars-Peter Clausen <lars@metafoo.de>
+Message-ID: <5728CB9D.2090509@metafoo.de>
+Date: Tue, 3 May 2016 18:02:37 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160517183340.GA10358@gmail.com>
+In-Reply-To: <5728BE73.7020505@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+On 05/03/2016 05:06 PM, Shuah Khan wrote:
+> On 05/02/2016 04:16 AM, Lars-Peter Clausen wrote:
+>> On 04/30/2016 12:37 AM, Shuah Khan wrote:
+>> [...]
+>>> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+>>> index 5bb3b0e..ce9b051 100644
+>>> --- a/include/media/media-devnode.h
+>>> +++ b/include/media/media-devnode.h
+>>> @@ -72,6 +72,7 @@ struct media_file_operations {
+>>>   * @fops:	pointer to struct &media_file_operations with media device ops
+>>>   * @dev:	struct device pointer for the media controller device
+>>>   * @cdev:	struct cdev pointer character device
+>>> + * @kobj:	struct kobject
+>>>   * @parent:	parent device
+>>>   * @minor:	device node minor number
+>>>   * @flags:	flags, combination of the MEDIA_FLAG_* constants
+>>> @@ -91,6 +92,7 @@ struct media_devnode {
+>>>  	/* sysfs */
+>>>  	struct device dev;		/* media device */
+>>>  	struct cdev cdev;		/* character device */
+>>> +	struct kobject kobj;		/* set as cdev parent kobj */
+>>
+>> As said during the previous review, the struct device should be used for
+>> reference counting. Otherwise a use-after-free can still occur since you now
+>> have two reference counted data structures with independent counters in the
+>> same structure. For one of them the counter goes to zero before the other
+>> and then you have the use-after-free.
+>>
+> 
+> struct device is embedded in the media_devnode and media_devnode
+> will not be released until cdev releases the kobject since it is
+> set as cdeev kobj.parent. I am not seeing any use-fater-free with
+> this scheme.
 
-...
-> Use module_i2c_driver() instead.
+There might still be a reference to the struct device at that point, so if
+you free the media_devnode there is a use-after-free.
 
-Thanks for all the comments, I've fixed it up like this, will post new
-version soon.
-
-Best regards,
-								Pavel
-
-commit 97a793fb20be29e7ed217c007e8bf857f9854968
-Author: Pavel <pavel@ucw.cz>
-Date:   Wed May 18 10:22:06 2016 +0200
-
-    Cleanups, as suggested by Marcus Folkesson
-
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-index b71cc11..7725829 100644
---- a/drivers/media/i2c/ad5820.c
-+++ b/drivers/media/i2c/ad5820.c
-@@ -147,7 +147,6 @@ static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
- 	struct ad5820_device *coil =
- 		container_of(ctrl->handler, struct ad5820_device, ctrls);
- 	u32 code;
--	int r = 0;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_FOCUS_ABSOLUTE:
-@@ -165,7 +164,7 @@ static int ad5820_set_ctrl(struct v4l2_ctrl *ctrl)
- 		break;
- 	}
- 
--	return r;
-+	return 0;
- }
- 
- static const struct v4l2_ctrl_ops ad5820_ctrl_ops = {
-@@ -245,8 +244,6 @@ static int ad5820_init_controls(struct ad5820_device *coil)
-  */
- static int ad5820_registered(struct v4l2_subdev *subdev)
- {
--	static const int CHECK_VALUE = 0x3FF0;
--
- 	struct ad5820_device *coil = to_ad5820_device(subdev);
- 	struct i2c_client *client = v4l2_get_subdevdata(subdev);
- 
-@@ -364,16 +361,19 @@ static int ad5820_probe(struct i2c_client *client,
- 	strcpy(coil->subdev.name, "ad5820 focus");
- 
- 	ret = media_entity_pads_init(&coil->subdev.entity, 0, NULL);
--	if (ret < 0) {
--		kfree(coil);
--		return ret;
--	}
-+	if (ret < 0)
-+		goto free;
- 
- 	ret = v4l2_async_register_subdev(&coil->subdev);
- 	if (ret < 0)
--		kfree(coil);
-+		goto cleanup;
- 
- 	return ret;
-+cleanup:
-+	media_entity_cleanup(&coil->subdev.entity);
-+free:
-+	kfree(coil);
-+	return ret;
- }
- 
- static int __exit ad5820_remove(struct i2c_client *client)
-@@ -409,26 +409,7 @@ static struct i2c_driver ad5820_i2c_driver = {
- 	.id_table	= ad5820_id_table,
- };
- 
--static int __init ad5820_init(void)
--{
--	int rval;
--
--	rval = i2c_add_driver(&ad5820_i2c_driver);
--	if (rval)
--		printk(KERN_INFO "%s: failed registering " AD5820_NAME "\n",
--		       __func__);
--
--	return rval;
--}
--
--static void __exit ad5820_exit(void)
--{
--	i2c_del_driver(&ad5820_i2c_driver);
--}
--
--
--module_init(ad5820_init);
--module_exit(ad5820_exit);
-+module_i2c_driver(ad5820_i2c_driver);
- 
- MODULE_AUTHOR("Tuukka Toivonen");
- MODULE_DESCRIPTION("AD5820 camera lens driver");
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
