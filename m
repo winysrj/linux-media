@@ -1,215 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:40517 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756461AbcEXQvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 12:51:00 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:33224 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755238AbcECDFT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 May 2016 23:05:19 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 28EDE1800C7
+	for <linux-media@vger.kernel.org>; Tue,  3 May 2016 05:05:13 +0200 (CEST)
+Date: Tue, 03 May 2016 05:05:13 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [RFC v2 10/21] v4l: Support the request API in format operations
-Date: Tue, 24 May 2016 19:47:20 +0300
-Message-Id: <1464108451-28142-11-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160503030513.28EDE1800C7@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Store the formats in per-entity request data. The get and set format
-operations are completely handled by the V4L2 core with help of the try
-format driver operation.
+Results of the daily build of media_tree:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 121 +++++++++++++++++++++++++++++++++++
- include/media/v4l2-dev.h             |  13 ++++
- 2 files changed, 134 insertions(+)
+date:		Tue May  3 04:00:18 CEST 2016
+git branch:	test
+git hash:	68af062b5f38510dc96635314461c6bbe1dbf2fe
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3413-g618cd5c
+host hardware:	x86_64
+host os:	4.5.0-164
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index bf15580..533fac6 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1355,6 +1355,119 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
- 	return ret;
- }
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+static void vdev_request_data_release(struct media_entity_request_data *data)
-+{
-+	struct video_device_request_data *vdata =
-+		to_video_device_request_data(data);
-+
-+	kfree(vdata);
-+}
-+
-+static int vdev_request_format(struct video_device *vdev, unsigned int req_id,
-+			       struct media_device_request **_req,
-+			       struct v4l2_pix_format_mplane **_fmt)
-+{
-+	struct media_entity_request_data *data;
-+	struct video_device_request_data *vdata;
-+	struct media_device_request *req;
-+
-+	if (!vdev->v4l2_dev || !vdev->v4l2_dev->mdev)
-+		return -EINVAL;
-+
-+	req = media_device_request_find(vdev->v4l2_dev->mdev, req_id);
-+	if (!req)
-+		return -EINVAL;
-+
-+	*_req = req;
-+
-+	data = media_device_request_get_entity_data(req, &vdev->entity);
-+	if (data) {
-+		vdata = to_video_device_request_data(data);
-+		*_fmt = &vdata->format;
-+		return 0;
-+	}
-+
-+	vdata = kzalloc(sizeof(*vdata), GFP_KERNEL);
-+	if (!vdata) {
-+		media_device_request_put(req);
-+		return -ENOMEM;
-+	}
-+
-+	vdata->data.release = vdev_request_data_release;
-+
-+	media_device_request_set_entity_data(req, &vdev->entity, &vdata->data);
-+
-+	*_fmt = &vdata->format;
-+	return 0;
-+}
-+
-+static int v4l_g_req_mplane_fmt(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh,
-+				struct v4l2_format *fmt)
-+{
-+	struct video_device *vdev = video_devdata(file);
-+	struct v4l2_pix_format_mplane *format;
-+	struct media_device_request *req;
-+	int ret;
-+
-+	ret = vdev_request_format(vdev, fmt->fmt.pix_mp.request,
-+				  &req, &format);
-+	if (ret < 0)
-+		return ret;
-+
-+	fmt->fmt.pix_mp = *format;
-+	media_device_request_put(req);
-+	return 0;
-+}
-+
-+static int v4l_s_req_mplane_fmt(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh,
-+				struct v4l2_format *fmt)
-+{
-+	int (*try_op)(struct file *file, void *fh, struct v4l2_format *fmt);
-+	struct video_device *vdev = video_devdata(file);
-+	struct v4l2_pix_format_mplane *format;
-+	struct media_device_request *req;
-+	int ret;
-+
-+	if (fmt->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		try_op = ops->vidioc_try_fmt_vid_cap_mplane;
-+	else
-+		try_op = ops->vidioc_try_fmt_vid_out_mplane;
-+
-+	if (unlikely(!try_op))
-+		return -ENOSYS;
-+
-+	ret = try_op(file, fh, fmt);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = vdev_request_format(vdev, fmt->fmt.pix_mp.request,
-+				  &req, &format);
-+	if (ret < 0)
-+		return ret;
-+
-+	*format = fmt->fmt.pix_mp;
-+	media_device_request_put(req);
-+	return 0;
-+}
-+#else
-+static int v4l_g_req_mplane_fmt(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh,
-+				struct v4l2_format *fmt)
-+{
-+	return -ENOSYS;
-+}
-+
-+static int v4l_s_req_mplane_fmt(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh,
-+				struct v4l2_format *fmt)
-+{
-+	return -ENOSYS;
-+}
-+#endif
-+
- static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-@@ -1402,6 +1515,8 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap_mplane))
- 			break;
-+		if (p->fmt.pix_mp.request)
-+			return v4l_g_req_mplane_fmt(ops, file, fh, p);
- 		return ops->vidioc_g_fmt_vid_cap_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_overlay))
-@@ -1426,6 +1541,8 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
- 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_vid_out_mplane))
- 			break;
-+		if (p->fmt.pix_mp.request)
-+			return v4l_g_req_mplane_fmt(ops, file, fh, p);
- 		return ops->vidioc_g_fmt_vid_out_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_vid_out_overlay))
-@@ -1480,6 +1597,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_s_fmt_vid_cap_mplane))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
-+		if (p->fmt.pix_mp.request)
-+			return v4l_s_req_mplane_fmt(ops, file, fh, p);
- 		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_s_fmt_vid_overlay))
-@@ -1508,6 +1627,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_s_fmt_vid_out_mplane))
- 			break;
- 		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
-+		if (p->fmt.pix_mp.request)
-+			return v4l_s_req_mplane_fmt(ops, file, fh, p);
- 		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_s_fmt_vid_out_overlay))
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 25a3190..19c7702 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -238,4 +238,17 @@ static inline int video_is_registered(struct video_device *vdev)
- 	return test_bit(V4L2_FL_REGISTERED, &vdev->flags);
- }
- 
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+struct video_device_request_data {
-+	struct media_entity_request_data data;
-+	struct v4l2_pix_format_mplane format;
-+};
-+
-+static inline struct video_device_request_data *
-+to_video_device_request_data(struct media_entity_request_data *data)
-+{
-+	return container_of(data, struct video_device_request_data, data);
-+}
-+#endif
-+
- #endif /* _V4L2_DEV_H */
--- 
-1.9.1
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
