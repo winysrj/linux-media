@@ -1,192 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m50-135.163.com ([123.125.50.135]:42236 "EHLO m50-135.163.com"
+Received: from lists.s-osg.org ([54.187.51.154]:55691 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751648AbcEKI3Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 04:29:16 -0400
-From: zengzhaoxiu@163.com
-To: akpm@linux-foundation.org, linux@horizon.com, bp@suse.de,
-	ulrik.debie-os@e2big.org, sam@ravnborg.org, davem@davemloft.net,
-	ddaney.cavm@gmail.com, joe@perches.com, computersforpeace@gmail.com
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	linux-alpha@vger.kernel.org,
-	adi-buildroot-devel@lists.sourceforge.net,
-	linux-ia64@vger.kernel.org, linux-mips@linux-mips.org,
-	linux-am33-list@redhat.com, linuxppc-dev@lists.ozlabs.org,
-	sparclinux@vger.kernel.org, qat-linux@intel.com,
-	linux-crypto@vger.kernel.org, linux-edac@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
-	netdev@vger.kernel.org, linux-scsi@vger.kernel.org,
-	linux-nfs@vger.kernel.org, linux-mediatek@lists.infradead.org,
-	Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
-Subject: [patch V4 00/31] bitops: add parity functions
-Date: Wed, 11 May 2016 16:25:58 +0800
-Message-Id: <1462955158-28394-1-git-send-email-zengzhaoxiu@163.com>
+	id S932252AbcECMR7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 May 2016 08:17:59 -0400
+Subject: Re: [PATCH v2] s5p-mfc: Don't try to put pm->clock if lookup failed
+To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+References: <1462216462-32665-1-git-send-email-javier@osg.samsung.com>
+ <20160503101509.GB3956@kozik-lap>
+Cc: linux-kernel@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <6290517d-3d9a-c512-875e-6b1871a2ebba@osg.samsung.com>
+Date: Tue, 3 May 2016 08:17:45 -0400
+MIME-Version: 1.0
+In-Reply-To: <20160503101509.GB3956@kozik-lap>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+Hello Krzysztof,
 
-When I do "grep parity -r linux", I found many parity calculations
-distributed in many drivers.
+On 05/03/2016 06:15 AM, Krzysztof Kozlowski wrote:
+> On Mon, May 02, 2016 at 03:14:22PM -0400, Javier Martinez Canillas wrote:
+>> Failing to get the struct s5p_mfc_pm .clock is a non-fatal error so the
+>> clock field can have a errno pointer value. But s5p_mfc_final_pm() only
+>> checks if .clock is not NULL before attempting to unprepare and put it.
+>>
+>> This leads to the following warning in clk_put() due s5p_mfc_final_pm():
+>>
+>> WARNING: CPU: 3 PID: 1023 at drivers/clk/clk.c:2814 s5p_mfc_final_pm+0x48/0x74 [s5p_mfc]
+>> CPU: 3 PID: 1023 Comm: rmmod Tainted: G        W       4.6.0-rc6-next-20160502-00005-g5a15a49106bc #9
+>> Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+>> [<c010e1bc>] (unwind_backtrace) from [<c010af28>] (show_stack+0x10/0x14)
+>> [<c010af28>] (show_stack) from [<c032485c>] (dump_stack+0x88/0x9c)
+>> [<c032485c>] (dump_stack) from [<c011b8e8>] (__warn+0xe8/0x100)
+>> [<c011b8e8>] (__warn) from [<c011b9b0>] (warn_slowpath_null+0x20/0x28)
+>> [<c011b9b0>] (warn_slowpath_null) from [<bf16004c>] (s5p_mfc_final_pm+0x48/0x74 [s5p_mfc])
+>> [<bf16004c>] (s5p_mfc_final_pm [s5p_mfc]) from [<bf157414>] (s5p_mfc_remove+0x8c/0x94 [s5p_mfc])
+>> [<bf157414>] (s5p_mfc_remove [s5p_mfc]) from [<c03fe1f8>] (platform_drv_remove+0x24/0x3c)
+>> [<c03fe1f8>] (platform_drv_remove) from [<c03fcc70>] (__device_release_driver+0x84/0x110)
+>> [<c03fcc70>] (__device_release_driver) from [<c03fcdd8>] (driver_detach+0xac/0xb0)
+>> [<c03fcdd8>] (driver_detach) from [<c03fbff8>] (bus_remove_driver+0x4c/0xa0)
+>> [<c03fbff8>] (bus_remove_driver) from [<c01886a8>] (SyS_delete_module+0x174/0x1b8)
+>> [<c01886a8>] (SyS_delete_module) from [<c01078c0>] (ret_fast_syscall+0x0/0x3c)
+>>
+>> Assign the pointer to NULL in case of a lookup failure to fix the issue.
+>>
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> ---
+>>
+>> Changes in v2:
+>> - Set the clock pointer to NULL instead of checking for !IS_ERR_OR_NULL().
+>>   Suggested by Arnd Bergmann.
+>>
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 1 +
+>>  1 file changed, 1 insertion(+)
+> 
+> This is a fix for bug, so for statistics:
+> Fixes: d19f405a5a8d ("[media] s5p-mfc: Fix selective sclk_mfc init")
+> 
+> ... and although not fatal, but annoying so I think this deserves:
+> Cc: <stable@vger.kernel.org>
+>
 
-This patch series does:
-  1. provide generic and architecture-specific parity calculations
-  2. remove drivers' local parity calculations, use bitops' parity
-     functions instead
-  3. replace "hweightN(x) & 1" with "parityN(x)" to improve readability,
-     and improve performance on some CPUs that without popcount support
+Indeed, sorry for missing those.
+ 
+> Anyway:
+> Reviewed-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+>
 
-I did not use GCC's __builtin_parity* functions, based on the following reasons:
-  1. I don't know where to identify which version of GCC from the beginning
-     supported __builtin_parity for the architecture.
-  2. For the architecture that doesn't has popcount instruction, GCC instead use
-     "call __paritysi2" (__paritydi2 for 64-bits). So if use __builtin_parity, we must
-     provide __paritysi2 and __paritydi2 functions for these architectures.
-     Additionally, parity4,8,16 might be "__builtin_parity(x & mask)", but the "& mask"
-     operation is totally unnecessary.
-  3. For the architecture that has popcount instruction, we do the same things as GCC.
-  4. For powerpc, sparc, and x86, we do runtime patching to use popcount instruction
-     if the CPU support.
+Thanks a lot for your feedback.
+ 
+> Best regards,
+> Krzysztof
+> 
 
-I have compiled successfully with x86_64_defconfig, i386_defconfig, pseries_defconfig
-and sparc64_defconfig.
-
-Changes to V3:
-- Remove "odd" and "even" from documents. The function parityN returns whether an odd
-  or even number of bits are on in a N-bit word, does not involve the definition of
-  odd/even parity. Is it an odd or even parity checking, depends on the caller's context.
-- Replace "hweightN(x) % 2" with "parityN(x)" in crypto/sahara.c and edac/amd64_edac.c
-- Use PARITY_MAGIC instead of 0x6996 in powerpc's parity_64.S
-- Use PARITY_MAGIC instead of 0x6996 in sparc's parity.S
-- Pick up ACKs
-
-Changes to v2:
-- X86, remove custom calling convention, use inline asm
-- Add constant PARITY_MAGIC (proposals by Sam Ravnborg)
-- Add include/asm-generic/bitops/popc-parity.h (proposals by Chris Metcalf)
-- Tile uses popc-parity.h directly
-- Mips uses popc-parity.h if has usable __builtin_popcount
-- Add few comments in powerpc's and sparc's parity.S
-
-Changes to v1:
-- Add runtime patching for powerpc, sparc, and x86
-- Avr32 use grenric parity too
-- Fix error in ssfdc's patch, and add commit message
-- Don't change the original code composition of adxrs450.c
-- Directly assignement to phy_cap.parity in drivers/scsi/isci/phy.c
-
-Regards,
-
-=== diffstat ===
-
-Zhaoxiu Zeng (31):
-  bitops: add parity functions
-  bitops: Include generic parity.h in some architectures' bitops.h
-  bitops: Add alpha-specific parity functions
-  bitops: Add blackfin-specific parity functions
-  bitops: Add ia-specific parity functions
-  bitops: Tile and MIPS (if has usable __builtin_popcount) use popcount
-    parity functions
-  bitops: Add powerpc-specific parity functions
-  bitops: Add sparc-specific parity functions
-  bitops: Add x86-specific parity functions
-  sunrpc: use parity8
-  mips: use parity functions in cerr-sb1.c
-  lib: bch: use parity32
-  media: use parity8 in vivid-vbi-gen.c
-  media: use parity functions in saa7115
-  input: use parity32 in grip_mp
-  input: use parity64 in sidewinder
-  input: use parity16 in ams_delta_serio
-  scsi: use parity32 in isci's phy
-  mtd: use parity16 in ssfdc
-  mtd: use parity functions in inftlcore
-  crypto: use parity functions in qat_hal
-  mtd: use parity16 in sm_ftl
-  ethernet: use parity8 in sun/niu.c
-  input: use parity8 in pcips2
-  input: use parity8 in sa1111ps2
-  iio: use parity32 in adxrs450
-  serial: use parity32 in max3100
-  input: use parity8 in elantech
-  ethernet: use parity8 in broadcom/tg3.c
-  crypto: use parity_long is sahara.c
-  edac: use parity8 in amd64_edac.c
-
- arch/alpha/include/asm/bitops.h              |  27 +++++
- arch/arc/include/asm/bitops.h                |   1 +
- arch/arm/include/asm/bitops.h                |   1 +
- arch/arm64/include/asm/bitops.h              |   1 +
- arch/avr32/include/asm/bitops.h              |   1 +
- arch/blackfin/include/asm/bitops.h           |  31 ++++++
- arch/c6x/include/asm/bitops.h                |   1 +
- arch/cris/include/asm/bitops.h               |   1 +
- arch/frv/include/asm/bitops.h                |   1 +
- arch/h8300/include/asm/bitops.h              |   1 +
- arch/hexagon/include/asm/bitops.h            |   1 +
- arch/ia64/include/asm/bitops.h               |  31 ++++++
- arch/m32r/include/asm/bitops.h               |   1 +
- arch/m68k/include/asm/bitops.h               |   1 +
- arch/metag/include/asm/bitops.h              |   1 +
- arch/mips/include/asm/bitops.h               |   7 ++
- arch/mips/mm/cerr-sb1.c                      |  67 ++++---------
- arch/mn10300/include/asm/bitops.h            |   1 +
- arch/openrisc/include/asm/bitops.h           |   1 +
- arch/parisc/include/asm/bitops.h             |   1 +
- arch/powerpc/include/asm/bitops.h            |  11 +++
- arch/powerpc/lib/Makefile                    |   2 +-
- arch/powerpc/lib/parity_64.S                 | 143 +++++++++++++++++++++++++++
- arch/powerpc/lib/ppc_ksyms.c                 |   5 +
- arch/s390/include/asm/bitops.h               |   1 +
- arch/sh/include/asm/bitops.h                 |   1 +
- arch/sparc/include/asm/bitops_32.h           |   1 +
- arch/sparc/include/asm/bitops_64.h           |  18 ++++
- arch/sparc/kernel/sparc_ksyms_64.c           |   6 ++
- arch/sparc/lib/Makefile                      |   2 +-
- arch/sparc/lib/parity.S                      | 129 ++++++++++++++++++++++++
- arch/tile/include/asm/bitops.h               |   2 +
- arch/x86/include/asm/arch_hweight.h          |   5 +
- arch/x86/include/asm/arch_parity.h           | 117 ++++++++++++++++++++++
- arch/x86/include/asm/bitops.h                |   4 +-
- arch/xtensa/include/asm/bitops.h             |   1 +
- drivers/crypto/qat/qat_common/qat_hal.c      |  32 ++----
- drivers/crypto/sahara.c                      |   2 +-
- drivers/edac/amd64_edac.c                    |   2 +-
- drivers/iio/gyro/adxrs450.c                  |   4 +-
- drivers/input/joystick/grip_mp.c             |  16 +--
- drivers/input/joystick/sidewinder.c          |  24 +----
- drivers/input/mouse/elantech.c               |  10 +-
- drivers/input/mouse/elantech.h               |   1 -
- drivers/input/serio/ams_delta_serio.c        |   8 +-
- drivers/input/serio/pcips2.c                 |   2 +-
- drivers/input/serio/sa1111ps2.c              |   2 +-
- drivers/media/i2c/saa7115.c                  |  17 +---
- drivers/media/platform/vivid/vivid-vbi-gen.c |   9 +-
- drivers/mtd/inftlcore.c                      |  17 +---
- drivers/mtd/sm_ftl.c                         |   5 +-
- drivers/mtd/ssfdc.c                          |  31 ++----
- drivers/net/ethernet/broadcom/tg3.c          |   6 +-
- drivers/net/ethernet/sun/niu.c               |  10 +-
- drivers/scsi/isci/phy.c                      |  15 +--
- drivers/tty/serial/max3100.c                 |   2 +-
- include/asm-generic/bitops.h                 |   1 +
- include/asm-generic/bitops/arch_parity.h     |  39 ++++++++
- include/asm-generic/bitops/const_parity.h    |  36 +++++++
- include/asm-generic/bitops/parity.h          |   7 ++
- include/asm-generic/bitops/popc-parity.h     |  32 ++++++
- include/linux/bitops.h                       |  10 ++
- lib/bch.c                                    |  14 +--
- net/sunrpc/auth_gss/gss_krb5_keys.c          |   6 +-
- 64 files changed, 749 insertions(+), 237 deletions(-)
- create mode 100644 arch/powerpc/lib/parity_64.S
- create mode 100644 arch/sparc/lib/parity.S
- create mode 100644 arch/x86/include/asm/arch_parity.h
- create mode 100644 include/asm-generic/bitops/arch_parity.h
- create mode 100644 include/asm-generic/bitops/const_parity.h
- create mode 100644 include/asm-generic/bitops/parity.h
- create mode 100644 include/asm-generic/bitops/popc-parity.h
-
+Best regards,
 -- 
-2.7.4
-
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
