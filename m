@@ -1,57 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:62295 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756459AbcEXQu7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 12:50:59 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from mail-vk0-f43.google.com ([209.85.213.43]:36453 "EHLO
+	mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932362AbcECPbp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2016 11:31:45 -0400
+Received: by mail-vk0-f43.google.com with SMTP id c189so27973121vkb.3
+        for <linux-media@vger.kernel.org>; Tue, 03 May 2016 08:31:45 -0700 (PDT)
+Received: from [10.251.101.16] ([201.206.221.6])
+        by smtp.gmail.com with ESMTPSA id x15sm636985vkd.4.2016.05.03.08.31.43
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Tue, 03 May 2016 08:31:44 -0700 (PDT)
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [RFC v2 08/21] videodev2.h: Add request field to v4l2_pix_format_mplane
-Date: Tue, 24 May 2016 19:47:18 +0300
-Message-Id: <1464108451-28142-9-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+From: Marco Madrigal <marco.madrigal@ridgerun.com>
+Subject: g_webcam driver not working properly on newer kernel
+Message-ID: <5728C45F.9070208@ridgerun.com>
+Date: Tue, 3 May 2016 09:31:43 -0600
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Hi all,
 
-Let userspace specify a request ID when getting or setting formats. The
-support is limited to the multi-planar API at the moment, extending it
-to the single-planar API is possible if needed.
+I am working with the g_webcam driver on Linux 3.14 and 4.3 with an 
+embedded system. It works pretty well for most of Linux hosts but when 
+trying to register the webcam driver on Windows 7/8 I got "This device 
+cannot start (Code 10)" message.
 
->From a userspace point of view the API change is also minimized and
-doesn't require any new ioctl.
+I decided to try out the old version of the driver before the videobuf2 
+modifications and some other stuff (mostly the pretty initial driver) 
+and it worked correctly on Windows 7/8.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- include/uapi/linux/videodev2.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Has someone else experimented a similar issue? Is this a regression 
+problem? I noticed that newer version of the patch need several tries to 
+get the streaming working correctly on Linux hosts but I have been 
+unable to get it working at all with Windows.
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index ac28299..6260d0e 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1972,6 +1972,7 @@ struct v4l2_plane_pix_format {
-  * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
-  * @quantization:	enum v4l2_quantization, colorspace quantization
-  * @xfer_func:		enum v4l2_xfer_func, colorspace transfer function
-+ * @request:		request ID
-  */
- struct v4l2_pix_format_mplane {
- 	__u32				width;
-@@ -1986,7 +1987,8 @@ struct v4l2_pix_format_mplane {
- 	__u8				ycbcr_enc;
- 	__u8				quantization;
- 	__u8				xfer_func;
--	__u8				reserved[7];
-+	__u8				reserved[3];
-+	__u32				request;
- } __attribute__ ((packed));
- 
- /**
--- 
-1.9.1
-
+Regards,
+-Marco
