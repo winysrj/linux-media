@@ -1,71 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59474 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751036AbcEIVDB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2016 17:03:01 -0400
-Date: Tue, 10 May 2016 00:02:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: Re: [PATCH 3/3] v4l: subdev: Call pad init_cfg operation when
- opening subdevs
-Message-ID: <20160509210223.GQ26360@valkosipuli.retiisi.org.uk>
-References: <1462361133-23887-1-git-send-email-sakari.ailus@linux.intel.com>
- <1462361133-23887-4-git-send-email-sakari.ailus@linux.intel.com>
- <2951447.PnEFV895ES@avalon>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:35403 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755883AbcECObQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2016 10:31:16 -0400
+Received: by mail-oi0-f50.google.com with SMTP id x19so27569447oix.2
+        for <linux-media@vger.kernel.org>; Tue, 03 May 2016 07:31:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2951447.PnEFV895ES@avalon>
+In-Reply-To: <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
+References: <20160213145317.247c63c7@lwn.net>
+	<87y49zr74t.fsf@intel.com>
+	<20160303071305.247e30b1@lwn.net>
+	<20160303155037.705f33dd@recife.lan>
+	<86egbrm9hw.fsf@hiro.keithp.com>
+	<1457076530.13171.13.camel@winder.org.uk>
+	<CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
+	<87a8m9qoy8.fsf@intel.com>
+	<20160308082948.4e2e0f82@recife.lan>
+	<CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
+	<20160308103922.48d87d9d@recife.lan>
+	<20160308123921.6f2248ab@recife.lan>
+	<20160309182709.7ab1e5db@recife.lan>
+	<87fuvypr2h.fsf@intel.com>
+	<20160310122101.2fca3d79@recife.lan>
+	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
+	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
+	<20160412094620.4fbf05c0@lwn.net>
+	<CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
+Date: Tue, 3 May 2016 16:31:14 +0200
+Message-ID: <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: Grant Likely <grant.likely@secretlab.ca>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Markus Heiser <markus.heiser@darmarit.de>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jani Nikula <jani.nikula@intel.com>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org linux-media"
+	<linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi all,
 
-On Mon, May 09, 2016 at 07:18:11PM +0300, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Wednesday 04 May 2016 14:25:33 Sakari Ailus wrote:
-> > From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> > 
-> > The subdev core code currently rely on the subdev open handler to
-> > initialize the file handle's pad configuration, even though subdevs now
-> > have a pad operation dedicated for that purpose.
-> > 
-> > As a first step towards migration to init_cfg, call the operation
-> > operation in the subdev core open implementation. Subdevs that are
-> > haven't been moved to init_cfg yet will just continue implementing pad
-> > config initialization in their open handler.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-subdev.c | 2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-subdev.c
-> > b/drivers/media/v4l2-core/v4l2-subdev.c index 224ea60..9cbd011 100644
-> > --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> > @@ -85,6 +85,8 @@ static int subdev_open(struct file *file)
-> >  	}
-> >  #endif
-> > 
-> > +	v4l2_subdev_call(sd, pad, init_cfg, subdev_fh->pad);
-> > +
-> 
-> Given that v4l2_subdev_alloc_pad_config(), called by subdev_fh_init(), already 
-> calls the init_cfg operation, is this still needed ?
+So sounds like moving ahead with rst/sphinx is the option that should
+allow us to address everyone's concerns eventually? Of course the
+first one won't have it all (media seems really tricky), but I'd like
+to get something awesome in this area closer to mainline. I'm stalling
+on typing more fancyful gpu docs right now (with tables, pictures and
+stuff) since that would require a pile of needless work to redo when
+we switch a few times more ;-)
 
-It's your patch. ;-)
+And Jani also wants to get this in, but he doesn't really want to
+spend more effort on a system that can't be merged.
 
-Yeah, after looking at the code, I agree to drop it.
+So sphinx/rst y/n? Jon, is that ok with you from the doc maintainer pov?
+
+Cheers, Daniel
+
+On Wed, Apr 27, 2016 at 4:28 PM, Grant Likely <grant.likely@secretlab.ca> wrote:
+> On Tue, Apr 12, 2016 at 4:46 PM, Jonathan Corbet <corbet@lwn.net> wrote:
+>> On Fri, 8 Apr 2016 17:12:27 +0200
+>> Markus Heiser <markus.heiser@darmarit.de> wrote:
+>>
+>>> motivated by this MT, I implemented a toolchain to migrate the kernel’s
+>>> DocBook XML documentation to reST markup.
+>>>
+>>> It converts 99% of the docs well ... to gain an impression how
+>>> kernel-docs could benefit from, visit my sphkerneldoc project page
+>>> on github:
+>>>
+>>>   http://return42.github.io/sphkerneldoc/
+>>
+>> So I've obviously been pretty quiet on this recently.  Apologies...I've
+>> been dealing with an extended death-in-the-family experience, and there is
+>> still a fair amount of cleanup to be done.
+>>
+>> Looking quickly at this work, it seems similar to the results I got.  But
+>> there's a lot of code there that came from somewhere?  I'd put together a
+>> fairly simple conversion using pandoc and a couple of short sed scripts;
+>> is there a reason for a more complex solution?
+>>
+>> Thanks for looking into this, anyway; I hope to be able to focus more on
+>> it shortly.
+>
+> Hi Jon,
+>
+> Thanks for digging into this. FWIW, here is my $0.02. I've been
+> working on restarting the devicetree specification, and after looking
+> at both reStructuredText and Asciidoc(tor) I thought I liked the
+> Asciidoc markup better, so chose that. I then proceeded to spend weeks
+> trying to get reasonable output from the toolchain. When I got fed up
+> and gave Sphinx a try, I was up and running with reasonable PDF and
+> HTML output in a day and a half.
+>
+> Honestly, in the end I think we could make either tool do what is
+> needed of it. However, my impression after trying to do a document
+> that needs to have nice publishable output with both tools is that
+> Sphinx is easier to work with, simpler to extend, better supported. My
+> vote is firmly behind Sphinx/reStructuredText.
+>
+> g.
+
+
 
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
