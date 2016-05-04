@@ -1,367 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47302 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751307AbcEILjg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2016 07:39:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Rafael =?ISO-8859-1?Q?Louren=E7o?= de Lima Chehab
-	<chehabrafael@gmail.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: Re: [PATCH 2/2] [media] media-device: dynamically allocate struct media_devnode
-Date: Mon, 09 May 2016 14:40:02 +0300
-Message-ID: <1507164.DlvJMNf1dF@avalon>
-In-Reply-To: <83247b8a21c292a08949b3fe619cc56dc4709896.1462633500.git.mchehab@osg.samsung.com>
-References: <cover.1462633500.git.mchehab@osg.samsung.com> <83247b8a21c292a08949b3fe619cc56dc4709896.1462633500.git.mchehab@osg.samsung.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:44449 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750927AbcEDNrC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 09:47:02 -0400
+Subject: Re: [PATCH v2] Add GS driver (SPI video serializer family)
+To: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <dfff4181-edd7-b855-cdad-9d35fe940704@nexvision.fr>
+ <5729DFE0.6080600@xs4all.nl>
+ <40ac6b0a-2234-0a29-2932-12f922fa2609@nexvision.fr>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5729FD4F.4010901@xs4all.nl>
+Date: Wed, 4 May 2016 15:46:55 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <40ac6b0a-2234-0a29-2932-12f922fa2609@nexvision.fr>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Charles-Antoine,
 
-Thank you for the patch.
+On 05/04/2016 03:27 PM, Charles-Antoine Couret wrote:
+> Le 04/05/2016 à 13:41, Hans Verkuil a écrit :
+>> Hi Charles-Antoine,
+> 
+> Hi,
+> 
+>> On 04/28/2016 04:10 PM, Charles-Antoine Couret wrote:
+>>> But this component family support CEA standards and other
+>>> (SMPTE XXXM in fact). V4L2 seems oriented to manage CEA or
+>>> VGA formats. So, I used timings structure with CEA values, but I
+>>> fill timings fields manually for other standards. I don't know if it
+>>> is the right method or if another interface should be more interesting.
+>>
+>> As long as the timings are part of a standard, then just add them to
+>> the v4l2-dv-timings.h header. Since these timings aren't part of the CEA-861
+>> standard or the DMT VESA standard, just add a new SMPTE standard flag.
+> 
+> Ok, but I should have difficulties to define correctly these standards.
+> I worked on video stream in SMPTE-125M and I don't know if other SMPTE standards are based on the same characteristics.
+> In addition to this, those standards are not public.
 
-On Saturday 07 May 2016 12:12:09 Mauro Carvalho Chehab wrote:
-> struct media_devnode is currently embedded at struct media_device.
+I have access to the SMPTE standards, I'll take a look next week.
 
-s/at/in/
+Regarding timings: I think this requires a separate discussion. I need to loop in 'nohous'
+who is also working on SDI support, but unfortunately I don't have his email handy, otherwise
+I'd have CC-ed him.
 
-> While this works fine during normal usage, it leads to a race
-> condition during devnode unregister.
+I'm no SDI expert myself, but I think I should set time aside to read up on this
+and figure out together with you guys how this should be handled.
 
-Strictly speaking the race condition isn't cause by embedding struct 
-media_devnode inside struct media_device. The race condition is unavoidable as 
-we have two asynchronous operations (unregistration and userspace access) that 
-affect the same structures. This isn't a problem as such, this kind of race 
-conditions is handled in the kernel through release callbacks to implement 
-proper lifetime management of data structures. The problem here is that the 
-release callbacks are not propagated all the way up to the drivers.
+So I don't have a quick answer here, this requires more R&D.
 
-> the problem is that drivers
+> 
+> For the SMPTE-125M, I have these information:
+> * Pixelclock : 27 MHz (I set 13.5MHz to have 60 FPS because its a interlaced signal, I don't know if it's correct)
+> * The organization of lines :
+> Line 1 to 9 : blanking
+> Line 10 to 19 : options (blanking in my case for example)
+> Line 20 to 264 : field 1
+> Line 266 to 272 : blanking
+> Line 273 to 282 : options
+> Line 283 to 525 : field 2
+> 
+> The time of blanking are not regular: 19 then 18 lines, how translate that in dv_timings?
+> The size of fields is different too.
+> 
+> The Field signal is changed in 266 line.
+> * Complete format size (with blanking) ; 858x525
+> * Image size : 720x487
+> 
+> Organization of horizontal sync :
+> Pixel 0 to 719 : active pixels
+> Pixel 720 to 857 : blanking (but the firsts 16 pixels are the front porch, but after, no info for sync or back porch timings)
+> 
+> Polarity: V-, H+
+> 
+> And, I don't have info for other standards and the GS1662 don't need that too.
+> I should create SMPTE format but only for the 125M? And the driver shouldn't use / consider other SMPTE formats without a right definition?
+> 
+>>> This patch was tested with GS1662:
+>>> http://www.c-dis.net/media/871/GS1662_Datasheet.pdf
+>>
+>> A pointer to this datasheet should be in a comment in the source code.
+> 
+> Ok. The commit message should keep the link too?
 
-s/the/The/
+It doesn't hurt.
 
-> assume that, after calling media_device_unregister(), the struct
-> that contains media_device can be freed. This is not true, as it
-> can't be freed until userspace closes all opened /dev/media devnodes.
+> 
+> 
+>>>  drivers/media/spi/gsxxxx.c | 482 +++++++++++++++++++++++++++++++++++++++++++++
+>>
+>> I would just call it gs1662. That's all you've tested with, after all.
+>>
+>> It is very common that drivers named after the first supported model also
+>> support similar models.
+> 
+> Ok, thanks.
+> 
+>>> +struct gsxxxx {
+>>
+>> The gsxxxx prefix is rather ugly. I'd just use gs_ instead.
+> 
+> Yes, I agree with you.
+> 
+>>> +static void custom_to_timings(const struct gsxxxx_reg_fmt_custom *custom,
+>>> +			      struct v4l2_dv_timings *timings)
+>>> +{
+>>> +	timings->type = V4L2_DV_BT_656_1120;
+>>> +	timings->bt.width = custom->width;
+>>> +	timings->bt.height = custom->height;
+>>> +	timings->bt.pixelclock = custom->pixelclock;
+>>> +	timings->bt.interlaced = custom->interlaced;
+>>> +	timings->bt.polarities = 0;
+>>> +	timings->bt.hbackporch = 0;
+>>> +	timings->bt.hsync = 0;
+>>> +	timings->bt.hfrontporch = 0;
+>>> +	timings->bt.vbackporch = 0;
+>>> +	timings->bt.vsync = 0;
+>>> +	timings->bt.vfrontporch = 0;
+>>> +	timings->bt.il_vbackporch = 0;
+>>> +	timings->bt.il_vsync = 0;
+>>> +	timings->bt.il_vfrontporch = 0;
+>>
+>> You still need to set the total blanking sizes, right?
+>>
+>> For now assign that to the [hv]frontporch, leaving the sync and
+>> backporch fields 0. I need to make some rules how this is handled when
+>> the standard doesn't separate the blanking into back/frontporch and syncs.
+> 
+> Seeing my first comment.
+> I could precise some info (for 125M) but not for all of them.
+> And the GS1662 don't care about those information: we can't configure timings, only ask a specific format.
+> 
+> And, how manage the case of there are two different timings for vertical blanking for one image in the standard?
+> 
+>>> +	timings->bt.standards = 0;
+>>
+>> So we need to define a proper standard for this.
+> 
+> Yes.
+>  
+>> So, regarding the reset, s_dv_timings and query_dv_timings: it's not clear
+>> what is happening here. The usual way things work is that the timings that
+>> s/g_dv_timings set and get are indepedent of the timings that are detected
+>> (query_dv_timings). The reason is that the explicitly set timings relate to
+>> the buffers that the DMA engine needs to store the frames. Receivers that
+>> spontaneously switch when new timings are detected can be very dangerous
+>> depending on the details of the DMA engine (think buffer overruns when you
+>> go from e.g. 720p to 1080p).
+> 
+> It's the case here.
+> s/g_dv_timings are independent of query_detect_timings which reads internal registers to
+> define the stream detected by the component.
+> 
+> The reset function are an error, I think.
+> By default the GS1662 is in auto-mode: it detects the input stream to create the serialized output stream.
+> The reset was to return in auto-mode selection, but this function should be to reset the component and not the mode.
+> 
+> I don't have idea to define properly the auto-mode, for userspace and the driver.
+> It's a useful information and I think, the userspace should force this mode. Define a specific timings for that?
 
-Not all the open devnodes, just the one related to the struct media_devnode 
-instance.
+I think that you can use the s_stream op here: when you start streaming you force
+the mode to whatever the timings set by s_dv_timings() requires. When you stop streaming
+you go back to auto-mode.
 
-> In other words, if the media devnode is still open, and media_device
-> gets freed, any call to an ioctl will make the core to try to access
-> struct media_device, with will cause an use-after-free and even GPF.
 > 
-> Fix this by dynamically allocating the struct media_devnode and only
-> freeing it when it is safe.
+>> So typically when you set the timings the device is fixed to those timings,
+>> even if it receives something different. If the device supports an interrupt,
+>> then it is good practice to hook into that interrupt and, when it detects
+>> that the timings changed, the device sends a V4L2_EVENT_SOURCE_CHANGE event.
+>>
+>> Userspace will then typically stop streaming, query the new timings, setup
+>> the new buffers and restart streaming.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
->  drivers/media/media-device.c           | 44 ++++++++++++++++++++-----------
->  drivers/media/media-devnode.c          |  7 +++++-
->  drivers/media/usb/au0828/au0828-core.c |  4 ++--
->  drivers/media/usb/uvc/uvc_driver.c     |  2 +-
->  include/media/media-device.h           |  5 +---
->  include/media/media-devnode.h          | 13 +++++++++-
->  6 files changed, 52 insertions(+), 23 deletions(-)
+> GS1662 don't have interruption line to do that.
 > 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 47a99af5525e..8c520e064c34 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -423,7 +423,7 @@ static long media_device_ioctl(struct file *filp,
-> unsigned int cmd, unsigned long arg)
->  {
->  	struct media_devnode *devnode = media_devnode_data(filp);
-> -	struct media_device *dev = to_media_device(devnode);
-> +	struct media_device *dev = devnode->media_dev;
->  	long ret;
+>> Some devices cannot query the new timings unless they are in autodetect mode.
+>> The correct implementation for that is that query_dv_timings returns EBUSY
+>> while the device is streaming (you hook into the s_stream core op to know that),
+>> otherwise it configures itself to autodetect mode and sees what is detected.
+>>
+>> It is not really clear to me from the datasheet how this device behaves. But
+>> having to use the reset op is almost certainly wrong.
 > 
->  	mutex_lock(&dev->graph_mutex);
-> @@ -495,7 +495,7 @@ static long media_device_compat_ioctl(struct file *filp,
-> unsigned int cmd, unsigned long arg)
->  {
->  	struct media_devnode *devnode = media_devnode_data(filp);
-> -	struct media_device *dev = to_media_device(devnode);
-> +	struct media_device *dev = devnode->media_dev;
->  	long ret;
-> 
->  	switch (cmd) {
-> @@ -531,7 +531,8 @@ static const struct media_file_operations
-> media_device_fops = { static ssize_t show_model(struct device *cd,
->  			  struct device_attribute *attr, char *buf)
->  {
-> -	struct media_device *mdev = to_media_device(to_media_devnode(cd));
-> +	struct media_devnode *devnode = to_media_devnode(cd);
-> +	struct media_device *mdev = devnode->media_dev;
-> 
->  	return sprintf(buf, "%.*s\n", (int)sizeof(mdev->model), mdev->model);
->  }
-> @@ -704,23 +705,34 @@ EXPORT_SYMBOL_GPL(media_device_cleanup);
->  int __must_check __media_device_register(struct media_device *mdev,
->  					 struct module *owner)
->  {
-> +	struct media_devnode *devnode;
->  	int ret;
-> 
-> +	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
-> +	if (!devnode)
-> +		return -ENOMEM;
-> +
->  	/* Register the device node. */
-> -	mdev->devnode.fops = &media_device_fops;
-> -	mdev->devnode.parent = mdev->dev;
-> -	mdev->devnode.release = media_device_release;
-> +	mdev->devnode = devnode;
-> +	devnode->fops = &media_device_fops;
-> +	devnode->parent = mdev->dev;
-> +	devnode->release = media_device_release;
-> 
->  	/* Set version 0 to indicate user-space that the graph is static */
->  	mdev->topology_version = 0;
-> 
-> -	ret = media_devnode_register(&mdev->devnode, owner);
-> -	if (ret < 0)
-> +	ret = media_devnode_register(mdev, devnode, owner);
-> +	if (ret < 0) {
-> +		mdev->devnode = NULL;
-> +		kfree(devnode);
->  		return ret;
-> +	}
-> 
-> -	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
-> +	ret = device_create_file(&devnode->dev, &dev_attr_model);
->  	if (ret < 0) {
-> -		media_devnode_unregister(&mdev->devnode);
-> +		mdev->devnode = NULL;
-> +		media_devnode_unregister(devnode);
-> +		kfree(devnode);
->  		return ret;
->  	}
-> 
-> @@ -771,7 +783,7 @@ void media_device_unregister(struct media_device *mdev)
->  	mutex_lock(&mdev->graph_mutex);
-> 
->  	/* Check if mdev was ever registered at all */
-> -	if (!media_devnode_is_registered(&mdev->devnode)) {
-> +	if (!media_devnode_is_registered(mdev->devnode)) {
->  		mutex_unlock(&mdev->graph_mutex);
->  		return;
->  	}
-> @@ -794,9 +806,13 @@ void media_device_unregister(struct media_device *mdev)
-> 
->  	mutex_unlock(&mdev->graph_mutex);
-> 
-> -	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-> -	dev_dbg(mdev->dev, "Media device unregistering\n");
-> -	media_devnode_unregister(&mdev->devnode);
-> +	dev_dbg(mdev->dev, "Media device unregistered\n");
-> +
-> +	/* Check if mdev devnode was registered */
-> +	if (media_devnode_is_registered(mdev->devnode)) {
-> +		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
-> +		media_devnode_unregister(mdev->devnode);
-> +	}
->  }
->  EXPORT_SYMBOL_GPL(media_device_unregister);
-> 
-> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-> index 7481c9610945..ecdc02d6ed83 100644
-> --- a/drivers/media/media-devnode.c
-> +++ b/drivers/media/media-devnode.c
-> @@ -44,6 +44,7 @@
->  #include <linux/uaccess.h>
-> 
->  #include <media/media-devnode.h>
-> +#include <media/media-device.h>
-> 
->  #define MEDIA_NUM_DEVICES	256
->  #define MEDIA_NAME		"media"
-> @@ -74,6 +75,8 @@ static void media_devnode_release(struct device *cd)
->  	/* Release media_devnode and perform other cleanups as needed. */
->  	if (devnode->release)
->  		devnode->release(devnode);
-> +
-> +	kfree(devnode);
->  }
-> 
->  static struct bus_type media_bus_type = {
-> @@ -219,7 +222,8 @@ static const struct file_operations media_devnode_fops =
-> { .llseek = no_llseek,
->  };
-> 
-> -int __must_check media_devnode_register(struct media_devnode *devnode,
-> +int __must_check media_devnode_register(struct media_device *mdev,
-> +					struct media_devnode *devnode,
->  					struct module *owner)
->  {
->  	int minor;
-> @@ -238,6 +242,7 @@ int __must_check media_devnode_register(struct
-> media_devnode *devnode, mutex_unlock(&media_devnode_lock);
-> 
->  	devnode->minor = minor;
-> +	devnode->media_dev = mdev;
-> 
->  	/* Part 2: Initialize and register the character device */
->  	cdev_init(&devnode->cdev, &media_devnode_fops);
-> diff --git a/drivers/media/usb/au0828/au0828-core.c
-> b/drivers/media/usb/au0828/au0828-core.c index 321ea5cf1329..bf53553d2624
-> 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -142,7 +142,7 @@ static void au0828_unregister_media_device(struct
-> au0828_dev *dev) struct media_device *mdev = dev->media_dev;
->  	struct media_entity_notify *notify, *nextp;
-> 
-> -	if (!mdev || !media_devnode_is_registered(&mdev->devnode))
-> +	if (!mdev || !media_devnode_is_registered(mdev->devnode))
->  		return;
-> 
->  	/* Remove au0828 entity_notify callbacks */
-> @@ -482,7 +482,7 @@ static int au0828_media_device_register(struct
-> au0828_dev *dev, if (!dev->media_dev)
->  		return 0;
-> 
-> -	if (!media_devnode_is_registered(&dev->media_dev->devnode)) {
-> +	if (!media_devnode_is_registered(dev->media_dev->devnode)) {
-> 
->  		/* register media device */
->  		ret = media_device_register(dev->media_dev);
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 451e84e962e2..302e284a95eb
-> 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -1674,7 +1674,7 @@ static void uvc_delete(struct uvc_device *dev)
->  	if (dev->vdev.dev)
->  		v4l2_device_unregister(&dev->vdev);
->  #ifdef CONFIG_MEDIA_CONTROLLER
-> -	if (media_devnode_is_registered(&dev->mdev.devnode))
-> +	if (media_devnode_is_registered(dev->mdev.devnode))
->  		media_device_unregister(&dev->mdev);
->  	media_device_cleanup(&dev->mdev);
->  #endif
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index a9b33c47310d..f743ae2210ee 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -347,7 +347,7 @@ struct media_entity_notify {
->  struct media_device {
->  	/* dev->driver_data points to this struct. */
->  	struct device *dev;
-> -	struct media_devnode devnode;
-> +	struct media_devnode *devnode;
-> 
->  	char model[32];
->  	char driver_name[32];
-> @@ -393,9 +393,6 @@ struct usb_device;
->  #define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
->  #define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
-> 
-> -/* media_devnode to media_device */
-> -#define to_media_device(node) container_of(node, struct media_device,
-> devnode) -
->  /**
->   * media_entity_enum_init - Initialise an entity enumeration
->   *
-> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-> index e1d5af077adb..5bb3b0e86d73 100644
-> --- a/include/media/media-devnode.h
-> +++ b/include/media/media-devnode.h
-> @@ -33,6 +33,8 @@
->  #include <linux/device.h>
->  #include <linux/cdev.h>
-> 
-> +struct media_device;
-> +
->  /*
->   * Flag to mark the media_devnode struct as registered. Drivers must not
-> touch
-> * this flag directly, it will be set and cleared by media_devnode_register
-> and
-> @@ -81,6 +83,8 @@ struct media_file_operations {
->   * before registering the node.
->   */
->  struct media_devnode {
-> +	struct media_device *media_dev;
-> +
+> I don't understand.
+> The GS1662 has a status to say the input format detected. Useful in auto-detect mode,
+> less in other cases. But, it needs a input, why send EBUSY error when the device streams?
 
-The rationale behind struct media_devnode was to decouple devnode handling 
-from media device handling. The initial implementation reused struct 
-media_devnode in struct video_device, to share devnode handling code between 
-media device and video device. This was rejected, but struct media_devnode was 
-still kept separate instead of merged into struct media_device (I don't 
-remember why though).
+Hmm, I don't understand either :-)
 
-There are two possible fixes for this problem:
+The question is: when the device is streaming video for a specific format (as set
+by s_dv_timings), can it still detect the actual video format it receives? If so,
+then there is no need for EBUSY since query_dv_timings will always work. If not,
+then query_dv_timings should report that it is unable to query the detected timings
+because it is in the wrong mode (EBUSY).
 
-1. Handling structure lifetime in drivers with propagation of the release 
-callback from media device to drivers. This is the most common strategy used 
-in the kernel, and we implement it for video devices. Some drivers handle that 
-properly (the best example that comes to my mind, albeit a bit self-centered, 
-is the uvcvideo driver) but most don't. It took me a while to handle the race 
-condition properly in uvcvideo, the implementation is certainly not trivial.
+BTW, you also need to implement the g_input_status video op. I just realized that
+that is missing. It is used to fill in the status field when calling VIDIOC_ENUMINPUTS.
 
-2. Handling structure lifetime in the core through dynamic allocation of 
-structures. This is easier on the driver side, but requires drivers to stop 
-embedding data structures.
-
-I believe we all want to give the second option a try, but I don't think 
-media_devnode is the structure that needs to be dynamically allocated. 
-media_devnode has a release callback that we propagate to the media_device 
-implementation, with a currently empty implementation. That's where the 
-problem is, we need to make media_device dynamically allocated, and refcount 
-it using the release callback.
-
-Another variant of the second option would be to merge the media_device and 
-media_devnode structures, as media_devnode is only used by media_device. I 
-still believe that media_devnode could be useful in video_device, but I'm 
-willing to consider merging the two structures.
-
->  	/* device ops */
->  	const struct media_file_operations *fops;
 > 
-> @@ -103,6 +107,7 @@ struct media_devnode {
->  /**
->   * media_devnode_register - register a media device node
->   *
-> + * @media_dev: struct media_device we want to register a device node
->   * @devnode: media device node structure we want to register
->   * @owner: should be filled with %THIS_MODULE
->   *
-> @@ -116,7 +121,8 @@ struct media_devnode {
->   * the media_devnode structure is *not* called, so the caller is
-> responsible for * freeing any data.
->   */
-> -int __must_check media_devnode_register(struct media_devnode *devnode,
-> +int __must_check media_devnode_register(struct media_device *mdev,
-> +					struct media_devnode *devnode,
->  					struct module *owner);
+>>> +static int gsxxxx_enum_dv_timings(struct v4l2_subdev *sd,
+>>> +				  struct v4l2_enum_dv_timings *timings)
+>>> +{
+>>> +	if (timings->index >= ARRAY_SIZE(reg_fmt))
+>>> +		return -EINVAL;
+>>> +
+>>> +	timings->timings = reg_fmt[timings->index].format;
+>>
+>> Hmm, there are duplicate format entries in the reg_fmt array. It would be
+>> good if you can explain the differences between otherwise identical entries.
+>> I would have to think about how those differences should be represented.
 > 
->  /**
-> @@ -146,9 +152,14 @@ static inline struct media_devnode
-> *media_devnode_data(struct file *filp) *	false otherwise.
->   *
->   * @devnode: pointer to struct &media_devnode.
-> + *
-> + * Note: If mdev is NULL, it also returns false.
->   */
->  static inline int media_devnode_is_registered(struct media_devnode
-> *devnode) {
-> +	if (!devnode)
-> +		return false;
-> +
->  	return test_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
->  }
+> Yes, I didn't paid attention to that. Thanks.
+> The format difference:
+> * Sometimes it's generic/specific format (like in SMPTE-125M: 487 lines vs (858x525) 720x487)
+> without information about the "generic" meaning.
+> * In other case it's normal vs "EM" standards (difference between HANC and active pixels size per line).
+> 
+> But the "EM" version is not CEA-861 compliant for me, but close to.
+> Maybe this info should be important for others and I should add details.
+> 
+>>> +static void __exit gsxxxx_exit(void)
+>>> +{
+>>> +	spi_unregister_driver(&gsxxxx_driver);
+>>> +}
+>>> +
+>>> +module_init(gsxxxx_init);
+>>> +module_exit(gsxxxx_exit);
+>>
+>> Use module_spi_driver here.
+> 
+> Yes, thanks!
+>  
+>>> +MODULE_LICENSE("GPL");
+>>> +MODULE_AUTHOR("Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>");
+>>> +MODULE_DESCRIPTION("GSXXXX SPI driver to read and write its registers");
+>>
+>> That's rather vague. How about: "Gennum GS1662 HD/SD-SDI Serializer driver".
+> 
+> Ok.
+> 
+> Thank you for all your comments. I will improve with a v3 patch but I need some answers to do that correctly.
+> I'm sorry for some mistakes, I use this driver in precise use case and I didn't take account all others use cases to design that correctly.
+> And, like I'm beginner, it's difficult to me to decide how implement common interfaces (for SMPTE timings for example) which could be used by other drivers.
 
--- 
+Remember that today there are no SDI drivers in the kernel. So you and nohous are the first
+that work on this. So there will be some missing pieces that we need to add. It seems that
+for SDI the timings are one such area.
+
+It will be useful if you join the #v4l irc room (http://linuxtv.org/lists.php).
+
+I think that's a good place to have a meeting about this topic together with nohous. I'm
+traveling for a bit but will be back on Tuesday. Perhaps we can schedule something later
+that week.
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
