@@ -1,149 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55707 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670AbcEXUVG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 16:21:06 -0400
-Date: Tue, 24 May 2016 22:20:59 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	sakari.ailus@iki.fi
-Subject: Re: [PATCHv3] support for AD5820 camera auto-focus coil
-Message-ID: <20160524202059.GB18536@amd>
-References: <20160517181927.GA28741@amd>
- <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com>
- <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <57441BF8.60606@gmail.com>
+Received: from tex.lwn.net ([70.33.254.29]:50002 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752423AbcEDPJJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 11:09:09 -0400
+Date: Wed, 4 May 2016 09:09:01 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media\@vger.kernel.org linux-media"
+	<linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160504090901.334c2ae7@lwn.net>
+In-Reply-To: <87y47qlz35.fsf@intel.com>
+References: <20160213145317.247c63c7@lwn.net>
+	<20160303155037.705f33dd@recife.lan>
+	<86egbrm9hw.fsf@hiro.keithp.com>
+	<1457076530.13171.13.camel@winder.org.uk>
+	<CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
+	<87a8m9qoy8.fsf@intel.com>
+	<20160308082948.4e2e0f82@recife.lan>
+	<CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
+	<20160308103922.48d87d9d@recife.lan>
+	<20160308123921.6f2248ab@recife.lan>
+	<20160309182709.7ab1e5db@recife.lan>
+	<87fuvypr2h.fsf@intel.com>
+	<20160310122101.2fca3d79@recife.lan>
+	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
+	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
+	<20160412094620.4fbf05c0@lwn.net>
+	<CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
+	<CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
+	<54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
+	<874maef8km.fsf@intel.com>
+	<13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de>
+	<87y47qlz35.fsf@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <57441BF8.60606@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+On Wed, 04 May 2016 16:41:50 +0300
+Jani Nikula <jani.nikula@intel.com> wrote:
 
-> >>devm_regulator_get()?
+> On Wed, 04 May 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+> > In reST the directive might look like:
 > >
-> >I'd rather avoid devm_ here. Driver is simple enough to allow it.
+> > <reST-SNIP> -----
+> > Device Instance and Driver Handling
+> > ===================================
 > >
+> > .. kernel-doc::  drivers/gpu/drm/drm_drv.c
+> >    :doc:      driver instance overview
+> >    :exported:
+> >
+> > <reST-SNAP> -----  
 > 
-> Now thinking about it, what would happen here if regulator_get() returns
-> -EPROBE_DEFER? Wouldn't it be better to move regulator_get to the probe()
-> function, something like:
+> Yes, I think something like this, parsed by sphinx directly (via some
+> extension perhaps), should be the end goal. I am not sure if it should
+> be the immediate first goal though or whether we should reuse the
+> existing docproc for now.
 
-Ok, I can do it.
+I think all of this makes sense.  It would be really nice to have the
+directives in the native sphinx language like that.  I *don't* think we
+need to aim for that at the outset; the docproc approach works until we can
+properly get rid of it.  What would be *really* nice would be to get
+support for the kernel-doc directive into the sphinx upstream.
 
-Oh, and don't try to complain about newlines before returns. It looks
-better this way.
-
-> static int ad5820_probe(struct i2c_client *client,
-> 			const struct i2c_device_id *devid)
-> {
-> 	struct ad5820_device *coil;
-> 	int ret = 0;
+> > <reST-comment-SNAP> --------------
+> >
+> > Comments with the ":reST:" tag could be exported and pass-through
+> > to sphinx.  
 > 
-> 	coil = devm_kzalloc(sizeof(*coil), GFP_KERNEL);
-> 	if (coil == NULL)
-> 		return -ENOMEM;
-> 
-> 	coil->vana = devm_regulator_get(&client->dev, NULL);
-> 	if (IS_ERR(coil->vana)) {
-> 		ret = PTR_ERR(coil->vana);
-> 		if (ret != -EPROBE_DEFER)
-> 			dev_err(&client->dev, "could not get regulator for vana\n");
-> 		return ret;
-> 	}
-> 
-> 	mutex_init(&coil->power_lock);
-> ...
-> 
-> with the appropriate changes to remove() because of the devm API
-> 			usage.
+> Disagreed on most of the above.
 
-Something like this?
+Agreed with the disagreement here.  We can't be adding ":reST:" tags to
+comments; I anticipate a wee bit of pushback if we try.  It needs to work
+with the comments as they are now.  It seems that should be possible.
 
-diff --git a/drivers/media/i2c/ad5820.c b/drivers/media/i2c/ad5820.c
-index f956bd3..f871366 100644
---- a/drivers/media/i2c/ad5820.c
-+++ b/drivers/media/i2c/ad5820.c
-@@ -8,7 +8,7 @@
-  * Copyright (C) 2016 Pavel Machek <pavel@ucw.cz>
-  *
-  * Contact: Tuukka Toivonen
-- *          Sakari Ailus
-+ *	    Sakari Ailus
-  *
-  * Based on af_d88.c by Texas Instruments.
-  *
-@@ -263,13 +263,6 @@ static int ad5820_init_controls(struct ad5820_device *coil)
- static int ad5820_registered(struct v4l2_subdev *subdev)
- {
- 	struct ad5820_device *coil = to_ad5820_device(subdev);
--	struct i2c_client *client = v4l2_get_subdevdata(subdev);
--
--	coil->vana = regulator_get(&client->dev, "VANA");
--	if (IS_ERR(coil->vana)) {
--		dev_err(&client->dev, "could not get regulator for vana\n");
--		return -ENODEV;
--	}
- 
- 	return ad5820_init_controls(coil);
- }
-@@ -367,10 +360,18 @@ static int ad5820_probe(struct i2c_client *client,
- 	struct ad5820_device *coil;
- 	int ret = 0;
- 
--	coil = kzalloc(sizeof(*coil), GFP_KERNEL);
-+	coil = devm_kzalloc(sizeof(*coil), GFP_KERNEL);
- 	if (!coil)
- 		return -ENOMEM;
- 
-+	coil->vana = devm_regulator_get(&client->dev, NULL);
-+	if (IS_ERR(coil->vana)) {
-+		ret = PTR_ERR(coil->vana);
-+		if (ret != -EPROBE_DEFER)
-+			dev_err(&client->dev, "could not get regulator for vana\n");
-+		return ret;
-+	}
-+	
- 	mutex_init(&coil->power_lock);
- 
- 	v4l2_i2c_subdev_init(&coil->subdev, client, &ad5820_ops);
-@@ -390,10 +391,6 @@ static int ad5820_probe(struct i2c_client *client,
- 
- cleanup:
- 	media_entity_cleanup(&coil->subdev.entity);
--
--free:
--	kfree(coil);
--
- 	return ret;
- }
- 
-@@ -405,11 +402,6 @@ static int __exit ad5820_remove(struct i2c_client *client)
- 	v4l2_device_unregister_subdev(&coil->subdev);
- 	v4l2_ctrl_handler_free(&coil->ctrls);
- 	media_entity_cleanup(&coil->subdev.entity);
--	if (coil->vana)
--		regulator_put(coil->vana);
--
--	kfree(coil);
--
- 	return 0;
- }
- 
+Thanks,
 
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+jon
