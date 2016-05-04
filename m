@@ -1,100 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52766 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751739AbcEMJwt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2016 05:52:49 -0400
-Date: Fri, 13 May 2016 12:52:42 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Subject: Re: [PATCH/RFC v2 0/4] Meta-data video device type
-Message-ID: <20160513095242.GV26360@valkosipuli.retiisi.org.uk>
-References: <1463012283-3078-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <57359DBE.4090904@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <57359DBE.4090904@xs4all.nl>
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:45079 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752805AbcEDRH1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 13:07:27 -0400
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, Nick Dyer <nick.dyer@itdev.co.uk>
+Subject: [PATCH v2 2/8] [media] Add signed 16-bit pixel format
+Date: Wed,  4 May 2016 18:07:12 +0100
+Message-Id: <1462381638-7818-3-git-send-email-nick.dyer@itdev.co.uk>
+In-Reply-To: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
+References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Laurent,
+This will be used for output of raw touch data.
 
-On Fri, May 13, 2016 at 11:26:22AM +0200, Hans Verkuil wrote:
-> On 05/12/2016 02:17 AM, Laurent Pinchart wrote:
-> > Hello,
-> > 
-> > This RFC patch series is a second attempt at adding support for passing
-> > statistics data to userspace using a standard API.
-> > 
-> > The core requirements haven't changed. Statistics data capture requires
-> > zero-copy and decoupling statistics buffers from images buffers, in order to
-> > make statistics data available to userspace as soon as they're captured. For
-> > those reasons the early consensus we have reached is to use a video device
-> > node with a buffer queue to pass statistics buffers using the V4L2 API, and
-> > this new RFC version doesn't challenge that.
-> > 
-> > The major change compared to the previous version is how the first patch has
-> > been split in two. Patch 1/4 now adds a new metadata buffer type and format
-> > (including their support in videobuf2-v4l2), usable with regular V4L2 video
-> > device nodes, while patch 2/4 adds the new metadata video device type.
-> > Metadata buffer queues are thus usable on both the regular V4L2 device nodes
-> > and the new metadata device nodes.
-> > 
-> > This change was driven by the fact that an important category of use cases
-> > doesn't differentiate between metadata and image data in hardware at the DMA
-> > engine level. With such hardware (CSI-2 receivers in particular, but other bus
-> > types could also fall into this category) a stream containing both metadata
-> > and image data virtual streams is transmitted over a single physical link. The
-> > receiver demultiplexes, filters and routes the virtual streams to further
-> > hardware blocks, and in many cases, directly to DMA engines that are part of
-> > the receiver. Those DMA engines can capture a single virtual stream to memory,
-> > with as many DMA engines physically present in the device as the number of
-> > virtual streams that can be captured concurrently. All those DMA engines are
-> > usually identical and don't care about the type of data they receive and
-> > capture. For that reason limiting the metadata buffer type to metadata device
-> > nodes would require creating two device nodes for each DMA engine (and
-> > possibly more later if we need to capture other types of data). Not only would
-> > this make the API more complex to use for applications, it wouldn't bring any
-> > added value as the video and metadata device nodes associated with a DMA
-> > engine couldn't be used concurrently anyway, as they both correspond to the
-> > same hardware resource.
-> > 
-> > For this reason the ability to capture metadata on a video device node is
-> > useful and desired, and is implemented patch 1/4 using a dedicated video
-> > buffers queue. In the CSI-2 case a driver will create two buffer queues
-> > internally for the same DMA engine, and can select which one to use based on
-> > the buffer type passed for instance to the REQBUFS ioctl (details still need
-> > to be discussed here).
-> 
-> Not quite. It still has only one vb2_queue, you just change the type depending
-> on what mode it is in (video or meta data). Similar to raw vs sliced VBI.
-> 
-> In the latter case it is the VIDIOC_S_FMT call that changes the vb2_queue type
-> depending on whether raw or sliced VBI is requested. That's probably where I
-> would do this for video vs meta as well.
-> 
-> There is one big thing missing here: how does userspace know in this case whether
-> it will get metadata or video? Who decides which CSI virtual stream is routed
+Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+---
+ Documentation/DocBook/media/v4l/pixfmt-ys16.xml | 79 +++++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml      |  1 +
+ drivers/media/v4l2-core/v4l2-ioctl.c            |  1 +
+ include/uapi/linux/videodev2.h                  |  1 +
+ 4 files changed, 82 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-ys16.xml
 
-My first impression would be to say by formats, so that's actually defined
-by the user. The media bus formats do not have such separation between image
-and metadata formats either.
-
-VIDIOC_ENUM_FMT should be amended with media bus code as well so that the
-user can figure out which format corresponds to a given media bus code.
-
-> to which video node?
-
-I think that should be considered as a seprate problem, albeit it will
-require a solution as well. And it's a much biffer problem than this one.
-
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-ys16.xml b/Documentation/DocBook/media/v4l/pixfmt-ys16.xml
+new file mode 100644
+index 0000000..f92d65e
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-ys16.xml
+@@ -0,0 +1,79 @@
++<refentry id="V4L2-PIX-FMT-YS16">
++  <refmeta>
++    <refentrytitle>V4L2_PIX_FMT_YS16 ('YS16')</refentrytitle>
++    &manvol;
++  </refmeta>
++  <refnamediv>
++    <refname><constant>V4L2_PIX_FMT_YS16</constant></refname>
++    <refpurpose>Grey-scale image</refpurpose>
++  </refnamediv>
++  <refsect1>
++    <title>Description</title>
++
++    <para>This is a signed grey-scale image with a depth of 16 bits per
++pixel. The most significant byte is stored at higher memory addresses
++(little-endian).</para>
++
++    <example>
++      <title><constant>V4L2_PIX_FMT_YS16</constant> 4 &times; 4
++pixel image</title>
++
++      <formalpara>
++	<title>Byte Order.</title>
++	<para>Each cell is one byte.
++	  <informaltable frame="none">
++	    <tgroup cols="9" align="center">
++	      <colspec align="left" colwidth="2*" />
++	      <tbody valign="top">
++		<row>
++		  <entry>start&nbsp;+&nbsp;0:</entry>
++		  <entry>Y'<subscript>00low</subscript></entry>
++		  <entry>Y'<subscript>00high</subscript></entry>
++		  <entry>Y'<subscript>01low</subscript></entry>
++		  <entry>Y'<subscript>01high</subscript></entry>
++		  <entry>Y'<subscript>02low</subscript></entry>
++		  <entry>Y'<subscript>02high</subscript></entry>
++		  <entry>Y'<subscript>03low</subscript></entry>
++		  <entry>Y'<subscript>03high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;8:</entry>
++		  <entry>Y'<subscript>10low</subscript></entry>
++		  <entry>Y'<subscript>10high</subscript></entry>
++		  <entry>Y'<subscript>11low</subscript></entry>
++		  <entry>Y'<subscript>11high</subscript></entry>
++		  <entry>Y'<subscript>12low</subscript></entry>
++		  <entry>Y'<subscript>12high</subscript></entry>
++		  <entry>Y'<subscript>13low</subscript></entry>
++		  <entry>Y'<subscript>13high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;16:</entry>
++		  <entry>Y'<subscript>20low</subscript></entry>
++		  <entry>Y'<subscript>20high</subscript></entry>
++		  <entry>Y'<subscript>21low</subscript></entry>
++		  <entry>Y'<subscript>21high</subscript></entry>
++		  <entry>Y'<subscript>22low</subscript></entry>
++		  <entry>Y'<subscript>22high</subscript></entry>
++		  <entry>Y'<subscript>23low</subscript></entry>
++		  <entry>Y'<subscript>23high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;24:</entry>
++		  <entry>Y'<subscript>30low</subscript></entry>
++		  <entry>Y'<subscript>30high</subscript></entry>
++		  <entry>Y'<subscript>31low</subscript></entry>
++		  <entry>Y'<subscript>31high</subscript></entry>
++		  <entry>Y'<subscript>32low</subscript></entry>
++		  <entry>Y'<subscript>32high</subscript></entry>
++		  <entry>Y'<subscript>33low</subscript></entry>
++		  <entry>Y'<subscript>33high</subscript></entry>
++		</row>
++	      </tbody>
++	    </tgroup>
++	  </informaltable>
++	</para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index d871245..6f7aa0e 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -1619,6 +1619,7 @@ information.</para>
+     &sub-y12;
+     &sub-y10b;
+     &sub-y16;
++    &sub-ys16;
+     &sub-y16-be;
+     &sub-uv8;
+     &sub-yuyv;
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 8a018c6..c7dabaa 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1154,6 +1154,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_PIX_FMT_Y10:		descr = "10-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y12:		descr = "12-bit Greyscale"; break;
+ 	case V4L2_PIX_FMT_Y16:		descr = "16-bit Greyscale"; break;
++	case V4L2_PIX_FMT_YS16:		descr = "16-bit Greyscale (Signed)"; break;
+ 	case V4L2_PIX_FMT_Y16_BE:	descr = "16-bit Greyscale BE"; break;
+ 	case V4L2_PIX_FMT_Y10BPACK:	descr = "10-bit Greyscale (Packed)"; break;
+ 	case V4L2_PIX_FMT_PAL8:		descr = "8-bit Palette"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 14cd5eb..ab577dd 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -496,6 +496,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Y12     v4l2_fourcc('Y', '1', '2', ' ') /* 12  Greyscale     */
+ #define V4L2_PIX_FMT_Y16     v4l2_fourcc('Y', '1', '6', ' ') /* 16  Greyscale     */
+ #define V4L2_PIX_FMT_Y16_BE  v4l2_fourcc_be('Y', '1', '6', ' ') /* 16  Greyscale BE  */
++#define V4L2_PIX_FMT_YS16    v4l2_fourcc('Y', 'S', '1', '6') /* signed 16-bit Greyscale */
+ 
+ /* Grey bit-packed formats */
+ #define V4L2_PIX_FMT_Y10BPACK    v4l2_fourcc('Y', '1', '0', 'B') /* 10  Greyscale bit-packed */
 -- 
-Kind regards,
+2.5.0
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
