@@ -1,38 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:34136 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755399AbcEXPGM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 11:06:12 -0400
-Received: by mail-pa0-f42.google.com with SMTP id qo8so7587795pab.1
-        for <linux-media@vger.kernel.org>; Tue, 24 May 2016 08:06:12 -0700 (PDT)
-From: Wu-Cheng Li <wuchengli@chromium.org>
-To: mchehab@osg.samsung.com, hverkuil@xs4all.nl, crope@iki.fi,
-	ricardo.ribalda@gmail.com, p.zabel@pengutronix.de,
-	wuchengli@chromium.org, shuahkh@osg.samsung.com,
-	hans.verkuil@cisco.com, renesas@ideasonboard.com,
-	guennadi.liakhovetski@intel.com, sakari.ailus@linux.intel.com,
-	posciak@chromium.org, djkurtz@chromium.org,
-	tiffany.lin@mediatek.com, pc.chen@mediatek.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v1 0/3] Add V4L2_PIX_FMT_VP9
-Date: Tue, 24 May 2016 23:05:20 +0800
-Message-Id: <1464102324-53965-1-git-send-email-wuchengli@chromium.org>
+Received: from mail-db5eur01on0097.outbound.protection.outlook.com ([104.47.2.97]:51128
+	"EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754491AbcEDUQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 16:16:24 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH v9 5/9] iio: imu: inv_mpu6050: change the i2c gate to be mux-locked
+Date: Wed, 4 May 2016 22:15:31 +0200
+Message-ID: <1462392935-28011-6-git-send-email-peda@axentia.se>
+In-Reply-To: <1462392935-28011-1-git-send-email-peda@axentia.se>
+References: <1462392935-28011-1-git-send-email-peda@axentia.se>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series add V4L2_PIX_FMT_VP9 and the documentation.
+The root i2c adapter lock is then no longer held by the i2c mux during
+accesses behind the i2c gate, and such accesses need to take that lock
+just like any other ordinary i2c accesses do.
 
-Wu-Cheng Li (3):
-  videodev2.h: add V4L2_PIX_FMT_VP9 format.
-  v4l2-ioctl: add VP9 format description.
-  V4L: add VP9 format documentation
+So, declare the i2c gate mux-locked, and zap the code that makes the
+unlocked i2c accesses and just use ordinary regmap_write accesses.
 
- Documentation/DocBook/media/v4l/pixfmt.xml | 5 +++++
- drivers/media/v4l2-core/v4l2-ioctl.c       | 1 +
- include/uapi/linux/videodev2.h             | 1 +
- 3 files changed, 7 insertions(+)
+This also happens to fix the deadlock described in
+http://patchwork.ozlabs.org/patch/584776/ authored by
+Adriana Reus <adriana.reus@intel.com> and submitted by
+Daniel Baluta <daniel.baluta@intel.com>
 
+----------8<----------
+iio: imu: inv_mpu6050: Fix deadlock between i2c adapter lock and mpu lock
+
+This deadlock occurs if the accel/gyro and the sensor on the auxiliary
+I2C (in my setup it's an ak8975) are working at the same time.
+
+Scenario:
+
+      T1					T2
+     ====				       ====
+inv_mpu6050_read_fifo                  aux sensor op (eg. ak8975_read_raw)
+        |                                     |
+mutex_lock(&indio_dev->mlock)           i2c_transfer
+        |                                     |
+i2c transaction                         i2c adapter lock
+        |                                     |
+i2c adapter lock                        i2c_mux_master_xfer
+                                              |
+                                        inv_mpu6050_select_bypass
+                                              |
+                                        mutex_lock(&indio_dev->mlock)
+
+When we operate on an mpu sensor the order of locking is mpu lock
+followed by the i2c adapter lock. However, when we operate the auxiliary
+sensor the order of locking is the other way around.
+
+...
+----------8<----------
+
+The reason this patch fixes the deadlock is that T2 does not grab the
+i2c adapter lock until the very end (and grabs the newfangled i2c mux
+lock where it previously grabbed the i2c adapter lock).
+
+Acked-by: Jonathan Cameron <jic23@kernel.org>
+Acked-by: Daniel Baluta <daniel.baluta@intel.com>
+Tested-by: Crestez Dan Leonard <leonard.crestez@intel.com>
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ Documentation/i2c/i2c-topology            |  2 +-
+ drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c | 52 ++++++-------------------------
+ 2 files changed, 11 insertions(+), 43 deletions(-)
+
+diff --git a/Documentation/i2c/i2c-topology b/Documentation/i2c/i2c-topology
+index 27bfd682808d..69b008518454 100644
+--- a/Documentation/i2c/i2c-topology
++++ b/Documentation/i2c/i2c-topology
+@@ -50,7 +50,7 @@ i2c-mux-pinctrl           Normally parent-locked, mux-locked iff
+ i2c-mux-reg               Parent-locked
+ 
+ In drivers/iio/
+-imu/inv_mpu6050/          Parent-locked
++imu/inv_mpu6050/          Mux-locked
+ 
+ In drivers/media/
+ dvb-frontends/m88ds3103   Parent-locked
+diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
+index 3a078df84224..e25f7ef7f0ea 100644
+--- a/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
++++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
+@@ -24,45 +24,16 @@ static const struct regmap_config inv_mpu_regmap_config = {
+ 	.val_bits = 8,
+ };
+ 
+-/*
+- * The i2c read/write needs to happen in unlocked mode. As the parent
+- * adapter is common. If we use locked versions, it will fail as
+- * the mux adapter will lock the parent i2c adapter, while calling
+- * select/deselect functions.
+- */
+-static int inv_mpu6050_write_reg_unlocked(struct i2c_client *client,
+-					  u8 reg, u8 d)
+-{
+-	int ret;
+-	u8 buf[2] = {reg, d};
+-	struct i2c_msg msg[1] = {
+-		{
+-			.addr = client->addr,
+-			.flags = 0,
+-			.len = sizeof(buf),
+-			.buf = buf,
+-		}
+-	};
+-
+-	ret = __i2c_transfer(client->adapter, msg, 1);
+-	if (ret != 1)
+-		return ret;
+-
+-	return 0;
+-}
+-
+ static int inv_mpu6050_select_bypass(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct i2c_client *client = i2c_mux_priv(muxc);
+-	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
++	struct iio_dev *indio_dev = i2c_mux_priv(muxc);
+ 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
+ 	int ret = 0;
+ 
+ 	/* Use the same mutex which was used everywhere to protect power-op */
+ 	mutex_lock(&indio_dev->mlock);
+ 	if (!st->powerup_count) {
+-		ret = inv_mpu6050_write_reg_unlocked(client,
+-						     st->reg->pwr_mgmt_1, 0);
++		ret = regmap_write(st->map, st->reg->pwr_mgmt_1, 0);
+ 		if (ret)
+ 			goto write_error;
+ 
+@@ -71,10 +42,9 @@ static int inv_mpu6050_select_bypass(struct i2c_mux_core *muxc, u32 chan_id)
+ 	}
+ 	if (!ret) {
+ 		st->powerup_count++;
+-		ret = inv_mpu6050_write_reg_unlocked(client,
+-						     st->reg->int_pin_cfg,
+-						     INV_MPU6050_INT_PIN_CFG |
+-						     INV_MPU6050_BIT_BYPASS_EN);
++		ret = regmap_write(st->map, st->reg->int_pin_cfg,
++				   INV_MPU6050_INT_PIN_CFG |
++				   INV_MPU6050_BIT_BYPASS_EN);
+ 	}
+ write_error:
+ 	mutex_unlock(&indio_dev->mlock);
+@@ -84,18 +54,16 @@ write_error:
+ 
+ static int inv_mpu6050_deselect_bypass(struct i2c_mux_core *muxc, u32 chan_id)
+ {
+-	struct i2c_client *client = i2c_mux_priv(muxc);
+-	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
++	struct iio_dev *indio_dev = i2c_mux_priv(muxc);
+ 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
+ 
+ 	mutex_lock(&indio_dev->mlock);
+ 	/* It doesn't really mattter, if any of the calls fails */
+-	inv_mpu6050_write_reg_unlocked(client, st->reg->int_pin_cfg,
+-				       INV_MPU6050_INT_PIN_CFG);
++	regmap_write(st->map, st->reg->int_pin_cfg, INV_MPU6050_INT_PIN_CFG);
+ 	st->powerup_count--;
+ 	if (!st->powerup_count)
+-		inv_mpu6050_write_reg_unlocked(client, st->reg->pwr_mgmt_1,
+-					       INV_MPU6050_BIT_SLEEP);
++		regmap_write(st->map, st->reg->pwr_mgmt_1,
++			     INV_MPU6050_BIT_SLEEP);
+ 	mutex_unlock(&indio_dev->mlock);
+ 
+ 	return 0;
+@@ -134,7 +102,7 @@ static int inv_mpu_probe(struct i2c_client *client,
+ 
+ 	st = iio_priv(dev_get_drvdata(&client->dev));
+ 	st->muxc = i2c_mux_alloc(client->adapter, &client->dev,
+-				 1, 0, 0,
++				 1, 0, I2C_MUX_LOCKED,
+ 				 inv_mpu6050_select_bypass,
+ 				 inv_mpu6050_deselect_bypass);
+ 	if (!st->muxc) {
 -- 
-2.8.0.rc3.226.g39d4020
+2.1.4
 
