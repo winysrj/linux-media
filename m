@@ -1,101 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:35375 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751036AbcEIVH6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2016 17:07:58 -0400
-MIME-Version: 1.0
-In-Reply-To: <5730F8BA.5000402@gmail.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1462634508-24961-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160509200657.GA3379@rob-hp-laptop> <5730F8BA.5000402@gmail.com>
-From: Rob Herring <robh@kernel.org>
-Date: Mon, 9 May 2016 16:07:35 -0500
-Message-ID: <CAL_JsqJPZS1ne_xAuBFtCc5L1HKFJf0LDUJ7CRSFXhc3adkTfA@mail.gmail.com>
-Subject: Re: [PATCH 4/7] [media] ir-rx51: add DT support to driver
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	Thierry Reding <thierry.reding@gmail.com>,
-	Benoit Cousson <bcousson@baylibre.com>,
-	Tony Lindgren <tony@atomide.com>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Linux PWM List <linux-pwm@vger.kernel.org>,
-	linux-omap <linux-omap@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sebastian Reichel <sre@kernel.org>,
-	=?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:21529 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757878AbcEDJAM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 05:00:12 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v4] media: vb2-dma-contig: configure DMA max segment size
+ properly
+Date: Wed, 04 May 2016 11:00:03 +0200
+Message-id: <1462352403-27418-1-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <5729B396.1020706@xs4all.nl>
+References: <5729B396.1020706@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 9, 2016 at 3:53 PM, Ivaylo Dimitrov
-<ivo.g.dimitrov.75@gmail.com> wrote:
-> Hi,
->
-> On  9.05.2016 23:06, Rob Herring wrote:
->>
->> On Sat, May 07, 2016 at 06:21:45PM +0300, Ivaylo Dimitrov wrote:
->>>
->>> With the upcoming removal of legacy boot, lets add support to one of the
->>> last N900 drivers remaining without it. As the driver still uses omap
->>> dmtimer, add auxdata as well.
->>>
->>> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
->>> ---
->>>   .../devicetree/bindings/media/nokia,lirc-rx51         | 19
->>> +++++++++++++++++++
->>>   arch/arm/mach-omap2/pdata-quirks.c                    |  6 +-----
->>>   drivers/media/rc/ir-rx51.c                            | 11 ++++++++++-
->>>   3 files changed, 30 insertions(+), 6 deletions(-)
->>>   create mode 100644
->>> Documentation/devicetree/bindings/media/nokia,lirc-rx51
->>>
->>> diff --git a/Documentation/devicetree/bindings/media/nokia,lirc-rx51
->>> b/Documentation/devicetree/bindings/media/nokia,lirc-rx51
->>> new file mode 100644
->>> index 0000000..5b3081e
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/media/nokia,lirc-rx51
->>> @@ -0,0 +1,19 @@
->>> +Device-Tree bindings for LIRC TX driver for Nokia N900(RX51)
->>> +
->>> +Required properties:
->>> +       - compatible: should be "nokia,lirc-rx51".
->>
->>
->> lirc is a Linux term. Also, nokia,rx51-... would be conventional
->> ordering.
->>
->
-> I used the driver name ("lirc_rx51") to not bring confusion. Also, it
-> registers itself through lirc_register_driver() call, so having lirc in its
-> name somehow makes sense.
->
-> I am not very good in inventing names, the best compatible I can think of is
-> "nokia,rx51-ir". Is that ok?
+This patch lets vb2-dma-contig memory allocator to configure DMA max
+segment size properly for the client device. Setting it is needed to let
+DMA-mapping subsystem to create a single, contiguous mapping in DMA
+address space. This is essential for all devices, which use dma-contig
+videobuf2 memory allocator and shared buffers (in USERPTR or DMAbuf modes
+of operations).
 
-Sure, but...
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Hello,
 
->> Is this anything more than a PWM LED?
->>
->
-> It is an IR LED connected through a driver to McSPI2_SIMO pin of OMAP3,
-> which pin can be configured as PWM or GPIO(there are other configurations,
-> but they don't make sense). In theory it could be used for various things
-> (like uni-directional serial TX, or stuff like that), but in practice it
-> allows N900 to be act as an IR remote controller. I guess that fits in
-> "nothing more than a PWM LED", more or less.
+This patch is a follow-up of my previous attempts to let Exynos
+multimedia devices to work properly with shared buffers when IOMMU is
+enabled:
+1. https://www.mail-archive.com/linux-media@vger.kernel.org/msg96946.html
+2. http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
+3. https://patchwork.linuxtv.org/patch/30870/
 
-There's already a pwm-led binding that can be used. Though there may
-be missing consumer IR to LED subsystem support in the kernel. You
-could list both compatibles, use the rx51 IR driver now, and then move
-to pwm-led driver in the future.
+As sugested by Hans, configuring DMA max segment size should be done by
+videobuf2-dma-contig module instead of requiring all device drivers to
+do it on their own.
 
-Rob
+Here is some backgroud why this is done in videobuf2-dc not in the
+respective generic bus code:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html
+
+Best regards,
+Marek Szyprowski
+
+changelog:
+v4:
+- rebased onto media master tree
+- call vb2_dc_set_max_seg_size after allocating vb2 buf object
+
+v3:
+- added FIXME note about possible memory leak
+
+v2:
+- fixes typos and other language issues in the comments
+
+v1: http://article.gmane.org/gmane.linux.kernel.samsung-soc/53690
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 53 +++++++++++++++++++++++++-
+ 1 file changed, 51 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 5361197f3e57..6291842a889f 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -448,6 +448,42 @@ static void vb2_dc_put_userptr(void *buf_priv)
+ }
+ 
+ /*
++ * To allow mapping the scatter-list into a single chunk in the DMA
++ * address space, the device is required to have the DMA max segment
++ * size parameter set to a value larger than the buffer size. Otherwise,
++ * the DMA-mapping subsystem will split the mapping into max segment
++ * size chunks. This function increases the DMA max segment size
++ * parameter to let DMA-mapping map a buffer as a single chunk in DMA
++ * address space.
++ * This code assumes that the DMA-mapping subsystem will merge all
++ * scatterlist segments if this is really possible (for example when
++ * an IOMMU is available and enabled).
++ * Ideally, this parameter should be set by the generic bus code, but it
++ * is left with the default 64KiB value due to historical litmiations in
++ * other subsystems (like limited USB host drivers) and there no good
++ * place to set it to the proper value. It is done here to avoid fixing
++ * all the vb2-dc client drivers.
++ *
++ * FIXME: the allocated dma_params structure is leaked because there
++ * is completely no way to determine when to free it (dma_params might have
++ * been also already allocated by the bus code). However in typical
++ * use cases this function will be called for platform devices, which are
++ * not hot-plugged and exist all the time in the target system.
++ */
++static int vb2_dc_set_max_seg_size(struct device *dev, unsigned int size)
++{
++	if (!dev->dma_parms) {
++		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
++		if (!dev->dma_parms)
++			return -ENOMEM;
++	}
++	if (dma_get_max_seg_size(dev) < size)
++		return dma_set_max_seg_size(dev, size);
++
++	return 0;
++}
++
++/*
+  * For some kind of reserved memory there might be no struct page available,
+  * so all that can be done to support such 'pages' is to try to convert
+  * pfn to dma address or at the last resort just assume that
+@@ -509,6 +545,10 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
++	ret = vb2_dc_set_max_seg_size(conf->dev, PAGE_ALIGN(size + PAGE_SIZE));
++	if (!ret)
++		goto fail_buf;
++
+ 	buf->dev = conf->dev;
+ 	buf->dma_dir = dma_dir;
+ 
+@@ -682,6 +722,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct vb2_dc_buf *buf;
+ 	struct dma_buf_attachment *dba;
++	int ret;
+ 
+ 	if (dbuf->size < size)
+ 		return ERR_PTR(-EFAULT);
+@@ -690,13 +731,17 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
++	ret = vb2_dc_set_max_seg_size(conf->dev, PAGE_ALIGN(size));
++	if (!ret)
++		goto fail_buf;
++
+ 	buf->dev = conf->dev;
+ 	/* create attachment for the dmabuf with the user device */
+ 	dba = dma_buf_attach(dbuf, buf->dev);
+ 	if (IS_ERR(dba)) {
+ 		pr_err("failed to attach dmabuf\n");
+-		kfree(buf);
+-		return dba;
++		ret = PTR_ERR(dba);
++		goto fail_buf;
+ 	}
+ 
+ 	buf->dma_dir = dma_dir;
+@@ -704,6 +749,10 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+ 	buf->db_attach = dba;
+ 
+ 	return buf;
++
++fail_buf:
++	kfree(buf);
++	return ERR_PTR(ret);
+ }
+ 
+ /*********************************************/
+-- 
+1.9.2
+
