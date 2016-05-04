@@ -1,159 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:60747 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753552AbcEDRHa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 13:07:30 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: [PATCH v2 5/8] Input: atmel_mxt_ts - read touchscreen size
-Date: Wed,  4 May 2016 18:07:15 +0100
-Message-Id: <1462381638-7818-6-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:35459 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752069AbcEDOS2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 10:18:28 -0400
+Received: by mail-ob0-f175.google.com with SMTP id n10so21328686obb.2
+        for <linux-media@vger.kernel.org>; Wed, 04 May 2016 07:18:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20160504134346.GY14148@phenom.ffwll.local>
+References: <87fuvypr2h.fsf@intel.com>
+	<20160310122101.2fca3d79@recife.lan>
+	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
+	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
+	<20160412094620.4fbf05c0@lwn.net>
+	<CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
+	<CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
+	<54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
+	<874maef8km.fsf@intel.com>
+	<13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de>
+	<20160504134346.GY14148@phenom.ffwll.local>
+Date: Wed, 4 May 2016 16:18:27 +0200
+Message-ID: <CAKMK7uG9hNkG6KxFLQeaCbtPFY7qLiz6s5+qDy9-DcdywkDqrA@mail.gmail.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: Markus Heiser <markus.heiser@darmarit.de>,
+	Jani Nikula <jani.nikula@intel.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org linux-media"
+	<linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The touchscreen may have a margin where not all the matrix is used. Read
-the parameters from T9 and T100 and take account of the difference.
+On Wed, May 4, 2016 at 3:43 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> I'd really like to converge on the markup question, so that we can start
+> using all the cool stuff with impunity in gpu documentations.
 
-Note: this does not read the XORIGIN/YORIGIN fields so it assumes that
-the touchscreen starts at (0,0)
+Aside: If we decide this now I could send in a pull request for the
+rst/sphinx kernel-doc support still for 4.7 (based upon the minimal
+markdown/asciidoc code I still have). That would be really awesome ...
 
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 47 ++++++++++++++++++++++++++------
- 1 file changed, 39 insertions(+), 8 deletions(-)
+Jon?
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 8945235..dbe0f2f 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -103,6 +103,8 @@ struct t7_config {
- 
- /* MXT_TOUCH_MULTI_T9 field */
- #define MXT_T9_CTRL		0
-+#define MXT_T9_XSIZE		3
-+#define MXT_T9_YSIZE		4
- #define MXT_T9_ORIENT		9
- #define MXT_T9_RANGE		18
- 
-@@ -148,7 +150,9 @@ struct t37_debug {
- #define MXT_T100_CTRL		0
- #define MXT_T100_CFG1		1
- #define MXT_T100_TCHAUX		3
-+#define MXT_T100_XSIZE		9
- #define MXT_T100_XRANGE		13
-+#define MXT_T100_YSIZE		20
- #define MXT_T100_YRANGE		24
- 
- #define MXT_T100_CFG_SWITCHXY	BIT(5)
-@@ -257,6 +261,8 @@ struct mxt_data {
- 	unsigned int max_x;
- 	unsigned int max_y;
- 	bool xy_switch;
-+	u8 xsize;
-+	u8 ysize;
- 	bool in_bootloader;
- 	u16 mem_size;
- 	u8 t100_aux_ampl;
-@@ -1710,6 +1716,18 @@ static int mxt_read_t9_resolution(struct mxt_data *data)
- 		return -EINVAL;
- 
- 	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T9_XSIZE,
-+			       sizeof(data->xsize), &data->xsize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T9_YSIZE,
-+			       sizeof(data->ysize), &data->ysize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
- 			       object->start_address + MXT_T9_RANGE,
- 			       sizeof(range), &range);
- 	if (error)
-@@ -1759,6 +1777,18 @@ static int mxt_read_t100_config(struct mxt_data *data)
- 
- 	data->max_y = get_unaligned_le16(&range_y);
- 
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T100_XSIZE,
-+			       sizeof(data->xsize), &data->xsize);
-+	if (error)
-+		return error;
-+
-+	error = __mxt_read_reg(client,
-+			       object->start_address + MXT_T100_YSIZE,
-+			       sizeof(data->ysize), &data->ysize);
-+	if (error)
-+		return error;
-+
- 	/* read orientation config */
- 	error =  __mxt_read_reg(client,
- 				object->start_address + MXT_T100_CFG1,
-@@ -2116,7 +2146,7 @@ static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
- 		outbuf[i] = mxt_get_debug_value(data, x, y);
- 
- 		/* Next value */
--		if (++x >= data->info.matrix_xsize) {
-+		if (++x >= data->xsize) {
- 			x = 0;
- 			y++;
- 		}
-@@ -2280,8 +2310,8 @@ static int mxt_set_input(struct mxt_data *data, unsigned int i)
- 	if (i > 0)
- 		return -EINVAL;
- 
--	f->width = data->info.matrix_xsize;
--	f->height = data->info.matrix_ysize;
-+	f->width = data->xsize;
-+	f->height = data->ysize;
- 	f->pixelformat = V4L2_PIX_FMT_YS16;
- 	f->field = V4L2_FIELD_NONE;
- 	f->colorspace = V4L2_COLORSPACE_SRGB;
-@@ -2337,8 +2367,8 @@ static int mxt_vidioc_enum_framesizes(struct file *file, void *priv,
- 	if (f->index > 0)
- 		return -EINVAL;
- 
--	f->discrete.width = data->info.matrix_xsize;
--	f->discrete.height = data->info.matrix_ysize;
-+	f->discrete.width = data->xsize;
-+	f->discrete.height = data->ysize;
- 	f->type = V4L2_FRMSIZE_TYPE_DISCRETE;
- 	return 0;
- }
-@@ -2411,9 +2441,10 @@ static void mxt_debug_init(struct mxt_data *data)
- 	dbg->t37_address = object->start_address;
- 
- 	/* Calculate size of data and allocate buffer */
--	dbg->t37_nodes = data->info.matrix_xsize * data->info.matrix_ysize;
--	dbg->t37_pages = dbg->t37_nodes * sizeof(u16)
--					/ sizeof(dbg->t37_buf->data) + 1;
-+	dbg->t37_nodes = data->xsize * data->ysize;
-+	dbg->t37_pages = ((data->xsize * data->info.matrix_ysize)
-+			  * sizeof(u16) / sizeof(dbg->t37_buf->data)) + 1;
-+
- 
- 	dbg->t37_buf = devm_kzalloc(&data->client->dev,
- 				     sizeof(struct t37_debug) * dbg->t37_pages,
+Thanks, Daniel
 -- 
-2.5.0
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
