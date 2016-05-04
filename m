@@ -1,129 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:56916 "EHLO lists.s-osg.org"
+Received: from mga03.intel.com ([134.134.136.65]:17260 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752315AbcE0Uo5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2016 16:44:57 -0400
-Subject: Re: [PATCH v2 1/2] media: Media Device Allocator API
-To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	hans.verkuil@cisco.com, chehabrafael@gmail.com,
-	javier@osg.samsung.com, inki.dae@samsung.com,
-	g.liakhovetski@gmx.de, jh1009.sung@samsung.com
-References: <cover.1464132578.git.shuahkh@osg.samsung.com>
- <90f39ad8de612214e52d7be35be3077b7510786a.1464132578.git.shuahkh@osg.samsung.com>
- <57484B11.2060400@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <5748B1BF.8050400@osg.samsung.com>
-Date: Fri, 27 May 2016 14:44:47 -0600
+	id S1753248AbcEDPpK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 11:45:10 -0400
+From: Jani Nikula <jani.nikula@intel.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media\@vger.kernel.org linux-media"
+	<linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+In-Reply-To: <20160504085713.3b81856d@lwn.net>
+References: <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net> <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com> <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com> <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de> <874maef8km.fsf@intel.com> <13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de> <20160504134346.GY14148@phenom.ffwll.local> <CAKMK7uG9hNkG6KxFLQeaCbtPFY7qLiz6s5+qDy9-DcdywkDqrA@mail.gmail.com> <20160504085713.3b81856d@lwn.net>
+Date: Wed, 04 May 2016 18:44:22 +0300
+Message-ID: <87pot1n7zd.fsf@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <57484B11.2060400@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/27/2016 07:26 AM, Hans Verkuil wrote:
-> On 05/25/2016 01:39 AM, Shuah Khan wrote:
->> Media Device Allocator API to allows multiple drivers share a media device.
->> Using this API, drivers can allocate a media device with the shared struct
->> device as the key. Once the media device is allocated by a driver, other
->> drivers can get a reference to it. The media device is released when all
->> the references are released.
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/Makefile              |   3 +-
->>  drivers/media/media-dev-allocator.c | 120 ++++++++++++++++++++++++++++++++++++
->>  include/media/media-dev-allocator.h |  85 +++++++++++++++++++++++++
->>  3 files changed, 207 insertions(+), 1 deletion(-)
->>  create mode 100644 drivers/media/media-dev-allocator.c
->>  create mode 100644 include/media/media-dev-allocator.h
->>
->> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
->> index e608bbc..b08f091 100644
->> --- a/drivers/media/Makefile
->> +++ b/drivers/media/Makefile
->> @@ -2,7 +2,8 @@
->>  # Makefile for the kernel multimedia device drivers.
->>  #
->>  
->> -media-objs	:= media-device.o media-devnode.o media-entity.o
->> +media-objs	:= media-device.o media-devnode.o media-entity.o \
->> +		   media-dev-allocator.o
->>  
->>  #
->>  # I2C drivers should come before other drivers, otherwise they'll fail
->> diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
->> new file mode 100644
->> index 0000000..b8c9811
->> --- /dev/null
->> +++ b/drivers/media/media-dev-allocator.c
->> @@ -0,0 +1,120 @@
->> +/*
->> + * media-dev-allocator.c - Media Controller Device Allocator API
->> + *
->> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
->> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
->> + *
->> + * This file is released under the GPLv2.
->> + * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> + */
->> +
->> +/*
->> + * This file adds a global refcounted Media Controller Device Instance API.
->> + * A system wide global media device list is managed and each media device
->> + * includes a kref count. The last put on the media device releases the media
->> + * device instance.
->> + *
->> +*/
->> +
->> +#include <linux/slab.h>
->> +#include <linux/kref.h>
->> +#include <linux/usb.h>
->> +#include <media/media-device.h>
->> +
->> +static LIST_HEAD(media_device_list);
->> +static DEFINE_MUTEX(media_device_lock);
->> +
->> +struct media_device_instance {
->> +	struct media_device mdev;
->> +	struct list_head list;
->> +	struct device *dev;
->> +	struct kref refcount;
->> +};
->> +
->> +static inline struct media_device_instance *
->> +to_media_device_instance(struct media_device *mdev)
->> +{
->> +	return container_of(mdev, struct media_device_instance, mdev);
->> +}
->> +
->> +static void media_device_instance_release(struct kref *kref)
->> +{
->> +	struct media_device_instance *mdi =
->> +		container_of(kref, struct media_device_instance, refcount);
->> +
->> +	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
->> +
->> +	mutex_lock(&media_device_lock);
->> +
->> +	media_device_unregister(&mdi->mdev);
->> +	media_device_cleanup(&mdi->mdev);
->> +
->> +	list_del(&mdi->list);
->> +	mutex_unlock(&media_device_lock);
->> +
->> +	kfree(mdi);
->> +}
->> +
-> 
-> Add a comment here saying that media_device_lock has to be locked when
-> calling this get function.
-> 
+On Wed, 04 May 2016, Jonathan Corbet <corbet@lwn.net> wrote:
+> The sphinx/rst approach does seem, to me, to be the right one, with the
+> existing DocBook structure remaining in place for those who want/need
+> it.  I'm inclined toward my stuff as a base to work with, obviously :) But
+> it's hackish at best and needs a lot of cleaning up.  It's a proof of
+> concept, but it's hardly finished (one might say it's barely begun...)
 
-Fixed all the comments and sent patch v3. Thanks again for the review.
+Thanks. I'll start looking at how to make it less hackish and more
+upstreamable.
 
--- Shuah
+BR,
+Jani.
 
+-- 
+Jani Nikula, Intel Open Source Technology Center
