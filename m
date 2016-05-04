@@ -1,79 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33054 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932933AbcEKODV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 10:03:21 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v4 2/8] media: adv7604: automatic "default-input" selection
-Date: Wed, 11 May 2016 16:02:50 +0200
-Message-Id: <1462975376-491-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:23881 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754145AbcEDRHa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 13:07:30 -0400
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, Nick Dyer <nick.dyer@itdev.co.uk>
+Subject: [PATCH v2 7/8] Input: atmel_mxt_ts - add diagnostic data support for mXT1386
+Date: Wed,  4 May 2016 18:07:17 +0100
+Message-Id: <1462381638-7818-8-git-send-email-nick.dyer@itdev.co.uk>
+In-Reply-To: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
+References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: William Towle <william.towle@codethink.co.uk>
+The mXT1386 family of chips have a different architecture which splits
+the diagnostic data into 3 columns.
 
-Add logic such that the "default-input" property becomes unnecessary
-for chips that only have one suitable input (ADV7611 by design, and
-ADV7612 due to commit 7111cddd518f ("[media] media: adv7604: reduce
-support to first (digital) input").
-
-Additionally, Ian's documentation in commit bf9c82278c34 ("[media]
-media: adv7604: ability to read default input port from DT") states
-that the "default-input" property should reside directly in the node
-for adv7612. Hence, also adjust the parsing to make the implementation
-consistent with this.
-
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
 ---
- drivers/media/i2c/adv7604.c | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ drivers/input/touchscreen/atmel_mxt_ts.c | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 41a1bfc..d722c16 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2788,7 +2788,7 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	struct device_node *np;
- 	unsigned int flags;
- 	int ret;
--	u32 v;
-+	u32 v = -1;
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index b4abd78..fca1096 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -137,6 +137,10 @@ struct t9_range {
+ #define MXT_DIAGNOSTIC_DELTAS	0x10
+ #define MXT_DIAGNOSTIC_SIZE	128
  
- 	np = state->i2c_clients[ADV76XX_PAGE_IO]->dev.of_node;
- 
-@@ -2810,6 +2810,22 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 
- 	of_node_put(endpoint);
- 
-+	if (of_property_read_u32(np, "default-input", &v)) {
-+		/* not specified ... can we choose automatically? */
-+		switch (state->info->type) {
-+		case ADV7611:
-+			v = 0;
-+			break;
-+		case ADV7612:
-+			if (state->info->max_port == ADV76XX_PAD_HDMI_PORT_A)
-+				v = 0;
-+			/* else is unhobbled, leave unspecified */
-+		default:
-+			break;
-+		}
-+	}
-+	state->pdata.default_input = v;
++#define MXT_FAMILY_1386			160
++#define MXT1386_COLUMNS			3
++#define MXT1386_PAGES_PER_COLUMN	8
 +
- 	flags = bus_cfg.bus.parallel.flags;
+ struct t37_debug {
+ 	u8 mode;
+ 	u8 page;
+@@ -2135,13 +2139,27 @@ recheck:
+ static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
+ 			       unsigned int y)
+ {
++	struct mxt_info *info = &data->info;
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	unsigned int ofs, page;
++	unsigned int col = 0;
++	unsigned int col_width;
++
++	if (info->family_id == MXT_FAMILY_1386) {
++		col_width = info->matrix_ysize / MXT1386_COLUMNS;
++		col = y / col_width;
++		y = y % col_width;
++	} else {
++		col_width = info->matrix_ysize;
++	}
  
- 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+-	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
++	ofs = (y + (x * col_width)) * sizeof(u16);
+ 	page = ofs / MXT_DIAGNOSTIC_SIZE;
+ 	ofs %= MXT_DIAGNOSTIC_SIZE;
+ 
++	if (info->family_id == MXT_FAMILY_1386)
++		page += col * MXT1386_PAGES_PER_COLUMN;
++
+ 	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
+ }
+ 
+@@ -2435,6 +2453,7 @@ static const struct video_device mxt_video_device = {
+ 
+ static void mxt_debug_init(struct mxt_data *data)
+ {
++	struct mxt_info *info = &data->info;
+ 	struct mxt_dbg *dbg = &data->dbg;
+ 	struct mxt_object *object;
+ 	int error;
+@@ -2458,9 +2477,13 @@ static void mxt_debug_init(struct mxt_data *data)
+ 
+ 	/* Calculate size of data and allocate buffer */
+ 	dbg->t37_nodes = data->xsize * data->ysize;
+-	dbg->t37_pages = ((data->xsize * data->info.matrix_ysize)
+-			  * sizeof(u16) / sizeof(dbg->t37_buf->data)) + 1;
+ 
++	if (info->family_id == MXT_FAMILY_1386)
++		dbg->t37_pages = MXT1386_COLUMNS * MXT1386_PAGES_PER_COLUMN;
++	else
++		dbg->t37_pages = ((data->xsize * info->matrix_ysize)
++				   * sizeof(u16) / sizeof(dbg->t37_buf->data))
++				   + 1;
+ 
+ 	dbg->t37_buf = devm_kzalloc(&data->client->dev,
+ 				     sizeof(struct t37_debug) * dbg->t37_pages,
 -- 
-2.7.4
+2.5.0
 
