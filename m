@@ -1,168 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36210 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbcEQTFB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2016 15:05:01 -0400
+Received: from mail-db5eur01on0095.outbound.protection.outlook.com ([104.47.2.95]:4416
+	"EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755147AbcEDUQy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 16:16:54 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH v9 9/9] [media] rtl2832: regmap is aware of lockdep, drop local locking hack
+Date: Wed, 4 May 2016 22:15:35 +0200
+Message-ID: <1462392935-28011-10-git-send-email-peda@axentia.se>
+In-Reply-To: <1462392935-28011-1-git-send-email-peda@axentia.se>
+References: <1462392935-28011-1-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
-In-Reply-To: <CA+M3ks56F61k9NPs18eYTmvNkUGmeytLQRENHVgv1ZYUGtW9Gw@mail.gmail.com>
-References: <1462806459-8124-1-git-send-email-benjamin.gaignard@linaro.org>
-	<1462806459-8124-2-git-send-email-benjamin.gaignard@linaro.org>
-	<CACvgo52cHhJ0XoibSXgu2eBg1sK51_nFqtA9CmWZwtCDYa7-WQ@mail.gmail.com>
-	<CA+M3ks56F61k9NPs18eYTmvNkUGmeytLQRENHVgv1ZYUGtW9Gw@mail.gmail.com>
-Date: Tue, 17 May 2016 20:04:59 +0100
-Message-ID: <CACvgo508W=BxwMkkOP5EswnDqnjfcWmvX1cShbie1nF3-8brTw@mail.gmail.com>
-Subject: Re: [PATCH v7 1/3] create SMAF module
-From: Emil Velikov <emil.l.velikov@gmail.com>
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
-	ML dri-devel <dri-devel@lists.freedesktop.org>,
-	Zoltan Kuscsik <zoltan.kuscsik@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Cc Ma <cc.ma@mediatek.com>,
-	Pascal Brand <pascal.brand@linaro.org>,
-	Joakim Bech <joakim.bech@linaro.org>,
-	Dan Caprita <dan.caprita@windriver.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17 May 2016 at 14:50, Benjamin Gaignard <benjamin.gaignard@linaro.org> wrote:
-> Hello Emil,
->
-> thanks for your review.
-> I have understand most of your remarks and I'm fixing them
-> but some points aren't obvious for me...
->
-Sure thing. Thanks for being honest.
+Tested-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ drivers/media/dvb-frontends/rtl2832.c      | 30 ------------------------------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  1 -
+ 2 files changed, 31 deletions(-)
 
->
-> No because a device could attach itself on the buffer and the
-> allocator will only
-> be selected at the first map_attach call.
-> The goal is to delay the allocation until all devices are attached to
-> select the best allocator.
->
-I see. Makes sense.
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 957523f07f61..bfb6beedd40b 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -890,32 +890,6 @@ static bool rtl2832_volatile_reg(struct device *dev, unsigned int reg)
+ 	return false;
+ }
+ 
+-/*
+- * FIXME: Hack. Implement own regmap locking in order to silence lockdep
+- * recursive lock warning. That happens when regmap I2C client calls I2C mux
+- * adapter, which leads demod I2C repeater enable via demod regmap. Operation
+- * takes two regmap locks recursively - but those are different regmap instances
+- * in a two different I2C drivers, so it is not deadlock. Proper fix is to make
+- * regmap aware of lockdep.
+- */
+-static void rtl2832_regmap_lock(void *__dev)
+-{
+-	struct rtl2832_dev *dev = __dev;
+-	struct i2c_client *client = dev->client;
+-
+-	dev_dbg(&client->dev, "\n");
+-	mutex_lock(&dev->regmap_mutex);
+-}
+-
+-static void rtl2832_regmap_unlock(void *__dev)
+-{
+-	struct rtl2832_dev *dev = __dev;
+-	struct i2c_client *client = dev->client;
+-
+-	dev_dbg(&client->dev, "\n");
+-	mutex_unlock(&dev->regmap_mutex);
+-}
+-
+ static struct dvb_frontend *rtl2832_get_dvb_frontend(struct i2c_client *client)
+ {
+ 	struct rtl2832_dev *dev = i2c_get_clientdata(client);
+@@ -1082,12 +1056,8 @@ static int rtl2832_probe(struct i2c_client *client,
+ 	dev->sleeping = true;
+ 	INIT_DELAYED_WORK(&dev->i2c_gate_work, rtl2832_i2c_gate_work);
+ 	/* create regmap */
+-	mutex_init(&dev->regmap_mutex);
+ 	dev->regmap_config.reg_bits =  8,
+ 	dev->regmap_config.val_bits =  8,
+-	dev->regmap_config.lock = rtl2832_regmap_lock,
+-	dev->regmap_config.unlock = rtl2832_regmap_unlock,
+-	dev->regmap_config.lock_arg = dev,
+ 	dev->regmap_config.volatile_reg = rtl2832_volatile_reg,
+ 	dev->regmap_config.max_register = 5 * 0x100,
+ 	dev->regmap_config.ranges = regmap_range_cfg,
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index d8f97d14f6fd..c1a8a69e9015 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -33,7 +33,6 @@
+ struct rtl2832_dev {
+ 	struct rtl2832_platform_data *pdata;
+ 	struct i2c_client *client;
+-	struct mutex regmap_mutex;
+ 	struct regmap_config regmap_config;
+ 	struct regmap *regmap;
+ 	struct i2c_mux_core *muxc;
+-- 
+2.1.4
 
-
->>> +static long smaf_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
->>> +{
->>> +       switch (cmd) {
->>> +       case SMAF_IOC_CREATE:
->>> +       {
->>> +               struct smaf_create_data data;
->>> +               struct smaf_handle *handle;
->>> +
->>> +               if (copy_from_user(&data, (void __user *)arg, _IOC_SIZE(cmd)))
->>> +                       return -EFAULT;
->>> +
->>> +               handle = smaf_create_handle(data.length, data.flags);
->> We want to sanitise the input data.{length,flags} before sending it
->> deeper in the kernel.
->
-> Sorry but can you elaborate little more here ?
-> I don't understand your expectations.
->
-You want to determine which flags are 'considered useful' at this
-stage, and reject anything else. As-is you inject any flags that the
-user gives you directly into the 'guts' of the kernel. This is not
-good from security and future expandability POV.
-
-About the length you want a similar thing. size_t is unsigned (great),
-although ideally you'll want to check/determine if one cannot exploit
-it, integer overflow being the more common suspect. This may be quite
-hard to track, so I'd stick with the flags checking at least.
-
-
-> It is useless the add this function in this .h file I will remove it
-> and fix the comment in structure defintion
-
-I've seen both approaches - description next to the declaration or
-definition. I'd rather not pick sides, as people might throw rotten
-fruit at me ;-)
-
-
->>> +/**
->>> + * struct smaf_create_data - allocation parameters
->>> + * @length:    size of the allocation
->>> + * @flags:     flags passed to allocator
->>> + * @name:      name of the allocator to be selected, could be NULL
-Just occurred to - you might want to comment what the user should
-expect if NULL. Any at random one will be used or otherwise. Very
-quick description on the heuristics used might be good as well.
-
->> Is it guaranteed to be null terminated ? If so one should mentioned it
->> otherwise your userspace should be fixed.
->> Same comments apply for smaf_info::name.
->
-> I have used strncpy everywhere to avoid this problem but maybe it is not enough
->
-According to the man page
-
-"The strncpy() function is similar, except that at most n bytes of src
-are copied.  Warning: If there is no null byte among the first n bytes
-of src, the string placed in dest will _not_ be null-terminated."
-
-Annotation is mine obviously. I believe that after the strncpy 'name'
-is/was assumed (used as) a NULL terminated string.
-
->>
->>
->>> + * @fd:                returned file descriptor
->>> + */
->>> +struct smaf_create_data {
->>> +       size_t length;
->>> +       unsigned int flags;
->>> +       char name[ALLOCATOR_NAME_LENGTH];
->>> +       int fd;
->> The structs here feels quite fragile. Please read up on Daniel
->> Vetter's "Botching up ioctls" [1]. Personally I find pahole quite
->> useful is such process.
->>
-> if I describe the structures like this:
-> /**
->  * struct smaf_create_data - allocation parameters
->  * @length: size of the allocation
->  * @flags: flags passed to allocator
->  * @name_len: length of name
->  * @name: name of the allocator to be selected, could be NULL
->  * @fd: returned file descriptor
->  */
-> struct smaf_create_data {
-> size_t length;
-> unsigned int flags;
-> size_t name_len;
-> char __user *name;
-> int fd;
-> char padding[44];
-> };
->
-> does it sound more robust for you ?
->
-Seems like you changed 'name' from fixed size array to char *. Which
-actually gets us slightly further away from robust.
-
-As Daniel said, please read through the hole file.
-
-Here is a (slightly incomplete) gist of it all:
-- you want to to use __[us]{8,16,32,64} and __kernel_size_t types everywhere
-- each member of the struct must be the same offset for both 32bit and
-64bit builds. ^^ helps with that
-- double check for gaps in the struct - I think you have a few
-- each struct should have it's old 'flags' which you'll use to
-indicate the capability of the ioctl and thus the size of struct used.
-i.e. it's for future use.
-
-Obviously the other two structs need similar polish.
-
-Here is how you can check things with pahole:
- - Create a simple C file that includes the header and has an instance
-of each struct - it doesn't have to be use any of them.
- - Compile for 32 and 64 bit with -g -O0. Compare the struct layout -
-it should be identical in both cases.
-
-Hope that makes things a bit clearer.
-
-Emil
