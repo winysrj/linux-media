@@ -1,67 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:33841 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751370AbcEKHLn (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:49569 "EHLO
+	lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751627AbcEDDDm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 03:11:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 3 May 2016 23:03:42 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id C1C021800C7
+	for <linux-media@vger.kernel.org>; Wed,  4 May 2016 05:03:36 +0200 (CEST)
+Date: Wed, 04 May 2016 05:03:36 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/3] cec: correctly cancel delayed work when the CEC adapter is disabled
-Date: Wed, 11 May 2016 09:11:28 +0200
-Message-Id: <1462950688-23290-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1462950688-23290-1-git-send-email-hverkuil@xs4all.nl>
-References: <1462950688-23290-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160504030336.C1C021800C7@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-When cleaning up pending work from the wait_queue list, make sure to cancel the
-delayed work. Otherwise nasty kernel oopses will occur when the timer goes off
-and the cec_data struct has disappeared.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/cec/cec.c | 19 +++++++++++++++++--
- 1 file changed, 17 insertions(+), 2 deletions(-)
+date:		Wed May  4 04:00:18 CEST 2016
+git branch:	test
+git hash:	68af062b5f38510dc96635314461c6bbe1dbf2fe
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3413-g618cd5c
+host hardware:	x86_64
+host os:	4.5.0-164
 
-diff --git a/drivers/staging/media/cec/cec.c b/drivers/staging/media/cec/cec.c
-index 9a62aa2..c2a876e 100644
---- a/drivers/staging/media/cec/cec.c
-+++ b/drivers/staging/media/cec/cec.c
-@@ -393,13 +393,28 @@ static int cec_thread_func(void *_adap)
- 							struct cec_data, list);
- 				cec_data_cancel(data);
- 			}
-+			if (adap->transmitting)
-+				cec_data_cancel(adap->transmitting);
-+
-+			/*
-+			 * Cancel the pending timeout work. We have to unlock
-+			 * the mutex when flushing the work since
-+			 * cec_wait_timeout() will take it. This is OK since
-+			 * no new entries can be added to wait_queue as long
-+			 * as adap->transmitting is NULL, which it is due to
-+			 * the cec_data_cancel() above.
-+			 */
- 			while (!list_empty(&adap->wait_queue)) {
- 				data = list_first_entry(&adap->wait_queue,
- 							struct cec_data, list);
-+
-+				if (!cancel_delayed_work(&data->work)) {
-+					mutex_unlock(&adap->lock);
-+					flush_scheduled_work();
-+					mutex_lock(&adap->lock);
-+				}
- 				cec_data_cancel(data);
- 			}
--			if (adap->transmitting)
--				cec_data_cancel(adap->transmitting);
- 			goto unlock;
- 		}
- 
--- 
-2.8.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
