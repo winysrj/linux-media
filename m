@@ -1,126 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:50239 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753719AbcEXHQ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 03:16:26 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v5 1/2] media: vb2-dma-contig: add helper for setting dma max
- seg size
-Date: Tue, 24 May 2016 09:16:06 +0200
-Message-id: <1464074167-27330-2-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1464074167-27330-1-git-send-email-m.szyprowski@samsung.com>
-References: <1464074167-27330-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-ig0-f196.google.com ([209.85.213.196]:33209 "EHLO
+	mail-ig0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752873AbcEDUtx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 16:49:53 -0400
+MIME-Version: 1.0
+In-Reply-To: <20160504212845.21dab7c8@mir>
+References: <20160315080552.3cc5d146@recife.lan>
+	<20160503233859.0f6506fa@mir>
+	<CA+55aFxAor=MJSGFkynu72AQN75bNTh9kewLR4xe8CpjHQQvZQ@mail.gmail.com>
+	<20160504063902.0af2f4d7@mir>
+	<CA+55aFyE82Hi29az_MG9oG0=AEg1o++Wng_DO2RvNHQsSOz87g@mail.gmail.com>
+	<20160504212845.21dab7c8@mir>
+Date: Wed, 4 May 2016 13:49:52 -0700
+Message-ID: <CA+55aFxQSUHBvOSqyiqdt2faY6VZSXP0p-cPzRm+km=fk7z4kQ@mail.gmail.com>
+Subject: Re: [GIT PULL for v4.6-rc1] media updates
+From: Linus Torvalds <torvalds@linux-foundation.org>
+To: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a helper function for device drivers to set DMA's max_seg_size.
-Setting it to largest possible value lets DMA-mapping API always create
-contiguous mappings in DMA address space. This is essential for all
-devices, which use dma-contig videobuf2 memory allocator and shared
-buffers.
+On Wed, May 4, 2016 at 12:28 PM, Stefan Lippers-Hollmann <s.l-h@gmx.de> wrote:
+>
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -875,7 +875,7 @@ void __media_device_usb_init(struct medi
+>                              const char *board_name,
+>                              const char *driver_name)
+>  {
+> -#ifdef CONFIG_USB
+> +#if defined(CONFIG_USB) || defined(CONFIG_USB_MODULE)
 
-Till now, the only case when vb2-dma-contig really 'worked' was a case
-where userspace provided USERPTR buffer, which was in fact mmaped
-contiguous buffer from the other v4l2/drm device. Also DMABUF made of
-contiguous buffer worked only when its exporter did not split it into
-several chunks in the scatter-list. Any other buffer failed, regardless
-of the arch/platform used and the presence of the IOMMU of the device bus.
+Ok, that should be fine. Can you verify that it builds and works even
+if USB isn't compiled in, but the media core code is?
 
-This patch provides interface to fix this issue.
+IOW, can you test the
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 53 ++++++++++++++++++++++++++
- include/media/videobuf2-dma-contig.h           |  2 +
- 2 files changed, 55 insertions(+)
+  CONFIG_USB=m
+  CONFIG_MEDIA_CONTROLLER=y
+  CONFIG_MEDIA_SUPPORT=y
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index 5361197..e3e47ac 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -753,6 +753,59 @@ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
- }
- EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
- 
-+/**
-+ * vb2_dma_contig_set_max_seg_size() - configure DMA max segment size
-+ * @dev:	device for configuring DMA parameters
-+ * @size:	size of DMA max segment size to set
-+ *
-+ * To allow mapping the scatter-list into a single chunk in the DMA
-+ * address space, the device is required to have the DMA max segment
-+ * size parameter set to a value larger than the buffer size. Otherwise,
-+ * the DMA-mapping subsystem will split the mapping into max segment
-+ * size chunks. This function sets the DMA max segment size
-+ * parameter to let DMA-mapping map a buffer as a single chunk in DMA
-+ * address space.
-+ * This code assumes that the DMA-mapping subsystem will merge all
-+ * scatterlist segments if this is really possible (for example when
-+ * an IOMMU is available and enabled).
-+ * Ideally, this parameter should be set by the generic bus code, but it
-+ * is left with the default 64KiB value due to historical litmiations in
-+ * other subsystems (like limited USB host drivers) and there no good
-+ * place to set it to the proper value.
-+ * This function should be called from the drivers, which are known to
-+ * operate on platforms with IOMMU and provide access to shared buffers
-+ * (either USERPTR or DMABUF). This should be done before initializing
-+ * videobuf2 queue.
-+ */
-+int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size)
-+{
-+	if (!dev->dma_parms) {
-+		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
-+		if (!dev->dma_parms)
-+			return -ENOMEM;
-+	}
-+	if (dma_get_max_seg_size(dev) < size)
-+		return dma_set_max_seg_size(dev, size);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_contig_set_max_seg_size);
-+
-+/*
-+ * vb2_dma_contig_clear_max_seg_size() - release resources for DMA parameters
-+ * @dev:	device for configuring DMA parameters
-+ *
-+ * This function releases resources allocated to configure DMA parameters
-+ * (see vb2_dma_contig_set_max_seg_size() function). It should be called from
-+ * device drivers on driver remove.
-+ */
-+void vb2_dma_contig_clear_max_seg_size(struct device *dev)
-+{
-+	kfree(dev->dma_parms);
-+	dev->dma_parms = NULL;
-+}
-+EXPORT_SYMBOL_GPL(vb2_dma_contig_clear_max_seg_size);
-+
- MODULE_DESCRIPTION("DMA-contig memory handling routines for videobuf2");
- MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
- MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
-index 2087c9a..f7dc840 100644
---- a/include/media/videobuf2-dma-contig.h
-+++ b/include/media/videobuf2-dma-contig.h
-@@ -35,6 +35,8 @@ static inline void *vb2_dma_contig_init_ctx(struct device *dev)
- }
- 
- void vb2_dma_contig_cleanup_ctx(void *alloc_ctx);
-+int vb2_dma_contig_set_max_seg_size(struct device *dev, unsigned int size);
-+void vb2_dma_contig_clear_max_seg_size(struct device *dev);
- 
- extern const struct vb2_mem_ops vb2_dma_contig_memops;
- 
--- 
-1.9.2
+case? Judging by your oops stack trace, I think you currently have
+MEDIA_SUPPORT=m.
 
+Also, I do wonder if we should move that #if to _outside_ the
+function. Because inside the function, things will compile but
+silently not work (like you found), if it is ever mis-used. Outside
+that function, you'll get link-errors if you try to misuse that
+function.
+
+              Linus
