@@ -1,133 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59873 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754597AbcEXMJZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 08:09:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Jean-Michel Hautbois <jhautbois@gmail.com>,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Subject: [PATCH] adv7604: Don't ignore pad number in subdev DV timings pad operations
-Date: Tue, 24 May 2016 15:09:33 +0300
-Message-Id: <1464091773-7231-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from iodev.co.uk ([82.211.30.53]:34208 "EHLO iodev.co.uk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752723AbcEDLmy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 07:42:54 -0400
+Date: Wed, 4 May 2016 08:42:45 -0300
+From: Ismael Luceno <ismael@iodev.co.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] solo6x10: Simplify solo_enum_ext_input
+Message-ID: <20160504114244.GA9208@pirotess.lan>
+References: <1461986229-11949-1-git-send-email-ismael@iodev.co.uk>
+ <1461986229-11949-2-git-send-email-ismael@iodev.co.uk>
+ <5729AC83.8050508@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5729AC83.8050508@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dv_timings_cap() and enum_dv_timings() pad operations take a pad
-number as an input argument and return the DV timings capabilities and
-list of supported DV timings for that pad.
+On 04/Mai/2016 10:02, Hans Verkuil wrote:
+> Hi Ismael,
+> 
+> On 04/30/2016 05:17 AM, Ismael Luceno wrote:
+> > Additionally, now it specifies which channels it's showing.
+> > 
+> > Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
+> > ---
+> >  drivers/media/pci/solo6x10/solo6x10-v4l2.c | 27 +++++++++------------------
+> >  1 file changed, 9 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+> > index 721ff53..935c1b6 100644
+> > --- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+> > +++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
+> > @@ -386,26 +386,17 @@ static int solo_querycap(struct file *file, void  *priv,
+> >  static int solo_enum_ext_input(struct solo_dev *solo_dev,
+> >  			       struct v4l2_input *input)
+> >  {
+> > -	static const char * const dispnames_1[] = { "4UP" };
+> > -	static const char * const dispnames_2[] = { "4UP-1", "4UP-2" };
+> > -	static const char * const dispnames_5[] = {
+> > -		"4UP-1", "4UP-2", "4UP-3", "4UP-4", "16UP"
+> > -	};
+> > -	const char * const *dispnames;
+> > -
+> > -	if (input->index >= (solo_dev->nr_chans + solo_dev->nr_ext))
+> > -		return -EINVAL;
+> > -
+> > -	if (solo_dev->nr_ext == 5)
+> > -		dispnames = dispnames_5;
+> > -	else if (solo_dev->nr_ext == 2)
+> > -		dispnames = dispnames_2;
+> > -	else
+> > -		dispnames = dispnames_1;
+> > +	int ext = input->index - solo_dev->nr_chans;
+> > +	unsigned int nup, first;
+> >  
+> > -	snprintf(input->name, sizeof(input->name), "Multi %s",
+> > -		 dispnames[input->index - solo_dev->nr_chans]);
+> > +	if (ext >= solo_dev->nr_ext)
+> > +		return -EINVAL;
+> >  
+> > +	nup   = (ext == 4) ? 16 : 4;
+> > +	first = (ext & 3) << 2;
+> > +	snprintf(input->name, sizeof(input->name),
+> > +		 "Multi %d-up (cameras %d-%d)",
+> > +		 nup, first + 1, first + nup);
+> 
+> Shouldn't this be: nup, first + 1, nup);
+> 
+> Now it displays cameras as 1-5, 2-6, 3-7, 4-8 if I am not mistaken.
 
-Commit bd3e275f3ec0 ("[media] media: i2c: adv7604: Use v4l2-dv-timings
-helpers") broke this as it started ignoring the pad number, always
-returning the information associated with the currently selected input.
-Fix it.
+Hi Hans.
 
-Fixes: bd3e275f3ec0 ("[media] media: i2c: adv7604: Use v4l2-dv-timings helpers")
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/adv7604.c | 46 ++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 35 insertions(+), 11 deletions(-)
+The var "first" takes the values {0, 4, 8, 12}, so the code is correct,
+it displays: 1-4, 5-8, 9-12, 13-16, or 1-16.
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index beb2841ceae5..3f1ab4986cfc 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -779,11 +779,31 @@ static const struct v4l2_dv_timings_cap adv76xx_timings_cap_digital = {
- 			V4L2_DV_BT_CAP_CUSTOM)
- };
- 
--static inline const struct v4l2_dv_timings_cap *
--adv76xx_get_dv_timings_cap(struct v4l2_subdev *sd)
-+/*
-+ * Return the DV timings capabilities for the requested sink pad. As a special
-+ * case, pad value -1 returns the capabilities for the currently selected input.
-+ */
-+static const struct v4l2_dv_timings_cap *
-+adv76xx_get_dv_timings_cap(struct v4l2_subdev *sd, int pad)
- {
--	return is_digital_input(sd) ? &adv76xx_timings_cap_digital :
--				      &adv7604_timings_cap_analog;
-+	if (pad == -1) {
-+		struct adv76xx_state *state = to_state(sd);
-+
-+		pad = state->selected_input;
-+	}
-+
-+	switch (pad) {
-+	case ADV76XX_PAD_HDMI_PORT_A:
-+	case ADV7604_PAD_HDMI_PORT_B:
-+	case ADV7604_PAD_HDMI_PORT_C:
-+	case ADV7604_PAD_HDMI_PORT_D:
-+		return &adv76xx_timings_cap_digital;
-+
-+	case ADV7604_PAD_VGA_RGB:
-+	case ADV7604_PAD_VGA_COMP:
-+	default:
-+		return &adv7604_timings_cap_analog;
-+	}
- }
- 
- 
-@@ -1329,7 +1349,7 @@ static int stdi2dv_timings(struct v4l2_subdev *sd,
- 		const struct v4l2_bt_timings *bt = &v4l2_dv_timings_presets[i].bt;
- 
- 		if (!v4l2_valid_dv_timings(&v4l2_dv_timings_presets[i],
--					   adv76xx_get_dv_timings_cap(sd),
-+					   adv76xx_get_dv_timings_cap(sd, -1),
- 					   adv76xx_check_dv_timings, NULL))
- 			continue;
- 		if (vtotal(bt) != stdi->lcf + 1)
-@@ -1430,18 +1450,22 @@ static int adv76xx_enum_dv_timings(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 
- 	return v4l2_enum_dv_timings_cap(timings,
--		adv76xx_get_dv_timings_cap(sd), adv76xx_check_dv_timings, NULL);
-+		adv76xx_get_dv_timings_cap(sd, timings->pad),
-+		adv76xx_check_dv_timings, NULL);
- }
- 
- static int adv76xx_dv_timings_cap(struct v4l2_subdev *sd,
- 			struct v4l2_dv_timings_cap *cap)
- {
- 	struct adv76xx_state *state = to_state(sd);
-+	unsigned int pad = cap->pad;
- 
- 	if (cap->pad >= state->source_pad)
- 		return -EINVAL;
- 
--	*cap = *adv76xx_get_dv_timings_cap(sd);
-+	*cap = *adv76xx_get_dv_timings_cap(sd, pad);
-+	cap->pad = pad;
-+
- 	return 0;
- }
- 
-@@ -1450,9 +1474,9 @@ static int adv76xx_dv_timings_cap(struct v4l2_subdev *sd,
- static void adv76xx_fill_optional_dv_timings_fields(struct v4l2_subdev *sd,
- 		struct v4l2_dv_timings *timings)
- {
--	v4l2_find_dv_timings_cap(timings, adv76xx_get_dv_timings_cap(sd),
--			is_digital_input(sd) ? 250000 : 1000000,
--			adv76xx_check_dv_timings, NULL);
-+	v4l2_find_dv_timings_cap(timings, adv76xx_get_dv_timings_cap(sd, -1),
-+				 is_digital_input(sd) ? 250000 : 1000000,
-+				 adv76xx_check_dv_timings, NULL);
- }
- 
- static unsigned int adv7604_read_hdmi_pixelclock(struct v4l2_subdev *sd)
-@@ -1620,7 +1644,7 @@ static int adv76xx_s_dv_timings(struct v4l2_subdev *sd,
- 
- 	bt = &timings->bt;
- 
--	if (!v4l2_valid_dv_timings(timings, adv76xx_get_dv_timings_cap(sd),
-+	if (!v4l2_valid_dv_timings(timings, adv76xx_get_dv_timings_cap(sd, -1),
- 				   adv76xx_check_dv_timings, NULL))
- 		return -ERANGE;
- 
--- 
-Regards,
-
-Laurent Pinchart
-
+Regards.
