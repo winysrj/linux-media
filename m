@@ -1,46 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:53400 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750823AbcEDJMo (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:57098 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752651AbcEDMYx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 05:12:44 -0400
-Received: from [192.168.1.137] (marune.xs4all.nl [80.101.105.217])
-	by tschai.lan (Postfix) with ESMTPSA id 3F5DE1800BB
-	for <linux-media@vger.kernel.org>; Wed,  4 May 2016 11:12:39 +0200 (CEST)
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+	Wed, 4 May 2016 08:24:53 -0400
+Subject: Re: [PATCH v2 3/5] media: Refactor copying IOCTL arguments from and
+ to user space
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+References: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1462360855-23354-4-git-send-email-sakari.ailus@linux.intel.com>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.7] Various fixes
-Message-ID: <5729BD06.5050307@xs4all.nl>
-Date: Wed, 4 May 2016 11:12:38 +0200
+Message-ID: <5729EA0F.5080402@xs4all.nl>
+Date: Wed, 4 May 2016 14:24:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1462360855-23354-4-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 68af062b5f38510dc96635314461c6bbe1dbf2fe:
+Hi Sakari,
 
-  Merge tag 'v4.6-rc6' into patchwork (2016-05-02 07:48:23 -0300)
+Thanks for working on this!
 
-are available in the git repository at:
+I've got one comment:
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.7d
+On 05/04/2016 01:20 PM, Sakari Ailus wrote:
+> Refactor copying the IOCTL argument structs from the user space and back,
+> in order to reduce code copied around and make the implementation more
+> robust.
+> 
+> As a result, the copying is done while not holding the graph mutex.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/media-device.c | 214 ++++++++++++++++++++++---------------------
+>  1 file changed, 110 insertions(+), 104 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 9b5a88d..39fe07f 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
 
-for you to fetch changes up to 416997d02013936b65c9d7a3d05d2030027fac0c:
+<snip>
 
-  media: vb2-dma-contig: configure DMA max segment size properly (2016-05-04 11:08:13 +0200)
+>  static long __media_device_ioctl(
+>  	struct file *filp, unsigned int cmd, void __user *arg,
+> -	const struct media_ioctl_info *info_array, unsigned int info_array_len)
+> +	const struct media_ioctl_info *info_array, unsigned int info_array_len,
+> +	unsigned int *max_arg_size)
+>  {
+>  	struct media_devnode *devnode = media_devnode_data(filp);
+>  	struct media_device *dev = to_media_device(devnode);
+>  	const struct media_ioctl_info *info;
+> +	char karg[media_ioctl_max_arg_size(info_array, info_array_len,
+> +					   max_arg_size)];
 
-----------------------------------------------------------------
-Hans Verkuil (1):
-      v4l2-ioctl.c: improve cropcap compatibility code
+This isn't going to work. Sparse (and/or smatch) will complain about this. I recommend
+doing the same as videodev does: have a fixed array on the stack, and use kmalloc if
+more is needed.
 
-Ismael Luceno (1):
-      solo6x10: Set FRAME_BUF_SIZE to 200KB
+I don't like the max_arg_size anyway :-)
 
-Marek Szyprowski (1):
-      media: vb2-dma-contig: configure DMA max segment size properly
+>  	long ret;
+>  
+>  	ret = is_valid_ioctl(info_array, info_array_len, cmd);
 
- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c |  7 +++++--
- drivers/media/v4l2-core/v4l2-ioctl.c           | 70 +++++++++++++++++++++++++++++++++++++++++++---------------------------
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 53 +++++++++++++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 99 insertions(+), 31 deletions(-)
+Regards,
+
+	Hans
