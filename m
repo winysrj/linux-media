@@ -1,74 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:45958 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752133AbcEXN6w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 09:58:52 -0400
-Subject: Re: [PATCH 1/2] drm/exynos: g2d: Add support for old S5Pv210 type
-To: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>,
-	Inki Dae <inki.dae@samsung.com>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-References: <1464096493-13378-1-git-send-email-k.kozlowski@samsung.com>
- <57445BE5.7060702@math.uni-bielefeld.de>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Message-id: <57445E16.90301@samsung.com>
-Date: Tue, 24 May 2016 15:58:46 +0200
-MIME-version: 1.0
-In-reply-to: <57445BE5.7060702@math.uni-bielefeld.de>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+Received: from mga03.intel.com ([134.134.136.65]:52780 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751570AbcEDL2m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 07:28:42 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH 3/3] v4l: subdev: Call pad init_cfg operation when opening subdevs
+Date: Wed,  4 May 2016 14:25:33 +0300
+Message-Id: <1462361133-23887-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1462361133-23887-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462361133-23887-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/24/2016 03:49 PM, Tobias Jakobi wrote:
-> Hello Krzysztof,
-> 
-> are you sure that these are the only differences. Because AFAIK there
-> are quite a few more:
-> - DMA submission of commands
-> - blend mode / rounding
-> - solid fill
-> - YCrCb support
-> - and probably more
-> 
-> One would need to add least split the command list parser into a v3 and
-> v41 version to accomodate for the differences. In fact userspace/libdrm
-> would need to know which hw type it currently uses, but you currently
-> always return 4.1 in the corresponding ioctl.
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Eh, so probably my patch does not cover fully the support for v3 G2D. I
-looked mostly at the differences between v3 and v4 in the s5p-g2d driver
-itself. However you are right that this might be not sufficient because
-exynos-g2d moved forward and is different than s5p-g2d.
+The subdev core code currently rely on the subdev open handler to
+initialize the file handle's pad configuration, even though subdevs now
+have a pad operation dedicated for that purpose.
 
-> Krzysztof Kozlowski wrote:
->> The non-DRM s5p-g2d driver supports two versions of G2D: v3.0 on
->> S5Pv210 and v4.x on Exynos 4x12 (or newer). The driver for 3.0 device
->> version is doing two things differently:
->> 1. Before starting the render process, it invalidates caches (pattern,
->>    source buffer and mask buffer). Cache control is not present on v4.x
->>    device.
->> 2. Scalling is done through StretchEn command (in BITBLT_COMMAND_REG
->>    register) instead of SRC_SCALE_CTRL_REG as in v4.x. However the
->>    exynos_drm_g2d driver does not implement the scalling so this
->>    difference can be eliminated.
-> Huh? Where did you get this from? Scaling works with the DRM driver.
+As a first step towards migration to init_cfg, call the operation
+operation in the subdev core open implementation. Subdevs that are
+haven't been moved to init_cfg yet will just continue implementing pad
+config initialization in their open handler.
 
-I was looking for the usage of scaling reg (as there is no scaling
-command). How the scaling is implemented then?
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/v4l2-core/v4l2-subdev.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks for feedback!
-
-Best regards,
-Krzysztof
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 224ea60..9cbd011 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -85,6 +85,8 @@ static int subdev_open(struct file *file)
+ 	}
+ #endif
+ 
++	v4l2_subdev_call(sd, pad, init_cfg, subdev_fh->pad);
++
+ 	if (sd->internal_ops && sd->internal_ops->open) {
+ 		ret = sd->internal_ops->open(sd, subdev_fh);
+ 		if (ret < 0)
+-- 
+1.9.1
 
