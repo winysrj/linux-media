@@ -1,139 +1,256 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:52135 "EHLO smtp1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751789AbcEFLXZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2016 07:23:25 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: Kernel docs: muddying the waters a bit
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <87inytn6n2.fsf@intel.com>
-Date: Fri, 6 May 2016 13:23:06 +0200
-Cc: Daniel Vetter <daniel@ffwll.ch>, Jonathan Corbet <corbet@lwn.net>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Grant Likely <grant.likely@secretlab.ca>,
+Received: from mail-db5eur01on0097.outbound.protection.outlook.com ([104.47.2.97]:51128
+	"EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754532AbcEDUQ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 16:16:28 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Antti Palosaari <crope@iki.fi>, Peter Rosin <peda@axentia.se>,
+	Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media\@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <6BDB8BFB-6AEA-46A8-B535-C69FBC6FF3BD@darmarit.de>
-References: <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net> <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com> <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com> <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de> <874maef8km.fsf@intel.com> <13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de> <20160504134346.GY14148@phenom.ffwll.local> <44110C0C-2E98-4470-9DB1-B72406E901A0@darmarit.de> <87inytn6n2.fsf@intel.com>
-To: Jani Nikula <jani.nikula@intel.com>
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH v9 6/9] [media] si2168: change the i2c gate to be mux-locked
+Date: Wed, 4 May 2016 22:15:32 +0200
+Message-ID: <1462392935-28011-7-git-send-email-peda@axentia.se>
+In-Reply-To: <1462392935-28011-1-git-send-email-peda@axentia.se>
+References: <1462392935-28011-1-git-send-email-peda@axentia.se>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Antti Palosaari <crope@iki.fi>
 
-Hy Jani,
+The root i2c adapter lock is then no longer held by the i2c mux during
+accesses behind the i2c gate, and such accesses need to take that lock
+just like any other ordinary i2c accesses do.
 
-Am 04.05.2016 um 18:13 schrieb Jani Nikula <jani.nikula@intel.com>:
+So, declare the i2c gate mux-locked, and zap the code that makes the
+i2c accesses unlocked. But add a mutex so that firmware commands are
+still serialized.
 
->> Am 04.05.2016 um 17:09 schrieb Jonathan Corbet <corbet@lwn.net>:
->> 
->>> I think all of this makes sense.  It would be really nice to have the
->>> directives in the native sphinx language like that.  I *don't* think we
->>> need to aim for that at the outset; the docproc approach works until we can
->>> properly get rid of it.  What would be *really* nice would be to get
->>> support for the kernel-doc directive into the sphinx upstream.
->> 
->> No need for kernel-doc directive in sphinx upstream, later it will be 
->> an extension which could be installed by a simple command like 
->> "pip install kernel-doc-extensions" or similar.
->> 
->> I develop these required extension (and more) within my proof of concept
->> on github ... this takes time ... if I finished all my tests and all is
->> well, I will build the *kernel-doc-extensions* package and deploy it
->> on https://pypi.python.org/pypi from where everyone could install this 
->> with "pip".
-> 
-> I think we should go for vanilla sphinx at first, to make the setup step
-> as easy as possible for everyone. Even if it means still doing that ugly
-> docproc step to call kernel-doc. We can improve from there, and I
-> definitely appreciate your work on making this work with sphinx
-> extensions.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ Documentation/i2c/i2c-topology            |  2 +-
+ drivers/media/dvb-frontends/si2168.c      | 83 ++++++++-----------------------
+ drivers/media/dvb-frontends/si2168_priv.h |  1 +
+ 3 files changed, 22 insertions(+), 64 deletions(-)
 
-+1 
-
-> That said, how would it work to include the kernel-doc extension in the
-> kernel source tree? Having things just work if sphinx is installed is
-> preferred over requiring installation of something extra from pypi. (I
-> know this may sound backwards for a lot of projects, but for kernel I'm
-> pretty sure this is how it should be done.)
-
-Thats all right. Lets talk about the extension infrastructure by example:
-
-First we have to chose a folder where we place all the *sphinx-documentation*
-I recommending:
-
- /share/linux/Documentation/sphinx
-
-Next we have to chose a folder where reST-extensions should take place, I
-would prefer ... or similar:
+diff --git a/Documentation/i2c/i2c-topology b/Documentation/i2c/i2c-topology
+index 69b008518454..5e40802f0be2 100644
+--- a/Documentation/i2c/i2c-topology
++++ b/Documentation/i2c/i2c-topology
+@@ -56,7 +56,7 @@ In drivers/media/
+ dvb-frontends/m88ds3103   Parent-locked
+ dvb-frontends/rtl2830     Parent-locked
+ dvb-frontends/rtl2832     Parent-locked
+-dvb-frontends/si2168      Parent-locked
++dvb-frontends/si2168      Mux-locked
+ usb/cx231xx/              Parent-locked
  
- /share/linux/Documentation/sphinx/extensions
-
-Lets say, you wan't to get in use of the "flat-table" extension.
-
-Copy (only) the rstFlatTable.py file from my POC extension folder (ignore
-other extensions which might be there) ...
-
- https://github.com/return42/sphkerneldoc/tree/master/doc/extensions
-
-Now lets say you are writing on a gpu book, it wold be placed in the folder:
-
- /share/linux/Documentation/sphinx/gpu
-
-In this gpu-folder you have to place the conf.py config file, needed to
-setup the sphinx build environment.
-
- /share/linux/Documentation/sphinx/gpu/conf.py
-
-In this conf.py you have to *register* your folder with the extensions.
-
-<SNIP conf.py> --------
-
-    import os.path, sys
-
-    EXT_PATH  = "../extensions"  # the path of extension folder relative to the conf.py file
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), EXT_PATH)))
-
-    # now import the "flat-table" extension, it will be self-registering to docutils
-
-    import rstFlatTable
-
-<SNIP conf.py> --------
-
-Thats all, you can run your sphinx-build command and the flat-tables in your
-reST sources should be handled as common tables.
-
-ASIDE: 
-
-You will find similar parts in your conf.py which you have created 
-with the sphinx-quickstart command. There, you will also find a block 
-looks like ...
-
-extensions = [
-    'sphinx.ext.autodoc'
-....
-]
-
-Don't try to add flat-table extension to this list. This list is a list
-of sphinx extensions, we will use it later for other *real* sphinx 
-extensions.
-
-A few words about the flat-table extension and a (future) kernel-doc one:
-
-The flat-table is a pure docutils (the layer below sphinx) extension which
-is not application specific, so I will ask for moving it to the docutils 
-upstream. 
-
-The kernel-doc extension on the other side is a very (very) kernel specific
-application, this would never go to sphinx nor docutils upstream.
-
---Markus--
+ 
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 5583827c386e..108a069fa1ae 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -18,53 +18,23 @@
+ 
+ static const struct dvb_frontend_ops si2168_ops;
+ 
+-/* Own I2C adapter locking is needed because of I2C gate logic. */
+-static int si2168_i2c_master_send_unlocked(const struct i2c_client *client,
+-					   const char *buf, int count)
+-{
+-	int ret;
+-	struct i2c_msg msg = {
+-		.addr = client->addr,
+-		.flags = 0,
+-		.len = count,
+-		.buf = (char *)buf,
+-	};
+-
+-	ret = __i2c_transfer(client->adapter, &msg, 1);
+-	return (ret == 1) ? count : ret;
+-}
+-
+-static int si2168_i2c_master_recv_unlocked(const struct i2c_client *client,
+-					   char *buf, int count)
+-{
+-	int ret;
+-	struct i2c_msg msg = {
+-		.addr = client->addr,
+-		.flags = I2C_M_RD,
+-		.len = count,
+-		.buf = buf,
+-	};
+-
+-	ret = __i2c_transfer(client->adapter, &msg, 1);
+-	return (ret == 1) ? count : ret;
+-}
+-
+ /* execute firmware command */
+-static int si2168_cmd_execute_unlocked(struct i2c_client *client,
+-				       struct si2168_cmd *cmd)
++static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
+ {
++	struct si2168_dev *dev = i2c_get_clientdata(client);
+ 	int ret;
+ 	unsigned long timeout;
+ 
++	mutex_lock(&dev->i2c_mutex);
++
+ 	if (cmd->wlen) {
+ 		/* write cmd and args for firmware */
+-		ret = si2168_i2c_master_send_unlocked(client, cmd->args,
+-						      cmd->wlen);
++		ret = i2c_master_send(client, cmd->args, cmd->wlen);
+ 		if (ret < 0) {
+-			goto err;
++			goto err_mutex_unlock;
+ 		} else if (ret != cmd->wlen) {
+ 			ret = -EREMOTEIO;
+-			goto err;
++			goto err_mutex_unlock;
+ 		}
+ 	}
+ 
+@@ -73,13 +43,12 @@ static int si2168_cmd_execute_unlocked(struct i2c_client *client,
+ 		#define TIMEOUT 70
+ 		timeout = jiffies + msecs_to_jiffies(TIMEOUT);
+ 		while (!time_after(jiffies, timeout)) {
+-			ret = si2168_i2c_master_recv_unlocked(client, cmd->args,
+-							      cmd->rlen);
++			ret = i2c_master_recv(client, cmd->args, cmd->rlen);
+ 			if (ret < 0) {
+-				goto err;
++				goto err_mutex_unlock;
+ 			} else if (ret != cmd->rlen) {
+ 				ret = -EREMOTEIO;
+-				goto err;
++				goto err_mutex_unlock;
+ 			}
+ 
+ 			/* firmware ready? */
+@@ -94,32 +63,23 @@ static int si2168_cmd_execute_unlocked(struct i2c_client *client,
+ 		/* error bit set? */
+ 		if ((cmd->args[0] >> 6) & 0x01) {
+ 			ret = -EREMOTEIO;
+-			goto err;
++			goto err_mutex_unlock;
+ 		}
+ 
+ 		if (!((cmd->args[0] >> 7) & 0x01)) {
+ 			ret = -ETIMEDOUT;
+-			goto err;
++			goto err_mutex_unlock;
+ 		}
+ 	}
+ 
++	mutex_unlock(&dev->i2c_mutex);
+ 	return 0;
+-err:
++err_mutex_unlock:
++	mutex_unlock(&dev->i2c_mutex);
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+ 	return ret;
+ }
+ 
+-static int si2168_cmd_execute(struct i2c_client *client, struct si2168_cmd *cmd)
+-{
+-	int ret;
+-
+-	i2c_lock_adapter(client->adapter);
+-	ret = si2168_cmd_execute_unlocked(client, cmd);
+-	i2c_unlock_adapter(client->adapter);
+-
+-	return ret;
+-}
+-
+ static int si2168_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ {
+ 	struct i2c_client *client = fe->demodulator_priv;
+@@ -610,11 +570,6 @@ static int si2168_get_tune_settings(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-/*
+- * I2C gate logic
+- * We must use unlocked I2C I/O because I2C adapter lock is already taken
+- * by the caller (usually tuner driver).
+- */
+ static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
+ {
+ 	struct i2c_client *client = i2c_mux_priv(muxc);
+@@ -625,7 +580,7 @@ static int si2168_select(struct i2c_mux_core *muxc, u32 chan)
+ 	memcpy(cmd.args, "\xc0\x0d\x01", 3);
+ 	cmd.wlen = 3;
+ 	cmd.rlen = 0;
+-	ret = si2168_cmd_execute_unlocked(client, &cmd);
++	ret = si2168_cmd_execute(client, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -645,7 +600,7 @@ static int si2168_deselect(struct i2c_mux_core *muxc, u32 chan)
+ 	memcpy(cmd.args, "\xc0\x0d\x00", 3);
+ 	cmd.wlen = 3;
+ 	cmd.rlen = 0;
+-	ret = si2168_cmd_execute_unlocked(client, &cmd);
++	ret = si2168_cmd_execute(client, &cmd);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -708,9 +663,11 @@ static int si2168_probe(struct i2c_client *client,
+ 		goto err;
+ 	}
+ 
++	mutex_init(&dev->i2c_mutex);
++
+ 	/* create mux i2c adapter for tuner */
+ 	dev->muxc = i2c_mux_alloc(client->adapter, &client->dev,
+-				  1, 0, 0,
++				  1, 0, I2C_MUX_LOCKED,
+ 				  si2168_select, si2168_deselect);
+ 	if (!dev->muxc) {
+ 		ret = -ENOMEM;
+diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
+index 165bf1412063..8a1f36d2014d 100644
+--- a/drivers/media/dvb-frontends/si2168_priv.h
++++ b/drivers/media/dvb-frontends/si2168_priv.h
+@@ -29,6 +29,7 @@
+ 
+ /* state struct */
+ struct si2168_dev {
++	struct mutex i2c_mutex;
+ 	struct i2c_mux_core *muxc;
+ 	struct dvb_frontend fe;
+ 	enum fe_delivery_system delivery_system;
+-- 
+2.1.4
 
