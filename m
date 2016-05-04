@@ -1,66 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51096 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752500AbcEKVHg (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:35202 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750904AbcEDMrw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 17:07:36 -0400
-Date: Thu, 12 May 2016 00:07:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: David R <david@unsolicited.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	gregkh@linuxfoundation.org, hverkuil@xs4all.nl
-Subject: Re: Patch: V4L stable versions 4.5.3 and 4.5.4
-Message-ID: <20160511210731.GS26360@valkosipuli.retiisi.org.uk>
-References: <57337E39.40105@unsolicited.net>
- <57338272.4080908@unsolicited.net>
- <20160511173823.7d0dca7e@recife.lan>
+	Wed, 4 May 2016 08:47:52 -0400
+Subject: Re: [PATCH 3/3] v4l: subdev: Call pad init_cfg operation when opening
+ subdevs
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+	linux-media@vger.kernel.org
+References: <1462361133-23887-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1462361133-23887-4-git-send-email-sakari.ailus@linux.intel.com>
+Cc: laurent.pinchart@ideasonboard.com, mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5729EF74.1000609@xs4all.nl>
+Date: Wed, 4 May 2016 14:47:48 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160511173823.7d0dca7e@recife.lan>
+In-Reply-To: <1462361133-23887-4-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro and David,
 
-On Wed, May 11, 2016 at 05:38:23PM -0300, Mauro Carvalho Chehab wrote:
-> Hi David,
+
+On 05/04/2016 01:25 PM, Sakari Ailus wrote:
+> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 > 
-> Em Wed, 11 May 2016 20:05:22 +0100
-> David R <david@unsolicited.net> escreveu:
+> The subdev core code currently rely on the subdev open handler to
+> initialize the file handle's pad configuration, even though subdevs now
+> have a pad operation dedicated for that purpose.
 > 
-> > On 11/05/16 19:47, David R wrote:
-> > > Hi
-> > > 
-> > > Please consider applying the attached patch (or something like it) to
-> > > V4L2, and whatever is appropriate to the mainstream kernel. Without this
-> > > my media server crashes and burns at boot.
-> > > 
-> > > See https://lkml.org/lkml/2016/5/7/88 for more details
-> > > 
-> > > Thanks
-> > > David
-> > >   
-> > I see the offending patch was reverted earlier today. My box is fine
-> > with my (more simple) alternative, but your call.
+> As a first step towards migration to init_cfg, call the operation
+> operation in the subdev core open implementation. Subdevs that are
+> haven't been moved to init_cfg yet will just continue implementing pad
+> config initialization in their open handler.
 > 
-> Yes, I noticed the bug earlier today, while testing a DVB device.
-> As this affects 2 stable releases plus the upcoming Kernel 4.6,
-> I decided to just revert it for now, while we don't solve the
-> issue.
-> 
-> Your patch looks good. So, eventually it will be merged on a new
-> version of this patch, after we test it properly.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Indeed vb2_core_dqbuf() is called with pb == NULL in file I/O, which was
-unfortunately missed until now.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-The proposed fix looks good to me.
+Regards,
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
