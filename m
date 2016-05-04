@@ -1,184 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33706 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750735AbcEDNnt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 09:43:49 -0400
-Received: by mail-wm0-f67.google.com with SMTP id r12so10393488wme.0
-        for <linux-media@vger.kernel.org>; Wed, 04 May 2016 06:43:49 -0700 (PDT)
-Date: Wed, 4 May 2016 15:43:46 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jani Nikula <jani.nikula@intel.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160504134346.GY14148@phenom.ffwll.local>
-References: <87fuvypr2h.fsf@intel.com>
- <20160310122101.2fca3d79@recife.lan>
- <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
- <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
- <20160412094620.4fbf05c0@lwn.net>
- <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
- <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
- <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
- <874maef8km.fsf@intel.com>
- <13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21366 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757658AbcEDI2F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 04:28:05 -0400
+Subject: Re: [PATCH v3] media: vb2-dma-contig: configure DMA max segment size
+ properly
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org
+References: <57271235.9030004@xs4all.nl>
+ <1462186753-4177-1-git-send-email-m.szyprowski@samsung.com>
+ <5729B145.8030208@xs4all.nl>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <b2c9a419-8011-8631-51cd-ed1f7473ce08@samsung.com>
+Date: Wed, 04 May 2016 10:28:01 +0200
+MIME-version: 1.0
+In-reply-to: <5729B145.8030208@xs4all.nl>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 04, 2016 at 02:40:29PM +0200, Markus Heiser wrote:
-> > On Wed, 04 May 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
-> > I'd be *very* hesitant about adding the kind of things you do in
-> > reformat_block_rst to kernel-doc. IMO the extraction from kernel-doc
-> > comments must be as simple as possible with basically pass-through of
-> > the comment blocks to sphinx.
-> 
-> Right, but you forgot, that the current markup in the source code comments
-> is based on the  kernel-doc-nano-HOWTO and I guess no one will migrate all
-> these source code comments to reST markup ;-)
-> 
-> So there is a need to differentiate between *vintage* kernel-doc markup 
-> and reST markup.
-> 
-> My suggestion is to add a tag to the comments, here a short example
-> what this might look like.
-> 
-> <vintage-comment-SNIP> --------------
-> /**
->  * drm_minor_release - Release DRM minor
->  * @minor: Pointer to DRM minor object
->  *
->  * Release a minor that was previously acquired via drm_minor_acquire().
->  */
-> <vintage-comment-SNAP> --------------
-> 
-> in short: the vintage style does not need any change and 
-> comments with reST markup has a tag ":reST:" in the first 
-> line(s) ...
-> 
-> <reST-comment-SNIP> --------------
-> /**
->  * :reST:
->  *
->  * .. c:function:: void drm_minor_release(struct drm_minor *minor)
->  *
->  *    Release DRM minor
->  *
->  *    :param struct drm_minor \*minor: Pointer to DRM minor object
->  *
->  */
-> <reST-comment-SNAP> --------------
-> 
-> Comments with the ":reST:" tag could be exported and pass-through
-> to sphinx.
-> 
-> > Specifically, do not attempt to detect and
-> > parse elements like lists in kernel-doc.
-> 
-> If your markup in the comments is plain reST, no need to parse, but there
-> are markups in the (vintage) comments which made use of individual 
-> text-markups, e.g. the markup of lists or ASCII-art. 
-> 
-> This individual text-markups has not been converted/rendered in the docbook
-> output, but I wanted to convert this individuals to reST, to render them in
-> Sphinx.
+Hi Hans,
 
-I think we need to unconfuse what's current standardize kerneldoc markup.
-There's three bits:
-- The header with the one-liner and parameters, i.e.
 
-/**
- * drm_minor_release - Release DRM minor
- * @minor: Pointer to DRM minor object
+On 2016-05-04 10:22, Hans Verkuil wrote:
+> Hi Marek,
+>
+> On 05/02/2016 12:59 PM, Marek Szyprowski wrote:
+>> This patch lets vb2-dma-contig memory allocator to configure DMA max
+>> segment size properly for the client device. Setting it is needed to let
+>> DMA-mapping subsystem to create a single, contiguous mapping in DMA
+>> address space. This is essential for all devices, which use dma-contig
+>> videobuf2 memory allocator and shared buffers (in USERPTR or DMAbuf modes
+>> of operations).
+>>
+>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> ---
+>> Hello,
+>>
+>> This patch is a follow-up of my previous attempts to let Exynos
+>> multimedia devices to work properly with shared buffers when IOMMU is
+>> enabled:
+>> 1. https://www.mail-archive.com/linux-media@vger.kernel.org/msg96946.html
+>> 2. http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
+>> 3. https://patchwork.linuxtv.org/patch/30870/
+>>
+>> As sugested by Hans, configuring DMA max segment size should be done by
+>> videobuf2-dma-contig module instead of requiring all device drivers to
+>> do it on their own.
+>>
+>> Here is some backgroud why this is done in videobuf2-dc not in the
+>> respective generic bus code:
+>> http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html
+>>
+>> Best regards,
+>> Marek Szyprowski
+>>
+>> changelog:
+>> v3:
+>> - added FIXME note about possible memory leak
+>>
+>> v2:
+>> - fixes typos and other language issues in the comments
+>>
+>> v1: http://article.gmane.org/gmane.linux.kernel.samsung-soc/53690
+>> ---
+>>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 45 ++++++++++++++++++++++++++
+>>   1 file changed, 45 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> index 461ae55eaa98..2ca7e798f394 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> @@ -443,6 +443,42 @@ static void vb2_dc_put_userptr(void *buf_priv)
+>>   }
+>>   
+>>   /*
+>> + * To allow mapping the scatter-list into a single chunk in the DMA
+>> + * address space, the device is required to have the DMA max segment
+>> + * size parameter set to a value larger than the buffer size. Otherwise,
+>> + * the DMA-mapping subsystem will split the mapping into max segment
+>> + * size chunks. This function increases the DMA max segment size
+>> + * parameter to let DMA-mapping map a buffer as a single chunk in DMA
+>> + * address space.
+>> + * This code assumes that the DMA-mapping subsystem will merge all
+>> + * scatterlist segments if this is really possible (for example when
+>> + * an IOMMU is available and enabled).
+>> + * Ideally, this parameter should be set by the generic bus code, but it
+>> + * is left with the default 64KiB value due to historical litmiations in
+>> + * other subsystems (like limited USB host drivers) and there no good
+>> + * place to set it to the proper value. It is done here to avoid fixing
+>> + * all the vb2-dc client drivers.
+>> + *
+>> + * FIXME: the allocated dma_params structure is leaked because there
+>> + * is completely no way to determine when to free it (dma_params might have
+>> + * been also already allocated by the bus code). However in typical
+>> + * use cases this function will be called for platform devices, which are
+>> + * not how-plugged and exist all the time in the target system.
+>> + */
+>> +static int vb2_dc_set_max_seg_size(struct device *dev, unsigned int size)
+>> +{
+>> +	if (!dev->dma_parms) {
+>> +		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
+>> +		if (!dev->dma_parms)
+>> +			return -ENOMEM;
+>> +	}
+>> +	if (dma_get_max_seg_size(dev) < size)
+>> +		return dma_set_max_seg_size(dev, size);
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +/*
+>>    * For some kind of reserved memory there might be no struct page available,
+>>    * so all that can be done to support such 'pages' is to try to convert
+>>    * pfn to dma address or at the last resort just assume that
+>> @@ -499,6 +535,10 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+>>   		return ERR_PTR(-EINVAL);
+>>   	}
+>>   
+>> +	ret = vb2_dc_set_max_seg_size(dev, PAGE_ALIGN(size + PAGE_SIZE));
+> Huh? Against which kernel do you compile? The get_userptr prototype is different
+> from the latest mainline kernel. Specifically, dev is now conf->dev.
 
-  There's thousands of those, and we cant realistically change them. This
-  means we need to teach kernel-doc to parse those and convert them to
-  rest/shpinx layout. Any approach that expects a conversion of all the
-  existing comments over to sphinx/rst is imo unworkable.
+I prepared it on top of your 'context3' branch, as you requested not to 
+use the
+allocator context related functions, which best suit for this purpose.
 
-- References for function(), &structures, #constants and @parameters.
-  Again for the same reasons of being here already, we can't change those
-  at all. On top of that these markers are also used to generate
-  hyperlinks in the final docs. The kernel-doc script therefor not only
-  needs to generate the right markup, but also correct links. Without
-  generating links to functions/structures outside of a given document.
+>> +	if (!ret)
+>> +		return ERR_PTR(ret);
+>> +
+>>   	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+>>   	if (!buf)
+>>   		return ERR_PTR(-ENOMEM);
+> I'd move the vb2_dc_set_max_seg_size call to after the buf is allocated. Since this call
+> has side-effects I would only call it when it is really needed.
 
-- kernel-doc also does paragraph splitting and minimalistic headers like
+OKay.
 
- * Returns:
- * 
- * This will be under a separate Returns: heading in the text.
+>
+>> @@ -675,10 +715,15 @@ static void *vb2_dc_attach_dmabuf(struct device *dev, struct dma_buf *dbuf,
+>>   {
+>>   	struct vb2_dc_buf *buf;
+>>   	struct dma_buf_attachment *dba;
+>> +	int ret;
+>>   
+>>   	if (dbuf->size < size)
+>>   		return ERR_PTR(-EFAULT);
+>>   
+>> +	ret = vb2_dc_set_max_seg_size(dev, PAGE_ALIGN(size));
+> Ditto for argument and moving to after the buf is allocated.
+>
+>> +	if (!ret)
+>> +		return ERR_PTR(ret);
+>> +
+>>   	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+>>   	if (!buf)
+>>   		return ERR_PTR(-ENOMEM);
+>>
 
-  afaict at least the paragraph splitting would be identical between all
-  proposed markup languages.
-
-Now what all current proposals have done is simply allow pass-through of
-asciidoc or rst markup in those paragraphs, so that the final processor
-could make stuff pretty.
-
-This is already used widely in kerneldoc included by gpu.tmpl, and
-currently it's asciidoc. Those lists and asciiarts though are _not_
-standard kerneldoc at all. But imo any doc toolchain improvement should
-integrate along those lines.
- 
-For reference, this is what it's supposed to look like with the asciidoc
-support enabled:
-
-https://dri.freedesktop.org/docs/drm/API-struct-drm-display-mode.html
-
-Fyi those hacked-up patches to make this happen are available in
-
-https://cgit.freedesktop.org/drm-intel/log/?h=topic/kerneldoc
-
-Note that this isn't upstream, but we did start using this support all
-over in gpu documentation simply because we really, really need it. And
-I'm willing to throw all the comments into a converter to end up with
-whatever markup we decide upon.
-
-But what will not work is to throw the existing kernel-doc standard into
-the shredder. So all the stuff with @, (), & and # must keep working.
-
-> E.g. compare the member & description section of struct drm-display-mode ...
-> 
-> DocBook: 
-> 
->   * https://www.kernel.org/doc/htmldocs/gpu/API-struct-drm-display-mode.html
-> 
-> kernel-doc reST with the additional reformat_block_rst function:
-> 
->   * http://return42.github.io/sphkerneldoc/linux_src_doc/include/drm/drm_modes_h.html#struct-drm-display-mode
-
-So we have this already. The two things I thought this entire discussion
-was about:
-
-- also throw out the docbook .xml and replace it with something else. That
-  was jani's prototype on top of asciidoc, and it sounds like we could do
-  something similar with rst/sphinx. Everyone pretty much agrees that
-  this would be a second step, and the first step would be to simply
-  integrate more advanced markup into the existing toolchain.
-
-- which flavour of markup has the best support for more advanced use-cases
-  like those in the media docbook. It sounds like sphinx won that
-  competition.
-
-I'd really like to converge on the markup question, so that we can start
-using all the cool stuff with impunity in gpu documentations.
--Daniel
+Best regards
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
+
