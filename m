@@ -1,90 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:55691 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932252AbcECMR7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 May 2016 08:17:59 -0400
-Subject: Re: [PATCH v2] s5p-mfc: Don't try to put pm->clock if lookup failed
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-References: <1462216462-32665-1-git-send-email-javier@osg.samsung.com>
- <20160503101509.GB3956@kozik-lap>
-Cc: linux-kernel@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <6290517d-3d9a-c512-875e-6b1871a2ebba@osg.samsung.com>
-Date: Tue, 3 May 2016 08:17:45 -0400
+Received: from mail-io0-f174.google.com ([209.85.223.174]:34456 "EHLO
+	mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132AbcEDR6U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 13:58:20 -0400
 MIME-Version: 1.0
-In-Reply-To: <20160503101509.GB3956@kozik-lap>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160504063902.0af2f4d7@mir>
+References: <20160315080552.3cc5d146@recife.lan>
+	<20160503233859.0f6506fa@mir>
+	<CA+55aFxAor=MJSGFkynu72AQN75bNTh9kewLR4xe8CpjHQQvZQ@mail.gmail.com>
+	<20160504063902.0af2f4d7@mir>
+Date: Wed, 4 May 2016 10:58:19 -0700
+Message-ID: <CA+55aFyE82Hi29az_MG9oG0=AEg1o++Wng_DO2RvNHQsSOz87g@mail.gmail.com>
+Subject: Re: [GIT PULL for v4.6-rc1] media updates
+From: Linus Torvalds <torvalds@linux-foundation.org>
+To: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Krzysztof,
-
-On 05/03/2016 06:15 AM, Krzysztof Kozlowski wrote:
-> On Mon, May 02, 2016 at 03:14:22PM -0400, Javier Martinez Canillas wrote:
->> Failing to get the struct s5p_mfc_pm .clock is a non-fatal error so the
->> clock field can have a errno pointer value. But s5p_mfc_final_pm() only
->> checks if .clock is not NULL before attempting to unprepare and put it.
->>
->> This leads to the following warning in clk_put() due s5p_mfc_final_pm():
->>
->> WARNING: CPU: 3 PID: 1023 at drivers/clk/clk.c:2814 s5p_mfc_final_pm+0x48/0x74 [s5p_mfc]
->> CPU: 3 PID: 1023 Comm: rmmod Tainted: G        W       4.6.0-rc6-next-20160502-00005-g5a15a49106bc #9
->> Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
->> [<c010e1bc>] (unwind_backtrace) from [<c010af28>] (show_stack+0x10/0x14)
->> [<c010af28>] (show_stack) from [<c032485c>] (dump_stack+0x88/0x9c)
->> [<c032485c>] (dump_stack) from [<c011b8e8>] (__warn+0xe8/0x100)
->> [<c011b8e8>] (__warn) from [<c011b9b0>] (warn_slowpath_null+0x20/0x28)
->> [<c011b9b0>] (warn_slowpath_null) from [<bf16004c>] (s5p_mfc_final_pm+0x48/0x74 [s5p_mfc])
->> [<bf16004c>] (s5p_mfc_final_pm [s5p_mfc]) from [<bf157414>] (s5p_mfc_remove+0x8c/0x94 [s5p_mfc])
->> [<bf157414>] (s5p_mfc_remove [s5p_mfc]) from [<c03fe1f8>] (platform_drv_remove+0x24/0x3c)
->> [<c03fe1f8>] (platform_drv_remove) from [<c03fcc70>] (__device_release_driver+0x84/0x110)
->> [<c03fcc70>] (__device_release_driver) from [<c03fcdd8>] (driver_detach+0xac/0xb0)
->> [<c03fcdd8>] (driver_detach) from [<c03fbff8>] (bus_remove_driver+0x4c/0xa0)
->> [<c03fbff8>] (bus_remove_driver) from [<c01886a8>] (SyS_delete_module+0x174/0x1b8)
->> [<c01886a8>] (SyS_delete_module) from [<c01078c0>] (ret_fast_syscall+0x0/0x3c)
->>
->> Assign the pointer to NULL in case of a lookup failure to fix the issue.
->>
->> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>
->> ---
->>
->> Changes in v2:
->> - Set the clock pointer to NULL instead of checking for !IS_ERR_OR_NULL().
->>   Suggested by Arnd Bergmann.
->>
->>  drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 1 +
->>  1 file changed, 1 insertion(+)
-> 
-> This is a fix for bug, so for statistics:
-> Fixes: d19f405a5a8d ("[media] s5p-mfc: Fix selective sclk_mfc init")
-> 
-> ... and although not fatal, but annoying so I think this deserves:
-> Cc: <stable@vger.kernel.org>
+On Tue, May 3, 2016 at 9:39 PM, Stefan Lippers-Hollmann <s.l-h@gmx.de> wrote:
 >
+> Just as a cross-check, this (incomplete, but au0828, cx231xx and em28xx
+> aren't needed/ loaded on my system) crude revert avoids the problem for
+> me on v4.6-rc6-113-g83858a7.
 
-Indeed, sorry for missing those.
- 
-> Anyway:
-> Reviewed-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
->
+Hmm.
 
-Thanks a lot for your feedback.
- 
-> Best regards,
-> Krzysztof
-> 
+That just open-codes __media_device_usb_init().
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+The main difference seems to be that __media_device_usb_init() ends up
+having that
+
+     #ifdef CONFIG_USB
+     #endif
+
+around it.
+
+I think that is bogus.
+
+What happens if you replace that #ifdef CONFIG_USB in
+__media_device_usb_init() with
+
+    #if CONFIG_USB || (MODULE && CONFIG_USB_MODULE)
+
+or alternatively just build with USB compiled in?
+
+Mauro: that __media_device_usb_init() thing does seem to be completely
+buggered for the modular USB case.
+
+                Linus
