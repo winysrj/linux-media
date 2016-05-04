@@ -1,57 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:62002 "EHLO mga01.intel.com"
+Received: from mout.gmx.net ([212.227.15.19]:53207 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933972AbcEDJ6z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 05:58:55 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Markus Heiser <markus.heiser@darmarit.de>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Jonathan Corbet <corbet@lwn.net>
-Cc: Grant Likely <grant.likely@secretlab.ca>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media\@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-In-Reply-To: <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
-References: <20160213145317.247c63c7@lwn.net> <87y49zr74t.fsf@intel.com> <20160303071305.247e30b1@lwn.net> <20160303155037.705f33dd@recife.lan> <86egbrm9hw.fsf@hiro.keithp.com> <1457076530.13171.13.camel@winder.org.uk> <CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com> <87a8m9qoy8.fsf@intel.com> <20160308082948.4e2e0f82@recife.lan> <CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com> <20160308103922.48d87d9d@recife.lan> <20160308123921.6f2248ab@recife.lan> <20160309182709.7ab1e5db@recife.lan> <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net> <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com> <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com> <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
-Date: Wed, 04 May 2016 12:58:49 +0300
-Message-ID: <874maef8km.fsf@intel.com>
+	id S1750708AbcEDEjQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 00:39:16 -0400
+Date: Wed, 4 May 2016 06:39:02 +0200
+From: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v4.6-rc1] media updates
+Message-ID: <20160504063902.0af2f4d7@mir>
+In-Reply-To: <CA+55aFxAor=MJSGFkynu72AQN75bNTh9kewLR4xe8CpjHQQvZQ@mail.gmail.com>
+References: <20160315080552.3cc5d146@recife.lan>
+	<20160503233859.0f6506fa@mir>
+	<CA+55aFxAor=MJSGFkynu72AQN75bNTh9kewLR4xe8CpjHQQvZQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 04 May 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
-> but I think this will not by very helpful, as long as you miss 
-> a similar ".tmpl" workflow for reST documents.
->
-> I'am working on a reST directive (named: "kernel-doc") to provide a
-> similar ".tmpl" workflow within plain reST. The first step towards
-> is done with (my) modified kernel-doc script ...
->
-> * https://github.com/return42/sphkerneldoc/blob/master/scripts/kernel-doc#L1736
->
-> which produce reST from source code comments. E.g. this content is 
-> generated with it.
+Hi
 
-What do you mean by ".tmpl workflow"?
+On 2016-05-03, Linus Torvalds wrote:
+> On Tue, May 3, 2016 at 2:38 PM, Stefan Lippers-Hollmann <s.l-h@gmx.de> wrote:
+> > Hi
+> > [...]  
+> >> Mauro Carvalho Chehab (95):  
+> > [...]  
+> >>       [media] use v4l2_mc_usb_media_device_init() on most USB devices  
+> > [...]
+> >
+> > This change, as part of v4.6-rc6-85-g1248ded, breaks two systems, each
+> > equipped with a TeVii s480 (dvb_usb_dw2102) DVB-S2 card, for me (kernel
+> > v4.5.3-rc1 is fine):  
+> 
+> From the oops it looks like the "->prev" pointer in one of the list
+> heads in 'mdev' is NULL.
+> 
+> > [    5.041915] BUG: unable to handle kernel NULL pointer dereference at           (null)
+> > [    5.041921] IP: [<ffffffffa0017b18>] media_gobj_create+0xb8/0x100 [media]  
+> 
+> I can't tell *which* list head it is, but it looks like there's a
+> missing call to media_device_init() which is what should have
+> initialized those list heads.
+> 
+> Of course, maybe that list pointer got initialized but then
+> overwritten by NULL for some other reason.
 
-I'd be *very* hesitant about adding the kind of things you do in
-reformat_block_rst to kernel-doc. IMO the extraction from kernel-doc
-comments must be as simple as possible with basically pass-through of
-the comment blocks to sphinx. Specifically, do not attempt to detect and
-parse elements like lists in kernel-doc.
+Just as a cross-check, this (incomplete, but au0828, cx231xx and em28xx
+aren't needed/ loaded on my system) crude revert avoids the problem for 
+me on v4.6-rc6-113-g83858a7.
 
+--- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+@@ -107,7 +107,15 @@ static int dvb_usb_media_device_init(str
+ 	if (!mdev)
+ 		return -ENOMEM;
+ 
+-	media_device_usb_init(mdev, udev, d->desc->name);
++	mdev->dev = &udev->dev;
++	strlcpy(mdev->model, d->desc->name, sizeof(mdev->model));
++	if (udev->serial)
++		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
++	strcpy(mdev->bus_info, udev->devpath);
++	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
++	mdev->driver_version = LINUX_VERSION_CODE;
++
++	media_device_init(mdev);
+ 
+ 	dvb_register_media_controller(&adap->dvb_adap, mdev);
+ 
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -412,7 +412,15 @@ static int dvb_usbv2_media_device_init(s
+ 	if (!mdev)
+ 		return -ENOMEM;
+ 
+-	media_device_usb_init(mdev, udev, d->name);
++	mdev->dev = &udev->dev;
++	strlcpy(mdev->model, d->name, sizeof(mdev->model));
++	if (udev->serial)
++		strlcpy(mdev->serial, udev->serial, sizeof(mdev->serial));
++	strcpy(mdev->bus_info, udev->devpath);
++	mdev->hw_revision = le16_to_cpu(udev->descriptor.bcdDevice);
++	mdev->driver_version = LINUX_VERSION_CODE;
++
++	media_device_init(mdev);
+ 
+ 	dvb_register_media_controller(&adap->dvb_adap, mdev);
+ 
+While testing this, I also noticed that not just the dvb_usb based
+dvb_usb_dw2102 is affected, but that also the dvb_usb_v2 based rtl2832
+triggers this Oops on its own (given that just reverting 
+drivers/media/usb/dvb-usb/dvb-usb-dvb.c wasn't enough).
 
-BR,
-Jani.
-
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+Regards
+	Stefan Lippers-Hollmann
