@@ -1,130 +1,445 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:5634 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751155AbcEDJVa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 05:21:30 -0400
-Message-ID: <1462353682.1891.7.camel@mtksdaap41>
-Subject: Re: [PATCH v10 0/8] Add MT8173 Video Encoder Driver and VPU Driver
-From: tiffany lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
+Received: from mail-db5eur01on0097.outbound.protection.outlook.com ([104.47.2.97]:51128
+	"EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754220AbcEDUQV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 16:16:21 -0400
+From: Peter Rosin <peda@axentia.se>
+To: <linux-kernel@vger.kernel.org>
+CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Korsgaard <peter.korsgaard@barco.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Jonathan Cameron <jic23@kernel.org>,
+	Hartmut Knaack <knaack.h@gmx.de>,
+	Lars-Peter Clausen <lars@metafoo.de>,
+	Peter Meerwald <pmeerw@pmeerw.net>,
+	Antti Palosaari <crope@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>,
-	Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Date: Wed, 4 May 2016 17:21:22 +0800
-In-Reply-To: <5729B20B.6090006@xs4all.nl>
-References: <1462270287-11374-1-git-send-email-tiffany.lin@mediatek.com>
-	 <5729A57E.1080505@xs4all.nl> <1462349987.1891.5.camel@mtksdaap41>
-	 <5729B20B.6090006@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+	Rob Herring <robh+dt@kernel.org>,
+	Frank Rowand <frowand.list@gmail.com>,
+	Grant Likely <grant.likely@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Kalle Valo <kvalo@codeaurora.org>,
+	Jiri Slaby <jslaby@suse.com>,
+	Daniel Baluta <daniel.baluta@intel.com>,
+	Lucas De Marchi <lucas.demarchi@intel.com>,
+	Matt Ranostay <matt.ranostay@intel.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
+	Tommi Rantala <tt.rantala@gmail.com>,
+	Crestez Dan Leonard <leonard.crestez@intel.com>,
+	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<devicetree@vger.kernel.org>
+Subject: [PATCH v9 4/9] i2c-mux: document i2c muxes and elaborate on parent-/mux-locked muxes
+Date: Wed, 4 May 2016 22:15:30 +0200
+Message-ID: <1462392935-28011-5-git-send-email-peda@axentia.se>
+In-Reply-To: <1462392935-28011-1-git-send-email-peda@axentia.se>
+References: <1462392935-28011-1-git-send-email-peda@axentia.se>
 MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Signed-off-by: Peter Rosin <peda@axentia.se>
+---
+ Documentation/i2c/i2c-topology | 370 +++++++++++++++++++++++++++++++++++++++++
+ MAINTAINERS                    |   1 +
+ 2 files changed, 371 insertions(+)
+ create mode 100644 Documentation/i2c/i2c-topology
 
-On Wed, 2016-05-04 at 10:25 +0200, Hans Verkuil wrote:
-> 
-> On 05/04/2016 10:19 AM, tiffany lin wrote:
-> > Hi Hans,
-> > 
-> > On Wed, 2016-05-04 at 09:32 +0200, Hans Verkuil wrote:
-> >> Hi Tiffany,
-> >>
-> >> On 05/03/2016 12:11 PM, Tiffany Lin wrote:
-> >>> ==============
-> >>>  Introduction
-> >>> ==============
-> >>>
-> >>> The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
-> >>> Mediatek Video Codec is able to handle video encoding of in a range of formats.
-> >>>
-> >>> This patch series also include VPU driver. Mediatek Video Codec driver rely on VPU driver to load,
-> >>> communicate with VPU.
-> >>>
-> >>> Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
-> >>> This patch series need [PATCH v15 8/8] memory: mtk-smi: export mtk_smi_larb_get/put[1] to build as module
-> >>>
-> >>> [1]http://lists.infradead.org/pipermail/linux-mediatek/2016-April/005173.html
-> >>>
-> >>> ==================
-> >>>  Device interface
-> >>> ==================
-> >>>
-> >>> In principle the driver bases on v4l2 memory-to-memory framework:
-> >>> it provides a single video node and each opened file handle gets its own private context with separate
-> >>> buffer queues. Each context consist of 2 buffer queues: OUTPUT (for source buffers, i.e. raw video
-> >>> frames) and CAPTURE (for destination buffers, i.e. encoded video frames).
-> >>>
-> >>> ==============================
-> >>>  VPU (Video Processor Unit)
-> >>> ==============================
-> >>> The VPU driver for hw video codec embedded in Mediatek's MT8173 SOCs.
-> >>> It is able to handle video decoding/encoding in a range of formats.
-> >>> The driver provides with VPU firmware download, memory management and the communication interface between CPU and VPU.
-> >>> For VPU initialization, it will create virtual memory for CPU access and physical address for VPU hw device access. 
-> >>> When a decode/encode instance opens a device node, vpu driver will download vpu firmware to the device.
-> >>> A decode/encode instant will decode/encode a frame using VPU interface to interrupt vpu to handle decoding/encoding jobs.
-> >>>
-> >>> Please have a look at the code and comments will be very much appreciated.
-> >>>
-> >>> Change in v10:
-> >>> 1. Fix smatch/sparse error message
-> >>> 2. Add depends on ARM || ARM64 and MTK_IOMMU in Kconfig
-> >>
-> >> I don't like the ARM or ARM64 dependency since that makes COMPILE_TEST harder.
-> >>
-> >> I removed it here and for the VPU and everything still compiles fine with
-> >> sparse and smatch. So I'll drop those dependencies.
-> >>
-> >> Why is the MTK_IOMMU dependency needed? Just curious.
-> >>
-> > This is because we need MTK_IOMMU module to get dma continuous memory
-> > for HW.
-> > 
-> >> Note that sparse still complains about this:
-> >>
-> >> media-git/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:261:24: warning: incorrect type in assignment (different base types)
-> >>
-> >> I think this code should be rewritten. Something like this would work
-> >> (if I understand the code correctly):
-> >>
-> >> u32 tag = (bs_hdr_len << 5) | 0x10 | not_key;
-> >>
-> >> ac_tag[0] = tag & 0xff;
-> >> ac_tag[1] = (tag >> 8) & 0xff;
-> >> ac_tag[2] = (tag >> 16) & 0xff;
-> >>
-> >> It's perhaps a bit more verbose, but a lot easier to understand.
-> >>
-> > 
-> >> I'm accepting this driver but I'll remove the ARM || ARM64 dependency. Can
-> >> you post a follow-up patch for this sparse warning?
-> >>
-> > 
-> > Got it. We will provide a patch to fix this.
-> > I was curious why my sparse do not show this warning.
-> > Is there any parameter I need to set except C=1?
-> 
-> I'm running it with these parameters: C=2 CF="-D__CHECK_ENDIAN__"
-> 
-> I suspect it is the CHECK_ENDIAN flag that does it.
-> 
-Got it, thanks for the information.
-
-best regards,
-Tiffany
-> Regards,
-> 
-> 	Hans
-
+diff --git a/Documentation/i2c/i2c-topology b/Documentation/i2c/i2c-topology
+new file mode 100644
+index 000000000000..27bfd682808d
+--- /dev/null
++++ b/Documentation/i2c/i2c-topology
+@@ -0,0 +1,370 @@
++I2C topology
++============
++
++There are a couple of reasons for building more complex i2c topologies
++than a straight-forward i2c bus with one adapter and one or more devices.
++
++1. A mux may be needed on the bus to prevent address collisions.
++
++2. The bus may be accessible from some external bus master, and arbitration
++   may be needed to determine if it is ok to access the bus.
++
++3. A device (particularly RF tuners) may want to avoid the digital noise
++   from the i2c bus, at least most of the time, and sits behind a gate
++   that has to be operated before the device can be accessed.
++
++Etc
++
++These constructs are represented as i2c adapter trees by Linux, where
++each adapter has a parent adapter (except the root adapter) and zero or
++more child adapters. The root adapter is the actual adapter that issues
++i2c transfers, and all adapters with a parent are part of an "i2c-mux"
++object (quoted, since it can also be an arbitrator or a gate).
++
++Depending of the particular mux driver, something happens when there is
++an i2c transfer on one of its child adapters. The mux driver can
++obviously operate a mux, but it can also do arbitration with an external
++bus master or open a gate. The mux driver has two operations for this,
++select and deselect. select is called before the transfer and (the
++optional) deselect is called after the transfer.
++
++
++Locking
++=======
++
++There are two variants of locking available to i2c muxes, they can be
++mux-locked or parent-locked muxes. As is evident from below, it can be
++useful to know if a mux is mux-locked or if it is parent-locked. The
++following list was correct at the time of writing:
++
++In drivers/i2c/muxes/
++i2c-arb-gpio-challenge    Parent-locked
++i2c-mux-gpio              Normally parent-locked, mux-locked iff
++                          all involved gpio pins are controlled by the
++                          same i2c root adapter that they mux.
++i2c-mux-pca9541           Parent-locked
++i2c-mux-pca954x           Parent-locked
++i2c-mux-pinctrl           Normally parent-locked, mux-locked iff
++                          all involved pinctrl devices are controlled
++                          by the same i2c root adapter that they mux.
++i2c-mux-reg               Parent-locked
++
++In drivers/iio/
++imu/inv_mpu6050/          Parent-locked
++
++In drivers/media/
++dvb-frontends/m88ds3103   Parent-locked
++dvb-frontends/rtl2830     Parent-locked
++dvb-frontends/rtl2832     Parent-locked
++dvb-frontends/si2168      Parent-locked
++usb/cx231xx/              Parent-locked
++
++
++Mux-locked muxes
++----------------
++
++Mux-locked muxes does not lock the entire parent adapter during the
++full select-transfer-deselect transaction, only the muxes on the parent
++adapter are locked. Mux-locked muxes are mostly interesting if the
++select and/or deselect operations must use i2c transfers to complete
++their tasks. Since the parent adapter is not fully locked during the
++full transaction, unrelated i2c transfers may interleave the different
++stages of the transaction. This has the benefit that the mux driver
++may be easier and cleaner to implement, but it has some caveats.
++
++ML1. If you build a topology with a mux-locked mux being the parent
++     of a parent-locked mux, this might break the expectation from the
++     parent-locked mux that the root adapter is locked during the
++     transaction.
++
++ML2. It is not safe to build arbitrary topologies with two (or more)
++     mux-locked muxes that are not siblings, when there are address
++     collisions between the devices on the child adapters of these
++     non-sibling muxes.
++
++     I.e. the select-transfer-deselect transaction targeting e.g. device
++     address 0x42 behind mux-one may be interleaved with a similar
++     operation targeting device address 0x42 behind mux-two. The
++     intension with such a topology would in this hypothetical example
++     be that mux-one and mux-two should not be selected simultaneously,
++     but mux-locked muxes do not guarantee that in all topologies.
++
++ML3. A mux-locked mux cannot be used by a driver for auto-closing
++     gates/muxes, i.e. something that closes automatically after a given
++     number (one, in most cases) of i2c transfers. Unrelated i2c transfers
++     may creep in and close prematurely.
++
++ML4. If any non-i2c operation in the mux driver changes the i2c mux state,
++     the driver has to lock the root adapter during that operation.
++     Otherwise garbage may appear on the bus as seen from devices
++     behind the mux, when an unrelated i2c transfer is in flight during
++     the non-i2c mux-changing operation.
++
++
++Mux-locked Example
++------------------
++
++                   .----------.     .--------.
++    .--------.     |   mux-   |-----| dev D1 |
++    |  root  |--+--|  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  .--------.
++                |  '----------'  '--| dev D2 |
++                |  .--------.       '--------'
++                '--| dev D3 |
++                   '--------'
++
++When there is an access to D1, this happens:
++
++ 1. Someone issues an i2c-transfer to D1.
++ 2. M1 locks muxes on its parent (the root adapter in this case).
++ 3. M1 calls ->select to ready the mux.
++ 4. M1 (presumably) does some i2c-transfers as part of its select.
++    These transfers are normal i2c-transfers that locks the parent
++    adapter.
++ 5. M1 feeds the i2c-transfer from step 1 to its parent adapter as a
++    normal i2c-transfer that locks the parent adapter.
++ 6. M1 calls ->deselect, if it has one.
++ 7. Same rules as in step 4, but for ->deselect.
++ 8. M1 unlocks muxes on its parent.
++
++This means that accesses to D2 are lockout out for the full duration
++of the entire operation. But accesses to D3 are possibly interleaved
++at any point.
++
++
++Parent-locked muxes
++-------------------
++
++Parent-locked muxes lock the parent adapter during the full select-
++transfer-deselect transaction. The implication is that the mux driver
++has to ensure that any and all i2c transfers through that parent
++adapter during the transaction are unlocked i2c transfers (using e.g.
++__i2c_transfer), or a deadlock will follow. There are a couple of
++caveats.
++
++PL1. If you build a topology with a parent-locked mux being the child
++     of another mux, this might break a possible assumption from the
++     child mux that the root adapter is unused between its select op
++     and the actual transfer (e.g. if the child mux is auto-closing
++     and the parent mux issus i2c-transfers as part of its select).
++     This is especially the case if the parent mux is mux-locked, but
++     it may also happen if the parent mux is parent-locked.
++
++PL2. If select/deselect calls out to other subsystems such as gpio,
++     pinctrl, regmap or iio, it is essential that any i2c transfers
++     caused by these subsystems are unlocked. This can be convoluted to
++     accomplish, maybe even impossible if an acceptably clean solution
++     is sought.
++
++
++Parent-locked Example
++---------------------
++
++                   .----------.     .--------.
++    .--------.     |  parent- |-----| dev D1 |
++    |  root  |--+--|  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  .--------.
++                |  '----------'  '--| dev D2 |
++                |  .--------.       '--------'
++                '--| dev D3 |
++                   '--------'
++
++When there is an access to D1, this happens:
++
++ 1. Someone issues an i2c-transfer to D1.
++ 2. M1 locks muxes on its parent (the root adapter in this case).
++ 3. M1 locks its parent adapter.
++ 4. M1 calls ->select to ready the mux.
++ 5. If M1 does any i2c-transfers (on this root adapter) as part of
++    its select, those transfers must be unlocked i2c-transfers so
++    that they do not deadlock the root adapter.
++ 6. M1 feeds the i2c-transfer from step 1 to the root adapter as an
++    unlocked i2c-transfer, so that it does not deadlock the parent
++    adapter.
++ 7. M1 calls ->deselect, if it has one.
++ 8. Same rules as in step 5, but for ->deselect.
++ 9. M1 unlocks its parent adapter.
++10. M1 unlocks muxes on its parent.
++
++
++This means that accesses to both D2 and D3 are locked out for the full
++duration of the entire operation.
++
++
++Complex Examples
++================
++
++Parent-locked mux as parent of parent-locked mux
++------------------------------------------------
++
++This is a useful topology, but it can be bad.
++
++                   .----------.     .----------.     .--------.
++    .--------.     |  parent- |-----|  parent- |-----| dev D1 |
++    |  root  |--+--|  locked  |     |  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  |  mux M2  |--.  .--------.
++                |  '----------'  |  '----------'  '--| dev D2 |
++                |  .--------.    |  .--------.       '--------'
++                '--| dev D4 |    '--| dev D3 |
++                   '--------'       '--------'
++
++When any device is accessed, all other devices are locked out for
++the full duration of the operation (both muxes lock their parent,
++and specifically when M2 requests its parent to lock, M1 passes
++the buck to the root adapter).
++
++This topology is bad if M2 is an auto-closing mux and M1->select
++issues any unlocked i2c transfers on the root adapter that may leak
++through and be seen by the M2 adapter, thus closing M2 prematurely.
++
++
++Mux-locked mux as parent of mux-locked mux
++------------------------------------------
++
++This is a good topology.
++
++                   .----------.     .----------.     .--------.
++    .--------.     |   mux-   |-----|   mux-   |-----| dev D1 |
++    |  root  |--+--|  locked  |     |  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  |  mux M2  |--.  .--------.
++                |  '----------'  |  '----------'  '--| dev D2 |
++                |  .--------.    |  .--------.       '--------'
++                '--| dev D4 |    '--| dev D3 |
++                   '--------'       '--------'
++
++When device D1 is accessed, accesses to D2 are locked out for the
++full duration of the operation (muxes on the top child adapter of M1
++are locked). But accesses to D3 and D4 are possibly interleaved at
++any point. Accesses to D3 locks out D1 and D2, but accesses to D4
++are still possibly interleaved.
++
++
++Mux-locked mux as parent of parent-locked mux
++---------------------------------------------
++
++This is probably a bad topology.
++
++                   .----------.     .----------.     .--------.
++    .--------.     |   mux-   |-----|  parent- |-----| dev D1 |
++    |  root  |--+--|  locked  |     |  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  |  mux M2  |--.  .--------.
++                |  '----------'  |  '----------'  '--| dev D2 |
++                |  .--------.    |  .--------.       '--------'
++                '--| dev D4 |    '--| dev D3 |
++                   '--------'       '--------'
++
++When device D1 is accessed, accesses to D2 and D3 are locked out
++for the full duration of the operation (M1 locks child muxes on the
++root adapter). But accesses to D4 are possibly interleaved at any
++point.
++
++This kind of topology is generally not suitable and should probably
++be avoided. The reason is that M2 probably assumes that there will
++be no i2c transfers during its calls to ->select and ->deselect, and
++if there are, any such transfers might appear on the slave side of M2
++as partial i2c transfers, i.e. garbage or worse. This might cause
++device lockups and/or other problems.
++
++The topology is especially troublesome if M2 is an auto-closing
++mux. In that case, any interleaved accesses to D4 might close M2
++prematurely, as might any i2c-transfers part of M1->select.
++
++But if M2 is not making the above stated assumption, and if M2 is not
++auto-closing, the topology is fine.
++
++
++Parent-locked mux as parent of mux-locked mux
++---------------------------------------------
++
++This is a good topology.
++
++                   .----------.     .----------.     .--------.
++    .--------.     |  parent- |-----|   mux-   |-----| dev D1 |
++    |  root  |--+--|  locked  |     |  locked  |     '--------'
++    '--------'  |  |  mux M1  |--.  |  mux M2  |--.  .--------.
++                |  '----------'  |  '----------'  '--| dev D2 |
++                |  .--------.    |  .--------.       '--------'
++                '--| dev D4 |    '--| dev D3 |
++                   '--------'       '--------'
++
++When D1 is accessed, accesses to D2 are locked out for the full
++duration of the operation (muxes on the top child adapter of M1
++are locked). Accesses to D3 and D4 are possibly interleaved at
++any point, just as is expected for mux-locked muxes.
++
++When D3 or D4 are accessed, everything else is locked out. For D3
++accesses, M1 locks the root adapter. For D4 accesses, the root
++adapter is locked directly.
++
++
++Two mux-locked sibling muxes
++----------------------------
++
++This is a good topology.
++
++                                    .--------.
++                   .----------.  .--| dev D1 |
++                   |   mux-   |--'  '--------'
++                .--|  locked  |     .--------.
++                |  |  mux M1  |-----| dev D2 |
++                |  '----------'     '--------'
++                |  .----------.     .--------.
++    .--------.  |  |   mux-   |-----| dev D3 |
++    |  root  |--+--|  locked  |     '--------'
++    '--------'  |  |  mux M2  |--.  .--------.
++                |  '----------'  '--| dev D4 |
++                |  .--------.       '--------'
++                '--| dev D5 |
++                   '--------'
++
++When D1 is accessed, accesses to D2, D3 and D4 are locked out. But
++accesses to D5 may be interleaved at any time.
++
++
++Two parent-locked sibling muxes
++-------------------------------
++
++This is a good topology.
++
++                                   .--------.
++                   .----------.  .--| dev D1 |
++                   |  parent- |--'  '--------'
++                .--|  locked  |     .--------.
++                |  |  mux M1  |-----| dev D2 |
++                |  '----------'     '--------'
++                |  .----------.     .--------.
++    .--------.  |  |  parent- |-----| dev D3 |
++    |  root  |--+--|  locked  |     '--------'
++    '--------'  |  |  mux M2  |--.  .--------.
++                |  '----------'  '--| dev D4 |
++                |  .--------.       '--------'
++                '--| dev D5 |
++                   '--------'
++
++When any device is accessed, accesses to all other devices are locked
++out.
++
++
++Mux-locked and parent-locked sibling muxes
++------------------------------------------
++
++This is a good topology.
++
++                                   .--------.
++                   .----------.  .--| dev D1 |
++                   |   mux-   |--'  '--------'
++                .--|  locked  |     .--------.
++                |  |  mux M1  |-----| dev D2 |
++                |  '----------'     '--------'
++                |  .----------.     .--------.
++    .--------.  |  |  parent- |-----| dev D3 |
++    |  root  |--+--|  locked  |     '--------'
++    '--------'  |  |  mux M2  |--.  .--------.
++                |  '----------'  '--| dev D4 |
++                |  .--------.       '--------'
++                '--| dev D5 |
++                   '--------'
++
++When D1 or D2 are accessed, accesses to D3 and D4 are locked out while
++accesses to D5 may interleave. When D3 or D4 are accessed, accesses to
++all other devices are locked out.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 61a323a6b2cf..1a8b11f920e6 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5275,6 +5275,7 @@ I2C MUXES
+ M:	Peter Rosin <peda@axentia.se>
+ L:	linux-i2c@vger.kernel.org
+ S:	Maintained
++F:	Documentation/i2c/i2c-topology
+ F:	Documentation/i2c/muxes/
+ F:	Documentation/devicetree/bindings/i2c/i2c-mux*
+ F:	drivers/i2c/i2c-mux.c
+-- 
+2.1.4
 
