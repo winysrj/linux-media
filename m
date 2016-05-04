@@ -1,59 +1,406 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iodev.co.uk ([82.211.30.53]:34242 "EHLO iodev.co.uk"
+Received: from mga03.intel.com ([134.134.136.65]:61674 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752805AbcEDXY5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 19:24:57 -0400
-Date: Wed, 4 May 2016 20:24:48 -0300
-From: Ismael Luceno <ismael@iodev.co.uk>
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 1/2] solo6x10: Set FRAME_BUF_SIZE to 200KB
-Message-ID: <20160504232446.GA17293@pirotess.lan>
-References: <1462378881-16625-1-git-send-email-ismael@iodev.co.uk>
- <20160504211444.GA23122@acer>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160504211444.GA23122@acer>
+	id S1752227AbcEDLYI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 07:24:08 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [PATCH v2 3/5] media: Refactor copying IOCTL arguments from and to user space
+Date: Wed,  4 May 2016 14:20:53 +0300
+Message-Id: <1462360855-23354-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/Mai/2016 00:14, Andrey Utkin wrote:
-> On Wed, May 04, 2016 at 01:21:20PM -0300, Ismael Luceno wrote:
-> > From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-> > 
-> > Such frame size is met in practice. Also report oversized frames.
-> > 
-> > [ismael: Reworked warning and commit message]
-> > 
-> > Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
-> 
-> I object against merging the first part.
-> 
-> > ---
-> >  drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c | 7 +++++--
-> >  1 file changed, 5 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-> > index 67a14c4..f98017b 100644
-> > --- a/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-> > +++ b/drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
-> > @@ -33,7 +33,7 @@
-> >  #include "solo6x10-jpeg.h"
-> >  
-> >  #define MIN_VID_BUFFERS		2
-> > -#define FRAME_BUF_SIZE		(196 * 1024)
-> > +#define FRAME_BUF_SIZE		(200 * 1024)
-> 
-> Please don't push this.
-> It doesn't matter whether there are 196 or 200 KiB because there happen
-> bigger frames.
-> I don't remember details so I cannot point to all time max frame size.
-> AFAIK this issue appeared on one particular customer installation. I
-> don't monitor it closely right now. I think I have compiled custom
-> package for that setup with FRAME_BUF_SIZE increased much more (maybe
-> 10x?).
+Refactor copying the IOCTL argument structs from the user space and back,
+in order to reduce code copied around and make the implementation more
+robust.
 
-I don't quite remember the overscan, but the maximum should be around
-1.2MB, so yes. If the QM hasn't been tweaked, then the image must
-be terrible.
+As a result, the copying is done while not holding the graph mutex.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c | 214 ++++++++++++++++++++++---------------------
+ 1 file changed, 110 insertions(+), 104 deletions(-)
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 9b5a88d..39fe07f 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -59,27 +59,24 @@ static int media_device_close(struct file *filp)
+ }
+ 
+ static int media_device_get_info(struct media_device *dev,
+-				 struct media_device_info __user *__info)
++				 struct media_device_info *info)
+ {
+-	struct media_device_info info;
+-
+-	memset(&info, 0, sizeof(info));
++	memset(info, 0, sizeof(*info));
+ 
+ 	if (dev->driver_name[0])
+-		strlcpy(info.driver, dev->driver_name, sizeof(info.driver));
++		strlcpy(info->driver, dev->driver_name, sizeof(info->driver));
+ 	else
+-		strlcpy(info.driver, dev->dev->driver->name, sizeof(info.driver));
++		strlcpy(info->driver, dev->dev->driver->name,
++			sizeof(info->driver));
+ 
+-	strlcpy(info.model, dev->model, sizeof(info.model));
+-	strlcpy(info.serial, dev->serial, sizeof(info.serial));
+-	strlcpy(info.bus_info, dev->bus_info, sizeof(info.bus_info));
++	strlcpy(info->model, dev->model, sizeof(info->model));
++	strlcpy(info->serial, dev->serial, sizeof(info->serial));
++	strlcpy(info->bus_info, dev->bus_info, sizeof(info->bus_info));
+ 
+-	info.media_version = MEDIA_API_VERSION;
+-	info.hw_revision = dev->hw_revision;
+-	info.driver_version = dev->driver_version;
++	info->media_version = MEDIA_API_VERSION;
++	info->hw_revision = dev->hw_revision;
++	info->driver_version = dev->driver_version;
+ 
+-	if (copy_to_user(__info, &info, sizeof(*__info)))
+-		return -EFAULT;
+ 	return 0;
+ }
+ 
+@@ -101,29 +98,25 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+ }
+ 
+ static long media_device_enum_entities(struct media_device *mdev,
+-				       struct media_entity_desc __user *uent)
++				       struct media_entity_desc *entd)
+ {
+ 	struct media_entity *ent;
+-	struct media_entity_desc u_ent;
+-
+-	memset(&u_ent, 0, sizeof(u_ent));
+-	if (copy_from_user(&u_ent.id, &uent->id, sizeof(u_ent.id)))
+-		return -EFAULT;
+-
+-	ent = find_entity(mdev, u_ent.id);
+ 
++	ent = find_entity(mdev, entd->id);
+ 	if (ent == NULL)
+ 		return -EINVAL;
+ 
+-	u_ent.id = media_entity_id(ent);
++	memset(entd, 0, sizeof(*entd));
++
++	entd->id = media_entity_id(ent);
+ 	if (ent->name)
+-		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
+-	u_ent.type = ent->function;
+-	u_ent.revision = 0;		/* Unused */
+-	u_ent.flags = ent->flags;
+-	u_ent.group_id = 0;		/* Unused */
+-	u_ent.pads = ent->num_pads;
+-	u_ent.links = ent->num_links - ent->num_backlinks;
++		strlcpy(entd->name, ent->name, sizeof(entd->name));
++	entd->type = ent->function;
++	entd->revision = 0;		/* Unused */
++	entd->flags = ent->flags;
++	entd->group_id = 0;		/* Unused */
++	entd->pads = ent->num_pads;
++	entd->links = ent->num_links - ent->num_backlinks;
+ 
+ 	/*
+ 	 * Workaround for a bug at media-ctl <= v1.10 that makes it to
+@@ -139,14 +132,13 @@ static long media_device_enum_entities(struct media_device *mdev,
+ 	if (ent->function < MEDIA_ENT_F_OLD_BASE ||
+ 	    ent->function > MEDIA_ENT_T_DEVNODE_UNKNOWN) {
+ 		if (is_media_entity_v4l2_subdev(ent))
+-			u_ent.type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
++			entd->type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
+ 		else if (ent->function != MEDIA_ENT_F_IO_V4L)
+-			u_ent.type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
++			entd->type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
+ 	}
+ 
+-	memcpy(&u_ent.raw, &ent->info, sizeof(ent->info));
+-	if (copy_to_user(uent, &u_ent, sizeof(u_ent)))
+-		return -EFAULT;
++	memcpy(&entd->raw, &ent->info, sizeof(ent->info));
++
+ 	return 0;
+ }
+ 
+@@ -158,8 +150,8 @@ static void media_device_kpad_to_upad(const struct media_pad *kpad,
+ 	upad->flags = kpad->flags;
+ }
+ 
+-static long __media_device_enum_links(struct media_device *mdev,
+-				      struct media_links_enum *links)
++static long media_device_enum_links(struct media_device *mdev,
++				    struct media_links_enum *links)
+ {
+ 	struct media_entity *entity;
+ 
+@@ -206,64 +198,35 @@ static long __media_device_enum_links(struct media_device *mdev,
+ 	return 0;
+ }
+ 
+-static long media_device_enum_links(struct media_device *mdev,
+-				    struct media_links_enum __user *ulinks)
+-{
+-	struct media_links_enum links;
+-	int rval;
+-
+-	if (copy_from_user(&links, ulinks, sizeof(links)))
+-		return -EFAULT;
+-
+-	rval = __media_device_enum_links(mdev, &links);
+-	if (rval < 0)
+-		return rval;
+-
+-	if (copy_to_user(ulinks, &links, sizeof(*ulinks)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+ static long media_device_setup_link(struct media_device *mdev,
+-				    struct media_link_desc __user *_ulink)
++				    struct media_link_desc *linkd)
+ {
+ 	struct media_link *link = NULL;
+-	struct media_link_desc ulink;
+ 	struct media_entity *source;
+ 	struct media_entity *sink;
+-	int ret;
+-
+-	if (copy_from_user(&ulink, _ulink, sizeof(ulink)))
+-		return -EFAULT;
+ 
+ 	/* Find the source and sink entities and link.
+ 	 */
+-	source = find_entity(mdev, ulink.source.entity);
+-	sink = find_entity(mdev, ulink.sink.entity);
++	source = find_entity(mdev, linkd->source.entity);
++	sink = find_entity(mdev, linkd->sink.entity);
+ 
+ 	if (source == NULL || sink == NULL)
+ 		return -EINVAL;
+ 
+-	if (ulink.source.index >= source->num_pads ||
+-	    ulink.sink.index >= sink->num_pads)
++	if (linkd->source.index >= source->num_pads ||
++	    linkd->sink.index >= sink->num_pads)
+ 		return -EINVAL;
+ 
+-	link = media_entity_find_link(&source->pads[ulink.source.index],
+-				      &sink->pads[ulink.sink.index]);
++	link = media_entity_find_link(&source->pads[linkd->source.index],
++				      &sink->pads[linkd->sink.index]);
+ 	if (link == NULL)
+ 		return -EINVAL;
+ 
+ 	/* Setup the link on both entities. */
+-	ret = __media_entity_setup_link(link, ulink.flags);
+-
+-	if (copy_to_user(_ulink, &ulink, sizeof(ulink)))
+-		return -EFAULT;
+-
+-	return ret;
++	return __media_entity_setup_link(link, linkd->flags);
+ }
+ 
+-static long __media_device_get_topology(struct media_device *mdev,
++static long media_device_get_topology(struct media_device *mdev,
+ 				      struct media_v2_topology *topo)
+ {
+ 	struct media_entity *entity;
+@@ -400,35 +363,50 @@ static long __media_device_get_topology(struct media_device *mdev,
+ 	return ret;
+ }
+ 
+-static long media_device_get_topology(struct media_device *mdev,
+-				      struct media_v2_topology __user *utopo)
++static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
+ {
+-	struct media_v2_topology ktopo;
+-	int ret;
+-
+-	if (copy_from_user(&ktopo, utopo, sizeof(ktopo)))
++	/* All media IOCTLs are _IOWR() */
++	if (copy_from_user(karg, uarg, _IOC_SIZE(cmd)))
+ 		return -EFAULT;
+ 
+-	ret = __media_device_get_topology(mdev, &ktopo);
+-	if (ret < 0)
+-		return ret;
++	return 0;
++}
+ 
+-	if (copy_to_user(utopo, &ktopo, sizeof(*utopo)))
++static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
++{
++	/* All media IOCTLs are _IOWR() */
++	if (copy_to_user(uarg, karg, _IOC_SIZE(cmd)))
+ 		return -EFAULT;
+ 
+ 	return 0;
+ }
+ 
+-#define MEDIA_IOC(__cmd, func)						\
+-	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
+-		.cmd = MEDIA_IOC_##__cmd,				\
+-		.fn = (long (*)(struct media_device *, void __user *))func,    \
++#ifdef CONFIG_COMPAT
++/* Only compat IOCTLs need this right now. */
++static long copy_arg_to_user_nop(void __user *uarg, void *karg,
++				 unsigned int cmd)
++{
++	return 0;
++}
++#endif
++
++#define MEDIA_IOC_ARG(__cmd, func, from_user, to_user)	\
++	[_IOC_NR(MEDIA_IOC_##__cmd)] = {		\
++		.cmd = MEDIA_IOC_##__cmd,		\
++		.fn = (long (*)(struct media_device *, void *))func,	\
++		.arg_from_user = from_user,		\
++		.arg_to_user = to_user,			\
+ 	}
+ 
++#define MEDIA_IOC(__cmd, func)						\
++	MEDIA_IOC_ARG(__cmd, func, copy_arg_from_user, copy_arg_to_user)
++
+ /* the table is indexed by _IOC_NR(cmd) */
+ struct media_ioctl_info {
+ 	unsigned int cmd;
+-	long (*fn)(struct media_device *dev, void __user *arg);
++	long (*fn)(struct media_device *dev, void *arg);
++	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
++	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
+ };
+ 
+ static inline long is_valid_ioctl(const struct media_ioctl_info *info,
+@@ -438,13 +416,29 @@ static inline long is_valid_ioctl(const struct media_ioctl_info *info,
+ 		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
+ }
+ 
++static unsigned int media_ioctl_max_arg_size(
++	const struct media_ioctl_info *info, unsigned int len,
++	unsigned int *max_size)
++{
++	if (*max_size)
++		return *max_size;
++
++	for (; len; len--, info++)
++		*max_size = max(_IOC_SIZE(info->cmd), *max_size);
++
++	return *max_size;
++}
++
+ static long __media_device_ioctl(
+ 	struct file *filp, unsigned int cmd, void __user *arg,
+-	const struct media_ioctl_info *info_array, unsigned int info_array_len)
++	const struct media_ioctl_info *info_array, unsigned int info_array_len,
++	unsigned int *max_arg_size)
+ {
+ 	struct media_devnode *devnode = media_devnode_data(filp);
+ 	struct media_device *dev = to_media_device(devnode);
+ 	const struct media_ioctl_info *info;
++	char karg[media_ioctl_max_arg_size(info_array, info_array_len,
++					   max_arg_size)];
+ 	long ret;
+ 
+ 	ret = is_valid_ioctl(info_array, info_array_len, cmd);
+@@ -453,11 +447,16 @@ static long __media_device_ioctl(
+ 
+ 	info = &info_array[_IOC_NR(cmd)];
+ 
++	info->arg_from_user(karg, arg, cmd);
++
+ 	mutex_lock(&dev->graph_mutex);
+-	ret = info->fn(dev, arg);
++	ret = info->fn(dev, karg);
+ 	mutex_unlock(&dev->graph_mutex);
+ 
+-	return ret;
++	if (ret)
++		return ret;
++
++	return info->arg_to_user(arg, karg, cmd);
+ }
+ 
+ static const struct media_ioctl_info ioctl_info[] = {
+@@ -471,9 +470,12 @@ static const struct media_ioctl_info ioctl_info[] = {
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			       unsigned long arg)
+ {
++	static unsigned int max_arg_size;
++
+ 	return __media_device_ioctl(
+ 		filp, cmd, (void __user *)arg,
+-		ioctl_info, ARRAY_SIZE(ioctl_info));
++		ioctl_info, ARRAY_SIZE(ioctl_info),
++		&max_arg_size);
+ }
+ 
+ #ifdef CONFIG_COMPAT
+@@ -485,23 +487,24 @@ struct media_links_enum32 {
+ 	__u32 reserved[4];
+ };
+ 
+-static long media_device_enum_links32(struct media_device *mdev,
+-				      struct media_links_enum32 __user *ulinks)
++static long from_user_enum_links32(void *karg, void __user *uarg,
++				   unsigned int cmd)
+ {
+-	struct media_links_enum links;
++	struct media_links_enum *links = karg;
++	struct media_links_enum32 __user *ulinks = uarg;
+ 	compat_uptr_t pads_ptr, links_ptr;
+ 
+-	memset(&links, 0, sizeof(links));
++	memset(links, 0, sizeof(*links));
+ 
+-	if (get_user(links.entity, &ulinks->entity)
++	if (get_user(links->entity, &ulinks->entity)
+ 	    || get_user(pads_ptr, &ulinks->pads)
+ 	    || get_user(links_ptr, &ulinks->links))
+ 		return -EFAULT;
+ 
+-	links.pads = compat_ptr(pads_ptr);
+-	links.links = compat_ptr(links_ptr);
++	links->pads = compat_ptr(pads_ptr);
++	links->links = compat_ptr(links_ptr);
+ 
+-	return __media_device_enum_links(mdev, &links);
++	return 0;
+ }
+ 
+ #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
+@@ -509,7 +512,7 @@ static long media_device_enum_links32(struct media_device *mdev,
+ static const struct media_ioctl_info compat_ioctl_info[] = {
+ 	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
+ 	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
+-	MEDIA_IOC(ENUM_LINKS32, media_device_enum_links32),
++	MEDIA_IOC_ARG(ENUM_LINKS32, media_device_enum_links, from_user_enum_links32, copy_arg_to_user_nop),
+ 	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
+ 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+ };
+@@ -517,9 +520,12 @@ static const struct media_ioctl_info compat_ioctl_info[] = {
+ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+ 				      unsigned long arg)
+ {
++	static unsigned int max_arg_size;
++
+ 	return __media_device_ioctl(
+ 		filp, cmd, (void __user *)arg,
+-		compat_ioctl_info, ARRAY_SIZE(compat_ioctl_info));
++		compat_ioctl_info, ARRAY_SIZE(compat_ioctl_info),
++		&max_arg_size);
+ }
+ #endif /* CONFIG_COMPAT */
+ 
+-- 
+1.9.1
+
