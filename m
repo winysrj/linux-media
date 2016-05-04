@@ -1,138 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33107 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248AbcEPXFP (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58937 "EHLO
+	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750825AbcEDOEM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2016 19:05:15 -0400
+	Wed, 4 May 2016 10:04:12 -0400
+Subject: Re: [PATCH 1/2] solo6x10: Set FRAME_BUF_SIZE to 200KB
+To: Andrey Utkin <andrey_utkin@fastmail.com>,
+	Ismael Luceno <ismael@iodev.co.uk>
+References: <1461986229-11949-1-git-send-email-ismael@iodev.co.uk>
+ <20160504133408.GA18570@acer>
+Cc: linux-media@vger.kernel.org, chall@corp.bluecherry.net,
+	maintainers@bluecherrydvr.com
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <572A0155.3030507@xs4all.nl>
+Date: Wed, 4 May 2016 16:04:05 +0200
 MIME-Version: 1.0
-In-Reply-To: <1462806459-8124-3-git-send-email-benjamin.gaignard@linaro.org>
-References: <1462806459-8124-1-git-send-email-benjamin.gaignard@linaro.org>
-	<1462806459-8124-3-git-send-email-benjamin.gaignard@linaro.org>
-Date: Tue, 17 May 2016 00:05:13 +0100
-Message-ID: <CACvgo51sRwhpzyzqGRmxFnqefSvT0r1ekjxhnuQBbT-FuxBRhA@mail.gmail.com>
-Subject: Re: [PATCH v7 2/3] SMAF: add CMA allocator
-From: Emil Velikov <emil.l.velikov@gmail.com>
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: linux-media@vger.kernel.org,
-	"Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
-	ML dri-devel <dri-devel@lists.freedesktop.org>,
-	zoltan.kuscsik@linaro.org, Sumit Semwal <sumit.semwal@linaro.org>,
-	cc.ma@mediatek.com, pascal.brand@linaro.org,
-	joakim.bech@linaro.org, dan.caprita@windriver.com
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20160504133408.GA18570@acer>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Benjamin,
+OK, I've dropped Ismael's patch from my pull request to Mauro until this
+is resolved.
 
-On 9 May 2016 at 16:07, Benjamin Gaignard <benjamin.gaignard@linaro.org> wrote:
-> SMAF CMA allocator implement helpers functions to allow SMAF
-> to allocate contiguous memory.
->
-> match() each if at least one of the attached devices have coherent_dma_mask
-> set to DMA_BIT_MASK(32).
->
-What is the idea behind the hardcoded 32. Wouldn't it be better to avoid that ?
+Who actually maintains this driver? I would say Andrey since he works for
+bluecherry. If Ismael is no longer affiliated (either officially or unofficially)
+with bluecherry, then his name should be removed.
 
+BTW, looking at the MAINTAINERS file I see two email addresses for Andrey,
+neither of which is the fastmail.com address this email came from.
 
-> +static void smaf_cma_release(struct dma_buf *dmabuf)
-> +{
-> +       struct smaf_cma_buffer_info *info = dmabuf->priv;
-> +       DEFINE_DMA_ATTRS(attrs);
-> +
-> +       dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-> +
-Imho it's worth storing the dma_attrs within smaf_cma_buffer_info.
-This way it's less likely for things to go wrong, if one forgets to
-update one of the three in the future.
+Ismael, please keep the correct author if it isn't you. And a CC to Andrey
+certainly doesn't hurt.
 
+Andrey, it might be a good idea to post such fixes to the mailinglist sooner,
+both to prevent situations like this and to keep the diffs between mainline
+and your internal code as small as possible.
 
-> +static void smaf_cma_unmap(struct dma_buf_attachment *attachment,
-> +                          struct sg_table *sgt,
-> +                          enum dma_data_direction direction)
-> +{
-> +       /* do nothing */
-There could/should really be a comment explaining why we "do nothing"
-here, right ?
-
-> +}
-> +
-> +static int smaf_cma_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
-> +{
-> +       struct smaf_cma_buffer_info *info = dmabuf->priv;
-> +       int ret;
-> +       DEFINE_DMA_ATTRS(attrs);
-> +
-> +       dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-> +
-> +       if (info->size < vma->vm_end - vma->vm_start)
-> +               return -EINVAL;
-> +
-> +       vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-> +       ret = dma_mmap_attrs(info->dev, vma, info->vaddr, info->paddr,
-> +                            info->size, &attrs);
-> +
-> +       return ret;
-Kill the temporary variable 'ret' ?
-
-
-> +static struct dma_buf_ops smaf_cma_ops = {
-const ? Afaict the compiler would/should warn you about discarding it
-as the ops are defined const.
-
-
-> +static struct dma_buf *smaf_cma_allocate(struct dma_buf *dmabuf,
-> +                                        size_t length, unsigned int flags)
-> +{
-> +       struct dma_buf_attachment *attach_obj;
-> +       struct smaf_cma_buffer_info *info;
-> +       struct dma_buf *cma_dmabuf;
-> +       int ret;
-> +
-> +       DEFINE_DMA_BUF_EXPORT_INFO(export);
-> +       DEFINE_DMA_ATTRS(attrs);
-> +
-> +       dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
-> +
-> +       info = kzalloc(sizeof(*info), GFP_KERNEL);
-> +       if (!info)
-> +               return NULL;
-> +
-> +       info->dev = find_matching_device(dmabuf);
-find_matching_device() can return NULL. We should handle that imho.
-
-> +       info->size = length;
-> +       info->vaddr = dma_alloc_attrs(info->dev, info->size, &info->paddr,
-> +                                     GFP_KERNEL | __GFP_NOWARN, &attrs);
-> +       if (!info->vaddr) {
-> +               ret = -ENOMEM;
-set-but-unused-variable 'ret' ?
-
-> +               goto error;
-> +       }
-> +
-> +       export.ops = &smaf_cma_ops;
-> +       export.size = info->size;
-> +       export.flags = flags;
-> +       export.priv = info;
-> +
-> +       cma_dmabuf = dma_buf_export(&export);
-> +       if (IS_ERR(cma_dmabuf))
-Missing dma_free_attrs() ? I'd add another label in the error path and
-handle it there.
-
-> +               goto error;
-> +
-> +       list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
-> +               dma_buf_attach(cma_dmabuf, attach_obj->dev);
-Imho one should error out if attach fails. Or warn at the very least ?
-
-
-> +static int __init smaf_cma_init(void)
-> +{
-> +       INIT_LIST_HEAD(&smaf_cma.list_node);
-Isn't this something that smaf_register_allocator() should be doing ?
-
+I don't really care who posts fixes as long as authorship info etc. remains
+intact and the code is obviously an improvement.
 
 Regards,
-Emil
+
+	Hans
+
+On 05/04/2016 03:34 PM, Andrey Utkin wrote:
+> On Sat, Apr 30, 2016 at 12:17:08AM -0300, Ismael Luceno wrote:
+>> Such frame size is met in practice. Also report oversized frames.
+>>
+>> Based on patches by Andrey Utkin <andrey.utkin@corp.bluecherry.net>.
+> 
+> If it is based on my patches([1] [2]), then why you claim authorship and
+> why you don't let me know (at last CCing me)?
+> 
+> Do you know that 200 KiB is not the limit, just as previous value? I
+> haven't researched subj deep enough to figure out proven good value for
+> new buffer size.
+> 
+> It's both laughable and infuriating for me to spectate your behaviour of
+> "stealth driver developer".
+> You have added yourself back to driver maintainers in MAINTAINERS file
+> after your quit without letting us know.
+> You are not affiliated with Bluecherry for two years, and you are not
+> informed about how the driver is working in production on customers
+> setups. So you are not aware what are real issues with it. BTW do you
+> still have a sample of actual hardware? Yeah, I agree that this can be
+> argument against Bluecherry and lack of openness in its bug tracking.
+> But you are also not open and not collaborating.
+> 
+> The point of my accusation to you is that you seem to be just gaining
+> "kernel developer" score for nobody's (except your CV's) benefit.
+> Development and maintenance is what Hans Verkuil, Krzysztof Halasa and
+> others do to this driver, but not this.
+> 
+> Sorry to be harsh.
+> 
+> [1] https://github.com/bluecherrydvr/solo6x10/commit/5cd985087362e2e524b3e44504eea791ae7cda7e
+> [2] https://github.com/bluecherrydvr/solo6x10/commit/3b437f79c40438eb09bb2d5dbcfe67dbc94648ed
+> 
