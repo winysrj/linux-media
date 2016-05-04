@@ -1,179 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:34853 "EHLO
-	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932243AbcEROxr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2016 10:53:47 -0400
-Received: by mail-io0-f176.google.com with SMTP id d62so68113598iof.2
-        for <linux-media@vger.kernel.org>; Wed, 18 May 2016 07:53:46 -0700 (PDT)
-Date: Wed, 18 May 2016 08:52:28 -0600
-From: Wade Berrier <wberrier@gmail.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: mceusb xhci issue?
-Message-ID: <20160518145226.GA5553@htpc.lan>
-References: <20160425040632.GD15140@berrier.lan>
- <20160425171506.GA25277@gofer.mess.org>
- <20160426031650.GA13700@berrier.lan>
- <20160427200730.GA6632@gofer.mess.org>
- <20160515022940.GB2865@miniwade.localdomain>
+Received: from tex.lwn.net ([70.33.254.29]:50498 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752424AbcEDQ7u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 May 2016 12:59:50 -0400
+Date: Wed, 4 May 2016 10:59:36 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	Markus Heiser <markus.heiser@darmarit.de>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org linux-media"
+	<linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160504105936.34c2697f@lwn.net>
+In-Reply-To: <20160504135035.1f055fa7@recife.lan>
+References: <87fuvypr2h.fsf@intel.com>
+	<20160310122101.2fca3d79@recife.lan>
+	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
+	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
+	<20160412094620.4fbf05c0@lwn.net>
+	<CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
+	<CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
+	<54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
+	<874maef8km.fsf@intel.com>
+	<13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de>
+	<20160504134346.GY14148@phenom.ffwll.local>
+	<44110C0C-2E98-4470-9DB1-B72406E901A0@darmarit.de>
+	<87inytn6n2.fsf@intel.com>
+	<20160504135035.1f055fa7@recife.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160515022940.GB2865@miniwade.localdomain>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On May 14 20:29, Wade Berrier wrote:
-> On Wed Apr 27 21:07, Sean Young wrote:
-> > On Mon, Apr 25, 2016 at 09:16:51PM -0600, Wade Berrier wrote:
-> > > On Apr 25 18:15, Sean Young wrote:
-> > > > On Sun, Apr 24, 2016 at 10:06:33PM -0600, Wade Berrier wrote:
-> > > > > Hello,
-> > > > > 
-> > > > > I have a mceusb compatible transceiver that only seems to work with
-> > > > > certain computers.  I'm testing this on centos7 (3.10.0) and fedora23
-> > > > > (4.4.7).
-> > > > > 
-> > > > > The only difference I can see is that the working computer shows
-> > > > > "using uhci_hcd" and the non working shows "using xhci_hcd".
-> > > > > 
-> > > > > Here's the dmesg output of the non-working version:
-> > > > > 
-> > > > > ---------------------
-> > > > > 
-> > > > > [  217.951079] usb 1-5: new full-speed USB device number 10 using xhci_hcd
-> > > > > [  218.104087] usb 1-5: device descriptor read/64, error -71
-> > > > > [  218.371010] usb 1-5: config 1 interface 0 altsetting 0 endpoint 0x1 has an invalid bInterval 0, changing to 32
-> > > > > [  218.371019] usb 1-5: config 1 interface 0 altsetting 0 endpoint 0x81 has an invalid bInterval 0, changing to 32
-> > > > 
-> > > > That's odd. Can you post a "lsusb -vvv" of the device please?
-> > > > 
-> > > 
-> > > Sure.
-> > > 
-> > > -------------------
-> > > 
-> > > Bus 002 Device 009: ID 1784:0006 TopSeed Technology Corp. eHome Infrared Transceiver
-> > > Device Descriptor:
-> > >   bLength                18
-> > >   bDescriptorType         1
-> > >   bcdUSB               2.00
-> > >   bDeviceClass            0 
-> > >   bDeviceSubClass         0 
-> > >   bDeviceProtocol         0 
-> > >   bMaxPacketSize0         8
-> > >   idVendor           0x1784 TopSeed Technology Corp.
-> > >   idProduct          0x0006 eHome Infrared Transceiver
-> > >   bcdDevice            1.02
-> > >   iManufacturer           1 TopSeed Technology Corp.
-> > >   iProduct                2 eHome Infrared Transceiver
-> > >   iSerial                 3 TS004RrP
-> > >   bNumConfigurations      1
-> > >   Configuration Descriptor:
-> > >     bLength                 9
-> > >     bDescriptorType         2
-> > >     wTotalLength           32
-> > >     bNumInterfaces          1
-> > >     bConfigurationValue     1
-> > >     iConfiguration          0 
-> > >     bmAttributes         0xa0
-> > >       (Bus Powered)
-> > >       Remote Wakeup
-> > >     MaxPower              100mA
-> > >     Interface Descriptor:
-> > >       bLength                 9
-> > >       bDescriptorType         4
-> > >       bInterfaceNumber        0
-> > >       bAlternateSetting       0
-> > >       bNumEndpoints           2
-> > >       bInterfaceClass       255 Vendor Specific Class
-> > >       bInterfaceSubClass    255 Vendor Specific Subclass
-> > >       bInterfaceProtocol    255 Vendor Specific Protocol
-> > >       iInterface              0 
-> > >       Endpoint Descriptor:
-> > >         bLength                 7
-> > >         bDescriptorType         5
-> > >         bEndpointAddress     0x01  EP 1 OUT
-> > >         bmAttributes            3
-> > >           Transfer Type            Interrupt
-> > >           Synch Type               None
-> > >           Usage Type               Data
-> > >         wMaxPacketSize     0x0020  1x 32 bytes
-> > >         bInterval               0
-> > 
-> > That's wrong indeed. It might be interesting to see if there is anything
-> > in the xhci debug messages with (in Fedora 23):
-> > 
-> > echo "file xhci*.c +p" > /sys/kernel/debug/dynamic_debug/control
-> > echo "file mceusb.c +p" > /sys/kernel/debug/dynamic_debug/control
-> > 
-> > And then plug in the receiver, and try to send IR to it with a remote.
-> > You should have quite a few kernel messages in the journal.
+On Wed, 4 May 2016 13:50:35 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> wrote:
+
+> Em Wed, 4 May 2016 19:13:21 +0300
+> Jani Nikula <jani.nikula@intel.com> escreveu:
+> > I think we should go for vanilla sphinx at first, to make the setup step
+> > as easy as possible for everyone.  
 > 
-> Here's the output after enabling the debug options, plugging in the
-> receiver, running lircd, and pressing some remote buttons:
->
+> Vanilla Sphinx doesn't work, as reST markup language is too limited
+> to support the docs we have. So, we should either push the needed
+> extensions to Sphinx reST or find a way to put it at Kernel tree
+> without causing too much pain for the developers, e. g. as something
+> that just doing "make htmldoc" would automatically use such extensions
+> without needing to actually install the extensions.
 
-[snip]
+It works for everything except the extended media book, right?  Or is there
+something I'm missing here?  I am very much interested in having one system
+for *all* our docs, but we wouldn't attempt to convert a document can't be
+expressed in sphinx.
 
+> > Even if it means still doing that ugly
+> > docproc step to call kernel-doc. We can improve from there, and I
+> > definitely appreciate your work on making this work with sphinx
+> > extensions.  
 > 
-> I'm not sure what to look for... ?
+> I disagree: We should not cause documentation regressions by
+> producing incomplete documentation and losing tables because of
+> such conversion.
+
+> The quality of the documentation after the change should be *at least*
+> equal to the one we current produce, never worse.
+
+Agreed; that's why I think the existing DocBook mechanism should stay in
+place until that document will be improved by the change.  But I'd rather
+not hold up the entire process for one book, especially since pushing that
+process forward can only help in dealing with those final problems.
+
+> > That said, how would it work to include the kernel-doc extension in the
+> > kernel source tree? Having things just work if sphinx is installed is
+> > preferred over requiring installation of something extra from pypi. (I
+> > know this may sound backwards for a lot of projects, but for kernel I'm
+> > pretty sure this is how it should be done.)  
 > 
-> > 
-> > >       Endpoint Descriptor:
-> > >         bLength                 7
-> > >         bDescriptorType         5
-> > >         bEndpointAddress     0x81  EP 1 IN
-> > >         bmAttributes            3
-> > >           Transfer Type            Interrupt
-> > >           Synch Type               None
-> > >           Usage Type               Data
-> > >         wMaxPacketSize     0x0020  1x 32 bytes
-> > >         bInterval               0
-> > > Device Status:     0x0001
-> > >   Self Powered
-> > > 
-> > > -------------------
-> > > 
-> > > Also, here's a link to a response on the lirc list:
-> > > 
-> > > https://sourceforge.net/p/lirc/mailman/message/35039126/
-> > 
-> > That seems suggest that mode2 works but lirc does not. It would be nice
-> > if that could be narrowed down a bit.
-> 
-> That message above links to some other threads describing the issue.
-> Here's a post with a patch that supposedly works:
-> 
-> http://www.gossamer-threads.com/lists/mythtv/users/587930
-> 
-> No idea if that's the "correct" way to fix this.
-> 
-> I'll be trying that out and then report back...
+> Yeah, using pypi seems an additional undesired step. Aren't there
+> any way to make python to use an additional extension at the
+> Kernel tree without needing to install it?
 
-Indeed, this patch does fix the issue:
+Well, sphinx has to come from somewhere too.  But yes, we should be able to
+carry extensions in the kernel tree.  But I would still rather upstream it
+(to sphinx) if possible, so we're not stuck trying to maintain it across
+several sphinx releases.  I don't know how volatile their interfaces are,
+but it would be, in any case, the analog of an out-of-tree module...
 
-----------------------
-
-diff --git a/drivers/usb/core/config.c b/drivers/usb/core/config.c
-index 31ccdcc..03321d4 100644
---- a/drivers/usb/core/config.c
-+++ b/drivers/usb/core/config.c
-@@ -247,7 +247,7 @@ static int usb_parse_endpoint(struct device *ddev, int cfgno, int inum,
- 			/* For low-speed, 10 ms is the official minimum.
- 			 * But some "overclocked" devices might want faster
- 			 * polling so we'll allow it. */
--			n = 32;
-+			n = 10;
- 			break;
- 		}
- 	} else if (usb_endpoint_xfer_isoc(d)) {
-
-
-----------------------
-
-Is this change appropriate to be pushed upstream?  Where to go from
-here?
-
-Wade
+jon
