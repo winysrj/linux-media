@@ -1,144 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:58603 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752382AbcEAWEs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 May 2016 18:04:48 -0400
-Subject: Re: 4.6 regression: deadlock in exynos fimc_md_probe()
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <57262BAD.2020704@xs4all.nl> <572631F8.1020705@xs4all.nl>
- <57263234.1060400@xs4all.nl>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57267D79.7090800@xs4all.nl>
-Date: Mon, 2 May 2016 00:04:41 +0200
-MIME-Version: 1.0
-In-Reply-To: <57263234.1060400@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:64702 "EHLO
+	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751436AbcEDRH1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 13:07:27 -0400
+From: Nick Dyer <nick.dyer@itdev.co.uk>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
+	Benson Leung <bleung@chromium.org>,
+	Alan Bowens <Alan.Bowens@atmel.com>,
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Chris Healy <cphealy@gmail.com>,
+	Henrik Rydberg <rydberg@bitmath.org>,
+	Andrew Duggan <aduggan@synaptics.com>,
+	James Chen <james.chen@emc.com.tw>,
+	Dudley Du <dudl@cypress.com>,
+	Andrew de los Reyes <adlr@chromium.org>,
+	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
+	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, Nick Dyer <nick.dyer@itdev.co.uk>
+Subject: [PATCH v2 3/8] [media] v4l2-core: Add VFL_TYPE_TOUCH_SENSOR
+Date: Wed,  4 May 2016 18:07:13 +0100
+Message-Id: <1462381638-7818-4-git-send-email-nick.dyer@itdev.co.uk>
+In-Reply-To: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
+References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Oh never mind, Marek posted a patch for this on Thursday which I didn't notice.
+Some touch controllers send out raw touch data in a similar way to a
+greyscale frame grabber. Add a new device type for these devices.
 
-Mauro, these two patches:
+Use a new device prefix v4l-touch for these devices, to stop generic
+capture software from treating them as webcams.
 
-[PATCH 1/2] media: exynos4-is: fix deadlock on driver probe
-[PATCH 2/2] media: s3c-camif: fix deadlock on driver probe()
+Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
+---
+ drivers/input/touchscreen/sur40.c    |  2 +-
+ drivers/media/v4l2-core/v4l2-dev.c   | 13 ++++++++++---
+ drivers/media/v4l2-core/v4l2-ioctl.c |  6 ++++--
+ include/media/v4l2-dev.h             |  3 ++-
+ 4 files changed, 17 insertions(+), 7 deletions(-)
 
-should be fasttracked for 4.6.
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 880c40b..7e5fe2b 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -599,7 +599,7 @@ static int sur40_probe(struct usb_interface *interface,
+ 	sur40->vdev.queue = &sur40->queue;
+ 	video_set_drvdata(&sur40->vdev, sur40);
+ 
+-	error = video_register_device(&sur40->vdev, VFL_TYPE_GRABBER, -1);
++	error = video_register_device(&sur40->vdev, VFL_TYPE_TOUCH_SENSOR, -1);
+ 	if (error) {
+ 		dev_err(&interface->dev,
+ 			"Unable to register video subdevice.");
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index d8e5994..8d41248 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -529,6 +529,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	bool is_sdr = vdev->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vdev->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vdev->vfl_dir != VFL_DIR_RX;
++	bool is_touch = vdev->vfl_type == VFL_TYPE_TOUCH_SENSOR;
+ 
+ 	bitmap_zero(valid_ioctls, BASE_VIDIOC_PRIVATE);
+ 
+@@ -573,7 +574,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+ 		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
+ 
+-	if (is_vid) {
++	if (is_vid || is_touch) {
+ 		/* video specific ioctls */
+ 		if ((is_rx && (ops->vidioc_enum_fmt_vid_cap ||
+ 			       ops->vidioc_enum_fmt_vid_cap_mplane ||
+@@ -662,7 +663,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			set_bit(_IOC_NR(VIDIOC_TRY_FMT), valid_ioctls);
+ 	}
+ 
+-	if (is_vid || is_vbi || is_sdr) {
++	if (is_vid || is_vbi || is_sdr || is_touch) {
+ 		/* ioctls valid for video, vbi or sdr */
+ 		SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
+ 		SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
+@@ -675,7 +676,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 		SET_VALID_IOCTL(ops, VIDIOC_STREAMOFF, vidioc_streamoff);
+ 	}
+ 
+-	if (is_vid || is_vbi) {
++	if (is_vid || is_vbi || is_touch) {
+ 		/* ioctls valid for video or vbi */
+ 		if (ops->vidioc_s_std)
+ 			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
+@@ -738,6 +739,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+ 	vdev->entity.function = MEDIA_ENT_F_UNKNOWN;
+ 
+ 	switch (type) {
++	case VFL_TYPE_TOUCH_SENSOR:
+ 	case VFL_TYPE_GRABBER:
+ 		intf_type = MEDIA_INTF_T_V4L_VIDEO;
+ 		vdev->entity.function = MEDIA_ENT_F_IO_V4L;
+@@ -844,6 +846,8 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+  *	%VFL_TYPE_SUBDEV - A subdevice
+  *
+  *	%VFL_TYPE_SDR - Software Defined Radio
++ *
++ *	%VFL_TYPE_TOUCH_SENSOR - A touch sensor
+  */
+ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 		int warn_if_nr_in_use, struct module *owner)
+@@ -887,6 +891,9 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 		/* Use device name 'swradio' because 'sdr' was already taken. */
+ 		name_base = "swradio";
+ 		break;
++	case VFL_TYPE_TOUCH_SENSOR:
++		name_base = "v4l-touch";
++		break;
+ 	default:
+ 		printk(KERN_ERR "%s called with unknown type: %d\n",
+ 		       __func__, type);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index c7dabaa..4a1093a 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -925,13 +925,14 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
++	bool is_touch = vfd->vfl_type == VFL_TYPE_TOUCH_SENSOR;
+ 
+ 	if (ops == NULL)
+ 		return -EINVAL;
+ 
+ 	switch (type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+-		if (is_vid && is_rx &&
++		if ((is_vid || is_touch) && is_rx &&
+ 		    (ops->vidioc_g_fmt_vid_cap || ops->vidioc_g_fmt_vid_cap_mplane))
+ 			return 0;
+ 		break;
+@@ -1349,6 +1350,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 	struct video_device *vfd = video_devdata(file);
+ 	bool is_vid = vfd->vfl_type == VFL_TYPE_GRABBER;
+ 	bool is_sdr = vfd->vfl_type == VFL_TYPE_SDR;
++	bool is_touch = vfd->vfl_type == VFL_TYPE_TOUCH_SENSOR;
+ 	bool is_rx = vfd->vfl_dir != VFL_DIR_TX;
+ 	bool is_tx = vfd->vfl_dir != VFL_DIR_RX;
+ 	int ret;
+@@ -1379,7 +1381,7 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 
+ 	switch (p->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+-		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap))
++		if (unlikely(!is_rx || (!is_vid && !is_touch) || !ops->vidioc_g_fmt_vid_cap))
+ 			break;
+ 		p->fmt.pix.priv = V4L2_PIX_FMT_PRIV_MAGIC;
+ 		ret = ops->vidioc_g_fmt_vid_cap(file, fh, arg);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index eeabf20..8a4e446 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -25,7 +25,8 @@
+ #define VFL_TYPE_RADIO		2
+ #define VFL_TYPE_SUBDEV		3
+ #define VFL_TYPE_SDR		4
+-#define VFL_TYPE_MAX		5
++#define VFL_TYPE_TOUCH_SENSOR	5
++#define VFL_TYPE_MAX		6
+ 
+ /* Is this a receiver, transmitter or mem-to-mem? */
+ /* Ignored for VFL_TYPE_SUBDEV. */
+-- 
+2.5.0
 
-	Hans
-
-On 05/01/2016 06:43 PM, Hans Verkuil wrote:
-> On 05/01/2016 06:42 PM, Hans Verkuil wrote:
->> I'm adding Sakari since this problem was introduced in his commit 0c426c472b5585ed6e59160359c979506d45ae49:
->> "media: Always keep a graph walk large enough around".
-> 
-> And now adding linux-media as well. Sorry about that.
-> 
-> 	Hans
-> 
->>
->> Regards,
->>
->> 	Hans
->>
->> On 05/01/2016 06:15 PM, Hans Verkuil wrote:
->>> Hi Mauro,
->>>
->>> While testing an unrelated patch series for the exynos4 using kernel 4.6 I
->>> came across this deadlock that caused the boot sequence to hang (I'm using
->>> an exynos4 Odroid U3):
->>>
->>> =============================================
->>> [ INFO: possible recursive locking detected ]
->>> 4.6.0-rc5-odroid #987 Not tainted
->>> ---------------------------------------------
->>> swapper/0/1 is trying to acquire lock:
->>>  (&mdev->graph_mutex){+.+.+.}, at: [<c05d96d4>] media_device_register_entity+0x78/0x1e8
->>>
->>> but task is already holding lock:
->>>  (&mdev->graph_mutex){+.+.+.}, at: [<c060cec8>] fimc_md_probe+0x22c/0xac0
->>>
->>> other info that might help us debug this:
->>>  Possible unsafe locking scenario:
->>>
->>>        CPU0
->>>        ----
->>>   lock(&mdev->graph_mutex);
->>>   lock(&mdev->graph_mutex);
->>>
->>>  *** DEADLOCK ***
->>>
->>>  May be due to missing lock nesting notation
->>>
->>> 4 locks held by swapper/0/1:
->>>  #0:  (&dev->mutex){......}, at: [<c04aed50>] __driver_attach+0x58/0xcc
->>>  #1:  (&dev->mutex){......}, at: [<c04aed60>] __driver_attach+0x68/0xcc
->>>  #2:  (&mdev->graph_mutex){+.+.+.}, at: [<c060cec8>] fimc_md_probe+0x22c/0xac0
->>>  #3:  (&dev->mutex){......}, at: [<c060cf98>] fimc_md_probe+0x2fc/0xac0
->>>
->>> stack backtrace:
->>> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.6.0-rc5-odroid #987
->>> Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
->>> Backtrace:
->>> [<c010bd94>] (dump_backtrace) from [<c010bf90>] (show_stack+0x18/0x1c)
->>>  r7:c0d1c9a4 r6:c0d1c9a4 r5:200001d3 r4:00000000
->>> [<c010bf78>] (show_stack) from [<c03e65dc>] (dump_stack+0xb0/0xdc)
->>> [<c03e652c>] (dump_stack) from [<c016c854>] (__lock_acquire+0x19bc/0x1dcc)
->>>  r9:ee880000 r8:c1516a7c r7:c14dc9ec r6:c0e99058 r5:c0e99058 r4:c0e99058
->>> [<c016ae98>] (__lock_acquire) from [<c016d518>] (lock_acquire+0x78/0x98)
->>>  r10:eefad144 r9:eea95044 r8:ee880000 r7:00000001 r6:00000000 r5:60000153
->>>  r4:00000000
->>> [<c016d4a0>] (lock_acquire) from [<c089bd74>] (mutex_lock_nested+0x70/0x4c0)
->>>  r7:c14dc9ec r6:c05d96d4 r5:00000000 r4:ee2bdcac
->>> [<c089bd04>] (mutex_lock_nested) from [<c05d96d4>] (media_device_register_entity+0x78/0x1e8)
->>>  r10:eefad144 r9:eea95044 r8:ee2bdc44 r7:ee2bdcac r6:ee2bd910 r5:00000000
->>>  r4:ee30d4d0
->>> [<c05d965c>] (media_device_register_entity) from [<c05e3ed8>] (v4l2_device_register_subdev+0xa4/0x174)
->>>  r8:ee30d010 r7:eefad4ac r6:00000000 r5:ee2bdd90 r4:ee30d4d0
->>> [<c05e3e34>] (v4l2_device_register_subdev) from [<c060d1e0>] (fimc_md_probe+0x544/0xac0)
->>>  r7:eefad4ac r6:eea95000 r5:ee30d4d0 r4:ee2bd810
->>> [<c060cc9c>] (fimc_md_probe) from [<c04b06bc>] (platform_drv_probe+0x54/0xb8)
->>>  r10:00000116 r9:00000000 r8:c0d36da4 r7:fffffdfb r6:c0d36da4 r5:eea94c10
->>>  r4:eea94c10
->>> [<c04b0668>] (platform_drv_probe) from [<c04aec4c>] (driver_probe_device+0x21c/0x2c8)
->>>  r7:00000000 r6:c151c298 r5:c151c290 r4:eea94c10
->>> [<c04aea30>] (driver_probe_device) from [<c04aedc0>] (__driver_attach+0xc8/0xcc)
->>>  r9:c0d52000 r8:00000000 r7:00000000 r6:eea94c44 r5:c0d36da4 r4:eea94c10
->>> [<c04aecf8>] (__driver_attach) from [<c04acd04>] (bus_for_each_dev+0x70/0xa4)
->>>  r7:00000000 r6:c04aecf8 r5:c0d36da4 r4:00000000
->>> [<c04acc94>] (bus_for_each_dev) from [<c04ae43c>] (driver_attach+0x24/0x28)
->>>  r6:c0d26af8 r5:eea76c80 r4:c0d36da4
->>> [<c04ae418>] (driver_attach) from [<c04adfd8>] (bus_add_driver+0x1a8/0x220)
->>> [<c04ade30>] (bus_add_driver) from [<c04af560>] (driver_register+0x80/0x100)
->>>  r7:edd74d80 r6:c0d05a90 r5:c0c1c83c r4:c0d36da4
->>> [<c04af4e0>] (driver_register) from [<c04b061c>] (__platform_driver_register+0x48/0x50)
->>>  r5:c0c1c83c r4:c0d05a90
->>> [<c04b05d4>] (__platform_driver_register) from [<c0c1c870>] (fimc_md_init+0x34/0x40)
->>> [<c0c1c83c>] (fimc_md_init) from [<c0101898>] (do_one_initcall+0x98/0x1e4)
->>> [<c0101800>] (do_one_initcall) from [<c0c00e34>] (kernel_init_freeable+0x164/0x208)
->>>  r8:00000006 r7:c0c34858 r6:c0c00608 r5:c0c34850 r4:c0d52000
->>> [<c0c00cd0>] (kernel_init_freeable) from [<c0899c84>] (kernel_init+0x10/0x11c)
->>>  r10:00000000 r9:00000000 r8:00000000 r7:00000000 r6:00000000 r5:c0899c74
->>>  r4:00000000
->>> [<c0899c74>] (kernel_init) from [<c0107cf0>] (ret_from_fork+0x14/0x24)
->>>  r5:c0899c74 r4:00000000
->>>
->>> Commenting out 'mutex_lock(&fmd->media_dev.graph_mutex);' in fimc_md_probe()
->>> makes it boot again, but I'm not 100% certain that's correct.
->>>
->>> Can you take a look?
->>>
->>> Thanks!
->>>
->>> 	Hans
->>>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
