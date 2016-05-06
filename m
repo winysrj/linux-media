@@ -1,220 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout.easymail.ca ([64.68.201.169]:48867 "EHLO
-	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753498AbcEDTsc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 15:48:32 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, lars@metafoo.de
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v3] media: fix use-after-free in cdev_put() when app exits after driver unbind
-Date: Wed,  4 May 2016 13:48:28 -0600
-Message-Id: <1462391308-7620-1-git-send-email-shuahkh@osg.samsung.com>
+Received: from smtp1.goneo.de ([85.220.129.30]:33973 "EHLO smtp1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757430AbcEFO1j convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2016 10:27:39 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: Kernel docs: muddying the waters a bit
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160506104210.12197832@recife.lan>
+Date: Fri, 6 May 2016 16:27:21 +0200
+Cc: Jani Nikula <jani.nikula@intel.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>,
+	"@mx4.goneo.de>"@mx6.goneo.de
+Content-Transfer-Encoding: 8BIT
+Message-Id: <3EA89E0D-9951-437C-A2E0-E6866A43A459@darmarit.de>
+References: <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net> <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com> <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com> <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de> <874maef8km.fsf@intel.com> <13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de> <20160504134346.GY14148@phenom.ffwll.local> <44110C0C-2E98-4470-9DB1-B72406E901A0@darmarit.de> <87inytn6n2.fsf@intel.com> <6BDB8BFB-6AEA-46A8-B535-C69FBC6FF3BD@darmarit.de> <20160506083529.31ad2fa0@recife.lan> <BAE3C147-6C21-4242-BD3C-8989C1626E10@darmarit.de> <20160506104210.12197832@recife.lan>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When driver unbinds while media_ioctl is in progress, cdev_put() fails with
-when app exits after driver unbinds.
+Hi all, hi Jonathan,
 
-Add devnode struct device kobj as the cdev parent kobject. cdev_add() gets
-a reference to it and releases it in cdev_del() ensuring that the devnode
-is not deallocated as long as the application has the device file open.
+Am 06.05.2016 um 15:42 schrieb Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
 
-media_devnode_register() initializes the struct device kobj before calling
-cdev_add(). media_devnode_unregister() does cdev_del() and then deletes the
-device. devnode is released when the last reference to the struct device is
-gone.
+> Em Fri, 6 May 2016 15:32:35 +0200
+> Markus Heiser <markus.heiser@darmarit.de> escreveu:
+> 
+>> Hi Mauro,
+>> 
+>> Am 06.05.2016 um 13:35 schrieb Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+>> 
+>>> Markus,
+>>> 
+>>> Em Fri, 6 May 2016 13:23:06 +0200
+>>> Markus Heiser <markus.heiser@darmarit.de> escreveu:
+>>> 
+>>>> 
+>>>> In this conf.py you have to *register* your folder with the extensions.
+>>>> A few words about the flat-table extension and a (future) kernel-doc one:  
+>>> 
+>>> ...
+>>> 
+>>>> The flat-table is a pure docutils (the layer below sphinx) extension which
+>>>> is not application specific, so I will ask for moving it to the docutils 
+>>>> upstream.   
+>>> 
+>>> So, if I understood well, your proposal is to have a conf.py and the
+>>> flat-table (plus other extensions) at the Kernel tree.  
+>> 
+>> Each book (better call it root-node) is a Sphinx-project, each 
+>> Sphinx-project need a conf.py file (the build configuration file)
+>> in its reST-source tree.
+>> 
+>> * http://www.sphinx-doc.org/en/stable/config.html
+>> 
+>>> Assuming that docutils upstream receives the flat-table extension
+>>> (and eventually modifies it), while the new version doesn't arrive
+>>> all distros, we'll end by having some developers using the newer
+>>> docutils with the extension, plus others using the in-tree one.
+>>> 
+>>> Is there a way to specify at the conf.py what extension variant
+>>> should it use, in case of both the in-tree or the docutils have
+>>> the same?  
+>> 
+>> The build configuration file is a regular python file, you can 
+>> implement conditions whatever you want/need.
+>> 
+>>> This could be trickier if they end by modifying the extension,
+>>> but we can always backport the latest version, if they change the
+>>> API.  
+>> 
+>> As far as i know, the docutils API is stable since 2002. In the
+>> meantime there has been so many application build on it that
+>> it is not realistic, you will see a not backward compatibly 
+>> change.
+>> 
+>> The docutils project is conservative, very conservative, IMO to
+>> conservative.
+>> 
+>> Today I'am doubtful if it isn't better I would merge it sphinx
+>> upstream. I have to discuss this with some maintainers, but 
+>> before I have to persuade myself, that all aspects are covered
+>> and the implementations are robust. We are at the beginning and
+>> we should not fear about every bit which could happen in the future.
+>> 
+>> The sphinx / docutils bottom plate gives us a number of degrees 
+>> of freedom to find answers to question we have not yet asked. ;-)
+> 
+> Ok. So, from what I understand, once Sphinx support is added at
+> Kernel upstream, we could convert the media docbook to
+> reST+flat-table extension, adding such extension either on a shared
+> place or only for the media DocBook build, together with its
+> conf.py.
+> 
 
-This problem is found on uvcvideo, em28xx, and au0828 drivers and fix has
-been tested on all three.
+Yes, in your media-conf you could decide to use a extension.
 
-kernel: [  193.599736] BUG: KASAN: use-after-free in cdev_put+0x4e/0x50
-kernel: [  193.599745] Read of size 8 by task media_device_te/1851
-kernel: [  193.599792] INFO: Allocated in __media_device_register+0x54
-kernel: [  193.599951] INFO: Freed in media_devnode_release+0xa4/0xc0
+> Once it reaches upstream (either sphinx or docutils), we can
+> work to make it integrate better with upstream as needed.
+> 
+> Right?
 
-kernel: [  193.601083] Call Trace:
-kernel: [  193.601093]  [<ffffffff81aecac3>] dump_stack+0x67/0x94
-kernel: [  193.601102]  [<ffffffff815359b2>] print_trailer+0x112/0x1a0
-kernel: [  193.601111]  [<ffffffff8153b5e4>] object_err+0x34/0x40
-kernel: [  193.601119]  [<ffffffff8153d9d4>] kasan_report_error+0x224/0x530
-kernel: [  193.601128]  [<ffffffff814a2c3d>] ? kzfree+0x2d/0x40
-kernel: [  193.601137]  [<ffffffff81539d72>] ? kfree+0x1d2/0x1f0
-kernel: [  193.601154]  [<ffffffff8157ca7e>] ? cdev_put+0x4e/0x50
-kernel: [  193.601162]  [<ffffffff8157ca7e>] cdev_put+0x4e/0x50
-kernel: [  193.601170]  [<ffffffff815767eb>] __fput+0x52b/0x6c0
-kernel: [  193.601179]  [<ffffffff8117743a>] ? switch_task_namespaces+0x2a
-kernel: [  193.601188]  [<ffffffff815769ee>] ____fput+0xe/0x10
-kernel: [  193.601196]  [<ffffffff81170023>] task_work_run+0x133/0x1f0
-kernel: [  193.601204]  [<ffffffff8117746e>] ? switch_task_namespaces+0x5e
-kernel: [  193.601213]  [<ffffffff8111b50c>] do_exit+0x72c/0x2c20
-kernel: [  193.601224]  [<ffffffff8111ade0>] ? release_task+0x1250/0x1250
--
--
--
-kernel: [  193.601360]  [<ffffffff81003587>] ? exit_to_usermode_loop+0xe7
-kernel: [  193.601368]  [<ffffffff810035c0>] exit_to_usermode_loop+0x120
-kernel: [  193.601376]  [<ffffffff810061da>] syscall_return_slowpath+0x16a
-kernel: [  193.601386]  [<ffffffff82848b33>] entry_SYSCALL_64_fastpath+0xa6
+yes, right :-)
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
----
+> If so, I'm ok with merging it as soon as possible.
 
-Changes since v2:
-- Changed pr_info()s to pr_debug()s
-Changes since v1:
-- Addressed review comments from Lars-Peter Clausen
+If we advice a merge of the flat-table directive we should 
+bundle this with the (to implement) "kernel-doc" directive ...
 
- drivers/media/media-device.c  |  6 ++++--
- drivers/media/media-devnode.c | 45 ++++++++++++++++++++++++++-----------------
- 2 files changed, 31 insertions(+), 20 deletions(-)
+> In reST the directive might look like:
+> 
+> <reST-SNIP> -----
+> Device Instance and Driver Handling
+> ===================================
+> 
+> .. kernel-doc::  drivers/gpu/drm/drm_drv.c
+>   :doc:      driver instance overview
+>   :exported:
+> 
+> <reST-SNAP> -----
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 84e6a0b..a853384 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -742,16 +742,16 @@ int __must_check __media_device_register(struct media_device *mdev,
- 
- 	ret = media_devnode_register(mdev, devnode, owner);
- 	if (ret < 0) {
-+		/* devnode free is handled in media_devnode_*() */
- 		mdev->devnode = NULL;
--		kfree(devnode);
- 		return ret;
- 	}
- 
- 	ret = device_create_file(&devnode->dev, &dev_attr_model);
- 	if (ret < 0) {
-+		/* devnode free is handled in media_devnode_*() */
- 		mdev->devnode = NULL;
- 		media_devnode_unregister(devnode);
--		kfree(devnode);
- 		return ret;
- 	}
- 
-@@ -829,6 +829,8 @@ void media_device_unregister(struct media_device *mdev)
- 	if (media_devnode_is_registered(mdev->devnode)) {
- 		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
- 		media_devnode_unregister(mdev->devnode);
-+		/* devnode free is handled in media_devnode_*() */
-+		mdev->devnode = NULL;
- 	}
- 
- 	dev_dbg(mdev->dev, "Media device unregistered\n");
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index ca7c4b9..eedf658 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -63,13 +63,8 @@ static void media_devnode_release(struct device *cd)
- 	struct media_devnode *devnode = to_media_devnode(cd);
- 
- 	mutex_lock(&media_devnode_lock);
--
--	/* Delete the cdev on this minor as well */
--	cdev_del(&devnode->cdev);
--
- 	/* Mark device node number as free */
- 	clear_bit(devnode->minor, media_devnode_nums);
--
- 	mutex_unlock(&media_devnode_lock);
- 
- 	/* Release media_devnode and perform other cleanups as needed. */
-@@ -77,6 +72,7 @@ static void media_devnode_release(struct device *cd)
- 		devnode->release(devnode);
- 
- 	kfree(devnode);
-+	pr_debug("%s: Media Devnode Deallocated\n", __func__);
- }
- 
- static struct bus_type media_bus_type = {
-@@ -204,6 +200,7 @@ static int media_release(struct inode *inode, struct file *filp)
- 	   return value is ignored. */
- 	put_device(&devnode->dev);
- 	filp->private_data = NULL;
-+	pr_debug("%s: Media Release\n", __func__);
- 	return 0;
- }
- 
-@@ -234,6 +231,7 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	if (minor == MEDIA_NUM_DEVICES) {
- 		mutex_unlock(&media_devnode_lock);
- 		pr_err("could not get a free minor\n");
-+		kfree(devnode);
- 		return -ENFILE;
- 	}
- 
-@@ -243,27 +241,31 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	devnode->minor = minor;
- 	devnode->media_dev = mdev;
- 
-+	/* Part 1: Initialize dev now to use dev.kobj for cdev.kobj.parent */
-+	devnode->dev.bus = &media_bus_type;
-+	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
-+	devnode->dev.release = media_devnode_release;
-+	if (devnode->parent)
-+		devnode->dev.parent = devnode->parent;
-+	dev_set_name(&devnode->dev, "media%d", devnode->minor);
-+	device_initialize(&devnode->dev);
-+
- 	/* Part 2: Initialize and register the character device */
- 	cdev_init(&devnode->cdev, &media_devnode_fops);
- 	devnode->cdev.owner = owner;
-+	devnode->cdev.kobj.parent = &devnode->dev.kobj;
- 
- 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
- 	if (ret < 0) {
- 		pr_err("%s: cdev_add failed\n", __func__);
--		goto error;
-+		goto cdev_add_error;
- 	}
- 
--	/* Part 3: Register the media device */
--	devnode->dev.bus = &media_bus_type;
--	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
--	devnode->dev.release = media_devnode_release;
--	if (devnode->parent)
--		devnode->dev.parent = devnode->parent;
--	dev_set_name(&devnode->dev, "media%d", devnode->minor);
--	ret = device_register(&devnode->dev);
-+	/* Part 3: Add the media device */
-+	ret = device_add(&devnode->dev);
- 	if (ret < 0) {
--		pr_err("%s: device_register failed\n", __func__);
--		goto error;
-+		pr_err("%s: device_add failed\n", __func__);
-+		goto device_add_error;
- 	}
- 
- 	/* Part 4: Activate this minor. The char device can now be used. */
-@@ -271,9 +273,12 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 
- 	return 0;
- 
--error:
-+device_add_error:
- 	cdev_del(&devnode->cdev);
-+cdev_add_error:
- 	clear_bit(devnode->minor, media_devnode_nums);
-+	devnode->media_dev = NULL;
-+	put_device(&devnode->dev);
- 	return ret;
- }
- 
-@@ -285,8 +290,12 @@ void media_devnode_unregister(struct media_devnode *devnode)
- 
- 	mutex_lock(&media_devnode_lock);
- 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
-+	/* Delete the cdev on this minor as well */
-+	cdev_del(&devnode->cdev);
- 	mutex_unlock(&media_devnode_lock);
--	device_unregister(&devnode->dev);
-+	device_del(&devnode->dev);
-+	devnode->media_dev = NULL;
-+	put_device(&devnode->dev);
- }
- 
- /*
--- 
-2.7.4
+and the patches from my kernel-doc perl script to produce
+reST from source code comments.
 
+With this bundle within the kernel tree we have a good starting
+point to compose reST documents from scratch and to migrate book
+by book from DocBook to reST.
+
+I insist to migrate book by book, because there are some
+broken books. Broken by that, that some sources have changed
+but not the corresponding documentation which use the comments
+of these sources ... grap "Ooops" in the builded (xml or rst) docs.
+
+E.g. I greped the .rst file and found the following Oops in the migrated books:
+
+./books/mtdnand/pubfunctions-000-012.rst:13:Oops
+./books/scsi/mid_layer-000-001-016-003.rst:13:Oops
+./books/s390-drivers/ccw-000-004-003.rst:13:Oops
+./books/device-drivers/devdrivers-000-003-048.rst:13:Oops
+./books/device-drivers/devdrivers-000-003-050.rst:13:Oops
+./books/device-drivers/Basics-000-001-002.rst:13:Oops
+./books/device-drivers/devdrivers-000-003-031.rst:13:Oops
+./books/device-drivers/Basics-000-009-032.rst:13:Oops
+./books/kernel-api/kernel-lib-000-004-008.rst:13:Oops
+./books/gadget/api-000-011-005.rst:13:Oops
+./books/gadget/api-000-011-009.rst:13:Oops
+./books/gadget/api-000-011-007.rst:13:Oops
+./books/gadget/api-000-011-003.rst:13:Oops
+./books/gadget/api-000-011-011.rst:13:Oops
+./books/genericirq/intfunctions-000-009.rst:13:Oops
+
+----- Summarize ----
+
+@Jonathan: what do you think? Should I prepare a patch
+with a basic reST (sphinx) build infrastructure, including
+
+* a folder for sphinx docs:
+
+  ./Documentation/sphinx/
+
+* flat-table & kernel-doc extension at
+
+  ./Documentation/sphinx/extensions
+
+* a patch with rst-Output for the kernel-doc perl script at
+
+  ./scripts/kernel-doc
+
+* An example document "HowTo document with reST" at
+
+  ./Documentation/sphinx/kernel-doc-rst-howto
+
+  which at minimum describes the "flat-table" and "kernel-doc" 
+  directive and the requirements for a building docs.
+
+* a make file which fit into the kernel Makefile infrastructure (not 
+  the one created by sphinx-quickstart).
+
+-- Markus 
