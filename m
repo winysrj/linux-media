@@ -1,85 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36315 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750776AbcEGPWV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 May 2016 11:22:21 -0400
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH 2/7] pwm: omap-dmtimer: Allow for setting dmtimer clock source
-Date: Sat,  7 May 2016 18:21:43 +0300
-Message-Id: <1462634508-24961-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Received: from mga11.intel.com ([192.55.52.93]:47959 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758562AbcEFPw4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 May 2016 11:52:56 -0400
+From: Jani Nikula <jani.nikula@intel.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Subject: Re: Kernel docs: muddying the waters a bit
+In-Reply-To: <FE0A9B16-D835-4C4A-8149-320D74F36715@darmarit.de>
+References: <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net> <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com> <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com> <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de> <874maef8km.fsf@intel.com> <13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de> <20160504134346.GY14148@phenom.ffwll.local> <44110C0C-2E98-4470-9DB1-B72406E901A0@darmarit.de> <87inytn6n2.fsf@intel.com> <6BDB8BFB-6AEA-46A8-B535-C69FBC6FF3BD@darmarit.de> <20160506083529.31ad2fa0@recife.lan> <BAE3C147-6C21-4242-BD3C-8989C1626E10@darmarit.de> <20160506104210.12197832@recife.lan> <3EA89E0D-9951-437C-A2E0-E6866A43A459@darmarit.de> <87poszgr92.fsf@intel.com> <FE0A9B16-D835-4C4A-8149-320D74F36715@darmarit.de>
+Date: Fri, 06 May 2016 18:52:08 +0300
+Message-ID: <87k2j7gp5j.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OMAP GP timers can have different input clocks that allow different PWM
-frequencies. However, there is no other way of setting the clock source but
-through clocks or clock-names properties of the timer itself. This limits
-PWM functionality to only the frequencies allowed by the particular clock
-source. Allowing setting the clock source by PWM rather than by timer
-allows different PWMs to have different ranges by not hard-wiring the clock
-source to the timer.
+On Fri, 06 May 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+> Am 06.05.2016 um 17:06 schrieb Jani Nikula <jani.nikula@intel.com>:
+>
+>> On Fri, 06 May 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+>>> @Jonathan: what do you think? Should I prepare a patch
+>>> with a basic reST (sphinx) build infrastructure, including
+>>> 
+>>> * a folder for sphinx docs:
+>>> 
+>>>  ./Documentation/sphinx/
+>> 
+>> I'm already working on a patch series taking a different approach. I
+>> don't think we should hide the documentation under an extra folder named
+>> after a tool. Actually, I'm strongly opposed to that.
+>
+> Could you post a link to a repo? / thanks
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
----
- Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt |  4 ++++
- drivers/pwm/pwm-omap-dmtimer.c                             | 12 +++++++-----
- 2 files changed, 11 insertions(+), 5 deletions(-)
+Very much a work-in-progress
+https://cgit.freedesktop.org/~jani/drm/log/?h=sphinx
 
-diff --git a/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt b/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
-index 5befb53..2e53324 100644
---- a/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
-+++ b/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
-@@ -9,6 +9,10 @@ Required properties:
- 
- Optional properties:
- - ti,prescaler: Should be a value between 0 and 7, see the timers datasheet
-+- ti,clock-source: Set dmtimer parent clock, values between 0 and 2:
-+  - 0x00 - high-frequency system clock (timer_sys_ck)
-+  - 0x01 - 32-kHz always-on clock (timer_32k_ck)
-+  - 0x02 - external clock (timer_ext_ck, OMAP2 only)
- 
- Example:
- 	pwm9: dmtimer-pwm@9 {
-diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
-index b7e6ecb..95964c6 100644
---- a/drivers/pwm/pwm-omap-dmtimer.c
-+++ b/drivers/pwm/pwm-omap-dmtimer.c
-@@ -245,7 +245,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
- 	struct pwm_omap_dmtimer_chip *omap;
- 	struct pwm_omap_dmtimer_pdata *pdata;
- 	pwm_omap_dmtimer *dm_timer;
--	u32 prescaler;
-+	u32 v;
- 	int status;
- 
- 	pdata = dev_get_platdata(&pdev->dev);
-@@ -306,10 +306,12 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
- 	if (pm_runtime_active(&omap->dm_timer_pdev->dev))
- 		omap->pdata->stop(omap->dm_timer);
- 
--	/* setup dmtimer prescaler */
--	if (!of_property_read_u32(pdev->dev.of_node, "ti,prescaler",
--				&prescaler))
--		omap->pdata->set_prescaler(omap->dm_timer, prescaler);
-+	if (!of_property_read_u32(pdev->dev.of_node, "ti,prescaler", &v))
-+		omap->pdata->set_prescaler(omap->dm_timer, v);
-+
-+	/* setup dmtimer clock source */
-+	if (!of_property_read_u32(pdev->dev.of_node, "ti,clock-source", &v))
-+		omap->pdata->set_source(omap->dm_timer, v);
- 
- 	omap->chip.dev = &pdev->dev;
- 	omap->chip.ops = &pwm_omap_dmtimer_ops;
+I was hoping to polish it a bit more before showing it to the world.
+
+> There is no need for concurrency, let's work together on your repo. 
+> Within my POC I realized similar building processes we will need in the
+> kernel sources ... where you have cascading configuration. A base 
+> configuration which fits for all common cases and (if needed) a 
+> *per-book* configuration.
+>
+> At the end, when it comes to generate pdf books/articles, man pages 
+> and e.g. texinfo files out of a sphinx-project you will need a build
+> infrastructure like this.
+
+...
+
+> You will need on sphinx-project for each DocBook and one single 
+> sphinx-project where you collect the .txt to .rst migrated files.
+
+Surely you know more about Sphinx than I do, but I specifically would
+like to include e.g. gpu documentation in the main build. I'm really
+hoping we can have *additional* configuration files for special cases
+(only) as needed.
+
+BR,
+Jani.
+
+
 -- 
-1.9.1
-
+Jani Nikula, Intel Open Source Technology Center
