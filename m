@@ -1,131 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:32867 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750883AbcEGPWZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 May 2016 11:22:25 -0400
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH 4/7] [media] ir-rx51: add DT support to driver
-Date: Sat,  7 May 2016 18:21:45 +0300
-Message-Id: <1462634508-24961-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Received: from smtp3-1.goneo.de ([85.220.129.38]:60649 "EHLO smtp3-1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756585AbcEFLox convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2016 07:44:53 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: Kernel docs: muddying the waters a bit
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <6BDB8BFB-6AEA-46A8-B535-C69FBC6FF3BD@darmarit.de>
+Date: Fri, 6 May 2016 13:44:36 +0200
+Cc: Daniel Vetter <daniel@ffwll.ch>, Jonathan Corbet <corbet@lwn.net>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media\@vger.kernel.org linux-media"
+	<linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <290D2854-67ED-4339-A56E-BA46A9D7B791@darmarit.de>
+References: <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net> <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com> <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com> <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de> <874maef8km.fsf@intel.com> <13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de> <20160504134346.GY14148@phenom.ffwll.local> <44110C0C-2E98-4470-9DB1-B72406E901A0@darmarit.de> <87inytn6n2.fsf@intel.com> <6BDB8BFB-6AEA-46A8-B535-C69FBC6FF3BD@darmarit.de>
+To: Jani Nikula <jani.nikula@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the upcoming removal of legacy boot, lets add support to one of the
-last N900 drivers remaining without it. As the driver still uses omap
-dmtimer, add auxdata as well.
+Hi Jani,
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
----
- .../devicetree/bindings/media/nokia,lirc-rx51         | 19 +++++++++++++++++++
- arch/arm/mach-omap2/pdata-quirks.c                    |  6 +-----
- drivers/media/rc/ir-rx51.c                            | 11 ++++++++++-
- 3 files changed, 30 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/nokia,lirc-rx51
+I forget to mentioning, with a local copy of my kernel-doc script:
 
-diff --git a/Documentation/devicetree/bindings/media/nokia,lirc-rx51 b/Documentation/devicetree/bindings/media/nokia,lirc-rx51
-new file mode 100644
-index 0000000..5b3081e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/nokia,lirc-rx51
-@@ -0,0 +1,19 @@
-+Device-Tree bindings for LIRC TX driver for Nokia N900(RX51)
-+
-+Required properties:
-+	- compatible: should be "nokia,lirc-rx51".
-+	- pwms: specifies PWM used for IR signal transmission.
-+
-+Example node:
-+
-+	pwm9: dmtimer-pwm@9 {
-+		compatible = "ti,omap-dmtimer-pwm";
-+		ti,timers = <&timer9>;
-+		#pwm-cells = <3>;
-+	};
-+
-+	ir: lirc-rx51 {
-+		compatible = "nokia,lirc-rx51";
-+
-+		pwms = <&pwm9 0 26316 0>; /* 38000 Hz */
-+	};
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index af65781..c15ccac 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -273,8 +273,6 @@ static struct platform_device omap3_rom_rng_device = {
- 	},
- };
- 
--static struct platform_device rx51_lirc_device;
--
- static void __init nokia_n900_legacy_init(void)
- {
- 	hsmmc2_internal_input_clk();
-@@ -293,10 +291,7 @@ static void __init nokia_n900_legacy_init(void)
- 
- 		pr_info("RX-51: Registering OMAP3 HWRNG device\n");
- 		platform_device_register(&omap3_rom_rng_device);
--
- 	}
--
--	platform_device_register(&rx51_lirc_device);
- }
- 
- static void __init omap3_tao3530_legacy_init(void)
-@@ -534,6 +529,7 @@ static struct of_dev_auxdata omap_auxdata_lookup[] __initdata = {
- 		       &omap3_iommu_pdata),
- 	OF_DEV_AUXDATA("ti,omap3-hsmmc", 0x4809c000, "4809c000.mmc", &mmc_pdata[0]),
- 	OF_DEV_AUXDATA("ti,omap3-hsmmc", 0x480b4000, "480b4000.mmc", &mmc_pdata[1]),
-+	OF_DEV_AUXDATA("nokia,lirc-rx51", 0, "lirc-rx51", &rx51_lirc_data),
- 	/* Only on am3517 */
- 	OF_DEV_AUXDATA("ti,davinci_mdio", 0x5c030000, "davinci_mdio.0", NULL),
- 	OF_DEV_AUXDATA("ti,am3517-emac", 0x5c000000, "davinci_emac.0",
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 5096ef3..7a329d8 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -21,6 +21,7 @@
- #include <linux/sched.h>
- #include <linux/wait.h>
- #include <linux/pwm.h>
-+#include <linux/of.h>
- 
- #include <media/lirc.h>
- #include <media/lirc_dev.h>
-@@ -478,6 +479,14 @@ static int lirc_rx51_remove(struct platform_device *dev)
- 	return lirc_unregister_driver(lirc_rx51_driver.minor);
- }
- 
-+static const struct of_device_id lirc_rx51_match[] = {
-+	{
-+		.compatible = "nokia,lirc-rx51",
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, lirc_rx51_match);
-+
- struct platform_driver lirc_rx51_platform_driver = {
- 	.probe		= lirc_rx51_probe,
- 	.remove		= lirc_rx51_remove,
-@@ -485,7 +494,7 @@ struct platform_driver lirc_rx51_platform_driver = {
- 	.resume		= lirc_rx51_resume,
- 	.driver		= {
- 		.name	= DRIVER_NAME,
--		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(lirc_rx51_match),
- 	},
- };
- module_platform_driver(lirc_rx51_platform_driver);
--- 
-1.9.1
+https://github.com/return42/sphkerneldoc/blob/master/scripts/kernel-doc
+
+You could do reST markup in the source code comments and extract them.
+
+This might be a interim workaround which helps you not to edit source 
+code comments twice.
+
+-- Markus--
+
+
+
+Am 06.05.2016 um 13:23 schrieb Markus Heiser <markus.heiser@darmarIT.de>:
+
+> 
+> Hy Jani,
+> 
+> Am 04.05.2016 um 18:13 schrieb Jani Nikula <jani.nikula@intel.com>:
+> 
+>>> Am 04.05.2016 um 17:09 schrieb Jonathan Corbet <corbet@lwn.net>:
+>>> 
+>>>> I think all of this makes sense.  It would be really nice to have the
+>>>> directives in the native sphinx language like that.  I *don't* think we
+>>>> need to aim for that at the outset; the docproc approach works until we can
+>>>> properly get rid of it.  What would be *really* nice would be to get
+>>>> support for the kernel-doc directive into the sphinx upstream.
+>>> 
+>>> No need for kernel-doc directive in sphinx upstream, later it will be 
+>>> an extension which could be installed by a simple command like 
+>>> "pip install kernel-doc-extensions" or similar.
+>>> 
+>>> I develop these required extension (and more) within my proof of concept
+>>> on github ... this takes time ... if I finished all my tests and all is
+>>> well, I will build the *kernel-doc-extensions* package and deploy it
+>>> on https://pypi.python.org/pypi from where everyone could install this 
+>>> with "pip".
+>> 
+>> I think we should go for vanilla sphinx at first, to make the setup step
+>> as easy as possible for everyone. Even if it means still doing that ugly
+>> docproc step to call kernel-doc. We can improve from there, and I
+>> definitely appreciate your work on making this work with sphinx
+>> extensions.
+> 
+> +1 
+> 
+>> That said, how would it work to include the kernel-doc extension in the
+>> kernel source tree? Having things just work if sphinx is installed is
+>> preferred over requiring installation of something extra from pypi. (I
+>> know this may sound backwards for a lot of projects, but for kernel I'm
+>> pretty sure this is how it should be done.)
+> 
+> Thats all right. Lets talk about the extension infrastructure by example:
+> 
+> First we have to chose a folder where we place all the *sphinx-documentation*
+> I recommending:
+> 
+> /share/linux/Documentation/sphinx
+> 
+> Next we have to chose a folder where reST-extensions should take place, I
+> would prefer ... or similar:
+> 
+> /share/linux/Documentation/sphinx/extensions
+> 
+> Lets say, you wan't to get in use of the "flat-table" extension.
+> 
+> Copy (only) the rstFlatTable.py file from my POC extension folder (ignore
+> other extensions which might be there) ...
+> 
+> https://github.com/return42/sphkerneldoc/tree/master/doc/extensions
+> 
+> Now lets say you are writing on a gpu book, it wold be placed in the folder:
+> 
+> /share/linux/Documentation/sphinx/gpu
+> 
+> In this gpu-folder you have to place the conf.py config file, needed to
+> setup the sphinx build environment.
+> 
+> /share/linux/Documentation/sphinx/gpu/conf.py
+> 
+> In this conf.py you have to *register* your folder with the extensions.
+> 
+> <SNIP conf.py> --------
+> 
+>    import os.path, sys
+> 
+>    EXT_PATH  = "../extensions"  # the path of extension folder relative to the conf.py file
+>    sys.path.insert(0, os.path.join(os.path.dirname(__file__), EXT_PATH)))
+> 
+>    # now import the "flat-table" extension, it will be self-registering to docutils
+> 
+>    import rstFlatTable
+> 
+> <SNIP conf.py> --------
+> 
+> Thats all, you can run your sphinx-build command and the flat-tables in your
+> reST sources should be handled as common tables.
+> 
+> ASIDE: 
+> 
+> You will find similar parts in your conf.py which you have created 
+> with the sphinx-quickstart command. There, you will also find a block 
+> looks like ...
+> 
+> extensions = [
+>    'sphinx.ext.autodoc'
+> ....
+> ]
+> 
+> Don't try to add flat-table extension to this list. This list is a list
+> of sphinx extensions, we will use it later for other *real* sphinx 
+> extensions.
+> 
+> A few words about the flat-table extension and a (future) kernel-doc one:
+> 
+> The flat-table is a pure docutils (the layer below sphinx) extension which
+> is not application specific, so I will ask for moving it to the docutils 
+> upstream. 
+> 
+> The kernel-doc extension on the other side is a very (very) kernel specific
+> application, this would never go to sphinx nor docutils upstream.
+> 
+> --Markus--
+> 
 
