@@ -1,103 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:35791 "EHLO
-	smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751780AbcEYTTv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2016 15:19:51 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-To: linux-media@vger.kernel.org, ulrich.hecht@gmail.com,
-	hverkuil@xs4all.nl
-Cc: linux-renesas-soc@vger.kernel.org,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	William Towle <william.towle@codethink.co.uk>,
-	Rob Taylor <rob.taylor@codethink.co.uk>,
-	=?UTF-8?q?Niklas=20S=C3=B6derlund?=
-	<niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 1/8] media: rcar-vin: pad-aware driver initialisation
-Date: Wed, 25 May 2016 21:10:02 +0200
-Message-Id: <1464203409-1279-2-git-send-email-niklas.soderlund@ragnatech.se>
-In-Reply-To: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se>
-References: <1464203409-1279-1-git-send-email-niklas.soderlund@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp2.goneo.de ([85.220.129.33]:54271 "EHLO smtp2.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755272AbcEFQeM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2016 12:34:12 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: Kernel docs: muddying the waters a bit
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160506080304.56307066@recife.lan>
+Date: Fri, 6 May 2016 18:26:10 +0200
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Jani Nikula <jani.nikula@intel.com>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Graham Whaley <graham.whaley@linux.intel.com>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	LMML linux-media <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <F5762B74-23D6-46CB-80EA-3D6F82510A70@darmarit.de>
+References: <20160213145317.247c63c7@lwn.net> <20160303155037.705f33dd@recife.lan> <86egbrm9hw.fsf@hiro.keithp.com> <1457076530.13171.13.camel@winder.org.uk> <CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com> <87a8m9qoy8.fsf@intel.com> <20160308082948.4e2e0f82@recife.lan> <CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com> <20160308103922.48d87d9d@recife.lan> <20160308123921.6f2248ab@recife.lan> <20160309182709.7ab1e5db@recife.lan> <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net> <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com> <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com> <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de> <20160504131529.0be6a9c3@recife.lan> <FAC968D4-0A71-418C-90A2-3843D46526D0@darmarit.de> <20160506080304.56307066@recife.lan>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Hi Mauro,
 
-Add detection of source pad number for drivers aware of the media controller
-API, so that rcar-vin can create device nodes to support modern drivers such
-as adv7604.c (for HDMI on Lager) and the converted adv7180.c (for composite)
-underneath.
+Am 06.05.2016 um 13:03 schrieb Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+> Yeah, it looks better, however table truncation seem to be
+> happening also on other parts, like the tables on this page:
+> 
+> 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-packed-rgb.html
+> 	(original table: https://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html)
+> This table should contain 32 bits, but only the first 7 bits are shown
+> 
+> and those (among others):
+> 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-y41p.html
+> 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/dev-sliced-vbi.html
+> 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/subdev-formats.html
+> 
+> Hmm... after looking more carefully, it added a horizontal scroll bar.
+> That looks ugly, IMHO, and makes harder to understand its contents. The
+> last one, in particular (https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/subdev-formats.html),
+> is a big table on both horiz and vert dimensions. Try to read how the
+> bits are packed on a random line in the middle of the table, like
+> MEDIA_BUS_FMT_BGR565_2X8_LE and you'll understand what I mean.
 
-Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
-line with requirements for building the drivers associated with it.
+I know what you mean ;-) ... I'am also unhappy, but I will address this point
+later when it goes to finish the layout.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-[uli: adapted to rcar-vin rewrite]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 16 ++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
- 2 files changed, 18 insertions(+)
+Currently lets focus on contend and (the two)extensions.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 0bc4487..929816b 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -683,6 +683,9 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
- 	struct video_device *vdev = &vin->vdev;
- 	struct v4l2_subdev *sd = vin_to_source(vin);
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	int pad_idx;
-+#endif
- 	int ret;
+> The table here looks weird (although it is correct):
+> 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-srggb10p.html
+> 	(original table: https://linuxtv.org/downloads/v4l-dvb-apis/pixfmt-srggb10p.html)
+> 
+
+I validated this and the other tables you mentioned above ... these are 
+all correct migrated ... it is 1:1 translated from DocBook ... they
+might be show different to this what you know from your docbook
+toolchain, because in the docbook-html you have no table grids and 
+wrong cellspans are not clear ... sometimes, like in the last example 
+you gave:
+
+	    <tgroup cols="5" align="center">
+	      <colspec align="left" colwidth="2*" />
+	      <tbody valign="top">
+
+a colspec might ambiguous ... so there is no clear role to migrate.
+
+> It seems that Sphinx is assuming something like "A4 portrait" for
+> the margins, while those big tables would only fit (in PDF) as
+> "A4 landscape".
+
+No, no, no ;-)
+
+Sphinx assumes nothing about the layout, sphinx and the underlying
+docutils mostly juggling with nodes and the writers in e.g. the
+html-writer, outputs a clear HTML without any style but with classified 
+HTML tags. Styling is done in the presentation layer, in HTML, it is 
+done in CSS.
+
+> I guess the better would be to not limit the right
+> margin or to change it where those big tables happen, in order to
+> allow PDF generation.
+
+Generating PDF has nothing to do with generating HTML. To generate
+PDF there is a other writer, the latex2e writer, which produce 
+LaTeX markup from which you build PDF or other printed-like medias.
  
- 	v4l2_set_subdev_hostdata(sd, vin);
-@@ -729,6 +732,19 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
- 
-+	vin->src_pad_idx = 0;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+		if (sd->entity.pads[pad_idx].flags
-+				== MEDIA_PAD_FL_SOURCE)
-+			break;
-+	if (pad_idx >= sd->entity.num_pads)
-+		return -EINVAL;
-+
-+	vin->src_pad_idx = pad_idx;
-+#endif
-+	fmt.pad = vin->src_pad_idx;
-+
- 	/* Try to improve our guess of a reasonable window format */
- 	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
- 	if (ret) {
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 544a3b3..a6dd6db 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -87,6 +87,7 @@ struct rvin_graph_entity {
-  *
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-+ * @src_pad_idx:	source pad index for media controller drivers
-  * @ctrl_handler:	V4L2 control handler
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @entity:		entity in the DT for subdevice
-@@ -117,6 +118,7 @@ struct rvin_dev {
- 
- 	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
-+	int src_pad_idx;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity entity;
--- 
-2.8.2
+> 
+> There are also some tables that went wrong. See the Color Sample
+> Location table at:
+> 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-yuv444m.html
+> I'm pretty sure we'll need to fix some cases like that manually.
+> I didn't check, but perhaps, in this case, the DocBook were using 
+> empty columns just to make the table bigger. If so, this is not a
+> problem with the conversion, and should be manually fixed later.
+
++1
+
+Yes, lets do it manually later ... what I have in my POC is a automated
+process, it is hard to consider individuals in an automatic process.
+Making details *nicer* and making ambiguous markups clear is manually
+done in minutes where I need hours to implement this in a automated
+process.
+
+Aside, from:  http://docutils.sourceforge.net/docs/peps/pep-0258.html
+
+Docutils Project Model -- Project components and data flow:
+
+                 +---------------------------+
+                 |        Docutils:          |
+                 | docutils.core.Publisher,  |
+                 | docutils.core.publish_*() |
+                 +---------------------------+
+                  /            |            \
+                 /             |             \
+        1,3,5   /        6     |              \ 7
+       +--------+       +-------------+       +--------+
+       | READER | ----> | TRANSFORMER | ====> | WRITER |
+       +--------+       +-------------+       +--------+
+        /     \\                                  |
+       /       \\                                 |
+ 2    /      4  \\                             8  |
++-------+   +--------+                        +--------+
+| INPUT |   | PARSER |                        | OUTPUT |
++-------+   +--------+                        +--------+
+
+
+This is a bit simplified, because we use sphinx, which 
+has "builders" and sits on top of this architecture.
+But it might help to see, that processes like reading,
+transforming and writing are discrete.
+
+In short: readers (the reST file reader) are creating node trees,
+which are transformed by a transformer (e.g. a HTML transformer),
+the writer only writes the output to a file (and copies some files
+like CSS files).
+
+If I say "HTML-writer" I address the unity off the HTML-transformer
+plus the HTML-writer. In Sphinx terminus/architecture, replace the
+word writer with the word "builder" ... there you have (e.g.) a 
+"HTML builder" and a "LaTeX builder".
+
+--Markus--
+
+
+
+
 
