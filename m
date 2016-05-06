@@ -1,123 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46214 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752137AbcEPDKO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 May 2016 23:10:14 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1E3D81800DC
-	for <linux-media@vger.kernel.org>; Mon, 16 May 2016 05:10:01 +0200 (CEST)
-Date: Mon, 16 May 2016 05:10:01 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([192.55.52.115]:1410 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751686AbcEFK4k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 May 2016 06:56:40 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160516031001.1E3D81800DC@tschai.lan>
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [RFC 05/22] media: Add media_device_request_complete() to mark requests complete
+Date: Fri,  6 May 2016 13:53:14 +0300
+Message-Id: <1462532011-15527-6-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Once the request has been queued and later on completed, a driver will
+mark the request complete by calling media_device_request_complete().
 
-Results of the daily build of media_tree:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c | 7 +++++++
+ include/media/media-device.h | 3 +++
+ 2 files changed, 10 insertions(+)
 
-date:		Mon May 16 04:00:22 CEST 2016
-git branch:	test
-git hash:	d1532d5575696965a52b19553dd7dacf75f3fec5
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-164
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 5b7bfcf..cbd3b8b 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -158,6 +158,13 @@ static void media_device_request_delete(struct media_device *mdev,
+ 	media_device_request_put(req);
+ }
+ 
++void media_device_request_complete(struct media_device *mdev,
++				   struct media_device_request *req)
++{
++	media_device_request_delete(mdev, req);
++}
++EXPORT_SYMBOL_GPL(media_device_request_complete);
++
+ static int media_device_request_queue_apply(
+ 	struct media_device *mdev, struct media_device_request *req,
+ 	int (*fn)(struct media_device *mdev,
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 3167c52..d86fb8a 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -269,6 +269,7 @@ enum media_device_request_state {
+ 	MEDIA_DEVICE_REQUEST_STATE_IDLE,
+ 	MEDIA_DEVICE_REQUEST_STATE_QUEUED,
+ 	MEDIA_DEVICE_REQUEST_STATE_DELETED,
++	MEDIA_DEVICE_REQUEST_STATE_COMPLETE,
+ };
+ 
+ /**
+@@ -764,5 +765,7 @@ struct media_device_request *
+ media_device_request_find(struct media_device *mdev, u16 reqid);
+ void media_device_request_get(struct media_device_request *req);
+ void media_device_request_put(struct media_device_request *req);
++void media_device_request_complete(struct media_device *mdev,
++				   struct media_device_request *req);
+ 
+ #endif
+-- 
+1.9.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
