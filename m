@@ -1,51 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:36769 "EHLO
-	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756244AbcEXPG3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 11:06:29 -0400
-Received: by mail-pf0-f173.google.com with SMTP id c189so7847939pfb.3
-        for <linux-media@vger.kernel.org>; Tue, 24 May 2016 08:06:29 -0700 (PDT)
-From: Wu-Cheng Li <wuchengli@chromium.org>
-To: mchehab@osg.samsung.com, hverkuil@xs4all.nl, crope@iki.fi,
-	ricardo.ribalda@gmail.com, p.zabel@pengutronix.de,
-	wuchengli@chromium.org, shuahkh@osg.samsung.com,
-	hans.verkuil@cisco.com, renesas@ideasonboard.com,
-	guennadi.liakhovetski@intel.com, sakari.ailus@linux.intel.com,
-	posciak@chromium.org, djkurtz@chromium.org,
-	tiffany.lin@mediatek.com, pc.chen@mediatek.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v1 3/3] V4L: add VP9 format documentation
-Date: Tue, 24 May 2016 23:05:23 +0800
-Message-Id: <1464102324-53965-4-git-send-email-wuchengli@chromium.org>
-In-Reply-To: <1464102324-53965-1-git-send-email-wuchengli@chromium.org>
-References: <1464102324-53965-1-git-send-email-wuchengli@chromium.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:48228 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758489AbcEFP6M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 May 2016 11:58:12 -0400
+Received: from dyn3-82-128-185-211.psoas.suomi.net ([82.128.185.211] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <crope@iki.fi>)
+	id 1ayi8n-0005pQ-P2
+	for linux-media@vger.kernel.org; Fri, 06 May 2016 18:58:09 +0300
+To: LMML <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL 4.7] af9035
+Message-ID: <572CBF11.6080404@iki.fi>
+Date: Fri, 6 May 2016 18:58:09 +0300
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for V4L2_PIX_FMT_VP9.
+The following changes since commit 45c175c4ae9695d6d2f30a45ab7f3866cfac184b:
 
-Signed-off-by: Wu-Cheng Li <wuchengli@chromium.org>
----
- Documentation/DocBook/media/v4l/pixfmt.xml | 5 +++++
- 1 file changed, 5 insertions(+)
+   [media] tw686x: avoid going past array (2016-04-26 06:38:53 -0300)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 5a08aee..ab915c3 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -1735,6 +1735,11 @@ extended control <constant>V4L2_CID_MPEG_STREAM_TYPE</constant>, see
- 		<entry>'VP80'</entry>
- 		<entry>VP8 video elementary stream.</entry>
- 	  </row>
-+	  <row id="V4L2-PIX-FMT-VP9">
-+		<entry><constant>V4L2_PIX_FMT_VP9</constant></entry>
-+		<entry>'VP90'</entry>
-+		<entry>VP9 video elementary stream.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git af9035
+
+for you to fetch changes up to 9c3cda3783707e8028ec1335e9ec0a63edb4712b:
+
+   af9035: correct eeprom offsets (2016-04-27 23:08:50 +0300)
+
+----------------------------------------------------------------
+Antti Palosaari (1):
+       af9035: correct eeprom offsets
+
+  drivers/media/usb/dvb-usb-v2/af9035.h | 24 ++++++++++++------------
+  1 file changed, 12 insertions(+), 12 deletions(-)
+
 -- 
-2.8.0.rc3.226.g39d4020
-
+http://palosaari.fi/
