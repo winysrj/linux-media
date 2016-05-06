@@ -1,123 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:42036 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751477AbcEXDBa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2016 23:01:30 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2DEDF1800BE
-	for <linux-media@vger.kernel.org>; Tue, 24 May 2016 05:01:24 +0200 (CEST)
-Date: Tue, 24 May 2016 05:01:24 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160524030124.2DEDF1800BE@tschai.lan>
+Received: from smtp1.goneo.de ([85.220.129.30]:36910 "EHLO smtp1.goneo.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758037AbcEFPgH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2016 11:36:07 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: Kernel docs: muddying the waters a bit
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <87poszgr92.fsf@intel.com>
+Date: Fri, 6 May 2016 17:35:50 +0200
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	Graham Whaley <graham.whaley@linux.intel.com>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <FE0A9B16-D835-4C4A-8149-320D74F36715@darmarit.de>
+References: <87fuvypr2h.fsf@intel.com> <20160310122101.2fca3d79@recife.lan> <AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de> <8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de> <20160412094620.4fbf05c0@lwn.net> <CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com> <CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com> <54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de> <874maef8km.fsf@intel.com> <13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de> <20160504134346.GY14148@phenom.ffwll.local> <44110C0C-2E98-4470-9DB1-B72406E901A0@darmarit.de> <87inytn6n2.fsf@intel.com> <6BDB8BFB-6AEA-46A8-B535-C69FBC6FF3BD@darmarit.de> <20160506083529.31ad2fa0@recife.lan> <BAE3C147-6C21-4242-BD3C-8989C1626E10@darmarit.de> <20160506104210.12197832@recife.lan> <3EA89E0D-9951-437C-A2E0-E6866A43A459@darmarit.de> <87poszgr92.fsf@intel.com>
+To: Jani Nikula <jani.nikula@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+Am 06.05.2016 um 17:06 schrieb Jani Nikula <jani.nikula@intel.com>:
 
-date:		Tue May 24 04:00:27 CEST 2016
-git branch:	test
-git hash:	bc2b80ee3490651904f121eac1c8fb7652d48253
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-264
+> On Fri, 06 May 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+>> @Jonathan: what do you think? Should I prepare a patch
+>> with a basic reST (sphinx) build infrastructure, including
+>> 
+>> * a folder for sphinx docs:
+>> 
+>>  ./Documentation/sphinx/
+> 
+> I'm already working on a patch series taking a different approach. I
+> don't think we should hide the documentation under an extra folder named
+> after a tool. Actually, I'm strongly opposed to that.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Could you post a link to a repo? / thanks 
 
-Detailed results are available here:
+There is no need for concurrency, let's work together on your repo. 
+Within my POC I realized similar building processes we will need in the
+kernel sources ... where you have cascading configuration. A base 
+configuration which fits for all common cases and (if needed) a 
+*per-book* configuration.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+At the end, when it comes to generate pdf books/articles, man pages 
+and e.g. texinfo files out of a sphinx-project you will need a build
+infrastructure like this.
 
-Full logs are available here:
+> Instead, we should place the Sphinx stuff directly under Documentation,
+> and have Sphinx recursively pick up all the *.rst files. We should
+> promote gradually switching to lightweight markup and integration of the
+> documents into one system. This process should be as little disruptive
+> as possible.
+> 
+> If someone wants to convert a .txt document to .rst and get it processed
+> by Sphinx, it should be as simple as renaming the file, doing the
+> necessary edits, and adding it to a toctree. Imagine gradually
+> converting the files under, say, Documentation/kbuild. Why should the
+> .rst files be moved under another directory? They should stay alongside
+> the .txt files under the same directory. There's bound to be a lot of
+> people who'll never use Sphinx, and will expect to find the good old
+> plain text files (albeit with some markup) where they always were.
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Ok, I agree with you in the fact that a additional "sphinx" folder
+is unrewarding.
 
-The Media Infrastructure API from this daily build is here:
+This means (e.g.) a migrated Documentation/DocBook/gpu book should placed
+in Documentation/gpu ... but don' try to merge all (Doc-)Books and .txt-files
+into one sphinx project!
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+You will need on sphinx-project for each DocBook and one single 
+sphinx-project where you collect the .txt to .rst migrated files.
+
+Am 06.05.2016 um 17:23 schrieb Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+
+> We won't avoid the need of moving things among directories, as we
+> have lots of stuff under DocBook/ dir (btw, named after the toolchain).
+
+Yes, it is named by the toolchain, but no one reads xml-files. Reading
+text files is common.
+
+> Ok, if we put the .rst files at Documentation, we very likely reduce
+> the number of renames, but we'll increase the Makefile complexity,
+> and the risk of breakages.
+
+I don't see a great potential of breakages ...  if we place every book
+in a separated folder and have one project which collects the .txt files
+(see above).
+
+
+--Markus--
+
