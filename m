@@ -1,233 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kdh-gw.itdev.co.uk ([89.21.227.133]:4222 "EHLO
-	hermes.kdh.itdev.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753251AbcEDRH1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 13:07:27 -0400
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, Nick Dyer <nick.dyer@itdev.co.uk>
-Subject: [PATCH v2 1/8] Input: atmel_mxt_ts - add support for T37 diagnostic data
-Date: Wed,  4 May 2016 18:07:11 +0100
-Message-Id: <1462381638-7818-2-git-send-email-nick.dyer@itdev.co.uk>
-In-Reply-To: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
-References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
+Received: from lists.s-osg.org ([54.187.51.154]:33961 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758484AbcEFRGr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 May 2016 13:06:47 -0400
+Date: Fri, 6 May 2016 14:06:38 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Jani Nikula <jani.nikula@intel.com>,
+	Dan Allen <dan@opendevise.io>,
+	Russel Winder <russel@winder.org.uk>,
+	Keith Packard <keithp@keithp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Graham Whaley <graham.whaley@linux.intel.com>,
+	"linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
+	LMML linux-media <linux-media@vger.kernel.org>
+Subject: Re: Kernel docs: muddying the waters a bit
+Message-ID: <20160506140638.33f68622@recife.lan>
+In-Reply-To: <F5762B74-23D6-46CB-80EA-3D6F82510A70@darmarit.de>
+References: <20160213145317.247c63c7@lwn.net>
+	<1457076530.13171.13.camel@winder.org.uk>
+	<CAKeHnO6sSV1x2xh_HgbD5ddZ8rp+SVvbdjVhczhudc9iv_-UCQ@mail.gmail.com>
+	<87a8m9qoy8.fsf@intel.com>
+	<20160308082948.4e2e0f82@recife.lan>
+	<CAKeHnO7R25knFH07+3trdi0ZotsrEE+5ZzDZXdx33+DUW=q2Ug@mail.gmail.com>
+	<20160308103922.48d87d9d@recife.lan>
+	<20160308123921.6f2248ab@recife.lan>
+	<20160309182709.7ab1e5db@recife.lan>
+	<87fuvypr2h.fsf@intel.com>
+	<20160310122101.2fca3d79@recife.lan>
+	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
+	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
+	<20160412094620.4fbf05c0@lwn.net>
+	<CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
+	<CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
+	<54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
+	<20160504131529.0be6a9c3@recife.lan>
+	<FAC968D4-0A71-418C-90A2-3843D46526D0@darmarit.de>
+	<20160506080304.56307066@recife.lan>
+	<F5762B74-23D6-46CB-80EA-3D6F82510A70@darmarit.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Atmel maXTouch devices have a T37 object which can be used to read raw
-touch deltas from the device. This consists of an array of 16-bit
-integers, one for each node on the touchscreen matrix.
+Em Fri, 6 May 2016 18:26:10 +0200
+Markus Heiser <markus.heiser@darmarit.de> escreveu:
 
-Signed-off-by: Nick Dyer <nick.dyer@itdev.co.uk>
----
- drivers/input/touchscreen/atmel_mxt_ts.c | 152 +++++++++++++++++++++++++++++++
- 1 file changed, 152 insertions(+)
+> Hi Mauro,
+> 
+> Am 06.05.2016 um 13:03 schrieb Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
+> > Yeah, it looks better, however table truncation seem to be
+> > happening also on other parts, like the tables on this page:
+> > 
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-packed-rgb.html
+> > 	(original table: https://linuxtv.org/downloads/v4l-dvb-apis/packed-rgb.html)
+> > This table should contain 32 bits, but only the first 7 bits are shown
+> > 
+> > and those (among others):
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-y41p.html
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/dev-sliced-vbi.html
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/subdev-formats.html
+> > 
+> > Hmm... after looking more carefully, it added a horizontal scroll bar.
+> > That looks ugly, IMHO, and makes harder to understand its contents. The
+> > last one, in particular (https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/subdev-formats.html),
+> > is a big table on both horiz and vert dimensions. Try to read how the
+> > bits are packed on a random line in the middle of the table, like
+> > MEDIA_BUS_FMT_BGR565_2X8_LE and you'll understand what I mean.  
+> 
+> I know what you mean ;-) ... I'am also unhappy, but I will address this point
+> later when it goes to finish the layout.
+> 
+> Currently lets focus on contend and (the two)extensions.
 
-diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
-index 2160512..cd97713 100644
---- a/drivers/input/touchscreen/atmel_mxt_ts.c
-+++ b/drivers/input/touchscreen/atmel_mxt_ts.c
-@@ -124,6 +124,17 @@ struct t9_range {
- #define MXT_COMMS_CTRL		0
- #define MXT_COMMS_CMD		1
- 
-+/* MXT_DEBUG_DIAGNOSTIC_T37 */
-+#define MXT_DIAGNOSTIC_PAGEUP	0x01
-+#define MXT_DIAGNOSTIC_DELTAS	0x10
-+#define MXT_DIAGNOSTIC_SIZE	128
-+
-+struct t37_debug {
-+	u8 mode;
-+	u8 page;
-+	u8 data[MXT_DIAGNOSTIC_SIZE];
-+};
-+
- /* Define for MXT_GEN_COMMAND_T6 */
- #define MXT_BOOT_VALUE		0xa5
- #define MXT_RESET_VALUE		0x01
-@@ -205,6 +216,14 @@ struct mxt_object {
- 	u8 num_report_ids;
- } __packed;
- 
-+struct mxt_dbg {
-+	u16 t37_address;
-+	u16 diag_cmd_address;
-+	struct t37_debug *t37_buf;
-+	unsigned int t37_pages;
-+	unsigned int t37_nodes;
-+};
-+
- /* Each client has this additional data */
- struct mxt_data {
- 	struct i2c_client *client;
-@@ -233,6 +252,7 @@ struct mxt_data {
- 	u8 num_touchids;
- 	u8 multitouch;
- 	struct t7_config t7_cfg;
-+	struct mxt_dbg dbg;
- 
- 	/* Cached parameters from object table */
- 	u16 T5_address;
-@@ -2043,6 +2063,136 @@ recheck:
- 	return 0;
- }
- 
-+static u16 mxt_get_debug_value(struct mxt_data *data, unsigned int x,
-+			       unsigned int y)
-+{
-+	struct mxt_dbg *dbg = &data->dbg;
-+	unsigned int ofs, page;
-+
-+	ofs = (y + (x * data->info.matrix_ysize)) * sizeof(u16);
-+	page = ofs / MXT_DIAGNOSTIC_SIZE;
-+	ofs %= MXT_DIAGNOSTIC_SIZE;
-+
-+	return get_unaligned_le16(&dbg->t37_buf[page].data[ofs]);
-+}
-+
-+static int mxt_convert_debug_pages(struct mxt_data *data, u16 *outbuf)
-+{
-+	struct mxt_dbg *dbg = &data->dbg;
-+	unsigned int x = 0;
-+	unsigned int y = 0;
-+	unsigned int i;
-+
-+	for (i = 0; i < dbg->t37_nodes; i++) {
-+		outbuf[i] = mxt_get_debug_value(data, x, y);
-+
-+		/* Next value */
-+		if (++x >= data->info.matrix_xsize) {
-+			x = 0;
-+			y++;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int mxt_read_diagnostic_debug(struct mxt_data *data, u8 mode,
-+				     u16 *outbuf)
-+{
-+	struct mxt_dbg *dbg = &data->dbg;
-+	int retries = 0;
-+	int page;
-+	int ret;
-+	u8 cmd = mode;
-+	struct t37_debug *p;
-+	u8 cmd_poll;
-+
-+	for (page = 0; page < dbg->t37_pages; page++) {
-+		p = dbg->t37_buf + page;
-+
-+		ret = mxt_write_reg(data->client, dbg->diag_cmd_address,
-+				    cmd);
-+		if (ret)
-+			return ret;
-+
-+		retries = 0;
-+		msleep(20);
-+wait_cmd:
-+		/* Read back command byte */
-+		ret = __mxt_read_reg(data->client, dbg->diag_cmd_address,
-+				     sizeof(cmd_poll), &cmd_poll);
-+		if (ret)
-+			return ret;
-+
-+		/* Field is cleared once the command has been processed */
-+		if (cmd_poll) {
-+			if (retries++ > 100)
-+				return -EINVAL;
-+
-+			msleep(20);
-+			goto wait_cmd;
-+		}
-+
-+		/* Read T37 page */
-+		ret = __mxt_read_reg(data->client, dbg->t37_address,
-+				sizeof(struct t37_debug), p);
-+		if (ret)
-+			return ret;
-+
-+		if ((p->mode != mode) || (p->page != page)) {
-+			dev_err(&data->client->dev, "T37 page mismatch\n");
-+			return -EINVAL;
-+		}
-+
-+		dev_dbg(&data->client->dev, "%s page:%d retries:%d\n",
-+			__func__, page, retries);
-+
-+		/* For remaining pages, write PAGEUP rather than mode */
-+		cmd = MXT_DIAGNOSTIC_PAGEUP;
-+	}
-+
-+	return mxt_convert_debug_pages(data, outbuf);
-+}
-+
-+static void mxt_debug_init(struct mxt_data *data)
-+{
-+	struct mxt_dbg *dbg = &data->dbg;
-+	struct mxt_object *object;
-+
-+	object = mxt_get_object(data, MXT_GEN_COMMAND_T6);
-+	if (!object)
-+		return;
-+
-+	dbg->diag_cmd_address = object->start_address + MXT_COMMAND_DIAGNOSTIC;
-+
-+	object = mxt_get_object(data, MXT_DEBUG_DIAGNOSTIC_T37);
-+	if (!object)
-+		return;
-+
-+	if (mxt_obj_size(object) != sizeof(struct t37_debug)) {
-+		dev_warn(&data->client->dev, "Bad T37 size");
-+		return;
-+	}
-+
-+	dbg->t37_address = object->start_address;
-+
-+	/* Calculate size of data and allocate buffer */
-+	dbg->t37_nodes = data->info.matrix_xsize * data->info.matrix_ysize;
-+	dbg->t37_pages = dbg->t37_nodes * sizeof(u16)
-+					/ sizeof(dbg->t37_buf->data) + 1;
-+
-+	dbg->t37_buf = devm_kzalloc(&data->client->dev,
-+				     sizeof(struct t37_debug) * dbg->t37_pages,
-+				     GFP_KERNEL);
-+	if (!dbg->t37_buf)
-+		goto error;
-+
-+	return;
-+
-+error:
-+	dev_err(&data->client->dev, "Error initialising T37 diagnostic data\n");
-+}
-+
- static int mxt_configure_objects(struct mxt_data *data,
- 				 const struct firmware *cfg)
- {
-@@ -2070,6 +2220,8 @@ static int mxt_configure_objects(struct mxt_data *data,
- 		dev_warn(dev, "No touch object detected\n");
- 	}
- 
-+	mxt_debug_init(data);
-+
- 	dev_info(dev,
- 		 "Family: %u Variant: %u Firmware V%u.%u.%02X Objects: %u\n",
- 		 info->family_id, info->variant_id, info->version >> 4,
+OK.
+
+> > The table here looks weird (although it is correct):
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-srggb10p.html
+> > 	(original table: https://linuxtv.org/downloads/v4l-dvb-apis/pixfmt-srggb10p.html)
+> >   
+> 
+> I validated this and the other tables you mentioned above ... these are 
+> all correct migrated ... it is 1:1 translated from DocBook ... they
+> might be show different to this what you know from your docbook
+> toolchain, because in the docbook-html you have no table grids and 
+> wrong cellspans are not clear ... sometimes, like in the last example 
+> you gave:
+> 
+> 	    <tgroup cols="5" align="center">
+> 	      <colspec align="left" colwidth="2*" />
+> 	      <tbody valign="top">
+> 
+> a colspec might ambiguous ... so there is no clear role to migrate.
+
+Ok, that's what I was thinking. Ok, this can be fixed later manually,
+where needed. Of course one way would be to disable grids on those
+tables, but I would instead fix it.
+
+> 
+> > It seems that Sphinx is assuming something like "A4 portrait" for
+> > the margins, while those big tables would only fit (in PDF) as
+> > "A4 landscape".  
+> 
+> No, no, no ;-)
+> 
+> Sphinx assumes nothing about the layout, sphinx and the underlying
+> docutils mostly juggling with nodes and the writers in e.g. the
+> html-writer, outputs a clear HTML without any style but with classified 
+> HTML tags. Styling is done in the presentation layer, in HTML, it is 
+> done in CSS.
+
+Hmm... Then there's something deadly wrong at CSS template, as it is
+shown texts only at half of my horizontal res (1920).
+
+Probably this is the culpit:
+
+      .container { margin: 50px auto 40px auto; width: 600px; text-align: center; }
+
+width is set to 600px, instead of using a percentage, like 100%
+(or 90%).
+
+> 
+> > I guess the better would be to not limit the right
+> > margin or to change it where those big tables happen, in order to
+> > allow PDF generation.  
+> 
+> Generating PDF has nothing to do with generating HTML. To generate
+> PDF there is a other writer, the latex2e writer, which produce 
+> LaTeX markup from which you build PDF or other printed-like medias.
+
+Ok.
+
+>  
+> > 
+> > There are also some tables that went wrong. See the Color Sample
+> > Location table at:
+> > 	https://return42.github.io/sphkerneldoc/books/linux_tv/media/v4l/pixfmt-yuv444m.html
+> > I'm pretty sure we'll need to fix some cases like that manually.
+> > I didn't check, but perhaps, in this case, the DocBook were using 
+> > empty columns just to make the table bigger. If so, this is not a
+> > problem with the conversion, and should be manually fixed later.  
+> 
+> +1
+> 
+> Yes, lets do it manually later ... what I have in my POC is a automated
+> process, it is hard to consider individuals in an automatic process.
+> Making details *nicer* and making ambiguous markups clear is manually
+> done in minutes where I need hours to implement this in a automated
+> process.
+
+Yeah, we should not try to fix everything via auto-scripts, and
+spending time right now with manual fixes will be wasted, as we need
+to run it at the latest media documentation, as changes might have
+happened upstream.
+
+> 
+> Aside, from:  http://docutils.sourceforge.net/docs/peps/pep-0258.html
+> 
+> Docutils Project Model -- Project components and data flow:
+> 
+>                  +---------------------------+
+>                  |        Docutils:          |
+>                  | docutils.core.Publisher,  |
+>                  | docutils.core.publish_*() |
+>                  +---------------------------+
+>                   /            |            \
+>                  /             |             \
+>         1,3,5   /        6     |              \ 7
+>        +--------+       +-------------+       +--------+
+>        | READER | ----> | TRANSFORMER | ====> | WRITER |
+>        +--------+       +-------------+       +--------+
+>         /     \\                                  |
+>        /       \\                                 |
+>  2    /      4  \\                             8  |
+> +-------+   +--------+                        +--------+
+> | INPUT |   | PARSER |                        | OUTPUT |
+> +-------+   +--------+                        +--------+
+> 
+> 
+> This is a bit simplified, because we use sphinx, which 
+> has "builders" and sits on top of this architecture.
+> But it might help to see, that processes like reading,
+> transforming and writing are discrete.
+> 
+> In short: readers (the reST file reader) are creating node trees,
+> which are transformed by a transformer (e.g. a HTML transformer),
+> the writer only writes the output to a file (and copies some files
+> like CSS files).
+> 
+> If I say "HTML-writer" I address the unity off the HTML-transformer
+> plus the HTML-writer. In Sphinx terminus/architecture, replace the
+> word writer with the word "builder" ... there you have (e.g.) a 
+> "HTML builder" and a "LaTeX builder".
+> 
+> --Markus--
+> 
+> 
+> 
+> 
+> 
+
+
 -- 
-2.5.0
-
+Thanks,
+Mauro
