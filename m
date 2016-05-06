@@ -1,68 +1,326 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:49919 "EHLO lists.s-osg.org"
+Received: from mga09.intel.com ([134.134.136.24]:55064 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754023AbcEBR2Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2016 13:28:24 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH] s5p-mfc: Don't try to put pm->clock if lookup failed
-Date: Mon,  2 May 2016 13:27:54 -0400
-Message-Id: <1462210075-5320-1-git-send-email-javier@osg.samsung.com>
+	id S1758122AbcEFK4l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 May 2016 06:56:41 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [RFC 11/22] v4l: subdev: Support the request API in format and selection operations
+Date: Fri,  6 May 2016 13:53:20 +0300
+Message-Id: <1462532011-15527-12-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Failing to get the struct s5p_mfc_pm .clock is a non-fatal error so the
-clock field can have a errno pointer value. But s5p_mfc_final_pm() only
-checks if .clock is not NULL before attempting to unprepare and put it.
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-This leads to the following warning in clk_put() due s5p_mfc_final_pm():
+Store the formats and selection rectangles in per-entity request data.
+This minimizes changes to drivers by reusing the v4l2_subdev_pad_config
+infrastructure.
 
-WARNING: CPU: 3 PID: 1023 at drivers/clk/clk.c:2814 s5p_mfc_final_pm+0x48/0x74 [s5p_mfc]
-CPU: 3 PID: 1023 Comm: rmmod Tainted: G        W       4.6.0-rc6-next-20160502-00005-g5a15a49106bc #9
-Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-[<c010e1bc>] (unwind_backtrace) from [<c010af28>] (show_stack+0x10/0x14)
-[<c010af28>] (show_stack) from [<c032485c>] (dump_stack+0x88/0x9c)
-[<c032485c>] (dump_stack) from [<c011b8e8>] (__warn+0xe8/0x100)
-[<c011b8e8>] (__warn) from [<c011b9b0>] (warn_slowpath_null+0x20/0x28)
-[<c011b9b0>] (warn_slowpath_null) from [<bf16004c>] (s5p_mfc_final_pm+0x48/0x74 [s5p_mfc])
-[<bf16004c>] (s5p_mfc_final_pm [s5p_mfc]) from [<bf157414>] (s5p_mfc_remove+0x8c/0x94 [s5p_mfc])
-[<bf157414>] (s5p_mfc_remove [s5p_mfc]) from [<c03fe1f8>] (platform_drv_remove+0x24/0x3c)
-[<c03fe1f8>] (platform_drv_remove) from [<c03fcc70>] (__device_release_driver+0x84/0x110)
-[<c03fcc70>] (__device_release_driver) from [<c03fcdd8>] (driver_detach+0xac/0xb0)
-[<c03fcdd8>] (driver_detach) from [<c03fbff8>] (bus_remove_driver+0x4c/0xa0)
-[<c03fbff8>] (bus_remove_driver) from [<c01886a8>] (SyS_delete_module+0x174/0x1b8)
-[<c01886a8>] (SyS_delete_module) from [<c01078c0>] (ret_fast_syscall+0x0/0x3c)
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-So check if the pointer is not an errno value before calling clk_put().
+Replace three if's for testing the same variable by a switch.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
+ drivers/media/v4l2-core/v4l2-subdev.c | 225 +++++++++++++++++++++++++---------
+ include/media/v4l2-subdev.h           |  11 ++
+ 2 files changed, 180 insertions(+), 56 deletions(-)
 
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-index 5f97a3398c11..d011f30be265 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-@@ -85,7 +85,7 @@ err_g_ip_clk:
- void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 9cbd011..461c2ac 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -130,39 +130,182 @@ static int subdev_close(struct file *file)
+ }
+ 
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-static int check_format(struct v4l2_subdev *sd,
+-			struct v4l2_subdev_format *format)
++static void subdev_request_data_release(struct media_entity_request_data *data)
  {
- 	if (dev->variant->version != MFC_VERSION_V6 &&
--	    pm->clock) {
-+	    !IS_ERR_OR_NULL(pm->clock)) {
- 		clk_disable_unprepare(pm->clock);
- 		clk_put(pm->clock);
+-	if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
+-	    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+-		return -EINVAL;
++	struct v4l2_subdev_request_data *sddata =
++		to_v4l2_subdev_request_data(data);
+ 
+-	if (format->pad >= sd->entity.num_pads)
+-		return -EINVAL;
++	kfree(sddata->pad);
++	kfree(sddata);
++}
+ 
+-	return 0;
++static struct v4l2_subdev_pad_config *
++subdev_request_pad_config(struct v4l2_subdev *sd,
++			  struct media_device_request *req)
++{
++	struct media_entity_request_data *data;
++	struct v4l2_subdev_request_data *sddata;
++
++	data = media_device_request_get_entity_data(req, &sd->entity);
++	if (data) {
++		sddata = to_v4l2_subdev_request_data(data);
++		return sddata->pad;
++	}
++
++	sddata = kzalloc(sizeof(*sddata), GFP_KERNEL);
++	if (!sddata)
++		return ERR_PTR(-ENOMEM);
++
++	sddata->data.release = subdev_request_data_release;
++
++	sddata->pad = v4l2_subdev_alloc_pad_config(sd);
++	if (sddata->pad == NULL) {
++		kfree(sddata);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	media_device_request_set_entity_data(req, &sd->entity, &sddata->data);
++
++	return sddata->pad;
+ }
+ 
+-static int check_crop(struct v4l2_subdev *sd, struct v4l2_subdev_crop *crop)
++static int subdev_prepare_pad_config(struct v4l2_subdev *sd,
++				     struct v4l2_subdev_fh *fh,
++				     enum v4l2_subdev_format_whence which,
++				     unsigned int pad, unsigned int req_id,
++				     struct media_device_request **_req,
++				     struct v4l2_subdev_pad_config **_cfg)
+ {
+-	if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
+-	    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++	struct v4l2_subdev_pad_config *cfg;
++	struct media_device_request *req;
++
++	if (pad >= sd->entity.num_pads)
+ 		return -EINVAL;
+ 
+-	if (crop->pad >= sd->entity.num_pads)
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		*_req = NULL;
++		*_cfg = NULL;
++		return 0;
++	case V4L2_SUBDEV_FORMAT_TRY:
++		*_req = NULL;
++		*_cfg = fh->pad;
++		return 0;
++	case V4L2_SUBDEV_FORMAT_REQUEST:
++		if (!sd->v4l2_dev->mdev)
++			return -EINVAL;
++
++		req = media_device_request_find(sd->v4l2_dev->mdev, req_id);
++		if (!req)
++			return -EINVAL;
++
++		cfg = subdev_request_pad_config(sd, req);
++		if (IS_ERR(cfg)) {
++			media_device_request_put(req);
++			return PTR_ERR(cfg);
++		}
++
++		*_req = req;
++		*_cfg = cfg;
++
++		return 0;
++	default:
+ 		return -EINVAL;
++	}
+ 
+-	return 0;
+ }
+ 
+-static int check_selection(struct v4l2_subdev *sd,
+-			   struct v4l2_subdev_selection *sel)
++static int subdev_get_format(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_fh *fh,
++			     struct v4l2_subdev_format *format)
++{
++	struct v4l2_subdev_pad_config *cfg;
++	struct media_device_request *req;
++	int ret;
++
++	ret = subdev_prepare_pad_config(sd, fh, format->which, format->pad,
++					format->request, &req, &cfg);
++	if (ret < 0)
++		return ret;
++
++	ret = v4l2_subdev_call(sd, pad, get_fmt, cfg, format);
++
++	if (req)
++		media_device_request_put(req);
++
++	return ret;
++}
++
++static int subdev_set_format(struct v4l2_subdev *sd,
++			     struct v4l2_subdev_fh *fh,
++			     struct v4l2_subdev_format *format)
++{
++	struct v4l2_subdev_pad_config *cfg;
++	struct media_device_request *req;
++	int ret;
++
++	ret = subdev_prepare_pad_config(sd, fh, format->which, format->pad,
++					format->request, &req, &cfg);
++	if (ret < 0)
++		return ret;
++
++	ret = v4l2_subdev_call(sd, pad, set_fmt, cfg, format);
++
++	if (req)
++		media_device_request_put(req);
++
++	return ret;
++}
++
++static int subdev_get_selection(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_selection *sel)
++{
++	struct v4l2_subdev_pad_config *cfg;
++	struct media_device_request *req;
++	int ret;
++
++	ret = subdev_prepare_pad_config(sd, fh, sel->which, sel->pad,
++					sel->request, &req, &cfg);
++	if (ret < 0)
++		return ret;
++
++	ret = v4l2_subdev_call(sd, pad, get_selection, cfg, sel);
++
++	if (req)
++		media_device_request_put(req);
++
++	return ret;
++}
++
++static int subdev_set_selection(struct v4l2_subdev *sd,
++				struct v4l2_subdev_fh *fh,
++				struct v4l2_subdev_selection *sel)
++{
++	struct v4l2_subdev_pad_config *cfg;
++	struct media_device_request *req;
++	int ret;
++
++	ret = subdev_prepare_pad_config(sd, fh, sel->which, sel->pad,
++					sel->request, &req, &cfg);
++	if (ret < 0)
++		return ret;
++
++	ret = v4l2_subdev_call(sd, pad, set_selection, cfg, sel);
++
++	if (req)
++		media_device_request_put(req);
++
++	return ret;
++}
++
++static int check_crop(struct v4l2_subdev *sd, struct v4l2_subdev_crop *crop)
+ {
+-	if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
+-	    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++	if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
++	    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+ 		return -EINVAL;
+ 
+-	if (sel->pad >= sd->entity.num_pads)
++	if (crop->pad >= sd->entity.num_pads)
+ 		return -EINVAL;
+ 
+ 	return 0;
+@@ -258,25 +401,11 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
  	}
+ 
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	case VIDIOC_SUBDEV_G_FMT: {
+-		struct v4l2_subdev_format *format = arg;
++	case VIDIOC_SUBDEV_G_FMT:
++		return subdev_get_format(sd, subdev_fh, arg);
+ 
+-		rval = check_format(sd, format);
+-		if (rval)
+-			return rval;
+-
+-		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh->pad, format);
+-	}
+-
+-	case VIDIOC_SUBDEV_S_FMT: {
+-		struct v4l2_subdev_format *format = arg;
+-
+-		rval = check_format(sd, format);
+-		if (rval)
+-			return rval;
+-
+-		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh->pad, format);
+-	}
++	case VIDIOC_SUBDEV_S_FMT:
++		return subdev_set_format(sd, subdev_fh, arg);
+ 
+ 	case VIDIOC_SUBDEV_G_CROP: {
+ 		struct v4l2_subdev_crop *crop = arg;
+@@ -381,27 +510,11 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 					fie);
+ 	}
+ 
+-	case VIDIOC_SUBDEV_G_SELECTION: {
+-		struct v4l2_subdev_selection *sel = arg;
+-
+-		rval = check_selection(sd, sel);
+-		if (rval)
+-			return rval;
+-
+-		return v4l2_subdev_call(
+-			sd, pad, get_selection, subdev_fh->pad, sel);
+-	}
+-
+-	case VIDIOC_SUBDEV_S_SELECTION: {
+-		struct v4l2_subdev_selection *sel = arg;
+-
+-		rval = check_selection(sd, sel);
+-		if (rval)
+-			return rval;
++	case VIDIOC_SUBDEV_G_SELECTION:
++		return subdev_get_selection(sd, subdev_fh, arg);
+ 
+-		return v4l2_subdev_call(
+-			sd, pad, set_selection, subdev_fh->pad, sel);
+-	}
++	case VIDIOC_SUBDEV_S_SELECTION:
++		return subdev_set_selection(sd, subdev_fh, arg);
+ 
+ 	case VIDIOC_G_EDID: {
+ 		struct v4l2_subdev_edid *edid = arg;
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 32fc7a4..ca92e2c 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -808,6 +808,17 @@ int v4l2_subdev_link_validate(struct media_link *link);
+ struct v4l2_subdev_pad_config *
+ v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
+ void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
++
++struct v4l2_subdev_request_data {
++	struct media_entity_request_data data;
++	struct v4l2_subdev_pad_config *pad;
++};
++
++static inline struct v4l2_subdev_request_data *
++to_v4l2_subdev_request_data(struct media_entity_request_data *data)
++{
++	return container_of(data, struct v4l2_subdev_request_data, data);
++}
+ #endif /* CONFIG_MEDIA_CONTROLLER */
+ 
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
 -- 
-2.5.5
+1.9.1
 
