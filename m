@@ -1,55 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ig0-f196.google.com ([209.85.213.196]:33209 "EHLO
-	mail-ig0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752873AbcEDUtx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 16:49:53 -0400
-MIME-Version: 1.0
-In-Reply-To: <20160504212845.21dab7c8@mir>
-References: <20160315080552.3cc5d146@recife.lan>
-	<20160503233859.0f6506fa@mir>
-	<CA+55aFxAor=MJSGFkynu72AQN75bNTh9kewLR4xe8CpjHQQvZQ@mail.gmail.com>
-	<20160504063902.0af2f4d7@mir>
-	<CA+55aFyE82Hi29az_MG9oG0=AEg1o++Wng_DO2RvNHQsSOz87g@mail.gmail.com>
-	<20160504212845.21dab7c8@mir>
-Date: Wed, 4 May 2016 13:49:52 -0700
-Message-ID: <CA+55aFxQSUHBvOSqyiqdt2faY6VZSXP0p-cPzRm+km=fk7z4kQ@mail.gmail.com>
-Subject: Re: [GIT PULL for v4.6-rc1] media updates
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Stefan Lippers-Hollmann <s.l-h@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mga14.intel.com ([192.55.52.115]:1410 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758005AbcEFK4k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 May 2016 06:56:40 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [RFC 09/22] v4l2-subdev.h: Add request field to format and selection structures
+Date: Fri,  6 May 2016 13:53:18 +0300
+Message-Id: <1462532011-15527-10-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 4, 2016 at 12:28 PM, Stefan Lippers-Hollmann <s.l-h@gmx.de> wrote:
->
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -875,7 +875,7 @@ void __media_device_usb_init(struct medi
->                              const char *board_name,
->                              const char *driver_name)
->  {
-> -#ifdef CONFIG_USB
-> +#if defined(CONFIG_USB) || defined(CONFIG_USB_MODULE)
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Ok, that should be fine. Can you verify that it builds and works even
-if USB isn't compiled in, but the media core code is?
+Let userspace specify a request ID when getting or setting formats or
+selection rectangles.
 
-IOW, can you test the
+>From a userspace point of view the API change is minimized and doesn't
+require any new ioctl.
 
-  CONFIG_USB=m
-  CONFIG_MEDIA_CONTROLLER=y
-  CONFIG_MEDIA_SUPPORT=y
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ include/uapi/linux/v4l2-subdev.h | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-case? Judging by your oops stack trace, I think you currently have
-MEDIA_SUPPORT=m.
+diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+index dbce2b554..dbb7c1d 100644
+--- a/include/uapi/linux/v4l2-subdev.h
++++ b/include/uapi/linux/v4l2-subdev.h
+@@ -32,10 +32,12 @@
+  * enum v4l2_subdev_format_whence - Media bus format type
+  * @V4L2_SUBDEV_FORMAT_TRY: try format, for negotiation only
+  * @V4L2_SUBDEV_FORMAT_ACTIVE: active format, applied to the device
++ * @V4L2_SUBDEV_FORMAT_REQUEST: format stored in request
+  */
+ enum v4l2_subdev_format_whence {
+ 	V4L2_SUBDEV_FORMAT_TRY = 0,
+ 	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
++	V4L2_SUBDEV_FORMAT_REQUEST = 2,
+ };
+ 
+ /**
+@@ -43,12 +45,15 @@ enum v4l2_subdev_format_whence {
+  * @which: format type (from enum v4l2_subdev_format_whence)
+  * @pad: pad number, as reported by the media API
+  * @format: media bus format (format code and frame size)
++ * @request: request ID (when which is set to V4L2_SUBDEV_FORMAT_REQUEST)
++ * @reserved: for future use, set to zero for now
+  */
+ struct v4l2_subdev_format {
+ 	__u32 which;
+ 	__u32 pad;
+ 	struct v4l2_mbus_framefmt format;
+-	__u32 reserved[8];
++	__u32 request;
++	__u32 reserved[7];
+ };
+ 
+ /**
+@@ -139,6 +144,7 @@ struct v4l2_subdev_frame_interval_enum {
+  *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
+  * @flags: constraint flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
+  * @r: coordinates of the selection window
++ * @request: request ID (when which is set to V4L2_SUBDEV_FORMAT_REQUEST)
+  * @reserved: for future use, set to zero for now
+  *
+  * Hardware may use multiple helper windows to process a video stream.
+@@ -151,7 +157,8 @@ struct v4l2_subdev_selection {
+ 	__u32 target;
+ 	__u32 flags;
+ 	struct v4l2_rect r;
+-	__u32 reserved[8];
++	__u32 request;
++	__u32 reserved[7];
+ };
+ 
+ /* Backwards compatibility define --- to be removed */
+-- 
+1.9.1
 
-Also, I do wonder if we should move that #if to _outside_ the
-function. Because inside the function, things will compile but
-silently not work (like you found), if it is ever mis-used. Outside
-that function, you'll get link-errors if you try to misuse that
-function.
-
-              Linus
