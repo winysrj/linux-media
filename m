@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35061 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750732AbcEGPWa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 May 2016 11:22:30 -0400
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH 7/7] ARM: dts: n900: enable lirc-rx51 driver
-Date: Sat,  7 May 2016 18:21:48 +0300
-Message-Id: <1462634508-24961-8-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Received: from mga03.intel.com ([134.134.136.65]:54649 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751695AbcEFK4k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 May 2016 06:56:40 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [RFC 08/22] videodev2.h: Add request field to v4l2_pix_format_mplane
+Date: Fri,  6 May 2016 13:53:17 +0300
+Message-Id: <1462532011-15527-9-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the needed DT data to enable IR TX driver
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Let userspace specify a request ID when getting or setting formats. The
+support is limited to the multi-planar API at the moment, extending it
+to the single-planar API is possible if needed.
+
+>From a userspace point of view the API change is also minimized and
+doesn't require any new ioctl.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- arch/arm/boot/dts/omap3-n900.dts | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ include/uapi/linux/videodev2.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n900.dts b/arch/arm/boot/dts/omap3-n900.dts
-index b3c26a9..3d1e23e 100644
---- a/arch/arm/boot/dts/omap3-n900.dts
-+++ b/arch/arm/boot/dts/omap3-n900.dts
-@@ -143,6 +143,18 @@
- 		io-channels = <&twl_madc 0>, <&twl_madc 4>, <&twl_madc 12>;
- 		io-channel-names = "temp", "bsi", "vbat";
- 	};
-+
-+	pwm9: dmtimer-pwm@9 {
-+		compatible = "ti,omap-dmtimer-pwm";
-+		#pwm-cells = <3>;
-+		ti,timers = <&timer9>;
-+		ti,clock-source = <0x00>; /* timer_sys_ck */
-+	};
-+
-+	ir: lirc-rx51 {
-+		compatible = "nokia,lirc-rx51";
-+		pwms = <&pwm9 0 26316 0>; /* 38000 Hz */
-+	};
- };
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index ac28299..6260d0e 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1972,6 +1972,7 @@ struct v4l2_plane_pix_format {
+  * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
+  * @quantization:	enum v4l2_quantization, colorspace quantization
+  * @xfer_func:		enum v4l2_xfer_func, colorspace transfer function
++ * @request:		request ID
+  */
+ struct v4l2_pix_format_mplane {
+ 	__u32				width;
+@@ -1986,7 +1987,8 @@ struct v4l2_pix_format_mplane {
+ 	__u8				ycbcr_enc;
+ 	__u8				quantization;
+ 	__u8				xfer_func;
+-	__u8				reserved[7];
++	__u8				reserved[3];
++	__u32				request;
+ } __attribute__ ((packed));
  
- &omap3_pmx_core {
+ /**
 -- 
 1.9.1
 
