@@ -1,153 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:29206 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751425AbcELLYl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2016 07:24:41 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>,
-	Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-	Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v2 1/9] [media] VPU: mediatek: Add decode support
-Date: Thu, 12 May 2016 19:24:02 +0800
-Message-ID: <1463052250-38262-2-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1463052250-38262-1-git-send-email-tiffany.lin@mediatek.com>
-References: <1463052250-38262-1-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mga14.intel.com ([192.55.52.115]:1410 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758199AbcEFK4m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 May 2016 06:56:42 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [RFC 15/22] media: Make events on request completion optional, disabled by default
+Date: Fri,  6 May 2016 13:53:24 +0300
+Message-Id: <1462532011-15527-16-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+Add flags to requests. The first defined flag, MEDIA_REQ_FL_COMPLETE_EVENT
+is used to tell whether to queue an event on request completion. Unless
+the flag is set, no event is generated when a request completes.
 
-VPU driver add decode support
-
-Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/mtk-vpu/mtk_vpu.c |   12 ++++++++++++
- drivers/media/platform/mtk-vpu/mtk_vpu.h |   27 +++++++++++++++++++++++++++
- 2 files changed, 39 insertions(+)
+ drivers/media/media-device.c | 26 +++++++++++++++++---------
+ include/media/media-device.h |  2 ++
+ include/uapi/linux/media.h   | 16 +++++++++++++---
+ 3 files changed, 32 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.c b/drivers/media/platform/mtk-vpu/mtk_vpu.c
-index b60d02c..ca23b1f 100644
---- a/drivers/media/platform/mtk-vpu/mtk_vpu.c
-+++ b/drivers/media/platform/mtk-vpu/mtk_vpu.c
-@@ -134,6 +134,8 @@ struct vpu_wdt {
-  *
-  * @signaled:		the signal of vpu initialization completed
-  * @fw_ver:		VPU firmware version
-+ * @dec_capability:	decoder capability which is not used for now and
-+ *			the value is reserved for future use
-  * @enc_capability:	encoder capability which is not used for now and
-  *			the value is reserved for future use
-  * @wq:			wait queue for VPU initialization status
-@@ -141,6 +143,7 @@ struct vpu_wdt {
- struct vpu_run {
- 	u32 signaled;
- 	char fw_ver[VPU_FW_VER_LEN];
-+	unsigned int	dec_capability;
- 	unsigned int	enc_capability;
- 	wait_queue_head_t wq;
- };
-@@ -415,6 +418,14 @@ int vpu_wdt_reg_handler(struct platform_device *pdev,
- }
- EXPORT_SYMBOL_GPL(vpu_wdt_reg_handler);
- 
-+unsigned int vpu_get_vdec_hw_capa(struct platform_device *pdev)
-+{
-+	struct mtk_vpu *vpu = platform_get_drvdata(pdev);
-+
-+	return vpu->run.dec_capability;
-+}
-+EXPORT_SYMBOL_GPL(vpu_get_vdec_hw_capa);
-+
- unsigned int vpu_get_venc_hw_capa(struct platform_device *pdev)
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 357c3cb..0b1ab88 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -284,7 +284,8 @@ static void media_device_request_delete(struct media_device *mdev,
+ void media_device_request_complete(struct media_device *mdev,
+ 				   struct media_device_request *req)
  {
- 	struct mtk_vpu *vpu = platform_get_drvdata(pdev);
-@@ -600,6 +611,7 @@ static void vpu_init_ipi_handler(void *data, unsigned int len, void *priv)
+-	media_device_request_queue_event(mdev, req);
++	if (req->flags & MEDIA_REQ_FL_COMPLETE_EVENT)
++		media_device_request_queue_event(mdev, req);
  
- 	vpu->run.signaled = run->signaled;
- 	strncpy(vpu->run.fw_ver, run->fw_ver, VPU_FW_VER_LEN);
-+	vpu->run.dec_capability = run->dec_capability;
- 	vpu->run.enc_capability = run->enc_capability;
- 	wake_up_interruptible(&vpu->run.wq);
+ 	media_device_request_delete(mdev, req);
  }
-diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.h b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-index 5ab37f0..f457479 100644
---- a/drivers/media/platform/mtk-vpu/mtk_vpu.h
-+++ b/drivers/media/platform/mtk-vpu/mtk_vpu.h
-@@ -37,6 +37,18 @@ typedef void (*ipi_handler_t) (void *data,
- 			 command to VPU.
- 			 For other IPI below, AP should send the request
- 			 to VPU to trigger the interrupt.
-+ * @IPI_VDEC_H264:	 The interrupt from vpu is to notify kernel to
-+			 handle H264 vidoe decoder job, and vice versa.
-+			 Decode output format is always MT21 no matter what
-+			 the input format is.
-+ * @IPI_VDEC_VP8:	 The interrupt from is to notify kernel to
-+			 handle VP8 video decoder job, and vice versa.
-+			 Decode output format is always MT21 no matter what
-+			 the input format is.
-+ * @IPI_VDEC_VP9:	 The interrupt from vpu is to notify kernel to
-+			 handle VP9 video decoder job, and vice versa.
-+			 Decode output format is always MT21 no matter what
-+			 the input format is.
-  * @IPI_VENC_H264:	 The interrupt from vpu is to notify kernel to
- 			 handle H264 video encoder job, and vice versa.
-  * @IPI_VENC_VP8:	 The interrupt fro vpu is to notify kernel to
-@@ -46,6 +58,9 @@ typedef void (*ipi_handler_t) (void *data,
+@@ -292,8 +293,8 @@ EXPORT_SYMBOL_GPL(media_device_request_complete);
  
- enum ipi_id {
- 	IPI_VPU_INIT = 0,
-+	IPI_VDEC_H264,
-+	IPI_VDEC_VP8,
-+	IPI_VDEC_VP9,
- 	IPI_VENC_H264,
- 	IPI_VENC_VP8,
- 	IPI_MAX,
-@@ -55,10 +70,12 @@ enum ipi_id {
-  * enum rst_id - reset id to register reset function for VPU watchdog timeout
-  *
-  * @VPU_RST_ENC: encoder reset id
-+ * @VPU_RST_DEC: decoder reset id
-  * @VPU_RST_MAX: maximum reset id
-  */
- enum rst_id {
- 	VPU_RST_ENC,
-+	VPU_RST_DEC,
- 	VPU_RST_MAX,
+ static int media_device_request_queue_apply(
+ 	struct media_device *mdev, struct media_device_request *req,
+-	int (*fn)(struct media_device *mdev,
+-		  struct media_device_request *req))
++	u32 req_flags, int (*fn)(struct media_device *mdev,
++				 struct media_device_request *req))
+ {
+ 	unsigned long flags;
+ 	int rval = 0;
+@@ -302,10 +303,12 @@ static int media_device_request_queue_apply(
+ 		return -ENOSYS;
+ 
+ 	spin_lock_irqsave(&mdev->req_lock, flags);
+-	if (req->state != MEDIA_DEVICE_REQUEST_STATE_IDLE)
++	if (req->state != MEDIA_DEVICE_REQUEST_STATE_IDLE) {
+ 		rval = -EINVAL;
+-	else
++	} else {
+ 		req->state = MEDIA_DEVICE_REQUEST_STATE_QUEUED;
++		req->flags = req_flags;
++	}
+ 	spin_unlock_irqrestore(&mdev->req_lock, flags);
+ 
+ 	if (rval)
+@@ -358,12 +361,12 @@ static long media_device_request_cmd(struct media_device *mdev,
+ 		break;
+ 
+ 	case MEDIA_REQ_CMD_APPLY:
+-		ret = media_device_request_queue_apply(mdev, req,
++		ret = media_device_request_queue_apply(mdev, req, cmd->flags,
+ 						       mdev->ops->req_apply);
+ 		break;
+ 
+ 	case MEDIA_REQ_CMD_QUEUE:
+-		ret = media_device_request_queue_apply(mdev, req,
++		ret = media_device_request_queue_apply(mdev, req, cmd->flags,
+ 						       mdev->ops->req_queue);
+ 		break;
+ 
+@@ -930,13 +933,18 @@ static long __media_device_ioctl(
+ 	return ret;
+ }
+ 
++static const unsigned short media_request_cmd_sizes[] = {
++	sizeof(struct media_request_cmd_0),
++	0
++};
++
+ static const struct media_ioctl_info ioctl_info[] = {
+ 	MEDIA_IOC(DEVICE_INFO, media_device_get_info, MEDIA_IOC_FL_GRAPH_MUTEX),
+ 	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities, MEDIA_IOC_FL_GRAPH_MUTEX),
+ 	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
+ 	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
+ 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+-	MEDIA_IOC(REQUEST_CMD, media_device_request_cmd, 0),
++	MEDIA_IOC_SZ(REQUEST_CMD, media_device_request_cmd, 0, media_request_cmd_sizes),
+ 	MEDIA_IOC(DQEVENT, media_device_dqevent, 0),
  };
  
-@@ -125,6 +142,16 @@ struct platform_device *vpu_get_plat_device(struct platform_device *pdev);
- int vpu_wdt_reg_handler(struct platform_device *pdev,
- 			void vpu_wdt_reset_func(void *),
- 			void *priv, enum rst_id id);
-+
-+/**
-+ * vpu_get_vdec_hw_capa - get video decoder hardware capability
-+ *
-+ * @pdev:	VPU platform device
-+ *
-+ * Return: video decoder hardware capability
-+ **/
-+unsigned int vpu_get_vdec_hw_capa(struct platform_device *pdev);
-+
+@@ -985,7 +993,7 @@ static const struct media_ioctl_info compat_ioctl_info[] = {
+ 	MEDIA_IOC_ARG(ENUM_LINKS32, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX, from_user_enum_links32, copy_arg_to_user_nop),
+ 	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
+ 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+-	MEDIA_IOC(REQUEST_CMD, media_device_request_cmd, 0),
++	MEDIA_IOC_SZ(REQUEST_CMD, media_device_request_cmd, 0, media_request_cmd_sizes),
+ 	MEDIA_IOC(DQEVENT, media_device_dqevent, 0),
+ };
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index e62ad13..fc91d2d 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -291,6 +291,7 @@ struct media_kevent {
+  * @state: The state of the request, MEDIA_DEVICE_REQUEST_STATE_*,
+  *	   access to state serialised by mdev->req_lock
+  * @data: Per-entity data list
++ * @flags: Request specific flags, MEDIA_REQ_FL_*
+  */
+ struct media_device_request {
+ 	u32 id;
+@@ -302,6 +303,7 @@ struct media_device_request {
+ 	struct list_head fh_list;
+ 	enum media_device_request_state state;
+ 	struct list_head data;
++	u32 flags;
+ };
+ 
  /**
-  * vpu_get_venc_hw_capa - get video encoder hardware capability
-  *
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index f6e1efe..4fab54d 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -394,26 +394,36 @@ struct media_v2_topology {
+ #define MEDIA_REQ_CMD_APPLY		2
+ #define MEDIA_REQ_CMD_QUEUE		3
+ 
++#define MEDIA_REQ_FL_COMPLETE_EVENT	(1 << 0)
++
++#ifdef __KERNEL__
++struct __attribute__ ((packed)) media_request_cmd_0 {
++	__u32 cmd;
++	__u32 request;
++};
++#endif
++
+ struct __attribute__ ((packed)) media_request_cmd {
+ 	__u32 cmd;
+ 	__u32 request;
++	__u32 flags;
+ };
+ 
+ #define MEDIA_EVENT_TYPE_REQUEST_COMPLETE	1
+ 
+-struct media_event_request_complete {
++struct __attribute__ ((packed)) media_event_request_complete {
+ 	__u32 id;
+ 	__s32 status;
+ };
+ 
+-struct media_event {
++struct __attribute__ ((packed)) media_event {
+ 	__u32 type;
+ 	__u32 sequence;
+ 
+ 	union {
+ 		struct media_event_request_complete req_complete;
+ 	};
+-} __attribute__ ((packed));
++};
+ 
+ #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+ #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
 -- 
-1.7.9.5
+1.9.1
 
