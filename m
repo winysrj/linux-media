@@ -1,73 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35125 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932739AbcEKODC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 10:03:02 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v4 0/8] Lager/Koelsch board HDMI input support
-Date: Wed, 11 May 2016 16:02:48 +0200
-Message-Id: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from mga14.intel.com ([192.55.52.115]:1297 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758106AbcEFK4l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 May 2016 06:56:41 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [RFC 10/22] v4l: Support the request API in format operations
+Date: Fri,  6 May 2016 13:53:19 +0300
+Message-Id: <1462532011-15527-11-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-This series implements Lager/Koelsch HDMI input support on top of version 6
-of Niklas's rcar-vin rewrite ("[PATCHv6] [media] rcar-vin: add Renesas R-Car
-VIN driver").
+Store the formats in per-entity request data. The get and set format
+operations are completely handled by the V4L2 core with help of the try
+format driver operation.
 
-This revision addresses the issues found in Hans Verkuil's review of the series
-(except for the EDID intialization, which I have left in), and adds his Koelsch
-support patch.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 121 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-dev.h             |  13 ++++
+ 2 files changed, 134 insertions(+)
 
-CU
-Uli
-
-
-Changes since v3:
-- rvin_enum_dv_timings(): use vin->src_pad_idx
-- rvin_dv_timings_cap(): likewise
-- rvin_s_dv_timings(): update vin->format
-- add Koelsch support
-
-Changes since v2:
-- rebased on top of rcar-vin driver v4
-- removed "adv7604: fix SPA register location for ADV7612" (picked up)
-- changed prefix of dts patch to "ARM: dts: lager: "
-
-
-Hans Verkuil (1):
-  r8a7791-koelsch.dts: add HDMI input
-
-Laurent Pinchart (1):
-  v4l: subdev: Add pad config allocator and init
-
-Ulrich Hecht (4):
-  media: rcar_vin: Use correct pad number in try_fmt
-  media: rcar-vin: pad-aware driver initialisation
-  media: rcar-vin: add DV timings support
-  media: rcar-vin: initialize EDID data
-
-William Towle (2):
-  media: adv7604: automatic "default-input" selection
-  ARM: dts: lager: Add entries for VIN HDMI input support
-
- arch/arm/boot/dts/r8a7790-lager.dts         |  39 +++++++
- arch/arm/boot/dts/r8a7791-koelsch.dts       |  41 ++++++++
- drivers/media/i2c/adv7604.c                 |  18 +++-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 158 +++++++++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-vin.h  |   2 +
- drivers/media/v4l2-core/v4l2-subdev.c       |  19 +++-
- include/media/v4l2-subdev.h                 |  10 ++
- 7 files changed, 282 insertions(+), 5 deletions(-)
-
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index bf15580..533fac6 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1355,6 +1355,119 @@ static int v4l_enum_fmt(const struct v4l2_ioctl_ops *ops,
+ 	return ret;
+ }
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++static void vdev_request_data_release(struct media_entity_request_data *data)
++{
++	struct video_device_request_data *vdata =
++		to_video_device_request_data(data);
++
++	kfree(vdata);
++}
++
++static int vdev_request_format(struct video_device *vdev, unsigned int req_id,
++			       struct media_device_request **_req,
++			       struct v4l2_pix_format_mplane **_fmt)
++{
++	struct media_entity_request_data *data;
++	struct video_device_request_data *vdata;
++	struct media_device_request *req;
++
++	if (!vdev->v4l2_dev || !vdev->v4l2_dev->mdev)
++		return -EINVAL;
++
++	req = media_device_request_find(vdev->v4l2_dev->mdev, req_id);
++	if (!req)
++		return -EINVAL;
++
++	*_req = req;
++
++	data = media_device_request_get_entity_data(req, &vdev->entity);
++	if (data) {
++		vdata = to_video_device_request_data(data);
++		*_fmt = &vdata->format;
++		return 0;
++	}
++
++	vdata = kzalloc(sizeof(*vdata), GFP_KERNEL);
++	if (!vdata) {
++		media_device_request_put(req);
++		return -ENOMEM;
++	}
++
++	vdata->data.release = vdev_request_data_release;
++
++	media_device_request_set_entity_data(req, &vdev->entity, &vdata->data);
++
++	*_fmt = &vdata->format;
++	return 0;
++}
++
++static int v4l_g_req_mplane_fmt(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh,
++				struct v4l2_format *fmt)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_pix_format_mplane *format;
++	struct media_device_request *req;
++	int ret;
++
++	ret = vdev_request_format(vdev, fmt->fmt.pix_mp.request,
++				  &req, &format);
++	if (ret < 0)
++		return ret;
++
++	fmt->fmt.pix_mp = *format;
++	media_device_request_put(req);
++	return 0;
++}
++
++static int v4l_s_req_mplane_fmt(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh,
++				struct v4l2_format *fmt)
++{
++	int (*try_op)(struct file *file, void *fh, struct v4l2_format *fmt);
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_pix_format_mplane *format;
++	struct media_device_request *req;
++	int ret;
++
++	if (fmt->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		try_op = ops->vidioc_try_fmt_vid_cap_mplane;
++	else
++		try_op = ops->vidioc_try_fmt_vid_out_mplane;
++
++	if (unlikely(!try_op))
++		return -ENOSYS;
++
++	ret = try_op(file, fh, fmt);
++	if (ret < 0)
++		return ret;
++
++	ret = vdev_request_format(vdev, fmt->fmt.pix_mp.request,
++				  &req, &format);
++	if (ret < 0)
++		return ret;
++
++	*format = fmt->fmt.pix_mp;
++	media_device_request_put(req);
++	return 0;
++}
++#else
++static int v4l_g_req_mplane_fmt(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh,
++				struct v4l2_format *fmt)
++{
++	return -ENOSYS;
++}
++
++static int v4l_s_req_mplane_fmt(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh,
++				struct v4l2_format *fmt)
++{
++	return -ENOSYS;
++}
++#endif
++
+ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
+@@ -1402,6 +1515,8 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+ 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_cap_mplane))
+ 			break;
++		if (p->fmt.pix_mp.request)
++			return v4l_g_req_mplane_fmt(ops, file, fh, p);
+ 		return ops->vidioc_g_fmt_vid_cap_mplane(file, fh, arg);
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_g_fmt_vid_overlay))
+@@ -1426,6 +1541,8 @@ static int v4l_g_fmt(const struct v4l2_ioctl_ops *ops,
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+ 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_vid_out_mplane))
+ 			break;
++		if (p->fmt.pix_mp.request)
++			return v4l_g_req_mplane_fmt(ops, file, fh, p);
+ 		return ops->vidioc_g_fmt_vid_out_mplane(file, fh, arg);
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_g_fmt_vid_out_overlay))
+@@ -1480,6 +1597,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_s_fmt_vid_cap_mplane))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
++		if (p->fmt.pix_mp.request)
++			return v4l_s_req_mplane_fmt(ops, file, fh, p);
+ 		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
+ 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+ 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_s_fmt_vid_overlay))
+@@ -1508,6 +1627,8 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
+ 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_s_fmt_vid_out_mplane))
+ 			break;
+ 		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
++		if (p->fmt.pix_mp.request)
++			return v4l_s_req_mplane_fmt(ops, file, fh, p);
+ 		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+ 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_s_fmt_vid_out_overlay))
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 25a3190..19c7702 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -238,4 +238,17 @@ static inline int video_is_registered(struct video_device *vdev)
+ 	return test_bit(V4L2_FL_REGISTERED, &vdev->flags);
+ }
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++struct video_device_request_data {
++	struct media_entity_request_data data;
++	struct v4l2_pix_format_mplane format;
++};
++
++static inline struct video_device_request_data *
++to_video_device_request_data(struct media_entity_request_data *data)
++{
++	return container_of(data, struct video_device_request_data, data);
++}
++#endif
++
+ #endif /* _V4L2_DEV_H */
 -- 
-2.7.4
+1.9.1
 
