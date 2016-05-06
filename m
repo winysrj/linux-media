@@ -1,181 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:20886 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932529AbcEXNb4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 09:31:56 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Uli Middelberg <uli@middelberg.de>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH v4 4/7] media: s5p-mfc: add iommu support
-Date: Tue, 24 May 2016 15:31:27 +0200
-Message-id: <1464096690-23605-5-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
-References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mout.gmx.net ([212.227.17.21]:52974 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752560AbcEFABG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 May 2016 20:01:06 -0400
+Date: Fri, 6 May 2016 02:00:45 +0200
+From: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v4.6-rc1] media updates
+Message-ID: <20160506020045.75d9722b@mir>
+In-Reply-To: <20160505080737.5961617e@recife.lan>
+References: <20160315080552.3cc5d146@recife.lan>
+	<20160503233859.0f6506fa@mir>
+	<CA+55aFxAor=MJSGFkynu72AQN75bNTh9kewLR4xe8CpjHQQvZQ@mail.gmail.com>
+	<20160504063902.0af2f4d7@mir>
+	<CA+55aFyE82Hi29az_MG9oG0=AEg1o++Wng_DO2RvNHQsSOz87g@mail.gmail.com>
+	<20160504212845.21dab7c8@mir>
+	<CA+55aFxQSUHBvOSqyiqdt2faY6VZSXP0p-cPzRm+km=fk7z4kQ@mail.gmail.com>
+	<20160504185112.70ea985b@recife.lan>
+	<20160505010051.5b4149c8@mir>
+	<20160505080737.5961617e@recife.lan>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ boundary="Sig_/wdCK2VK+BuxNyydN1Ve4tT9"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for IOMMU to s5p-mfc device driver. MFC firmware
-is limited and it cannot use the default configuration. If IOMMU is
-available, the patch disables the default DMA address space
-configuration and creates a new address space of size limited to 256M
-and base address set to 0x20000000.
+--Sig_/wdCK2VK+BuxNyydN1Ve4tT9
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-For now the same address space is shared by both 'left' and 'right'
-memory channels, because the DMA/IOMMU frameworks do not support
-configuring them separately. This is not optimal, but besides limiting
-total address space available has no other drawbacks (MFC firmware
-supports 256M of address space per each channel).
+Hi
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c       | 24 ++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h | 79 ++++++++++++++++++++++++++
- 2 files changed, 103 insertions(+)
- create mode 100644 drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
+On 2016-05-05, Mauro Carvalho Chehab wrote:
+> Em Thu, 5 May 2016 01:00:51 +0200
+> Stefan Lippers-Hollmann <s.l-h@gmx.de> escreveu:
+[...]
+> Oh, in this case, it should be using IS_ENABLED() macro instead.
+> The following patch should fix it. I tested here with some different
+> setups, as described in the patch, and with your .i686 .config.
+>=20
+> Please double-check and ack if it is ok for you.
+>=20
+> Regards,
+> Mauro
+>=20
+>=20
+> [PATCH v2] [media] media-device: fix builds when USB or PCI is compiled
+>  as module
+>=20
+> Just checking ifdef CONFIG_USB is not enough, if the USB is compiled
+> as module. The same applies to PCI.
+[...]
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index fff5f43..6ee620e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -30,6 +30,7 @@
- #include "s5p_mfc_dec.h"
- #include "s5p_mfc_enc.h"
- #include "s5p_mfc_intr.h"
-+#include "s5p_mfc_iommu.h"
- #include "s5p_mfc_opr.h"
- #include "s5p_mfc_cmd.h"
- #include "s5p_mfc_pm.h"
-@@ -1084,6 +1085,22 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 	struct device *dev = &mfc_dev->plat_dev->dev;
- 
- 	/*
-+	 * When IOMMU is available, we cannot use the default configuration,
-+	 * because of MFC firmware requirements: address space limited to
-+	 * 256M and non-zero default start address.
-+	 * This is still simplified, not optimal configuration, but for now
-+	 * IOMMU core doesn't allow to configure device's IOMMUs channel
-+	 * separately.
-+	 */
-+	if (exynos_is_iommu_available(dev)) {
-+		int ret = exynos_configure_iommu(dev, S5P_MFC_IOMMU_DMA_BASE,
-+						 S5P_MFC_IOMMU_DMA_SIZE);
-+		if (ret == 0)
-+			mfc_dev->mem_dev_l = mfc_dev->mem_dev_r = dev;
-+		return ret;
-+	}
-+
-+	/*
- 	 * Create and initialize virtual devices for accessing
- 	 * reserved memory regions.
- 	 */
-@@ -1103,6 +1120,13 @@ static int s5p_mfc_configure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- 
- static void s5p_mfc_unconfigure_dma_memory(struct s5p_mfc_dev *mfc_dev)
- {
-+	struct device *dev = &mfc_dev->plat_dev->dev;
-+
-+	if (exynos_is_iommu_available(dev)) {
-+		exynos_unconfigure_iommu(dev);
-+		return;
-+	}
-+
- 	device_unregister(mfc_dev->mem_dev_l);
- 	device_unregister(mfc_dev->mem_dev_r);
- }
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-new file mode 100644
-index 0000000..5d1d1c2
---- /dev/null
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_iommu.h
-@@ -0,0 +1,79 @@
-+/*
-+ * Copyright (C) 2015 Samsung Electronics Co.Ltd
-+ * Authors: Marek Szyprowski <m.szyprowski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute  it and/or modify it
-+ * under  the terms of  the GNU General  Public License as published by the
-+ * Free Software Foundation;  either version 2 of the  License, or (at your
-+ * option) any later version.
-+ */
-+
-+#ifndef S5P_MFC_IOMMU_H_
-+#define S5P_MFC_IOMMU_H_
-+
-+#define S5P_MFC_IOMMU_DMA_BASE	0x20000000lu
-+#define S5P_MFC_IOMMU_DMA_SIZE	SZ_256M
-+
-+#ifdef CONFIG_EXYNOS_IOMMU
-+
-+#include <asm/dma-iommu.h>
-+
-+static inline bool exynos_is_iommu_available(struct device *dev)
-+{
-+	return dev->archdata.iommu != NULL;
-+}
-+
-+static inline void exynos_unconfigure_iommu(struct device *dev)
-+{
-+	struct dma_iommu_mapping *mapping = to_dma_iommu_mapping(dev);
-+
-+	arm_iommu_detach_device(dev);
-+	arm_iommu_release_mapping(mapping);
-+}
-+
-+static inline int exynos_configure_iommu(struct device *dev,
-+					 unsigned int base, unsigned int size)
-+{
-+	struct dma_iommu_mapping *mapping = NULL;
-+	int ret;
-+
-+	/* Disable the default mapping created by device core */
-+	if (to_dma_iommu_mapping(dev))
-+		exynos_unconfigure_iommu(dev);
-+
-+	mapping = arm_iommu_create_mapping(dev->bus, base, size);
-+	if (IS_ERR(mapping)) {
-+		pr_warn("Failed to create IOMMU mapping for device %s\n",
-+			dev_name(dev));
-+		return PTR_ERR(mapping);
-+	}
-+
-+	ret = arm_iommu_attach_device(dev, mapping);
-+	if (ret) {
-+		pr_warn("Failed to attached device %s to IOMMU_mapping\n",
-+				dev_name(dev));
-+		arm_iommu_release_mapping(mapping);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+#else
-+
-+static inline bool exynos_is_iommu_available(struct device *dev)
-+{
-+	return false;
-+}
-+
-+static inline int exynos_configure_iommu(struct device *dev,
-+					 unsigned int base, unsigned int size)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline void exynos_unconfigure_iommu(struct device *dev) { }
-+
-+#endif
-+
-+#endif /* S5P_MFC_IOMMU_H_ */
--- 
-1.9.2
+This patch works for me, both on amd64 and i386, tested with=20
+dvb_usb_dw2102, dvb_usb_af9015 and dvb_usb_rtl28xxu.
 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+Feel free to add
+
+Tested-by: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+
+Thanks a lot.
+
+Regards
+	Stefan Lippers-Hollmann
+
+--Sig_/wdCK2VK+BuxNyydN1Ve4tT9
+Content-Type: application/pgp-signature
+Content-Description: Digitale Signatur von OpenPGP
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXK96tAAoJEL/gLWWx0ULtxc4P/jhCwovWugRzJPIlKl3qYzo/
+q/rczCr/46xdQ7oCkBkXj7pmuct9nqfWr9NufNkd3Rn8vhKUHSvYAJKqrLqAJre/
+q/guxB8eN/zfyPPGKtlvzBPA9VoknlsAhM71cvyjtuwpc5riGzp5tiqw6/ttN4E9
+Rj39V9y+A61JE+Ma02NkozZr/B42c/zzU7NP1MWS8kFyeuQWnKEITA4Na0f5Vz/e
+oWFhs4G90DmFL7phvY9Eige/ufVGI/QvOWLFwb+pkD3KBWT/YDh6HIGxQ6/H+ecE
+7fHKLA7CIk7RewdH27BzUThyUkh+8nZfhcZ1Gco857H57koxFteApq+XUuj/d2jX
+CEWBzQ7D0yhuG9/rb7QOMPhjSjGKvMY0PiKyqD/H1ua8j40zeR7+BkS5LhZetczW
+Q/05Jx9ZZCKkGJEQx+6btIl6gZaEpc5kBUg3pl2wwF8Xy1xwSYT260PMNLoPpzOn
+q/Lv2/m0uudwd2B/PYMSv/iMZ7FndnNYTT6c4No2SFJzw0KTxW5PSpmBdV9BO7Mo
+qINAWhSqsr2VrxeV3dh6qzlPRyem905OyWfvpbXq5Nlt6sb/EWdCjvUYHkadKKvP
+5Oo1Jy7z1c+bqag0CjvBU9io6RmxwIaCwHDtpd47JZ9U9P4cMlb5kz8q0ehiQdcB
+Pg8gEqlfsjb7F4UTsn+h
+=/tjI
+-----END PGP SIGNATURE-----
+
+--Sig_/wdCK2VK+BuxNyydN1Ve4tT9--
