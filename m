@@ -1,59 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:64535 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065AbcETWrk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 May 2016 18:47:40 -0400
-Date: Sat, 21 May 2016 00:47:28 +0200 (CEST)
-From: Rolf Evers-Fischer <embedded24@evers-fischer.de>
-To: crope@iki.fi
-Cc: linux-media@vger.kernel.org, olli.salonen@iki.fi
-Message-ID: <1677993131.49456.01924d52-f180-4aca-bc23-42b237aaedb7.open-xchange@email.1und1.de>
-Subject: Re: DVBSky T330 DVB-C regression Linux 4.1.12 to 4.3
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from kozue.soulik.info ([108.61.200.231]:58449 "EHLO
+	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751134AbcEGFOt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 May 2016 01:14:49 -0400
+From: ayaka <ayaka@soulik.info>
+To: linux-kernel@vger.kernel.org
+Cc: m.szyprowski@samsung.com, nicolas.dufresne@collabora.com,
+	shuahkh@osg.samsung.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, kyungmin.park@samsung.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	ayaka <ayaka@soulik.info>
+Subject: [PATCH 1/3] [media] s5p-mfc: Add handling of buffer freeing reqbufs request
+Date: Sat,  7 May 2016 13:05:24 +0800
+Message-Id: <1462597526-31559-2-git-send-email-ayaka@soulik.info>
+In-Reply-To: <1462597526-31559-1-git-send-email-ayaka@soulik.info>
+References: <1462597526-31559-1-git-send-email-ayaka@soulik.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Antti,
-I apologize for tackling this old problem, but I just ran into the same
-situation with my "DVBSky T330 DVB-C" and found that I'm not the only one.
+The encoder forget the work to call hardware to release its buffers.
+This patch came from chromium project. I just change its code
+style and make the API match with new kernel.
 
-Antti Palosaari <crope  iki.fi> writes:
+Signed-off-by: ayaka <ayaka@soulik.info>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-> 
-> Moikka!
-> 
-> On 11/19/2015 01:36 AM, Stephan Eisvogel wrote:
-> > Hey Olli, Antti,
-> 
-> > culprit is:
-> >
-> > http://git.linuxtv.org/cgit.cgi/linux.git/commit/drivers/media/dvb-frontends/si2168.c?id=7adf99d20ce0e96a70755f452e3a63824b14060f
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 034b5c1..a66a9f9 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1144,7 +1144,10 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+ 		if (reqbufs->count == 0) {
++			mfc_debug(2, "Freeing buffers\n");
+ 			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
++			s5p_mfc_hw_call(dev->mfc_ops, release_codec_buffers,
++					ctx);
+ 			ctx->capture_state = QUEUE_FREE;
+ 			return ret;
+ 		}
+-- 
+2.5.5
 
-Reverting this commit helps, but is not very convenient.
-
-> To see that, debug messages should be enabled:
-> modprobe si2168 dyndbg==pmftl
-> or
-> modprobe si2168; echo -n 'module si2168 =pft' > 
-> /sys/kernel/debug/dynamic_debug/control
-> 
-> You could also replace all dev_dbg with dev_info if you don't care 
-> compile kernel with dynamic debugs enabled needed for normal debug logging.
-> 
-
-Dynamic debug didn't work properly on my system. I'll replace all dev_dbg with
-dev_info and provide you the output as soon as possible, if you are still
-interested.
-
-> Also, you used 4.0.19 firmware. Could you test that old one:
-> http://palosaari.fi/linux/v4l-dvb/firmware/Si2168/Si2168-B40/4.0.11/
-> 
-
-I've just tried the old 4.0.11 firmware - and the error is gone. Now the tuning
-works perfectly!
-
-Best regards,
- Rolf
