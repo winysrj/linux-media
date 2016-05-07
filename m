@@ -1,46 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33153 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754103AbcESTCr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2016 15:02:47 -0400
-Received: by mail-wm0-f67.google.com with SMTP id 67so388008wmg.0
-        for <linux-media@vger.kernel.org>; Thu, 19 May 2016 12:02:46 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH v2 2/2] media: rc: nuvoton: decrease size of raw event fifo
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <82c0a393-9a8d-e2cf-09f2-40e170822f79@gmail.com>
-Date: Thu, 19 May 2016 21:02:34 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:43698 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758804AbcEGBZK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2016 21:25:10 -0400
+Message-ID: <1462584301.25248.40.camel@collabora.com>
+Subject: Re: [RESEND PATCH] [media] s5p-mfc: don't close instance after free
+ OUTPUT buffers
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+	linux-kernel@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	ayaka <ayaka@soulik.info>, Shuah Khan <shuahkh@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Date: Fri, 06 May 2016 21:25:01 -0400
+In-Reply-To: <1462572682-5195-1-git-send-email-javier@osg.samsung.com>
+References: <1462572682-5195-1-git-send-email-javier@osg.samsung.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-ePpIZ5bVzcXshxe5YiqF"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This chip has a 32 byte HW FIFO only. Therefore the default fifo size
-of 512 raw events is not needed and can be significantly decreased.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
-v2:
-- make patch part of a series
----
- drivers/media/rc/nuvoton-cir.c | 1 +
- 1 file changed, 1 insertion(+)
+--=-ePpIZ5bVzcXshxe5YiqF
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 99b303b..e98c955 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -1186,6 +1186,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 	rdev->priv = nvt;
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
- 	rdev->allowed_protocols = RC_BIT_ALL;
-+	rdev->raw_fifo_size = RX_BUF_LEN;
- 	rdev->open = nvt_open;
- 	rdev->close = nvt_close;
- 	rdev->tx_ir = nvt_tx_ir;
--- 
-2.8.2
+Thanks for re-submitting. See inline two typos to fix in teh comment.
+
+cheers,
+Nicolas
+
+Le vendredi 06 mai 2016 =C3=A0 18:11 -0400, Javier Martinez Canillas a =C3=
+=A9crit=C2=A0:
+> From: ayaka <ayaka@soulik.info>
+>=20
+> User-space applications can use the VIDIOC_REQBUFS ioctl to determine if =
+a
+> memory mapped, user pointer or DMABUF based I/O is supported by the drive=
+r.
+>=20
+> So a set of VIDIOC_REQBUFS ioctl calls will be made with count 0 and then
+> the real VIDIOC_REQBUFS call with count =3D=3D n. But for count 0, the dr=
+iver
+> not only frees the buffer but also closes the MFC instance and s5p_mfc_ct=
+x
+> state is set to MFCINST_FREE.
+>=20
+> The VIDIOC_REQBUFS handler for the output device checks if the s5p_mfc_ct=
+x
+> state is set to MFCINST_INIT (which happens on an VIDIOC_S_FMT) and fails
+> otherwise. So after a VIDIOC_REQBUFS(n), future VIDIOC_REQBUFS(n) calls
+> will fails unless a VIDIOC_S_FMT ioctl calls happens before the reqbufs.
+>=20
+> But applications may first set the format and then attempt to determine
+> the I/O methods supported by the driver (for example Gstramer does it) so
+=C2=A0* GStreamer
+
+> the state won't be set to MFCINST_INIT again and VIDIOC_REQBUFS will fail=
+.
+>=20
+> To avoid this issue, only free the buffers on VIDIOC_REQBUFS(0) but don't
+> close the MFC instance to allow future VIDIOC_REQBUFS(n) calls to succeed=
+.
+>=20
+> Signed-off-by: ayaka <ayaka@soulik.info>
+> [javier: Rewrote changelog to explain the problem more detailed]
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>=20
+> ---
+> Hello,
+>=20
+> This is a resend of a patch posted by Ayaka some time ago [0].
+> Without $SUBJECT, trying to decode a video using Gstramer fails
+
+* GStreamer again=C2=A0
+
+> on an Exynos5422 Odroid XU4 board with following error message:
+>=20
+> $ gst-launch-1.0 filesrc location=3Dtest.mov ! qtdemux ! h264parse ! v4l2=
+video0dec ! videoconvert ! autovideosink
+>=20
+> Setting pipeline to PAUSED ...
+> Pipeline is PREROLLING ...
+> [ 3947.114756] vidioc_reqbufs:576: Only V4L2_MEMORY_MAP is supported
+> [ 3947.114771] vidioc_reqbufs:576: Only V4L2_MEMORY_MAP is supported
+> [ 3947.114903] reqbufs_output:484: Reqbufs called in an invalid state
+> [ 3947.114913] reqbufs_output:510: Failed allocating buffers for OUTPUT q=
+ueue
+> ERROR: from element /GstPipeline:pipeline0/v4l2video0dec:v4l2video0dec0: =
+Failed to allocate required memory.
+> Additional debug info:
+> gstv4l2videodec.c(575): gst_v4l2_video_dec_handle_frame (): /GstPipeline:=
+pipeline0/v4l2video0dec:v4l2video0dec0:
+> Buffer pool activation failed
+> ERROR: pipeline doesn't want to preroll.
+> Setting pipeline to NULL ...
+> Freeing pipeline ...
+>=20
+> [0]: https://patchwork.linuxtv.org/patch/32794/
+>=20
+> Best regards,
+> Javier
+>=20
+> =C2=A0drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 1 -
+> =C2=A01 file changed, 1 deletion(-)
+>=20
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media=
+/platform/s5p-mfc/s5p_mfc_dec.c
+> index f2d6376ce618..8b9467de2d6a 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> @@ -474,7 +474,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev, st=
+ruct s5p_mfc_ctx *ctx,
+> =C2=A0		ret =3D vb2_reqbufs(&ctx->vq_src, reqbufs);
+> =C2=A0		if (ret)
+> =C2=A0			goto out;
+> -		s5p_mfc_close_mfc_inst(dev, ctx);
+> =C2=A0		ctx->src_bufs_cnt =3D 0;
+> =C2=A0		ctx->output_state =3D QUEUE_FREE;
+> =C2=A0	} else if (ctx->output_state =3D=3D QUEUE_FREE) {
+--=-ePpIZ5bVzcXshxe5YiqF
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEABECAAYFAlctQ+0ACgkQcVMCLawGqBxzPQCgys0bjrdBiyga9xf7rFkmJvxT
+0GIAoJHnGK5ChhBy5/r79NsU26gEum9T
+=Hc4G
+-----END PGP SIGNATURE-----
+
+--=-ePpIZ5bVzcXshxe5YiqF--
 
