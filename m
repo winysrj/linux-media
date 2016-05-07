@@ -1,41 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:47993 "EHLO mail.kernel.org"
+Received: from mail.infonetg.com ([1.224.163.43]:40180 "EHLO infonetg.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753824AbcERQhj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2016 12:37:39 -0400
-Date: Wed, 18 May 2016 11:37:32 -0500
-From: Rob Herring <robh@kernel.org>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: mark.rutland@arm.com, pawel.moll@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com
-Subject: Re: [PATCH v2 4/6] ir-rx51: add DT support to driver
-Message-ID: <20160518163732.GA25142@rob-hp-laptop>
-References: <1463427254-7728-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1463427254-7728-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	id S1751275AbcEGGaS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 May 2016 02:30:18 -0400
+Message-Id: <201605070609.u47698OI002826@infonetg.com>
+Reply-To: <zhu.shumin@yahoo.com.hk>
+From: "Acct. Dept. Bank Of China" <jslee@infonetg.com>
+Subject: STRICTLY CONFIDENTIAL.
+Date: Sat, 7 May 2016 01:22:27 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1463427254-7728-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 16, 2016 at 10:34:12PM +0300, Ivaylo Dimitrov wrote:
-> With the upcoming removal of legacy boot, lets add support to one of the
-> last N900 drivers remaining without it. As the driver still uses omap
-> dmtimer, add auxdata as well.
-> 
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> ---
->  .../devicetree/bindings/media/nokia,n900-ir          | 20 ++++++++++++++++++++
->  arch/arm/mach-omap2/pdata-quirks.c                   |  6 +-----
->  drivers/media/rc/ir-rx51.c                           | 11 ++++++++++-
->  3 files changed, 31 insertions(+), 6 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/nokia,n900-ir
+I have important transaction for you as next of kin to claim US$8.37m  email me at   zhu.shumin@yahoo.com.hk   so i can send you more details
 
-Acked-by: Rob Herring <robh@kernel.org>
+Thanks
+
+Mr.Zhu Shumin
+
+(Security Code 00746igit)
+= = = = = = = = = = = = =
+
+
+
+                 Move to inbox
