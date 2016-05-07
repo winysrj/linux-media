@@ -1,96 +1,357 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:51827 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751451AbcE0Ghv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2016 02:37:51 -0400
-Subject: Re: [PATCH v4 2/7] media: s5p-mfc: use generic reserved memory bindings
-To: Rob Herring <robh@kernel.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>
-References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
- <1464096690-23605-3-git-send-email-m.szyprowski@samsung.com>
- <a14c4f45-64c9-f72d-532b-ad1ff53fa9eb@osg.samsung.com>
- <20160525173614.GA8309@rob-hp-laptop>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Uli Middelberg <uli@middelberg.de>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <709cf900-86dd-5020-d516-24caa971d74a@samsung.com>
-Date: Fri, 27 May 2016 08:37:41 +0200
-MIME-version: 1.0
-In-reply-to: <20160525173614.GA8309@rob-hp-laptop>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:32894 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986AbcEGPW2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 May 2016 11:22:28 -0400
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
+	linux@arm.linux.org.uk, mchehab@osg.samsung.com
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	sre@kernel.org, pali.rohar@gmail.com,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH 6/7] [media] ir-rx51: use hrtimer instead of dmtimer
+Date: Sat,  7 May 2016 18:21:47 +0300
+Message-Id: <1462634508-24961-7-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Drop dmtimer usage for pulse timer in favor of hrtimer. That allows
+removing PWM dmitimer platform data usage.
 
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   4 -
+ arch/arm/mach-omap2/pdata-quirks.c           |   3 -
+ drivers/media/rc/ir-rx51.c                   | 166 ++++++---------------------
+ include/linux/platform_data/media/ir-rx51.h  |   1 -
+ 4 files changed, 37 insertions(+), 137 deletions(-)
 
-On 2016-05-25 19:36, Rob Herring wrote:
-> On Wed, May 25, 2016 at 11:18:59AM -0400, Javier Martinez Canillas wrote:
->> Hello Marek,
->>
->> On 05/24/2016 09:31 AM, Marek Szyprowski wrote:
->>> Use generic reserved memory bindings and mark old, custom properties
->>> as obsoleted.
->>>
->>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>> ---
->>>   .../devicetree/bindings/media/s5p-mfc.txt          | 39 +++++++++++++++++-----
->>>   1 file changed, 31 insertions(+), 8 deletions(-)
->>>
->>> diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
->>> index 2d5787e..92c94f5 100644
->>> --- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
->>> +++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
->>> @@ -21,15 +21,18 @@ Required properties:
->>>     - clock-names : from common clock binding: must contain "mfc",
->>>   		  corresponding to entry in the clocks property.
->>>   
->>> -  - samsung,mfc-r : Base address of the first memory bank used by MFC
->>> -		    for DMA contiguous memory allocation and its size.
->>> -
->>> -  - samsung,mfc-l : Base address of the second memory bank used by MFC
->>> -		    for DMA contiguous memory allocation and its size.
->>> -
->>>   Optional properties:
->>>     - power-domains : power-domain property defined with a phandle
->>>   			   to respective power domain.
->>> +  - memory-region : from reserved memory binding: phandles to two reserved
->>> +	memory regions, first is for "left" mfc memory bus interfaces,
->>> +	second if for the "right" mfc memory bus, used when no SYSMMU
->>> +	support is available
->>> +
->>> +Obsolete properties:
->>> +  - samsung,mfc-r, samsung,mfc-l : support removed, please use memory-region
->>> +	property instead
->>> +
->>>
->> I wonder if we should maintain backward compatibility for this driver
->> since s5p-mfc memory allocation won't work with an old FDT if support
->> for the old properties are removed.
-> Well, minimally the commit log should indicate that compatibility is
-> being broken.
-
-Compatibility is only partially broken. I add this to the commit 
-message. Old
-bindings will still work with the new driver when IOMMU is enabled - in 
-such case reserved
-memory regions are ignored so this should not be a big issue. Using 
-IOMMU also increases
-total memory space for the video buffers without wasting it as 
-'reserved'. Hope that
-once those patches are merged, the IOMMU can be finally enabled in the 
-exynos_defconfig.
-
-Best regards
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index e487575..a5ab712 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -1242,10 +1242,6 @@ static struct pwm_omap_dmtimer_pdata __maybe_unused pwm_dmtimer_pdata = {
+ #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
+ static struct lirc_rx51_platform_data rx51_lirc_data = {
+ 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+-#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
+-	.dmtimer = &pwm_dmtimer_pdata,
+-#endif
+-
+ };
+ 
+ static struct platform_device rx51_lirc_device = {
+diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
+index c15ccac..8936ffc 100644
+--- a/arch/arm/mach-omap2/pdata-quirks.c
++++ b/arch/arm/mach-omap2/pdata-quirks.c
+@@ -486,9 +486,6 @@ static struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
+ 
+ static struct lirc_rx51_platform_data __maybe_unused rx51_lirc_data = {
+ 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
+-#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
+-	.dmtimer = &pwm_dmtimer_pdata,
+-#endif
+ };
+ 
+ static struct platform_device __maybe_unused rx51_lirc_device = {
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 7a329d8..9dbe0a4 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -22,10 +22,10 @@
+ #include <linux/wait.h>
+ #include <linux/pwm.h>
+ #include <linux/of.h>
++#include <linux/hrtimer.h>
+ 
+ #include <media/lirc.h>
+ #include <media/lirc_dev.h>
+-#include <linux/platform_data/pwm_omap_dmtimer.h>
+ #include <linux/platform_data/media/ir-rx51.h>
+ 
+ #define LIRC_RX51_DRIVER_FEATURES (LIRC_CAN_SET_SEND_DUTY_CYCLE |	\
+@@ -36,32 +36,26 @@
+ 
+ #define WBUF_LEN 256
+ 
+-#define TIMER_MAX_VALUE 0xffffffff
+-
+ struct lirc_rx51 {
+ 	struct pwm_device *pwm;
+-	pwm_omap_dmtimer *pulse_timer;
+-	struct pwm_omap_dmtimer_pdata *dmtimer;
++	struct hrtimer timer;
+ 	struct device	     *dev;
+ 	struct lirc_rx51_platform_data *pdata;
+ 	wait_queue_head_t     wqueue;
+ 
+-	unsigned long	fclk_khz;
+ 	unsigned int	freq;		/* carrier frequency */
+ 	unsigned int	duty_cycle;	/* carrier duty cycle */
+-	unsigned int	irq_num;
+-	unsigned int	match;
+ 	int		wbuf[WBUF_LEN];
+ 	int		wbuf_index;
+ 	unsigned long	device_is_open;
+ };
+ 
+-static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
++static inline void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
+ {
+ 	pwm_enable(lirc_rx51->pwm);
+ }
+ 
+-static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
++static inline void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
+ {
+ 	pwm_disable(lirc_rx51->pwm);
+ }
+@@ -72,61 +66,21 @@ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
+ 	int duty, period = DIV_ROUND_CLOSEST(NSEC_PER_SEC, lirc_rx51->freq);
+ 
+ 	duty = DIV_ROUND_CLOSEST(lirc_rx51->duty_cycle * period, 100);
+-	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
+ 
+ 	pwm_config(pwm, duty, period);
+ 
+-	lirc_rx51->dmtimer->start(lirc_rx51->pulse_timer);
+-
+-	lirc_rx51->match = 0;
+-
+ 	return 0;
+ }
+ 
+-#define tics_after(a, b) ((long)(b) - (long)(a) < 0)
+-
+-static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
++static enum hrtimer_restart lirc_rx51_timer_cb(struct hrtimer *timer)
+ {
+-	int counter;
+-
+-	BUG_ON(usec < 0);
+-
+-	if (lirc_rx51->match == 0)
+-		counter = lirc_rx51->dmtimer->read_counter(lirc_rx51->pulse_timer);
+-	else
+-		counter = lirc_rx51->match;
+-
+-	counter += (u32)(lirc_rx51->fclk_khz * usec / (1000));
+-	lirc_rx51->dmtimer->set_match(lirc_rx51->pulse_timer, 1, counter);
+-	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer,
+-					   PWM_OMAP_DMTIMER_INT_MATCH);
+-	if (tics_after(lirc_rx51->dmtimer->read_counter(lirc_rx51->pulse_timer),
+-		       counter)) {
+-		return 1;
+-	}
+-	return 0;
+-}
++	struct lirc_rx51 *lirc_rx51 =
++			container_of(timer, struct lirc_rx51, timer);
++	ktime_t now;
+ 
+-static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+-{
+-	unsigned int retval;
+-	struct lirc_rx51 *lirc_rx51 = ptr;
+-
+-	retval = lirc_rx51->dmtimer->read_status(lirc_rx51->pulse_timer);
+-	if (!retval)
+-		return IRQ_NONE;
+-
+-	if (retval & ~PWM_OMAP_DMTIMER_INT_MATCH)
+-		dev_err_ratelimited(lirc_rx51->dev,
+-				": Unexpected interrupt source: %x\n", retval);
+-
+-	lirc_rx51->dmtimer->write_status(lirc_rx51->pulse_timer,
+-					 PWM_OMAP_DMTIMER_INT_MATCH |
+-					 PWM_OMAP_DMTIMER_INT_OVERFLOW |
+-					 PWM_OMAP_DMTIMER_INT_CAPTURE);
+ 	if (lirc_rx51->wbuf_index < 0) {
+ 		dev_err_ratelimited(lirc_rx51->dev,
+-				": BUG wbuf_index has value of %i\n",
++				"BUG wbuf_index has value of %i\n",
+ 				lirc_rx51->wbuf_index);
+ 		goto end;
+ 	}
+@@ -136,6 +90,8 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+ 	 * pulses until we catch up.
+ 	 */
+ 	do {
++		u64 ns;
++
+ 		if (lirc_rx51->wbuf_index >= WBUF_LEN)
+ 			goto end;
+ 		if (lirc_rx51->wbuf[lirc_rx51->wbuf_index] == -1)
+@@ -146,80 +102,24 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
+ 		else
+ 			lirc_rx51_on(lirc_rx51);
+ 
+-		retval = pulse_timer_set_timeout(lirc_rx51,
+-					lirc_rx51->wbuf[lirc_rx51->wbuf_index]);
++		ns = 1000 * lirc_rx51->wbuf[lirc_rx51->wbuf_index];
++		hrtimer_add_expires_ns(timer, ns);
++
+ 		lirc_rx51->wbuf_index++;
+ 
+-	} while (retval);
++		now = timer->base->get_time();
++
++	} while (hrtimer_get_expires_tv64(timer) < now.tv64);
+ 
+-	return IRQ_HANDLED;
++	return HRTIMER_RESTART;
+ end:
+ 	/* Stop TX here */
+ 	lirc_rx51_off(lirc_rx51);
+ 	lirc_rx51->wbuf_index = -1;
+ 
+-	lirc_rx51->dmtimer->stop(lirc_rx51->pulse_timer);
+-	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
+ 	wake_up_interruptible(&lirc_rx51->wqueue);
+ 
+-	return IRQ_HANDLED;
+-}
+-
+-static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
+-{
+-	struct clk *clk_fclk;
+-	int retval;
+-
+-	lirc_rx51->pwm = pwm_get(lirc_rx51->dev, NULL);
+-	if (IS_ERR(lirc_rx51->pwm)) {
+-		retval = PTR_ERR(lirc_rx51->pwm);
+-		dev_err(lirc_rx51->dev, ": pwm_get failed: %d\n", retval);
+-		return retval;
+-	}
+-
+-	lirc_rx51->pulse_timer = lirc_rx51->dmtimer->request();
+-	if (lirc_rx51->pulse_timer == NULL) {
+-		dev_err(lirc_rx51->dev, ": Error requesting pulse timer\n");
+-		retval = -EBUSY;
+-		goto err1;
+-	}
+-
+-	lirc_rx51->dmtimer->set_source(lirc_rx51->pulse_timer,
+-				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
+-	lirc_rx51->dmtimer->enable(lirc_rx51->pulse_timer);
+-	lirc_rx51->irq_num =
+-			lirc_rx51->dmtimer->get_irq(lirc_rx51->pulse_timer);
+-	retval = request_irq(lirc_rx51->irq_num, lirc_rx51_interrupt_handler,
+-			     IRQF_SHARED, "lirc_pulse_timer", lirc_rx51);
+-	if (retval) {
+-		dev_err(lirc_rx51->dev, ": Failed to request interrupt line\n");
+-		goto err2;
+-	}
+-
+-	clk_fclk = lirc_rx51->dmtimer->get_fclk(lirc_rx51->pulse_timer);
+-	lirc_rx51->fclk_khz = clk_get_rate(clk_fclk) / 1000;
+-
+-	return 0;
+-
+-err2:
+-	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
+-err1:
+-	pwm_put(lirc_rx51->pwm);
+-
+-	return retval;
+-}
+-
+-static int lirc_rx51_free_port(struct lirc_rx51 *lirc_rx51)
+-{
+-	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
+-	free_irq(lirc_rx51->irq_num, lirc_rx51);
+-	lirc_rx51_off(lirc_rx51);
+-	lirc_rx51->dmtimer->disable(lirc_rx51->pulse_timer);
+-	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
+-	lirc_rx51->wbuf_index = -1;
+-	pwm_put(lirc_rx51->pwm);
+-
+-	return 0;
++	return HRTIMER_NORESTART;
+ }
+ 
+ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+@@ -258,8 +158,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
+ 
+ 	lirc_rx51_on(lirc_rx51);
+ 	lirc_rx51->wbuf_index = 1;
+-	pulse_timer_set_timeout(lirc_rx51, lirc_rx51->wbuf[0]);
+-
++	hrtimer_start(&lirc_rx51->timer,
++		      ns_to_ktime(1000 * lirc_rx51->wbuf[0]),
++		      HRTIMER_MODE_REL);
+ 	/*
+ 	 * Don't return back to the userspace until the transfer has
+ 	 * finished
+@@ -359,14 +260,24 @@ static int lirc_rx51_open(struct inode *inode, struct file *file)
+ 	if (test_and_set_bit(1, &lirc_rx51->device_is_open))
+ 		return -EBUSY;
+ 
+-	return lirc_rx51_init_port(lirc_rx51);
++	lirc_rx51->pwm = pwm_get(lirc_rx51->dev, NULL);
++	if (IS_ERR(lirc_rx51->pwm)) {
++		int res = PTR_ERR(lirc_rx51->pwm);
++
++		dev_err(lirc_rx51->dev, "pwm_get failed: %d\n", res);
++		return res;
++	}
++
++	return 0;
+ }
+ 
+ static int lirc_rx51_release(struct inode *inode, struct file *file)
+ {
+ 	struct lirc_rx51 *lirc_rx51 = file->private_data;
+ 
+-	lirc_rx51_free_port(lirc_rx51);
++	hrtimer_cancel(&lirc_rx51->timer);
++	lirc_rx51_off(lirc_rx51);
++	pwm_put(lirc_rx51->pwm);
+ 
+ 	clear_bit(1, &lirc_rx51->device_is_open);
+ 
+@@ -441,11 +352,6 @@ static int lirc_rx51_probe(struct platform_device *dev)
+ 		return -ENXIO;
+ 	}
+ 
+-	if (!lirc_rx51.pdata->dmtimer) {
+-		dev_err(&dev->dev, "no dmtimer?\n");
+-		return -ENODEV;
+-	}
+-
+ 	pwm = pwm_get(&dev->dev, NULL);
+ 	if (IS_ERR(pwm)) {
+ 		int err = PTR_ERR(pwm);
+@@ -459,7 +365,9 @@ static int lirc_rx51_probe(struct platform_device *dev)
+ 	lirc_rx51.freq = DIV_ROUND_CLOSEST(pwm_get_period(pwm), NSEC_PER_SEC);
+ 	pwm_put(pwm);
+ 
+-	lirc_rx51.dmtimer = lirc_rx51.pdata->dmtimer;
++	hrtimer_init(&lirc_rx51.timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
++	lirc_rx51.timer.function = lirc_rx51_timer_cb;
++
+ 	lirc_rx51.dev = &dev->dev;
+ 	lirc_rx51_driver.dev = &dev->dev;
+ 	lirc_rx51_driver.minor = lirc_register_driver(&lirc_rx51_driver);
+diff --git a/include/linux/platform_data/media/ir-rx51.h b/include/linux/platform_data/media/ir-rx51.h
+index 6acf22d..812d873 100644
+--- a/include/linux/platform_data/media/ir-rx51.h
++++ b/include/linux/platform_data/media/ir-rx51.h
+@@ -3,7 +3,6 @@
+ 
+ struct lirc_rx51_platform_data {
+ 	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
+-	struct pwm_omap_dmtimer_pdata *dmtimer;
+ };
+ 
+ #endif
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+1.9.1
 
