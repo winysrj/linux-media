@@ -1,68 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:53725 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751033AbcEITga (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2016 15:36:30 -0400
-Date: Mon, 9 May 2016 12:36:24 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+Received: from kozue.soulik.info ([108.61.200.231]:58450 "EHLO
+	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751023AbcEGFOt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 May 2016 01:14:49 -0400
+From: ayaka <ayaka@soulik.info>
+To: linux-kernel@vger.kernel.org
+Cc: m.szyprowski@samsung.com, nicolas.dufresne@collabora.com,
+	shuahkh@osg.samsung.com, javier@osg.samsung.com,
+	mchehab@osg.samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, kyungmin.park@samsung.com,
 	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com
-Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
- when not needed.
-Message-ID: <20160509193624.GH5995@atomide.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	ayaka <ayaka@soulik.info>
+Subject: [PATCH 2/3] [media] s5p-mfc: remove unnecessary check in try_fmt
+Date: Sat,  7 May 2016 13:05:25 +0800
+Message-Id: <1462597526-31559-3-git-send-email-ayaka@soulik.info>
+In-Reply-To: <1462597526-31559-1-git-send-email-ayaka@soulik.info>
+References: <1462597526-31559-1-git-send-email-ayaka@soulik.info>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160507 08:24]:
-> once omap_dm_timer_start() is called, which calls omap_dm_timer_enable()
-> and thus pm_runtime_get_sync(), it doesn't make sense to call PM runtime
-> functions again before omap_dm_timer_stop is called(). Otherwise PM runtime
-> functions called in omap_dm_timer_enable/disable lead to long and unneeded
-> delays.
-> 
-> Fix that by implementing an "enabled" counter, so the PM runtime functions
-> get called only when really needed.
-> 
-> Without that patch Nokia N900 IR TX driver (ir-rx51) does not function.
+We don't need to request the sizeimage or num_planes
+in try_fmt.
 
-We should use pm_runtime for the refcounting though and call PM runtime
-unconditionally. Can you try to follow the standard PM runtime usage
-like this:
+Signed-off-by: ayaka <ayaka@soulik.info>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-init:
-pm_runtime_use_autosuspend(&timer->pdev->dev);
-pm_runtime_set_autosuspend_delay(&timer->pdev->dev, 200);
-pm_runtime_enable(&timer->pdev->dev);
-...
-enable:
-pm_runtime_get_sync(&timer->pdev->dev);
-...
-disable:
-pm_runtime_mark_last_busy(&timer->pdev->dev);
-pm_runtime_put_autosuspend(&timer->pdev->dev);
-...
-exit:
-pm_runtime_dont_use_autosuspend(&timer->pdev->dev);
-pm_runtime_put_sync(&timer->pdev->dev);
-pm_runtime_disable(&timer->pdev->dev);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index a66a9f9..2f76aba 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1043,10 +1043,6 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("failed to try output format\n");
+ 			return -EINVAL;
+ 		}
+-		if (pix_fmt_mp->plane_fmt[0].sizeimage == 0) {
+-			mfc_err("must be set encoding output size\n");
+-			return -EINVAL;
+-		}
+ 		if ((dev->variant->version_bit & fmt->versions) == 0) {
+ 			mfc_err("Unsupported format by this MFC version.\n");
+ 			return -EINVAL;
+@@ -1060,11 +1056,6 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("failed to try output format\n");
+ 			return -EINVAL;
+ 		}
+-
+-		if (fmt->num_planes != pix_fmt_mp->num_planes) {
+-			mfc_err("failed to try output format\n");
+-			return -EINVAL;
+-		}
+ 		if ((dev->variant->version_bit & fmt->versions) == 0) {
+ 			mfc_err("Unsupported format by this MFC version.\n");
+ 			return -EINVAL;
+-- 
+2.5.5
 
-No idea what the timeout should be, maybe less than 200 ms. Also we need
-to test that off idle still works with timer1, that might need special
-handling.
-
-Regards,
-
-Tony
