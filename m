@@ -1,166 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:56966 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:43659 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755197AbcE0Uyj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2016 16:54:39 -0400
-Subject: Re: [PATCH v4 6/7] ARM: dts: exynos: convert MFC device to generic
- reserved memory bindings
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
- <1464096690-23605-7-git-send-email-m.szyprowski@samsung.com>
- <0158bb7a-02cf-bbb3-f903-d99c7351dfc4@osg.samsung.com>
- <f0148d4b-a69c-c84b-4a5e-4ff6bb9fde6f@samsung.com>
-Cc: devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Uli Middelberg <uli@middelberg.de>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <2241b7f4-4565-d17b-10f3-5c27cd9985da@osg.samsung.com>
-Date: Fri, 27 May 2016 16:54:28 -0400
+	id S1752282AbcEGN0M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 May 2016 09:26:12 -0400
+Date: Sat, 7 May 2016 10:26:06 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Soeren Moch <smoch@web.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] media: dvb_ringbuffer: Add memory barriers
+Message-ID: <20160507102606.73e86c0d@recife.lan>
+In-Reply-To: <20160507102235.22e096d8@recife.lan>
+References: <1451248920-4935-1-git-send-email-smoch@web.de>
+	<56B7997C.1070503@web.de>
+	<20160507102235.22e096d8@recife.lan>
 MIME-Version: 1.0
-In-Reply-To: <f0148d4b-a69c-c84b-4a5e-4ff6bb9fde6f@samsung.com>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Marek,
+Em Sat, 7 May 2016 10:22:35 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-On 05/27/2016 07:32 AM, Marek Szyprowski wrote:
-> Hello,
+> Hi Soeren,
 > 
+> Em Sun, 7 Feb 2016 20:22:36 +0100
+> Soeren Moch <smoch@web.de> escreveu:
 > 
-> On 2016-05-25 19:11, Javier Martinez Canillas wrote:
->> Hello Marek,
->>
->> On 05/24/2016 09:31 AM, Marek Szyprowski wrote:
->>> This patch replaces custom properties for defining reserved memory
->>> regions with generic reserved memory bindings for MFC video codec
->>> device.
->>>
->>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>> ---
->> [snip]
->>
->>> +
->>> +/ {
->>> +    reserved-memory {
->>> +        #address-cells = <1>;
->>> +        #size-cells = <1>;
->>> +        ranges;
->>> +
->>> +        mfc_left: region@51000000 {
->>> +            compatible = "shared-dma-pool";
->>> +            no-map;
->>> +            reg = <0x51000000 0x800000>;
->>> +        };
->>> +
->>> +        mfc_right: region@43000000 {
->>> +            compatible = "shared-dma-pool";
->>> +            no-map;
->>> +            reg = <0x43000000 0x800000>;
->>> +        };
->>> +    };
->> I've a question probably for a follow up patch, but do you know what's a
->> sane default size for these? I needed to bump the mfc_left size from 8 MiB
->> to 16 MiB in order to decode a 480p H264 video using GStramer. So clearly
->> the default sizes are not that useful.
+> > On 27.12.2015 21:41, Soeren Moch wrote:
+> > > Implement memory barriers according to Documentation/circular-buffers.txt:
+> > > - use smp_store_release() to update ringbuffer read/write pointers
+> > > - use smp_load_acquire() to load write pointer on reader side
+> > > - use ACCESS_ONCE() to load read pointer on writer side
+> > >
+> > > This fixes data stream corruptions observed e.g. on an ARM Cortex-A9
+> > > quad core system with different types (PCI, USB) of DVB tuners.
+> > >
+> > > Signed-off-by: Soeren Moch <smoch@web.de>
+> > > Cc: stable@vger.kernel.org # 3.14+  
+> > 
+> > Mauro,
+> > 
+> > any news or comments on this?
+> > Since this is a real fix for broken behaviour, can you pick this up, please?
 > 
-> Right, the default size for the 'left' region can be increased. Frankly, those
-> values (8MiB/0x43000000+ 8MiB/0x51000000) comes from my initial patches
-> prepared for some demo and don't have much with any real requirements. They
-> were copied (blindly...) by various developers without any deeper understanding.
+> The problem here is that I'm very reluctant to touch at the DVB core
+> without doing some tests myself, as things like locking can be
+> very sensible.
 
-Yes, I've to admit that I was one of those when added the MFC regions to the
-Peach Chromebooks but worked because I tested with small videos. When trying
-to decode bigger videos, then had to increase the 'left' region as mentioned.
+In addition, it is good if other DVB developers could also test it.
+Even being sent for some time, until now, nobody else tested it.
 
-> Probably the most sane would be to use something like this:
 > 
-> mfc_left: region_mfc_left {
->          compatible = "shared-dma-pool";
->          no-map;
->          size = <0x1000000>;
->          alignment = <0x100000>;
-> };
+> I'll try to find some time to take a look on it for Kernel 4.8,
+> but I'd like to reproduce the bug locally.
 > 
-> mfc_right: region_mfc_right {
->          compatible = "shared-dma-pool";
->          no-map;
->          size = <0x800000>;
->          alignment = <0x100000>;
-> };
+> Could you please provide me enough info to reproduce it (and
+> eventually some test MPEG-TS where you know this would happen)?
 > 
-> So the region will be allocated automatically from the available memory. This way
-> another nice feature of the generic reserved memory regions can be used.
->
+> I have two DekTek RF generators here, so I should be able to
+> play such TS and see what happens with and without the patch
+> on x86, arm32 and arm64.
 
-That sounds better indeed. Not requiring a certain memory offset will also have the
-nice side effect to prevent conflicts like the one Pankaj had with his initramfs [0].
- 
-> The only platform which really requires MFC regions to be placed at certain memory
-> offsets is Samsung S5PV210/S5PC110 (sometimes called exynos3), where there is no
-> memory address interleaving and MFC device has limited memory interface, which cannot
-> do 2 transactions to the same physical memory bank. However S5PV210/S5PC110 machine
-> code lost support for MFC during conversion to device tree, so it is not a problem
-> here.
->
-> All newer platforms (Exynos4, Exynos3250, Exynos5+) use memory interleaving, so the
-> actual offset of memory bank has no influence on the physical memory bank.
->
+Ah,  forgot to mention, but checkpatch.pl wants comments for the memory
+barriers:
 
-I see, thanks a lot for the explanation.
- 
->>> +};
->>> diff --git a/arch/arm/boot/dts/exynos4210-origen.dts b/arch/arm/boot/dts/exynos4210-origen.dts
->>> index ad7394c..f5e4eb2 100644
->>> --- a/arch/arm/boot/dts/exynos4210-origen.dts
->>> +++ b/arch/arm/boot/dts/exynos4210-origen.dts
->>> @@ -18,6 +18,7 @@
->>>   #include "exynos4210.dtsi"
->>>   #include <dt-bindings/gpio/gpio.h>
->>>   #include <dt-bindings/input/input.h>
->>> +#include "exynos-mfc-reserved-memory.dtsi"
->>>     / {
->>>       model = "Insignal Origen evaluation board based on Exynos4210";
->>> @@ -288,8 +289,7 @@
->>>   };
->>>     &mfc {
->>> -    samsung,mfc-r = <0x43000000 0x800000>;
->>> -    samsung,mfc-l = <0x51000000 0x800000>;
->>> +    memory-region = <&mfc_left>, <&mfc_right>;
->>>       status = "okay";
->> I wonder if shouldn't be better to include the exynos-mfc-reserved-memory.dtsi
->> on each SoC dtsi and set the memory-regions in the MFC node instead of doing
->> it on each DTS, and let DTS to just replace with its own memory regions if the
->> default sizes are not suitable for them.
-> 
-> I don't have strong opinion on this. Maybe it would make more sense to move the
-> following entry:
-> 
-> &mfc {
->         memory-region = <&mfc_left>, <&mfc_right>;
-> };
-> 
-> also to the exynos-mfc-reserved-memory.dtsi ? So board will just include it if
-> it want to use MFC device with reserved memory regions.
->
+WARNING: memory barrier without comment
+#52: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:58:
++	return (rbuf->pread == smp_load_acquire(&rbuf->pwrite));
 
-Ok, that also sounds like a good option for me.
- 
->> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
->> Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> 
-> Best regards
+WARNING: memory barrier without comment
+#70: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:79:
++	avail = smp_load_acquire(&rbuf->pwrite) - rbuf->pread;
 
-[0]: https://lkml.org/lkml/2016/5/26/98
+WARNING: memory barrier without comment
+#79: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:89:
++	smp_store_release(&rbuf->pread, smp_load_acquire(&rbuf->pwrite));
 
-Best regards,
--- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+WARNING: memory barrier without comment
+#87: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:96:
++	smp_store_release(&rbuf->pread, 0);
+
+WARNING: memory barrier without comment
+#88: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:97:
++	smp_store_release(&rbuf->pwrite, 0);
+
+WARNING: memory barrier without comment
+#97: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:123:
++		smp_store_release(&rbuf->pread, 0);
+
+WARNING: memory barrier without comment
+#103: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:128:
++	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
+
+WARNING: memory barrier without comment
+#112: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:143:
++		smp_store_release(&rbuf->pread, 0);
+
+WARNING: memory barrier without comment
+#117: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:147:
++	smp_store_release(&rbuf->pread, (rbuf->pread + todo) % rbuf->size);
+
+WARNING: memory barrier without comment
+#126: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:162:
++		smp_store_release(&rbuf->pwrite, 0);
+
+WARNING: memory barrier without comment
+#130: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:165:
++	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
+
+WARNING: memory barrier without comment
+#139: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:185:
++		smp_store_release(&rbuf->pwrite, 0);
+
+WARNING: memory barrier without comment
+#145: FILE: drivers/media/dvb-core/dvb_ringbuffer.c:190:
++	smp_store_release(&rbuf->pwrite, (rbuf->pwrite + todo) % rbuf->size);
+
+Thanks,
+Mauro
