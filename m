@@ -1,95 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53280 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751041AbcEJSpL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2016 14:45:11 -0400
-Date: Tue, 10 May 2016 21:45:07 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Alban Bedel <alban.bedel@avionic-design.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
+Received: from lists.s-osg.org ([54.187.51.154]:44341 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750696AbcEGP1n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 May 2016 11:27:43 -0400
+Date: Sat, 7 May 2016 12:27:37 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Shuah Khan <shuahkh@osg.samsung.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] v4l2-async: Pass the v4l2_async_subdev to the
- unbind callback
-Message-ID: <20160510184506.GR26360@valkosipuli.retiisi.org.uk>
-References: <1462886354-2115-1-git-send-email-alban.bedel@avionic-design.de>
+	Javier Martinez Canillas <javier@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 0/2] Prepare for cdev fixes
+Message-ID: <20160507122737.08c78599@recife.lan>
+In-Reply-To: <cover.1462633500.git.mchehab@osg.samsung.com>
+References: <cover.1462633500.git.mchehab@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1462886354-2115-1-git-send-email-alban.bedel@avionic-design.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alban,
+Em Sat, 7 May 2016 12:12:07 -0300
+Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
 
-On Tue, May 10, 2016 at 03:19:14PM +0200, Alban Bedel wrote:
-> v4l2_async_cleanup() is always called before before calling the
+> Those two patches are needed by Shuah's patch that fix use-after free troubles: 
+> 	https://patchwork.linuxtv.org/patch/34201/
+> 
+> Those two patches were already sent  back on March, 23 but specially the second
+> patch  would need more review.
+> 
+> So, resend it, in order to get some acks. My plan is to test them together with Shuah's
+> patch on this Monday, and apply them as soon as possible, for the Kernel 4.7 merge
+> window. Those patches should be c/c to stable, in order to fix for older Kernels.
+> 
+> Mauro Carvalho Chehab (2):
+>   [media] media-devnode: fix namespace mess
+>   [media] media-device: dynamically allocate struct media_devnode
 
-s/before //
+In order to make easier for everyone to test, I applied the three
+patches (Shuah's one, plus the two above) on this branch:
+	https://git.linuxtv.org//mchehab/experimental.git/log/?h=media_cdev_fix
 
-> unbind() callback. However v4l2_async_cleanup() clear the asd member,
+Shuah,
 
-s/clear/clears/
+Please notice that some rebase was needed, as there were some other
+patches fixing other stuff related with the MC that got applied
+earlier.
 
-> so when calling the unbind() callback the v4l2_async_subdev is always
-> NULL. To fix this save the asd before calling v4l2_async_cleanup().
-
-Oh dear...! How could this have happened? :-o
-
-With the commit message changes,
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 > 
-> Signed-off-by: Alban Bedel <alban.bedel@avionic-design.de>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
+>  drivers/media/media-device.c           |  44 +++++++++----
+>  drivers/media/media-devnode.c          | 115 +++++++++++++++++----------------
+>  drivers/media/usb/au0828/au0828-core.c |   4 +-
+>  drivers/media/usb/uvc/uvc_driver.c     |   2 +-
+>  include/media/media-device.h           |   5 +-
+>  include/media/media-devnode.h          |  27 +++++---
+>  6 files changed, 113 insertions(+), 84 deletions(-)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index a4b224d..ceb28d4 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -220,6 +220,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  	list_del(&notifier->list);
->  
->  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> +		struct v4l2_async_subdev *asd = sd->asd;
->  		struct device *d;
->  
->  		d = get_device(sd->dev);
-> @@ -230,7 +231,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  		device_release_driver(d);
->  
->  		if (notifier->unbind)
-> -			notifier->unbind(notifier, sd, sd->asd);
-> +			notifier->unbind(notifier, sd, asd);
->  
->  		/*
->  		 * Store device at the device cache, in order to call
-> @@ -313,6 +314,7 @@ EXPORT_SYMBOL(v4l2_async_register_subdev);
->  void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
->  {
->  	struct v4l2_async_notifier *notifier = sd->notifier;
-> +	struct v4l2_async_subdev *asd = sd->asd;
->  
->  	if (!sd->asd) {
->  		if (!list_empty(&sd->async_list))
-> @@ -327,7 +329,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
->  	v4l2_async_cleanup(sd);
->  
->  	if (notifier->unbind)
-> -		notifier->unbind(notifier, sd, sd->asd);
-> +		notifier->unbind(notifier, sd, asd);
->  
->  	mutex_unlock(&list_lock);
->  }
+
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks,
+Mauro
