@@ -1,53 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56464 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755447AbcESXkd (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56999 "EHLO
+	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752678AbcEGDHh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2016 19:40:33 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 6 May 2016 23:07:37 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 2638A1800C7
+	for <linux-media@vger.kernel.org>; Sat,  7 May 2016 05:07:31 +0200 (CEST)
+Date: Sat, 07 May 2016 05:07:31 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v4 3/6] v4l: vsp1: Base link creation on availability of entities
-Date: Fri, 20 May 2016 02:40:29 +0300
-Message-Id: <1463701232-22008-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160507030731.2638A1800C7@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check the entity pointer instead of the feature flag to see if the
-entity is available before creating related links. The two methods are
-currently equivalent, but will differ in the future as we implement
-support for ignoring some of the entities present in the hardware.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drv.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index c737f15ad1f4..d369fad797aa 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -149,7 +149,7 @@ static int vsp1_uapi_create_links(struct vsp1_device *vsp1)
- 			return ret;
- 	}
- 
--	if (vsp1->info->features & VSP1_HAS_HGO) {
-+	if (vsp1->hgo) {
- 		ret = media_create_pad_link(&vsp1->hgo->entity.subdev.entity,
- 					    HGO_PAD_SOURCE,
- 					    &vsp1->hgo->histo.video.entity, 0,
-@@ -159,7 +159,7 @@ static int vsp1_uapi_create_links(struct vsp1_device *vsp1)
- 			return ret;
- 	}
- 
--	if (vsp1->info->features & VSP1_HAS_LIF) {
-+	if (vsp1->lif) {
- 		ret = media_create_pad_link(&vsp1->wpf[0]->entity.subdev.entity,
- 					    RWPF_PAD_SOURCE,
- 					    &vsp1->lif->entity.subdev.entity,
--- 
-2.7.3
+date:		Sat May  7 04:00:18 CEST 2016
+git branch:	test
+git hash:	491df465d7a25f4211d4ab699a71a7d47e864044
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
