@@ -1,67 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:44341 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:43294 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750696AbcEGP1n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 May 2016 11:27:43 -0400
-Date: Sat, 7 May 2016 12:27:37 -0300
+	id S1751649AbcEGMXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 May 2016 08:23:23 -0400
+Date: Sat, 7 May 2016 09:23:15 -0300
 From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 0/2] Prepare for cdev fixes
-Message-ID: <20160507122737.08c78599@recife.lan>
-In-Reply-To: <cover.1462633500.git.mchehab@osg.samsung.com>
-References: <cover.1462633500.git.mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v4.6] media fixes
+Message-ID: <20160507092315.044558e4@recife.lan>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 7 May 2016 12:12:07 -0300
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+Hi Linus,
 
-> Those two patches are needed by Shuah's patch that fix use-after free troubles: 
-> 	https://patchwork.linuxtv.org/patch/34201/
-> 
-> Those two patches were already sent  back on March, 23 but specially the second
-> patch  would need more review.
-> 
-> So, resend it, in order to get some acks. My plan is to test them together with Shuah's
-> patch on this Monday, and apply them as soon as possible, for the Kernel 4.7 merge
-> window. Those patches should be c/c to stable, in order to fix for older Kernels.
-> 
-> Mauro Carvalho Chehab (2):
->   [media] media-devnode: fix namespace mess
->   [media] media-device: dynamically allocate struct media_devnode
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.6-5
 
-In order to make easier for everyone to test, I applied the three
-patches (Shuah's one, plus the two above) on this branch:
-	https://git.linuxtv.org//mchehab/experimental.git/log/?h=media_cdev_fix
+For:
+  - deadlock fixes on driver probe at exynos4-is and s43-camif drivers;
+  - a build breakage if media controller is enabled and USB or PCI is
+    built as module.
 
-Shuah,
-
-Please notice that some rebase was needed, as there were some other
-patches fixing other stuff related with the MC that got applied
-earlier.
-
-
-> 
->  drivers/media/media-device.c           |  44 +++++++++----
->  drivers/media/media-devnode.c          | 115 +++++++++++++++++----------------
->  drivers/media/usb/au0828/au0828-core.c |   4 +-
->  drivers/media/usb/uvc/uvc_driver.c     |   2 +-
->  include/media/media-device.h           |   5 +-
->  include/media/media-devnode.h          |  27 +++++---
->  6 files changed, 113 insertions(+), 84 deletions(-)
-> 
-
-
--- 
-Thanks,
+Thanks!
 Mauro
+
+---
+
+PS.: the USB/PCI fix didn't reach linux-next yet, because I was able to
+	merge it only on Friday. I'm confident that it does what it is
+	meant to do, the reported of the bug is also happy, and we got
+	no reports from kbuild robot with randconfigs, but feel free to
+	postpone it to next week if you want to.
+
+The following changes since commit 89a095668304e8a02502ffd35edacffdbf49aa8c:
+
+  [media] vb2-memops: Fix over allocation of frame vectors (2016-04-25 10:22:55 -0300)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.6-5
+
+for you to fetch changes up to b34ecd5aa34800aefa9e2990a805243ec9348437:
+
+  [media] media-device: fix builds when USB or PCI is compiled as module (2016-05-05 08:01:34 -0300)
+
+----------------------------------------------------------------
+media fixes for v4.6-rc7
+
+----------------------------------------------------------------
+Marek Szyprowski (2):
+      [media] media: exynos4-is: fix deadlock on driver probe
+      [media] media: s3c-camif: fix deadlock on driver probe()
+
+Mauro Carvalho Chehab (1):
+      [media] media-device: fix builds when USB or PCI is compiled as module
+
+ drivers/media/media-device.c                  |  8 ++++----
+ drivers/media/platform/exynos4-is/media-dev.c | 13 ++-----------
+ drivers/media/platform/s3c-camif/camif-core.c | 12 +++---------
+ 3 files changed, 9 insertions(+), 24 deletions(-)
+
