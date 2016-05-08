@@ -1,81 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:44655 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750752AbcERXQn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2016 19:16:43 -0400
-Date: Wed, 18 May 2016 18:16:37 -0500
-From: Rob Herring <robh@kernel.org>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	devicetree@vger.kernel.org, mchehab@osg.samsung.com,
-	hverkuil@xs4all.nl, geert@linux-m68k.org, matrandg@cisco.com,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v2 1/2] [media] media: i2c/ov5645: add the device tree
- binding document
-Message-ID: <20160518231637.GA31413@rob-hp-laptop>
-References: <1463572208-8826-1-git-send-email-todor.tomov@linaro.org>
- <1463572208-8826-2-git-send-email-todor.tomov@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1463572208-8826-2-git-send-email-todor.tomov@linaro.org>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:48286 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751141AbcEHC1S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 May 2016 22:27:18 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 0A2E21800D5
+	for <linux-media@vger.kernel.org>; Sun,  8 May 2016 04:27:13 +0200 (CEST)
+Date: Sun, 08 May 2016 04:27:12 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160508022713.0A2E21800D5@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 18, 2016 at 02:50:07PM +0300, Todor Tomov wrote:
-> Add the document for ov5645 device tree binding.
-> 
-> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> ---
->  .../devicetree/bindings/media/i2c/ov5645.txt       | 56 ++++++++++++++++++++++
->  1 file changed, 56 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-> new file mode 100644
-> index 0000000..8799000
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-> @@ -0,0 +1,56 @@
-> +* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
-> +
-> +The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor with
-> +an active array size of 2592H x 1944V. It is programmable through a serial SCCB
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-s/SCCB/I2C/ because that is the more common name.
+Results of the daily build of media_tree:
 
-> +interface.
-> +
-> +Required Properties:
-> +- compatible: value should be "ovti,ov5645"
-> +- clocks: reference to the xclk clock
-> +- clock-names: should be "xclk"
-> +- assigned-clocks: reference to the xclk clock
+date:		Sun May  8 04:00:25 CEST 2016
+git branch:	test
+git hash:	e3855e11040ab08eaa0ce91c915fd15daab78102
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-164
 
-This should be optional as it only makes sense if there is more than one 
-option.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-> +- assigned-clock-rates: should be "23880000"
+Detailed results are available here:
 
-Doesn't this depend on the board? Most parts take a range of 
-frequencies. The driver should know what the range is and request a rate 
-within this range.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-> +
-> +Optional Properties:
-> +- reset-gpios: Chip reset GPIO
-> +- pwdn-gpios: Chip power down GPIO
+Full logs are available here:
 
-Use enable-gpios as it is more common and would just be the inverse of 
-this.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Both need to specify the polarity.
+The Media Infrastructure API from this daily build is here:
 
-> +- dovdd-supply: Chip IO regulator
-> +- dvdd-supply: Chip core regulator
-> +- avdd-supply: Chip analog regulator
-> +
-> +The device node must contain one 'port' child node for its digital output
-> +video port, in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+http://www.xs4all.nl/~hverkuil/spec/media.html
