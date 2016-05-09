@@ -1,123 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33417 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752710AbcEWC6b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 May 2016 22:58:31 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id C1C1A18009B
-	for <linux-media@vger.kernel.org>; Mon, 23 May 2016 04:58:24 +0200 (CEST)
-Date: Mon, 23 May 2016 04:58:24 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160523025824.C1C1A18009B@tschai.lan>
+Received: from lists.s-osg.org ([54.187.51.154]:59826 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751352AbcEIMs3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 May 2016 08:48:29 -0400
+Subject: Re: [RESEND PATCH] [media] s5p-mfc: don't close instance after free
+ OUTPUT buffers
+To: Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+	linux-kernel@vger.kernel.org
+References: <1462572682-5195-1-git-send-email-javier@osg.samsung.com>
+ <1462584301.25248.40.camel@collabora.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	ayaka <ayaka@soulik.info>, Shuah Khan <shuahkh@osg.samsung.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <ef0eb150-450b-96db-5f04-45271643f5c6@osg.samsung.com>
+Date: Mon, 9 May 2016 08:48:16 -0400
+MIME-Version: 1.0
+In-Reply-To: <1462584301.25248.40.camel@collabora.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello Nicolas,
 
-Results of the daily build of media_tree:
+Thanks for your feedback.
 
-date:		Mon May 23 04:00:22 CEST 2016
-git branch:	test
-git hash:	bc2b80ee3490651904f121eac1c8fb7652d48253
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-264
+On 05/06/2016 09:25 PM, Nicolas Dufresne wrote:
+> Thanks for re-submitting. See inline two typos to fix in teh comment.
+>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+You are welcome, as we talked in IRC you needed this to make video decoding
+in your Exynos4412 Odroid X2 board, so it would be great if you can provide
+your Reviewed or Acked by tags.
+ 
+> cheers,
+> Nicolas
+> 
+> Le vendredi 06 mai 2016 à 18:11 -0400, Javier Martinez Canillas a écrit :
+>> From: ayaka <ayaka@soulik.info>
+>>
+>> User-space applications can use the VIDIOC_REQBUFS ioctl to determine if a
+>> memory mapped, user pointer or DMABUF based I/O is supported by the driver.
+>>
+>> So a set of VIDIOC_REQBUFS ioctl calls will be made with count 0 and then
+>> the real VIDIOC_REQBUFS call with count == n. But for count 0, the driver
+>> not only frees the buffer but also closes the MFC instance and s5p_mfc_ctx
+>> state is set to MFCINST_FREE.
+>>
+>> The VIDIOC_REQBUFS handler for the output device checks if the s5p_mfc_ctx
+>> state is set to MFCINST_INIT (which happens on an VIDIOC_S_FMT) and fails
+>> otherwise. So after a VIDIOC_REQBUFS(n), future VIDIOC_REQBUFS(n) calls
+>> will fails unless a VIDIOC_S_FMT ioctl calls happens before the reqbufs.
+>>
+>> But applications may first set the format and then attempt to determine
+>> the I/O methods supported by the driver (for example Gstramer does it) so
+>  * GStreamer
+>
 
-Detailed results are available here:
+Right, sorry about that. I'll wait for other people feedback and fix in v2.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+>> the state won't be set to MFCINST_INIT again and VIDIOC_REQBUFS will fail.
+>>
+>> To avoid this issue, only free the buffers on VIDIOC_REQBUFS(0) but don't
+>> close the MFC instance to allow future VIDIOC_REQBUFS(n) calls to succeed.
+>>
+>> Signed-off-by: ayaka <ayaka@soulik.info>
+>> [javier: Rewrote changelog to explain the problem more detailed]
+>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>
+>> ---
+>> Hello,
+>>
+>> This is a resend of a patch posted by Ayaka some time ago [0].
+>> Without $SUBJECT, trying to decode a video using Gstramer fails
+> 
+> * GStreamer again 
+>
 
-Full logs are available here:
+Yes, this is not that important since the comments between the --- separator
+and the actual diff is stripped and doesn't end in the commit message.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
