@@ -1,147 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:40517 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755443AbcEXQvC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 12:51:02 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:51894 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750872AbcEIC0l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 May 2016 22:26:41 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 3F32E180952
+	for <linux-media@vger.kernel.org>; Mon,  9 May 2016 04:26:35 +0200 (CEST)
+Date: Mon, 09 May 2016 04:26:35 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [RFC v2 19/21] DocBook: media: Document the V4L2 subdev request API
-Date: Tue, 24 May 2016 19:47:29 +0300
-Message-Id: <1464108451-28142-20-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160509022635.3F32E180952@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The V4L2 subdev request API consists in extensions to existing V4L2
-subdev ioctls. Document it.
+Results of the daily build of media_tree:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- .../DocBook/media/v4l/vidioc-subdev-g-fmt.xml      | 27 +++++++++++++++++++---
- .../media/v4l/vidioc-subdev-g-selection.xml        | 24 +++++++++++++++----
- 2 files changed, 44 insertions(+), 7 deletions(-)
+date:		Mon May  9 04:00:22 CEST 2016
+git branch:	test
+git hash:	e3855e11040ab08eaa0ce91c915fd15daab78102
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-164
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
-index 781089c..5cf6d89 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
-@@ -91,6 +91,13 @@
-     low-pass noise filter might crop pixels at the frame boundaries, modifying
-     its output frame size.</para>
- 
-+    <para>Applications can get and set formats stored in a request by setting
-+    the <structfield>which</structfield> field to
-+    <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant> and the
-+    <structfield>request</structfield> to the request ID. See
-+    <xref linkend="v4l2-requests" /> for more information about the request
-+    API.</para>
-+
-     <para>Drivers must not return an error solely because the requested format
-     doesn't match the device capabilities. They must instead modify the format
-     to match what the hardware can provide. The modified format should be as
-@@ -119,7 +126,15 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[8]</entry>
-+	    <entry><structfield>request</structfield></entry>
-+	    <entry>Request ID, only valid when the <structfield>which</structfield>
-+	    field is set to <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant>.
-+	    Applications and drivers must set the field to zero in all other
-+	    cases.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[7]</entry>
- 	    <entry>Reserved for future extensions. Applications and drivers must
- 	    set the array to zero.</entry>
- 	  </row>
-@@ -142,6 +157,11 @@
- 	    <entry>1</entry>
- 	    <entry>Active formats, applied to the hardware.</entry>
- 	  </row>
-+	  <row>
-+	    <entry>V4L2_SUBDEV_FORMAT_REQUEST</entry>
-+	    <entry>2</entry>
-+	    <entry>Request formats, used with the requests API.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-@@ -165,8 +185,9 @@
- 	<term><errorcode>EINVAL</errorcode></term>
- 	<listitem>
- 	  <para>The &v4l2-subdev-format; <structfield>pad</structfield>
--	  references a non-existing pad, or the <structfield>which</structfield>
--	  field references a non-existing format.</para>
-+	  references a non-existing pad, the <structfield>which</structfield>
-+	  field references a non-existing format or the request ID references
-+	  a nonexistant request.</para>
- 	</listitem>
-       </varlistentry>
-     </variablelist>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index faac955..c0fbfbe 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -94,6 +94,13 @@
-     handle. Two applications querying the same sub-device would thus not
-     interfere with each other.</para>
- 
-+    <para>Applications can get and set selection rectangles stored in a request
-+    by setting the <structfield>which</structfield> field to
-+    <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant> and the
-+    <structfield>request</structfield> to the request ID. See
-+    <xref linkend="v4l2-requests" /> for more information about the request
-+    API.</para>
-+
-     <para>Drivers must not return an error solely because the requested
-     selection rectangle doesn't match the device capabilities. They must instead
-     modify the rectangle to match what the hardware can provide. The modified
-@@ -128,7 +135,7 @@
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>which</structfield></entry>
--	    <entry>Active or try selection, from
-+	    <entry>Selection to be modified, from
- 	    &v4l2-subdev-format-whence;.</entry>
- 	  </row>
- 	  <row>
-@@ -155,7 +162,15 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[8]</entry>
-+	    <entry><structfield>request</structfield></entry>
-+	    <entry>Request ID, only valid when the <structfield>which</structfield>
-+	    field is set to <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant>.
-+	    Applications and drivers must set the field to zero in all other
-+	    cases.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[7]</entry>
- 	    <entry>Reserved for future extensions. Applications and drivers must
- 	    set the array to zero.</entry>
- 	  </row>
-@@ -187,8 +202,9 @@
- 	  <para>The &v4l2-subdev-selection;
- 	  <structfield>pad</structfield> references a non-existing
- 	  pad, the <structfield>which</structfield> field references a
--	  non-existing format, or the selection target is not
--	  supported on the given subdev pad.</para>
-+	  non-existing format, the selection target is not supported on
-+	  the given subdev pad or the request ID references a nonexistant
-+	  request.</para>
- 	</listitem>
-       </varlistentry>
-     </variablelist>
--- 
-1.9.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
