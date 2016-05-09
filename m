@@ -1,67 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56484 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47382 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755345AbcESXmB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2016 19:42:01 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 3/3] v4l: vsp1: Fix crash when resetting pipeline
-Date: Fri, 20 May 2016 02:41:58 +0300
-Message-Id: <1463701318-22081-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1463701318-22081-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1463701318-22081-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	with ESMTP id S1753141AbcEIMnp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2016 08:43:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH v2 4/5] media: Add flags to tell whether to take graph mutex for an IOCTL
+Date: Mon, 09 May 2016 15:44:07 +0300
+Message-ID: <1810387.1DpXve8est@avalon>
+In-Reply-To: <1462360855-23354-5-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com> <1462360855-23354-5-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsp1_pipeline_reset() function loops over pipeline inputs and output
-and resets them. When doing so it assumes both that the pipeline has
-been correctly configured with an output, and that inputs are are stored
-in the pipe inputs array at positions 0 to num_inputs-1.
+Hi Sakari,
 
-Both the assumptions are incorrect. The pipeline might need to be reset
-after a failed attempts to configure it, without any output specified.
-Furthermore, inputs are stored in a positiong equal to their RPF index,
-possibly creating holes in the inputs array if the RPFs are not used in
-sequence.
+Thank you for the patch.
 
-Fix both issues by looping over the whole inputs array and skipping
-unused entries, and ignoring the output when not set.
+On Wednesday 04 May 2016 14:20:54 Sakari Ailus wrote:
+> New IOCTLs (especially for the request API) do not necessarily need the
+> graph mutex acquired. Leave this up to the drivers.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Fixes: ff7e97c94d9f ("[media] v4l: vsp1: Store pipeline pointer in rwpf")
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_pipe.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index be47c8a1a812..3c6f623f056c 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -172,13 +172,17 @@ void vsp1_pipeline_reset(struct vsp1_pipeline *pipe)
- 			bru->inputs[i].rpf = NULL;
- 	}
- 
--	for (i = 0; i < pipe->num_inputs; ++i) {
--		pipe->inputs[i]->pipe = NULL;
--		pipe->inputs[i] = NULL;
-+	for (i = 0; i < ARRAY_SIZE(pipe->inputs); ++i) {
-+		if (pipe->inputs[i]) {
-+			pipe->inputs[i]->pipe = NULL;
-+			pipe->inputs[i] = NULL;
-+		}
- 	}
- 
--	pipe->output->pipe = NULL;
--	pipe->output = NULL;
-+	if (pipe->output) {
-+		pipe->output->pipe = NULL;
-+		pipe->output = NULL;
-+	}
- 
- 	INIT_LIST_HEAD(&pipe->entities);
- 	pipe->state = VSP1_PIPELINE_STOPPED;
+> ---
+>  drivers/media/media-device.c | 47 ++++++++++++++++++++++++-----------------
+>  1 file changed, 28 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 39fe07f..8aef5b8 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -390,21 +390,26 @@ static long copy_arg_to_user_nop(void __user *uarg,
+> void *karg, }
+>  #endif
+> 
+> -#define MEDIA_IOC_ARG(__cmd, func, from_user, to_user)	\
+> -	[_IOC_NR(MEDIA_IOC_##__cmd)] = {		\
+> -		.cmd = MEDIA_IOC_##__cmd,		\
+> +/* Do acquire the graph mutex */
+> +#define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
+> +
+> +#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
+> +	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
+> +		.cmd = MEDIA_IOC_##__cmd,				\
+>  		.fn = (long (*)(struct media_device *, void *))func,	\
+> -		.arg_from_user = from_user,		\
+> -		.arg_to_user = to_user,			\
+> +		.flags = fl,						\
+> +		.arg_from_user = from_user,				\
+> +		.arg_to_user = to_user,					\
+>  	}
+> 
+> -#define MEDIA_IOC(__cmd, func)						\
+> -	MEDIA_IOC_ARG(__cmd, func, copy_arg_from_user, copy_arg_to_user)
+> +#define MEDIA_IOC(__cmd, func, fl)					\
+> +	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
+> 
+>  /* the table is indexed by _IOC_NR(cmd) */
+>  struct media_ioctl_info {
+>  	unsigned int cmd;
+>  	long (*fn)(struct media_device *dev, void *arg);
+> +	unsigned short flags;
+>  	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
+>  	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
+>  };
+> @@ -449,9 +454,13 @@ static long __media_device_ioctl(
+> 
+>  	info->arg_from_user(karg, arg, cmd);
+> 
+> -	mutex_lock(&dev->graph_mutex);
+> +	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
+> +		mutex_lock(&dev->graph_mutex);
+> +
+>  	ret = info->fn(dev, karg);
+> -	mutex_unlock(&dev->graph_mutex);
+> +
+> +	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
+> +		mutex_unlock(&dev->graph_mutex);
+> 
+>  	if (ret)
+>  		return ret;
+> @@ -460,11 +469,11 @@ static long __media_device_ioctl(
+>  }
+> 
+>  static const struct media_ioctl_info ioctl_info[] = {
+> -	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
+> -	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
+> -	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
+> -	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
+> -	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+> +	MEDIA_IOC(DEVICE_INFO, media_device_get_info, MEDIA_IOC_FL_GRAPH_MUTEX),
+> +	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities,
+> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(ENUM_LINKS, media_device_enum_links,
+> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(SETUP_LINK, media_device_setup_link,
+> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(G_TOPOLOGY,
+> media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX), };
+> 
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> @@ -510,11 +519,11 @@ static long from_user_enum_links32(void *karg, void
+> __user *uarg, #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct
+> media_links_enum32)
+> 
+>  static const struct media_ioctl_info compat_ioctl_info[] = {
+> -	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
+> -	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
+> -	MEDIA_IOC_ARG(ENUM_LINKS32, media_device_enum_links,
+> from_user_enum_links32, copy_arg_to_user_nop), -	MEDIA_IOC(SETUP_LINK,
+> media_device_setup_link),
+> -	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+> +	MEDIA_IOC(DEVICE_INFO, media_device_get_info, MEDIA_IOC_FL_GRAPH_MUTEX),
+> +	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities,
+> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC_ARG(ENUM_LINKS32,
+> media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX, from_user_enum_links32,
+> copy_arg_to_user_nop), +	MEDIA_IOC(SETUP_LINK, media_device_setup_link,
+> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(G_TOPOLOGY,
+> media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX), };
+> 
+>  static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+
 -- 
-2.7.3
+Regards,
+
+Laurent Pinchart
 
