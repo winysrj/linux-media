@@ -1,151 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38292 "EHLO lists.s-osg.org"
+Received: from lists.s-osg.org ([54.187.51.154]:59004 "EHLO lists.s-osg.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751790AbcEXRNO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 13:13:14 -0400
-Subject: Re: [PATCH 2/3] media: add media_device_unregister_put() interface
-To: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	hans.verkuil@cisco.com, chehabrafael@gmail.com,
-	javier@osg.samsung.com, inki.dae@samsung.com,
-	g.liakhovetski@gmx.de, jh1009.sung@samsung.com
-References: <cover.1463158822.git.shuahkh@osg.samsung.com>
- <14efd8cc91d49e34936fd227d1208429d16e3fa0.1463158822.git.shuahkh@osg.samsung.com>
- <5742EBDA.1010902@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <57448BA7.3040107@osg.samsung.com>
-Date: Tue, 24 May 2016 11:13:11 -0600
+	id S1751270AbcEIKbU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 May 2016 06:31:20 -0400
+Date: Mon, 9 May 2016 07:31:15 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Will Manley <will@williammanley.net>
+Cc: linux-media@vger.kernel.org, amy.zhou@magewell.net
+Subject: Re: Driver for Magewell PCIe capture cards
+Message-ID: <20160509073115.714c0c74@recife.lan>
+In-Reply-To: <1462464586.3004166.599182921.0162873F@webmail.messagingengine.com>
+References: <1462464586.3004166.599182921.0162873F@webmail.messagingengine.com>
 MIME-Version: 1.0
-In-Reply-To: <5742EBDA.1010902@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/23/2016 05:39 AM, Hans Verkuil wrote:
-> On 05/13/2016 07:09 PM, Shuah Khan wrote:
->> Add media_device_unregister_put() interface to release reference to a media
->> device allocated using the Media Device Allocator API. The media device is
->> unregistered and freed when the last driver that holds the reference to the
->> media device releases the reference. The media device is unregistered and
->> freed in the kref put handler.
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/media-device.c | 11 +++++++++++
->>  include/media/media-device.h | 15 +++++++++++++++
->>  2 files changed, 26 insertions(+)
->>
->> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->> index 33a9952..b5c279a 100644
->> --- a/drivers/media/media-device.c
->> +++ b/drivers/media/media-device.c
->> @@ -36,6 +36,7 @@
->>  #include <media/media-device.h>
->>  #include <media/media-devnode.h>
->>  #include <media/media-entity.h>
->> +#include <media/media-dev-allocator.h>
->>  
->>  #ifdef CONFIG_MEDIA_CONTROLLER
->>  
->> @@ -818,6 +819,16 @@ void media_device_unregister(struct media_device *mdev)
->>  }
->>  EXPORT_SYMBOL_GPL(media_device_unregister);
->>  
->> +void media_device_unregister_put(struct media_device *mdev)
->> +{
->> +	if (mdev == NULL)
->> +		return;
->> +
->> +	dev_dbg(mdev->dev, "%s: mdev %p\n", __func__, mdev);
->> +	media_device_put(mdev);
->> +}
->> +EXPORT_SYMBOL_GPL(media_device_unregister_put);
->> +
-> 
-> I don't really see the need for a new unregister_put function. The only thing
-> it adds compared to media_device_put is the 'if (mdev == NULL)' check.
-> 
-> Is that check needed at all?
+Hi Will,
 
-Yeah. My reasoning for keeping this for symmetry in drivers
-with _register() and _unregister(). However, drivers already
-required to call media_device_put() in _register error legs.
+Em Thu, 05 May 2016 17:09:46 +0100
+Will Manley <will@williammanley.net> escreveu:
+
+> Hi There
+> 
+> Magewell are a manufacturer of video-capture devices.  They have both
+> USB and PCIe devices.  The USB devices use the upstream uvcvideo driver
+> and Magewell currently provide proprietary drivers for their PCIe
+> products.
+> 
+> http://www.magewell.com/
+> 
+> I've approached Magewell about having upstream Linux drivers for these
+> PCIe devices and they are open to sharing hardware documentation and the
+> sources to their proprietary drivers under an NDA for the purpose of
+> developing an upstream Linux driver.  This is where I'm hoping that the
+> linux driver project can help out.
+> 
+> My interest in this is that I want to be using Magewell PCIe capture
+> cards in my company's products ( https://stb-tester.com/ ), but I don't
+> want to be stuck with proprietary drivers.  I'm hoping I can facilitate
+> because I have some limited kernel developer experience, but I wouldn't
+> be confident enough to write an entire v4l driver myself.
+
+The main question here is who will be developing the driver. It should
+be someone with time, interest and access to the hardware and their
+specs. It is probably easier if you're willing to do it, as you have
+already what is needed. People at this mailing list can help you by
+reviewing the patches once done, pointing you on how to correct things
+that are not ok.
+
+If you're not willing to do it yourself, then you'll likely need to 
+sponsor someone to do it (either finding a hobbyist and donating him some
+hardware or hiring some professional).
+
+The need of a NDA can make it harder for hobbyists, as several won't
+sign such documents. Also, the NDA should be carefully written to
+allow to release the open source drivers after the job is done.
 
 > 
-> I would probably go for an API like this:
+> I'd originally posted this to the linux driver project mailing list[1]. 
+> Greg KH suggested I repost here as there aren't many v4l developers on
+> that list.
 > 
-> <brainstorm mode on>
+> [1]:
+> http://thread.gmane.org/gmane.linux.drivers.driver-project.devel/88218
 > 
-> /* Not sure if there should be a void *priv as the last argument */
-> int (*mdev_init_fnc)(struct media_device *mdev, struct device *dev);
+> Please let me know what additional information I can provide to get this
+> process started.
 > 
-> /* Perhaps a void *priv is needed to pass to mdev_init_fnc?
->    The callback is there to initialize the media_device and it's called
->    with the lock held.
-> */
-> struct media_device *media_device_allocate(struct device *dev, mdev_init_fnc fnc);
+> Thanks
 > 
-> /* Helper function for usb devices */
-> struct media_device *media_device_usb_allocate(struct usb_device *udev,
-> 					       char *driver_name);
-> 
-> /* counterpart of media_device_allocate, that makes more sense than allocate/put IMHO */
-> void media_device_release(struct media_device *mdev);
-
-We already have a media_device_release() that gets used as devnode->release
-back. I will use a different name, media_device_usb_free() or something
-similar.
-
-> 
-> <brainstorm mode off>
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>  static void media_device_release_devres(struct device *dev, void *res)
->>  {
->>  }
->> diff --git a/include/media/media-device.h b/include/media/media-device.h
->> index f743ae2..8bd836e 100644
->> --- a/include/media/media-device.h
->> +++ b/include/media/media-device.h
->> @@ -499,6 +499,18 @@ int __must_check __media_device_register(struct media_device *mdev,
->>  void media_device_unregister(struct media_device *mdev);
->>  
->>  /**
->> + * media_device_unregister_put() - Unregisters a media device element
->> + *
->> + * @mdev:	pointer to struct &media_device
->> + *
->> + * Should be called to unregister media device allocated with Media Device
->> + * Allocator API media_device_get() interface.
->> + * It is safe to call this function on an unregistered (but initialised)
->> + * media device.
->> + */
->> +void media_device_unregister_put(struct media_device *mdev);
->> +
->> +/**
->>   * media_device_register_entity() - registers a media entity inside a
->>   *	previously registered media device.
->>   *
->> @@ -658,6 +670,9 @@ static inline int media_device_register(struct media_device *mdev)
->>  static inline void media_device_unregister(struct media_device *mdev)
->>  {
->>  }
->> +static inline void media_device_unregister_put(struct media_device *mdev)
->> +{
->> +}
->>  static inline int media_device_register_entity(struct media_device *mdev,
->>  						struct media_entity *entity)
->>  {
->>
+> Will
+> ---
+> William Manley
+> stb-tester.com
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
+
+-- 
+Thanks,
+Mauro
