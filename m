@@ -1,129 +1,268 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52867 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328AbcEPMNl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2016 08:13:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Todor Tomov <ttomov@mm-sol.com>,
-	Todor Tomov <todor.tomov@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: Add a driver for the ov5645 camera sensor.
-Date: Mon, 16 May 2016 15:13:41 +0300
-Message-ID: <1755291.v0jfUP1x0u@avalon>
-In-Reply-To: <573986F1.1070109@xs4all.nl>
-References: <1463065155-26337-1-git-send-email-todor.tomov@linaro.org> <5739838A.3070405@mm-sol.com> <573986F1.1070109@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:35371 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751526AbcEIPIO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2016 11:08:14 -0400
+Received: by mail-wm0-f43.google.com with SMTP id e201so141552666wme.0
+        for <linux-media@vger.kernel.org>; Mon, 09 May 2016 08:08:14 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, zoltan.kuscsik@linaro.org,
+	sumit.semwal@linaro.org, cc.ma@mediatek.com,
+	pascal.brand@linaro.org, joakim.bech@linaro.org,
+	dan.caprita@windriver.com
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v7 2/3] SMAF: add CMA allocator
+Date: Mon,  9 May 2016 17:07:38 +0200
+Message-Id: <1462806459-8124-3-git-send-email-benjamin.gaignard@linaro.org>
+In-Reply-To: <1462806459-8124-1-git-send-email-benjamin.gaignard@linaro.org>
+References: <1462806459-8124-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+SMAF CMA allocator implement helpers functions to allow SMAF
+to allocate contiguous memory.
 
-On Monday 16 May 2016 10:38:09 Hans Verkuil wrote:
-> On 05/16/2016 10:23 AM, Todor Tomov wrote:
-> > On 05/13/2016 10:02 AM, Hans Verkuil wrote:
-> >> On 05/12/2016 04:59 PM, Todor Tomov wrote:
-> >>> The ov5645 sensor from Omnivision supports up to 2592x1944
-> >>> and CSI2 interface.
-> >>> 
-> >>> The driver adds support for the following modes:
-> >>> - 1280x960
-> >>> - 1920x1080
-> >>> - 2592x1944
-> >>> 
-> >>> Output format is packed 8bit UYVY.
-> >>> 
-> >>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> >>> ---
-> >>> 
-> >>>  .../devicetree/bindings/media/i2c/ov5645.txt       |   54 +
-> >>>  drivers/media/i2c/Kconfig                          |   11 +
-> >>>  drivers/media/i2c/Makefile                         |    1 +
-> >>>  drivers/media/i2c/ov5645.c                         | 1344 +++++++++++++
-> >>>  4 files changed, 1410 insertions(+)
-> >>>  create mode 100644
-> >>>  Documentation/devicetree/bindings/media/i2c/ov5645.txt
-> >>>  create mode 100644 drivers/media/i2c/ov5645.c
-> >>> 
-> >>> +static int ov5645_open(struct v4l2_subdev *subdev, struct
-> >>> v4l2_subdev_fh *fh) +{
-> >>> +	return ov5645_s_power(subdev, true);
-> >>> +}
-> >>> +
-> >>> +static int ov5645_close(struct v4l2_subdev *subdev, struct
-> >>> v4l2_subdev_fh *fh) +{
-> >>> +	return ov5645_s_power(subdev, false);
-> >>> +}
-> >> 
-> >> This won't work: you can open the v4l-subdev node multiple times, so if I
-> >> open it twice then the next close will power down the chip and the last
-> >> remaining open is in a bad state.
-> >
-> > Multiple power up/down are handled inside ov5645_s_power. There is
-> > power_count reference counting variable. Do you see any problem with
-> > this?
-> > 
-> >>> +
-> >>> +static int ov5645_s_stream(struct v4l2_subdev *subdev, int enable)
-> >>> +{
-> >>> +	struct ov5645 *ov5645 = to_ov5645(subdev);
-> >>> +	int ret;
-> >>> +
-> >>> +	dev_dbg(ov5645->dev, "%s: enable = %d\n", __func__, enable);
-> >>> +
-> >>> +	if (enable) {
-> >>> +		ret = ov5645_change_mode(ov5645, ov5645->current_mode);
-> >>> +		if (ret < 0) {
-> >>> +			dev_err(ov5645->dev, "could not set mode %d\n",
-> >>> +				ov5645->current_mode);
-> >>> +			return ret;
-> >>> +		}
-> >>> +		ret = v4l2_ctrl_handler_setup(&ov5645->ctrls);
-> >>> +		if (ret < 0) {
-> >>> +			dev_err(ov5645->dev, "could not sync v4l2 controls\n");
-> >>> +			return ret;
-> >>> +		}
-> >>> +		ov5645_write_reg(ov5645, OV5645_SYSTEM_CTRL0,
-> >>> +				 OV5645_SYSTEM_CTRL0_START);
-> >>> +	} else {
-> >>> +		ov5645_write_reg(ov5645, OV5645_SYSTEM_CTRL0,
-> >>> +				 OV5645_SYSTEM_CTRL0_STOP);
-> >>> +	}
-> >>> +
-> >>> +	return 0;
-> >>> +}
-> >> 
-> >> It might make more sense to power up on s_stream(true) or off on
-> >> s_stream(false).
-> >
-> > When the sensor is powered up on open, it allows to open the subdev, set
-> > any controls and have the result from configuring these controls in
-> > hardware (without starting streaming). This is my reasoning behind this.
-> 
-> It's fairly pointless. If you open the device, set controls, then close it,
-> they are all lost again. You are already setting everything up again in
-> s_stream anyway.
-> 
-> Just don't bother with s_power in the open and close (or with refcounting
-> for that matter).
+match() each if at least one of the attached devices have coherent_dma_mask
+set to DMA_BIT_MASK(32).
 
-In which case the .s_ctrl() handler will need to bail out early if power isn't 
-applied, with locking to ensure there's no race condition. Having a 
-.s_power(1) call in .open() solves that, and also allows userspace to power 
-the device on and set controls early if needed, as long as the file handle is 
-kept open.
+For allocation it use dma_alloc_attrs() with DMA_ATTR_WRITE_COMBINE and not
+dma_alloc_writecombine to be compatible with ARM 64bits architecture
 
-> BTW, if I am not mistaken a bridge driver that calls this subdev and wants
-> to start streaming also has to call s_power before s_stream. So to answer
-> my own question: there is no need to call s_power in s_stream.
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+---
+ drivers/smaf/Kconfig    |   6 ++
+ drivers/smaf/Makefile   |   1 +
+ drivers/smaf/smaf-cma.c | 199 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 206 insertions(+)
+ create mode 100644 drivers/smaf/smaf-cma.c
 
-That I agree with.
-
+diff --git a/drivers/smaf/Kconfig b/drivers/smaf/Kconfig
+index d36651a..058ec4c 100644
+--- a/drivers/smaf/Kconfig
++++ b/drivers/smaf/Kconfig
+@@ -3,3 +3,9 @@ config SMAF
+ 	depends on DMA_SHARED_BUFFER
+ 	help
+ 	  Choose this option to enable Secure Memory Allocation Framework
++
++config SMAF_CMA
++	tristate "SMAF CMA allocator"
++	depends on SMAF && HAVE_DMA_ATTRS
++	help
++	  Choose this option to enable CMA allocation within SMAF
+diff --git a/drivers/smaf/Makefile b/drivers/smaf/Makefile
+index 40cd882..05bab01b 100644
+--- a/drivers/smaf/Makefile
++++ b/drivers/smaf/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_SMAF) += smaf-core.o
++obj-$(CONFIG_SMAF_CMA) += smaf-cma.o
+diff --git a/drivers/smaf/smaf-cma.c b/drivers/smaf/smaf-cma.c
+new file mode 100644
+index 0000000..6366777
+--- /dev/null
++++ b/drivers/smaf/smaf-cma.c
+@@ -0,0 +1,199 @@
++/*
++ * smaf-cma.c
++ *
++ * Copyright (C) Linaro SA 2015
++ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#include <linux/dma-mapping.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/smaf-allocator.h>
++
++struct smaf_cma_buffer_info {
++	struct device *dev;
++	size_t size;
++	void *vaddr;
++	dma_addr_t paddr;
++};
++
++/**
++ * find_matching_device - iterate over the attached devices to find one
++ * with coherent_dma_mask correctly set to DMA_BIT_MASK(32).
++ * Matching device (if any) will be used to aim CMA area.
++ */
++static struct device *find_matching_device(struct dma_buf *dmabuf)
++{
++	struct dma_buf_attachment *attach_obj;
++
++	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
++		if (attach_obj->dev->coherent_dma_mask == DMA_BIT_MASK(32))
++			return attach_obj->dev;
++	}
++
++	return NULL;
++}
++
++/**
++ * smaf_cma_match - return true if at least one device has been found
++ */
++static bool smaf_cma_match(struct dma_buf *dmabuf)
++{
++	return !!find_matching_device(dmabuf);
++}
++
++static void smaf_cma_release(struct dma_buf *dmabuf)
++{
++	struct smaf_cma_buffer_info *info = dmabuf->priv;
++	DEFINE_DMA_ATTRS(attrs);
++
++	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
++
++	dma_free_attrs(info->dev, info->size, info->vaddr, info->paddr, &attrs);
++
++	kfree(info);
++}
++
++static struct sg_table *smaf_cma_map(struct dma_buf_attachment *attachment,
++				     enum dma_data_direction direction)
++{
++	struct smaf_cma_buffer_info *info = attachment->dmabuf->priv;
++	struct sg_table *sgt;
++	int ret;
++
++	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
++	if (!sgt)
++		return NULL;
++
++	ret = dma_get_sgtable(info->dev, sgt, info->vaddr,
++			      info->paddr, info->size);
++	if (ret < 0)
++		goto out;
++
++	sg_dma_address(sgt->sgl) = info->paddr;
++	return sgt;
++
++out:
++	kfree(sgt);
++	return NULL;
++}
++
++static void smaf_cma_unmap(struct dma_buf_attachment *attachment,
++			   struct sg_table *sgt,
++			   enum dma_data_direction direction)
++{
++	/* do nothing */
++}
++
++static int smaf_cma_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
++{
++	struct smaf_cma_buffer_info *info = dmabuf->priv;
++	int ret;
++	DEFINE_DMA_ATTRS(attrs);
++
++	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
++
++	if (info->size < vma->vm_end - vma->vm_start)
++		return -EINVAL;
++
++	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
++	ret = dma_mmap_attrs(info->dev, vma, info->vaddr, info->paddr,
++			     info->size, &attrs);
++
++	return ret;
++}
++
++static void *smaf_cma_vmap(struct dma_buf *dmabuf)
++{
++	struct smaf_cma_buffer_info *info = dmabuf->priv;
++
++	return info->vaddr;
++}
++
++static void *smaf_kmap_atomic(struct dma_buf *dmabuf, unsigned long offset)
++{
++	struct smaf_cma_buffer_info *info = dmabuf->priv;
++
++	return (void *)info->vaddr + offset;
++}
++
++static struct dma_buf_ops smaf_cma_ops = {
++	.map_dma_buf = smaf_cma_map,
++	.unmap_dma_buf = smaf_cma_unmap,
++	.mmap = smaf_cma_mmap,
++	.release = smaf_cma_release,
++	.kmap_atomic = smaf_kmap_atomic,
++	.kmap = smaf_kmap_atomic,
++	.vmap = smaf_cma_vmap,
++};
++
++static struct dma_buf *smaf_cma_allocate(struct dma_buf *dmabuf,
++					 size_t length, unsigned int flags)
++{
++	struct dma_buf_attachment *attach_obj;
++	struct smaf_cma_buffer_info *info;
++	struct dma_buf *cma_dmabuf;
++	int ret;
++
++	DEFINE_DMA_BUF_EXPORT_INFO(export);
++	DEFINE_DMA_ATTRS(attrs);
++
++	dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
++
++	info = kzalloc(sizeof(*info), GFP_KERNEL);
++	if (!info)
++		return NULL;
++
++	info->dev = find_matching_device(dmabuf);
++	info->size = length;
++	info->vaddr = dma_alloc_attrs(info->dev, info->size, &info->paddr,
++				      GFP_KERNEL | __GFP_NOWARN, &attrs);
++	if (!info->vaddr) {
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	export.ops = &smaf_cma_ops;
++	export.size = info->size;
++	export.flags = flags;
++	export.priv = info;
++
++	cma_dmabuf = dma_buf_export(&export);
++	if (IS_ERR(cma_dmabuf))
++		goto error;
++
++	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
++		dma_buf_attach(cma_dmabuf, attach_obj->dev);
++	}
++
++	return cma_dmabuf;
++
++error:
++	kfree(info);
++	return NULL;
++}
++
++static struct smaf_allocator smaf_cma = {
++	.match = smaf_cma_match,
++	.allocate = smaf_cma_allocate,
++	.name = "smaf-cma",
++	.ranking = 0,
++};
++
++static int __init smaf_cma_init(void)
++{
++	INIT_LIST_HEAD(&smaf_cma.list_node);
++	return smaf_register_allocator(&smaf_cma);
++}
++module_init(smaf_cma_init);
++
++static void __exit smaf_cma_deinit(void)
++{
++	smaf_unregister_allocator(&smaf_cma);
++}
++module_exit(smaf_cma_deinit);
++
++MODULE_DESCRIPTION("SMAF CMA module");
++MODULE_LICENSE("GPL v2");
++MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
