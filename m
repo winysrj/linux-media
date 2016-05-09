@@ -1,113 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38864 "EHLO lists.s-osg.org"
+Received: from muru.com ([72.249.23.125]:53725 "EHLO muru.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751256AbcEDQuo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 12:50:44 -0400
-Date: Wed, 4 May 2016 13:50:35 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160504135035.1f055fa7@recife.lan>
-In-Reply-To: <87inytn6n2.fsf@intel.com>
-References: <87fuvypr2h.fsf@intel.com>
-	<20160310122101.2fca3d79@recife.lan>
-	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
-	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
-	<20160412094620.4fbf05c0@lwn.net>
-	<CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
-	<CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
-	<54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
-	<874maef8km.fsf@intel.com>
-	<13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de>
-	<20160504134346.GY14148@phenom.ffwll.local>
-	<44110C0C-2E98-4470-9DB1-B72406E901A0@darmarit.de>
-	<87inytn6n2.fsf@intel.com>
+	id S1751033AbcEITga (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 May 2016 15:36:30 -0400
+Date: Mon, 9 May 2016 12:36:24 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	thierry.reding@gmail.com, bcousson@baylibre.com,
+	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	sre@kernel.org, pali.rohar@gmail.com
+Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
+ when not needed.
+Message-ID: <20160509193624.GH5995@atomide.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 4 May 2016 19:13:21 +0300
-Jani Nikula <jani.nikula@intel.com> escreveu:
-
-> On Wed, 04 May 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
-> > Correct my, if I'am wrong. I'am a bit unfamiliar with DOCPROC in
-> > particular with your "MARKDOWNREADY := gpu.xml" process.
-> >
-> > As I understood, you convert markdown to docbook within the kernel-doc 
-> > script using pandoc's executable? ... I don't face this topic. With my 
-> > modification of kernel-doc I produced pure reST markup from standardize
-> > kernel-doc markup, no intermediate steps or tools required.  
+* Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160507 08:24]:
+> once omap_dm_timer_start() is called, which calls omap_dm_timer_enable()
+> and thus pm_runtime_get_sync(), it doesn't make sense to call PM runtime
+> functions again before omap_dm_timer_stop is called(). Otherwise PM runtime
+> functions called in omap_dm_timer_enable/disable lead to long and unneeded
+> delays.
 > 
-> That pandoc thing is a dead end. Forget about it. I think we've all
-> pretty much agreed we should have kernel-doc produce the lightweight
-> markup directly since [1].
+> Fix that by implementing an "enabled" counter, so the PM runtime functions
+> get called only when really needed.
 > 
-> [1] http://mid.gmane.org/1453106477-21359-1-git-send-email-jani.nikula@intel.com
-> 
-> > Am 04.05.2016 um 17:09 schrieb Jonathan Corbet <corbet@lwn.net>:
-> >  
-> >> I think all of this makes sense.  It would be really nice to have the
-> >> directives in the native sphinx language like that.  I *don't* think we
-> >> need to aim for that at the outset; the docproc approach works until we can
-> >> properly get rid of it.  What would be *really* nice would be to get
-> >> support for the kernel-doc directive into the sphinx upstream.  
-> >
-> > No need for kernel-doc directive in sphinx upstream, later it will be 
-> > an extension which could be installed by a simple command like 
-> > "pip install kernel-doc-extensions" or similar.
-> >
-> > I develop these required extension (and more) within my proof of concept
-> > on github ... this takes time ... if I finished all my tests and all is
-> > well, I will build the *kernel-doc-extensions* package and deploy it
-> > on https://pypi.python.org/pypi from where everyone could install this 
-> > with "pip".  
-> 
-> I think we should go for vanilla sphinx at first, to make the setup step
-> as easy as possible for everyone.
+> Without that patch Nokia N900 IR TX driver (ir-rx51) does not function.
 
-Vanilla Sphinx doesn't work, as reST markup language is too limited
-to support the docs we have. So, we should either push the needed
-extensions to Sphinx reST or find a way to put it at Kernel tree
-without causing too much pain for the developers, e. g. as something
-that just doing "make htmldoc" would automatically use such extensions
-without needing to actually install the extensions.
+We should use pm_runtime for the refcounting though and call PM runtime
+unconditionally. Can you try to follow the standard PM runtime usage
+like this:
 
-> Even if it means still doing that ugly
-> docproc step to call kernel-doc. We can improve from there, and I
-> definitely appreciate your work on making this work with sphinx
-> extensions.
+init:
+pm_runtime_use_autosuspend(&timer->pdev->dev);
+pm_runtime_set_autosuspend_delay(&timer->pdev->dev, 200);
+pm_runtime_enable(&timer->pdev->dev);
+...
+enable:
+pm_runtime_get_sync(&timer->pdev->dev);
+...
+disable:
+pm_runtime_mark_last_busy(&timer->pdev->dev);
+pm_runtime_put_autosuspend(&timer->pdev->dev);
+...
+exit:
+pm_runtime_dont_use_autosuspend(&timer->pdev->dev);
+pm_runtime_put_sync(&timer->pdev->dev);
+pm_runtime_disable(&timer->pdev->dev);
 
-I disagree: We should not cause documentation regressions by
-producing incomplete documentation and losing tables because of
-such conversion.
+No idea what the timeout should be, maybe less than 200 ms. Also we need
+to test that off idle still works with timer1, that might need special
+handling.
 
-The quality of the documentation after the change should be *at least*
-equal to the one we current produce, never worse.
+Regards,
 
-> That said, how would it work to include the kernel-doc extension in the
-> kernel source tree? Having things just work if sphinx is installed is
-> preferred over requiring installation of something extra from pypi. (I
-> know this may sound backwards for a lot of projects, but for kernel I'm
-> pretty sure this is how it should be done.)
-
-Yeah, using pypi seems an additional undesired step. Aren't there
-any way to make python to use an additional extension at the
-Kernel tree without needing to install it?
-
-Thanks,
-Mauro
+Tony
