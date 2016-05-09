@@ -1,105 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:36831 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751646AbcETARE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2016 20:17:04 -0400
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47377 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751844AbcEIMnT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2016 08:43:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: Re: [PATCH v2 2/5] media: Unify IOCTL handler calling
+Date: Mon, 09 May 2016 15:43:46 +0300
+Message-ID: <9319415.ocfQp8hpUb@avalon>
+In-Reply-To: <1462360855-23354-3-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com> <1462360855-23354-3-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <573D7601.1090605@linaro.org>
-References: <1463572208-8826-1-git-send-email-todor.tomov@linaro.org>
- <1463572208-8826-2-git-send-email-todor.tomov@linaro.org> <20160518231637.GA31413@rob-hp-laptop>
- <573D7601.1090605@linaro.org>
-From: Rob Herring <robh@kernel.org>
-Date: Thu, 19 May 2016 19:16:40 -0500
-Message-ID: <CAL_JsqJX_t9WD0gq=5A1UFQiweKi8fwjBwTdpxbV=ECTsHWOvw@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] [media] media: i2c/ov5645: add the device tree
- binding document
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: Pawel Moll <pawel.moll@arm.com>,
-	Mark Rutland <mark.rutland@arm.com>,
-	Ian Campbell <ijc+devicetree@hellion.org.uk>,
-	Kumar Gala <galak@codeaurora.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Geert Uytterhoeven <geert@linux-m68k.org>, matrandg@cisco.com,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 19, 2016 at 3:14 AM, Todor Tomov <todor.tomov@linaro.org> wrote:
-> Hi Rob,
->
-> Thank you for your time to review. My responses are below:
->
-> On 05/19/2016 02:16 AM, Rob Herring wrote:
->> On Wed, May 18, 2016 at 02:50:07PM +0300, Todor Tomov wrote:
->>> Add the document for ov5645 device tree binding.
->>>
->>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
->>> ---
->>>  .../devicetree/bindings/media/i2c/ov5645.txt       | 56 ++++++++++++++++++++++
->>>  1 file changed, 56 insertions(+)
->>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
->>>
->>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
->>> new file mode 100644
->>> index 0000000..8799000
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
->>> @@ -0,0 +1,56 @@
->>> +* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
->>> +
->>> +The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor with
->>> +an active array size of 2592H x 1944V. It is programmable through a serial SCCB
->>
->> s/SCCB/I2C/ because that is the more common name.
-> Ok.
->
->>
->>> +interface.
->>> +
->>> +Required Properties:
->>> +- compatible: value should be "ovti,ov5645"
->>> +- clocks: reference to the xclk clock
->>> +- clock-names: should be "xclk"
->>> +- assigned-clocks: reference to the xclk clock
->>
->> This should be optional as it only makes sense if there is more than one
->> option.
-> I have only used assigned-clocks to specify for which clock the
-> assigned-clock-rates property is. This is the way I understood it.
-> Isn't this correct? (Also please see below.)
+Hi Sakari,
 
-AIUI, assigned-clocks is which parent you want to assign for the clock
-specified in "clocks". Whether you have a parent option or not is
-board/chip dependent.
+Thank you for the patch.
 
->>> +- assigned-clock-rates: should be "23880000"
->>
->> Doesn't this depend on the board? Most parts take a range of
->> frequencies. The driver should know what the range is and request a rate
->> within this range.
-> This is the sensor external clock. Actually the driver depends on this value -
-> the sensor mode settings which the driver configures are calculated based on
-> this value. If you change this clock rate you need to change the sensor mode
-> settings. However they usually come from the vendor of the sensor so they
-> usually never change. So this clock rate for this driver is fixed to 23.88MHz
-> and is not expected to change.
+On Wednesday 04 May 2016 14:20:52 Sakari Ailus wrote:
+> Each IOCTL handler can be listed in an array instead of using a large and
+> cumbersome switch. Do that.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-If fixed in the driver, then it doesn't need to be in DT.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
->>> +
->>> +Optional Properties:
->>> +- reset-gpios: Chip reset GPIO
->>> +- pwdn-gpios: Chip power down GPIO
->>
->> Use enable-gpios as it is more common and would just be the inverse of
->> this.
-> pwdn is the notation which OV use for this gpio, so I'd personally prefer
-> to keep the name. Do you think it is still better to change it?
+> ---
+>  drivers/media/media-device.c | 89 +++++++++++------------------------------
+>  1 file changed, 23 insertions(+), 66 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index c24149d..9b5a88d 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -419,12 +419,16 @@ static long media_device_get_topology(struct
+> media_device *mdev, return 0;
+>  }
+> 
+> -#define MEDIA_IOC(__cmd) \
+> -	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
+> +#define MEDIA_IOC(__cmd, func)						\
+> +	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
+> +		.cmd = MEDIA_IOC_##__cmd,				\
+> +		.fn = (long (*)(struct media_device *, void __user *))func,    \
+> +	}
+> 
+>  /* the table is indexed by _IOC_NR(cmd) */
+>  struct media_ioctl_info {
+>  	unsigned int cmd;
+> +	long (*fn)(struct media_device *dev, void __user *arg);
+>  };
+> 
+>  static inline long is_valid_ioctl(const struct media_ioctl_info *info,
+> @@ -440,53 +444,28 @@ static long __media_device_ioctl(
+>  {
+>  	struct media_devnode *devnode = media_devnode_data(filp);
+>  	struct media_device *dev = to_media_device(devnode);
+> +	const struct media_ioctl_info *info;
+>  	long ret;
+> 
+>  	ret = is_valid_ioctl(info_array, info_array_len, cmd);
+>  	if (ret)
+>  		return ret;
+> 
+> +	info = &info_array[_IOC_NR(cmd)];
+> +
+>  	mutex_lock(&dev->graph_mutex);
+> -	switch (cmd) {
+> -	case MEDIA_IOC_DEVICE_INFO:
+> -		ret = media_device_get_info(dev,
+> -				(struct media_device_info __user *)arg);
+> -		break;
+> -
+> -	case MEDIA_IOC_ENUM_ENTITIES:
+> -		ret = media_device_enum_entities(dev,
+> -				(struct media_entity_desc __user *)arg);
+> -		break;
+> -
+> -	case MEDIA_IOC_ENUM_LINKS:
+> -		ret = media_device_enum_links(dev,
+> -				(struct media_links_enum __user *)arg);
+> -		break;
+> -
+> -	case MEDIA_IOC_SETUP_LINK:
+> -		ret = media_device_setup_link(dev,
+> -				(struct media_link_desc __user *)arg);
+> -		break;
+> -
+> -	case MEDIA_IOC_G_TOPOLOGY:
+> -		ret = media_device_get_topology(dev,
+> -				(struct media_v2_topology __user *)arg);
+> -		break;
+> -
+> -	default:
+> -		ret = -ENOIOCTLCMD;
+> -	}
+> +	ret = info->fn(dev, arg);
+>  	mutex_unlock(&dev->graph_mutex);
+> 
+>  	return ret;
+>  }
+> 
+>  static const struct media_ioctl_info ioctl_info[] = {
+> -	MEDIA_IOC(DEVICE_INFO),
+> -	MEDIA_IOC(ENUM_ENTITIES),
+> -	MEDIA_IOC(ENUM_LINKS),
+> -	MEDIA_IOC(SETUP_LINK),
+> -	MEDIA_IOC(G_TOPOLOGY),
+> +	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
+> +	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
+> +	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
+> +	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
+> +	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+>  };
+> 
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> @@ -528,41 +507,19 @@ static long media_device_enum_links32(struct
+> media_device *mdev, #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, 
+struct
+> media_links_enum32)
+> 
+>  static const struct media_ioctl_info compat_ioctl_info[] = {
+> -	MEDIA_IOC(DEVICE_INFO),
+> -	MEDIA_IOC(ENUM_ENTITIES),
+> -	MEDIA_IOC(ENUM_LINKS32),
+> -	MEDIA_IOC(SETUP_LINK),
+> -	MEDIA_IOC(G_TOPOLOGY),
+> +	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
+> +	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
+> +	MEDIA_IOC(ENUM_LINKS32, media_device_enum_links32),
+> +	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
+> +	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+>  };
+> 
+>  static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+>  				      unsigned long arg)
+>  {
+> -	struct media_devnode *devnode = media_devnode_data(filp);
+> -	struct media_device *dev = to_media_device(devnode);
+> -	long ret;
+> -
+> -	switch (cmd) {
+> -	case MEDIA_IOC_DEVICE_INFO:
+> -	case MEDIA_IOC_ENUM_ENTITIES:
+> -	case MEDIA_IOC_SETUP_LINK:
+> -	case MEDIA_IOC_G_TOPOLOGY:
+> -		return __media_device_ioctl(
+> -			filp, cmd, (void __user *)arg,
+> -			compat_ioctl_info, ARRAY_SIZE(compat_ioctl_info));
+> -
+> -	case MEDIA_IOC_ENUM_LINKS32:
+> -		mutex_lock(&dev->graph_mutex);
+> -		ret = media_device_enum_links32(dev,
+> -				(struct media_links_enum32 __user *)arg);
+> -		mutex_unlock(&dev->graph_mutex);
+> -		break;
+> -
+> -	default:
+> -		ret = -ENOIOCTLCMD;
+> -	}
+> -
+> -	return ret;
+> +	return __media_device_ioctl(
+> +		filp, cmd, (void __user *)arg,
+> +		compat_ioctl_info, ARRAY_SIZE(compat_ioctl_info));
+>  }
+>  #endif /* CONFIG_COMPAT */
 
-Yes.
+-- 
+Regards,
 
-Rob
+Laurent Pinchart
+
