@@ -1,126 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:35995 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752084AbcEWJQq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2016 05:16:46 -0400
-Subject: Re: [PATCH v4 1/6] media: Add video processing entity functions
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1463701232-22008-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5742C833.50204@xs4all.nl>
-Date: Mon, 23 May 2016 11:06:59 +0200
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:36467 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751792AbcEIUvR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2016 16:51:17 -0400
+Subject: Re: [PATCH 5/7] ARM: OMAP: dmtimer: Do not call PM runtime functions
+ when not needed.
+To: Tony Lindgren <tony@atomide.com>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-6-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509193624.GH5995@atomide.com>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	thierry.reding@gmail.com, bcousson@baylibre.com,
+	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	sre@kernel.org, pali.rohar@gmail.com
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <5730F840.3050807@gmail.com>
+Date: Mon, 9 May 2016 23:51:12 +0300
 MIME-Version: 1.0
-In-Reply-To: <1463701232-22008-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <20160509193624.GH5995@atomide.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/20/2016 01:40 AM, Laurent Pinchart wrote:
-> Add composer, pixel formatter, pixel encoding converter and scaler
-> functions.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Hi,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On  9.05.2016 22:36, Tony Lindgren wrote:
+> * Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com> [160507 08:24]:
+>> once omap_dm_timer_start() is called, which calls omap_dm_timer_enable()
+>> and thus pm_runtime_get_sync(), it doesn't make sense to call PM runtime
+>> functions again before omap_dm_timer_stop is called(). Otherwise PM runtime
+>> functions called in omap_dm_timer_enable/disable lead to long and unneeded
+>> delays.
+>>
+>> Fix that by implementing an "enabled" counter, so the PM runtime functions
+>> get called only when really needed.
+>>
+>> Without that patch Nokia N900 IR TX driver (ir-rx51) does not function.
+>
 
-Looks good!
+Well, I just tested again, with the $subject patch reverted and 
+contradictory to my own words, it worked just fine. I believe the reason 
+is that I did hrtimer "migration" after I did the $subject patch. I was 
+thinking the reason for the slow transmission was PWM dmtimer, but now 
+it turns out it has been the "pulse" dmtimer. So, I think the $subject 
+patch should be dropped.
 
-	Hans
+> We should use pm_runtime for the refcounting though and call PM runtime
+> unconditionally. Can you try to follow the standard PM runtime usage
+> like this:
+>
 
-> ---
->  Documentation/DocBook/media/v4l/media-types.xml | 55 +++++++++++++++++++++++++
->  include/uapi/linux/media.h                      |  9 ++++
->  2 files changed, 64 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
-> index 5e3f20fdcf17..60fe841f8846 100644
-> --- a/Documentation/DocBook/media/v4l/media-types.xml
-> +++ b/Documentation/DocBook/media/v4l/media-types.xml
-> @@ -121,6 +121,61 @@
->  	    <entry><constant>MEDIA_ENT_F_AUDIO_MIXER</constant></entry>
->  	    <entry>Audio Mixer Function Entity.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_COMPOSER</constant></entry>
-> +	    <entry>Video composer (blender). An entity capable of video
-> +		   composing must have at least two sink pads and one source
-> +		   pad, and composes input video frames onto output video
-> +		   frames. Composition can be performed using alpha blending,
-> +		   color keying, raster operations (ROP), stitching or any other
-> +		   means.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER</constant></entry>
-> +	    <entry>Video pixel formatter. An entity capable of pixel formatting
-> +		   must have at least one sink pad and one source pad. Read
-> +		   pixel formatters read pixels from memory and perform a subset
-> +		   of unpacking, cropping, color keying, alpha multiplication
-> +		   and pixel encoding conversion. Write pixel formatters perform
-> +		   a subset of dithering, pixel encoding conversion and packing
-> +		   and write pixels to memory.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV</constant></entry>
-> +	    <entry>Video pixel encoding converter. An entity capable of pixel
-> +		   enconding conversion must have at least one sink pad and one
-> +		   source pad, and convert the encoding of pixels received on
-> +		   its sink pad(s) to a different encoding output on its source
-> +		   pad(s). Pixel encoding conversion includes but isn't limited
-> +		   to RGB to/from HSV, RGB to/from YUV and CFA (Bayer) to RGB
-> +		   conversions.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_LUT</constant></entry>
-> +	    <entry>Video look-up table. An entity capable of video lookup table
-> +		   processing must have one sink pad and one source pad. It uses
-> +		   the values of the pixels received on its sink pad to look up
-> +		   entries in internal tables and output them on its source pad.
-> +		   The lookup processing can be performed on all components
-> +		   separately or combine them for multi-dimensional table
-> +		   lookups.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_SCALER</constant></entry>
-> +	    <entry>Video scaler. An entity capable of video scaling must have
-> +		   at least one sink pad and one source pad, and scale the
-> +		   video frame(s) received on its sink pad(s) to a different
-> +		   resolution output on its source pad(s). The range of
-> +		   supported scaling ratios is entity-specific and can differ
-> +		   between the horizontal and vertical directions (in particular
-> +		   scaling can be supported in one direction only). Binning and
-> +		   skipping are considered as scaling.
-> +	    </entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index e226bc35c639..bff3ffdfd55f 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -96,6 +96,15 @@ struct media_device_info {
->  #define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03003)
->  
->  /*
-> + * Processing entities
-> + */
-> +#define MEDIA_ENT_F_PROC_VIDEO_COMPOSER		(MEDIA_ENT_F_BASE + 0x4001)
-> +#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER	(MEDIA_ENT_F_BASE + 0x4002)
-> +#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV	(MEDIA_ENT_F_BASE + 0x4003)
-> +#define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
-> +#define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
-> +
-> +/*
->   * Connectors
->   */
->  /* It is a responsibility of the entity drivers to add connectors and links */
-> 
+It works without that, but on the other hand, I finally have some 
+reference on how PM runtime API should be called :).
+
+> init:
+> pm_runtime_use_autosuspend(&timer->pdev->dev);
+> pm_runtime_set_autosuspend_delay(&timer->pdev->dev, 200);
+> pm_runtime_enable(&timer->pdev->dev);
+> ...
+> enable:
+> pm_runtime_get_sync(&timer->pdev->dev);
+> ...
+> disable:
+> pm_runtime_mark_last_busy(&timer->pdev->dev);
+> pm_runtime_put_autosuspend(&timer->pdev->dev);
+> ...
+> exit:
+> pm_runtime_dont_use_autosuspend(&timer->pdev->dev);
+> pm_runtime_put_sync(&timer->pdev->dev);
+> pm_runtime_disable(&timer->pdev->dev);
+>
+> No idea what the timeout should be, maybe less than 200 ms. Also we need
+> to test that off idle still works with timer1, that might need special
+> handling.
+>
+
+Thanks,
+Ivo
