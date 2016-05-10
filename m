@@ -1,133 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34268 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646AbcESTCq (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:57629 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753108AbcEJC2K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 May 2016 15:02:46 -0400
-Received: by mail-wm0-f67.google.com with SMTP id n129so23531642wmn.1
-        for <linux-media@vger.kernel.org>; Thu, 19 May 2016 12:02:45 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH v2 1/2] media: rc: make fifo size for raw events configurable
- via rc_dev
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <67474fa8-4f58-75e4-f5b2-1b07c6b21009@gmail.com>
-Date: Thu, 19 May 2016 21:01:56 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+	Mon, 9 May 2016 22:28:10 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 524501808DD
+	for <linux-media@vger.kernel.org>; Tue, 10 May 2016 04:28:04 +0200 (CEST)
+Date: Tue, 10 May 2016 04:28:04 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160510022804.524501808DD@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the fifo size is 512 elements. After a recent patch the size
-of struct ir_raw_event is down to 8 bytes, so the fifo still consumes
-4KB. In most cases a much smaller fifo is sufficient, e.g. nuvoton-cir
-triggers event processing after 24 events latest.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This patch introduces an element raw_fifo_size to struct rc_dev to
-allow configuring the fifo size. If not set the current default
-MAX_IR_EVENT_SIZE is used.
+Results of the daily build of media_tree:
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
-v2:
-- access dev->raw_fifo_size only after check for !dev
----
- drivers/media/rc/rc-core-priv.h |  2 +-
- drivers/media/rc/rc-ir-raw.c    | 14 ++++++++++++--
- include/media/rc-core.h         |  2 ++
- 3 files changed, 15 insertions(+), 3 deletions(-)
+date:		Tue May 10 04:00:27 CEST 2016
+git branch:	test
+git hash:	d1532d5575696965a52b19553dd7dacf75f3fec5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-164
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 585d5e5..ae6f81e 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -39,7 +39,7 @@ struct ir_raw_event_ctrl {
- 	struct task_struct		*thread;
- 	spinlock_t			lock;
- 	/* fifo for the pulse/space durations */
--	DECLARE_KFIFO(kfifo, struct ir_raw_event, MAX_IR_EVENT_SIZE);
-+	DECLARE_KFIFO_PTR(kfifo, struct ir_raw_event);
- 	ktime_t				last_event;	/* when last event occurred */
- 	enum raw_event_type		last_type;	/* last event type */
- 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 144304c..f9b7734 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -261,17 +261,24 @@ int ir_raw_event_register(struct rc_dev *dev)
- {
- 	int rc;
- 	struct ir_raw_handler *handler;
-+	unsigned fifo_size = MAX_IR_EVENT_SIZE;
- 
- 	if (!dev)
- 		return -EINVAL;
- 
-+	if (dev->raw_fifo_size)
-+		fifo_size = dev->raw_fifo_size;
-+
- 	dev->raw = kzalloc(sizeof(*dev->raw), GFP_KERNEL);
- 	if (!dev->raw)
- 		return -ENOMEM;
- 
- 	dev->raw->dev = dev;
- 	dev->change_protocol = change_protocol;
--	INIT_KFIFO(dev->raw->kfifo);
-+
-+	rc = kfifo_alloc(&dev->raw->kfifo, fifo_size, GFP_KERNEL);
-+	if (rc)
-+		goto out;
- 
- 	spin_lock_init(&dev->raw->lock);
- 	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
-@@ -279,7 +286,7 @@ int ir_raw_event_register(struct rc_dev *dev)
- 
- 	if (IS_ERR(dev->raw->thread)) {
- 		rc = PTR_ERR(dev->raw->thread);
--		goto out;
-+		goto out_kfifo;
- 	}
- 
- 	mutex_lock(&ir_raw_handler_lock);
-@@ -291,6 +298,8 @@ int ir_raw_event_register(struct rc_dev *dev)
- 
- 	return 0;
- 
-+out_kfifo:
-+	kfifo_free(&dev->raw->kfifo);
- out:
- 	kfree(dev->raw);
- 	dev->raw = NULL;
-@@ -313,6 +322,7 @@ void ir_raw_event_unregister(struct rc_dev *dev)
- 			handler->raw_unregister(dev);
- 	mutex_unlock(&ir_raw_handler_lock);
- 
-+	kfifo_free(&dev->raw->kfifo);
- 	kfree(dev->raw);
- 	dev->raw = NULL;
- }
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index f6f55b7..07e096b 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -72,6 +72,7 @@ enum rc_filter_type {
-  *	anyone can call show_protocols or store_protocols
-  * @minor: unique minor remote control device number
-  * @raw: additional data for raw pulse/space devices
-+ * @raw_fifo_size: size of fifo for raw events
-  * @input_dev: the input child device used to communicate events to userspace
-  * @driver_type: specifies if protocol decoding is done in hardware or software
-  * @idle: used to keep track of RX state
-@@ -133,6 +134,7 @@ struct rc_dev {
- 	struct mutex			lock;
- 	unsigned int			minor;
- 	struct ir_raw_event_ctrl	*raw;
-+	unsigned			raw_fifo_size;
- 	struct input_dev		*input_dev;
- 	enum rc_driver_type		driver_type;
- 	bool				idle;
--- 
-2.8.2
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.23-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0-i686: ERRORS
+linux-4.1.1-i686: ERRORS
+linux-4.2-i686: ERRORS
+linux-4.3-i686: ERRORS
+linux-4.4-i686: ERRORS
+linux-4.5-i686: ERRORS
+linux-4.6-rc1-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.23-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0-x86_64: ERRORS
+linux-4.1.1-x86_64: ERRORS
+linux-4.2-x86_64: ERRORS
+linux-4.3-x86_64: ERRORS
+linux-4.4-x86_64: ERRORS
+linux-4.5-x86_64: ERRORS
+linux-4.6-rc1-x86_64: ERRORS
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
