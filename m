@@ -1,903 +1,511 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:20267 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755699AbcECKLi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2016 06:11:38 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>,
-	PoChun Lin <pochun.lin@mediatek.com>
-Subject: [PATCH v10 6/8] [media] vcodec: mediatek: Add Mediatek VP8 Video Encoder Driver
-Date: Tue, 3 May 2016 18:11:25 +0800
-Message-ID: <1462270287-11374-7-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1462270287-11374-6-git-send-email-tiffany.lin@mediatek.com>
-References: <1462270287-11374-1-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-2-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-3-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-4-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-5-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-6-git-send-email-tiffany.lin@mediatek.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:42972 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751614AbcEJMBY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 May 2016 08:01:24 -0400
+Subject: Re: [RFC PATCH 2/3] omap4: add CEC support
+To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>
+References: <1461922746-17521-1-git-send-email-hverkuil@xs4all.nl>
+ <1461922746-17521-3-git-send-email-hverkuil@xs4all.nl>
+CC: <dri-devel@lists.freedesktop.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Message-ID: <5731CD8E.8090509@ti.com>
+Date: Tue, 10 May 2016 15:01:18 +0300
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1461922746-17521-3-git-send-email-hverkuil@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature";
+	boundary="mI4DSxKKRcJdtltDkcgLuO9eWBJx2NNpv"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add vp8 encoder driver for MT8173
+--mI4DSxKKRcJdtltDkcgLuO9eWBJx2NNpv
+Content-Type: multipart/mixed; boundary="cp9j6WTloud3HHQiaOF764mbqj2ivFfpC"
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org, Hans Verkuil <hans.verkuil@cisco.com>
+Message-ID: <5731CD8E.8090509@ti.com>
+Subject: Re: [RFC PATCH 2/3] omap4: add CEC support
+References: <1461922746-17521-1-git-send-email-hverkuil@xs4all.nl>
+ <1461922746-17521-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1461922746-17521-3-git-send-email-hverkuil@xs4all.nl>
 
-Signed-off-by: PoChun Lin <pochun.lin@mediatek.com>
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+--cp9j6WTloud3HHQiaOF764mbqj2ivFfpC
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
----
- drivers/media/platform/mtk-vcodec/Makefile         |    6 +-
- .../media/platform/mtk-vcodec/venc/venc_vp8_if.c   |  481 ++++++++++++++++++++
- drivers/media/platform/mtk-vcodec/venc_drv_if.c    |    7 +-
- drivers/media/platform/mtk-vcodec/venc_vpu_if.c    |  237 ++++++++++
- drivers/media/platform/mtk-vcodec/venc_vpu_if.h    |   61 +++
- 5 files changed, 790 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
- create mode 100644 drivers/media/platform/mtk-vcodec/venc_vpu_if.c
- create mode 100644 drivers/media/platform/mtk-vcodec/venc_vpu_if.h
+Hi Hans,
 
-diff --git a/drivers/media/platform/mtk-vcodec/Makefile b/drivers/media/platform/mtk-vcodec/Makefile
-index d04433be..bf73a45 100644
---- a/drivers/media/platform/mtk-vcodec/Makefile
-+++ b/drivers/media/platform/mtk-vcodec/Makefile
-@@ -1,12 +1,16 @@
- 
-+
- obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC) += mtk-vcodec-enc.o mtk-vcodec-common.o
- 
- 
- 
--mtk-vcodec-enc-y := mtk_vcodec_enc.o \
-+mtk-vcodec-enc-y := venc/venc_vp8_if.o \
-+		venc/venc_h264_if.o \
-+		mtk_vcodec_enc.o \
- 		mtk_vcodec_enc_drv.o \
- 		mtk_vcodec_enc_pm.o \
- 		venc_drv_if.o \
-+		venc_vpu_if.o \
- 
- mtk-vcodec-common-y := mtk_vcodec_intr.o \
- 		mtk_vcodec_util.o\
-diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-new file mode 100644
-index 0000000..431ae70
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
-@@ -0,0 +1,481 @@
-+/*
-+ * Copyright (c) 2016 MediaTek Inc.
-+ * Author: Daniel Hsiao <daniel.hsiao@mediatek.com>
-+ *         PoChun Lin <pochun.lin@mediatek.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+
-+#include "../mtk_vcodec_drv.h"
-+#include "../mtk_vcodec_util.h"
-+#include "../mtk_vcodec_intr.h"
-+#include "../mtk_vcodec_enc.h"
-+#include "../mtk_vcodec_enc_pm.h"
-+#include "../venc_drv_base.h"
-+#include "../venc_ipi_msg.h"
-+#include "../venc_vpu_if.h"
-+#include "mtk_vpu.h"
-+
-+#define VENC_BITSTREAM_FRAME_SIZE 0x0098
-+#define VENC_BITSTREAM_HEADER_LEN 0x00e8
-+
-+/* This ac_tag is vp8 frame tag. */
-+#define MAX_AC_TAG_SIZE 10
-+
-+/**
-+ * enum venc_vp8_vpu_work_buf - vp8 encoder buffer index
-+ */
-+enum venc_vp8_vpu_work_buf {
-+	VENC_VP8_VPU_WORK_BUF_LUMA,
-+	VENC_VP8_VPU_WORK_BUF_LUMA2,
-+	VENC_VP8_VPU_WORK_BUF_LUMA3,
-+	VENC_VP8_VPU_WORK_BUF_CHROMA,
-+	VENC_VP8_VPU_WORK_BUF_CHROMA2,
-+	VENC_VP8_VPU_WORK_BUF_CHROMA3,
-+	VENC_VP8_VPU_WORK_BUF_MV_INFO,
-+	VENC_VP8_VPU_WORK_BUF_BS_HEADER,
-+	VENC_VP8_VPU_WORK_BUF_PROB_BUF,
-+	VENC_VP8_VPU_WORK_BUF_RC_INFO,
-+	VENC_VP8_VPU_WORK_BUF_RC_CODE,
-+	VENC_VP8_VPU_WORK_BUF_RC_CODE2,
-+	VENC_VP8_VPU_WORK_BUF_RC_CODE3,
-+	VENC_VP8_VPU_WORK_BUF_MAX,
-+};
-+
-+/*
-+ * struct venc_vp8_vpu_config - Structure for vp8 encoder configuration
-+ * @input_fourcc: input fourcc
-+ * @bitrate: target bitrate (in bps)
-+ * @pic_w: picture width. Picture size is visible stream resolution, in pixels,
-+ *         to be used for display purposes; must be smaller or equal to buffer
-+ *         size.
-+ * @pic_h: picture height
-+ * @buf_w: buffer width (with 16 alignment). Buffer size is stream resolution
-+ *         in pixels aligned to hardware requirements.
-+ * @buf_h: buffer height (with 16 alignment)
-+ * @gop_size: group of picture size (key frame)
-+ * @framerate: frame rate in fps
-+ * @ts_mode: temporal scalability mode (0: disable, 1: enable)
-+ *	     support three temporal layers - 0: 7.5fps 1: 7.5fps 2: 15fps.
-+ */
-+struct venc_vp8_vpu_config {
-+	u32 input_fourcc;
-+	u32 bitrate;
-+	u32 pic_w;
-+	u32 pic_h;
-+	u32 buf_w;
-+	u32 buf_h;
-+	u32 gop_size;
-+	u32 framerate;
-+	u32 ts_mode;
-+};
-+
-+/*
-+ * struct venc_vp8_vpu_buf -Structure for buffer information
-+ * @align: buffer alignment (in bytes)
-+ * @iova: IO virtual address
-+ * @vpua: VPU side memory addr which is used by RC_CODE
-+ * @size: buffer size (in bytes)
-+ */
-+struct venc_vp8_vpu_buf {
-+	u32 align;
-+	u32 iova;
-+	u32 vpua;
-+	u32 size;
-+};
-+
-+/*
-+ * struct venc_vp8_vsi - Structure for VPU driver control and info share
-+ * This structure is allocated in VPU side and shared to AP side.
-+ * @config: vp8 encoder configuration
-+ * @work_bufs: working buffer information in VPU side
-+ * The work_bufs here is for storing the 'size' info shared to AP side.
-+ * The similar item in struct venc_vp8_inst is for memory allocation
-+ * in AP side. The AP driver will copy the 'size' from here to the one in
-+ * struct mtk_vcodec_mem, then invoke mtk_vcodec_mem_alloc to allocate
-+ * the buffer. After that, bypass the 'dma_addr' to the 'iova' field here for
-+ * register setting in VPU side.
-+ */
-+struct venc_vp8_vsi {
-+	struct venc_vp8_vpu_config config;
-+	struct venc_vp8_vpu_buf work_bufs[VENC_VP8_VPU_WORK_BUF_MAX];
-+};
-+
-+/*
-+ * struct venc_vp8_inst - vp8 encoder AP driver instance
-+ * @hw_base: vp8 encoder hardware register base
-+ * @work_bufs: working buffer
-+ * @work_buf_allocated: working buffer allocated flag
-+ * @frm_cnt: encoded frame count, it's used for I-frame judgement and
-+ *	     reset when force intra cmd received.
-+ * @ts_mode: temporal scalability mode (0: disable, 1: enable)
-+ *	     support three temporal layers - 0: 7.5fps 1: 7.5fps 2: 15fps.
-+ * @vpu_inst: VPU instance to exchange information between AP and VPU
-+ * @vsi: driver structure allocated by VPU side and shared to AP side for
-+ *	 control and info share
-+ * @ctx: context for v4l2 layer integration
-+ */
-+struct venc_vp8_inst {
-+	void __iomem *hw_base;
-+	struct mtk_vcodec_mem work_bufs[VENC_VP8_VPU_WORK_BUF_MAX];
-+	bool work_buf_allocated;
-+	unsigned int frm_cnt;
-+	unsigned int ts_mode;
-+	struct venc_vpu_inst vpu_inst;
-+	struct venc_vp8_vsi *vsi;
-+	struct mtk_vcodec_ctx *ctx;
-+};
-+
-+static inline void vp8_enc_write_reg(struct venc_vp8_inst *inst, u32 addr,
-+				     u32 val)
-+{
-+	writel(val, inst->hw_base + addr);
-+}
-+
-+static inline u32 vp8_enc_read_reg(struct venc_vp8_inst *inst, u32 addr)
-+{
-+	return readl(inst->hw_base + addr);
-+}
-+
-+static void vp8_enc_free_work_buf(struct venc_vp8_inst *inst)
-+{
-+	int i;
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	/* Buffers need to be freed by AP. */
-+	for (i = 0; i < VENC_VP8_VPU_WORK_BUF_MAX; i++) {
-+		if ((inst->work_bufs[i].size == 0))
-+			continue;
-+		mtk_vcodec_mem_free(inst->ctx, &inst->work_bufs[i]);
-+	}
-+
-+	mtk_vcodec_debug_leave(inst);
-+}
-+
-+static int vp8_enc_alloc_work_buf(struct venc_vp8_inst *inst)
-+{
-+	int i;
-+	int ret = 0;
-+	struct venc_vp8_vpu_buf *wb = inst->vsi->work_bufs;
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	for (i = 0; i < VENC_VP8_VPU_WORK_BUF_MAX; i++) {
-+		if ((wb[i].size == 0))
-+			continue;
-+		/*
-+		 * This 'wb' structure is set by VPU side and shared to AP for
-+		 * buffer allocation and IO virtual addr mapping. For most of
-+		 * the buffers, AP will allocate the buffer according to 'size'
-+		 * field and store the IO virtual addr in 'iova' field. For the
-+		 * RC_CODEx buffers, they are pre-allocated in the VPU side
-+		 * because they are inside VPU SRAM, and save the VPU addr in
-+		 * the 'vpua' field. The AP will translate the VPU addr to the
-+		 * corresponding IO virtual addr and store in 'iova' field.
-+		 */
-+		inst->work_bufs[i].size = wb[i].size;
-+		ret = mtk_vcodec_mem_alloc(inst->ctx, &inst->work_bufs[i]);
-+		if (ret) {
-+			mtk_vcodec_err(inst,
-+				       "cannot alloc work_bufs[%d]", i);
-+			goto err_alloc;
-+		}
-+		/*
-+		 * This RC_CODEx is pre-allocated by VPU and saved in VPU addr.
-+		 * So we need use memcpy to copy RC_CODEx from VPU addr into IO
-+		 * virtual addr in 'iova' field for reg setting in VPU side.
-+		 */
-+		if (i == VENC_VP8_VPU_WORK_BUF_RC_CODE ||
-+		    i == VENC_VP8_VPU_WORK_BUF_RC_CODE2 ||
-+		    i == VENC_VP8_VPU_WORK_BUF_RC_CODE3) {
-+			void *tmp_va;
-+
-+			tmp_va = vpu_mapping_dm_addr(inst->vpu_inst.dev,
-+						     wb[i].vpua);
-+			memcpy(inst->work_bufs[i].va, tmp_va, wb[i].size);
-+		}
-+		wb[i].iova = inst->work_bufs[i].dma_addr;
-+
-+		mtk_vcodec_debug(inst,
-+				 "work_bufs[%d] va=0x%p,iova=0x%p,size=%zu",
-+				 i, inst->work_bufs[i].va,
-+				 (void *)inst->work_bufs[i].dma_addr,
-+				 inst->work_bufs[i].size);
-+	}
-+
-+	mtk_vcodec_debug_leave(inst);
-+
-+	return ret;
-+
-+err_alloc:
-+	vp8_enc_free_work_buf(inst);
-+
-+	return ret;
-+}
-+
-+static unsigned int vp8_enc_wait_venc_done(struct venc_vp8_inst *inst)
-+{
-+	unsigned int irq_status = 0;
-+	struct mtk_vcodec_ctx *ctx = (struct mtk_vcodec_ctx *)inst->ctx;
-+
-+	if (!mtk_vcodec_wait_for_done_ctx(ctx, MTK_INST_IRQ_RECEIVED,
-+					  WAIT_INTR_TIMEOUT_MS)) {
-+		irq_status = ctx->irq_status;
-+		mtk_vcodec_debug(inst, "isr return %x", irq_status);
-+	}
-+	return irq_status;
-+}
-+
-+/*
-+ * Compose ac_tag, bitstream header and bitstream payload into
-+ * one bitstream buffer.
-+ */
-+static int vp8_enc_compose_one_frame(struct venc_vp8_inst *inst,
-+				     struct mtk_vcodec_mem *bs_buf,
-+				     unsigned int *bs_size)
-+{
-+	unsigned int not_key;
-+	u32 bs_frm_size;
-+	u32 bs_hdr_len;
-+	unsigned int ac_tag_size;
-+	u8 ac_tag[MAX_AC_TAG_SIZE];
-+
-+	bs_frm_size = vp8_enc_read_reg(inst, VENC_BITSTREAM_FRAME_SIZE);
-+	bs_hdr_len = vp8_enc_read_reg(inst, VENC_BITSTREAM_HEADER_LEN);
-+
-+	/* if a frame is key frame, not_key is 0 */
-+	not_key = !inst->vpu_inst.is_key_frm;
-+	*(u32 *)ac_tag = __cpu_to_le32((bs_hdr_len << 5) | 0x10 | not_key);
-+	/* key frame */
-+	if (not_key == 0) {
-+		ac_tag_size = MAX_AC_TAG_SIZE;
-+		ac_tag[3] = 0x9d;
-+		ac_tag[4] = 0x01;
-+		ac_tag[5] = 0x2a;
-+		ac_tag[6] = inst->vsi->config.pic_w;
-+		ac_tag[7] = inst->vsi->config.pic_w >> 8;
-+		ac_tag[8] = inst->vsi->config.pic_h;
-+		ac_tag[9] = inst->vsi->config.pic_h >> 8;
-+	} else {
-+		ac_tag_size = 3;
-+	}
-+
-+	if (bs_buf->size < bs_hdr_len + bs_frm_size + ac_tag_size) {
-+		mtk_vcodec_err(inst, "bitstream buf size is too small(%zu)",
-+			       bs_buf->size);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	* (1) The vp8 bitstream header and body are generated by the HW vp8
-+	* encoder separately at the same time. We cannot know the bitstream
-+	* header length in advance.
-+	* (2) From the vp8 spec, there is no stuffing byte allowed between the
-+	* ac tag, bitstream header and bitstream body.
-+	*/
-+	memmove(bs_buf->va + bs_hdr_len + ac_tag_size,
-+		bs_buf->va, bs_frm_size);
-+	memcpy(bs_buf->va + ac_tag_size,
-+	       inst->work_bufs[VENC_VP8_VPU_WORK_BUF_BS_HEADER].va,
-+	       bs_hdr_len);
-+	memcpy(bs_buf->va, ac_tag, ac_tag_size);
-+	*bs_size = bs_frm_size + bs_hdr_len + ac_tag_size;
-+
-+	return 0;
-+}
-+
-+static int vp8_enc_encode_frame(struct venc_vp8_inst *inst,
-+				struct venc_frm_buf *frm_buf,
-+				struct mtk_vcodec_mem *bs_buf,
-+				unsigned int *bs_size)
-+{
-+	int ret = 0;
-+	unsigned int irq_status;
-+
-+	mtk_vcodec_debug(inst, "->frm_cnt=%d", inst->frm_cnt);
-+
-+	ret = vpu_enc_encode(&inst->vpu_inst, 0, frm_buf, bs_buf, bs_size);
-+	if (ret)
-+		return ret;
-+
-+	irq_status = vp8_enc_wait_venc_done(inst);
-+	if (irq_status != MTK_VENC_IRQ_STATUS_FRM) {
-+		mtk_vcodec_err(inst, "irq_status=%d failed", irq_status);
-+		return -EIO;
-+	}
-+
-+	if (vp8_enc_compose_one_frame(inst, bs_buf, bs_size)) {
-+		mtk_vcodec_err(inst, "vp8_enc_compose_one_frame failed");
-+		return -EINVAL;
-+	}
-+
-+	inst->frm_cnt++;
-+	mtk_vcodec_debug(inst, "<-size=%d key_frm=%d", *bs_size,
-+			 inst->vpu_inst.is_key_frm);
-+
-+	return ret;
-+}
-+
-+static int vp8_enc_init(struct mtk_vcodec_ctx *ctx, unsigned long *handle)
-+{
-+	int ret = 0;
-+	struct venc_vp8_inst *inst;
-+
-+	inst = kzalloc(sizeof(*inst), GFP_KERNEL);
-+	if (!inst)
-+		return -ENOMEM;
-+
-+	inst->ctx = ctx;
-+	inst->vpu_inst.ctx = ctx;
-+	inst->vpu_inst.dev = ctx->dev->vpu_plat_dev;
-+	inst->vpu_inst.id = IPI_VENC_VP8;
-+	inst->hw_base = mtk_vcodec_get_reg_addr(inst->ctx, VENC_LT_SYS);
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	ret = vpu_enc_init(&inst->vpu_inst);
-+
-+	inst->vsi = (struct venc_vp8_vsi *)inst->vpu_inst.vsi;
-+
-+	mtk_vcodec_debug_leave(inst);
-+
-+	if (ret)
-+		kfree(inst);
-+	else
-+		(*handle) = (unsigned long)inst;
-+
-+	return ret;
-+}
-+
-+static int vp8_enc_encode(unsigned long handle,
-+			  enum venc_start_opt opt,
-+			  struct venc_frm_buf *frm_buf,
-+			  struct mtk_vcodec_mem *bs_buf,
-+			  struct venc_done_result *result)
-+{
-+	int ret = 0;
-+	struct venc_vp8_inst *inst = (struct venc_vp8_inst *)handle;
-+	struct mtk_vcodec_ctx *ctx = inst->ctx;
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	enable_irq(ctx->dev->enc_lt_irq);
-+
-+	switch (opt) {
-+	case VENC_START_OPT_ENCODE_FRAME:
-+		ret = vp8_enc_encode_frame(inst, frm_buf, bs_buf,
-+					   &result->bs_size);
-+		if (ret)
-+			goto encode_err;
-+		result->is_key_frm = inst->vpu_inst.is_key_frm;
-+		break;
-+
-+	default:
-+		mtk_vcodec_err(inst, "opt not support:%d", opt);
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+encode_err:
-+
-+	disable_irq(ctx->dev->enc_lt_irq);
-+	mtk_vcodec_debug_leave(inst);
-+
-+	return ret;
-+}
-+
-+static int vp8_enc_set_param(unsigned long handle,
-+			     enum venc_set_param_type type,
-+			     struct venc_enc_param *enc_prm)
-+{
-+	int ret = 0;
-+	struct venc_vp8_inst *inst = (struct venc_vp8_inst *)handle;
-+
-+	mtk_vcodec_debug(inst, "->type=%d", type);
-+
-+	switch (type) {
-+	case VENC_SET_PARAM_ENC:
-+		inst->vsi->config.input_fourcc = enc_prm->input_yuv_fmt;
-+		inst->vsi->config.bitrate = enc_prm->bitrate;
-+		inst->vsi->config.pic_w = enc_prm->width;
-+		inst->vsi->config.pic_h = enc_prm->height;
-+		inst->vsi->config.buf_w = enc_prm->buf_width;
-+		inst->vsi->config.buf_h = enc_prm->buf_height;
-+		inst->vsi->config.gop_size = enc_prm->gop_size;
-+		inst->vsi->config.framerate = enc_prm->frm_rate;
-+		inst->vsi->config.ts_mode = inst->ts_mode;
-+		ret = vpu_enc_set_param(&inst->vpu_inst, type, enc_prm);
-+		if (ret)
-+			break;
-+		if (inst->work_buf_allocated) {
-+			vp8_enc_free_work_buf(inst);
-+			inst->work_buf_allocated = false;
-+		}
-+		ret = vp8_enc_alloc_work_buf(inst);
-+		if (ret)
-+			break;
-+		inst->work_buf_allocated = true;
-+		break;
-+
-+	/*
-+	 * VENC_SET_PARAM_TS_MODE must be called before VENC_SET_PARAM_ENC
-+	 */
-+	case VENC_SET_PARAM_TS_MODE:
-+		inst->ts_mode = 1;
-+		mtk_vcodec_debug(inst, "set ts_mode");
-+		break;
-+
-+	default:
-+		ret = vpu_enc_set_param(&inst->vpu_inst, type, enc_prm);
-+		break;
-+	}
-+
-+	mtk_vcodec_debug_leave(inst);
-+
-+	return ret;
-+}
-+
-+static int vp8_enc_deinit(unsigned long handle)
-+{
-+	int ret = 0;
-+	struct venc_vp8_inst *inst = (struct venc_vp8_inst *)handle;
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	ret = vpu_enc_deinit(&inst->vpu_inst);
-+
-+	if (inst->work_buf_allocated)
-+		vp8_enc_free_work_buf(inst);
-+
-+	mtk_vcodec_debug_leave(inst);
-+	kfree(inst);
-+
-+	return ret;
-+}
-+
-+static struct venc_common_if venc_vp8_if = {
-+	vp8_enc_init,
-+	vp8_enc_encode,
-+	vp8_enc_set_param,
-+	vp8_enc_deinit,
-+};
-+
-+struct venc_common_if *get_vp8_enc_comm_if(void);
-+
-+struct venc_common_if *get_vp8_enc_comm_if(void)
-+{
-+	return &venc_vp8_if;
-+}
-diff --git a/drivers/media/platform/mtk-vcodec/venc_drv_if.c b/drivers/media/platform/mtk-vcodec/venc_drv_if.c
-index 79ec9f5..77c39d2 100644
---- a/drivers/media/platform/mtk-vcodec/venc_drv_if.c
-+++ b/drivers/media/platform/mtk-vcodec/venc_drv_if.c
-@@ -19,12 +19,15 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- 
-+#include "venc_drv_base.h"
- #include "venc_drv_if.h"
-+
- #include "mtk_vcodec_enc.h"
- #include "mtk_vcodec_enc_pm.h"
- #include "mtk_vpu.h"
- 
--#include "venc_drv_base.h"
-+
-+struct venc_common_if *get_vp8_enc_comm_if(void);
- 
- int venc_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
- {
-@@ -32,6 +35,8 @@ int venc_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
- 
- 	switch (fourcc) {
- 	case V4L2_PIX_FMT_VP8:
-+		ctx->enc_if = get_vp8_enc_comm_if();
-+		break;
- 	case V4L2_PIX_FMT_H264:
- 	default:
- 		return -EINVAL;
-diff --git a/drivers/media/platform/mtk-vcodec/venc_vpu_if.c b/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
-new file mode 100644
-index 0000000..b92c6d2
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/venc_vpu_if.c
-@@ -0,0 +1,237 @@
-+/*
-+ * Copyright (c) 2016 MediaTek Inc.
-+ * Author: PoChun Lin <pochun.lin@mediatek.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include "mtk_vpu.h"
-+#include "venc_ipi_msg.h"
-+#include "venc_vpu_if.h"
-+
-+static void handle_enc_init_msg(struct venc_vpu_inst *vpu, void *data)
-+{
-+	struct venc_vpu_ipi_msg_init *msg = data;
-+
-+	vpu->inst_addr = msg->vpu_inst_addr;
-+	vpu->vsi = vpu_mapping_dm_addr(vpu->dev, msg->vpu_inst_addr);
-+}
-+
-+static void handle_enc_encode_msg(struct venc_vpu_inst *vpu, void *data)
-+{
-+	struct venc_vpu_ipi_msg_enc *msg = data;
-+
-+	vpu->state = msg->state;
-+	vpu->bs_size = msg->bs_size;
-+	vpu->is_key_frm = msg->is_key_frm;
-+}
-+
-+static void vpu_enc_ipi_handler(void *data, unsigned int len, void *priv)
-+{
-+	struct venc_vpu_ipi_msg_common *msg = data;
-+	struct venc_vpu_inst *vpu = (struct venc_vpu_inst *)msg->venc_inst;
-+
-+	mtk_vcodec_debug(vpu, "msg_id %x inst %p status %d",
-+			 msg->msg_id, vpu, msg->status);
-+
-+	switch (msg->msg_id) {
-+	case VPU_IPIMSG_ENC_INIT_DONE:
-+		handle_enc_init_msg(vpu, data);
-+		break;
-+	case VPU_IPIMSG_ENC_SET_PARAM_DONE:
-+		break;
-+	case VPU_IPIMSG_ENC_ENCODE_DONE:
-+		handle_enc_encode_msg(vpu, data);
-+		break;
-+	case VPU_IPIMSG_ENC_DEINIT_DONE:
-+		break;
-+	default:
-+		mtk_vcodec_err(vpu, "unknown msg id %x", msg->msg_id);
-+		break;
-+	}
-+
-+	vpu->signaled = 1;
-+	vpu->failure = (msg->status != VENC_IPI_MSG_STATUS_OK);
-+
-+	mtk_vcodec_debug_leave(vpu);
-+}
-+
-+static int vpu_enc_send_msg(struct venc_vpu_inst *vpu, void *msg,
-+			    int len)
-+{
-+	int status;
-+
-+	mtk_vcodec_debug_enter(vpu);
-+
-+	if (!vpu->dev) {
-+		mtk_vcodec_err(vpu, "inst dev is NULL");
-+		return -EINVAL;
-+	}
-+
-+	status = vpu_ipi_send(vpu->dev, vpu->id, msg, len);
-+	if (status) {
-+		uint32_t msg_id = *(uint32_t *)msg;
-+
-+		mtk_vcodec_err(vpu, "vpu_ipi_send msg_id %x len %d fail %d",
-+			       msg_id, len, status);
-+		return -EINVAL;
-+	}
-+	if (vpu->failure)
-+		return -EINVAL;
-+
-+	mtk_vcodec_debug_leave(vpu);
-+
-+	return 0;
-+}
-+
-+int vpu_enc_init(struct venc_vpu_inst *vpu)
-+{
-+	int status;
-+	struct venc_ap_ipi_msg_init out;
-+
-+	mtk_vcodec_debug_enter(vpu);
-+
-+	init_waitqueue_head(&vpu->wq_hd);
-+	vpu->signaled = 0;
-+	vpu->failure = 0;
-+
-+	status = vpu_ipi_register(vpu->dev, vpu->id, vpu_enc_ipi_handler,
-+				  NULL, NULL);
-+	if (status) {
-+		mtk_vcodec_err(vpu, "vpu_ipi_register fail %d", status);
-+		return -EINVAL;
-+	}
-+
-+	memset(&out, 0, sizeof(out));
-+	out.msg_id = AP_IPIMSG_ENC_INIT;
-+	out.venc_inst = (unsigned long)vpu;
-+	if (vpu_enc_send_msg(vpu, &out, sizeof(out))) {
-+		mtk_vcodec_err(vpu, "AP_IPIMSG_ENC_INIT fail");
-+		return -EINVAL;
-+	}
-+
-+	mtk_vcodec_debug_leave(vpu);
-+
-+	return 0;
-+}
-+
-+int vpu_enc_set_param(struct venc_vpu_inst *vpu,
-+		      enum venc_set_param_type id,
-+		      struct venc_enc_param *enc_param)
-+{
-+	struct venc_ap_ipi_msg_set_param out;
-+
-+	mtk_vcodec_debug(vpu, "id %d ->", id);
-+
-+	memset(&out, 0, sizeof(out));
-+	out.msg_id = AP_IPIMSG_ENC_SET_PARAM;
-+	out.vpu_inst_addr = vpu->inst_addr;
-+	out.param_id = id;
-+	switch (id) {
-+	case VENC_SET_PARAM_ENC:
-+		out.data_item = 0;
-+		break;
-+	case VENC_SET_PARAM_FORCE_INTRA:
-+		out.data_item = 0;
-+		break;
-+	case VENC_SET_PARAM_ADJUST_BITRATE:
-+		out.data_item = 1;
-+		out.data[0] = enc_param->bitrate;
-+		break;
-+	case VENC_SET_PARAM_ADJUST_FRAMERATE:
-+		out.data_item = 1;
-+		out.data[0] = enc_param->frm_rate;
-+		break;
-+	case VENC_SET_PARAM_GOP_SIZE:
-+		out.data_item = 1;
-+		out.data[0] = enc_param->gop_size;
-+		break;
-+	case VENC_SET_PARAM_INTRA_PERIOD:
-+		out.data_item = 1;
-+		out.data[0] = enc_param->intra_period;
-+		break;
-+	case VENC_SET_PARAM_SKIP_FRAME:
-+		out.data_item = 0;
-+		break;
-+	default:
-+		mtk_vcodec_err(vpu, "id %d not supported", id);
-+		return -EINVAL;
-+	}
-+	if (vpu_enc_send_msg(vpu, &out, sizeof(out))) {
-+		mtk_vcodec_err(vpu,
-+			       "AP_IPIMSG_ENC_SET_PARAM %d fail", id);
-+		return -EINVAL;
-+	}
-+
-+	mtk_vcodec_debug(vpu, "id %d <-", id);
-+
-+	return 0;
-+}
-+
-+int vpu_enc_encode(struct venc_vpu_inst *vpu, unsigned int bs_mode,
-+		   struct venc_frm_buf *frm_buf,
-+		   struct mtk_vcodec_mem *bs_buf,
-+		   unsigned int *bs_size)
-+{
-+	struct venc_ap_ipi_msg_enc out;
-+
-+	mtk_vcodec_debug(vpu, "bs_mode %d ->", bs_mode);
-+
-+	memset(&out, 0, sizeof(out));
-+	out.msg_id = AP_IPIMSG_ENC_ENCODE;
-+	out.vpu_inst_addr = vpu->inst_addr;
-+	out.bs_mode = bs_mode;
-+	if (frm_buf) {
-+		if ((frm_buf->fb_addr[0].dma_addr % 16 == 0) &&
-+		    (frm_buf->fb_addr[1].dma_addr % 16 == 0) &&
-+		    (frm_buf->fb_addr[2].dma_addr % 16 == 0)) {
-+			out.input_addr[0] = frm_buf->fb_addr[0].dma_addr;
-+			out.input_addr[1] = frm_buf->fb_addr[1].dma_addr;
-+			out.input_addr[2] = frm_buf->fb_addr[2].dma_addr;
-+		} else {
-+			mtk_vcodec_err(vpu, "dma_addr not align to 16");
-+			return -EINVAL;
-+		}
-+	}
-+	if (bs_buf) {
-+		out.bs_addr = bs_buf->dma_addr;
-+		out.bs_size = bs_buf->size;
-+	}
-+	if (vpu_enc_send_msg(vpu, &out, sizeof(out))) {
-+		mtk_vcodec_err(vpu, "AP_IPIMSG_ENC_ENCODE %d fail",
-+			       bs_mode);
-+		return -EINVAL;
-+	}
-+
-+	mtk_vcodec_debug(vpu, "bs_mode %d state %d size %d key_frm %d <-",
-+			 bs_mode, vpu->state, vpu->bs_size, vpu->is_key_frm);
-+
-+	return 0;
-+}
-+
-+int vpu_enc_deinit(struct venc_vpu_inst *vpu)
-+{
-+	struct venc_ap_ipi_msg_deinit out;
-+
-+	mtk_vcodec_debug_enter(vpu);
-+
-+	memset(&out, 0, sizeof(out));
-+	out.msg_id = AP_IPIMSG_ENC_DEINIT;
-+	out.vpu_inst_addr = vpu->inst_addr;
-+	if (vpu_enc_send_msg(vpu, &out, sizeof(out))) {
-+		mtk_vcodec_err(vpu, "AP_IPIMSG_ENC_DEINIT fail");
-+		return -EINVAL;
-+	}
-+
-+	mtk_vcodec_debug_leave(vpu);
-+
-+	return 0;
-+}
-diff --git a/drivers/media/platform/mtk-vcodec/venc_vpu_if.h b/drivers/media/platform/mtk-vcodec/venc_vpu_if.h
-new file mode 100644
-index 0000000..215d1e0
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/venc_vpu_if.h
-@@ -0,0 +1,61 @@
-+/*
-+ * Copyright (c) 2016 MediaTek Inc.
-+ * Author: PoChun Lin <pochun.lin@mediatek.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _VENC_VPU_IF_H_
-+#define _VENC_VPU_IF_H_
-+
-+#include "mtk_vpu.h"
-+#include "venc_drv_if.h"
-+
-+/*
-+ * struct venc_vpu_inst - encoder VPU driver instance
-+ * @wq_hd: wait queue used for vpu cmd trigger then wait vpu interrupt done
-+ * @signaled: flag used for checking vpu interrupt done
-+ * @failure: flag to show vpu cmd succeeds or not
-+ * @state: enum venc_ipi_msg_enc_state
-+ * @bs_size: bitstream size for skip frame case usage
-+ * @is_key_frm: key frame flag
-+ * @inst_addr: VPU instance addr
-+ * @vsi: driver structure allocated by VPU side and shared to AP side for
-+ *	 control and info share
-+ * @id: the id of inter-processor interrupt
-+ * @ctx: context for v4l2 layer integration
-+ * @dev: device for v4l2 layer integration
-+ */
-+struct venc_vpu_inst {
-+	wait_queue_head_t wq_hd;
-+	int signaled;
-+	int failure;
-+	int state;
-+	int bs_size;
-+	int is_key_frm;
-+	unsigned int inst_addr;
-+	void *vsi;
-+	enum ipi_id id;
-+	struct mtk_vcodec_ctx *ctx;
-+	struct platform_device *dev;
-+};
-+
-+int vpu_enc_init(struct venc_vpu_inst *vpu);
-+int vpu_enc_set_param(struct venc_vpu_inst *vpu,
-+		      enum venc_set_param_type id,
-+		      struct venc_enc_param *param);
-+int vpu_enc_encode(struct venc_vpu_inst *vpu, unsigned int bs_mode,
-+		   struct venc_frm_buf *frm_buf,
-+		   struct mtk_vcodec_mem *bs_buf,
-+		   unsigned int *bs_size);
-+int vpu_enc_deinit(struct venc_vpu_inst *vpu);
-+
-+#endif
--- 
-1.7.9.5
+On 29/04/16 12:39, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>=20
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  arch/arm/boot/dts/omap4-panda-a4.dts   |   2 +-
+>  arch/arm/boot/dts/omap4-panda-es.dts   |   2 +-
+>  arch/arm/boot/dts/omap4.dtsi           |   5 +-
+>  drivers/gpu/drm/omapdrm/dss/Kconfig    |   8 +
+>  drivers/gpu/drm/omapdrm/dss/Makefile   |   3 +
+>  drivers/gpu/drm/omapdrm/dss/hdmi.h     |  62 ++++++-
+>  drivers/gpu/drm/omapdrm/dss/hdmi4.c    |  39 +++-
+>  drivers/gpu/drm/omapdrm/dss/hdmi_cec.c | 329 +++++++++++++++++++++++++=
+++++++++
+>  8 files changed, 441 insertions(+), 9 deletions(-)
+>  create mode 100644 drivers/gpu/drm/omapdrm/dss/hdmi_cec.c
 
+First, thanks for working on this! It's really nice if we get CEC working=
+=2E
+
+Are you planning to continue working on this patch, or is this a
+proof-of-concept, and you want to move on to other things? I'm fine with
+both, the patch looks quite good and I'm sure I can continue from here
+if you want.
+
+Also, what's the status of the general CEC support, will these patches
+work on v4.7?
+
+> diff --git a/arch/arm/boot/dts/omap4-panda-a4.dts b/arch/arm/boot/dts/o=
+map4-panda-a4.dts
+> index 78d3631..f0c1020 100644
+> --- a/arch/arm/boot/dts/omap4-panda-a4.dts
+> +++ b/arch/arm/boot/dts/omap4-panda-a4.dts
+> @@ -13,7 +13,7 @@
+>  /* Pandaboard Rev A4+ have external pullups on SCL & SDA */
+>  &dss_hdmi_pins {
+>  	pinctrl-single,pins =3D <
+> -		OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_ce=
+c */
+> +		OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)	/* hdmi_cec.hdmi_cec */
+
+Looks fine as we discussed, but these need to be split to separate patch
+(with explanation, of course =3D).
+
+>  		OMAP4_IOPAD(0x09c, PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
+>  		OMAP4_IOPAD(0x09e, PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
+>  		>;
+> diff --git a/arch/arm/boot/dts/omap4-panda-es.dts b/arch/arm/boot/dts/o=
+map4-panda-es.dts
+> index 119f8e6..940fe4f 100644
+> --- a/arch/arm/boot/dts/omap4-panda-es.dts
+> +++ b/arch/arm/boot/dts/omap4-panda-es.dts
+> @@ -34,7 +34,7 @@
+>  /* PandaboardES has external pullups on SCL & SDA */
+>  &dss_hdmi_pins {
+>  	pinctrl-single,pins =3D <
+> -		OMAP4_IOPAD(0x09a, PIN_INPUT_PULLUP | MUX_MODE0)	/* hdmi_cec.hdmi_ce=
+c */
+> +		OMAP4_IOPAD(0x09a, PIN_INPUT | MUX_MODE0)		/* hdmi_cec.hdmi_cec */
+>  		OMAP4_IOPAD(0x09c, PIN_INPUT | MUX_MODE0)		/* hdmi_scl.hdmi_scl */
+>  		OMAP4_IOPAD(0x09e, PIN_INPUT | MUX_MODE0)		/* hdmi_sda.hdmi_sda */
+>  		>;
+> diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dts=
+i
+> index 2bd9c83..1bb490f 100644
+> --- a/arch/arm/boot/dts/omap4.dtsi
+> +++ b/arch/arm/boot/dts/omap4.dtsi
+> @@ -1006,8 +1006,9 @@
+>  				reg =3D <0x58006000 0x200>,
+>  				      <0x58006200 0x100>,
+>  				      <0x58006300 0x100>,
+> -				      <0x58006400 0x1000>;
+> -				reg-names =3D "wp", "pll", "phy", "core";
+> +				      <0x58006400 0x900>,
+> +				      <0x58006D00 0x100>;
+> +				reg-names =3D "wp", "pll", "phy", "core", "cec";
+
+"core" contains four blocks, all of which are currently included there
+in the "core" space. I'm not sure why they weren't split up properly
+when the driver was written, but I think we should either keep the core
+as one big block, or split it up to those four sections, instead of just
+separating the CEC block.
+
+>  				interrupts =3D <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>;
+>  				status =3D "disabled";
+>  				ti,hwmods =3D "dss_hdmi";
+> diff --git a/drivers/gpu/drm/omapdrm/dss/Kconfig b/drivers/gpu/drm/omap=
+drm/dss/Kconfig
+> index d1fa730..69638e9 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/Kconfig
+> +++ b/drivers/gpu/drm/omapdrm/dss/Kconfig
+> @@ -71,9 +71,17 @@ config OMAP4_DSS_HDMI
+>  	bool "HDMI support for OMAP4"
+>          default y
+>  	select OMAP2_DSS_HDMI_COMMON
+> +	select MEDIA_CEC_EDID
+
+Hmm, what's in MEDIA_CEC_EDID, why does OMAP4 HDMI need to select that?
+
+>  	help
+>  	  HDMI support for OMAP4 based SoCs.
+> =20
+> +config OMAP2_DSS_HDMI_CEC
+
+This should probably be OMAP2_DSS_HDMI4_CEC or such, as it's only for
+OMAP4 HDMI. Or, following the omap4 hdmi's config name,
+"OMAP4_DSS_HDMI_CEC".
+
+> +	bool "Enable HDMI CEC support for OMAP4"
+> +	depends on OMAP4_DSS_HDMI && MEDIA_CEC
+> +	default y
+> +	---help---
+> +	  When selected the HDMI transmitter will support the CEC feature.
+> +
+>  config OMAP5_DSS_HDMI
+>  	bool "HDMI support for OMAP5"
+>  	default n
+> diff --git a/drivers/gpu/drm/omapdrm/dss/Makefile b/drivers/gpu/drm/oma=
+pdrm/dss/Makefile
+> index b651ec9..37eb597 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/Makefile
+> +++ b/drivers/gpu/drm/omapdrm/dss/Makefile
+> @@ -10,6 +10,9 @@ omapdss-$(CONFIG_OMAP2_DSS_SDI) +=3D sdi.o
+>  omapdss-$(CONFIG_OMAP2_DSS_DSI) +=3D dsi.o
+>  omapdss-$(CONFIG_OMAP2_DSS_HDMI_COMMON) +=3D hdmi_common.o hdmi_wp.o h=
+dmi_pll.o \
+>  	hdmi_phy.o
+> +ifeq ($(CONFIG_OMAP2_DSS_HDMI_CEC),y)
+> +  omapdss-$(CONFIG_OMAP2_DSS_HDMI_COMMON) +=3D hdmi_cec.o
+> +endif
+
+The file should be hdmi4_cec.o, as it's for omap4. And why the ifeq?
+Isn't just
+
+omapdss-$(OMAP4_DSS_HDMI_CEC) +=3D hdmi4_cec.o
+
+enough?
+
+>  omapdss-$(CONFIG_OMAP4_DSS_HDMI) +=3D hdmi4.o hdmi4_core.o
+>  omapdss-$(CONFIG_OMAP5_DSS_HDMI) +=3D hdmi5.o hdmi5_core.o
+>  ccflags-$(CONFIG_OMAP2_DSS_DEBUG) +=3D -DDEBUG
+> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi.h b/drivers/gpu/drm/omapd=
+rm/dss/hdmi.h
+> index 53616b0..7cf8a91 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/hdmi.h
+> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi.h
+> @@ -24,6 +24,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/hdmi.h>
+>  #include <video/omapdss.h>
+> +#include <media/cec.h>
+> =20
+>  #include "dss.h"
+> =20
+> @@ -83,6 +84,31 @@
+>  #define HDMI_TXPHY_PAD_CFG_CTRL			0xC
+>  #define HDMI_TXPHY_BIST_CONTROL			0x1C
+> =20
+> +/* HDMI CEC */
+> +#define HDMI_CEC_DEV_ID                         0x0
+> +#define HDMI_CEC_SPEC                           0x4
+> +#define HDMI_CEC_DBG_3                          0x1C
+> +#define HDMI_CEC_TX_INIT                        0x20
+> +#define HDMI_CEC_TX_DEST                        0x24
+> +#define HDMI_CEC_SETUP                          0x38
+> +#define HDMI_CEC_TX_COMMAND                     0x3C
+> +#define HDMI_CEC_TX_OPERAND                     0x40
+> +#define HDMI_CEC_TRANSMIT_DATA                  0x7C
+> +#define HDMI_CEC_CA_7_0                         0x88
+> +#define HDMI_CEC_CA_15_8                        0x8C
+> +#define HDMI_CEC_INT_STATUS_0                   0x98
+> +#define HDMI_CEC_INT_STATUS_1                   0x9C
+> +#define HDMI_CEC_INT_ENABLE_0                   0x90
+> +#define HDMI_CEC_INT_ENABLE_1                   0x94
+> +#define HDMI_CEC_RX_CONTROL                     0xB0
+> +#define HDMI_CEC_RX_COUNT                       0xB4
+> +#define HDMI_CEC_RX_CMD_HEADER                  0xB8
+> +#define HDMI_CEC_RX_COMMAND                     0xBC
+> +#define HDMI_CEC_RX_OPERAND                     0xC0
+> +
+> +#define HDMI_CEC_TX_FIFO_INT_MASK		0x64
+> +#define HDMI_CEC_RETRANSMIT_CNT_INT_MASK	0x2
+
+hdmi.h is a common header for OMAP5 and OMAP4 hdmi. OMAP4 and 5 have
+totally different HDMI IP. However, they have the same wrapper (WP), PHY
+and PLL. That's why there are these common files, with common register
+offsets. But the CEC is part of OMAP4 HDMI IP, so it's not common.
+
+> +
+>  enum hdmi_pll_pwr {
+>  	HDMI_PLLPWRCMD_ALLOFF =3D 0,
+>  	HDMI_PLLPWRCMD_PLLONLY =3D 1,
+> @@ -250,6 +276,12 @@ struct hdmi_phy_data {
+>  	u8 lane_polarity[4];
+>  };
+> =20
+> +struct hdmi_cec_data {
+> +	void __iomem *base;
+> +	struct cec_adapter *adap;
+> +	u16 phys_addr;
+> +};
+> +
+>  struct hdmi_core_data {
+>  	void __iomem *base;
+>  };
+> @@ -319,6 +351,33 @@ void hdmi_phy_dump(struct hdmi_phy_data *phy, stru=
+ct seq_file *s);
+>  int hdmi_phy_init(struct platform_device *pdev, struct hdmi_phy_data *=
+phy);
+>  int hdmi_phy_parse_lanes(struct hdmi_phy_data *phy, const u32 *lanes);=
+
+> =20
+> +/* HDMI CEC funcs */
+> +#ifdef CONFIG_OMAP2_DSS_HDMI_CEC
+> +void hdmi_cec_set_phys_addr(struct hdmi_cec_data *cec, u16 pa);
+> +void hdmi_cec_irq(struct hdmi_cec_data *cec);
+> +int hdmi_cec_init(struct platform_device *pdev, struct hdmi_cec_data *=
+cec);
+> +void hdmi_cec_uninit(struct hdmi_cec_data *cec);
+> +#else
+> +static inline void hdmi_cec_set_phys_addr(struct hdmi_cec_data *cec, u=
+16 pa)
+> +{
+> +}
+> +
+> +static inline void hdmi_cec_irq(struct hdmi_cec_data *cec)
+> +{
+> +}
+> +
+> +static inline int hdmi_cec_init(struct platform_device *pdev,
+> +				struct hdmi_cec_data *cec)
+> +{
+> +	cec->phys_addr =3D CEC_PHYS_ADDR_INVALID;
+> +	return 0;
+> +}
+> +
+> +static inline void hdmi_cec_uninit(struct hdmi_cec_data *cec)
+> +{
+> +}
+> +#endif
+> +
+>  /* HDMI common funcs */
+>  int hdmi_parse_lanes_of(struct platform_device *pdev, struct device_no=
+de *ep,
+>  	struct hdmi_phy_data *phy);
+> @@ -344,6 +403,7 @@ struct omap_hdmi {
+>  	struct hdmi_wp_data	wp;
+>  	struct hdmi_pll_data	pll;
+>  	struct hdmi_phy_data	phy;
+> +	struct hdmi_cec_data	cec;
+>  	struct hdmi_core_data	core;
+> =20
+>  	struct hdmi_config cfg;
+> @@ -361,7 +421,7 @@ struct omap_hdmi {
+>  	bool audio_configured;
+>  	struct omap_dss_audio audio_config;
+> =20
+> -	/* This lock should be taken when booleans bellow are touched. */
+> +	/* This lock should be taken when booleans below are touched. */
+>  	spinlock_t audio_playing_lock;
+>  	bool audio_playing;
+>  	bool display_enabled;
+> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi4.c b/drivers/gpu/drm/omap=
+drm/dss/hdmi4.c
+> index f892ae15..47a60bf 100644
+> --- a/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi4.c
+> @@ -34,6 +34,7 @@
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/component.h>
+>  #include <video/omapdss.h>
+> +#include <media/cec-edid.h>
+>  #include <sound/omap-hdmi-audio.h>
+> =20
+>  #include "hdmi4_core.h"
+> @@ -69,14 +70,15 @@ static void hdmi_runtime_put(void)
+> =20
+>  static irqreturn_t hdmi_irq_handler(int irq, void *data)
+>  {
+> -	struct hdmi_wp_data *wp =3D data;
+> +	struct omap_hdmi *hdmi =3D data;
+> +	struct hdmi_wp_data *wp =3D &hdmi->wp;
+>  	u32 irqstatus;
+> =20
+>  	irqstatus =3D hdmi_wp_get_irqstatus(wp);
+>  	hdmi_wp_set_irqstatus(wp, irqstatus);
+> =20
+>  	if ((irqstatus & HDMI_IRQ_LINK_CONNECT) &&
+> -			irqstatus & HDMI_IRQ_LINK_DISCONNECT) {
+> +	    (irqstatus & HDMI_IRQ_LINK_DISCONNECT)) {
+>  		/*
+>  		 * If we get both connect and disconnect interrupts at the same
+>  		 * time, turn off the PHY, clear interrupts, and restart, which
+> @@ -94,6 +96,13 @@ static irqreturn_t hdmi_irq_handler(int irq, void *d=
+ata)
+>  	} else if (irqstatus & HDMI_IRQ_LINK_DISCONNECT) {
+>  		hdmi_wp_set_phy_pwr(wp, HDMI_PHYPWRCMD_LDOON);
+>  	}
+> +	if (irqstatus & HDMI_IRQ_CORE) {
+> +		u32 intr4 =3D hdmi_read_reg(hdmi->core.base, HDMI_CORE_SYS_INTR4);
+> +
+> +		hdmi_write_reg(hdmi->core.base, HDMI_CORE_SYS_INTR4, intr4);
+> +		if (intr4 & 8)
+> +			hdmi_cec_irq(&hdmi->cec);
+> +	}
+> =20
+>  	return IRQ_HANDLED;
+>  }
+> @@ -213,6 +222,12 @@ static int hdmi_power_on_full(struct omap_dss_devi=
+ce *dssdev)
+> =20
+>  	hdmi4_configure(&hdmi.core, &hdmi.wp, &hdmi.cfg);
+> =20
+> +	/* Initialize CEC clock divider */
+> +	/* CEC needs 2MHz clock hence set the devider to 24 to get
+> +	   48/24=3D2MHz clock */
+> +	REG_FLD_MOD(hdmi.wp.base, HDMI_WP_CLK, 0x18, 5, 0);
+> +	hdmi_cec_set_phys_addr(&hdmi.cec, hdmi.cec.phys_addr);
+> +
+>  	/* bypass TV gamma table */
+>  	dispc_enable_gamma_table(0);
+> =20
+> @@ -228,7 +243,11 @@ static int hdmi_power_on_full(struct omap_dss_devi=
+ce *dssdev)
+>  		goto err_vid_enable;
+> =20
+>  	hdmi_wp_set_irqenable(wp,
+> -		HDMI_IRQ_LINK_CONNECT | HDMI_IRQ_LINK_DISCONNECT);
+> +		HDMI_IRQ_LINK_CONNECT | HDMI_IRQ_LINK_DISCONNECT |
+> +		HDMI_IRQ_CORE);
+> +
+> +	/* Unmask CEC interrupt */
+> +	REG_FLD_MOD(hdmi.core.base, HDMI_CORE_SYS_INTR_UNMASK4, 0x1, 3, 3);
+> =20
+>  	return 0;
+> =20
+> @@ -250,6 +269,8 @@ static void hdmi_power_off_full(struct omap_dss_dev=
+ice *dssdev)
+>  	enum omap_channel channel =3D dssdev->dispc_channel;
+> =20
+>  	hdmi_wp_clear_irqenable(&hdmi.wp, 0xffffffff);
+> +	hdmi.cec.phys_addr =3D CEC_PHYS_ADDR_INVALID;
+> +	hdmi_cec_set_phys_addr(&hdmi.cec, hdmi.cec.phys_addr);
+> =20
+>  	hdmi_wp_video_stop(&hdmi.wp);
+> =20
+> @@ -488,6 +509,10 @@ static int hdmi_read_edid(struct omap_dss_device *=
+dssdev,
+>  	}
+> =20
+>  	r =3D read_edid(edid, len);
+> +	if (r >=3D 256)
+> +		hdmi.cec.phys_addr =3D cec_get_edid_phys_addr(edid, r, NULL);
+> +	else
+> +		hdmi.cec.phys_addr =3D CEC_PHYS_ADDR_INVALID;
+> =20
+>  	if (need_enable)
+>  		hdmi_core_disable(dssdev);
+> @@ -724,6 +749,10 @@ static int hdmi4_bind(struct device *dev, struct d=
+evice *master, void *data)
+>  	if (r)
+>  		goto err;
+> =20
+> +	r =3D hdmi_cec_init(pdev, &hdmi.cec);
+> +	if (r)
+> +		goto err;
+> +
+>  	irq =3D platform_get_irq(pdev, 0);
+>  	if (irq < 0) {
+>  		DSSERR("platform_get_irq failed\n");
+> @@ -733,7 +762,7 @@ static int hdmi4_bind(struct device *dev, struct de=
+vice *master, void *data)
+> =20
+>  	r =3D devm_request_threaded_irq(&pdev->dev, irq,
+>  			NULL, hdmi_irq_handler,
+> -			IRQF_ONESHOT, "OMAP HDMI", &hdmi.wp);
+> +			IRQF_ONESHOT, "OMAP HDMI", &hdmi);
+>  	if (r) {
+>  		DSSERR("HDMI IRQ request failed\n");
+>  		goto err;
+> @@ -768,6 +797,8 @@ static void hdmi4_unbind(struct device *dev, struct=
+ device *master, void *data)
+> =20
+>  	hdmi_uninit_output(pdev);
+> =20
+> +	hdmi_cec_uninit(&hdmi.cec);
+> +
+>  	hdmi_pll_uninit(&hdmi.pll);
+> =20
+>  	pm_runtime_disable(&pdev->dev);
+> diff --git a/drivers/gpu/drm/omapdrm/dss/hdmi_cec.c b/drivers/gpu/drm/o=
+mapdrm/dss/hdmi_cec.c
+> new file mode 100644
+> index 0000000..d4309df
+> --- /dev/null
+> +++ b/drivers/gpu/drm/omapdrm/dss/hdmi_cec.c
+> @@ -0,0 +1,329 @@
+> +/*
+> + * HDMI CEC
+> + *
+> + * Based on the CEC code from hdmi_ti_4xxx_ip.c from Android.
+> + *
+> + * Copyright (C) 2010-2011 Texas Instruments Incorporated - http://www=
+=2Eti.com/
+> + * Authors: Yong Zhi
+> + *	Mythri pk <mythripk@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modif=
+y it
+> + * under the terms of the GNU General Public License version 2 as publ=
+ished by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but=
+ WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY =
+or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public Licen=
+se for
+> + * more details.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/err.h>
+> +#include <linux/io.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <video/omapdss.h>
+> +
+> +#include "dss.h"
+> +#include "hdmi.h"
+> +
+> +#define HDMI_CORE_CEC_RETRY    200
+> +
+> +void hdmi_cec_transmit_fifo_empty(struct hdmi_cec_data *cec, u32 stat1=
+)
+> +{
+> +	if (stat1 & 2) {
+> +		u32 dbg3 =3D hdmi_read_reg(cec->base, HDMI_CEC_DBG_3);
+
+This is a debug register. I haven't looked at how CEC is to be used, but
+using a debug register looks a bit suspicious =3D).
+
+ Tomi
+
+
+--cp9j6WTloud3HHQiaOF764mbqj2ivFfpC--
+
+--mI4DSxKKRcJdtltDkcgLuO9eWBJx2NNpv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQIcBAEBCAAGBQJXMc2OAAoJEPo9qoy8lh71OB0P/0B/s73hVP/WUJdQ+YmZ1YYj
+mJuVtp8cYuJCcPFwOKgNksfkClkpncoHuEuYJAXUjdKGm5z67anwS+p2qiFgqiNn
+dGl7u79gpZ8RbWnILXmtKJow6JxURn/tZN1ZvIv26XWyOSkR7XTjLV0akT/iv/Um
+X9QHoMbWtgCc1E5EvBJoahJEVrxRqwujIUKEbAXitVf5shwElK4xGYKtOEkWp28O
+39paU40hJ1IGmRVK01NMebF1FPBzs1b5espGa4aElZ8YSVL2N0NdfogAdY9Zjk8B
+3eaulQtJsUF7Xuyj9Zf4dtk25GwrEu8WR1dvM4BGKd16gfTF3darXy2tbQlHxIXS
+HXlmDs3ZzJiVm8uBT/kTX+4DnuLZiq+E1Turv8y+JEsSa6tzNVeealp0Lw72IkxZ
+bNlFGAzgoBW+s64hAUdbwLWipNEl5DIny8vnhzyh+65zxcwgvHZcQ4XH9ahvT1lR
+m809poCogQxnGNS+76Sje4gHlcO5DK9DdzMhFgSGZR+hhni2+j1LQWuCTmgb0yDd
+3HfYMpvEIJdTp/Tjuh0yHXNx5Bs/zkkRyk+vCdp/470bloU1+iLZs0pfG4NYmINF
+f8Q9aYJx+YhslKorrpk9Kn3u7653wK2/woKt/Lkk2mb+rRF7yRRPLvTVaq9TKndY
+nDuxStfZpfitjKhAdFyH
+=LDDP
+-----END PGP SIGNATURE-----
+
+--mI4DSxKKRcJdtltDkcgLuO9eWBJx2NNpv--
