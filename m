@@ -1,109 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:35503 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754832AbcEQPRD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2016 11:17:03 -0400
-Received: by mail-lb0-f178.google.com with SMTP id ww9so7198487lbc.2
-        for <linux-media@vger.kernel.org>; Tue, 17 May 2016 08:17:02 -0700 (PDT)
+Received: from lists.s-osg.org ([54.187.51.154]:42442 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750951AbcEJVmi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 May 2016 17:42:38 -0400
+Subject: Re: [PATCH] [media] v4l2-async: Pass the v4l2_async_subdev to the
+ unbind callback
+To: Alban Bedel <alban.bedel@avionic-design.de>,
+	linux-media@vger.kernel.org
+References: <1462886354-2115-1-git-send-email-alban.bedel@avionic-design.de>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-kernel@vger.kernel.org
+Message-ID: <9782608b-65da-8379-9ec8-bb7f08429af6@osg.samsung.com>
+Date: Tue, 10 May 2016 17:42:30 -0400
 MIME-Version: 1.0
-In-Reply-To: <CACvgo50i0Y=TJNCvX+c2m8u8ai2p30EbaU1u3xBmQYBZGWH5UA@mail.gmail.com>
-References: <1462806459-8124-1-git-send-email-benjamin.gaignard@linaro.org>
-	<1462806459-8124-4-git-send-email-benjamin.gaignard@linaro.org>
-	<CACvgo50i0Y=TJNCvX+c2m8u8ai2p30EbaU1u3xBmQYBZGWH5UA@mail.gmail.com>
-Date: Tue, 17 May 2016 17:17:01 +0200
-Message-ID: <CA+M3ks6V8x+x90kfuNW3Nic7o3EcGayCeHZa9nLi=jCcFed2qQ@mail.gmail.com>
-Subject: Re: [PATCH v7 3/3] SMAF: add fake secure module
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: Emil Velikov <emil.l.velikov@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
-	ML dri-devel <dri-devel@lists.freedesktop.org>,
-	Zoltan Kuscsik <zoltan.kuscsik@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Cc Ma <cc.ma@mediatek.com>,
-	Pascal Brand <pascal.brand@linaro.org>,
-	Joakim Bech <joakim.bech@linaro.org>,
-	Dan Caprita <dan.caprita@windriver.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1462886354-2115-1-git-send-email-alban.bedel@avionic-design.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-05-17 1:10 GMT+02:00 Emil Velikov <emil.l.velikov@gmail.com>:
-> Hi Benjamin,
->
-> On 9 May 2016 at 16:07, Benjamin Gaignard <benjamin.gaignard@linaro.org> wrote:
->> This module is allow testing secure calls of SMAF.
->>
-> "Add fake secure module" does sound like something not (m)any people
-> want to hear ;-)
-> Have you considered calling it 'dummy', 'test' or similar ?
+Hello Alban,
 
-"test" is better name, I will change to that
+On 05/10/2016 09:19 AM, Alban Bedel wrote:
+> v4l2_async_cleanup() is always called before before calling the
+> unbind() callback. However v4l2_async_cleanup() clear the asd member,
+> so when calling the unbind() callback the v4l2_async_subdev is always
+> NULL. To fix this save the asd before calling v4l2_async_cleanup().
+> 
+> Signed-off-by: Alban Bedel <alban.bedel@avionic-design.de>
+> ---
 
->
->
->> --- /dev/null
->> +++ b/drivers/smaf/smaf-fakesecure.c
->> @@ -0,0 +1,85 @@
->> +/*
->> + * smaf-fakesecure.c
->> + *
->> + * Copyright (C) Linaro SA 2015
->> + * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
->> + * License terms:  GNU General Public License (GPL), version 2
->> + */
->> +#include <linux/module.h>
->> +#include <linux/slab.h>
->> +#include <linux/smaf-secure.h>
->> +
->> +#define MAGIC 0xDEADBEEF
->> +
->> +struct fake_private {
->> +       int magic;
->> +};
->> +
->> +static void *smaf_fakesecure_create(void)
->> +{
->> +       struct fake_private *priv;
->> +
->> +       priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-> Missing ENOMEM handling ?
->
->> +       priv->magic = MAGIC;
->> +
->> +       return priv;
->> +}
->> +
->> +static int smaf_fakesecure_destroy(void *ctx)
->> +{
->> +       struct fake_private *priv = (struct fake_private *)ctx;
-> You might want to flesh this cast into a (inline) helper and use it throughout ?
->
->
-> ... and that is all. Hope these were useful, or at the very least not
-> utterly wrong, suggestions :-)
->
->
-> Regards,
-> Emil
->
-> P.S. From a quick look userspace has some subtle bugs/odd practises.
-> Let me know if you're interested in my input.
+Patch looks good to me. So after fixing the issues pointed out by Sakari:
 
-Your advices are welcome for userspace too
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Thanks
-Benjamin
-
-
-
+Best regards,
 -- 
-Benjamin Gaignard
-
-Graphic Working Group
-
-Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro: Facebook | Twitter | Blog
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
