@@ -1,123 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47622 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751956AbcEVC5u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2016 22:57:50 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 689231804B4
-	for <linux-media@vger.kernel.org>; Sun, 22 May 2016 04:57:44 +0200 (CEST)
-Date: Sun, 22 May 2016 04:57:44 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160522025744.689231804B4@tschai.lan>
+Received: from m50-135.163.com ([123.125.50.135]:34429 "EHLO m50-135.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932295AbcEKJTr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2016 05:19:47 -0400
+From: zengzhaoxiu@163.com
+To: linux-kernel@vger.kernel.org
+Cc: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org
+Subject: [patch V4 14/31] media: use parity functions in saa7115
+Date: Wed, 11 May 2016 17:19:02 +0800
+Message-Id: <1462958344-25186-1-git-send-email-zengzhaoxiu@163.com>
+In-Reply-To: <1462955158-28394-1-git-send-email-zengzhaoxiu@163.com>
+References: <1462955158-28394-1-git-send-email-zengzhaoxiu@163.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
 
-Results of the daily build of media_tree:
+Signed-off-by: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+---
+ drivers/media/i2c/saa7115.c | 17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
-date:		Sun May 22 04:00:28 CEST 2016
-git branch:	test
-git hash:	bc2b80ee3490651904f121eac1c8fb7652d48253
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-264
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index d2a1ce2..4c22df8 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -672,15 +672,6 @@ static const unsigned char saa7115_init_misc[] = {
+ 	0x00, 0x00
+ };
+ 
+-static int saa711x_odd_parity(u8 c)
+-{
+-	c ^= (c >> 4);
+-	c ^= (c >> 2);
+-	c ^= (c >> 1);
+-
+-	return c & 1;
+-}
+-
+ static int saa711x_decode_vps(u8 *dst, u8 *p)
+ {
+ 	static const u8 biphase_tbl[] = {
+@@ -733,7 +724,6 @@ static int saa711x_decode_wss(u8 *p)
+ 	static const int wss_bits[8] = {
+ 		0, 0, 0, 1, 0, 1, 1, 1
+ 	};
+-	unsigned char parity;
+ 	int wss = 0;
+ 	int i;
+ 
+@@ -745,11 +735,8 @@ static int saa711x_decode_wss(u8 *p)
+ 			return -1;
+ 		wss |= b2 << i;
+ 	}
+-	parity = wss & 15;
+-	parity ^= parity >> 2;
+-	parity ^= parity >> 1;
+ 
+-	if (!(parity & 1))
++	if (!parity4(wss))
+ 		return -1;
+ 
+ 	return wss;
+@@ -1235,7 +1222,7 @@ static int saa711x_decode_vbi_line(struct v4l2_subdev *sd, struct v4l2_decode_vb
+ 		vbi->type = V4L2_SLICED_TELETEXT_B;
+ 		break;
+ 	case 4:
+-		if (!saa711x_odd_parity(p[0]) || !saa711x_odd_parity(p[1]))
++		if (!parity8(p[0]) || !parity8(p[1]))
+ 			return 0;
+ 		vbi->type = V4L2_SLICED_CAPTION_525;
+ 		break;
+-- 
+2.7.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
