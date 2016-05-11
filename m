@@ -1,85 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52339 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942AbcEATVf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2016 15:21:35 -0400
-Date: Sun, 1 May 2016 21:21:31 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, pali.rohar@gmail.com,
-	sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-	patrikbachan@gmail.com, serge@hallyn.com, tuukkat76@gmail.com,
-	mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: camera application for testing (was Re: v4l subdevs without big
- device)
-Message-ID: <20160501192131.GH14243@amd>
-References: <20160428084546.GA9957@amd>
- <20160429071525.GA4823@amd>
- <57230DE7.3020701@xs4all.nl>
- <20160429221359.GA29297@amd>
- <20160501140831.GH26360@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160501140831.GH26360@valkosipuli.retiisi.org.uk>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:33841 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751370AbcEKHLn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2016 03:11:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/3] cec: correctly cancel delayed work when the CEC adapter is disabled
+Date: Wed, 11 May 2016 09:11:28 +0200
+Message-Id: <1462950688-23290-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1462950688-23290-1-git-send-email-hverkuil@xs4all.nl>
+References: <1462950688-23290-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
-> > 
-> > What is reasonable camera application for testing?
-> > 
-> > N900 looks like a low-end digital camera. I have now have the hardware
-> > working (can set focus to X cm using command line), but that's not
-> > going to be useful for taking photos.
-> 
-> I guess you already knew about omap3camd; it's proprietary but from purely
-> practical point of view it'd be an option to support taking photos on the
-> N900. That would not be extensible any way, the best possible functionality
-> is limited what the daemon implements.
-> 
-> I'm just mentioning the option of implementing wrapper for the omap3camd so
-> that it can work with upsteam APIs, I don't propose that however.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I knew it existed, but I'd prefer not to touch proprietary code.
+When cleaning up pending work from the wait_queue list, make sure to cancel the
+delayed work. Otherwise nasty kernel oopses will occur when the timer goes off
+and the cec_data struct has disappeared.
 
-> > In particular, who is going to do computation neccessary for
-> > autofocus, whitebalance and exposure/gain?
-> 
-> I think libv4l itself has algorithms to control at least some of these. It
-> relies on the image data so the CPU time consumption will be high.
-> 
-> AFAIR Laurent has also worked on implementing some algorithms that use the
-> histogram and some of the statistics. Add him to cc list.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/cec/cec.c | 19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-Aha, good, let me know.
-
-> > There's http://fcam.garage.maemo.org/gettingStarted.html that should
-> > work on maemo, but a) it is not in Debian, b) it has non-trivial
-> > dependencies and c) will be a lot of fun to get working...
-> > 
-> > (and d), will not be too useful, anyway, due to 1sec shutter lag:
-> 
-> I believe this will be shorter nowadays. I don't remember the exact
-> technical solution which the text below refers to but I'm pretty sure it'll
-> be better with the current upstream. API-wise, there's work to be done there
-> (to port FCAM to upsteram APIs) but it's a possibility.
-
-I took a look at fcam-dev in the meantime... and it does not look too
-bad. It is quite n900-specific -- it needs hardware support for
-histograms and sharpness maps -- but it should not be too hard to
-modify.
-
-Relying on hardware support without having fallback software
-implementation feels wrong, but... it should actually be ok as I
-already have the hardware...
-
-(Is there accepted "upstream" for it?)
-									Pavel
+diff --git a/drivers/staging/media/cec/cec.c b/drivers/staging/media/cec/cec.c
+index 9a62aa2..c2a876e 100644
+--- a/drivers/staging/media/cec/cec.c
++++ b/drivers/staging/media/cec/cec.c
+@@ -393,13 +393,28 @@ static int cec_thread_func(void *_adap)
+ 							struct cec_data, list);
+ 				cec_data_cancel(data);
+ 			}
++			if (adap->transmitting)
++				cec_data_cancel(adap->transmitting);
++
++			/*
++			 * Cancel the pending timeout work. We have to unlock
++			 * the mutex when flushing the work since
++			 * cec_wait_timeout() will take it. This is OK since
++			 * no new entries can be added to wait_queue as long
++			 * as adap->transmitting is NULL, which it is due to
++			 * the cec_data_cancel() above.
++			 */
+ 			while (!list_empty(&adap->wait_queue)) {
+ 				data = list_first_entry(&adap->wait_queue,
+ 							struct cec_data, list);
++
++				if (!cancel_delayed_work(&data->work)) {
++					mutex_unlock(&adap->lock);
++					flush_scheduled_work();
++					mutex_lock(&adap->lock);
++				}
+ 				cec_data_cancel(data);
+ 			}
+-			if (adap->transmitting)
+-				cec_data_cancel(adap->transmitting);
+ 			goto unlock;
+ 		}
+ 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+2.8.1
+
