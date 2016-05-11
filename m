@@ -1,86 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:49916 "EHLO
-	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752658AbcEBNg4 (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35125 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932739AbcEKODC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2016 09:36:56 -0400
-Subject: Re: [PATCH 2/2] media: s3c-camif: fix deadlock on driver probe()
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1461839104-29135-1-git-send-email-m.szyprowski@samsung.com>
- <1461839104-29135-2-git-send-email-m.szyprowski@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Jacek Anaszewski <j.anaszewski@samsung.com>,
-	Sakari Ailus <sakari.ailus@linux.intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <572757F0.8000904@xs4all.nl>
-Date: Mon, 2 May 2016 15:36:48 +0200
-MIME-Version: 1.0
-In-Reply-To: <1461839104-29135-2-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Wed, 11 May 2016 10:03:02 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk,
+	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v4 0/8] Lager/Koelsch board HDMI input support
+Date: Wed, 11 May 2016 16:02:48 +0200
+Message-Id: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/28/16 12:25, Marek Szyprowski wrote:
-> Commit 0c426c472b5585ed6e59160359c979506d45ae49 ("[media] media: Always
-> keep a graph walk large enough around") changed
-> media_device_register_entity() function to take mdev->graph_mutex. This
-> causes deadlock in driver probe, which calls (indirectly) this function
-> with ->graph_mutex taken. This patch removes taking ->graph_mutex in
-> driver probe to avoid deadlock. Other drivers don't take ->graph_mutex
-> for entity registration, so this change should be safe.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Hi!
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+This series implements Lager/Koelsch HDMI input support on top of version 6
+of Niklas's rcar-vin rewrite ("[PATCHv6] [media] rcar-vin: add Renesas R-Car
+VIN driver").
 
-Thanks!
+This revision addresses the issues found in Hans Verkuil's review of the series
+(except for the EDID intialization, which I have left in), and adds his Koelsch
+support patch.
 
-	Hans
+CU
+Uli
 
-> ---
->  drivers/media/platform/s3c-camif/camif-core.c | 12 +++---------
->  1 file changed, 3 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s3c-camif/camif-core.c b/drivers/media/platform/s3c-camif/camif-core.c
-> index 0b44b9accf50..af237af204e2 100644
-> --- a/drivers/media/platform/s3c-camif/camif-core.c
-> +++ b/drivers/media/platform/s3c-camif/camif-core.c
-> @@ -493,21 +493,17 @@ static int s3c_camif_probe(struct platform_device *pdev)
->  	if (ret < 0)
->  		goto err_sens;
->  
-> -	mutex_lock(&camif->media_dev.graph_mutex);
-> -
->  	ret = v4l2_device_register_subdev_nodes(&camif->v4l2_dev);
->  	if (ret < 0)
-> -		goto err_unlock;
-> +		goto err_sens;
->  
->  	ret = camif_register_video_nodes(camif);
->  	if (ret < 0)
-> -		goto err_unlock;
-> +		goto err_sens;
->  
->  	ret = camif_create_media_links(camif);
->  	if (ret < 0)
-> -		goto err_unlock;
-> -
-> -	mutex_unlock(&camif->media_dev.graph_mutex);
-> +		goto err_sens;
->  
->  	ret = media_device_register(&camif->media_dev);
->  	if (ret < 0)
-> @@ -516,8 +512,6 @@ static int s3c_camif_probe(struct platform_device *pdev)
->  	pm_runtime_put(dev);
->  	return 0;
->  
-> -err_unlock:
-> -	mutex_unlock(&camif->media_dev.graph_mutex);
->  err_sens:
->  	v4l2_device_unregister(&camif->v4l2_dev);
->  	media_device_unregister(&camif->media_dev);
-> 
+
+Changes since v3:
+- rvin_enum_dv_timings(): use vin->src_pad_idx
+- rvin_dv_timings_cap(): likewise
+- rvin_s_dv_timings(): update vin->format
+- add Koelsch support
+
+Changes since v2:
+- rebased on top of rcar-vin driver v4
+- removed "adv7604: fix SPA register location for ADV7612" (picked up)
+- changed prefix of dts patch to "ARM: dts: lager: "
+
+
+Hans Verkuil (1):
+  r8a7791-koelsch.dts: add HDMI input
+
+Laurent Pinchart (1):
+  v4l: subdev: Add pad config allocator and init
+
+Ulrich Hecht (4):
+  media: rcar_vin: Use correct pad number in try_fmt
+  media: rcar-vin: pad-aware driver initialisation
+  media: rcar-vin: add DV timings support
+  media: rcar-vin: initialize EDID data
+
+William Towle (2):
+  media: adv7604: automatic "default-input" selection
+  ARM: dts: lager: Add entries for VIN HDMI input support
+
+ arch/arm/boot/dts/r8a7790-lager.dts         |  39 +++++++
+ arch/arm/boot/dts/r8a7791-koelsch.dts       |  41 ++++++++
+ drivers/media/i2c/adv7604.c                 |  18 +++-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 158 +++++++++++++++++++++++++++-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |   2 +
+ drivers/media/v4l2-core/v4l2-subdev.c       |  19 +++-
+ include/media/v4l2-subdev.h                 |  10 ++
+ 7 files changed, 282 insertions(+), 5 deletions(-)
+
+-- 
+2.7.4
+
