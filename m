@@ -1,48 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:60648 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172AbcEJFk3 (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.74]:52077 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932074AbcEKNaV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 May 2016 01:40:29 -0400
-From: Colin King <colin.king@canonical.com>
-To: kernel-tram@lists.ubuntu.com,
-	Malcolm Priestley <tvboxspy@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] m88rs2000: initialize status to zero
-Date: Tue, 10 May 2016 06:40:22 +0100
-Message-Id: <1462858822-14803-1-git-send-email-colin.king@canonical.com>
+	Wed, 11 May 2016 09:30:21 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Arnd Bergmann <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH RESEND^3] [media] staging/davinci_vfpe: allow modular build
+Date: Wed, 11 May 2016 15:29:44 +0200
+Message-Id: <1462973405-1254895-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+It has never been possible to actually build this driver as
+a loadable module, only built-in because the Makefile attempts
+to build each file into its own module and fails:
 
-status is not initialized so it can contain garbage. The
-check for status containing the FE_HAS_LOCK bit may randomly pass
-or fail if the read of register 0x8c fails to set status after 25
-read attempts.  Fix this by initializing status to 0.
+ERROR: "mbus_to_pix" [drivers/staging/media/davinci_vpfe/vpfe_video.ko] undefined!
+ERROR: "vpfe_resizer_register_entities" [drivers/staging/media/davinci_vpfe/vpfe_mc_capture.ko] undefined!
+ERROR: "rsz_enable" [drivers/staging/media/davinci_vpfe/dm365_resizer.ko] undefined!
+ERROR: "config_ipipe_hw" [drivers/staging/media/davinci_vpfe/dm365_ipipe.ko] undefined!
+ERROR: "ipipe_set_lutdpc_regs" [drivers/staging/media/davinci_vpfe/dm365_ipipe.ko] undefined!
 
-Issue found with CoverityScan, CID#986738
+It took a long time to catch this bug with randconfig builds
+because at least 14 other Kconfig symbols have to be enabled in
+order to configure this one, and it was clearly only ever tested
+as built-in with mainline kernels, if at all.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+The solution is really easy: this patch changes the Makefile to
+link all files into one module. As discussed previously, the
+driver has never before used successfully as a loadable module,
+but there is no reason to prevent that configuration.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Link: http://lkml.iu.edu/hypermail/linux/kernel/1512.1/02383.html
 ---
- drivers/media/dvb-frontends/m88rs2000.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I keep running into this bug roughly every 10000 randconfig builds,
+please apply the fix.
 
-diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
-index a09b123..ef79a4e 100644
---- a/drivers/media/dvb-frontends/m88rs2000.c
-+++ b/drivers/media/dvb-frontends/m88rs2000.c
-@@ -609,7 +609,7 @@ static int m88rs2000_set_frontend(struct dvb_frontend *fe)
- {
- 	struct m88rs2000_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	enum fe_status status;
-+	enum fe_status status = 0;
- 	int i, ret = 0;
- 	u32 tuner_freq;
- 	s16 offset = 0;
+ drivers/staging/media/davinci_vpfe/Makefile | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/davinci_vpfe/Makefile b/drivers/staging/media/davinci_vpfe/Makefile
+index c64515c644cd..3019c9ecd548 100644
+--- a/drivers/staging/media/davinci_vpfe/Makefile
++++ b/drivers/staging/media/davinci_vpfe/Makefile
+@@ -1,3 +1,5 @@
+-obj-$(CONFIG_VIDEO_DM365_VPFE) += \
++obj-$(CONFIG_VIDEO_DM365_VPFE) += davinci-vfpe.o
++
++davinci-vfpe-objs := \
+ 	dm365_isif.o dm365_ipipe_hw.o dm365_ipipe.o \
+ 	dm365_resizer.o dm365_ipipeif.o vpfe_mc_capture.o vpfe_video.o
 -- 
-2.8.1
+2.7.0
 
