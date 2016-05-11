@@ -1,116 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:43206 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752378AbcEDLY0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 07:24:26 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49356 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932260AbcEKNXD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2016 09:23:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com
-Subject: [PATCH v2 1/5] media: Determine early whether an IOCTL is supported
-Date: Wed,  4 May 2016 14:20:51 +0300
-Message-Id: <1462360855-23354-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: Dave Airlie <airlied@linux.ie>
+Subject: [GIT PULL FOR v4.7] Renesas VSP updates
+Date: Wed, 11 May 2016 16:23:01 +0300
+Message-ID: <146308505.rpggZ7d6pq@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Preparation for refactoring media IOCTL handling to unify common parts.
+Hi Mauro,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c | 52 +++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 49 insertions(+), 3 deletions(-)
+The following changes since commit aff093d4bbca91f543e24cde2135f393b8130f4b:
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 898a3cf..c24149d 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -419,13 +419,33 @@ static long media_device_get_topology(struct media_device *mdev,
- 	return 0;
- }
- 
--static long media_device_ioctl(struct file *filp, unsigned int cmd,
--			       unsigned long arg)
-+#define MEDIA_IOC(__cmd) \
-+	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
-+
-+/* the table is indexed by _IOC_NR(cmd) */
-+struct media_ioctl_info {
-+	unsigned int cmd;
-+};
-+
-+static inline long is_valid_ioctl(const struct media_ioctl_info *info,
-+				  unsigned int len, unsigned int cmd)
-+{
-+	return (_IOC_NR(cmd) >= len
-+		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
-+}
-+
-+static long __media_device_ioctl(
-+	struct file *filp, unsigned int cmd, void __user *arg,
-+	const struct media_ioctl_info *info_array, unsigned int info_array_len)
- {
- 	struct media_devnode *devnode = media_devnode_data(filp);
- 	struct media_device *dev = to_media_device(devnode);
- 	long ret;
- 
-+	ret = is_valid_ioctl(info_array, info_array_len, cmd);
-+	if (ret)
-+		return ret;
-+
- 	mutex_lock(&dev->graph_mutex);
- 	switch (cmd) {
- 	case MEDIA_IOC_DEVICE_INFO:
-@@ -461,6 +481,22 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 	return ret;
- }
- 
-+static const struct media_ioctl_info ioctl_info[] = {
-+	MEDIA_IOC(DEVICE_INFO),
-+	MEDIA_IOC(ENUM_ENTITIES),
-+	MEDIA_IOC(ENUM_LINKS),
-+	MEDIA_IOC(SETUP_LINK),
-+	MEDIA_IOC(G_TOPOLOGY),
-+};
-+
-+static long media_device_ioctl(struct file *filp, unsigned int cmd,
-+			       unsigned long arg)
-+{
-+	return __media_device_ioctl(
-+		filp, cmd, (void __user *)arg,
-+		ioctl_info, ARRAY_SIZE(ioctl_info));
-+}
-+
- #ifdef CONFIG_COMPAT
- 
- struct media_links_enum32 {
-@@ -491,6 +527,14 @@ static long media_device_enum_links32(struct media_device *mdev,
- 
- #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
- 
-+static const struct media_ioctl_info compat_ioctl_info[] = {
-+	MEDIA_IOC(DEVICE_INFO),
-+	MEDIA_IOC(ENUM_ENTITIES),
-+	MEDIA_IOC(ENUM_LINKS32),
-+	MEDIA_IOC(SETUP_LINK),
-+	MEDIA_IOC(G_TOPOLOGY),
-+};
-+
- static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
- 				      unsigned long arg)
- {
-@@ -503,7 +547,9 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
- 	case MEDIA_IOC_ENUM_ENTITIES:
- 	case MEDIA_IOC_SETUP_LINK:
- 	case MEDIA_IOC_G_TOPOLOGY:
--		return media_device_ioctl(filp, cmd, arg);
-+		return __media_device_ioctl(
-+			filp, cmd, (void __user *)arg,
-+			compat_ioctl_info, ARRAY_SIZE(compat_ioctl_info));
- 
- 	case MEDIA_IOC_ENUM_LINKS32:
- 		mutex_lock(&dev->graph_mutex);
+  [media] exynos-gsc: avoid build warning without CONFIG_OF (2016-05-09 
+18:38:33 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git vsp1/next
+
+for you to fetch changes up to 01986b08a08353a23bc89a588a14966cb0a09e0d:
+
+  v4l: vsp1: Remove deprecated DRM API (2016-05-11 16:07:44 +0300)
+
+Please note that the pull request includes two patches for the rcar-du-drm 
+driver. They depend on previous patches for the vsp1 driver in the same 
+series, and the last vsp1 patch depends on them. For this reason I'm 
+submitting everything in a single pull request to you, with Dave's ack to get 
+the rcar-du-drm patches merged through your tree. They shouldn't conflict with 
+anything queued in Dave's tree for v4.7.
+
+----------------------------------------------------------------
+Laurent Pinchart (13):
+      dt-bindings: Add Renesas R-Car FCP DT bindings
+      v4l: Add Renesas R-Car FCP driver
+      v4l: vsp1: Implement runtime PM support
+      v4l: vsp1: Don't handle clocks manually
+      v4l: vsp1: Add FCP support
+      v4l: vsp1: Add output node value to routing table
+      v4l: vsp1: Replace container_of() with dedicated macro
+      v4l: vsp1: Make vsp1_entity_get_pad_compose() more generic
+      v4l: vsp1: Move frame sequence number from video node to pipeline
+      v4l: vsp1: Group DRM RPF parameters in a structure
+      drm: rcar-du: Add alpha support for VSP planes
+      drm: rcar-du: Add Z-order support for VSP planes
+      v4l: vsp1: Remove deprecated DRM API
+
+ Documentation/devicetree/bindings/media/renesas,fcp.txt |  32 +++++
+ .../devicetree/bindings/media/renesas,vsp1.txt          |   5 +                        
+ MAINTAINERS                                             |  10 ++                       
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c                   |  45 +++---                   
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.h                   |   2 +                        
+ drivers/media/platform/Kconfig                          |  14 ++                       
+ drivers/media/platform/Makefile                         |   1 +                        
+ drivers/media/platform/rcar-fcp.c                       | 181 +++++++++++++++ 
+ drivers/media/platform/vsp1/vsp1.h                      |   6 +-                       
+ drivers/media/platform/vsp1/vsp1_drm.c                  |  68 ++++-----                
+ drivers/media/platform/vsp1/vsp1_drv.c                  | 120 +++++++--------         
+ drivers/media/platform/vsp1/vsp1_entity.c               |  88 ++++++++----             
+ drivers/media/platform/vsp1/vsp1_entity.h               |  12 +-                       
+ drivers/media/platform/vsp1/vsp1_pipe.c                 |   4 +-                       
+ drivers/media/platform/vsp1/vsp1_pipe.h                 |   2 +                        
+ drivers/media/platform/vsp1/vsp1_rpf.c                  |   7 +-                       
+ drivers/media/platform/vsp1/vsp1_video.c                |   4 +-                       
+ drivers/media/platform/vsp1/vsp1_video.h                |   1 -                        
+ include/media/rcar-fcp.h                                |  37 +++++                    
+ include/media/vsp1.h                                    |  29 ++--
+ 20 files changed, 497 insertions(+), 171 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,fcp.txt
+ create mode 100644 drivers/media/platform/rcar-fcp.c
+ create mode 100644 include/media/rcar-fcp.h
+
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
