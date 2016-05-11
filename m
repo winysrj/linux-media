@@ -1,87 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:28680 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485AbcEXQvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 12:51:00 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [RFC v2 09/21] v4l2-subdev.h: Add request field to format and selection structures
-Date: Tue, 24 May 2016 19:47:19 +0300
-Message-Id: <1464108451-28142-10-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:9891 "EHLO
+	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932117AbcEKIWE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2016 04:22:04 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+	Tiffany Lin <tiffany.lin@mediatek.com>,
+	PoChun Lin <pochun.lin@mediatek.com>
+Subject: [PATCH] [media] vcodec: mediatek: fix sparse warning
+Date: Wed, 11 May 2016 16:21:45 +0800
+Message-ID: <1462954905-33600-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+This patch fix sparse warning when running with parameters:
+C=2 CF="-D__CHECK_ENDIAN__"
 
-Let userspace specify a request ID when getting or setting formats or
-selection rectangles.
-
->From a userspace point of view the API change is minimized and doesn't
-require any new ioctl.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Signed-off-by: PoChun Lin <pochun.lin@mediatek.com>
 ---
- include/uapi/linux/v4l2-subdev.h | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ .../media/platform/mtk-vcodec/venc/venc_vp8_if.c   |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
-index dbce2b554..dbb7c1d 100644
---- a/include/uapi/linux/v4l2-subdev.h
-+++ b/include/uapi/linux/v4l2-subdev.h
-@@ -32,10 +32,12 @@
-  * enum v4l2_subdev_format_whence - Media bus format type
-  * @V4L2_SUBDEV_FORMAT_TRY: try format, for negotiation only
-  * @V4L2_SUBDEV_FORMAT_ACTIVE: active format, applied to the device
-+ * @V4L2_SUBDEV_FORMAT_REQUEST: format stored in request
-  */
- enum v4l2_subdev_format_whence {
- 	V4L2_SUBDEV_FORMAT_TRY = 0,
- 	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
-+	V4L2_SUBDEV_FORMAT_REQUEST = 2,
- };
+diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+index 431ae70..5b4ef0f 100644
+--- a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
++++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+@@ -252,13 +252,18 @@ static int vp8_enc_compose_one_frame(struct venc_vp8_inst *inst,
+ 	u32 bs_hdr_len;
+ 	unsigned int ac_tag_size;
+ 	u8 ac_tag[MAX_AC_TAG_SIZE];
++	u32 tag;
  
- /**
-@@ -43,12 +45,15 @@ enum v4l2_subdev_format_whence {
-  * @which: format type (from enum v4l2_subdev_format_whence)
-  * @pad: pad number, as reported by the media API
-  * @format: media bus format (format code and frame size)
-+ * @request: request ID (when which is set to V4L2_SUBDEV_FORMAT_REQUEST)
-+ * @reserved: for future use, set to zero for now
-  */
- struct v4l2_subdev_format {
- 	__u32 which;
- 	__u32 pad;
- 	struct v4l2_mbus_framefmt format;
--	__u32 reserved[8];
-+	__u32 request;
-+	__u32 reserved[7];
- };
+ 	bs_frm_size = vp8_enc_read_reg(inst, VENC_BITSTREAM_FRAME_SIZE);
+ 	bs_hdr_len = vp8_enc_read_reg(inst, VENC_BITSTREAM_HEADER_LEN);
  
- /**
-@@ -139,6 +144,7 @@ struct v4l2_subdev_frame_interval_enum {
-  *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
-  * @flags: constraint flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
-  * @r: coordinates of the selection window
-+ * @request: request ID (when which is set to V4L2_SUBDEV_FORMAT_REQUEST)
-  * @reserved: for future use, set to zero for now
-  *
-  * Hardware may use multiple helper windows to process a video stream.
-@@ -151,7 +157,8 @@ struct v4l2_subdev_selection {
- 	__u32 target;
- 	__u32 flags;
- 	struct v4l2_rect r;
--	__u32 reserved[8];
-+	__u32 request;
-+	__u32 reserved[7];
- };
- 
- /* Backwards compatibility define --- to be removed */
+ 	/* if a frame is key frame, not_key is 0 */
+ 	not_key = !inst->vpu_inst.is_key_frm;
+-	*(u32 *)ac_tag = __cpu_to_le32((bs_hdr_len << 5) | 0x10 | not_key);
++	tag = (bs_hdr_len << 5) | 0x10 | not_key;
++	ac_tag[0] = tag & 0xff;
++	ac_tag[1] = (tag >> 8) & 0xff;
++	ac_tag[2] = (tag >> 16) & 0xff;
++
+ 	/* key frame */
+ 	if (not_key == 0) {
+ 		ac_tag_size = MAX_AC_TAG_SIZE;
 -- 
-1.9.1
+1.7.9.5
 
