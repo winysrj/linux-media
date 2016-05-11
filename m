@@ -1,326 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:55064 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758122AbcEFK4l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 May 2016 06:56:41 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [RFC 11/22] v4l: subdev: Support the request API in format and selection operations
-Date: Fri,  6 May 2016 13:53:20 +0300
-Message-Id: <1462532011-15527-12-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mout.kundenserver.de ([212.227.126.187]:57246 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932484AbcEKQdN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2016 12:33:13 -0400
+Date: Wed, 11 May 2016 18:32:52 +0200
+From: Alban Bedel <alban.bedel@avionic-design.de>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Alban Bedel <alban.bedel@avionic-design.de>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Bryan Wu <cooloney@gmail.com>, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] v4l2-async: Always unregister the subdev on
+ failure
+Message-ID: <20160511183252.6270d740@avionic-0020>
+In-Reply-To: <429cc087-85e3-7bfa-b0b6-ab9434e5d47c@osg.samsung.com>
+References: <1462981201-14768-1-git-send-email-alban.bedel@avionic-design.de>
+	<429cc087-85e3-7bfa-b0b6-ab9434e5d47c@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ boundary="Sig_/dEvARbGol36I.XyfL7HY.4r"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+--Sig_/dEvARbGol36I.XyfL7HY.4r
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Store the formats and selection rectangles in per-entity request data.
-This minimizes changes to drivers by reusing the v4l2_subdev_pad_config
-infrastructure.
+On Wed, 11 May 2016 12:22:44 -0400
+Javier Martinez Canillas <javier@osg.samsung.com> wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> Hello Alban,
+>=20
+> On 05/11/2016 11:40 AM, Alban Bedel wrote:
+> > In v4l2_async_test_notify() if the registered_async callback or the
+> > complete notifier returns an error the subdev is not unregistered.
+> > This leave paths where v4l2_async_register_subdev() can fail but
+> > leave the subdev still registered.
+> >=20
+> > Add the required calls to v4l2_device_unregister_subdev() to plug
+> > these holes.
+> >=20
+> > Signed-off-by: Alban Bedel <alban.bedel@avionic-design.de>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-async.c | 10 ++++++++--
+> >  1 file changed, 8 insertions(+), 2 deletions(-)
+> >=20
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-=
+core/v4l2-async.c
+> > index ceb28d4..43393f8 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -121,13 +121,19 @@ static int v4l2_async_test_notify(struct v4l2_asy=
+nc_notifier *notifier,
+> > =20
+> >  	ret =3D v4l2_subdev_call(sd, core, registered_async);
+> >  	if (ret < 0 && ret !=3D -ENOIOCTLCMD) {
+> > +		v4l2_device_unregister_subdev(sd);
+> >  		if (notifier->unbind)
+> >  			notifier->unbind(notifier, sd, asd);
+> >  		return ret;
+> >  	}
+> > =20
+> > -	if (list_empty(&notifier->waiting) && notifier->complete)
+> > -		return notifier->complete(notifier);
+> > +	if (list_empty(&notifier->waiting) && notifier->complete) {
+> > +		ret =3D notifier->complete(notifier);
+> > +		if (ret < 0) {
+> > +			v4l2_device_unregister_subdev(sd);
+>=20
+> Isn't a call to notifier->unbind() missing here as well?
+>=20
+> Also, I think the error path is becoming too duplicated and complex, so
+> maybe we can have a single error path and use goto labels as is common
+> in Linux? For example something like the following (not tested) can be
+> squashed on top of your change:
 
-Replace three if's for testing the same variable by a switch.
+Yes, that look better. I'll test it and report tomorrow.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-subdev.c | 225 +++++++++++++++++++++++++---------
- include/media/v4l2-subdev.h           |  11 ++
- 2 files changed, 180 insertions(+), 56 deletions(-)
+Alban
 
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 9cbd011..461c2ac 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -130,39 +130,182 @@ static int subdev_close(struct file *file)
- }
- 
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--static int check_format(struct v4l2_subdev *sd,
--			struct v4l2_subdev_format *format)
-+static void subdev_request_data_release(struct media_entity_request_data *data)
- {
--	if (format->which != V4L2_SUBDEV_FORMAT_TRY &&
--	    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
--		return -EINVAL;
-+	struct v4l2_subdev_request_data *sddata =
-+		to_v4l2_subdev_request_data(data);
- 
--	if (format->pad >= sd->entity.num_pads)
--		return -EINVAL;
-+	kfree(sddata->pad);
-+	kfree(sddata);
-+}
- 
--	return 0;
-+static struct v4l2_subdev_pad_config *
-+subdev_request_pad_config(struct v4l2_subdev *sd,
-+			  struct media_device_request *req)
-+{
-+	struct media_entity_request_data *data;
-+	struct v4l2_subdev_request_data *sddata;
-+
-+	data = media_device_request_get_entity_data(req, &sd->entity);
-+	if (data) {
-+		sddata = to_v4l2_subdev_request_data(data);
-+		return sddata->pad;
-+	}
-+
-+	sddata = kzalloc(sizeof(*sddata), GFP_KERNEL);
-+	if (!sddata)
-+		return ERR_PTR(-ENOMEM);
-+
-+	sddata->data.release = subdev_request_data_release;
-+
-+	sddata->pad = v4l2_subdev_alloc_pad_config(sd);
-+	if (sddata->pad == NULL) {
-+		kfree(sddata);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	media_device_request_set_entity_data(req, &sd->entity, &sddata->data);
-+
-+	return sddata->pad;
- }
- 
--static int check_crop(struct v4l2_subdev *sd, struct v4l2_subdev_crop *crop)
-+static int subdev_prepare_pad_config(struct v4l2_subdev *sd,
-+				     struct v4l2_subdev_fh *fh,
-+				     enum v4l2_subdev_format_whence which,
-+				     unsigned int pad, unsigned int req_id,
-+				     struct media_device_request **_req,
-+				     struct v4l2_subdev_pad_config **_cfg)
- {
--	if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
--	    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+	struct v4l2_subdev_pad_config *cfg;
-+	struct media_device_request *req;
-+
-+	if (pad >= sd->entity.num_pads)
- 		return -EINVAL;
- 
--	if (crop->pad >= sd->entity.num_pads)
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		*_req = NULL;
-+		*_cfg = NULL;
-+		return 0;
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		*_req = NULL;
-+		*_cfg = fh->pad;
-+		return 0;
-+	case V4L2_SUBDEV_FORMAT_REQUEST:
-+		if (!sd->v4l2_dev->mdev)
-+			return -EINVAL;
-+
-+		req = media_device_request_find(sd->v4l2_dev->mdev, req_id);
-+		if (!req)
-+			return -EINVAL;
-+
-+		cfg = subdev_request_pad_config(sd, req);
-+		if (IS_ERR(cfg)) {
-+			media_device_request_put(req);
-+			return PTR_ERR(cfg);
-+		}
-+
-+		*_req = req;
-+		*_cfg = cfg;
-+
-+		return 0;
-+	default:
- 		return -EINVAL;
-+	}
- 
--	return 0;
- }
- 
--static int check_selection(struct v4l2_subdev *sd,
--			   struct v4l2_subdev_selection *sel)
-+static int subdev_get_format(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_format *format)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+	struct media_device_request *req;
-+	int ret;
-+
-+	ret = subdev_prepare_pad_config(sd, fh, format->which, format->pad,
-+					format->request, &req, &cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, pad, get_fmt, cfg, format);
-+
-+	if (req)
-+		media_device_request_put(req);
-+
-+	return ret;
-+}
-+
-+static int subdev_set_format(struct v4l2_subdev *sd,
-+			     struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_format *format)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+	struct media_device_request *req;
-+	int ret;
-+
-+	ret = subdev_prepare_pad_config(sd, fh, format->which, format->pad,
-+					format->request, &req, &cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, pad, set_fmt, cfg, format);
-+
-+	if (req)
-+		media_device_request_put(req);
-+
-+	return ret;
-+}
-+
-+static int subdev_get_selection(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_fh *fh,
-+				struct v4l2_subdev_selection *sel)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+	struct media_device_request *req;
-+	int ret;
-+
-+	ret = subdev_prepare_pad_config(sd, fh, sel->which, sel->pad,
-+					sel->request, &req, &cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, pad, get_selection, cfg, sel);
-+
-+	if (req)
-+		media_device_request_put(req);
-+
-+	return ret;
-+}
-+
-+static int subdev_set_selection(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_fh *fh,
-+				struct v4l2_subdev_selection *sel)
-+{
-+	struct v4l2_subdev_pad_config *cfg;
-+	struct media_device_request *req;
-+	int ret;
-+
-+	ret = subdev_prepare_pad_config(sd, fh, sel->which, sel->pad,
-+					sel->request, &req, &cfg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, pad, set_selection, cfg, sel);
-+
-+	if (req)
-+		media_device_request_put(req);
-+
-+	return ret;
-+}
-+
-+static int check_crop(struct v4l2_subdev *sd, struct v4l2_subdev_crop *crop)
- {
--	if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
--	    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+	if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
-+	    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
- 		return -EINVAL;
- 
--	if (sel->pad >= sd->entity.num_pads)
-+	if (crop->pad >= sd->entity.num_pads)
- 		return -EINVAL;
- 
- 	return 0;
-@@ -258,25 +401,11 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	}
- 
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	case VIDIOC_SUBDEV_G_FMT: {
--		struct v4l2_subdev_format *format = arg;
-+	case VIDIOC_SUBDEV_G_FMT:
-+		return subdev_get_format(sd, subdev_fh, arg);
- 
--		rval = check_format(sd, format);
--		if (rval)
--			return rval;
--
--		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh->pad, format);
--	}
--
--	case VIDIOC_SUBDEV_S_FMT: {
--		struct v4l2_subdev_format *format = arg;
--
--		rval = check_format(sd, format);
--		if (rval)
--			return rval;
--
--		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh->pad, format);
--	}
-+	case VIDIOC_SUBDEV_S_FMT:
-+		return subdev_set_format(sd, subdev_fh, arg);
- 
- 	case VIDIOC_SUBDEV_G_CROP: {
- 		struct v4l2_subdev_crop *crop = arg;
-@@ -381,27 +510,11 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 					fie);
- 	}
- 
--	case VIDIOC_SUBDEV_G_SELECTION: {
--		struct v4l2_subdev_selection *sel = arg;
--
--		rval = check_selection(sd, sel);
--		if (rval)
--			return rval;
--
--		return v4l2_subdev_call(
--			sd, pad, get_selection, subdev_fh->pad, sel);
--	}
--
--	case VIDIOC_SUBDEV_S_SELECTION: {
--		struct v4l2_subdev_selection *sel = arg;
--
--		rval = check_selection(sd, sel);
--		if (rval)
--			return rval;
-+	case VIDIOC_SUBDEV_G_SELECTION:
-+		return subdev_get_selection(sd, subdev_fh, arg);
- 
--		return v4l2_subdev_call(
--			sd, pad, set_selection, subdev_fh->pad, sel);
--	}
-+	case VIDIOC_SUBDEV_S_SELECTION:
-+		return subdev_set_selection(sd, subdev_fh, arg);
- 
- 	case VIDIOC_G_EDID: {
- 		struct v4l2_subdev_edid *edid = arg;
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 32fc7a4..ca92e2c 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -808,6 +808,17 @@ int v4l2_subdev_link_validate(struct media_link *link);
- struct v4l2_subdev_pad_config *
- v4l2_subdev_alloc_pad_config(struct v4l2_subdev *sd);
- void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
-+
-+struct v4l2_subdev_request_data {
-+	struct media_entity_request_data data;
-+	struct v4l2_subdev_pad_config *pad;
-+};
-+
-+static inline struct v4l2_subdev_request_data *
-+to_v4l2_subdev_request_data(struct media_entity_request_data *data)
-+{
-+	return container_of(data, struct v4l2_subdev_request_data, data);
-+}
- #endif /* CONFIG_MEDIA_CONTROLLER */
- 
- void v4l2_subdev_init(struct v4l2_subdev *sd,
--- 
-1.9.1
+--Sig_/dEvARbGol36I.XyfL7HY.4r
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJXM160AAoJEHSUmkuduC28aE4QAKZrOyZbsA9WhoT3yzZFgmhH
+Vy6tR9p51/GuUm4WjgadD/aK0w6T6+clxwjgqQfxuIDqzk2HUhOKwtWDcrpi9+DL
+FcW4NKiLHG7rp5Ib3gLJgLTVik0ckJCDg7PC+V45mRFjadaMHLKde9Va5mK50hva
++CuYO9W5FubDqW9APxEn2f2hQzT36d4gFyI+b7Uj0ayFKzkMxpybnChAohe07cXJ
+OjV7+y1rYQpySYl3z1H8y1Zy/lTzz7txZx/XZMPry1iPNOFD4gAdx7Ru++CPOA7a
++ukAr93746YnphWx7X/dPlHZxXY10A3Ro5ufPJJaxyXYWXNucuh1ag+Tw63xkS9s
+XsYUXRcE3s1AP++715ajMCgjgjCvZT+WXhdkn0UZCLkgqLD9PfxJbJ7Rza51MWi3
+EaRzozKL1b2AZOgawuybI/MDL7nQ/mqxAFtBNj92rIyT7ayXaN+f1INTU/s54ifk
+pzvR7i7wqdz0Ignk6HqAvGKMinsTzwsT9RNUiYjMZuo2ziiESoB1yuaQEGXPQ2Ts
+Vafk/NS2yBw1dPe8Z+HViu7qKyWFNV65LADo4sN+OyC3Um+QV6xzuS2PuVmflIoW
+Hz10YIQUOUVOd5IYFwxgWTpj6CWdpQ7EOyAXRrAzuW2RlsYLdKVhg8LiEZMAk/dW
+CZwwHmL9jvIx++sAAqYX
+=TgdH
+-----END PGP SIGNATURE-----
+
+--Sig_/dEvARbGol36I.XyfL7HY.4r--
