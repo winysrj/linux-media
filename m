@@ -1,64 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:34969 "EHLO
-	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834AbcE1Qno (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2016 12:43:44 -0400
-Date: Sat, 28 May 2016 22:13:39 +0530
-From: Amitoj Kaur Chawla <amitoj1606@gmail.com>
-To: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Cc: julia.lawall@lip6.fr
-Subject: [PATCH] saa7164: Replace if and BUG with BUG_ON
-Message-ID: <20160528164339.GA31143@amitoj-Inspiron-3542>
+Received: from lists.s-osg.org ([54.187.51.154]:48218 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751632AbcEKUi3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 May 2016 16:38:29 -0400
+Date: Wed, 11 May 2016 17:38:23 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: David R <david@unsolicited.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	gregkh@linuxfoundation.org, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: Patch: V4L stable versions 4.5.3 and 4.5.4
+Message-ID: <20160511173823.7d0dca7e@recife.lan>
+In-Reply-To: <57338272.4080908@unsolicited.net>
+References: <57337E39.40105@unsolicited.net>
+	<57338272.4080908@unsolicited.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace if condition and BUG() with a BUG_ON having the conditional
-expression of the if statement as argument.
+Hi David,
 
-The Coccinelle semantic patch used to make this change is as follows:
-@@ expression E,f; @@
+Em Wed, 11 May 2016 20:05:22 +0100
+David R <david@unsolicited.net> escreveu:
 
-(
-  if (<+... f(...) ...+>) { BUG(); }
-|
-- if (E) { BUG(); }
-+ BUG_ON(E);
-)
+> On 11/05/16 19:47, David R wrote:
+> > Hi
+> > 
+> > Please consider applying the attached patch (or something like it) to
+> > V4L2, and whatever is appropriate to the mainstream kernel. Without this
+> > my media server crashes and burns at boot.
+> > 
+> > See https://lkml.org/lkml/2016/5/7/88 for more details
+> > 
+> > Thanks
+> > David
+> >   
+> I see the offending patch was reverted earlier today. My box is fine
+> with my (more simple) alternative, but your call.
 
-Signed-off-by: Amitoj Kaur Chawla <amitoj1606@gmail.com>
----
- drivers/media/pci/saa7164/saa7164-encoder.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+Yes, I noticed the bug earlier today, while testing a DVB device.
+As this affects 2 stable releases plus the upcoming Kernel 4.6,
+I decided to just revert it for now, while we don't solve the
+issue.
 
-diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
-index 1b184c3..32a353d 100644
---- a/drivers/media/pci/saa7164/saa7164-encoder.c
-+++ b/drivers/media/pci/saa7164/saa7164-encoder.c
-@@ -1022,8 +1022,7 @@ int saa7164_encoder_register(struct saa7164_port *port)
- 
- 	dprintk(DBGLVL_ENC, "%s()\n", __func__);
- 
--	if (port->type != SAA7164_MPEG_ENCODER)
--		BUG();
-+	BUG_ON(port->type != SAA7164_MPEG_ENCODER);
- 
- 	/* Sanity check that the PCI configuration space is active */
- 	if (port->hwcfg.BARLocation == 0) {
-@@ -1151,8 +1150,7 @@ void saa7164_encoder_unregister(struct saa7164_port *port)
- 
- 	dprintk(DBGLVL_ENC, "%s(port=%d)\n", __func__, port->nr);
- 
--	if (port->type != SAA7164_MPEG_ENCODER)
--		BUG();
-+	BUG_ON(port->type != SAA7164_MPEG_ENCODER);
- 
- 	if (port->v4l_device) {
- 		if (port->v4l_device->minor != -1)
--- 
-1.9.1
+Your patch looks good. So, eventually it will be merged on a new
+version of this patch, after we test it properly.
 
+Thanks!
+Mauro
