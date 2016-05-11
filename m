@@ -1,31 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:39999 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753648AbcEZOII (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49067 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954AbcEKHqH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 May 2016 10:08:08 -0400
-Date: Thu, 26 May 2016 16:59:54 +0300
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: kernel-mentors@selenic.com, devel@driverdev.osuosl.org,
-	linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Cc: andrey.utkin@corp.bluecherry.net
-Subject: How should I use kernel-defined i2c structs in this driver
-Message-ID: <20160526135953.GA20697@zver>
+	Wed, 11 May 2016 03:46:07 -0400
+Received: from avalon.localnet (85-23-193-79.bb.dnainternet.fi [85.23.193.79])
+	by galahad.ideasonboard.com (Postfix) with ESMTPSA id 402722004D
+	for <linux-media@vger.kernel.org>; Wed, 11 May 2016 09:44:56 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.7] uvcvideo fixes
+Date: Wed, 11 May 2016 10:46:34 +0300
+Message-ID: <487662138.z7K0SjRaAr@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Could anybody please give a hint - which kernel-defined i2c objects, and how
-many of them, I need to define and use to substitute these driver-defined
-functions i2c_read(), i2c_write() ?
-https://github.com/bluecherrydvr/linux/blob/release/tw5864/1.16/drivers/media/pci/tw5864/tw5864-config.c
-In a word, there's 4 chips with different addresses, to which this code
-communicates via main chip's dedicated registers.
-Do i need a single i2c_adapter or several?
-Do i need i2c_client entities?
-where should I put what is named "devid" here?
+Hi Mauro,
 
-Thanks in advance.
+The following changes since commit aff093d4bbca91f543e24cde2135f393b8130f4b:
+
+  [media] exynos-gsc: avoid build warning without CONFIG_OF (2016-05-09 
+18:38:33 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git uvc/next
+
+for you to fetch changes up to f169fec5a6c40a3328b953c774a6a092e7688df2:
+
+  uvcvideo: Correct speed testing (2016-05-10 01:12:55 +0300)
+
+----------------------------------------------------------------
+Nicolas Dufresne (1):
+      uvcvideo: Fix bytesperline calculation for planar YUV
+
+Oliver Neukum (1):
+      uvcvideo: Correct speed testing
+
+ drivers/media/usb/uvc/uvc_v4l2.c  | 19 +++++++++++++++++--
+ drivers/media/usb/uvc/uvc_video.c |  1 +
+ 2 files changed, 18 insertions(+), 2 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
