@@ -1,62 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:56559 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755919AbcECPG3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 May 2016 11:06:29 -0400
-Subject: Re: [PATCH] media: fix use-after-free in cdev_put() when app exits
- after driver unbind
-To: Lars-Peter Clausen <lars@metafoo.de>, mchehab@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
-References: <1461969452-9276-1-git-send-email-shuahkh@osg.samsung.com>
- <57272910.8090500@metafoo.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <5728BE73.7020505@osg.samsung.com>
-Date: Tue, 3 May 2016 09:06:27 -0600
-MIME-Version: 1.0
-In-Reply-To: <57272910.8090500@metafoo.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36074 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751552AbcELKrQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2016 06:47:16 -0400
+Received: by mail-wm0-f68.google.com with SMTP id w143so15136330wmw.3
+        for <linux-media@vger.kernel.org>; Thu, 12 May 2016 03:47:15 -0700 (PDT)
+From: Alessandro Radicati <alessandro@radicati.net>
+To: crope@iki.fi, areguero@telefonica.net
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2] [media] af9035: fix for MXL5007T devices with I2C read issues
+Date: Thu, 12 May 2016 12:47:12 +0200
+Message-Id: <1463050032-16771-1-git-send-email-alessandro@radicati.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/02/2016 04:16 AM, Lars-Peter Clausen wrote:
-> On 04/30/2016 12:37 AM, Shuah Khan wrote:
-> [...]
->> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
->> index 5bb3b0e..ce9b051 100644
->> --- a/include/media/media-devnode.h
->> +++ b/include/media/media-devnode.h
->> @@ -72,6 +72,7 @@ struct media_file_operations {
->>   * @fops:	pointer to struct &media_file_operations with media device ops
->>   * @dev:	struct device pointer for the media controller device
->>   * @cdev:	struct cdev pointer character device
->> + * @kobj:	struct kobject
->>   * @parent:	parent device
->>   * @minor:	device node minor number
->>   * @flags:	flags, combination of the MEDIA_FLAG_* constants
->> @@ -91,6 +92,7 @@ struct media_devnode {
->>  	/* sysfs */
->>  	struct device dev;		/* media device */
->>  	struct cdev cdev;		/* character device */
->> +	struct kobject kobj;		/* set as cdev parent kobj */
-> 
-> As said during the previous review, the struct device should be used for
-> reference counting. Otherwise a use-after-free can still occur since you now
-> have two reference counted data structures with independent counters in the
-> same structure. For one of them the counter goes to zero before the other
-> and then you have the use-after-free.
-> 
+The MXL5007T tuner will lock-up on some devices after an I2C
+read transaction.  This patch works around this issue by inhibiting such
+operations and emulating a 0x00 response.  The workaround is only applied to
+USB devices known to exhibit this flaw.
 
-struct device is embedded in the media_devnode and media_devnode
-will not be released until cdev releases the kobject since it is
-set as cdeev kobj.parent. I am not seeing any use-fater-free with
-this scheme. That said, I understand your concern about two ref
-counted objects in the same structure. Using struct device for ref
-counting will require a few changes to media_devnode_register()
-to do device_initialize() before cdev_add(). I am testing that now
-and will send the updated patch soon.
+Signed-off-by: Alessandro Radicati <alessandro@radicati.net>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 21 +++++++++++++++++++++
+ drivers/media/usb/dvb-usb-v2/af9035.h |  1 +
+ 2 files changed, 22 insertions(+)
 
-thanks,
--- Shuah
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 2638e32..06e300e 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -348,6 +348,9 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 
+ 			ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
+ 					msg[1].len);
++		} else if (state->no_read) {
++			memset(msg[1].buf, 0, msg[1].len);
++			ret = 0;
+ 		} else {
+ 			/* I2C write + read */
+ 			u8 buf[MAX_XFER_SIZE];
+@@ -421,6 +424,9 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 		if (msg[0].len > 40) {
+ 			/* TODO: correct limits > 40 */
+ 			ret = -EOPNOTSUPP;
++		} else if (state->no_read) {
++			memset(msg[0].buf, 0, msg[0].len);
++			ret = 0;
+ 		} else {
+ 			/* I2C read */
+ 			u8 buf[5];
+@@ -962,6 +968,21 @@ skip_eeprom:
+ 			state->af9033_config[i].clock = clock_lut_af9035[tmp];
+ 	}
+ 
++	state->no_read = false;
++	/* Some MXL5007T devices cannot properly handle tuner I2C read ops. */
++	if (state->af9033_config[0].tuner == AF9033_TUNER_MXL5007T &&
++		le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_AVERMEDIA)
++
++		switch (le16_to_cpu(d->udev->descriptor.idProduct)) {
++		case USB_PID_AVERMEDIA_A867:
++		case USB_PID_AVERMEDIA_TWINSTAR:
++			dev_info(&d->udev->dev,
++				"%s: Device may have issues with I2C read operations. Enabling fix.\n",
++				KBUILD_MODNAME);
++			state->no_read = true;
++			break;
++		}
++
+ 	return 0;
+ 
+ err:
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
+index 89e629a..c91d1a3 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.h
++++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+@@ -62,6 +62,7 @@ struct state {
+ 	u8 chip_version;
+ 	u16 chip_type;
+ 	u8 dual_mode:1;
++	u8 no_read:1;
+ 	u16 eeprom_addr;
+ 	u8 af9033_i2c_addr[2];
+ 	struct af9033_config af9033_config[2];
+-- 
+2.7.4
+
