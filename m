@@ -1,242 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57272 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758138AbcEFK4z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 May 2016 06:56:55 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [RFC 17/22] DocBook: media: Document the media request API
-Date: Fri,  6 May 2016 13:53:26 +0300
-Message-Id: <1462532011-15527-18-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:35617 "EHLO
+	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752754AbcELLYs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2016 07:24:48 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Matthias Brugger <matthias.bgg@gmail.com>,
+	Daniel Kurtz <djkurtz@chromium.org>,
+	Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+	Yingjoe Chen <yingjoe.chen@mediatek.com>,
+	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
+	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v2 0/9] Add MT8173 Video Decoder Driver
+Date: Thu, 12 May 2016 19:24:01 +0800
+Message-ID: <1463052250-38262-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+==============
+ Introduction
+==============
 
-The media request API is made of a new ioctl to implement request
-management. Document it.
+The purpose of this series is to add the driver for video codec hw embedded in the Mediatek's MT8173 SoCs.
+Mediatek Video Codec is able to handle video decoding of in a range of formats.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+This patch series add Mediatek block format V4L2_PIX_FMT_MT21, the decoder driver will decoded bitstream to
+V4L2_PIX_FMT_MT21 format.
 
-Strip off the reserved fields.
+This patch series rely on MTK VPU driver in patch series "Add MT8173 Video Encoder Driver and VPU Driver"[1]
+and patch "CHROMIUM: v4l: Add V4L2_PIX_FMT_VP9 definition"[2] for VP9 support.
+Mediatek Video Decoder driver rely on VPU driver to load, communicate with VPU.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- .../DocBook/media/v4l/media-controller.xml         |   1 +
- .../DocBook/media/v4l/media-ioc-request-cmd.xml    | 188 +++++++++++++++++++++
- 2 files changed, 189 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml
+Internally the driver uses videobuf2 framework and MTK IOMMU and MTK SMI both have been merged in v4.6-rc1.
 
-diff --git a/Documentation/DocBook/media/v4l/media-controller.xml b/Documentation/DocBook/media/v4l/media-controller.xml
-index 5f2fc07..2a5a5d0 100644
---- a/Documentation/DocBook/media/v4l/media-controller.xml
-+++ b/Documentation/DocBook/media/v4l/media-controller.xml
-@@ -101,5 +101,6 @@
-   &sub-media-ioc-g-topology;
-   &sub-media-ioc-enum-entities;
-   &sub-media-ioc-enum-links;
-+  &sub-media-ioc-request-cmd;
-   &sub-media-ioc-setup-link;
- </appendix>
-diff --git a/Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml b/Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml
-new file mode 100644
-index 0000000..4f4acea
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/media-ioc-request-cmd.xml
-@@ -0,0 +1,188 @@
-+<refentry id="media-ioc-request-cmd">
-+  <refmeta>
-+    <refentrytitle>ioctl MEDIA_IOC_REQUEST_CMD</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>MEDIA_IOC_REQUEST_CMD</refname>
-+    <refpurpose>Manage media device requests</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct media_request_cmd *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>File descriptor returned by
-+	  <link linkend='media-func-open'><function>open()</function></link>.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>MEDIA_IOC_REQUEST_CMD</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>The MEDIA_IOC_REQUEST_CMD ioctl allow applications to manage media
-+    device requests. A request is an object that can group media device
-+    configuration parameters, including subsystem-specific parameters, in order
-+    to apply all the parameters atomically. Applications are responsible for
-+    allocating and deleting requests, filling them with configuration parameters
-+    and (synchronously) applying or (asynchronously) queuing them.</para>
-+
-+    <para>Request operations are performed by calling the MEDIA_IOC_REQUEST_CMD
-+    ioctl with a pointer to a &media-request-cmd; with the
-+    <structfield>cmd</structfield> set to the appropriate command.
-+    <xref linkend="media-request-commands" /> lists the commands supported by
-+    the ioctl.</para>
-+
-+    <para>The &media-request-cmd; <structfield>request</structfield> field
-+    contains the ID of the request on which the command operates. For the
-+    <constant>MEDIA_REQ_CMD_ALLOC</constant> command the field is set to zero
-+    by applications and filled by the driver. For all other commands the field
-+    is set by applications and left untouched by the driver.</para>
-+
-+    <para>To allocate a new request applications use the
-+    <constant>MEDIA_REQ_CMD_ALLOC</constant>. The driver will allocate a new
-+    request and return its ID in the <structfield>request</structfield> field.
-+    </para>
-+
-+    <para>Requests are reference-counted. A newly allocate request is referenced
-+    by the media device file handled on which it has been created, and can be
-+    later referenced by subsystem-specific operations using the request ID.
-+    Requests will thus be automatically deleted when they're not longer used
-+    after the media device file handle is closed.</para>
-+
-+    <para>If a request isn't needed applications can delete it using the
-+    <constant>MEDIA_REQ_CMD_DELETE</constant> command. The driver will drop the
-+    reference to the request stored in the media device file handle. The request
-+    will not be usable through the MEDIA_IOC_REQUEST_CMD ioctl anymore, but will
-+    only be deleted when the last reference is released. If no other reference
-+    exists when the delete command is invoked the request will be deleted
-+    immediately.</para>
-+
-+    <para>After creating a request applications should fill it with
-+    configuration parameters. This is performed through subsystem-specific
-+    request APIs outside the scope of the media controller API. See the
-+    appropriate subsystem APIs for more information, including how they interact
-+    with the MEDIA_IOC_REQUEST_CMD ioctl.</para>
-+
-+    <para>Once a request contains all the desired configuration parameters it
-+    can be applied synchronously or queued asynchronously. To apply a request
-+    applications use the <constant>MEDIA_REQ_CMD_APPLY</constant> command. The
-+    driver will apply all configuration parameters stored in the request to the
-+    device atomically. The ioctl will return once all parameters have been
-+    applied, but it should be noted that they might not have fully taken effect
-+    yet.</para>
-+
-+    <para>To queue a request applications use the
-+    <constant>MEDIA_REQ_CMD_QUEUE</constant> command. The driver will queue the
-+    request for processing and return immediately. The request will then be
-+    processed and applied after all previously queued requests.</para>
-+
-+    <para>Once a request has been queued applications are not allowed to modify
-+    its configuration parameters until the request has been fully processed.
-+    Any attempt to do so will result in the related subsystem API returning
-+    an error. The media device request API doesn't notify applications of
-+    request processing completion, this is left to the other subsystems APIs to
-+    implement.</para>
-+
-+    <table pgwide="1" frame="none" id="media-request-cmd">
-+      <title>struct <structname>media_request_cmd</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>cmd</structfield></entry>
-+	    <entry>Command, set by the application. See
-+	    <xref linkend="media-request-commands" /> for the list of supported
-+	    commands.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>request</structfield></entry>
-+	    <entry>Request ID, set by the driver for the
-+	    <constant>MEDIA_REQ_CMD_ALLOC</constant> and by the application
-+	    for all other commands.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table frame="none" pgwide="1" id="media-request-commands">
-+      <title>Media request commands</title>
-+      <tgroup cols="2">
-+        <colspec colname="c1"/>
-+        <colspec colname="c2"/>
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>MEDIA_REQ_CMD_ALLOC</constant></entry>
-+	    <entry>Allocate a new request.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_REQ_CMD_DELETE</constant></entry>
-+	    <entry>Delete a request.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_REQ_CMD_APPLY</constant></entry>
-+	    <entry>Apply all settings from a request.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>MEDIA_REQ_CMD_QUEUE</constant></entry>
-+	    <entry>Queue a request for processing.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The &media-request-cmd; specifies an invalid command or
-+	  references a non-existing request.
-+	  </para>
-+	</listitem>
-+	<term><errorcode>ENOSYS</errorcode></term>
-+	<listitem>
-+	  <para>The &media-request-cmd; specifies the
-+	  <constant>MEDIA_REQ_CMD_QUEUE</constant> or
-+	  <constant>MEDIA_REQ_CMD_APPLY</constant> and that command isn't
-+	  implemented by the device.
-+	  </para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
+[1]https://patchwork.linuxtv.org/patch/33734/
+[2]https://chromium-review.googlesource.com/#/c/245241/
+
+==================
+ Device interface
+==================
+
+In principle the driver bases on v4l2 memory-to-memory framework:
+it provides a single video node and each opened file handle gets its own private context with separate
+buffer queues. Each context consist of 2 buffer queues: OUTPUT (for source buffers, i.e. bitstream)
+and CAPTURE (for destination buffers, i.e. decoded video frames).
+OUTPUT and CAPTURE buffer could be MMAP or DMABUF memory type.
+VIDIOC_G_CTRL and VIDIOC_G_EXT_CTRLS return V4L2_CID_MIN_BUFFERS_FOR_CAPTURE only when dirver in MTK_STATE_HEADER
+state, or it will return EAGAIN.
+Driver do not support subscribe event for control 'User Controls' for now.
+And it default support export DMABUF for other display drivers.
+
+Change in v2:
+1. Add documentation for V4L2_PIX_FMT_MT21
+2. Remove DRM_FORMAT_MT21
+3. Refine code according to review comments
+
+v4l2-compliance test output:
+localhost Encode # ./v4l2-compliance -d /dev/video0
+Driver Info:
+        Driver name   : mtk-vcodec-dec
+        Card type     : platform:mt8173
+        Bus info      : platform:mt8173
+        Driver version: 4.4.0
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERYCTRL/MENU: OK
+                fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(357): g_ctrl returned an error (11)
+                test VIDIOC_G/S_CTRL: FAIL
+                fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(579): g_ext_ctrls returned an error (11)
+                test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+                fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-controls.cpp(721): subscribe event for control 'User Controls' failed
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 2 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-formats.cpp(405): expected EINVAL, but got 11 when getting format for buftype 9
+                test VIDIOC_G_FMT: FAIL
+                test VIDIOC_TRY_FMT: OK (Not Supported)
+                test VIDIOC_S_FMT: OK (Not Supported)
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                fail: ../../../v4l-utils-1.6.0/utils/v4l2-compliance/v4l2-test-buffers.cpp(500): q.has_expbuf(node)
+                test VIDIOC_EXPBUF: FAIL
+
+
+Total: 38, Succeeded: 33, Failed: 5, Warnings: 0
+
+
+Andrew-CT Chen (1):
+  WIP: media: VPU: Add decoder driver
+
+Tiffany Lin (8):
+  [media] : v4l: add Mediatek compressed video block format
+  [media] DocBook/v4l: Add compressed video formats used on MT8173
+    codec driver
+  WIP: media: devicetree: bindings: Document Mediatek Video Decoder
+  WIP: media: Add Mediatek V4L2 Video Decoder Driver
+  WIP: media: Add Mediatek H264 Video Decode Driver
+  WIP: media: Add Mediatek VP8 Video Decoder Driver
+  WIP: media: Add Mediatek VP9 Video Decoder Driver
+  WIP: arm64: dts: mt8173: Add node for Mediatek Video Decoder
+
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    6 +
+ .../devicetree/bindings/media/mediatek-vcodec.txt  |   50 +-
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi           |   38 +
+ drivers/media/platform/mtk-vcodec/Makefile         |   15 +-
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 1336 ++++++++++++++++++++
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h |   81 ++
+ .../media/platform/mtk-vcodec/mtk_vcodec_dec_drv.c |  440 +++++++
+ .../media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c  |  154 +++
+ .../media/platform/mtk-vcodec/mtk_vcodec_dec_pm.h  |   28 +
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_drv.h |   81 +-
+ .../media/platform/mtk-vcodec/mtk_vcodec_intr.h    |    2 +-
+ .../media/platform/mtk-vcodec/mtk_vcodec_util.c    |   10 +-
+ .../media/platform/mtk-vcodec/vdec/vdec_h264_if.c  |  504 ++++++++
+ .../media/platform/mtk-vcodec/vdec/vdec_vp8_if.c   |  632 +++++++++
+ .../media/platform/mtk-vcodec/vdec/vdec_vp9_if.c   |  947 ++++++++++++++
+ drivers/media/platform/mtk-vcodec/vdec_drv_base.h  |   56 +
+ drivers/media/platform/mtk-vcodec/vdec_drv_if.c    |  123 ++
+ drivers/media/platform/mtk-vcodec/vdec_drv_if.h    |   93 ++
+ drivers/media/platform/mtk-vcodec/vdec_ipi_msg.h   |  103 ++
+ drivers/media/platform/mtk-vcodec/vdec_vpu_if.c    |  168 +++
+ drivers/media/platform/mtk-vcodec/vdec_vpu_if.h    |   96 ++
+ drivers/media/platform/mtk-vpu/mtk_vpu.c           |   12 +
+ drivers/media/platform/mtk-vpu/mtk_vpu.h           |   27 +
+ include/uapi/linux/videodev2.h                     |    1 +
+ 24 files changed, 4982 insertions(+), 21 deletions(-)
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_drv.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/vdec/vdec_h264_if.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/vdec/vdec_vp8_if.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/vdec/vdec_vp9_if.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/vdec_drv_base.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/vdec_drv_if.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/vdec_drv_if.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/vdec_ipi_msg.h
+ create mode 100644 drivers/media/platform/mtk-vcodec/vdec_vpu_if.c
+ create mode 100644 drivers/media/platform/mtk-vcodec/vdec_vpu_if.h
+
 -- 
-1.9.1
+1.7.9.5
 
