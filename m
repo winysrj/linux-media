@@ -1,92 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:49631 "EHLO
-	lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752032AbcEDLvC (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35294 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932143AbcELMPj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 07:51:02 -0400
-Subject: Re: [PATCH 2/2] solo6x10: Simplify solo_enum_ext_input
-To: Ismael Luceno <ismael@iodev.co.uk>
-References: <1461986229-11949-1-git-send-email-ismael@iodev.co.uk>
- <1461986229-11949-2-git-send-email-ismael@iodev.co.uk>
- <5729AC83.8050508@xs4all.nl> <20160504114244.GA9208@pirotess.lan>
-Cc: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5729E221.6040708@xs4all.nl>
-Date: Wed, 4 May 2016 13:50:57 +0200
-MIME-Version: 1.0
-In-Reply-To: <20160504114244.GA9208@pirotess.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Thu, 12 May 2016 08:15:39 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@osg.samsung.com, hverkuil@xs4all.nl, david@unsolicited.net,
+	linux-kernel@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v2 2/2] [media] videobuf2-v4l2: Verify planes array in buffer dequeueing
+Date: Thu, 12 May 2016 15:14:52 +0300
+Message-Id: <1463055292-25053-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1463055292-25053-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1463055292-25053-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+When a buffer is being dequeued using VIDIOC_DQBUF IOCTL, the exact buffer
+which will be dequeued is not known until the buffer has been removed from
+the queue. The number of planes is specific to a buffer, not to the queue.
 
+This does lead to the situation where multi-plane buffers may be requested
+and queued with n planes, but VIDIOC_DQBUF IOCTL may be passed an argument
+struct with fewer planes.
 
-On 05/04/2016 01:42 PM, Ismael Luceno wrote:
-> On 04/Mai/2016 10:02, Hans Verkuil wrote:
->> Hi Ismael,
->>
->> On 04/30/2016 05:17 AM, Ismael Luceno wrote:
->>> Additionally, now it specifies which channels it's showing.
->>>
->>> Signed-off-by: Ismael Luceno <ismael@iodev.co.uk>
->>> ---
->>>  drivers/media/pci/solo6x10/solo6x10-v4l2.c | 27 +++++++++------------------
->>>  1 file changed, 9 insertions(+), 18 deletions(-)
->>>
->>> diff --git a/drivers/media/pci/solo6x10/solo6x10-v4l2.c b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
->>> index 721ff53..935c1b6 100644
->>> --- a/drivers/media/pci/solo6x10/solo6x10-v4l2.c
->>> +++ b/drivers/media/pci/solo6x10/solo6x10-v4l2.c
->>> @@ -386,26 +386,17 @@ static int solo_querycap(struct file *file, void  *priv,
->>>  static int solo_enum_ext_input(struct solo_dev *solo_dev,
->>>  			       struct v4l2_input *input)
->>>  {
->>> -	static const char * const dispnames_1[] = { "4UP" };
->>> -	static const char * const dispnames_2[] = { "4UP-1", "4UP-2" };
->>> -	static const char * const dispnames_5[] = {
->>> -		"4UP-1", "4UP-2", "4UP-3", "4UP-4", "16UP"
->>> -	};
->>> -	const char * const *dispnames;
->>> -
->>> -	if (input->index >= (solo_dev->nr_chans + solo_dev->nr_ext))
->>> -		return -EINVAL;
->>> -
->>> -	if (solo_dev->nr_ext == 5)
->>> -		dispnames = dispnames_5;
->>> -	else if (solo_dev->nr_ext == 2)
->>> -		dispnames = dispnames_2;
->>> -	else
->>> -		dispnames = dispnames_1;
->>> +	int ext = input->index - solo_dev->nr_chans;
->>> +	unsigned int nup, first;
->>>  
->>> -	snprintf(input->name, sizeof(input->name), "Multi %s",
->>> -		 dispnames[input->index - solo_dev->nr_chans]);
->>> +	if (ext >= solo_dev->nr_ext)
->>> +		return -EINVAL;
->>>  
->>> +	nup   = (ext == 4) ? 16 : 4;
->>> +	first = (ext & 3) << 2;
->>> +	snprintf(input->name, sizeof(input->name),
->>> +		 "Multi %d-up (cameras %d-%d)",
->>> +		 nup, first + 1, first + nup);
->>
->> Shouldn't this be: nup, first + 1, nup);
->>
->> Now it displays cameras as 1-5, 2-6, 3-7, 4-8 if I am not mistaken.
-> 
-> Hi Hans.
-> 
-> The var "first" takes the values {0, 4, 8, 12}, so the code is correct,
-> it displays: 1-4, 5-8, 9-12, 13-16, or 1-16.
+__fill_v4l2_buffer() however uses the number of planes from the dequeued
+videobuf2 buffer, overwriting kernel memory (the m.planes array allocated
+in video_usercopy() in v4l2-ioctl.c)  if the user provided fewer
+planes than the dequeued buffer had. Oops!
 
-Ah, now I see what you do. Can you add a little comment here? For example:
+Fixes: b0e0e1f83de3 ("[media] media: videobuf2: Prepare to divide videobuf2")
 
-/* Construct the text: cameras 1-4, 5-8, 9-12, 13-16, or 1-16 */
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: stable@vger.kernel.org # for v4.4 and later
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-It's a bit obfuscated otherwise.
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 0b1b8c7..7f366f1 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -74,6 +74,11 @@ static int __verify_planes_array(struct vb2_buffer *vb, const struct v4l2_buffer
+ 	return 0;
+ }
+ 
++static int __verify_planes_array_core(struct vb2_buffer *vb, const void *pb)
++{
++	return __verify_planes_array(vb, pb);
++}
++
+ /**
+  * __verify_length() - Verify that the bytesused value for each plane fits in
+  * the plane length and that the data offset doesn't exceed the bytesused value.
+@@ -437,6 +442,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
+ }
+ 
+ static const struct vb2_buf_ops v4l2_buf_ops = {
++	.verify_planes_array	= __verify_planes_array_core,
+ 	.fill_user_buffer	= __fill_v4l2_buffer,
+ 	.fill_vb2_buffer	= __fill_vb2_buffer,
+ 	.copy_timestamp		= __copy_timestamp,
+-- 
+2.1.4
 
-Thanks!
-
-	Hans
