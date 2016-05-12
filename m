@@ -1,94 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:38002 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752938AbcEIUxT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2016 16:53:19 -0400
-Subject: Re: [PATCH 4/7] [media] ir-rx51: add DT support to driver
-To: Rob Herring <robh@kernel.org>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1462634508-24961-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160509200657.GA3379@rob-hp-laptop>
-Cc: pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
-	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <5730F8BA.5000402@gmail.com>
-Date: Mon, 9 May 2016 23:53:14 +0300
+Received: from mail-ig0-f194.google.com ([209.85.213.194]:33359 "EHLO
+	mail-ig0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751963AbcELG5E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 May 2016 02:57:04 -0400
+Received: by mail-ig0-f194.google.com with SMTP id rc4so5996103igc.0
+        for <linux-media@vger.kernel.org>; Wed, 11 May 2016 23:57:03 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20160509200657.GA3379@rob-hp-laptop>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Yuichi Itoh <itoh@ist.osaka-u.ac.jp>
+Date: Thu, 12 May 2016 15:56:23 +0900
+Message-ID: <CANH-LJ6vWVcwvHzQ=ADtrcJpGF+rx-ejWxZJBayfK=5-WzX1kA@mail.gmail.com>
+Subject: [CFP] SIGGRAPH ASIA 2016 Emerging Technologies (E-Tech): Submission
+ deadline is getting close.
+To: itoh <itoh@ist.osaka-u.ac.jp>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+SIGGRAPH ASIA 2016 Emerging Technologies (E-Tech): Submission deadline
+is getting close. Please visit SA16 website and submit your work!
 
-On  9.05.2016 23:06, Rob Herring wrote:
-> On Sat, May 07, 2016 at 06:21:45PM +0300, Ivaylo Dimitrov wrote:
->> With the upcoming removal of legacy boot, lets add support to one of the
->> last N900 drivers remaining without it. As the driver still uses omap
->> dmtimer, add auxdata as well.
->>
->> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
->> ---
->>   .../devicetree/bindings/media/nokia,lirc-rx51         | 19 +++++++++++++++++++
->>   arch/arm/mach-omap2/pdata-quirks.c                    |  6 +-----
->>   drivers/media/rc/ir-rx51.c                            | 11 ++++++++++-
->>   3 files changed, 30 insertions(+), 6 deletions(-)
->>   create mode 100644 Documentation/devicetree/bindings/media/nokia,lirc-rx51
->>
->> diff --git a/Documentation/devicetree/bindings/media/nokia,lirc-rx51 b/Documentation/devicetree/bindings/media/nokia,lirc-rx51
->> new file mode 100644
->> index 0000000..5b3081e
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/nokia,lirc-rx51
->> @@ -0,0 +1,19 @@
->> +Device-Tree bindings for LIRC TX driver for Nokia N900(RX51)
->> +
->> +Required properties:
->> +	- compatible: should be "nokia,lirc-rx51".
->
-> lirc is a Linux term. Also, nokia,rx51-... would be conventional
-> ordering.
->
+SIGGRAPH ASIA 2016 Website:
+https://sa2016.siggraph.org/en/
 
-I used the driver name ("lirc_rx51") to not bring confusion. Also, it 
-registers itself through lirc_register_driver() call, so having lirc in 
-its name somehow makes sense.
+Research on interactive technologies is an important academic
+discipline to investigate a fundamental problem of relationship
+between technology and human. In order to drive this research to be
+able to widely help human's life in the future, propulsion of research
+by making actually working prototypes with novel technological
+innovations is crucial. Through the experience of using or enjoying
+the demonstration of such prototypes, we can learn the progress of
+technology, we can imagine our future lives, or we can conceive
+further sophisticated ideas.
+Interactive technology has been one of the most important inseparable
+wheels of SIGGRAPH and SIGGRAPH Asia, and the Emerging Technologies
+program has played a vital role in driving the development of research
+communities to pursue technological innovations and to make a great
+impact on the public.
+At SIGGRAPH Asia 2016 we are looking for submissions that use novel
+interactive technologies which have possibilities to bring benefits,
+usefulness, or comfort, into our future lives.
+These technologies may include, but are not limited to:
 
-I am not very good in inventing names, the best compatible I can think 
-of is "nokia,rx51-ir". Is that ok?
+- 3D interaction
+- Augmented human
+- Brain-machine interface/brain-computer interface
+- Collaborative technologies
+- Device technologies
+- Display technologies
+- Embodiment interaction
+- Haptics
+- Illusion/actuality
+- Interaction technologies
+- Interactive visualization and other graphics technologies
+- Multi-/cross-modality
+- Perception/cognition
+- Physical computing
+- Robotics
+- Sensors
+- Social interaction
+- Tangible UI
+- Technologies for everyday life, food and kitchen
+- Telepresence / Tele-existence
+- Virtual and augmented reality
 
-> Is this anything more than a PWM LED?
->
+Feel free to submit your work even if it does not fall under the list
+of categories above. If it is new, cool, and exciting, we want to see
+it at SIGGRAPH Asia 2016!
+To encourage submissions from industry, you can choose either
+“industrial” or “academic” with your submission. If your work mainly
+contributes to the progress of academic discipline in the field of
+interactive technologies, you should choose the “academic track”. On
+the other hand, if your work is a prototype of a new product which is
+(almost) on the market and expected to provide an impact to consumers,
+you should choose the “industrial track”. You can choose both
+categories if your work satisfies both features. Submissions in each
+category are reviewed individually according to their own evaluation
+criteria.
+The main form of presentation at Emerging Technologies is a live,
+working, hands-on demonstration. It is essential that your work can be
+effectively demonstrated by the time the conference opens in December.
+To ensure this, the submission process requires all submitters to
+provide extensive technical, logistical, and practical documentation.
+Running an Emerging Technologies demo is hard work, but it is also
+very rewarding. Your work will be experienced by thousands of people
+and widely reported in media. We invite submissions from academic
+institutions as well as corporations and individuals. All submissions
+will be peer-reviewed by experts in relevant fields, and the final
+selections will be made by the Emerging Technologies program committee
+members.
+Accepted Emerging Technologies works will be presented as on-going
+demonstrations throughout SIGGRAPH Asia 2016 in Macao, China.
+Technical support will be provided to make the most of each demo. If
+your work is accepted, you will have the opportunity to give a
+technical presentation, advertised in the conference program. Media
+outreach efforts will be organized to further increase awareness and
+publicity. A promotional video will be widely distributed, and an
+extended abstract and video of each exhibit will be distributed
+through the ACM Digital Library for SIGGRAPH Asia 2016. In addition,
+if you want to give an oral presentation about your work, you may do
+so during the Emerging Technologies Talks session at SIGGRAPH Asia
+2016.
+Some of the accepted Emerging Technologies works will be chosen as
+"Emerging Technologies Prize" by the Emerging Technologies program
+committee members and reviewers at the event venue. The quality of
+work, how they are demonstrated onsite, and how attractive attendees
+view the works are criteria upon which each work will be judged.
+Emerging Technologies is the most important inseparable wheels of both
+SIGGRAPH and SIGGRAPH Asia, because SIGGRAPH is a conference on
+Computer Graphics and Interactive Techniques. The goal of Emerging
+Technologies is to gather and show such submissions as novel
+interactive technologies that have possibilities to bring benefits,
+usefulness, or comfort, into our future lives.
 
-It is an IR LED connected through a driver to McSPI2_SIMO pin of OMAP3, 
-which pin can be configured as PWM or GPIO(there are other 
-configurations, but they don't make sense). In theory it could be used 
-for various things (like uni-directional serial TX, or stuff like that), 
-but in practice it allows N900 to be act as an IR remote controller. I 
-guess that fits in "nothing more than a PWM LED", more or less.
+The deadline for submission to the Emerging Technologies program is 23
+May 2016, 23:59 UTC/GMT. Please return to this page often for further
+submission details and use the contact form if you have any questions.
 
->> +	- pwms: specifies PWM used for IR signal transmission.
->> +
->> +Example node:
->> +
->> +	pwm9: dmtimer-pwm@9 {
->> +		compatible = "ti,omap-dmtimer-pwm";
->> +		ti,timers = <&timer9>;
->> +		#pwm-cells = <3>;
->> +	};
->> +
->> +	ir: lirc-rx51 {
->> +		compatible = "nokia,lirc-rx51";
->> +
->> +		pwms = <&pwm9 0 26316 0>; /* 38000 Hz */
->> +	};
 
-Thanks,
-Ivo
+Emerging Technologies Co-Chair
+Robin Bing-Yu Chen
+National Taiwan University
+Taiwan
+
+Emerging Technologies Chair
+Yuichi Itoh
+Osaka University
+Japan
