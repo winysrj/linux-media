@@ -1,37 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35324 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751158AbcEAKrT (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36556 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751261AbcEMGPn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 May 2016 06:47:19 -0400
-Date: Sun, 1 May 2016 13:46:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [RFC PATCH 06/24] smiapp: Add quirk control support
-Message-ID: <20160501104646.GE26360@valkosipuli.retiisi.org.uk>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1461532104-24032-7-git-send-email-ivo.g.dimitrov.75@gmail.com>
+	Fri, 13 May 2016 02:15:43 -0400
+Subject: Re: [PATCH 4/7] [media] ir-rx51: add DT support to driver
+To: Rob Herring <robh@kernel.org>, Sebastian Reichel <sre@kernel.org>
+References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1462634508-24961-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20160509200657.GA3379@rob-hp-laptop> <5730F8BA.5000402@gmail.com>
+ <CAL_JsqJPZS1ne_xAuBFtCc5L1HKFJf0LDUJ7CRSFXhc3adkTfA@mail.gmail.com>
+ <20160510021826.GE1129@earth> <20160511141429.GA5894@rob-hp-laptop>
+Cc: Pawel Moll <pawel.moll@arm.com>,
+	Mark Rutland <mark.rutland@arm.com>,
+	Ian Campbell <ijc+devicetree@hellion.org.uk>,
+	Kumar Gala <galak@codeaurora.org>,
+	Thierry Reding <thierry.reding@gmail.com>,
+	Benoit Cousson <bcousson@baylibre.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Linux PWM List <linux-pwm@vger.kernel.org>,
+	linux-omap <linux-omap@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	=?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <5735710A.6060404@gmail.com>
+Date: Fri, 13 May 2016 09:15:38 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1461532104-24032-7-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <20160511141429.GA5894@rob-hp-laptop>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 25, 2016 at 12:08:06AM +0300, Ivaylo Dimitrov wrote:
-> From: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-> Quirk controls can be set up in the init quirk.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi,
 
-Do you need quirk controls for something at the moment? I guess not at least
-with the secondary sensor?
+On 11.05.2016 17:14, Rob Herring wrote:
+> On Tue, May 10, 2016 at 04:18:27AM +0200, Sebastian Reichel wrote:
+>> Hi,
+>>
+>> On Mon, May 09, 2016 at 04:07:35PM -0500, Rob Herring wrote:
+>>> There's already a pwm-led binding that can be used. Though there
+>>> may be missing consumer IR to LED subsystem support in the kernel.
+>>> You could list both compatibles, use the rx51 IR driver now, and
+>>> then move to pwm-led driver in the future.
+>>
+>> Well from a purely HW point of view it's a PWM connected led. The
+>> usage is completely different though. Usually PWM is used to control
+>> the LED's brightness via the duty cycle (basic concept: enabling led
+>> only 50% of time reduces brightness to 50%).
+>>
+>> In the IR led's case the aim is generating a specific serial pattern
+>> instead. For this task it uses a dmtimer in PWM mode and a second
+>> one to reconfigure the pwm timer.
+>
+> In that case, it will probably never be a generic driver.
+>
+>> I don't know about a good name, but rx51 should be replaced with
+>> n900 in the compatible string. So maybe "nokia,n900-infrared-diode".
+>
+> That's fine, but the shorter '-ir' was too.
+>
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+I prefer the shorter "nokia,n900-ir", will resend the series with it 
+used, unless someone has concerns about it.
+
+Ivo
