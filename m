@@ -1,158 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:43463 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341AbcEaU4X (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:40683 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753527AbcEMRJ7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2016 16:56:23 -0400
-Subject: Re: multi-sensor media controller
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <21de7cb7-69b1-94bd-584a-e5494bfb7dc8@codeaurora.org>
- <Pine.LNX.4.64.1605291626360.24272@axis700.grange>
-Cc: linux-media@vger.kernel.org
-From: Jeremy Gebben <jgebben@codeaurora.org>
-Message-ID: <02af9738-54b6-e615-c707-1dd2ddcb0f5c@codeaurora.org>
-Date: Tue, 31 May 2016 14:56:25 -0600
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1605291626360.24272@axis700.grange>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 13 May 2016 13:09:59 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	inki.dae@samsung.com, g.liakhovetski@gmx.de,
+	jh1009.sung@samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 2/3] media: add media_device_unregister_put() interface
+Date: Fri, 13 May 2016 11:09:24 -0600
+Message-Id: <14efd8cc91d49e34936fd227d1208429d16e3fa0.1463158822.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1463158822.git.shuahkh@osg.samsung.com>
+References: <cover.1463158822.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1463158822.git.shuahkh@osg.samsung.com>
+References: <cover.1463158822.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi,
+Add media_device_unregister_put() interface to release reference to a media
+device allocated using the Media Device Allocator API. The media device is
+unregistered and freed when the last driver that holds the reference to the
+media device releases the reference. The media device is unregistered and
+freed in the kref put handler.
 
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/media-device.c | 11 +++++++++++
+ include/media/media-device.h | 15 +++++++++++++++
+ 2 files changed, 26 insertions(+)
 
-On 5/29/16 8:43 AM, Guennadi Liakhovetski wrote:
-> Hi Jeremy,
->
-> On Fri, 27 May 2016, Jeremy Gebben wrote:
->
->> Hi,
->>
->> Can someone give me a quick sanity check on a media controller set up?
->>
->> We have have devices (well, phones) that can have 2 or more sensors and 2 or
->> more 'front end' ISPs.  The ISPs take CSI input from a sensor, and can produce
->> Bayer and YUV output to memory. There is a bridge between the sensors and ISPs
->> which allow any ISP to receive input from any sensor. We would (eventually)
->> like to use the request API to ensure that sensor and ISP settings match for
->> every frame.
->>
->> We use this hardware in several different ways, some of the interesting ones
->> are described below:
->>
->> 1. 2 sensors running independently, and possibly at different frame rates. For
->> example in video chat you might want a "Picture in Picture" setup where you
->> send output from both a front and back sensor.
->> (note: 'B' is the bridge)
->>
->> SENSOR_A --> B --> ISP_X --> BUFFERS
->>              B
->> SENSOR_B --> B --> ISP_Y --> BUFFERS
->>
->> 2. Single sensor, dual ISP. High resolution use of a single sensor may
->> require both ISPs to work on different regions of the image. For example,
->> ISP_X might process the left half of the image while ISP_Y processes the
->> right.
->>
->> SENSOR_A --> B --> ISP_X ----> BUFFERS
->>              B --> ISP_Y --/
->>              B
->>
->> 3. 2 different types of sensors working together to produce a single set of
->> images. Processing must be synchronized, and eventually the buffers from
->> SENSOR_A and SENSOR_C will be combined by other processing not shown here.
->>
->> SENSOR_A --> B --> ISP_X --> BUFFERS
->> SENSOR_C --> B --> ISP_Y --> BUFFERS
->>              B
->>
->> It seems to me that the way to do handle all these cases would be to put all
->> of the hardware in a single media_device:
->>
->>  +----------------------+
->>  |  SENSOR_A  B  ISP_X  |
->>  |  SENSOR_C  B         |
->>  |  SENSOR_B  B  ISP_Y  |
->>  +----------------------+
->>
->> This makes cases #2 and #3 above easy to configure.
->
-> Yes, agree.
->
->> But the topology can get
->> rather large if the number of sensors and ISPs goes up.
->
-> We've seen some rather large topology graphs already :)
->
->> Also, case #1 could be
->> a little strange because there would be 2 independent sets of requests coming
->> to the same media_device at the same time.
->
-> Do you mean, because request API calls are made to the /dev/media0 device?
-> I don't remember the details, is this how the API is supposed to be used?
-> Isn't there a way to direct the calls to specific /dev/video* devices or
-> to subdevices?
-
-See: https://meet.quicinc.com/hosseins/34WMDH75
-
-You allocate a request id using MEDIA_REQ_CMD_ALLOC on a /dev/media* 
-device. Then you call /dev/video* ioctls to change settings, passing the 
-request id as an argument. Then you call MEDIA_REQ_CMD_QUEUE which 
-applies all the settings.
-
-My concern is that having 2 independent camera pipelines using request 
-ids from the same /dev/media could cause problems somehow. But I cannot 
-quantify "somehow" so I guess I'll look into the patches further to work 
-it out.
-
-
->> Am I on the right track here?
->>
->> I did find Guennadi's presentation about multi-stream:
->> https://linuxtv.org/downloads/presentations/media_summit_2016_san_diego/v4l2-multistream.pdf
->>
->> ...but I'm not sure I follow all of it from the slides alone, and
->> we don't have the mux/demux hardware that was the focus of his presentation.
->
-> Doesn't your bridge also perform the mux-demux role in some
-> configurations?
-
-Hmm, yeah, maybe I oversimplified. I probably need to dig in to the 
-hardware docs further.
-
-
-> But that isn't the main point anyway. As a part of a
-> solution for the multi-stream set up, the use of stream routing has been
-> proposed. So, using that, you might be able to represent your bridge as a
-> stream router. Details of a routing API are still to be clarified.
-
-I'll watch for further traffic on the routing API.
-
-Thank you for the feedback.
-
-Jeremy
-
-
-
->
-> Thanks
-> Guennadi
->
->> Thanks,
->>
->> Jeremy
->>
->> --
->>  The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
->>  a Linux Foundation Collaborative Project
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 33a9952..b5c279a 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -36,6 +36,7 @@
+ #include <media/media-device.h>
+ #include <media/media-devnode.h>
+ #include <media/media-entity.h>
++#include <media/media-dev-allocator.h>
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 
+@@ -818,6 +819,16 @@ void media_device_unregister(struct media_device *mdev)
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
++void media_device_unregister_put(struct media_device *mdev)
++{
++	if (mdev == NULL)
++		return;
++
++	dev_dbg(mdev->dev, "%s: mdev %p\n", __func__, mdev);
++	media_device_put(mdev);
++}
++EXPORT_SYMBOL_GPL(media_device_unregister_put);
++
+ static void media_device_release_devres(struct device *dev, void *res)
+ {
+ }
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index f743ae2..8bd836e 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -499,6 +499,18 @@ int __must_check __media_device_register(struct media_device *mdev,
+ void media_device_unregister(struct media_device *mdev);
+ 
+ /**
++ * media_device_unregister_put() - Unregisters a media device element
++ *
++ * @mdev:	pointer to struct &media_device
++ *
++ * Should be called to unregister media device allocated with Media Device
++ * Allocator API media_device_get() interface.
++ * It is safe to call this function on an unregistered (but initialised)
++ * media device.
++ */
++void media_device_unregister_put(struct media_device *mdev);
++
++/**
+  * media_device_register_entity() - registers a media entity inside a
+  *	previously registered media device.
+  *
+@@ -658,6 +670,9 @@ static inline int media_device_register(struct media_device *mdev)
+ static inline void media_device_unregister(struct media_device *mdev)
+ {
+ }
++static inline void media_device_unregister_put(struct media_device *mdev)
++{
++}
+ static inline int media_device_register_entity(struct media_device *mdev,
+ 						struct media_entity *entity)
+ {
 -- 
-  The Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-  a Linux Foundation Collaborative Project
+2.7.4
+
