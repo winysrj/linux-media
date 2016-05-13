@@ -1,123 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38037 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751890AbcE2C7w (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59000 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752484AbcEMIgM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 May 2016 22:59:52 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id AEAB71804A4
-	for <linux-media@vger.kernel.org>; Sun, 29 May 2016 04:59:46 +0200 (CEST)
-Date: Sun, 29 May 2016 04:59:46 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160529025946.AEAB71804A4@tschai.lan>
+	Fri, 13 May 2016 04:36:12 -0400
+Subject: Re: [PATCH v4 6/8] media: rcar-vin: initialize EDID data
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+	hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <1462975376-491-7-git-send-email-ulrich.hecht+renesas@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+	ian.molton@codethink.co.uk, lars@metafoo.de,
+	william.towle@codethink.co.uk
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <573591F4.4050901@xs4all.nl>
+Date: Fri, 13 May 2016 10:36:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <1462975376-491-7-git-send-email-ulrich.hecht+renesas@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 05/11/2016 04:02 PM, Ulrich Hecht wrote:
+> Initializes the decoder subdevice with a fixed EDID blob.
+> 
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 
-Results of the daily build of media_tree:
+Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-date:		Sun May 29 04:00:24 CEST 2016
-git branch:	test
-git hash:	bc2b80ee3490651904f121eac1c8fb7652d48253
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-264
+Instead implement the g/s_edid ioctls.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+You truly cannot default to an EDID. When an EDID is set the HPD will go high.
+But you don't know the EDID here, the contents of the EDID is something that
+only userspace will know depending on the type of device you're building.
 
-Detailed results are available here:
+In practice userspace will overwrite the EDID with the real one and so the HPD
+will go down and up again. And while transmitters are supposed to handle that
+cleanly, in reality this is a different story.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Just add the g/s_edid ioctls and you can use 'v4l2-ctl --set-edid=edid=hdmi' to
+fill in a default EDID.
 
-Full logs are available here:
+I won't accept this patch since I know from my own experience that this doesn't
+work.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Regards,
 
-The Media Infrastructure API from this daily build is here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 46 +++++++++++++++++++++++++++++
+>  1 file changed, 46 insertions(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> index 10a5c10..5bb3c3b 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -765,6 +765,41 @@ static void rvin_notify(struct v4l2_subdev *sd,
+>  	}
+>  }
+>  
+> +static u8 edid[256] = {
+> +	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
+> +	0x48, 0xAE, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
+> +	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
+> +	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
+> +	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
+> +	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
+> +	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
+> +	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
+> +	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
+> +	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
+> +	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
+> +	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
+> +	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
+> +	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
+> +	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
+> +	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
+> +	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
+> +	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
+> +	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
+> +	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+> +	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
+> +};
+> +
+>  int rvin_v4l2_probe(struct rvin_dev *vin)
+>  {
+>  	struct v4l2_subdev_format fmt = {
+> @@ -870,5 +905,16 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+>  	v4l2_info(&vin->v4l2_dev, "Device registered as %s\n",
+>  		  video_device_node_name(&vin->vdev));
+>  
+> +	{
+> +		struct v4l2_subdev_edid rvin_edid = {
+> +			.pad = 0,
+> +			.start_block = 0,
+> +			.blocks = 2,
+> +			.edid = edid,
+> +		};
+> +		v4l2_subdev_call(sd, pad, set_edid,
+> +				&rvin_edid);
+> +	}
+> +
+>  	return ret;
+>  }
+> 
