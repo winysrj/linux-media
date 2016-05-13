@@ -1,97 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:35617 "EHLO
-	mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751450AbcELLYi (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52949 "EHLO
+	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752208AbcEMDHb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 May 2016 07:24:38 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v2 9/9] arm64: dts: mediatek: Add Video Decoder for MT8173
-Date: Thu, 12 May 2016 19:24:10 +0800
-Message-ID: <1463052250-38262-10-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1463052250-38262-9-git-send-email-tiffany.lin@mediatek.com>
-References: <1463052250-38262-1-git-send-email-tiffany.lin@mediatek.com>
- <1463052250-38262-2-git-send-email-tiffany.lin@mediatek.com>
- <1463052250-38262-3-git-send-email-tiffany.lin@mediatek.com>
- <1463052250-38262-4-git-send-email-tiffany.lin@mediatek.com>
- <1463052250-38262-5-git-send-email-tiffany.lin@mediatek.com>
- <1463052250-38262-6-git-send-email-tiffany.lin@mediatek.com>
- <1463052250-38262-7-git-send-email-tiffany.lin@mediatek.com>
- <1463052250-38262-8-git-send-email-tiffany.lin@mediatek.com>
- <1463052250-38262-9-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Thu, 12 May 2016 23:07:31 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1CE71180089
+	for <linux-media@vger.kernel.org>; Fri, 13 May 2016 05:07:26 +0200 (CEST)
+Date: Fri, 13 May 2016 05:07:26 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160513030726.1CE71180089@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add video decoder node for MT8173
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   38 ++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index 348ce0e..8c9e3b6 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -691,6 +691,44 @@
- 			#clock-cells = <1>;
- 		};
- 
-+		vcodec_dec: vcodec@16000000 {
-+			compatible = "mediatek,mt8173-vcodec-dec";
-+			reg = <0 0x16000000 0 0x100>,	/* VDEC_SYS */
-+			      <0 0x16020000 0 0x1000>,	/* VDEC_MISC */
-+			      <0 0x16021000 0 0x800>,	/* VDEC_LD */
-+			      <0 0x16021800 0 0x800>,	/* VDEC_TOP */
-+			      <0 0x16022000 0 0x1000>,	/* VDEC_CM */
-+			      <0 0x16023000 0 0x1000>,	/* VDEC_AD */
-+			      <0 0x16024000 0 0x1000>,	/* VDEC_AV */
-+			      <0 0x16025000 0 0x1000>,	/* VDEC_PP */
-+			      <0 0x16026800 0 0x800>,	/* VDEC_HWD */
-+			      <0 0x16027000 0 0x800>,	/* VDEC_HWQ */
-+			      <0 0x16027800 0 0x800>,	/* VDEC_HWB */
-+			      <0 0x16028400 0 0x400>;	/* VDEC_HWG */
-+			interrupts = <GIC_SPI 204 IRQ_TYPE_LEVEL_LOW>;
-+			mediatek,larb = <&larb1>;
-+			iommus = <&iommu M4U_PORT_HW_VDEC_MC_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_PP_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_AVC_MV_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_PRED_RD_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_PRED_WR_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_UFO_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_VLD_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_VLD2_EXT>;
-+			mediatek,vpu = <&vpu>;
-+			power-domains = <&scpsys MT8173_POWER_DOMAIN_VDEC>;
-+			clocks = <&apmixedsys CLK_APMIXED_VCODECPLL>,
-+				 <&topckgen CLK_TOP_UNIVPLL_D2>,
-+				 <&topckgen CLK_TOP_CCI400_SEL>,
-+				 <&topckgen CLK_TOP_VDEC_SEL>,
-+				 <&topckgen CLK_TOP_VCODECPLL>;
-+			clock-names = "vcodecpll",
-+				      "univpll_d2",
-+				      "clk_cci400_sel",
-+				      "vdec_sel",
-+				      "vdecpll";
-+		};
-+
- 		larb1: larb@16010000 {
- 			compatible = "mediatek,mt8173-smi-larb";
- 			reg = <0 0x16010000 0 0x1000>;
--- 
-1.7.9.5
+date:		Fri May 13 04:00:22 CEST 2016
+git branch:	test
+git hash:	d1532d5575696965a52b19553dd7dacf75f3fec5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
