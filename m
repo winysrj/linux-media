@@ -1,40 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56088 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752008AbcEAVsO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 May 2016 17:48:14 -0400
-Message-ID: <1462139288.25248.33.camel@ndufresne.ca>
-Subject: Re: gstreamer: v4l2videodec plugin
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-	Rob Clark <robdclark@gmail.com>
-Cc: Discussion of the development of and with GStreamer
-	<gstreamer-devel@lists.freedesktop.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Sun, 01 May 2016 17:48:08 -0400
-In-Reply-To: <5721F4FC.30001@linaro.org>
-References: <570B9285.9000209@linaro.org> <570B9454.6020307@linaro.org>
-	 <1460391908.30296.12.camel@collabora.com> <570CB882.4090805@linaro.org>
-	 <CAF6AEGvjin7Ya4wAXF=5vAa=ky=yvUHnYSo8Of_cyd8TCc04UQ@mail.gmail.com>
-	 <1460736595.973.5.camel@ndufresne.ca> <5721F4FC.30001@linaro.org>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from butterbrot.org ([176.9.106.16]:37634 "EHLO butterbrot.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753515AbcEMW1l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2016 18:27:41 -0400
+From: Florian Echtler <floe@butterbrot.org>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, Florian Echtler <floe@butterbrot.org>,
+	Martin Kaltenbrunner <modin@yuri.at>
+Subject: [PATCH 2/3] lower poll interval to fix occasional FPS drops to ~56 FPS
+Date: Fri, 13 May 2016 15:19:16 -0700
+Message-Id: <1463177957-8240-2-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1463177957-8240-1-git-send-email-floe@butterbrot.org>
+References: <1463177957-8240-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le jeudi 28 avril 2016 à 14:33 +0300, Stanimir Varbanov a écrit :
-> So I'm wondering is that intensional?
-> 
-> Depending on the answer I should make the same in the Gallium dri2 in
-> dri2_from_dma_bufs().
+The framerate sometimes drops below 60 Hz if the poll interval is too high.
+Lowering it to the minimum of 1 ms fixes this.
 
-It's DRI format that are confusing. In GStreamer DRI_FORMAT_GR88 would
-be named RG88 (if it existed). That's because DRI API present it in the
-way it would look on the CPU after loading that 16bit word into a
-register. In GStreamer instead, we expose is as the way you'll find it
-in the data array. Let's see it this way, DRI present the information
-in a way people writing rasterizer see it.
+Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
+---
+ drivers/input/touchscreen/sur40.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index fcc5934..7b1052a1 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -126,7 +126,7 @@ struct sur40_image_header {
+ #define VIDEO_PACKET_SIZE  16384
+ 
+ /* polling interval (ms) */
+-#define POLL_INTERVAL 4
++#define POLL_INTERVAL 1
+ 
+ /* maximum number of contacts FIXME: this is a guess? */
+ #define MAX_CONTACTS 64
+-- 
+1.9.1
 
-Nicolas
