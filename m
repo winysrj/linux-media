@@ -1,80 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:30726 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756476AbcEXQvD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 12:51:03 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [RFC v2 18/21] DocBook: media: Document the subdev selection API
-Date: Tue, 24 May 2016 19:47:28 +0300
-Message-Id: <1464108451-28142-19-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout.easymail.ca ([64.68.201.169]:40696 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753531AbcEMRKA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 May 2016 13:10:00 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	inki.dae@samsung.com, g.liakhovetski@gmx.de,
+	jh1009.sung@samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 3/3] media: change au0828 to use Media Device Allocator API
+Date: Fri, 13 May 2016 11:09:25 -0600
+Message-Id: <55abe425a70eecd95d91a8b0fd00d2592308b1c3.1463158822.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1463158822.git.shuahkh@osg.samsung.com>
+References: <cover.1463158822.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1463158822.git.shuahkh@osg.samsung.com>
+References: <cover.1463158822.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Change au0828 to use Media Device Allocator API to allocate media device
+with the parent usb struct device as the key, so it can be shared with the
+snd usb audio driver.
 
-Now that the subdev crop API is considered obsolete, the selection API
-that replaces it deserves a full documentation instead of referring to
-the crop API documentation.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- .../media/v4l/vidioc-subdev-g-selection.xml        | 37 ++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ drivers/media/usb/au0828/au0828-core.c | 12 ++++--------
+ drivers/media/usb/au0828/au0828.h      |  1 +
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index 8346b2e..faac955 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -63,6 +63,43 @@
-     more information on how each selection target affects the image
-     processing pipeline inside the subdevice.</para>
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index bf53553..3f7a521 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -157,9 +157,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ 	dev->media_dev->enable_source = NULL;
+ 	dev->media_dev->disable_source = NULL;
  
-+    <para>To retrieve a current selection rectangle applications set the
-+    <structfield>pad</structfield> field of a &v4l2-subdev-selection; to the
-+    desired pad number as reported by the media API, the
-+    <structfield>which</structfield> field to
-+    <constant>V4L2_SUBDEV_FORMAT_ACTIVE</constant> and the
-+    <structfield>target</structfield> to the target selection rectangle. They
-+    then call the <constant>VIDIOC_SUBDEV_G_SELECTION</constant> ioctl with a
-+    pointer to this structure. The driver fills the members of the
-+    <structfield>r</structfield> field or returns &EINVAL; if the input
-+    arguments are invalid, or if selection is not supported on the given pad.
-+    </para>
-+
-+    <para>To change a current selection rectangle applications set the
-+    <structfield>pad</structfield>, <structfield>which</structfield> and
-+    <structfield>target</structfield> fields and all members of the
-+    <structfield>r</structfield> field. They then call the
-+    <constant>VIDIOC_SUBDEV_S_SELECTION</constant> ioctl with a pointer to this
-+    structure. The driver verifies the requested selection rectangle, adjusts it
-+    based on the hardware capabilities and configures the device. Upon return
-+    the &v4l2-subdev-selection; contains the current selection rectangle as
-+    would be returned by a <constant>VIDIOC_SUBDEV_G_SELECTION</constant> call.
-+    </para>
-+
-+    <para>Applications can query the device capabilities by setting the
-+    <structfield>which</structfield> to
-+    <constant>V4L2_SUBDEV_FORMAT_TRY</constant>. When set, 'try' selection
-+    rectangles are not applied to the device by the driver, but are mangled
-+    exactly as active selection rectangles and stored in the sub-device file
-+    handle. Two applications querying the same sub-device would thus not
-+    interfere with each other.</para>
-+
-+    <para>Drivers must not return an error solely because the requested
-+    selection rectangle doesn't match the device capabilities. They must instead
-+    modify the rectangle to match what the hardware can provide. The modified
-+    selection rectangle should be as close as possible to the original request.
-+    </para>
-+
-     <refsect2>
-       <title>Types of selection targets</title>
+-	media_device_unregister(dev->media_dev);
+-	media_device_cleanup(dev->media_dev);
+-	kfree(dev->media_dev);
++	media_device_unregister_put(dev->media_dev);
+ 	dev->media_dev = NULL;
+ #endif
+ }
+@@ -212,14 +210,10 @@ static int au0828_media_device_init(struct au0828_dev *dev,
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_device *mdev;
  
+-	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	mdev = media_device_usb_allocate(udev, KBUILD_MODNAME);
+ 	if (!mdev)
+ 		return -ENOMEM;
+ 
+-	/* check if media device is already initialized */
+-	if (!mdev->dev)
+-		media_device_usb_init(mdev, udev, udev->product);
+-
+ 	dev->media_dev = mdev;
+ #endif
+ 	return 0;
+@@ -487,6 +481,8 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 		/* register media device */
+ 		ret = media_device_register(dev->media_dev);
+ 		if (ret) {
++			media_device_put(dev->media_dev);
++			dev->media_dev = NULL;
+ 			dev_err(&udev->dev,
+ 				"Media Device Register Error: %d\n", ret);
+ 			return ret;
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index dd7b378..4bf1b0c 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -35,6 +35,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-fh.h>
+ #include <media/media-device.h>
++#include <media/media-dev-allocator.h>
+ 
+ /* DVB */
+ #include "demux.h"
 -- 
-1.9.1
+2.7.4
 
