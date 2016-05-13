@@ -1,96 +1,325 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35449 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932749AbcEKOD1 (ORCPT
+Received: from mailout.easymail.ca ([64.68.201.169]:40658 "EHLO
+	mailout.easymail.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753528AbcEMRJ6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 10:03:27 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
-	Rob Taylor <rob.taylor@codethink.co.uk>
-Subject: [PATCH v4 4/8] media: rcar-vin: pad-aware driver initialisation
-Date: Wed, 11 May 2016 16:02:52 +0200
-Message-Id: <1462975376-491-5-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Fri, 13 May 2016 13:09:58 -0400
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@osg.samsung.com, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, hans.verkuil@cisco.com,
+	chehabrafael@gmail.com, javier@osg.samsung.com,
+	inki.dae@samsung.com, g.liakhovetski@gmx.de,
+	jh1009.sung@samsung.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/3] media: Media Device Allocator API
+Date: Fri, 13 May 2016 11:09:23 -0600
+Message-Id: <efdba25cd9ad3b5fa025ed91613921641058a727.1463158822.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1463158822.git.shuahkh@osg.samsung.com>
+References: <cover.1463158822.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1463158822.git.shuahkh@osg.samsung.com>
+References: <cover.1463158822.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add detection of source pad number for drivers aware of the media controller
-API, so that rcar-vin can create device nodes to support modern drivers such
-as adv7604.c (for HDMI on Lager) and the converted adv7180.c (for composite)
-underneath.
+Media Device Allocator API to allows multiple drivers share a media device.
+Using this API, drivers can allocate a media device with the shared struct
+device as the key. Once the media device is allocated by a driver, other
+drivers can get a reference to it. The media device is released when all
+the references are released.
 
-Building rcar_vin gains a dependency on CONFIG_MEDIA_CONTROLLER, in
-line with requirements for building the drivers associated with it.
-
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-[uli: adapted to rcar-vin rewrite]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 16 ++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
- 2 files changed, 18 insertions(+)
+ drivers/media/Makefile              |   3 +-
+ drivers/media/media-dev-allocator.c | 139 ++++++++++++++++++++++++++++++++++++
+ include/media/media-dev-allocator.h | 118 ++++++++++++++++++++++++++++++
+ 3 files changed, 259 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/media-dev-allocator.c
+ create mode 100644 include/media/media-dev-allocator.h
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 42dbd35..3788f8a 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -691,6 +691,9 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	struct v4l2_mbus_framefmt *mf = &fmt.format;
- 	struct video_device *vdev = &vin->vdev;
- 	struct v4l2_subdev *sd = vin_to_source(vin);
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	int pad_idx;
-+#endif
- 	int ret;
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index e608bbc..b08f091 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -2,7 +2,8 @@
+ # Makefile for the kernel multimedia device drivers.
+ #
  
- 	v4l2_set_subdev_hostdata(sd, vin);
-@@ -737,6 +740,19 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
+-media-objs	:= media-device.o media-devnode.o media-entity.o
++media-objs	:= media-device.o media-devnode.o media-entity.o \
++		   media-dev-allocator.o
  
-+	vin->src_pad_idx = 0;
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+		if (sd->entity.pads[pad_idx].flags
-+				== MEDIA_PAD_FL_SOURCE)
-+			break;
-+	if (pad_idx >= sd->entity.num_pads)
-+		return -EINVAL;
+ #
+ # I2C drivers should come before other drivers, otherwise they'll fail
+diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
+new file mode 100644
+index 0000000..b49ab55
+--- /dev/null
++++ b/drivers/media/media-dev-allocator.c
+@@ -0,0 +1,139 @@
++/*
++ * media-dev-allocator.c - Media Controller Device Allocator API
++ *
++ * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
++ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
++ *
++ * This file is released under the GPLv2.
++ * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ */
 +
-+	vin->src_pad_idx = pad_idx;
-+#endif
-+	fmt.pad = vin->src_pad_idx;
++/*
++ * This file adds a global refcounted Media Controller Device Instance API.
++ * A system wide global media device list is managed and each media device
++ * includes a kref count. The last put on the media device releases the media
++ * device instance.
++ *
++*/
 +
- 	/* Try to improve our guess of a reasonable window format */
- 	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
- 	if (ret) {
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 544a3b3..a6dd6db 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -87,6 +87,7 @@ struct rvin_graph_entity {
-  *
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-+ * @src_pad_idx:	source pad index for media controller drivers
-  * @ctrl_handler:	V4L2 control handler
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @entity:		entity in the DT for subdevice
-@@ -117,6 +118,7 @@ struct rvin_dev {
- 
- 	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
-+	int src_pad_idx;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity entity;
++#include <linux/slab.h>
++#include <linux/kref.h>
++#include <linux/usb.h>
++#include <media/media-device.h>
++
++static LIST_HEAD(media_device_list);
++static DEFINE_MUTEX(media_device_lock);
++
++struct media_device_instance {
++	struct media_device mdev;
++	struct list_head list;
++	struct device *dev;
++	struct kref refcount;
++};
++
++static inline struct media_device_instance *
++to_media_device_instance(struct media_device *mdev)
++{
++	return container_of(mdev, struct media_device_instance, mdev);
++}
++
++static void media_device_instance_release(struct kref *kref)
++{
++	struct media_device_instance *mdi =
++		container_of(kref, struct media_device_instance, refcount);
++
++	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
++
++	mutex_lock(&media_device_lock);
++
++	media_device_unregister(&mdi->mdev);
++	media_device_cleanup(&mdi->mdev);
++
++	list_del(&mdi->list);
++	mutex_unlock(&media_device_lock);
++
++	kfree(mdi);
++}
++
++static struct media_device *__media_device_get(struct device *dev,
++					       bool allocate)
++{
++	struct media_device_instance *mdi;
++
++	mutex_lock(&media_device_lock);
++
++	list_for_each_entry(mdi, &media_device_list, list) {
++		if (mdi->dev == dev) {
++			kref_get(&mdi->refcount);
++			dev_dbg(dev, "%s: get mdev=%p\n",
++				 __func__, &mdi->mdev);
++			goto done;
++		}
++	}
++
++	if (!allocate) {
++		mdi = NULL;
++		goto done;
++	}
++
++	mdi = kzalloc(sizeof(*mdi), GFP_KERNEL);
++	if (!mdi)
++		goto done;
++
++	mdi->dev = dev;
++	kref_init(&mdi->refcount);
++	list_add_tail(&mdi->list, &media_device_list);
++
++	dev_dbg(dev, "%s: alloc mdev=%p\n", __func__, &mdi->mdev);
++
++done:
++	mutex_unlock(&media_device_lock);
++
++	return mdi ? &mdi->mdev : NULL;
++}
++
++struct media_device *media_device_allocate(struct device *dev)
++{
++	dev_dbg(dev, "%s\n", __func__);
++	return __media_device_get(dev, true);
++}
++EXPORT_SYMBOL_GPL(media_device_allocate);
++
++struct media_device *media_device_usb_allocate(struct usb_device *udev,
++					       char *driver_name)
++{
++	struct media_device *mdev;
++
++	mdev = media_device_allocate(&udev->dev);
++	if (!mdev)
++		return ERR_PTR(-ENOMEM);
++
++	/* check if media device is already initialized */
++	mutex_lock(&media_device_lock);
++	if (!mdev->dev)
++		__media_device_usb_init(mdev, udev, udev->product,
++					driver_name);
++	mutex_unlock(&media_device_lock);
++
++	return mdev;
++}
++EXPORT_SYMBOL_GPL(media_device_usb_allocate);
++
++/* don't allocate - get reference if one is found */
++struct media_device *media_device_get(struct media_device *mdev)
++{
++	struct media_device_instance *mdi = to_media_device_instance(mdev);
++
++	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
++	return __media_device_get(mdi->dev, false);
++}
++EXPORT_SYMBOL_GPL(media_device_get);
++
++void media_device_put(struct media_device *mdev)
++{
++	struct media_device_instance *mdi = to_media_device_instance(mdev);
++
++	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
++	kref_put(&mdi->refcount, media_device_instance_release);
++}
++EXPORT_SYMBOL_GPL(media_device_put);
+diff --git a/include/media/media-dev-allocator.h b/include/media/media-dev-allocator.h
+new file mode 100644
+index 0000000..a63dfc6
+--- /dev/null
++++ b/include/media/media-dev-allocator.h
+@@ -0,0 +1,118 @@
++/*
++ * media-dev-allocator.h - Media Controller Device Allocator API
++ *
++ * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
++ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
++ *
++ * This file is released under the GPLv2.
++ * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ */
++
++/*
++ * This file adds a global ref-counted Media Controller Device Instance API.
++ * A system wide global media device list is managed and each media device
++ * includes a kref count. The last put on the media device releases the media
++ * device instance.
++*/
++
++#ifndef _MEDIA_DEV_ALLOCTOR_H
++#define _MEDIA_DEV_ALLOCTOR_H
++
++struct usb_device;
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++/**
++ * DOC: Media Controller Device Allocator API
++ *
++ * When media device belongs to more than one driver, the shared media device
++ * is allocated with the shared struct device as the key for look ups.
++ *
++ * Shared media device should stay in registered state until the last driver
++ * unregisters it. In addition, media device should be released when all the
++ * references are released. Each driver gets a reference to the media device
++ * during probe, when it allocates the media device. If media device is already
++ * allocated, allocate API bumps up the refcount and return the existing media
++ * device. Driver puts the reference back from its disconnect routine when it
++ * calls media_device_unregister_put().
++ *
++ * Media device is unregistered and cleaned up from the kref put handler to
++ * ensure that the media device stays in registered state until the last driver
++ * unregisters the media device.
++ *
++ * Media Device can be in any the following states:
++ *
++ * - Allocated
++ * - Registered (could be tied to more than one driver)
++ * - Unregistered and released in the kref put handler.
++ *
++ * Driver Usage:
++ *
++ * Drivers should use the media-core routines to get register reference and
++ * use the media_device_unregister_put() routine to make sure the shared
++ * media device delete is handled correctly.
++ *
++ * driver probe:
++ *	Call media_device_usb_allocate() to allocate or get a reference
++ *	Call media_device_register(), if media devnode isn't registered
++ *
++ * driver disconnect:
++ *	Call media_device_unregister_put() to put the reference.
++ *
++ */
++
++/**
++ * media_device_usb_allocate() - Allocate and return media device
++ *
++ * @udev - struct usb_device pointer
++ * @driver_name
++ *
++ * This interface should be called to allocate a media device when multiple
++ * drivers share usb_device and the media device. This interface allocates
++ * media device and calls media_device_usb_init() to initialize it.
++ *
++ */
++struct media_device *media_device_usb_allocate(struct usb_device *udev,
++					       char *driver_name);
++/**
++ * media_device_allocate() - Allocate and return global media device
++ *
++ * @dev - struct device pointer
++ *
++ * This interface should be called to allocate media device. A new media
++ * device instance is created and added to the system wide media device
++ * instance list. If media device instance exists, media_device_allocate()
++ * increments the reference count and returns the media device. When more
++ * than one driver control the media device, the first driver to probe will
++ * allocate and the second driver when it calls  media_device_allocate(),
++ * it will get a reference.
++ *
++ */
++struct media_device *media_device_allocate(struct device *dev);
++/**
++ * media_device_get() -	Get reference to a registered media device.
++ *
++ * @mdev - struct media_device pointer
++ *
++ * This interface should be called to get a reference to an allocated media
++ * device.
++ */
++struct media_device *media_device_get(struct media_device *mdev);
++/**
++ * media_device_put() - Release media device. Calls kref_put().
++ *
++ * @mdev - struct media_device pointer
++ *
++ * This interface should be called to put Media Device Instance kref.
++ */
++void media_device_put(struct media_device *mdev);
++#else
++static inline struct media_device *media_device_usb_allocate(
++			struct usb_device *udev, char *driver_name)
++			{ return NULL; }
++static inline struct media_device *media_device_allocate(struct device *dev)
++			{ return NULL; }
++static inline struct media_device *media_device_get(struct media_device *mdev)
++			{ return NULL; }
++static inline void media_device_put(struct media_device *mdev) { }
++#endif /* CONFIG_MEDIA_CONTROLLER */
++#endif
 -- 
 2.7.4
 
