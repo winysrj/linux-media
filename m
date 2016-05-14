@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:36016 "EHLO
-	mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756398AbcEaJKq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2016 05:10:46 -0400
-MIME-Version: 1.0
-In-Reply-To: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
-References: <1464369565-12259-1-git-send-email-kieran@bingham.xyz>
-Date: Tue, 31 May 2016 11:10:45 +0200
-Message-ID: <CAMuHMdVW56-g8F9SqO8UP62Q9nvFawwL+GgHP2Wni-a8q5YMRw@mail.gmail.com>
-Subject: Re: [PATCH 0/4] RCar r8a7795 FCPF support
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Kieran Bingham <kieran@ksquared.org.uk>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-renesas-soc@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kapsi.fi ([217.30.184.167]:37237 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751037AbcENFdk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 May 2016 01:33:40 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] mn88473: fix error path on probe()
+Date: Sat, 14 May 2016 08:33:19 +0300
+Message-Id: <1463203999-4919-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Latest, 3rd, regmap instance should be freed on error case.
 
-On Fri, May 27, 2016 at 7:19 PM, Kieran Bingham <kieran@ksquared.org.uk> wrote:
-> An RCar FCP driver is available with support for the FCPV module for VSP.
-> This series updates that driver to support the FCPF and then provide the
-> relevant nodes in the r8a7795 device tree.
->
-> Checkpatch generates a warning on these DT references but they are
-> documented under Documentation/devicetree/bindings/media/renesas,fcp.txt
->
-> These patches are based on Geert's renesas-drivers tree, and are pushed
-> to a branch at git@github.com:kbingham/linux.git renesas/fcpf for
-> convenience.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/mn88473.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-As this is based on previous renesas-drivers release, which included the
-Salvator-X HDMI prototype, I created a topic branch topic/fcpf-v1 just
-containing your changes.
+diff --git a/drivers/media/dvb-frontends/mn88473.c b/drivers/media/dvb-frontends/mn88473.c
+index 6c5d5921..e6933d4 100644
+--- a/drivers/media/dvb-frontends/mn88473.c
++++ b/drivers/media/dvb-frontends/mn88473.c
+@@ -536,7 +536,7 @@ static int mn88473_probe(struct i2c_client *client,
+ 	/* Sleep because chip is active by default */
+ 	ret = regmap_write(dev->regmap[2], 0x05, 0x3e);
+ 	if (ret)
+-		goto err_client_2_i2c_unregister_device;
++		goto err_regmap_2_regmap_exit;
+ 
+ 	/* Create dvb frontend */
+ 	memcpy(&dev->frontend.ops, &mn88473_ops, sizeof(dev->frontend.ops));
+@@ -547,7 +547,8 @@ static int mn88473_probe(struct i2c_client *client,
+ 	dev_info(&client->dev, "Panasonic MN88473 successfully identified\n");
+ 
+ 	return 0;
+-
++err_regmap_2_regmap_exit:
++	regmap_exit(dev->regmap[2]);
+ err_client_2_i2c_unregister_device:
+ 	i2c_unregister_device(dev->client[2]);
+ err_regmap_1_regmap_exit:
+-- 
+http://palosaari.fi/
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
