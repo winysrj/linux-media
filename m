@@ -1,133 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47382 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbcEIMnp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2016 08:43:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH v2 4/5] media: Add flags to tell whether to take graph mutex for an IOCTL
-Date: Mon, 09 May 2016 15:44:07 +0300
-Message-ID: <1810387.1DpXve8est@avalon>
-In-Reply-To: <1462360855-23354-5-git-send-email-sakari.ailus@linux.intel.com>
-References: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com> <1462360855-23354-5-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:52838 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751082AbcENFO5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 May 2016 01:14:57 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/3] rtl28xxu: increase failed I2C msg repeat count to 2
+Date: Sat, 14 May 2016 08:14:34 +0300
+Message-Id: <1463202876-18381-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+1 wasn't enough for mn88472 chip on Astrometa device, so increase
+it by one.
 
-Thank you for the patch.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Wednesday 04 May 2016 14:20:54 Sakari Ailus wrote:
-> New IOCTLs (especially for the request API) do not necessarily need the
-> graph mutex acquired. Leave this up to the drivers.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/media-device.c | 47 ++++++++++++++++++++++++-----------------
->  1 file changed, 28 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 39fe07f..8aef5b8 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -390,21 +390,26 @@ static long copy_arg_to_user_nop(void __user *uarg,
-> void *karg, }
->  #endif
-> 
-> -#define MEDIA_IOC_ARG(__cmd, func, from_user, to_user)	\
-> -	[_IOC_NR(MEDIA_IOC_##__cmd)] = {		\
-> -		.cmd = MEDIA_IOC_##__cmd,		\
-> +/* Do acquire the graph mutex */
-> +#define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
-> +
-> +#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-> +	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
-> +		.cmd = MEDIA_IOC_##__cmd,				\
->  		.fn = (long (*)(struct media_device *, void *))func,	\
-> -		.arg_from_user = from_user,		\
-> -		.arg_to_user = to_user,			\
-> +		.flags = fl,						\
-> +		.arg_from_user = from_user,				\
-> +		.arg_to_user = to_user,					\
->  	}
-> 
-> -#define MEDIA_IOC(__cmd, func)						\
-> -	MEDIA_IOC_ARG(__cmd, func, copy_arg_from_user, copy_arg_to_user)
-> +#define MEDIA_IOC(__cmd, func, fl)					\
-> +	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
-> 
->  /* the table is indexed by _IOC_NR(cmd) */
->  struct media_ioctl_info {
->  	unsigned int cmd;
->  	long (*fn)(struct media_device *dev, void *arg);
-> +	unsigned short flags;
->  	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
->  	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
->  };
-> @@ -449,9 +454,13 @@ static long __media_device_ioctl(
-> 
->  	info->arg_from_user(karg, arg, cmd);
-> 
-> -	mutex_lock(&dev->graph_mutex);
-> +	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
-> +		mutex_lock(&dev->graph_mutex);
-> +
->  	ret = info->fn(dev, karg);
-> -	mutex_unlock(&dev->graph_mutex);
-> +
-> +	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
-> +		mutex_unlock(&dev->graph_mutex);
-> 
->  	if (ret)
->  		return ret;
-> @@ -460,11 +469,11 @@ static long __media_device_ioctl(
->  }
-> 
->  static const struct media_ioctl_info ioctl_info[] = {
-> -	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
-> -	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
-> -	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
-> -	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
-> -	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
-> +	MEDIA_IOC(DEVICE_INFO, media_device_get_info, MEDIA_IOC_FL_GRAPH_MUTEX),
-> +	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities,
-> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(ENUM_LINKS, media_device_enum_links,
-> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(SETUP_LINK, media_device_setup_link,
-> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(G_TOPOLOGY,
-> media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX), };
-> 
->  static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> @@ -510,11 +519,11 @@ static long from_user_enum_links32(void *karg, void
-> __user *uarg, #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct
-> media_links_enum32)
-> 
->  static const struct media_ioctl_info compat_ioctl_info[] = {
-> -	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
-> -	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
-> -	MEDIA_IOC_ARG(ENUM_LINKS32, media_device_enum_links,
-> from_user_enum_links32, copy_arg_to_user_nop), -	MEDIA_IOC(SETUP_LINK,
-> media_device_setup_link),
-> -	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
-> +	MEDIA_IOC(DEVICE_INFO, media_device_get_info, MEDIA_IOC_FL_GRAPH_MUTEX),
-> +	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities,
-> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC_ARG(ENUM_LINKS32,
-> media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX, from_user_enum_links32,
-> copy_arg_to_user_nop), +	MEDIA_IOC(SETUP_LINK, media_device_setup_link,
-> MEDIA_IOC_FL_GRAPH_MUTEX), +	MEDIA_IOC(G_TOPOLOGY,
-> media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX), };
-> 
->  static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
-
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index fa72642..6965d8e 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -624,7 +624,7 @@ static int rtl28xxu_identify_state(struct dvb_usb_device *d, const char **name)
+ 	dev_dbg(&d->intf->dev, "chip_id=%u\n", dev->chip_id);
+ 
+ 	/* Retry failed I2C messages */
+-	d->i2c_adap.retries = 1;
++	d->i2c_adap.retries = 2;
+ 	d->i2c_adap.timeout = msecs_to_jiffies(10);
+ 
+ 	return WARM;
 -- 
-Regards,
-
-Laurent Pinchart
+http://palosaari.fi/
 
