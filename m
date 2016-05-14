@@ -1,216 +1,1437 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:20886 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932497AbcEXNb6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 09:31:58 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Uli Middelberg <uli@middelberg.de>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: [PATCH v4 5/7] ARM: Exynos: remove code for MFC custom reserved memory
- handling
-Date: Tue, 24 May 2016 15:31:28 +0200
-Message-id: <1464096690-23605-6-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
-References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47293 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750869AbcENFO4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 May 2016 01:14:56 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 3/3] mn88472: move out of staging to media
+Date: Sat, 14 May 2016 08:14:36 +0300
+Message-Id: <1463202876-18381-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1463202876-18381-1-git-send-email-crope@iki.fi>
+References: <1463202876-18381-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Once MFC driver has been converted to generic reserved memory bindings,
-there is no need for custom memory reservation code.
+Move mn88472 DVB-T/T2/C demod driver out of staging to media.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- arch/arm/mach-exynos/Makefile      |  2 -
- arch/arm/mach-exynos/exynos.c      | 19 --------
- arch/arm/mach-exynos/mfc.h         | 16 -------
- arch/arm/mach-exynos/s5p-dev-mfc.c | 93 --------------------------------------
- 4 files changed, 130 deletions(-)
- delete mode 100644 arch/arm/mach-exynos/mfc.h
- delete mode 100644 arch/arm/mach-exynos/s5p-dev-mfc.c
+ drivers/media/dvb-frontends/Kconfig          |   8 +
+ drivers/media/dvb-frontends/Makefile         |   1 +
+ drivers/media/dvb-frontends/mn88472.c        | 607 +++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/mn88472_priv.h   |  38 ++
+ drivers/staging/media/mn88472/Kconfig        |   7 -
+ drivers/staging/media/mn88472/Makefile       |   5 -
+ drivers/staging/media/mn88472/TODO           |  21 -
+ drivers/staging/media/mn88472/mn88472.c      | 607 ---------------------------
+ drivers/staging/media/mn88472/mn88472_priv.h |  38 --
+ 9 files changed, 654 insertions(+), 678 deletions(-)
+ create mode 100644 drivers/media/dvb-frontends/mn88472.c
+ create mode 100644 drivers/media/dvb-frontends/mn88472_priv.h
+ delete mode 100644 drivers/staging/media/mn88472/Kconfig
+ delete mode 100644 drivers/staging/media/mn88472/Makefile
+ delete mode 100644 drivers/staging/media/mn88472/TODO
+ delete mode 100644 drivers/staging/media/mn88472/mn88472.c
+ delete mode 100644 drivers/staging/media/mn88472/mn88472_priv.h
 
-diff --git a/arch/arm/mach-exynos/Makefile b/arch/arm/mach-exynos/Makefile
-index 34d29df..b91b382 100644
---- a/arch/arm/mach-exynos/Makefile
-+++ b/arch/arm/mach-exynos/Makefile
-@@ -23,5 +23,3 @@ AFLAGS_sleep.o			:=-Wa,-march=armv7-a$(plus_sec)
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index a82f77c..293e7bb 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -73,6 +73,14 @@ config DVB_SI2165
  
- obj-$(CONFIG_EXYNOS5420_MCPM)	+= mcpm-exynos.o
- CFLAGS_mcpm-exynos.o		+= -march=armv7-a
+ 	  Say Y when you want to support this frontend.
+ 
++config DVB_MN88472
++	tristate "Panasonic MN88472"
++	depends on DVB_CORE && I2C
++	select REGMAP_I2C
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  Say Y when you want to support this frontend.
++
+ config DVB_MN88473
+ 	tristate "Panasonic MN88473"
+ 	depends on DVB_CORE && I2C
+diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
+index eb7191f..68f6065 100644
+--- a/drivers/media/dvb-frontends/Makefile
++++ b/drivers/media/dvb-frontends/Makefile
+@@ -95,6 +95,7 @@ obj-$(CONFIG_DVB_STV0900) += stv0900.o
+ obj-$(CONFIG_DVB_STV090x) += stv090x.o
+ obj-$(CONFIG_DVB_STV6110x) += stv6110x.o
+ obj-$(CONFIG_DVB_M88DS3103) += m88ds3103.o
++obj-$(CONFIG_DVB_MN88472) += mn88472.o
+ obj-$(CONFIG_DVB_MN88473) += mn88473.o
+ obj-$(CONFIG_DVB_ISL6423) += isl6423.o
+ obj-$(CONFIG_DVB_EC100) += ec100.o
+diff --git a/drivers/media/dvb-frontends/mn88472.c b/drivers/media/dvb-frontends/mn88472.c
+new file mode 100644
+index 0000000..b04a71f
+--- /dev/null
++++ b/drivers/media/dvb-frontends/mn88472.c
+@@ -0,0 +1,607 @@
++/*
++ * Panasonic MN88472 DVB-T/T2/C demodulator driver
++ *
++ * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
++ *
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
++ *
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
++ */
++
++#include "mn88472_priv.h"
++
++static int mn88472_get_tune_settings(struct dvb_frontend *fe,
++				     struct dvb_frontend_tune_settings *s)
++{
++	s->min_delay_ms = 1000;
++	return 0;
++}
++
++static int mn88472_read_status(struct dvb_frontend *fe, enum fe_status *status)
++{
++	struct i2c_client *client = fe->demodulator_priv;
++	struct mn88472_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	unsigned int utmp;
++
++	if (!dev->active) {
++		ret = -EAGAIN;
++		goto err;
++	}
++
++	switch (c->delivery_system) {
++	case SYS_DVBT:
++		ret = regmap_read(dev->regmap[0], 0x7f, &utmp);
++		if (ret)
++			goto err;
++		if ((utmp & 0x0f) >= 0x09)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++				  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
++		else
++			*status = 0;
++		break;
++	case SYS_DVBT2:
++		ret = regmap_read(dev->regmap[2], 0x92, &utmp);
++		if (ret)
++			goto err;
++		if ((utmp & 0x0f) >= 0x0d)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++				  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
++		else if ((utmp & 0x0f) >= 0x0a)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++				  FE_HAS_VITERBI;
++		else if ((utmp & 0x0f) >= 0x07)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
++		else
++			*status = 0;
++		break;
++	case SYS_DVBC_ANNEX_A:
++		ret = regmap_read(dev->regmap[1], 0x84, &utmp);
++		if (ret)
++			goto err;
++		if ((utmp & 0x0f) >= 0x08)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++				  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
++		else
++			*status = 0;
++		break;
++	default:
++		ret = -EINVAL;
++		goto err;
++	}
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int mn88472_set_frontend(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->demodulator_priv;
++	struct mn88472_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret, i;
++	unsigned int utmp;
++	u32 if_frequency;
++	u8 buf[3], delivery_system_val, bandwidth_val, *bandwidth_vals_ptr;
++	u8 reg_bank0_b4_val, reg_bank0_cd_val, reg_bank0_d4_val;
++	u8 reg_bank0_d6_val;
++
++	dev_dbg(&client->dev,
++		"delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%d stream_id=%d\n",
++		c->delivery_system, c->modulation, c->frequency,
++		c->bandwidth_hz, c->symbol_rate, c->inversion, c->stream_id);
++
++	if (!dev->active) {
++		ret = -EAGAIN;
++		goto err;
++	}
++
++	switch (c->delivery_system) {
++	case SYS_DVBT:
++		delivery_system_val = 0x02;
++		reg_bank0_b4_val = 0x00;
++		reg_bank0_cd_val = 0x1f;
++		reg_bank0_d4_val = 0x0a;
++		reg_bank0_d6_val = 0x48;
++		break;
++	case SYS_DVBT2:
++		delivery_system_val = 0x03;
++		reg_bank0_b4_val = 0xf6;
++		reg_bank0_cd_val = 0x01;
++		reg_bank0_d4_val = 0x09;
++		reg_bank0_d6_val = 0x46;
++		break;
++	case SYS_DVBC_ANNEX_A:
++		delivery_system_val = 0x04;
++		reg_bank0_b4_val = 0x00;
++		reg_bank0_cd_val = 0x17;
++		reg_bank0_d4_val = 0x09;
++		reg_bank0_d6_val = 0x48;
++		break;
++	default:
++		ret = -EINVAL;
++		goto err;
++	}
++
++	switch (c->delivery_system) {
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		switch (c->bandwidth_hz) {
++		case 5000000:
++			bandwidth_vals_ptr = "\xe5\x99\x9a\x1b\xa9\x1b\xa9";
++			bandwidth_val = 0x03;
++			break;
++		case 6000000:
++			bandwidth_vals_ptr = "\xbf\x55\x55\x15\x6b\x15\x6b";
++			bandwidth_val = 0x02;
++			break;
++		case 7000000:
++			bandwidth_vals_ptr = "\xa4\x00\x00\x0f\x2c\x0f\x2c";
++			bandwidth_val = 0x01;
++			break;
++		case 8000000:
++			bandwidth_vals_ptr = "\x8f\x80\x00\x08\xee\x08\xee";
++			bandwidth_val = 0x00;
++			break;
++		default:
++			ret = -EINVAL;
++			goto err;
++		}
++		break;
++	case SYS_DVBC_ANNEX_A:
++		bandwidth_vals_ptr = NULL;
++		bandwidth_val = 0x00;
++		break;
++	default:
++		break;
++	}
++
++	/* Program tuner */
++	if (fe->ops.tuner_ops.set_params) {
++		ret = fe->ops.tuner_ops.set_params(fe);
++		if (ret)
++			goto err;
++	}
++
++	if (fe->ops.tuner_ops.get_if_frequency) {
++		ret = fe->ops.tuner_ops.get_if_frequency(fe, &if_frequency);
++		if (ret)
++			goto err;
++
++		dev_dbg(&client->dev, "get_if_frequency=%d\n", if_frequency);
++	} else {
++		ret = -EINVAL;
++		goto err;
++	}
++
++	ret = regmap_write(dev->regmap[2], 0x00, 0x66);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[2], 0x01, 0x00);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[2], 0x02, 0x01);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[2], 0x03, delivery_system_val);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[2], 0x04, bandwidth_val);
++	if (ret)
++		goto err;
++
++	/* IF */
++	utmp = DIV_ROUND_CLOSEST_ULL((u64)if_frequency * 0x1000000, dev->clk);
++	buf[0] = (utmp >> 16) & 0xff;
++	buf[1] = (utmp >>  8) & 0xff;
++	buf[2] = (utmp >>  0) & 0xff;
++	for (i = 0; i < 3; i++) {
++		ret = regmap_write(dev->regmap[2], 0x10 + i, buf[i]);
++		if (ret)
++			goto err;
++	}
++
++	/* Bandwidth */
++	if (bandwidth_vals_ptr) {
++		for (i = 0; i < 7; i++) {
++			ret = regmap_write(dev->regmap[2], 0x13 + i,
++					   bandwidth_vals_ptr[i]);
++			if (ret)
++				goto err;
++		}
++	}
++
++	ret = regmap_write(dev->regmap[0], 0xb4, reg_bank0_b4_val);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[0], 0xcd, reg_bank0_cd_val);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[0], 0xd4, reg_bank0_d4_val);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[0], 0xd6, reg_bank0_d6_val);
++	if (ret)
++		goto err;
++
++	switch (c->delivery_system) {
++	case SYS_DVBT:
++		ret = regmap_write(dev->regmap[0], 0x07, 0x26);
++		if (ret)
++			goto err;
++		ret = regmap_write(dev->regmap[0], 0x00, 0xba);
++		if (ret)
++			goto err;
++		ret = regmap_write(dev->regmap[0], 0x01, 0x13);
++		if (ret)
++			goto err;
++		break;
++	case SYS_DVBT2:
++		ret = regmap_write(dev->regmap[2], 0x2b, 0x13);
++		if (ret)
++			goto err;
++		ret = regmap_write(dev->regmap[2], 0x4f, 0x05);
++		if (ret)
++			goto err;
++		ret = regmap_write(dev->regmap[1], 0xf6, 0x05);
++		if (ret)
++			goto err;
++		ret = regmap_write(dev->regmap[2], 0x32, c->stream_id);
++		if (ret)
++			goto err;
++		break;
++	case SYS_DVBC_ANNEX_A:
++		break;
++	default:
++		break;
++	}
++
++	/* Reset FSM */
++	ret = regmap_write(dev->regmap[2], 0xf8, 0x9f);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int mn88472_init(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->demodulator_priv;
++	struct mn88472_dev *dev = i2c_get_clientdata(client);
++	int ret, len, rem;
++	unsigned int utmp;
++	const struct firmware *firmware;
++	const char *name = MN88472_FIRMWARE;
++
++	dev_dbg(&client->dev, "\n");
++
++	/* Power up */
++	ret = regmap_write(dev->regmap[2], 0x05, 0x00);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[2], 0x0b, 0x00);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[2], 0x0c, 0x00);
++	if (ret)
++		goto err;
++
++	/* Check if firmware is already running */
++	ret = regmap_read(dev->regmap[0], 0xf5, &utmp);
++	if (ret)
++		goto err;
++	if (!(utmp & 0x01))
++		goto warm;
++
++	ret = request_firmware(&firmware, name, &client->dev);
++	if (ret) {
++		dev_err(&client->dev, "firmare file '%s' not found\n", name);
++		goto err;
++	}
++
++	dev_info(&client->dev, "downloading firmware from file '%s'\n", name);
++
++	ret = regmap_write(dev->regmap[0], 0xf5, 0x03);
++	if (ret)
++		goto err_release_firmware;
++
++	for (rem = firmware->size; rem > 0; rem -= (dev->i2c_write_max - 1)) {
++		len = min(dev->i2c_write_max - 1, rem);
++		ret = regmap_bulk_write(dev->regmap[0], 0xf6,
++					&firmware->data[firmware->size - rem],
++					len);
++		if (ret) {
++			dev_err(&client->dev, "firmware download failed %d\n",
++				ret);
++			goto err_release_firmware;
++		}
++	}
++
++	/* Parity check of firmware */
++	ret = regmap_read(dev->regmap[0], 0xf8, &utmp);
++	if (ret)
++		goto err_release_firmware;
++	if (utmp & 0x10) {
++		ret = -EINVAL;
++		dev_err(&client->dev, "firmware did not run\n");
++		goto err_release_firmware;
++	}
++
++	ret = regmap_write(dev->regmap[0], 0xf5, 0x00);
++	if (ret)
++		goto err_release_firmware;
++
++	release_firmware(firmware);
++warm:
++	/* TS config */
++	switch (dev->ts_mode) {
++	case SERIAL_TS_MODE:
++		ret = regmap_write(dev->regmap[2], 0x08, 0x1d);
++		break;
++	case PARALLEL_TS_MODE:
++		ret = regmap_write(dev->regmap[2], 0x08, 0x00);
++		break;
++	default:
++		ret = -EINVAL;
++		goto err;
++	}
++
++	switch (dev->ts_clk) {
++	case VARIABLE_TS_CLOCK:
++		ret = regmap_write(dev->regmap[0], 0xd9, 0xe3);
++		break;
++	case FIXED_TS_CLOCK:
++		ret = regmap_write(dev->regmap[0], 0xd9, 0xe1);
++		break;
++	default:
++		ret = -EINVAL;
++		goto err;
++	}
++
++	dev->active = true;
++
++	return 0;
++err_release_firmware:
++	release_firmware(firmware);
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int mn88472_sleep(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->demodulator_priv;
++	struct mn88472_dev *dev = i2c_get_clientdata(client);
++	int ret;
++
++	dev_dbg(&client->dev, "\n");
++
++	/* Power down */
++	ret = regmap_write(dev->regmap[2], 0x0c, 0x30);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[2], 0x0b, 0x30);
++	if (ret)
++		goto err;
++	ret = regmap_write(dev->regmap[2], 0x05, 0x3e);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static struct dvb_frontend_ops mn88472_ops = {
++	.delsys = {SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A},
++	.info = {
++		.name = "Panasonic MN88472",
++		.symbol_rate_min = 1000000,
++		.symbol_rate_max = 7200000,
++		.caps =	FE_CAN_FEC_1_2                 |
++			FE_CAN_FEC_2_3                 |
++			FE_CAN_FEC_3_4                 |
++			FE_CAN_FEC_5_6                 |
++			FE_CAN_FEC_7_8                 |
++			FE_CAN_FEC_AUTO                |
++			FE_CAN_QPSK                    |
++			FE_CAN_QAM_16                  |
++			FE_CAN_QAM_32                  |
++			FE_CAN_QAM_64                  |
++			FE_CAN_QAM_128                 |
++			FE_CAN_QAM_256                 |
++			FE_CAN_QAM_AUTO                |
++			FE_CAN_TRANSMISSION_MODE_AUTO  |
++			FE_CAN_GUARD_INTERVAL_AUTO     |
++			FE_CAN_HIERARCHY_AUTO          |
++			FE_CAN_MUTE_TS                 |
++			FE_CAN_2G_MODULATION           |
++			FE_CAN_MULTISTREAM
++	},
++
++	.get_tune_settings = mn88472_get_tune_settings,
++
++	.init = mn88472_init,
++	.sleep = mn88472_sleep,
++
++	.set_frontend = mn88472_set_frontend,
++
++	.read_status = mn88472_read_status,
++};
++
++static struct dvb_frontend *mn88472_get_dvb_frontend(struct i2c_client *client)
++{
++	struct mn88472_dev *dev = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "\n");
++
++	return &dev->fe;
++}
++
++static int mn88472_probe(struct i2c_client *client,
++			 const struct i2c_device_id *id)
++{
++	struct mn88472_config *pdata = client->dev.platform_data;
++	struct mn88472_dev *dev;
++	int ret;
++	unsigned int utmp;
++	static const struct regmap_config regmap_config = {
++		.reg_bits = 8,
++		.val_bits = 8,
++	};
++
++	dev_dbg(&client->dev, "\n");
++
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (!dev) {
++		ret = -ENOMEM;
++		goto err;
++	}
++
++	dev->i2c_write_max = pdata->i2c_wr_max ? pdata->i2c_wr_max : ~0;
++	dev->clk = pdata->xtal;
++	dev->ts_mode = pdata->ts_mode;
++	dev->ts_clk = pdata->ts_clock;
++	dev->client[0] = client;
++	dev->regmap[0] = regmap_init_i2c(dev->client[0], &regmap_config);
++	if (IS_ERR(dev->regmap[0])) {
++		ret = PTR_ERR(dev->regmap[0]);
++		goto err_kfree;
++	}
++
++	/* Check demod answers with correct chip id */
++	ret = regmap_read(dev->regmap[0], 0xff, &utmp);
++	if (ret)
++		goto err_regmap_0_regmap_exit;
++
++	dev_dbg(&client->dev, "chip id=%02x\n", utmp);
++
++	if (utmp != 0x02) {
++		ret = -ENODEV;
++		goto err_regmap_0_regmap_exit;
++	}
++
++	/*
++	 * Chip has three I2C addresses for different register banks. Used
++	 * addresses are 0x18, 0x1a and 0x1c. We register two dummy clients,
++	 * 0x1a and 0x1c, in order to get own I2C client for each register bank.
++	 *
++	 * Also, register bank 2 do not support sequential I/O. Only single
++	 * register write or read is allowed to that bank.
++	 */
++	dev->client[1] = i2c_new_dummy(client->adapter, 0x1a);
++	if (!dev->client[1]) {
++		ret = -ENODEV;
++		dev_err(&client->dev, "I2C registration failed\n");
++		if (ret)
++			goto err_regmap_0_regmap_exit;
++	}
++	dev->regmap[1] = regmap_init_i2c(dev->client[1], &regmap_config);
++	if (IS_ERR(dev->regmap[1])) {
++		ret = PTR_ERR(dev->regmap[1]);
++		goto err_client_1_i2c_unregister_device;
++	}
++	i2c_set_clientdata(dev->client[1], dev);
++
++	dev->client[2] = i2c_new_dummy(client->adapter, 0x1c);
++	if (!dev->client[2]) {
++		ret = -ENODEV;
++		dev_err(&client->dev, "2nd I2C registration failed\n");
++		if (ret)
++			goto err_regmap_1_regmap_exit;
++	}
++	dev->regmap[2] = regmap_init_i2c(dev->client[2], &regmap_config);
++	if (IS_ERR(dev->regmap[2])) {
++		ret = PTR_ERR(dev->regmap[2]);
++		goto err_client_2_i2c_unregister_device;
++	}
++	i2c_set_clientdata(dev->client[2], dev);
++
++	/* Sleep because chip is active by default */
++	ret = regmap_write(dev->regmap[2], 0x05, 0x3e);
++	if (ret)
++		goto err_regmap_2_regmap_exit;
++
++	/* Create dvb frontend */
++	memcpy(&dev->fe.ops, &mn88472_ops, sizeof(struct dvb_frontend_ops));
++	dev->fe.demodulator_priv = client;
++	*pdata->fe = &dev->fe;
++	i2c_set_clientdata(client, dev);
++
++	/* Setup callbacks */
++	pdata->get_dvb_frontend = mn88472_get_dvb_frontend;
++
++	dev_info(&client->dev, "Panasonic MN88472 successfully identified\n");
++
++	return 0;
++err_regmap_2_regmap_exit:
++	regmap_exit(dev->regmap[2]);
++err_client_2_i2c_unregister_device:
++	i2c_unregister_device(dev->client[2]);
++err_regmap_1_regmap_exit:
++	regmap_exit(dev->regmap[1]);
++err_client_1_i2c_unregister_device:
++	i2c_unregister_device(dev->client[1]);
++err_regmap_0_regmap_exit:
++	regmap_exit(dev->regmap[0]);
++err_kfree:
++	kfree(dev);
++err:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int mn88472_remove(struct i2c_client *client)
++{
++	struct mn88472_dev *dev = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "\n");
++
++	regmap_exit(dev->regmap[2]);
++	i2c_unregister_device(dev->client[2]);
++
++	regmap_exit(dev->regmap[1]);
++	i2c_unregister_device(dev->client[1]);
++
++	regmap_exit(dev->regmap[0]);
++
++	kfree(dev);
++
++	return 0;
++}
++
++static const struct i2c_device_id mn88472_id_table[] = {
++	{"mn88472", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, mn88472_id_table);
++
++static struct i2c_driver mn88472_driver = {
++	.driver = {
++		.name = "mn88472",
++		.suppress_bind_attrs = true,
++	},
++	.probe    = mn88472_probe,
++	.remove   = mn88472_remove,
++	.id_table = mn88472_id_table,
++};
++
++module_i2c_driver(mn88472_driver);
++
++MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
++MODULE_DESCRIPTION("Panasonic MN88472 DVB-T/T2/C demodulator driver");
++MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(MN88472_FIRMWARE);
+diff --git a/drivers/media/dvb-frontends/mn88472_priv.h b/drivers/media/dvb-frontends/mn88472_priv.h
+new file mode 100644
+index 0000000..cdf2597
+--- /dev/null
++++ b/drivers/media/dvb-frontends/mn88472_priv.h
+@@ -0,0 +1,38 @@
++/*
++ * Panasonic MN88472 DVB-T/T2/C demodulator driver
++ *
++ * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
++ *
++ *    This program is free software; you can redistribute it and/or modify
++ *    it under the terms of the GNU General Public License as published by
++ *    the Free Software Foundation; either version 2 of the License, or
++ *    (at your option) any later version.
++ *
++ *    This program is distributed in the hope that it will be useful,
++ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *    GNU General Public License for more details.
++ */
++
++#ifndef MN88472_PRIV_H
++#define MN88472_PRIV_H
++
++#include "dvb_frontend.h"
++#include "mn88472.h"
++#include <linux/firmware.h>
++#include <linux/regmap.h>
++
++#define MN88472_FIRMWARE "dvb-demod-mn88472-02.fw"
++
++struct mn88472_dev {
++	struct i2c_client *client[3];
++	struct regmap *regmap[3];
++	struct dvb_frontend fe;
++	u16 i2c_write_max;
++	unsigned int clk;
++	unsigned int active:1;
++	unsigned int ts_mode:1;
++	unsigned int ts_clk:1;
++};
++
++#endif
+diff --git a/drivers/staging/media/mn88472/Kconfig b/drivers/staging/media/mn88472/Kconfig
+deleted file mode 100644
+index a85c90a..0000000
+--- a/drivers/staging/media/mn88472/Kconfig
++++ /dev/null
+@@ -1,7 +0,0 @@
+-config DVB_MN88472
+-	tristate "Panasonic MN88472"
+-	depends on DVB_CORE && I2C
+-	select REGMAP_I2C
+-	default m if !MEDIA_SUBDRV_AUTOSELECT
+-	help
+-	  Say Y when you want to support this frontend.
+diff --git a/drivers/staging/media/mn88472/Makefile b/drivers/staging/media/mn88472/Makefile
+deleted file mode 100644
+index 5987b7e..0000000
+--- a/drivers/staging/media/mn88472/Makefile
++++ /dev/null
+@@ -1,5 +0,0 @@
+-obj-$(CONFIG_DVB_MN88472) += mn88472.o
 -
--obj-$(CONFIG_S5P_DEV_MFC)	+= s5p-dev-mfc.o
-diff --git a/arch/arm/mach-exynos/exynos.c b/arch/arm/mach-exynos/exynos.c
-index 52ccf24..a8620c6 100644
---- a/arch/arm/mach-exynos/exynos.c
-+++ b/arch/arm/mach-exynos/exynos.c
-@@ -27,7 +27,6 @@
- #include <mach/map.h>
- 
- #include "common.h"
--#include "mfc.h"
- 
- static struct map_desc exynos4_iodesc[] __initdata = {
- 	{
-@@ -237,23 +236,6 @@ static char const *const exynos_dt_compat[] __initconst = {
- 	NULL
- };
- 
--static void __init exynos_reserve(void)
+-ccflags-y += -Idrivers/media/dvb-core/
+-ccflags-y += -Idrivers/media/dvb-frontends/
+-ccflags-y += -Idrivers/media/tuners/
+diff --git a/drivers/staging/media/mn88472/TODO b/drivers/staging/media/mn88472/TODO
+deleted file mode 100644
+index b90a14b..0000000
+--- a/drivers/staging/media/mn88472/TODO
++++ /dev/null
+@@ -1,21 +0,0 @@
+-Driver general quality is not good enough for mainline. Also, other
+-device drivers (USB-bridge, tuner) needed for Astrometa receiver in
+-question could need some changes. However, if that driver is mainlined
+-due to some other device than Astrometa, unrelated TODOs could be
+-skipped. In that case rtl28xxu driver needs module parameter to prevent
+-driver loading.
+-
+-Required TODOs:
+-* missing lock flags
+-* I2C errors
+-* tuner sensitivity
+-
+-*Do not* send any patch fixing checkpatch.pl issues. Currently it passes
+-checkpatch.pl tests. I don't want waste my time to review this kind of
+-trivial stuff. *Do not* add missing register I/O error checks. Those are
+-missing for the reason it is much easier to compare I2C data sniffs when
+-there is less lines. Those error checks are about the last thing to be added.
+-
+-Patches should be submitted to:
+-linux-media@vger.kernel.org and Antti Palosaari <crope@iki.fi>
+-
+diff --git a/drivers/staging/media/mn88472/mn88472.c b/drivers/staging/media/mn88472/mn88472.c
+deleted file mode 100644
+index b04a71f..0000000
+--- a/drivers/staging/media/mn88472/mn88472.c
++++ /dev/null
+@@ -1,607 +0,0 @@
+-/*
+- * Panasonic MN88472 DVB-T/T2/C demodulator driver
+- *
+- * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
+- *
+- *    This program is free software; you can redistribute it and/or modify
+- *    it under the terms of the GNU General Public License as published by
+- *    the Free Software Foundation; either version 2 of the License, or
+- *    (at your option) any later version.
+- *
+- *    This program is distributed in the hope that it will be useful,
+- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *    GNU General Public License for more details.
+- */
+-
+-#include "mn88472_priv.h"
+-
+-static int mn88472_get_tune_settings(struct dvb_frontend *fe,
+-				     struct dvb_frontend_tune_settings *s)
 -{
--#ifdef CONFIG_S5P_DEV_MFC
--	int i;
--	char *mfc_mem[] = {
--		"samsung,mfc-v5",
--		"samsung,mfc-v6",
--		"samsung,mfc-v7",
--		"samsung,mfc-v8",
--	};
--
--	for (i = 0; i < ARRAY_SIZE(mfc_mem); i++)
--		if (of_scan_flat_dt(s5p_fdt_alloc_mfc_mem, mfc_mem[i]))
--			break;
--#endif
+-	s->min_delay_ms = 1000;
+-	return 0;
 -}
 -
- static void __init exynos_dt_fixup(void)
- {
- 	/*
-@@ -275,6 +257,5 @@ DT_MACHINE_START(EXYNOS_DT, "SAMSUNG EXYNOS (Flattened Device Tree)")
- 	.init_machine	= exynos_dt_machine_init,
- 	.init_late	= exynos_init_late,
- 	.dt_compat	= exynos_dt_compat,
--	.reserve	= exynos_reserve,
- 	.dt_fixup	= exynos_dt_fixup,
- MACHINE_END
-diff --git a/arch/arm/mach-exynos/mfc.h b/arch/arm/mach-exynos/mfc.h
-deleted file mode 100644
-index dec93cd..0000000
---- a/arch/arm/mach-exynos/mfc.h
-+++ /dev/null
-@@ -1,16 +0,0 @@
--/*
-- * Copyright (C) 2013 Samsung Electronics Co.Ltd
-- *
-- * This program is free software; you can redistribute  it and/or modify it
-- * under  the terms of  the GNU General  Public License as published by the
-- * Free Software Foundation;  either version 2 of the  License, or (at your
-- * option) any later version.
-- */
--
--#ifndef __MACH_EXYNOS_MFC_H
--#define __MACH_EXYNOS_MFC_H __FILE__
--
--int __init s5p_fdt_alloc_mfc_mem(unsigned long node, const char *uname,
--				int depth, void *data);
--
--#endif /* __MACH_EXYNOS_MFC_H */
-diff --git a/arch/arm/mach-exynos/s5p-dev-mfc.c b/arch/arm/mach-exynos/s5p-dev-mfc.c
-deleted file mode 100644
-index 8ef1f3e..0000000
---- a/arch/arm/mach-exynos/s5p-dev-mfc.c
-+++ /dev/null
-@@ -1,93 +0,0 @@
--/*
-- * Copyright (C) 2010-2011 Samsung Electronics Co.Ltd
-- *
-- * Base S5P MFC resource and device definitions
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/kernel.h>
--#include <linux/platform_device.h>
--#include <linux/dma-mapping.h>
--#include <linux/memblock.h>
--#include <linux/ioport.h>
--#include <linux/of_fdt.h>
--#include <linux/of.h>
--
--static struct platform_device s5p_device_mfc_l;
--static struct platform_device s5p_device_mfc_r;
--
--struct s5p_mfc_dt_meminfo {
--	unsigned long	loff;
--	unsigned long	lsize;
--	unsigned long	roff;
--	unsigned long	rsize;
--	char		*compatible;
--};
--
--struct s5p_mfc_reserved_mem {
--	phys_addr_t	base;
--	unsigned long	size;
--	struct device	*dev;
--};
--
--static struct s5p_mfc_reserved_mem s5p_mfc_mem[2] __initdata;
--
--
--static void __init s5p_mfc_reserve_mem(phys_addr_t rbase, unsigned int rsize,
--				phys_addr_t lbase, unsigned int lsize)
+-static int mn88472_read_status(struct dvb_frontend *fe, enum fe_status *status)
 -{
--	int i;
+-	struct i2c_client *client = fe->demodulator_priv;
+-	struct mn88472_dev *dev = i2c_get_clientdata(client);
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int ret;
+-	unsigned int utmp;
 -
--	s5p_mfc_mem[0].dev = &s5p_device_mfc_r.dev;
--	s5p_mfc_mem[0].base = rbase;
--	s5p_mfc_mem[0].size = rsize;
+-	if (!dev->active) {
+-		ret = -EAGAIN;
+-		goto err;
+-	}
 -
--	s5p_mfc_mem[1].dev = &s5p_device_mfc_l.dev;
--	s5p_mfc_mem[1].base = lbase;
--	s5p_mfc_mem[1].size = lsize;
+-	switch (c->delivery_system) {
+-	case SYS_DVBT:
+-		ret = regmap_read(dev->regmap[0], 0x7f, &utmp);
+-		if (ret)
+-			goto err;
+-		if ((utmp & 0x0f) >= 0x09)
+-			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-				  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+-		else
+-			*status = 0;
+-		break;
+-	case SYS_DVBT2:
+-		ret = regmap_read(dev->regmap[2], 0x92, &utmp);
+-		if (ret)
+-			goto err;
+-		if ((utmp & 0x0f) >= 0x0d)
+-			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-				  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+-		else if ((utmp & 0x0f) >= 0x0a)
+-			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-				  FE_HAS_VITERBI;
+-		else if ((utmp & 0x0f) >= 0x07)
+-			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
+-		else
+-			*status = 0;
+-		break;
+-	case SYS_DVBC_ANNEX_A:
+-		ret = regmap_read(dev->regmap[1], 0x84, &utmp);
+-		if (ret)
+-			goto err;
+-		if ((utmp & 0x0f) >= 0x08)
+-			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-				  FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+-		else
+-			*status = 0;
+-		break;
+-	default:
+-		ret = -EINVAL;
+-		goto err;
+-	}
 -
--	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
--		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
--		if (memblock_remove(area->base, area->size)) {
--			printk(KERN_ERR "Failed to reserve memory for MFC device (%ld bytes at 0x%08lx)\n",
--			       area->size, (unsigned long) area->base);
--			area->base = 0;
+-	return 0;
+-err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
+-	return ret;
+-}
+-
+-static int mn88472_set_frontend(struct dvb_frontend *fe)
+-{
+-	struct i2c_client *client = fe->demodulator_priv;
+-	struct mn88472_dev *dev = i2c_get_clientdata(client);
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int ret, i;
+-	unsigned int utmp;
+-	u32 if_frequency;
+-	u8 buf[3], delivery_system_val, bandwidth_val, *bandwidth_vals_ptr;
+-	u8 reg_bank0_b4_val, reg_bank0_cd_val, reg_bank0_d4_val;
+-	u8 reg_bank0_d6_val;
+-
+-	dev_dbg(&client->dev,
+-		"delivery_system=%u modulation=%u frequency=%u bandwidth_hz=%u symbol_rate=%u inversion=%d stream_id=%d\n",
+-		c->delivery_system, c->modulation, c->frequency,
+-		c->bandwidth_hz, c->symbol_rate, c->inversion, c->stream_id);
+-
+-	if (!dev->active) {
+-		ret = -EAGAIN;
+-		goto err;
+-	}
+-
+-	switch (c->delivery_system) {
+-	case SYS_DVBT:
+-		delivery_system_val = 0x02;
+-		reg_bank0_b4_val = 0x00;
+-		reg_bank0_cd_val = 0x1f;
+-		reg_bank0_d4_val = 0x0a;
+-		reg_bank0_d6_val = 0x48;
+-		break;
+-	case SYS_DVBT2:
+-		delivery_system_val = 0x03;
+-		reg_bank0_b4_val = 0xf6;
+-		reg_bank0_cd_val = 0x01;
+-		reg_bank0_d4_val = 0x09;
+-		reg_bank0_d6_val = 0x46;
+-		break;
+-	case SYS_DVBC_ANNEX_A:
+-		delivery_system_val = 0x04;
+-		reg_bank0_b4_val = 0x00;
+-		reg_bank0_cd_val = 0x17;
+-		reg_bank0_d4_val = 0x09;
+-		reg_bank0_d6_val = 0x48;
+-		break;
+-	default:
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+-	switch (c->delivery_system) {
+-	case SYS_DVBT:
+-	case SYS_DVBT2:
+-		switch (c->bandwidth_hz) {
+-		case 5000000:
+-			bandwidth_vals_ptr = "\xe5\x99\x9a\x1b\xa9\x1b\xa9";
+-			bandwidth_val = 0x03;
+-			break;
+-		case 6000000:
+-			bandwidth_vals_ptr = "\xbf\x55\x55\x15\x6b\x15\x6b";
+-			bandwidth_val = 0x02;
+-			break;
+-		case 7000000:
+-			bandwidth_vals_ptr = "\xa4\x00\x00\x0f\x2c\x0f\x2c";
+-			bandwidth_val = 0x01;
+-			break;
+-		case 8000000:
+-			bandwidth_vals_ptr = "\x8f\x80\x00\x08\xee\x08\xee";
+-			bandwidth_val = 0x00;
+-			break;
+-		default:
+-			ret = -EINVAL;
+-			goto err;
+-		}
+-		break;
+-	case SYS_DVBC_ANNEX_A:
+-		bandwidth_vals_ptr = NULL;
+-		bandwidth_val = 0x00;
+-		break;
+-	default:
+-		break;
+-	}
+-
+-	/* Program tuner */
+-	if (fe->ops.tuner_ops.set_params) {
+-		ret = fe->ops.tuner_ops.set_params(fe);
+-		if (ret)
+-			goto err;
+-	}
+-
+-	if (fe->ops.tuner_ops.get_if_frequency) {
+-		ret = fe->ops.tuner_ops.get_if_frequency(fe, &if_frequency);
+-		if (ret)
+-			goto err;
+-
+-		dev_dbg(&client->dev, "get_if_frequency=%d\n", if_frequency);
+-	} else {
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+-	ret = regmap_write(dev->regmap[2], 0x00, 0x66);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[2], 0x01, 0x00);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[2], 0x02, 0x01);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[2], 0x03, delivery_system_val);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[2], 0x04, bandwidth_val);
+-	if (ret)
+-		goto err;
+-
+-	/* IF */
+-	utmp = DIV_ROUND_CLOSEST_ULL((u64)if_frequency * 0x1000000, dev->clk);
+-	buf[0] = (utmp >> 16) & 0xff;
+-	buf[1] = (utmp >>  8) & 0xff;
+-	buf[2] = (utmp >>  0) & 0xff;
+-	for (i = 0; i < 3; i++) {
+-		ret = regmap_write(dev->regmap[2], 0x10 + i, buf[i]);
+-		if (ret)
+-			goto err;
+-	}
+-
+-	/* Bandwidth */
+-	if (bandwidth_vals_ptr) {
+-		for (i = 0; i < 7; i++) {
+-			ret = regmap_write(dev->regmap[2], 0x13 + i,
+-					   bandwidth_vals_ptr[i]);
+-			if (ret)
+-				goto err;
 -		}
 -	}
+-
+-	ret = regmap_write(dev->regmap[0], 0xb4, reg_bank0_b4_val);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[0], 0xcd, reg_bank0_cd_val);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[0], 0xd4, reg_bank0_d4_val);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[0], 0xd6, reg_bank0_d6_val);
+-	if (ret)
+-		goto err;
+-
+-	switch (c->delivery_system) {
+-	case SYS_DVBT:
+-		ret = regmap_write(dev->regmap[0], 0x07, 0x26);
+-		if (ret)
+-			goto err;
+-		ret = regmap_write(dev->regmap[0], 0x00, 0xba);
+-		if (ret)
+-			goto err;
+-		ret = regmap_write(dev->regmap[0], 0x01, 0x13);
+-		if (ret)
+-			goto err;
+-		break;
+-	case SYS_DVBT2:
+-		ret = regmap_write(dev->regmap[2], 0x2b, 0x13);
+-		if (ret)
+-			goto err;
+-		ret = regmap_write(dev->regmap[2], 0x4f, 0x05);
+-		if (ret)
+-			goto err;
+-		ret = regmap_write(dev->regmap[1], 0xf6, 0x05);
+-		if (ret)
+-			goto err;
+-		ret = regmap_write(dev->regmap[2], 0x32, c->stream_id);
+-		if (ret)
+-			goto err;
+-		break;
+-	case SYS_DVBC_ANNEX_A:
+-		break;
+-	default:
+-		break;
+-	}
+-
+-	/* Reset FSM */
+-	ret = regmap_write(dev->regmap[2], 0xf8, 0x9f);
+-	if (ret)
+-		goto err;
+-
+-	return 0;
+-err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
+-	return ret;
 -}
 -
--int __init s5p_fdt_alloc_mfc_mem(unsigned long node, const char *uname,
--				int depth, void *data)
+-static int mn88472_init(struct dvb_frontend *fe)
 -{
--	const __be32 *prop;
--	int len;
--	struct s5p_mfc_dt_meminfo mfc_mem;
+-	struct i2c_client *client = fe->demodulator_priv;
+-	struct mn88472_dev *dev = i2c_get_clientdata(client);
+-	int ret, len, rem;
+-	unsigned int utmp;
+-	const struct firmware *firmware;
+-	const char *name = MN88472_FIRMWARE;
 -
--	if (!data)
--		return 0;
+-	dev_dbg(&client->dev, "\n");
 -
--	if (!of_flat_dt_is_compatible(node, data))
--		return 0;
+-	/* Power up */
+-	ret = regmap_write(dev->regmap[2], 0x05, 0x00);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[2], 0x0b, 0x00);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[2], 0x0c, 0x00);
+-	if (ret)
+-		goto err;
 -
--	prop = of_get_flat_dt_prop(node, "samsung,mfc-l", &len);
--	if (!prop || (len != 2 * sizeof(unsigned long)))
--		return 0;
+-	/* Check if firmware is already running */
+-	ret = regmap_read(dev->regmap[0], 0xf5, &utmp);
+-	if (ret)
+-		goto err;
+-	if (!(utmp & 0x01))
+-		goto warm;
 -
--	mfc_mem.loff = be32_to_cpu(prop[0]);
--	mfc_mem.lsize = be32_to_cpu(prop[1]);
+-	ret = request_firmware(&firmware, name, &client->dev);
+-	if (ret) {
+-		dev_err(&client->dev, "firmare file '%s' not found\n", name);
+-		goto err;
+-	}
 -
--	prop = of_get_flat_dt_prop(node, "samsung,mfc-r", &len);
--	if (!prop || (len != 2 * sizeof(unsigned long)))
--		return 0;
+-	dev_info(&client->dev, "downloading firmware from file '%s'\n", name);
 -
--	mfc_mem.roff = be32_to_cpu(prop[0]);
--	mfc_mem.rsize = be32_to_cpu(prop[1]);
+-	ret = regmap_write(dev->regmap[0], 0xf5, 0x03);
+-	if (ret)
+-		goto err_release_firmware;
 -
--	s5p_mfc_reserve_mem(mfc_mem.roff, mfc_mem.rsize,
--			mfc_mem.loff, mfc_mem.lsize);
+-	for (rem = firmware->size; rem > 0; rem -= (dev->i2c_write_max - 1)) {
+-		len = min(dev->i2c_write_max - 1, rem);
+-		ret = regmap_bulk_write(dev->regmap[0], 0xf6,
+-					&firmware->data[firmware->size - rem],
+-					len);
+-		if (ret) {
+-			dev_err(&client->dev, "firmware download failed %d\n",
+-				ret);
+-			goto err_release_firmware;
+-		}
+-	}
 -
--	return 1;
+-	/* Parity check of firmware */
+-	ret = regmap_read(dev->regmap[0], 0xf8, &utmp);
+-	if (ret)
+-		goto err_release_firmware;
+-	if (utmp & 0x10) {
+-		ret = -EINVAL;
+-		dev_err(&client->dev, "firmware did not run\n");
+-		goto err_release_firmware;
+-	}
+-
+-	ret = regmap_write(dev->regmap[0], 0xf5, 0x00);
+-	if (ret)
+-		goto err_release_firmware;
+-
+-	release_firmware(firmware);
+-warm:
+-	/* TS config */
+-	switch (dev->ts_mode) {
+-	case SERIAL_TS_MODE:
+-		ret = regmap_write(dev->regmap[2], 0x08, 0x1d);
+-		break;
+-	case PARALLEL_TS_MODE:
+-		ret = regmap_write(dev->regmap[2], 0x08, 0x00);
+-		break;
+-	default:
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+-	switch (dev->ts_clk) {
+-	case VARIABLE_TS_CLOCK:
+-		ret = regmap_write(dev->regmap[0], 0xd9, 0xe3);
+-		break;
+-	case FIXED_TS_CLOCK:
+-		ret = regmap_write(dev->regmap[0], 0xd9, 0xe1);
+-		break;
+-	default:
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+-	dev->active = true;
+-
+-	return 0;
+-err_release_firmware:
+-	release_firmware(firmware);
+-err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
+-	return ret;
 -}
+-
+-static int mn88472_sleep(struct dvb_frontend *fe)
+-{
+-	struct i2c_client *client = fe->demodulator_priv;
+-	struct mn88472_dev *dev = i2c_get_clientdata(client);
+-	int ret;
+-
+-	dev_dbg(&client->dev, "\n");
+-
+-	/* Power down */
+-	ret = regmap_write(dev->regmap[2], 0x0c, 0x30);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[2], 0x0b, 0x30);
+-	if (ret)
+-		goto err;
+-	ret = regmap_write(dev->regmap[2], 0x05, 0x3e);
+-	if (ret)
+-		goto err;
+-
+-	return 0;
+-err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
+-	return ret;
+-}
+-
+-static struct dvb_frontend_ops mn88472_ops = {
+-	.delsys = {SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A},
+-	.info = {
+-		.name = "Panasonic MN88472",
+-		.symbol_rate_min = 1000000,
+-		.symbol_rate_max = 7200000,
+-		.caps =	FE_CAN_FEC_1_2                 |
+-			FE_CAN_FEC_2_3                 |
+-			FE_CAN_FEC_3_4                 |
+-			FE_CAN_FEC_5_6                 |
+-			FE_CAN_FEC_7_8                 |
+-			FE_CAN_FEC_AUTO                |
+-			FE_CAN_QPSK                    |
+-			FE_CAN_QAM_16                  |
+-			FE_CAN_QAM_32                  |
+-			FE_CAN_QAM_64                  |
+-			FE_CAN_QAM_128                 |
+-			FE_CAN_QAM_256                 |
+-			FE_CAN_QAM_AUTO                |
+-			FE_CAN_TRANSMISSION_MODE_AUTO  |
+-			FE_CAN_GUARD_INTERVAL_AUTO     |
+-			FE_CAN_HIERARCHY_AUTO          |
+-			FE_CAN_MUTE_TS                 |
+-			FE_CAN_2G_MODULATION           |
+-			FE_CAN_MULTISTREAM
+-	},
+-
+-	.get_tune_settings = mn88472_get_tune_settings,
+-
+-	.init = mn88472_init,
+-	.sleep = mn88472_sleep,
+-
+-	.set_frontend = mn88472_set_frontend,
+-
+-	.read_status = mn88472_read_status,
+-};
+-
+-static struct dvb_frontend *mn88472_get_dvb_frontend(struct i2c_client *client)
+-{
+-	struct mn88472_dev *dev = i2c_get_clientdata(client);
+-
+-	dev_dbg(&client->dev, "\n");
+-
+-	return &dev->fe;
+-}
+-
+-static int mn88472_probe(struct i2c_client *client,
+-			 const struct i2c_device_id *id)
+-{
+-	struct mn88472_config *pdata = client->dev.platform_data;
+-	struct mn88472_dev *dev;
+-	int ret;
+-	unsigned int utmp;
+-	static const struct regmap_config regmap_config = {
+-		.reg_bits = 8,
+-		.val_bits = 8,
+-	};
+-
+-	dev_dbg(&client->dev, "\n");
+-
+-	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		ret = -ENOMEM;
+-		goto err;
+-	}
+-
+-	dev->i2c_write_max = pdata->i2c_wr_max ? pdata->i2c_wr_max : ~0;
+-	dev->clk = pdata->xtal;
+-	dev->ts_mode = pdata->ts_mode;
+-	dev->ts_clk = pdata->ts_clock;
+-	dev->client[0] = client;
+-	dev->regmap[0] = regmap_init_i2c(dev->client[0], &regmap_config);
+-	if (IS_ERR(dev->regmap[0])) {
+-		ret = PTR_ERR(dev->regmap[0]);
+-		goto err_kfree;
+-	}
+-
+-	/* Check demod answers with correct chip id */
+-	ret = regmap_read(dev->regmap[0], 0xff, &utmp);
+-	if (ret)
+-		goto err_regmap_0_regmap_exit;
+-
+-	dev_dbg(&client->dev, "chip id=%02x\n", utmp);
+-
+-	if (utmp != 0x02) {
+-		ret = -ENODEV;
+-		goto err_regmap_0_regmap_exit;
+-	}
+-
+-	/*
+-	 * Chip has three I2C addresses for different register banks. Used
+-	 * addresses are 0x18, 0x1a and 0x1c. We register two dummy clients,
+-	 * 0x1a and 0x1c, in order to get own I2C client for each register bank.
+-	 *
+-	 * Also, register bank 2 do not support sequential I/O. Only single
+-	 * register write or read is allowed to that bank.
+-	 */
+-	dev->client[1] = i2c_new_dummy(client->adapter, 0x1a);
+-	if (!dev->client[1]) {
+-		ret = -ENODEV;
+-		dev_err(&client->dev, "I2C registration failed\n");
+-		if (ret)
+-			goto err_regmap_0_regmap_exit;
+-	}
+-	dev->regmap[1] = regmap_init_i2c(dev->client[1], &regmap_config);
+-	if (IS_ERR(dev->regmap[1])) {
+-		ret = PTR_ERR(dev->regmap[1]);
+-		goto err_client_1_i2c_unregister_device;
+-	}
+-	i2c_set_clientdata(dev->client[1], dev);
+-
+-	dev->client[2] = i2c_new_dummy(client->adapter, 0x1c);
+-	if (!dev->client[2]) {
+-		ret = -ENODEV;
+-		dev_err(&client->dev, "2nd I2C registration failed\n");
+-		if (ret)
+-			goto err_regmap_1_regmap_exit;
+-	}
+-	dev->regmap[2] = regmap_init_i2c(dev->client[2], &regmap_config);
+-	if (IS_ERR(dev->regmap[2])) {
+-		ret = PTR_ERR(dev->regmap[2]);
+-		goto err_client_2_i2c_unregister_device;
+-	}
+-	i2c_set_clientdata(dev->client[2], dev);
+-
+-	/* Sleep because chip is active by default */
+-	ret = regmap_write(dev->regmap[2], 0x05, 0x3e);
+-	if (ret)
+-		goto err_regmap_2_regmap_exit;
+-
+-	/* Create dvb frontend */
+-	memcpy(&dev->fe.ops, &mn88472_ops, sizeof(struct dvb_frontend_ops));
+-	dev->fe.demodulator_priv = client;
+-	*pdata->fe = &dev->fe;
+-	i2c_set_clientdata(client, dev);
+-
+-	/* Setup callbacks */
+-	pdata->get_dvb_frontend = mn88472_get_dvb_frontend;
+-
+-	dev_info(&client->dev, "Panasonic MN88472 successfully identified\n");
+-
+-	return 0;
+-err_regmap_2_regmap_exit:
+-	regmap_exit(dev->regmap[2]);
+-err_client_2_i2c_unregister_device:
+-	i2c_unregister_device(dev->client[2]);
+-err_regmap_1_regmap_exit:
+-	regmap_exit(dev->regmap[1]);
+-err_client_1_i2c_unregister_device:
+-	i2c_unregister_device(dev->client[1]);
+-err_regmap_0_regmap_exit:
+-	regmap_exit(dev->regmap[0]);
+-err_kfree:
+-	kfree(dev);
+-err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
+-	return ret;
+-}
+-
+-static int mn88472_remove(struct i2c_client *client)
+-{
+-	struct mn88472_dev *dev = i2c_get_clientdata(client);
+-
+-	dev_dbg(&client->dev, "\n");
+-
+-	regmap_exit(dev->regmap[2]);
+-	i2c_unregister_device(dev->client[2]);
+-
+-	regmap_exit(dev->regmap[1]);
+-	i2c_unregister_device(dev->client[1]);
+-
+-	regmap_exit(dev->regmap[0]);
+-
+-	kfree(dev);
+-
+-	return 0;
+-}
+-
+-static const struct i2c_device_id mn88472_id_table[] = {
+-	{"mn88472", 0},
+-	{}
+-};
+-MODULE_DEVICE_TABLE(i2c, mn88472_id_table);
+-
+-static struct i2c_driver mn88472_driver = {
+-	.driver = {
+-		.name = "mn88472",
+-		.suppress_bind_attrs = true,
+-	},
+-	.probe    = mn88472_probe,
+-	.remove   = mn88472_remove,
+-	.id_table = mn88472_id_table,
+-};
+-
+-module_i2c_driver(mn88472_driver);
+-
+-MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+-MODULE_DESCRIPTION("Panasonic MN88472 DVB-T/T2/C demodulator driver");
+-MODULE_LICENSE("GPL");
+-MODULE_FIRMWARE(MN88472_FIRMWARE);
+diff --git a/drivers/staging/media/mn88472/mn88472_priv.h b/drivers/staging/media/mn88472/mn88472_priv.h
+deleted file mode 100644
+index cdf2597..0000000
+--- a/drivers/staging/media/mn88472/mn88472_priv.h
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/*
+- * Panasonic MN88472 DVB-T/T2/C demodulator driver
+- *
+- * Copyright (C) 2013 Antti Palosaari <crope@iki.fi>
+- *
+- *    This program is free software; you can redistribute it and/or modify
+- *    it under the terms of the GNU General Public License as published by
+- *    the Free Software Foundation; either version 2 of the License, or
+- *    (at your option) any later version.
+- *
+- *    This program is distributed in the hope that it will be useful,
+- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *    GNU General Public License for more details.
+- */
+-
+-#ifndef MN88472_PRIV_H
+-#define MN88472_PRIV_H
+-
+-#include "dvb_frontend.h"
+-#include "mn88472.h"
+-#include <linux/firmware.h>
+-#include <linux/regmap.h>
+-
+-#define MN88472_FIRMWARE "dvb-demod-mn88472-02.fw"
+-
+-struct mn88472_dev {
+-	struct i2c_client *client[3];
+-	struct regmap *regmap[3];
+-	struct dvb_frontend fe;
+-	u16 i2c_write_max;
+-	unsigned int clk;
+-	unsigned int active:1;
+-	unsigned int ts_mode:1;
+-	unsigned int ts_clk:1;
+-};
+-
+-#endif
 -- 
-1.9.2
+http://palosaari.fi/
 
