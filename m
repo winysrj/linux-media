@@ -1,103 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35572 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754651AbcEXJQp (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:42157 "EHLO
+	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753994AbcEODLv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 05:16:45 -0400
-Subject: Re: [PATCHv3] support for AD5820 camera auto-focus coil
-To: Pavel Machek <pavel@ucw.cz>
-References: <20160517181927.GA28741@amd> <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com> <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com> <20160524090433.GA1277@amd>
-Cc: pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-	sakari.ailus@iki.fi
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <57441BF8.60606@gmail.com>
-Date: Tue, 24 May 2016 12:16:40 +0300
-MIME-Version: 1.0
-In-Reply-To: <20160524090433.GA1277@amd>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 14 May 2016 23:11:51 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 566681800D7
+	for <linux-media@vger.kernel.org>; Sun, 15 May 2016 05:11:45 +0200 (CEST)
+Date: Sun, 15 May 2016 05:11:45 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160515031145.566681800D7@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-On 24.05.2016 12:04, Pavel Machek wrote:
-> Hi!
->
->>> +static int ad5820_registered(struct v4l2_subdev *subdev)
->>> +{
->>> +	struct ad5820_device *coil = to_ad5820_device(subdev);
->>> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
->>> +
->>> +	coil->vana = regulator_get(&client->dev, "VANA");
->>
->> devm_regulator_get()?
->
-> I'd rather avoid devm_ here. Driver is simple enough to allow it.
->
+date:		Sun May 15 04:00:22 CEST 2016
+git branch:	test
+git hash:	d1532d5575696965a52b19553dd7dacf75f3fec5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-164
 
-Now thinking about it, what would happen here if regulator_get() returns 
--EPROBE_DEFER? Wouldn't it be better to move regulator_get to the 
-probe() function, something like:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-static int ad5820_probe(struct i2c_client *client,
-			const struct i2c_device_id *devid)
-{
-	struct ad5820_device *coil;
-	int ret = 0;
+Detailed results are available here:
 
-	coil = devm_kzalloc(sizeof(*coil), GFP_KERNEL);
-	if (coil == NULL)
-		return -ENOMEM;
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-	coil->vana = devm_regulator_get(&client->dev, NULL);
-	if (IS_ERR(coil->vana)) {
-		ret = PTR_ERR(coil->vana);
-		if (ret != -EPROBE_DEFER)
-			dev_err(&client->dev, "could not get regulator for vana\n");
-		return ret;
-	}
+Full logs are available here:
 
-	mutex_init(&coil->power_lock);
-...
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-with the appropriate changes to remove() because of the devm API usage.
+The Media Infrastructure API from this daily build is here:
 
->>> +#define AD5820_RAMP_MODE_LINEAR		(0 << 3)
->>> +#define AD5820_RAMP_MODE_64_16		(1 << 3)
->>> +
->>> +struct ad5820_platform_data {
->>> +	int (*set_xshutdown)(struct v4l2_subdev *subdev, int set);
->>> +};
->>> +
->>> +#define to_ad5820_device(sd)	container_of(sd, struct ad5820_device, subdev)
->>> +
->>> +struct ad5820_device {
->>> +	struct v4l2_subdev subdev;
->>> +	struct ad5820_platform_data *platform_data;
->>> +	struct regulator *vana;
->>> +
->>> +	struct v4l2_ctrl_handler ctrls;
->>> +	u32 focus_absolute;
->>> +	u32 focus_ramp_time;
->>> +	u32 focus_ramp_mode;
->>> +
->>> +	struct mutex power_lock;
->>> +	int power_count;
->>> +
->>> +	int standby : 1;
->>> +};
->>> +
->>
->> The same for struct ad5820_device, is it really part of the public API?
->
-> Let me check what can be done with it.
-> 									Pavel
->
+http://www.xs4all.nl/~hverkuil/spec/media.html
