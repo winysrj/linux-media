@@ -1,77 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:49914 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751161AbcEDO6d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 10:58:33 -0400
-Date: Wed, 4 May 2016 08:57:13 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-	Jani Nikula <jani.nikula@intel.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-Message-ID: <20160504085713.3b81856d@lwn.net>
-In-Reply-To: <CAKMK7uG9hNkG6KxFLQeaCbtPFY7qLiz6s5+qDy9-DcdywkDqrA@mail.gmail.com>
-References: <87fuvypr2h.fsf@intel.com>
-	<20160310122101.2fca3d79@recife.lan>
-	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
-	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
-	<20160412094620.4fbf05c0@lwn.net>
-	<CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
-	<CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
-	<54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
-	<874maef8km.fsf@intel.com>
-	<13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de>
-	<20160504134346.GY14148@phenom.ffwll.local>
-	<CAKMK7uG9hNkG6KxFLQeaCbtPFY7qLiz6s5+qDy9-DcdywkDqrA@mail.gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52373 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751160AbcEOUV3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 May 2016 16:21:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Dave Airlie <airlied@linux.ie>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [GIT PULL FOR v4.7] Renesas VSP updates
+Date: Sun, 15 May 2016 23:21:26 +0300
+Message-ID: <3580152.FdhMeqdA5C@avalon>
+In-Reply-To: <146308505.rpggZ7d6pq@avalon>
+References: <146308505.rpggZ7d6pq@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 4 May 2016 16:18:27 +0200
-Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
+Hi Mauro,
 
-> > I'd really like to converge on the markup question, so that we can start
-> > using all the cool stuff with impunity in gpu documentations.  
+I've found a small issue in one of the patches. As you don't plan to apply the 
+series to v4.7 anyway I'll fix the problem and send a new pull request.
+
+Another issue I wanted to mention is that the two rcar-du patches will very 
+likely conflict with patches merged through Dave's tree for v4.8 (be accurate 
+with the generic zpos property series posted by Benjamin Gaignard). Dave, one 
+way to handle this would be for Mauro to merge this series very early in his 
+tree (as soon as possible after the v4.6 release) and provide you with a 
+stable branch to pull in your tree, on top of which Benjamin would have to 
+rebase his series (the conflict will be easy to solve). Would that work for 
+everybody ?
+
+On Wednesday 11 May 2016 16:23:01 Laurent Pinchart wrote:
+> Hi Mauro,
 > 
-> Aside: If we decide this now I could send in a pull request for the
-> rst/sphinx kernel-doc support still for 4.7 (based upon the minimal
-> markdown/asciidoc code I still have). That would be really awesome ...
+> The following changes since commit aff093d4bbca91f543e24cde2135f393b8130f4b:
+> 
+>   [media] exynos-gsc: avoid build warning without CONFIG_OF (2016-05-09
+> 18:38:33 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/pinchartl/media.git vsp1/next
+> 
+> for you to fetch changes up to 01986b08a08353a23bc89a588a14966cb0a09e0d:
+> 
+>   v4l: vsp1: Remove deprecated DRM API (2016-05-11 16:07:44 +0300)
+> 
+> Please note that the pull request includes two patches for the rcar-du-drm
+> driver. They depend on previous patches for the vsp1 driver in the same
+> series, and the last vsp1 patch depends on them. For this reason I'm
+> submitting everything in a single pull request to you, with Dave's ack to
+> get the rcar-du-drm patches merged through your tree. They shouldn't
+> conflict with anything queued in Dave's tree for v4.7.
+> 
+> ----------------------------------------------------------------
+> Laurent Pinchart (13):
+>       dt-bindings: Add Renesas R-Car FCP DT bindings
+>       v4l: Add Renesas R-Car FCP driver
+>       v4l: vsp1: Implement runtime PM support
+>       v4l: vsp1: Don't handle clocks manually
+>       v4l: vsp1: Add FCP support
+>       v4l: vsp1: Add output node value to routing table
+>       v4l: vsp1: Replace container_of() with dedicated macro
+>       v4l: vsp1: Make vsp1_entity_get_pad_compose() more generic
+>       v4l: vsp1: Move frame sequence number from video node to pipeline
+>       v4l: vsp1: Group DRM RPF parameters in a structure
+>       drm: rcar-du: Add alpha support for VSP planes
+>       drm: rcar-du: Add Z-order support for VSP planes
+>       v4l: vsp1: Remove deprecated DRM API
+> 
+>  Documentation/devicetree/bindings/media/renesas,fcp.txt |  32 +++++
+>  .../devicetree/bindings/media/renesas,vsp1.txt          |   5 +
+>  MAINTAINERS                                             |  10 ++
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.c                   |  45 +++---
+>  drivers/gpu/drm/rcar-du/rcar_du_vsp.h                   |   2 +
+>  drivers/media/platform/Kconfig                          |  14 ++
+>  drivers/media/platform/Makefile                         |   1 +
+>  drivers/media/platform/rcar-fcp.c                       | 181 +++++++++++++
+>  drivers/media/platform/vsp1/vsp1.h                      |   6 +-
+>  drivers/media/platform/vsp1/vsp1_drm.c                  |  68 ++++-----
+>  drivers/media/platform/vsp1/vsp1_drv.c                  | 120 +++++--------
+>  drivers/media/platform/vsp1/vsp1_entity.c               |  88 ++++++++----
+>  drivers/media/platform/vsp1/vsp1_entity.h               |  12 +-
+>  drivers/media/platform/vsp1/vsp1_pipe.c                 |   4 +-
+>  drivers/media/platform/vsp1/vsp1_pipe.h                 |   2 +
+>  drivers/media/platform/vsp1/vsp1_rpf.c                  |   7 +-
+>  drivers/media/platform/vsp1/vsp1_video.c                |   4 +-
+>  drivers/media/platform/vsp1/vsp1_video.h                |   1 -
+>  include/media/rcar-fcp.h                                |  37 +++++
+>  include/media/vsp1.h                                    |  29 ++--
+>  20 files changed, 497 insertions(+), 171 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/renesas,fcp.txt
+>  create mode 100644 drivers/media/platform/rcar-fcp.c
+>  create mode 100644 include/media/rcar-fcp.h
 
-Sorry for my relative absence...I'm still busy dealing with bureaucracy
-an ocean away from home.  I hope to begin emerging from this mess in the
-near future.
+-- 
+Regards,
 
-So ... there's the code you have, the work I (+Jani) did, and the work
-Markus has done.  Which would you have me push into 4.7?
+Laurent Pinchart
 
-The sphinx/rst approach does seem, to me, to be the right one, with the
-existing DocBook structure remaining in place for those who want/need
-it.  I'm inclined toward my stuff as a base to work with, obviously :) But
-it's hackish at best and needs a lot of cleaning up.  It's a proof of
-concept, but it's hardly finished (one might say it's barely begun...)
-
-In the end, I guess, I feel that anything we might try to push for 4.7 is
-going to look rushed and not ready, and Linus might react accordingly.
-I'd be more comfortable aiming for 4.8.  I *will* have more time to focus
-on things in that time frame...  I suspect you're pretty well fed up with
-this stuff being pushed back, and rightly so.  All I can do is apologize.
-
-That said, if you do think there's something out there that is good
-enough to consider pushing in a week or two, do tell and we can all take
-a look.
-
-Thanks,
-
-jon
