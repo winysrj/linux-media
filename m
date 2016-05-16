@@ -1,55 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f195.google.com ([209.85.161.195]:33115 "EHLO
-	mail-yw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754329AbcEaOdZ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52758 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752500AbcEPKCW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2016 10:33:25 -0400
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-kernel@vger.kernel.org,
-	Gustavo Padovan <gustavo.padovan@collabora.co.uk>
-Subject: [PATCH 1/2] MAINTAINERS: add entry for the Sync File Framework
-Date: Tue, 31 May 2016 11:33:15 -0300
-Message-Id: <1464705196-24369-1-git-send-email-gustavo@padovan.org>
+	Mon, 16 May 2016 06:02:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: sakari.ailus@iki.fi
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 4/4] Support setting control from values stored in a file
+Date: Mon, 16 May 2016 13:02:12 +0300
+Message-Id: <1463392932-28307-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1463392932-28307-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1463392932-28307-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
-
-Add Gustavo as maintainer for the Sync File Framework. Sumit is
-co-maintainer as he maintains drivers/dma-buf/. It also uses Sumit's
-tree as base.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
-Acked-by: Sumit Semwal <sumit.semwal@linaro.org>
-Acked-by: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- MAINTAINERS | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ yavta.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index fb487d9..0891228 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3677,6 +3677,17 @@ F:	include/linux/*fence.h
- F:	Documentation/dma-buf-sharing.txt
- T:	git git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git
+diff --git a/yavta.c b/yavta.c
+index 4b531a0360fe..d0bcf7f19c7b 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -1225,6 +1225,30 @@ static int video_parse_control_array(const struct v4l2_query_ext_ctrl *query,
  
-+SYNC FILE FRAMEWORK
-+M:	Sumit Semwal <sumit.semwal@linaro.org>
-+R:	Gustavo Padovan <gustavo@padovan.org>
-+S:	Maintained
-+L:	linux-media@vger.kernel.org
-+L:	dri-devel@lists.freedesktop.org
-+F:	drivers/dma-buf/sync_file.c
-+F:	include/linux/sync_file.h
-+F:	Documentation/sync_file.txt
-+T:	git git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git
+ 	for ( ; isspace(*val); ++val) { };
+ 
++	if (*val == '<') {
++		/* Read the control value from the given file. */
++		ssize_t size;
++		int fd;
 +
- DMA GENERIC OFFLOAD ENGINE SUBSYSTEM
- M:	Vinod Koul <vinod.koul@intel.com>
- L:	dmaengine@vger.kernel.org
++		val++;
++		fd = open(val, O_RDONLY);
++		if (fd < 0) {
++			printf("unable to open control file `%s'\n", val);
++			return -EINVAL;
++		}
++
++		size = read(fd, ctrl->ptr, ctrl->size);
++		if (size != (ssize_t)ctrl->size) {
++			printf("error reading control file `%s' (%s)\n", val,
++			       strerror(errno));
++			close(fd);
++			return -EINVAL;
++		}
++
++		close(fd);
++		return 0;
++	}
++
+ 	if (*val++ != '{')
+ 		return -EINVAL;
+ 
 -- 
-2.5.5
+2.7.3
 
