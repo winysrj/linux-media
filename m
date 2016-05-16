@@ -1,79 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:32951 "EHLO
-	mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755476AbcEYRgQ (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:46214 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752137AbcEPDKO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2016 13:36:16 -0400
-Date: Wed, 25 May 2016 12:36:14 -0500
-From: Rob Herring <robh@kernel.org>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Uli Middelberg <uli@middelberg.de>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: Re: [PATCH v4 2/7] media: s5p-mfc: use generic reserved memory
- bindings
-Message-ID: <20160525173614.GA8309@rob-hp-laptop>
-References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
- <1464096690-23605-3-git-send-email-m.szyprowski@samsung.com>
- <a14c4f45-64c9-f72d-532b-ad1ff53fa9eb@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a14c4f45-64c9-f72d-532b-ad1ff53fa9eb@osg.samsung.com>
+	Sun, 15 May 2016 23:10:14 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 1E3D81800DC
+	for <linux-media@vger.kernel.org>; Mon, 16 May 2016 05:10:01 +0200 (CEST)
+Date: Mon, 16 May 2016 05:10:01 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160516031001.1E3D81800DC@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 25, 2016 at 11:18:59AM -0400, Javier Martinez Canillas wrote:
-> Hello Marek,
-> 
-> On 05/24/2016 09:31 AM, Marek Szyprowski wrote:
-> > Use generic reserved memory bindings and mark old, custom properties
-> > as obsoleted.
-> > 
-> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> > ---
-> >  .../devicetree/bindings/media/s5p-mfc.txt          | 39 +++++++++++++++++-----
-> >  1 file changed, 31 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-> > index 2d5787e..92c94f5 100644
-> > --- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-> > +++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-> > @@ -21,15 +21,18 @@ Required properties:
-> >    - clock-names : from common clock binding: must contain "mfc",
-> >  		  corresponding to entry in the clocks property.
-> >  
-> > -  - samsung,mfc-r : Base address of the first memory bank used by MFC
-> > -		    for DMA contiguous memory allocation and its size.
-> > -
-> > -  - samsung,mfc-l : Base address of the second memory bank used by MFC
-> > -		    for DMA contiguous memory allocation and its size.
-> > -
-> >  Optional properties:
-> >    - power-domains : power-domain property defined with a phandle
-> >  			   to respective power domain.
-> > +  - memory-region : from reserved memory binding: phandles to two reserved
-> > +	memory regions, first is for "left" mfc memory bus interfaces,
-> > +	second if for the "right" mfc memory bus, used when no SYSMMU
-> > +	support is available
-> > +
-> > +Obsolete properties:
-> > +  - samsung,mfc-r, samsung,mfc-l : support removed, please use memory-region
-> > +	property instead
-> > +
-> > 
-> 
-> I wonder if we should maintain backward compatibility for this driver
-> since s5p-mfc memory allocation won't work with an old FDT if support
-> for the old properties are removed.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Well, minimally the commit log should indicate that compatibility is 
-being broken.
+Results of the daily build of media_tree:
 
-Rob
+date:		Mon May 16 04:00:22 CEST 2016
+git branch:	test
+git hash:	d1532d5575696965a52b19553dd7dacf75f3fec5
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-rc1-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
