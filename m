@@ -1,69 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0a-0016f401.pphosted.com ([67.231.148.174]:25131 "EHLO
-	mx0a-0016f401.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932569AbcEXRgl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 13:36:41 -0400
-Received: from pps.filterd (m0045849.ppops.net [127.0.0.1])
-	by mx0a-0016f401.pphosted.com (8.16.0.17/8.16.0.17) with SMTP id u4OHWTKH010578
-	for <linux-media@vger.kernel.org>; Tue, 24 May 2016 10:36:39 -0700
-Received: from sc-exch01.marvell.com ([199.233.58.181])
-	by mx0a-0016f401.pphosted.com with ESMTP id 232n1jw5cc-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-SHA384 bits=256 verify=NOT)
-	for <linux-media@vger.kernel.org>; Tue, 24 May 2016 10:36:39 -0700
-From: Burt Poppenga <burtp@marvell.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Cross compiling v4l-utils for Android
-Date: Tue, 24 May 2016 17:36:37 +0000
-Message-ID: <D369ED47.7F7A%burtp@marvell.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <4286070FFD824744BD96AED2F69AFE9E@marvell.com>
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33107 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248AbcEPXFP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 May 2016 19:05:15 -0400
 MIME-Version: 1.0
+In-Reply-To: <1462806459-8124-3-git-send-email-benjamin.gaignard@linaro.org>
+References: <1462806459-8124-1-git-send-email-benjamin.gaignard@linaro.org>
+	<1462806459-8124-3-git-send-email-benjamin.gaignard@linaro.org>
+Date: Tue, 17 May 2016 00:05:13 +0100
+Message-ID: <CACvgo51sRwhpzyzqGRmxFnqefSvT0r1ekjxhnuQBbT-FuxBRhA@mail.gmail.com>
+Subject: Re: [PATCH v7 2/3] SMAF: add CMA allocator
+From: Emil Velikov <emil.l.velikov@gmail.com>
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: linux-media@vger.kernel.org,
+	"Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
+	ML dri-devel <dri-devel@lists.freedesktop.org>,
+	zoltan.kuscsik@linaro.org, Sumit Semwal <sumit.semwal@linaro.org>,
+	cc.ma@mediatek.com, pascal.brand@linaro.org,
+	joakim.bech@linaro.org, dan.caprita@windriver.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Benjamin,
 
-I was hoping to get some tips on cross compiling v4l-utils for Android.  I
-am targeting a Nexus 5 Marshmallow device (using the android-6.0.1_r41
-branch) and have the complete AOSP tree, it is built and flashed in my
-device.
-
-  PLATFORM_VERSION_CODENAME=REL
-  PLATFORM_VERSION=6.0.1
-  TARGET_PRODUCT=aosp_hammerhead
-  TARGET_BUILD_VARIANT=userdebug
-  TARGET_BUILD_TYPE=release
-  TARGET_ARCH=arm
-  TARGET_ARCH_VARIANT=armv7-a-neon
-  TARGET_CPU_VARIANT=krait
-  BUILD_ID=MOB30H
-
-Note that I have not built the Kernel or NDK.
-
-The INSTALL document for v4l-utils says:
-"v4l-utils will only build using the complete AOSP source tree, because of
-the stlport dependency"
-
-Which makes sense looking at the v4l2-ctl Android.mk file:
-
-LOCAL_C_INCLUDES := \
-  $(LOCAL_PATH)/../.. \
-  $(LOCAL_PATH)/../../include \
-  bionic \
-  external/stlport/stlport
-
-LOCAL_SHARED_LIBRARIES := libstlport
-
-The problem arises because it appears that Google has deprecated stlport.
-Stlport no longer appears in the "external" tree, only the library is
-present in the "prebuilts" tree.
-
-Any tips would be greatly appreciated.
-
-Thanks,
-Burt
+On 9 May 2016 at 16:07, Benjamin Gaignard <benjamin.gaignard@linaro.org> wrote:
+> SMAF CMA allocator implement helpers functions to allow SMAF
+> to allocate contiguous memory.
+>
+> match() each if at least one of the attached devices have coherent_dma_mask
+> set to DMA_BIT_MASK(32).
+>
+What is the idea behind the hardcoded 32. Wouldn't it be better to avoid that ?
 
 
+> +static void smaf_cma_release(struct dma_buf *dmabuf)
+> +{
+> +       struct smaf_cma_buffer_info *info = dmabuf->priv;
+> +       DEFINE_DMA_ATTRS(attrs);
+> +
+> +       dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
+> +
+Imho it's worth storing the dma_attrs within smaf_cma_buffer_info.
+This way it's less likely for things to go wrong, if one forgets to
+update one of the three in the future.
+
+
+> +static void smaf_cma_unmap(struct dma_buf_attachment *attachment,
+> +                          struct sg_table *sgt,
+> +                          enum dma_data_direction direction)
+> +{
+> +       /* do nothing */
+There could/should really be a comment explaining why we "do nothing"
+here, right ?
+
+> +}
+> +
+> +static int smaf_cma_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+> +{
+> +       struct smaf_cma_buffer_info *info = dmabuf->priv;
+> +       int ret;
+> +       DEFINE_DMA_ATTRS(attrs);
+> +
+> +       dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
+> +
+> +       if (info->size < vma->vm_end - vma->vm_start)
+> +               return -EINVAL;
+> +
+> +       vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
+> +       ret = dma_mmap_attrs(info->dev, vma, info->vaddr, info->paddr,
+> +                            info->size, &attrs);
+> +
+> +       return ret;
+Kill the temporary variable 'ret' ?
+
+
+> +static struct dma_buf_ops smaf_cma_ops = {
+const ? Afaict the compiler would/should warn you about discarding it
+as the ops are defined const.
+
+
+> +static struct dma_buf *smaf_cma_allocate(struct dma_buf *dmabuf,
+> +                                        size_t length, unsigned int flags)
+> +{
+> +       struct dma_buf_attachment *attach_obj;
+> +       struct smaf_cma_buffer_info *info;
+> +       struct dma_buf *cma_dmabuf;
+> +       int ret;
+> +
+> +       DEFINE_DMA_BUF_EXPORT_INFO(export);
+> +       DEFINE_DMA_ATTRS(attrs);
+> +
+> +       dma_set_attr(DMA_ATTR_WRITE_COMBINE, &attrs);
+> +
+> +       info = kzalloc(sizeof(*info), GFP_KERNEL);
+> +       if (!info)
+> +               return NULL;
+> +
+> +       info->dev = find_matching_device(dmabuf);
+find_matching_device() can return NULL. We should handle that imho.
+
+> +       info->size = length;
+> +       info->vaddr = dma_alloc_attrs(info->dev, info->size, &info->paddr,
+> +                                     GFP_KERNEL | __GFP_NOWARN, &attrs);
+> +       if (!info->vaddr) {
+> +               ret = -ENOMEM;
+set-but-unused-variable 'ret' ?
+
+> +               goto error;
+> +       }
+> +
+> +       export.ops = &smaf_cma_ops;
+> +       export.size = info->size;
+> +       export.flags = flags;
+> +       export.priv = info;
+> +
+> +       cma_dmabuf = dma_buf_export(&export);
+> +       if (IS_ERR(cma_dmabuf))
+Missing dma_free_attrs() ? I'd add another label in the error path and
+handle it there.
+
+> +               goto error;
+> +
+> +       list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
+> +               dma_buf_attach(cma_dmabuf, attach_obj->dev);
+Imho one should error out if attach fails. Or warn at the very least ?
+
+
+> +static int __init smaf_cma_init(void)
+> +{
+> +       INIT_LIST_HEAD(&smaf_cma.list_node);
+Isn't this something that smaf_register_allocator() should be doing ?
+
+
+Regards,
+Emil
