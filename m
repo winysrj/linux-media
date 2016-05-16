@@ -1,123 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:57629 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753108AbcEJC2K (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34693 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751229AbcEPXK0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 May 2016 22:28:10 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 524501808DD
-	for <linux-media@vger.kernel.org>; Tue, 10 May 2016 04:28:04 +0200 (CEST)
-Date: Tue, 10 May 2016 04:28:04 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160510022804.524501808DD@tschai.lan>
+	Mon, 16 May 2016 19:10:26 -0400
+MIME-Version: 1.0
+In-Reply-To: <1462806459-8124-4-git-send-email-benjamin.gaignard@linaro.org>
+References: <1462806459-8124-1-git-send-email-benjamin.gaignard@linaro.org>
+	<1462806459-8124-4-git-send-email-benjamin.gaignard@linaro.org>
+Date: Tue, 17 May 2016 00:10:24 +0100
+Message-ID: <CACvgo50i0Y=TJNCvX+c2m8u8ai2p30EbaU1u3xBmQYBZGWH5UA@mail.gmail.com>
+Subject: Re: [PATCH v7 3/3] SMAF: add fake secure module
+From: Emil Velikov <emil.l.velikov@gmail.com>
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: linux-media@vger.kernel.org,
+	"Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
+	ML dri-devel <dri-devel@lists.freedesktop.org>,
+	zoltan.kuscsik@linaro.org, Sumit Semwal <sumit.semwal@linaro.org>,
+	cc.ma@mediatek.com, pascal.brand@linaro.org,
+	joakim.bech@linaro.org, dan.caprita@windriver.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Benjamin,
 
-Results of the daily build of media_tree:
+On 9 May 2016 at 16:07, Benjamin Gaignard <benjamin.gaignard@linaro.org> wrote:
+> This module is allow testing secure calls of SMAF.
+>
+"Add fake secure module" does sound like something not (m)any people
+want to hear ;-)
+Have you considered calling it 'dummy', 'test' or similar ?
 
-date:		Tue May 10 04:00:27 CEST 2016
-git branch:	test
-git hash:	d1532d5575696965a52b19553dd7dacf75f3fec5
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-164
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-i686: ERRORS
-linux-4.6-rc1-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-x86_64: ERRORS
-linux-4.6-rc1-x86_64: ERRORS
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+> --- /dev/null
+> +++ b/drivers/smaf/smaf-fakesecure.c
+> @@ -0,0 +1,85 @@
+> +/*
+> + * smaf-fakesecure.c
+> + *
+> + * Copyright (C) Linaro SA 2015
+> + * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
+> + * License terms:  GNU General Public License (GPL), version 2
+> + */
+> +#include <linux/module.h>
+> +#include <linux/slab.h>
+> +#include <linux/smaf-secure.h>
+> +
+> +#define MAGIC 0xDEADBEEF
+> +
+> +struct fake_private {
+> +       int magic;
+> +};
+> +
+> +static void *smaf_fakesecure_create(void)
+> +{
+> +       struct fake_private *priv;
+> +
+> +       priv = kzalloc(sizeof(*priv), GFP_KERNEL);
+Missing ENOMEM handling ?
 
-Detailed results are available here:
+> +       priv->magic = MAGIC;
+> +
+> +       return priv;
+> +}
+> +
+> +static int smaf_fakesecure_destroy(void *ctx)
+> +{
+> +       struct fake_private *priv = (struct fake_private *)ctx;
+You might want to flesh this cast into a (inline) helper and use it throughout ?
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Full logs are available here:
+... and that is all. Hope these were useful, or at the very least not
+utterly wrong, suggestions :-)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
+Regards,
+Emil
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+P.S. From a quick look userspace has some subtle bugs/odd practises.
+Let me know if you're interested in my input.
