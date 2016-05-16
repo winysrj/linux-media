@@ -1,215 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db5eur01on0097.outbound.protection.outlook.com ([104.47.2.97]:51128
-	"EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754491AbcEDUQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 16:16:24 -0400
-From: Peter Rosin <peda@axentia.se>
-To: <linux-kernel@vger.kernel.org>
-CC: Peter Rosin <peda@axentia.se>, Wolfram Sang <wsa@the-dreams.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Korsgaard <peter.korsgaard@barco.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Jonathan Cameron <jic23@kernel.org>,
-	Hartmut Knaack <knaack.h@gmx.de>,
-	Lars-Peter Clausen <lars@metafoo.de>,
-	Peter Meerwald <pmeerw@pmeerw.net>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Rob Herring <robh+dt@kernel.org>,
-	Frank Rowand <frowand.list@gmail.com>,
-	Grant Likely <grant.likely@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Kalle Valo <kvalo@codeaurora.org>,
-	Jiri Slaby <jslaby@suse.com>,
-	Daniel Baluta <daniel.baluta@intel.com>,
-	Lucas De Marchi <lucas.demarchi@intel.com>,
-	Matt Ranostay <matt.ranostay@intel.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Terry Heo <terryheo@google.com>, Arnd Bergmann <arnd@arndb.de>,
-	Tommi Rantala <tt.rantala@gmail.com>,
-	Crestez Dan Leonard <leonard.crestez@intel.com>,
-	<linux-i2c@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	<linux-iio@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<devicetree@vger.kernel.org>
-Subject: [PATCH v9 5/9] iio: imu: inv_mpu6050: change the i2c gate to be mux-locked
-Date: Wed, 4 May 2016 22:15:31 +0200
-Message-ID: <1462392935-28011-6-git-send-email-peda@axentia.se>
-In-Reply-To: <1462392935-28011-1-git-send-email-peda@axentia.se>
-References: <1462392935-28011-1-git-send-email-peda@axentia.se>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36646 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754615AbcEPTe2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 May 2016 15:34:28 -0400
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, pawel.moll@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
+	linux@arm.linux.org.uk, mchehab@osg.samsung.com
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	sre@kernel.org, pali.rohar@gmail.com,
+	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Subject: [PATCH v2 2/6] pwm: omap-dmtimer: Allow for setting dmtimer clock source
+Date: Mon, 16 May 2016 22:34:10 +0300
+Message-Id: <1463427254-7728-3-git-send-email-ivo.g.dimitrov.75@gmail.com>
+In-Reply-To: <1463427254-7728-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+References: <1463427254-7728-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The root i2c adapter lock is then no longer held by the i2c mux during
-accesses behind the i2c gate, and such accesses need to take that lock
-just like any other ordinary i2c accesses do.
+OMAP GP timers can have different input clocks that allow different PWM
+frequencies. However, there is no other way of setting the clock source but
+through clocks or clock-names properties of the timer itself. This limits
+PWM functionality to only the frequencies allowed by the particular clock
+source. Allowing setting the clock source by PWM rather than by timer
+allows different PWMs to have different ranges by not hard-wiring the clock
+source to the timer.
 
-So, declare the i2c gate mux-locked, and zap the code that makes the
-unlocked i2c accesses and just use ordinary regmap_write accesses.
-
-This also happens to fix the deadlock described in
-http://patchwork.ozlabs.org/patch/584776/ authored by
-Adriana Reus <adriana.reus@intel.com> and submitted by
-Daniel Baluta <daniel.baluta@intel.com>
-
-----------8<----------
-iio: imu: inv_mpu6050: Fix deadlock between i2c adapter lock and mpu lock
-
-This deadlock occurs if the accel/gyro and the sensor on the auxiliary
-I2C (in my setup it's an ak8975) are working at the same time.
-
-Scenario:
-
-      T1					T2
-     ====				       ====
-inv_mpu6050_read_fifo                  aux sensor op (eg. ak8975_read_raw)
-        |                                     |
-mutex_lock(&indio_dev->mlock)           i2c_transfer
-        |                                     |
-i2c transaction                         i2c adapter lock
-        |                                     |
-i2c adapter lock                        i2c_mux_master_xfer
-                                              |
-                                        inv_mpu6050_select_bypass
-                                              |
-                                        mutex_lock(&indio_dev->mlock)
-
-When we operate on an mpu sensor the order of locking is mpu lock
-followed by the i2c adapter lock. However, when we operate the auxiliary
-sensor the order of locking is the other way around.
-
-...
-----------8<----------
-
-The reason this patch fixes the deadlock is that T2 does not grab the
-i2c adapter lock until the very end (and grabs the newfangled i2c mux
-lock where it previously grabbed the i2c adapter lock).
-
-Acked-by: Jonathan Cameron <jic23@kernel.org>
-Acked-by: Daniel Baluta <daniel.baluta@intel.com>
-Tested-by: Crestez Dan Leonard <leonard.crestez@intel.com>
-Signed-off-by: Peter Rosin <peda@axentia.se>
+Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- Documentation/i2c/i2c-topology            |  2 +-
- drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c | 52 ++++++-------------------------
- 2 files changed, 11 insertions(+), 43 deletions(-)
+ Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt |  4 ++++
+ drivers/pwm/pwm-omap-dmtimer.c                             | 12 +++++++-----
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/i2c/i2c-topology b/Documentation/i2c/i2c-topology
-index 27bfd682808d..69b008518454 100644
---- a/Documentation/i2c/i2c-topology
-+++ b/Documentation/i2c/i2c-topology
-@@ -50,7 +50,7 @@ i2c-mux-pinctrl           Normally parent-locked, mux-locked iff
- i2c-mux-reg               Parent-locked
+diff --git a/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt b/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
+index 5befb53..2e53324 100644
+--- a/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
++++ b/Documentation/devicetree/bindings/pwm/pwm-omap-dmtimer.txt
+@@ -9,6 +9,10 @@ Required properties:
  
- In drivers/iio/
--imu/inv_mpu6050/          Parent-locked
-+imu/inv_mpu6050/          Mux-locked
+ Optional properties:
+ - ti,prescaler: Should be a value between 0 and 7, see the timers datasheet
++- ti,clock-source: Set dmtimer parent clock, values between 0 and 2:
++  - 0x00 - high-frequency system clock (timer_sys_ck)
++  - 0x01 - 32-kHz always-on clock (timer_32k_ck)
++  - 0x02 - external clock (timer_ext_ck, OMAP2 only)
  
- In drivers/media/
- dvb-frontends/m88ds3103   Parent-locked
-diff --git a/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c b/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
-index 3a078df84224..e25f7ef7f0ea 100644
---- a/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
-+++ b/drivers/iio/imu/inv_mpu6050/inv_mpu_i2c.c
-@@ -24,45 +24,16 @@ static const struct regmap_config inv_mpu_regmap_config = {
- 	.val_bits = 8,
- };
+ Example:
+ 	pwm9: dmtimer-pwm@9 {
+diff --git a/drivers/pwm/pwm-omap-dmtimer.c b/drivers/pwm/pwm-omap-dmtimer.c
+index b7e6ecb..95964c6 100644
+--- a/drivers/pwm/pwm-omap-dmtimer.c
++++ b/drivers/pwm/pwm-omap-dmtimer.c
+@@ -245,7 +245,7 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 	struct pwm_omap_dmtimer_chip *omap;
+ 	struct pwm_omap_dmtimer_pdata *pdata;
+ 	pwm_omap_dmtimer *dm_timer;
+-	u32 prescaler;
++	u32 v;
+ 	int status;
  
--/*
-- * The i2c read/write needs to happen in unlocked mode. As the parent
-- * adapter is common. If we use locked versions, it will fail as
-- * the mux adapter will lock the parent i2c adapter, while calling
-- * select/deselect functions.
-- */
--static int inv_mpu6050_write_reg_unlocked(struct i2c_client *client,
--					  u8 reg, u8 d)
--{
--	int ret;
--	u8 buf[2] = {reg, d};
--	struct i2c_msg msg[1] = {
--		{
--			.addr = client->addr,
--			.flags = 0,
--			.len = sizeof(buf),
--			.buf = buf,
--		}
--	};
--
--	ret = __i2c_transfer(client->adapter, msg, 1);
--	if (ret != 1)
--		return ret;
--
--	return 0;
--}
--
- static int inv_mpu6050_select_bypass(struct i2c_mux_core *muxc, u32 chan_id)
- {
--	struct i2c_client *client = i2c_mux_priv(muxc);
--	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
-+	struct iio_dev *indio_dev = i2c_mux_priv(muxc);
- 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
- 	int ret = 0;
+ 	pdata = dev_get_platdata(&pdev->dev);
+@@ -306,10 +306,12 @@ static int pwm_omap_dmtimer_probe(struct platform_device *pdev)
+ 	if (pm_runtime_active(&omap->dm_timer_pdev->dev))
+ 		omap->pdata->stop(omap->dm_timer);
  
- 	/* Use the same mutex which was used everywhere to protect power-op */
- 	mutex_lock(&indio_dev->mlock);
- 	if (!st->powerup_count) {
--		ret = inv_mpu6050_write_reg_unlocked(client,
--						     st->reg->pwr_mgmt_1, 0);
-+		ret = regmap_write(st->map, st->reg->pwr_mgmt_1, 0);
- 		if (ret)
- 			goto write_error;
+-	/* setup dmtimer prescaler */
+-	if (!of_property_read_u32(pdev->dev.of_node, "ti,prescaler",
+-				&prescaler))
+-		omap->pdata->set_prescaler(omap->dm_timer, prescaler);
++	if (!of_property_read_u32(pdev->dev.of_node, "ti,prescaler", &v))
++		omap->pdata->set_prescaler(omap->dm_timer, v);
++
++	/* setup dmtimer clock source */
++	if (!of_property_read_u32(pdev->dev.of_node, "ti,clock-source", &v))
++		omap->pdata->set_source(omap->dm_timer, v);
  
-@@ -71,10 +42,9 @@ static int inv_mpu6050_select_bypass(struct i2c_mux_core *muxc, u32 chan_id)
- 	}
- 	if (!ret) {
- 		st->powerup_count++;
--		ret = inv_mpu6050_write_reg_unlocked(client,
--						     st->reg->int_pin_cfg,
--						     INV_MPU6050_INT_PIN_CFG |
--						     INV_MPU6050_BIT_BYPASS_EN);
-+		ret = regmap_write(st->map, st->reg->int_pin_cfg,
-+				   INV_MPU6050_INT_PIN_CFG |
-+				   INV_MPU6050_BIT_BYPASS_EN);
- 	}
- write_error:
- 	mutex_unlock(&indio_dev->mlock);
-@@ -84,18 +54,16 @@ write_error:
- 
- static int inv_mpu6050_deselect_bypass(struct i2c_mux_core *muxc, u32 chan_id)
- {
--	struct i2c_client *client = i2c_mux_priv(muxc);
--	struct iio_dev *indio_dev = dev_get_drvdata(&client->dev);
-+	struct iio_dev *indio_dev = i2c_mux_priv(muxc);
- 	struct inv_mpu6050_state *st = iio_priv(indio_dev);
- 
- 	mutex_lock(&indio_dev->mlock);
- 	/* It doesn't really mattter, if any of the calls fails */
--	inv_mpu6050_write_reg_unlocked(client, st->reg->int_pin_cfg,
--				       INV_MPU6050_INT_PIN_CFG);
-+	regmap_write(st->map, st->reg->int_pin_cfg, INV_MPU6050_INT_PIN_CFG);
- 	st->powerup_count--;
- 	if (!st->powerup_count)
--		inv_mpu6050_write_reg_unlocked(client, st->reg->pwr_mgmt_1,
--					       INV_MPU6050_BIT_SLEEP);
-+		regmap_write(st->map, st->reg->pwr_mgmt_1,
-+			     INV_MPU6050_BIT_SLEEP);
- 	mutex_unlock(&indio_dev->mlock);
- 
- 	return 0;
-@@ -134,7 +102,7 @@ static int inv_mpu_probe(struct i2c_client *client,
- 
- 	st = iio_priv(dev_get_drvdata(&client->dev));
- 	st->muxc = i2c_mux_alloc(client->adapter, &client->dev,
--				 1, 0, 0,
-+				 1, 0, I2C_MUX_LOCKED,
- 				 inv_mpu6050_select_bypass,
- 				 inv_mpu6050_deselect_bypass);
- 	if (!st->muxc) {
+ 	omap->chip.dev = &pdev->dev;
+ 	omap->chip.ops = &pwm_omap_dmtimer_ops;
 -- 
-2.1.4
+1.9.1
 
