@@ -1,44 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33045 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933398AbcECSeN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2016 14:34:13 -0400
-Received: by mail-wm0-f67.google.com with SMTP id r12so5330903wme.0
-        for <linux-media@vger.kernel.org>; Tue, 03 May 2016 11:34:12 -0700 (PDT)
-Subject: Re: [RFC PATCH 06/24] smiapp: Add quirk control support
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <20160420081427.GZ32125@valkosipuli.retiisi.org.uk>
- <1461532104-24032-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <1461532104-24032-7-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20160501104646.GE26360@valkosipuli.retiisi.org.uk>
-Cc: sre@kernel.org, pali.rohar@gmail.com, pavel@ucw.cz,
-	linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <5728EED5.8010109@gmail.com>
-Date: Tue, 3 May 2016 21:32:53 +0300
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:34240 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790AbcEQVgG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2016 17:36:06 -0400
 MIME-Version: 1.0
-In-Reply-To: <20160501104646.GE26360@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160517212956.GV27098@phenom.ffwll.local>
+References: <1462806459-8124-1-git-send-email-benjamin.gaignard@linaro.org>
+	<1462806459-8124-2-git-send-email-benjamin.gaignard@linaro.org>
+	<CACvgo52cHhJ0XoibSXgu2eBg1sK51_nFqtA9CmWZwtCDYa7-WQ@mail.gmail.com>
+	<CA+M3ks56F61k9NPs18eYTmvNkUGmeytLQRENHVgv1ZYUGtW9Gw@mail.gmail.com>
+	<CACvgo508W=BxwMkkOP5EswnDqnjfcWmvX1cShbie1nF3-8brTw@mail.gmail.com>
+	<20160517212956.GV27098@phenom.ffwll.local>
+Date: Tue, 17 May 2016 22:36:03 +0100
+Message-ID: <CACvgo53bRiE-At1ntM3yTHYmpiURnHpx=-sYQV_e=f5d+MVAmw@mail.gmail.com>
+Subject: Re: [PATCH v7 1/3] create SMAF module
+From: Emil Velikov <emil.l.velikov@gmail.com>
+To: Emil Velikov <emil.l.velikov@gmail.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Cc Ma <cc.ma@mediatek.com>,
+	Pascal Brand <pascal.brand@linaro.org>,
+	"Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>,
+	ML dri-devel <dri-devel@lists.freedesktop.org>,
+	Dan Caprita <dan.caprita@windriver.com>,
+	Zoltan Kuscsik <zoltan.kuscsik@linaro.org>,
+	Joakim Bech <joakim.bech@linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 17 May 2016 at 22:29, Daniel Vetter <daniel@ffwll.ch> wrote:
 
-On  1.05.2016 13:46, Sakari Ailus wrote:
-> On Mon, Apr 25, 2016 at 12:08:06AM +0300, Ivaylo Dimitrov wrote:
->> From: Sakari Ailus <sakari.ailus@linux.intel.com>
->>
->> Quirk controls can be set up in the init quirk.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Please don't use __kernel_size_t, it's only for backwards compat if you
+> already botched an ioctl definition ;-)
 >
-> Do you need quirk controls for something at the moment? I guess not at least
-> with the secondary sensor?
->
+That explains why I've not seen it in (m)any other UAPI headers but
+our legacy ones.
 
-Yes, vs6555 doesn't seem to need quirks ATM, I guess that patch comes 
-from N9/50 adaptation kernel.
-
-Ivo
+Thank you !
+Emil
