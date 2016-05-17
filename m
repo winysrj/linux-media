@@ -1,770 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:44727 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755438AbcECKLh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2016 06:11:37 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>,
-	PoChun Lin <pochun.lin@mediatek.com>
-Subject: [PATCH v10 7/8] [media] vcodec: mediatek: Add Mediatek H264 Video Encoder Driver
-Date: Tue, 3 May 2016 18:11:26 +0800
-Message-ID: <1462270287-11374-8-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1462270287-11374-7-git-send-email-tiffany.lin@mediatek.com>
-References: <1462270287-11374-1-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-2-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-3-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-4-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-5-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-6-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-7-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:38330 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751546AbcEQH3Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2016 03:29:25 -0400
+Subject: Re: [PATCH v4] media: vb2-dma-contig: configure DMA max segment size
+ properly
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <5729B396.1020706@xs4all.nl>
+ <1462352403-27418-1-git-send-email-m.szyprowski@samsung.com>
+ <20160506155216.60dc910c@recife.lan>
+ <a8ad2b35-862f-5236-fe16-72b91656ac3a@samsung.com>
+ <20160509070920.6a09f915@recife.lan>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <722be2ab-17fa-cece-dd47-0550e20f989e@samsung.com>
+Date: Tue, 17 May 2016 09:29:20 +0200
+MIME-version: 1.0
+In-reply-to: <20160509070920.6a09f915@recife.lan>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add h264 encoder driver for MT8173
+Dear Mauro,
 
-Signed-off-by: PoChun Lin <pochun.lin@mediatek.com>
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
 
----
- drivers/media/platform/mtk-vcodec/Makefile         |    1 +
- .../media/platform/mtk-vcodec/venc/venc_h264_if.c  |  679 ++++++++++++++++++++
- drivers/media/platform/mtk-vcodec/venc_drv_if.c    |    4 +-
- 3 files changed, 683 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+On 2016-05-09 12:09, Mauro Carvalho Chehab wrote:
+> Em Mon, 09 May 2016 08:13:06 +0200
+> Marek Szyprowski <m.szyprowski@samsung.com> escreveu:
+>
+>> Hi Mauro
+>>
+>>
+>> On 2016-05-06 20:52, Mauro Carvalho Chehab wrote:
+>>> Em Wed, 04 May 2016 11:00:03 +0200
+>>> Marek Szyprowski <m.szyprowski@samsung.com> escreveu:
+>>>   
+>>>> This patch lets vb2-dma-contig memory allocator to configure DMA max
+>>>> segment size properly for the client device. Setting it is needed to let
+>>>> DMA-mapping subsystem to create a single, contiguous mapping in DMA
+>>>> address space. This is essential for all devices, which use dma-contig
+>>>> videobuf2 memory allocator and shared buffers (in USERPTR or DMAbuf modes
+>>>> of operations).
+>>>>
+>>>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>>>> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>>> ---
+>>>> Hello,
+>>>>
+>>>> This patch is a follow-up of my previous attempts to let Exynos
+>>>> multimedia devices to work properly with shared buffers when IOMMU is
+>>>> enabled:
+>>>> 1. https://www.mail-archive.com/linux-media@vger.kernel.org/msg96946.html
+>>>> 2. http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
+>>>> 3. https://patchwork.linuxtv.org/patch/30870/
+>>>>
+>>>> As sugested by Hans, configuring DMA max segment size should be done by
+>>>> videobuf2-dma-contig module instead of requiring all device drivers to
+>>>> do it on their own.
+>>>>
+>>>> Here is some backgroud why this is done in videobuf2-dc not in the
+>>>> respective generic bus code:
+>>>> http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html
+>>>>
+>>>> Best regards,
+>>>> Marek Szyprowski
+>>>>
+>>>> changelog:
+>>>> v4:
+>>>> - rebased onto media master tree
+>>>> - call vb2_dc_set_max_seg_size after allocating vb2 buf object
+>>>>
+>>>> v3:
+>>>> - added FIXME note about possible memory leak
+>>>>
+>>>> v2:
+>>>> - fixes typos and other language issues in the comments
+>>>>
+>>>> v1: http://article.gmane.org/gmane.linux.kernel.samsung-soc/53690
+>>>> ---
+>>>>    drivers/media/v4l2-core/videobuf2-dma-contig.c | 53 +++++++++++++++++++++++++-
+>>>>    1 file changed, 51 insertions(+), 2 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>>>> index 5361197f3e57..6291842a889f 100644
+>>>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>>>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>>>> @@ -448,6 +448,42 @@ static void vb2_dc_put_userptr(void *buf_priv)
+>>>>    }
+>>>>    
+>>>>    /*
+>>>> + * To allow mapping the scatter-list into a single chunk in the DMA
+>>>> + * address space, the device is required to have the DMA max segment
+>>>> + * size parameter set to a value larger than the buffer size. Otherwise,
+>>>> + * the DMA-mapping subsystem will split the mapping into max segment
+>>>> + * size chunks. This function increases the DMA max segment size
+>>>> + * parameter to let DMA-mapping map a buffer as a single chunk in DMA
+>>>> + * address space.
+>>>> + * This code assumes that the DMA-mapping subsystem will merge all
+>>>> + * scatterlist segments if this is really possible (for example when
+>>>> + * an IOMMU is available and enabled).
+>>>> + * Ideally, this parameter should be set by the generic bus code, but it
+>>>> + * is left with the default 64KiB value due to historical litmiations in
+>>>> + * other subsystems (like limited USB host drivers) and there no good
+>>>> + * place to set it to the proper value. It is done here to avoid fixing
+>>>> + * all the vb2-dc client drivers.
+>>>> + *
+>>>> + * FIXME: the allocated dma_params structure is leaked because there
+>>>> + * is completely no way to determine when to free it (dma_params might have
+>>>> + * been also already allocated by the bus code). However in typical
+>>>> + * use cases this function will be called for platform devices, which are
+>>>> + * not hot-plugged and exist all the time in the target system.
+>>>> + */
+>>>> +static int vb2_dc_set_max_seg_size(struct device *dev, unsigned int size)
+>>>> +{
+>>>> +	if (!dev->dma_parms) {
+>>>> +		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
+>>> Why don't you use devm_kzalloc() here? dma_parms will then be freed
+>>> if the device gets hot-unplugged/unbind.
+>> Although the structure will be freed, but the pointer in the struct device
+>> will still point to the freed resource.
+> Then you'll need some other logic (maybe a kref?) both free it and zero
+> the pointer when it is safe.
+>
+> Btw, the only two drivers that seem to dynamically allocate it are
+> using devm_*:
+>
+> drivers/gpu/drm/exynos/exynos_drm_iommu.c:      subdrv_dev->dma_parms = devm_kzalloc(subdrv_dev,
+> drivers/gpu/drm/exynos/exynos_drm_iommu.c:                                      sizeof(*subdrv_dev->dma_parms),
+> drivers/gpu/drm/exynos/exynos_drm_iommu.c:      if (!subdrv_dev->dma_parms)
+> drivers/gpu/drm/rockchip/rockchip_drm_drv.c:    dev->dma_parms = devm_kzalloc(dev, sizeof(*dev->dma_parms),
+> drivers/gpu/drm/rockchip/rockchip_drm_drv.c:    if (!dev->dma_parms) {
+>
+> On the other drivers, the struct is embed on some other struct
+> that is freed only after the need of dma_parms.
+>
+>> Please note that devm_ allocations
+>> are freed on driver removal/unbind not on device removal.
+> Yes, I know. Personally, I don't like devm_ allocations due to that.
+> Yet, it is better to free it later than to keep it leaking.
+>
+>> That's why I
+>> decided
+>> to leak memory instead of allowing to access resource that has been freed.
+> The problem is that, if a non-platform driver needs to use DMA-CONTIG,
+> the leak can be harmful, as things like qemu can unbind the host
+> driver in order to use the device by the guest.
+>
+> Btw, currently, 3 non-platform drivers already use it:
+>
+> 	drivers/media/pci/dt3155/Kconfig:	select VIDEOBUF2_DMA_CONTIG
+> 	drivers/media/pci/solo6x10/Kconfig:	select VIDEOBUF2_DMA_CONTIG
+> 	drivers/media/pci/sta2x11/Kconfig:	select VIDEOBUF2_DMA_CONTIG
+>
+> (and ideally ivtv and cx18 should be converted to VB2 dma-contig some day)
+>
+> Btw, as the above PCI drivers are not for ARM, I'm wandering if the
+> assumptions you took on your patch are also valid on x86 and other
+> architectures that support the PCI bus. In any case, if you want to
+> do it generic, for all drivers, all bus controllers, you'll need to
+> do lots of tests with non-ARM devices, to be 100% sure that it won't
+> cause regressions.
 
-diff --git a/drivers/media/platform/mtk-vcodec/Makefile b/drivers/media/platform/mtk-vcodec/Makefile
-index bf73a45..dc5cb00 100644
---- a/drivers/media/platform/mtk-vcodec/Makefile
-+++ b/drivers/media/platform/mtk-vcodec/Makefile
-@@ -12,6 +12,7 @@ mtk-vcodec-enc-y := venc/venc_vp8_if.o \
- 		venc_drv_if.o \
- 		venc_vpu_if.o \
- 
-+
- mtk-vcodec-common-y := mtk_vcodec_intr.o \
- 		mtk_vcodec_util.o\
- 
-diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-new file mode 100644
-index 0000000..f4e18bb
---- /dev/null
-+++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
-@@ -0,0 +1,679 @@
-+/*
-+ * Copyright (c) 2016 MediaTek Inc.
-+ * Author: Jungchang Tsao <jungchang.tsao@mediatek.com>
-+ *         Daniel Hsiao <daniel.hsiao@mediatek.com>
-+ *         PoChun Lin <pochun.lin@mediatek.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/interrupt.h>
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+
-+#include "../mtk_vcodec_drv.h"
-+#include "../mtk_vcodec_util.h"
-+#include "../mtk_vcodec_intr.h"
-+#include "../mtk_vcodec_enc.h"
-+#include "../mtk_vcodec_enc_pm.h"
-+#include "../venc_drv_base.h"
-+#include "../venc_ipi_msg.h"
-+#include "../venc_vpu_if.h"
-+#include "mtk_vpu.h"
-+
-+static const char h264_filler_marker[] = {0x0, 0x0, 0x0, 0x1, 0xc};
-+
-+#define H264_FILLER_MARKER_SIZE ARRAY_SIZE(h264_filler_marker)
-+#define VENC_PIC_BITSTREAM_BYTE_CNT 0x0098
-+
-+/**
-+ * enum venc_h264_vpu_work_buf - h264 encoder buffer index
-+ */
-+enum venc_h264_vpu_work_buf {
-+	VENC_H264_VPU_WORK_BUF_RC_INFO,
-+	VENC_H264_VPU_WORK_BUF_RC_CODE,
-+	VENC_H264_VPU_WORK_BUF_REC_LUMA,
-+	VENC_H264_VPU_WORK_BUF_REC_CHROMA,
-+	VENC_H264_VPU_WORK_BUF_REF_LUMA,
-+	VENC_H264_VPU_WORK_BUF_REF_CHROMA,
-+	VENC_H264_VPU_WORK_BUF_MV_INFO_1,
-+	VENC_H264_VPU_WORK_BUF_MV_INFO_2,
-+	VENC_H264_VPU_WORK_BUF_SKIP_FRAME,
-+	VENC_H264_VPU_WORK_BUF_MAX,
-+};
-+
-+/**
-+ * enum venc_h264_bs_mode - for bs_mode argument in h264_enc_vpu_encode
-+ */
-+enum venc_h264_bs_mode {
-+	H264_BS_MODE_SPS,
-+	H264_BS_MODE_PPS,
-+	H264_BS_MODE_FRAME,
-+};
-+
-+/*
-+ * struct venc_h264_vpu_config - Structure for h264 encoder configuration
-+ * @input_fourcc: input fourcc
-+ * @bitrate: target bitrate (in bps)
-+ * @pic_w: picture width. Picture size is visible stream resolution, in pixels,
-+ *         to be used for display purposes; must be smaller or equal to buffer
-+ *         size.
-+ * @pic_h: picture height
-+ * @buf_w: buffer width. Buffer size is stream resolution in pixels aligned to
-+ *         hardware requirements.
-+ * @buf_h: buffer height
-+ * @gop_size: group of picture size (idr frame)
-+ * @intra_period: intra frame period
-+ * @framerate: frame rate in fps
-+ * @profile: as specified in standard
-+ * @level: as specified in standard
-+ * @wfd: WFD mode 1:on, 0:off
-+ */
-+struct venc_h264_vpu_config {
-+	u32 input_fourcc;
-+	u32 bitrate;
-+	u32 pic_w;
-+	u32 pic_h;
-+	u32 buf_w;
-+	u32 buf_h;
-+	u32 gop_size;
-+	u32 intra_period;
-+	u32 framerate;
-+	u32 profile;
-+	u32 level;
-+	u32 wfd;
-+};
-+
-+/*
-+ * struct venc_h264_vpu_buf - Structure for buffer information
-+ * @align: buffer alignment (in bytes)
-+ * @iova: IO virtual address
-+ * @vpua: VPU side memory addr which is used by RC_CODE
-+ * @size: buffer size (in bytes)
-+ */
-+struct venc_h264_vpu_buf {
-+	u32 align;
-+	u32 iova;
-+	u32 vpua;
-+	u32 size;
-+};
-+
-+/*
-+ * struct venc_h264_vsi - Structure for VPU driver control and info share
-+ * This structure is allocated in VPU side and shared to AP side.
-+ * @config: h264 encoder configuration
-+ * @work_bufs: working buffer information in VPU side
-+ * The work_bufs here is for storing the 'size' info shared to AP side.
-+ * The similar item in struct venc_h264_inst is for memory allocation
-+ * in AP side. The AP driver will copy the 'size' from here to the one in
-+ * struct mtk_vcodec_mem, then invoke mtk_vcodec_mem_alloc to allocate
-+ * the buffer. After that, bypass the 'dma_addr' to the 'iova' field here for
-+ * register setting in VPU side.
-+ */
-+struct venc_h264_vsi {
-+	struct venc_h264_vpu_config config;
-+	struct venc_h264_vpu_buf work_bufs[VENC_H264_VPU_WORK_BUF_MAX];
-+};
-+
-+/*
-+ * struct venc_h264_inst - h264 encoder AP driver instance
-+ * @hw_base: h264 encoder hardware register base
-+ * @work_bufs: working buffer
-+ * @pps_buf: buffer to store the pps bitstream
-+ * @work_buf_allocated: working buffer allocated flag
-+ * @frm_cnt: encoded frame count
-+ * @prepend_hdr: when the v4l2 layer send VENC_SET_PARAM_PREPEND_HEADER cmd
-+ *  through h264_enc_set_param interface, it will set this flag and prepend the
-+ *  sps/pps in h264_enc_encode function.
-+ * @vpu_inst: VPU instance to exchange information between AP and VPU
-+ * @vsi: driver structure allocated by VPU side and shared to AP side for
-+ *	 control and info share
-+ * @ctx: context for v4l2 layer integration
-+ */
-+struct venc_h264_inst {
-+	void __iomem *hw_base;
-+	struct mtk_vcodec_mem work_bufs[VENC_H264_VPU_WORK_BUF_MAX];
-+	struct mtk_vcodec_mem pps_buf;
-+	bool work_buf_allocated;
-+	unsigned int frm_cnt;
-+	unsigned int prepend_hdr;
-+	struct venc_vpu_inst vpu_inst;
-+	struct venc_h264_vsi *vsi;
-+	struct mtk_vcodec_ctx *ctx;
-+};
-+
-+static inline void h264_write_reg(struct venc_h264_inst *inst, u32 addr,
-+				  u32 val)
-+{
-+	writel(val, inst->hw_base + addr);
-+}
-+
-+static inline u32 h264_read_reg(struct venc_h264_inst *inst, u32 addr)
-+{
-+	return readl(inst->hw_base + addr);
-+}
-+
-+static unsigned int h264_get_profile(struct venc_h264_inst *inst,
-+				     unsigned int profile)
-+{
-+	switch (profile) {
-+	case V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE:
-+		return 66;
-+	case V4L2_MPEG_VIDEO_H264_PROFILE_MAIN:
-+		return 77;
-+	case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH:
-+		return 100;
-+	case V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE:
-+		mtk_vcodec_err(inst, "unsupported CONSTRAINED_BASELINE");
-+		return 0;
-+	case V4L2_MPEG_VIDEO_H264_PROFILE_EXTENDED:
-+		mtk_vcodec_err(inst, "unsupported EXTENDED");
-+		return 0;
-+	default:
-+		mtk_vcodec_debug(inst, "unsupported profile %d", profile);
-+		return 100;
-+	}
-+}
-+
-+static unsigned int h264_get_level(struct venc_h264_inst *inst,
-+				   unsigned int level)
-+{
-+	switch (level) {
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_1B:
-+		mtk_vcodec_err(inst, "unsupported 1B");
-+		return 0;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_1_0:
-+		return 10;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_1_1:
-+		return 11;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_1_2:
-+		return 12;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_1_3:
-+		return 13;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_2_0:
-+		return 20;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_2_1:
-+		return 21;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_2_2:
-+		return 22;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_3_0:
-+		return 30;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_3_1:
-+		return 31;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_3_2:
-+		return 32;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_4_0:
-+		return 40;
-+	case V4L2_MPEG_VIDEO_H264_LEVEL_4_1:
-+		return 41;
-+	default:
-+		mtk_vcodec_debug(inst, "unsupported level %d", level);
-+		return 31;
-+	}
-+}
-+
-+static void h264_enc_free_work_buf(struct venc_h264_inst *inst)
-+{
-+	int i;
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	/* Except the SKIP_FRAME buffers,
-+	 * other buffers need to be freed by AP.
-+	 */
-+	for (i = 0; i < VENC_H264_VPU_WORK_BUF_MAX; i++) {
-+		if (i != VENC_H264_VPU_WORK_BUF_SKIP_FRAME)
-+			mtk_vcodec_mem_free(inst->ctx, &inst->work_bufs[i]);
-+	}
-+
-+	mtk_vcodec_mem_free(inst->ctx, &inst->pps_buf);
-+
-+	mtk_vcodec_debug_leave(inst);
-+}
-+
-+static int h264_enc_alloc_work_buf(struct venc_h264_inst *inst)
-+{
-+	int i;
-+	int ret = 0;
-+	struct venc_h264_vpu_buf *wb = inst->vsi->work_bufs;
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	for (i = 0; i < VENC_H264_VPU_WORK_BUF_MAX; i++) {
-+		/*
-+		 * This 'wb' structure is set by VPU side and shared to AP for
-+		 * buffer allocation and IO virtual addr mapping. For most of
-+		 * the buffers, AP will allocate the buffer according to 'size'
-+		 * field and store the IO virtual addr in 'iova' field. There
-+		 * are two exceptions:
-+		 * (1) RC_CODE buffer, it's pre-allocated in the VPU side, and
-+		 * save the VPU addr in the 'vpua' field. The AP will translate
-+		 * the VPU addr to the corresponding IO virtual addr and store
-+		 * in 'iova' field for reg setting in VPU side.
-+		 * (2) SKIP_FRAME buffer, it's pre-allocated in the VPU side,
-+		 * and save the VPU addr in the 'vpua' field. The AP will
-+		 * translate the VPU addr to the corresponding AP side virtual
-+		 * address and do some memcpy access to move to bitstream buffer
-+		 * assigned by v4l2 layer.
-+		 */
-+		inst->work_bufs[i].size = wb[i].size;
-+		if (i == VENC_H264_VPU_WORK_BUF_SKIP_FRAME) {
-+			inst->work_bufs[i].va = vpu_mapping_dm_addr(
-+				inst->vpu_inst.dev, wb[i].vpua);
-+			inst->work_bufs[i].dma_addr = 0;
-+		} else {
-+			ret = mtk_vcodec_mem_alloc(inst->ctx,
-+						   &inst->work_bufs[i]);
-+			if (ret) {
-+				mtk_vcodec_err(inst,
-+					       "cannot allocate buf %d", i);
-+				goto err_alloc;
-+			}
-+			/*
-+			 * This RC_CODE is pre-allocated by VPU and saved in VPU
-+			 * addr. So we need use memcpy to copy RC_CODE from VPU
-+			 * addr into IO virtual addr in 'iova' field for reg
-+			 * setting in VPU side.
-+			 */
-+			if (i == VENC_H264_VPU_WORK_BUF_RC_CODE) {
-+				void *tmp_va;
-+
-+				tmp_va = vpu_mapping_dm_addr(inst->vpu_inst.dev,
-+							     wb[i].vpua);
-+				memcpy(inst->work_bufs[i].va, tmp_va,
-+				       wb[i].size);
-+			}
-+		}
-+		wb[i].iova = inst->work_bufs[i].dma_addr;
-+
-+		mtk_vcodec_debug(inst,
-+				 "work_buf[%d] va=0x%p iova=0x%p size=%zu",
-+				 i, inst->work_bufs[i].va,
-+				 (void *)inst->work_bufs[i].dma_addr,
-+				 inst->work_bufs[i].size);
-+	}
-+
-+	/* the pps_buf is used by AP side only */
-+	inst->pps_buf.size = 128;
-+	ret = mtk_vcodec_mem_alloc(inst->ctx, &inst->pps_buf);
-+	if (ret) {
-+		mtk_vcodec_err(inst, "cannot allocate pps_buf");
-+		goto err_alloc;
-+	}
-+
-+	mtk_vcodec_debug_leave(inst);
-+
-+	return ret;
-+
-+err_alloc:
-+	h264_enc_free_work_buf(inst);
-+
-+	return ret;
-+}
-+
-+static unsigned int h264_enc_wait_venc_done(struct venc_h264_inst *inst)
-+{
-+	unsigned int irq_status = 0;
-+	struct mtk_vcodec_ctx *ctx = (struct mtk_vcodec_ctx *)inst->ctx;
-+
-+	if (!mtk_vcodec_wait_for_done_ctx(ctx, MTK_INST_IRQ_RECEIVED,
-+					  WAIT_INTR_TIMEOUT_MS)) {
-+		irq_status = ctx->irq_status;
-+		mtk_vcodec_debug(inst, "irq_status %x <-", irq_status);
-+	}
-+	return irq_status;
-+}
-+
-+static int h264_encode_sps(struct venc_h264_inst *inst,
-+			   struct mtk_vcodec_mem *bs_buf,
-+			   unsigned int *bs_size)
-+{
-+	int ret = 0;
-+	unsigned int irq_status;
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	ret = vpu_enc_encode(&inst->vpu_inst, H264_BS_MODE_SPS, NULL,
-+			     bs_buf, bs_size);
-+	if (ret)
-+		return ret;
-+
-+	irq_status = h264_enc_wait_venc_done(inst);
-+	if (irq_status != MTK_VENC_IRQ_STATUS_SPS) {
-+		mtk_vcodec_err(inst, "expect irq status %d",
-+			       MTK_VENC_IRQ_STATUS_SPS);
-+		return -EINVAL;
-+	}
-+
-+	*bs_size = h264_read_reg(inst, VENC_PIC_BITSTREAM_BYTE_CNT);
-+	mtk_vcodec_debug(inst, "bs size %d <-", *bs_size);
-+
-+	return ret;
-+}
-+
-+static int h264_encode_pps(struct venc_h264_inst *inst,
-+			   struct mtk_vcodec_mem *bs_buf,
-+			   unsigned int *bs_size)
-+{
-+	int ret = 0;
-+	unsigned int irq_status;
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	ret = vpu_enc_encode(&inst->vpu_inst, H264_BS_MODE_PPS, NULL,
-+			     bs_buf, bs_size);
-+	if (ret)
-+		return ret;
-+
-+	irq_status = h264_enc_wait_venc_done(inst);
-+	if (irq_status != MTK_VENC_IRQ_STATUS_PPS) {
-+		mtk_vcodec_err(inst, "expect irq status %d",
-+			       MTK_VENC_IRQ_STATUS_PPS);
-+		return -EINVAL;
-+	}
-+
-+	*bs_size = h264_read_reg(inst, VENC_PIC_BITSTREAM_BYTE_CNT);
-+	mtk_vcodec_debug(inst, "bs size %d <-", *bs_size);
-+
-+	return ret;
-+}
-+
-+static int h264_encode_header(struct venc_h264_inst *inst,
-+			      struct mtk_vcodec_mem *bs_buf,
-+			      unsigned int *bs_size)
-+{
-+	int ret = 0;
-+	unsigned int bs_size_sps;
-+	unsigned int bs_size_pps;
-+
-+	ret = h264_encode_sps(inst, bs_buf, &bs_size_sps);
-+	if (ret)
-+		return ret;
-+
-+	ret = h264_encode_pps(inst, &inst->pps_buf, &bs_size_pps);
-+	if (ret)
-+		return ret;
-+
-+	memcpy(bs_buf->va + bs_size_sps, inst->pps_buf.va, bs_size_pps);
-+	*bs_size = bs_size_sps + bs_size_pps;
-+
-+	return ret;
-+}
-+
-+static int h264_encode_frame(struct venc_h264_inst *inst,
-+			     struct venc_frm_buf *frm_buf,
-+			     struct mtk_vcodec_mem *bs_buf,
-+			     unsigned int *bs_size)
-+{
-+	int ret = 0;
-+	unsigned int irq_status;
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	ret = vpu_enc_encode(&inst->vpu_inst, H264_BS_MODE_FRAME, frm_buf,
-+			     bs_buf, bs_size);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * skip frame case: The skip frame buffer is composed by vpu side only,
-+	 * it does not trigger the hw, so skip the wait interrupt operation.
-+	 */
-+	if (inst->vpu_inst.state == VEN_IPI_MSG_ENC_STATE_SKIP) {
-+		*bs_size = inst->vpu_inst.bs_size;
-+		memcpy(bs_buf->va,
-+		       inst->work_bufs[VENC_H264_VPU_WORK_BUF_SKIP_FRAME].va,
-+		       *bs_size);
-+		++inst->frm_cnt;
-+		return ret;
-+	}
-+
-+	irq_status = h264_enc_wait_venc_done(inst);
-+	if (irq_status != MTK_VENC_IRQ_STATUS_FRM) {
-+		mtk_vcodec_err(inst, "irq_status=%d failed", irq_status);
-+		return -EIO;
-+	}
-+
-+	*bs_size = h264_read_reg(inst, VENC_PIC_BITSTREAM_BYTE_CNT);
-+
-+	++inst->frm_cnt;
-+	mtk_vcodec_debug(inst, "frm %d bs_size %d key_frm %d <-",
-+			 inst->frm_cnt, *bs_size, inst->vpu_inst.is_key_frm);
-+
-+	return ret;
-+}
-+
-+static void h264_encode_filler(struct venc_h264_inst *inst, void *buf,
-+			       int size)
-+{
-+	unsigned char *p = buf;
-+
-+	if (size < H264_FILLER_MARKER_SIZE) {
-+		mtk_vcodec_err(inst, "filler size too small %d", size);
-+		return;
-+	}
-+
-+	memcpy(p, h264_filler_marker, ARRAY_SIZE(h264_filler_marker));
-+	size -= H264_FILLER_MARKER_SIZE;
-+	p += H264_FILLER_MARKER_SIZE;
-+	memset(p, 0xff, size);
-+}
-+
-+static int h264_enc_init(struct mtk_vcodec_ctx *ctx, unsigned long *handle)
-+{
-+	int ret = 0;
-+	struct venc_h264_inst *inst;
-+
-+	inst = kzalloc(sizeof(*inst), GFP_KERNEL);
-+	if (!inst)
-+		return -ENOMEM;
-+
-+	inst->ctx = ctx;
-+	inst->vpu_inst.ctx = ctx;
-+	inst->vpu_inst.dev = ctx->dev->vpu_plat_dev;
-+	inst->vpu_inst.id = IPI_VENC_H264;
-+	inst->hw_base = mtk_vcodec_get_reg_addr(inst->ctx, VENC_SYS);
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	ret = vpu_enc_init(&inst->vpu_inst);
-+
-+	inst->vsi = (struct venc_h264_vsi *)inst->vpu_inst.vsi;
-+
-+	mtk_vcodec_debug_leave(inst);
-+
-+	if (ret)
-+		kfree(inst);
-+	else
-+		(*handle) = (unsigned long)inst;
-+
-+	return ret;
-+}
-+
-+static int h264_enc_encode(unsigned long handle,
-+			   enum venc_start_opt opt,
-+			   struct venc_frm_buf *frm_buf,
-+			   struct mtk_vcodec_mem *bs_buf,
-+			   struct venc_done_result *result)
-+{
-+	int ret = 0;
-+	struct venc_h264_inst *inst = (struct venc_h264_inst *)handle;
-+	struct mtk_vcodec_ctx *ctx = inst->ctx;
-+
-+	mtk_vcodec_debug(inst, "opt %d ->", opt);
-+
-+	enable_irq(ctx->dev->enc_irq);
-+
-+	switch (opt) {
-+	case VENC_START_OPT_ENCODE_SEQUENCE_HEADER: {
-+		unsigned int bs_size_hdr;
-+
-+		ret = h264_encode_header(inst, bs_buf, &bs_size_hdr);
-+		if (ret)
-+			goto encode_err;
-+
-+		result->bs_size = bs_size_hdr;
-+		result->is_key_frm = false;
-+		break;
-+	}
-+
-+	case VENC_START_OPT_ENCODE_FRAME: {
-+		int hdr_sz;
-+		int hdr_sz_ext;
-+		int filler_sz = 0;
-+		const int bs_alignment = 128;
-+		struct mtk_vcodec_mem tmp_bs_buf;
-+		unsigned int bs_size_hdr;
-+		unsigned int bs_size_frm;
-+
-+		if (!inst->prepend_hdr) {
-+			ret = h264_encode_frame(inst, frm_buf, bs_buf,
-+						&result->bs_size);
-+			if (ret)
-+				goto encode_err;
-+			result->is_key_frm = inst->vpu_inst.is_key_frm;
-+			break;
-+		}
-+
-+		mtk_vcodec_debug(inst, "h264_encode_frame prepend SPS/PPS");
-+
-+		ret = h264_encode_header(inst, bs_buf, &bs_size_hdr);
-+		if (ret)
-+			goto encode_err;
-+
-+		hdr_sz = bs_size_hdr;
-+		hdr_sz_ext = (hdr_sz & (bs_alignment - 1));
-+		if (hdr_sz_ext) {
-+			filler_sz = bs_alignment - hdr_sz_ext;
-+			if (hdr_sz_ext + H264_FILLER_MARKER_SIZE > bs_alignment)
-+				filler_sz += bs_alignment;
-+			h264_encode_filler(inst, bs_buf->va + hdr_sz,
-+					   filler_sz);
-+		}
-+
-+		tmp_bs_buf.va = bs_buf->va + hdr_sz + filler_sz;
-+		tmp_bs_buf.dma_addr = bs_buf->dma_addr + hdr_sz + filler_sz;
-+		tmp_bs_buf.size = bs_buf->size - (hdr_sz + filler_sz);
-+
-+		ret = h264_encode_frame(inst, frm_buf, &tmp_bs_buf,
-+					&bs_size_frm);
-+		if (ret)
-+			goto encode_err;
-+
-+		result->bs_size = hdr_sz + filler_sz + bs_size_frm;
-+
-+		mtk_vcodec_debug(inst, "hdr %d filler %d frame %d bs %d",
-+				 hdr_sz, filler_sz, bs_size_frm,
-+				 result->bs_size);
-+
-+		inst->prepend_hdr = 0;
-+		result->is_key_frm = inst->vpu_inst.is_key_frm;
-+		break;
-+	}
-+
-+	default:
-+		mtk_vcodec_err(inst, "venc_start_opt %d not supported", opt);
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+encode_err:
-+
-+	disable_irq(ctx->dev->enc_irq);
-+	mtk_vcodec_debug(inst, "opt %d <-", opt);
-+
-+	return ret;
-+}
-+
-+static int h264_enc_set_param(unsigned long handle,
-+			      enum venc_set_param_type type,
-+			      struct venc_enc_param *enc_prm)
-+{
-+	int ret = 0;
-+	struct venc_h264_inst *inst = (struct venc_h264_inst *)handle;
-+
-+	mtk_vcodec_debug(inst, "->type=%d", type);
-+
-+	switch (type) {
-+	case VENC_SET_PARAM_ENC:
-+		inst->vsi->config.input_fourcc = enc_prm->input_yuv_fmt;
-+		inst->vsi->config.bitrate = enc_prm->bitrate;
-+		inst->vsi->config.pic_w = enc_prm->width;
-+		inst->vsi->config.pic_h = enc_prm->height;
-+		inst->vsi->config.buf_w = enc_prm->buf_width;
-+		inst->vsi->config.buf_h = enc_prm->buf_height;
-+		inst->vsi->config.gop_size = enc_prm->gop_size;
-+		inst->vsi->config.framerate = enc_prm->frm_rate;
-+		inst->vsi->config.intra_period = enc_prm->intra_period;
-+		inst->vsi->config.profile =
-+			h264_get_profile(inst, enc_prm->h264_profile);
-+		inst->vsi->config.level =
-+			h264_get_level(inst, enc_prm->h264_level);
-+		inst->vsi->config.wfd = 0;
-+		ret = vpu_enc_set_param(&inst->vpu_inst, type, enc_prm);
-+		if (ret)
-+			break;
-+		if (inst->work_buf_allocated) {
-+			h264_enc_free_work_buf(inst);
-+			inst->work_buf_allocated = false;
-+		}
-+		ret = h264_enc_alloc_work_buf(inst);
-+		if (ret)
-+			break;
-+		inst->work_buf_allocated = true;
-+		break;
-+
-+	case VENC_SET_PARAM_PREPEND_HEADER:
-+		inst->prepend_hdr = 1;
-+		mtk_vcodec_debug(inst, "set prepend header mode");
-+		break;
-+
-+	default:
-+		ret = vpu_enc_set_param(&inst->vpu_inst, type, enc_prm);
-+		break;
-+	}
-+
-+	mtk_vcodec_debug_leave(inst);
-+
-+	return ret;
-+}
-+
-+static int h264_enc_deinit(unsigned long handle)
-+{
-+	int ret = 0;
-+	struct venc_h264_inst *inst = (struct venc_h264_inst *)handle;
-+
-+	mtk_vcodec_debug_enter(inst);
-+
-+	ret = vpu_enc_deinit(&inst->vpu_inst);
-+
-+	if (inst->work_buf_allocated)
-+		h264_enc_free_work_buf(inst);
-+
-+	mtk_vcodec_debug_leave(inst);
-+	kfree(inst);
-+
-+	return ret;
-+}
-+
-+static struct venc_common_if venc_h264_if = {
-+	h264_enc_init,
-+	h264_enc_encode,
-+	h264_enc_set_param,
-+	h264_enc_deinit,
-+};
-+
-+struct venc_common_if *get_h264_enc_comm_if(void);
-+
-+struct venc_common_if *get_h264_enc_comm_if(void)
-+{
-+	return &venc_h264_if;
-+}
-diff --git a/drivers/media/platform/mtk-vcodec/venc_drv_if.c b/drivers/media/platform/mtk-vcodec/venc_drv_if.c
-index 77c39d2..c4c83e7 100644
---- a/drivers/media/platform/mtk-vcodec/venc_drv_if.c
-+++ b/drivers/media/platform/mtk-vcodec/venc_drv_if.c
-@@ -26,7 +26,7 @@
- #include "mtk_vcodec_enc_pm.h"
- #include "mtk_vpu.h"
- 
--
-+struct venc_common_if *get_h264_enc_comm_if(void);
- struct venc_common_if *get_vp8_enc_comm_if(void);
- 
- int venc_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
-@@ -38,6 +38,8 @@ int venc_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
- 		ctx->enc_if = get_vp8_enc_comm_if();
- 		break;
- 	case V4L2_PIX_FMT_H264:
-+		ctx->enc_if = get_h264_enc_comm_if();
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
+Well, the only case when vb2-dma-contig really 'works' is a hacked solution
+where userspace provides USERPTR buffer, which is in fact mmaped contig
+buffer from the other device. Also DMABUF made of contig buffer should work,
+assuming that its exporter won't split it into several chunks. Anything else
+will fail, regardless of the arch/platform and the presence of the IOMMU.
+Especially the PCI drivers will not support USERPTR/DMABUF modes properly
+due to limited dma_max_seg_size property. This is a historical mess related
+to scatterlist code, which we cannot do much to improve.
+
+On the other side there are DRM drivers which 'creatively' use scatterlists
+by ignoring dma_params limits. In case of vb2-dma-contig this approach 
+cannot
+be applied, because it relies on dma-mapping subsystem, which always obeys
+the limits.
+
+Probably the best would be to leave existing scatterlist API with its
+limitations for storage/network drivers and develop something more suitable
+for mapping a whole buffer to DMA address space and it for media and drm
+(something like dma_map_page_array() or dma_map_pfn_array() will be much
+more suitable that using scatter list, which is designed for describing
+a 'buffer' with sub-page resolution, typical in case of storage and network
+devices).
+
+> On a quick inspection, though, I suspect it will be doing the wrong
+> thing for the above drivers, as drivers/pci/probe.c already sets
+> dma_parms during pci_device_add(), and enforces a max segment size of
+> 64K, by calling	
+> 	pci_set_dma_max_seg_size(dev, 65536);
+> 	(with is a wrapper to dma_set_max_seg_size)
+>
+>>> And yes: it is possible to hot-unplug (actually, hot-unbind) a platform
+>>> device via sysfs.
+>>>
+>>> Just assuming that only platform drivers will use dma-contig and adding
+>>> a memory leak here seems really ugly!
+>> The whole handling of dma_params structure is really ugly and right now
+>> there
+>> is no good way of ensuring proper dma parameters.
+> Yeah, agreed.
+>
+> Well, there are some alternatives (ordered from the better to the
+> worse):
+>
+> 1) Fix the dma_parms core support;
+> 2) Add a pair of functions to register/unregister dma_parms at
+>     include/media/videobuf2-dma-contig.h. The driver needing to set
+>     it should call the unregister function if it gets unbind/removed;
+> 3) Add kref somewhere to do the dma_parms de-allocation in a sane
+>     way.
+> 4) do any dma_parms-related code inside the drivers, and not at
+>     the core (probably not the best idea, but at least we confine
+>     the troubles);
+>
+> I think I would go for (2) for now, and try to do (1) for long
+> run.
+
+I've tried with (2) approach, but I was instructed by Hans to do it in the
+vb2-core. I can get back to such approach if you want.
+
+Best regards
 -- 
-1.7.9.5
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
