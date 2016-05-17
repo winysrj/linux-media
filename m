@@ -1,62 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:40949 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932223AbcECG3U (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:25945 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754111AbcEQOy0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 May 2016 02:29:20 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 108E4180487
-	for <linux-media@vger.kernel.org>; Tue,  3 May 2016 08:29:05 +0200 (CEST)
-Subject: Re: cron job: media_tree daily build: ERRORS
-To: linux-media@vger.kernel.org
-References: <20160503030513.28EDE1800C7@tschai.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57284530.7060609@xs4all.nl>
-Date: Tue, 3 May 2016 08:29:04 +0200
-MIME-Version: 1.0
-In-Reply-To: <20160503030513.28EDE1800C7@tschai.lan>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Tue, 17 May 2016 10:54:26 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: netdev@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
+	pmchba@pmcs.com
+Subject: [PATCH 0/7] fix typo
+Date: Tue, 17 May 2016 16:38:39 +0200
+Message-Id: <1463495926-13728-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/03/2016 05:05 AM, Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds media_tree for
-> the kernels and architectures in the list below.
-> 
-> Results of the daily build of media_tree:
-> 
-> date:		Tue May  3 04:00:18 CEST 2016
-> git branch:	test
-> git hash:	68af062b5f38510dc96635314461c6bbe1dbf2fe
-> gcc version:	i686-linux-gcc (GCC) 5.3.0
-> sparse version:	v0.5.0-56-g7647c77
-> smatch version:	v0.5.0-3413-g618cd5c
-> host hardware:	x86_64
-> host os:	4.5.0-164
-> 
-> linux-git-arm-at91: ERRORS
-> linux-git-arm-davinci: ERRORS
-> linux-git-arm-exynos: ERRORS
-> linux-git-arm-mx: ERRORS
-> linux-git-arm-omap: ERRORS
-> linux-git-arm-omap1: ERRORS
-> linux-git-arm-pxa: ERRORS
-> linux-git-blackfin-bf561: OK
-> linux-git-i686: OK
-> linux-git-m32r: OK
-> linux-git-mips: OK
-> linux-git-powerpc64: OK
-> linux-git-sh: ERRORS
-> linux-git-x86_64: OK
+firmare -> firmware
 
-These errors are because 'make oldconfig' fails. I corrected this, but also
-did some tests to see whether there isn't a better alternative and I discovered
-'make olddefconfig' which will do the same things that 'make menuconfig' does:
-it picks the default value for new config options.
+---
 
-This should prevent this from happening again in the future.
-
-Regards,
-
-	Hans
+ drivers/media/dvb-frontends/mn88473.c       |    2 +-
+ drivers/net/wireless/ath/ath6kl/core.h      |    2 +-
+ drivers/net/wireless/marvell/mwifiex/pcie.c |    2 +-
+ drivers/scsi/pm8001/pm8001_init.c           |    2 +-
+ drivers/scsi/snic/snic_fwint.h              |    2 +-
+ drivers/staging/media/mn88472/mn88472.c     |    2 +-
+ drivers/staging/wilc1000/linux_wlan.c       |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
