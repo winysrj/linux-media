@@ -1,247 +1,369 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52758 "EHLO
-	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753867AbcEPKCV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 May 2016 06:02:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: sakari.ailus@iki.fi
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/4] Implement compound control get support
-Date: Mon, 16 May 2016 13:02:10 +0300
-Message-Id: <1463392932-28307-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1463392932-28307-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1463392932-28307-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mga14.intel.com ([192.55.52.115]:19287 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751284AbcEQOw3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 May 2016 10:52:29 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [PATCH v2.2 3/5] media: Refactor copying IOCTL arguments from and to user space
+Date: Tue, 17 May 2016 17:49:17 +0300
+Message-Id: <1463496557-12217-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1462367391-21503-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1462367391-21503-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- yavta.c | 158 +++++++++++++++++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 116 insertions(+), 42 deletions(-)
+Refactor copying the IOCTL argument structs from the user space and back,
+in order to reduce code copied around and make the implementation more
+robust.
 
-diff --git a/yavta.c b/yavta.c
-index af565245f87b..360c53fc77c5 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -438,12 +438,14 @@ static int query_control(struct device *dev, unsigned int id,
- 	query->id = id;
+As a result, the copying is done while not holding the graph mutex.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+since v2.1:
+
+- info->arg_from_user() may fail. Check the return code.
+
+ drivers/media/media-device.c | 197 +++++++++++++++++++++----------------------
+ 1 file changed, 97 insertions(+), 100 deletions(-)
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 9b5a88d..ef30139 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -59,27 +59,24 @@ static int media_device_close(struct file *filp)
+ }
  
- 	ret = ioctl(dev->fd, VIDIOC_QUERY_EXT_CTRL, query);
--	if (ret < 0 && errno != EINVAL)
-+	if (!ret || errno == EINVAL)
-+		return ret;
-+
-+	if (errno != ENOTTY) {
- 		printf("unable to query control 0x%8.8x: %s (%d).\n",
- 		       id, strerror(errno), errno);
+ static int media_device_get_info(struct media_device *dev,
+-				 struct media_device_info __user *__info)
++				 struct media_device_info *info)
+ {
+-	struct media_device_info info;
 -
--	if (!ret || errno != ENOTTY)
- 		return ret;
-+	}
+-	memset(&info, 0, sizeof(info));
++	memset(info, 0, sizeof(*info));
+ 
+ 	if (dev->driver_name[0])
+-		strlcpy(info.driver, dev->driver_name, sizeof(info.driver));
++		strlcpy(info->driver, dev->driver_name, sizeof(info->driver));
+ 	else
+-		strlcpy(info.driver, dev->dev->driver->name, sizeof(info.driver));
++		strlcpy(info->driver, dev->dev->driver->name,
++			sizeof(info->driver));
+ 
+-	strlcpy(info.model, dev->model, sizeof(info.model));
+-	strlcpy(info.serial, dev->serial, sizeof(info.serial));
+-	strlcpy(info.bus_info, dev->bus_info, sizeof(info.bus_info));
++	strlcpy(info->model, dev->model, sizeof(info->model));
++	strlcpy(info->serial, dev->serial, sizeof(info->serial));
++	strlcpy(info->bus_info, dev->bus_info, sizeof(info->bus_info));
+ 
+-	info.media_version = MEDIA_API_VERSION;
+-	info.hw_revision = dev->hw_revision;
+-	info.driver_version = dev->driver_version;
++	info->media_version = MEDIA_API_VERSION;
++	info->hw_revision = dev->hw_revision;
++	info->driver_version = dev->driver_version;
+ 
+-	if (copy_to_user(__info, &info, sizeof(*__info)))
+-		return -EFAULT;
+ 	return 0;
+ }
+ 
+@@ -101,29 +98,25 @@ static struct media_entity *find_entity(struct media_device *mdev, u32 id)
+ }
+ 
+ static long media_device_enum_entities(struct media_device *mdev,
+-				       struct media_entity_desc __user *uent)
++				       struct media_entity_desc *entd)
+ {
+ 	struct media_entity *ent;
+-	struct media_entity_desc u_ent;
+-
+-	memset(&u_ent, 0, sizeof(u_ent));
+-	if (copy_from_user(&u_ent.id, &uent->id, sizeof(u_ent.id)))
+-		return -EFAULT;
+-
+-	ent = find_entity(mdev, u_ent.id);
+ 
++	ent = find_entity(mdev, entd->id);
+ 	if (ent == NULL)
+ 		return -EINVAL;
+ 
+-	u_ent.id = media_entity_id(ent);
++	memset(entd, 0, sizeof(*entd));
++
++	entd->id = media_entity_id(ent);
+ 	if (ent->name)
+-		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
+-	u_ent.type = ent->function;
+-	u_ent.revision = 0;		/* Unused */
+-	u_ent.flags = ent->flags;
+-	u_ent.group_id = 0;		/* Unused */
+-	u_ent.pads = ent->num_pads;
+-	u_ent.links = ent->num_links - ent->num_backlinks;
++		strlcpy(entd->name, ent->name, sizeof(entd->name));
++	entd->type = ent->function;
++	entd->revision = 0;		/* Unused */
++	entd->flags = ent->flags;
++	entd->group_id = 0;		/* Unused */
++	entd->pads = ent->num_pads;
++	entd->links = ent->num_links - ent->num_backlinks;
  
  	/*
- 	 * If VIDIOC_QUERY_EXT_CTRL isn't available emulate it using
-@@ -478,6 +480,7 @@ static int get_control(struct device *dev,
- 		       struct v4l2_ext_control *ctrl)
+ 	 * Workaround for a bug at media-ctl <= v1.10 that makes it to
+@@ -139,14 +132,13 @@ static long media_device_enum_entities(struct media_device *mdev,
+ 	if (ent->function < MEDIA_ENT_F_OLD_BASE ||
+ 	    ent->function > MEDIA_ENT_T_DEVNODE_UNKNOWN) {
+ 		if (is_media_entity_v4l2_subdev(ent))
+-			u_ent.type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
++			entd->type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
+ 		else if (ent->function != MEDIA_ENT_F_IO_V4L)
+-			u_ent.type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
++			entd->type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
+ 	}
+ 
+-	memcpy(&u_ent.raw, &ent->info, sizeof(ent->info));
+-	if (copy_to_user(uent, &u_ent, sizeof(u_ent)))
+-		return -EFAULT;
++	memcpy(&entd->raw, &ent->info, sizeof(ent->info));
++
+ 	return 0;
+ }
+ 
+@@ -158,8 +150,8 @@ static void media_device_kpad_to_upad(const struct media_pad *kpad,
+ 	upad->flags = kpad->flags;
+ }
+ 
+-static long __media_device_enum_links(struct media_device *mdev,
+-				      struct media_links_enum *links)
++static long media_device_enum_links(struct media_device *mdev,
++				    struct media_links_enum *links)
  {
- 	struct v4l2_ext_controls ctrls;
-+	struct v4l2_control old;
- 	int ret;
+ 	struct media_entity *entity;
  
- 	memset(&ctrls, 0, sizeof(ctrls));
-@@ -489,34 +492,28 @@ static int get_control(struct device *dev,
+@@ -206,64 +198,35 @@ static long __media_device_enum_links(struct media_device *mdev,
+ 	return 0;
+ }
  
- 	ctrl->id = query->id;
- 
--	if (query->type == V4L2_CTRL_TYPE_STRING) {
--		ctrl->string = malloc(query->maximum + 1);
--		if (ctrl->string == NULL)
-+	if (query->flags & V4L2_CTRL_FLAG_HAS_PAYLOAD) {
-+		ctrl->size = query->elems * query->elem_size;
-+		ctrl->ptr = malloc(ctrl->size);
-+		if (ctrl->ptr == NULL)
- 			return -ENOMEM;
+-static long media_device_enum_links(struct media_device *mdev,
+-				    struct media_links_enum __user *ulinks)
+-{
+-	struct media_links_enum links;
+-	int rval;
 -
--		ctrl->size = query->maximum + 1;
- 	}
- 
- 	ret = ioctl(dev->fd, VIDIOC_G_EXT_CTRLS, &ctrls);
- 	if (ret != -1)
- 		return 0;
- 
--	if (query->type != V4L2_CTRL_TYPE_INTEGER64 &&
--	    query->type != V4L2_CTRL_TYPE_STRING &&
--	    (errno == EINVAL || errno == ENOTTY)) {
--		struct v4l2_control old;
-+	if (query->flags & V4L2_CTRL_FLAG_HAS_PAYLOAD ||
-+	    query->type == V4L2_CTRL_TYPE_INTEGER64 ||
-+	    (errno != EINVAL && errno != ENOTTY))
-+		return -1;
- 
--		old.id = query->id;
--		ret = ioctl(dev->fd, VIDIOC_G_CTRL, &old);
--		if (ret != -1) {
--			ctrl->value = old.value;
--			return 0;
--		}
--	}
-+	old.id = query->id;
-+	ret = ioctl(dev->fd, VIDIOC_G_CTRL, &old);
-+	if (ret != -1)
-+		ctrl->value = old.value;
- 
--	printf("unable to get control 0x%8.8x: %s (%d).\n",
--		query->id, strerror(errno), errno);
--	return -1;
-+	return ret;
- }
- 
- static void set_control(struct device *dev, unsigned int id,
-@@ -1111,12 +1108,75 @@ static void video_query_menu(struct device *dev,
- 	};
- }
- 
-+static void video_print_control_array(const struct v4l2_query_ext_ctrl *query,
-+				      struct v4l2_ext_control *ctrl)
-+{
-+	unsigned int i;
-+
-+	printf("{");
-+
-+	for (i = 0; i < query->elems; ++i) {
-+		switch (query->type) {
-+		case V4L2_CTRL_TYPE_U8:
-+			printf("%u", ctrl->p_u8[i]);
-+			break;
-+		case V4L2_CTRL_TYPE_U16:
-+			printf("%u", ctrl->p_u16[i]);
-+			break;
-+		case V4L2_CTRL_TYPE_U32:
-+			printf("%u", ctrl->p_u32[i]);
-+			break;
-+		}
-+
-+		if (i != query->elems - 1)
-+			printf(", ");
-+	}
-+
-+	printf("}");
-+}
-+
-+static void video_print_control_value(const struct v4l2_query_ext_ctrl *query,
-+				      struct v4l2_ext_control *ctrl)
-+{
-+	if (query->nr_of_dims == 0) {
-+		switch (query->type) {
-+		case V4L2_CTRL_TYPE_INTEGER:
-+		case V4L2_CTRL_TYPE_BOOLEAN:
-+		case V4L2_CTRL_TYPE_MENU:
-+		case V4L2_CTRL_TYPE_INTEGER_MENU:
-+			printf("%d", ctrl->value);
-+			break;
-+		case V4L2_CTRL_TYPE_BITMASK:
-+			printf("0x%08x", ctrl->value);
-+			break;
-+		case V4L2_CTRL_TYPE_INTEGER64:
-+			printf("%lld", ctrl->value64);
-+			break;
-+		case V4L2_CTRL_TYPE_STRING:
-+			printf("%s", ctrl->string);
-+			break;
-+		}
-+
-+		return;
-+	}
-+
-+	switch (query->type) {
-+	case V4L2_CTRL_TYPE_U8:
-+	case V4L2_CTRL_TYPE_U16:
-+	case V4L2_CTRL_TYPE_U32:
-+		video_print_control_array(query, ctrl);
-+		break;
-+	default:
-+		printf("unsupported");
-+		break;
-+	}
-+}
-+
- static int video_print_control(struct device *dev, unsigned int id, bool full)
+-	if (copy_from_user(&links, ulinks, sizeof(links)))
+-		return -EFAULT;
+-
+-	rval = __media_device_enum_links(mdev, &links);
+-	if (rval < 0)
+-		return rval;
+-
+-	if (copy_to_user(ulinks, &links, sizeof(*ulinks)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+ static long media_device_setup_link(struct media_device *mdev,
+-				    struct media_link_desc __user *_ulink)
++				    struct media_link_desc *linkd)
  {
- 	struct v4l2_ext_control ctrl;
- 	struct v4l2_query_ext_ctrl query;
--	char sval[24];
--	char *current = sval;
-+	unsigned int i;
- 	int ret;
+ 	struct media_link *link = NULL;
+-	struct media_link_desc ulink;
+ 	struct media_entity *source;
+ 	struct media_entity *sink;
+-	int ret;
+-
+-	if (copy_from_user(&ulink, _ulink, sizeof(ulink)))
+-		return -EFAULT;
  
- 	ret = query_control(dev, id, &query);
-@@ -1131,25 +1191,39 @@ static int video_print_control(struct device *dev, unsigned int id, bool full)
- 		return query.id;
- 	}
+ 	/* Find the source and sink entities and link.
+ 	 */
+-	source = find_entity(mdev, ulink.source.entity);
+-	sink = find_entity(mdev, ulink.sink.entity);
++	source = find_entity(mdev, linkd->source.entity);
++	sink = find_entity(mdev, linkd->sink.entity);
  
--	ret = get_control(dev, &query, &ctrl);
+ 	if (source == NULL || sink == NULL)
+ 		return -EINVAL;
+ 
+-	if (ulink.source.index >= source->num_pads ||
+-	    ulink.sink.index >= sink->num_pads)
++	if (linkd->source.index >= source->num_pads ||
++	    linkd->sink.index >= sink->num_pads)
+ 		return -EINVAL;
+ 
+-	link = media_entity_find_link(&source->pads[ulink.source.index],
+-				      &sink->pads[ulink.sink.index]);
++	link = media_entity_find_link(&source->pads[linkd->source.index],
++				      &sink->pads[linkd->sink.index]);
+ 	if (link == NULL)
+ 		return -EINVAL;
+ 
+ 	/* Setup the link on both entities. */
+-	ret = __media_entity_setup_link(link, ulink.flags);
+-
+-	if (copy_to_user(_ulink, &ulink, sizeof(ulink)))
+-		return -EFAULT;
+-
+-	return ret;
++	return __media_entity_setup_link(link, linkd->flags);
+ }
+ 
+-static long __media_device_get_topology(struct media_device *mdev,
++static long media_device_get_topology(struct media_device *mdev,
+ 				      struct media_v2_topology *topo)
+ {
+ 	struct media_entity *entity;
+@@ -400,35 +363,50 @@ static long __media_device_get_topology(struct media_device *mdev,
+ 	return ret;
+ }
+ 
+-static long media_device_get_topology(struct media_device *mdev,
+-				      struct media_v2_topology __user *utopo)
++static long copy_arg_from_user(void *karg, void __user *uarg, unsigned int cmd)
+ {
+-	struct media_v2_topology ktopo;
+-	int ret;
+-
+-	if (copy_from_user(&ktopo, utopo, sizeof(ktopo)))
++	/* All media IOCTLs are _IOWR() */
++	if (copy_from_user(karg, uarg, _IOC_SIZE(cmd)))
+ 		return -EFAULT;
+ 
+-	ret = __media_device_get_topology(mdev, &ktopo);
 -	if (ret < 0)
--		strcpy(sval, "n/a");
--	else if (query.type == V4L2_CTRL_TYPE_INTEGER64)
--		sprintf(sval, "%lld", ctrl.value64);
--	else if (query.type == V4L2_CTRL_TYPE_STRING)
--		current = ctrl.string;
--	else
--		sprintf(sval, "%d", ctrl.value);
--
--	if (full)
--		printf("control 0x%08x `%s' min %lld max %lld step %lld default %lld current %s.\n",
-+	if (full) {
-+		printf("control 0x%08x `%s' min %lld max %lld step %lld default %lld ",
- 			query.id, query.name, query.minimum, query.maximum,
--			query.step, query.default_value, current);
--	else
--		printf("control 0x%08x current %s.\n", query.id, current);
-+			query.step, query.default_value);
-+		if (query.nr_of_dims) {
-+			for (i = 0; i < query.nr_of_dims; ++i)
-+				printf("[%u]", query.dims[i]);
-+			printf(" ");
-+		}
-+	} else {
-+		printf("control 0x%08x ", query.id);
+-		return ret;
++	return 0;
++}
+ 
+-	if (copy_to_user(utopo, &ktopo, sizeof(*utopo)))
++static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
++{
++	/* All media IOCTLs are _IOWR() */
++	if (copy_to_user(uarg, karg, _IOC_SIZE(cmd)))
+ 		return -EFAULT;
+ 
+ 	return 0;
+ }
+ 
+-#define MEDIA_IOC(__cmd, func)						\
+-	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
+-		.cmd = MEDIA_IOC_##__cmd,				\
+-		.fn = (long (*)(struct media_device *, void __user *))func,    \
++#ifdef CONFIG_COMPAT
++/* Only compat IOCTLs need this right now. */
++static long copy_arg_to_user_nop(void __user *uarg, void *karg,
++				 unsigned int cmd)
++{
++	return 0;
++}
++#endif
++
++#define MEDIA_IOC_ARG(__cmd, func, from_user, to_user)	\
++	[_IOC_NR(MEDIA_IOC_##__cmd)] = {		\
++		.cmd = MEDIA_IOC_##__cmd,		\
++		.fn = (long (*)(struct media_device *, void *))func,	\
++		.arg_from_user = from_user,		\
++		.arg_to_user = to_user,			\
+ 	}
+ 
++#define MEDIA_IOC(__cmd, func)						\
++	MEDIA_IOC_ARG(__cmd, func, copy_arg_from_user, copy_arg_to_user)
++
+ /* the table is indexed by _IOC_NR(cmd) */
+ struct media_ioctl_info {
+ 	unsigned int cmd;
+-	long (*fn)(struct media_device *dev, void __user *arg);
++	long (*fn)(struct media_device *dev, void *arg);
++	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
++	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
+ };
+ 
+ static inline long is_valid_ioctl(const struct media_ioctl_info *info,
+@@ -445,6 +423,7 @@ static long __media_device_ioctl(
+ 	struct media_devnode *devnode = media_devnode_data(filp);
+ 	struct media_device *dev = to_media_device(devnode);
+ 	const struct media_ioctl_info *info;
++	char __karg[256], *karg = __karg;
+ 	long ret;
+ 
+ 	ret = is_valid_ioctl(info_array, info_array_len, cmd);
+@@ -453,10 +432,27 @@ static long __media_device_ioctl(
+ 
+ 	info = &info_array[_IOC_NR(cmd)];
+ 
++	if (_IOC_SIZE(info->cmd) > sizeof(__karg)) {
++		karg = kmalloc(_IOC_SIZE(info->cmd), GFP_KERNEL);
++		if (!karg)
++			return -ENOMEM;
 +	}
 +
-+	if (query.type == V4L2_CTRL_TYPE_BUTTON) {
-+		/* Button controls have no current value. */
-+		printf("\n");
-+		return query.id;
-+	}
++	ret = info->arg_from_user(karg, arg, cmd);
++	if (ret)
++		goto out_free;
 +
-+	printf("current ");
+ 	mutex_lock(&dev->graph_mutex);
+-	ret = info->fn(dev, arg);
++	ret = info->fn(dev, karg);
+ 	mutex_unlock(&dev->graph_mutex);
+ 
++	if (!ret)
++		ret = info->arg_to_user(arg, karg, cmd);
 +
-+	ret = get_control(dev, &query, &ctrl);
-+	if (ret < 0) {
-+		printf("n/a\n");
-+		printf("unable to get control 0x%8.8x: %s (%d).\n",
-+			query.id, strerror(errno), errno);
-+	} else {
-+		video_print_control_value(&query, &ctrl);
-+		printf("\n");
-+	}
++out_free:
++	if (karg != __karg)
++		kfree(karg);
++
+ 	return ret;
+ }
  
--	if (query.type == V4L2_CTRL_TYPE_STRING)
--		free(ctrl.string);
-+	if ((query.flags & V4L2_CTRL_FLAG_HAS_PAYLOAD) && ctrl.ptr)
-+		free(ctrl.ptr);
+@@ -485,23 +481,24 @@ struct media_links_enum32 {
+ 	__u32 reserved[4];
+ };
  
- 	if (!full)
- 		return query.id;
-@@ -1175,7 +1249,7 @@ static void video_list_controls(struct device *dev)
- #else
- 	id = 0;
- 	while (1) {
--		id |= V4L2_CTRL_FLAG_NEXT_CTRL;
-+		id |= V4L2_CTRL_FLAG_NEXT_CTRL | V4L2_CTRL_FLAG_NEXT_COMPOUND;
- #endif
+-static long media_device_enum_links32(struct media_device *mdev,
+-				      struct media_links_enum32 __user *ulinks)
++static long from_user_enum_links32(void *karg, void __user *uarg,
++				   unsigned int cmd)
+ {
+-	struct media_links_enum links;
++	struct media_links_enum *links = karg;
++	struct media_links_enum32 __user *ulinks = uarg;
+ 	compat_uptr_t pads_ptr, links_ptr;
  
- 		ret = video_print_control(dev, id, true);
+-	memset(&links, 0, sizeof(links));
++	memset(links, 0, sizeof(*links));
+ 
+-	if (get_user(links.entity, &ulinks->entity)
++	if (get_user(links->entity, &ulinks->entity)
+ 	    || get_user(pads_ptr, &ulinks->pads)
+ 	    || get_user(links_ptr, &ulinks->links))
+ 		return -EFAULT;
+ 
+-	links.pads = compat_ptr(pads_ptr);
+-	links.links = compat_ptr(links_ptr);
++	links->pads = compat_ptr(pads_ptr);
++	links->links = compat_ptr(links_ptr);
+ 
+-	return __media_device_enum_links(mdev, &links);
++	return 0;
+ }
+ 
+ #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
+@@ -509,7 +506,7 @@ static long media_device_enum_links32(struct media_device *mdev,
+ static const struct media_ioctl_info compat_ioctl_info[] = {
+ 	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
+ 	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
+-	MEDIA_IOC(ENUM_LINKS32, media_device_enum_links32),
++	MEDIA_IOC_ARG(ENUM_LINKS32, media_device_enum_links, from_user_enum_links32, copy_arg_to_user_nop),
+ 	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
+ 	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+ };
 -- 
-2.7.3
+1.9.1
 
