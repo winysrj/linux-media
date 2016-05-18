@@ -1,84 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:46862 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751145AbcEDPlZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 11:41:25 -0400
-Subject: Re: [PATCH 1/2] solo6x10: Set FRAME_BUF_SIZE to 200KB
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-References: <1461986229-11949-1-git-send-email-ismael@iodev.co.uk>
- <20160504133408.GA18570@acer> <572A0155.3030507@xs4all.nl>
- <CAM_ZknWELGNLnwFR66WbSEtDRHE2cEnkSOAOjAtd=aRXBgqgxw@mail.gmail.com>
-Cc: Andrey Utkin <andrey_utkin@fastmail.com>,
-	Ismael Luceno <ismael@iodev.co.uk>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Curtis Hall <chall@corp.bluecherry.net>,
-	Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <572A181E.4050204@xs4all.nl>
-Date: Wed, 4 May 2016 17:41:18 +0200
+Received: from mail.kernel.org ([198.145.29.136]:47993 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753824AbcERQhj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 May 2016 12:37:39 -0400
+Date: Wed, 18 May 2016 11:37:32 -0500
+From: Rob Herring <robh@kernel.org>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: mark.rutland@arm.com, pawel.moll@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
+	linux@arm.linux.org.uk, mchehab@osg.samsung.com,
+	devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	sre@kernel.org, pali.rohar@gmail.com
+Subject: Re: [PATCH v2 4/6] ir-rx51: add DT support to driver
+Message-ID: <20160518163732.GA25142@rob-hp-laptop>
+References: <1463427254-7728-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <1463427254-7728-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAM_ZknWELGNLnwFR66WbSEtDRHE2cEnkSOAOjAtd=aRXBgqgxw@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1463427254-7728-5-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 05/04/2016 04:22 PM, Andrey Utkin wrote:
-> On Wed, May 4, 2016 at 5:04 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> BTW, looking at the MAINTAINERS file I see two email addresses for Andrey,
->> neither of which is the fastmail.com address this email came from.
+On Mon, May 16, 2016 at 10:34:12PM +0300, Ivaylo Dimitrov wrote:
+> With the upcoming removal of legacy boot, lets add support to one of the
+> last N900 drivers remaining without it. As the driver still uses omap
+> dmtimer, add auxdata as well.
 > 
-> Now I'm replying from corporate email.
-> 
->> Andrey, it might be a good idea to post such fixes to the mailinglist sooner,
->> both to prevent situations like this and to keep the diffs between mainline
->> and your internal code as small as possible.
-> 
-> In a word - we would do what is possible to achieve that, but there's
-> little time
-> and little incentive for that.
-> The codebases have already diverged a lot, having unique sets of runtime bugs.
-> And this exact issue alone is not resolved yet in a good way and is
-> not actually critical.
-> Merging would require a lot of working time. And it is complicated by
-> the fact that
-> there's not going to be any new manufacturing orders (the minimal order quantity
-> is too high for Bluecherry), and that we have picked tw5864 as
-> reachable for retail orders.
-> 
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> ---
+>  .../devicetree/bindings/media/nokia,n900-ir          | 20 ++++++++++++++++++++
+>  arch/arm/mach-omap2/pdata-quirks.c                   |  6 +-----
+>  drivers/media/rc/ir-rx51.c                           | 11 ++++++++++-
+>  3 files changed, 31 insertions(+), 6 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/nokia,n900-ir
 
-It sounds more like the status of this driver is "Odd Fixes" and not "Supported"
-as it says today. From the MAINTAINERS file:
-
-        S: Status, one of the following:
-           Supported:   Someone is actually paid to look after this.
-           Maintained:  Someone actually looks after it.
-           Odd Fixes:   It has a maintainer but they don't have time to do
-                        much other than throw the odd patch in. See below..
-           Orphan:      No current maintainer [but maybe you could take the
-                        role as you write your new code].
-           Obsolete:    Old code. Something tagged obsolete generally means
-                        it has been replaced by a better system and you
-                        should be using that.
-
-Yes, Ismael should have kept your authorship, but it won't be the first time
-someone forgets that. Heck, I've forgotten it on occasion. Just point that out
-politely and let Ismael post a new version of this patch.
-
-Don't look for conspiracies when it is just a mistake. Relax, peace on earth,
-don't worry, be happy and all that. Bad for everyone's blood pressure to get
-so worked up about these things.
-
-Looking at the recent history of this driver the patch contributions seem to
-be more-or-less equally distributed between Krzysztof, Andrey and Ismael, not
-that there are all that many.
-
-So if Ismael is merging in some of your patches for free in his own time, then
-I'd say why not? Again, provided correct authorship is maintained.
-
-Regards,
-
-	Hans
+Acked-by: Rob Herring <robh@kernel.org>
