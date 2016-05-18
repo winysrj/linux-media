@@ -1,43 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:14373 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750758AbcEQPI4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2016 11:08:56 -0400
-Date: Tue, 17 May 2016 17:08:52 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Kalle Valo <kvalo@codeaurora.org>
-cc: netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-scsi@vger.kernel.org,
-	devel@driverdev.osuosl.org, pmchba@pmcs.com
-Subject: Re: [PATCH 0/7] fix typo
-In-Reply-To: <874m9wpvt2.fsf@purkki.adurom.net>
-Message-ID: <alpine.DEB.2.10.1605171708260.3068@hadrien>
-References: <1463495926-13728-1-git-send-email-Julia.Lawall@lip6.fr> <874m9wpvt2.fsf@purkki.adurom.net>
+Received: from mail.kernel.org ([198.145.29.136]:44655 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750752AbcERXQn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 May 2016 19:16:43 -0400
+Date: Wed, 18 May 2016 18:16:37 -0500
+From: Rob Herring <robh@kernel.org>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: pawel.moll@arm.com, mark.rutland@arm.com,
+	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+	devicetree@vger.kernel.org, mchehab@osg.samsung.com,
+	hverkuil@xs4all.nl, geert@linux-m68k.org, matrandg@cisco.com,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v2 1/2] [media] media: i2c/ov5645: add the device tree
+ binding document
+Message-ID: <20160518231637.GA31413@rob-hp-laptop>
+References: <1463572208-8826-1-git-send-email-todor.tomov@linaro.org>
+ <1463572208-8826-2-git-send-email-todor.tomov@linaro.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1463572208-8826-2-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, May 18, 2016 at 02:50:07PM +0300, Todor Tomov wrote:
+> Add the document for ov5645 device tree binding.
+> 
+> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> ---
+>  .../devicetree/bindings/media/i2c/ov5645.txt       | 56 ++++++++++++++++++++++
+>  1 file changed, 56 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+> new file mode 100644
+> index 0000000..8799000
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+> @@ -0,0 +1,56 @@
+> +* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
+> +
+> +The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor with
+> +an active array size of 2592H x 1944V. It is programmable through a serial SCCB
 
+s/SCCB/I2C/ because that is the more common name.
 
-On Tue, 17 May 2016, Kalle Valo wrote:
+> +interface.
+> +
+> +Required Properties:
+> +- compatible: value should be "ovti,ov5645"
+> +- clocks: reference to the xclk clock
+> +- clock-names: should be "xclk"
+> +- assigned-clocks: reference to the xclk clock
 
-> Julia Lawall <Julia.Lawall@lip6.fr> writes:
->
-> > firmare -> firmware
-> >
-> > ---
-> >
-> >  drivers/media/dvb-frontends/mn88473.c       |    2 +-
-> >  drivers/net/wireless/ath/ath6kl/core.h      |    2 +-
-> >  drivers/net/wireless/marvell/mwifiex/pcie.c |    2 +-
->
-> It would be good to know in advance what tree you are planning to submit
-> these for. For example, should I take ath6kl and mwifiex patches or
-> someone else?
+This should be optional as it only makes sense if there is more than one 
+option.
 
-I have no preference.  They are all independent in any case.
+> +- assigned-clock-rates: should be "23880000"
 
-julia
+Doesn't this depend on the board? Most parts take a range of 
+frequencies. The driver should know what the range is and request a rate 
+within this range.
+
+> +
+> +Optional Properties:
+> +- reset-gpios: Chip reset GPIO
+> +- pwdn-gpios: Chip power down GPIO
+
+Use enable-gpios as it is more common and would just be the inverse of 
+this.
+
+Both need to specify the polarity.
+
+> +- dovdd-supply: Chip IO regulator
+> +- dvdd-supply: Chip core regulator
+> +- avdd-supply: Chip analog regulator
+> +
+> +The device node must contain one 'port' child node for its digital output
+> +video port, in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
