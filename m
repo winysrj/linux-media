@@ -1,55 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:42933 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750812AbcEYM0A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 May 2016 08:26:00 -0400
-Date: Wed, 25 May 2016 09:25:50 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: mchehab@infradead.org, LMML <linux-media@vger.kernel.org>
-Subject: [ANNONCE] Kaffeine ported to Qt5/KF5
-Message-ID: <20160525092550.702bee78@recife.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:40516 "EHLO
+	lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751941AbcESDKY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 May 2016 23:10:24 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id F3BDC180E21
+	for <linux-media@vger.kernel.org>; Thu, 19 May 2016 05:10:17 +0200 (CEST)
+Date: Thu, 19 May 2016 05:10:17 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160519031017.F3BDC180E21@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-As Kaffeine is the GUI application I use to test DVB cards, I've been working
-for a while to improve it. 
+Results of the daily build of media_tree:
 
-Initially, I changed it to use libdvbv5, allowing it to work properly with
-devices that support multiple delivery systems on the same frontend and to
-support other standards like ISDB-T.
+date:		Thu May 19 04:00:31 CEST 2016
+git branch:	test
+git hash:	bc2b80ee3490651904f121eac1c8fb7652d48253
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-164
 
-Today, I completed another milestone: Kaffeine is now poarted from Qt4/KDE 4
-to Qt5/KDE Foundations 5!
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-While I'm working to merge those patches at Kaffeine upstream, you
-can test what I've done so far at:
-	https://git.linuxtv.org/mchehab/kaffeine.git/log/?h=kde5
+Detailed results are available here:
 
-If you prefer to keep using Qt 4/KDE 4, you could use the master
-branch instead:
-	https://git.linuxtv.org/mchehab/kaffeine.git/log/
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Personally, I think that the visual with KDE 5 is better, but the
-functionality should be the same on both versions.
+Full logs are available here:
 
-PS.: There is one caveat with Qt5: the VLC backend, used to play
-videos, don't work fine with Xinput2 mouse changes that happened
-with qt5.5. This is a known bug, and there is a fix at VLC, but
-only for Qt4:
-	https://mailman.videolan.org/pipermail/vlc-commits/2015-October/032674.html
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-This is harmless for Digital TV play, but it is annoying for DVD,
-because it breaks DVD Menus. While this is not fixed, the
-workaround is to compile Qt5 without Xinput2, using the --no-xinput2
-./configure option and re-building Qt5.
+The Media Infrastructure API from this daily build is here:
 
-Please test and report any bugs to me, c/c the media ML.
-
-Enjoy!
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
