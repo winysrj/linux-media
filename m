@@ -1,147 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:1297 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758250AbcEFK4n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 May 2016 06:56:43 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56465 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755452AbcESXke (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2016 19:40:34 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [RFC 20/22] DocBook: media: Document the V4L2 subdev request API
-Date: Fri,  6 May 2016 13:53:29 +0300
-Message-Id: <1462532011-15527-21-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1462532011-15527-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v4 5/6] v4l: vsp1: Don't create LIF entity when the userspace API is enabled
+Date: Fri, 20 May 2016 02:40:31 +0300
+Message-Id: <1463701232-22008-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
-The V4L2 subdev request API consists in extensions to existing V4L2
-subdev ioctls. Document it.
+The LIF is only used when feeding the VSP output to the DU. The only way
+to do so is by controlling the VSP directly from the DU driver and
+disabling the VSP userspace API. There is thus no need to create a LIF
+entity when the userspace API is enabled, as it can't be used in that
+case.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- .../DocBook/media/v4l/vidioc-subdev-g-fmt.xml      | 27 +++++++++++++++++++---
- .../media/v4l/vidioc-subdev-g-selection.xml        | 24 +++++++++++++++----
- 2 files changed, 44 insertions(+), 7 deletions(-)
+ drivers/media/platform/vsp1/vsp1_drv.c | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
-index 781089c..5cf6d89 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
-@@ -91,6 +91,13 @@
-     low-pass noise filter might crop pixels at the frame boundaries, modifying
-     its output frame size.</para>
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index c7e28cc97bdc..de575b4215f8 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -182,19 +182,15 @@ static int vsp1_uapi_create_links(struct vsp1_device *vsp1)
  
-+    <para>Applications can get and set formats stored in a request by setting
-+    the <structfield>which</structfield> field to
-+    <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant> and the
-+    <structfield>request</structfield> to the request ID. See
-+    <xref linkend="v4l2-requests" /> for more information about the request
-+    API.</para>
-+
-     <para>Drivers must not return an error solely because the requested format
-     doesn't match the device capabilities. They must instead modify the format
-     to match what the hardware can provide. The modified format should be as
-@@ -119,7 +126,15 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[8]</entry>
-+	    <entry><structfield>request</structfield></entry>
-+	    <entry>Request ID, only valid when the <structfield>which</structfield>
-+	    field is set to <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant>.
-+	    Applications and drivers must set the field to zero in all other
-+	    cases.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[7]</entry>
- 	    <entry>Reserved for future extensions. Applications and drivers must
- 	    set the array to zero.</entry>
- 	  </row>
-@@ -142,6 +157,11 @@
- 	    <entry>1</entry>
- 	    <entry>Active formats, applied to the hardware.</entry>
- 	  </row>
-+	  <row>
-+	    <entry>V4L2_SUBDEV_FORMAT_REQUEST</entry>
-+	    <entry>2</entry>
-+	    <entry>Request formats, used with the requests API.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-@@ -165,8 +185,9 @@
- 	<term><errorcode>EINVAL</errorcode></term>
- 	<listitem>
- 	  <para>The &v4l2-subdev-format; <structfield>pad</structfield>
--	  references a non-existing pad, or the <structfield>which</structfield>
--	  field references a non-existing format.</para>
-+	  references a non-existing pad, the <structfield>which</structfield>
-+	  field references a non-existing format or the request ID references
-+	  a nonexistant request.</para>
- 	</listitem>
-       </varlistentry>
-     </variablelist>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index faac955..c0fbfbe 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -94,6 +94,13 @@
-     handle. Two applications querying the same sub-device would thus not
-     interfere with each other.</para>
+ 	for (i = 0; i < vsp1->info->wpf_count; ++i) {
+ 		/* Connect the video device to the WPF. All connections are
+-		 * immutable except for the WPF0 source link if a LIF is
+-		 * present.
++		 * immutable.
+ 		 */
+ 		struct vsp1_rwpf *wpf = vsp1->wpf[i];
+-		unsigned int flags = MEDIA_LNK_FL_ENABLED;
+-
+-		if (!(vsp1->info->features & VSP1_HAS_LIF) || i != 0)
+-			flags |= MEDIA_LNK_FL_IMMUTABLE;
  
-+    <para>Applications can get and set selection rectangles stored in a request
-+    by setting the <structfield>which</structfield> field to
-+    <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant> and the
-+    <structfield>request</structfield> to the request ID. See
-+    <xref linkend="v4l2-requests" /> for more information about the request
-+    API.</para>
-+
-     <para>Drivers must not return an error solely because the requested
-     selection rectangle doesn't match the device capabilities. They must instead
-     modify the rectangle to match what the hardware can provide. The modified
-@@ -128,7 +135,7 @@
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>which</structfield></entry>
--	    <entry>Active or try selection, from
-+	    <entry>Selection to be modified, from
- 	    &v4l2-subdev-format-whence;.</entry>
- 	  </row>
- 	  <row>
-@@ -155,7 +162,15 @@
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[8]</entry>
-+	    <entry><structfield>request</structfield></entry>
-+	    <entry>Request ID, only valid when the <structfield>which</structfield>
-+	    field is set to <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant>.
-+	    Applications and drivers must set the field to zero in all other
-+	    cases.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[7]</entry>
- 	    <entry>Reserved for future extensions. Applications and drivers must
- 	    set the array to zero.</entry>
- 	  </row>
-@@ -187,8 +202,9 @@
- 	  <para>The &v4l2-subdev-selection;
- 	  <structfield>pad</structfield> references a non-existing
- 	  pad, the <structfield>which</structfield> field references a
--	  non-existing format, or the selection target is not
--	  supported on the given subdev pad.</para>
-+	  non-existing format, the selection target is not supported on
-+	  the given subdev pad or the request ID references a nonexistant
-+	  request.</para>
- 	</listitem>
-       </varlistentry>
-     </variablelist>
+ 		ret = media_create_pad_link(&wpf->entity.subdev.entity,
+ 					    RWPF_PAD_SOURCE,
+ 					    &wpf->video->video.entity, 0,
+-					    flags);
++					    MEDIA_LNK_FL_IMMUTABLE |
++					    MEDIA_LNK_FL_ENABLED);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+@@ -293,7 +289,11 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 		list_add_tail(&vsp1->hgo->entity.list_dev, &vsp1->entities);
+ 	}
+ 
+-	if (vsp1->info->features & VSP1_HAS_LIF) {
++	/* The LIF is only supported when used in conjunction with the DU, in
++	 * which case the userspace API is disabled. If the userspace API is
++	 * enabled skip the LIF, even when present.
++	 */
++	if (vsp1->info->features & VSP1_HAS_LIF && !vsp1->info->uapi) {
+ 		vsp1->lif = vsp1_lif_create(vsp1);
+ 		if (IS_ERR(vsp1->lif)) {
+ 			ret = PTR_ERR(vsp1->lif);
 -- 
-1.9.1
+2.7.3
 
