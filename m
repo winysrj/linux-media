@@ -1,94 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:52974 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752560AbcEFABG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 May 2016 20:01:06 -0400
-Date: Fri, 6 May 2016 02:00:45 +0200
-From: Stefan Lippers-Hollmann <s.l-h@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v4.6-rc1] media updates
-Message-ID: <20160506020045.75d9722b@mir>
-In-Reply-To: <20160505080737.5961617e@recife.lan>
-References: <20160315080552.3cc5d146@recife.lan>
-	<20160503233859.0f6506fa@mir>
-	<CA+55aFxAor=MJSGFkynu72AQN75bNTh9kewLR4xe8CpjHQQvZQ@mail.gmail.com>
-	<20160504063902.0af2f4d7@mir>
-	<CA+55aFyE82Hi29az_MG9oG0=AEg1o++Wng_DO2RvNHQsSOz87g@mail.gmail.com>
-	<20160504212845.21dab7c8@mir>
-	<CA+55aFxQSUHBvOSqyiqdt2faY6VZSXP0p-cPzRm+km=fk7z4kQ@mail.gmail.com>
-	<20160504185112.70ea985b@recife.lan>
-	<20160505010051.5b4149c8@mir>
-	<20160505080737.5961617e@recife.lan>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/wdCK2VK+BuxNyydN1Ve4tT9"; protocol="application/pgp-signature"
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56460 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755373AbcESXkb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2016 19:40:31 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v4 0/6] R-Car VSP: Add and set media entities functions
+Date: Fri, 20 May 2016 02:40:26 +0300
+Message-Id: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/wdCK2VK+BuxNyydN1Ve4tT9
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-Hi
+This patch series adds new media entities functions for video processing and
+video statistics computation, and updates the VSP driver to use the new
+functions.
 
-On 2016-05-05, Mauro Carvalho Chehab wrote:
-> Em Thu, 5 May 2016 01:00:51 +0200
-> Stefan Lippers-Hollmann <s.l-h@gmx.de> escreveu:
-[...]
-> Oh, in this case, it should be using IS_ENABLED() macro instead.
-> The following patch should fix it. I tested here with some different
-> setups, as described in the patch, and with your .i686 .config.
->=20
-> Please double-check and ack if it is ok for you.
->=20
-> Regards,
-> Mauro
->=20
->=20
-> [PATCH v2] [media] media-device: fix builds when USB or PCI is compiled
->  as module
->=20
-> Just checking ifdef CONFIG_USB is not enough, if the USB is compiled
-> as module. The same applies to PCI.
-[...]
+Patches 1/6 and 2/6 define and document the new functions. They have been
+submitted previously in the "[PATCH v2 00/54] R-Car VSP improvements for v4.7"
+patch series, this version takes feedback received over e-mail and IRC into
+account.
 
-This patch works for me, both on amd64 and i386, tested with=20
-dvb_usb_dw2102, dvb_usb_af9015 and dvb_usb_rtl28xxu.
+Patches 3/6 to 5/6 prepare the VSP driver to report the correct entity
+functions. They make sure that the LIF will never be exposed to userspace as
+no function currently exists for that block, and it isn't clear at the moment
+what new function should be added. As the LIF is only needed when the VSP is
+controlled directly from the DU driver without being exposed to userspace, a
+function isn't needed for the LIF anyway.
 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Patch 6/6 finally sets functions for all the VSP entities.
 
-Feel free to add
+The code is based on top of the "[PATCH/RFC v2 0/4] Meta-data video device
+type" patch series, although it doesn't strictly depend on it. For convenience
+I've pushed all patches to
 
-Tested-by: Stefan Lippers-Hollmann <s.l-h@gmx.de>
+	git://linuxtv.org/pinchartl/media.git vsp1/functions
 
-Thanks a lot.
+Laurent Pinchart (6):
+  media: Add video processing entity functions
+  media: Add video statistics computation functions
+  v4l: vsp1: Base link creation on availability of entities
+  v4l: vsp1: Don't register media device when userspace API is disabled
+  v4l: vsp1: Don't create LIF entity when the userspace API is enabled
+  v4l: vsp1: Set entities functions
 
-Regards
-	Stefan Lippers-Hollmann
+ Documentation/DocBook/media/v4l/media-types.xml | 64 +++++++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_bru.c          |  3 +-
+ drivers/media/platform/vsp1/vsp1_drv.c          | 36 +++++++-------
+ drivers/media/platform/vsp1/vsp1_entity.c       |  3 +-
+ drivers/media/platform/vsp1/vsp1_entity.h       |  2 +-
+ drivers/media/platform/vsp1/vsp1_hgo.c          |  3 +-
+ drivers/media/platform/vsp1/vsp1_hsit.c         |  5 +-
+ drivers/media/platform/vsp1/vsp1_lif.c          |  7 ++-
+ drivers/media/platform/vsp1/vsp1_lut.c          |  3 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c          |  3 +-
+ drivers/media/platform/vsp1/vsp1_sru.c          |  3 +-
+ drivers/media/platform/vsp1/vsp1_uds.c          |  3 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c          |  3 +-
+ include/uapi/linux/media.h                      | 10 ++++
+ 14 files changed, 119 insertions(+), 29 deletions(-)
 
---Sig_/wdCK2VK+BuxNyydN1Ve4tT9
-Content-Type: application/pgp-signature
-Content-Description: Digitale Signatur von OpenPGP
+-- 
+Regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Laurent Pinchart
 
-iQIcBAEBCAAGBQJXK96tAAoJEL/gLWWx0ULtxc4P/jhCwovWugRzJPIlKl3qYzo/
-q/rczCr/46xdQ7oCkBkXj7pmuct9nqfWr9NufNkd3Rn8vhKUHSvYAJKqrLqAJre/
-q/guxB8eN/zfyPPGKtlvzBPA9VoknlsAhM71cvyjtuwpc5riGzp5tiqw6/ttN4E9
-Rj39V9y+A61JE+Ma02NkozZr/B42c/zzU7NP1MWS8kFyeuQWnKEITA4Na0f5Vz/e
-oWFhs4G90DmFL7phvY9Eige/ufVGI/QvOWLFwb+pkD3KBWT/YDh6HIGxQ6/H+ecE
-7fHKLA7CIk7RewdH27BzUThyUkh+8nZfhcZ1Gco857H57koxFteApq+XUuj/d2jX
-CEWBzQ7D0yhuG9/rb7QOMPhjSjGKvMY0PiKyqD/H1ua8j40zeR7+BkS5LhZetczW
-Q/05Jx9ZZCKkGJEQx+6btIl6gZaEpc5kBUg3pl2wwF8Xy1xwSYT260PMNLoPpzOn
-q/Lv2/m0uudwd2B/PYMSv/iMZ7FndnNYTT6c4No2SFJzw0KTxW5PSpmBdV9BO7Mo
-qINAWhSqsr2VrxeV3dh6qzlPRyem905OyWfvpbXq5Nlt6sb/EWdCjvUYHkadKKvP
-5Oo1Jy7z1c+bqag0CjvBU9io6RmxwIaCwHDtpd47JZ9U9P4cMlb5kz8q0ehiQdcB
-Pg8gEqlfsjb7F4UTsn+h
-=/tjI
------END PGP SIGNATURE-----
-
---Sig_/wdCK2VK+BuxNyydN1Ve4tT9--
