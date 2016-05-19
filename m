@@ -1,132 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47372 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56464 "EHLO
 	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752109AbcEIMm7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 May 2016 08:42:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com
-Subject: Re: [PATCH v2 1/5] media: Determine early whether an IOCTL is supported
-Date: Mon, 09 May 2016 15:43:27 +0300
-Message-ID: <18756050.ecU5BSA5CC@avalon>
-In-Reply-To: <1462360855-23354-2-git-send-email-sakari.ailus@linux.intel.com>
-References: <1462360855-23354-1-git-send-email-sakari.ailus@linux.intel.com> <1462360855-23354-2-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	with ESMTP id S1755455AbcESXke (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2016 19:40:34 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v4 4/6] v4l: vsp1: Don't register media device when userspace API is disabled
+Date: Fri, 20 May 2016 02:40:30 +0300
+Message-Id: <1463701232-22008-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+The media device doesn't need to be exposed to userspace when the VSP is
+fully controlled by the DU driver. Don't register it in that case.
 
-Thank you for the patch.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drv.c | 16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-On Wednesday 04 May 2016 14:20:51 Sakari Ailus wrote:
-> Preparation for refactoring media IOCTL handling to unify common parts.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/media-device.c | 52 ++++++++++++++++++++++++++++++++++++++---
->  1 file changed, 49 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 898a3cf..c24149d 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -419,13 +419,33 @@ static long media_device_get_topology(struct
-> media_device *mdev, return 0;
->  }
-> 
-> -static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> -			       unsigned long arg)
-> +#define MEDIA_IOC(__cmd) \
-> +	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
-> +
-> +/* the table is indexed by _IOC_NR(cmd) */
-> +struct media_ioctl_info {
-> +	unsigned int cmd;
-> +};
-> +
-> +static inline long is_valid_ioctl(const struct media_ioctl_info *info,
-> +				  unsigned int len, unsigned int cmd)
-> +{
-> +	return (_IOC_NR(cmd) >= len
-> +		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
-> +}
-> +
-> +static long __media_device_ioctl(
-> +	struct file *filp, unsigned int cmd, void __user *arg,
-> +	const struct media_ioctl_info *info_array, unsigned int info_array_len)
->  {
->  	struct media_devnode *devnode = media_devnode_data(filp);
->  	struct media_device *dev = to_media_device(devnode);
->  	long ret;
-> 
-> +	ret = is_valid_ioctl(info_array, info_array_len, cmd);
-> +	if (ret)
-> +		return ret;
-> +
->  	mutex_lock(&dev->graph_mutex);
->  	switch (cmd) {
->  	case MEDIA_IOC_DEVICE_INFO:
-> @@ -461,6 +481,22 @@ static long media_device_ioctl(struct file *filp,
-> unsigned int cmd, return ret;
->  }
-> 
-> +static const struct media_ioctl_info ioctl_info[] = {
-> +	MEDIA_IOC(DEVICE_INFO),
-> +	MEDIA_IOC(ENUM_ENTITIES),
-> +	MEDIA_IOC(ENUM_LINKS),
-> +	MEDIA_IOC(SETUP_LINK),
-> +	MEDIA_IOC(G_TOPOLOGY),
-> +};
-> +
-> +static long media_device_ioctl(struct file *filp, unsigned int cmd,
-> +			       unsigned long arg)
-> +{
-> +	return __media_device_ioctl(
-> +		filp, cmd, (void __user *)arg,
-> +		ioctl_info, ARRAY_SIZE(ioctl_info));
-> +}
-> +
->  #ifdef CONFIG_COMPAT
-> 
->  struct media_links_enum32 {
-> @@ -491,6 +527,14 @@ static long media_device_enum_links32(struct
-> media_device *mdev,
-> 
->  #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct 
-media_links_enum32)
-> 
-> +static const struct media_ioctl_info compat_ioctl_info[] = {
-> +	MEDIA_IOC(DEVICE_INFO),
-> +	MEDIA_IOC(ENUM_ENTITIES),
-> +	MEDIA_IOC(ENUM_LINKS32),
-> +	MEDIA_IOC(SETUP_LINK),
-> +	MEDIA_IOC(G_TOPOLOGY),
-> +};
-> +
->  static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
->  				      unsigned long arg)
->  {
-> @@ -503,7 +547,9 @@ static long media_device_compat_ioctl(struct file *filp,
-> unsigned int cmd, case MEDIA_IOC_ENUM_ENTITIES:
->  	case MEDIA_IOC_SETUP_LINK:
->  	case MEDIA_IOC_G_TOPOLOGY:
-> -		return media_device_ioctl(filp, cmd, arg);
-> +		return __media_device_ioctl(
-> +			filp, cmd, (void __user *)arg,
-> +			compat_ioctl_info, ARRAY_SIZE(compat_ioctl_info));
-> 
->  	case MEDIA_IOC_ENUM_LINKS32:
->  		mutex_lock(&dev->graph_mutex);
-
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index d369fad797aa..c7e28cc97bdc 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -218,7 +218,8 @@ static void vsp1_destroy_entities(struct vsp1_device *vsp1)
+ 	}
+ 
+ 	v4l2_device_unregister(&vsp1->v4l2_dev);
+-	media_device_unregister(&vsp1->media_dev);
++	if (vsp1->info->uapi)
++		media_device_unregister(&vsp1->media_dev);
+ 	media_device_cleanup(&vsp1->media_dev);
+ 
+ 	if (!vsp1->info->uapi)
+@@ -403,14 +404,15 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
+ 	/* Register subdev nodes if the userspace API is enabled or initialize
+ 	 * the DRM pipeline otherwise.
+ 	 */
+-	if (vsp1->info->uapi)
++	if (vsp1->info->uapi) {
+ 		ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
+-	else
+-		ret = vsp1_drm_init(vsp1);
+-	if (ret < 0)
+-		goto done;
++		if (ret < 0)
++			goto done;
+ 
+-	ret = media_device_register(mdev);
++		ret = media_device_register(mdev);
++	} else {
++		ret = vsp1_drm_init(vsp1);
++	}
+ 
+ done:
+ 	if (ret < 0)
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.3
 
