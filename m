@@ -1,153 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:41780 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752702AbcEDVvS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 17:51:18 -0400
-Date: Wed, 4 May 2016 18:51:12 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>,
-	Stefan Lippers-Hollmann <s.l-h@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v4.6-rc1] media updates
-Message-ID: <20160504185112.70ea985b@recife.lan>
-In-Reply-To: <CA+55aFxQSUHBvOSqyiqdt2faY6VZSXP0p-cPzRm+km=fk7z4kQ@mail.gmail.com>
-References: <20160315080552.3cc5d146@recife.lan>
-	<20160503233859.0f6506fa@mir>
-	<CA+55aFxAor=MJSGFkynu72AQN75bNTh9kewLR4xe8CpjHQQvZQ@mail.gmail.com>
-	<20160504063902.0af2f4d7@mir>
-	<CA+55aFyE82Hi29az_MG9oG0=AEg1o++Wng_DO2RvNHQsSOz87g@mail.gmail.com>
-	<20160504212845.21dab7c8@mir>
-	<CA+55aFxQSUHBvOSqyiqdt2faY6VZSXP0p-cPzRm+km=fk7z4kQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56465 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755447AbcESXkg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2016 19:40:36 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v4 6/6] v4l: vsp1: Set entities functions
+Date: Fri, 20 May 2016 02:40:32 +0300
+Message-Id: <1463701232-22008-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 4 May 2016 13:49:52 -0700
-Linus Torvalds <torvalds@linux-foundation.org> escreveu:
+Initialize the function field of all subdev entities instantiated by the
+driver. This gets rids of multiple warnings printed by the media
+controller core.
 
-> On Wed, May 4, 2016 at 12:28 PM, Stefan Lippers-Hollmann <s.l-h@gmx.de> wrote:
-> >
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -875,7 +875,7 @@ void __media_device_usb_init(struct medi
-> >                              const char *board_name,
-> >                              const char *driver_name)
-> >  {
-> > -#ifdef CONFIG_USB
-> > +#if defined(CONFIG_USB) || defined(CONFIG_USB_MODULE)
-> 
-> Ok, that should be fine. Can you verify that it builds and works even
-> if USB isn't compiled in, but the media core code is?
-> 
-> IOW, can you test the
-> 
->   CONFIG_USB=m
->   CONFIG_MEDIA_CONTROLLER=y
->   CONFIG_MEDIA_SUPPORT=y
-> 
-> case? Judging by your oops stack trace, I think you currently have
-> MEDIA_SUPPORT=m.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_bru.c    | 3 ++-
+ drivers/media/platform/vsp1/vsp1_entity.c | 3 ++-
+ drivers/media/platform/vsp1/vsp1_entity.h | 2 +-
+ drivers/media/platform/vsp1/vsp1_hgo.c    | 3 ++-
+ drivers/media/platform/vsp1/vsp1_hsit.c   | 5 +++--
+ drivers/media/platform/vsp1/vsp1_lif.c    | 7 ++++++-
+ drivers/media/platform/vsp1/vsp1_lut.c    | 3 ++-
+ drivers/media/platform/vsp1/vsp1_rpf.c    | 3 ++-
+ drivers/media/platform/vsp1/vsp1_sru.c    | 3 ++-
+ drivers/media/platform/vsp1/vsp1_uds.c    | 3 ++-
+ drivers/media/platform/vsp1/vsp1_wpf.c    | 3 ++-
+ 11 files changed, 26 insertions(+), 12 deletions(-)
 
-I think we could use, instead:
-
-#if IS_REACHABLE(CONFIG_USB)
-
-This macro is defined as:
-	/*
- 	 * IS_REACHABLE(CONFIG_FOO) evaluates to 1 if the currently compiled
- 	 * code can call a function defined in code compiled based on CONFIG_FOO.
- 	 * This is similar to IS_ENABLED(), but returns false when invoked from
- 	 * built-in code when CONFIG_FOO is set to 'm'.
- 	 */
-	#define IS_REACHABLE(option) (config_enabled(option) || \
-		 (config_enabled(option##_MODULE) && config_enabled(MODULE)))
-
-And we use it already on other places where we have dependencies
-like that.
-
-
-
-Btw, there are also some helper function there to initialize
-for PCI devices.
-
-> Also, I do wonder if we should move that #if to _outside_ the
-> function. Because inside the function, things will compile but
-> silently not work (like you found), if it is ever mis-used. Outside
-> that function, you'll get link-errors if you try to misuse that
-> function.
-
-Yeah, that makes sense. This function is a helper function that
-it is used only when CONFIG_USB.
-
-The following (untested) patch should do the work.
-
-Stefan,
-
-Could you please test the enclosed patch?
-
-Regards,
-Mauro
-
-[media] media-device: fix builds when USB or PCI is compiled as module
-
-Just checking ifdef CONFIG_USB is not enough, if the USB is compiled
-as module. The same applies to PCI.
-
-Compile-tested only.
-
-So, change the logic to use, instead, IS_REACHABLE.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index b84825715f98..8c1f80ff33e3 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -842,11 +842,11 @@ struct media_device *media_device_find_devres(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(media_device_find_devres);
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index b1068c018011..835593dd88b3 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -390,7 +390,8 @@ struct vsp1_bru *vsp1_bru_create(struct vsp1_device *vsp1)
+ 	bru->entity.type = VSP1_ENTITY_BRU;
  
-+#if IS_REACHABLE(CONFIG_PCI)
- void media_device_pci_init(struct media_device *mdev,
- 			   struct pci_dev *pci_dev,
- 			   const char *name)
+ 	ret = vsp1_entity_init(vsp1, &bru->entity, "bru",
+-			       vsp1->info->num_bru_inputs + 1, &bru_ops);
++			       vsp1->info->num_bru_inputs + 1, &bru_ops,
++			       MEDIA_ENT_F_PROC_VIDEO_COMPOSER);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 2d278583ce17..86499433441f 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -443,7 +443,7 @@ static const struct vsp1_route vsp1_routes[] = {
+ 
+ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+ 		     const char *name, unsigned int num_pads,
+-		     const struct v4l2_subdev_ops *ops)
++		     const struct v4l2_subdev_ops *ops, u32 function)
  {
--#ifdef CONFIG_PCI
- 	mdev->dev = &pci_dev->dev;
+ 	struct v4l2_subdev *subdev;
+ 	unsigned int i;
+@@ -486,6 +486,7 @@ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+ 	subdev = &entity->subdev;
+ 	v4l2_subdev_init(subdev, ops);
  
- 	if (name)
-@@ -862,16 +862,16 @@ void media_device_pci_init(struct media_device *mdev,
- 	mdev->driver_version = LINUX_VERSION_CODE;
++	subdev->entity.function = function;
+ 	subdev->entity.ops = &vsp1->media_ops;
+ 	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
  
- 	media_device_init(mdev);
--#endif
- }
- EXPORT_SYMBOL_GPL(media_device_pci_init);
-+#endif
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index ea3f4125aa1c..777f89608882 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -106,7 +106,7 @@ static inline struct vsp1_entity *to_vsp1_entity(struct v4l2_subdev *subdev)
  
-+#if IS_REACHABLE(CONFIG_USB)
- void __media_device_usb_init(struct media_device *mdev,
- 			     struct usb_device *udev,
- 			     const char *board_name,
- 			     const char *driver_name)
- {
--#ifdef CONFIG_USB
- 	mdev->dev = &udev->dev;
+ int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
+ 		     const char *name, unsigned int num_pads,
+-		     const struct v4l2_subdev_ops *ops);
++		     const struct v4l2_subdev_ops *ops, u32 function);
+ void vsp1_entity_destroy(struct vsp1_entity *entity);
  
- 	if (driver_name)
-@@ -891,9 +891,9 @@ void __media_device_usb_init(struct media_device *mdev,
- 	mdev->driver_version = LINUX_VERSION_CODE;
+ extern const struct v4l2_subdev_internal_ops vsp1_subdev_internal_ops;
+diff --git a/drivers/media/platform/vsp1/vsp1_hgo.c b/drivers/media/platform/vsp1/vsp1_hgo.c
+index 8ca0ac3900bd..eeb08879fb87 100644
+--- a/drivers/media/platform/vsp1/vsp1_hgo.c
++++ b/drivers/media/platform/vsp1/vsp1_hgo.c
+@@ -465,7 +465,8 @@ struct vsp1_hgo *vsp1_hgo_create(struct vsp1_device *vsp1)
+ 	hgo->entity.ops = &hgo_entity_ops;
+ 	hgo->entity.type = VSP1_ENTITY_HGO;
  
- 	media_device_init(mdev);
--#endif
- }
- EXPORT_SYMBOL_GPL(__media_device_usb_init);
-+#endif
+-	ret = vsp1_entity_init(vsp1, &hgo->entity, "hgo", 2, &hgo_ops);
++	ret = vsp1_entity_init(vsp1, &hgo->entity, "hgo", 2, &hgo_ops,
++			       MEDIA_ENT_F_PROC_VIDEO_STATISTICS);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
  
+diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
+index 68b8567b374d..41b09e49e659 100644
+--- a/drivers/media/platform/vsp1/vsp1_hsit.c
++++ b/drivers/media/platform/vsp1/vsp1_hsit.c
+@@ -161,8 +161,9 @@ struct vsp1_hsit *vsp1_hsit_create(struct vsp1_device *vsp1, bool inverse)
+ 	else
+ 		hsit->entity.type = VSP1_ENTITY_HST;
  
- #endif /* CONFIG_MEDIA_CONTROLLER */
-
+-	ret = vsp1_entity_init(vsp1, &hsit->entity, inverse ? "hsi" : "hst", 2,
+-			       &hsit_ops);
++	ret = vsp1_entity_init(vsp1, &hsit->entity, inverse ? "hsi" : "hst",
++			       2, &hsit_ops,
++			       MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index 0217393f22df..60d26b600768 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -165,7 +165,12 @@ struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1)
+ 	lif->entity.ops = &lif_entity_ops;
+ 	lif->entity.type = VSP1_ENTITY_LIF;
+ 
+-	ret = vsp1_entity_init(vsp1, &lif->entity, "lif", 2, &lif_ops);
++	/* The LIF is never exposed to userspace, but media entity registration
++	 * requires a function to be set. Use PROC_VIDEO_PIXEL_FORMATTER just to
++	 * avoid triggering a WARN_ON(), the value won't be seen anywhere.
++	 */
++	ret = vsp1_entity_init(vsp1, &lif->entity, "lif", 2, &lif_ops,
++			       MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index aa09e59f0ab8..2c367cb9755c 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -204,7 +204,8 @@ struct vsp1_lut *vsp1_lut_create(struct vsp1_device *vsp1)
+ 	lut->entity.ops = &lut_entity_ops;
+ 	lut->entity.type = VSP1_ENTITY_LUT;
+ 
+-	ret = vsp1_entity_init(vsp1, &lut->entity, "lut", 2, &lut_ops);
++	ret = vsp1_entity_init(vsp1, &lut->entity, "lut", 2, &lut_ops,
++			       MEDIA_ENT_F_PROC_VIDEO_LUT);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index 64dfbddf2aba..4895038c5fc0 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -237,7 +237,8 @@ struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	rpf->entity.index = index;
+ 
+ 	sprintf(name, "rpf.%u", index);
+-	ret = vsp1_entity_init(vsp1, &rpf->entity, name, 2, &rpf_ops);
++	ret = vsp1_entity_init(vsp1, &rpf->entity, name, 2, &rpf_ops,
++			       MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
+index 97ef997ae735..9dc7c77c74f8 100644
+--- a/drivers/media/platform/vsp1/vsp1_sru.c
++++ b/drivers/media/platform/vsp1/vsp1_sru.c
+@@ -308,7 +308,8 @@ struct vsp1_sru *vsp1_sru_create(struct vsp1_device *vsp1)
+ 	sru->entity.ops = &sru_entity_ops;
+ 	sru->entity.type = VSP1_ENTITY_SRU;
+ 
+-	ret = vsp1_entity_init(vsp1, &sru->entity, "sru", 2, &sru_ops);
++	ret = vsp1_entity_init(vsp1, &sru->entity, "sru", 2, &sru_ops,
++			       MEDIA_ENT_F_PROC_VIDEO_SCALER);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
+index 1875e29da184..26f7393d278e 100644
+--- a/drivers/media/platform/vsp1/vsp1_uds.c
++++ b/drivers/media/platform/vsp1/vsp1_uds.c
+@@ -314,7 +314,8 @@ struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
+ 	uds->entity.index = index;
+ 
+ 	sprintf(name, "uds.%u", index);
+-	ret = vsp1_entity_init(vsp1, &uds->entity, name, 2, &uds_ops);
++	ret = vsp1_entity_init(vsp1, &uds->entity, name, 2, &uds_ops,
++			       MEDIA_ENT_F_PROC_VIDEO_SCALER);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 6c91eaa35e75..4e391ccf8ba4 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -216,7 +216,8 @@ struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
+ 	wpf->entity.index = index;
+ 
+ 	sprintf(name, "wpf.%u", index);
+-	ret = vsp1_entity_init(vsp1, &wpf->entity, name, 2, &wpf_ops);
++	ret = vsp1_entity_init(vsp1, &wpf->entity, name, 2, &wpf_ops,
++			       MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER);
+ 	if (ret < 0)
+ 		return ERR_PTR(ret);
+ 
+-- 
+2.7.3
 
