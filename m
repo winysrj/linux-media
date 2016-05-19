@@ -1,95 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.math.uni-bielefeld.de ([129.70.45.10]:39551 "EHLO
-	smtp.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751990AbcEXQFw (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56459 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755172AbcESXkb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 12:05:52 -0400
-Subject: Re: [PATCH 1/2] drm/exynos: g2d: Add support for old S5Pv210 type
-To: Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>
-References: <1464096493-13378-1-git-send-email-k.kozlowski@samsung.com>
- <57445BE5.7060702@math.uni-bielefeld.de> <57445E16.90301@samsung.com>
-From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-Message-ID: <57447BDA.2000004@math.uni-bielefeld.de>
-Date: Tue, 24 May 2016 18:05:46 +0200
-MIME-Version: 1.0
-In-Reply-To: <57445E16.90301@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+	Thu, 19 May 2016 19:40:31 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v4 1/6] media: Add video processing entity functions
+Date: Fri, 20 May 2016 02:40:27 +0300
+Message-Id: <1463701232-22008-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Krzysztof,
+Add composer, pixel formatter, pixel encoding converter and scaler
+functions.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/media-types.xml | 55 +++++++++++++++++++++++++
+ include/uapi/linux/media.h                      |  9 ++++
+ 2 files changed, 64 insertions(+)
 
-Krzysztof Kozlowski wrote:
-> On 05/24/2016 03:49 PM, Tobias Jakobi wrote:
->> Hello Krzysztof,
->>
->> are you sure that these are the only differences. Because AFAIK there
->> are quite a few more:
->> - DMA submission of commands
->> - blend mode / rounding
->> - solid fill
->> - YCrCb support
->> - and probably more
->>
->> One would need to add least split the command list parser into a v3 and
->> v41 version to accomodate for the differences. In fact userspace/libdrm
->> would need to know which hw type it currently uses, but you currently
->> always return 4.1 in the corresponding ioctl.
-> 
-> Eh, so probably my patch does not cover fully the support for v3 G2D. I
-> looked mostly at the differences between v3 and v4 in the s5p-g2d driver
-> itself. However you are right that this might be not sufficient because
-> exynos-g2d moved forward and is different than s5p-g2d.
-> 
->> Krzysztof Kozlowski wrote:
->>> The non-DRM s5p-g2d driver supports two versions of G2D: v3.0 on
->>> S5Pv210 and v4.x on Exynos 4x12 (or newer). The driver for 3.0 device
->>> version is doing two things differently:
->>> 1. Before starting the render process, it invalidates caches (pattern,
->>>    source buffer and mask buffer). Cache control is not present on v4.x
->>>    device.
->>> 2. Scalling is done through StretchEn command (in BITBLT_COMMAND_REG
->>>    register) instead of SRC_SCALE_CTRL_REG as in v4.x. However the
->>>    exynos_drm_g2d driver does not implement the scalling so this
->>>    difference can be eliminated.
->> Huh? Where did you get this from? Scaling works with the DRM driver.
-> 
-> I was looking for the usage of scaling reg (as there is no scaling
-> command). How the scaling is implemented then?
-Like you said above the drivers work completly different. The DRM one
-receives a command list that is constructed by userspace (libdrm
-mostly), copies it to a contiguous buffer and passes the memory address
-of that buffer to the engine which then works on it. Of course
-everything is slightly more complex.
-
-You don't see any reference to scaling in the driver because the scaling
-regs don't need any kind of specific validation.
-
-If you want to know how the command list is constructed, the best way is
-to look into libdrm. The Exynos specific tests actually cover scaling.
-
-
-With best wishes,
-Tobias
-
-
-> Thanks for feedback!
-> 
-> Best regards,
-> Krzysztof
-> 
+diff --git a/Documentation/DocBook/media/v4l/media-types.xml b/Documentation/DocBook/media/v4l/media-types.xml
+index 5e3f20fdcf17..60fe841f8846 100644
+--- a/Documentation/DocBook/media/v4l/media-types.xml
++++ b/Documentation/DocBook/media/v4l/media-types.xml
+@@ -121,6 +121,61 @@
+ 	    <entry><constant>MEDIA_ENT_F_AUDIO_MIXER</constant></entry>
+ 	    <entry>Audio Mixer Function Entity.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_COMPOSER</constant></entry>
++	    <entry>Video composer (blender). An entity capable of video
++		   composing must have at least two sink pads and one source
++		   pad, and composes input video frames onto output video
++		   frames. Composition can be performed using alpha blending,
++		   color keying, raster operations (ROP), stitching or any other
++		   means.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER</constant></entry>
++	    <entry>Video pixel formatter. An entity capable of pixel formatting
++		   must have at least one sink pad and one source pad. Read
++		   pixel formatters read pixels from memory and perform a subset
++		   of unpacking, cropping, color keying, alpha multiplication
++		   and pixel encoding conversion. Write pixel formatters perform
++		   a subset of dithering, pixel encoding conversion and packing
++		   and write pixels to memory.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV</constant></entry>
++	    <entry>Video pixel encoding converter. An entity capable of pixel
++		   enconding conversion must have at least one sink pad and one
++		   source pad, and convert the encoding of pixels received on
++		   its sink pad(s) to a different encoding output on its source
++		   pad(s). Pixel encoding conversion includes but isn't limited
++		   to RGB to/from HSV, RGB to/from YUV and CFA (Bayer) to RGB
++		   conversions.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_LUT</constant></entry>
++	    <entry>Video look-up table. An entity capable of video lookup table
++		   processing must have one sink pad and one source pad. It uses
++		   the values of the pixels received on its sink pad to look up
++		   entries in internal tables and output them on its source pad.
++		   The lookup processing can be performed on all components
++		   separately or combine them for multi-dimensional table
++		   lookups.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry><constant>MEDIA_ENT_F_PROC_VIDEO_SCALER</constant></entry>
++	    <entry>Video scaler. An entity capable of video scaling must have
++		   at least one sink pad and one source pad, and scale the
++		   video frame(s) received on its sink pad(s) to a different
++		   resolution output on its source pad(s). The range of
++		   supported scaling ratios is entity-specific and can differ
++		   between the horizontal and vertical directions (in particular
++		   scaling can be supported in one direction only). Binning and
++		   skipping are considered as scaling.
++	    </entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index e226bc35c639..bff3ffdfd55f 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -96,6 +96,15 @@ struct media_device_info {
+ #define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03003)
+ 
+ /*
++ * Processing entities
++ */
++#define MEDIA_ENT_F_PROC_VIDEO_COMPOSER		(MEDIA_ENT_F_BASE + 0x4001)
++#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER	(MEDIA_ENT_F_BASE + 0x4002)
++#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV	(MEDIA_ENT_F_BASE + 0x4003)
++#define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
++#define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
++
++/*
+  * Connectors
+  */
+ /* It is a responsibility of the entity drivers to add connectors and links */
+-- 
+2.7.3
 
