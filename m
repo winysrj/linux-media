@@ -1,44 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:47605 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754187AbcE0GTT (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56482 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755345AbcESXl7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2016 02:19:19 -0400
-Subject: Re: [PATCH v4 2/7] media: s5p-mfc: use generic reserved memory bindings
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <1464096690-23605-1-git-send-email-m.szyprowski@samsung.com>
- <1464096690-23605-3-git-send-email-m.szyprowski@samsung.com>
-Cc: devicetree@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kukjin Kim <kgene@kernel.org>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Uli Middelberg <uli@middelberg.de>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Message-id: <5747E6E2.6080201@samsung.com>
-Date: Fri, 27 May 2016 08:19:14 +0200
-MIME-version: 1.0
-In-reply-to: <1464096690-23605-3-git-send-email-m.szyprowski@samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+	Thu, 19 May 2016 19:41:59 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 1/3] v4l: vsp1: Fix typo in register field names
+Date: Fri, 20 May 2016 02:41:56 +0300
+Message-Id: <1463701318-22081-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1463701318-22081-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1463701318-22081-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/24/2016 03:31 PM, Marek Szyprowski wrote:
-> Use generic reserved memory bindings and mark old, custom properties
-> as obsoleted.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  .../devicetree/bindings/media/s5p-mfc.txt          | 39 +++++++++++++++++-----
->  1 file changed, 31 insertions(+), 8 deletions(-)
->
+The VI6_RPF_ALPH_SEL ALPHA0 and ALPHA1 fields are inverted, swap them.
 
-Acked-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_regs.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-
-Best regards,
-Krzysztof
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 927b5fb94c48..7657545a75ed 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -154,10 +154,10 @@
+ #define VI6_RPF_ALPH_SEL_AEXT_EXT	(1 << 18)
+ #define VI6_RPF_ALPH_SEL_AEXT_ONE	(2 << 18)
+ #define VI6_RPF_ALPH_SEL_AEXT_MASK	(3 << 18)
+-#define VI6_RPF_ALPH_SEL_ALPHA0_MASK	(0xff << 8)
+-#define VI6_RPF_ALPH_SEL_ALPHA0_SHIFT	8
+-#define VI6_RPF_ALPH_SEL_ALPHA1_MASK	(0xff << 0)
+-#define VI6_RPF_ALPH_SEL_ALPHA1_SHIFT	0
++#define VI6_RPF_ALPH_SEL_ALPHA1_MASK	(0xff << 8)
++#define VI6_RPF_ALPH_SEL_ALPHA1_SHIFT	8
++#define VI6_RPF_ALPH_SEL_ALPHA0_MASK	(0xff << 0)
++#define VI6_RPF_ALPH_SEL_ALPHA0_SHIFT	0
+ 
+ #define VI6_RPF_VRTCOL_SET		0x0318
+ #define VI6_RPF_VRTCOL_SET_LAYA_MASK	(0xff << 24)
+-- 
+2.7.3
 
