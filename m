@@ -1,49 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:49237 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754526AbcEQPTO (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56483 "EHLO
+	galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755342AbcESXmB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2016 11:19:14 -0400
-From: Kalle Valo <kvalo@codeaurora.org>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-scsi@vger.kernel.org,
-	devel@driverdev.osuosl.org, pmchba@pmcs.com
-Subject: Re: [PATCH 0/7] fix typo
-References: <1463495926-13728-1-git-send-email-Julia.Lawall@lip6.fr>
-	<874m9wpvt2.fsf@purkki.adurom.net>
-	<alpine.DEB.2.10.1605171708260.3068@hadrien>
-Date: Tue, 17 May 2016 18:19:06 +0300
-In-Reply-To: <alpine.DEB.2.10.1605171708260.3068@hadrien> (Julia Lawall's
-	message of "Tue, 17 May 2016 17:08:52 +0200 (CEST)")
-Message-ID: <874m9w67bp.fsf@kamboji.qca.qualcomm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Thu, 19 May 2016 19:42:01 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 2/3] v4l: vsp1: Fix descriptions of Gen2 VSP instances
+Date: Fri, 20 May 2016 02:41:57 +0300
+Message-Id: <1463701318-22081-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1463701318-22081-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1463701318-22081-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Julia Lawall <julia.lawall@lip6.fr> writes:
+The number of UDS and WPF are set to incorrect values, fix them.
 
-> On Tue, 17 May 2016, Kalle Valo wrote:
->
->> Julia Lawall <Julia.Lawall@lip6.fr> writes:
->>
->> > firmare -> firmware
->> >
->> > ---
->> >
->> >  drivers/media/dvb-frontends/mn88473.c       |    2 +-
->> >  drivers/net/wireless/ath/ath6kl/core.h      |    2 +-
->> >  drivers/net/wireless/marvell/mwifiex/pcie.c |    2 +-
->>
->> It would be good to know in advance what tree you are planning to submit
->> these for. For example, should I take ath6kl and mwifiex patches or
->> someone else?
->
-> I have no preference.  They are all independent in any case.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drv.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Ok, I'll then take the ath6kl and mwifiex patches.
-
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index e655639af7e2..70e7a81e8255 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -560,7 +560,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.gen = 2,
+ 		.features = VSP1_HAS_BRU | VSP1_HAS_SRU,
+ 		.rpf_count = 5,
+-		.uds_count = 1,
++		.uds_count = 3,
+ 		.wpf_count = 4,
+ 		.num_bru_inputs = 4,
+ 		.uapi = true,
+@@ -570,7 +570,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.features = VSP1_HAS_BRU | VSP1_HAS_LIF | VSP1_HAS_LUT,
+ 		.rpf_count = 4,
+ 		.uds_count = 1,
+-		.wpf_count = 4,
++		.wpf_count = 1,
+ 		.num_bru_inputs = 4,
+ 		.uapi = true,
+ 	}, {
+@@ -578,7 +578,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
+ 		.gen = 2,
+ 		.features = VSP1_HAS_BRU | VSP1_HAS_LUT | VSP1_HAS_SRU,
+ 		.rpf_count = 5,
+-		.uds_count = 3,
++		.uds_count = 1,
+ 		.wpf_count = 4,
+ 		.num_bru_inputs = 4,
+ 		.uapi = true,
 -- 
-Kalle Valo
+2.7.3
+
