@@ -1,137 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:34445 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754077AbcDOJ1f (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34268 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751646AbcESTCq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Apr 2016 05:27:35 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id AEE15180436
-	for <linux-media@vger.kernel.org>; Fri, 15 Apr 2016 11:27:28 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2] v4l2-ioctl.c: improve cropcap compatibility code
-Message-ID: <5710B400.9080408@xs4all.nl>
-Date: Fri, 15 Apr 2016 11:27:28 +0200
+	Thu, 19 May 2016 15:02:46 -0400
+Received: by mail-wm0-f67.google.com with SMTP id n129so23531642wmn.1
+        for <linux-media@vger.kernel.org>; Thu, 19 May 2016 12:02:45 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH v2 1/2] media: rc: make fifo size for raw events configurable
+ via rc_dev
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <67474fa8-4f58-75e4-f5b2-1b07c6b21009@gmail.com>
+Date: Thu, 19 May 2016 21:01:56 +0200
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- Add a check for the case that both the cropcap and g_selection ops
-  are NULL. This shouldn't happen, but I feel happier if the code
-  guards against this.
+Currently the fifo size is 512 elements. After a recent patch the size
+of struct ir_raw_event is down to 8 bytes, so the fifo still consumes
+4KB. In most cases a much smaller fifo is sufficient, e.g. nuvoton-cir
+triggers event processing after 24 events latest.
 
-- If g_selection exists, then ignore ENOTTY and ENOIOCTLCMD error
-  codes from cropcap. Just assume square pixelaspect ratio in that
-  case. This situation can happen if the bridge driver's cropcap op
-  calls the corresponding subdev's op. So the cropcap ioctl is set,
-  but it might return ENOIOCTLCMD anyway. In the past this would
-  just return an error which is wrong.
+This patch introduces an element raw_fifo_size to struct rc_dev to
+allow configuring the fifo size. If not set the current default
+MAX_IR_EVENT_SIZE is used.
 
-- Call cropcap first and let g_selection overwrite the bounds and
-  defrect. This safeguards against subdev cropcap implementations
-  that set those rectangles as well. What g_selection returns has
-  priority over what such cropcap implementations return.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
 ---
-
-This replaces a pair of older cleanup patches.
-
+v2:
+- access dev->raw_fifo_size only after check for !dev
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 70 ++++++++++++++++++++++--------------
- 1 file changed, 43 insertions(+), 27 deletions(-)
+ drivers/media/rc/rc-core-priv.h |  2 +-
+ drivers/media/rc/rc-ir-raw.c    | 14 ++++++++++++--
+ include/media/rc-core.h         |  2 ++
+ 3 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 6bf5a3e..28e5be2 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2160,40 +2160,56 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 585d5e5..ae6f81e 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -39,7 +39,7 @@ struct ir_raw_event_ctrl {
+ 	struct task_struct		*thread;
+ 	spinlock_t			lock;
+ 	/* fifo for the pulse/space durations */
+-	DECLARE_KFIFO(kfifo, struct ir_raw_event, MAX_IR_EVENT_SIZE);
++	DECLARE_KFIFO_PTR(kfifo, struct ir_raw_event);
+ 	ktime_t				last_event;	/* when last event occurred */
+ 	enum raw_event_type		last_type;	/* last event type */
+ 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 144304c..f9b7734 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -261,17 +261,24 @@ int ir_raw_event_register(struct rc_dev *dev)
  {
- 	struct v4l2_cropcap *p = arg;
-+	struct v4l2_selection s = { .type = p->type };
-+	int ret = 0;
-
--	if (ops->vidioc_g_selection) {
--		struct v4l2_selection s = { .type = p->type };
--		int ret;
-+	/* setting trivial pixelaspect */
-+	p->pixelaspect.numerator = 1;
-+	p->pixelaspect.denominator = 1;
-
--		/* obtaining bounds */
--		if (V4L2_TYPE_IS_OUTPUT(p->type))
--			s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
--		else
--			s.target = V4L2_SEL_TGT_CROP_BOUNDS;
-+	/*
-+	 * The determine_valid_ioctls() call already should ensure
-+	 * that this can never happen, but just in case...
-+	 */
-+	if (WARN_ON(!ops->vidioc_cropcap && !ops->vidioc_cropcap))
-+		return -ENOTTY;
-
--		ret = ops->vidioc_g_selection(file, fh, &s);
--		if (ret)
--			return ret;
--		p->bounds = s.r;
-+	if (ops->vidioc_cropcap)
-+		ret = ops->vidioc_cropcap(file, fh, p);
-
--		/* obtaining defrect */
--		if (V4L2_TYPE_IS_OUTPUT(p->type))
--			s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
--		else
--			s.target = V4L2_SEL_TGT_CROP_DEFAULT;
-+	if (!ops->vidioc_g_selection)
-+		return ret;
-
--		ret = ops->vidioc_g_selection(file, fh, &s);
--		if (ret)
--			return ret;
--		p->defrect = s.r;
--	}
-+	/*
-+	 * Ignore ENOTTY or ENOIOCTLCMD error returns, just use the
-+	 * square pixel aspect ratio in that case.
-+	 */
-+	if (ret && ret != -ENOTTY && ret != -ENOIOCTLCMD)
-+		return ret;
-
--	/* setting trivial pixelaspect */
--	p->pixelaspect.numerator = 1;
--	p->pixelaspect.denominator = 1;
-+	/* Use g_selection() to fill in the bounds and defrect rectangles */
-
--	if (ops->vidioc_cropcap)
--		return ops->vidioc_cropcap(file, fh, p);
-+	/* obtaining bounds */
-+	if (V4L2_TYPE_IS_OUTPUT(p->type))
-+		s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
-+	else
-+		s.target = V4L2_SEL_TGT_CROP_BOUNDS;
+ 	int rc;
+ 	struct ir_raw_handler *handler;
++	unsigned fifo_size = MAX_IR_EVENT_SIZE;
+ 
+ 	if (!dev)
+ 		return -EINVAL;
+ 
++	if (dev->raw_fifo_size)
++		fifo_size = dev->raw_fifo_size;
 +
-+	ret = ops->vidioc_g_selection(file, fh, &s);
-+	if (ret)
-+		return ret;
-+	p->bounds = s.r;
+ 	dev->raw = kzalloc(sizeof(*dev->raw), GFP_KERNEL);
+ 	if (!dev->raw)
+ 		return -ENOMEM;
+ 
+ 	dev->raw->dev = dev;
+ 	dev->change_protocol = change_protocol;
+-	INIT_KFIFO(dev->raw->kfifo);
 +
-+	/* obtaining defrect */
-+	if (V4L2_TYPE_IS_OUTPUT(p->type))
-+		s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
-+	else
-+		s.target = V4L2_SEL_TGT_CROP_DEFAULT;
-+
-+	ret = ops->vidioc_g_selection(file, fh, &s);
-+	if (ret)
-+		return ret;
-+	p->defrect = s.r;
-
++	rc = kfifo_alloc(&dev->raw->kfifo, fifo_size, GFP_KERNEL);
++	if (rc)
++		goto out;
+ 
+ 	spin_lock_init(&dev->raw->lock);
+ 	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
+@@ -279,7 +286,7 @@ int ir_raw_event_register(struct rc_dev *dev)
+ 
+ 	if (IS_ERR(dev->raw->thread)) {
+ 		rc = PTR_ERR(dev->raw->thread);
+-		goto out;
++		goto out_kfifo;
+ 	}
+ 
+ 	mutex_lock(&ir_raw_handler_lock);
+@@ -291,6 +298,8 @@ int ir_raw_event_register(struct rc_dev *dev)
+ 
  	return 0;
+ 
++out_kfifo:
++	kfifo_free(&dev->raw->kfifo);
+ out:
+ 	kfree(dev->raw);
+ 	dev->raw = NULL;
+@@ -313,6 +322,7 @@ void ir_raw_event_unregister(struct rc_dev *dev)
+ 			handler->raw_unregister(dev);
+ 	mutex_unlock(&ir_raw_handler_lock);
+ 
++	kfifo_free(&dev->raw->kfifo);
+ 	kfree(dev->raw);
+ 	dev->raw = NULL;
  }
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index f6f55b7..07e096b 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -72,6 +72,7 @@ enum rc_filter_type {
+  *	anyone can call show_protocols or store_protocols
+  * @minor: unique minor remote control device number
+  * @raw: additional data for raw pulse/space devices
++ * @raw_fifo_size: size of fifo for raw events
+  * @input_dev: the input child device used to communicate events to userspace
+  * @driver_type: specifies if protocol decoding is done in hardware or software
+  * @idle: used to keep track of RX state
+@@ -133,6 +134,7 @@ struct rc_dev {
+ 	struct mutex			lock;
+ 	unsigned int			minor;
+ 	struct ir_raw_event_ctrl	*raw;
++	unsigned			raw_fifo_size;
+ 	struct input_dev		*input_dev;
+ 	enum rc_driver_type		driver_type;
+ 	bool				idle;
 -- 
-2.8.0.rc3
+2.8.2
 
 
