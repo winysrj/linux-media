@@ -1,166 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:30726 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756075AbcEXQvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 May 2016 12:51:00 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC v2 07/21] videodev2.h: Add request field to v4l2_buffer
-Date: Tue, 24 May 2016 19:47:17 +0300
-Message-Id: <1464108451-28142-8-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:46952 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754353AbcESOhO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 May 2016 10:37:14 -0400
+Message-ID: <1463668626.25686.3.camel@collabora.com>
+Subject: Re: gstreamer: v4l2videodec plugin
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+	Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Discussion of the development of and with GStreamer
+	<gstreamer-devel@lists.freedesktop.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Rob Clark <robdclark@gmail.com>, ayaka <ayaka@soulik.info>
+Date: Thu, 19 May 2016 10:37:06 -0400
+In-Reply-To: <1463664351.2988.47.camel@pengutronix.de>
+References: <570B9285.9000209@linaro.org> <570B9454.6020307@linaro.org>
+	 <1460391908.30296.12.camel@collabora.com> <570CB882.4090805@linaro.org>
+	 <1460476636.2842.10.camel@collabora.com> <5735941E.6020703@mm-sol.com>
+	 <1463223553.4185.3.camel@collabora.com> <5737151F.2090201@linaro.org>
+	 <1463664351.2988.47.camel@pengutronix.de>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-ALOz/beloX958LC21NyY"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-When queuing buffers allow for passing the request ID that
-should be associated with this buffer. Split the u32 reserved2 field
-into two u16 fields, one for request, one with the old reserved2 name.
+--=-ALOz/beloX958LC21NyY
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Le jeudi 19 mai 2016 =C3=A0 15:25 +0200, Philipp Zabel a =C3=A9crit=C2=A0:
+> Is there any reason not to update the MFC driver to use G_SELECTION?
+> The
+> g_crop implementation could be kept for backwards compatibility.
 
-Use full 32 bits for the request ID.
+Videobuf2 already provide this backward compatible implementation, so
+there is no reason not to port that driver (if this is not done
+already, maybe ask Kamil ?).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/usb/cpia2/cpia2_v4l.c           | 1 +
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 ++++---
- drivers/media/v4l2-core/v4l2-ioctl.c          | 4 ++--
- drivers/media/v4l2-core/videobuf2-v4l2.c      | 3 ++-
- include/media/videobuf2-v4l2.h                | 2 ++
- include/uapi/linux/videodev2.h                | 3 ++-
- 6 files changed, 13 insertions(+), 7 deletions(-)
+Nicolas
+--=-ALOz/beloX958LC21NyY
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-index 9caea83..01c596a 100644
---- a/drivers/media/usb/cpia2/cpia2_v4l.c
-+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-@@ -952,6 +952,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	buf->sequence = cam->buffers[buf->index].seq;
- 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
- 	buf->length = cam->frame_size;
-+	buf->request = 0;
- 	buf->reserved2 = 0;
- 	buf->reserved = 0;
- 	memset(&buf->timecode, 0, sizeof(buf->timecode));
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index bacecbd..3a74114 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -348,7 +348,7 @@ struct v4l2_buffer32 {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__u32			request;
- 	__u32			reserved;
- };
- 
-@@ -417,7 +417,8 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		get_user(kp->type, &up->type) ||
- 		get_user(kp->flags, &up->flags) ||
- 		get_user(kp->memory, &up->memory) ||
--		get_user(kp->length, &up->length))
-+		get_user(kp->length, &up->length) ||
-+		get_user(kp->request, &up->request))
- 			return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_OUTPUT(kp->type))
-@@ -509,7 +510,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
- 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
- 		put_user(kp->sequence, &up->sequence) ||
--		put_user(kp->reserved2, &up->reserved2) ||
-+		put_user(kp->request, &up->request) ||
- 		put_user(kp->reserved, &up->reserved) ||
- 		put_user(kp->length, &up->length))
- 			return -EFAULT;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 6bf5a3e..bf15580 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -443,13 +443,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
- 	int i;
- 
- 	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, "
--		"flags=0x%08x, field=%s, sequence=%d, memory=%s",
-+		"request %u, flags=0x%08x, field=%s, sequence=%d, memory=%s",
- 			p->timestamp.tv_sec / 3600,
- 			(int)(p->timestamp.tv_sec / 60) % 60,
- 			(int)(p->timestamp.tv_sec % 60),
- 			(long)p->timestamp.tv_usec,
- 			p->index,
--			prt_names(p->type, v4l2_type_names),
-+			prt_names(p->type, v4l2_type_names), p->request,
- 			p->flags, prt_names(p->field, v4l2_field_names),
- 			p->sequence, prt_names(p->memory, v4l2_memory_names));
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 91f5521..0721258 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -199,7 +199,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->timestamp = ns_to_timeval(vb->timestamp);
- 	b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
--	b->reserved2 = 0;
-+	b->request = vbuf->request;
- 	b->reserved = 0;
- 
- 	if (q->is_multiplanar) {
-@@ -317,6 +317,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
- 	}
- 	vb->timestamp = 0;
- 	vbuf->sequence = 0;
-+	vbuf->request = b->request;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
- 		if (b->memory == VB2_MEMORY_USERPTR) {
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 3cc836f..b1ee91c 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -30,6 +30,7 @@
-  * @field:	enum v4l2_field; field order of the image in the buffer
-  * @timecode:	frame timecode
-  * @sequence:	sequence count of this frame
-+ * @request:	request used by the buffer
-  * Should contain enough information to be able to cover all the fields
-  * of struct v4l2_buffer at videodev2.h
-  */
-@@ -40,6 +41,7 @@ struct vb2_v4l2_buffer {
- 	__u32			field;
- 	struct v4l2_timecode	timecode;
- 	__u32			sequence;
-+	__u32			request;
- };
- 
- /*
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 8f95191..ac28299 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -846,6 +846,7 @@ struct v4l2_plane {
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-  *		buffers (when type != *_MPLANE); number of elements in the
-  *		planes array for multi-plane buffers
-+ * @request: this buffer should use this request
-  *
-  * Contains data exchanged by application and driver using one of the Streaming
-  * I/O methods.
-@@ -869,7 +870,7 @@ struct v4l2_buffer {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__u32			request;
- 	__u32			reserved;
- };
- 
--- 
-1.9.1
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEABECAAYFAlc9z5MACgkQcVMCLawGqBzxiACeJO5ArLFAIcHFjTfNtAk8DMPj
+XKAAoNUWitlpTRFmFykv+divP71sRpfO
+=Lxm6
+-----END PGP SIGNATURE-----
+
+--=-ALOz/beloX958LC21NyY--
 
