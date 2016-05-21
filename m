@@ -1,55 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56198 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753652AbcEaVW2 (ORCPT
+Received: from mail-lb0-f196.google.com ([209.85.217.196]:36038 "EHLO
+	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751220AbcEULgL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2016 17:22:28 -0400
-Date: Wed, 1 Jun 2016 00:22:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
-Message-ID: <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
-References: <20160517181927.GA28741@amd>
- <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com>
- <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160527205140.GA26767@amd>
+	Sat, 21 May 2016 07:36:11 -0400
+Received: by mail-lb0-f196.google.com with SMTP id r5so6856919lbj.3
+        for <linux-media@vger.kernel.org>; Sat, 21 May 2016 04:36:10 -0700 (PDT)
+From: Andrea Gelmini <andrea.gelmini@gelma.net>
+To: andrea.gelmini@gelma.net
+Cc: trivial@kernel.org, mchehab@osg.samsung.com,
+	linux-media@vger.kernel.org
+Subject: [PATCH 0004/1529] Fix typo
+Date: Sat, 21 May 2016 13:36:06 +0200
+Message-Id: <20160521113606.31494-1-andrea.gelmini@gelma.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Signed-off-by: Andrea Gelmini <andrea.gelmini@gelma.net>
+---
+ Documentation/DocBook/media/v4l/lirc_device_interface.xml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Fri, May 27, 2016 at 10:51:40PM +0200, Pavel Machek wrote:
-> 
-> This adds support for AD5820 autofocus coil, found for example in
-> Nokia N900 smartphone.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-The patch looks good to me but then I came to think of a question I've
-missed so far: is there DT documentation somewhere for the properties used
-by the driver? I might put that to a separate patch, and cc the relevant
-list.
-
-Whether we decide to have the module in DT or not is orthogonal to this.
-
+diff --git a/Documentation/DocBook/media/v4l/lirc_device_interface.xml b/Documentation/DocBook/media/v4l/lirc_device_interface.xml
+index 34cada2..725b221 100644
+--- a/Documentation/DocBook/media/v4l/lirc_device_interface.xml
++++ b/Documentation/DocBook/media/v4l/lirc_device_interface.xml
+@@ -114,7 +114,7 @@ on working with the default settings initially.</para>
+       <para>Some receiver have maximum resolution which is defined by internal
+       sample rate or data format limitations. E.g. it's common that signals can
+       only be reported in 50 microsecond steps. This integer value is used by
+-      lircd to automatically adjust the aeps tolerance value in the lircd
++      lircd to automatically adjust the steps tolerance value in the lircd
+       config file.</para>
+     </listitem>
+   </varlistentry>
 -- 
-Kind regards,
+2.8.2.534.g1f66975
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
