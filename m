@@ -1,41 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:35969 "EHLO
-	mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086AbcEULfc (ORCPT
+Received: from mail-pa0-f67.google.com ([209.85.220.67]:34304 "EHLO
+	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752202AbcEUNXi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 May 2016 07:35:32 -0400
-Received: by mail-lf0-f68.google.com with SMTP id d132so1654689lfb.3
-        for <linux-media@vger.kernel.org>; Sat, 21 May 2016 04:35:31 -0700 (PDT)
-From: Andrea Gelmini <andrea.gelmini@gelma.net>
-To: andrea.gelmini@gelma.net
-Cc: trivial@kernel.org, mchehab@osg.samsung.com,
-	hans.verkuil@cisco.com, wuchengli@chromium.org,
-	keescook@chromium.org, crope@iki.fi, standby24x7@gmail.com,
-	linux-media@vger.kernel.org
-Subject: [PATCH 0002/1529] Fix typo
-Date: Sat, 21 May 2016 13:35:26 +0200
-Message-Id: <20160521113526.31380-1-andrea.gelmini@gelma.net>
+	Sat, 21 May 2016 09:23:38 -0400
+From: Muhammad Falak R Wani <falakreyaz@gmail.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org (open list:DMA BUFFER SHARING FRAMEWORK),
+	dri-devel@lists.freedesktop.org (open list:DMA BUFFER SHARING FRAMEWORK),
+	linaro-mm-sig@lists.linaro.org (moderated list:DMA BUFFER SHARING
+	FRAMEWORK), linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH] dma-buf: use vma_pages().
+Date: Sat, 21 May 2016 18:53:32 +0530
+Message-Id: <1463837013-17074-1-git-send-email-falakreyaz@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andrea Gelmini <andrea.gelmini@gelma.net>
----
- Documentation/DocBook/media/v4l/controls.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Replace explicit computation of vma page count by a call to
+vma_pages()
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index e2e5484..dc3ef53 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4615,7 +4615,7 @@ manually or automatically if set to zero. Unit, range and step are driver-specif
- 	    sample rate in each spatial dimension. See <xref linkend="itu-t81"/>,
- 	    clause A.1.1. for more details. The <constant>
- 	    V4L2_CID_JPEG_CHROMA_SUBSAMPLING</constant> control determines how
--	    Cb and Cr components are downsampled after coverting an input image
-+	    Cb and Cr components are downsampled after converting an input image
- 	    from RGB to Y'CbCr color space.
- 	    </entry>
- 	  </row>
+Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
+---
+ drivers/dma-buf/dma-buf.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index 4a2c07e..b0317ec 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -90,7 +90,7 @@ static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
+ 	dmabuf = file->private_data;
+ 
+ 	/* check for overflowing the buffer's size */
+-	if (vma->vm_pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) >
++	if (vma->vm_pgoff + vma_pages(vma) >
+ 	    dmabuf->size >> PAGE_SHIFT)
+ 		return -EINVAL;
+ 
+@@ -723,11 +723,11 @@ int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
+ 		return -EINVAL;
+ 
+ 	/* check for offset overflow */
+-	if (pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) < pgoff)
++	if (pgoff + vma_pages(vma) < pgoff)
+ 		return -EOVERFLOW;
+ 
+ 	/* check for overflowing the buffer's size */
+-	if (pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) >
++	if (pgoff + vma_pages(vma) >
+ 	    dmabuf->size >> PAGE_SHIFT)
+ 		return -EINVAL;
+ 
 -- 
-2.8.2.534.g1f66975
+1.9.1
 
