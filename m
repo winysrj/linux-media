@@ -1,277 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:42233 "EHLO
-	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755234AbcE0VVm (ORCPT
+Received: from smtp.bredband2.com ([83.219.192.166]:40200 "EHLO
+	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751514AbcEUUiR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2016 17:21:42 -0400
-Subject: Re: [PATCH v3] media: Media Device Allocator API
-To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	hans.verkuil@cisco.com, chehabrafael@gmail.com,
-	javier@osg.samsung.com, inki.dae@samsung.com,
-	g.liakhovetski@gmx.de, jh1009.sung@samsung.com
-References: <1464380735-4527-1-git-send-email-shuahkh@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5748BA5F.3090001@xs4all.nl>
-Date: Fri, 27 May 2016 23:21:35 +0200
-MIME-Version: 1.0
-In-Reply-To: <1464380735-4527-1-git-send-email-shuahkh@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sat, 21 May 2016 16:38:17 -0400
+Received: from benjamin-desktop.lan (c-0a08e555.03-170-73746f36.cust.bredbandsbolaget.se [85.229.8.10])
+	(Authenticated sender: ed8153)
+	by smtp.bredband2.com (Postfix) with ESMTPA id B90A629190
+	for <linux-media@vger.kernel.org>; Sat, 21 May 2016 22:38:11 +0200 (CEST)
+From: Benjamin Larsson <benjamin@southpole.se>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] rtl2832: add support for slave ts pid filter
+Date: Sat, 21 May 2016 22:38:11 +0200
+Message-Id: <1463863091-535-1-git-send-email-benjamin@southpole.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/27/2016 10:25 PM, Shuah Khan wrote:
-> Media Device Allocator API to allows multiple drivers share a media device.
-> Using this API, drivers can allocate a media device with the shared struct
-> device as the key. Once the media device is allocated by a driver, other
-> drivers can get a reference to it. The media device is released when all
-> the references are released.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+The rtl2832 demod has 2 sets of PID filters. This patch enables
+the filter support when using a slave demod.
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+---
+ drivers/media/dvb-frontends/rtl2832.c      | 21 ++++++++++++++++++---
+ drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
+ 2 files changed, 19 insertions(+), 3 deletions(-)
 
-Regards,
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 7c96f76..fe771b9 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -409,6 +409,7 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 	c->post_bit_count.len = 1;
+ 	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	dev->sleeping = false;
++	dev->slave_ts = 0;
+ 
+ 	return 0;
+ err:
+@@ -1124,10 +1125,16 @@ static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
+ 	else
+ 		u8tmp = 0x00;
+ 
+-	ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
++	if (dev->slave_ts) {
++		ret = rtl2832_update_bits(client, 0x021, 0xc0, u8tmp);
++	} else {
++		ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
++	}
+ 	if (ret)
+ 		goto err;
+ 
++	dev->slave_ts = 1;
++
+ 	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+@@ -1159,14 +1166,22 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
+ 	buf[1] = (dev->filters >>  8) & 0xff;
+ 	buf[2] = (dev->filters >> 16) & 0xff;
+ 	buf[3] = (dev->filters >> 24) & 0xff;
+-	ret = rtl2832_bulk_write(client, 0x062, buf, 4);
++
++	if (dev->slave_ts)
++		ret = rtl2832_bulk_write(client, 0x022, buf, 4);
++	else
++		ret = rtl2832_bulk_write(client, 0x062, buf, 4);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* add PID */
+ 	buf[0] = (pid >> 8) & 0xff;
+ 	buf[1] = (pid >> 0) & 0xff;
+-	ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
++
++	if (dev->slave_ts)
++		ret = rtl2832_bulk_write(client, 0x026 + 2 * index, buf, 2);
++	else
++		ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
+ 	if (ret)
+ 		goto err;
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index 6b875f4..561f8ab 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -45,6 +45,7 @@ struct rtl2832_dev {
+ 	bool sleeping;
+ 	struct delayed_work i2c_gate_work;
+ 	unsigned long filters; /* PID filter */
++	unsigned long slave_ts;
+ };
+ 
+ struct rtl2832_reg_entry {
+-- 
+2.5.0
 
-	Hans
-
-> ---
-> 
-> Changes since v2:
-> -- Addressed Hans's comments on v2
-> 
->  drivers/media/Makefile              |   3 +-
->  drivers/media/media-dev-allocator.c | 114 ++++++++++++++++++++++++++++++++++++
->  include/media/media-dev-allocator.h |  85 +++++++++++++++++++++++++++
->  3 files changed, 201 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/media-dev-allocator.c
->  create mode 100644 include/media/media-dev-allocator.h
-> 
-> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-> index e608bbc..b08f091 100644
-> --- a/drivers/media/Makefile
-> +++ b/drivers/media/Makefile
-> @@ -2,7 +2,8 @@
->  # Makefile for the kernel multimedia device drivers.
->  #
->  
-> -media-objs	:= media-device.o media-devnode.o media-entity.o
-> +media-objs	:= media-device.o media-devnode.o media-entity.o \
-> +		   media-dev-allocator.o
->  
->  #
->  # I2C drivers should come before other drivers, otherwise they'll fail
-> diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
-> new file mode 100644
-> index 0000000..21d5337
-> --- /dev/null
-> +++ b/drivers/media/media-dev-allocator.c
-> @@ -0,0 +1,114 @@
-> +/*
-> + * media-dev-allocator.c - Media Controller Device Allocator API
-> + *
-> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-> + *
-> + * This file is released under the GPLv2.
-> + * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> + */
-> +
-> +/*
-> + * This file adds a global refcounted Media Controller Device Instance API.
-> + * A system wide global media device list is managed and each media device
-> + * includes a kref count. The last put on the media device releases the media
-> + * device instance.
-> + *
-> +*/
-> +
-> +#include <linux/slab.h>
-> +#include <linux/kref.h>
-> +#include <linux/usb.h>
-> +#include <media/media-device.h>
-> +
-> +static LIST_HEAD(media_device_list);
-> +static DEFINE_MUTEX(media_device_lock);
-> +
-> +struct media_device_instance {
-> +	struct media_device mdev;
-> +	struct list_head list;
-> +	struct device *dev;
-> +	struct kref refcount;
-> +};
-> +
-> +static inline struct media_device_instance *
-> +to_media_device_instance(struct media_device *mdev)
-> +{
-> +	return container_of(mdev, struct media_device_instance, mdev);
-> +}
-> +
-> +static void media_device_instance_release(struct kref *kref)
-> +{
-> +	struct media_device_instance *mdi =
-> +		container_of(kref, struct media_device_instance, refcount);
-> +
-> +	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
-> +
-> +	mutex_lock(&media_device_lock);
-> +
-> +	media_device_unregister(&mdi->mdev);
-> +	media_device_cleanup(&mdi->mdev);
-> +
-> +	list_del(&mdi->list);
-> +	mutex_unlock(&media_device_lock);
-> +
-> +	kfree(mdi);
-> +}
-> +
-> +/* Callers should hold media_device_lock when calling this function */
-> +static struct media_device *__media_device_get(struct device *dev)
-> +{
-> +	struct media_device_instance *mdi;
-> +
-> +	list_for_each_entry(mdi, &media_device_list, list) {
-> +		if (mdi->dev == dev) {
-> +			kref_get(&mdi->refcount);
-> +			dev_dbg(dev, "%s: get mdev=%p\n",
-> +				 __func__, &mdi->mdev);
-> +			return &mdi->mdev;
-> +		}
-> +	}
-> +
-> +	mdi = kzalloc(sizeof(*mdi), GFP_KERNEL);
-> +	if (!mdi)
-> +		return NULL;
-> +
-> +	mdi->dev = dev;
-> +	kref_init(&mdi->refcount);
-> +	list_add_tail(&mdi->list, &media_device_list);
-> +
-> +	dev_dbg(dev, "%s: alloc mdev=%p\n", __func__, &mdi->mdev);
-> +	return &mdi->mdev;
-> +}
-> +
-> +struct media_device *media_device_usb_allocate(struct usb_device *udev,
-> +					       char *driver_name)
-> +{
-> +	struct media_device *mdev;
-> +
-> +	mutex_lock(&media_device_lock);
-> +	mdev = __media_device_get(&udev->dev);
-> +	if (!mdev) {
-> +		mutex_unlock(&media_device_lock);
-> +		return ERR_PTR(-ENOMEM);
-> +	}
-> +
-> +	/* check if media device is already initialized */
-> +	if (!mdev->dev)
-> +		__media_device_usb_init(mdev, udev, udev->product,
-> +					driver_name);
-> +	mutex_unlock(&media_device_lock);
-> +
-> +	dev_dbg(&udev->dev, "%s\n", __func__);
-> +	return mdev;
-> +}
-> +EXPORT_SYMBOL_GPL(media_device_usb_allocate);
-> +
-> +void media_device_delete(struct media_device *mdev)
-> +{
-> +	struct media_device_instance *mdi = to_media_device_instance(mdev);
-> +
-> +	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
-> +	kref_put(&mdi->refcount, media_device_instance_release);
-> +}
-> +EXPORT_SYMBOL_GPL(media_device_delete);
-> diff --git a/include/media/media-dev-allocator.h b/include/media/media-dev-allocator.h
-> new file mode 100644
-> index 0000000..fda032b
-> --- /dev/null
-> +++ b/include/media/media-dev-allocator.h
-> @@ -0,0 +1,85 @@
-> +/*
-> + * media-dev-allocator.h - Media Controller Device Allocator API
-> + *
-> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-> + *
-> + * This file is released under the GPLv2.
-> + * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> + */
-> +
-> +/*
-> + * This file adds a global ref-counted Media Controller Device Instance API.
-> + * A system wide global media device list is managed and each media device
-> + * includes a kref count. The last put on the media device releases the media
-> + * device instance.
-> +*/
-> +
-> +#ifndef _MEDIA_DEV_ALLOCTOR_H
-> +#define _MEDIA_DEV_ALLOCTOR_H
-> +
-> +struct usb_device;
-> +
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +/**
-> + * DOC: Media Controller Device Allocator API
-> + *
-> + * When media device belongs to more than one driver, the shared media device
-> + * is allocated with the shared struct device as the key for look ups.
-> + *
-> + * Shared media device should stay in registered state until the last driver
-> + * unregisters it. In addition, media device should be released when all the
-> + * references are released. Each driver gets a reference to the media device
-> + * during probe, when it allocates the media device. If media device is already
-> + * allocated, allocate API bumps up the refcount and return the existing media
-> + * device. Driver puts the reference back from its disconnect routine when it
-> + * calls media_device_delete().
-> + *
-> + * Media device is unregistered and cleaned up from the kref put handler to
-> + * ensure that the media device stays in registered state until the last driver
-> + * unregisters the media device.
-> + *
-> + * Driver Usage:
-> + *
-> + * Drivers should use the media-core routines to get register reference and
-> + * call media_device_delete() routine to make sure the shared media device
-> + * delete is handled correctly.
-> + *
-> + * driver probe:
-> + *	Call media_device_usb_allocate() to allocate or get a reference
-> + *	Call media_device_register(), if media devnode isn't registered
-> + *
-> + * driver disconnect:
-> + *	Call media_device_delete() to free the media_device. Free'ing is
-> + *	handled by the put handler.
-> + *
-> + */
-> +
-> +/**
-> + * media_device_usb_allocate() - Allocate and return media device
-> + *
-> + * @udev - struct usb_device pointer
-> + * @driver_name
-> + *
-> + * This interface should be called to allocate a media device when multiple
-> + * drivers share usb_device and the media device. This interface allocates
-> + * media device and calls media_device_usb_init() to initialize it.
-> + *
-> + */
-> +struct media_device *media_device_usb_allocate(struct usb_device *udev,
-> +					       char *driver_name);
-> +/**
-> + * media_device_delete() - Release media device. Calls kref_put().
-> + *
-> + * @mdev - struct media_device pointer
-> + *
-> + * This interface should be called to put Media Device Instance kref.
-> + */
-> +void media_device_delete(struct media_device *mdev);
-> +#else
-> +static inline struct media_device *media_device_usb_allocate(
-> +			struct usb_device *udev, char *driver_name)
-> +			{ return NULL; }
-> +static inline void media_device_delete(struct media_device *mdev) { }
-> +#endif /* CONFIG_MEDIA_CONTROLLER */
-> +#endif
-> 
