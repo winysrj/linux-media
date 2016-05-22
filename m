@@ -1,30 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.bredband2.com ([83.219.192.166]:57495 "EHLO
-	smtp.bredband2.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752370AbcENTLH (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:32985 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751934AbcEVNnu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 May 2016 15:11:07 -0400
-Subject: Re: [PATCH 1/3] rtl28xxu: increase failed I2C msg repeat count to 2
-To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-References: <1463202876-18381-1-git-send-email-crope@iki.fi>
-From: Benjamin Larsson <benjamin@southpole.se>
-Message-ID: <573776B1.50309@southpole.se>
-Date: Sat, 14 May 2016 21:04:17 +0200
+	Sun, 22 May 2016 09:43:50 -0400
+Received: by mail-wm0-f65.google.com with SMTP id 67so8282714wmg.0
+        for <linux-media@vger.kernel.org>; Sun, 22 May 2016 06:43:49 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH] media: rc: nuvoton: fix rx fifo overrun handling
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <313c796c-6d51-5ff3-f7aa-806fd54c9b02@gmail.com>
+Date: Sun, 22 May 2016 15:43:40 +0200
 MIME-Version: 1.0
-In-Reply-To: <1463202876-18381-1-git-send-email-crope@iki.fi>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/14/2016 07:14 AM, Antti Palosaari wrote:
-> 1 wasn't enough for mn88472 chip on Astrometa device, so increase
-> it by one.
->
+To detect a rx fifo overrun it's checked whether the number of elements
+in the chip fifo exceeds the fifo size. This check can never return true
+and is wrong.
+Instead we should generate an interrupt if the fifo overruns.
 
-I did need more then 2 repeats some times (I don't have any logs to back 
-it up right now), so can we add some more just in case or can it mess up 
-something else ?
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-MvH
-Benjamin Larsson
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 028574b..74a8de2 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -525,7 +525,7 @@ static void nvt_set_cir_iren(struct nvt_dev *nvt)
+ {
+ 	u8 iren;
+ 
+-	iren = CIR_IREN_RTR | CIR_IREN_PE;
++	iren = CIR_IREN_RTR | CIR_IREN_PE | CIR_IREN_RFO;
+ 	nvt_cir_reg_write(nvt, iren, CIR_IREN);
+ }
+ 
+@@ -833,7 +833,6 @@ static void nvt_get_rx_ir_data(struct nvt_dev *nvt)
+ {
+ 	u8 fifocount, val;
+ 	unsigned int b_idx;
+-	bool overrun = false;
+ 	int i;
+ 
+ 	/* Get count of how many bytes to read from RX FIFO */
+@@ -841,11 +840,6 @@ static void nvt_get_rx_ir_data(struct nvt_dev *nvt)
+ 	/* if we get 0xff, probably means the logical dev is disabled */
+ 	if (fifocount == 0xff)
+ 		return;
+-	/* watch out for a fifo overrun condition */
+-	else if (fifocount > RX_BUF_LEN) {
+-		overrun = true;
+-		fifocount = RX_BUF_LEN;
+-	}
+ 
+ 	nvt_dbg("attempting to fetch %u bytes from hw rx fifo", fifocount);
+ 
+@@ -867,9 +861,6 @@ static void nvt_get_rx_ir_data(struct nvt_dev *nvt)
+ 	nvt_dbg("%s: pkts now %d", __func__, nvt->pkts);
+ 
+ 	nvt_process_rx_ir_data(nvt);
+-
+-	if (overrun)
+-		nvt_handle_rx_fifo_overrun(nvt);
+ }
+ 
+ static void nvt_cir_log_irqs(u8 status, u8 iren)
+@@ -943,6 +934,9 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
+ 
+ 	nvt_cir_log_irqs(status, iren);
+ 
++	if (status & CIR_IRSTS_RFO)
++		nvt_handle_rx_fifo_overrun(nvt);
++
+ 	if (status & CIR_IRSTS_RTR) {
+ 		/* FIXME: add code for study/learn mode */
+ 		/* We only do rx if not tx'ing */
+-- 
+2.8.2
+
