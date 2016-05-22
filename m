@@ -1,123 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56999 "EHLO
-	lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752678AbcEGDHh (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36840 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752389AbcEVQDg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 May 2016 23:07:37 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 2638A1800C7
-	for <linux-media@vger.kernel.org>; Sat,  7 May 2016 05:07:31 +0200 (CEST)
-Date: Sat, 07 May 2016 05:07:31 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 22 May 2016 12:03:36 -0400
+Received: by mail-wm0-f68.google.com with SMTP id q62so8819197wmg.3
+        for <linux-media@vger.kernel.org>; Sun, 22 May 2016 09:03:36 -0700 (PDT)
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: OK
-Message-Id: <20160507030731.2638A1800C7@tschai.lan>
+Cc: benjamin@southpole.se,
+	Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: [PATCH v2] [media] rtl2832: add support for slave ts pid filter
+Date: Sun, 22 May 2016 18:03:07 +0200
+Message-Id: <1463932987-10526-1-git-send-email-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The rtl2832 demod has 2 sets of PID filters. This patch enables
+the filter support when using a slave demod.
 
-Results of the daily build of media_tree:
+Signed-off-by: Benjamin Larsson <benjamin@southpole.se>
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+This patch was originally written by Benjamin Larsson, all I did was
+rebasing the patch and to extend the dev_dbg statements with the
+slave_ts information.
+This also supersedes the following patch:
+https://patchwork.linuxtv.org/patch/34358/
 
-date:		Sat May  7 04:00:18 CEST 2016
-git branch:	test
-git hash:	491df465d7a25f4211d4ab699a71a7d47e864044
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-164
+ drivers/media/dvb-frontends/rtl2832.c      | 26 ++++++++++++++++++++------
+ drivers/media/dvb-frontends/rtl2832_priv.h |  1 +
+ 2 files changed, 21 insertions(+), 6 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index 7c96f76..ba67fb4 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -409,6 +409,7 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 	c->post_bit_count.len = 1;
+ 	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
+ 	dev->sleeping = false;
++	dev->slave_ts = false;
+ 
+ 	return 0;
+ err:
+@@ -1103,6 +1104,8 @@ static int rtl2832_slave_ts_ctrl(struct i2c_client *client, bool enable)
+ 			goto err;
+ 	}
+ 
++	dev->slave_ts = enable;
++
+ 	return 0;
+ err:
+ 	dev_dbg(&client->dev, "failed=%d\n", ret);
+@@ -1116,7 +1119,7 @@ static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
+ 	int ret;
+ 	u8 u8tmp;
+ 
+-	dev_dbg(&client->dev, "onoff=%d\n", onoff);
++	dev_dbg(&client->dev, "onoff=%d, slave_ts=%d\n", onoff, dev->slave_ts);
+ 
+ 	/* enable / disable PID filter */
+ 	if (onoff)
+@@ -1124,7 +1127,10 @@ static int rtl2832_pid_filter_ctrl(struct dvb_frontend *fe, int onoff)
+ 	else
+ 		u8tmp = 0x00;
+ 
+-	ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
++	if (dev->slave_ts)
++		ret = rtl2832_update_bits(client, 0x021, 0xc0, u8tmp);
++	else
++		ret = rtl2832_update_bits(client, 0x061, 0xc0, u8tmp);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1142,8 +1148,8 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
+ 	int ret;
+ 	u8 buf[4];
+ 
+-	dev_dbg(&client->dev, "index=%d pid=%04x onoff=%d\n",
+-		index, pid, onoff);
++	dev_dbg(&client->dev, "index=%d pid=%04x onoff=%d slave_ts=%d\n",
++		index, pid, onoff, dev->slave_ts);
+ 
+ 	/* skip invalid PIDs (0x2000) */
+ 	if (pid > 0x1fff || index > 32)
+@@ -1159,14 +1165,22 @@ static int rtl2832_pid_filter(struct dvb_frontend *fe, u8 index, u16 pid,
+ 	buf[1] = (dev->filters >>  8) & 0xff;
+ 	buf[2] = (dev->filters >> 16) & 0xff;
+ 	buf[3] = (dev->filters >> 24) & 0xff;
+-	ret = rtl2832_bulk_write(client, 0x062, buf, 4);
++
++	if (dev->slave_ts)
++		ret = rtl2832_bulk_write(client, 0x022, buf, 4);
++	else
++		ret = rtl2832_bulk_write(client, 0x062, buf, 4);
+ 	if (ret)
+ 		goto err;
+ 
+ 	/* add PID */
+ 	buf[0] = (pid >> 8) & 0xff;
+ 	buf[1] = (pid >> 0) & 0xff;
+-	ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
++
++	if (dev->slave_ts)
++		ret = rtl2832_bulk_write(client, 0x026 + 2 * index, buf, 2);
++	else
++		ret = rtl2832_bulk_write(client, 0x066 + 2 * index, buf, 2);
+ 	if (ret)
+ 		goto err;
+ 
+diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
+index 6b875f4..8eb2e0b 100644
+--- a/drivers/media/dvb-frontends/rtl2832_priv.h
++++ b/drivers/media/dvb-frontends/rtl2832_priv.h
+@@ -45,6 +45,7 @@ struct rtl2832_dev {
+ 	bool sleeping;
+ 	struct delayed_work i2c_gate_work;
+ 	unsigned long filters; /* PID filter */
++	bool slave_ts;
+ };
+ 
+ struct rtl2832_reg_entry {
+-- 
+2.8.2
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
