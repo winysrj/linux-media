@@ -1,62 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zencphosting06.zen.co.uk ([82.71.204.9]:54993 "EHLO
-	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750727AbcE0Mwq (ORCPT
+Received: from newton.telenet-ops.be ([195.130.132.45]:40463 "EHLO
+	newton.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751794AbcEVJM1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2016 08:52:46 -0400
-Subject: Re: [PATCH v2 2/8] [media] Add signed 16-bit pixel format
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
- <1462381638-7818-3-git-send-email-nick.dyer@itdev.co.uk>
- <57483FD1.9080704@xs4all.nl>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-Message-ID: <82b68931-0da1-bd26-87c1-1cd9e2296f71@itdev.co.uk>
-Date: Fri, 27 May 2016 13:52:13 +0100
-MIME-Version: 1.0
-In-Reply-To: <57483FD1.9080704@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Sun, 22 May 2016 05:12:27 -0400
+Received: from andre.telenet-ops.be (andre.telenet-ops.be [IPv6:2a02:1800:120:4::f00:15])
+	by newton.telenet-ops.be (Postfix) with ESMTP id 3rCG525n37zMrJRX
+	for <linux-media@vger.kernel.org>; Sun, 22 May 2016 11:06:46 +0200 (CEST)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 28/54] MAINTAINERS: Add file patterns for media device tree bindings
+Date: Sun, 22 May 2016 11:06:05 +0200
+Message-Id: <1463907991-7916-29-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1463907991-7916-1-git-send-email-geert@linux-m68k.org>
+References: <1463907991-7916-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27/05/2016 13:38, Hans Verkuil wrote:
-> On 05/04/2016 07:07 PM, Nick Dyer wrote:
->> +    <refname><constant>V4L2_PIX_FMT_YS16</constant></refname>
->> +    <refpurpose>Grey-scale image</refpurpose>
->> +  </refnamediv>
->> +  <refsect1>
->> +    <title>Description</title>
->> +
->> +    <para>This is a signed grey-scale image with a depth of 16 bits per
->> +pixel. The most significant byte is stored at higher memory addresses
->> +(little-endian).</para>
-> 
-> I'm not sure this should be described in terms of grey-scale, since negative
-> values make no sense for that. How are these values supposed to be interpreted
-> if you want to display them? -32768 == black and 32767 is white?
+Submitters of device tree binding documentation may forget to CC
+the subsystem maintainer if this is missing.
 
-We have written a utility to display this data and it is able to display
-the values mapped to grayscale or color:
-https://github.com/ndyer/heatmap/blob/master/src/display.c#L44
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+---
+Please apply this patch directly if you want to be involved in device
+tree binding documentation for your subsystem.
+---
+ MAINTAINERS | 1 +
+ 1 file changed, 1 insertion(+)
 
-An example of the output is here:
-https://www.youtube.com/watch?v=Uj4T6fUCySw
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 7acb65bb2590a321..c230cd9ec8aefe45 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7376,6 +7376,7 @@ W:	https://linuxtv.org
+ Q:	http://patchwork.kernel.org/project/linux-media/list/
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
++F:	Documentation/devicetree/bindings/media/
+ F:	Documentation/dvb/
+ F:	Documentation/video4linux/
+ F:	Documentation/DocBook/media/
+-- 
+1.9.1
 
-The data is intrinsically signed because that's how the low level touch
-controller treats it. I'm happy to change it to "Signed image" if you think
-that would be better.
