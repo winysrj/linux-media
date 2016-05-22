@@ -1,106 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:58448 "EHLO
-	kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959AbcEGFOt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 May 2016 01:14:49 -0400
-Subject: Re: [RESEND PATCH] [media] s5p-mfc: don't close instance after free
- OUTPUT buffers
-To: linux-kernel@vger.kernel.org
-References: <1462572682-5195-1-git-send-email-javier@osg.samsung.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-	Shuah Khan <shuahkh@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-From: ayaka <ayaka@soulik.info>
-Message-ID: <572D786D.2040105@soulik.info>
-Date: Sat, 7 May 2016 13:09:01 +0800
-MIME-Version: 1.0
-In-Reply-To: <1462572682-5195-1-git-send-email-javier@osg.samsung.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:47622 "EHLO
+	lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751956AbcEVC5u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 May 2016 22:57:50 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tschai.lan (Postfix) with ESMTPSA id 689231804B4
+	for <linux-media@vger.kernel.org>; Sun, 22 May 2016 04:57:44 +0200 (CEST)
+Date: Sun, 22 May 2016 04:57:44 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: OK
+Message-Id: <20160522025744.689231804B4@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please also notice those patches (A few patches make s5p-mfc work with 
-Gstreamer)
-  I resent to mail recently.
-Without them, the encoder won't work with Gstreamer either. I hope it 
-will be
-merged as soon as possible.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-在 2016年05月07日 06:11, Javier Martinez Canillas 写道:
-> From: ayaka <ayaka@soulik.info>
->
-> User-space applications can use the VIDIOC_REQBUFS ioctl to determine if a
-> memory mapped, user pointer or DMABUF based I/O is supported by the driver.
->
-> So a set of VIDIOC_REQBUFS ioctl calls will be made with count 0 and then
-> the real VIDIOC_REQBUFS call with count == n. But for count 0, the driver
-> not only frees the buffer but also closes the MFC instance and s5p_mfc_ctx
-> state is set to MFCINST_FREE.
->
-> The VIDIOC_REQBUFS handler for the output device checks if the s5p_mfc_ctx
-> state is set to MFCINST_INIT (which happens on an VIDIOC_S_FMT) and fails
-> otherwise. So after a VIDIOC_REQBUFS(n), future VIDIOC_REQBUFS(n) calls
-> will fails unless a VIDIOC_S_FMT ioctl calls happens before the reqbufs.
->
-> But applications may first set the format and then attempt to determine
-> the I/O methods supported by the driver (for example Gstramer does it) so
-> the state won't be set to MFCINST_INIT again and VIDIOC_REQBUFS will fail.
->
-> To avoid this issue, only free the buffers on VIDIOC_REQBUFS(0) but don't
-> close the MFC instance to allow future VIDIOC_REQBUFS(n) calls to succeed.
->
-> Signed-off-by: ayaka <ayaka@soulik.info>
-> [javier: Rewrote changelog to explain the problem more detailed]
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->
-> ---
-> Hello,
->
-> This is a resend of a patch posted by Ayaka some time ago [0].
-> Without $SUBJECT, trying to decode a video using Gstramer fails
-> on an Exynos5422 Odroid XU4 board with following error message:
->
-> $ gst-launch-1.0 filesrc location=test.mov ! qtdemux ! h264parse ! v4l2video0dec ! videoconvert ! autovideosink
->
-> Setting pipeline to PAUSED ...
-> Pipeline is PREROLLING ...
-> [ 3947.114756] vidioc_reqbufs:576: Only V4L2_MEMORY_MAP is supported
-> [ 3947.114771] vidioc_reqbufs:576: Only V4L2_MEMORY_MAP is supported
-> [ 3947.114903] reqbufs_output:484: Reqbufs called in an invalid state
-> [ 3947.114913] reqbufs_output:510: Failed allocating buffers for OUTPUT queue
-> ERROR: from element /GstPipeline:pipeline0/v4l2video0dec:v4l2video0dec0: Failed to allocate required memory.
-> Additional debug info:
-> gstv4l2videodec.c(575): gst_v4l2_video_dec_handle_frame (): /GstPipeline:pipeline0/v4l2video0dec:v4l2video0dec0:
-> Buffer pool activation failed
-> ERROR: pipeline doesn't want to preroll.
-> Setting pipeline to NULL ...
-> Freeing pipeline ...
->
-> [0]: https://patchwork.linuxtv.org/patch/32794/
->
-> Best regards,
-> Javier
->
->   drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 1 -
->   1 file changed, 1 deletion(-)
->
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> index f2d6376ce618..8b9467de2d6a 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -474,7 +474,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
->   		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
->   		if (ret)
->   			goto out;
-> -		s5p_mfc_close_mfc_inst(dev, ctx);
->   		ctx->src_bufs_cnt = 0;
->   		ctx->output_state = QUEUE_FREE;
->   	} else if (ctx->output_state == QUEUE_FREE) {
+Results of the daily build of media_tree:
 
+date:		Sun May 22 04:00:28 CEST 2016
+git branch:	test
+git hash:	bc2b80ee3490651904f121eac1c8fb7652d48253
+gcc version:	i686-linux-gcc (GCC) 5.3.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.5.0-264
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
