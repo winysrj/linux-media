@@ -1,81 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56538 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751250AbcE0NSg (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35387 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752354AbcEWLix (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 May 2016 09:18:36 -0400
-Subject: Re: [PATCH v2 2/8] [media] Add signed 16-bit pixel format
-To: Nick Dyer <nick.dyer@itdev.co.uk>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
- <1462381638-7818-3-git-send-email-nick.dyer@itdev.co.uk>
- <57483FD1.9080704@xs4all.nl>
- <82b68931-0da1-bd26-87c1-1cd9e2296f71@itdev.co.uk>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>,
-	Florian Echtler <floe@butterbrot.org>, mchehab@osg.samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <57484926.9040109@xs4all.nl>
-Date: Fri, 27 May 2016 15:18:30 +0200
-MIME-Version: 1.0
-In-Reply-To: <82b68931-0da1-bd26-87c1-1cd9e2296f71@itdev.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+	Mon, 23 May 2016 07:38:53 -0400
+From: Muhammad Falak R Wani <falakreyaz@gmail.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Eric Engestrom <eric.engestrom@imgtec.com>,
+	linux-media@vger.kernel.org (open list:DMA BUFFER SHARING FRAMEWORK),
+	dri-devel@lists.freedesktop.org (open list:DMA BUFFER SHARING FRAMEWORK),
+	linaro-mm-sig@lists.linaro.org (moderated list:DMA BUFFER SHARING
+	FRAMEWORK), linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v2] dma-buf: use vma_pages().
+Date: Mon, 23 May 2016 17:08:42 +0530
+Message-Id: <1464003522-27682-1-git-send-email-falakreyaz@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/27/2016 02:52 PM, Nick Dyer wrote:
-> On 27/05/2016 13:38, Hans Verkuil wrote:
->> On 05/04/2016 07:07 PM, Nick Dyer wrote:
->>> +    <refname><constant>V4L2_PIX_FMT_YS16</constant></refname>
->>> +    <refpurpose>Grey-scale image</refpurpose>
->>> +  </refnamediv>
->>> +  <refsect1>
->>> +    <title>Description</title>
->>> +
->>> +    <para>This is a signed grey-scale image with a depth of 16 bits per
->>> +pixel. The most significant byte is stored at higher memory addresses
->>> +(little-endian).</para>
->>
->> I'm not sure this should be described in terms of grey-scale, since negative
->> values make no sense for that. How are these values supposed to be interpreted
->> if you want to display them? -32768 == black and 32767 is white?
-> 
-> We have written a utility to display this data and it is able to display
-> the values mapped to grayscale or color:
-> https://github.com/ndyer/heatmap/blob/master/src/display.c#L44
-> 
-> An example of the output is here:
-> https://www.youtube.com/watch?v=Uj4T6fUCySw
-> 
-> The data is intrinsically signed because that's how the low level touch
-> controller treats it. I'm happy to change it to "Signed image" if you think
-> that would be better.
+Replace explicit computation of vma page count by a call to
+vma_pages().
+Also, include <linux/mm.h>
 
-A V4L2_PIX_FMT_ definition must specify the format unambiguously. So it is not
-enough to just say that the data is a signed 16 bit value, you need to document
-exactly how it should be interpreted. Looking at the code it seems that the
-signed values are within a certain range and are normalized to 0-max by this line:
+Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
+---
+ drivers/dma-buf/dma-buf.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-ssize_t gray = (data[i] - cfg->min) * max / (cfg->max - cfg->min);
+diff --git a/drivers/dma-buf/dma-buf.c b/drivers/dma-buf/dma-buf.c
+index 4a2c07e..6355ab3 100644
+--- a/drivers/dma-buf/dma-buf.c
++++ b/drivers/dma-buf/dma-buf.c
+@@ -33,6 +33,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/poll.h>
+ #include <linux/reservation.h>
++#include <linux/mm.h>
+ 
+ #include <uapi/linux/dma-buf.h>
+ 
+@@ -90,7 +91,7 @@ static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
+ 	dmabuf = file->private_data;
+ 
+ 	/* check for overflowing the buffer's size */
+-	if (vma->vm_pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) >
++	if (vma->vm_pgoff + vma_pages(vma) >
+ 	    dmabuf->size >> PAGE_SHIFT)
+ 		return -EINVAL;
+ 
+@@ -723,11 +724,11 @@ int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
+ 		return -EINVAL;
+ 
+ 	/* check for offset overflow */
+-	if (pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) < pgoff)
++	if (pgoff + vma_pages(vma) < pgoff)
+ 		return -EOVERFLOW;
+ 
+ 	/* check for overflowing the buffer's size */
+-	if (pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) >
++	if (pgoff + vma_pages(vma) >
+ 	    dmabuf->size >> PAGE_SHIFT)
+ 		return -EINVAL;
+ 
+-- 
+1.9.1
 
-Are the min/max values defined by the hardware? Because in that case this pixel
-format has to be a hardware-specific define (e.g. V4L2_PIX_FMT_FOO_S16).
-
-Only if the min/max values are -32768 and 32767 can you really use YS16 (not sure
-yet about that name, but that's another issue).
-
-Regards,
-
-	Hans
