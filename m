@@ -1,56 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:35459 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752069AbcEDOS2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 May 2016 10:18:28 -0400
-Received: by mail-ob0-f175.google.com with SMTP id n10so21328686obb.2
-        for <linux-media@vger.kernel.org>; Wed, 04 May 2016 07:18:28 -0700 (PDT)
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:51791 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751400AbcEWKqA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2016 06:46:00 -0400
+Subject: Re: [PATCH 1/3] properly report a single frame rate of 60 FPS
+To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
+References: <1463177957-8240-1-git-send-email-floe@butterbrot.org>
+Cc: Martin Kaltenbrunner <modin@yuri.at>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5742DF63.4010205@xs4all.nl>
+Date: Mon, 23 May 2016 12:45:55 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160504134346.GY14148@phenom.ffwll.local>
-References: <87fuvypr2h.fsf@intel.com>
-	<20160310122101.2fca3d79@recife.lan>
-	<AA8C4658-5361-4BE1-8A67-EB1C5F17C6B4@darmarit.de>
-	<8992F589-5B66-4BDB-807A-79AC8644F006@darmarit.de>
-	<20160412094620.4fbf05c0@lwn.net>
-	<CACxGe6ueYTEZjmVwV2P1JQea8b9Un5jLca6+MdUkAHOs2+jiMA@mail.gmail.com>
-	<CAKMK7uFPSaH7swp4F+=KhMupFa_6SSPoHMTA4tc8J7Ng1HzABQ@mail.gmail.com>
-	<54CDCFE8-45C3-41F6-9497-E02DB4184048@darmarit.de>
-	<874maef8km.fsf@intel.com>
-	<13D877B1-B9A2-412A-BA43-C6A5B881A536@darmarit.de>
-	<20160504134346.GY14148@phenom.ffwll.local>
-Date: Wed, 4 May 2016 16:18:27 +0200
-Message-ID: <CAKMK7uG9hNkG6KxFLQeaCbtPFY7qLiz6s5+qDy9-DcdywkDqrA@mail.gmail.com>
-Subject: Re: Kernel docs: muddying the waters a bit
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Markus Heiser <markus.heiser@darmarit.de>,
-	Jani Nikula <jani.nikula@intel.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Dan Allen <dan@opendevise.io>,
-	Russel Winder <russel@winder.org.uk>,
-	Keith Packard <keithp@keithp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org linux-media"
-	<linux-media@vger.kernel.org>,
-	Graham Whaley <graham.whaley@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1463177957-8240-1-git-send-email-floe@butterbrot.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 4, 2016 at 3:43 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> I'd really like to converge on the markup question, so that we can start
-> using all the cool stuff with impunity in gpu documentations.
+On 05/14/2016 12:19 AM, Florian Echtler wrote:
+> The device hardware is always running at 60 FPS, so report this both via
+> PARM_IOCTL and ENUM_FRAMEINTERVALS.
+> 
+> Signed-off-by: Martin Kaltenbrunner <modin@yuri.at>
+> Signed-off-by: Florian Echtler <floe@butterbrot.org>
+> ---
+>  drivers/input/touchscreen/sur40.c | 17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+> index 880c40b..fcc5934 100644
+> --- a/drivers/input/touchscreen/sur40.c
+> +++ b/drivers/input/touchscreen/sur40.c
+> @@ -788,6 +788,16 @@ static int sur40_vidioc_fmt(struct file *file, void *priv,
+>  	return 0;
+>  }
+>  
+> +static int sur40_ioctl_parm(struct file *file, void *priv,
+> +			    struct v4l2_streamparm *p)
+> +{
+> +	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+> +		p->parm.capture.timeperframe.numerator = 1;
+> +		p->parm.capture.timeperframe.denominator = 60;
+> +	}
 
-Aside: If we decide this now I could send in a pull request for the
-rst/sphinx kernel-doc support still for 4.7 (based upon the minimal
-markdown/asciidoc code I still have). That would be really awesome ...
+It should return -EINVAL if it is not of type VIDEO_CAPTURE. You should also set the
+V4L2_CAP_TIMEPERFRAME capability for this to work. The readbuffers field should also
+be set (typically to the minimum required number of buffers).
 
-Jon?
+Please check with v4l2-compliance! It would have warned about these issues.
 
-Thanks, Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+> +	return 0;
+> +}
+> +
+>  static int sur40_vidioc_enum_fmt(struct file *file, void *priv,
+>  				 struct v4l2_fmtdesc *f)
+>  {
+> @@ -814,13 +824,13 @@ static int sur40_vidioc_enum_framesizes(struct file *file, void *priv,
+>  static int sur40_vidioc_enum_frameintervals(struct file *file, void *priv,
+>  					    struct v4l2_frmivalenum *f)
+>  {
+> -	if ((f->index > 1) || (f->pixel_format != V4L2_PIX_FMT_GREY)
+> +	if ((f->index > 0) || (f->pixel_format != V4L2_PIX_FMT_GREY)
+>  		|| (f->width  != sur40_video_format.width)
+>  		|| (f->height != sur40_video_format.height))
+>  			return -EINVAL;
+>  
+>  	f->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> -	f->discrete.denominator  = 60/(f->index+1);
+> +	f->discrete.denominator  = 60;
+>  	f->discrete.numerator = 1;
+>  	return 0;
+>  }
+> @@ -880,6 +890,9 @@ static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
+>  	.vidioc_enum_framesizes = sur40_vidioc_enum_framesizes,
+>  	.vidioc_enum_frameintervals = sur40_vidioc_enum_frameintervals,
+>  
+> +	.vidioc_g_parm = sur40_ioctl_parm,
+> +	.vidioc_s_parm = sur40_ioctl_parm,
+> +
+>  	.vidioc_enum_input	= sur40_vidioc_enum_input,
+>  	.vidioc_g_input		= sur40_vidioc_g_input,
+>  	.vidioc_s_input		= sur40_vidioc_s_input,
+> 
+
+Regards,
+
+	Hans
