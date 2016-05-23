@@ -1,124 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58757 "EHLO
-	lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752317AbcEBIL5 (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:34276 "EHLO
+	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932317AbcEWMda (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 May 2016 04:11:57 -0400
-To: stable@vger.kernel.org
-Cc: linux-media <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l2-dv-timings.h: fix polarity for 4k formats
-Message-ID: <57270BC5.2010709@xs4all.nl>
-Date: Mon, 2 May 2016 10:11:49 +0200
+	Mon, 23 May 2016 08:33:30 -0400
+Received: by mail-lf0-f65.google.com with SMTP id 65so2340536lfq.1
+        for <linux-media@vger.kernel.org>; Mon, 23 May 2016 05:33:30 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Reply-To: bar.dr.rahematullar@gmail.com
+Date: Mon, 23 May 2016 13:33:29 +0100
+Message-ID: <CAJ92AkBxREL5Noyc-5YqXEWN3z4+hhRTj45ihE+c=nuy4fQj+g@mail.gmail.com>
+Subject: =?UTF-8?Q?Estimado_amigo=2C_Soy_abogado_Rahe_Matullar=2C_=C2=BFrecibi?=
+	=?UTF-8?Q?=C3=B3_mi_mensaje_anterior_para_usted=3F_Tengo_informaci=C3=B3n_import?=
+	=?UTF-8?Q?ante_para_usted_acerca_de_su_valor_de_fondo_de_la_herencia_d?=
+	=?UTF-8?Q?e_=24_9=2C5_millones_que_se_dej=C3=B3_para_usted_por_su_relativament?=
+	=?UTF-8?Q?e_tarde=2E_Por_favor=2C_volver_a_m=C3=AD_con_urgencia_para_que_yo_te?=
+	=?UTF-8?Q?_dar=C3=A9_toda_la_informaci=C3=B3n_sobre_el_fondo_de_la_herencia=2E_E?=
+	=?UTF-8?Q?stoy_a_la_espera_de_su_respuesta_urgente=2E?=
+From: "bar.dr.rahematullaer" <goergredon@gmail.com>
+To: bar.dr.rahematullar@gmail.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Backport to 3.16-4.0 of mainline commit 3020ca711871fdaf0c15c8bab677a6bc302e28fe
 
-The VSync polarity was negative instead of positive for the 4k CEA formats.
-I probably copy-and-pasted these from the DMT 4k format, which does have a
-negative VSync polarity.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Martin Bugge <marbugge@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
----
- include/uapi/linux/v4l2-dv-timings.h | 30 ++++++++++++++++++++----------
- 1 file changed, 20 insertions(+), 10 deletions(-)
-
---- linux-4.0/include/uapi/linux/v4l2-dv-timings.h.orig	2015-04-13 00:12:50.000000000 +0200
-+++ linux-4.0/include/uapi/linux/v4l2-dv-timings.h	2016-05-02 10:04:06.594531813 +0200
-@@ -175,70 +175,80 @@
-
- #define V4L2_DV_BT_CEA_3840X2160P24 { \
- 	.type = V4L2_DV_BT_656_1120, \
--	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
- 		297000000, 1276, 88, 296, 8, 10, 72, 0, 0, 0, \
- 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
- }
-
- #define V4L2_DV_BT_CEA_3840X2160P25 { \
- 	.type = V4L2_DV_BT_656_1120, \
--	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
- 		297000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
- 		V4L2_DV_BT_STD_CEA861, 0) \
- }
-
- #define V4L2_DV_BT_CEA_3840X2160P30 { \
- 	.type = V4L2_DV_BT_656_1120, \
--	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
- 		297000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
- 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
- }
-
- #define V4L2_DV_BT_CEA_3840X2160P50 { \
- 	.type = V4L2_DV_BT_656_1120, \
--	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
- 		594000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
- 		V4L2_DV_BT_STD_CEA861, 0) \
- }
-
- #define V4L2_DV_BT_CEA_3840X2160P60 { \
- 	.type = V4L2_DV_BT_656_1120, \
--	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
- 		594000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
- 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
- }
-
- #define V4L2_DV_BT_CEA_4096X2160P24 { \
- 	.type = V4L2_DV_BT_656_1120, \
--	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
- 		297000000, 1020, 88, 296, 8, 10, 72, 0, 0, 0, \
- 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
- }
-
- #define V4L2_DV_BT_CEA_4096X2160P25 { \
- 	.type = V4L2_DV_BT_656_1120, \
--	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
- 		297000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
- 		V4L2_DV_BT_STD_CEA861, 0) \
- }
-
- #define V4L2_DV_BT_CEA_4096X2160P30 { \
- 	.type = V4L2_DV_BT_656_1120, \
--	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
- 		297000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
- 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
- }
-
- #define V4L2_DV_BT_CEA_4096X2160P50 { \
- 	.type = V4L2_DV_BT_656_1120, \
--	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
- 		594000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
- 		V4L2_DV_BT_STD_CEA861, 0) \
- }
-
- #define V4L2_DV_BT_CEA_4096X2160P60 { \
- 	.type = V4L2_DV_BT_656_1120, \
--	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, V4L2_DV_HSYNC_POS_POL, \
-+	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
- 		594000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
- 		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
- }
