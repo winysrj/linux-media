@@ -1,123 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35194 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753840AbcERUaT (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35679 "EHLO
+	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932395AbcEWLjM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 May 2016 16:30:19 -0400
-Received: by mail-wm0-f65.google.com with SMTP id s63so1204279wme.2
-        for <linux-media@vger.kernel.org>; Wed, 18 May 2016 13:30:18 -0700 (PDT)
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH] media: rc: make fifo size for raw events configurable via
- rc_dev
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <1122490c-9700-e99e-338c-cde8a959fc5f@gmail.com>
-Date: Wed, 18 May 2016 22:29:07 +0200
+	Mon, 23 May 2016 07:39:12 -0400
+Subject: Re: [PATCH 2/3] media: add media_device_unregister_put() interface
+To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	hans.verkuil@cisco.com, chehabrafael@gmail.com,
+	javier@osg.samsung.com, inki.dae@samsung.com,
+	g.liakhovetski@gmx.de, jh1009.sung@samsung.com
+References: <cover.1463158822.git.shuahkh@osg.samsung.com>
+ <14efd8cc91d49e34936fd227d1208429d16e3fa0.1463158822.git.shuahkh@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5742EBDA.1010902@xs4all.nl>
+Date: Mon, 23 May 2016 13:39:06 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <14efd8cc91d49e34936fd227d1208429d16e3fa0.1463158822.git.shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the fifo size is 512 elements. After a recent patch the size
-of struct ir_raw_event is down to 8 bytes, so the fifo still consumes
-4KB. In most cases a much smaller fifo is sufficient, e.g. nuvoton-cir
-triggers event processing after 24 events latest.
+On 05/13/2016 07:09 PM, Shuah Khan wrote:
+> Add media_device_unregister_put() interface to release reference to a media
+> device allocated using the Media Device Allocator API. The media device is
+> unregistered and freed when the last driver that holds the reference to the
+> media device releases the reference. The media device is unregistered and
+> freed in the kref put handler.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> ---
+>  drivers/media/media-device.c | 11 +++++++++++
+>  include/media/media-device.h | 15 +++++++++++++++
+>  2 files changed, 26 insertions(+)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 33a9952..b5c279a 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -36,6 +36,7 @@
+>  #include <media/media-device.h>
+>  #include <media/media-devnode.h>
+>  #include <media/media-entity.h>
+> +#include <media/media-dev-allocator.h>
+>  
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  
+> @@ -818,6 +819,16 @@ void media_device_unregister(struct media_device *mdev)
+>  }
+>  EXPORT_SYMBOL_GPL(media_device_unregister);
+>  
+> +void media_device_unregister_put(struct media_device *mdev)
+> +{
+> +	if (mdev == NULL)
+> +		return;
+> +
+> +	dev_dbg(mdev->dev, "%s: mdev %p\n", __func__, mdev);
+> +	media_device_put(mdev);
+> +}
+> +EXPORT_SYMBOL_GPL(media_device_unregister_put);
+> +
 
-This patch introduces an element raw_fifo_size to struct rc_dev to
-allow configuring the fifo size. If not set the current default
-MAX_IR_EVENT_SIZE is used.
+I don't really see the need for a new unregister_put function. The only thing
+it adds compared to media_device_put is the 'if (mdev == NULL)' check.
 
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/rc-core-priv.h |  2 +-
- drivers/media/rc/rc-ir-raw.c    | 11 +++++++++--
- include/media/rc-core.h         |  2 ++
- 3 files changed, 12 insertions(+), 3 deletions(-)
+Is that check needed at all?
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 585d5e5..ae6f81e 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -39,7 +39,7 @@ struct ir_raw_event_ctrl {
- 	struct task_struct		*thread;
- 	spinlock_t			lock;
- 	/* fifo for the pulse/space durations */
--	DECLARE_KFIFO(kfifo, struct ir_raw_event, MAX_IR_EVENT_SIZE);
-+	DECLARE_KFIFO_PTR(kfifo, struct ir_raw_event);
- 	ktime_t				last_event;	/* when last event occurred */
- 	enum raw_event_type		last_type;	/* last event type */
- 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 144304c..96270f1 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -261,6 +261,7 @@ int ir_raw_event_register(struct rc_dev *dev)
- {
- 	int rc;
- 	struct ir_raw_handler *handler;
-+	unsigned fifo_size = dev->raw_fifo_size ?: MAX_IR_EVENT_SIZE;
- 
- 	if (!dev)
- 		return -EINVAL;
-@@ -271,7 +272,10 @@ int ir_raw_event_register(struct rc_dev *dev)
- 
- 	dev->raw->dev = dev;
- 	dev->change_protocol = change_protocol;
--	INIT_KFIFO(dev->raw->kfifo);
-+
-+	rc = kfifo_alloc(&dev->raw->kfifo, fifo_size, GFP_KERNEL);
-+	if (rc)
-+		goto out;
- 
- 	spin_lock_init(&dev->raw->lock);
- 	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
-@@ -279,7 +283,7 @@ int ir_raw_event_register(struct rc_dev *dev)
- 
- 	if (IS_ERR(dev->raw->thread)) {
- 		rc = PTR_ERR(dev->raw->thread);
--		goto out;
-+		goto out_kfifo;
- 	}
- 
- 	mutex_lock(&ir_raw_handler_lock);
-@@ -291,6 +295,8 @@ int ir_raw_event_register(struct rc_dev *dev)
- 
- 	return 0;
- 
-+out_kfifo:
-+	kfifo_free(&dev->raw->kfifo);
- out:
- 	kfree(dev->raw);
- 	dev->raw = NULL;
-@@ -313,6 +319,7 @@ void ir_raw_event_unregister(struct rc_dev *dev)
- 			handler->raw_unregister(dev);
- 	mutex_unlock(&ir_raw_handler_lock);
- 
-+	kfifo_free(&dev->raw->kfifo);
- 	kfree(dev->raw);
- 	dev->raw = NULL;
- }
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index f6f55b7..07e096b 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -72,6 +72,7 @@ enum rc_filter_type {
-  *	anyone can call show_protocols or store_protocols
-  * @minor: unique minor remote control device number
-  * @raw: additional data for raw pulse/space devices
-+ * @raw_fifo_size: size of fifo for raw events
-  * @input_dev: the input child device used to communicate events to userspace
-  * @driver_type: specifies if protocol decoding is done in hardware or software
-  * @idle: used to keep track of RX state
-@@ -133,6 +134,7 @@ struct rc_dev {
- 	struct mutex			lock;
- 	unsigned int			minor;
- 	struct ir_raw_event_ctrl	*raw;
-+	unsigned			raw_fifo_size;
- 	struct input_dev		*input_dev;
- 	enum rc_driver_type		driver_type;
- 	bool				idle;
--- 
-2.8.2
+I would probably go for an API like this:
 
+<brainstorm mode on>
+
+/* Not sure if there should be a void *priv as the last argument */
+int (*mdev_init_fnc)(struct media_device *mdev, struct device *dev);
+
+/* Perhaps a void *priv is needed to pass to mdev_init_fnc?
+   The callback is there to initialize the media_device and it's called
+   with the lock held.
+*/
+struct media_device *media_device_allocate(struct device *dev, mdev_init_fnc fnc);
+
+/* Helper function for usb devices */
+struct media_device *media_device_usb_allocate(struct usb_device *udev,
+					       char *driver_name);
+
+/* counterpart of media_device_allocate, that makes more sense than allocate/put IMHO */
+void media_device_release(struct media_device *mdev);
+
+<brainstorm mode off>
+
+Regards,
+
+	Hans
+
+>  static void media_device_release_devres(struct device *dev, void *res)
+>  {
+>  }
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index f743ae2..8bd836e 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -499,6 +499,18 @@ int __must_check __media_device_register(struct media_device *mdev,
+>  void media_device_unregister(struct media_device *mdev);
+>  
+>  /**
+> + * media_device_unregister_put() - Unregisters a media device element
+> + *
+> + * @mdev:	pointer to struct &media_device
+> + *
+> + * Should be called to unregister media device allocated with Media Device
+> + * Allocator API media_device_get() interface.
+> + * It is safe to call this function on an unregistered (but initialised)
+> + * media device.
+> + */
+> +void media_device_unregister_put(struct media_device *mdev);
+> +
+> +/**
+>   * media_device_register_entity() - registers a media entity inside a
+>   *	previously registered media device.
+>   *
+> @@ -658,6 +670,9 @@ static inline int media_device_register(struct media_device *mdev)
+>  static inline void media_device_unregister(struct media_device *mdev)
+>  {
+>  }
+> +static inline void media_device_unregister_put(struct media_device *mdev)
+> +{
+> +}
+>  static inline int media_device_register_entity(struct media_device *mdev,
+>  						struct media_entity *entity)
+>  {
+> 
