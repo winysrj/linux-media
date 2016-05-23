@@ -1,142 +1,362 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:43698 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758804AbcEGBZK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 May 2016 21:25:10 -0400
-Message-ID: <1462584301.25248.40.camel@collabora.com>
-Subject: Re: [RESEND PATCH] [media] s5p-mfc: don't close instance after free
- OUTPUT buffers
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Reply-To: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-	linux-kernel@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	ayaka <ayaka@soulik.info>, Shuah Khan <shuahkh@osg.samsung.com>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Date: Fri, 06 May 2016 21:25:01 -0400
-In-Reply-To: <1462572682-5195-1-git-send-email-javier@osg.samsung.com>
-References: <1462572682-5195-1-git-send-email-javier@osg.samsung.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-ePpIZ5bVzcXshxe5YiqF"
-Mime-Version: 1.0
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:45566 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753562AbcEWL0K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2016 07:26:10 -0400
+Subject: Re: [PATCH 1/3] media: Media Device Allocator API
+To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	hans.verkuil@cisco.com, chehabrafael@gmail.com,
+	javier@osg.samsung.com, inki.dae@samsung.com,
+	g.liakhovetski@gmx.de, jh1009.sung@samsung.com
+References: <cover.1463158822.git.shuahkh@osg.samsung.com>
+ <efdba25cd9ad3b5fa025ed91613921641058a727.1463158822.git.shuahkh@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5742E8CC.2060806@xs4all.nl>
+Date: Mon, 23 May 2016 13:26:04 +0200
+MIME-Version: 1.0
+In-Reply-To: <efdba25cd9ad3b5fa025ed91613921641058a727.1463158822.git.shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Shuah,
 
---=-ePpIZ5bVzcXshxe5YiqF
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Some comments below:
 
-Thanks for re-submitting. See inline two typos to fix in teh comment.
-
-cheers,
-Nicolas
-
-Le vendredi 06 mai 2016 =C3=A0 18:11 -0400, Javier Martinez Canillas a =C3=
-=A9crit=C2=A0:
-> From: ayaka <ayaka@soulik.info>
->=20
-> User-space applications can use the VIDIOC_REQBUFS ioctl to determine if =
-a
-> memory mapped, user pointer or DMABUF based I/O is supported by the drive=
-r.
->=20
-> So a set of VIDIOC_REQBUFS ioctl calls will be made with count 0 and then
-> the real VIDIOC_REQBUFS call with count =3D=3D n. But for count 0, the dr=
-iver
-> not only frees the buffer but also closes the MFC instance and s5p_mfc_ct=
-x
-> state is set to MFCINST_FREE.
->=20
-> The VIDIOC_REQBUFS handler for the output device checks if the s5p_mfc_ct=
-x
-> state is set to MFCINST_INIT (which happens on an VIDIOC_S_FMT) and fails
-> otherwise. So after a VIDIOC_REQBUFS(n), future VIDIOC_REQBUFS(n) calls
-> will fails unless a VIDIOC_S_FMT ioctl calls happens before the reqbufs.
->=20
-> But applications may first set the format and then attempt to determine
-> the I/O methods supported by the driver (for example Gstramer does it) so
-=C2=A0* GStreamer
-
-> the state won't be set to MFCINST_INIT again and VIDIOC_REQBUFS will fail=
-.
->=20
-> To avoid this issue, only free the buffers on VIDIOC_REQBUFS(0) but don't
-> close the MFC instance to allow future VIDIOC_REQBUFS(n) calls to succeed=
-.
->=20
-> Signed-off-by: ayaka <ayaka@soulik.info>
-> [javier: Rewrote changelog to explain the problem more detailed]
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->=20
+On 05/13/2016 07:09 PM, Shuah Khan wrote:
+> Media Device Allocator API to allows multiple drivers share a media device.
+> Using this API, drivers can allocate a media device with the shared struct
+> device as the key. Once the media device is allocated by a driver, other
+> drivers can get a reference to it. The media device is released when all
+> the references are released.
+> 
+> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
 > ---
-> Hello,
->=20
-> This is a resend of a patch posted by Ayaka some time ago [0].
-> Without $SUBJECT, trying to decode a video using Gstramer fails
+>  drivers/media/Makefile              |   3 +-
+>  drivers/media/media-dev-allocator.c | 139 ++++++++++++++++++++++++++++++++++++
+>  include/media/media-dev-allocator.h | 118 ++++++++++++++++++++++++++++++
+>  3 files changed, 259 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/media/media-dev-allocator.c
+>  create mode 100644 include/media/media-dev-allocator.h
+> 
+> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> index e608bbc..b08f091 100644
+> --- a/drivers/media/Makefile
+> +++ b/drivers/media/Makefile
+> @@ -2,7 +2,8 @@
+>  # Makefile for the kernel multimedia device drivers.
+>  #
+>  
+> -media-objs	:= media-device.o media-devnode.o media-entity.o
+> +media-objs	:= media-device.o media-devnode.o media-entity.o \
+> +		   media-dev-allocator.o
+>  
+>  #
+>  # I2C drivers should come before other drivers, otherwise they'll fail
+> diff --git a/drivers/media/media-dev-allocator.c b/drivers/media/media-dev-allocator.c
+> new file mode 100644
+> index 0000000..b49ab55
+> --- /dev/null
+> +++ b/drivers/media/media-dev-allocator.c
+> @@ -0,0 +1,139 @@
+> +/*
+> + * media-dev-allocator.c - Media Controller Device Allocator API
+> + *
+> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
+> + *
+> + * This file is released under the GPLv2.
+> + * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> + */
+> +
+> +/*
+> + * This file adds a global refcounted Media Controller Device Instance API.
+> + * A system wide global media device list is managed and each media device
+> + * includes a kref count. The last put on the media device releases the media
+> + * device instance.
+> + *
+> +*/
+> +
+> +#include <linux/slab.h>
+> +#include <linux/kref.h>
+> +#include <linux/usb.h>
+> +#include <media/media-device.h>
+> +
+> +static LIST_HEAD(media_device_list);
+> +static DEFINE_MUTEX(media_device_lock);
+> +
+> +struct media_device_instance {
+> +	struct media_device mdev;
+> +	struct list_head list;
+> +	struct device *dev;
+> +	struct kref refcount;
+> +};
+> +
+> +static inline struct media_device_instance *
+> +to_media_device_instance(struct media_device *mdev)
+> +{
+> +	return container_of(mdev, struct media_device_instance, mdev);
+> +}
+> +
+> +static void media_device_instance_release(struct kref *kref)
+> +{
+> +	struct media_device_instance *mdi =
+> +		container_of(kref, struct media_device_instance, refcount);
+> +
+> +	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
+> +
+> +	mutex_lock(&media_device_lock);
+> +
+> +	media_device_unregister(&mdi->mdev);
+> +	media_device_cleanup(&mdi->mdev);
+> +
+> +	list_del(&mdi->list);
+> +	mutex_unlock(&media_device_lock);
+> +
+> +	kfree(mdi);
+> +}
+> +
+> +static struct media_device *__media_device_get(struct device *dev,
+> +					       bool allocate)
+> +{
+> +	struct media_device_instance *mdi;
+> +
+> +	mutex_lock(&media_device_lock);
+> +
+> +	list_for_each_entry(mdi, &media_device_list, list) {
+> +		if (mdi->dev == dev) {
+> +			kref_get(&mdi->refcount);
+> +			dev_dbg(dev, "%s: get mdev=%p\n",
+> +				 __func__, &mdi->mdev);
+> +			goto done;
+> +		}
+> +	}
+> +
+> +	if (!allocate) {
+> +		mdi = NULL;
+> +		goto done;
+> +	}
+> +
+> +	mdi = kzalloc(sizeof(*mdi), GFP_KERNEL);
+> +	if (!mdi)
+> +		goto done;
+> +
+> +	mdi->dev = dev;
+> +	kref_init(&mdi->refcount);
+> +	list_add_tail(&mdi->list, &media_device_list);
+> +
+> +	dev_dbg(dev, "%s: alloc mdev=%p\n", __func__, &mdi->mdev);
+> +
+> +done:
+> +	mutex_unlock(&media_device_lock);
+> +
+> +	return mdi ? &mdi->mdev : NULL;
+> +}
+> +
+> +struct media_device *media_device_allocate(struct device *dev)
+> +{
+> +	dev_dbg(dev, "%s\n", __func__);
+> +	return __media_device_get(dev, true);
+> +}
+> +EXPORT_SYMBOL_GPL(media_device_allocate);
 
-* GStreamer again=C2=A0
+Do we need this function? Whenever a media device is allocated, you also need
+to initialize the media device with the media_device_lock held (as happens
+below in media_device_usb_allocate). You can't really use this function
+standalone as far as I can see.
 
-> on an Exynos5422 Odroid XU4 board with following error message:
->=20
-> $ gst-launch-1.0 filesrc location=3Dtest.mov ! qtdemux ! h264parse ! v4l2=
-video0dec ! videoconvert ! autovideosink
->=20
-> Setting pipeline to PAUSED ...
-> Pipeline is PREROLLING ...
-> [ 3947.114756] vidioc_reqbufs:576: Only V4L2_MEMORY_MAP is supported
-> [ 3947.114771] vidioc_reqbufs:576: Only V4L2_MEMORY_MAP is supported
-> [ 3947.114903] reqbufs_output:484: Reqbufs called in an invalid state
-> [ 3947.114913] reqbufs_output:510: Failed allocating buffers for OUTPUT q=
-ueue
-> ERROR: from element /GstPipeline:pipeline0/v4l2video0dec:v4l2video0dec0: =
-Failed to allocate required memory.
-> Additional debug info:
-> gstv4l2videodec.c(575): gst_v4l2_video_dec_handle_frame (): /GstPipeline:=
-pipeline0/v4l2video0dec:v4l2video0dec0:
-> Buffer pool activation failed
-> ERROR: pipeline doesn't want to preroll.
-> Setting pipeline to NULL ...
-> Freeing pipeline ...
->=20
-> [0]: https://patchwork.linuxtv.org/patch/32794/
->=20
-> Best regards,
-> Javier
->=20
-> =C2=A0drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 1 -
-> =C2=A01 file changed, 1 deletion(-)
->=20
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media=
-/platform/s5p-mfc/s5p_mfc_dec.c
-> index f2d6376ce618..8b9467de2d6a 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> @@ -474,7 +474,6 @@ static int reqbufs_output(struct s5p_mfc_dev *dev, st=
-ruct s5p_mfc_ctx *ctx,
-> =C2=A0		ret =3D vb2_reqbufs(&ctx->vq_src, reqbufs);
-> =C2=A0		if (ret)
-> =C2=A0			goto out;
-> -		s5p_mfc_close_mfc_inst(dev, ctx);
-> =C2=A0		ctx->src_bufs_cnt =3D 0;
-> =C2=A0		ctx->output_state =3D QUEUE_FREE;
-> =C2=A0	} else if (ctx->output_state =3D=3D QUEUE_FREE) {
---=-ePpIZ5bVzcXshxe5YiqF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+An alternative might be to pass a callback function with media_device_allocate
+that initialized the media device. That would ensure that there are no race
+conditions since media_device_allocate can lock media_device_lock before
+calling the callback.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+> +
+> +struct media_device *media_device_usb_allocate(struct usb_device *udev,
+> +					       char *driver_name)
+> +{
+> +	struct media_device *mdev;
+> +
+> +	mdev = media_device_allocate(&udev->dev);
+> +	if (!mdev)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	/* check if media device is already initialized */
+> +	mutex_lock(&media_device_lock);
+> +	if (!mdev->dev)
+> +		__media_device_usb_init(mdev, udev, udev->product,
+> +					driver_name);
+> +	mutex_unlock(&media_device_lock);
+> +
+> +	return mdev;
+> +}
+> +EXPORT_SYMBOL_GPL(media_device_usb_allocate);
+> +
+> +/* don't allocate - get reference if one is found */
+> +struct media_device *media_device_get(struct media_device *mdev)
+> +{
+> +	struct media_device_instance *mdi = to_media_device_instance(mdev);
+> +
+> +	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
+> +	return __media_device_get(mdi->dev, false);
+> +}
+> +EXPORT_SYMBOL_GPL(media_device_get);
 
-iEYEABECAAYFAlctQ+0ACgkQcVMCLawGqBxzPQCgys0bjrdBiyga9xf7rFkmJvxT
-0GIAoJHnGK5ChhBy5/r79NsU26gEum9T
-=Hc4G
------END PGP SIGNATURE-----
+Do we need this anywhere? It makes no sense to call this standalone, at least, not
+that I can see. You just have different drivers that all call media_device_usb_allocate,
+and they also call media_device_put when they are done with it. See also my comments
+for the next patch.
 
---=-ePpIZ5bVzcXshxe5YiqF--
+> +
+> +void media_device_put(struct media_device *mdev)
+> +{
+> +	struct media_device_instance *mdi = to_media_device_instance(mdev);
+> +
+> +	dev_dbg(mdi->mdev.dev, "%s: mdev=%p\n", __func__, &mdi->mdev);
+> +	kref_put(&mdi->refcount, media_device_instance_release);
+> +}
+> +EXPORT_SYMBOL_GPL(media_device_put);
+> diff --git a/include/media/media-dev-allocator.h b/include/media/media-dev-allocator.h
+> new file mode 100644
+> index 0000000..a63dfc6
+> --- /dev/null
+> +++ b/include/media/media-dev-allocator.h
+> @@ -0,0 +1,118 @@
+> +/*
+> + * media-dev-allocator.h - Media Controller Device Allocator API
+> + *
+> + * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+> + * Copyright (c) 2016 Samsung Electronics Co., Ltd.
+> + *
+> + * This file is released under the GPLv2.
+> + * Credits: Suggested by Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> + */
+> +
+> +/*
+> + * This file adds a global ref-counted Media Controller Device Instance API.
+> + * A system wide global media device list is managed and each media device
+> + * includes a kref count. The last put on the media device releases the media
+> + * device instance.
+> +*/
+> +
+> +#ifndef _MEDIA_DEV_ALLOCTOR_H
+> +#define _MEDIA_DEV_ALLOCTOR_H
+> +
+> +struct usb_device;
+> +
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +/**
+> + * DOC: Media Controller Device Allocator API
+> + *
+> + * When media device belongs to more than one driver, the shared media device
+> + * is allocated with the shared struct device as the key for look ups.
+> + *
+> + * Shared media device should stay in registered state until the last driver
+> + * unregisters it. In addition, media device should be released when all the
+> + * references are released. Each driver gets a reference to the media device
+> + * during probe, when it allocates the media device. If media device is already
+> + * allocated, allocate API bumps up the refcount and return the existing media
+> + * device. Driver puts the reference back from its disconnect routine when it
+> + * calls media_device_unregister_put().
+> + *
+> + * Media device is unregistered and cleaned up from the kref put handler to
+> + * ensure that the media device stays in registered state until the last driver
+> + * unregisters the media device.
+> + *
+> + * Media Device can be in any the following states:
+> + *
+> + * - Allocated
 
+I don't think this is a real state. It's either unregistered or allocated and
+registered. Just 'allocated' doesn't really make sense. This ties in to my
+comment about media_device_allocate().
+
+> + * - Registered (could be tied to more than one driver)
+> + * - Unregistered and released in the kref put handler.
+
+I would probably drop these 5 lines altogether.
+
+> + *
+> + * Driver Usage:
+> + *
+> + * Drivers should use the media-core routines to get register reference and
+> + * use the media_device_unregister_put() routine to make sure the shared
+> + * media device delete is handled correctly.
+> + *
+> + * driver probe:
+> + *	Call media_device_usb_allocate() to allocate or get a reference
+> + *	Call media_device_register(), if media devnode isn't registered
+> + *
+> + * driver disconnect:
+> + *	Call media_device_unregister_put() to put the reference.
+
+There is no media_device_unregister_put() (yet). That should be in the
+next patch.
+
+> + *
+> + */
+> +
+> +/**
+> + * media_device_usb_allocate() - Allocate and return media device
+> + *
+> + * @udev - struct usb_device pointer
+> + * @driver_name
+> + *
+> + * This interface should be called to allocate a media device when multiple
+> + * drivers share usb_device and the media device. This interface allocates
+> + * media device and calls media_device_usb_init() to initialize it.
+> + *
+> + */
+> +struct media_device *media_device_usb_allocate(struct usb_device *udev,
+> +					       char *driver_name);
+> +/**
+> + * media_device_allocate() - Allocate and return global media device
+> + *
+> + * @dev - struct device pointer
+> + *
+> + * This interface should be called to allocate media device. A new media
+> + * device instance is created and added to the system wide media device
+> + * instance list. If media device instance exists, media_device_allocate()
+> + * increments the reference count and returns the media device. When more
+> + * than one driver control the media device, the first driver to probe will
+> + * allocate and the second driver when it calls  media_device_allocate(),
+> + * it will get a reference.
+> + *
+> + */
+> +struct media_device *media_device_allocate(struct device *dev);
+> +/**
+> + * media_device_get() -	Get reference to a registered media device.
+> + *
+> + * @mdev - struct media_device pointer
+> + *
+> + * This interface should be called to get a reference to an allocated media
+> + * device.
+> + */
+> +struct media_device *media_device_get(struct media_device *mdev);
+> +/**
+> + * media_device_put() - Release media device. Calls kref_put().
+> + *
+> + * @mdev - struct media_device pointer
+> + *
+> + * This interface should be called to put Media Device Instance kref.
+> + */
+> +void media_device_put(struct media_device *mdev);
+> +#else
+> +static inline struct media_device *media_device_usb_allocate(
+> +			struct usb_device *udev, char *driver_name)
+> +			{ return NULL; }
+> +static inline struct media_device *media_device_allocate(struct device *dev)
+> +			{ return NULL; }
+> +static inline struct media_device *media_device_get(struct media_device *mdev)
+> +			{ return NULL; }
+> +static inline void media_device_put(struct media_device *mdev) { }
+> +#endif /* CONFIG_MEDIA_CONTROLLER */
+> +#endif
+> 
+
+Regards,
+
+	Hans
