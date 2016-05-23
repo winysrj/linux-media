@@ -1,38 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:58651 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755663AbcEQOvS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 May 2016 10:51:18 -0400
-Date: Tue, 17 May 2016 16:51:07 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [Q] Asynchronous controls vs. events
-Message-ID: <Pine.LNX.4.64.1605171540010.14153@axis700.grange>
+Received: from mailapp01.imgtec.com ([195.59.15.196]:52051 "EHLO
+	mailapp01.imgtec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281AbcEWMoX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 May 2016 08:44:23 -0400
+Date: Mon, 23 May 2016 13:44:16 +0100
+From: Eric Engestrom <eric.engestrom@imgtec.com>
+To: Muhammad Falak R Wani <falakreyaz@gmail.com>
+CC: Sumit Semwal <sumit.semwal@linaro.org>,
+	"open list:DMA BUFFER SHARING FRAMEWORK"
+	<linux-media@vger.kernel.org>,
+	"open list:DMA BUFFER SHARING FRAMEWORK"
+	<dri-devel@lists.freedesktop.org>,
+	"moderated list:DMA BUFFER SHARING FRAMEWORK"
+	<linaro-mm-sig@lists.linaro.org>,
+	open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2] dma-buf: use vma_pages().
+Message-ID: <20160523124415.GD13596@imgtec.com>
+References: <1464003522-27682-1-git-send-email-falakreyaz@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Disposition: inline
+In-Reply-To: <1464003522-27682-1-git-send-email-falakreyaz@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, May 23, 2016 at 05:08:42PM +0530, Muhammad Falak R Wani wrote:
+> Replace explicit computation of vma page count by a call to
+> vma_pages().
+> Also, include <linux/mm.h>
 
-I need to add asynchronous control support to the UVC driver. Some UVC 
-cameras support some controls in asynchronous mode. For those controls a 
-USB status is returned to the host, but the control will only be 
-completed, when an Interrupt packet is sent by the device. I can see two 
-ways to support this:
-
-(1) synchronously: the driver waits in S_CTRL until the interrupt packet 
-arrives
-
-(2) asynchronously: the driver returns immediately and sends an event 
-after the Interrupt packet is received.
-
-Question: which method would be preferred, if (2) - what error code should 
-the driver use to indicate, that the result of the control isn't known 
-yet? Or should success be returned, since a success anyway doesn't 
-guarantee that the specified value has already taken effect.
-
-Thanks
-Guennadi
+All good!
+Reviewed-by: Eric Engestrom <eric.engestrom@imgtec.com>
