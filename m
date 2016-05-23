@@ -1,94 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33930 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932872AbcEKODf (ORCPT
+Received: from mail-it0-f66.google.com ([209.85.214.66]:34704 "EHLO
+	mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756012AbcEWNnq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 10:03:35 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-	magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-	ian.molton@codethink.co.uk, lars@metafoo.de,
-	william.towle@codethink.co.uk,
-	Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v4 6/8] media: rcar-vin: initialize EDID data
-Date: Wed, 11 May 2016 16:02:54 +0200
-Message-Id: <1462975376-491-7-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1462975376-491-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+	Mon, 23 May 2016 09:43:46 -0400
+Received: by mail-it0-f66.google.com with SMTP id k76so4968081ita.1
+        for <linux-media@vger.kernel.org>; Mon, 23 May 2016 06:43:45 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1463907991-7916-29-git-send-email-geert@linux-m68k.org>
+References: <1463907991-7916-1-git-send-email-geert@linux-m68k.org>
+	<1463907991-7916-29-git-send-email-geert@linux-m68k.org>
+Date: Mon, 23 May 2016 09:29:51 -0400
+Message-ID: <CABxcv=kuQa_A03bdkgBjHF3XyOWY1C6y4j_k9z2CRVSf5gVeXw@mail.gmail.com>
+Subject: Re: [PATCH 28/54] MAINTAINERS: Add file patterns for media device
+ tree bindings
+From: Javier Martinez Canillas <javier@dowhile0.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initializes the decoder subdevice with a fixed EDID blob.
+Hello Geert,
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 46 +++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
+On Sun, May 22, 2016 at 5:06 AM, Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> Submitters of device tree binding documentation may forget to CC
+> the subsystem maintainer if this is missing.
+>
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> Cc: linux-media@vger.kernel.org
+> ---
+> Please apply this patch directly if you want to be involved in device
+> tree binding documentation for your subsystem.
+> ---
+>  MAINTAINERS | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 7acb65bb2590a321..c230cd9ec8aefe45 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -7376,6 +7376,7 @@ W:        https://linuxtv.org
+>  Q:     http://patchwork.kernel.org/project/linux-media/list/
+>  T:     git git://linuxtv.org/media_tree.git
+>  S:     Maintained
+> +F:     Documentation/devicetree/bindings/media/
+>  F:     Documentation/dvb/
+>  F:     Documentation/video4linux/
+>  F:     Documentation/DocBook/media/
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 10a5c10..5bb3c3b 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -765,6 +765,41 @@ static void rvin_notify(struct v4l2_subdev *sd,
- 	}
- }
- 
-+static u8 edid[256] = {
-+	0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00,
-+	0x48, 0xAE, 0x9C, 0x27, 0x00, 0x00, 0x00, 0x00,
-+	0x19, 0x12, 0x01, 0x03, 0x80, 0x00, 0x00, 0x78,
-+	0x0E, 0x00, 0xB2, 0xA0, 0x57, 0x49, 0x9B, 0x26,
-+	0x10, 0x48, 0x4F, 0x2F, 0xCF, 0x00, 0x31, 0x59,
-+	0x45, 0x59, 0x61, 0x59, 0x81, 0x99, 0x01, 0x01,
-+	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x02, 0x3A,
-+	0x80, 0x18, 0x71, 0x38, 0x2D, 0x40, 0x58, 0x2C,
-+	0x46, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E,
-+	0x00, 0x00, 0x00, 0xFD, 0x00, 0x31, 0x55, 0x18,
-+	0x5E, 0x11, 0x00, 0x0A, 0x20, 0x20, 0x20, 0x20,
-+	0x20, 0x20, 0x00, 0x00, 0x00, 0xFC, 0x00, 0x43,
-+	0x20, 0x39, 0x30, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-+	0x0A, 0x0A, 0x0A, 0x0A, 0x00, 0x00, 0x00, 0x10,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x68,
-+	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
-+	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
-+	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
-+	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
-+	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
-+	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
-+};
-+
- int rvin_v4l2_probe(struct rvin_dev *vin)
- {
- 	struct v4l2_subdev_format fmt = {
-@@ -870,5 +905,16 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	v4l2_info(&vin->v4l2_dev, "Device registered as %s\n",
- 		  video_device_node_name(&vin->vdev));
- 
-+	{
-+		struct v4l2_subdev_edid rvin_edid = {
-+			.pad = 0,
-+			.start_block = 0,
-+			.blocks = 2,
-+			.edid = edid,
-+		};
-+		v4l2_subdev_call(sd, pad, set_edid,
-+				&rvin_edid);
-+	}
-+
- 	return ret;
- }
--- 
-2.7.4
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
+Best regards,
+Javier
