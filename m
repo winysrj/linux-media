@@ -1,76 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zencphosting06.zen.co.uk ([82.71.204.9]:41629 "EHLO
-	zencphosting06.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752596AbcEMPSA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 May 2016 11:18:00 -0400
-Subject: Re: [PATCH v2 0/8] Input: atmel_mxt_ts - output raw touch diagnostic
- data via V4L
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Henrik Rydberg <rydberg@bitmath.org>,
-	Florian Echtler <floe@butterbrot.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Benjamin Tissoires <benjamin.tissoires@redhat.com>,
-	Benson Leung <bleung@chromium.org>,
-	Alan Bowens <Alan.Bowens@atmel.com>,
-	Javier Martinez Canillas <javier@osg.samsung.com>,
-	Chris Healy <cphealy@gmail.com>,
-	Andrew Duggan <aduggan@synaptics.com>,
-	James Chen <james.chen@emc.com.tw>,
-	Dudley Du <dudl@cypress.com>,
-	Andrew de los Reyes <adlr@chromium.org>,
-	sheckylin@chromium.org, Peter Hutterer <peter.hutterer@who-t.net>
-From: Nick Dyer <nick.dyer@itdev.co.uk>
-Message-ID: <5735F01A.3010101@itdev.co.uk>
-Date: Fri, 13 May 2016 16:17:46 +0100
-MIME-Version: 1.0
-In-Reply-To: <1462381638-7818-1-git-send-email-nick.dyer@itdev.co.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mga11.intel.com ([192.55.52.93]:5228 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756459AbcEXQvD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 12:51:03 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [RFC v2 20/21] DocBook: media: Document media events (MEDIA_IOC_DQEVENT IOCTL)
+Date: Tue, 24 May 2016 19:47:30 +0300
+Message-Id: <1464108451-28142-21-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, Hans, Dmitry, Henrik-
+Add DocBook documentation for media events.
 
-You kindly passed comment on this feature in its earlier form - would it be
-possible to have some feedback on the updates?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ .../DocBook/media/v4l/media-controller.xml         |   1 +
+ .../DocBook/media/v4l/media-ioc-dqevent.xml        | 156 +++++++++++++++++++++
+ 2 files changed, 157 insertions(+)
+ create mode 100644 Documentation/DocBook/media/v4l/media-ioc-dqevent.xml
 
-It would be good to know whether we are on the right track with the V4L2
-approach, because there is additional work that we want to base on it.
+diff --git a/Documentation/DocBook/media/v4l/media-controller.xml b/Documentation/DocBook/media/v4l/media-controller.xml
+index 2a5a5d0..aa78fcb 100644
+--- a/Documentation/DocBook/media/v4l/media-controller.xml
++++ b/Documentation/DocBook/media/v4l/media-controller.xml
+@@ -98,6 +98,7 @@
+   &sub-media-func-ioctl;
+   <!-- All ioctls go here. -->
+   &sub-media-ioc-device-info;
++  &sub-media-ioc-dqevent;
+   &sub-media-ioc-g-topology;
+   &sub-media-ioc-enum-entities;
+   &sub-media-ioc-enum-links;
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-dqevent.xml b/Documentation/DocBook/media/v4l/media-ioc-dqevent.xml
+new file mode 100644
+index 0000000..8cf0462
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/media-ioc-dqevent.xml
+@@ -0,0 +1,156 @@
++<refentry id="media-ioc-dqevent">
++  <refmeta>
++    <refentrytitle>ioctl MEDIA_IOC_DQEVENT</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>MEDIA_IOC_DQEVENT</refname>
++    <refpurpose>Dequeue a media event</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct media_event *<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>File descriptor returned by
++	  <link linkend='media-func-open'><function>open()</function></link>.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>MEDIA_IOC_DQEVENT</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>Dequeue a media event from a media device. Both non-blocking
++    and blocking access is supported. <constant>poll</constant>(2)
++    IOCTL may be used with poll event type
++    <constant>POLLPRI</constant> to learn about dequeueable
++    events.</para>
++
++    <para>Media events are specific to file handle: they are delivered
++    to and dequeued from each file handle separately.</para>
++
++    <table pgwide="1" frame="none" id="media-event">
++      <title>struct <structname>media_event</structname></title>
++      <tgroup cols="4">
++        &cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>type</structfield></entry>
++	    <entry></entry>
++	    <entry>Type of the media event. Set by the driver. See
++	    <xref linkend="media-event-type" /> for available media
++	    event types.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>sequence</structfield></entry>
++	    <entry></entry>
++	    <entry>Event sequence number. The sequence number is file
++	    handle specific and counts from zero until it wraps around
++	    after reaching 32^2-1.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved[4]</structfield></entry>
++	    <entry>Reserved for future extensions. Applications and
++	    drivers must set this to zero.</entry>
++	  </row>
++	  <row>
++	    <entry>union</entry>
++	    <entry><structfield></structfield></entry>
++	    <entry></entry>
++	    <entry>Anonymous union for event type specific data.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>struct &media_event_request_complete;</entry>
++	    <entry><structfield>req_complete</structfield></entry>
++	    <entry>Event data for
++	    <constant>MEDIA_EVENT_REQUEST_COMPLETE</constant> event.
++	    </entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table frame="none" pgwide="1" id="media-event-type">
++      <title>Media event types</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>MEDIA_EVENT_REQUEST_COMPLETE</constant></entry>
++	    <entry>1</entry>
++	    <entry>A request has been completed. This media event type
++	    has &media-event-request-complete; associated with it. The
++yes
++	    event is only queued to the file handle from which the
++	    event was queued.
++	    </entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table pgwide="1" frame="none" id="media-event-request-complete">
++      <title>struct <structname>media_event_request_complete</structname></title>
++      <tgroup cols="3">
++        &cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>id</structfield></entry>
++	    <entry>Request ID. The identifier of the request which has
++	    been completed.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++  </refsect1>
++
++  <refsect1>
++    &return-value;
++
++    <variablelist>
++      <varlistentry>
++	<term><errorcode>ENOENT</errorcode></term>
++	<listitem>
++	  <para>No events are available for dequeueing. This is returned
++	  only when non-blocking I/O is used.
++	  </para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++</refentry>
+-- 
+1.9.1
 
-best regards
-
-Nick
-
-On 04/05/2016 18:07, Nick Dyer wrote:
-> This is a series of patches to add diagnostic data support to the Atmel
-> maXTouch driver. It's a rewrite of the previous implementation which output via
-> debugfs: it now uses a V4L2 device in a similar way to the sur40 driver.
-> 
-> There are significant performance advantages to putting this code into the
-> driver.  The algorithm for retrieving the data has been fairly consistent
-> across a range of chips, with the exception of the mXT1386 series (see patch).
-> 
-> We have a utility which can read the data and display it in a useful format:
->     https://github.com/ndyer/heatmap/commits/heatmap-v4l
-> 
-> These patches are also available from
->     https://github.com/ndyer/linux/commits/diagnostic-v4l
-> 
-> Changes in v2:
-> - Split pixfmt changes into separate commit and add DocBook
-> - Introduce VFL_TYPE_TOUCH_SENSOR and /dev/v4l-touch
-> - Remove "single node" support for now, it may be better to treat it as metadata later
-> - Explicitly set VFL_DIR_RX
-> - Fix Kconfig
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-input" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
