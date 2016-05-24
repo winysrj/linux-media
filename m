@@ -1,97 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:55461 "EHLO
-	mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755339AbcECKLg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2016 06:11:36 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	<daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-	Matthias Brugger <matthias.bgg@gmail.com>,
-	Daniel Kurtz <djkurtz@chromium.org>,
-	Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-	Yingjoe Chen <yingjoe.chen@mediatek.com>,
-	<devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>,
-	<linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>,
-	<Tiffany.lin@mediatek.com>, Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v10 8/8] arm64: dts: mediatek: Add Video Encoder for MT8173
-Date: Tue, 3 May 2016 18:11:27 +0800
-Message-ID: <1462270287-11374-9-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1462270287-11374-8-git-send-email-tiffany.lin@mediatek.com>
-References: <1462270287-11374-1-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-2-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-3-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-4-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-5-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-6-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-7-git-send-email-tiffany.lin@mediatek.com>
- <1462270287-11374-8-git-send-email-tiffany.lin@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mga03.intel.com ([134.134.136.65]:28680 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752485AbcEXQvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 12:51:00 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [RFC v2 09/21] v4l2-subdev.h: Add request field to format and selection structures
+Date: Tue, 24 May 2016 19:47:19 +0300
+Message-Id: <1464108451-28142-10-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add video encoder node for MT8173
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+Let userspace specify a request ID when getting or setting formats or
+selection rectangles.
 
+>From a userspace point of view the API change is minimized and doesn't
+require any new ioctl.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   39 ++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ include/uapi/linux/v4l2-subdev.h | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index ae147bb..348ce0e 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -717,6 +717,45 @@
- 			clock-names = "apb", "smi";
- 		};
+diff --git a/include/uapi/linux/v4l2-subdev.h b/include/uapi/linux/v4l2-subdev.h
+index dbce2b554..dbb7c1d 100644
+--- a/include/uapi/linux/v4l2-subdev.h
++++ b/include/uapi/linux/v4l2-subdev.h
+@@ -32,10 +32,12 @@
+  * enum v4l2_subdev_format_whence - Media bus format type
+  * @V4L2_SUBDEV_FORMAT_TRY: try format, for negotiation only
+  * @V4L2_SUBDEV_FORMAT_ACTIVE: active format, applied to the device
++ * @V4L2_SUBDEV_FORMAT_REQUEST: format stored in request
+  */
+ enum v4l2_subdev_format_whence {
+ 	V4L2_SUBDEV_FORMAT_TRY = 0,
+ 	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
++	V4L2_SUBDEV_FORMAT_REQUEST = 2,
+ };
  
-+		vcodec_enc: vcodec@18002000 {
-+			compatible = "mediatek,mt8173-vcodec-enc";
-+			reg = <0 0x18002000 0 0x1000>,	/* VENC_SYS */
-+			      <0 0x19002000 0 0x1000>;	/* VENC_LT_SYS */
-+			interrupts = <GIC_SPI 198 IRQ_TYPE_LEVEL_LOW>,
-+				     <GIC_SPI 202 IRQ_TYPE_LEVEL_LOW>;
-+			mediatek,larb = <&larb3>,
-+					<&larb5>;
-+			iommus = <&iommu M4U_PORT_VENC_RCPU>,
-+				 <&iommu M4U_PORT_VENC_REC>,
-+				 <&iommu M4U_PORT_VENC_BSDMA>,
-+				 <&iommu M4U_PORT_VENC_SV_COMV>,
-+				 <&iommu M4U_PORT_VENC_RD_COMV>,
-+				 <&iommu M4U_PORT_VENC_CUR_LUMA>,
-+				 <&iommu M4U_PORT_VENC_CUR_CHROMA>,
-+				 <&iommu M4U_PORT_VENC_REF_LUMA>,
-+				 <&iommu M4U_PORT_VENC_REF_CHROMA>,
-+				 <&iommu M4U_PORT_VENC_NBM_RDMA>,
-+				 <&iommu M4U_PORT_VENC_NBM_WDMA>,
-+				 <&iommu M4U_PORT_VENC_RCPU_SET2>,
-+				 <&iommu M4U_PORT_VENC_REC_FRM_SET2>,
-+				 <&iommu M4U_PORT_VENC_BSDMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_SV_COMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_RD_COMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_CUR_LUMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_CUR_CHROMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_REF_LUMA_SET2>,
-+				 <&iommu M4U_PORT_VENC_REC_CHROMA_SET2>;
-+			mediatek,vpu = <&vpu>;
-+			clocks = <&topckgen CLK_TOP_VENCPLL_D2>,
-+				 <&topckgen CLK_TOP_VENC_SEL>,
-+				 <&topckgen CLK_TOP_UNIVPLL1_D2>,
-+				 <&topckgen CLK_TOP_VENC_LT_SEL>;
-+			clock-names = "venc_sel_src",
-+				      "venc_sel",
-+				      "venc_lt_sel_src",
-+				      "venc_lt_sel";
-+		};
-+
- 		vencltsys: clock-controller@19000000 {
- 			compatible = "mediatek,mt8173-vencltsys", "syscon";
- 			reg = <0 0x19000000 0 0x1000>;
+ /**
+@@ -43,12 +45,15 @@ enum v4l2_subdev_format_whence {
+  * @which: format type (from enum v4l2_subdev_format_whence)
+  * @pad: pad number, as reported by the media API
+  * @format: media bus format (format code and frame size)
++ * @request: request ID (when which is set to V4L2_SUBDEV_FORMAT_REQUEST)
++ * @reserved: for future use, set to zero for now
+  */
+ struct v4l2_subdev_format {
+ 	__u32 which;
+ 	__u32 pad;
+ 	struct v4l2_mbus_framefmt format;
+-	__u32 reserved[8];
++	__u32 request;
++	__u32 reserved[7];
+ };
+ 
+ /**
+@@ -139,6 +144,7 @@ struct v4l2_subdev_frame_interval_enum {
+  *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
+  * @flags: constraint flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
+  * @r: coordinates of the selection window
++ * @request: request ID (when which is set to V4L2_SUBDEV_FORMAT_REQUEST)
+  * @reserved: for future use, set to zero for now
+  *
+  * Hardware may use multiple helper windows to process a video stream.
+@@ -151,7 +157,8 @@ struct v4l2_subdev_selection {
+ 	__u32 target;
+ 	__u32 flags;
+ 	struct v4l2_rect r;
+-	__u32 reserved[8];
++	__u32 request;
++	__u32 reserved[7];
+ };
+ 
+ /* Backwards compatibility define --- to be removed */
 -- 
-1.7.9.5
+1.9.1
 
