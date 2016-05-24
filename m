@@ -1,357 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:32894 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750986AbcEGPW2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 May 2016 11:22:28 -0400
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-	ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-	thierry.reding@gmail.com, bcousson@baylibre.com, tony@atomide.com,
-	linux@arm.linux.org.uk, mchehab@osg.samsung.com
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-pwm@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	sre@kernel.org, pali.rohar@gmail.com,
-	Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Subject: [PATCH 6/7] [media] ir-rx51: use hrtimer instead of dmtimer
-Date: Sat,  7 May 2016 18:21:47 +0300
-Message-Id: <1462634508-24961-7-git-send-email-ivo.g.dimitrov.75@gmail.com>
-In-Reply-To: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
-References: <1462634508-24961-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:38874 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752915AbcEXLTF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 07:19:05 -0400
+Date: Tue, 24 May 2016 13:19:01 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media]: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20160524111901.GB18307@amd>
+References: <20160501134122.GG26360@valkosipuli.retiisi.org.uk>
+ <1462287004-21099-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1462287004-21099-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Drop dmtimer usage for pulse timer in favor of hrtimer. That allows
-removing PWM dmitimer platform data usage.
+Hi!
 
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |   4 -
- arch/arm/mach-omap2/pdata-quirks.c           |   3 -
- drivers/media/rc/ir-rx51.c                   | 166 ++++++---------------------
- include/linux/platform_data/media/ir-rx51.h  |   1 -
- 4 files changed, 37 insertions(+), 137 deletions(-)
+> The sensor is found in Nokia N900 main camera
+> 
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index e487575..a5ab712 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -1242,10 +1242,6 @@ static struct pwm_omap_dmtimer_pdata __maybe_unused pwm_dmtimer_pdata = {
- #if defined(CONFIG_IR_RX51) || defined(CONFIG_IR_RX51_MODULE)
- static struct lirc_rx51_platform_data rx51_lirc_data = {
- 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
--#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
--	.dmtimer = &pwm_dmtimer_pdata,
--#endif
--
- };
- 
- static struct platform_device rx51_lirc_device = {
-diff --git a/arch/arm/mach-omap2/pdata-quirks.c b/arch/arm/mach-omap2/pdata-quirks.c
-index c15ccac..8936ffc 100644
---- a/arch/arm/mach-omap2/pdata-quirks.c
-+++ b/arch/arm/mach-omap2/pdata-quirks.c
-@@ -486,9 +486,6 @@ static struct pwm_omap_dmtimer_pdata pwm_dmtimer_pdata = {
- 
- static struct lirc_rx51_platform_data __maybe_unused rx51_lirc_data = {
- 	.set_max_mpu_wakeup_lat = omap_pm_set_max_mpu_wakeup_lat,
--#if IS_ENABLED(CONFIG_OMAP_DM_TIMER)
--	.dmtimer = &pwm_dmtimer_pdata,
--#endif
- };
- 
- static struct platform_device __maybe_unused rx51_lirc_device = {
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 7a329d8..9dbe0a4 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -22,10 +22,10 @@
- #include <linux/wait.h>
- #include <linux/pwm.h>
- #include <linux/of.h>
-+#include <linux/hrtimer.h>
- 
- #include <media/lirc.h>
- #include <media/lirc_dev.h>
--#include <linux/platform_data/pwm_omap_dmtimer.h>
- #include <linux/platform_data/media/ir-rx51.h>
- 
- #define LIRC_RX51_DRIVER_FEATURES (LIRC_CAN_SET_SEND_DUTY_CYCLE |	\
-@@ -36,32 +36,26 @@
- 
- #define WBUF_LEN 256
- 
--#define TIMER_MAX_VALUE 0xffffffff
--
- struct lirc_rx51 {
- 	struct pwm_device *pwm;
--	pwm_omap_dmtimer *pulse_timer;
--	struct pwm_omap_dmtimer_pdata *dmtimer;
-+	struct hrtimer timer;
- 	struct device	     *dev;
- 	struct lirc_rx51_platform_data *pdata;
- 	wait_queue_head_t     wqueue;
- 
--	unsigned long	fclk_khz;
- 	unsigned int	freq;		/* carrier frequency */
- 	unsigned int	duty_cycle;	/* carrier duty cycle */
--	unsigned int	irq_num;
--	unsigned int	match;
- 	int		wbuf[WBUF_LEN];
- 	int		wbuf_index;
- 	unsigned long	device_is_open;
- };
- 
--static void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
-+static inline void lirc_rx51_on(struct lirc_rx51 *lirc_rx51)
- {
- 	pwm_enable(lirc_rx51->pwm);
- }
- 
--static void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
-+static inline void lirc_rx51_off(struct lirc_rx51 *lirc_rx51)
- {
- 	pwm_disable(lirc_rx51->pwm);
- }
-@@ -72,61 +66,21 @@ static int init_timing_params(struct lirc_rx51 *lirc_rx51)
- 	int duty, period = DIV_ROUND_CLOSEST(NSEC_PER_SEC, lirc_rx51->freq);
- 
- 	duty = DIV_ROUND_CLOSEST(lirc_rx51->duty_cycle * period, 100);
--	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
- 
- 	pwm_config(pwm, duty, period);
- 
--	lirc_rx51->dmtimer->start(lirc_rx51->pulse_timer);
--
--	lirc_rx51->match = 0;
--
- 	return 0;
- }
- 
--#define tics_after(a, b) ((long)(b) - (long)(a) < 0)
--
--static int pulse_timer_set_timeout(struct lirc_rx51 *lirc_rx51, int usec)
-+static enum hrtimer_restart lirc_rx51_timer_cb(struct hrtimer *timer)
- {
--	int counter;
--
--	BUG_ON(usec < 0);
--
--	if (lirc_rx51->match == 0)
--		counter = lirc_rx51->dmtimer->read_counter(lirc_rx51->pulse_timer);
--	else
--		counter = lirc_rx51->match;
--
--	counter += (u32)(lirc_rx51->fclk_khz * usec / (1000));
--	lirc_rx51->dmtimer->set_match(lirc_rx51->pulse_timer, 1, counter);
--	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer,
--					   PWM_OMAP_DMTIMER_INT_MATCH);
--	if (tics_after(lirc_rx51->dmtimer->read_counter(lirc_rx51->pulse_timer),
--		       counter)) {
--		return 1;
--	}
--	return 0;
--}
-+	struct lirc_rx51 *lirc_rx51 =
-+			container_of(timer, struct lirc_rx51, timer);
-+	ktime_t now;
- 
--static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
--{
--	unsigned int retval;
--	struct lirc_rx51 *lirc_rx51 = ptr;
--
--	retval = lirc_rx51->dmtimer->read_status(lirc_rx51->pulse_timer);
--	if (!retval)
--		return IRQ_NONE;
--
--	if (retval & ~PWM_OMAP_DMTIMER_INT_MATCH)
--		dev_err_ratelimited(lirc_rx51->dev,
--				": Unexpected interrupt source: %x\n", retval);
--
--	lirc_rx51->dmtimer->write_status(lirc_rx51->pulse_timer,
--					 PWM_OMAP_DMTIMER_INT_MATCH |
--					 PWM_OMAP_DMTIMER_INT_OVERFLOW |
--					 PWM_OMAP_DMTIMER_INT_CAPTURE);
- 	if (lirc_rx51->wbuf_index < 0) {
- 		dev_err_ratelimited(lirc_rx51->dev,
--				": BUG wbuf_index has value of %i\n",
-+				"BUG wbuf_index has value of %i\n",
- 				lirc_rx51->wbuf_index);
- 		goto end;
- 	}
-@@ -136,6 +90,8 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
- 	 * pulses until we catch up.
- 	 */
- 	do {
-+		u64 ns;
-+
- 		if (lirc_rx51->wbuf_index >= WBUF_LEN)
- 			goto end;
- 		if (lirc_rx51->wbuf[lirc_rx51->wbuf_index] == -1)
-@@ -146,80 +102,24 @@ static irqreturn_t lirc_rx51_interrupt_handler(int irq, void *ptr)
- 		else
- 			lirc_rx51_on(lirc_rx51);
- 
--		retval = pulse_timer_set_timeout(lirc_rx51,
--					lirc_rx51->wbuf[lirc_rx51->wbuf_index]);
-+		ns = 1000 * lirc_rx51->wbuf[lirc_rx51->wbuf_index];
-+		hrtimer_add_expires_ns(timer, ns);
-+
- 		lirc_rx51->wbuf_index++;
- 
--	} while (retval);
-+		now = timer->base->get_time();
-+
-+	} while (hrtimer_get_expires_tv64(timer) < now.tv64);
- 
--	return IRQ_HANDLED;
-+	return HRTIMER_RESTART;
- end:
- 	/* Stop TX here */
- 	lirc_rx51_off(lirc_rx51);
- 	lirc_rx51->wbuf_index = -1;
- 
--	lirc_rx51->dmtimer->stop(lirc_rx51->pulse_timer);
--	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
- 	wake_up_interruptible(&lirc_rx51->wqueue);
- 
--	return IRQ_HANDLED;
--}
--
--static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
--{
--	struct clk *clk_fclk;
--	int retval;
--
--	lirc_rx51->pwm = pwm_get(lirc_rx51->dev, NULL);
--	if (IS_ERR(lirc_rx51->pwm)) {
--		retval = PTR_ERR(lirc_rx51->pwm);
--		dev_err(lirc_rx51->dev, ": pwm_get failed: %d\n", retval);
--		return retval;
--	}
--
--	lirc_rx51->pulse_timer = lirc_rx51->dmtimer->request();
--	if (lirc_rx51->pulse_timer == NULL) {
--		dev_err(lirc_rx51->dev, ": Error requesting pulse timer\n");
--		retval = -EBUSY;
--		goto err1;
--	}
--
--	lirc_rx51->dmtimer->set_source(lirc_rx51->pulse_timer,
--				       PWM_OMAP_DMTIMER_SRC_SYS_CLK);
--	lirc_rx51->dmtimer->enable(lirc_rx51->pulse_timer);
--	lirc_rx51->irq_num =
--			lirc_rx51->dmtimer->get_irq(lirc_rx51->pulse_timer);
--	retval = request_irq(lirc_rx51->irq_num, lirc_rx51_interrupt_handler,
--			     IRQF_SHARED, "lirc_pulse_timer", lirc_rx51);
--	if (retval) {
--		dev_err(lirc_rx51->dev, ": Failed to request interrupt line\n");
--		goto err2;
--	}
--
--	clk_fclk = lirc_rx51->dmtimer->get_fclk(lirc_rx51->pulse_timer);
--	lirc_rx51->fclk_khz = clk_get_rate(clk_fclk) / 1000;
--
--	return 0;
--
--err2:
--	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
--err1:
--	pwm_put(lirc_rx51->pwm);
--
--	return retval;
--}
--
--static int lirc_rx51_free_port(struct lirc_rx51 *lirc_rx51)
--{
--	lirc_rx51->dmtimer->set_int_enable(lirc_rx51->pulse_timer, 0);
--	free_irq(lirc_rx51->irq_num, lirc_rx51);
--	lirc_rx51_off(lirc_rx51);
--	lirc_rx51->dmtimer->disable(lirc_rx51->pulse_timer);
--	lirc_rx51->dmtimer->free(lirc_rx51->pulse_timer);
--	lirc_rx51->wbuf_index = -1;
--	pwm_put(lirc_rx51->pwm);
--
--	return 0;
-+	return HRTIMER_NORESTART;
- }
- 
- static ssize_t lirc_rx51_write(struct file *file, const char *buf,
-@@ -258,8 +158,9 @@ static ssize_t lirc_rx51_write(struct file *file, const char *buf,
- 
- 	lirc_rx51_on(lirc_rx51);
- 	lirc_rx51->wbuf_index = 1;
--	pulse_timer_set_timeout(lirc_rx51, lirc_rx51->wbuf[0]);
--
-+	hrtimer_start(&lirc_rx51->timer,
-+		      ns_to_ktime(1000 * lirc_rx51->wbuf[0]),
-+		      HRTIMER_MODE_REL);
- 	/*
- 	 * Don't return back to the userspace until the transfer has
- 	 * finished
-@@ -359,14 +260,24 @@ static int lirc_rx51_open(struct inode *inode, struct file *file)
- 	if (test_and_set_bit(1, &lirc_rx51->device_is_open))
- 		return -EBUSY;
- 
--	return lirc_rx51_init_port(lirc_rx51);
-+	lirc_rx51->pwm = pwm_get(lirc_rx51->dev, NULL);
-+	if (IS_ERR(lirc_rx51->pwm)) {
-+		int res = PTR_ERR(lirc_rx51->pwm);
-+
-+		dev_err(lirc_rx51->dev, "pwm_get failed: %d\n", res);
-+		return res;
-+	}
-+
-+	return 0;
- }
- 
- static int lirc_rx51_release(struct inode *inode, struct file *file)
- {
- 	struct lirc_rx51 *lirc_rx51 = file->private_data;
- 
--	lirc_rx51_free_port(lirc_rx51);
-+	hrtimer_cancel(&lirc_rx51->timer);
-+	lirc_rx51_off(lirc_rx51);
-+	pwm_put(lirc_rx51->pwm);
- 
- 	clear_bit(1, &lirc_rx51->device_is_open);
- 
-@@ -441,11 +352,6 @@ static int lirc_rx51_probe(struct platform_device *dev)
- 		return -ENXIO;
- 	}
- 
--	if (!lirc_rx51.pdata->dmtimer) {
--		dev_err(&dev->dev, "no dmtimer?\n");
--		return -ENODEV;
--	}
--
- 	pwm = pwm_get(&dev->dev, NULL);
- 	if (IS_ERR(pwm)) {
- 		int err = PTR_ERR(pwm);
-@@ -459,7 +365,9 @@ static int lirc_rx51_probe(struct platform_device *dev)
- 	lirc_rx51.freq = DIV_ROUND_CLOSEST(pwm_get_period(pwm), NSEC_PER_SEC);
- 	pwm_put(pwm);
- 
--	lirc_rx51.dmtimer = lirc_rx51.pdata->dmtimer;
-+	hrtimer_init(&lirc_rx51.timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-+	lirc_rx51.timer.function = lirc_rx51_timer_cb;
-+
- 	lirc_rx51.dev = &dev->dev;
- 	lirc_rx51_driver.dev = &dev->dev;
- 	lirc_rx51_driver.minor = lirc_register_driver(&lirc_rx51_driver);
-diff --git a/include/linux/platform_data/media/ir-rx51.h b/include/linux/platform_data/media/ir-rx51.h
-index 6acf22d..812d873 100644
---- a/include/linux/platform_data/media/ir-rx51.h
-+++ b/include/linux/platform_data/media/ir-rx51.h
-@@ -3,7 +3,6 @@
- 
- struct lirc_rx51_platform_data {
- 	int(*set_max_mpu_wakeup_lat)(struct device *dev, long t);
--	struct pwm_omap_dmtimer_pdata *dmtimer;
- };
- 
- #endif
+> +/*
+> + * A buffered write method that puts the wanted register write
+> + * commands in a message list and passes the list to the i2c framework
+> + */
+> +static int et8ek8_i2c_buffered_write_regs(struct i2c_client *client,
+> +					  const struct et8ek8_reg *wnext,
+> +					  int cnt)
+> +{
+> +	/* FIXME: check how big cnt is */
+> +	struct i2c_msg msg[cnt];
+> +	unsigned char data[cnt][6];
+
+Uff, no, variable length arrays in the kernel. No, I don't think that
+should be done. Rather allocate maximum length here and then check its
+> cnt?
+
+> +/*
+> + * Write a list of registers to i2c device.
+> + *
+> + * The list of registers is terminated by ET8EK8_REG_TERM.
+> + * Returns zero if successful, or non-zero otherwise.
+> + */
+> +static int et8ek8_i2c_write_regs(struct i2c_client *client,
+> +				 const struct et8ek8_reg reglist[])
+> +{
+> +	int r, cnt = 0;
+> +	const struct et8ek8_reg *next, *wnext;
+> +
+> +	if (!client->adapter)
+> +		return -ENODEV;
+> +
+> +	if (reglist == NULL)
+
+(!reglist) ? :-). Actually, you can keep your preffered style there,
+but maybe ammount of if (something that can not happen) return
+... should be reduced. Noone should ever call this without valid
+reglist or client->adapter, right?
+
+> +		return -EINVAL;
+> +
+> +	/* Initialize list pointers to the start of the list */
+> +	next = wnext = reglist;
+> +
+> +	do {
+> +		/*
+> +		 * We have to go through the list to figure out how
+> +		 * many regular writes we have in a row
+> +		 */
+> +		while (next->type != ET8EK8_REG_TERM
+> +		       && next->type != ET8EK8_REG_DELAY) {
+> +			/*
+> +			 * Here we check that the actual length fields
+> +			 * are valid
+> +			 */
+> +			if (next->type != ET8EK8_REG_8BIT
+> +			    &&  next->type != ET8EK8_REG_16BIT) {
+
+Extra space after &&
+
+> +				dev_err(&client->dev,
+> +					"Invalid value on entry %d 0x%x\n",
+> +					cnt, next->type);
+> +				return -EINVAL;
+> +			}
+
+And maybe this could be just BUG_ON(). 
+
+> +static struct et8ek8_reglist *et8ek8_reglist_find_mode_fmt(
+> +		struct et8ek8_meta_reglist *meta,
+> +		struct v4l2_mbus_framefmt *fmt)
+> +{
+> +	struct et8ek8_reglist **list = et8ek8_reglist_first(meta);
+> +	struct et8ek8_reglist *best_match = NULL;
+> +	struct et8ek8_reglist *best_other = NULL;
+> +	struct v4l2_mbus_framefmt format;
+> +	unsigned int max_dist_match = (unsigned int)-1;
+> +	unsigned int max_dist_other = (unsigned int)-1;
+> +
+> +	/* Find the mode with the closest image size. The distance between
+> +	 * image sizes is the size in pixels of the non-overlapping regions
+
+You may want to run checkpatch. I guess it will complain. I doubt it
+matters much :-).
+
+> +	while (meta->reglist[nlists].ptr != NULL)
+> +		nlists++;
+
+...!= NULL) can be removed. ... here and in other places.
+
+> +
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x111B,
+> +				    tp_mode << 4);
+> +	if (rval)
+> +		goto out;
+> +
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x1121,
+> +				    cbh_mode << 7);
+> +	if (rval)
+> +		goto out;
+> +
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x1124,
+> +				    cbv_mode << 7);
+> +	if (rval)
+> +		goto out;
+> +
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x112C, din_sw);
+> +	if (rval)
+> +		goto out;
+> +
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x1420, r1420);
+> +	if (rval)
+> +		goto out;
+> +
+> +out:
+> +	return rval;
+> +}
+
+Goto out when all out does is return is a bit of overkill.
+
+> +static int et8ek8_get_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct et8ek8_sensor *sensor =
+> +		container_of(ctrl->handler, struct et8ek8_sensor, ctrl_handler);
+> +	const struct et8ek8_mode *mode = &sensor->current_reglist->mode;
+> +
+> +	switch (ctrl->id) {
+> +	case ET8EK8_CID_USER_FRAME_WIDTH:
+> +		ctrl->cur.val = mode->width;
+> +		break;
+> +	case ET8EK8_CID_USER_FRAME_HEIGHT:
+> +		ctrl->cur.val = mode->height;
+> +		break;
+> +	case ET8EK8_CID_USER_VISIBLE_WIDTH:
+> +		ctrl->cur.val = mode->window_width;
+> +		break;
+> +	case ET8EK8_CID_USER_VISIBLE_HEIGHT:
+> +		ctrl->cur.val = mode->window_height;
+> +		break;
+> +	case ET8EK8_CID_USER_SENSITIVITY:
+> +		ctrl->cur.val = mode->sensitivity;
+> +		break;
+> +	}
+
+default: return -EINVAL ?
+
+> +	/*
+> +	 * Calculate average pixel clock per line. Assume buffers can spread
+> +	 * the data over horizontal blanking time. Rounding upwards.
+> +	 * Formula taken from stock Nokia N900 kernel
+> +	 */
+
+"kernel."  ?
+
+> +static int et8ek8_power_off(struct et8ek8_sensor *sensor)
+> +{
+> +	int rval;
+> +
+> +	gpiod_set_value(sensor->reset, 0);
+> +	udelay(1);
+> +
+> +	clk_disable_unprepare(sensor->ext_clk);
+> +
+> +	rval = regulator_disable(sensor->vana);
+> +	return rval;
+> +}
+
+get rid of rval, return directly?
+
+> +	udelay(10); /* I wish this is a good value */
+
+Me too ;-).
+
+> +static int et8ek8_g_priv_mem(struct v4l2_subdev *subdev)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> +	unsigned int length = ET8EK8_PRIV_MEM_SIZE;
+> +	unsigned int offset = 0;
+> +	u8 *ptr  = sensor->priv_mem;
+> +	int rval = 0;
+> +
+> +	/* Read the EEPROM window-by-window, each window 8 bytes */
+> +	do {
+> +		u8 buffer[PRIV_MEM_WIN_SIZE];
+> +		struct i2c_msg msg;
+> +		int bytes, i;
+> +		int ofs;
+> +
+> +		/* Set the current window */
+> +		rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x0001,
+> +					    0xe0 | (offset >> 3));
+> +		if (rval < 0)
+> +			goto out;
+
+out: only does return, cleaning it up here will help readability.
+
+> +		/* Wait for status bit */
+> +		for (i = 0; i < 1000; ++i) {
+> +			u32 status;
+> +
+> +			rval = et8ek8_i2c_read_reg(client, ET8EK8_REG_8BIT,
+> +						   0x0003, &status);
+> +			if (rval < 0)
+> +				goto out;
+> +			if ((status & 0x08) == 0)
+> +				break;
+> +			usleep_range(1000, 2000);
+> +		};
+> +
+> +		if (i == 1000) {
+> +			rval = -EIO;
+> +			goto out;
+> +		}
+
+Especially here.
+
+> +		if (rval < 0)
+> +			goto out;
+> +		rval = 0;
+
+And here.
+
+
+> +#ifndef ET8EK8REGS_H
+> +#define ET8EK8REGS_H
+> +
+> +#include <linux/i2c.h>
+> +#include <linux/types.h>
+> +#include <linux/videodev2.h>
+> +#include <linux/v4l2-subdev.h>
+> +
+> +struct v4l2_mbus_framefmt;
+> +struct v4l2_subdev_pad_mbus_code_enum;
+> +
+> +#define ET8EK8_MAGIC			0x531A0002
+> +
+> +struct et8ek8_mode {
+> +	/* Physical sensor resolution and current image window */
+> +	__u16 sensor_width;
+> +	__u16 sensor_height;
+
+Is this exported to userspace?
+
+Thanks,
+									Pavel
 -- 
-1.9.1
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
