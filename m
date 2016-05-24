@@ -1,54 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41330 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753564AbcEWNwW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 May 2016 09:52:22 -0400
-Date: Mon, 23 May 2016 16:52:16 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4 0/6] R-Car VSP: Add and set media entities functions
-Message-ID: <20160523135216.GD26360@valkosipuli.retiisi.org.uk>
-References: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1463701232-22008-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mga02.intel.com ([134.134.136.20]:40731 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752967AbcEXQu7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 12:50:59 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [RFC v2 03/21] media: Prevent queueing queued requests
+Date: Tue, 24 May 2016 19:47:13 +0300
+Message-Id: <1464108451-28142-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 20, 2016 at 02:40:26AM +0300, Laurent Pinchart wrote:
-> Hello,
-> 
-> This patch series adds new media entities functions for video processing and
-> video statistics computation, and updates the VSP driver to use the new
-> functions.
-> 
-> Patches 1/6 and 2/6 define and document the new functions. They have been
-> submitted previously in the "[PATCH v2 00/54] R-Car VSP improvements for v4.7"
-> patch series, this version takes feedback received over e-mail and IRC into
-> account.
-> 
-> Patches 3/6 to 5/6 prepare the VSP driver to report the correct entity
-> functions. They make sure that the LIF will never be exposed to userspace as
-> no function currently exists for that block, and it isn't clear at the moment
-> what new function should be added. As the LIF is only needed when the VSP is
-> controlled directly from the DU driver without being exposed to userspace, a
-> function isn't needed for the LIF anyway.
-> 
-> Patch 6/6 finally sets functions for all the VSP entities.
-> 
-> The code is based on top of the "[PATCH/RFC v2 0/4] Meta-data video device
-> type" patch series, although it doesn't strictly depend on it. For convenience
-> I've pushed all patches to
+Verify that the request state is IDLE before queueing it. Also mark
+requests queued when they're queued, and return the request to IDLE if
+queueing it failed.
 
-Thanks!
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c | 55 +++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 47 insertions(+), 8 deletions(-)
 
-For patches 1 and 2:
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 7781c49..247587b 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -189,6 +189,47 @@ static void media_device_request_delete(struct media_device *mdev,
+ 	media_device_request_put(req);
+ }
+ 
++static int media_device_request_queue_apply(
++	struct media_device *mdev, struct media_device_request *req,
++	int (*fn)(struct media_device *mdev,
++		  struct media_device_request *req), bool queue)
++{
++	char *str = queue ? "queue" : "apply";
++	unsigned long flags;
++	int rval = 0;
++
++	if (!fn)
++		return -ENOSYS;
++
++	spin_lock_irqsave(&mdev->req_lock, flags);
++	if (req->state != MEDIA_DEVICE_REQUEST_STATE_IDLE) {
++		rval = -EINVAL;
++		dev_dbg(mdev->dev,
++			"request: unable to %s %u, request in state %s\n",
++			str, req->id, request_state(req->state));
++	} else {
++		req->state = MEDIA_DEVICE_REQUEST_STATE_QUEUED;
++	}
++	spin_unlock_irqrestore(&mdev->req_lock, flags);
++
++	if (rval)
++		return rval;
++
++	rval = fn(mdev, req);
++	if (rval) {
++		spin_lock_irqsave(&mdev->req_lock, flags);
++		req->state = MEDIA_DEVICE_REQUEST_STATE_IDLE;
++		spin_unlock_irqrestore(&mdev->req_lock, flags);
++		dev_dbg(mdev->dev,
++			"request: can't %s %u\n", str, req->id);
++	} else {
++		dev_dbg(mdev->dev,
++			"request: %s %u\n", str, req->id);
++	}
++
++	return rval;
++}
++
+ static long media_device_request_cmd(struct media_device *mdev,
+ 				     struct file *filp,
+ 				     struct media_request_cmd *cmd)
+@@ -216,17 +257,15 @@ static long media_device_request_cmd(struct media_device *mdev,
+ 		break;
+ 
+ 	case MEDIA_REQ_CMD_APPLY:
+-		if (!mdev->ops->req_apply)
+-			return -ENOSYS;
+-
+-		ret = mdev->ops->req_apply(mdev, req);
++		ret = media_device_request_queue_apply(mdev, req,
++						       mdev->ops->req_apply,
++						       false);
+ 		break;
+ 
+ 	case MEDIA_REQ_CMD_QUEUE:
+-		if (!mdev->ops->req_queue)
+-			return -ENOSYS;
+-
+-		ret = mdev->ops->req_queue(mdev, req);
++		ret = media_device_request_queue_apply(mdev, req,
++						       mdev->ops->req_queue,
++						       true);
+ 		break;
+ 
+ 	default:
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.9.1
+
