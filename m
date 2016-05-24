@@ -1,61 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47547 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756528AbcEaVel (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:36755 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751587AbcEXVTs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2016 17:34:41 -0400
-Date: Tue, 31 May 2016 23:34:37 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-	pali.rohar@gmail.com, sre@kernel.org,
-	kernel list <linux-kernel@vger.kernel.org>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-	linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv5] support for AD5820 camera auto-focus coil
-Message-ID: <20160531213437.GA28397@amd>
-References: <20160517181927.GA28741@amd>
- <20160521054336.GA27123@amd>
- <573FFF51.1000004@gmail.com>
- <20160521105607.GA20071@amd>
- <574049EF.2090208@gmail.com>
- <20160524090433.GA1277@amd>
- <20160524091746.GA14536@amd>
- <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+	Tue, 24 May 2016 17:19:48 -0400
+Received: by mail-wm0-f50.google.com with SMTP id n129so150938553wmn.1
+        for <linux-media@vger.kernel.org>; Tue, 24 May 2016 14:19:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160531212222.GP26360@valkosipuli.retiisi.org.uk>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 24 May 2016 23:19:27 +0200
+Message-ID: <CAPybu_3+PsND193UKfrP7Hy_Qs7gu=QWRxZcmfiDaDRmiC6h4g@mail.gmail.com>
+Subject: RFC: HSV format
+To: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 2016-06-01 00:22:22, Sakari Ailus wrote:
-> Hi Pavel,
-> 
-> On Fri, May 27, 2016 at 10:51:40PM +0200, Pavel Machek wrote:
-> > 
-> > This adds support for AD5820 autofocus coil, found for example in
-> > Nokia N900 smartphone.
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> The patch looks good to me but then I came to think of a question I've
-> missed so far: is there DT documentation somewhere for the properties used
-> by the driver? I might put that to a separate patch, and cc the relevant
-> list.
+Hi
 
-Well, it does not use any dt properties. So there's not really much to
-discuss with dt people...
+HSV is a  cylindrical-coordinate representation of a color. It is very
+useful for computer vision because the Hue component can be used to
+segment a scene.
 
-Maybe "ad5820" needs to go to list of simple i2c drivers somewhere,
-but...
+My plan was to add a format in videodev2.h and then add support for
+vivid, libv4l2-convert and qv4l2.
 
-Best regards,
-									Pavel
+There are also plans to prepare a patch for opencv to use this format
+without any software conversion, and also for Gstreamer... but all
+these changes depend on the changes on videodev2.h
+
+The question is how open would be the linux-media community for such a
+change, considering that there is no real device driver using it in
+tree ( Our hardware is currently out of tree_
+
+Today we only have an HSV format on v4l2-mediabus.h
+V4L2_MBUS_FROM_MEDIA_BUS_FMT(AHSV8888_1X32), but no HSV format on
+videodev2.h
+
+
+Thanks!!!
+
+
+
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Ricardo Ribalda
