@@ -1,125 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56641 "EHLO
-	lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757197AbcFAC2u (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34519 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754927AbcEXJEh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 May 2016 22:28:50 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by tschai.lan (Postfix) with ESMTPSA id 1F0E9180160
-	for <linux-media@vger.kernel.org>; Wed,  1 Jun 2016 04:28:45 +0200 (CEST)
-Date: Wed, 01 Jun 2016 04:28:45 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160601022845.1F0E9180160@tschai.lan>
+	Tue, 24 May 2016 05:04:37 -0400
+Date: Tue, 24 May 2016 11:04:33 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: pali.rohar@gmail.com, sre@kernel.org,
+	kernel list <linux-kernel@vger.kernel.org>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+	aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+	linux-media@vger.kernel.org, mchehab@osg.samsung.com,
+	sakari.ailus@iki.fi
+Subject: Re: [PATCHv3] support for AD5820 camera auto-focus coil
+Message-ID: <20160524090433.GA1277@amd>
+References: <20160517181927.GA28741@amd>
+ <20160521054336.GA27123@amd>
+ <573FFF51.1000004@gmail.com>
+ <20160521105607.GA20071@amd>
+ <574049EF.2090208@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <574049EF.2090208@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi!
 
-Results of the daily build of media_tree:
+> >+static int ad5820_registered(struct v4l2_subdev *subdev)
+> >+{
+> >+	struct ad5820_device *coil = to_ad5820_device(subdev);
+> >+	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> >+
+> >+	coil->vana = regulator_get(&client->dev, "VANA");
+> 
+> devm_regulator_get()?
 
-date:		Wed Jun  1 04:00:24 CEST 2016
-git branch:	test
-git hash:	de42e7655d504ceeda53e009b8860ba4bd007ab5
-gcc version:	i686-linux-gcc (GCC) 5.3.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.5.0-264
+I'd rather avoid devm_ here. Driver is simple enough to allow it.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-mx: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-arm-omap1: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.23-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0-i686: ERRORS
-linux-4.1.1-i686: ERRORS
-linux-4.2-i686: ERRORS
-linux-4.3-i686: ERRORS
-linux-4.4-i686: ERRORS
-linux-4.5-i686: ERRORS
-linux-4.6-i686: ERRORS
-linux-4.7-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.23-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0-x86_64: ERRORS
-linux-4.1.1-x86_64: ERRORS
-linux-4.2-x86_64: ERRORS
-linux-4.3-x86_64: ERRORS
-linux-4.4-x86_64: ERRORS
-linux-4.5-x86_64: ERRORS
-linux-4.6-x86_64: ERRORS
-linux-4.7-rc1-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+> >+#define AD5820_RAMP_MODE_LINEAR		(0 << 3)
+> >+#define AD5820_RAMP_MODE_64_16		(1 << 3)
+> >+
+> >+struct ad5820_platform_data {
+> >+	int (*set_xshutdown)(struct v4l2_subdev *subdev, int set);
+> >+};
+> >+
+> >+#define to_ad5820_device(sd)	container_of(sd, struct ad5820_device, subdev)
+> >+
+> >+struct ad5820_device {
+> >+	struct v4l2_subdev subdev;
+> >+	struct ad5820_platform_data *platform_data;
+> >+	struct regulator *vana;
+> >+
+> >+	struct v4l2_ctrl_handler ctrls;
+> >+	u32 focus_absolute;
+> >+	u32 focus_ramp_time;
+> >+	u32 focus_ramp_mode;
+> >+
+> >+	struct mutex power_lock;
+> >+	int power_count;
+> >+
+> >+	int standby : 1;
+> >+};
+> >+
+> 
+> The same for struct ad5820_device, is it really part of the public API?
 
-Detailed results are available here:
+Let me check what can be done with it.
+									Pavel
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
