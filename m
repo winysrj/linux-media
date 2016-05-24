@@ -1,181 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:5038 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750904AbcEDM3q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 08:29:46 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	mchehab@osg.samsung.com,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH 1/3] media: Move media_device link_notify operation to an ops structure
-Date: Wed,  4 May 2016 15:26:43 +0300
-Message-Id: <1462364803-2579-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1462361133-23887-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1462361133-23887-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-by2on0076.outbound.protection.outlook.com ([207.46.100.76]:44839
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752519AbcEXOt2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 10:49:28 -0400
+From: Dragos Bogdan <dragos.bogdan@analog.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+CC: Lars-Peter Clausen <lars@metafoo.de>,
+	<linux-media@vger.kernel.org>,
+	Dragos Bogdan <dragos.bogdan@analog.com>
+Subject: [PATCH v2] [media] adv7604: Add support for hardware reset
+Date: Tue, 24 May 2016 17:33:27 +0300
+Message-ID: <1464100407-5935-1-git-send-email-dragos.bogdan@analog.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+The part can be reset by a low pulse on the RESET pin (i.e. a hardware
+reset) with a minimum width of 5 ms. It is recommended to wait 5 ms
+after the low pulse before an I2C write is performed to the part.
+For safety reasons, the delays will be between 5 and 10 ms.
 
-This will allow adding new operations without increasing the
-media_device structure size for drivers that don't implement any media
-device operation.
+The RESET pin can be tied high, so the GPIO is optional.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
-Fix compilation error for the omap3isp driver.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Dragos Bogdan <dragos.bogdan@analog.com>
 ---
- drivers/media/media-entity.c                  | 11 ++++++-----
- drivers/media/platform/exynos4-is/media-dev.c |  6 +++++-
- drivers/media/platform/omap3isp/isp.c         |  6 +++++-
- drivers/staging/media/omap4iss/iss.c          |  6 +++++-
- include/media/media-device.h                  | 16 ++++++++++++----
- 5 files changed, 33 insertions(+), 12 deletions(-)
+Changes since v1:
+ - Replace mdelay() with usleep_range();
+ - Limit the comments to 75 characters per line.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index c53c1d5..301fd4f 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -806,17 +806,18 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
+ drivers/media/i2c/adv7604.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 41a1bfc..73c79bb 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -164,6 +164,7 @@ struct adv76xx_state {
+ 	struct adv76xx_platform_data pdata;
  
- 	mdev = source->graph_obj.mdev;
+ 	struct gpio_desc *hpd_gpio[4];
++	struct gpio_desc *reset_gpio;
  
--	if (mdev->link_notify) {
--		ret = mdev->link_notify(link, flags,
--					MEDIA_DEV_NOTIFY_PRE_LINK_CH);
-+	if (mdev->ops && mdev->ops->link_notify) {
-+		ret = mdev->ops->link_notify(link, flags,
-+					     MEDIA_DEV_NOTIFY_PRE_LINK_CH);
- 		if (ret < 0)
- 			return ret;
- 	}
- 
- 	ret = __media_entity_setup_link_notify(link, flags);
- 
--	if (mdev->link_notify)
--		mdev->link_notify(link, flags, MEDIA_DEV_NOTIFY_POST_LINK_CH);
-+	if (mdev->ops && mdev->ops->link_notify)
-+		mdev->ops->link_notify(link, flags,
-+				       MEDIA_DEV_NOTIFY_POST_LINK_CH);
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 04348b5..1ed1a9e 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1190,6 +1190,10 @@ static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
- 	return ret ? -EPIPE : 0;
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pads[ADV76XX_PAD_MAX];
+@@ -2996,6 +2997,21 @@ static int configure_regmaps(struct adv76xx_state *state)
+ 	return 0;
  }
  
-+static const struct media_device_ops fimc_md_ops = {
-+	.link_notify = fimc_md_link_notify,
-+};
++static int adv76xx_reset(struct adv76xx_state *state)
++{
++	if (state->reset_gpio) {
++		/* ADV76XX can be reset by a low reset pulse of minimum 5 ms. */
++		gpiod_set_value_cansleep(state->reset_gpio, 0);
++		usleep_range(5000, 10000);
++		gpiod_set_value_cansleep(state->reset_gpio, 1);
++		/* It is recommended to wait 5 ms after the low pulse before */
++		/* an I2C write is performed to the ADV76XX. */
++		usleep_range(5000, 10000);
++	}
 +
- static ssize_t fimc_md_sysfs_show(struct device *dev,
- 				  struct device_attribute *attr, char *buf)
++	return 0;
++}
++
+ static int adv76xx_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
  {
-@@ -1416,7 +1420,7 @@ static int fimc_md_probe(struct platform_device *pdev)
- 
- 	strlcpy(fmd->media_dev.model, "SAMSUNG S5P FIMC",
- 		sizeof(fmd->media_dev.model));
--	fmd->media_dev.link_notify = fimc_md_link_notify;
-+	fmd->media_dev.ops = &fimc_md_ops;
- 	fmd->media_dev.dev = dev;
- 
- 	v4l2_dev = &fmd->v4l2_dev;
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 5d54e2c..0321d84 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -657,6 +657,10 @@ static irqreturn_t isp_isr(int irq, void *_isp)
- 	return IRQ_HANDLED;
- }
- 
-+static const struct media_device_ops isp_media_ops = {
-+	.link_notify = v4l2_pipeline_link_notify,
-+};
+@@ -3059,6 +3075,12 @@ static int adv76xx_probe(struct i2c_client *client,
+ 		if (state->hpd_gpio[i])
+ 			v4l_info(client, "Handling HPD %u GPIO\n", i);
+ 	}
++	state->reset_gpio = devm_gpiod_get_optional(&client->dev, "reset",
++								GPIOD_OUT_HIGH);
++	if (IS_ERR(state->reset_gpio))
++		return PTR_ERR(state->reset_gpio);
 +
- /* -----------------------------------------------------------------------------
-  * Pipeline stream management
-  */
-@@ -1680,7 +1684,7 @@ static int isp_register_entities(struct isp_device *isp)
- 	strlcpy(isp->media_dev.model, "TI OMAP3 ISP",
- 		sizeof(isp->media_dev.model));
- 	isp->media_dev.hw_revision = isp->revision;
--	isp->media_dev.link_notify = v4l2_pipeline_link_notify;
-+	isp->media_dev.ops = &isp_media_ops;
- 	media_device_init(&isp->media_dev);
++	adv76xx_reset(state);
  
- 	isp->v4l2_dev.mdev = &isp->media_dev;
-diff --git a/drivers/staging/media/omap4iss/iss.c b/drivers/staging/media/omap4iss/iss.c
-index c5a5138..355a704 100644
---- a/drivers/staging/media/omap4iss/iss.c
-+++ b/drivers/staging/media/omap4iss/iss.c
-@@ -362,6 +362,10 @@ static irqreturn_t iss_isr(int irq, void *_iss)
- 	return IRQ_HANDLED;
- }
- 
-+static const struct media_device_ops iss_media_ops = {
-+	.link_notify = v4l2_pipeline_link_notify,
-+};
-+
- /* -----------------------------------------------------------------------------
-  * Pipeline stream management
-  */
-@@ -988,7 +992,7 @@ static int iss_register_entities(struct iss_device *iss)
- 	strlcpy(iss->media_dev.model, "TI OMAP4 ISS",
- 		sizeof(iss->media_dev.model));
- 	iss->media_dev.hw_revision = iss->revision;
--	iss->media_dev.link_notify = v4l2_pipeline_link_notify;
-+	iss->media_dev.ops = &iss_media_ops;
- 	ret = media_device_register(&iss->media_dev);
- 	if (ret < 0) {
- 		dev_err(iss->dev, "Media device registration failed (%d)\n",
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index a9b33c4..19c8ed4 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -280,6 +280,16 @@ struct media_entity_notify {
- };
- 
- /**
-+ * struct media_device_ops - Media device operations
-+ * @link_notify: Link state change notification callback. This callback is
-+ *		 called with the graph_mutex held.
-+ */
-+struct media_device_ops {
-+	int (*link_notify)(struct media_link *link, u32 flags,
-+			   unsigned int notification);
-+};
-+
-+/**
-  * struct media_device - Media device
-  * @dev:	Parent device
-  * @devnode:	Media device node
-@@ -311,8 +321,7 @@ struct media_entity_notify {
-  * @enable_source: Enable Source Handler function pointer
-  * @disable_source: Disable Source Handler function pointer
-  *
-- * @link_notify: Link state change notification callback. This callback is
-- *		 called with the graph_mutex held.
-+ * @ops:	Operation handler callbacks
-  *
-  * This structure represents an abstract high-level media device. It allows easy
-  * access to entities and provides basic media device-level support. The
-@@ -379,8 +388,7 @@ struct media_device {
- 			     struct media_pipeline *pipe);
- 	void (*disable_source)(struct media_entity *entity);
- 
--	int (*link_notify)(struct media_link *link, u32 flags,
--			   unsigned int notification);
-+	const struct media_device_ops *ops;
- };
- 
- /* We don't need to include pci.h or usb.h here */
+ 	state->timings = cea640x480;
+ 	state->format = adv76xx_format_info(state, MEDIA_BUS_FMT_YUYV8_2X8);
 -- 
-1.9.1
+2.1.4
 
