@@ -1,51 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from m50-133.163.com ([123.125.50.133]:49738 "EHLO m50-133.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752045AbcEKJTW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 May 2016 05:19:22 -0400
-From: zengzhaoxiu@163.com
-To: linux-kernel@vger.kernel.org
-Cc: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39096 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751997AbcEXUyw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 16:54:52 -0400
+Date: Tue, 24 May 2016 23:54:48 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
 	linux-media@vger.kernel.org
-Subject: [patch V4 13/31] media: use parity8 in vivid-vbi-gen.c
-Date: Wed, 11 May 2016 17:18:43 +0800
-Message-Id: <1462958323-25137-1-git-send-email-zengzhaoxiu@163.com>
-In-Reply-To: <1462955158-28394-1-git-send-email-zengzhaoxiu@163.com>
-References: <1462955158-28394-1-git-send-email-zengzhaoxiu@163.com>
+Subject: Re: [v4l-utils PATCH 2/2] mediactl: Separate entity and pad parsing
+Message-ID: <20160524205448.GI26360@valkosipuli.retiisi.org.uk>
+References: <1464094083-3637-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1464094083-3637-3-git-send-email-sakari.ailus@linux.intel.com>
+ <3496464.NH5W0U7aUq@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3496464.NH5W0U7aUq@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
+Hi Laurent,
 
-Signed-off-by: Zhaoxiu Zeng <zhaoxiu.zeng@gmail.com>
----
- drivers/media/platform/vivid/vivid-vbi-gen.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+On Tue, May 24, 2016 at 08:14:22PM +0300, Laurent Pinchart wrote:
+...
+> > +struct media_pad *media_parse_pad(struct media_device *media,
+> > +				  const char *p, char **endp)
+> > +{
+> > +	unsigned int pad;
+> > +	struct media_entity *entity;
+> > +	char *end;
+> > +
+> > +	if (endp == NULL)
+> > +		endp = &end;
+> > +
+> > +	entity = media_parse_entity(media, p, &end);
+> > +	if (!entity)
+> > +		return NULL;
+> > +	*endp = end;
+> 
+> Did you mean
+> 
+> 	if (!entity) {
+> 		*endp = end;
+> 		return NULL;
+> 	}
+> 
+> ? There's no need to assign endp after the check as all return paths below 
+> assign it correctly, but it should be set when returning an error here.
 
-diff --git a/drivers/media/platform/vivid/vivid-vbi-gen.c b/drivers/media/platform/vivid/vivid-vbi-gen.c
-index a2159de..d5ba0fc 100644
---- a/drivers/media/platform/vivid/vivid-vbi-gen.c
-+++ b/drivers/media/platform/vivid/vivid-vbi-gen.c
-@@ -175,14 +175,9 @@ static const u8 vivid_cc_sequence2[30] = {
- 	0x14, 0x2f,	/* End of Caption */
- };
- 
--static u8 calc_parity(u8 val)
-+static inline u8 calc_parity(u8 val)
- {
--	unsigned i;
--	unsigned tot = 0;
--
--	for (i = 0; i < 7; i++)
--		tot += (val & (1 << i)) ? 1 : 0;
--	return val | ((tot & 1) ? 0 : 0x80);
-+	return (!parity8(val) << 7) | val;
- }
- 
- static void vivid_vbi_gen_set_time_of_day(u8 *packet)
+Good catch! Yeah, it's a bug, I'll fix that.
+
 -- 
-2.7.4
+Cheers,
 
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
