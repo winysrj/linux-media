@@ -1,151 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:33671 "EHLO
-	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757695AbcEDIc2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 May 2016 04:32:28 -0400
-Subject: Re: [PATCH v3] media: vb2-dma-contig: configure DMA max segment size
- properly
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <57271235.9030004@xs4all.nl>
- <1462186753-4177-1-git-send-email-m.szyprowski@samsung.com>
- <5729B145.8030208@xs4all.nl>
- <b2c9a419-8011-8631-51cd-ed1f7473ce08@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5729B396.1020706@xs4all.nl>
-Date: Wed, 4 May 2016 10:32:22 +0200
-MIME-Version: 1.0
-In-Reply-To: <b2c9a419-8011-8631-51cd-ed1f7473ce08@samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mga04.intel.com ([192.55.52.120]:40517 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755443AbcEXQvC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 12:51:02 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com,
+	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [RFC v2 19/21] DocBook: media: Document the V4L2 subdev request API
+Date: Tue, 24 May 2016 19:47:29 +0300
+Message-Id: <1464108451-28142-20-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-On 05/04/2016 10:28 AM, Marek Szyprowski wrote:
-> Hi Hans,
-> 
-> 
-> On 2016-05-04 10:22, Hans Verkuil wrote:
->> Hi Marek,
->>
->> On 05/02/2016 12:59 PM, Marek Szyprowski wrote:
->>> This patch lets vb2-dma-contig memory allocator to configure DMA max
->>> segment size properly for the client device. Setting it is needed to let
->>> DMA-mapping subsystem to create a single, contiguous mapping in DMA
->>> address space. This is essential for all devices, which use dma-contig
->>> videobuf2 memory allocator and shared buffers (in USERPTR or DMAbuf modes
->>> of operations).
->>>
->>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>> ---
->>> Hello,
->>>
->>> This patch is a follow-up of my previous attempts to let Exynos
->>> multimedia devices to work properly with shared buffers when IOMMU is
->>> enabled:
->>> 1. https://www.mail-archive.com/linux-media@vger.kernel.org/msg96946.html
->>> 2. http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/97316
->>> 3. https://patchwork.linuxtv.org/patch/30870/
->>>
->>> As sugested by Hans, configuring DMA max segment size should be done by
->>> videobuf2-dma-contig module instead of requiring all device drivers to
->>> do it on their own.
->>>
->>> Here is some backgroud why this is done in videobuf2-dc not in the
->>> respective generic bus code:
->>> http://lists.infradead.org/pipermail/linux-arm-kernel/2014-November/305913.html
->>>
->>> Best regards,
->>> Marek Szyprowski
->>>
->>> changelog:
->>> v3:
->>> - added FIXME note about possible memory leak
->>>
->>> v2:
->>> - fixes typos and other language issues in the comments
->>>
->>> v1: http://article.gmane.org/gmane.linux.kernel.samsung-soc/53690
->>> ---
->>>   drivers/media/v4l2-core/videobuf2-dma-contig.c | 45 ++++++++++++++++++++++++++
->>>   1 file changed, 45 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>> index 461ae55eaa98..2ca7e798f394 100644
->>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->>> @@ -443,6 +443,42 @@ static void vb2_dc_put_userptr(void *buf_priv)
->>>   }
->>>   
->>>   /*
->>> + * To allow mapping the scatter-list into a single chunk in the DMA
->>> + * address space, the device is required to have the DMA max segment
->>> + * size parameter set to a value larger than the buffer size. Otherwise,
->>> + * the DMA-mapping subsystem will split the mapping into max segment
->>> + * size chunks. This function increases the DMA max segment size
->>> + * parameter to let DMA-mapping map a buffer as a single chunk in DMA
->>> + * address space.
->>> + * This code assumes that the DMA-mapping subsystem will merge all
->>> + * scatterlist segments if this is really possible (for example when
->>> + * an IOMMU is available and enabled).
->>> + * Ideally, this parameter should be set by the generic bus code, but it
->>> + * is left with the default 64KiB value due to historical litmiations in
->>> + * other subsystems (like limited USB host drivers) and there no good
->>> + * place to set it to the proper value. It is done here to avoid fixing
->>> + * all the vb2-dc client drivers.
->>> + *
->>> + * FIXME: the allocated dma_params structure is leaked because there
->>> + * is completely no way to determine when to free it (dma_params might have
->>> + * been also already allocated by the bus code). However in typical
->>> + * use cases this function will be called for platform devices, which are
->>> + * not how-plugged and exist all the time in the target system.
->>> + */
->>> +static int vb2_dc_set_max_seg_size(struct device *dev, unsigned int size)
->>> +{
->>> +	if (!dev->dma_parms) {
->>> +		dev->dma_parms = kzalloc(sizeof(dev->dma_parms), GFP_KERNEL);
->>> +		if (!dev->dma_parms)
->>> +			return -ENOMEM;
->>> +	}
->>> +	if (dma_get_max_seg_size(dev) < size)
->>> +		return dma_set_max_seg_size(dev, size);
->>> +
->>> +	return 0;
->>> +}
->>> +
->>> +/*
->>>    * For some kind of reserved memory there might be no struct page available,
->>>    * so all that can be done to support such 'pages' is to try to convert
->>>    * pfn to dma address or at the last resort just assume that
->>> @@ -499,6 +535,10 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
->>>   		return ERR_PTR(-EINVAL);
->>>   	}
->>>   
->>> +	ret = vb2_dc_set_max_seg_size(dev, PAGE_ALIGN(size + PAGE_SIZE));
->> Huh? Against which kernel do you compile? The get_userptr prototype is different
->> from the latest mainline kernel. Specifically, dev is now conf->dev.
-> 
-> I prepared it on top of your 'context3' branch, as you requested not to 
-> use the
-> allocator context related functions, which best suit for this purpose.
+The V4L2 subdev request API consists in extensions to existing V4L2
+subdev ioctls. Document it.
 
-That's not quite what I meant, sorry for the confusion. My reference to the
-context3 branch was just that: to show upcoming changes and why it was not a
-good idea to call this function from the context allocate/free functions. Since
-those will disappear.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ .../DocBook/media/v4l/vidioc-subdev-g-fmt.xml      | 27 +++++++++++++++++++---
+ .../media/v4l/vidioc-subdev-g-selection.xml        | 24 +++++++++++++++----
+ 2 files changed, 44 insertions(+), 7 deletions(-)
 
-The context3 branch isn't for 4.7 (too late for that), but I want to get it
-in early in the 4.8 cycle.
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
+index 781089c..5cf6d89 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-fmt.xml
+@@ -91,6 +91,13 @@
+     low-pass noise filter might crop pixels at the frame boundaries, modifying
+     its output frame size.</para>
+ 
++    <para>Applications can get and set formats stored in a request by setting
++    the <structfield>which</structfield> field to
++    <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant> and the
++    <structfield>request</structfield> to the request ID. See
++    <xref linkend="v4l2-requests" /> for more information about the request
++    API.</para>
++
+     <para>Drivers must not return an error solely because the requested format
+     doesn't match the device capabilities. They must instead modify the format
+     to match what the hardware can provide. The modified format should be as
+@@ -119,7 +126,15 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry><structfield>request</structfield></entry>
++	    <entry>Request ID, only valid when the <structfield>which</structfield>
++	    field is set to <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant>.
++	    Applications and drivers must set the field to zero in all other
++	    cases.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[7]</entry>
+ 	    <entry>Reserved for future extensions. Applications and drivers must
+ 	    set the array to zero.</entry>
+ 	  </row>
+@@ -142,6 +157,11 @@
+ 	    <entry>1</entry>
+ 	    <entry>Active formats, applied to the hardware.</entry>
+ 	  </row>
++	  <row>
++	    <entry>V4L2_SUBDEV_FORMAT_REQUEST</entry>
++	    <entry>2</entry>
++	    <entry>Request formats, used with the requests API.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+@@ -165,8 +185,9 @@
+ 	<term><errorcode>EINVAL</errorcode></term>
+ 	<listitem>
+ 	  <para>The &v4l2-subdev-format; <structfield>pad</structfield>
+-	  references a non-existing pad, or the <structfield>which</structfield>
+-	  field references a non-existing format.</para>
++	  references a non-existing pad, the <structfield>which</structfield>
++	  field references a non-existing format or the request ID references
++	  a nonexistant request.</para>
+ 	</listitem>
+       </varlistentry>
+     </variablelist>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+index faac955..c0fbfbe 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+@@ -94,6 +94,13 @@
+     handle. Two applications querying the same sub-device would thus not
+     interfere with each other.</para>
+ 
++    <para>Applications can get and set selection rectangles stored in a request
++    by setting the <structfield>which</structfield> field to
++    <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant> and the
++    <structfield>request</structfield> to the request ID. See
++    <xref linkend="v4l2-requests" /> for more information about the request
++    API.</para>
++
+     <para>Drivers must not return an error solely because the requested
+     selection rectangle doesn't match the device capabilities. They must instead
+     modify the rectangle to match what the hardware can provide. The modified
+@@ -128,7 +135,7 @@
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>which</structfield></entry>
+-	    <entry>Active or try selection, from
++	    <entry>Selection to be modified, from
+ 	    &v4l2-subdev-format-whence;.</entry>
+ 	  </row>
+ 	  <row>
+@@ -155,7 +162,15 @@
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry><structfield>request</structfield></entry>
++	    <entry>Request ID, only valid when the <structfield>which</structfield>
++	    field is set to <constant>V4L2_SUBDEV_FORMAT_REQUEST</constant>.
++	    Applications and drivers must set the field to zero in all other
++	    cases.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[7]</entry>
+ 	    <entry>Reserved for future extensions. Applications and drivers must
+ 	    set the array to zero.</entry>
+ 	  </row>
+@@ -187,8 +202,9 @@
+ 	  <para>The &v4l2-subdev-selection;
+ 	  <structfield>pad</structfield> references a non-existing
+ 	  pad, the <structfield>which</structfield> field references a
+-	  non-existing format, or the selection target is not
+-	  supported on the given subdev pad.</para>
++	  non-existing format, the selection target is not supported on
++	  the given subdev pad or the request ID references a nonexistant
++	  request.</para>
+ 	</listitem>
+       </varlistentry>
+     </variablelist>
+-- 
+1.9.1
 
-So just base this patch on the latest media_tree master.
-
-Regards,
-
-	Hans
