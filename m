@@ -1,59 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www381.your-server.de ([78.46.137.84]:44820 "EHLO
-	www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933775AbcECQCm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 May 2016 12:02:42 -0400
-Subject: Re: [PATCH] media: fix use-after-free in cdev_put() when app exits
- after driver unbind
-To: Shuah Khan <shuahkh@osg.samsung.com>, mchehab@osg.samsung.com,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
-References: <1461969452-9276-1-git-send-email-shuahkh@osg.samsung.com>
- <57272910.8090500@metafoo.de> <5728BE73.7020505@osg.samsung.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Lars-Peter Clausen <lars@metafoo.de>
-Message-ID: <5728CB9D.2090509@metafoo.de>
-Date: Tue, 3 May 2016 18:02:37 +0200
-MIME-Version: 1.0
-In-Reply-To: <5728BE73.7020505@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mga11.intel.com ([192.55.52.93]:36539 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752967AbcEXQu5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 May 2016 12:50:57 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	mchehab@osg.samsung.com
+Subject: [RFC v2 04/21] media: Only requests in IDLE state may be deleted
+Date: Tue, 24 May 2016 19:47:14 +0300
+Message-Id: <1464108451-28142-5-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1464108451-28142-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/03/2016 05:06 PM, Shuah Khan wrote:
-> On 05/02/2016 04:16 AM, Lars-Peter Clausen wrote:
->> On 04/30/2016 12:37 AM, Shuah Khan wrote:
->> [...]
->>> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
->>> index 5bb3b0e..ce9b051 100644
->>> --- a/include/media/media-devnode.h
->>> +++ b/include/media/media-devnode.h
->>> @@ -72,6 +72,7 @@ struct media_file_operations {
->>>   * @fops:	pointer to struct &media_file_operations with media device ops
->>>   * @dev:	struct device pointer for the media controller device
->>>   * @cdev:	struct cdev pointer character device
->>> + * @kobj:	struct kobject
->>>   * @parent:	parent device
->>>   * @minor:	device node minor number
->>>   * @flags:	flags, combination of the MEDIA_FLAG_* constants
->>> @@ -91,6 +92,7 @@ struct media_devnode {
->>>  	/* sysfs */
->>>  	struct device dev;		/* media device */
->>>  	struct cdev cdev;		/* character device */
->>> +	struct kobject kobj;		/* set as cdev parent kobj */
->>
->> As said during the previous review, the struct device should be used for
->> reference counting. Otherwise a use-after-free can still occur since you now
->> have two reference counted data structures with independent counters in the
->> same structure. For one of them the counter goes to zero before the other
->> and then you have the use-after-free.
->>
-> 
-> struct device is embedded in the media_devnode and media_devnode
-> will not be released until cdev releases the kobject since it is
-> set as cdeev kobj.parent. I am not seeing any use-fater-free with
-> this scheme.
+Prevent deleting queued requests. Also mark deleted requests as such by
+adding a new state for them.
 
-There might still be a reference to the struct device at that point, so if
-you free the media_devnode there is a use-after-free.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c | 21 +++++++++++++++++----
+ include/media/media-device.h |  1 +
+ 2 files changed, 18 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 247587b..a89d046 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -41,6 +41,7 @@
+ static char *__request_state[] = {
+ 	"IDLE",
+ 	"QUEUED",
++	"DELETED",
+ };
+ 
+ #define request_state(i)			\
+@@ -168,12 +169,22 @@ out_ida_simple_remove:
+ 	return ret;
+ }
+ 
+-static void media_device_request_delete(struct media_device *mdev,
+-					struct media_device_request *req)
++static int media_device_request_delete(struct media_device *mdev,
++				       struct media_device_request *req)
+ {
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&mdev->req_lock, flags);
++
++	if (req->state != MEDIA_DEVICE_REQUEST_STATE_IDLE) {
++		spin_unlock_irqrestore(&mdev->req_lock, flags);
++		dev_dbg(mdev->dev, "request: can't delete %u, state %s\n",
++			req->id, request_state(req->state));
++		return -EINVAL;
++	}
++
++	req->state = MEDIA_DEVICE_REQUEST_STATE_DELETED;
++
+ 	if (req->filp) {
+ 		/*
+ 		 * If the file handle is gone by now the
+@@ -184,9 +195,12 @@ static void media_device_request_delete(struct media_device *mdev,
+ 		list_del(&req->fh_list);
+ 		req->filp = NULL;
+ 	}
++
+ 	spin_unlock_irqrestore(&mdev->req_lock, flags);
+ 
+ 	media_device_request_put(req);
++
++	return 0;
+ }
+ 
+ static int media_device_request_queue_apply(
+@@ -252,8 +266,7 @@ static long media_device_request_cmd(struct media_device *mdev,
+ 		break;
+ 
+ 	case MEDIA_REQ_CMD_DELETE:
+-		media_device_request_delete(mdev, req);
+-		ret = 0;
++		ret = media_device_request_delete(mdev, req);
+ 		break;
+ 
+ 	case MEDIA_REQ_CMD_APPLY:
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 893e10b..df4afeb 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -268,6 +268,7 @@ struct media_device;
+ enum media_device_request_state {
+ 	MEDIA_DEVICE_REQUEST_STATE_IDLE,
+ 	MEDIA_DEVICE_REQUEST_STATE_QUEUED,
++	MEDIA_DEVICE_REQUEST_STATE_DELETED,
+ };
+ 
+ /**
+-- 
+1.9.1
 
